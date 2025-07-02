@@ -73,6 +73,39 @@ graph TB
     BE --> BC
 ```
 
+#### **Detailed Architecture Description**
+
+This diagram illustrates how the Contract Management System integrates both traditional enterprise identity management and modern decentralized identity technologies to create a comprehensive, hybrid authentication system.
+
+**Identity Sources Layer:**
+- **Enterprise SSO (SAML/OIDC)**: Large organizations can integrate their existing identity providers (like Active Directory, Azure AD, or Okta) using standard protocols. This allows employees to use their corporate credentials to access the contract management system.
+- **Social Login (Google, GitHub)**: Individual users can authenticate using their existing social media accounts, providing convenience and reducing friction during registration.
+- **Wallet Authentication (MetaMask)**: Web3-native users can connect using their cryptocurrency wallets, maintaining the decentralized nature of blockchain operations.
+- **DID-based Identity (Self-sovereign)**: Users can create and manage their own decentralized identifiers, giving them complete control over their digital identity without relying on any central authority.
+
+**IAM Layer:**
+- **Keycloak Server**: Acts as the central identity broker, managing user authentication, authorization, and session management. It provides a unified interface for all identity sources.
+- **LDAP/Active Directory**: Enterprise directory services that store user information and credentials, allowing integration with existing corporate identity systems.
+- **DID Registry**: A specialized service that manages decentralized identifiers, including DID document storage, resolution, and verification services.
+
+**Application Layer:**
+- **Frontend React App**: The user interface where users interact with the system. It handles authentication flows, displays user information, and manages the user experience.
+- **Backend API**: The server-side application that processes business logic, manages data, and coordinates between different identity systems.
+- **Blockchain Service**: Handles all blockchain-related operations, including smart contract interactions, transaction management, and blockchain state monitoring.
+
+**Identity Verification Layer:**
+- **JWT Token Validation**: Verifies the authenticity and validity of JSON Web Tokens issued by the IAM system, ensuring secure session management.
+- **DID Resolution**: Retrieves and validates DID documents from the blockchain or other storage systems to verify user identity.
+- **Signature Verification**: Cryptographically verifies digital signatures created by users' private keys, ensuring the authenticity of blockchain transactions and contract signatures.
+
+**Data Flow:**
+The arrows show how data flows through the system:
+1. Users authenticate through various identity sources
+2. Identity information flows to the IAM layer for processing
+3. The IAM layer communicates with the application layer
+4. The application layer performs identity verification before allowing access
+5. All operations are coordinated with the blockchain service for decentralized operations
+
 ### **DID Integration Architecture**
 ```mermaid
 graph TB
@@ -107,6 +140,48 @@ graph TB
     SMART_CONTRACT --> LEDGER
     LEDGER --> EVENTS
 ```
+
+#### **Detailed Architecture Description**
+
+This diagram shows the specific workflow for how Decentralized Identifiers (DIDs) are managed and used within the system, focusing on the technical implementation details.
+
+**DID Management Layer:**
+- **DID Creation**: The process of generating new decentralized identifiers. This can be done automatically when users register with their wallet addresses or manually for key-based DIDs.
+- **DID Resolution**: The technical process of looking up a DID to find its associated DID document, which contains public keys and service endpoints.
+- **DID Verification**: The cryptographic process of verifying that a user controls a specific DID by validating their digital signatures.
+- **DID Document Storage**: The infrastructure for storing DID documents, which can be on-chain (for blockchain-based DIDs) or off-chain (for other DID methods).
+
+**Authentication Flow Layer:**
+- **User**: The human user who wants to access the system or perform actions like signing contracts.
+- **Wallet/DID Agent**: The software component (like MetaMask or a specialized DID wallet) that manages the user's private keys and creates digital signatures.
+- **IAM System**: The traditional identity management system that handles enterprise authentication and user session management.
+- **Application**: The contract management application that coordinates between different authentication methods and business logic.
+
+**Blockchain Integration Layer:**
+- **Smart Contract**: The blockchain-based program that enforces contract terms and records all contract-related activities.
+- **Contract Ledger**: The immutable record of all contract transactions, signatures, and state changes stored on the blockchain.
+- **Event Logging**: The system for recording and monitoring all blockchain events, providing audit trails and real-time updates.
+
+**Detailed Workflow:**
+1. **User Initiation**: A user wants to perform an action (like signing a contract)
+2. **DID Creation**: If the user doesn't have a DID, one is created from their wallet address or generated keys
+3. **Document Storage**: The DID document is stored on-chain or off-chain depending on the DID method
+4. **IAM Authentication**: The user authenticates through the traditional IAM system for access control
+5. **DID Verification**: When performing blockchain operations, the user's DID is verified through cryptographic proof
+6. **Application Processing**: The application coordinates between IAM authentication and DID verification
+7. **Smart Contract Interaction**: Verified actions are recorded on the blockchain through smart contracts
+8. **Ledger Recording**: All activities are permanently recorded in the contract ledger
+9. **Event Logging**: System events are logged for monitoring, auditing, and real-time updates
+
+**Key Benefits of This Architecture:**
+- **Dual Authentication**: Users can authenticate through both traditional IAM (for enterprise access) and DIDs (for blockchain operations)
+- **Self-Sovereign Identity**: Users maintain control over their DIDs without relying on central authorities
+- **Cryptographic Proof**: All blockchain operations are cryptographically verifiable
+- **Audit Trail**: Complete transparency and immutability of all contract-related activities
+- **Enterprise Integration**: Seamless integration with existing corporate identity systems
+- **Future-Proof**: Support for emerging identity standards and blockchain technologies
+
+This architecture ensures that the Contract Management System can serve both traditional enterprise users and Web3-native users while maintaining the highest standards of security, privacy, and user control over their digital identities.
 
 ## 🔐 **DID Integration Strategy**
 
@@ -537,6 +612,44 @@ sequenceDiagram
     B-->>F: Success Response
     F-->>U: Contract Signed
 ```
+
+#### **Detailed Contract Signing Flow Description**
+
+This sequence diagram illustrates the complete contract signing process that combines traditional IAM authentication with DID-based cryptographic proof, ensuring both enterprise security and blockchain verifiability.
+
+**Phase 1: User Authentication**
+1. **User Login (OIDC/SAML)**: The user authenticates through the IAM system using enterprise credentials (OIDC/SAML)
+2. **JWT Token + DID**: The IAM system returns a JWT token for session management and the user's DID for blockchain operations
+3. **Get Contract Data**: The frontend requests contract details from the backend
+4. **Contract Details**: The backend returns the contract information that needs to be signed
+
+**Phase 2: Contract Signing**
+5. **Sign Contract**: The user initiates the contract signing process
+6. **Create DID Signature**: The frontend creates a cryptographic signature using the user's DID private key
+7. **Verify DID Document**: The frontend requests the DID document from the DID registry to verify the DID
+8. **DID Document**: The DID registry returns the user's DID document containing public keys
+9. **Submit Contract + DID Signature**: The frontend submits the contract data along with the DID signature to the backend
+
+**Phase 3: Verification and Recording**
+10. **Verify DID Signature**: The backend verifies the DID signature using the public key from the DID document
+11. **Verification Result**: The DID registry confirms the signature is valid
+12. **Record Contract with DID**: The backend records the contract signature on the blockchain using the verified DID
+13. **Transaction Receipt**: The blockchain returns a transaction receipt confirming the recording
+14. **Success Response**: The backend returns a success response to the frontend
+15. **Contract Signed**: The user receives confirmation that the contract has been successfully signed
+
+**Key Security Features:**
+- **Dual Authentication**: Users must authenticate through both IAM (enterprise) and DID (blockchain)
+- **Cryptographic Proof**: All signatures are cryptographically verifiable
+- **Immutable Recording**: Contract signatures are permanently recorded on the blockchain
+- **Audit Trail**: Complete transparency of all signing activities
+- **Non-repudiation**: Users cannot deny their signatures due to cryptographic proof
+
+**Benefits of This Flow:**
+- **Enterprise Compliance**: Meets corporate security and audit requirements
+- **Blockchain Verifiability**: Provides cryptographic proof of contract signing
+- **User Control**: Users maintain control over their digital identity
+- **Interoperability**: Works with existing enterprise systems and emerging Web3 standards
 
 ### **DID-based Contract Signing Implementation**
 ```javascript
