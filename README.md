@@ -2,378 +2,144 @@
 
 A comprehensive blockchain-based contract management system with role-based access control, secure wallet integration, and automated contract workflows.
 
-## 🚀 Features
-
-### Core Functionality
-- **Multi-Role System**: TDP (Training Data Provider), TDC (Training Data Consumer), CCRP (Confidential Clean Room Provider)
-- **Blockchain Integration**: Smart contracts for secure, immutable contract management
-- **Wallet Integration**: MetaMask support for secure digital signatures
-- **Role-Based UI**: Dynamic interfaces based on user roles
-- **Automated Workflows**: Streamlined contract creation, signing, and management
-
-### Security Features
-- **Client-Side Signing**: Private keys never leave user devices
-- **Public Key Validation**: Cryptographic verification of user identities
-- **Secure Transactions**: Signed transactions for blockchain operations
-- **Access Control**: Role-based permissions and authorization
-
-### User Experience
-- **Modern UI**: React-based interface with Material-UI components
-- **Real-time Updates**: Live notifications and status updates
-- **Wallet Switching**: Easy switching between different user roles
-- **Comprehensive Documentation**: Detailed guides and tutorials
-
-## 🏗️ Architecture
-
-### System Architecture
-```mermaid
-graph TB
-    subgraph "Frontend Layer"
-        UI[React UI]
-        WC[Wallet Connect]
-        RB[Role-Based UI]
-    end
-    
-    subgraph "Backend Layer"
-        API[Express API]
-        DB[(PostgreSQL)]
-        AUTH[JWT Auth]
-        NOTIF[Notifications]
-    end
-    
-    subgraph "Blockchain Layer"
-        SC[Smart Contracts]
-        BC[Hardhat Node]
-        TX[Transactions]
-    end
-    
-    UI <--> API
-    WC <--> BC
-    API <--> DB
-    API <--> SC
-    SC <--> BC
-    BC <--> TX
-    
-    style UI fill:#e1f5fe
-    style API fill:#f3e5f5
-    style SC fill:#e8f5e8
-    style DB fill:#fff3e0
-```
-
-### Data Flow Architecture
-```mermaid
-flowchart LR
-    subgraph "User Actions"
-        A1[Connect Wallet]
-        A2[Create Contract]
-        A3[Sign Contract]
-        A4[View Data]
-    end
-    
-    subgraph "Frontend Processing"
-        B1[Wallet Validation]
-        B2[Form Validation]
-        B3[Transaction Signing]
-        B4[Data Display]
-    end
-    
-    subgraph "Backend Processing"
-        C1[User Authentication]
-        C2[Contract Creation]
-        C3[Blockchain Integration]
-        C4[Data Retrieval]
-    end
-    
-    subgraph "Blockchain Operations"
-        D1[Smart Contract Execution]
-        D2[Transaction Mining]
-        D3[State Updates]
-        D4[Event Emission]
-    end
-    
-    A1 --> B1 --> C1 --> D1
-    A2 --> B2 --> C2 --> D2
-    A3 --> B3 --> C3 --> D3
-    A4 --> B4 --> C4 --> D4
-```
-
-### User Role Workflow
-```mermaid
-graph TD
-    subgraph "TDP Workflow"
-        TDP1[Create Dataset]
-        TDP2[Initiate Contract]
-        TDP3[Auto-Sign Contract]
-        TDP4[Monitor Status]
-        TDP1 --> TDP2 --> TDP3 --> TDP4
-    end
-    
-    subgraph "TDC Workflow"
-        TDC1[Browse Datasets]
-        TDC2[Select CCRP]
-        TDC3[Review Contract]
-        TDC4[Sign Contract]
-        TDC1 --> TDC2 --> TDC3 --> TDC4
-    end
-    
-    subgraph "CCRP Workflow"
-        CCRP1[Receive Notification]
-        CCRP2[Review Terms]
-        CCRP3[Verify Compliance]
-        CCRP4[Sign Contract]
-        CCRP1 --> CCRP2 --> CCRP3 --> CCRP4
-    end
-    
-    TDP2 --> TDC2
-    TDC2 --> CCRP1
-    CCRP4 --> TDP4
-```
-
-### Security Architecture
-```mermaid
-graph TB
-    subgraph "Client Security"
-        CS1[Private Key Storage]
-        CS2[Client-Side Signing]
-        CS3[Wallet Integration]
-        CS4[Input Validation]
-    end
-    
-    subgraph "Network Security"
-        NS1[HTTPS/TLS]
-        NS2[JWT Tokens]
-        NS3[API Rate Limiting]
-        NS4[CORS Protection]
-    end
-    
-    subgraph "Blockchain Security"
-        BS1[Smart Contract Audits]
-        BS2[Transaction Signing]
-        BS3[Immutable Records]
-        BS4[Public Key Verification]
-    end
-    
-    subgraph "Data Security"
-        DS1[Encrypted Storage]
-        DS2[Access Control]
-        DS3[Audit Logging]
-        DS4[Backup & Recovery]
-    end
-    
-    CS1 --> NS1
-    CS2 --> BS2
-    CS3 --> BS4
-    CS4 --> NS3
-    
-    NS2 --> DS2
-    BS3 --> DS3
-    BS1 --> DS1
-```
-
-## 🛠️ Technology Stack
-
-### Frontend
-- **React 18**: Modern UI framework
-- **Material-UI**: Component library
-- **Ethers.js**: Ethereum wallet integration
-- **React Query**: Data fetching and caching
-- **React Router**: Navigation
-
-### Backend
-- **Node.js**: Runtime environment
-- **Express.js**: Web framework
-- **Sequelize**: ORM for database
-- **PostgreSQL**: Primary database
-- **JWT**: Authentication
-
-### Blockchain
-- **Hardhat**: Development framework
-- **Solidity**: Smart contract language
-- **Ethers.js**: Blockchain interaction
-- **OpenZeppelin**: Security libraries
-
-## 📋 Prerequisites
-
-- Node.js (v16 or higher)
-- PostgreSQL (v12 or higher)
-- MetaMask browser extension
-- Git
-
 ## 🚀 Quick Start
 
-### 1. Clone the Repository
+### Prerequisites
+- **Node.js** (v18 or higher)
+- **PostgreSQL** (v12 or higher)
+- **MetaMask** browser extension
+- **Git**
+
+### Setup in 5 Minutes
 ```bash
+# Clone and install
 git clone <repository-url>
 cd ContractManagement
-```
+npm install && cd backend && npm install && cd ../frontend && npm install && cd ../blockchain && npm install && cd ..
 
-### 2. Install Dependencies
-```bash
-# Install root dependencies
-npm install
-
-# Install backend dependencies
-cd backend
-npm install
-
-# Install frontend dependencies
-cd ../frontend
-npm install
-
-# Install blockchain dependencies
-cd ../blockchain
-npm install
-```
-
-### 3. Database Setup
-```bash
-# Create PostgreSQL database
+# Setup database
 createdb contract_management
+cd backend && npm run setup-db
 
-# Run database migrations
-cd backend
-npm run db:migrate
+# Start services (3 terminals)
+# Terminal 1: cd blockchain && npx hardhat node
+# Terminal 2: cd backend && npm run dev  
+# Terminal 3: cd frontend && npm start
 
-# Seed initial data
-npm run db:seed
+# Access: http://localhost:3000
 ```
 
-### 4. Environment Configuration
-```bash
-# Copy environment files
-cp backend/config.env.example backend/config.env
-cp blockchain/.env.example blockchain/.env
+📖 **For detailed setup instructions, see [SETUP_GUIDE.md](./SETUP_GUIDE.md)**
 
-# Update configuration values
-# See configuration section below
-```
+## 🏗️ System Overview
 
-### 5. Start Services
-```bash
-# Terminal 1: Start blockchain node
-cd blockchain
-npx hardhat node
+### Multi-Role Architecture
+- **TDP (Training Data Provider)**: Dataset owners who provide training data
+- **TDC (Training Data Consumer)**: Organizations that purchase and use training data  
+- **CCRP (Confidential Clean Room Provider)**: Independent reviewers who validate contracts
 
-# Terminal 2: Start backend server
-cd backend
-npm start
+### Key Features
+- **Secure Wallet Integration**: Client-side signing with MetaMask
+- **Blockchain Immutability**: Smart contracts for secure, transparent agreements
+- **Role-Based UI**: Dynamic interfaces based on user permissions
+- **Automated Workflows**: Streamlined contract creation and signing
+- **Real-time Notifications**: Live updates and email notifications
 
-# Terminal 3: Start frontend
-cd frontend
-npm start
-```
-
-### 6. Access the Application
-- Frontend: http://localhost:3000
-- Backend API: http://localhost:5001
-- Blockchain: http://localhost:8545
-
-## ⚙️ Configuration
-
-### Backend Configuration (`backend/config.env`)
-```env
-DB_HOST=localhost
-DB_PORT=5432
-DB_NAME=contract_management
-DB_USER=your_username
-DB_PASSWORD=your_password
-JWT_SECRET=your_jwt_secret
-BLOCKCHAIN_URL=http://localhost:8545
-CONTRACT_ADDRESS=your_deployed_contract_address
-```
-
-### Blockchain Configuration (`blockchain/.env`)
-```env
-PRIVATE_KEY=your_deployment_private_key
-```
-
-## 👥 User Roles
-
-### TDP (Training Data Provider)
-- Create and manage datasets
-- Initiate contracts with TDC
-- Auto-sign contracts at creation
-- View contract status and history
-
-### TDC (Training Data Consumer)
-- Browse available datasets
-- Select CCRP for contract review
-- Sign contracts after TDP approval
-- Access purchased data
-
-### CCRP (Confidential Clean Room Provider)
-- Review contract terms and conditions
-- Sign contracts after thorough review
-- Provide compliance verification
-- Maintain audit trail
-
-## 🔐 Security Features
-
-### Wallet Integration
-- **MetaMask Support**: Seamless wallet connection
-- **Client-Side Signing**: Private keys never transmitted
-- **Public Key Validation**: Cryptographic identity verification
-- **Transaction Signing**: Secure blockchain operations
-
-### Access Control
-- **Role-Based Permissions**: Granular access control
-- **Session Management**: Secure user sessions
-- **API Protection**: JWT-based authentication
-- **Input Validation**: Comprehensive data validation
+### Technology Stack
+- **Frontend**: React 18, Material-UI, Ethers.js, React Query
+- **Backend**: Node.js, Express.js, Sequelize ORM, PostgreSQL
+- **Blockchain**: Hardhat, Solidity, OpenZeppelin
+- **Security**: JWT, HTTPS, Client-side signing
 
 ## 📚 Documentation
 
-- [MetaMask Setup Guide](METAMASK_SETUP_GUIDE.md)
-- [Web3 Integration Guide](METAMASK_WEB3_GUIDE.md)
-- [Role-Based UI Guide](ROLE_BASED_UI_GUIDE.md)
-- [Secure Contract Management](SECURE_CONTRACT_MANAGEMENT_GUIDE.md)
-- [Quick Start Guide](QUICK_START_GUIDE.md)
-- [Test Wallets](TEST_WALLETS.md)
-- [Hardhat Wallets](HARDHAT_WALLETS.md)
+### Core Guides
+- **[Setup Guide](./SETUP_GUIDE.md)** - Complete installation and configuration
+- **[User Guide](./USER_GUIDE.md)** - How to use the application
+- **[Wallet Guide](./WALLET_GUIDE.md)** - MetaMask setup and wallet management
+- **[Architecture Guide](./ARCHITECTURE_GUIDE.md)** - System design and technical details
 
-## 🧪 Testing
+### Reference Materials
+- **[Test Wallets](./TEST_WALLETS.md)** - Development wallet information
+- **[API Documentation](./API_DOCS.md)** - Backend API reference
 
-### Run Tests
-```bash
-# Backend tests
-cd backend
-npm test
+## 🔐 Security Features
 
-# Blockchain tests
-cd blockchain
-npx hardhat test
+### Client-Side Security
+- Private keys never transmitted over network
+- All cryptographic operations in browser memory
+- Memory cleared after signing operations
+- Input validation and sanitization
+
+### Network Security
+- HTTPS/TLS encryption for all communications
+- Rate limiting on API endpoints
+- CORS configuration
+- Request validation and sanitization
+
+### Blockchain Security
+- Smart contract auditing and testing
+- Access control modifiers
+- Reentrancy protection
+- Event logging for audit trails
+
+## 🎯 User Workflows
+
+### TDP (Training Data Provider)
+1. Create and manage datasets
+2. Auto-sign contracts when created by TDC
+3. Monitor contract status and history
+4. Receive payments for data access
+
+### TDC (Training Data Consumer)
+1. Browse available datasets
+2. Select CCRP for contract review
+3. Create contracts with dataset and CCRP
+4. Sign contracts to finalize agreements
+
+### CCRP (Confidential Clean Room Provider)
+1. Receive notifications for contract review
+2. Review contract terms and conditions
+3. Sign contracts after compliance validation
+4. Maintain audit trail of approvals
+
+## 🛠️ Development
+
+### Project Structure
+```
+ContractManagement/
+├── frontend/          # React application
+├── backend/           # Node.js/Express API
+├── blockchain/        # Hardhat smart contracts
+├── scripts/           # Setup and utility scripts
+└── docs/             # Documentation
 ```
 
-### Test Coverage
+### Available Scripts
 ```bash
-# Backend coverage
-cd backend
-npm run test:coverage
-```
+# Development
+npm run dev           # Start all services
+npm run blockchain    # Start Hardhat node
+npm run backend       # Start backend server
+npm run frontend      # Start frontend
 
-## 🚀 Deployment
+# Database
+npm run setup-db      # Setup database and seed data
+npm run reset-db      # Reset database
 
-### Production Setup
-1. Configure production environment variables
-2. Set up production database
-3. Deploy smart contracts to target network
-4. Configure reverse proxy (nginx)
-5. Set up SSL certificates
-6. Configure monitoring and logging
-
-### Docker Deployment
-```bash
-# Build and run with Docker Compose
-docker-compose up -d
+# Testing
+npm run test          # Run all tests
+npm run test:backend  # Backend tests only
+npm run test:blockchain # Blockchain tests only
 ```
 
 ## 🤝 Contributing
 
 1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests for new functionality
-5. Submit a pull request
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
 
 ## 📄 License
 
@@ -381,18 +147,10 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 🆘 Support
 
-For support and questions:
-- Check the documentation in the `/docs` folder
-- Review the troubleshooting guides
-- Open an issue on GitHub
-
-## 🔄 Version History
-
-- **v1.0.0**: Initial release with core functionality
-- **v1.1.0**: Added wallet integration and security features
-- **v1.2.0**: Enhanced role-based UI and workflows
-- **v1.3.0**: Comprehensive documentation and guides
+- **Documentation**: Check the guides above
+- **Issues**: Create an issue on GitHub
+- **Questions**: Open a discussion on GitHub
 
 ---
 
-**Note**: This is a development system. For production use, ensure proper security audits, testing, and compliance with relevant regulations. 
+**⚠️ Important**: This is a development system. Never use test wallets on mainnet networks! 
