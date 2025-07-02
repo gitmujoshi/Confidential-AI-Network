@@ -85,68 +85,106 @@ graph TB
 ### Technology Stack
 ```mermaid
 graph TB
-    subgraph "Frontend"
-        F1[React 18]
-        F2[React Router]
-        F3[Material-UI]
-        F4[React Query]
-        F5[Ethers.js]
-        F6[Axios]
+    subgraph "Frontend Layer"
+        subgraph "UI Framework"
+            F1[React 18]
+            F2[React Router]
+            F3[Material-UI]
+        end
+        
+        subgraph "State & Data"
+            F4[React Query]
+            F5[Ethers.js]
+            F6[Axios]
+        end
     end
     
-    subgraph "Backend"
-        B1[Node.js]
-        B2[Express.js]
-        B3[Sequelize ORM]
-        B4[JWT Authentication]
-        B5[Helmet Security]
-        B6[CORS]
+    subgraph "Backend Layer"
+        subgraph "Runtime & Framework"
+            B1[Node.js]
+            B2[Express.js]
+        end
+        
+        subgraph "Data & Security"
+            B3[Sequelize ORM]
+            B4[JWT Authentication]
+            B5[Helmet Security]
+            B6[CORS]
+        end
     end
     
-    subgraph "Database"
-        DB1[PostgreSQL]
-        DB2[Sequelize]
-        DB3[Database Migrations]
+    subgraph "Database Layer"
+        subgraph "Storage"
+            DB1[PostgreSQL]
+        end
+        
+        subgraph "ORM & Migrations"
+            DB2[Sequelize]
+            DB3[Database Migrations]
+        end
     end
     
-    subgraph "Blockchain"
-        BC1[Hardhat]
-        BC2[Solidity]
-        BC3[Ethers.js]
-        BC4[Web3.js]
+    subgraph "Blockchain Layer"
+        subgraph "Development"
+            BC1[Hardhat]
+            BC2[Solidity]
+        end
+        
+        subgraph "Web3 Libraries"
+            BC3[Ethers.js]
+            BC4[Web3.js]
+        end
     end
     
     subgraph "Development Tools"
-        DT1[Git]
-        DT2[Docker]
-        DT3[Jest Testing]
-        DT4[ESLint]
-        DT5[Prettier]
+        subgraph "Version Control"
+            DT1[Git]
+        end
+        
+        subgraph "Containerization"
+            DT2[Docker]
+        end
+        
+        subgraph "Testing & Quality"
+            DT3[Jest Testing]
+            DT4[ESLint]
+            DT5[Prettier]
+        end
     end
     
+    %% Frontend connections
     F1 --> F2
     F2 --> F3
     F3 --> F4
     F4 --> F5
     F5 --> F6
     
+    %% Backend connections
     B1 --> B2
     B2 --> B3
     B3 --> B4
     B4 --> B5
     B5 --> B6
     
+    %% Database connections
     DB1 --> DB2
     DB2 --> DB3
     
+    %% Blockchain connections
     BC1 --> BC2
     BC2 --> BC3
     BC3 --> BC4
     
+    %% Development tools connections
     DT1 --> DT2
     DT2 --> DT3
     DT3 --> DT4
     DT4 --> DT5
+    
+    %% Cross-layer connections
+    F5 --> BC3
+    B3 --> DB2
+    B2 --> BC1
 ```
 
 ## 🔄 Data Flow Architecture
