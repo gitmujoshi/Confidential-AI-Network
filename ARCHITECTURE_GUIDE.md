@@ -24,97 +24,223 @@ The Contract Management System is a blockchain-based platform that enables secur
 
 ## 🏛️ System Architecture
 
-### High-Level Architecture
+## 🏗️ System Architecture Overview
+
+The Contract Management System follows a **layered architecture** with clear separation of concerns. Here's the high-level overview:
+
+### System Layers
 ```mermaid
 graph TB
-    subgraph "Frontend Layer (React)"
+    subgraph "Presentation Layer"
+        FE[Frontend React App]
+    end
+    
+    subgraph "Application Layer"
+        BE[Backend API Services]
+    end
+    
+    subgraph "Identity Layer"
+        IAM[Keycloak IAM]
+        DID[DID Management]
+    end
+    
+    subgraph "Data Layer"
+        DB[(PostgreSQL Database)]
+        BC[(Blockchain Network)]
+    end
+    
+    FE --> BE
+    BE --> IAM
+    BE --> DID
+    BE --> DB
+    BE --> BC
+    
+    style FE fill:#e3f2fd
+    style BE fill:#f3e5f5
+    style IAM fill:#ffebee
+    style DID fill:#fff3e0
+    style DB fill:#e8f5e8
+    style BC fill:#fff8e1
+```
+
+## 📱 Frontend Architecture
+
+### React Application Structure
+```mermaid
+graph TB
+    subgraph "User Interface Components"
         A[Dashboard] --> B[Contracts]
         B --> C[Datasets]
         C --> D[Users]
         D --> E[Notifications]
-        
-        subgraph "Client Services"
-            F[API Service]
-            G[Ethers.js]
-            H[React Query]
-            I[State Management]
-            ONB[Onboarding UI]
-        end
+        A --> F[Onboarding]
     end
     
-    subgraph "Backend Layer (Node.js/Express)"
-        J[API Routes]
-        K[Business Logic]
-        L[Blockchain Service]
-        
-        subgraph "Services"
-            M[Contract Service]
-            N[Dataset Service]
-            O[User Service]
-            P[Notification Service]
-            IAM[Keycloak Service]
-        end
+    subgraph "Client Services"
+        G[API Service]
+        H[Ethers.js]
+        I[React Query]
+        J[State Management]
     end
     
-    subgraph "IAM Layer (Keycloak)"
+    subgraph "Authentication"
+        K[Wallet Connection]
+        L[IAM Integration]
+        M[Role Management]
+    end
+    
+    A --> G
+    G --> H
+    G --> I
+    G --> J
+    K --> L
+    L --> M
+    
+    style A fill:#e3f2fd
+    style G fill:#f3e5f5
+    style K fill:#ffebee
+```
+
+## 🔧 Backend Architecture
+
+### API Services Structure
+```mermaid
+graph TB
+    subgraph "API Gateway"
+        API[Express Router]
+    end
+    
+    subgraph "Business Logic Services"
+        CS[Contract Service]
+        DS[Dataset Service]
+        US[User Service]
+        NS[Notification Service]
+        IAM_S[Keycloak Service]
+    end
+    
+    subgraph "External Integrations"
+        BC_S[Blockchain Service]
+        DID_S[DID Service]
+    end
+    
+    API --> CS
+    API --> DS
+    API --> US
+    API --> NS
+    API --> IAM_S
+    CS --> BC_S
+    US --> DID_S
+    
+    style API fill:#f3e5f5
+    style CS fill:#e8f5e8
+    style BC_S fill:#fff3e0
+```
+
+## 🔐 Identity & Access Management
+
+### IAM Architecture
+```mermaid
+graph TB
+    subgraph "Keycloak IAM"
         KC[Keycloak Server]
         AUTH[Authentication]
         RBAC[Role-Based Access]
         EMAIL[Email Verification]
-        
-        subgraph "IAM Database"
-            IAM_DB[Keycloak PostgreSQL]
-        end
     end
     
-    subgraph "Identity Layer (DID)"
+    subgraph "DID Management"
         DID[DID Registry]
         DID_RES[DID Resolution]
         DID_VER[DID Verification]
         DID_DOC[DID Documents]
     end
     
-    subgraph "Data Layer (PostgreSQL)"
-        Q[Users Table]
-        R[Contracts Table]
-        S[Datasets Table]
-        T[Notifications Table]
-        U[Metadata Table]
+    subgraph "IAM Database"
+        IAM_DB[(Keycloak PostgreSQL)]
     end
     
-    subgraph "Blockchain Layer (Hardhat/Ethereum)"
-        V[Smart Contracts]
-        W[Network Layer]
-        
-        subgraph "ContractManager.sol"
-            X[Contract State]
-            Y[Party Management]
-            Z[Signing Logic]
-            AA[Access Control]
-        end
-    end
-    
-    A --> F
-    ONB --> IAM
-    F --> J
-    J --> K
-    K --> L
-    K --> IAM
-    IAM --> KC
     KC --> AUTH
     KC --> RBAC
     KC --> EMAIL
     KC --> IAM_DB
-    K --> DID
+    
     DID --> DID_RES
     DID --> DID_VER
     DID --> DID_DOC
-    L --> V
-    K --> Q
-    K --> R
-    K --> S
-    K --> T
-    V --> W
+    
+    style KC fill:#ffebee
+    style DID fill:#fff3e0
+    style IAM_DB fill:#e8f5e8
+```
+
+## 💾 Data Architecture
+
+### Database Schema
+```mermaid
+graph TB
+    subgraph "Core Entities"
+        U[Users Table]
+        C[Contracts Table]
+        D[Datasets Table]
+        N[Notifications Table]
+    end
+    
+    subgraph "IAM Integration"
+        UI[IAM User Fields]
+        UI2[Onboarding Status]
+        UI3[Profile Data]
+    end
+    
+    subgraph "DID Support"
+        UD[DID Field]
+        UPK[Public Key Field]
+    end
+    
+    U --> UI
+    U --> UI2
+    U --> UI3
+    U --> UD
+    U --> UPK
+    
+    U --> C
+    U --> D
+    U --> N
+    
+    style U fill:#e8f5e8
+    style UI fill:#ffebee
+    style UD fill:#fff3e0
+```
+
+## ⛓️ Blockchain Architecture
+
+### Smart Contract Structure
+```mermaid
+graph TB
+    subgraph "ContractManager.sol"
+        CM[Contract Manager]
+        CS[Contract State]
+        PM[Party Management]
+        SL[Signing Logic]
+        AC[Access Control]
+    end
+    
+    subgraph "Blockchain Network"
+        BC[Hardhat Node]
+        TX[Transactions]
+        EV[Events]
+    end
+    
+    CM --> CS
+    CM --> PM
+    CM --> SL
+    CM --> AC
+    
+    CM --> BC
+    BC --> TX
+    BC --> EV
+    
+    style CM fill:#fff3e0
+    style BC fill:#fff8e1
 ```
 
 ### Technology Stack
@@ -226,60 +352,173 @@ graph TB
 
 ## 🔄 Data Flow Architecture
 
-### Complete Data Flow
+### User Registration Flow
 ```mermaid
 sequenceDiagram
     participant U as User
     participant F as Frontend
     participant B as Backend
-    participant D as Database
-    participant BC as Blockchain
+    participant IAM as Keycloak
+    participant DID as DID Registry
+    participant DB as Database
     
-    U->>F: 1. Connect Wallet
-    F->>B: 2. Authenticate User
-    B->>D: 3. Query User Data
-    D-->>B: 4. Return User Info
-    B-->>F: 5. User Authenticated
-    
-    U->>F: 6. Create Contract
-    F->>B: 7. Submit Contract Data
-    B->>D: 8. Store Contract
-    B->>BC: 9. Deploy Smart Contract
-    BC-->>B: 10. Contract Address
-    B->>D: 11. Update Contract ID
-    B-->>F: 12. Contract Created
-    
-    U->>F: 13. Sign Contract
-    F->>F: 14. Sign with Wallet
-    F->>B: 15. Send Signed Transaction
-    B->>BC: 16. Broadcast Transaction
-    BC-->>B: 17. Transaction Receipt
-    B->>D: 18. Update Contract Status
-    B-->>F: 19. Contract Signed
-    F-->>U: 20. Success Notification
+    U->>F: Connect Wallet
+    F->>B: Register User
+    B->>IAM: Create IAM User
+    IAM->>B: User Created
+    B->>DID: Create DID
+    DID->>B: DID Created
+    B->>DB: Store User Data
+    DB->>B: User Stored
+    B->>F: Registration Complete
+    F->>U: Success
 ```
 
-### User Authentication Flow
+### Contract Creation Flow
+```mermaid
+sequenceDiagram
+    participant TDC as TDC User
+    participant F as Frontend
+    participant B as Backend
+    participant IAM as Keycloak
+    participant BC as Blockchain
+    participant DB as Database
+    
+    TDC->>F: Create Contract
+    F->>B: Contract Request
+    B->>IAM: Verify JWT Token
+    IAM->>B: Token Valid
+    B->>BC: Deploy Contract
+    BC->>B: Contract Deployed
+    B->>DB: Store Contract Data
+    DB->>B: Contract Stored
+    B->>F: Contract Created
+    F->>TDC: Success
+```
+
+### Contract Signing Flow
 ```mermaid
 sequenceDiagram
     participant U as User
-    participant W as Wallet
-    participant C as UserContext
-    participant A as API
-    participant B as Blockchain
+    participant F as Frontend
+    participant B as Backend
+    participant DID as DID Registry
+    participant BC as Blockchain
+    participant DB as Database
     
-    U->>W: Connect MetaMask
-    W->>C: Wallet Connected
-    C->>A: Get User by Wallet
-    A->>B: Verify Address
-    B->>A: Address Valid
-    A->>C: User Data
-    C->>U: Role-Based UI
+    U->>F: Sign Contract
+    F->>B: Sign Request
+    B->>DID: Verify DID
+    DID->>B: DID Verified
+    B->>BC: Submit Signature
+    BC->>B: Signature Confirmed
+    B->>DB: Update Contract Status
+    DB->>B: Status Updated
+    B->>F: Contract Signed
+    F->>U: Success
+```
+
+### Component Interaction Overview
+```mermaid
+graph TB
+    subgraph "User Interface"
+        UI[React Components]
+        WC[Wallet Connection]
+        RB[Role-Based UI]
+    end
+    
+    subgraph "Application Services"
+        API[API Gateway]
+        AUTH[Authentication]
+        BL[Business Logic]
+    end
+    
+    subgraph "External Systems"
+        IAM[Keycloak IAM]
+        DID[DID Registry]
+        BC[Blockchain]
+        DB[Database]
+    end
+    
+    UI --> API
+    WC --> AUTH
+    RB --> BL
+    
+    API --> AUTH
+    API --> BL
+    
+    AUTH --> IAM
+    BL --> DID
+    BL --> BC
+    BL --> DB
+    
+    style UI fill:#e3f2fd
+    style API fill:#f3e5f5
+    style IAM fill:#ffebee
+    style DID fill:#fff3e0
+    style BC fill:#fff8e1
+    style DB fill:#e8f5e8
+```
+
+## 🎯 Architecture Summary
+
+### Key Design Principles
+- **Separation of Concerns**: Each layer has a specific responsibility
+- **Modularity**: Components can be developed and tested independently
+- **Scalability**: Services can be scaled horizontally
+- **Security**: Multi-layer security with IAM and DID integration
+- **Interoperability**: Standards-based integration (OAuth2, OpenID Connect, DID)
+
+### Technology Stack by Layer
+```mermaid
+graph TB
+    subgraph "Frontend Layer"
+        F1[React 18]
+        F2[Material-UI]
+        F3[Ethers.js]
+        F4[React Query]
+    end
+    
+    subgraph "Backend Layer"
+        B1[Node.js]
+        B2[Express.js]
+        B3[Sequelize ORM]
+        B4[JWT Authentication]
+    end
+    
+    subgraph "Identity Layer"
+        I1[Keycloak IAM]
+        I2[OAuth2/OpenID Connect]
+        I3[DID Registry]
+        I4[DID Resolution]
+    end
+    
+    subgraph "Data Layer"
+        D1[PostgreSQL]
+        D2[Keycloak Database]
+        D3[Blockchain Storage]
+    end
+    
+    subgraph "Blockchain Layer"
+        BC1[Hardhat]
+        BC2[Solidity]
+        BC3[Ethereum Network]
+    end
+    
+    F1 --> B1
+    B1 --> I1
+    B1 --> I3
+    B1 --> D1
+    B1 --> BC1
+    
+    style F1 fill:#e3f2fd
+    style B1 fill:#f3e5f5
+    style I1 fill:#ffebee
+    style D1 fill:#e8f5e8
+    style BC1 fill:#fff8e1
 ```
 
 ## 🔐 Security Architecture
-
-### Multi-Layer Security Model
 ```mermaid
 graph TB
     subgraph "Security Layers"
