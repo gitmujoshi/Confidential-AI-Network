@@ -90,6 +90,81 @@ module.exports = (sequelize, DataTypes) => {
     isActive: {
       type: DataTypes.BOOLEAN,
       defaultValue: true
+    },
+    
+    // IAM Integration fields
+    iamUserId: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      unique: true,
+      comment: 'Keycloak user ID for IAM integration'
+    },
+    
+    iamUsername: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      comment: 'Keycloak username (usually email)'
+    },
+    
+    // DID (Decentralized Identifier) support
+    did: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      unique: true,
+      comment: 'Decentralized Identifier for blockchain identity'
+    },
+    
+    // Onboarding status
+    onboardingStatus: {
+      type: DataTypes.ENUM('PENDING', 'IN_PROGRESS', 'COMPLETED', 'VERIFIED'),
+      defaultValue: 'PENDING',
+      comment: 'User onboarding status'
+    },
+    
+    // Profile completion
+    profileCompleted: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: false,
+      comment: 'Whether user has completed profile setup'
+    },
+    
+    // Email verification status
+    emailVerified: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: false,
+      comment: 'Email verification status from IAM'
+    },
+    
+    // Last login timestamp
+    lastLoginAt: {
+      type: DataTypes.DATE,
+      allowNull: true,
+      comment: 'Last login timestamp'
+    },
+    
+    // Additional profile fields
+    organization: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      comment: 'User organization/company'
+    },
+    
+    phoneNumber: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      comment: 'User phone number'
+    },
+    
+    website: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      comment: 'User website URL'
+    },
+    
+    location: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      comment: 'User location/country'
     }
   }, {
     tableName: 'users',
@@ -102,6 +177,14 @@ module.exports = (sequelize, DataTypes) => {
         fields: ['walletAddress']  // Fast wallet address lookups
       },
       {
+        unique: true,
+        fields: ['iamUserId']      // Fast IAM user lookups
+      },
+      {
+        unique: true,
+        fields: ['did']            // Fast DID lookups
+      },
+      {
         fields: ['partyType']      // Fast role-based queries
       },
       {
@@ -109,6 +192,15 @@ module.exports = (sequelize, DataTypes) => {
       },
       {
         fields: ['publicKey']      // Fast public key lookups
+      },
+      {
+        fields: ['onboardingStatus'] // Fast onboarding status queries
+      },
+      {
+        fields: ['profileCompleted'] // Fast profile completion queries
+      },
+      {
+        fields: ['lastLoginAt']    // Fast login history queries
       }
     ]
   });

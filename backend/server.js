@@ -10,6 +10,7 @@ const blockchainService = require('./services/blockchainService');
 // Import routes
 const contractsRouter = require('./routes/contracts');
 const datasetsRouter = require('./routes/datasets');
+const authRouter = require('./routes/auth');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -44,6 +45,7 @@ app.get('/health', (req, res) => {
 });
 
 // API routes
+app.use('/api/auth', authRouter);
 app.use('/api/contracts', contractsRouter);
 app.use('/api/datasets', datasetsRouter);
 

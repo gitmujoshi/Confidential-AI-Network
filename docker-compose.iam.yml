@@ -1,0 +1,68 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database for Keycloak
+  ***REMOVED-KEYCLOAK_DB_PASSWORD***-db:
+    image: ***REMOVED-DB_PASSWORD***:15
+    container_name: ***REMOVED-KEYCLOAK_DB_PASSWORD***-db
+    environment:
+      POSTGRES_DB: ***REMOVED-KEYCLOAK_DB_PASSWORD***
+      POSTGRES_USER: ***REMOVED-KEYCLOAK_DB_PASSWORD***
+      POSTGRES_PASSWORD: ***REMOVED-KEYCLOAK_DB_PASSWORD***_password
+    volumes:
+      - ***REMOVED-KEYCLOAK_DB_PASSWORD***-db-data:/var/lib/***REMOVED-DB_PASSWORD***ql/data
+    networks:
+      - iam-network
+    ports:
+      - "5433:5432"  # Different port to avoid conflict with main app DB
+
+  # Keycloak IAM Server
+  ***REMOVED-KEYCLOAK_DB_PASSWORD***:
+    image: quay.io/***REMOVED-KEYCLOAK_DB_PASSWORD***/***REMOVED-KEYCLOAK_DB_PASSWORD***:23.0
+    container_name: ***REMOVED-KEYCLOAK_DB_PASSWORD***
+    environment:
+      KC_DB: ***REMOVED-DB_PASSWORD***
+      KC_DB_URL: jdbc:***REMOVED-DB_PASSWORD***ql://***REMOVED-KEYCLOAK_DB_PASSWORD***-db:5432/***REMOVED-KEYCLOAK_DB_PASSWORD***
+      KC_DB_USERNAME: ***REMOVED-KEYCLOAK_DB_PASSWORD***
+      KC_DB_PASSWORD: ***REMOVED-KEYCLOAK_DB_PASSWORD***_password
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: ***REMOVED-KEYCLOAK_ADMIN_PASSWORD***
+      KC_HOSTNAME_STRICT: false
+      KC_HOSTNAME_STRICT_HTTPS: false
+      KC_HTTP_ENABLED: true
+      KC_HEALTH_ENABLED: true
+      KC_METRICS_ENABLED: true
+    command: start-dev
+    depends_on:
+      - ***REMOVED-KEYCLOAK_DB_PASSWORD***-db
+    networks:
+      - iam-network
+    ports:
+      - "8080:8080"  # Keycloak Admin Console
+      - "8081:8081"  # Keycloak API
+    volumes:
+      - ./***REMOVED-KEYCLOAK_DB_PASSWORD***-config:/opt/***REMOVED-KEYCLOAK_DB_PASSWORD***/data/import
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Redis for session management (optional)
+  redis:
+    image: redis:7-alpine
+    container_name: iam-redis
+    networks:
+      - iam-network
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+
+volumes:
+  ***REMOVED-KEYCLOAK_DB_PASSWORD***-db-data:
+  redis-data:
+
+networks:
+  iam-network:
+    driver: bridge 
