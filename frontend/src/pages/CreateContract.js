@@ -24,6 +24,33 @@ import toast from 'react-hot-toast';
 import { ethers } from 'ethers';
 import { useUser } from '../contexts/UserContext';
 
+/**
+ * CreateContract Component
+ * 
+ * This component allows TDC (Training Data Consumer) users to create contracts by:
+ * 1. Selecting a dataset from available datasets
+ * 2. Configuring contract details (price, duration, terms)
+ * 3. Optionally selecting a CCRP (Confidential Clean Room Provider)
+ * 4. Reviewing and creating the contract
+ * 
+ * Role-Based Access Control:
+ * - ONLY TDC users can access this component
+ * - TDP and CCRP users will see access denied message
+ * 
+ * Workflow:
+ * 1. TDC selects dataset (auto-selects TDP)
+ * 2. TDC configures contract parameters
+ * 3. TDC optionally selects CCRP
+ * 4. TDC reviews contract details
+ * 5. TDC creates contract (TDP auto-signs)
+ * 
+ * Security:
+ * - Wallet-based authentication required
+ * - All blockchain interactions use MetaMask signing
+ * - Private keys never transmitted to backend
+ */
+
+// Stepper steps for contract creation process
 const steps = [
   'Select Dataset',
   'Configure Contract',
@@ -34,6 +61,8 @@ function CreateContract() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { currentUser, isTDC, isAuthenticated } = useUser();
+  
+  // Component state
   const [activeStep, setActiveStep] = useState(0);
   const [selectedDataset, setSelectedDataset] = useState(null);
   const [selectedTdp, setSelectedTdp] = useState('');
@@ -45,15 +74,16 @@ function CreateContract() {
     termsAndConditions: '',
   });
 
-  // Fetch datasets and users
+  // Fetch datasets and users for dropdowns
   const { data: datasetsResponse } = useQuery('datasets', apiService.getDatasets);
   const { data: users = [] } = useQuery('users', apiService.getUsers);
   
+  // Filter users by role for dropdowns
   const datasets = datasetsResponse?.datasets || [];
   const tdpUsers = users.filter(user => user.partyType === 'TDP');
   const ccrpUsers = users.filter(user => user.partyType === 'CCRP');
 
-  // Create contract mutation
+  // Contract creation mutation with React Query
   const createContractMutation = useMutation(
     (data) => apiService.createContract(data),
     {
@@ -68,7 +98,7 @@ function CreateContract() {
     }
   );
 
-  // Role-based access control
+  // Role-based access control - only TDC can create contracts
   if (!isAuthenticated) {
     return (
       <Box sx={{ p: 3 }}>
@@ -90,6 +120,10 @@ function CreateContract() {
     );
   }
 
+  /**
+   * Handle next step in the stepper
+   * Validates current step before proceeding
+   */
   const handleNext = () => {
     if (activeStep === 0 && !selectedDataset) {
       toast.error('Please select a dataset');
@@ -102,10 +136,17 @@ function CreateContract() {
     setActiveStep((prevStep) => prevStep + 1);
   };
 
+  /**
+   * Handle previous step in the stepper
+   */
   const handleBack = () => {
     setActiveStep((prevStep) => prevStep - 1);
   };
 
+  /**
+   * Validate form data for contract creation
+   * @returns {boolean} True if form is valid
+   */
   const isFormValid = () => {
     return (
       contractData.modelId &&
@@ -116,8 +157,10 @@ function CreateContract() {
     );
   };
 
-
-
+  /**
+   * Handle contract creation
+   * Prepares contract data and calls API
+   */
   const handleCreateContract = () => {
     if (!isFormValid()) {
       toast.error('Please fill in all required fields');
@@ -127,8 +170,12 @@ function CreateContract() {
       toast.error('Please connect your wallet');
       return;
     }
+    
+    // Find selected users by ID
     const tdpUser = tdpUsers.find(user => user.id === parseInt(selectedTdp));
     const ccrpUser = ccrpUsers.find(user => user.id === parseInt(selectedCcrp));
+    
+    // Prepare contract payload for API
     const contractPayload = {
       tdpWalletAddress: tdpUser.walletAddress,
       datasetId: selectedDataset.datasetId,
@@ -139,9 +186,15 @@ function CreateContract() {
       ccrpWalletAddress: ccrpUser ? ccrpUser.walletAddress : null,
       tdcWalletAddress: currentUser.walletAddress, // Add TDC wallet address
     };
+    
     createContractMutation.mutate(contractPayload);
   };
 
+  /**
+   * Handle dataset selection
+   * Auto-selects the TDP (dataset owner) when dataset is selected
+   * @param {Object} dataset - Selected dataset object
+   */
   const handleDatasetSelect = (dataset) => {
     setSelectedDataset(dataset);
     // Auto-select the TDP if dataset is selected
