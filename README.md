@@ -48,6 +48,7 @@ npm run migrate-iam
 
 ### Key Features
 - **Enterprise IAM Integration**: Keycloak-based identity and access management
+- **DID Support**: Decentralized Identifiers for self-sovereign identity
 - **Secure Wallet Integration**: Client-side signing with MetaMask
 - **Blockchain Immutability**: Smart contracts for secure, transparent agreements
 - **Role-Based UI**: Dynamic interfaces based on user permissions
@@ -61,6 +62,7 @@ npm run migrate-iam
 - **Backend**: Node.js, Express.js, Sequelize ORM, PostgreSQL
 - **Blockchain**: Hardhat, Solidity, OpenZeppelin
 - **IAM**: Keycloak, OAuth2, OpenID Connect, JWT
+- **Identity**: DID (Decentralized Identifiers), Self-sovereign identity
 - **Security**: HTTPS, Client-side signing, Rate limiting
 
 ## 📚 Documentation
@@ -85,6 +87,7 @@ npm run migrate-iam
 - **JWT Token Validation**: Server-side token verification
 - **Role-Based Access Control**: Fine-grained permissions
 - **Email Verification**: Multi-factor authentication support
+- **DID Support**: Self-sovereign identity for blockchain operations
 
 ### Client-Side Security
 - Private keys never transmitted over network

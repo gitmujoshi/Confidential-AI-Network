@@ -172,6 +172,86 @@ graph TD
 3. Switch to that account in MetaMask
 4. Click "Refresh App" to update the interface
 
+## 🔐 DID (Decentralized Identifier) Support
+
+The Contract Management System supports Decentralized Identifiers (DIDs) for self-sovereign identity, allowing users to maintain control over their digital identity without relying on central authorities.
+
+### What are DIDs?
+
+**Decentralized Identifiers (DIDs)** are a new type of identifier that enables verifiable, self-sovereign digital identity. Unlike traditional identifiers (like email addresses or usernames), DIDs:
+
+- **Are self-owned**: Users create and control their own DIDs
+- **Are portable**: DIDs work across different systems and platforms
+- **Are verifiable**: DIDs can be cryptographically verified
+- **Are privacy-preserving**: Users can choose what information to reveal
+
+### DID Integration in the System
+
+#### DID Methods Supported
+- **did:ethr**: Ethereum-based DIDs using wallet addresses
+- **did:key**: Key-based DIDs for cryptographic identities
+
+#### DID Workflow
+```mermaid
+sequenceDiagram
+    participant U as User
+    participant APP as Application
+    participant DID as DID Registry
+    participant BC as Blockchain
+    
+    U->>APP: Register with Wallet
+    APP->>DID: Create DID (did:ethr)
+    DID->>BC: Store DID Document
+    BC->>DID: DID Document Stored
+    DID->>APP: DID Created
+    APP->>U: Registration Complete
+    
+    Note over U,APP: DID Usage
+    U->>APP: Sign Contract
+    APP->>DID: Verify DID
+    DID->>BC: Resolve DID Document
+    BC->>DID: DID Document
+    DID->>APP: DID Verified
+    APP->>U: Contract Signed
+```
+
+### DID Features
+
+#### Automatic DID Creation
+- **Wallet-based DIDs**: When users register with a wallet, a `did:ethr` is automatically created
+- **Format**: `did:ethr:0x1234...` (wallet address as DID)
+- **Storage**: DID documents stored on Ethereum blockchain
+
+#### DID Verification
+- **Cryptographic Proof**: DIDs are verified through digital signatures
+- **On-chain Resolution**: DID documents are resolved from the blockchain
+- **Trustless Verification**: No central authority required for verification
+
+#### DID Benefits
+- **Self-sovereign Identity**: Users control their own identity
+- **Cross-platform Compatibility**: DIDs work across different systems
+- **Privacy Control**: Users choose what information to reveal
+- **Blockchain Integration**: Seamless integration with smart contracts
+
+### Using DIDs in the Application
+
+#### Registration with DID
+1. **Connect Wallet**: MetaMask wallet provides the foundation for DID
+2. **Automatic DID Creation**: System creates `did:ethr` from wallet address
+3. **DID Storage**: DID document stored on blockchain
+4. **Identity Verification**: DID used for all blockchain operations
+
+#### Contract Signing with DID
+1. **DID Resolution**: System resolves DID document from blockchain
+2. **Signature Verification**: Verifies user controls the DID
+3. **Contract Execution**: Smart contract uses DID for identity
+4. **Audit Trail**: All operations linked to DID for transparency
+
+#### DID Management
+- **View DID**: Users can view their DID in their profile
+- **DID Resolution**: System can resolve any DID to verify identity
+- **DID Verification**: Cryptographic verification of DID ownership
+
 ## 📱 Role-Based Interface
 
 ### Navigation Structure

@@ -13,6 +13,7 @@ The Contract Management System is a blockchain-based platform that enables secur
 
 ### Key Features
 - **Enterprise IAM Integration**: Keycloak-based identity and access management
+- **DID Support**: Decentralized Identifiers for self-sovereign identity
 - **Secure Private Key Management**: Client-side signing with private keys never transmitted
 - **Blockchain Immutability**: All contracts stored on Ethereum-compatible blockchain
 - **Multi-Party Workflow**: Sequential signing process with role-based permissions
@@ -66,6 +67,13 @@ graph TB
         end
     end
     
+    subgraph "Identity Layer (DID)"
+        DID[DID Registry]
+        DID_RES[DID Resolution]
+        DID_VER[DID Verification]
+        DID_DOC[DID Documents]
+    end
+    
     subgraph "Data Layer (PostgreSQL)"
         Q[Users Table]
         R[Contracts Table]
@@ -97,6 +105,10 @@ graph TB
     KC --> RBAC
     KC --> EMAIL
     KC --> IAM_DB
+    K --> DID
+    DID --> DID_RES
+    DID --> DID_VER
+    DID --> DID_DOC
     L --> V
     K --> Q
     K --> R
