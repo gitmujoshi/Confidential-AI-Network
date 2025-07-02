@@ -9,6 +9,21 @@ Complete guide to test wallets for the Contract Management System development an
 - **All wallets have 10,000 ETH on the local Hardhat network**
 - **Use these for development, testing, and demonstration purposes only**
 - **The private keys are publicly known and should NEVER be used on mainnet networks**
+- **These accounts are pre-configured in Keycloak IAM for testing**
+
+## 🔐 IAM Integration
+
+All test wallets are pre-configured in the Keycloak IAM system with:
+- **Pre-created user accounts** with email verification completed
+- **Role assignments** (TDP, TDC, CCRP) based on wallet addresses
+- **Onboarding status** set to COMPLETED
+- **Profile information** including organization details
+
+### IAM Test Credentials
+- **Keycloak Admin**: admin/admin123
+- **Realm**: contract-management
+- **Client**: contract-management-client
+- **All test users**: Password is same as email (e.g., hardhat.tdp1@test.com)
 
 ## 🏭 Training Data Providers (TDP)
 

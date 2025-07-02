@@ -23,6 +23,7 @@ graph TB
         EXT[MetaMask Extension]
         APP[Contract Management App]
         BROWSER[Browser Storage]
+        IAM[IAM Authentication]
     end
     
     subgraph "Blockchain Network"
@@ -35,6 +36,13 @@ graph TB
         PK[Private Keys]
         SIG[Digital Signatures]
         AUTH[Authentication]
+        JWT[JWT Tokens]
+    end
+    
+    subgraph "IAM Layer"
+        KC[Keycloak Server]
+        EMAIL[Email Verification]
+        RBAC[Role Management]
     end
     
     EXT <--> APP
@@ -42,6 +50,11 @@ graph TB
     PK --> SIG
     SIG --> TX
     APP --> BC
+    APP --> IAM
+    IAM --> JWT
+    IAM --> KC
+    KC --> EMAIL
+    KC --> RBAC
     BC --> SC
     SC --> TX
     
@@ -49,6 +62,7 @@ graph TB
     style APP fill:#e1f5fe
     style BC fill:#e8f5e8
     style PK fill:#fff3e0
+    style KC fill:#ffebee
 ```
 
 ## 🔧 Installation and Setup
@@ -95,10 +109,21 @@ flowchart TD
         N[Currency: ETH]
     end
     
+    subgraph "IAM Integration"
+        O[Register with IAM]
+        P[Verify Email]
+        Q[Complete Profile]
+        R[Get JWT Token]
+    end
+    
     H --> K
     H --> L
     H --> M
     H --> N
+    J --> O
+    O --> P
+    P --> Q
+    Q --> R
 ```
 
 ## 👥 Test Wallets
@@ -187,10 +212,13 @@ sequenceDiagram
     participant MM as MetaMask
     participant APP as Application
     participant API as Backend
+    participant IAM as Keycloak IAM
     
     U->>MM: Switch Account
     MM->>APP: accountsChanged Event (if new)
     APP->>API: Get User by Wallet
+    API->>IAM: Validate JWT Token
+    IAM->>API: Token Valid/Invalid
     API->>APP: User Data
     APP->>U: Update UI
     
@@ -198,6 +226,9 @@ sequenceDiagram
     U->>APP: Click "Refresh App"
     APP->>MM: Get Current Account
     MM->>APP: Current Account Address
+    APP->>API: Validate with IAM
+    API->>IAM: Check Token
+    IAM->>API: Token Status
     APP->>API: Get User by Wallet
     API->>APP: User Data
     APP->>U: Update UI
@@ -336,16 +367,19 @@ cd backend && npm run dev
 cd frontend && npm start
 ```
 
-### Step 2: Connect Your Wallet
+### Step 2: Register and Connect
 1. Open the application in your browser (http://localhost:3000)
-2. Click "Connect Wallet" in the top-right corner
-3. MetaMask will prompt you to connect - click "Connect"
-4. Select the account you want to use
+2. Click "Register" to start the onboarding process
+3. Connect your MetaMask wallet when prompted
+4. Fill in your basic information (name, email, organization)
+5. Verify your email address (check your inbox)
+6. Complete your profile with additional details
 
-### Step 3: Register Your Account
-1. If this is your first time, you'll need to register
-2. Click "User Registration" in the navigation
-3. Fill in your details and click "Register"
+### Step 3: Connect Your Wallet
+1. After registration, click "Connect Wallet" in the top-right corner
+2. MetaMask will prompt you to connect - click "Connect"
+3. Select the account you want to use
+4. The system will verify your IAM credentials
 
 ### Step 4: Use Role-Specific Features
 

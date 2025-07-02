@@ -18,36 +18,47 @@ graph TB
         UI[React UI]
         WC[Wallet Connect]
         RB[Role-Based Components]
+        ONB[Onboarding UI]
     end
     
     subgraph "Authentication Layer"
         AUTH[User Context]
         WALLET[MetaMask Integration]
+        IAM[Keycloak IAM]
         ROLE[Role Verification]
+        EMAIL[Email Verification]
     end
     
     subgraph "Business Logic Layer"
         TDC[TDC Workflows<br/>ONLY Contract Initiator]
         TDP[TDP Workflows<br/>Auto-Sign Contracts]
         CCRP[CCRP Workflows<br/>Review & Sign]
+        ONB_WF[Onboarding Workflows]
     end
     
     subgraph "Data Layer"
         API[Backend API]
         BC[Blockchain]
         DB[(Database)]
+        IAM_DB[(IAM Database)]
     end
     
     UI --> AUTH
     WC --> WALLET
     RB --> ROLE
+    ONB --> IAM
+    AUTH --> IAM
+    IAM --> EMAIL
     AUTH --> TDC
     AUTH --> TDP
     AUTH --> CCRP
+    AUTH --> ONB_WF
     TDC --> API
     TDP --> API
     CCRP --> API
+    ONB_WF --> API
     API --> DB
+    API --> IAM_DB
     API --> BC
 ```
 
@@ -134,18 +145,28 @@ graph TD
 
 ## 🚀 Getting Started
 
-### Step 1: Connect Your Wallet
+### Step 1: User Registration & Onboarding
 1. Open the application in your browser (http://localhost:3000)
-2. Click "Connect Wallet" in the top-right corner
-3. MetaMask will prompt you to connect - click "Connect"
-4. Select the account you want to use
+2. Click "Register" to start the onboarding process
+3. Connect your MetaMask wallet when prompted
+4. Fill in your basic information (name, email, organization)
+5. Verify your email address (check your inbox)
+6. Complete your profile with additional details
+7. Your role will be automatically assigned based on your profile
 
-### Step 2: Register Your Account
-1. If this is your first time, you'll need to register
-2. Click "User Registration" in the navigation
-3. Fill in your details and click "Register"
+### Step 2: Connect Your Wallet
+1. After registration, click "Connect Wallet" in the top-right corner
+2. MetaMask will prompt you to connect - click "Connect"
+3. Select the account you want to use
+4. The system will verify your IAM credentials
 
-### Step 3: Switch Between Roles
+### Step 3: Complete Profile Setup
+1. Navigate to your profile settings
+2. Add organization details, contact information
+3. Verify your email if not already done
+4. Complete any additional onboarding steps
+
+### Step 4: Switch Between Roles (if needed)
 1. Click the "Switch Wallet" button in the top navigation
 2. Select the wallet for the role you want to use
 3. Switch to that account in MetaMask
