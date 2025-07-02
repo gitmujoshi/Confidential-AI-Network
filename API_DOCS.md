@@ -10,13 +10,29 @@ http://localhost:5001/api
 
 ## 🔐 Authentication
 
-All API endpoints require wallet-based authentication. The user's wallet address is used to identify and authenticate users.
+The API supports two authentication methods:
+
+### 1. IAM Authentication (Recommended)
+All API endpoints require JWT token authentication from Keycloak IAM. Include the JWT token in the Authorization header.
+
+**Headers:**
+```
+Authorization: Bearer <jwt_token>
+```
+
+### 2. Wallet Authentication (Legacy)
+For backward compatibility, wallet-based authentication is still supported. The user's wallet address is used to identify and authenticate users.
+
+**Headers:**
+```
+Authorization: Bearer <wallet_address>
+```
 
 ## 📋 Endpoints
 
-### Authentication
+### Authentication & IAM
 
-#### Register User
+#### Register User (IAM)
 ```http
 POST /auth/register
 ```
@@ -28,7 +44,92 @@ POST /auth/register
   "publicKey": "0x...",
   "name": "User Name",
   "email": "user@example.com",
-  "partyType": "TDP|TDC|CCRP",
+  "organization": "Company Name",
+  "phoneNumber": "+1234567890",
+  "website": "https://example.com",
+  "location": "Country"
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "user": {
+    "id": 1,
+    "walletAddress": "0x...",
+    "name": "User Name",
+    "email": "user@example.com",
+    "organization": "Company Name",
+    "onboardingStatus": "PENDING",
+    "profileCompleted": false,
+    "emailVerified": false,
+    "iamUserId": "***REMOVED-KEYCLOAK_DB_PASSWORD***-user-id"
+  }
+}
+```
+
+#### Login User (IAM)
+```http
+POST /auth/login
+```
+
+**Request Body:**
+```json
+{
+  "email": "user@example.com",
+  "password": "user_password"
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "accessToken": "jwt_token_here",
+  "refreshToken": "refresh_token_here",
+  "user": {
+    "id": 1,
+    "name": "User Name",
+    "email": "user@example.com",
+    "onboardingStatus": "COMPLETED",
+    "profileCompleted": true
+  }
+}
+```
+
+#### Verify Email
+```http
+POST /auth/verify-email
+```
+
+**Request Body:**
+```json
+{
+  "token": "email_verification_token"
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Email verified successfully"
+}
+```
+
+#### Complete Onboarding
+```http
+POST /auth/complete-onboarding
+```
+
+**Request Body:**
+```json
+{
+  "organization": "Company Name",
+  "phoneNumber": "+1234567890",
+  "website": "https://example.com",
+  "location": "Country",
   "description": "User description"
 }
 ```
@@ -39,12 +140,25 @@ POST /auth/register
   "success": true,
   "user": {
     "id": 1,
-    "walletAddress": "0x...",
-    "name": "User Name",
-    "email": "user@example.com",
-    "partyType": "TDP",
-    "isRegistered": true
+    "onboardingStatus": "COMPLETED",
+    "profileCompleted": true
   }
+}
+```
+
+#### Get Onboarding Status
+```http
+GET /auth/onboarding-status
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "onboardingStatus": "COMPLETED",
+  "profileCompleted": true,
+  "emailVerified": true,
+  "missingFields": []
 }
 ```
 
@@ -55,7 +169,7 @@ GET /auth/profile
 
 **Headers:**
 ```
-Authorization: Bearer <wallet_address>
+Authorization: Bearer <jwt_token>
 ```
 
 **Response:**
@@ -67,8 +181,41 @@ Authorization: Bearer <wallet_address>
     "walletAddress": "0x...",
     "name": "User Name",
     "email": "user@example.com",
+    "organization": "Company Name",
     "partyType": "TDP",
-    "isRegistered": true
+    "onboardingStatus": "COMPLETED",
+    "profileCompleted": true,
+    "emailVerified": true,
+    "lastLoginAt": "2024-01-01T00:00:00Z"
+  }
+}
+```
+
+#### Update User Profile
+```http
+PUT /auth/profile
+```
+
+**Request Body:**
+```json
+{
+  "name": "Updated Name",
+  "organization": "Updated Company",
+  "phoneNumber": "+1234567890",
+  "website": "https://example.com",
+  "location": "Country",
+  "description": "Updated description"
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "user": {
+    "id": 1,
+    "name": "Updated Name",
+    "organization": "Updated Company"
   }
 }
 ```

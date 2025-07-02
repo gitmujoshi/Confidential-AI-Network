@@ -12,11 +12,14 @@ The Contract Management System is a blockchain-based platform that enables secur
 - **CCRP (Confidential Clean Room Provider)**: Independent reviewers who validate contracts
 
 ### Key Features
+- **Enterprise IAM Integration**: Keycloak-based identity and access management
 - **Secure Private Key Management**: Client-side signing with private keys never transmitted
 - **Blockchain Immutability**: All contracts stored on Ethereum-compatible blockchain
 - **Multi-Party Workflow**: Sequential signing process with role-based permissions
+- **User Onboarding**: Multi-step registration with email verification
 - **Real-time Notifications**: Email and in-app notifications for contract events
 - **Comprehensive Audit Trail**: Complete history of all contract actions
+- **Profile Management**: Enhanced user profiles with organization details
 
 ## 🏛️ System Architecture
 
@@ -34,6 +37,7 @@ graph TB
             G[Ethers.js]
             H[React Query]
             I[State Management]
+            ONB[Onboarding UI]
         end
     end
     
@@ -47,6 +51,18 @@ graph TB
             N[Dataset Service]
             O[User Service]
             P[Notification Service]
+            IAM[Keycloak Service]
+        end
+    end
+    
+    subgraph "IAM Layer (Keycloak)"
+        KC[Keycloak Server]
+        AUTH[Authentication]
+        RBAC[Role-Based Access]
+        EMAIL[Email Verification]
+        
+        subgraph "IAM Database"
+            IAM_DB[Keycloak PostgreSQL]
         end
     end
     
@@ -71,9 +87,16 @@ graph TB
     end
     
     A --> F
+    ONB --> IAM
     F --> J
     J --> K
     K --> L
+    K --> IAM
+    IAM --> KC
+    KC --> AUTH
+    KC --> RBAC
+    KC --> EMAIL
+    KC --> IAM_DB
     L --> V
     K --> Q
     K --> R
@@ -107,9 +130,10 @@ graph TB
         
         subgraph "Data & Security"
             B3[Sequelize ORM]
-            B4[JWT Authentication]
-            B5[Helmet Security]
-            B6[CORS]
+            B4[Keycloak IAM]
+            B5[JWT Authentication]
+            B6[Helmet Security]
+            B7[CORS]
         end
     end
     
@@ -165,6 +189,7 @@ graph TB
     B3 --> B4
     B4 --> B5
     B5 --> B6
+    B6 --> B7
     
     %% Database connections
     DB1 --> DB2

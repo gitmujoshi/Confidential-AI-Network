@@ -7,6 +7,7 @@ A comprehensive blockchain-based contract management system with role-based acce
 ### Prerequisites
 - **Node.js** (v18 or higher)
 - **PostgreSQL** (v12 or higher)
+- **Docker** and **Docker Compose** (for IAM)
 - **MetaMask** browser extension
 - **Git**
 
@@ -21,15 +22,22 @@ npm install && cd backend && npm install && cd ../frontend && npm install && cd 
 createdb contract_management
 cd backend && npm run setup-db
 
+# Setup IAM (Keycloak)
+docker-compose -f docker-compose.iam.yml up -d
+cd backend && npm run setup-***REMOVED-KEYCLOAK_DB_PASSWORD***
+npm run migrate-iam
+
 # Start services (3 terminals)
 # Terminal 1: cd blockchain && npx hardhat node
 # Terminal 2: cd backend && npm run dev  
 # Terminal 3: cd frontend && npm start
 
 # Access: http://localhost:3000
+# Keycloak Admin: http://localhost:8080/admin (admin/***REMOVED-KEYCLOAK_ADMIN_PASSWORD***)
 ```
 
 📖 **For detailed setup instructions, see [SETUP_GUIDE.md](./SETUP_GUIDE.md)**
+📖 **For IAM setup, see [IAM_SETUP_GUIDE.md](./IAM_SETUP_GUIDE.md)**
 
 ## 🏗️ System Overview
 
@@ -39,22 +47,27 @@ cd backend && npm run setup-db
 - **CCRP (Confidential Clean Room Provider)**: Independent reviewers who validate contracts
 
 ### Key Features
+- **Enterprise IAM Integration**: Keycloak-based identity and access management
 - **Secure Wallet Integration**: Client-side signing with MetaMask
 - **Blockchain Immutability**: Smart contracts for secure, transparent agreements
 - **Role-Based UI**: Dynamic interfaces based on user permissions
+- **User Onboarding**: Multi-step registration with email verification
 - **Automated Workflows**: Streamlined contract creation and signing
 - **Real-time Notifications**: Live updates and email notifications
+- **Profile Management**: Enhanced user profiles with organization details
 
 ### Technology Stack
 - **Frontend**: React 18, Material-UI, Ethers.js, React Query
 - **Backend**: Node.js, Express.js, Sequelize ORM, PostgreSQL
 - **Blockchain**: Hardhat, Solidity, OpenZeppelin
-- **Security**: JWT, HTTPS, Client-side signing
+- **IAM**: Keycloak, OAuth2, OpenID Connect, JWT
+- **Security**: HTTPS, Client-side signing, Rate limiting
 
 ## 📚 Documentation
 
 ### Core Guides
 - **[Setup Guide](./SETUP_GUIDE.md)** - Complete installation and configuration
+- **[IAM Setup Guide](./IAM_SETUP_GUIDE.md)** - Keycloak IAM integration setup
 - **[User Guide](./USER_GUIDE.md)** - How to use the application
 - **[Wallet Guide](./WALLET_GUIDE.md)** - MetaMask setup and wallet management
 - **[Architecture Guide](./ARCHITECTURE_GUIDE.md)** - System design and technical details
@@ -62,8 +75,16 @@ cd backend && npm run setup-db
 ### Reference Materials
 - **[Test Wallets](./TEST_WALLETS.md)** - Development wallet information
 - **[API Documentation](./API_DOCS.md)** - Backend API reference
+- **[IAM Integration Strategy](./IAM_INTEGRATION_STRATEGY.md)** - IAM architecture and strategy
 
 ## 🔐 Security Features
+
+### Enterprise IAM Security
+- **Keycloak Integration**: Industry-standard identity management
+- **OAuth2/OpenID Connect**: Secure authentication protocols
+- **JWT Token Validation**: Server-side token verification
+- **Role-Based Access Control**: Fine-grained permissions
+- **Email Verification**: Multi-factor authentication support
 
 ### Client-Side Security
 - Private keys never transmitted over network
@@ -85,23 +106,33 @@ cd backend && npm run setup-db
 
 ## 🎯 User Workflows
 
+### User Onboarding
+1. **Registration**: Connect wallet and provide basic information
+2. **Email Verification**: Verify email address for security
+3. **Profile Completion**: Add organization and contact details
+4. **Role Assignment**: Automatic role assignment based on criteria
+5. **Access Activation**: Full system access after onboarding
+
 ### TDP (Training Data Provider)
-1. Create and manage datasets
-2. Auto-sign contracts when created by TDC
-3. Monitor contract status and history
-4. Receive payments for data access
+1. Complete onboarding and profile setup
+2. Create and manage datasets
+3. Auto-sign contracts when created by TDC
+4. Monitor contract status and history
+5. Receive payments for data access
 
 ### TDC (Training Data Consumer)
-1. Browse available datasets
-2. Select CCRP for contract review
-3. Create contracts with dataset and CCRP
-4. Sign contracts to finalize agreements
+1. Complete onboarding and profile setup
+2. Browse available datasets
+3. Select CCRP for contract review
+4. Create contracts with dataset and CCRP
+5. Sign contracts to finalize agreements
 
 ### CCRP (Confidential Clean Room Provider)
-1. Receive notifications for contract review
-2. Review contract terms and conditions
-3. Sign contracts after compliance validation
-4. Maintain audit trail of approvals
+1. Complete onboarding and profile setup
+2. Receive notifications for contract review
+3. Review contract terms and conditions
+4. Sign contracts after compliance validation
+5. Maintain audit trail of approvals
 
 ## 🛠️ Development
 
@@ -126,6 +157,10 @@ npm run frontend      # Start frontend
 # Database
 npm run setup-db      # Setup database and seed data
 npm run reset-db      # Reset database
+
+# IAM Integration
+npm run setup-***REMOVED-KEYCLOAK_DB_PASSWORD*** # Setup Keycloak IAM
+npm run migrate-iam   # Add IAM fields to database
 
 # Testing
 npm run test          # Run all tests

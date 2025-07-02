@@ -8,6 +8,7 @@ Complete installation and configuration guide for the Contract Management System
 Before starting, ensure you have:
 - **Node.js** (v18 or higher)
 - **PostgreSQL** (v12 or higher)
+- **Docker** and **Docker Compose** (for IAM integration)
 - **Git** (for cloning the repository)
 - **MetaMask** browser extension (see [Wallet Guide](./WALLET_GUIDE.md))
 
@@ -44,7 +45,33 @@ cd backend
 npm run setup-db
 ```
 
-### Step 3: Start Services
+### Step 3: IAM Setup (Keycloak)
+```bash
+# Start Keycloak and PostgreSQL for IAM
+docker-compose -f docker-compose.iam.yml up -d
+
+# Wait for services to be ready (about 30 seconds)
+sleep 30
+
+# Setup Keycloak realm and users
+cd backend
+npm run setup-***REMOVED-KEYCLOAK_DB_PASSWORD***
+
+# Add IAM fields to database
+npm run migrate-iam
+```
+
+**Expected Output:**
+```
+Creating ***REMOVED-KEYCLOAK_DB_PASSWORD***_***REMOVED-DB_PASSWORD***_1 ... done
+Creating ***REMOVED-KEYCLOAK_DB_PASSWORD***_***REMOVED-KEYCLOAK_DB_PASSWORD***_1 ... done
+Keycloak realm 'contract-management' created successfully
+Keycloak client 'contract-management-client' created successfully
+Keycloak roles created successfully
+IAM migration completed successfully
+```
+
+### Step 4: Start Services
 Open **3 terminal windows** and run:
 
 **Terminal 1: Blockchain Node**
@@ -87,10 +114,11 @@ You can now view contract-management-frontend in the browser.
 Local: http://localhost:3000
 ```
 
-### Step 4: Access Application
+### Step 5: Access Application
 1. Open browser: **http://localhost:3000**
 2. Connect MetaMask (see [Wallet Guide](./WALLET_GUIDE.md))
 3. Import test wallets (see [Test Wallets](./TEST_WALLETS.md))
+4. **Keycloak Admin Console**: **http://localhost:8080/admin** (admin/***REMOVED-KEYCLOAK_ADMIN_PASSWORD***)
 
 ## 🔧 Detailed Setup
 
@@ -101,27 +129,33 @@ graph TB
         A[Clone Repository]
         B[Install Dependencies]
         C[Setup Database]
-        D[Start Services]
-        E[Access Application]
-        A --> B --> C --> D --> E
+        D[Setup IAM]
+        E[Start Services]
+        F[Access Application]
+        A --> B --> C --> D --> E --> F
     end
     
     subgraph "Service Architecture"
-        F[Blockchain Node<br/>Port 8545]
-        G[Backend API<br/>Port 5001]
-        H[Frontend UI<br/>Port 3000]
-        I[PostgreSQL<br/>Port 5432]
-        F <--> G
-        G <--> I
-        H <--> G
-        H <--> F
+        G[Blockchain Node<br/>Port 8545]
+        H[Backend API<br/>Port 5001]
+        I[Frontend UI<br/>Port 3000]
+        J[PostgreSQL<br/>Port 5432]
+        K[Keycloak IAM<br/>Port 8080]
+        L[IAM PostgreSQL<br/>Port 5433]
+        G <--> H
+        H <--> J
+        H <--> K
+        I <--> H
+        I <--> G
+        K <--> L
     end
     
     style A fill:#e1f5fe
-    style E fill:#c8e6c9
-    style F fill:#fff3e0
-    style G fill:#f3e5f5
-    style H fill:#e8f5e8
+    style F fill:#c8e6c9
+    style G fill:#fff3e0
+    style H fill:#f3e5f5
+    style I fill:#e8f5e8
+    style K fill:#ffebee
 ```
 
 ### Database Setup Process
@@ -145,6 +179,11 @@ sequenceDiagram
 ### Service Startup Sequence
 ```mermaid
 graph LR
+    subgraph "Docker Services"
+        KC[Keycloak IAM<br/>Docker]
+        KP[IAM PostgreSQL<br/>Docker]
+    end
+    
     subgraph "Terminal 1"
         BC[Blockchain Node<br/>Hardhat]
     end
@@ -157,9 +196,12 @@ graph LR
         FE[Frontend<br/>React]
     end
     
+    KC --> KP
+    KC --> BE
     BC --> BE
     BE --> FE
     
+    style KC fill:#ffebee
     style BC fill:#fff3e0
     style BE fill:#f3e5f5
     style FE fill:#e8f5e8
@@ -177,6 +219,14 @@ DB_PORT=5432
 DB_NAME=contract_management
 DB_USER=your_username
 DB_PASSWORD=your_password
+
+# IAM (Keycloak)
+KEYCLOAK_URL=http://localhost:8080
+KEYCLOAK_REALM=contract-management
+KEYCLOAK_CLIENT_ID=contract-management-client
+KEYCLOAK_CLIENT_SECRET=your_client_secret
+KEYCLOAK_ADMIN_USERNAME=admin
+KEYCLOAK_ADMIN_PASSWORD=***REMOVED-KEYCLOAK_ADMIN_PASSWORD***
 
 # JWT
 JWT_SECRET=your_jwt_secret_key_here
