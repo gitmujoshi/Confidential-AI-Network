@@ -7,9 +7,9 @@ Complete guide for using the Contract Management System with role-based interfac
 
 The Contract Management System implements role-based user interfaces that customize the experience based on user types:
 
-- **TDC (Training Data Consumer)**: Initiates contracts by selecting datasets and CCRP
-- **TDP (Training Data Provider)**: Provides datasets and automatically signs contracts
-- **CCRP (Confidential Clean Room Provider)**: Reviews and signs contracts for compliance
+- **TDC (Training Data Consumer)**: ONLY role that can initiate contracts by selecting datasets and CCRP
+- **TDP (Training Data Provider)**: Provides datasets and automatically signs contracts when created by TDC
+- **CCRP (Confidential Clean Room Provider)**: Reviews and signs contracts for compliance validation
 
 ### System Architecture Overview
 ```mermaid
@@ -27,9 +27,9 @@ graph TB
     end
     
     subgraph "Business Logic Layer"
-        TDC[TDC Workflows]
-        TDP[TDP Workflows]
-        CCRP[CCRP Workflows]
+        TDC[TDC Workflows<br/>ONLY Contract Initiator]
+        TDP[TDP Workflows<br/>Auto-Sign Contracts]
+        CCRP[CCRP Workflows<br/>Review & Sign]
     end
     
     subgraph "Data Layer"
@@ -53,50 +53,49 @@ graph TB
 
 ## 🎯 User Roles and Responsibilities
 
-### TDC (Training Data Consumer)
-**Primary Role**: Initiates contracts by selecting datasets and CCRP providers
+### TDC (Training Data Consumer) - CONTRACT INITIATOR
+**Primary Role**: ONLY role that can initiate contracts by selecting datasets and CCRP providers
 
 **Responsibilities**:
 - Browse available datasets
-- Select CCRP for contract review
-- Create contracts with dataset and CCRP
+- Select CCRP for contract review (optional)
+- Create contracts with dataset and CCRP selection
 - Sign contracts to finalize agreements
-- Access purchased data
+- Access purchased data after contract completion
 
 **UI Features**:
-- Can access "Create Contract" functionality
+- Can access "Create Contract" functionality (exclusive to TDC)
 - Views datasets available for purchase
 - Manages their initiated contracts
 - Selects CCRP providers for contracts
 - Completes contracts when training is finished
 
-### TDP (Training Data Provider)
-**Primary Role**: Provides datasets and automatically signs contracts
+### TDP (Training Data Provider) - DATASET OWNER
+**Primary Role**: Provides datasets and automatically signs contracts when created by TDC
 
 **Responsibilities**:
 - Upload and manage datasets
-- Create contract proposals
-- Auto-sign contracts when created by TDC
+- Automatically sign contracts when created by TDC (no manual action needed)
 - Monitor contract status and history
 - Receive payments for data access
 
 **UI Features**:
 - Views their owned datasets
-- Automatically signs contracts when created (no manual action needed)
-- Reviews contract requests
+- Automatically signs contracts when created by TDC (system handles this)
+- Reviews contract requests and status
 - Manages dataset listings
 
-### CCRP (Confidential Clean Room Provider)
-**Primary Role**: Provides secure environments and signs contracts
+### CCRP (Confidential Clean Room Provider) - COMPLIANCE REVIEWER
+**Primary Role**: Reviews and signs contracts for compliance validation
 
 **Responsibilities**:
-- Review contract terms and conditions
+- Review contract terms and conditions when selected by TDC
 - Validate legal compliance
 - Sign contracts after thorough review
 - Provide oversight and maintain audit trail
 
 **UI Features**:
-- Reviews contract requests where they are selected
+- Reviews contract requests where they are selected by TDC
 - Signs contracts to approve participation
 - Views contracts they are involved in
 
@@ -104,18 +103,19 @@ graph TB
 ```mermaid
 graph TD
     subgraph "User Roles"
-        TDC[TDC - Training Data Consumer<br/>Contract Initiator]
-        TDP[TDP - Training Data Provider<br/>Dataset Owner]
+        TDC[TDC - Training Data Consumer<br/>ONLY Contract Initiator]
+        TDP[TDP - Training Data Provider<br/>Dataset Owner & Auto-Signer]
         CCRP[CCRP - Confidential Clean Room Provider<br/>Compliance Checker]
     end
     
     subgraph "Permissions"
-        P1[Create Contracts]
+        P1[Create Contracts<br/>TDC ONLY]
         P2[Sign Contracts]
         P3[View Datasets]
-        P4[Manage Datasets]
-        P5[Select CCRP]
-        P6[Review Contracts]
+        P4[Manage Datasets<br/>TDP ONLY]
+        P5[Select CCRP<br/>TDC ONLY]
+        P6[Review Contracts<br/>CCRP ONLY]
+        P7[Auto-Sign Contracts<br/>TDP ONLY]
     end
     
     TDC --> P1
@@ -123,6 +123,7 @@ graph TD
     TDC --> P5
     TDP --> P2
     TDP --> P4
+    TDP --> P7
     CCRP --> P2
     CCRP --> P6
     
@@ -211,70 +212,83 @@ graph TD
 
 ## 📋 Contract Workflows
 
-### Contract Creation Workflow (TDC)
+### Contract Creation Workflow (TDC ONLY)
 ```mermaid
 flowchart TD
-    A[TDC User] --> B[Browse Datasets]
+    A[TDC User<br/>ONLY Role] --> B[Browse Datasets]
     B --> C[Select Dataset]
     C --> D[Configure Contract]
     D --> E[Select CCRP<br/>Optional]
     E --> F[Review Contract]
     F --> G[Create Contract]
-    G --> H[TDP Auto-Signs]
-    H --> I[CCRP Notified]
-    I --> J[CCRP Reviews]
-    J --> K[CCRP Signs]
-    K --> L[TDC Signs]
+    G --> H[TDP Auto-Signs<br/>System Handled]
+    H --> I[CCRP Notified<br/>If Selected]
+    I --> J[CCRP Reviews<br/>If Selected]
+    J --> K[CCRP Signs<br/>If Selected]
+    K --> L[TDC Signs<br/>Final Step]
     L --> M[Contract Active]
     
     style A fill:#e3f2fd
     style H fill:#f3e5f5
     style J fill:#e8f5e8
     style L fill:#e3f2fd
+    
+    note right of A
+        ONLY TDC can initiate
+        contract creation
+    end note
+    
+    note right of H
+        TDP automatically signs
+        when TDC creates contract
+        (no manual action needed)
+    end note
 ```
 
 ### Contract Signing Workflow
 ```mermaid
 stateDiagram-v2
     [*] --> Draft
-    Draft --> PendingTDP: TDC Creates Contract
-    PendingTDP --> PendingCCRP: TDP Auto-signs
-    PendingCCRP --> PendingTDC: CCRP Signs
-    PendingTDC --> Active: TDC Signs
+    Draft --> PendingTDP: TDC Creates Contract<br/>(ONLY TDC can create)
+    PendingTDP --> PendingCCRP: TDP Auto-signs<br/>(System handles automatically)
+    PendingCCRP --> PendingTDC: CCRP Signs<br/>(If CCRP was selected)
+    PendingTDC --> Active: TDC Signs<br/>(Final signature)
     Active --> Completed: Contract Executed
     Active --> Cancelled: Any Party Cancels
     Completed --> [*]
     Cancelled --> [*]
     
     note right of Draft
-        Contract created by TDC
-        with dataset and CCRP selected
+        Contract created by TDC ONLY
+        with dataset and optional CCRP selected
     end note
     
     note right of PendingTDP
         TDP automatically signs
-        when contract is created
+        when TDC creates contract
+        (no manual action needed)
     end note
     
     note right of PendingCCRP
         CCRP reviews and signs
         for compliance validation
+        (only if selected by TDC)
     end note
     
     note right of PendingTDC
         TDC finalizes contract
-        by signing
+        by signing (final step)
     end note
     
     note right of Active
-        All parties signed
+        All required parties signed
         Contract is legally binding
     end note
 ```
 
 ## 🎯 Step-by-Step Workflows
 
-### For TDC (Training Data Consumer)
+### For TDC (Training Data Consumer) - CONTRACT INITIATOR
 
 #### 1. Browse Datasets
 1. Navigate to "Datasets" in the sidebar
@@ -282,26 +296,26 @@ stateDiagram-v2
 3. Click on a dataset to view detailed information
 4. Note the dataset ID and owner information
 
-#### 2. Create a Contract
-1. Click "Create Contract" in the navigation
+#### 2. Create a Contract (TDC ONLY)
+1. Click "Create Contract" in the navigation (only visible to TDC)
 2. Select a dataset from the dropdown
 3. Configure contract details:
    - **Price**: Set the contract price
    - **Duration**: Specify contract duration
    - **Terms**: Add any special terms or conditions
-4. Optionally select a CCRP provider
+4. Optionally select a CCRP provider for compliance review
 5. Review the contract summary
 6. Click "Create Contract"
 
-#### 3. Sign the Contract
+#### 3. Sign the Contract (Final Step)
 1. Navigate to "Contracts" to view your contracts
-2. Find the contract in "Pending" status
-3. Click "Sign Contract" button
+2. Find the contract in "Pending TDC Approval" status
+3. Click "Sign Contract" button (final signature)
 4. MetaMask will prompt for signature
 5. Confirm the transaction
 6. Contract status updates to "Active"
 
-### For TDP (Training Data Provider)
+### For TDP (Training Data Provider) - DATASET OWNER
 
 #### 1. Manage Datasets
 1. Navigate to "My Datasets" in the sidebar
@@ -315,19 +329,19 @@ stateDiagram-v2
 
 #### 2. Monitor Contracts
 1. Navigate to "Contracts" to view contract requests
-2. Contracts are automatically signed when created by TDC
+2. Contracts are automatically signed when created by TDC (system handles this)
 3. Monitor contract status and history
 4. View revenue from completed contracts
 
 #### 3. Review Notifications
 1. Check the notifications panel for new contract requests
 2. Review contract details and terms
-3. Contracts are automatically approved (no manual action needed)
+3. Contracts are automatically approved and signed (no manual action needed)
 
-### For CCRP (Confidential Clean Room Provider)
+### For CCRP (Confidential Clean Room Provider) - COMPLIANCE REVIEWER
 
 #### 1. Review Contract Requests
-1. Navigate to "Contracts" to view pending reviews
+1. Navigate to "Contracts" to view pending reviews (only if selected by TDC)
 2. Click on a contract to view detailed information
 3. Review:
    - Dataset information

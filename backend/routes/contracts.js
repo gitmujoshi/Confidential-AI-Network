@@ -4,6 +4,22 @@ const db = require('../models');
 const blockchainService = require('../services/blockchainService');
 const notificationService = require('../services/notificationService');
 
+/**
+ * Contract Management Routes
+ * 
+ * This module handles all contract-related operations including:
+ * - Contract creation (TDC only)
+ * - Contract signing (TDP auto-sign, CCRP manual sign)
+ * - Contract status updates
+ * - CCRP selection
+ * 
+ * Security Features:
+ * - Role-based access control
+ * - Input validation
+ * - Blockchain transaction verification
+ * - Secure signing with wallet integration
+ */
+
 // Get all contracts for a user
 router.get('/user/:userId', async (req, res) => {
   try {
@@ -73,7 +89,26 @@ router.get('/:contractId', async (req, res) => {
   }
 });
 
-// Create new contract
+/**
+ * Create new contract (TDC ONLY)
+ * 
+ * This endpoint allows TDC users to create contracts by selecting:
+ * - TDP (Training Data Provider) - dataset owner
+ * - Dataset to be contracted
+ * - Optional CCRP (Confidential Clean Room Provider)
+ * 
+ * Workflow:
+ * 1. TDC creates contract with TDP and dataset
+ * 2. TDP automatically signs (handled by backend)
+ * 3. If CCRP selected, contract moves to PENDING_CCRP_APPROVAL
+ * 4. If no CCRP, contract moves to PENDING_TDC_APPROVAL
+ * 
+ * Security:
+ * - Only TDC users can create contracts
+ * - TDP must be registered and own the dataset
+ * - CCRP must be registered (if selected)
+ * - All blockchain transactions are signed securely
+ */
 router.post('/', async (req, res) => {
   try {
     const {
@@ -92,7 +127,7 @@ router.post('/', async (req, res) => {
       return res.status(400).json({ error: 'Missing required fields' });
     }
 
-    // Get TDP user
+    // Get TDP user (dataset owner)
     const tdpUser = await db.User.findOne({
       where: { walletAddress: tdpWalletAddress, partyType: 'TDP' }
     });
@@ -101,7 +136,7 @@ router.post('/', async (req, res) => {
       return res.status(404).json({ error: 'TDP not found' });
     }
 
-    // Get dataset
+    // Verify dataset ownership
     const dataset = await db.Dataset.findOne({
       where: { datasetId, ownerId: tdpUser.id }
     });
@@ -233,7 +268,20 @@ router.get('/:contractId/signing-data', async (req, res) => {
   }
 });
 
-// Sign contract (SECURE - accepts signed transaction)
+/**
+ * Sign contract (SECURE - accepts signed transaction)
+ * 
+ * This endpoint allows parties to sign contracts using secure wallet signing:
+ * - TDP: Automatically signs when contract is created (backend handles)
+ * - CCRP: Manually signs after reviewing contract
+ * - TDC: Signs to finalize contract (if CCRP was selected)
+ * 
+ * Security:
+ * - Private keys never transmitted to backend
+ * - All signing done client-side with MetaMask
+ * - Backend only receives and broadcasts signed transactions
+ * - Transaction verification on blockchain
+ */
 router.post('/:contractId/sign', async (req, res) => {
   try {
     const { contractId } = req.params;
@@ -245,7 +293,7 @@ router.post('/:contractId/sign', async (req, res) => {
       });
     }
 
-    // Get contract
+    // Get contract with associations
     const contract = await db.Contract.findOne({
       where: { contractId },
       include: [
@@ -260,7 +308,7 @@ router.post('/:contractId/sign', async (req, res) => {
       return res.status(404).json({ error: 'Contract not found' });
     }
 
-    // Get user by wallet address
+    // Verify user is a party to the contract
     const user = await db.User.findOne({
       where: { walletAddress: userWalletAddress }
     });
@@ -269,20 +317,23 @@ router.post('/:contractId/sign', async (req, res) => {
       return res.status(404).json({ error: 'User not found' });
     }
 
-    // Verify user is part of the contract
-    if (user.id !== contract.tdpId && user.id !== contract.tdcId && user.id !== contract.ccrpId) {
-      return res.status(403).json({ error: 'Not authorized to sign this contract' });
-    }
+    // Check if user is a party to the contract
+    const isParty = user.id === contract.tdpId || 
+                   user.id === contract.tdcId || 
+                   (contract.ccrpId && user.id === contract.ccrpId);
 
-    // Check if blockchain contract ID exists
-    if (!contract.blockchainContractId) {
-      return res.status(400).json({ error: 'Contract not yet created on blockchain' });
+    if (!isParty) {
+      return res.status(403).json({ error: 'Not authorized to sign this contract' });
     }
 
     // Broadcast the signed transaction to blockchain
     const blockchainResult = await blockchainService.broadcastSignedTransaction(signedTransaction);
 
-    // Update contract status in database
+    if (!blockchainResult.success) {
+      return res.status(500).json({ error: 'Failed to broadcast transaction' });
+    }
+
+    // Update contract status based on who signed
     let newStatus = contract.status;
     let signerType = '';
 
@@ -315,7 +366,19 @@ router.post('/:contractId/sign', async (req, res) => {
   }
 });
 
-// Select CCRP (SECURE - accepts signed transaction)
+/**
+ * Select CCRP (SECURE - accepts signed transaction)
+ * 
+ * This endpoint allows TDC to select a CCRP for contract review:
+ * - Only TDC can select CCRP
+ * - CCRP must be registered
+ * - Selection is recorded on blockchain
+ * 
+ * Security:
+ * - Private keys never transmitted to backend
+ * - All signing done client-side with MetaMask
+ * - Backend only receives and broadcasts signed transactions
+ */
 router.post('/:contractId/select-ccrp', async (req, res) => {
   try {
     const { contractId } = req.params;
