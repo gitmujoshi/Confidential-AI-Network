@@ -25,15 +25,149 @@ A comprehensive blockchain-based contract management system with role-based acce
 
 ## 🏗️ Architecture
 
+### System Architecture
+```mermaid
+graph TB
+    subgraph "Frontend Layer"
+        UI[React UI]
+        WC[Wallet Connect]
+        RB[Role-Based UI]
+    end
+    
+    subgraph "Backend Layer"
+        API[Express API]
+        DB[(PostgreSQL)]
+        AUTH[JWT Auth]
+        NOTIF[Notifications]
+    end
+    
+    subgraph "Blockchain Layer"
+        SC[Smart Contracts]
+        BC[Hardhat Node]
+        TX[Transactions]
+    end
+    
+    UI <--> API
+    WC <--> BC
+    API <--> DB
+    API <--> SC
+    SC <--> BC
+    BC <--> TX
+    
+    style UI fill:#e1f5fe
+    style API fill:#f3e5f5
+    style SC fill:#e8f5e8
+    style DB fill:#fff3e0
 ```
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   Frontend      │    │    Backend      │    │   Blockchain    │
-│   (React)       │◄──►│   (Node.js)     │◄──►│   (Hardhat)     │
-│                 │    │                 │    │                 │
-│ • User Interface│    │ • API Server    │    │ • Smart Contracts│
-│ • Wallet Connect│    │ • Database      │    │ • Local Network │
-│ • Role-Based UI │    │ • Authentication│    │ • Contract Logic│
-└─────────────────┘    └─────────────────┘    └─────────────────┘
+
+### Data Flow Architecture
+```mermaid
+flowchart LR
+    subgraph "User Actions"
+        A1[Connect Wallet]
+        A2[Create Contract]
+        A3[Sign Contract]
+        A4[View Data]
+    end
+    
+    subgraph "Frontend Processing"
+        B1[Wallet Validation]
+        B2[Form Validation]
+        B3[Transaction Signing]
+        B4[Data Display]
+    end
+    
+    subgraph "Backend Processing"
+        C1[User Authentication]
+        C2[Contract Creation]
+        C3[Blockchain Integration]
+        C4[Data Retrieval]
+    end
+    
+    subgraph "Blockchain Operations"
+        D1[Smart Contract Execution]
+        D2[Transaction Mining]
+        D3[State Updates]
+        D4[Event Emission]
+    end
+    
+    A1 --> B1 --> C1 --> D1
+    A2 --> B2 --> C2 --> D2
+    A3 --> B3 --> C3 --> D3
+    A4 --> B4 --> C4 --> D4
+```
+
+### User Role Workflow
+```mermaid
+graph TD
+    subgraph "TDP Workflow"
+        TDP1[Create Dataset]
+        TDP2[Initiate Contract]
+        TDP3[Auto-Sign Contract]
+        TDP4[Monitor Status]
+        TDP1 --> TDP2 --> TDP3 --> TDP4
+    end
+    
+    subgraph "TDC Workflow"
+        TDC1[Browse Datasets]
+        TDC2[Select CCRP]
+        TDC3[Review Contract]
+        TDC4[Sign Contract]
+        TDC1 --> TDC2 --> TDC3 --> TDC4
+    end
+    
+    subgraph "CCRP Workflow"
+        CCRP1[Receive Notification]
+        CCRP2[Review Terms]
+        CCRP3[Verify Compliance]
+        CCRP4[Sign Contract]
+        CCRP1 --> CCRP2 --> CCRP3 --> CCRP4
+    end
+    
+    TDP2 --> TDC2
+    TDC2 --> CCRP1
+    CCRP4 --> TDP4
+```
+
+### Security Architecture
+```mermaid
+graph TB
+    subgraph "Client Security"
+        CS1[Private Key Storage]
+        CS2[Client-Side Signing]
+        CS3[Wallet Integration]
+        CS4[Input Validation]
+    end
+    
+    subgraph "Network Security"
+        NS1[HTTPS/TLS]
+        NS2[JWT Tokens]
+        NS3[API Rate Limiting]
+        NS4[CORS Protection]
+    end
+    
+    subgraph "Blockchain Security"
+        BS1[Smart Contract Audits]
+        BS2[Transaction Signing]
+        BS3[Immutable Records]
+        BS4[Public Key Verification]
+    end
+    
+    subgraph "Data Security"
+        DS1[Encrypted Storage]
+        DS2[Access Control]
+        DS3[Audit Logging]
+        DS4[Backup & Recovery]
+    end
+    
+    CS1 --> NS1
+    CS2 --> BS2
+    CS3 --> BS4
+    CS4 --> NS3
+    
+    NS2 --> DS2
+    BS3 --> DS3
+    BS1 --> DS1
 ```
 
 ## 🛠️ Technology Stack
