@@ -11,12 +11,15 @@
     "create-wallets": "node scripts/createTestWallets.js",
     "register-hardhat": "node scripts/registerHardhatUsers.js",
     "create-datasets": "node scripts/createTestDatasets.js",
+    "migrate-iam": "node scripts/migrateIAMFields.js",
+    "setup-keycloak": "node scripts/setupKeycloak.js",
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
     "test:blockchain": "jest blockchainService.test.js"
   },
   "dependencies": {
+    "axios": "^1.6.0",
     "bcryptjs": "^2.4.3",
     "cors": "^2.8.5",
     "dotenv": "^16.3.1",
@@ -25,6 +28,7 @@
     "express-rate-limit": "^7.1.5",
     "helmet": "^7.1.0",
     "jsonwebtoken": "^9.0.2",
+    "keycloak-connect": "^23.0.0",
     "multer": "^1.4.5-lts.1",
     "nodemailer": "^6.9.7",
     "pg": "^8.11.3",

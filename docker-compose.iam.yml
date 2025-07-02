@@ -1,0 +1,68 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database for Keycloak
+  keycloak-db:
+    image: postgres:15
+    container_name: keycloak-db
+    environment:
+      POSTGRES_DB: keycloak
+      POSTGRES_USER: keycloak
+      POSTGRES_PASSWORD: keycloak_password
+    volumes:
+      - keycloak-db-data:/var/lib/postgresql/data
+    networks:
+      - iam-network
+    ports:
+      - "5433:5432"  # Different port to avoid conflict with main app DB
+
+  # Keycloak IAM Server
+  keycloak:
+    image: quay.io/keycloak/keycloak:23.0
+    container_name: keycloak
+    environment:
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://keycloak-db:5432/keycloak
+      KC_DB_USERNAME: keycloak
+      KC_DB_PASSWORD: keycloak_password
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin123
+      KC_HOSTNAME_STRICT: false
+      KC_HOSTNAME_STRICT_HTTPS: false
+      KC_HTTP_ENABLED: true
+      KC_HEALTH_ENABLED: true
+      KC_METRICS_ENABLED: true
+    command: start-dev
+    depends_on:
+      - keycloak-db
+    networks:
+      - iam-network
+    ports:
+      - "8080:8080"  # Keycloak Admin Console
+      - "8081:8081"  # Keycloak API
+    volumes:
+      - ./keycloak-config:/opt/keycloak/data/import
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Redis for session management (optional)
+  redis:
+    image: redis:7-alpine
+    container_name: iam-redis
+    networks:
+      - iam-network
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+
+volumes:
+  keycloak-db-data:
+  redis-data:
+
+networks:
+  iam-network:
+    driver: bridge 
