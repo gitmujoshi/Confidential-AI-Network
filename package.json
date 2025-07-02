@@ -1,0 +1,23 @@
+{
+  "name": "contract-management-app",
+  "version": "1.0.0",
+  "description": "Smart Contract Management App for AI Training Data",
+  "main": "index.js",
+  "scripts": {
+    "dev": "concurrently \"npm run server\" \"npm run client\"",
+    "server": "cd backend && npm run dev",
+    "client": "cd frontend && npm start",
+    "blockchain": "cd blockchain && npm run node",
+    "deploy": "cd blockchain && npm run deploy",
+    "install-all": "npm install && cd backend && npm install && cd ../frontend && npm install && cd ../blockchain && npm install",
+    "setup-db": "cd backend && npm run setup-db",
+    "create-wallets": "cd backend && npm run create-wallets",
+    "register-hardhat": "cd backend && npm run register-hardhat"
+  },
+  "keywords": ["blockchain", "smart-contracts", "ai", "training-data"],
+  "author": "Contract Management Team",
+  "license": "MIT",
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+} 
