@@ -26,21 +26,93 @@ The Secure Contract Management System is a blockchain-based platform that enable
 - **Real-time Notifications**: Email and in-app notifications for contract events
 - **Comprehensive Audit Trail**: Complete history of all contract actions
 
+### System Overview Diagram
+```mermaid
+graph TB
+    subgraph "User Interface"
+        UI[React Frontend]
+        WALLET[MetaMask Wallet]
+        NOTIF[Notifications]
+    end
+    
+    subgraph "Business Logic"
+        API[Backend API]
+        AUTH[Authentication]
+        VALID[Validation]
+    end
+    
+    subgraph "Data Layer"
+        DB[(PostgreSQL)]
+        CACHE[Redis Cache]
+    end
+    
+    subgraph "Blockchain Layer"
+        SC[Smart Contracts]
+        BC[Hardhat Node]
+        TX[Transactions]
+    end
+    
+    UI <--> WALLET
+    UI <--> API
+    API <--> AUTH
+    API <--> VALID
+    API <--> DB
+    API <--> CACHE
+    API <--> SC
+    SC <--> BC
+    BC <--> TX
+    
+    style UI fill:#e1f5fe
+    style API fill:#f3e5f5
+    style SC fill:#e8f5e8
+    style DB fill:#fff3e0
+```
+
 ---
 
 ## Architecture Design
 
 ### System Components
 
-```
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   Frontend      │    │    Backend      │    │   Blockchain    │
-│   (React)       │◄──►│   (Node.js)     │◄──►│   (Hardhat)     │
-│                 │    │                 │    │                 │
-│ • User Interface│    │ • API Endpoints │    │ • Smart Contract│
-│ • Client Signing│    │ • Database      │    │ • Local Network │
-│ • State Mgmt    │    │ • Notifications │    │ • Accounts      │
-└─────────────────┘    └─────────────────┘    └─────────────────┘
+### High-Level Architecture
+```mermaid
+graph TB
+    subgraph "Frontend Layer"
+        REACT[React UI]
+        MATERIAL[Material-UI]
+        ETHER[Ethers.js]
+        QUERY[React Query]
+    end
+    
+    subgraph "Backend Layer"
+        EXPRESS[Express.js]
+        SEQUELIZE[Sequelize ORM]
+        NODEMAILER[Nodemailer]
+        JWT[JWT Auth]
+    end
+    
+    subgraph "Blockchain Layer"
+        HARDHAT[Hardhat]
+        SOLIDITY[Solidity]
+        OPENZEPPELIN[OpenZeppelin]
+    end
+    
+    subgraph "Data Layer"
+        POSTGRES[PostgreSQL]
+        REDIS[Redis Cache]
+    end
+    
+    REACT --> EXPRESS
+    MATERIAL --> REACT
+    ETHER --> HARDHAT
+    QUERY --> EXPRESS
+    EXPRESS --> SEQUELIZE
+    SEQUELIZE --> POSTGRES
+    EXPRESS --> NODEMAILER
+    EXPRESS --> JWT
+    HARDHAT --> SOLIDITY
+    SOLIDITY --> OPENZEPPELIN
+    EXPRESS --> REDIS
 ```
 
 ### Technology Stack
@@ -69,6 +141,43 @@ The Secure Contract Management System is a blockchain-based platform that enable
 - **PostgreSQL**: Primary database
 - **Redis**: Caching (planned)
 
+### Data Flow Architecture
+```mermaid
+flowchart LR
+    subgraph "User Actions"
+        A1[Connect Wallet]
+        A2[Create Contract]
+        A3[Sign Contract]
+        A4[View Data]
+    end
+    
+    subgraph "Frontend Processing"
+        B1[Wallet Validation]
+        B2[Form Validation]
+        B3[Transaction Signing]
+        B4[Data Display]
+    end
+    
+    subgraph "Backend Processing"
+        C1[User Authentication]
+        C2[Contract Creation]
+        C3[Blockchain Integration]
+        C4[Data Retrieval]
+    end
+    
+    subgraph "Blockchain Operations"
+        D1[Smart Contract Execution]
+        D2[Transaction Mining]
+        D3[State Updates]
+        D4[Event Emission]
+    end
+    
+    A1 --> B1 --> C1 --> D1
+    A2 --> B2 --> C2 --> D2
+    A3 --> B3 --> C3 --> D3
+    A4 --> B4 --> C4 --> D4
+```
+
 ---
 
 ## Security Implementation
@@ -81,17 +190,24 @@ Traditional blockchain applications often require users to send private keys to 
 #### Secure Solution
 Our system implements **client-side signing** where private keys never leave the user's device:
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│                    SECURE SIGNING FLOW                      │
-├─────────────────────────────────────────────────────────────┤
-│ 1. User enters private key (stays in memory only)          │
-│ 2. Frontend creates transaction data                        │
-│ 3. User signs transaction locally with ethers.js           │
-│ 4. Only signed transaction sent to backend                  │
-│ 5. Backend broadcasts transaction to blockchain            │
-│ 6. Private key cleared from memory                          │
-└─────────────────────────────────────────────────────────────┘
+### Secure Signing Flow
+```mermaid
+sequenceDiagram
+    participant U as User
+    participant F as Frontend
+    participant B as Backend
+    participant BC as Blockchain
+    
+    U->>F: Enter Private Key
+    F->>F: Create Transaction Data
+    F->>F: Sign Transaction Locally
+    F->>F: Clear Private Key from Memory
+    F->>B: Send Signed Transaction
+    B->>B: Validate Transaction
+    B->>BC: Broadcast Transaction
+    BC->>B: Transaction Confirmed
+    B->>F: Success Response
+    F->>U: Transaction Complete
 ```
 
 #### Security Features
@@ -115,6 +231,49 @@ Our system implements **client-side signing** where private keys never leave the
    - HTTPS encryption for all communications
    - Rate limiting on API endpoints
    - Input validation and sanitization
+
+### Security Architecture
+```mermaid
+graph TB
+    subgraph "Client Security"
+        A[Private Key Storage]
+        B[Client-Side Signing]
+        C[Input Validation]
+        D[Memory Management]
+    end
+    
+    subgraph "Network Security"
+        E[HTTPS/TLS]
+        F[Rate Limiting]
+        G[CORS Protection]
+        H[API Authentication]
+    end
+    
+    subgraph "Blockchain Security"
+        I[Smart Contract Validation]
+        J[Transaction Signing]
+        K[Immutable Records]
+        L[Public Key Verification]
+    end
+    
+    subgraph "Data Security"
+        M[Encrypted Storage]
+        N[Access Control]
+        O[Audit Logging]
+        P[Backup & Recovery]
+    end
+    
+    A --> E
+    B --> J
+    C --> F
+    D --> G
+    E --> H
+    J --> K
+    I --> L
+    H --> M
+    K --> O
+    L --> N
+```
 
 ---
 
@@ -175,6 +334,38 @@ Our system implements **client-side signing** where private keys never leave the
 - View assigned contracts
 - Provide compliance feedback
 
+### Role-Based Workflow
+```mermaid
+graph TD
+    subgraph "TDP Workflow"
+        TDP1[Create Dataset]
+        TDP2[Initiate Contract]
+        TDP3[Auto-Sign Contract]
+        TDP4[Monitor Status]
+        TDP1 --> TDP2 --> TDP3 --> TDP4
+    end
+    
+    subgraph "TDC Workflow"
+        TDC1[Browse Datasets]
+        TDC2[Select CCRP]
+        TDC3[Review Contract]
+        TDC4[Sign Contract]
+        TDC1 --> TDC2 --> TDC3 --> TDC4
+    end
+    
+    subgraph "CCRP Workflow"
+        CCRP1[Receive Notification]
+        CCRP2[Review Terms]
+        CCRP3[Verify Compliance]
+        CCRP4[Sign Contract]
+        CCRP1 --> CCRP2 --> CCRP3 --> CCRP4
+    end
+    
+    TDP2 --> TDC2
+    TDC2 --> CCRP1
+    CCRP4 --> TDP4
+```
+
 ### Contract Creation Workflow
 
 #### Step 1: Dataset Selection
@@ -226,6 +417,39 @@ Our system implements **client-side signing** where private keys never leave the
    - Signs with private key
    - Contract becomes active
 
+### Contract Lifecycle
+```mermaid
+stateDiagram-v2
+    [*] --> Draft
+    Draft --> PendingTDP: TDC Creates
+    PendingTDP --> PendingCCRP: TDP Auto-Signs
+    PendingCCRP --> Active: CCRP Signs
+    PendingTDP --> Active: No CCRP Selected
+    Active --> Completed: TDC Completes
+    Active --> Cancelled: Any Party Cancels
+    Completed --> [*]
+    Cancelled --> [*]
+    
+    note right of Draft
+        Contract created by TDC
+    end note
+    
+    note right of PendingTDP
+        Waiting for TDP signature
+        (Auto-signed at creation)
+    end note
+    
+    note right of PendingCCRP
+        Waiting for CCRP signature
+        (if CCRP selected)
+    end note
+    
+    note right of Active
+        All parties signed
+        Contract is active
+    end note
+```
+
 ### Contract Management
 
 #### Viewing Contracts
@@ -260,6 +484,43 @@ The contract detail page shows:
 - Review contract terms
 - Provide feedback
 
+### Contract Management Interface
+```mermaid
+graph TD
+    subgraph "Contract List"
+        A[View All Contracts]
+        B[Filter by Status]
+        C[Search Contracts]
+    end
+    
+    subgraph "Contract Details"
+        D[Contract Information]
+        E[Party Details]
+        F[Dataset Info]
+        G[Terms & Conditions]
+        H[Signing Status]
+        I[Available Actions]
+    end
+    
+    subgraph "Actions by Role"
+        J[TDP Actions]
+        K[TDC Actions]
+        L[CCRP Actions]
+    end
+    
+    A --> D
+    B --> D
+    C --> D
+    D --> E
+    D --> F
+    D --> G
+    D --> H
+    D --> I
+    I --> J
+    I --> K
+    I --> L
+```
+
 ### Dataset Management
 
 #### Creating Datasets (TDP Only)
@@ -283,6 +544,34 @@ The contract detail page shows:
 - View usage statistics
 - Delete datasets (if no active contracts)
 
+### Dataset Management Flow
+```mermaid
+flowchart TD
+    A[TDP User] --> B[Create Dataset]
+    B --> C[Upload Data]
+    C --> D[Set Metadata]
+    D --> E[Configure Pricing]
+    E --> F[Set Visibility]
+    F --> G[Publish Dataset]
+    G --> H[Monitor Usage]
+    H --> I[Update Dataset]
+    I --> J[Manage Contracts]
+    
+    subgraph "Dataset Operations"
+        K[Edit Information]
+        L[Update Pricing]
+        M[Change Visibility]
+        N[View Statistics]
+        O[Delete Dataset]
+    end
+    
+    H --> K
+    H --> L
+    H --> M
+    H --> N
+    H --> O
+```
+
 ### Notifications
 
 #### Email Notifications
@@ -298,6 +587,45 @@ The system sends email notifications for:
 - Notification counter in header
 - Click to view notification details
 - Mark as read functionality
+
+### Notification System
+```mermaid
+graph LR
+    subgraph "Event Sources"
+        A[Contract Creation]
+        B[Contract Signing]
+        C[Contract Completion]
+        D[Payment Events]
+        E[System Updates]
+    end
+    
+    subgraph "Notification Engine"
+        F[Event Processor]
+        G[Email Service]
+        H[In-App Service]
+        I[Template Engine]
+    end
+    
+    subgraph "Delivery Channels"
+        J[Email Notifications]
+        K[In-App Notifications]
+        L[Push Notifications]
+    end
+    
+    A --> F
+    B --> F
+    C --> F
+    D --> F
+    E --> F
+    
+    F --> G
+    F --> H
+    F --> I
+    
+    G --> J
+    H --> K
+    I --> L
+```
 
 ---
 
@@ -334,6 +662,42 @@ POST   /api/users                      - Create user
 PUT    /api/users/:id                  - Update user
 ```
 
+### API Architecture
+```mermaid
+graph TB
+    subgraph "Frontend"
+        UI[React UI]
+        CONTEXT[User Context]
+    end
+    
+    subgraph "Backend API"
+        AUTH[Auth Middleware]
+        ROUTES[API Routes]
+        VALIDATION[Role Validation]
+        NOTIF[Notification Service]
+    end
+    
+    subgraph "Database"
+        DB[(PostgreSQL)]
+        CACHE[Redis Cache]
+    end
+    
+    subgraph "Blockchain"
+        BC[Smart Contracts]
+        NODE[Hardhat Node]
+    end
+    
+    UI --> CONTEXT
+    CONTEXT --> AUTH
+    AUTH --> ROUTES
+    ROUTES --> VALIDATION
+    VALIDATION --> DB
+    VALIDATION --> BC
+    BC --> NODE
+    ROUTES --> NOTIF
+    NOTIF --> DB
+```
+
 ### Smart Contract Functions
 
 #### ContractManager.sol
@@ -358,6 +722,44 @@ function cancelContract(uint256 contractId) external
 // Party Registration
 function registerParty(address party, string memory partyType) external
 function isRegisteredParty(address party) external view returns (bool)
+```
+
+### Smart Contract Architecture
+```mermaid
+graph TD
+    subgraph "ContractManager"
+        A[createContract]
+        B[signContract]
+        C[completeContract]
+        D[cancelContract]
+        E[registerParty]
+        F[isRegisteredParty]
+    end
+    
+    subgraph "State Variables"
+        G[contracts mapping]
+        H[parties mapping]
+        I[contractCounter]
+    end
+    
+    subgraph "Events"
+        J[ContractCreated]
+        K[ContractSigned]
+        L[ContractCompleted]
+        M[ContractCancelled]
+    end
+    
+    A --> G
+    A --> I
+    A --> J
+    B --> G
+    B --> K
+    C --> G
+    C --> L
+    D --> G
+    D --> M
+    E --> H
+    F --> H
 ```
 
 ### Database Schema
@@ -425,6 +827,69 @@ CREATE TABLE datasets (
 );
 ```
 
+### Database Schema Diagram
+```mermaid
+erDiagram
+    USERS {
+        int id PK
+        string wallet_address UK
+        enum party_type
+        string name
+        string email UK
+        text description
+        boolean is_registered
+        timestamp registration_date
+        boolean is_active
+        timestamp created_at
+        timestamp updated_at
+    }
+    
+    CONTRACTS {
+        int id PK
+        string contract_id UK
+        bigint blockchain_contract_id
+        enum status
+        decimal price
+        int duration
+        text terms_and_conditions
+        string model_id
+        boolean tdp_signed
+        boolean ccrp_signed
+        timestamp tdp_signed_at
+        timestamp ccrp_signed_at
+        int tdp_id FK
+        int tdc_id FK
+        int ccrp_id FK
+        int dataset_id FK
+        timestamp created_at
+        timestamp updated_at
+    }
+    
+    DATASETS {
+        int id PK
+        string dataset_id UK
+        string name
+        text description
+        string category
+        bigint size
+        int record_count
+        decimal price
+        string license
+        text[] tags
+        jsonb metadata
+        boolean is_public
+        boolean is_active
+        int owner_id FK
+        timestamp created_at
+        timestamp updated_at
+    }
+    
+    USERS ||--o{ CONTRACTS : "tdp_id"
+    USERS ||--o{ CONTRACTS : "tdc_id"
+    USERS ||--o{ CONTRACTS : "ccrp_id"
+    USERS ||--o{ DATASETS : "owner_id"
+```
+
 ### Security Best Practices
 
 #### For Users
@@ -464,6 +929,35 @@ CREATE TABLE datasets (
    - Regular backups
    - Access logging
    - Data retention policies
+
+### Security Best Practices Flow
+```mermaid
+graph TD
+    subgraph "User Security"
+        A[Private Key Management]
+        B[Transaction Verification]
+        C[Account Security]
+    end
+    
+    subgraph "Developer Security"
+        D[Code Security]
+        E[Network Security]
+        F[Data Protection]
+    end
+    
+    subgraph "System Security"
+        G[Client-Side Signing]
+        H[Blockchain Security]
+        I[Database Security]
+    end
+    
+    A --> G
+    B --> H
+    C --> I
+    D --> G
+    E --> H
+    F --> I
+```
 
 ---
 
@@ -535,6 +1029,41 @@ CREATE TABLE datasets (
 3. Verify firewall settings
 4. Restart services
 
+### Troubleshooting Decision Tree
+```mermaid
+flowchart TD
+    A[Issue Occurs] --> B{Error Type?}
+    B -->|Contract Creation| C[Check Blockchain Node]
+    B -->|Private Key| D[Verify Key Format]
+    B -->|Transaction| E[Check Gas & Network]
+    B -->|Connection| F[Check Services]
+    
+    C --> G{Node Running?}
+    G -->|No| H[Start Hardhat Node]
+    G -->|Yes| I[Check Network]
+    
+    D --> J{Format Correct?}
+    J -->|No| K[Fix Key Format]
+    J -->|Yes| L[Check Address Match]
+    
+    E --> M{Sufficient Gas?}
+    M -->|No| N[Increase Gas Limit]
+    M -->|Yes| O[Check Network Congestion]
+    
+    F --> P{Backend Running?}
+    P -->|No| Q[Start Backend Server]
+    P -->|Yes| R[Check Port Conflicts]
+    
+    H --> S[Issue Resolved]
+    I --> S
+    K --> S
+    L --> S
+    N --> S
+    O --> S
+    Q --> S
+    R --> S
+```
+
 ### Service Startup Order
 
 For proper system operation, start services in this order:
@@ -543,6 +1072,28 @@ For proper system operation, start services in this order:
 2. **Blockchain Node** (Hardhat)
 3. **Backend Server** (Node.js)
 4. **Frontend** (React)
+
+### Service Startup Sequence
+```mermaid
+sequenceDiagram
+    participant U as User
+    participant DB as Database
+    participant BC as Blockchain
+    participant BE as Backend
+    participant FE as Frontend
+    
+    U->>DB: Start PostgreSQL
+    DB->>U: Database Ready
+    U->>BC: Start Hardhat Node
+    BC->>U: Blockchain Ready
+    U->>BE: Start Backend Server
+    BE->>DB: Connect to Database
+    BE->>BC: Connect to Blockchain
+    BE->>U: Backend Ready
+    U->>FE: Start Frontend
+    FE->>BE: Connect to API
+    FE->>U: Application Ready
+```
 
 ### Health Checks
 
@@ -575,6 +1126,38 @@ Expected response:
   "id": 1,
   "result": "0x1"
 }
+```
+
+### Health Check Flow
+```mermaid
+graph LR
+    subgraph "Health Checks"
+        A[Backend Health]
+        B[Database Health]
+        C[Blockchain Health]
+        D[Frontend Health]
+    end
+    
+    subgraph "Status Indicators"
+        E[Green - Healthy]
+        F[Yellow - Warning]
+        G[Red - Error]
+    end
+    
+    A --> E
+    B --> E
+    C --> E
+    D --> E
+    
+    A --> F
+    B --> F
+    C --> F
+    D --> F
+    
+    A --> G
+    B --> G
+    C --> G
+    D --> G
 ```
 
 ### Log Analysis
@@ -630,6 +1213,44 @@ Look for these key messages:
    - Track API response times
    - Implement error tracking
 
+### Performance Monitoring
+```mermaid
+graph TD
+    subgraph "Database Performance"
+        A[Query Optimization]
+        B[Index Management]
+        C[Connection Pooling]
+    end
+    
+    subgraph "Blockchain Performance"
+        D[Gas Optimization]
+        E[Transaction Batching]
+        F[Network Monitoring]
+    end
+    
+    subgraph "Frontend Performance"
+        G[Bundle Optimization]
+        H[Caching Strategy]
+        I[Load Time Monitoring]
+    end
+    
+    subgraph "System Performance"
+        J[Response Time]
+        K[Throughput]
+        L[Error Rates]
+    end
+    
+    A --> J
+    B --> J
+    C --> J
+    D --> K
+    E --> K
+    F --> K
+    G --> I
+    H --> I
+    I --> L
+```
+
 ---
 
 ## Conclusion
@@ -647,7 +1268,36 @@ The Secure Contract Management System provides a robust, secure, and user-friend
 - **Multi-chain Support**: Support for multiple blockchain networks
 - **Advanced Analytics**: Contract performance metrics
 - **Mobile App**: Native mobile application
-- **API Integration**: Third-party service integrations
-- **Advanced Security**: Hardware wallet integration
+
+### System Benefits Overview
+```mermaid
+mindmap
+  root((Secure Contract Management))
+    Security
+      Client-Side Signing
+      Private Key Protection
+      Blockchain Immutability
+      Role-Based Access
+    Transparency
+      Public Blockchain
+      Audit Trails
+      Real-Time Updates
+      Open Source
+    Efficiency
+      Automated Workflows
+      Smart Contracts
+      Digital Signatures
+      Streamlined Process
+    Compliance
+      Legal Framework
+      Regulatory Compliance
+      Documentation
+      Notifications
+    Scalability
+      Modular Architecture
+      Multi-Chain Support
+      Performance Optimization
+      Future Enhancements
+```
 
 For technical support or questions, please refer to the troubleshooting section or contact the development team. 

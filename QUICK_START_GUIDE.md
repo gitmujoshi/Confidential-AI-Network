@@ -7,6 +7,39 @@ This guide will help you get the Contract Management System up and running quick
 
 ---
 
+## System Overview
+
+```mermaid
+graph TB
+    subgraph "Setup Process"
+        A[Clone Repository]
+        B[Install Dependencies]
+        C[Setup Database]
+        D[Start Services]
+        E[Access Application]
+        A --> B --> C --> D --> E
+    end
+    
+    subgraph "Service Architecture"
+        F[Blockchain Node<br/>Port 8545]
+        G[Backend API<br/>Port 5001]
+        H[Frontend UI<br/>Port 3000]
+        I[PostgreSQL<br/>Port 5432]
+        F <--> G
+        G <--> I
+        H <--> G
+        H <--> F
+    end
+    
+    style A fill:#e1f5fe
+    style E fill:#c8e6c9
+    style F fill:#fff3e0
+    style G fill:#f3e5f5
+    style H fill:#e8f5e8
+```
+
+---
+
 ## Prerequisites
 
 Before starting, ensure you have:
@@ -31,6 +64,27 @@ cd ../blockchain && npm install
 cd ..
 ```
 
+### Dependency Installation Flow
+```mermaid
+flowchart TD
+    A[Clone Repository] --> B[Install Root Dependencies]
+    B --> C[Install Backend Dependencies]
+    C --> D[Install Frontend Dependencies]
+    D --> E[Install Blockchain Dependencies]
+    E --> F[Dependencies Ready]
+    
+    subgraph "Package Managers"
+        G[npm install]
+        H[Node Modules]
+    end
+    
+    B --> G
+    C --> G
+    D --> G
+    E --> G
+    G --> H
+```
+
 ---
 
 ## Step 2: Database Setup
@@ -49,6 +103,24 @@ createdb contract_management
 # Run database setup
 cd backend
 npm run setup-db
+```
+
+### Database Setup Process
+```mermaid
+sequenceDiagram
+    participant U as User
+    participant P as PostgreSQL
+    participant B as Backend
+    participant S as Sequelize
+    
+    U->>P: Start PostgreSQL Service
+    U->>P: Create Database
+    U->>B: Run Setup Script
+    B->>S: Initialize Connection
+    S->>P: Create Tables
+    S->>P: Run Migrations
+    S->>P: Seed Data
+    B->>U: Setup Complete
 ```
 
 ---
@@ -97,12 +169,55 @@ You can now view contract-management-frontend in the browser.
 Local: http://localhost:3000
 ```
 
+### Service Startup Sequence
+```mermaid
+graph LR
+    subgraph "Terminal 1"
+        BC[Blockchain Node<br/>Hardhat]
+    end
+    
+    subgraph "Terminal 2"
+        BE[Backend Server<br/>Express]
+    end
+    
+    subgraph "Terminal 3"
+        FE[Frontend<br/>React]
+    end
+    
+    BC --> BE
+    BE --> FE
+    
+    style BC fill:#fff3e0
+    style BE fill:#f3e5f5
+    style FE fill:#e8f5e8
+```
+
 ---
 
 ## Step 4: Access the Application
 
 1. Open your browser and go to: **http://localhost:3000**
 2. You should see the Contract Management dashboard
+
+### Application Access Flow
+```mermaid
+flowchart TD
+    A[Open Browser] --> B[Navigate to localhost:3000]
+    B --> C[Frontend Loads]
+    C --> D[Connect Wallet]
+    D --> E[Select User Role]
+    E --> F[Access Dashboard]
+    
+    subgraph "User Roles"
+        G[TDP - Data Provider]
+        H[TDC - Data Consumer]
+        I[CCRP - Review Party]
+    end
+    
+    E --> G
+    E --> H
+    E --> I
+```
 
 ---
 
@@ -121,6 +236,30 @@ The system comes with pre-configured test users and datasets:
 - **Environmental Dataset**: Climate data for studies
 - **Social Media Dataset**: User behavior analytics
 - **E-commerce Dataset**: Purchase patterns
+
+### Test Data Structure
+```mermaid
+graph TB
+    subgraph "Test Users"
+        TDP[TDP User<br/>0xf39Fd6...]
+        TDC[TDC User<br/>0x709979...]
+        CCRP[CCRP User<br/>0x3C44Cd...]
+    end
+    
+    subgraph "Test Datasets"
+        DS1[Healthcare Dataset]
+        DS2[Financial Dataset]
+        DS3[Environmental Dataset]
+        DS4[Social Media Dataset]
+        DS5[E-commerce Dataset]
+    end
+    
+    TDP --> DS1
+    TDP --> DS2
+    TDP --> DS3
+    TDP --> DS4
+    TDP --> DS5
+```
 
 ---
 
@@ -169,6 +308,24 @@ The system comes with pre-configured test users and datasets:
    - Enter your private key when prompted
    - Contract becomes active
 
+### Contract Creation Workflow
+```mermaid
+sequenceDiagram
+    participant TDC as TDC User
+    participant TDP as TDP User
+    participant CCRP as CCRP User
+    participant BC as Blockchain
+    
+    TDC->>TDC: Browse Datasets
+    TDC->>TDC: Create Contract
+    TDC->>BC: Submit Contract
+    BC->>TDP: Auto-Sign (TDP)
+    BC->>CCRP: Notification
+    CCRP->>CCRP: Review Contract
+    CCRP->>BC: Sign Contract
+    BC->>TDC: Contract Active
+```
+
 ---
 
 ## 🔑 Private Keys for Testing
@@ -179,6 +336,28 @@ The system comes with pre-configured test users and datasets:
 TDP Private Key: 0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80
 TDC Private Key: 0x59c6995e998f97a5a0044966f0945389dc9e86dae88c7a8412f4603b6b78690d
 CCRP Private Key: 0x5de4111afa1a4b94908f83103eb1f1706367c2e68ca870fc3fb9a804cdab365a
+```
+
+### Key Management Flow
+```mermaid
+graph LR
+    subgraph "Test Environment"
+        A[Import Test Keys]
+        B[Use for Signing]
+        C[No Real Value]
+    end
+    
+    subgraph "Production Environment"
+        D[Hardware Wallets]
+        E[Secure Storage]
+        F[Real Value]
+    end
+    
+    A --> B --> C
+    D --> E --> F
+    
+    style A fill:#ffebee
+    style D fill:#e8f5e8
 ```
 
 ---
@@ -216,6 +395,30 @@ curl -X POST http://localhost:8545 \
 - Check browser console for errors
 - Verify private key format (must start with 0x)
 
+### Troubleshooting Flow
+```mermaid
+flowchart TD
+    A[Issue Occurs] --> B{Port Conflict?}
+    B -->|Yes| C[Kill Process on Port]
+    B -->|No| D{Database Error?}
+    D -->|Yes| E[Check PostgreSQL Status]
+    D -->|No| F{Blockchain Error?}
+    F -->|Yes| G[Check Hardhat Node]
+    F -->|No| H{Contract Creation Error?}
+    H -->|Yes| I[Verify Services & Keys]
+    H -->|No| J[Check Browser Console]
+    
+    C --> K[Restart Service]
+    E --> K
+    G --> K
+    I --> K
+    J --> K
+    K --> L[Issue Resolved]
+    
+    style A fill:#ffebee
+    style L fill:#c8e6c9
+```
+
 ---
 
 ## 📱 Using the Application
@@ -233,6 +436,30 @@ curl -X POST http://localhost:8545 \
 - **Email Notifications**: Get notified of important events
 - **Audit Trail**: Complete history of all actions
 
+### Application Navigation Flow
+```mermaid
+graph TD
+    A[Dashboard] --> B[Contracts]
+    A --> C[Datasets]
+    A --> D[Users]
+    A --> E[Notifications]
+    
+    B --> F[View Contract]
+    B --> G[Create Contract]
+    B --> H[Sign Contract]
+    
+    C --> I[Browse Datasets]
+    C --> J[View Details]
+    
+    F --> K[Contract Details]
+    G --> L[Contract Form]
+    H --> M[Signing Process]
+    
+    style A fill:#e3f2fd
+    style B fill:#f3e5f5
+    style C fill:#e8f5e8
+```
+
 ---
 
 ## 🔒 Security Best Practices
@@ -248,6 +475,34 @@ curl -X POST http://localhost:8545 \
 3. Verify all transaction details before signing
 4. Use strong passwords and 2FA
 5. Keep software updated
+
+### Security Architecture
+```mermaid
+graph TB
+    subgraph "Client Security"
+        A[Private Key Storage]
+        B[Client-Side Signing]
+        C[Input Validation]
+    end
+    
+    subgraph "Network Security"
+        D[HTTPS/TLS]
+        E[JWT Tokens]
+        F[Rate Limiting]
+    end
+    
+    subgraph "Blockchain Security"
+        G[Transaction Signing]
+        H[Smart Contract Audits]
+        I[Immutable Records]
+    end
+    
+    A --> D
+    B --> G
+    C --> F
+    E --> H
+    G --> I
+```
 
 ---
 
