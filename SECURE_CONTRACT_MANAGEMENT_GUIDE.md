@@ -15,9 +15,9 @@
 
 ### Purpose
 The Secure Contract Management System is a blockchain-based platform that enables secure, transparent, and legally binding contract creation and management between three parties:
-- **TDP (Trusted Data Provider)**: Dataset owners who provide data
-- **TDC (Trusted Data Consumer)**: Organizations that purchase and use data
-- **CCRP (Certified Contract Review Party)**: Independent reviewers who validate contracts
+- **TDP (Training Data Provider)**: Dataset owners who provide data
+- **TDC (Training Data Consumer)**: Organizations that purchase and use data
+- **CCRP (Confidential Clean Room Provider)**: Independent reviewers who validate contracts
 
 ### Key Features
 - **Secure Private Key Management**: Client-side signing with private keys never transmitted
@@ -294,7 +294,7 @@ graph TB
 
 ### User Roles & Permissions
 
-#### TDP (Trusted Data Provider)
+#### TDP (Training Data Provider)
 **Responsibilities:**
 - Upload and manage datasets
 - Create contract proposals
@@ -307,7 +307,7 @@ graph TB
 - Sign contracts as TDP
 - View own contracts and datasets
 
-#### TDC (Trusted Data Consumer)
+#### TDC (Training Data Consumer)
 **Responsibilities:**
 - Browse available datasets
 - Accept contract proposals
@@ -321,7 +321,7 @@ graph TB
 - Select CCRP for contracts
 - View own contracts
 
-#### CCRP (Certified Contract Review Party)
+#### CCRP (Confidential Clean Room Provider)
 **Responsibilities:**
 - Review contract terms
 - Validate legal compliance

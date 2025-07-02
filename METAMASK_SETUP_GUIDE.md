@@ -135,7 +135,7 @@ The application comes with pre-configured test accounts. You can import them usi
 - Address: `0x70997970C51812dc3A010C7d01b50e0d17dc79C8`
 - Private Key: `0x59c6995e998f97a5a0044966f0945389dc9e86dae88c7a8412f4603b6b78690d`
 
-**CCRP Account (Contract Compliance Review Party):**
+**CCRP Account (Confidential Clean Room Provider):**
 - Address: `0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC`
 - Private Key: `0x5de4111afa1a4b94908f83103eb1f1706367c2e68ca870fc3fb9a804cdab365a`
 
@@ -149,9 +149,9 @@ To import:
 ```mermaid
 graph TD
     subgraph "Test Accounts"
-        TDP[TDP Account<br/>0xf39Fd6e...<br/>Data Provider]
-        TDC[TDC Account<br/>0x709979...<br/>Data Consumer]
-        CCRP[CCRP Account<br/>0x3C44Cd...<br/>Review Party]
+        TDP[TDP Account<br/>0xf39Fd6e...<br/>Training Data Provider]
+        TDC[TDC Account<br/>0x709979...<br/>Training Data Consumer]
+        CCRP[CCRP Account<br/>0x3C44Cd...<br/>Confidential Clean Room Provider]
     end
     
     subgraph "Account Functions"
@@ -241,7 +241,7 @@ The application has three user roles:
 - View contracts they're involved in
 - Receive notifications
 
-### CCRP (Contract Compliance Review Party)
+### CCRP (Confidential Clean Room Provider)
 - Can sign contracts as compliance reviewer
 - Review contract terms
 - Approve or reject contracts
@@ -250,9 +250,9 @@ The application has three user roles:
 ```mermaid
 graph TB
     subgraph "User Roles"
-        TDC[TDC - Data Consumer<br/>Contract Initiator]
-        TDP[TDP - Data Provider<br/>Dataset Owner]
-        CCRP[CCRP - Review Party<br/>Compliance Checker]
+        TDC[TDC - Training Data Consumer<br/>Contract Initiator]
+        TDP[TDP - Training Data Provider<br/>Dataset Owner]
+        CCRP[CCRP - Confidential Clean Room Provider<br/>Compliance Checker]
     end
     
     subgraph "Permissions"

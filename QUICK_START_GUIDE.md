@@ -209,9 +209,9 @@ flowchart TD
     E --> F[Access Dashboard]
     
     subgraph "User Roles"
-        G[TDP - Data Provider]
-        H[TDC - Data Consumer]
-        I[CCRP - Review Party]
+        G[TDP - Training Data Provider]
+        H[TDC - Training Data Consumer]
+        I[CCRP - Confidential Clean Room Provider]
     end
     
     E --> G

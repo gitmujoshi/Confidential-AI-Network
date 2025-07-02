@@ -5,7 +5,7 @@
 The Contract Management system supports three different user roles, each with their own wallet:
 - **TDP (Training Data Provider)**: Can create and manage datasets
 - **TDC (Training Data Consumer)**: Can browse datasets and create contracts  
-- **CCRP (Contract Compliance & Risk Provider)**: Can review and sign contracts
+- **CCRP (Confidential Clean Room Provider)**: Can review and sign contracts
 
 To switch between roles, you need to switch wallets in MetaMask and refresh the application.
 
@@ -13,9 +13,9 @@ To switch between roles, you need to switch wallets in MetaMask and refresh the 
 ```mermaid
 graph TB
     subgraph "User Roles"
-        TDP[TDP - Data Provider<br/>0xf39Fd6e...]
-        TDC[TDC - Data Consumer<br/>0x709979...]
-        CCRP[CCRP - Review Party<br/>0x3C44Cd...]
+        TDP[TDP - Training Data Provider<br/>0xf39Fd6e...]
+        TDC[TDC - Training Data Consumer<br/>0x709979...]
+        CCRP[CCRP - Confidential Clean Room Provider<br/>0x3C44Cd...]
     end
     
     subgraph "MetaMask Accounts"
@@ -247,9 +247,9 @@ flowchart TD
 ```mermaid
 graph TD
     subgraph "Test Wallets"
-        TDP[TDP Provider 1<br/>0xf39Fd6e...<br/>Data Provider Role]
-        TDC[TDC Consumer 1<br/>0x709979...<br/>Data Consumer Role]
-        CCRP[CCRP Provider 1<br/>0x3C44Cd...<br/>Review Party Role]
+        TDP[TDP Provider 1<br/>0xf39Fd6e...<br/>Training Data Provider Role]
+        TDC[TDC Consumer 1<br/>0x709979...<br/>Training Data Consumer Role]
+        CCRP[CCRP Provider 1<br/>0x3C44Cd...<br/>Confidential Clean Room Provider Role]
     end
     
     subgraph "Wallet Functions"
@@ -290,7 +290,7 @@ graph TD
 - Select CCRP for contract review
 - View contracts where you're the TDC
 
-#### CCRP (Contract Compliance & Risk Provider)
+#### CCRP (Confidential Clean Room Provider)
 - Review contracts assigned to you
 - Sign contracts after review
 - View contracts where you're the CCRP
