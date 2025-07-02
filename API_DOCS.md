@@ -47,7 +47,8 @@ POST /auth/register
   "organization": "Company Name",
   "phoneNumber": "+1234567890",
   "website": "https://example.com",
-  "location": "Country"
+  "location": "Country",
+  "did": "did:ethr:0x..." // Optional: Decentralized Identifier
 }
 ```
 
@@ -64,7 +65,8 @@ POST /auth/register
     "onboardingStatus": "PENDING",
     "profileCompleted": false,
     "emailVerified": false,
-    "iamUserId": "keycloak-user-id"
+    "iamUserId": "keycloak-user-id",
+    "did": "did:ethr:0x..." // Auto-generated if not provided
   }
 }
 ```
@@ -162,6 +164,88 @@ GET /auth/onboarding-status
 }
 ```
 
+### DID Management
+
+#### Create DID
+```http
+POST /auth/create-did
+```
+
+**Request Body:**
+```json
+{
+  "didMethod": "ethr", // "ethr" for Ethereum-based DID, "key" for key-based DID
+  "walletAddress": "0x..." // Required for ethr method
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "did": "did:ethr:0x...",
+  "didDocument": {
+    "@context": "https://www.w3.org/ns/did/v1",
+    "id": "did:ethr:0x...",
+    "verificationMethod": [
+      {
+        "id": "did:ethr:0x...#keys-1",
+        "type": "EcdsaSecp256k1VerificationKey2019",
+        "controller": "did:ethr:0x...",
+        "publicKeyHex": "0x..."
+      }
+    ]
+  }
+}
+```
+
+#### Resolve DID
+```http
+GET /auth/resolve-did/:did
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "didDocument": {
+    "@context": "https://www.w3.org/ns/did/v1",
+    "id": "did:ethr:0x...",
+    "verificationMethod": [
+      {
+        "id": "did:ethr:0x...#keys-1",
+        "type": "EcdsaSecp256k1VerificationKey2019",
+        "controller": "did:ethr:0x...",
+        "publicKeyHex": "0x..."
+      }
+    ]
+  }
+}
+```
+
+#### Verify DID
+```http
+POST /auth/verify-did
+```
+
+**Request Body:**
+```json
+{
+  "did": "did:ethr:0x...",
+  "signature": "0x...",
+  "message": "Message to verify"
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "verified": true,
+  "message": "DID verification successful"
+}
+```
+
 #### Get User Profile
 ```http
 GET /auth/profile
@@ -186,7 +270,9 @@ Authorization: Bearer <jwt_token>
     "onboardingStatus": "COMPLETED",
     "profileCompleted": true,
     "emailVerified": true,
-    "lastLoginAt": "2024-01-01T00:00:00Z"
+    "lastLoginAt": "2024-01-01T00:00:00Z",
+    "did": "did:ethr:0x...",
+    "publicKey": "0x..."
   }
 }
 ```
