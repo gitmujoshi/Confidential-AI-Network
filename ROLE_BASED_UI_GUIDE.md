@@ -74,9 +74,9 @@ graph TB
 ```mermaid
 graph TD
     subgraph "User Roles"
-        TDC[TDC - Data Consumer<br/>Contract Initiator]
-        TDP[TDP - Data Provider<br/>Dataset Owner]
-        CCRP[CCRP - Review Party<br/>Compliance Checker]
+        TDC[TDC - Training Data Consumer<br/>Contract Initiator]
+        TDP[TDP - Training Data Provider<br/>Dataset Owner]
+        CCRP[CCRP - Confidential Clean Room Provider<br/>Compliance Checker]
     end
     
     subgraph "Permissions"

@@ -5,7 +5,7 @@ A comprehensive blockchain-based contract management system with role-based acce
 ## 🚀 Features
 
 ### Core Functionality
-- **Multi-Role System**: TDP (Trusted Data Provider), TDC (Trusted Data Consumer), CCRP (Certified Contract Review Party)
+- **Multi-Role System**: TDP (Training Data Provider), TDC (Training Data Consumer), CCRP (Confidential Clean Room Provider)
 - **Blockchain Integration**: Smart contracts for secure, immutable contract management
 - **Wallet Integration**: MetaMask support for secure digital signatures
 - **Role-Based UI**: Dynamic interfaces based on user roles
@@ -289,19 +289,19 @@ PRIVATE_KEY=your_deployment_private_key
 
 ## 👥 User Roles
 
-### TDP (Trusted Data Provider)
+### TDP (Training Data Provider)
 - Create and manage datasets
 - Initiate contracts with TDC
 - Auto-sign contracts at creation
 - View contract status and history
 
-### TDC (Trusted Data Consumer)
+### TDC (Training Data Consumer)
 - Browse available datasets
 - Select CCRP for contract review
 - Sign contracts after TDP approval
 - Access purchased data
 
-### CCRP (Certified Contract Review Party)
+### CCRP (Confidential Clean Room Provider)
 - Review contract terms and conditions
 - Sign contracts after thorough review
 - Provide compliance verification
