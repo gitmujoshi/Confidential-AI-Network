@@ -1,0 +1,70 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ***REMOVED-KEYCLOAK_DB_PASSWORD***
+  namespace: contract-management
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ***REMOVED-KEYCLOAK_DB_PASSWORD***
+  template:
+    metadata:
+      labels:
+        app: ***REMOVED-KEYCLOAK_DB_PASSWORD***
+    spec:
+      containers:
+      - name: ***REMOVED-KEYCLOAK_DB_PASSWORD***
+        image: quay.io/***REMOVED-KEYCLOAK_DB_PASSWORD***/***REMOVED-KEYCLOAK_DB_PASSWORD***:23.0
+        ports:
+        - containerPort: 8080
+        env:
+        - name: KC_DB
+          value: "***REMOVED-DB_PASSWORD***"
+        - name: KC_DB_URL
+          value: "jdbc:***REMOVED-DB_PASSWORD***ql://***REMOVED-DB_PASSWORD***-service:5432/***REMOVED-KEYCLOAK_DB_PASSWORD***"
+        - name: KC_DB_USERNAME
+          value: "***REMOVED-DB_PASSWORD***"
+        - name: KC_DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: contract-management-secrets
+              key: DB_PASSWORD
+        - name: KEYCLOAK_ADMIN
+          value: "admin"
+        - name: KEYCLOAK_ADMIN_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: contract-management-secrets
+              key: KEYCLOAK_ADMIN_PASSWORD
+        - name: KC_HOSTNAME_STRICT
+          value: "false"
+        - name: KC_HOSTNAME_STRICT_HTTPS
+          value: "false"
+        - name: KC_HTTP_ENABLED
+          value: "true"
+        - name: KC_HEALTH_ENABLED
+          value: "true"
+        - name: KC_METRICS_ENABLED
+          value: "true"
+        command: ["start-dev"]
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "250m"
+          limits:
+            memory: "1Gi"
+            cpu: "500m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ***REMOVED-KEYCLOAK_DB_PASSWORD***-service
+  namespace: contract-management
+spec:
+  selector:
+    app: ***REMOVED-KEYCLOAK_DB_PASSWORD***
+  ports:
+  - port: 8080
+    targetPort: 8080
+  type: ClusterIP 

@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: contract-management
+  labels:
+    name: contract-management
+    app: contract-management-system 

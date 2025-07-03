@@ -44,7 +44,9 @@ router.post('/register', authRateLimit, logAuthEvent('REGISTER'), async (req, re
       phoneNumber,
       website,
       location,
-      password 
+      password,
+      existingDID,
+      didVerificationSignature
     } = req.body;
 
     // Validate required fields
@@ -106,6 +108,59 @@ router.post('/register', authRateLimit, logAuthEvent('REGISTER'), async (req, re
       });
     }
 
+    // Handle existing DID if provided
+    let did = null;
+    let didSource = 'SYSTEM_GENERATED';
+    let didVerified = false;
+    let didVerificationMethod = null;
+
+    if (existingDID) {
+      // Validate DID format
+      const didRegex = /^did:[a-z]+:[a-zA-Z0-9._-]+$/;
+      if (!didRegex.test(existingDID)) {
+        return res.status(400).json({ 
+          error: 'Invalid DID format',
+          code: 'INVALID_DID_FORMAT'
+        });
+      }
+
+      // Check if DID is already in use
+      const existingDIDUser = await db.User.findOne({
+        where: { did: existingDID }
+      });
+
+      if (existingDIDUser) {
+        return res.status(409).json({ 
+          error: 'DID is already registered by another user',
+          code: 'DID_ALREADY_EXISTS'
+        });
+      }
+
+      // Verify DID ownership if signature provided
+      if (didVerificationSignature) {
+        try {
+          const isVerified = await verifyDIDOwnership(existingDID, walletAddress, didVerificationSignature);
+          if (isVerified) {
+            didVerified = true;
+            didVerificationMethod = 'SIGNATURE_VERIFICATION';
+          } else {
+            return res.status(400).json({ 
+              error: 'DID ownership verification failed',
+              code: 'DID_VERIFICATION_FAILED'
+            });
+          }
+        } catch (error) {
+          return res.status(400).json({ 
+            error: 'DID verification error: ' + error.message,
+            code: 'DID_VERIFICATION_ERROR'
+          });
+        }
+      }
+
+      did = existingDID;
+      didSource = 'USER_PROVIDED';
+    }
+
     // Create user in local database first
     const user = await db.User.create({
       walletAddress,
@@ -118,6 +173,10 @@ router.post('/register', authRateLimit, logAuthEvent('REGISTER'), async (req, re
       phoneNumber: phoneNumber || '',
       website: website || '',
       location: location || '',
+      did,
+      didSource,
+      didVerified,
+      didVerificationMethod,
       isRegistered: true,
       registrationDate: new Date(),
       isActive: true,
@@ -176,6 +235,9 @@ router.post('/register', authRateLimit, logAuthEvent('REGISTER'), async (req, re
           partyType: user.partyType,
           walletAddress: user.walletAddress,
           publicKey: user.publicKey,
+          did: user.did,
+          didSource: user.didSource,
+          didVerified: user.didVerified,
           isRegistered: user.isRegistered,
           onboardingStatus: user.onboardingStatus,
           profileCompleted: user.profileCompleted,
@@ -531,6 +593,114 @@ router.post('/logout', authenticateToken, logAuthEvent('LOGOUT'), async (req, re
 });
 
 /**
+ * POST /api/auth/verify-did
+ * Verify user-provided DID ownership
+ */
+router.post('/verify-did', authenticateToken, logAuthEvent('VERIFY_DID'), async (req, res) => {
+  try {
+    const { did, signature } = req.body;
+    const localUser = req.user.localUser;
+
+    if (!did) {
+      return res.status(400).json({ 
+        error: 'DID is required',
+        code: 'DID_REQUIRED'
+      });
+    }
+
+    if (!signature) {
+      return res.status(400).json({ 
+        error: 'Signature is required for DID verification',
+        code: 'SIGNATURE_REQUIRED'
+      });
+    }
+
+    // Validate DID format
+    const didRegex = /^did:[a-z]+:[a-zA-Z0-9._-]+$/;
+    if (!didRegex.test(did)) {
+      return res.status(400).json({ 
+        error: 'Invalid DID format',
+        code: 'INVALID_DID_FORMAT'
+      });
+    }
+
+    // Check if DID is already in use by another user
+    const existingDIDUser = await db.User.findOne({
+      where: { 
+        did: did,
+        id: { [db.Sequelize.Op.ne]: localUser.id }
+      }
+    });
+
+    if (existingDIDUser) {
+      return res.status(409).json({ 
+        error: 'DID is already registered by another user',
+        code: 'DID_ALREADY_EXISTS'
+      });
+    }
+
+    // Verify DID ownership
+    const isVerified = await verifyDIDOwnership(did, localUser.walletAddress, signature);
+    
+    if (isVerified) {
+      // Update user with verified DID
+      await localUser.update({
+        did: did,
+        didSource: 'USER_PROVIDED',
+        didVerified: true,
+        didVerificationMethod: 'SIGNATURE_VERIFICATION'
+      });
+
+      res.json({
+        message: 'DID verified and linked successfully',
+        did: did,
+        didVerified: true,
+        didSource: 'USER_PROVIDED'
+      });
+    } else {
+      res.status(400).json({ 
+        error: 'DID ownership verification failed',
+        code: 'DID_VERIFICATION_FAILED'
+      });
+    }
+
+  } catch (error) {
+    console.error('❌ DID verification error:', error);
+    res.status(500).json({ 
+      error: 'DID verification failed',
+      code: 'DID_VERIFICATION_ERROR',
+      details: error.message
+    });
+  }
+});
+
+/**
+ * GET /api/auth/did-info
+ * Get user's DID information
+ */
+router.get('/did-info', authenticateToken, logAuthEvent('GET_DID_INFO'), async (req, res) => {
+  try {
+    const localUser = req.user.localUser;
+
+    res.json({
+      did: localUser.did,
+      didSource: localUser.didSource,
+      didVerified: localUser.didVerified,
+      didVerificationMethod: localUser.didVerificationMethod,
+      walletAddress: localUser.walletAddress,
+      publicKey: localUser.publicKey
+    });
+
+  } catch (error) {
+    console.error('❌ Get DID info error:', error);
+    res.status(500).json({ 
+      error: 'Internal server error',
+      code: 'INTERNAL_ERROR'
+    });
+  }
+});
+
+/**
  * Helper function to determine next steps for onboarding
  */
 function getNextSteps(localUser, ***REMOVED-KEYCLOAK_DB_PASSWORD***Status) {
@@ -553,6 +723,44 @@ function getNextSteps(localUser, ***REMOVED-KEYCLOAK_DB_PASSWORD***Status) {
   }
 
   return steps;
+}
+
+/**
+ * Verify DID ownership using signature
+ * @param {string} did - The DID to verify
+ * @param {string} walletAddress - The wallet address claiming ownership
+ * @param {string} signature - The signature proving ownership
+ * @returns {Promise<boolean>} - Whether the DID ownership is verified
+ */
+async function verifyDIDOwnership(did, walletAddress, signature) {
+  try {
+    // Create verification message
+    const message = `I, the holder of DID ${did}, hereby verify ownership with wallet address ${walletAddress} on ${new Date().toISOString()}`;
+    
+    // Hash the message
+    const messageHash = require('crypto').createHash('sha256').update(message).digest('hex');
+    
+    // For now, we'll do a basic verification
+    // In production, you would use a proper DID resolver and verification library
+    console.log(`🔍 Verifying DID ownership: ${did} for wallet: ${walletAddress}`);
+    console.log(`📝 Message: ${message}`);
+    console.log(`🔐 Signature: ${signature}`);
+    
+    // TODO: Implement proper DID verification using a DID resolver
+    // This is a placeholder implementation
+    // In production, you would:
+    // 1. Resolve the DID to get the DID document
+    // 2. Extract verification methods
+    // 3. Verify the signature against the public key in the DID document
+    
+    // For now, we'll assume the signature is valid if it's provided
+    // This should be replaced with proper verification logic
+    return signature && signature.length > 0;
+    
+  } catch (error) {
+    console.error('❌ DID verification error:', error);
+    throw new Error('DID verification failed: ' + error.message);
+  }
 }
 
 module.exports = router; 

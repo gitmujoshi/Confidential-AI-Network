@@ -48,7 +48,8 @@ POST /auth/register
   "phoneNumber": "+1234567890",
   "website": "https://example.com",
   "location": "Country",
-  "did": "did:ethr:0x..." // Optional: Decentralized Identifier
+  "existingDID": "did:ethr:goerli:0x...", // Optional: User's existing DID
+  "didVerificationSignature": "0x..." // Required if existingDID is provided
 }
 ```
 
@@ -66,7 +67,10 @@ POST /auth/register
     "profileCompleted": false,
     "emailVerified": false,
     "iamUserId": "***REMOVED-KEYCLOAK_DB_PASSWORD***-user-id",
-    "did": "did:ethr:0x..." // Auto-generated if not provided
+    "did": "did:ethr:goerli:0x...", // Auto-generated if not provided
+    "didSource": "USER_PROVIDED", // "SYSTEM_GENERATED" or "USER_PROVIDED"
+    "didVerified": true, // Whether the DID has been verified
+    "didVerificationMethod": "SIGNATURE_VERIFICATION" // How the DID was verified
   }
 }
 ```

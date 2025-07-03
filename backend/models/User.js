@@ -114,6 +114,27 @@ module.exports = (sequelize, DataTypes) => {
       comment: 'Decentralized Identifier for blockchain identity'
     },
     
+    // DID source - whether it was created by system or brought by user
+    didSource: {
+      type: DataTypes.ENUM('SYSTEM_GENERATED', 'USER_PROVIDED'),
+      allowNull: true,
+      comment: 'Source of the DID - system generated or user provided'
+    },
+    
+    // DID verification status
+    didVerified: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: false,
+      comment: 'Whether the user-provided DID has been verified'
+    },
+    
+    // DID verification method (how it was verified)
+    didVerificationMethod: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      comment: 'Method used to verify the DID (e.g., signature, credential)'
+    },
+    
     // Onboarding status
     onboardingStatus: {
       type: DataTypes.ENUM('PENDING', 'IN_PROGRESS', 'COMPLETED', 'VERIFIED'),

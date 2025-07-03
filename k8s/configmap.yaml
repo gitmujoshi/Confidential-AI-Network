@@ -1,0 +1,31 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: contract-management-config
+  namespace: contract-management
+data:
+  # Database Configuration
+  DB_HOST: "***REMOVED-DB_PASSWORD***-service"
+  DB_PORT: "5432"
+  DB_NAME: "contract_management"
+  DB_USER: "***REMOVED-DB_PASSWORD***"
+  
+  # Blockchain Configuration
+  BLOCKCHAIN_URL: "http://blockchain-service:8545"
+  CONTRACT_ADDRESS: "0x5FbDB2315678afecb367f032d93F642f64180aa3"
+  
+  # IAM (Keycloak) Configuration
+  KEYCLOAK_URL: "http://***REMOVED-KEYCLOAK_DB_PASSWORD***-service:8080"
+  KEYCLOAK_REALM: "contract-management"
+  KEYCLOAK_CLIENT_ID: "contract-management-client"
+  
+  # Server Configuration
+  PORT: "5000"
+  NODE_ENV: "production"
+  
+  # Security
+  CORS_ORIGIN: "https://contract-management.example.com"
+  
+  # Frontend Environment Variables
+  REACT_APP_API_URL: "https://api.contract-management.example.com"
+  REACT_APP_BLOCKCHAIN_URL: "https://blockchain.contract-management.example.com" 
