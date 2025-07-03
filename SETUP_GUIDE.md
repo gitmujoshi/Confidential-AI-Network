@@ -1,407 +1,368 @@
 # Setup Guide
-## Contract Management System
+## Complete Installation and Configuration
 
-Complete installation and configuration guide for the Contract Management System.
+**Document Version:** 2.0  
+**Date:** December 2024  
+**Author:** Contract Management System Team
 
-## 📋 Prerequisites
+---
 
-Before starting, ensure you have:
-- **Node.js** (v18 or higher)
-- **PostgreSQL** (v12 or higher)
-- **Docker** and **Docker Compose** (for IAM integration)
-- **Git** (for cloning the repository)
-- **MetaMask** browser extension (see [Wallet Guide](./WALLET_GUIDE.md))
+## Table of Contents
 
-## 🚀 Quick Setup (5 Minutes)
+1. [System Requirements](#system-requirements)
+2. [Prerequisites](#prerequisites)
+3. [Installation Steps](#installation-steps)
+4. [IAM Configuration](#iam-configuration)
+5. [DID Setup](#did-setup)
+6. [Database Configuration](#database-configuration)
+7. [Blockchain Setup](#blockchain-setup)
+8. [Frontend Configuration](#frontend-configuration)
+9. [Testing the Installation](#testing-the-installation)
+10. [Troubleshooting](#troubleshooting)
 
-### Step 1: Clone and Install
-```bash
-# Clone the repository
-git clone <repository-url>
-cd ContractManagement
+---
 
-# Install all dependencies
-npm install
-cd backend && npm install
-cd ../frontend && npm install
-cd ../blockchain && npm install
-cd ..
-```
+## 1. System Requirements
 
-### Step 2: Database Setup
-```bash
-# Start PostgreSQL (if not already running)
-# On macOS with Homebrew:
-brew services start ***REMOVED-DB_PASSWORD***ql
+### Hardware Requirements
+- **CPU**: 2+ cores (4+ cores recommended)
+- **RAM**: 8GB minimum (16GB recommended)
+- **Storage**: 50GB available space
+- **Network**: Stable internet connection
 
-# On Ubuntu/Debian:
-sudo systemctl start ***REMOVED-DB_PASSWORD***ql
+### Software Requirements
+- **Operating System**: Linux, macOS, or Windows
+- **Node.js**: Version 16 or higher
+- **PostgreSQL**: Version 12 or higher
+- **Docker**: Version 20 or higher
+- **Docker Compose**: Version 2 or higher
 
-# Create database
-createdb contract_management
+### Browser Requirements
+- **Chrome**: Version 90 or higher
+- **Firefox**: Version 88 or higher
+- **Safari**: Version 14 or higher
+- **Edge**: Version 90 or higher
 
-# Run database setup
-cd backend
-npm run setup-db
-```
+---
 
-### Step 3: IAM Setup (Keycloak)
-```bash
-# Start Keycloak and PostgreSQL for IAM
-docker-compose -f docker-compose.iam.yml up -d
+## 2. Prerequisites
 
-# Wait for services to be ready (about 30 seconds)
-sleep 30
+### Install Node.js
+1. Download Node.js from the official website
+2. Install Node.js on your system
+3. Verify installation by running `node --version`
+4. Verify npm installation by running `npm --version`
 
-# Setup Keycloak realm and users
-cd backend
-npm run setup-***REMOVED-KEYCLOAK_DB_PASSWORD***
+### Install PostgreSQL
+1. Download PostgreSQL from the official website
+2. Install PostgreSQL with default settings
+3. Note down the database password
+4. Verify installation by running `psql --version`
 
-# Add IAM fields to database
-npm run migrate-iam
-```
+### Install Docker
+1. Download Docker Desktop from the official website
+2. Install Docker Desktop
+3. Start Docker Desktop
+4. Verify installation by running `docker --version`
 
-**Expected Output:**
-```
-Creating ***REMOVED-KEYCLOAK_DB_PASSWORD***_***REMOVED-DB_PASSWORD***_1 ... done
-Creating ***REMOVED-KEYCLOAK_DB_PASSWORD***_***REMOVED-KEYCLOAK_DB_PASSWORD***_1 ... done
-Keycloak realm 'contract-management' created successfully
-Keycloak client 'contract-management-client' created successfully
-Keycloak roles created successfully
-IAM migration completed successfully
-```
+### Install Git
+1. Download Git from the official website
+2. Install Git on your system
+3. Configure Git with your credentials
+4. Verify installation by running `git --version`
 
-### Step 4: Start Services
-Open **3 terminal windows** and run:
+---
 
-**Terminal 1: Blockchain Node**
-```bash
-cd blockchain
-npx hardhat node
-```
-**Expected Output:**
-```
-Started HTTP and WebSocket JSON-RPC server at http://127.0.0.1:8545/
-Accounts
-========
-Account #0: 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266 (10000 ETH)
-Private Key: 0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80
-...
-```
+## 3. Installation Steps
 
-**Terminal 2: Backend Server**
-```bash
-cd backend
-npm run dev
-```
-**Expected Output:**
-```
-Database connection established successfully.
-Blockchain connection test successful. Current block: 0
-Blockchain service initialized successfully
-Server is running on port 5001
-```
+### Step 1: Clone the Repository
+1. Open a terminal or command prompt
+2. Navigate to your desired installation directory
+3. Clone the repository using Git
+4. Navigate into the project directory
 
-**Terminal 3: Frontend**
-```bash
-cd frontend
-npm start
-```
-**Expected Output:**
-```
-Compiled successfully!
-You can now view contract-management-frontend in the browser.
-Local: http://localhost:3000
-```
+### Step 2: Install Dependencies
+1. Install root dependencies
+2. Install backend dependencies
+3. Install frontend dependencies
+4. Install blockchain dependencies
 
-### Step 5: Access Application
-1. Open browser: **http://localhost:3000**
-2. Connect MetaMask (see [Wallet Guide](./WALLET_GUIDE.md))
-3. Import test wallets (see [Test Wallets](./TEST_WALLETS.md))
-4. **Keycloak Admin Console**: **http://localhost:8080/admin** (admin/***REMOVED-KEYCLOAK_ADMIN_PASSWORD***)
+### Step 3: Environment Configuration
+1. Copy the example environment file
+2. Configure database connection settings
+3. Set up JWT secret keys
+4. Configure blockchain network settings
+5. Set up email configuration
 
-## 🔧 Detailed Setup
+### Step 4: Database Setup
+1. Create the database
+2. Run database migrations
+3. Seed initial data
+4. Verify database connection
 
-### System Architecture
-```mermaid
-graph TB
-    subgraph "Setup Process"
-        A[Clone Repository]
-        B[Install Dependencies]
-        C[Setup Database]
-        D[Setup IAM]
-        E[Start Services]
-        F[Access Application]
-        A --> B --> C --> D --> E --> F
-    end
-    
-    subgraph "Service Architecture"
-        G[Blockchain Node<br/>Port 8545]
-        H[Backend API<br/>Port 5001]
-        I[Frontend UI<br/>Port 3000]
-        J[PostgreSQL<br/>Port 5432]
-        K[Keycloak IAM<br/>Port 8080]
-        L[IAM PostgreSQL<br/>Port 5433]
-        G <--> H
-        H <--> J
-        H <--> K
-        I <--> H
-        I <--> G
-        K <--> L
-    end
-    
-    style A fill:#e1f5fe
-    style F fill:#c8e6c9
-    style G fill:#fff3e0
-    style H fill:#f3e5f5
-    style I fill:#e8f5e8
-    style K fill:#ffebee
-```
+---
 
-### Database Setup Process
-```mermaid
-sequenceDiagram
-    participant U as User
-    participant P as PostgreSQL
-    participant B as Backend
-    participant S as Sequelize
-    
-    U->>P: Start PostgreSQL Service
-    U->>P: Create Database
-    U->>B: Run Setup Script
-    B->>S: Initialize Connection
-    S->>P: Create Tables
-    S->>P: Run Migrations
-    S->>P: Seed Data
-    B->>U: Setup Complete
-```
+## 4. IAM Configuration
 
-### Service Startup Sequence
-```mermaid
-graph LR
-    subgraph "Docker Services"
-        KC[Keycloak IAM<br/>Docker]
-        KP[IAM PostgreSQL<br/>Docker]
-    end
-    
-    subgraph "Terminal 1"
-        BC[Blockchain Node<br/>Hardhat]
-    end
-    
-    subgraph "Terminal 2"
-        BE[Backend Server<br/>Express]
-    end
-    
-    subgraph "Terminal 3"
-        FE[Frontend<br/>React]
-    end
-    
-    KC --> KP
-    KC --> BE
-    BC --> BE
-    BE --> FE
-    
-    style KC fill:#ffebee
-    style BC fill:#fff3e0
-    style BE fill:#f3e5f5
-    style FE fill:#e8f5e8
-```
+### Keycloak Setup
+The system uses Keycloak for enterprise-grade identity and access management.
 
-## ⚙️ Configuration
+#### Starting Keycloak Services
+1. Navigate to the project root directory
+2. Start Keycloak using Docker Compose
+3. Wait for services to start completely
+4. Verify Keycloak is accessible
 
-### Environment Variables
+#### Keycloak Configuration
+1. Access the Keycloak admin console
+2. Create a new realm for the application
+3. Configure authentication settings
+4. Set up user registration policies
+5. Configure email verification
 
-**Backend Configuration** (`backend/.env`)
-```env
-# Database
-DB_HOST=localhost
-DB_PORT=5432
-DB_NAME=contract_management
-DB_USER=your_username
-DB_PASSWORD=your_password
+#### User Management
+1. Create initial admin users
+2. Set up role-based access control
+3. Configure user attributes
+4. Set up password policies
 
-# IAM (Keycloak)
-KEYCLOAK_URL=http://localhost:8080
-KEYCLOAK_REALM=contract-management
-KEYCLOAK_CLIENT_ID=contract-management-client
-KEYCLOAK_CLIENT_SECRET=your_client_secret
-KEYCLOAK_ADMIN_USERNAME=admin
-KEYCLOAK_ADMIN_PASSWORD=***REMOVED-KEYCLOAK_ADMIN_PASSWORD***
+#### Integration Setup
+1. Configure OAuth2 clients
+2. Set up redirect URIs
+3. Configure JWT token settings
+4. Test authentication flow
 
-# JWT
-JWT_SECRET=your_jwt_secret_key_here
+---
 
-# Blockchain
-BLOCKCHAIN_URL=http://localhost:8545
-CONTRACT_ADDRESS=your_deployed_contract_address
+## 5. DID Setup
 
-# Email (optional)
-SMTP_HOST=smtp.gmail.com
-SMTP_PORT=587
-SMTP_USER=your_email@gmail.com
-SMTP_PASS=your_app_password
-```
+### Understanding DIDs
+Decentralized Identifiers (DIDs) are the foundation of self-sovereign identity in the system. They provide users with control over their digital identity.
 
-**Frontend Configuration** (`frontend/.env`)
-```env
-REACT_APP_API_URL=http://localhost:5001
-REACT_APP_BLOCKCHAIN_URL=http://localhost:8545
-REACT_APP_CONTRACT_ADDRESS=your_deployed_contract_address
-```
+### DID Methods Supported
+The system supports multiple DID methods:
+- **Ethereum DIDs**: Based on Ethereum addresses
+- **Key-based DIDs**: Self-contained identifiers
+- **Web DIDs**: Hosted on web domains
+- **Universal Resolver**: Support for additional methods
 
-**Blockchain Configuration** (`blockchain/.env`)
-```env
-PRIVATE_KEY=your_deployment_private_key
-```
+### DID Configuration
+1. **Network Selection**: Choose appropriate blockchain network
+2. **DID Registry**: Configure DID registry settings
+3. **Verification Methods**: Set up verification mechanisms
+4. **Key Management**: Configure key storage and rotation
+
+### DID Verification Setup
+1. **Ownership Verification**: Configure signature verification
+2. **DID Resolution**: Set up DID resolver endpoints
+3. **Document Validation**: Configure DID document validation
+4. **Trust Framework**: Set up trusted DID issuers
+
+### User DID Options
+The system supports two DID approaches:
+
+#### System-Generated DIDs
+- Automatically created for new users
+- Based on wallet addresses
+- Managed by the platform
+- Suitable for most users
+
+#### User-Provided DIDs
+- Users bring existing DIDs
+- Maintains identity continuity
+- Requires ownership verification
+- Supports self-sovereign identity
+
+---
+
+## 6. Database Configuration
+
+### PostgreSQL Setup
+1. **Create Database**: Create the main database
+2. **User Permissions**: Set up database user with appropriate permissions
+3. **Connection Settings**: Configure connection parameters
+4. **Performance Tuning**: Optimize database settings
+
+### Schema Migration
+1. **Run Migrations**: Execute database schema migrations
+2. **Verify Tables**: Check that all tables are created
+3. **Index Creation**: Ensure proper indexes are in place
+4. **Constraint Setup**: Verify foreign key constraints
+
+### Initial Data
+1. **Seed Data**: Load initial system data
+2. **Test Users**: Create test user accounts
+3. **Sample Contracts**: Add sample contract data
+4. **Configuration Data**: Load system configuration
+
+### Backup Configuration
+1. **Backup Strategy**: Set up regular database backups
+2. **Recovery Procedures**: Document recovery processes
+3. **Monitoring**: Set up database monitoring
+4. **Maintenance**: Schedule regular maintenance
+
+---
+
+## 7. Blockchain Setup
 
 ### Network Configuration
+1. **Network Selection**: Choose development or production network
+2. **Node Connection**: Configure blockchain node connection
+3. **Gas Settings**: Set appropriate gas limits and prices
+4. **Network Monitoring**: Set up network monitoring
 
-**MetaMask Network Settings:**
-- **Network Name**: Local Hardhat
-- **New RPC URL**: http://127.0.0.1:8545
-- **Chain ID**: 31337
-- **Currency Symbol**: ETH
+### Smart Contract Deployment
+1. **Contract Compilation**: Compile smart contracts
+2. **Deployment Scripts**: Run deployment scripts
+3. **Address Configuration**: Update contract addresses
+4. **Verification**: Verify contracts on blockchain explorer
 
-## 🧪 Testing Setup
+### Wallet Configuration
+1. **Test Wallets**: Set up test wallet accounts
+2. **Funding**: Fund test wallets with test tokens
+3. **Key Management**: Secure private key storage
+4. **Access Control**: Configure wallet access permissions
 
-### Run All Tests
-```bash
-# Backend tests
-cd backend
-npm test
+### Contract Management
+1. **Contract Registry**: Set up contract address registry
+2. **Upgrade Procedures**: Plan for contract upgrades
+3. **Emergency Procedures**: Document emergency procedures
+4. **Monitoring**: Set up contract monitoring
 
-# Blockchain tests
-cd blockchain
-npx hardhat test
+---
 
-# Frontend tests
-cd frontend
-npm test
-```
+## 8. Frontend Configuration
 
-### Test Coverage
-```bash
-# Backend coverage
-cd backend
-npm run test:coverage
+### Environment Setup
+1. **API Configuration**: Set backend API endpoints
+2. **Network Settings**: Configure blockchain network
+3. **Feature Flags**: Enable or disable features
+4. **Analytics**: Configure analytics settings
 
-# Blockchain coverage
-cd blockchain
-npx hardhat coverage
-```
+### Build Configuration
+1. **Build Process**: Configure build settings
+2. **Optimization**: Set up code optimization
+3. **Asset Management**: Configure static assets
+4. **Deployment**: Set up deployment configuration
 
-## 🐳 Docker Setup (Optional)
+### User Interface
+1. **Theme Configuration**: Set up UI themes
+2. **Localization**: Configure language settings
+3. **Accessibility**: Ensure accessibility compliance
+4. **Responsive Design**: Test responsive layouts
 
-### Docker Compose
-```yaml
-# docker-compose.yml
-version: '3.8'
-services:
-  ***REMOVED-DB_PASSWORD***:
-    image: ***REMOVED-DB_PASSWORD***:13
-    environment:
-      POSTGRES_DB: contract_management
-      POSTGRES_USER: ***REMOVED-DB_PASSWORD***
-      POSTGRES_PASSWORD: password
-    ports:
-      - "5432:5432"
-    volumes:
-      - ***REMOVED-DB_PASSWORD***_data:/var/lib/***REMOVED-DB_PASSWORD***ql/data
+### Security Configuration
+1. **HTTPS Setup**: Configure secure connections
+2. **CORS Settings**: Set up cross-origin policies
+3. **Content Security**: Configure content security policies
+4. **Input Validation**: Set up input validation
 
-  backend:
-    build: ./backend
-    ports:
-      - "5001:5001"
-    depends_on:
-      - ***REMOVED-DB_PASSWORD***
-    environment:
-      DB_HOST: ***REMOVED-DB_PASSWORD***
-      DB_USER: ***REMOVED-DB_PASSWORD***
-      DB_PASSWORD: password
+---
 
-  frontend:
-    build: ./frontend
-    ports:
-      - "3000:3000"
-    depends_on:
-      - backend
+## 9. Testing the Installation
 
-volumes:
-  ***REMOVED-DB_PASSWORD***_data:
-```
+### System Health Check
+1. **Service Status**: Verify all services are running
+2. **Database Connection**: Test database connectivity
+3. **API Endpoints**: Test API functionality
+4. **Frontend Access**: Verify frontend accessibility
 
-### Docker Commands
-```bash
-# Build and start
-docker-compose up -d
+### User Registration Test
+1. **Wallet Connection**: Test wallet integration
+2. **DID Creation**: Test DID generation
+3. **User Registration**: Test user registration flow
+4. **Email Verification**: Test email verification
 
-# View logs
-docker-compose logs -f
+### Contract Management Test
+1. **Contract Creation**: Test contract creation
+2. **Contract Signing**: Test contract signing
+3. **Contract Execution**: Test contract execution
+4. **Contract Monitoring**: Test contract monitoring
 
-# Stop services
-docker-compose down
-```
+### Security Testing
+1. **Authentication**: Test authentication mechanisms
+2. **Authorization**: Test access control
+3. **Data Protection**: Test data security
+4. **Audit Logging**: Test audit functionality
 
-## 🔍 Troubleshooting
+---
+
+## 10. Troubleshooting
 
 ### Common Issues
 
-**Port Already in Use**
-```bash
-# Kill processes on ports
-lsof -ti:3000 | xargs kill -9
-lsof -ti:5001 | xargs kill -9
-lsof -ti:8545 | xargs kill -9
-```
+#### Database Connection Issues
+- **Problem**: Cannot connect to database
+- **Solution**: Check database service status
+- **Solution**: Verify connection parameters
+- **Solution**: Check firewall settings
 
-**Database Connection Failed**
-```bash
-# Check PostgreSQL status
-brew services list | grep ***REMOVED-DB_PASSWORD***ql
-sudo systemctl status ***REMOVED-DB_PASSWORD***ql
+#### IAM Configuration Issues
+- **Problem**: Keycloak not accessible
+- **Solution**: Check Docker container status
+- **Solution**: Verify port configurations
+- **Solution**: Check network connectivity
 
-# Restart PostgreSQL
-brew services restart ***REMOVED-DB_PASSWORD***ql
-sudo systemctl restart ***REMOVED-DB_PASSWORD***ql
-```
+#### DID Verification Issues
+- **Problem**: DID verification failing
+- **Solution**: Check DID resolver configuration
+- **Solution**: Verify network connectivity
+- **Solution**: Check DID format and validity
 
-**Blockchain Node Not Starting**
-```bash
-# Check if port is available
-netstat -an | grep 8545
+#### Blockchain Connection Issues
+- **Problem**: Cannot connect to blockchain
+- **Solution**: Check network configuration
+- **Solution**: Verify node connectivity
+- **Solution**: Check gas settings
 
-# Kill existing Hardhat processes
-pkill -f "hardhat node"
-```
+### Performance Issues
+1. **Database Performance**: Optimize database queries
+2. **Network Latency**: Check network connectivity
+3. **Memory Usage**: Monitor memory consumption
+4. **CPU Usage**: Check CPU utilization
 
-**Frontend Build Errors**
-```bash
-# Clear cache and reinstall
-cd frontend
-rm -rf node_modules package-lock.json
-npm install
-```
+### Security Issues
+1. **Authentication Failures**: Check IAM configuration
+2. **Authorization Errors**: Verify role assignments
+3. **Data Breaches**: Review security logs
+4. **Network Attacks**: Monitor network traffic
 
-### Verification Steps
+### Getting Help
+1. **Documentation**: Review setup documentation
+2. **Logs**: Check system logs for errors
+3. **Community**: Ask questions in community forums
+4. **Support**: Contact technical support
 
-1. **Database**: Check connection in backend logs
-2. **Blockchain**: Verify Hardhat node is running on port 8545
-3. **Backend**: Confirm API is accessible at http://localhost:5001
-4. **Frontend**: Verify React app loads at http://localhost:3000
-5. **MetaMask**: Ensure connected to local network (Chain ID: 31337)
+---
 
-## 📚 Next Steps
+## 11. Production Deployment
 
-After setup:
-1. **Import Test Wallets**: See [Test Wallets](./TEST_WALLETS.md)
-2. **Connect MetaMask**: See [Wallet Guide](./WALLET_GUIDE.md)
-3. **Learn the System**: See [User Guide](./USER_GUIDE.md)
-4. **Understand Architecture**: See [Architecture Guide](./ARCHITECTURE_GUIDE.md)
+### Environment Preparation
+1. **Production Environment**: Set up production servers
+2. **Load Balancing**: Configure load balancers
+3. **Monitoring**: Set up monitoring and alerting
+4. **Backup Systems**: Configure backup systems
 
-## 🆘 Support
+### Security Hardening
+1. **Network Security**: Configure firewalls and security groups
+2. **SSL/TLS**: Set up secure connections
+3. **Access Control**: Implement strict access controls
+4. **Audit Logging**: Enable comprehensive logging
 
-If you encounter issues:
-1. Check the troubleshooting section above
-2. Review the logs for error messages
-3. Ensure all prerequisites are installed
-4. Create an issue on GitHub with detailed error information 
+### Performance Optimization
+1. **Database Optimization**: Optimize database performance
+2. **Caching**: Implement caching strategies
+3. **CDN Setup**: Configure content delivery networks
+4. **Resource Scaling**: Plan for resource scaling
+
+### Maintenance Procedures
+1. **Update Procedures**: Document update processes
+2. **Backup Procedures**: Document backup processes
+3. **Recovery Procedures**: Document recovery processes
+4. **Monitoring Procedures**: Document monitoring processes
+
+---
+
+**Note**: This guide provides comprehensive setup instructions. For specific issues or advanced configurations, refer to the technical documentation or contact support.
+
+**Setup Guide End** 
