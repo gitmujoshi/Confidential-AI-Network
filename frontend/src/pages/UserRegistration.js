@@ -15,9 +15,12 @@ import {
   Alert,
   CircularProgress,
   Card,
-  CardContent
+  CardContent,
+  FormControlLabel,
+  Switch,
+  Divider
 } from '@mui/material';
-import { PersonAddOutlined, AccountBalanceWallet } from '@mui/icons-material';
+import { PersonAddOutlined, AccountBalanceWallet, VerifiedUser } from '@mui/icons-material';
 import { apiService } from '../services/api';
 
 const UserRegistration = () => {
@@ -39,6 +42,11 @@ const UserRegistration = () => {
     website: '',
     location: ''
   });
+
+  // DID-related state
+  const [useExistingDID, setUseExistingDID] = useState(false);
+  const [existingDID, setExistingDID] = useState('');
+  const [didVerificationSignature, setDidVerificationSignature] = useState('');
 
   const partyTypes = [
     {
@@ -250,6 +258,50 @@ const UserRegistration = () => {
     }
   };
 
+  // DID verification function
+  const verifyDIDOwnership = async () => {
+    try {
+      setLoading(true);
+      setError('');
+
+      if (!existingDID.trim()) {
+        setError('Please enter your DID first.');
+        return;
+      }
+
+      if (!walletConnected) {
+        setError('Please connect your wallet first.');
+        return;
+      }
+
+      // Create verification message
+      const message = `I, the holder of DID ${existingDID}, hereby verify ownership with wallet address ${walletAddress} on ${new Date().toISOString()}`;
+      
+      console.log('🔍 [Registration] Creating DID verification message:', message);
+
+      // Request signature from MetaMask
+      const signature = await window.ethereum.request({
+        method: 'personal_sign',
+        params: [message, walletAddress]
+      });
+
+      console.log('✅ [Registration] DID verification signature:', signature);
+
+      setDidVerificationSignature(signature);
+      setSuccess('DID ownership verified! You can now proceed with registration.');
+
+    } catch (error) {
+      console.error('❌ [Registration] DID verification error:', error);
+      if (error.code === 4001) {
+        setError('DID verification rejected. Please sign the message to verify ownership.');
+      } else {
+        setError('DID verification failed: ' + error.message);
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
@@ -276,6 +328,25 @@ const UserRegistration = () => {
       return false;
     }
 
+    // Validate DID if using existing DID
+    if (useExistingDID) {
+      if (!existingDID.trim()) {
+        setError('Please enter your existing DID.');
+        return false;
+      }
+
+      const didRegex = /^did:[a-z]+:[a-zA-Z0-9._-]+$/;
+      if (!didRegex.test(existingDID)) {
+        setError('Please enter a valid DID format (e.g., did:ethr:goerli:0x123...)');
+        return false;
+      }
+
+      if (!didVerificationSignature) {
+        setError('Please verify your DID ownership first.');
+        return false;
+      }
+    }
+
     return true;
   };
 
@@ -293,7 +364,11 @@ const UserRegistration = () => {
       const registrationData = {
         ...formData,
         walletAddress,
-        publicKey
+        publicKey,
+        ...(useExistingDID && {
+          existingDID,
+          didVerificationSignature
+        })
       };
 
       console.log('Submitting registration data:', registrationData);

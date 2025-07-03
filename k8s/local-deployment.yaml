@@ -1,0 +1,328 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: contract-management
+  labels:
+    name: contract-management
+    app: contract-management-system
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: contract-management-config
+  namespace: contract-management
+data:
+  # Database Configuration
+  DB_HOST: "postgres-service"
+  DB_PORT: "5432"
+  DB_NAME: "contract_management"
+  DB_USER: "postgres"
+  
+  # Blockchain Configuration
+  BLOCKCHAIN_URL: "http://blockchain-service:8545"
+  CONTRACT_ADDRESS: "0x5FbDB2315678afecb367f032d93F642f64180aa3"
+  
+  # IAM (Keycloak) Configuration
+  KEYCLOAK_URL: "http://keycloak-service:8080"
+  KEYCLOAK_REALM: "contract-management"
+  KEYCLOAK_CLIENT_ID: "contract-management-client"
+  
+  # Server Configuration
+  PORT: "5000"
+  NODE_ENV: "development"
+  
+  # Security
+  CORS_ORIGIN: "http://localhost:3000"
+  
+  # Frontend Environment Variables
+  REACT_APP_API_URL: "http://localhost:5000"
+  REACT_APP_BLOCKCHAIN_URL: "http://localhost:8545"
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: contract-management-secrets
+  namespace: contract-management
+type: Opaque
+data:
+  # Base64 encoded secrets (development values)
+  DB_PASSWORD: "ZGV2X3Bhc3N3b3Jk"  # dev_password
+  JWT_SECRET: "ZGV2X2p3dF9zZWNyZXRfa2V5X2Zvcl9sb2NhbF9kZXZlbG9wbWVudA=="  # dev_jwt_secret_key_for_local_development
+  KEYCLOAK_ADMIN_PASSWORD: "YWRtaW4="  # admin
+  KEYCLOAK_CLIENT_SECRET: "ZGV2X2NsaWVudF9zZWNyZXQ="  # dev_client_secret
+  SESSION_SECRET: "ZGV2X3Nlc3Npb25fc2VjcmV0"  # dev_session_secret
+  PRIVATE_KEY: "ZGV2X3ByaXZhdGVfa2V5"  # dev_private_key
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: postgres-pv
+  namespace: contract-management
+spec:
+  capacity:
+    storage: 1Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: local-storage
+  hostPath:
+    path: /tmp/postgres-data
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: postgres-pvc
+  namespace: contract-management
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: local-storage
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres
+  namespace: contract-management
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres
+  template:
+    metadata:
+      labels:
+        app: postgres
+    spec:
+      containers:
+      - name: postgres
+        image: postgres:15
+        ports:
+        - containerPort: 5432
+        env:
+        - name: POSTGRES_DB
+          valueFrom:
+            configMapKeyRef:
+              name: contract-management-config
+              key: DB_NAME
+        - name: POSTGRES_USER
+          valueFrom:
+            configMapKeyRef:
+              name: contract-management-config
+              key: DB_USER
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: contract-management-secrets
+              key: DB_PASSWORD
+        volumeMounts:
+        - name: postgres-storage
+          mountPath: /var/lib/postgresql/data
+      volumes:
+      - name: postgres-storage
+        persistentVolumeClaim:
+          claimName: postgres-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres-service
+  namespace: contract-management
+spec:
+  selector:
+    app: postgres
+  ports:
+  - port: 5432
+    targetPort: 5432
+  type: ClusterIP
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: blockchain
+  namespace: contract-management
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: blockchain
+  template:
+    metadata:
+      labels:
+        app: blockchain
+    spec:
+      containers:
+      - name: hardhat-node
+        image: node:18-alpine
+        workingDir: /app
+        command: ["sh"]
+        args: ["-c", "npm install -g hardhat && npx hardhat node --hostname 0.0.0.0"]
+        ports:
+        - containerPort: 8545
+        env:
+        - name: NODE_ENV
+          value: "development"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: blockchain-service
+  namespace: contract-management
+spec:
+  selector:
+    app: blockchain
+  ports:
+  - port: 8545
+    targetPort: 8545
+  type: ClusterIP
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend
+  namespace: contract-management
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: backend
+  template:
+    metadata:
+      labels:
+        app: backend
+    spec:
+      containers:
+      - name: backend
+        image: contract-management-backend:latest
+        ports:
+        - containerPort: 5000
+        env:
+        - name: DB_HOST
+          valueFrom:
+            configMapKeyRef:
+              name: contract-management-config
+              key: DB_HOST
+        - name: DB_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: contract-management-config
+              key: DB_PORT
+        - name: DB_NAME
+          valueFrom:
+            configMapKeyRef:
+              name: contract-management-config
+              key: DB_NAME
+        - name: DB_USER
+          valueFrom:
+            configMapKeyRef:
+              name: contract-management-config
+              key: DB_USER
+        - name: DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: contract-management-secrets
+              key: DB_PASSWORD
+        - name: JWT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: contract-management-secrets
+              key: JWT_SECRET
+        - name: BLOCKCHAIN_URL
+          valueFrom:
+            configMapKeyRef:
+              name: contract-management-config
+              key: BLOCKCHAIN_URL
+        - name: CONTRACT_ADDRESS
+          valueFrom:
+            configMapKeyRef:
+              name: contract-management-config
+              key: CONTRACT_ADDRESS
+        - name: PORT
+          valueFrom:
+            configMapKeyRef:
+              name: contract-management-config
+              key: PORT
+        - name: NODE_ENV
+          valueFrom:
+            configMapKeyRef:
+              name: contract-management-config
+              key: NODE_ENV
+        - name: CORS_ORIGIN
+          valueFrom:
+            configMapKeyRef:
+              name: contract-management-config
+              key: CORS_ORIGIN
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: backend-service
+  namespace: contract-management
+spec:
+  selector:
+    app: backend
+  ports:
+  - port: 5000
+    targetPort: 5000
+  type: LoadBalancer
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend
+  namespace: contract-management
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: frontend
+  template:
+    metadata:
+      labels:
+        app: frontend
+    spec:
+      containers:
+      - name: frontend
+        image: contract-management-frontend:latest
+        ports:
+        - containerPort: 3000
+        env:
+        - name: REACT_APP_API_URL
+          valueFrom:
+            configMapKeyRef:
+              name: contract-management-config
+              key: REACT_APP_API_URL
+        - name: REACT_APP_BLOCKCHAIN_URL
+          valueFrom:
+            configMapKeyRef:
+              name: contract-management-config
+              key: REACT_APP_BLOCKCHAIN_URL
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "256Mi"
+            cpu: "200m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend-service
+  namespace: contract-management
+spec:
+  selector:
+    app: frontend
+  ports:
+  - port: 3000
+    targetPort: 3000
+  type: LoadBalancer 
