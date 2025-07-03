@@ -11,8 +11,11 @@ import {
   Alert,
   Container,
   Paper,
+  Divider,
+  Card,
+  CardContent,
 } from '@mui/material';
-import { LockOutlined } from '@mui/icons-material';
+import { LockOutlined, AccountBalanceWallet } from '@mui/icons-material';
 
 const Login = () => {
   const navigate = useNavigate();
@@ -20,6 +23,8 @@ const Login = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [walletConnected, setWalletConnected] = useState(false);
+  const [walletAddress, setWalletAddress] = useState('');
   const [formData, setFormData] = useState({
     email: '',
     password: ''
@@ -50,6 +55,88 @@ const Login = () => {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
+  // Connect MetaMask wallet
+  const connectWallet = async () => {
+    try {
+      setLoading(true);
+      setError('');
+
+      if (typeof window.ethereum === 'undefined') {
+        setError('MetaMask is not installed. Please install MetaMask to continue.');
+        return;
+      }
+
+      const provider = new ethers.BrowserProvider(window.ethereum);
+      const accounts = await provider.send('eth_requestAccounts', []);
+      const walletAddress = accounts[0];
+
+      setWalletAddress(walletAddress);
+      setWalletConnected(true);
+      setSuccess(`Wallet connected: ${walletAddress.slice(0, 6)}...${walletAddress.slice(-4)}`);
+
+    } catch (error) {
+      console.error('Wallet connection error:', error);
+      if (error.code === 4001) {
+        setError('Connection rejected. Please connect your wallet to continue.');
+      } else {
+        setError('Failed to connect wallet: ' + error.message);
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Login with wallet
+  const loginWithWallet = async () => {
+    try {
+      setLoading(true);
+      setError('');
+
+      if (!walletConnected) {
+        setError('Please connect your wallet first.');
+        return;
+      }
+
+      const provider = new ethers.BrowserProvider(window.ethereum);
+      
+      // Get nonce from backend
+      const nonceResponse = await api.get(`/auth/nonce/${walletAddress}`);
+      const nonce = nonceResponse.data.nonce;
+
+      // Sign message
+      const signer = await provider.getSigner();
+      const message = `Sign this message to authenticate with Contract Management System. Nonce: ${nonce}`;
+      const signature = await signer.signMessage(message);
+
+      // Authenticate with backend
+      const authResponse = await api.post('/auth/wallet', {
+        walletAddress,
+        signature,
+        nonce
+      });
+
+      if (authResponse.data.success) {
+        const { user, token } = authResponse.data;
+        
+        localStorage.setItem('authToken', token);
+        setUser(user);
+        
+        setSuccess('Login successful! Redirecting to dashboard...');
+        setTimeout(() => navigate('/dashboard'), 2000);
+      }
+    } catch (error) {
+      console.error('Wallet login error:', error);
+      if (error.response?.status === 404) {
+        setError('User not found. Please register first with this wallet address.');
+      } else {
+        setError('Login failed: ' + (error.response?.data?.error || error.message));
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Traditional email/password login (fallback)
   const handleSubmit = async (e) => {
     e.preventDefault();
     
@@ -58,65 +145,7 @@ const Login = () => {
       return;
     }
 
-    try {
-      setLoading(true);
-      setError('');
-
-      // For demo purposes, we'll use a simple wallet connection
-      // In production, this would integrate with your IAM system
-      if (typeof window.ethereum !== 'undefined') {
-        const provider = new ethers.BrowserProvider(window.ethereum);
-        const accounts = await provider.send('eth_requestAccounts', []);
-        const walletAddress = accounts[0];
-
-        const nonceResponse = await api.get(`/auth/nonce/${walletAddress}`);
-        const nonce = nonceResponse.data.nonce;
-
-        const signer = await provider.getSigner();
-        const message = `Sign this message to authenticate with Contract Management System. Nonce: ${nonce}`;
-        const signature = await signer.signMessage(message);
-
-        const authResponse = await api.post('/auth/wallet', {
-          walletAddress,
-          signature,
-          nonce
-        });
-
-        if (authResponse.data.success) {
-          const { user, token } = authResponse.data;
-          
-          localStorage.setItem('authToken', token);
-          setUser(user);
-          
-          setSuccess('Login successful! Redirecting to dashboard...');
-          setTimeout(() => navigate('/dashboard'), 2000);
-        }
-      } else {
-        // Fallback for demo - create a mock user
-        const mockUser = {
-          id: 1,
-          name: 'Demo User',
-          email: formData.email,
-          partyType: 'TDC',
-          walletAddress: '0x' + '0'.repeat(40),
-          isRegistered: true
-        };
-        
-        localStorage.setItem('authToken', 'demo-token');
-        setUser(mockUser);
-        
-        setSuccess('Demo login successful! Redirecting to dashboard...');
-        setTimeout(() => navigate('/dashboard'), 2000);
-      }
-    } catch (error) {
-      if (error.response?.status === 404) {
-        setError('User not found. Please register first.');
-      } else {
-        setError('Login failed. Please try again.');
-      }
-    } finally {
-      setLoading(false);
-    }
+    setError('Traditional login is not available. Please use MetaMask wallet login.');
   };
 
   return (
@@ -158,7 +187,7 @@ const Login = () => {
             Contract Management
           </Typography>
           <Typography variant="body1" color="text.secondary" gutterBottom>
-            Sign in to your account
+            Sign in with your wallet
           </Typography>
 
           {error && (
@@ -173,22 +202,80 @@ const Login = () => {
             </Alert>
           )}
 
+          {/* Wallet Connection Section */}
+          <Box sx={{ width: '100%', mb: 3 }}>
+            <Typography variant="h6" gutterBottom>
+              Step 1: Connect Your Wallet
+            </Typography>
+            
+            {!walletConnected ? (
+              <Button
+                variant="outlined"
+                startIcon={<AccountBalanceWallet />}
+                onClick={connectWallet}
+                disabled={loading}
+                fullWidth
+                sx={{ py: 2 }}
+              >
+                Connect MetaMask
+              </Button>
+            ) : (
+              <Card sx={{ bgcolor: 'success.light' }}>
+                <CardContent>
+                  <Typography variant="body1" color="success.dark" gutterBottom>
+                    ✅ Wallet Connected
+                  </Typography>
+                  <Typography variant="h6" color="success.dark">
+                    {walletAddress.slice(0, 6)}...{walletAddress.slice(-4)}
+                  </Typography>
+                </CardContent>
+              </Card>
+            )}
+          </Box>
+
+          {/* Login with Wallet */}
+          {walletConnected && (
+            <Box sx={{ width: '100%', mb: 3 }}>
+              <Typography variant="h6" gutterBottom>
+                Step 2: Sign In
+              </Typography>
+              <Button
+                variant="contained"
+                onClick={loginWithWallet}
+                disabled={loading}
+                fullWidth
+                sx={{ py: 2 }}
+              >
+                {loading ? 'Signing In...' : 'Sign In with Wallet'}
+              </Button>
+            </Box>
+          )}
+
+          <Divider sx={{ width: '100%', my: 2 }}>
+            <Typography variant="body2" color="text.secondary">
+              OR
+            </Typography>
+          </Divider>
+
+          {/* Traditional Login (Disabled) */}
           <Box component="form" onSubmit={handleSubmit} sx={{ width: '100%' }}>
+            <Typography variant="body2" color="text.secondary" gutterBottom>
+              Traditional login is not available. Please use MetaMask wallet login.
+            </Typography>
+            
             <TextField
               margin="normal"
-              required
               fullWidth
               id="email"
               label="Email Address"
               name="email"
               autoComplete="email"
-              autoFocus
               value={formData.email}
               onChange={handleInputChange}
+              disabled
             />
             <TextField
               margin="normal"
-              required
               fullWidth
               name="password"
               label="Password"
@@ -197,25 +284,27 @@ const Login = () => {
               autoComplete="current-password"
               value={formData.password}
               onChange={handleInputChange}
+              disabled
             />
             <Button
               type="submit"
               fullWidth
               variant="contained"
               sx={{ mt: 3, mb: 2 }}
-              disabled={loading}
+              disabled={true}
             >
-              {loading ? 'Signing In...' : 'Sign In'}
-            </Button>
-            <Button
-              fullWidth
-              variant="text"
-              onClick={() => navigate('/register')}
-              sx={{ mt: 1 }}
-            >
-              Don't have an account? Sign Up
+              Sign In (Disabled)
             </Button>
           </Box>
+
+          <Button
+            fullWidth
+            variant="text"
+            onClick={() => navigate('/register')}
+            sx={{ mt: 1 }}
+          >
+            Don't have an account? Sign Up
+          </Button>
         </Paper>
       </Box>
     </Container>

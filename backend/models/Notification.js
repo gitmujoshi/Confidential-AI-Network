@@ -7,6 +7,7 @@ module.exports = (sequelize, DataTypes) => {
     },
     type: {
       type: DataTypes.ENUM(
+        'USER_REGISTERED',
         'CONTRACT_CREATED',
         'CONTRACT_SIGNED',
         'CONTRACT_COMPLETED',

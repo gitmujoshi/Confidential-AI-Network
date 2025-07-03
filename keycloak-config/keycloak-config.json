@@ -1,0 +1,11 @@
+{
+  "keycloakUrl": "http://localhost:8080",
+  "realm": "contract-management",
+  "frontendClient": "contract-management-frontend",
+  "backendClient": "contract-management-backend",
+  "backendClientSecret": "your-backend-client-secret",
+  "adminUser": {
+    "username": "admin",
+    "password": "admin123"
+  }
+} 

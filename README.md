@@ -1,13 +1,16 @@
 # Contract Management System
-## Blockchain-based Contract Management with Enterprise IAM and DID Support
+## Enterprise-Grade Contract Management with DID and IAM Integration
 
-A comprehensive contract management system that combines blockchain technology with enterprise Identity and Access Management (IAM) and Decentralized Identifiers (DIDs) for secure, verifiable contract creation, signing, and management.
+A comprehensive contract management system that combines blockchain technology, Decentralized Identifiers (DIDs), and enterprise Identity and Access Management (IAM) for secure, transparent, and efficient contract lifecycle management.
 
 ## 🌟 Key Features
 
 ### 🔐 **Identity Management**
 - **Enterprise IAM Integration**: Full Keycloak integration for enterprise-grade authentication and authorization
-- **Decentralized Identifiers (DIDs)**: Support for both system-generated and user-provided DIDs
+- **Decentralized Identifiers (DIDs)**: Support for both `did:ethr` and `did:web` methods
+- **Multiple DID Options**: 
+  - **did:ethr**: Ethereum-based DIDs for individual users (e.g., `did:ethr:goerli:0x1234567890abcdef...`)
+  - **did:web**: Web-based DIDs for organizations (e.g., `did:web:company.com:user:alice`)
 - **Bring Your Own DID**: Users can integrate their existing DIDs for identity continuity
 - **Multi-factor Authentication**: Enhanced security with IAM-based MFA
 - **Role-based Access Control**: TDP, TDC, and CCRP roles with specific permissions
@@ -85,8 +88,36 @@ The system is built with a modern, scalable architecture:
 
 ## 🔧 DID Integration
 
-### System-Generated DIDs
-When users register without providing an existing DID, the system automatically generates a new DID based on their wallet address. This DID is:
+### Supported DID Methods
+
+#### did:ethr (Ethereum-based DIDs)
+**Best for**: Individual users with Ethereum wallets
+- **Format**: `did:ethr:[network]:[ethereum-address]`
+- **Examples**: 
+  - `did:ethr:goerli:0x1234567890abcdef...` (testnet)
+  - `did:ethr:mainnet:0x1234567890abcdef...` (mainnet)
+- **Benefits**:
+  - Fully decentralized
+  - Works with existing MetaMask wallets
+  - No additional setup required
+  - Cross-platform compatibility
+- **Verification**: Wallet signature verification
+
+#### did:web (Web-based DIDs)
+**Best for**: Organizations with web domains
+- **Format**: `did:web:[domain]:[path]`
+- **Examples**:
+  - `did:web:company.com:user:alice`
+  - `did:web:university.edu:students:student123`
+- **Benefits**:
+  - Cost-effective (no gas fees)
+  - Fast resolution via HTTP
+  - Organization control
+  - Easy integration with existing web infrastructure
+- **Verification**: DID document resolution and domain validation
+
+### System-Generated DIDs (did:ethr)
+When users register without providing an existing DID, the system automatically generates a new `did:ethr` based on their wallet address. This DID is:
 - Created using the Ethereum DID method
 - Linked to their wallet address
 - Stored securely in the database
@@ -95,17 +126,26 @@ When users register without providing an existing DID, the system automatically 
 ### User-Provided DIDs
 Users can bring their existing DIDs from other platforms or systems. This feature:
 - Maintains identity continuity across platforms
-- Supports multiple DID methods (Ethereum, Key-based, Web, etc.)
+- Supports both `did:ethr` and `did:web` methods
 - Requires cryptographic proof of ownership
 - Enables self-sovereign identity principles
 
 ### DID Verification Process
 When users provide an existing DID, the system verifies ownership through:
+
+#### For did:ethr:
 1. **Format Validation**: Ensures the DID follows correct standards
 2. **Uniqueness Check**: Confirms the DID isn't already registered
 3. **Ownership Proof**: Requires wallet signature to prove control
-4. **DID Resolution**: Verifies the DID exists and is active
+4. **DID Resolution**: Verifies the DID exists on the blockchain
 5. **Document Validation**: Checks the DID document structure
+
+#### For did:web:
+1. **Format Validation**: Ensures the DID follows correct standards
+2. **Uniqueness Check**: Confirms the DID isn't already registered
+3. **DID Resolution**: Fetches DID document from web server
+4. **Document Validation**: Checks the DID document structure
+5. **Domain Verification**: Validates domain ownership and SSL certificate
 
 ## 🎯 Use Cases
 
