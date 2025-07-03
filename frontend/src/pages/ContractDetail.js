@@ -271,7 +271,8 @@ function ContractDetail() {
       
       // For now, we'll use a hardcoded private key for TDC
       // In production, this should come from user input or wallet connection
-      const privateKey = '0x59c6995e998f97a5a0044966f0945389dc9e86dae88c7a8412f4603b6b78690d'; // TDC private key
+      // TODO: Get private key from secure storage or user input
+    const privateKey = process.env.REACT_APP_TDC_PRIVATE_KEY || '0x0000000000000000000000000000000000000000000000000000000000000000';
       
       // Create wallet from private key
       const wallet = new ethers.Wallet(privateKey);
@@ -313,12 +314,14 @@ function ContractDetail() {
   };
 
   const handleCompleteContract = () => {
-    const privateKey = '0x1234567890123456789012345678901234567890123456789012345678901234';
+    // TODO: Get private key from secure storage or user input
+    const privateKey = process.env.REACT_APP_CCRP_PRIVATE_KEY || '0x0000000000000000000000000000000000000000000000000000000000000000';
     completeContractMutation.mutate({ privateKey });
   };
 
   const handleCancelContract = () => {
-    const privateKey = '0x1234567890123456789012345678901234567890123456789012345678901234';
+    // TODO: Get private key from secure storage or user input
+    const privateKey = process.env.REACT_APP_CCRP_PRIVATE_KEY || '0x0000000000000000000000000000000000000000000000000000000000000000';
     cancelContractMutation.mutate({ privateKey });
   };
 

@@ -22,52 +22,41 @@ export const UserProvider = ({ children }) => {
 
   // Function to get current MetaMask account
   const getCurrentMetaMaskAccount = async () => {
-    console.log('🔍 [UserContext] getCurrentMetaMaskAccount called');
-    
     if (!window.ethereum) {
-      console.log('❌ [UserContext] window.ethereum not available');
       return null;
     }
     
     try {
       // First check if MetaMask is connected to the current site
       const isConnected = await window.ethereum.isConnected();
-      console.log('🔍 [UserContext] MetaMask connection status:', isConnected);
       
       if (!isConnected) {
-        console.log('❌ [UserContext] MetaMask not connected to this site');
         return null;
       }
       
-      console.log('🔍 [UserContext] Requesting eth_accounts from MetaMask...');
       const accounts = await window.ethereum.request({ 
         method: 'eth_accounts' // Use eth_accounts instead of eth_requestAccounts to avoid popup
       });
       
-      console.log('🔍 [UserContext] MetaMask accounts received:', accounts);
-      
       if (accounts && accounts.length > 0) {
         const currentAccount = accounts[0];
-        console.log('✅ [UserContext] Current MetaMask account detected:', currentAccount);
         return currentAccount;
       } else {
-        console.log('❌ [UserContext] No accounts found in MetaMask (likely locked)');
         return null;
       }
     } catch (error) {
       console.error('❌ [UserContext] Error getting current MetaMask account:', error);
-      // If we get an error, it might mean MetaMask is locked or disconnected
       return null;
     }
   };
 
   // Function to detect and set current account
   const detectAndSetCurrentAccount = async () => {
-    console.log('🔍 [UserContext] Detecting current MetaMask account...');
+    // console.log('🔍 [UserContext] Detecting current MetaMask account...');
     const currentAccount = await getCurrentMetaMaskAccount();
     
     if (currentAccount) {
-      console.log('✅ [UserContext] Current MetaMask account detected:', currentAccount);
+      // console.log('✅ [UserContext] Current MetaMask account detected:', currentAccount);
       // Always update when we detect an account, regardless of current state
       if (currentAccount !== walletAddress) {
         console.log('🔄 [UserContext] Account changed from', walletAddress, 'to', currentAccount);
@@ -76,12 +65,12 @@ export const UserProvider = ({ children }) => {
         // Clear the query cache to force a fresh fetch
         queryClient.removeQueries(['user']);
       } else {
-        console.log('✅ [UserContext] Account unchanged:', currentAccount);
+        // console.log('✅ [UserContext] Account unchanged:', currentAccount);
         // Even if account is the same, clear cache to ensure fresh data
         queryClient.removeQueries(['user']);
       }
     } else {
-      console.log('❌ [UserContext] No MetaMask account detected');
+      // console.log('❌ [UserContext] No MetaMask account detected');
       if (walletAddress) {
         console.log('🔄 [UserContext] Clearing wallet address');
         setWalletAddress('');
@@ -101,36 +90,6 @@ export const UserProvider = ({ children }) => {
 
     initializeAccount();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
-
-  // Poll for account changes (since MetaMask doesn't always fire events)
-  useEffect(() => {
-    if (!window.ethereum) return;
-
-    // Use shorter interval when wallet is connected for faster detection
-    const interval = walletAddress ? 500 : 1000;
-    
-    const pollInterval = setInterval(async () => {
-      const currentAccount = await getCurrentMetaMaskAccount();
-      
-      if (currentAccount && currentAccount !== walletAddress) {
-        console.log('🔄 [UserContext] Polling detected account change from', walletAddress, 'to', currentAccount);
-        setWalletAddress(currentAccount);
-        setAccountChangeTimestamp(Date.now());
-        queryClient.removeQueries(['user']);
-      } else if (!currentAccount && walletAddress) {
-        // No account found but we have a wallet address - wallet was disconnected
-        console.log('🔌 [UserContext] Polling detected wallet disconnection');
-        setWalletAddress('');
-        setCurrentUser(null);
-        queryClient.removeQueries(['user']);
-      } else if (currentAccount && currentAccount === walletAddress) {
-        // Account is the same, but let's verify the user data is still valid
-        console.log('✅ [UserContext] Polling confirmed same account:', currentAccount);
-      }
-    }, interval);
-
-    return () => clearInterval(pollInterval);
-  }, [walletAddress, queryClient]);
 
   // Listen for MetaMask account changes
   useEffect(() => {
@@ -346,28 +305,28 @@ export const UserProvider = ({ children }) => {
   const isTDP = currentUser?.partyType === 'TDP';
   const isCCRP = currentUser?.partyType === 'CCRP';
 
-  // Log state changes
-  console.log('🔄 [UserContext] State update:', {
-    walletAddress,
-    accountChangeTimestamp,
-    currentUser: currentUser ? {
-      id: currentUser.id,
-      name: currentUser.name,
-      partyType: currentUser.partyType,
-      isRegistered: currentUser.isRegistered
-    } : null,
-    isConnecting,
-    isLoading,
-    isInitializing,
-    error: error ? {
-      message: error.message,
-      status: error.response?.status
-    } : null,
-    isAuthenticated: !!currentUser,
-    isTDC,
-    isTDP,
-    isCCRP
-  });
+  // Log state changes (disabled to reduce console spam)
+  // console.log('🔄 [UserContext] State update:', {
+  //   walletAddress,
+  //   accountChangeTimestamp,
+  //   currentUser: currentUser ? {
+  //     id: currentUser.id,
+  //     name: currentUser.name,
+  //     partyType: currentUser.partyType,
+  //     isRegistered: currentUser.isRegistered
+  //   } : null,
+  //   isConnecting,
+  //   isLoading,
+  //   isInitializing,
+  //   error: error ? {
+  //     message: error.message,
+  //     status: error.response?.status
+  //   } : null,
+  //   isAuthenticated: !!currentUser,
+  //   isTDC,
+  //   isTDP,
+  //   isCCRP
+  // });
 
   const value = {
     currentUser,

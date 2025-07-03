@@ -4,6 +4,7 @@ const sampleUsers = [
   // Training Data Providers (TDP)
   {
     walletAddress: '0x1234567890123456789012345678901234567890',
+    publicKey: '0x0000000000000000000000000000000000000000000000000000000000000000',
     partyType: 'TDP',
     name: 'DataCorp Inc.',
     email: 'contact@datacorp.com',
@@ -11,6 +12,7 @@ const sampleUsers = [
   },
   {
     walletAddress: '0x2345678901234567890123456789012345678901',
+    publicKey: '0x0000000000000000000000000000000000000000000000000000000000000000',
     partyType: 'TDP',
     name: 'AI Data Solutions',
     email: 'info@aidasolutions.com',
@@ -18,6 +20,7 @@ const sampleUsers = [
   },
   {
     walletAddress: '0x3456789012345678901234567890123456789012',
+    publicKey: '0x0000000000000000000000000000000000000000000000000000000000000000',
     partyType: 'TDP',
     name: 'Global Data Hub',
     email: 'hello@globaldatahub.com',
@@ -25,6 +28,7 @@ const sampleUsers = [
   },
   {
     walletAddress: '0x4567890123456789012345678901234567890123',
+    publicKey: '0x0000000000000000000000000000000000000000000000000000000000000000',
     partyType: 'TDP',
     name: 'VisionTech Data',
     email: 'data@visiontech.com',
@@ -32,6 +36,7 @@ const sampleUsers = [
   },
   {
     walletAddress: '0x5678901234567890123456789012345678901234',
+    publicKey: '0x0000000000000000000000000000000000000000000000000000000000000000',
     partyType: 'TDP',
     name: 'Healthcare Data Pro',
     email: 'info@healthcaredata.com',
@@ -41,6 +46,7 @@ const sampleUsers = [
   // Training Data Consumers (TDC)
   {
     walletAddress: '0x6789012345678901234567890123456789012345',
+    publicKey: '0x0000000000000000000000000000000000000000000000000000000000000000',
     partyType: 'TDC',
     name: 'TechAI Labs',
     email: 'research@techailabs.com',
@@ -48,6 +54,7 @@ const sampleUsers = [
   },
   {
     walletAddress: '0x7890123456789012345678901234567890123456',
+    publicKey: '0x0000000000000000000000000000000000000000000000000000000000000000',
     partyType: 'TDC',
     name: 'Innovation Corp',
     email: 'ai@innovationcorp.com',
@@ -55,6 +62,7 @@ const sampleUsers = [
   },
   {
     walletAddress: '0x8901234567890123456789012345678901234567',
+    publicKey: '0x0000000000000000000000000000000000000000000000000000000000000000',
     partyType: 'TDC',
     name: 'StartupAI',
     email: 'team@startupai.com',
@@ -62,6 +70,7 @@ const sampleUsers = [
   },
   {
     walletAddress: '0x9012345678901234567890123456789012345678',
+    publicKey: '0x0000000000000000000000000000000000000000000000000000000000000000',
     partyType: 'TDC',
     name: 'AutoDrive Systems',
     email: 'ai@autodrive.com',
@@ -69,6 +78,7 @@ const sampleUsers = [
   },
   {
     walletAddress: '0xa012345678901234567890123456789012345678',
+    publicKey: '0x0000000000000000000000000000000000000000000000000000000000000000',
     partyType: 'TDC',
     name: 'MedTech AI',
     email: 'research@medtechai.com',
@@ -78,6 +88,7 @@ const sampleUsers = [
   // Confidential Clean Room Providers (CCRP)
   {
     walletAddress: '0xb012345678901234567890123456789012345678',
+    publicKey: '0x0000000000000000000000000000000000000000000000000000000000000000',
     partyType: 'CCRP',
     name: 'SecureCompute Inc.',
     email: 'security@securecompute.com',
@@ -85,6 +96,7 @@ const sampleUsers = [
   },
   {
     walletAddress: '0xc012345678901234567890123456789012345678',
+    publicKey: '0x0000000000000000000000000000000000000000000000000000000000000000',
     partyType: 'CCRP',
     name: 'PrivacyFirst Labs',
     email: 'contact@privacyfirst.com',
@@ -92,6 +104,7 @@ const sampleUsers = [
   },
   {
     walletAddress: '0xd012345678901234567890123456789012345678',
+    publicKey: '0x0000000000000000000000000000000000000000000000000000000000000000',
     partyType: 'CCRP',
     name: 'CloudSecure Solutions',
     email: 'info@cloudsecure.com',
@@ -99,6 +112,7 @@ const sampleUsers = [
   },
   {
     walletAddress: '0xe012345678901234567890123456789012345678',
+    publicKey: '0x0000000000000000000000000000000000000000000000000000000000000000',
     partyType: 'CCRP',
     name: 'Fortress Data Centers',
     email: 'secure@fortressdata.com',
@@ -106,6 +120,7 @@ const sampleUsers = [
   },
   {
     walletAddress: '0xf012345678901234567890123456789012345678',
+    publicKey: '0x0000000000000000000000000000000000000000000000000000000000000000',
     partyType: 'CCRP',
     name: 'Quantum Secure Labs',
     email: 'quantum@quantumsecure.com',
