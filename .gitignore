@@ -1,6 +1,5 @@
 # Dependencies
 node_modules/
-*/node_modules/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
@@ -11,18 +10,26 @@ yarn-error.log*
 .env.development.local
 .env.test.local
 .env.production.local
-config.env
+
+# Secrets and credentials
+secrets/
+credentials/
+*.key
+*.pem
+*.p12
+*.pfx
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
 
 # Logs
-logs
+logs/
 *.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-lerna-debug.log*
 
 # Runtime data
-pids
+pids/
 *.pid
 *.seed
 *.pid.lock
@@ -34,26 +41,8 @@ coverage/
 # nyc test coverage
 .nyc_output
 
-# Grunt intermediate storage (https://gruntjs.com/creating-plugins#storing-task-files)
-.grunt
-
-# Bower dependency directory (https://bower.io/)
-bower_components
-
-# node-waf configuration
-.lock-wscript
-
-# Compiled binary addons (https://nodejs.org/api/addons.html)
-build/Release
-
 # Dependency directories
 jspm_packages/
-
-# TypeScript v1 declaration files
-typings/
-
-# TypeScript cache
-*.tsbuildinfo
 
 # Optional npm cache directory
 .npm
@@ -75,10 +64,6 @@ typings/
 
 # Yarn Integrity file
 .yarn-integrity
-
-# dotenv environment variables file
-.env
-.env.test
 
 # parcel-bundler cache (https://parceljs.org/)
 .cache
@@ -119,26 +104,23 @@ temp/
 ehthumbs.db
 Thumbs.db
 
-# Hardhat files
+# Hardhat
 cache/
 artifacts/
 typechain/
 typechain-types/
 
-# Database
-*.db
-*.sqlite
-*.sqlite3
+# Blockchain
+deployment.json
+.env.blockchain
 
-# Build outputs
-build/
-dist/
-out/
+# Keycloak
+***REMOVED-KEYCLOAK_DB_PASSWORD***-config/realm-export.json
+***REMOVED-KEYCLOAK_DB_PASSWORD***-config/users.json
 
-# Test files
-test-results/
-playwright-report/
-test-results.xml
+# Test wallets and private keys
+test-wallets.json
+private-keys.json
 
 # Backup files
 *.bak

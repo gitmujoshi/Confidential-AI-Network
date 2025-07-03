@@ -1,12 +1,12 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import { CssBaseline } from '@mui/material';
 import { QueryClient, QueryClientProvider } from 'react-query';
 import { Toaster } from 'react-hot-toast';
 
 // Contexts
-import { UserProvider } from './contexts/UserContext';
+import { UserProvider, useUser } from './contexts/UserContext';
 
 // Components
 import Layout from './components/Layout';
@@ -18,6 +18,31 @@ import CreateContract from './pages/CreateContract';
 import Users from './pages/Users';
 import Notifications from './pages/Notifications';
 import UserRegistration from './pages/UserRegistration';
+import Login from './pages/Login';
+
+// Protected Route Component
+const ProtectedRoute = ({ children }) => {
+  const { user } = useUser();
+  const token = localStorage.getItem('authToken');
+  
+  if (!user && !token) {
+    return <Navigate to="/login" replace />;
+  }
+  
+  return children;
+};
+
+// Public Route Component (redirects to dashboard if already authenticated)
+const PublicRoute = ({ children }) => {
+  const { user } = useUser();
+  const token = localStorage.getItem('authToken');
+  
+  if (user || token) {
+    return <Navigate to="/dashboard" replace />;
+  }
+  
+  return children;
+};
 
 // Create theme
 const theme = createTheme({
@@ -74,6 +99,88 @@ const queryClient = new QueryClient({
   },
 });
 
+function AppRoutes() {
+  return (
+    <Routes>
+      {/* Public Routes */}
+      <Route path="/login" element={
+        <PublicRoute>
+          <Login />
+        </PublicRoute>
+      } />
+      <Route path="/register" element={
+        <PublicRoute>
+          <UserRegistration />
+        </PublicRoute>
+      } />
+      
+      {/* Protected Routes */}
+      <Route path="/" element={
+        <ProtectedRoute>
+          <Layout>
+            <Navigate to="/dashboard" replace />
+          </Layout>
+        </ProtectedRoute>
+      } />
+      <Route path="/dashboard" element={
+        <ProtectedRoute>
+          <Layout>
+            <Dashboard />
+          </Layout>
+        </ProtectedRoute>
+      } />
+      <Route path="/datasets" element={
+        <ProtectedRoute>
+          <Layout>
+            <Datasets />
+          </Layout>
+        </ProtectedRoute>
+      } />
+      <Route path="/contracts" element={
+        <ProtectedRoute>
+          <Layout>
+            <Contracts />
+          </Layout>
+        </ProtectedRoute>
+      } />
+      <Route path="/contracts/:contractId" element={
+        <ProtectedRoute>
+          <Layout>
+            <ContractDetail />
+          </Layout>
+        </ProtectedRoute>
+      } />
+      <Route path="/contracts/create" element={
+        <ProtectedRoute>
+          <Layout>
+            <CreateContract />
+          </Layout>
+        </ProtectedRoute>
+      } />
+      <Route path="/users" element={
+        <ProtectedRoute>
+          <Layout>
+            <Users />
+          </Layout>
+        </ProtectedRoute>
+      } />
+      <Route path="/notifications" element={
+        <ProtectedRoute>
+          <Layout>
+            <Notifications />
+          </Layout>
+        </ProtectedRoute>
+      } />
+      
+      {/* Legacy route redirect */}
+      <Route path="/user-registration" element={<Navigate to="/register" replace />} />
+      
+      {/* Catch all route */}
+      <Route path="*" element={<Navigate to="/dashboard" replace />} />
+    </Routes>
+  );
+}
+
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
@@ -81,18 +188,7 @@ function App() {
         <CssBaseline />
         <UserProvider>
           <Router>
-            <Layout>
-              <Routes>
-                <Route path="/" element={<Dashboard />} />
-                <Route path="/datasets" element={<Datasets />} />
-                <Route path="/contracts" element={<Contracts />} />
-                <Route path="/contracts/:contractId" element={<ContractDetail />} />
-                <Route path="/contracts/create" element={<CreateContract />} />
-                <Route path="/users" element={<Users />} />
-                <Route path="/notifications" element={<Notifications />} />
-                <Route path="/user-registration" element={<UserRegistration />} />
-              </Routes>
-            </Layout>
+            <AppRoutes />
           </Router>
         </UserProvider>
         <Toaster

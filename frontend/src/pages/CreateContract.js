@@ -21,7 +21,6 @@ import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from 'react-query';
 import { apiService } from '../services/api';
 import toast from 'react-hot-toast';
-import { ethers } from 'ethers';
 import { useUser } from '../contexts/UserContext';
 
 /**

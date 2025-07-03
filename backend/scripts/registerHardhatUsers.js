@@ -117,6 +117,7 @@ const registerHardhatUsers = async () => {
         // Create new user
         const user = await db.User.create({
           walletAddress: wallet.walletAddress,
+          publicKey: '0x0000000000000000000000000000000000000000000000000000000000000000',
           partyType: wallet.partyType,
           name: wallet.name,
           email: wallet.email,

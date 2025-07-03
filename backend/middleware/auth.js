@@ -307,24 +307,26 @@ const authRateLimit = (req, res, next) => {
 /**
  * Log authentication events
  */
-const logAuthEvent = (event, req, res, next) => {
-  const logData = {
-    timestamp: new Date().toISOString(),
-    event: event,
-    ip: req.ip || req.connection.remoteAddress,
-    userAgent: req.get('User-Agent'),
-    method: req.method,
-    path: req.path
+const logAuthEvent = (event) => {
+  return (req, res, next) => {
+    const logData = {
+      timestamp: new Date().toISOString(),
+      event: event,
+      ip: req.ip || req.connection.remoteAddress,
+      userAgent: req.get('User-Agent'),
+      method: req.method,
+      path: req.path
+    };
+
+    if (req.user) {
+      logData.userId = req.user.id;
+      logData.walletAddress = req.user.walletAddress;
+      logData.partyType = req.user.partyType;
+    }
+
+    console.log('🔐 Auth Event:', JSON.stringify(logData, null, 2));
+    next();
   };
-
-  if (req.user) {
-    logData.userId = req.user.id;
-    logData.walletAddress = req.user.walletAddress;
-    logData.partyType = req.user.partyType;
-  }
-
-  console.log('🔐 Auth Event:', JSON.stringify(logData, null, 2));
-  next();
 };
 
 module.exports = {

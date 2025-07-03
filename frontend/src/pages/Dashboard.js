@@ -1,322 +1,388 @@
 import React from 'react';
+import { useQuery } from 'react-query';
+import { useNavigate } from 'react-router-dom';
 import {
   Grid,
   Card,
   CardContent,
   Typography,
-  Box,
+  Button,
   Chip,
-  List,
-  ListItem,
-  ListItemText,
-  ListItemIcon,
-  Divider,
+  Box,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Paper,
 } from '@mui/material';
 import {
   Storage,
   Description,
   People,
   TrendingUp,
-  Notifications,
-  CheckCircle,
-  Pending,
-  Error,
+  Add,
 } from '@mui/icons-material';
-import { useQuery } from 'react-query';
-import { format } from 'date-fns';
-import { apiService } from '../services/api';
 import { useUser } from '../contexts/UserContext';
+import api from '../services/api';
 
-const StatCard = ({ title, value, icon, color = 'primary' }) => (
-  <Card>
-    <CardContent>
-      <Box display="flex" alignItems="center" justifyContent="space-between">
-        <Box>
-          <Typography color="textSecondary" gutterBottom variant="h6">
-            {title}
-          </Typography>
-          <Typography variant="h4" component="div">
-            {value}
-          </Typography>
-        </Box>
-        <Box
-          sx={{
-            backgroundColor: `${color}.light`,
-            borderRadius: '50%',
-            p: 1,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}
-        >
-          {icon}
-        </Box>
-      </Box>
-    </CardContent>
-  </Card>
-);
+const Dashboard = () => {
+  const navigate = useNavigate();
+  const { user } = useUser();
 
-const StatusChip = ({ status }) => {
+  // Fetch dashboard data
+  const { data: dashboardData, isLoading } = useQuery('dashboard', async () => {
+    const [datasetsRes, contractsRes, usersRes] = await Promise.all([
+      api.get('/datasets'),
+      api.get('/contracts'),
+      api.get('/users')
+    ]);
+
+    return {
+      datasets: datasetsRes.data.datasets || [],
+      contracts: contractsRes.data.contracts || [],
+      users: usersRes.data.users || []
+    };
+  });
+
+  const datasets = dashboardData?.datasets || [];
+  const contracts = dashboardData?.contracts || [];
+  const users = dashboardData?.users || [];
+
+  // Calculate metrics
+  const totalDatasets = datasets.length;
+  const totalContracts = contracts.length;
+  const totalUsers = users.length;
+  const activeContracts = contracts.filter(c => c.status === 'ACTIVE').length;
+  const pendingContracts = contracts.filter(c => c.status === 'PENDING').length;
+
+  // Get recent activities
+  const recentContracts = contracts.slice(0, 5);
+  const recentDatasets = datasets.slice(0, 5);
+
   const getStatusColor = (status) => {
     switch (status) {
-      case 'ACTIVE':
-        return 'success';
-      case 'PENDING_TDP_APPROVAL':
-      case 'PENDING_CCRP_APPROVAL':
-        return 'warning';
-      case 'COMPLETED':
-        return 'info';
-      case 'CANCELLED':
-        return 'error';
-      default:
-        return 'default';
+      case 'ACTIVE': return 'success';
+      case 'PENDING': return 'warning';
+      case 'COMPLETED': return 'info';
+      case 'CANCELLED': return 'error';
+      default: return 'default';
     }
   };
 
-  const getStatusIcon = (status) => {
-    switch (status) {
-      case 'ACTIVE':
-        return <CheckCircle fontSize="small" />;
-      case 'PENDING_TDP_APPROVAL':
-      case 'PENDING_CCRP_APPROVAL':
-        return <Pending fontSize="small" />;
-      case 'COMPLETED':
-        return <CheckCircle fontSize="small" />;
-      case 'CANCELLED':
-        return <Error fontSize="small" />;
-      default:
-        return null;
-    }
-  };
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Typography>Loading dashboard...</Typography>
+      </div>
+    );
+  }
 
   return (
-    <Chip
-      label={status.replace(/_/g, ' ')}
-      color={getStatusColor(status)}
-      size="small"
-      icon={getStatusIcon(status)}
-    />
-  );
-};
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex justify-between items-center">
+        <div>
+          <Typography variant="h4" className="font-bold text-gray-900 mb-2">
+            Dashboard
+          </Typography>
+          <Typography variant="body1" className="text-gray-600">
+            Welcome back, {user?.name || 'User'}! Here's an overview of your contract management system.
+          </Typography>
+        </div>
+        <div className="flex space-x-3">
+          <Button
+            variant="contained"
+            startIcon={<Add />}
+            onClick={() => navigate('/contracts/create')}
+          >
+            Create Contract
+          </Button>
+          <Button
+            variant="outlined"
+            startIcon={<Storage />}
+            onClick={() => navigate('/datasets')}
+          >
+            Browse Datasets
+          </Button>
+        </div>
+      </div>
 
-function Dashboard() {
-  const { currentUser, isAuthenticated, isTDC, isTDP, isCCRP } = useUser();
-  
-  // Fetch dashboard data
-  const { data: datasetStats } = useQuery('datasetStats', apiService.getDatasetStats);
-  const { data: users } = useQuery('users', apiService.getUsers);
-  const { data: contracts } = useQuery(
-    ['contracts', currentUser?.id], 
-    () => apiService.getContracts(currentUser?.id || 1, { limit: 5 }),
-    { enabled: !!currentUser?.id }
-  );
-  const { data: notifications } = useQuery(
-    ['notifications', currentUser?.id], 
-    () => apiService.getNotifications(currentUser?.id || 1, { limit: 5 }),
-    { enabled: !!currentUser?.id }
-  );
-  const { data: blockchainStatus } = useQuery('blockchainStatus', apiService.getBlockchainStatus);
+      {/* Metrics Cards */}
+      <Grid container spacing={3}>
+        <Grid item xs={12} sm={6} md={3}>
+          <Card>
+            <CardContent>
+              <div className="flex items-center justify-between">
+                <div>
+                  <Typography color="textSecondary" gutterBottom>
+                    Total Datasets
+                  </Typography>
+                  <Typography variant="h4" className="font-bold">
+                    {totalDatasets}
+                  </Typography>
+                </div>
+                <Storage className="text-blue-600 text-3xl" />
+              </div>
+            </CardContent>
+          </Card>
+        </Grid>
 
-  // Role-based welcome message
-  const getWelcomeMessage = () => {
-    if (!isAuthenticated) {
-      return 'Welcome to AI Training Data Contract Management';
-    }
-    
-    switch (currentUser?.partyType) {
-      case 'TDC':
-        return `Welcome, ${currentUser.name}! As a Training Data Consumer, you can browse datasets and create contracts.`;
-      case 'TDP':
-        return `Welcome, ${currentUser.name}! As a Training Data Provider, you can manage your datasets and review contract requests.`;
-      case 'CCRP':
-        return `Welcome, ${currentUser.name}! As a Confidential Clean Room Provider, you can review and sign contracts.`;
-      default:
-        return `Welcome, ${currentUser.name}!`;
-    }
-  };
+        <Grid item xs={12} sm={6} md={3}>
+          <Card>
+            <CardContent>
+              <div className="flex items-center justify-between">
+                <div>
+                  <Typography color="textSecondary" gutterBottom>
+                    Total Contracts
+                  </Typography>
+                  <Typography variant="h4" className="font-bold">
+                    {totalContracts}
+                  </Typography>
+                </div>
+                <Description className="text-green-600 text-3xl" />
+              </div>
+            </CardContent>
+          </Card>
+        </Grid>
 
-  // Role-based stats
-  const getRoleBasedStats = () => {
-    const baseStats = [
-      {
-        title: 'Total Datasets',
-        value: datasetStats?.totalDatasets || 0,
-        icon: <Storage />,
-        color: 'primary',
-      },
-      {
-        title: 'Active Contracts',
-        value: contracts?.contracts?.filter(c => c.status === 'ACTIVE').length || 0,
-        icon: <Description />,
-        color: 'success',
-      },
-      {
-        title: 'Unread Notifications',
-        value: notifications?.notifications?.filter(n => !n.isRead).length || 0,
-        icon: <Notifications />,
-        color: 'warning',
-      },
-    ];
+        <Grid item xs={12} sm={6} md={3}>
+          <Card>
+            <CardContent>
+              <div className="flex items-center justify-between">
+                <div>
+                  <Typography color="textSecondary" gutterBottom>
+                    Active Contracts
+                  </Typography>
+                  <Typography variant="h4" className="font-bold">
+                    {activeContracts}
+                  </Typography>
+                </div>
+                <TrendingUp className="text-purple-600 text-3xl" />
+              </div>
+            </CardContent>
+          </Card>
+        </Grid>
 
-    // Add role-specific stats
-    if (isTDC) {
-      baseStats.splice(1, 0, {
-        title: 'My Contracts',
-        value: contracts?.contracts?.length || 0,
-        icon: <Description />,
-        color: 'info',
-      });
-    } else if (isTDP) {
-      baseStats.splice(1, 0, {
-        title: 'My Datasets',
-        value: datasetStats?.myDatasets || 0,
-        icon: <Storage />,
-        color: 'info',
-      });
-    } else if (isCCRP) {
-      baseStats.splice(1, 0, {
-        title: 'Pending Approvals',
-        value: contracts?.contracts?.filter(c => c.status === 'PENDING_CCRP_APPROVAL').length || 0,
-        icon: <Pending />,
-        color: 'info',
-      });
-    }
-
-    return baseStats;
-  };
-
-  const stats = getRoleBasedStats();
-
-  return (
-    <Box>
-      <Typography variant="h4" gutterBottom>
-        Dashboard
-      </Typography>
-      
-      <Typography variant="h6" color="textSecondary" sx={{ mb: 3 }}>
-        {getWelcomeMessage()}
-      </Typography>
-
-      {/* Statistics Cards */}
-      <Grid container spacing={3} sx={{ mb: 4 }}>
-        {stats.map((stat, index) => (
-          <Grid item xs={12} sm={6} md={3} key={index}>
-            <StatCard {...stat} />
-          </Grid>
-        ))}
+        <Grid item xs={12} sm={6} md={3}>
+          <Card>
+            <CardContent>
+              <div className="flex items-center justify-between">
+                <div>
+                  <Typography color="textSecondary" gutterBottom>
+                    Total Users
+                  </Typography>
+                  <Typography variant="h4" className="font-bold">
+                    {totalUsers}
+                  </Typography>
+                </div>
+                <People className="text-orange-600 text-3xl" />
+              </div>
+            </CardContent>
+          </Card>
+        </Grid>
       </Grid>
 
+      {/* Recent Activities */}
       <Grid container spacing={3}>
         {/* Recent Contracts */}
         <Grid item xs={12} md={6}>
           <Card>
             <CardContent>
-              <Typography variant="h6" gutterBottom>
-                Recent Contracts
-              </Typography>
-              <List>
-                {contracts?.contracts?.map((contract, index) => (
-                  <React.Fragment key={contract.id}>
-                    <ListItem>
-                      <ListItemIcon>
-                        <Description />
-                      </ListItemIcon>
-                      <ListItemText
-                        primary={contract.contractId}
-                        secondary={
-                          <Box>
-                            <Typography variant="body2" color="textSecondary">
-                              {contract.dataset?.name} • ${contract.price}
+              <div className="flex justify-between items-center mb-4">
+                <Typography variant="h6" className="font-medium">
+                  Recent Contracts
+                </Typography>
+                <Button
+                  size="small"
+                  onClick={() => navigate('/contracts')}
+                >
+                  View All
+                </Button>
+              </div>
+              
+              {recentContracts.length > 0 ? (
+                <TableContainer component={Paper} elevation={0}>
+                  <Table size="small">
+                    <TableHead>
+                      <TableRow>
+                        <TableCell>Contract ID</TableCell>
+                        <TableCell>Status</TableCell>
+                        <TableCell>Parties</TableCell>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {recentContracts.map((contract) => (
+                        <TableRow key={contract.id} hover>
+                          <TableCell>
+                            <Typography variant="body2" className="font-medium">
+                              #{contract.id}
                             </Typography>
-                            <StatusChip status={contract.status} />
-                          </Box>
-                        }
-                      />
-                    </ListItem>
-                    {index < contracts.contracts.length - 1 && <Divider />}
-                  </React.Fragment>
-                ))}
-              </List>
+                          </TableCell>
+                          <TableCell>
+                            <Chip
+                              label={contract.status}
+                              color={getStatusColor(contract.status)}
+                              size="small"
+                            />
+                          </TableCell>
+                          <TableCell>
+                            <Typography variant="body2" className="text-gray-600">
+                              {contract.tdpName} → {contract.tdcName}
+                            </Typography>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
+              ) : (
+                <Box className="text-center py-8">
+                  <Typography color="textSecondary">
+                    No contracts found
+                  </Typography>
+                  <Button
+                    variant="outlined"
+                    size="small"
+                    onClick={() => navigate('/contracts/create')}
+                    className="mt-2"
+                  >
+                    Create First Contract
+                  </Button>
+                </Box>
+              )}
             </CardContent>
           </Card>
         </Grid>
 
-        {/* Recent Notifications */}
+        {/* Recent Datasets */}
         <Grid item xs={12} md={6}>
           <Card>
             <CardContent>
-              <Typography variant="h6" gutterBottom>
-                Recent Notifications
-              </Typography>
-              <List>
-                {notifications?.notifications?.map((notification, index) => (
-                  <React.Fragment key={notification.id}>
-                    <ListItem>
-                      <ListItemIcon>
-                        <Notifications />
-                      </ListItemIcon>
-                      <ListItemText
-                        primary={notification.title}
-                        secondary={
-                          <Box>
-                            <Typography variant="body2" color="textSecondary">
-                              {notification.message}
+              <div className="flex justify-between items-center mb-4">
+                <Typography variant="h6" className="font-medium">
+                  Recent Datasets
+                </Typography>
+                <Button
+                  size="small"
+                  onClick={() => navigate('/datasets')}
+                >
+                  View All
+                </Button>
+              </div>
+              
+              {recentDatasets.length > 0 ? (
+                <TableContainer component={Paper} elevation={0}>
+                  <Table size="small">
+                    <TableHead>
+                      <TableRow>
+                        <TableCell>Dataset</TableCell>
+                        <TableCell>Category</TableCell>
+                        <TableCell>Price</TableCell>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {recentDatasets.map((dataset) => (
+                        <TableRow key={dataset.id} hover>
+                          <TableCell>
+                            <Typography variant="body2" className="font-medium">
+                              {dataset.name}
                             </Typography>
-                            <Typography variant="caption" color="textSecondary">
-                              {format(new Date(notification.createdAt), 'MMM dd, yyyy HH:mm')}
+                          </TableCell>
+                          <TableCell>
+                            <Chip
+                              label={dataset.category}
+                              size="small"
+                              variant="outlined"
+                            />
+                          </TableCell>
+                          <TableCell>
+                            <Typography variant="body2" className="font-medium">
+                              ${dataset.price}
                             </Typography>
-                          </Box>
-                        }
-                      />
-                    </ListItem>
-                    {index < notifications.notifications.length - 1 && <Divider />}
-                  </React.Fragment>
-                ))}
-              </List>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
+              ) : (
+                <Box className="text-center py-8">
+                  <Typography color="textSecondary">
+                    No datasets found
+                  </Typography>
+                  <Button
+                    variant="outlined"
+                    size="small"
+                    onClick={() => navigate('/datasets')}
+                    className="mt-2"
+                  >
+                    Browse Datasets
+                  </Button>
+                </Box>
+              )}
             </CardContent>
           </Card>
         </Grid>
+      </Grid>
 
-        {/* Blockchain Status */}
+      {/* Quick Stats */}
+      <Grid container spacing={3}>
         <Grid item xs={12}>
           <Card>
             <CardContent>
-              <Typography variant="h6" gutterBottom>
-                Blockchain Status
+              <Typography variant="h6" className="font-medium mb-4">
+                System Overview
               </Typography>
               <Grid container spacing={2}>
-                <Grid item xs={12} sm={4}>
-                  <Box display="flex" alignItems="center" gap={1}>
-                    <Chip
-                      label={blockchainStatus?.connected ? 'Connected' : 'Disconnected'}
-                      color={blockchainStatus?.connected ? 'success' : 'error'}
-                      size="small"
-                    />
-                  </Box>
+                <Grid item xs={12} sm={6} md={3}>
+                  <div className="text-center p-4 bg-blue-50 rounded-lg">
+                    <Typography variant="h4" className="font-bold text-blue-600">
+                      {pendingContracts}
+                    </Typography>
+                    <Typography variant="body2" className="text-gray-600">
+                      Pending Contracts
+                    </Typography>
+                  </div>
                 </Grid>
-                <Grid item xs={12} sm={4}>
-                  <Typography variant="body2" color="textSecondary">
-                    Contract Address:
-                  </Typography>
-                  <Typography variant="body2" fontFamily="monospace">
-                    {blockchainStatus?.contractAddress || 'Not deployed'}
-                  </Typography>
+                <Grid item xs={12} sm={6} md={3}>
+                  <div className="text-center p-4 bg-green-50 rounded-lg">
+                    <Typography variant="h4" className="font-bold text-green-600">
+                      {users.filter(u => u.partyType === 'TDP').length}
+                    </Typography>
+                    <Typography variant="body2" className="text-gray-600">
+                      Data Providers
+                    </Typography>
+                  </div>
                 </Grid>
-                <Grid item xs={12} sm={4}>
-                  <Typography variant="body2" color="textSecondary">
-                    Last Block:
-                  </Typography>
-                  <Typography variant="body2">
-                    {blockchainStatus?.lastBlock || 'N/A'}
-                  </Typography>
+                <Grid item xs={12} sm={6} md={3}>
+                  <div className="text-center p-4 bg-purple-50 rounded-lg">
+                    <Typography variant="h4" className="font-bold text-purple-600">
+                      {users.filter(u => u.partyType === 'TDC').length}
+                    </Typography>
+                    <Typography variant="body2" className="text-gray-600">
+                      Data Consumers
+                    </Typography>
+                  </div>
+                </Grid>
+                <Grid item xs={12} sm={6} md={3}>
+                  <div className="text-center p-4 bg-orange-50 rounded-lg">
+                    <Typography variant="h4" className="font-bold text-orange-600">
+                      {users.filter(u => u.partyType === 'CCRP').length}
+                    </Typography>
+                    <Typography variant="body2" className="text-gray-600">
+                      Compliance Providers
+                    </Typography>
+                  </div>
                 </Grid>
               </Grid>
             </CardContent>
           </Card>
         </Grid>
       </Grid>
-    </Box>
+    </div>
   );
-}
+};
 
 export default Dashboard; 

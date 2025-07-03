@@ -17,11 +17,7 @@ import {
   Divider,
   Button,
   Chip,
-  Alert,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  Tooltip,
+  Avatar,
 } from '@mui/material';
 import {
   Menu as MenuIcon,
@@ -31,68 +27,31 @@ import {
   People,
   Notifications,
   AccountCircle,
-  Settings,
   Logout,
   Add,
-  Wallet,
-  Refresh,
-  BugReport,
-  CheckCircle,
-  Warning,
-  Error,
 } from '@mui/icons-material';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useQuery } from 'react-query';
-import { api } from '../services/api';
 import { useUser } from '../contexts/UserContext';
-import MetaMaskGuide from './MetaMaskGuide';
-import WalletSwitcher from './WalletSwitcher';
+import api from '../services/api';
 
 const drawerWidth = 240;
 
-function Layout({ children }) {
-  const [mobileOpen, setMobileOpen] = useState(false);
-  const [anchorEl, setAnchorEl] = useState(null);
-  const [showMetaMaskGuide, setShowMetaMaskGuide] = useState(false);
-  const [walletSwitcherOpen, setWalletSwitcherOpen] = useState(false);
-  const [showDebugDialog, setShowDebugDialog] = useState(false);
+const Layout = ({ children }) => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { currentUser, walletAddress, isConnecting, connectWallet, disconnectWallet, refreshUserData, isTDC, isAuthenticated, isTDP, isCCRP, isInitializing, detectAndSetCurrentAccount, checkWalletConnection } = useUser();
+  const { user, setUser } = useUser();
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [anchorEl, setAnchorEl] = useState(null);
 
-  // Role-based menu items
-  const getMenuItems = () => {
-    const baseItems = [
-      { text: 'Dashboard', icon: <Dashboard />, path: '/' },
-      { text: 'Datasets', icon: <Storage />, path: '/datasets' },
-      { text: 'Contracts', icon: <Description />, path: '/contracts' },
-      { text: 'Notifications', icon: <Notifications />, path: '/notifications' },
-    ];
-
-    // Only TDC can create contracts
-    if (isTDC) {
-      baseItems.splice(3, 0, { text: 'Create Contract', icon: <Add />, path: '/contracts/create' });
-    }
-
-    // Admin features (show for all authenticated users for now)
-    if (isAuthenticated) {
-      baseItems.push({ text: 'Users', icon: <People />, path: '/users' });
-    }
-
-    return baseItems;
-  };
-
-  const menuItems = getMenuItems();
-
-  // Fetch notifications count
-  const { data: notificationsCount = 0 } = useQuery(
-    ['notificationsCount', currentUser?.id],
-    () => api.get(`/api/notifications/${currentUser?.id || 1}?limit=1`).then(res => res.data.total),
-    { 
-      refetchInterval: 30000, // Refetch every 30 seconds
-      enabled: !!currentUser?.id
-    }
+  // Fetch notifications
+  const { data: notifications = [] } = useQuery(
+    'notifications',
+    () => api.get('/notifications').then(res => res.data.notifications),
+    { refetchInterval: 30000 }
   );
+
+  const unreadCount = notifications.filter(n => !n.isRead).length;
 
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
@@ -106,169 +65,147 @@ function Layout({ children }) {
     setAnchorEl(null);
   };
 
-  const handleConnectWallet = async () => {
-    console.log('🔗 [Layout] Connect wallet button clicked');
-    try {
-      console.log('🔗 [Layout] Calling connectWallet from UserContext...');
-      await connectWallet();
-      console.log('✅ [Layout] Wallet connected successfully in Layout');
-    } catch (error) {
-      console.error('❌ [Layout] Failed to connect wallet:', error);
-      
-      // Show user-friendly error message
-      let errorMessage = 'Failed to connect wallet';
-      
-      if (error.code === 'METAMASK_NOT_INSTALLED') {
-        console.log('🔗 [Layout] MetaMask not installed, showing guide');
-        setShowMetaMaskGuide(true);
-        return;
-      } else if (error.message.includes('No accounts found')) {
-        errorMessage = 'Please unlock MetaMask and try again.';
-      } else if (error.message.includes('User rejected')) {
-        errorMessage = 'Wallet connection was cancelled.';
-      } else {
-        errorMessage = error.message || 'Failed to connect wallet';
-      }
-      
-      // You can add a toast notification here if you have a notification system
-      alert(errorMessage);
-    }
-  };
-
   const handleLogout = () => {
-    disconnectWallet();
-    handleProfileMenuClose();
-    navigate('/');
+    localStorage.removeItem('authToken');
+    setUser(null);
+    navigate('/login');
   };
 
-  const handleRefresh = async () => {
-    console.log('🔄 [Layout] Manual refresh triggered');
-    await refreshUserData();
-  };
+  const navigationItems = [
+    { text: 'Dashboard', icon: <Dashboard />, path: '/dashboard' },
+    { text: 'Datasets', icon: <Storage />, path: '/datasets' },
+    { text: 'Contracts', icon: <Description />, path: '/contracts' },
+    { text: 'Users', icon: <People />, path: '/users' },
+    { text: 'Notifications', icon: <Notifications />, path: '/notifications' }
+  ];
 
-  const handleDebug = async () => {
-    await detectAndSetCurrentAccount();
-    setShowDebugDialog(true);
-  };
-
-  const handleCheckConnection = async () => {
-    console.log('🔍 [Layout] Check connection button clicked');
-    await checkWalletConnection();
-  };
-
-  const handleForceRefresh = async () => {
-    console.log('🔄 [Layout] Force refresh button clicked');
-    await refreshUserData();
-  };
-
-  // Get status indicator
-  const getStatusIndicator = () => {
-    if (isInitializing) {
-      return { icon: <Refresh sx={{ animation: 'spin 1s linear infinite' }} />, color: 'warning', text: 'Initializing...' };
+  const getRoleColor = (role) => {
+    switch (role) {
+      case 'TDP': return 'bg-blue-100 text-blue-800';
+      case 'TDC': return 'bg-green-100 text-green-800';
+      case 'CCRP': return 'bg-purple-100 text-purple-800';
+      default: return 'bg-gray-100 text-gray-800';
     }
-    if (isConnecting) {
-      return { icon: <Refresh sx={{ animation: 'spin 1s linear infinite' }} />, color: 'warning', text: 'Connecting...' };
-    }
-    if (!walletAddress) {
-      return { icon: <Error />, color: 'error', text: 'No Wallet' };
-    }
-    if (!currentUser) {
-      return { icon: <Warning />, color: 'warning', text: 'Wallet Not Registered' };
-    }
-    return { icon: <CheckCircle />, color: 'success', text: currentUser.partyType };
   };
-
-  const status = getStatusIndicator();
 
   const drawer = (
-    <div>
-      <Toolbar>
-        <Typography variant="h6" noWrap component="div">
+    <div className="h-full bg-white">
+      {/* Logo/Brand */}
+      <div className="p-4 border-b border-gray-200">
+        <Typography variant="h6" className="font-bold text-gray-900">
           Contract Manager
         </Typography>
-      </Toolbar>
-      <Divider />
-      
-      {/* User Info Section */}
-      <Box sx={{ p: 2 }}>
-        {!isAuthenticated ? (
-          <Box>
-            <Alert severity="info" sx={{ mb: 2 }}>
-              Please connect your wallet to access the system
-            </Alert>
+        <Typography variant="caption" className="text-gray-500">
+          Secure & Transparent
+        </Typography>
+      </div>
+
+      {/* User Profile */}
+      {user && (
+        <div className="p-4 border-b border-gray-200">
+          <div className="flex items-center space-x-3">
+            <Avatar className="w-10 h-10 bg-blue-600">
+              {user.name?.charAt(0) || 'U'}
+            </Avatar>
+            <div className="flex-1 min-w-0">
+              <Typography variant="subtitle2" className="font-medium text-gray-900 truncate">
+                {user.name || 'User'}
+              </Typography>
+              <Chip
+                label={user.partyType}
+                size="small"
+                className={`${getRoleColor(user.partyType)} text-xs`}
+              />
+            </div>
+          </div>
+          {user.email && (
+            <div className="mt-2 text-xs text-gray-600 truncate">
+              {user.email}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Navigation */}
+      <div className="flex-1 overflow-y-auto">
+        <List className="px-2 py-2">
+          {navigationItems.map((item) => {
+            const isActive = location.pathname === item.path;
+            return (
+              <ListItem key={item.text} disablePadding className="mb-1">
+                <ListItemButton
+                  onClick={() => navigate(item.path)}
+                  className={`rounded-md ${
+                    isActive ? 'bg-blue-50 text-blue-700' : 'hover:bg-gray-50'
+                  }`}
+                >
+                  <ListItemIcon className={isActive ? 'text-blue-600' : 'text-gray-500'}>
+                    {item.icon}
+                  </ListItemIcon>
+                  <ListItemText primary={item.text} />
+                  {item.text === 'Notifications' && unreadCount > 0 && (
+                    <Badge badgeContent={unreadCount} color="error" />
+                  )}
+                </ListItemButton>
+              </ListItem>
+            );
+          })}
+        </List>
+
+        {/* Quick Actions */}
+        <div className="px-4 py-4">
+          <Typography variant="subtitle2" className="text-gray-600 mb-3 font-medium">
+            Quick Actions
+          </Typography>
+          <div className="space-y-2">
             <Button
-              variant="contained"
-              fullWidth
-              startIcon={<Wallet />}
-              onClick={handleConnectWallet}
-              disabled={isConnecting}
+              variant="outlined"
+              startIcon={<Add />}
+              onClick={() => navigate('/contracts/create')}
+              className="w-full justify-start"
+              size="small"
             >
-              {isConnecting ? 'Connecting...' : 'Connect Wallet'}
+              Create Contract
             </Button>
-          </Box>
-        ) : (
-          <Box>
-            <Typography variant="subtitle2" gutterBottom>
-              Connected as:
-            </Typography>
-            <Typography variant="body2" color="textSecondary" sx={{ wordBreak: 'break-all', mb: 1 }}>
-              {walletAddress}
-            </Typography>
-            {currentUser && (
-              <Box>
-                <Chip 
-                  label={currentUser.name} 
-                  size="small" 
-                  sx={{ mb: 1 }}
-                />
-                <Chip 
-                  label={currentUser.partyType} 
-                  color={
-                    isTDP ? 'primary' :
-                    isTDC ? 'secondary' : 'success'
-                  }
-                  size="small" 
-                  variant="outlined"
-                />
-              </Box>
-            )}
-          </Box>
-        )}
-      </Box>
-      
-      <Divider />
-      
-      {/* Navigation Menu */}
-      <List>
-        {menuItems.map((item) => (
-          <ListItem key={item.text} disablePadding>
-            <ListItemButton
-              selected={location.pathname === item.path}
-              onClick={() => {
-                navigate(item.path);
-                setMobileOpen(false);
-              }}
-              disabled={!isAuthenticated}
+            <Button
+              variant="outlined"
+              startIcon={<Storage />}
+              onClick={() => navigate('/datasets')}
+              className="w-full justify-start"
+              size="small"
             >
-              <ListItemIcon>{item.icon}</ListItemIcon>
-              <ListItemText primary={item.text} />
-              {item.text === 'Notifications' && notificationsCount > 0 && (
-                <Badge badgeContent={notificationsCount} color="error" />
-              )}
-            </ListItemButton>
-          </ListItem>
-        ))}
-      </List>
+              Browse Datasets
+            </Button>
+          </div>
+        </div>
+      </div>
+
+      {/* Footer */}
+      <div className="p-4 border-t border-gray-200">
+        <Button
+          size="small"
+          onClick={handleLogout}
+          className="text-gray-500 hover:text-red-600"
+          startIcon={<Logout />}
+          fullWidth
+        >
+          Logout
+        </Button>
+      </div>
     </div>
   );
 
   return (
     <Box sx={{ display: 'flex' }}>
+      {/* App Bar */}
       <AppBar
         position="fixed"
         sx={{
           width: { sm: `calc(100% - ${drawerWidth}px)` },
           ml: { sm: `${drawerWidth}px` },
+          backgroundColor: 'white',
+          color: 'black',
+          boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1)',
         }}
       >
         <Toolbar>
@@ -281,163 +218,75 @@ function Layout({ children }) {
           >
             <MenuIcon />
           </IconButton>
-          <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1 }}>
-            AI Training Data Contract Management
-          </Typography>
           
-          {!isAuthenticated ? (
-            <Button
-              color="inherit"
-              startIcon={<Wallet />}
-              onClick={handleConnectWallet}
-              disabled={isConnecting}
-            >
-              {isConnecting ? 'Connecting...' : 'Connect Wallet'}
-            </Button>
-          ) : (
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              {/* Status Indicator */}
-              <Tooltip title={`${status.text} - ${walletAddress || 'No wallet connected'}`}>
-                <Chip
-                  icon={status.icon}
-                  label={status.text}
-                  color={status.color}
-                  size="small"
-                  variant="outlined"
-                />
-              </Tooltip>
+          <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
+            {navigationItems.find(item => item.path === location.pathname)?.text || 'Dashboard'}
+          </Typography>
 
-              {/* Debug Button */}
-              <Tooltip title="Debug Wallet Connection">
-                <IconButton color="inherit" onClick={handleDebug}>
-                  <BugReport />
-                </IconButton>
-              </Tooltip>
-
-              {/* Check Connection Button */}
-              <Tooltip title="Check Wallet Connection">
-                <IconButton color="inherit" onClick={handleCheckConnection}>
-                  <Refresh />
-                </IconButton>
-              </Tooltip>
-
-              {/* Force Refresh Button */}
-              <Tooltip title="Force Refresh User Data">
-                <IconButton color="inherit" onClick={handleForceRefresh}>
-                  <Refresh sx={{ transform: 'scaleX(-1)' }} />
-                </IconButton>
-              </Tooltip>
-
-              {currentUser && (
-                <Chip 
-                  label={currentUser.partyType} 
-                  size="small" 
-                  color="primary" 
-                  variant="outlined"
-                  sx={{ 
-                    color: 'white',
-                    borderColor: 'white',
-                    '& .MuiChip-label': {
-                      color: 'white'
-                    }
-                  }}
-                />
-              )}
-              <Button
-                color="inherit"
-                size="small"
-                onClick={() => setWalletSwitcherOpen(true)}
-                sx={{ 
-                  color: 'white',
-                  borderColor: 'white',
-                  '&:hover': {
-                    backgroundColor: 'rgba(255, 255, 255, 0.1)'
-                  }
-                }}
-              >
-                Switch Wallet
-              </Button>
+          {/* User Menu */}
+          {user && (
+            <div className="flex items-center space-x-4">
+              {/* Notifications */}
               <IconButton
-                size="large"
-                edge="end"
-                aria-label="account of current user"
-                aria-controls="primary-search-account-menu"
-                aria-haspopup="true"
-                onClick={handleProfileMenuOpen}
                 color="inherit"
+                onClick={() => navigate('/notifications')}
+                className="relative"
               >
-                <AccountCircle />
+                <Badge badgeContent={unreadCount} color="error">
+                  <Notifications />
+                </Badge>
               </IconButton>
-            </Box>
+
+              {/* Profile Menu */}
+              <div>
+                <IconButton
+                  onClick={handleProfileMenuOpen}
+                  className="flex items-center space-x-2"
+                >
+                  <Avatar className="w-8 h-8 bg-blue-600">
+                    {user.name?.charAt(0) || 'U'}
+                  </Avatar>
+                </IconButton>
+                <Menu
+                  anchorEl={anchorEl}
+                  open={Boolean(anchorEl)}
+                  onClose={handleProfileMenuClose}
+                  anchorOrigin={{
+                    vertical: 'bottom',
+                    horizontal: 'right',
+                  }}
+                  transformOrigin={{
+                    vertical: 'top',
+                    horizontal: 'right',
+                  }}
+                >
+                  <MenuItem onClick={handleProfileMenuClose}>
+                    <AccountCircle className="mr-2" />
+                    Profile
+                  </MenuItem>
+                  <Divider />
+                  <MenuItem onClick={handleLogout}>
+                    <Logout className="mr-2" />
+                    Logout
+                  </MenuItem>
+                </Menu>
+              </div>
+            </div>
           )}
-          <Menu
-            id="profile-menu"
-            anchorEl={anchorEl}
-            anchorOrigin={{
-              vertical: 'top',
-              horizontal: 'right',
-            }}
-            keepMounted
-            transformOrigin={{
-              vertical: 'top',
-              horizontal: 'right',
-            }}
-            open={Boolean(anchorEl)}
-            onClose={handleProfileMenuClose}
-          >
-            {currentUser && (
-              <MenuItem disabled>
-                <ListItemIcon>
-                  <AccountCircle fontSize="small" />
-                </ListItemIcon>
-                <Box>
-                  <Typography variant="body2">{currentUser.name}</Typography>
-                  <Typography variant="caption" color="textSecondary">
-                    {currentUser.email}
-                  </Typography>
-                </Box>
-              </MenuItem>
-            )}
-            <Divider />
-            <MenuItem onClick={handleProfileMenuClose}>
-              <ListItemIcon>
-                <Settings fontSize="small" />
-              </ListItemIcon>
-              Settings
-            </MenuItem>
-            <MenuItem onClick={handleCheckConnection}>
-              <ListItemIcon>
-                <Refresh fontSize="small" />
-              </ListItemIcon>
-              Check Connection
-            </MenuItem>
-            <MenuItem onClick={handleForceRefresh}>
-              <ListItemIcon>
-                <Refresh fontSize="small" sx={{ transform: 'scaleX(-1)' }} />
-              </ListItemIcon>
-              Force Refresh
-            </MenuItem>
-            <Divider />
-            <MenuItem onClick={handleLogout}>
-              <ListItemIcon>
-                <Logout fontSize="small" />
-              </ListItemIcon>
-              Disconnect Wallet
-            </MenuItem>
-          </Menu>
         </Toolbar>
       </AppBar>
+
+      {/* Drawer */}
       <Box
         component="nav"
         sx={{ width: { sm: drawerWidth }, flexShrink: { sm: 0 } }}
-        aria-label="mailbox folders"
       >
         <Drawer
           variant="temporary"
           open={mobileOpen}
           onClose={handleDrawerToggle}
           ModalProps={{
-            keepMounted: true, // Better open performance on mobile.
+            keepMounted: true,
           }}
           sx={{
             display: { xs: 'block', sm: 'none' },
@@ -457,96 +306,21 @@ function Layout({ children }) {
           {drawer}
         </Drawer>
       </Box>
+
+      {/* Main Content */}
       <Box
         component="main"
         sx={{
           flexGrow: 1,
           p: 3,
           width: { sm: `calc(100% - ${drawerWidth}px)` },
+          marginTop: '64px',
         }}
       >
-        <Toolbar />
-        {showMetaMaskGuide ? (
-          <MetaMaskGuide 
-            onInstallClick={() => window.open('https://metamask.io/download/', '_blank')}
-          />
-        ) : (
-          children
-        )}
-        <WalletSwitcher 
-          open={walletSwitcherOpen}
-          onClose={() => setWalletSwitcherOpen(false)}
-          onWalletSelect={(wallet) => {
-            console.log('Selected wallet:', wallet);
-            setWalletSwitcherOpen(false);
-            // The user will need to manually switch in MetaMask and refresh
-          }}
-        />
+        {children}
       </Box>
-
-      {/* Debug Dialog */}
-      <Dialog open={showDebugDialog} onClose={() => setShowDebugDialog(false)} maxWidth="md" fullWidth>
-        <DialogTitle>
-          <Box display="flex" alignItems="center" gap={1}>
-            <BugReport />
-            <Typography variant="h6">Wallet Connection Debug</Typography>
-          </Box>
-        </DialogTitle>
-        <DialogContent>
-          <Box sx={{ mb: 2 }}>
-            <Typography variant="h6" gutterBottom>Current Status</Typography>
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-              <Typography><strong>MetaMask Account:</strong> {walletAddress || 'Not connected'}</Typography>
-              <Typography><strong>User Detected:</strong> {currentUser ? 'Yes' : 'No'}</Typography>
-              {currentUser && (
-                <>
-                  <Typography><strong>User Name:</strong> {currentUser.name}</Typography>
-                  <Typography><strong>User Role:</strong> {currentUser.partyType}</Typography>
-                  <Typography><strong>User ID:</strong> {currentUser.id}</Typography>
-                  <Typography><strong>Registered:</strong> {currentUser.isRegistered ? 'Yes' : 'No'}</Typography>
-                </>
-              )}
-              <Typography><strong>Role Flags:</strong></Typography>
-              <Box sx={{ ml: 2 }}>
-                <Typography>• TDC: {isTDC ? 'Yes' : 'No'}</Typography>
-                <Typography>• TDP: {isTDP ? 'Yes' : 'No'}</Typography>
-                <Typography>• CCRP: {isCCRP ? 'Yes' : 'No'}</Typography>
-              </Box>
-            </Box>
-          </Box>
-
-          <Alert severity="info" sx={{ mb: 2 }}>
-            <Typography variant="body2">
-              <strong>Troubleshooting Tips:</strong>
-            </Typography>
-            <Box component="ul" sx={{ mt: 1, pl: 2 }}>
-              <li>Make sure MetaMask is unlocked and connected to localhost:8545</li>
-              <li>Verify the correct account is active in MetaMask</li>
-              <li>If switching accounts, use the "Refresh App" button in the wallet switcher</li>
-              <li>Check that the account is registered in the backend database</li>
-            </Box>
-          </Alert>
-
-          <Box sx={{ display: 'flex', gap: 1 }}>
-            <Button
-              variant="contained"
-              startIcon={<Refresh />}
-              onClick={handleRefresh}
-              disabled={isConnecting}
-            >
-              {isConnecting ? 'Refreshing...' : 'Refresh User Data'}
-            </Button>
-            <Button
-              variant="outlined"
-              onClick={() => setShowDebugDialog(false)}
-            >
-              Close
-            </Button>
-          </Box>
-        </DialogContent>
-      </Dialog>
     </Box>
   );
-}
+};
 
 export default Layout; 
