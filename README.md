@@ -1,194 +1,179 @@
 # Contract Management System
+## Blockchain-based Contract Management with Enterprise IAM and DID Support
 
-A comprehensive blockchain-based contract management system with role-based access control, secure wallet integration, and automated contract workflows.
+A comprehensive contract management system that combines blockchain technology with enterprise Identity and Access Management (IAM) and Decentralized Identifiers (DIDs) for secure, verifiable contract creation, signing, and management.
 
-## 🚀 Quick Start
+## 🌟 Key Features
+
+### 🔐 **Identity Management**
+- **Enterprise IAM Integration**: Full Keycloak integration for enterprise-grade authentication and authorization
+- **Decentralized Identifiers (DIDs)**: Support for both system-generated and user-provided DIDs
+- **Bring Your Own DID**: Users can integrate their existing DIDs for identity continuity
+- **Multi-factor Authentication**: Enhanced security with IAM-based MFA
+- **Role-based Access Control**: TDP, TDC, and CCRP roles with specific permissions
+
+### 📋 **Contract Management**
+- **Smart Contract Integration**: Ethereum-based smart contracts for immutable contract storage
+- **Multi-party Signing**: Support for TDP, TDC, and CCRP parties
+- **DID-based Signing**: Cryptographic contract signing using DIDs
+- **Contract Lifecycle Management**: Complete workflow from creation to execution
+- **Audit Trail**: Immutable blockchain records of all contract activities
+
+### 🗄️ **Data Management**
+- **Dataset Management**: Secure dataset creation and management for TDPs
+- **Access Control**: Granular permissions for dataset access
+- **Data Privacy**: Privacy-preserving data sharing mechanisms
+- **Compliance Tracking**: Built-in compliance and audit features
+
+### 🔒 **Security & Compliance**
+- **Zero-trust Architecture**: Comprehensive security model
+- **Cryptographic Verification**: All operations cryptographically verified
+- **Audit Logging**: Complete audit trail for compliance
+- **Data Encryption**: End-to-end encryption for sensitive data
+- **Privacy by Design**: Privacy-preserving identity management
+
+## 🏗️ Architecture
+
+The system is built with a modern, scalable architecture:
+
+- **Frontend**: React-based user interface with Material-UI
+- **Backend**: Node.js/Express API with comprehensive IAM integration
+- **Database**: PostgreSQL with advanced indexing and security
+- **Blockchain**: Ethereum smart contracts for immutable storage
+- **IAM**: Keycloak for enterprise identity management
+- **DID**: Decentralized identifier support for self-sovereign identity
+
+## 🚀 Getting Started
 
 ### Prerequisites
-- **Node.js** (v18 or higher)
-- **PostgreSQL** (v12 or higher)
-- **Docker** and **Docker Compose** (for IAM)
-- **MetaMask** browser extension
-- **Git**
+- Node.js (v16 or higher)
+- PostgreSQL (v12 or higher)
+- Docker and Docker Compose
+- MetaMask or compatible Web3 wallet
 
-### Setup in 5 Minutes
-```bash
-# Clone and install
-git clone <repository-url>
-cd ContractManagement
-npm install && cd backend && npm install && cd ../frontend && npm install && cd ../blockchain && npm install && cd ..
+### Quick Start
+1. **Clone the repository**
+2. **Set up environment variables** (see `.env.example`)
+3. **Start the IAM services**: `docker-compose -f docker-compose.iam.yml up -d`
+4. **Run database setup**: `cd backend && npm run setup`
+5. **Start the backend**: `cd backend && npm start`
+6. **Start the frontend**: `cd frontend && npm start`
 
-# Setup database
-createdb contract_management
-cd backend && npm run setup-db
-
-# Setup IAM (Keycloak)
-docker-compose -f docker-compose.iam.yml up -d
-cd backend && npm run setup-keycloak
-npm run migrate-iam
-
-# Start services (3 terminals)
-# Terminal 1: cd blockchain && npx hardhat node
-# Terminal 2: cd backend && npm run dev  
-# Terminal 3: cd frontend && npm start
-
-# Access: http://localhost:3000
-# Keycloak Admin: http://localhost:8080/admin (admin/admin123)
-```
-
-📖 **For detailed setup instructions, see [SETUP_GUIDE.md](./SETUP_GUIDE.md)**
-📖 **For IAM setup, see [IAM_SETUP_GUIDE.md](./IAM_SETUP_GUIDE.md)**
-
-## 🏗️ System Overview
-
-### Multi-Role Architecture
-- **TDP (Training Data Provider)**: Dataset owners who provide training data
-- **TDC (Training Data Consumer)**: Organizations that purchase and use training data  
-- **CCRP (Confidential Clean Room Provider)**: Independent reviewers who validate contracts
-
-### Key Features
-- **Enterprise IAM Integration**: Keycloak-based identity and access management
-- **DID Support**: Decentralized Identifiers for self-sovereign identity
-- **Secure Wallet Integration**: Client-side signing with MetaMask
-- **Blockchain Immutability**: Smart contracts for secure, transparent agreements
-- **Role-Based UI**: Dynamic interfaces based on user permissions
-- **User Onboarding**: Multi-step registration with email verification
-- **Automated Workflows**: Streamlined contract creation and signing
-- **Real-time Notifications**: Live updates and email notifications
-- **Profile Management**: Enhanced user profiles with organization details
-
-### Technology Stack
-- **Frontend**: React 18, Material-UI, Ethers.js, React Query
-- **Backend**: Node.js, Express.js, Sequelize ORM, PostgreSQL
-- **Blockchain**: Hardhat, Solidity, OpenZeppelin
-- **IAM**: Keycloak, OAuth2, OpenID Connect, JWT
-- **Identity**: DID (Decentralized Identifiers), Self-sovereign identity
-- **Security**: HTTPS, Client-side signing, Rate limiting
+### User Onboarding
+1. **Register**: Create an account with your wallet and DID
+2. **Verify Identity**: Complete IAM verification process
+3. **Set Up Profile**: Configure your organization and role
+4. **Start Managing Contracts**: Begin creating and managing contracts
 
 ## 📚 Documentation
 
-### Core Guides
-- **[Setup Guide](./SETUP_GUIDE.md)** - Complete installation and configuration
-- **[IAM Setup Guide](./IAM_SETUP_GUIDE.md)** - Keycloak IAM integration setup
-- **[User Guide](./USER_GUIDE.md)** - How to use the application
-- **[Wallet Guide](./WALLET_GUIDE.md)** - MetaMask setup and wallet management
-- **[Architecture Guide](./ARCHITECTURE_GUIDE.md)** - System design and technical details
+### User Guides
+- **[Setup Guide](SETUP_GUIDE.md)**: Complete installation and configuration
+- **[User Guide](USER_GUIDE.md)**: How to use the system
+- **[Wallet Guide](WALLET_GUIDE.md)**: MetaMask setup and usage
+- **[Existing DID Guide](EXISTING_DID_GUIDE.md)**: Using your existing DIDs
 
-### Reference Materials
-- **[Test Wallets](./TEST_WALLETS.md)** - Development wallet information
-- **[API Documentation](./API_DOCS.md)** - Backend API reference
-- **[IAM Integration Strategy](./IAM_INTEGRATION_STRATEGY.md)** - IAM architecture and strategy
+### Technical Documentation
+- **[Architecture Guide](ARCHITECTURE_GUIDE.md)**: System architecture and design
+- **[API Documentation](API_DOCS.md)**: Complete API reference
+- **[Security Guide](SECURITY_GUIDE.md)**: Security features and best practices
+- **[DID Management Guide](DID_MANAGEMENT_GUIDE.md)**: DID implementation details
 
-## 🔐 Security Features
+### Deployment Guides
+- **[Kubernetes Deployment](KUBERNETES_DEPLOYMENT_GUIDE.md)**: Production deployment
+- **[Local Kubernetes](LOCAL_KUBERNETES_GUIDE.md)**: Local development setup
 
-### Enterprise IAM Security
-- **Keycloak Integration**: Industry-standard identity management
-- **OAuth2/OpenID Connect**: Secure authentication protocols
-- **JWT Token Validation**: Server-side token verification
-- **Role-Based Access Control**: Fine-grained permissions
-- **Email Verification**: Multi-factor authentication support
-- **DID Support**: Self-sovereign identity for blockchain operations
+## 🔧 DID Integration
 
-### Client-Side Security
-- Private keys never transmitted over network
-- All cryptographic operations in browser memory
-- Memory cleared after signing operations
-- Input validation and sanitization
+### System-Generated DIDs
+When users register without providing an existing DID, the system automatically generates a new DID based on their wallet address. This DID is:
+- Created using the Ethereum DID method
+- Linked to their wallet address
+- Stored securely in the database
+- Used for all cryptographic operations
 
-### Network Security
-- HTTPS/TLS encryption for all communications
-- Rate limiting on API endpoints
-- CORS configuration
-- Request validation and sanitization
+### User-Provided DIDs
+Users can bring their existing DIDs from other platforms or systems. This feature:
+- Maintains identity continuity across platforms
+- Supports multiple DID methods (Ethereum, Key-based, Web, etc.)
+- Requires cryptographic proof of ownership
+- Enables self-sovereign identity principles
 
-### Blockchain Security
-- Smart contract auditing and testing
-- Access control modifiers
-- Reentrancy protection
-- Event logging for audit trails
+### DID Verification Process
+When users provide an existing DID, the system verifies ownership through:
+1. **Format Validation**: Ensures the DID follows correct standards
+2. **Uniqueness Check**: Confirms the DID isn't already registered
+3. **Ownership Proof**: Requires wallet signature to prove control
+4. **DID Resolution**: Verifies the DID exists and is active
+5. **Document Validation**: Checks the DID document structure
 
-## 🎯 User Workflows
+## 🎯 Use Cases
 
-### User Onboarding
-1. **Registration**: Connect wallet and provide basic information
-2. **Email Verification**: Verify email address for security
-3. **Profile Completion**: Add organization and contact details
-4. **Role Assignment**: Automatic role assignment based on criteria
-5. **Access Activation**: Full system access after onboarding
+### Training Data Providers (TDP)
+- Create and manage datasets
+- Set access permissions and pricing
+- Monitor dataset usage and analytics
+- Sign contracts for data sharing
 
-### TDP (Training Data Provider)
-1. Complete onboarding and profile setup
-2. Create and manage datasets
-3. Auto-sign contracts when created by TDC
-4. Monitor contract status and history
-5. Receive payments for data access
+### Training Data Consumers (TDC)
+- Browse available datasets
+- Initiate contract requests
+- Manage contract negotiations
+- Access purchased datasets
 
-### TDC (Training Data Consumer)
-1. Complete onboarding and profile setup
-2. Browse available datasets
-3. Select CCRP for contract review
-4. Create contracts with dataset and CCRP
-5. Sign contracts to finalize agreements
+### Confidential Clean Room Providers (CCRP)
+- Review contract compliance
+- Verify data privacy requirements
+- Sign contracts as compliance authority
+- Monitor contract execution
 
-### CCRP (Confidential Clean Room Provider)
-1. Complete onboarding and profile setup
-2. Receive notifications for contract review
-3. Review contract terms and conditions
-4. Sign contracts after compliance validation
-5. Maintain audit trail of approvals
+## 🔒 Security Features
 
-## 🛠️ Development
+### Identity Security
+- **Multi-factor Authentication**: IAM-based MFA support
+- **Session Management**: Secure session handling
+- **Access Control**: Role-based permissions
+- **Audit Logging**: Complete access logs
 
-### Project Structure
-```
-ContractManagement/
-├── frontend/          # React application
-├── backend/           # Node.js/Express API
-├── blockchain/        # Hardhat smart contracts
-├── scripts/           # Setup and utility scripts
-└── docs/             # Documentation
-```
+### Data Security
+- **End-to-End Encryption**: All sensitive data encrypted
+- **Blockchain Immutability**: Tamper-proof contract storage
+- **Cryptographic Verification**: All operations verified
+- **Privacy Protection**: Data minimization principles
 
-### Available Scripts
-```bash
-# Development
-npm run dev           # Start all services
-npm run blockchain    # Start Hardhat node
-npm run backend       # Start backend server
-npm run frontend      # Start frontend
+### DID Security
+- **Ownership Verification**: Cryptographic proof of DID control
+- **Key Management**: Secure key storage and rotation
+- **Delegation Support**: Controlled DID delegation
+- **Recovery Mechanisms**: Secure DID recovery options
 
-# Database
-npm run setup-db      # Setup database and seed data
-npm run reset-db      # Reset database
+## 🌐 Supported Networks
 
-# IAM Integration
-npm run setup-keycloak # Setup Keycloak IAM
-npm run migrate-iam   # Add IAM fields to database
+### Development
+- **Goerli Testnet**: For development and testing
+- **Local Hardhat**: For local development
 
-# Testing
-npm run test          # Run all tests
-npm run test:backend  # Backend tests only
-npm run test:blockchain # Blockchain tests only
-```
+### Production
+- **Ethereum Mainnet**: For production deployments
+- **Polygon**: For cost-effective transactions
+- **Other EVM Networks**: As needed
 
 ## 🤝 Contributing
 
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+We welcome contributions! Please see our contributing guidelines and ensure all code follows our security standards.
 
 ## 📄 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the MIT License - see the LICENSE file for details.
 
 ## 🆘 Support
 
-- **Documentation**: Check the guides above
-- **Issues**: Create an issue on GitHub
-- **Questions**: Open a discussion on GitHub
+For support and questions:
+- Check the documentation guides
+- Review the troubleshooting sections
+- Contact the development team
+- Join our community forum
 
 ---
 
-**⚠️ Important**: This is a development system. Never use test wallets on mainnet networks! 
+**Contract Management System** - Secure, verifiable, and compliant contract management with enterprise IAM and DID support. 

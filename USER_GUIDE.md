@@ -1,574 +1,342 @@
 # User Guide
-## Contract Management System
+## How to Use the Contract Management System
 
-Complete guide for using the Contract Management System with role-based interfaces and workflows.
+**Document Version:** 2.0  
+**Date:** December 2024  
+**Author:** Contract Management System Team
 
-## 👥 User Roles Overview
+---
 
-The Contract Management System implements role-based user interfaces that customize the experience based on user types:
+## Table of Contents
 
-- **TDC (Training Data Consumer)**: ONLY role that can initiate contracts by selecting datasets and CCRP
-- **TDP (Training Data Provider)**: Provides datasets and automatically signs contracts when created by TDC
-- **CCRP (Confidential Clean Room Provider)**: Reviews and signs contracts for compliance validation
+1. [Getting Started](#getting-started)
+2. [User Registration](#user-registration)
+3. [DID Management](#did-management)
+4. [Profile Management](#profile-management)
+5. [Contract Management](#contract-management)
+6. [Dataset Management](#dataset-management)
+7. [Notifications](#notifications)
+8. [Security Best Practices](#security-best-practices)
+9. [Troubleshooting](#troubleshooting)
 
-### System Architecture Overview
-```mermaid
-graph TB
-    subgraph "User Interface Layer"
-        UI[React UI]
-        WC[Wallet Connect]
-        RB[Role-Based Components]
-        ONB[Onboarding UI]
-    end
-    
-    subgraph "Authentication Layer"
-        AUTH[User Context]
-        WALLET[MetaMask Integration]
-        IAM[Keycloak IAM]
-        ROLE[Role Verification]
-        EMAIL[Email Verification]
-    end
-    
-    subgraph "Business Logic Layer"
-        TDC[TDC Workflows<br/>ONLY Contract Initiator]
-        TDP[TDP Workflows<br/>Auto-Sign Contracts]
-        CCRP[CCRP Workflows<br/>Review & Sign]
-        ONB_WF[Onboarding Workflows]
-    end
-    
-    subgraph "Data Layer"
-        API[Backend API]
-        BC[Blockchain]
-        DB[(Database)]
-        IAM_DB[(IAM Database)]
-    end
-    
-    UI --> AUTH
-    WC --> WALLET
-    RB --> ROLE
-    ONB --> IAM
-    AUTH --> IAM
-    IAM --> EMAIL
-    AUTH --> TDC
-    AUTH --> TDP
-    AUTH --> CCRP
-    AUTH --> ONB_WF
-    TDC --> API
-    TDP --> API
-    CCRP --> API
-    ONB_WF --> API
-    API --> DB
-    API --> IAM_DB
-    API --> BC
-```
+---
 
-## 🎯 User Roles and Responsibilities
+## 1. Getting Started
 
-### TDC (Training Data Consumer) - CONTRACT INITIATOR
-**Primary Role**: ONLY role that can initiate contracts by selecting datasets and CCRP providers
+### System Overview
+The Contract Management System is a blockchain-based platform that enables secure, verifiable contract creation and management between Training Data Providers (TDPs), Training Data Consumers (TDCs), and Confidential Clean Room Providers (CCRPs).
 
-**Responsibilities**:
-- Browse available datasets
-- Select CCRP for contract review (optional)
-- Create contracts with dataset and CCRP selection
-- Sign contracts to finalize agreements
-- Access purchased data after contract completion
+### User Roles
+- **TDP (Training Data Provider)**: Organizations that own and provide training datasets
+- **TDC (Training Data Consumer)**: Organizations that purchase and use training data
+- **CCRP (Confidential Clean Room Provider)**: Independent reviewers who validate contracts for compliance
 
-**UI Features**:
-- Can access "Create Contract" functionality (exclusive to TDC)
-- Views datasets available for purchase
-- Manages their initiated contracts
-- Selects CCRP providers for contracts
-- Completes contracts when training is finished
+### Prerequisites
+- A modern web browser (Chrome, Firefox, Safari, Edge)
+- MetaMask or compatible Web3 wallet extension
+- Access to the platform URL
+- Valid email address for account verification
 
-### TDP (Training Data Provider) - DATASET OWNER
-**Primary Role**: Provides datasets and automatically signs contracts when created by TDC
+---
 
-**Responsibilities**:
-- Upload and manage datasets
-- Automatically sign contracts when created by TDC (no manual action needed)
-- Monitor contract status and history
-- Receive payments for data access
+## 2. User Registration
 
-**UI Features**:
-- Views their owned datasets
-- Automatically signs contracts when created by TDC (system handles this)
-- Reviews contract requests and status
-- Manages dataset listings
-
-### CCRP (Confidential Clean Room Provider) - COMPLIANCE REVIEWER
-**Primary Role**: Reviews and signs contracts for compliance validation
-
-**Responsibilities**:
-- Review contract terms and conditions when selected by TDC
-- Validate legal compliance
-- Sign contracts after thorough review
-- Provide oversight and maintain audit trail
-
-**UI Features**:
-- Reviews contract requests where they are selected by TDC
-- Signs contracts to approve participation
-- Views contracts they are involved in
-
-### Role Hierarchy and Permissions
-```mermaid
-graph TD
-    subgraph "User Roles"
-        TDC[TDC - Training Data Consumer<br/>ONLY Contract Initiator]
-        TDP[TDP - Training Data Provider<br/>Dataset Owner & Auto-Signer]
-        CCRP[CCRP - Confidential Clean Room Provider<br/>Compliance Checker]
-    end
-    
-    subgraph "Permissions"
-        P1[Create Contracts<br/>TDC ONLY]
-        P2[Sign Contracts]
-        P3[View Datasets]
-        P4[Manage Datasets<br/>TDP ONLY]
-        P5[Select CCRP<br/>TDC ONLY]
-        P6[Review Contracts<br/>CCRP ONLY]
-        P7[Auto-Sign Contracts<br/>TDP ONLY]
-    end
-    
-    TDC --> P1
-    TDC --> P3
-    TDC --> P5
-    TDP --> P2
-    TDP --> P4
-    TDP --> P7
-    CCRP --> P2
-    CCRP --> P6
-    
-    style TDC fill:#e3f2fd
-    style TDP fill:#f3e5f5
-    style CCRP fill:#e8f5e8
-```
-
-## 🚀 Getting Started
-
-### Step 1: User Registration & Onboarding
-1. Open the application in your browser (http://localhost:3000)
-2. Click "Register" to start the onboarding process
-3. Connect your MetaMask wallet when prompted
-4. Fill in your basic information (name, email, organization)
-5. Verify your email address (check your inbox)
-6. Complete your profile with additional details
-7. Your role will be automatically assigned based on your profile
+### Step 1: Access the Platform
+1. Navigate to the platform URL in your web browser
+2. Click "Create Account" or "Register" to begin the registration process
 
 ### Step 2: Connect Your Wallet
-1. After registration, click "Connect Wallet" in the top-right corner
-2. MetaMask will prompt you to connect - click "Connect"
-3. Select the account you want to use
-4. The system will verify your IAM credentials
+1. Click "Connect MetaMask" to link your wallet
+2. Approve the connection request in MetaMask
+3. Ensure your wallet is connected to the correct network (Goerli for testing, Mainnet for production)
 
-### Step 3: Complete Profile Setup
-1. Navigate to your profile settings
-2. Add organization details, contact information
-3. Verify your email if not already done
-4. Complete any additional onboarding steps
+### Step 3: DID Selection
+You have two options for your digital identity:
 
-### Step 4: Switch Between Roles (if needed)
-1. Click the "Switch Wallet" button in the top navigation
-2. Select the wallet for the role you want to use
-3. Switch to that account in MetaMask
-4. Click "Refresh App" to update the interface
+#### Option A: Use System-Generated DID
+- Leave the "I have an existing DID" option unchecked
+- The system will automatically create a new DID for you
+- This DID will be linked to your wallet address
+- Suitable for new users or those without existing DIDs
 
-## 🔐 DID (Decentralized Identifier) Support
+#### Option B: Use Your Existing DID
+- Check the "I have an existing DID" option
+- Enter your existing DID in the provided field
+- Click "Verify DID Ownership" to prove you control the DID
+- Sign the verification message with your wallet
+- This maintains your digital identity across platforms
 
-The Contract Management System supports Decentralized Identifiers (DIDs) for self-sovereign identity, allowing users to maintain control over their digital identity without relying on central authorities.
+### Step 4: Complete Registration
+1. Fill in your personal information (name, email, organization)
+2. Select your role (TDP, TDC, or CCRP)
+3. Add additional profile information (phone, website, location)
+4. Review and submit your registration
 
-### What are DIDs?
+### Step 5: Email Verification
+1. Check your email for a verification link
+2. Click the link to verify your email address
+3. Return to the platform to complete onboarding
 
-**Decentralized Identifiers (DIDs)** are a new type of identifier that enables verifiable, self-sovereign digital identity. Unlike traditional identifiers (like email addresses or usernames), DIDs:
+---
 
-- **Are self-owned**: Users create and control their own DIDs
-- **Are portable**: DIDs work across different systems and platforms
-- **Are verifiable**: DIDs can be cryptographically verified
-- **Are privacy-preserving**: Users can choose what information to reveal
+## 3. DID Management
 
-### DID Integration in the System
+### Understanding DIDs
+A Decentralized Identifier (DID) is your digital identity on the blockchain. It's like a digital passport that proves who you are without revealing personal information.
 
-#### DID Methods Supported
-- **did:ethr**: Ethereum-based DIDs using wallet addresses
-- **did:key**: Key-based DIDs for cryptographic identities
+### DID Types
+- **System-Generated DIDs**: Created automatically by the platform
+- **User-Provided DIDs**: DIDs you bring from other platforms or create yourself
 
-#### DID Workflow
-```mermaid
-sequenceDiagram
-    participant U as User
-    participant APP as Application
-    participant DID as DID Registry
-    participant BC as Blockchain
-    
-    U->>APP: Register with Wallet
-    APP->>DID: Create DID (did:ethr)
-    DID->>BC: Store DID Document
-    BC->>DID: DID Document Stored
-    DID->>APP: DID Created
-    APP->>U: Registration Complete
-    
-    Note over U,APP: DID Usage
-    U->>APP: Sign Contract
-    APP->>DID: Verify DID
-    DID->>BC: Resolve DID Document
-    BC->>DID: DID Document
-    DID->>APP: DID Verified
-    APP->>U: Contract Signed
-```
+### DID Verification
+When you provide an existing DID, the system verifies your ownership by:
+1. Checking the DID format is correct
+2. Ensuring the DID isn't already registered
+3. Requiring you to sign a message with your wallet
+4. Verifying the signature matches your DID
 
-### DID Features
+### DID Benefits
+- **Identity Continuity**: Use the same identity across platforms
+- **Self-Sovereign**: You control your own identity
+- **Privacy-Preserving**: Choose what information to reveal
+- **Verifiable**: Cryptographic proof of identity
 
-#### Automatic DID Creation
-- **Wallet-based DIDs**: When users register with a wallet, a `did:ethr` is automatically created
-- **Format**: `did:ethr:0x1234...` (wallet address as DID)
-- **Storage**: DID documents stored on Ethereum blockchain
+### Managing Your DID
+- View your DID information in your profile
+- Check verification status
+- Update DID if needed (contact support)
+- Monitor DID activity and usage
 
-#### DID Verification
-- **Cryptographic Proof**: DIDs are verified through digital signatures
-- **On-chain Resolution**: DID documents are resolved from the blockchain
-- **Trustless Verification**: No central authority required for verification
+---
 
-#### DID Benefits
-- **Self-sovereign Identity**: Users control their own identity
-- **Cross-platform Compatibility**: DIDs work across different systems
-- **Privacy Control**: Users choose what information to reveal
-- **Blockchain Integration**: Seamless integration with smart contracts
+## 4. Profile Management
 
-### Using DIDs in the Application
+### Accessing Your Profile
+1. Log into the platform
+2. Click on your name or avatar in the top navigation
+3. Select "Profile" or "Account Settings"
 
-#### Registration with DID
-1. **Connect Wallet**: MetaMask wallet provides the foundation for DID
-2. **Automatic DID Creation**: System creates `did:ethr` from wallet address
-3. **DID Storage**: DID document stored on blockchain
-4. **Identity Verification**: DID used for all blockchain operations
+### Profile Information
+- **Personal Details**: Name, email, phone number
+- **Organization**: Company name, job title, department
+- **Contact Information**: Website, location, description
+- **Identity Information**: DID, wallet address, verification status
 
-#### Contract Signing with DID
-1. **DID Resolution**: System resolves DID document from blockchain
-2. **Signature Verification**: Verifies user controls the DID
-3. **Contract Execution**: Smart contract uses DID for identity
-4. **Audit Trail**: All operations linked to DID for transparency
+### Updating Your Profile
+1. Click "Edit Profile" or the edit icon
+2. Modify the information you want to change
+3. Save your changes
+4. Some fields may require verification before updating
 
-#### DID Management
-- **View DID**: Users can view their DID in their profile
-- **DID Resolution**: System can resolve any DID to verify identity
-- **DID Verification**: Cryptographic verification of DID ownership
+### Profile Completion
+- Complete profiles have better visibility in the system
+- Some features require a complete profile
+- Profile completion status is shown in your dashboard
 
-## 📱 Role-Based Interface
+---
 
-### Navigation Structure
-```mermaid
-graph TD
-    subgraph "Common Navigation"
-        DASH[Dashboard]
-        CONTRACTS[Contracts]
-        DATASETS[Datasets]
-        NOTIF[Notifications]
-    end
-    
-    subgraph "TDC Navigation"
-        CREATE[Create Contract]
-        MY_CONTRACTS[My Contracts]
-    end
-    
-    subgraph "TDP Navigation"
-        MY_DATASETS[My Datasets]
-        PENDING[Pending Requests]
-    end
-    
-    subgraph "CCRP Navigation"
-        REVIEW[Review Contracts]
-        APPROVALS[Pending Approvals]
-    end
-    
-    DASH --> CREATE
-    DASH --> MY_DATASETS
-    DASH --> REVIEW
-    CONTRACTS --> MY_CONTRACTS
-    CONTRACTS --> PENDING
-    CONTRACTS --> APPROVALS
-    
-    style CREATE fill:#e3f2fd
-    style MY_DATASETS fill:#f3e5f5
-    style REVIEW fill:#e8f5e8
-```
+## 5. Contract Management
 
-### Dashboard Views
+### Creating Contracts (TDC Role)
 
-#### TDC Dashboard
-- **Quick Actions**: Create new contract, browse datasets
-- **Recent Contracts**: View contracts you've initiated
-- **Available Datasets**: Browse datasets for purchase
-- **Notifications**: Contract status updates
+#### Step 1: Browse Datasets
+1. Navigate to the "Datasets" section
+2. Browse available datasets from TDPs
+3. Review dataset descriptions, pricing, and terms
+4. Select a dataset that meets your needs
 
-#### TDP Dashboard
-- **My Datasets**: Manage your dataset listings
-- **Contract Requests**: View pending contract requests
-- **Revenue Overview**: Track earnings from data sales
-- **Notifications**: New contract notifications
+#### Step 2: Select CCRP
+1. Choose a Confidential Clean Room Provider for contract review
+2. Review CCRP profiles and compliance history
+3. Select a CCRP that meets your requirements
 
-#### CCRP Dashboard
-- **Pending Reviews**: Contracts awaiting your review
-- **Recent Approvals**: Contracts you've recently signed
-- **Compliance Overview**: Track review statistics
-- **Notifications**: New contract review requests
+#### Step 3: Create Contract
+1. Click "Create Contract" on your selected dataset
+2. Fill in contract details and terms
+3. Review all information carefully
+4. Submit the contract for review
 
-## 📋 Contract Workflows
+#### Step 4: Sign Contract
+1. Review the contract terms
+2. Sign the contract using your wallet
+3. Wait for other parties to sign
+4. Monitor contract status
 
-### Contract Creation Workflow (TDC ONLY)
-```mermaid
-flowchart TD
-    A[TDC User<br/>ONLY Role] --> B[Browse Datasets]
-    B --> C[Select Dataset]
-    C --> D[Configure Contract]
-    D --> E[Select CCRP<br/>Optional]
-    E --> F[Review Contract]
-    F --> G[Create Contract]
-    G --> H[TDP Auto-Signs<br/>System Handled]
-    H --> I[CCRP Notified<br/>If Selected]
-    I --> J[CCRP Reviews<br/>If Selected]
-    J --> K[CCRP Signs<br/>If Selected]
-    K --> L[TDC Signs<br/>Final Step]
-    L --> M[Contract Active]
-    
-    style A fill:#e3f2fd
-    style H fill:#f3e5f5
-    style J fill:#e8f5e8
-    style L fill:#e3f2fd
-    
-    note right of A
-        ONLY TDC can initiate
-        contract creation
-    end note
-    
-    note right of H
-        TDP automatically signs
-        when TDC creates contract
-        (no manual action needed)
-    end note
-```
+### Managing Contracts (TDP Role)
 
-### Contract Signing Workflow
-```mermaid
-stateDiagram-v2
-    [*] --> Draft
-    Draft --> PendingTDP: TDC Creates Contract<br/>(ONLY TDC can create)
-    PendingTDP --> PendingCCRP: TDP Auto-signs<br/>(System handles automatically)
-    PendingCCRP --> PendingTDC: CCRP Signs<br/>(If CCRP was selected)
-    PendingTDC --> Active: TDC Signs<br/>(Final signature)
-    Active --> Completed: Contract Executed
-    Active --> Cancelled: Any Party Cancels
-    Completed --> [*]
-    Cancelled --> [*]
-    
-    note right of Draft
-        Contract created by TDC ONLY
-        with dataset and optional CCRP selected
-    end note
-    
-    note right of PendingTDP
-        TDP automatically signs
-        when TDC creates contract
-        (no manual action needed)
-    end note
-    
-    note right of PendingCCRP
-        CCRP reviews and signs
-        for compliance validation
-        (only if selected by TDC)
-    end note
-    
-    note right of PendingTDC
-        TDC finalizes contract
-        by signing (final step)
-    end note
-    
-    note right of Active
-        All required parties signed
-        Contract is legally binding
-    end note
-```
+#### Auto-Signing
+- TDP contracts are automatically signed when created by TDCs
+- You'll receive notifications when contracts are created
+- Review contract history in your dashboard
 
-## 🎯 Step-by-Step Workflows
+#### Contract Monitoring
+- Track all contracts involving your datasets
+- Monitor contract status and execution
+- View payment and usage analytics
 
-### For TDC (Training Data Consumer) - CONTRACT INITIATOR
+### Reviewing Contracts (CCRP Role)
 
-#### 1. Browse Datasets
-1. Navigate to "Datasets" in the sidebar
-2. Browse available datasets with descriptions and pricing
-3. Click on a dataset to view detailed information
-4. Note the dataset ID and owner information
+#### Contract Review Process
+1. Receive notifications for new contract reviews
+2. Review contract terms and conditions
+3. Verify compliance with regulations
+4. Sign contracts after approval
+5. Maintain audit trail of decisions
 
-#### 2. Create a Contract (TDC ONLY)
-1. Click "Create Contract" in the navigation (only visible to TDC)
-2. Select a dataset from the dropdown
-3. Configure contract details:
-   - **Price**: Set the contract price
-   - **Duration**: Specify contract duration
-   - **Terms**: Add any special terms or conditions
-4. Optionally select a CCRP provider for compliance review
-5. Review the contract summary
-6. Click "Create Contract"
+#### Compliance Validation
+- Check data privacy requirements
+- Verify security measures
+- Ensure regulatory compliance
+- Document review decisions
 
-#### 3. Sign the Contract (Final Step)
-1. Navigate to "Contracts" to view your contracts
-2. Find the contract in "Pending TDC Approval" status
-3. Click "Sign Contract" button (final signature)
-4. MetaMask will prompt for signature
-5. Confirm the transaction
-6. Contract status updates to "Active"
+---
 
-### For TDP (Training Data Provider) - DATASET OWNER
+## 6. Dataset Management
 
-#### 1. Manage Datasets
-1. Navigate to "My Datasets" in the sidebar
-2. View your existing datasets
-3. Create new datasets with:
-   - **Name**: Descriptive dataset name
-   - **Description**: Detailed description
-   - **Category**: Dataset category
-   - **Price**: Pricing information
-4. Edit or delete existing datasets as needed
+### Creating Datasets (TDP Role)
 
-#### 2. Monitor Contracts
-1. Navigate to "Contracts" to view contract requests
-2. Contracts are automatically signed when created by TDC (system handles this)
-3. Monitor contract status and history
-4. View revenue from completed contracts
+#### Step 1: Dataset Information
+1. Navigate to "My Datasets" section
+2. Click "Create New Dataset"
+3. Enter dataset name and description
+4. Specify data type and format
 
-#### 3. Review Notifications
-1. Check the notifications panel for new contract requests
-2. Review contract details and terms
-3. Contracts are automatically approved and signed (no manual action needed)
+#### Step 2: Access Controls
+1. Set access permissions and restrictions
+2. Define usage terms and conditions
+3. Specify pricing and payment terms
+4. Set data retention policies
 
-### For CCRP (Confidential Clean Room Provider) - COMPLIANCE REVIEWER
+#### Step 3: Upload and Publish
+1. Upload dataset files or provide access links
+2. Review all information
+3. Publish the dataset
+4. Monitor access and usage
 
-#### 1. Review Contract Requests
-1. Navigate to "Contracts" to view pending reviews (only if selected by TDC)
-2. Click on a contract to view detailed information
-3. Review:
-   - Dataset information
-   - Contract terms and conditions
-   - TDC and TDP information
-   - Pricing and duration
+### Managing Existing Datasets
+- Update dataset information
+- Modify access controls
+- Monitor usage and analytics
+- Handle access requests
 
-#### 2. Sign Contracts
-1. After reviewing, click "Sign Contract"
-2. MetaMask will prompt for signature
-3. Confirm the transaction
-4. Contract status updates to next stage
+---
 
-#### 3. Track Approvals
-1. View signed contracts in "My Contracts"
-2. Monitor compliance statistics
-3. Maintain audit trail of approvals
-
-## 🔔 Notifications System
+## 7. Notifications
 
 ### Notification Types
-- **Contract Created**: New contract requests
-- **Contract Signed**: Status updates when parties sign
-- **Contract Completed**: When contracts are finalized
-- **System Updates**: Important system notifications
+- **Contract Updates**: New contracts, signatures, status changes
+- **Profile Updates**: Verification status, profile completion
+- **System Alerts**: Security notices, maintenance updates
+- **DID Updates**: Verification status, ownership changes
 
 ### Managing Notifications
-1. Click the notification bell icon in the top navigation
-2. View unread notifications
-3. Mark notifications as read
-4. Click on notifications to navigate to relevant pages
+- View notifications in the notification center
+- Mark notifications as read
+- Configure notification preferences
+- Set up email notifications
 
-## 🔍 Troubleshooting
+### Email Notifications
+- Contract status updates
+- Profile verification confirmations
+- Security alerts
+- System maintenance notices
+
+---
+
+## 8. Security Best Practices
+
+### Wallet Security
+- **Never share your private keys** with anyone
+- **Use hardware wallets** for high-value operations
+- **Keep your wallet software updated**
+- **Backup your wallet securely**
+
+### Account Security
+- **Use strong passwords** for your account
+- **Enable two-factor authentication** if available
+- **Log out when not using the platform**
+- **Monitor account activity regularly**
+
+### DID Security
+- **Verify your DID ownership** regularly
+- **Keep your DID credentials secure**
+- **Monitor DID usage and activity**
+- **Report suspicious activity immediately**
+
+### General Security
+- **Use secure networks** (avoid public WiFi)
+- **Keep your browser updated**
+- **Be cautious of phishing attempts**
+- **Report security issues to support**
+
+---
+
+## 9. Troubleshooting
 
 ### Common Issues
 
-#### Issue: Can't See Expected Menu Items
-**Cause**: Wrong role is active
-**Solution**: 
-1. Check your current wallet/role in the top navigation
-2. Switch to the correct wallet using the wallet switcher
-3. Refresh the application
+#### Wallet Connection Problems
+- **Issue**: MetaMask not connecting
+- **Solution**: Check if MetaMask is installed and unlocked
+- **Solution**: Ensure you're on the correct network
+- **Solution**: Try refreshing the page and reconnecting
 
-#### Issue: Contract Creation Fails
-**Cause**: Missing dataset or CCRP selection
-**Solution**:
-1. Ensure you've selected a valid dataset
-2. Verify the CCRP selection (if required)
-3. Check that all required fields are filled
+#### DID Verification Issues
+- **Issue**: DID verification failing
+- **Solution**: Ensure your wallet address matches your DID
+- **Solution**: Try signing the verification message again
+- **Solution**: Check if your DID is still active and resolvable
 
-#### Issue: Contract Signing Fails
-**Cause**: MetaMask transaction issues
-**Solution**:
-1. Check MetaMask connection
-2. Ensure you have sufficient ETH for gas fees
-3. Verify you're on the correct network (localhost:8545)
-4. Try refreshing the page and retrying
+#### Contract Signing Problems
+- **Issue**: Unable to sign contracts
+- **Solution**: Ensure your wallet is connected and unlocked
+- **Solution**: Check if you have sufficient funds for gas fees
+- **Solution**: Verify you're on the correct network
 
-#### Issue: Notifications Not Appearing
-**Cause**: Real-time updates may be delayed
-**Solution**:
-1. Refresh the page to get latest notifications
-2. Check the notifications panel manually
-3. Verify backend services are running
+#### Profile Update Issues
+- **Issue**: Cannot update profile information
+- **Solution**: Check if all required fields are filled
+- **Solution**: Ensure your email is verified
+- **Solution**: Contact support if issues persist
 
 ### Getting Help
+1. **Check the FAQ**: Common solutions are documented
+2. **Review error messages**: Look for specific error details
+3. **Contact support**: Provide detailed information about the issue
+4. **Community forum**: Ask questions in the user community
 
-#### Debug Information
-1. Click the bug icon (🐛) in the top navigation
-2. View detailed debug information including:
-   - Current wallet address
-   - User role and permissions
-   - Connection status
-   - Recent API calls
+### Support Information
+- **Email**: support@contractmanagement.com
+- **Documentation**: Check the guides and FAQs
+- **Community**: Join the user community forum
+- **Emergency**: Contact support for urgent issues
 
-#### Manual Refresh
-1. Use the "Refresh App" button in the wallet switcher
-2. Force refresh the page (Ctrl+F5 or Cmd+Shift+R)
-3. Restart the application services if needed
+---
 
-## 📊 Best Practices
+## 10. Advanced Features
 
-### For TDC Users
-- **Research Datasets**: Review dataset descriptions and pricing before creating contracts
-- **Select Appropriate CCRP**: Choose CCRP providers based on your compliance needs
-- **Review Contract Terms**: Carefully review all contract terms before signing
-- **Monitor Contract Status**: Regularly check contract status and notifications
+### Multi-DID Support
+- Link multiple DIDs to your account
+- Use different DIDs for different purposes
+- Manage DID permissions and access
 
-### For TDP Users
-- **Maintain Dataset Quality**: Keep dataset descriptions and pricing up to date
-- **Monitor Requests**: Regularly check for new contract requests
-- **Track Revenue**: Monitor earnings from completed contracts
-- **Update Information**: Keep your profile and dataset information current
+### Contract Templates
+- Save frequently used contract terms
+- Create standardized contract templates
+- Speed up contract creation process
 
-### For CCRP Users
-- **Thorough Reviews**: Carefully review all contract terms and conditions
-- **Compliance Focus**: Ensure contracts meet compliance requirements
-- **Timely Responses**: Respond to contract review requests promptly
-- **Maintain Records**: Keep track of all contract reviews and approvals
+### Analytics and Reporting
+- View contract analytics and metrics
+- Generate compliance reports
+- Monitor system usage and performance
 
-## 🔐 Security Best Practices
+### API Access
+- Programmatic access to platform features
+- Integration with external systems
+- Automated contract management
 
-### Wallet Security
-- **Never share private keys** with anyone
-- **Use test wallets only** for development and testing
-- **Keep MetaMask updated** to the latest version
-- **Be cautious of phishing attempts** - always verify URLs
+---
 
-### Application Security
-- **Log out when finished** using the application
-- **Clear browser cache** regularly
-- **Use secure networks** when accessing the application
-- **Report suspicious activity** immediately
+**Note**: This guide is continuously updated. For the latest information, check the platform documentation or contact support.
 
-## 📚 Additional Resources
-
-- **Setup Guide**: See [Setup Guide](./SETUP_GUIDE.md) for installation
-- **Wallet Guide**: See [Wallet Guide](./WALLET_GUIDE.md) for MetaMask setup
-- **Test Wallets**: See [Test Wallets](./TEST_WALLETS.md) for development accounts
-- **Architecture Guide**: See [Architecture Guide](./ARCHITECTURE_GUIDE.md) for technical details
-
-## 🆘 Support
-
-If you need help:
-1. **Check this guide** for common solutions
-2. **Review troubleshooting section** above
-3. **Use debug information** to identify issues
-4. **Create an issue** on GitHub with detailed information
-5. **Contact support** through GitHub discussions 
+**User Guide End** 
