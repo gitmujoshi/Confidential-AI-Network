@@ -1,302 +1,115 @@
 # API Documentation
-## Contract Management System Backend API
+## Contract Management System API
 
-Basic API reference for the Contract Management System backend.
+**Version:** 2.0  
+**Base URL:** `http://localhost:3001/api`  
+**Date:** December 2024
 
-## 🔗 Base URL
-```
-http://localhost:5001/api
-```
+---
 
-## 🔐 Authentication
+## Table of Contents
 
-The API supports two authentication methods:
+1. [Authentication](#authentication)
+2. [User Management](#user-management)
+3. [Contract Management](#contract-management)
+4. [Dataset Management](#dataset-management)
+5. [DID Management](#did-management)
+6. [Error Handling](#error-handling)
 
-### 1. IAM Authentication (Recommended)
-All API endpoints require JWT token authentication from Keycloak IAM. Include the JWT token in the Authorization header.
+---
 
-**Headers:**
-```
-Authorization: Bearer <jwt_token>
-```
+## Authentication
 
-### 2. Wallet Authentication (Legacy)
-For backward compatibility, wallet-based authentication is still supported. The user's wallet address is used to identify and authenticate users.
+### Register User
+**POST** `/auth/register`
 
-**Headers:**
-```
-Authorization: Bearer <wallet_address>
-```
-
-## 📋 Endpoints
-
-### Authentication & IAM
-
-#### Register User (IAM)
-```http
-POST /auth/register
-```
+Register a new user with support for both `did:ethr` and `did:web` DIDs.
 
 **Request Body:**
 ```json
 {
-  "walletAddress": "0x...",
-  "publicKey": "0x...",
-  "name": "User Name",
-  "email": "user@example.com",
+  "name": "John Doe",
+  "email": "john@example.com",
+  "partyType": "TDP",
+  "walletAddress": "0x1234567890abcdef...",
+  "publicKey": "0xabcdef123456...",
+  "description": "Optional description",
   "organization": "Company Name",
   "phoneNumber": "+1234567890",
   "website": "https://example.com",
-  "location": "Country",
-  "existingDID": "did:ethr:goerli:0x...", // Optional: User's existing DID
-  "didVerificationSignature": "0x..." // Required if existingDID is provided
+  "location": "New York, USA",
+  "existingDID": "did:ethr:goerli:0x1234567890abcdef...",
+  "didVerificationSignature": "0xsignature..."
 }
 ```
+
+**DID Options:**
+- **System-Generated (did:ethr)**: Omit `existingDID` and `didVerificationSignature` - system creates DID from wallet address
+- **User-Provided (did:ethr)**: Provide existing Ethereum-based DID with signature verification
+- **User-Provided (did:web)**: Provide existing web-based DID (e.g., `did:web:company.com:user:alice`)
 
 **Response:**
 ```json
 {
   "success": true,
+  "message": "User registered successfully",
   "user": {
     "id": 1,
-    "walletAddress": "0x...",
-    "name": "User Name",
-    "email": "user@example.com",
-    "organization": "Company Name",
-    "onboardingStatus": "PENDING",
-    "profileCompleted": false,
-    "emailVerified": false,
-    "iamUserId": "***REMOVED-KEYCLOAK_DB_PASSWORD***-user-id",
-    "did": "did:ethr:goerli:0x...", // Auto-generated if not provided
-    "didSource": "USER_PROVIDED", // "SYSTEM_GENERATED" or "USER_PROVIDED"
-    "didVerified": true, // Whether the DID has been verified
-    "didVerificationMethod": "SIGNATURE_VERIFICATION" // How the DID was verified
-  }
-}
-```
-
-#### Login User (IAM)
-```http
-POST /auth/login
-```
-
-**Request Body:**
-```json
-{
-  "email": "user@example.com",
-  "password": "user_password"
-}
-```
-
-**Response:**
-```json
-{
-  "success": true,
-  "accessToken": "jwt_token_here",
-  "refreshToken": "refresh_token_here",
-  "user": {
-    "id": 1,
-    "name": "User Name",
-    "email": "user@example.com",
-    "onboardingStatus": "COMPLETED",
-    "profileCompleted": true
-  }
-}
-```
-
-#### Verify Email
-```http
-POST /auth/verify-email
-```
-
-**Request Body:**
-```json
-{
-  "token": "email_verification_token"
-}
-```
-
-**Response:**
-```json
-{
-  "success": true,
-  "message": "Email verified successfully"
-}
-```
-
-#### Complete Onboarding
-```http
-POST /auth/complete-onboarding
-```
-
-**Request Body:**
-```json
-{
-  "organization": "Company Name",
-  "phoneNumber": "+1234567890",
-  "website": "https://example.com",
-  "location": "Country",
-  "description": "User description"
-}
-```
-
-**Response:**
-```json
-{
-  "success": true,
-  "user": {
-    "id": 1,
-    "onboardingStatus": "COMPLETED",
-    "profileCompleted": true
-  }
-}
-```
-
-#### Get Onboarding Status
-```http
-GET /auth/onboarding-status
-```
-
-**Response:**
-```json
-{
-  "success": true,
-  "onboardingStatus": "COMPLETED",
-  "profileCompleted": true,
-  "emailVerified": true,
-  "missingFields": []
-}
-```
-
-### DID Management
-
-#### Create DID
-```http
-POST /auth/create-did
-```
-
-**Request Body:**
-```json
-{
-  "didMethod": "ethr", // "ethr" for Ethereum-based DID, "key" for key-based DID
-  "walletAddress": "0x..." // Required for ethr method
-}
-```
-
-**Response:**
-```json
-{
-  "success": true,
-  "did": "did:ethr:0x...",
-  "didDocument": {
-    "@context": "https://www.w3.org/ns/did/v1",
-    "id": "did:ethr:0x...",
-    "verificationMethod": [
-      {
-        "id": "did:ethr:0x...#keys-1",
-        "type": "EcdsaSecp256k1VerificationKey2019",
-        "controller": "did:ethr:0x...",
-        "publicKeyHex": "0x..."
-      }
-    ]
-  }
-}
-```
-
-#### Resolve DID
-```http
-GET /auth/resolve-did/:did
-```
-
-**Response:**
-```json
-{
-  "success": true,
-  "didDocument": {
-    "@context": "https://www.w3.org/ns/did/v1",
-    "id": "did:ethr:0x...",
-    "verificationMethod": [
-      {
-        "id": "did:ethr:0x...#keys-1",
-        "type": "EcdsaSecp256k1VerificationKey2019",
-        "controller": "did:ethr:0x...",
-        "publicKeyHex": "0x..."
-      }
-    ]
-  }
-}
-```
-
-#### Verify DID
-```http
-POST /auth/verify-did
-```
-
-**Request Body:**
-```json
-{
-  "did": "did:ethr:0x...",
-  "signature": "0x...",
-  "message": "Message to verify"
-}
-```
-
-**Response:**
-```json
-{
-  "success": true,
-  "verified": true,
-  "message": "DID verification successful"
-}
-```
-
-#### Get User Profile
-```http
-GET /auth/profile
-```
-
-**Headers:**
-```
-Authorization: Bearer <jwt_token>
-```
-
-**Response:**
-```json
-{
-  "success": true,
-  "user": {
-    "id": 1,
-    "walletAddress": "0x...",
-    "name": "User Name",
-    "email": "user@example.com",
-    "organization": "Company Name",
+    "name": "John Doe",
+    "email": "john@example.com",
     "partyType": "TDP",
+    "walletAddress": "0x1234567890abcdef...",
+    "did": "did:ethr:goerli:0x1234567890abcdef...",
+    "didSource": "USER_PROVIDED",
+    "didVerified": true,
+    "didVerificationMethod": "signature",
     "onboardingStatus": "COMPLETED",
     "profileCompleted": true,
-    "emailVerified": true,
-    "lastLoginAt": "2024-01-01T00:00:00Z",
-    "did": "did:ethr:0x...",
-    "publicKey": "0x..."
+    "createdAt": "2024-12-01T10:00:00.000Z"
   }
 }
 ```
 
-#### Update User Profile
-```http
-PUT /auth/profile
-```
+### Login User
+**POST** `/auth/login`
 
 **Request Body:**
 ```json
 {
-  "name": "Updated Name",
-  "organization": "Updated Company",
-  "phoneNumber": "+1234567890",
-  "website": "https://example.com",
-  "location": "Country",
-  "description": "Updated description"
+  "walletAddress": "0x1234567890abcdef...",
+  "signature": "0xsignature...",
+  "message": "Login message to sign"
 }
 ```
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Login successful",
+  "token": "jwt_token_here",
+  "user": {
+    "id": 1,
+    "name": "John Doe",
+    "email": "john@example.com",
+    "partyType": "TDP",
+    "walletAddress": "0x1234567890abcdef...",
+    "did": "did:ethr:goerli:0x1234567890abcdef...",
+    "didSource": "USER_PROVIDED",
+    "didVerified": true,
+    "onboardingStatus": "COMPLETED"
+  }
+}
+```
+
+---
+
+## User Management
+
+### Get User Profile
+**GET** `/users/profile`
+
+**Headers:** `Authorization: Bearer <token>`
 
 **Response:**
 ```json
@@ -304,141 +117,48 @@ PUT /auth/profile
   "success": true,
   "user": {
     "id": 1,
-    "name": "Updated Name",
-    "organization": "Updated Company"
+    "name": "John Doe",
+    "email": "john@example.com",
+    "partyType": "TDP",
+    "walletAddress": "0x1234567890abcdef...",
+    "publicKey": "0xabcdef123456...",
+    "did": "did:ethr:goerli:0x1234567890abcdef...",
+    "didSource": "USER_PROVIDED",
+    "didVerified": true,
+    "didVerificationMethod": "signature",
+    "onboardingStatus": "COMPLETED",
+    "profileCompleted": true,
+    "organization": "Company Name",
+    "phoneNumber": "+1234567890",
+    "website": "https://example.com",
+    "location": "New York, USA",
+    "createdAt": "2024-12-01T10:00:00.000Z",
+    "lastLoginAt": "2024-12-01T15:30:00.000Z"
   }
 }
 ```
 
-### Contracts
+### Update User Profile
+**PUT** `/users/profile`
 
-#### Get All Contracts
-```http
-GET /contracts
-```
-
-**Query Parameters:**
-- `status` (optional): Filter by contract status
-- `partyType` (optional): Filter by user's party type
-
-**Response:**
-```json
-{
-  "success": true,
-  "contracts": [
-    {
-      "id": 1,
-      "blockchainId": "0x...",
-      "status": "active",
-      "price": "1000.00",
-      "tdp": { "name": "TDP Provider", "walletAddress": "0x..." },
-      "tdc": { "name": "TDC Consumer", "walletAddress": "0x..." },
-      "ccrp": { "name": "CCRP Provider", "walletAddress": "0x..." },
-      "dataset": { "name": "Dataset Name", "id": 1 },
-      "createdAt": "2024-01-01T00:00:00Z"
-    }
-  ]
-}
-```
-
-#### Create Contract
-```http
-POST /contracts
-```
+**Headers:** `Authorization: Bearer <token>`
 
 **Request Body:**
 ```json
 {
-  "datasetId": 1,
-  "price": "1000.00",
-  "ccrpId": 1,
-  "terms": "Contract terms and conditions"
+  "name": "John Doe Updated",
+  "description": "Updated description",
+  "organization": "Updated Company",
+  "phoneNumber": "+1234567890",
+  "website": "https://updated-example.com",
+  "location": "San Francisco, USA"
 }
 ```
 
-**Response:**
-```json
-{
-  "success": true,
-  "contract": {
-    "id": 1,
-    "blockchainId": "0x...",
-    "status": "pending_tdp",
-    "price": "1000.00"
-  }
-}
-```
+### Get All Users
+**GET** `/users`
 
-#### Sign Contract
-```http
-POST /contracts/:id/sign
-```
-
-**Request Body:**
-```json
-{
-  "signedTransaction": "0x..."
-}
-```
-
-**Response:**
-```json
-{
-  "success": true,
-  "message": "Contract signed successfully"
-}
-```
-
-### Datasets
-
-#### Get All Datasets
-```http
-GET /datasets
-```
-
-**Response:**
-```json
-{
-  "success": true,
-  "datasets": [
-    {
-      "id": 1,
-      "name": "Dataset Name",
-      "description": "Dataset description",
-      "category": "AI/ML",
-      "price": "1000.00",
-      "owner": { "name": "Owner Name", "walletAddress": "0x..." },
-      "isPublic": true
-    }
-  ]
-}
-```
-
-#### Create Dataset
-```http
-POST /datasets
-```
-
-**Request Body:**
-```json
-{
-  "name": "Dataset Name",
-  "description": "Dataset description",
-  "category": "AI/ML",
-  "price": "1000.00",
-  "isPublic": true
-}
-```
-
-### Users
-
-#### Get All Users
-```http
-GET /users
-```
-
-**Query Parameters:**
-- `partyType` (optional): Filter by party type
+**Headers:** `Authorization: Bearer <token>`
 
 **Response:**
 ```json
@@ -447,119 +167,460 @@ GET /users
   "users": [
     {
       "id": 1,
-      "name": "User Name",
-      "email": "user@example.com",
+      "name": "John Doe",
+      "email": "john@example.com",
       "partyType": "TDP",
-      "walletAddress": "0x...",
-      "isRegistered": true
+      "walletAddress": "0x1234567890abcdef...",
+      "did": "did:ethr:goerli:0x1234567890abcdef...",
+      "didSource": "USER_PROVIDED",
+      "didVerified": true,
+      "onboardingStatus": "COMPLETED",
+      "organization": "Company Name",
+      "createdAt": "2024-12-01T10:00:00.000Z"
     }
   ]
 }
 ```
 
-#### Register Party on Blockchain
-```http
-POST /users/register-party
-```
+---
+
+## DID Management
+
+### Verify DID Ownership
+**POST** `/did/verify`
+
+Verify ownership of a user-provided DID (both `did:ethr` and `did:web`).
 
 **Request Body:**
 ```json
 {
-  "walletAddress": "0x...",
-  "partyType": "TDP|TDC|CCRP"
+  "did": "did:ethr:goerli:0x1234567890abcdef...",
+  "walletAddress": "0x1234567890abcdef...",
+  "signature": "0xsignature...",
+  "message": "Verification message"
 }
 ```
-
-### Notifications
-
-#### Get User Notifications
-```http
-GET /notifications
-```
-
-**Query Parameters:**
-- `limit` (optional): Number of notifications to return
-- `offset` (optional): Number of notifications to skip
 
 **Response:**
 ```json
 {
   "success": true,
-  "notifications": [
+  "message": "DID ownership verified successfully",
+  "verification": {
+    "did": "did:ethr:goerli:0x1234567890abcdef...",
+    "verified": true,
+    "method": "signature",
+    "verifiedAt": "2024-12-01T10:00:00.000Z"
+  }
+}
+```
+
+### Get DID Information
+**GET** `/did/info/:did`
+
+Get information about a specific DID.
+
+**Response:**
+```json
+{
+  "success": true,
+  "didInfo": {
+    "did": "did:ethr:goerli:0x1234567890abcdef...",
+    "method": "ethr",
+    "network": "goerli",
+    "controller": "0x1234567890abcdef...",
+    "verificationMethods": [
+      {
+        "id": "did:ethr:goerli:0x1234567890abcdef...#controller",
+        "type": "EcdsaSecp256k1VerificationKey2019",
+        "controller": "did:ethr:goerli:0x1234567890abcdef...",
+        "publicKeyHex": "0xabcdef123456..."
+      }
+    ],
+    "authentication": ["did:ethr:goerli:0x1234567890abcdef...#controller"],
+    "assertionMethod": ["did:ethr:goerli:0x1234567890abcdef...#controller"],
+    "created": "2024-12-01T10:00:00.000Z",
+    "updated": "2024-12-01T10:00:00.000Z"
+  }
+}
+```
+
+### Resolve DID Document
+**GET** `/did/resolve/:did`
+
+Resolve a DID to its document (supports both `did:ethr` and `did:web`).
+
+**Response for did:ethr:**
+```json
+{
+  "success": true,
+  "didDocument": {
+    "@context": "https://www.w3.org/ns/did/v1",
+    "id": "did:ethr:goerli:0x1234567890abcdef...",
+    "verificationMethod": [
+      {
+        "id": "did:ethr:goerli:0x1234567890abcdef...#controller",
+        "type": "EcdsaSecp256k1VerificationKey2019",
+        "controller": "did:ethr:goerli:0x1234567890abcdef...",
+        "publicKeyHex": "0xabcdef123456..."
+      }
+    ],
+    "authentication": ["did:ethr:goerli:0x1234567890abcdef...#controller"],
+    "assertionMethod": ["did:ethr:goerli:0x1234567890abcdef...#controller"]
+  }
+}
+```
+
+**Response for did:web:**
+```json
+{
+  "success": true,
+  "didDocument": {
+    "@context": "https://www.w3.org/ns/did/v1",
+    "id": "did:web:company.com:user:alice",
+    "verificationMethod": [
+      {
+        "id": "did:web:company.com:user:alice#key-1",
+        "type": "Ed25519VerificationKey2020",
+        "controller": "did:web:company.com:user:alice",
+        "publicKeyMultibase": "z6MkhaXgBZDvotDkL5257faiztiGiC2QtKLGpbnnEGta2doK"
+      }
+    ],
+    "authentication": ["did:web:company.com:user:alice#key-1"]
+  }
+}
+```
+
+### Check DID Availability
+**GET** `/did/check/:did`
+
+Check if a DID is available for registration.
+
+**Response:**
+```json
+{
+  "success": true,
+  "available": true,
+  "did": "did:ethr:goerli:0x1234567890abcdef...",
+  "message": "DID is available for registration"
+}
+```
+
+---
+
+## Contract Management
+
+### Create Contract
+**POST** `/contracts`
+
+**Headers:** `Authorization: Bearer <token>`
+
+**Request Body:**
+```json
+{
+  "title": "Data Sharing Agreement",
+  "description": "Contract for sharing training data",
+  "tdpId": 1,
+  "tdcId": 2,
+  "ccrpId": 3,
+  "datasetIds": [1, 2],
+  "terms": "Contract terms and conditions",
+  "duration": 365,
+  "compensation": "1000 ETH"
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Contract created successfully",
+  "contract": {
+    "id": 1,
+    "title": "Data Sharing Agreement",
+    "description": "Contract for sharing training data",
+    "status": "DRAFT",
+    "tdpId": 1,
+    "tdcId": 2,
+    "ccrpId": 3,
+    "createdAt": "2024-12-01T10:00:00.000Z"
+  }
+}
+```
+
+### Get All Contracts
+**GET** `/contracts`
+
+**Headers:** `Authorization: Bearer <token>`
+
+**Response:**
+```json
+{
+  "success": true,
+  "contracts": [
     {
       "id": 1,
-      "type": "contract_created",
-      "title": "New Contract Created",
-      "message": "A new contract has been created",
-      "isRead": false,
-      "metadata": {},
-      "createdAt": "2024-01-01T00:00:00Z"
+      "title": "Data Sharing Agreement",
+      "description": "Contract for sharing training data",
+      "status": "DRAFT",
+      "tdp": {
+        "id": 1,
+        "name": "John Doe",
+        "did": "did:ethr:goerli:0x1234567890abcdef..."
+      },
+      "tdc": {
+        "id": 2,
+        "name": "Jane Smith",
+        "did": "did:web:company.com:user:jane"
+      },
+      "ccrp": {
+        "id": 3,
+        "name": "Bob Johnson",
+        "did": "did:ethr:goerli:0xabcdef123456..."
+      },
+      "createdAt": "2024-12-01T10:00:00.000Z"
     }
   ]
 }
 ```
 
-#### Mark Notification as Read
-```http
-PUT /notifications/:id/read
-```
+### Get Contract by ID
+**GET** `/contracts/:id`
+
+**Headers:** `Authorization: Bearer <token>`
 
 **Response:**
 ```json
 {
   "success": true,
-  "message": "Notification marked as read"
-}
-```
-
-### Blockchain
-
-#### Get Blockchain Status
-```http
-GET /blockchain/status
-```
-
-**Response:**
-```json
-{
-  "success": true,
-  "status": {
-    "connected": true,
-    "currentBlock": 1234,
-    "network": "localhost:8545",
-    "contractAddress": "0x..."
+  "contract": {
+    "id": 1,
+    "title": "Data Sharing Agreement",
+    "description": "Contract for sharing training data",
+    "status": "DRAFT",
+    "terms": "Contract terms and conditions",
+    "duration": 365,
+    "compensation": "1000 ETH",
+    "tdp": {
+      "id": 1,
+      "name": "John Doe",
+      "did": "did:ethr:goerli:0x1234567890abcdef..."
+    },
+    "tdc": {
+      "id": 2,
+      "name": "Jane Smith",
+      "did": "did:web:company.com:user:jane"
+    },
+    "ccrp": {
+      "id": 3,
+      "name": "Bob Johnson",
+      "did": "did:ethr:goerli:0xabcdef123456..."
+    },
+    "datasets": [
+      {
+        "id": 1,
+        "name": "Training Dataset 1",
+        "description": "First training dataset"
+      }
+    ],
+    "createdAt": "2024-12-01T10:00:00.000Z",
+    "updatedAt": "2024-12-01T10:00:00.000Z"
   }
 }
 ```
 
-## 🔍 Error Responses
+### Update Contract Status
+**PUT** `/contracts/:id/status`
 
-### Standard Error Format
+**Headers:** `Authorization: Bearer <token>`
+
+**Request Body:**
 ```json
 {
-  "success": false,
-  "error": "Error message",
-  "code": "ERROR_CODE"
+  "status": "SIGNED"
 }
 ```
 
-### Common Error Codes
-- `400`: Bad Request - Invalid input data
-- `401`: Unauthorized - Authentication required
-- `403`: Forbidden - Insufficient permissions
-- `404`: Not Found - Resource not found
-- `500`: Internal Server Error - Server error
+---
 
-## 📚 Additional Resources
+## Dataset Management
 
-- **Setup Guide**: See [Setup Guide](./SETUP_GUIDE.md) for installation
-- **Architecture Guide**: See [Architecture Guide](./ARCHITECTURE_GUIDE.md) for technical details
-- **User Guide**: See [User Guide](./USER_GUIDE.md) for application usage
+### Create Dataset
+**POST** `/datasets`
 
-## 🆘 Support
+**Headers:** `Authorization: Bearer <token>`
 
-For API questions:
-1. **Check this documentation** for endpoint details
-2. **Review the codebase** for implementation specifics
-3. **Create an issue** on GitHub for bugs
-4. **Start a discussion** for API questions 
+**Request Body:**
+```json
+{
+  "name": "Training Dataset 1",
+  "description": "High-quality training data for AI models",
+  "type": "TEXT",
+  "size": "1GB",
+  "format": "JSON",
+  "metadata": {
+    "language": "English",
+    "domain": "Technology",
+    "quality": "High"
+  }
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Dataset created successfully",
+  "dataset": {
+    "id": 1,
+    "name": "Training Dataset 1",
+    "description": "High-quality training data for AI models",
+    "type": "TEXT",
+    "size": "1GB",
+    "format": "JSON",
+    "ownerId": 1,
+    "createdAt": "2024-12-01T10:00:00.000Z"
+  }
+}
+```
+
+### Get All Datasets
+**GET** `/datasets`
+
+**Headers:** `Authorization: Bearer <token>`
+
+**Response:**
+```json
+{
+  "success": true,
+  "datasets": [
+    {
+      "id": 1,
+      "name": "Training Dataset 1",
+      "description": "High-quality training data for AI models",
+      "type": "TEXT",
+      "size": "1GB",
+      "format": "JSON",
+      "owner": {
+        "id": 1,
+        "name": "John Doe",
+        "did": "did:ethr:goerli:0x1234567890abcdef..."
+      },
+      "createdAt": "2024-12-01T10:00:00.000Z"
+    }
+  ]
+}
+```
+
+---
+
+## Error Handling
+
+### Error Response Format
+```json
+{
+  "success": false,
+  "error": "ERROR_TYPE",
+  "message": "Human-readable error message",
+  "details": {
+    "field": "Additional error details"
+  }
+}
+```
+
+### Common Error Types
+
+#### Authentication Errors
+- `INVALID_SIGNATURE`: Wallet signature verification failed
+- `USER_NOT_FOUND`: User not found with provided wallet address
+- `INVALID_TOKEN`: JWT token is invalid or expired
+
+#### DID Errors
+- `INVALID_DID_FORMAT`: DID format is not valid
+- `DID_ALREADY_REGISTERED`: DID is already registered by another user
+- `DID_VERIFICATION_FAILED`: DID ownership verification failed
+- `DID_NOT_RESOLVABLE`: DID cannot be resolved
+- `UNSUPPORTED_DID_METHOD`: DID method is not supported
+
+#### Validation Errors
+- `MISSING_REQUIRED_FIELD`: Required field is missing
+- `INVALID_EMAIL_FORMAT`: Email format is invalid
+- `INVALID_WALLET_ADDRESS`: Wallet address format is invalid
+- `INVALID_PARTY_TYPE`: Party type is not valid
+
+#### Database Errors
+- `DUPLICATE_ENTRY`: Entry already exists
+- `FOREIGN_KEY_CONSTRAINT`: Related record not found
+- `DATABASE_ERROR`: General database error
+
+### HTTP Status Codes
+
+- `200 OK`: Request successful
+- `201 Created`: Resource created successfully
+- `400 Bad Request`: Invalid request data
+- `401 Unauthorized`: Authentication required
+- `403 Forbidden`: Access denied
+- `404 Not Found`: Resource not found
+- `409 Conflict`: Resource conflict
+- `422 Unprocessable Entity`: Validation error
+- `500 Internal Server Error`: Server error
+
+---
+
+## DID Method Support
+
+### Supported DID Methods
+
+#### did:ethr (Ethereum-based)
+- **Format**: `did:ethr:[network]:[ethereum-address]`
+- **Examples**:
+  - `did:ethr:goerli:0x1234567890abcdef...`
+  - `did:ethr:mainnet:0x1234567890abcdef...`
+  - `did:ethr:polygon:0x1234567890abcdef...`
+- **Verification**: Wallet signature
+- **Best for**: Individual users with Ethereum wallets
+
+#### did:web (Web-based)
+- **Format**: `did:web:[domain]:[path]`
+- **Examples**:
+  - `did:web:company.com:user:alice`
+  - `did:web:university.edu:students:student123`
+  - `did:web:organization.org:employees:john`
+- **Verification**: DID document resolution
+- **Best for**: Organizations with web domains
+
+### DID Verification Methods
+
+#### For did:ethr:
+1. User provides DID and wallet address
+2. System creates verification message
+3. User signs message with wallet
+4. System verifies signature against DID controller
+
+#### For did:web:
+1. User provides DID
+2. System resolves DID document from web server
+3. System validates DID document format
+4. System verifies domain ownership and SSL certificate
+
+---
+
+## Rate Limiting
+
+- **Authentication endpoints**: 10 requests per minute
+- **DID verification**: 5 requests per minute
+- **General API endpoints**: 100 requests per minute
+
+---
+
+## Versioning
+
+API versioning is handled through the URL path. Current version is v2.0.
+
+**Example:**
+- Current: `/api/auth/register`
+- Future: `/api/v3/auth/register`
+
+---
+
+**API Documentation End** 

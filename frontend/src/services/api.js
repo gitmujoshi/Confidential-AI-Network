@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_BASE_URL = process.env.REACT_APP_API_URL || '';
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5001';
 
 export const api = axios.create({
   baseURL: API_BASE_URL,
@@ -61,6 +61,27 @@ api.interceptors.response.use(
 
 // API functions
 export const apiService = {
+  // Generic HTTP methods
+  get: (url, config) => api.get(url, config),
+  post: (url, data, config) => api.post(url, data, config),
+  put: (url, data, config) => api.put(url, data, config),
+  delete: (url, config) => api.delete(url, config),
+
+  // Auth
+  login: (credentials) => api.post('/api/auth/login', credentials),
+  register: (userData) => api.post('/api/auth/register', userData),
+  logout: () => api.post('/api/auth/logout'),
+  verifyDID: (didData) => api.post('/api/auth/verify-did', didData),
+  getAuthDIDInfo: () => api.get('/api/auth/did-info'),
+
+  // DID Management
+  verifyDIDOwnership: (didData) => api.post('/api/did/verify', didData),
+  getDIDInfo: (did) => api.get(`/api/did/info/${did}`),
+  resolveDID: (did) => api.get(`/api/did/resolve/${did}`),
+  checkDIDAvailability: (did) => api.get(`/api/did/check/${did}`),
+  createSystemDID: (data) => api.post('/api/did/create-system', data),
+  getSupportedDIDMethods: () => api.get('/api/did/supported-methods'),
+
   // Datasets
   getDatasets: async (params) => {
     const response = await api.get('/api/datasets/public', { params });

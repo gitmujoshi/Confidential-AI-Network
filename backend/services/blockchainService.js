@@ -14,6 +14,19 @@ class BlockchainService {
 
   async initialize() {
     try {
+      // Check if blockchain is enabled
+      const blockchainEnabled = process.env.BLOCKCHAIN_ENABLED !== 'false';
+      
+      if (!blockchainEnabled) {
+        console.log('ℹ️  Blockchain service disabled in configuration');
+        this.provider = null;
+        this.contract = null;
+        this.contractAddress = null;
+        this.contractABI = null;
+        this.wallet = null;
+        return;
+      }
+
       // Load contract ABI
       const contractPath = path.join(__dirname, '../../blockchain/artifacts/contracts/ContractManager.sol/ContractManager.json');
       const contractArtifact = JSON.parse(fs.readFileSync(contractPath, 'utf8'));
@@ -59,6 +72,12 @@ class BlockchainService {
 
   async isConnected() {
     try {
+      // Check if blockchain is disabled
+      const blockchainEnabled = process.env.BLOCKCHAIN_ENABLED !== 'false';
+      if (!blockchainEnabled) {
+        return false;
+      }
+
       if (!this.provider) {
         return false;
       }

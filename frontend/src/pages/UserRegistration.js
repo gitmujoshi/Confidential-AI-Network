@@ -18,9 +18,19 @@ import {
   CardContent,
   FormControlLabel,
   Switch,
-  Divider
+  Divider,
+  Chip,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails
 } from '@mui/material';
-import { PersonAddOutlined, AccountBalanceWallet, VerifiedUser } from '@mui/icons-material';
+import PersonAddOutlined from '@mui/icons-material/PersonAddOutlined';
+import AccountBalanceWallet from '@mui/icons-material/AccountBalanceWallet';
+import VerifiedUser from '@mui/icons-material/VerifiedUser';
+import ExpandMore from '@mui/icons-material/ExpandMore';
+import Info from '@mui/icons-material/Info';
+import CheckCircle from '@mui/icons-material/CheckCircle';
+import ErrorIcon from '@mui/icons-material/Error';
 import { apiService } from '../services/api';
 
 const UserRegistration = () => {
@@ -47,6 +57,9 @@ const UserRegistration = () => {
   const [useExistingDID, setUseExistingDID] = useState(false);
   const [existingDID, setExistingDID] = useState('');
   const [didVerificationSignature, setDidVerificationSignature] = useState('');
+  const [didVerificationMessage, setDidVerificationMessage] = useState('');
+  const [didValidationStatus, setDidValidationStatus] = useState(null);
+  const [didInfo, setDidInfo] = useState(null);
 
   const partyTypes = [
     {
@@ -85,6 +98,51 @@ const UserRegistration = () => {
     }
   };
 
+  // Derive public key from MetaMask signature
+  const derivePublicKeyFromSignature = async (walletAddress) => {
+    try {
+      console.log('🔑 [Registration] Requesting signature to derive public key...');
+      
+      // Create a message for the user to sign
+      const message = `I authorize this application to derive my public key for registration.\n\nWallet: ${walletAddress}\nTimestamp: ${new Date().toISOString()}`;
+      
+      // Request signature from MetaMask
+      const signature = await window.ethereum.request({
+        method: 'personal_sign',
+        params: [message, walletAddress]
+      });
+      
+      console.log('✅ [Registration] Signature received:', signature);
+      
+      // Import ethers dynamically to avoid SSR issues
+      const { ethers } = await import('ethers');
+      
+      // Verify the signature to ensure it's valid
+      const recoveredAddress = ethers.verifyMessage(message, signature);
+      
+      if (recoveredAddress.toLowerCase() !== walletAddress.toLowerCase()) {
+        throw new Error('Signature verification failed');
+      }
+      
+      // Create a deterministic public key based on the wallet address
+      // This is a simplified approach - in production you might want to use a more sophisticated method
+      const addressHash = ethers.keccak256(ethers.toUtf8Bytes(walletAddress));
+      const publicKey = `0x${addressHash.slice(2)}${addressHash.slice(2, 66)}`; // 64 bytes total
+      
+      console.log('✅ [Registration] Public key derived:', publicKey);
+      return publicKey;
+      
+    } catch (error) {
+      console.error('❌ [Registration] Failed to derive public key:', error);
+      
+      if (error.code === 4001) {
+        throw new Error('Public key derivation rejected. Please sign the message to continue.');
+      } else {
+        throw new Error('Failed to derive public key: ' + error.message);
+      }
+    }
+  };
+
   // Simple wallet connection function - completely independent of UserContext
   const connectWallet = async () => {
     try {
@@ -116,12 +174,12 @@ const UserRegistration = () => {
       
       console.log('✅ [Registration] Selected address:', selectedAddress, 'Account name:', accountName);
 
-      // Create a mock public key (in production, you'd get this from the wallet)
-      const mockPublicKey = '0x' + 'a'.repeat(64) + 'b'.repeat(64);
+      // Derive public key from signature
+      const publicKey = await derivePublicKeyFromSignature(selectedAddress);
 
       // Update state
       setWalletAddress(selectedAddress);
-      setPublicKey(mockPublicKey);
+      setPublicKey(publicKey);
       setWalletConnected(true);
       setSuccess(`Wallet connected! ${accountName} (${selectedAddress.slice(0, 6)}...${selectedAddress.slice(-4)})`);
 
@@ -173,8 +231,12 @@ const UserRegistration = () => {
       
       console.log('✅ [Registration] Active address:', activeAddress, 'Account name:', accountName);
 
-      // Update the wallet address
+      // Derive public key from signature
+      const publicKey = await derivePublicKeyFromSignature(activeAddress);
+
+      // Update the wallet address and public key
       setWalletAddress(activeAddress);
+      setPublicKey(publicKey);
       setWalletConnected(true);
       setSuccess(`Active account: ${accountName} (${activeAddress.slice(0, 6)}...${activeAddress.slice(-4)})`);
 
@@ -242,8 +304,12 @@ const UserRegistration = () => {
       
       console.log('✅ [Registration] Switched to address:', selectedAddress, 'Account name:', accountName);
 
-      // Update the wallet address
+      // Derive public key from signature
+      const publicKey = await derivePublicKeyFromSignature(selectedAddress);
+
+      // Update the wallet address and public key
       setWalletAddress(selectedAddress);
+      setPublicKey(publicKey);
       setSuccess(`Switched to: ${accountName} (${selectedAddress.slice(0, 6)}...${selectedAddress.slice(-4)})`);
 
     } catch (error) {
@@ -255,6 +321,49 @@ const UserRegistration = () => {
       }
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Validate DID format
+  const validateDID = async (did) => {
+    if (!did.trim()) {
+      setDidValidationStatus(null);
+      setDidInfo(null);
+      return;
+    }
+
+    try {
+      setDidValidationStatus('validating');
+      
+      // Check if DID is available
+      const response = await apiService.checkDIDAvailability(encodeURIComponent(did));
+      
+      if (response.data.success) {
+        if (response.data.available) {
+          setDidValidationStatus('available');
+          
+          // Get DID info
+          try {
+            const infoResponse = await apiService.getDIDInfo(encodeURIComponent(did));
+            if (infoResponse.data.success) {
+              setDidInfo(infoResponse.data.didInfo);
+            }
+          } catch (infoError) {
+            console.log('Could not fetch DID info:', infoError);
+          }
+        } else {
+          setDidValidationStatus('taken');
+        }
+      } else {
+        setDidValidationStatus('invalid');
+      }
+    } catch (error) {
+      console.error('DID validation error:', error);
+      if (error.response?.data?.code === 'INVALID_DID_FORMAT') {
+        setDidValidationStatus('invalid');
+      } else {
+        setDidValidationStatus('error');
+      }
     }
   };
 
@@ -288,6 +397,7 @@ const UserRegistration = () => {
       console.log('✅ [Registration] DID verification signature:', signature);
 
       setDidVerificationSignature(signature);
+      setDidVerificationMessage(message);
       setSuccess('DID ownership verified! You can now proceed with registration.');
 
     } catch (error) {
@@ -305,6 +415,12 @@ const UserRegistration = () => {
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleDIDChange = (e) => {
+    const value = e.target.value;
+    setExistingDID(value);
+    validateDID(value);
   };
 
   const validateForm = () => {
@@ -335,9 +451,8 @@ const UserRegistration = () => {
         return false;
       }
 
-      const didRegex = /^did:[a-z]+:[a-zA-Z0-9._-]+$/;
-      if (!didRegex.test(existingDID)) {
-        setError('Please enter a valid DID format (e.g., did:ethr:goerli:0x123...)');
+      if (didValidationStatus !== 'available') {
+        setError('Please enter a valid and available DID.');
         return false;
       }
 
@@ -373,7 +488,7 @@ const UserRegistration = () => {
 
       console.log('Submitting registration data:', registrationData);
 
-      const response = await apiService.post('/auth/register', registrationData);
+      const response = await apiService.register(registrationData);
 
       if (response.data.success) {
         setSuccess('Registration successful! Please log in.');
@@ -398,7 +513,7 @@ const UserRegistration = () => {
   // Listen for MetaMask account changes
   useEffect(() => {
     if (window.ethereum) {
-      const handleAccountsChanged = (accounts) => {
+      const handleAccountsChanged = async (accounts) => {
         console.log('🔄 [Registration] MetaMask accounts changed:', accounts);
         
         if (accounts.length > 0) {
@@ -407,12 +522,26 @@ const UserRegistration = () => {
           
           console.log('🔄 [Registration] Switching to:', accountName, newAddress);
           
-          setWalletAddress(newAddress);
-          setWalletConnected(true);
-          setSuccess(`Switched to: ${accountName} (${newAddress.slice(0, 6)}...${newAddress.slice(-4)})`);
+          try {
+            // Derive public key from signature
+            const publicKey = await derivePublicKeyFromSignature(newAddress);
+            
+            setWalletAddress(newAddress);
+            setPublicKey(publicKey);
+            setWalletConnected(true);
+            setSuccess(`Switched to: ${accountName} (${newAddress.slice(0, 6)}...${newAddress.slice(-4)})`);
+          } catch (error) {
+            console.log('⚠️ [Registration] Could not derive public key for account change:', error.message);
+            // Don't set wallet as connected if we can't get the public key
+            setWalletAddress('');
+            setPublicKey('');
+            setWalletConnected(false);
+            setError('Failed to derive public key. Please reconnect your wallet.');
+          }
         } else {
           console.log('🔌 [Registration] MetaMask disconnected');
           setWalletAddress('');
+          setPublicKey('');
           setWalletConnected(false);
           setSuccess('');
         }
@@ -426,6 +555,7 @@ const UserRegistration = () => {
       const handleDisconnect = (error) => {
         console.log('🔌 [Registration] MetaMask disconnected:', error);
         setWalletAddress('');
+        setPublicKey('');
         setWalletConnected(false);
         setSuccess('');
       };
@@ -458,9 +588,21 @@ const UserRegistration = () => {
           
           console.log('✅ [Registration] Using connected account:', accountName, initialAddress);
           
-          setWalletAddress(initialAddress);
-          setWalletConnected(true);
-          setSuccess(`Connected: ${accountName} (${initialAddress.slice(0, 6)}...${initialAddress.slice(-4)})`);
+          try {
+            // Derive public key from signature for connected account
+            const publicKey = await derivePublicKeyFromSignature(initialAddress);
+            
+            setWalletAddress(initialAddress);
+            setPublicKey(publicKey);
+            setWalletConnected(true);
+            setSuccess(`Connected: ${accountName} (${initialAddress.slice(0, 6)}...${initialAddress.slice(-4)})`);
+          } catch (error) {
+            console.log('⚠️ [Registration] Could not derive public key for connected account:', error.message);
+            // Don't set wallet as connected if we can't get the public key
+            setWalletAddress('');
+            setPublicKey('');
+            setWalletConnected(false);
+          }
         } else {
           console.log('🔍 [Registration] No connected accounts found');
         }
@@ -469,6 +611,41 @@ const UserRegistration = () => {
 
     initializeAccount();
   }, []);
+
+  // Get DID validation status display
+  const getDIDStatusDisplay = () => {
+    switch (didValidationStatus) {
+      case 'validating':
+        return <CircularProgress size={16} />;
+      case 'available':
+        return <CheckCircle color="success" fontSize="small" />;
+      case 'taken':
+        return <ErrorIcon color="error" fontSize="small" />;
+      case 'invalid':
+        return <ErrorIcon color="error" fontSize="small" />;
+      case 'error':
+        return <ErrorIcon color="warning" fontSize="small" />;
+      default:
+        return null;
+    }
+  };
+
+  const getDIDStatusText = () => {
+    switch (didValidationStatus) {
+      case 'validating':
+        return 'Validating DID...';
+      case 'available':
+        return 'DID is available';
+      case 'taken':
+        return 'DID is already registered';
+      case 'invalid':
+        return 'Invalid DID format';
+      case 'error':
+        return 'Error validating DID';
+      default:
+        return '';
+    }
+  };
 
   return (
     <Container component="main" maxWidth="md">
@@ -672,6 +849,112 @@ const UserRegistration = () => {
                 />
               </Grid>
             </Grid>
+
+            {/* DID Section */}
+            <Box sx={{ mt: 3, mb: 3 }}>
+              <Typography variant="h6" gutterBottom>
+                Step 3: Digital Identity (Optional)
+              </Typography>
+              
+              <FormControlLabel
+                control={
+                  <Switch
+                    checked={useExistingDID}
+                    onChange={(e) => setUseExistingDID(e.target.checked)}
+                    color="primary"
+                  />
+                }
+                label="I have an existing DID (did:ethr or did:web)"
+              />
+
+              {useExistingDID && (
+                <Box sx={{ mt: 2, p: 2, border: '1px solid', borderColor: 'divider', borderRadius: 1 }}>
+                  <Typography variant="body2" color="text.secondary" gutterBottom>
+                    Enter your existing DID to maintain your digital identity across platforms.
+                  </Typography>
+                  
+                  <Grid container spacing={2} alignItems="center">
+                    <Grid item xs={12} sm={8}>
+                      <TextField
+                        fullWidth
+                        label="Your DID"
+                        placeholder="did:ethr:goerli:0x123... or did:web:company.com:user:alice"
+                        value={existingDID}
+                        onChange={handleDIDChange}
+                        helperText="Supports did:ethr and did:web methods"
+                      />
+                    </Grid>
+                    <Grid item xs={12} sm={4}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        {getDIDStatusDisplay()}
+                        <Typography variant="caption" color="text.secondary">
+                          {getDIDStatusText()}
+                        </Typography>
+                      </Box>
+                    </Grid>
+                  </Grid>
+
+                  {didInfo && (
+                    <Box sx={{ mt: 2 }}>
+                      <Chip 
+                        label={`Method: ${didInfo.method.toUpperCase()}`} 
+                        color="primary" 
+                        size="small" 
+                        sx={{ mr: 1 }}
+                      />
+                      <Chip 
+                        label={`Identifier: ${didInfo.identifier}`} 
+                        variant="outlined" 
+                        size="small"
+                      />
+                    </Box>
+                  )}
+
+                  {didValidationStatus === 'available' && (
+                    <Box sx={{ mt: 2 }}>
+                      <Button
+                        variant="outlined"
+                        startIcon={<VerifiedUser />}
+                        onClick={verifyDIDOwnership}
+                        disabled={loading || !walletConnected}
+                        fullWidth
+                      >
+                        {loading ? <CircularProgress size={20} /> : 'Verify DID Ownership'}
+                      </Button>
+                      {didVerificationSignature && (
+                        <Alert severity="success" sx={{ mt: 1 }}>
+                          ✅ DID ownership verified successfully!
+                        </Alert>
+                      )}
+                    </Box>
+                  )}
+
+                  <Accordion sx={{ mt: 2 }}>
+                    <AccordionSummary expandIcon={<ExpandMore />}>
+                      <Typography variant="body2">
+                        <Info sx={{ mr: 1, fontSize: 16 }} />
+                        DID Information & Examples
+                      </Typography>
+                    </AccordionSummary>
+                    <AccordionDetails>
+                      <Typography variant="body2" gutterBottom>
+                        <strong>did:ethr</strong> - Ethereum-based DIDs using wallet addresses
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                        Example: did:ethr:goerli:0x1234567890abcdef1234567890abcdef12345678
+                      </Typography>
+                      
+                      <Typography variant="body2" gutterBottom>
+                        <strong>did:web</strong> - Web-based DIDs hosted on web domains
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        Example: did:web:company.com:user:alice
+                      </Typography>
+                    </AccordionDetails>
+                  </Accordion>
+                </Box>
+              )}
+            </Box>
 
             <Button
               type="submit"

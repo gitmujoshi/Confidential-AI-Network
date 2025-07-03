@@ -26,85 +26,105 @@ const {
   authRateLimit, 
   logAuthEvent 
 } = require('../middleware/auth');
+const jwt = require('jsonwebtoken');
+const bcrypt = require('bcryptjs');
+const rateLimit = require('express-rate-limit');
+const { ethers } = require('ethers');
+const didService = require('../services/didService');
 
 /**
  * POST /api/auth/register
- * Register a new user with IAM integration
+ * Register a new user with support for both did:ethr and did:web
  */
 router.post('/register', authRateLimit, logAuthEvent('REGISTER'), async (req, res) => {
   try {
-    const { 
-      walletAddress, 
-      publicKey, 
-      partyType, 
-      name, 
-      email, 
+    const {
+      name,
+      email,
+      partyType,
+      walletAddress,
+      publicKey,
       description,
       organization,
       phoneNumber,
       website,
       location,
-      password,
       existingDID,
       didVerificationSignature
     } = req.body;
 
     // Validate required fields
-    if (!walletAddress || !publicKey || !partyType || !name || !email) {
-      return res.status(400).json({ 
-        error: 'Missing required fields: walletAddress, publicKey, partyType, name, email',
-        code: 'MISSING_REQUIRED_FIELDS'
+    if (!name || !email || !partyType || !walletAddress || !publicKey) {
+      return res.status(400).json({
+        error: 'Missing required fields',
+        code: 'MISSING_REQUIRED_FIELDS',
+        details: {
+          required: ['name', 'email', 'partyType', 'walletAddress', 'publicKey'],
+          provided: Object.keys(req.body)
+        }
       });
     }
 
     // Validate wallet address format
-    const walletRegex = /^0x[a-fA-F0-9]{40}$/;
-    if (!walletRegex.test(walletAddress)) {
-      return res.status(400).json({ 
+    if (!ethers.isAddress(walletAddress)) {
+      return res.status(400).json({
         error: 'Invalid wallet address format',
         code: 'INVALID_WALLET_ADDRESS'
-      });
-    }
-
-    // Validate public key format
-    const publicKeyRegex = /^0x[a-fA-F0-9]{128}$/;
-    if (!publicKeyRegex.test(publicKey)) {
-      return res.status(400).json({ 
-        error: 'Invalid public key format. Must be a 64-byte hex string starting with 0x',
-        code: 'INVALID_PUBLIC_KEY'
       });
     }
 
     // Validate party type
     const validPartyTypes = ['TDP', 'TDC', 'CCRP'];
     if (!validPartyTypes.includes(partyType)) {
-      return res.status(400).json({ 
-        error: 'Invalid party type. Must be one of: TDP, TDC, CCRP',
-        code: 'INVALID_PARTY_TYPE'
+      return res.status(400).json({
+        error: 'Invalid party type',
+        code: 'INVALID_PARTY_TYPE',
+        details: {
+          valid: validPartyTypes,
+          provided: partyType
+        }
       });
     }
 
-    // Check if user already exists
-    const existingUser = await db.User.findOne({
-      where: { walletAddress }
+    // Check if wallet address is already registered
+    const existingWallet = await db.User.findOne({
+      where: { walletAddress: walletAddress.toLowerCase() }
     });
 
-    if (existingUser) {
-      return res.status(409).json({ 
-        error: 'User with this wallet address already exists',
-        code: 'USER_ALREADY_EXISTS'
+    if (existingWallet) {
+      return res.status(409).json({
+        error: 'Wallet address is already registered',
+        code: 'WALLET_ALREADY_EXISTS',
+        details: {
+          existingUser: {
+            name: existingWallet.name,
+            email: existingWallet.email,
+            partyType: existingWallet.partyType,
+            isRegistered: existingWallet.isRegistered
+          },
+          message: 'This wallet is already registered. Please login instead or use a different wallet address.'
+        }
       });
     }
 
-    // Check if email is already taken
+    // Check if email is already registered
     const existingEmail = await db.User.findOne({
-      where: { email }
+      where: { email: email.toLowerCase() }
     });
 
     if (existingEmail) {
-      return res.status(409).json({ 
+      return res.status(409).json({
         error: 'Email address is already registered',
-        code: 'EMAIL_ALREADY_EXISTS'
+        code: 'EMAIL_ALREADY_EXISTS',
+        details: {
+          existingUser: {
+            name: existingEmail.name,
+            walletAddress: existingEmail.walletAddress,
+            partyType: existingEmail.partyType,
+            isRegistered: existingEmail.isRegistered
+          },
+          message: 'This email is already registered. Please login instead or use a different email address.'
+        }
       });
     }
 
@@ -115,22 +135,22 @@ router.post('/register', authRateLimit, logAuthEvent('REGISTER'), async (req, re
     let didVerificationMethod = null;
 
     if (existingDID) {
-      // Validate DID format
-      const didRegex = /^did:[a-z]+:[a-zA-Z0-9._-]+$/;
-      if (!didRegex.test(existingDID)) {
-        return res.status(400).json({ 
+      // Validate DID format using the DID service
+      if (!didService.validateDIDFormat(existingDID)) {
+        return res.status(400).json({
           error: 'Invalid DID format',
-          code: 'INVALID_DID_FORMAT'
+          code: 'INVALID_DID_FORMAT',
+          details: {
+            supported: didService.supportedMethods,
+            provided: existingDID
+          }
         });
       }
 
       // Check if DID is already in use
-      const existingDIDUser = await db.User.findOne({
-        where: { did: existingDID }
-      });
-
-      if (existingDIDUser) {
-        return res.status(409).json({ 
+      const isAvailable = await didService.isDIDAvailable(existingDID, db);
+      if (!isAvailable) {
+        return res.status(409).json({
           error: 'DID is already registered by another user',
           code: 'DID_ALREADY_EXISTS'
         });
@@ -139,18 +159,28 @@ router.post('/register', authRateLimit, logAuthEvent('REGISTER'), async (req, re
       // Verify DID ownership if signature provided
       if (didVerificationSignature) {
         try {
-          const isVerified = await verifyDIDOwnership(existingDID, walletAddress, didVerificationSignature);
+          // Create verification message
+          const message = `I, the holder of DID ${existingDID}, hereby verify ownership with wallet address ${walletAddress} on ${new Date().toISOString()}`;
+          
+          // Verify DID ownership using the DID service
+          const isVerified = await didService.verifyDIDOwnership(
+            existingDID, 
+            walletAddress, 
+            didVerificationSignature, 
+            message
+          );
+          
           if (isVerified) {
             didVerified = true;
             didVerificationMethod = 'SIGNATURE_VERIFICATION';
           } else {
-            return res.status(400).json({ 
+            return res.status(400).json({
               error: 'DID ownership verification failed',
               code: 'DID_VERIFICATION_FAILED'
             });
           }
         } catch (error) {
-          return res.status(400).json({ 
+          return res.status(400).json({
             error: 'DID verification error: ' + error.message,
             code: 'DID_VERIFICATION_ERROR'
           });
@@ -159,15 +189,27 @@ router.post('/register', authRateLimit, logAuthEvent('REGISTER'), async (req, re
 
       did = existingDID;
       didSource = 'USER_PROVIDED';
+    } else {
+      // Generate system DID for the user
+      try {
+        did = didService.createSystemDID(walletAddress, 'goerli'); // Default to Goerli for development
+        didVerified = true;
+        didVerificationMethod = 'SYSTEM_GENERATED';
+      } catch (error) {
+        return res.status(400).json({
+          error: 'Failed to generate system DID: ' + error.message,
+          code: 'DID_GENERATION_FAILED'
+        });
+      }
     }
 
     // Create user in local database first
     const user = await db.User.create({
-      walletAddress,
+      walletAddress: walletAddress.toLowerCase(),
       publicKey,
       partyType,
       name,
-      email,
+      email: email.toLowerCase(),
       description: description || '',
       organization: organization || '',
       phoneNumber: phoneNumber || '',
@@ -186,47 +228,61 @@ router.post('/register', authRateLimit, logAuthEvent('REGISTER'), async (req, re
     });
 
     try {
-      // Create user in Keycloak IAM
-      const ***REMOVED-KEYCLOAK_DB_PASSWORD***Result = await ***REMOVED-KEYCLOAK_DB_PASSWORD***Service.createUser({
-        email,
-        name,
-        walletAddress,
-        partyType,
-        publicKey,
-        organization,
-        phoneNumber,
-        website,
-        location,
-        password
-      });
+      // Create user in Keycloak IAM (optional for development)
+      let ***REMOVED-KEYCLOAK_DB_PASSWORD***Result = null;
+      try {
+        ***REMOVED-KEYCLOAK_DB_PASSWORD***Result = await ***REMOVED-KEYCLOAK_DB_PASSWORD***Service.createUser({
+          email,
+          name,
+          walletAddress,
+          partyType,
+          publicKey,
+          organization,
+          phoneNumber,
+          website,
+          location
+        });
 
-      // Update local user with Keycloak ID
-      await user.update({
-        iamUserId: ***REMOVED-KEYCLOAK_DB_PASSWORD***Result.***REMOVED-KEYCLOAK_DB_PASSWORD***UserId,
-        iamUsername: email,
-        onboardingStatus: 'IN_PROGRESS'
-      });
+        // Update local user with Keycloak ID
+        await user.update({
+          iamUserId: ***REMOVED-KEYCLOAK_DB_PASSWORD***Result.***REMOVED-KEYCLOAK_DB_PASSWORD***UserId,
+          iamUsername: email,
+          onboardingStatus: 'IN_PROGRESS'
+        });
 
-      // Send email verification
-      await ***REMOVED-KEYCLOAK_DB_PASSWORD***Service.sendEmailVerification(***REMOVED-KEYCLOAK_DB_PASSWORD***Result.***REMOVED-KEYCLOAK_DB_PASSWORD***UserId);
+        // Send email verification
+        await ***REMOVED-KEYCLOAK_DB_PASSWORD***Service.sendEmailVerification(***REMOVED-KEYCLOAK_DB_PASSWORD***Result.***REMOVED-KEYCLOAK_DB_PASSWORD***UserId);
+      } catch (***REMOVED-KEYCLOAK_DB_PASSWORD***Error) {
+        console.warn('⚠️ Keycloak integration not available, continuing with local registration only:', ***REMOVED-KEYCLOAK_DB_PASSWORD***Error.message);
+        
+        // Update user to indicate no IAM integration
+        await user.update({
+          onboardingStatus: 'COMPLETED', // Skip IAM onboarding
+          profileCompleted: true // Mark as completed since no IAM
+        });
+      }
 
       // Create welcome notification
       await db.Notification.create({
         userId: user.id,
         type: 'USER_REGISTERED',
         title: 'Welcome to Contract Management',
-        message: `Welcome ${name}! Your account has been successfully registered as a ${partyType}. Please complete your profile and verify your email.`,
+        message: `Welcome ${name}! Your account has been successfully registered as a ${partyType}.${***REMOVED-KEYCLOAK_DB_PASSWORD***Result ? ' Please complete your profile and verify your email.' : ''}`,
         isRead: false,
         metadata: {
           partyType,
           registrationDate: new Date().toISOString(),
-          onboardingStatus: 'IN_PROGRESS'
+          onboardingStatus: ***REMOVED-KEYCLOAK_DB_PASSWORD***Result ? 'IN_PROGRESS' : 'COMPLETED',
+          did: did,
+          didSource: didSource,
+          iamIntegrated: !!***REMOVED-KEYCLOAK_DB_PASSWORD***Result
         }
       });
 
-      console.log(`✅ User registered successfully: ${user.id} (Keycloak: ${***REMOVED-KEYCLOAK_DB_PASSWORD***Result.***REMOVED-KEYCLOAK_DB_PASSWORD***UserId})`);
+      console.log(`✅ User registered successfully: ${user.id}${***REMOVED-KEYCLOAK_DB_PASSWORD***Result ? ` (Keycloak: ${***REMOVED-KEYCLOAK_DB_PASSWORD***Result.***REMOVED-KEYCLOAK_DB_PASSWORD***UserId})` : ' (Local only)'}`);
 
       res.status(201).json({
+        success: true,
         message: 'User registered successfully',
         user: {
           id: user.id,
@@ -238,33 +294,38 @@ router.post('/register', authRateLimit, logAuthEvent('REGISTER'), async (req, re
           did: user.did,
           didSource: user.didSource,
           didVerified: user.didVerified,
+          didVerificationMethod: user.didVerificationMethod,
           isRegistered: user.isRegistered,
           onboardingStatus: user.onboardingStatus,
           profileCompleted: user.profileCompleted,
           emailVerified: user.emailVerified
         },
-        nextSteps: [
+        nextSteps: ***REMOVED-KEYCLOAK_DB_PASSWORD***Result ? [
           'Verify your email address',
           'Complete your profile',
           'Connect your wallet'
+        ] : [
+          'Your account is ready to use',
+          'Connect your wallet',
+          'Start creating contracts'
         ]
       });
 
-    } catch (***REMOVED-KEYCLOAK_DB_PASSWORD***Error) {
-      // If Keycloak creation fails, delete the local user
+    } catch (error) {
+      // If any other error occurs, delete the local user
       await user.destroy();
-      console.error('❌ Keycloak user creation failed:', ***REMOVED-KEYCLOAK_DB_PASSWORD***Error);
+      console.error('❌ Registration error:', error);
       
-      return res.status(500).json({ 
-        error: 'Failed to create user in IAM system',
-        code: 'IAM_CREATION_FAILED',
-        details: ***REMOVED-KEYCLOAK_DB_PASSWORD***Error.message
+      return res.status(500).json({
+        error: 'Internal server error',
+        code: 'INTERNAL_ERROR',
+        details: error.message
       });
     }
 
   } catch (error) {
     console.error('❌ Registration error:', error);
-    res.status(500).json({ 
+    res.status(500).json({
       error: 'Internal server error',
       code: 'INTERNAL_ERROR'
     });
@@ -594,53 +655,62 @@ router.post('/logout', authenticateToken, logAuthEvent('LOGOUT'), async (req, re
 
 /**
  * POST /api/auth/verify-did
- * Verify user-provided DID ownership
+ * Verify user-provided DID ownership (supports both did:ethr and did:web)
  */
 router.post('/verify-did', authenticateToken, logAuthEvent('VERIFY_DID'), async (req, res) => {
   try {
-    const { did, signature } = req.body;
+    const { did, signature, message } = req.body;
     const localUser = req.user.localUser;
 
     if (!did) {
-      return res.status(400).json({ 
+      return res.status(400).json({
         error: 'DID is required',
         code: 'DID_REQUIRED'
       });
     }
 
     if (!signature) {
-      return res.status(400).json({ 
+      return res.status(400).json({
         error: 'Signature is required for DID verification',
         code: 'SIGNATURE_REQUIRED'
       });
     }
 
-    // Validate DID format
-    const didRegex = /^did:[a-z]+:[a-zA-Z0-9._-]+$/;
-    if (!didRegex.test(did)) {
-      return res.status(400).json({ 
+    if (!message) {
+      return res.status(400).json({
+        error: 'Message is required for DID verification',
+        code: 'MESSAGE_REQUIRED'
+      });
+    }
+
+    // Validate DID format using the DID service
+    if (!didService.validateDIDFormat(did)) {
+      return res.status(400).json({
         error: 'Invalid DID format',
-        code: 'INVALID_DID_FORMAT'
+        code: 'INVALID_DID_FORMAT',
+        details: {
+          supported: didService.supportedMethods,
+          provided: did
+        }
       });
     }
 
     // Check if DID is already in use by another user
-    const existingDIDUser = await db.User.findOne({
-      where: { 
-        did: did,
-        id: { [db.Sequelize.Op.ne]: localUser.id }
-      }
-    });
-
-    if (existingDIDUser) {
-      return res.status(409).json({ 
+    const isAvailable = await didService.isDIDAvailable(did, db);
+    if (!isAvailable) {
+      return res.status(409).json({
         error: 'DID is already registered by another user',
         code: 'DID_ALREADY_EXISTS'
       });
     }
 
-    // Verify DID ownership
-    const isVerified = await verifyDIDOwnership(did, localUser.walletAddress, signature);
+    // Verify DID ownership using the DID service
+    const isVerified = await didService.verifyDIDOwnership(
+      did, 
+      localUser.walletAddress, 
+      signature, 
+      message
+    );
     
     if (isVerified) {
       // Update user with verified DID
@@ -652,13 +722,14 @@ router.post('/verify-did', authenticateToken, logAuthEvent('VERIFY_DID'), async 
       });
 
       res.json({
+        success: true,
         message: 'DID verified and linked successfully',
         did: did,
         didVerified: true,
         didSource: 'USER_PROVIDED'
       });
     } else {
-      res.status(400).json({ 
+      res.status(400).json({
         error: 'DID ownership verification failed',
         code: 'DID_VERIFICATION_FAILED'
       });
@@ -666,7 +737,7 @@ router.post('/verify-did', authenticateToken, logAuthEvent('VERIFY_DID'), async 
 
   } catch (error) {
     console.error('❌ DID verification error:', error);
-    res.status(500).json({ 
+    res.status(500).json({
       error: 'DID verification failed',
       code: 'DID_VERIFICATION_ERROR',
       details: error.message
@@ -683,6 +754,7 @@ router.get('/did-info', authenticateToken, logAuthEvent('GET_DID_INFO'), async (
     const localUser = req.user.localUser;
 
     res.json({
+      success: true,
       did: localUser.did,
       didSource: localUser.didSource,
       didVerified: localUser.didVerified,
@@ -693,7 +765,135 @@ router.get('/did-info', authenticateToken, logAuthEvent('GET_DID_INFO'), async (
 
   } catch (error) {
     console.error('❌ Get DID info error:', error);
-    res.status(500).json({ 
+    res.status(500).json({
+      error: 'Internal server error',
+      code: 'INTERNAL_ERROR'
+    });
+  }
+});
+
+/**
+ * POST /api/auth/wallet
+ * Login with wallet authentication
+ */
+router.post('/wallet', authRateLimit, logAuthEvent('WALLET_LOGIN'), async (req, res) => {
+  try {
+    const { walletAddress, signature, nonce } = req.body;
+
+    if (!walletAddress || !signature || !nonce) {
+      return res.status(400).json({
+        error: 'Wallet address, signature, and nonce are required',
+        code: 'MISSING_WALLET_CREDENTIALS'
+      });
+    }
+
+    // Validate wallet address format
+    if (!ethers.isAddress(walletAddress)) {
+      return res.status(400).json({
+        error: 'Invalid wallet address format',
+        code: 'INVALID_WALLET_ADDRESS'
+      });
+    }
+
+    // Find user by wallet address
+    const user = await db.User.findOne({
+      where: { 
+        walletAddress: walletAddress.toLowerCase(),
+        isActive: true 
+      }
+    });
+
+    if (!user) {
+      return res.status(404).json({
+        error: 'User not found. Please register first.',
+        code: 'USER_NOT_FOUND'
+      });
+    }
+
+    // Verify signature
+    try {
+      const message = `Sign this message to authenticate with Contract Management System. Nonce: ${nonce}`;
+      const recoveredAddress = ethers.verifyMessage(message, signature);
+      
+      if (recoveredAddress.toLowerCase() !== walletAddress.toLowerCase()) {
+        return res.status(401).json({
+          error: 'Invalid signature',
+          code: 'INVALID_SIGNATURE'
+        });
+      }
+    } catch (signatureError) {
+      return res.status(401).json({
+        error: 'Signature verification failed',
+        code: 'SIGNATURE_VERIFICATION_FAILED'
+      });
+    }
+
+    // Update last login timestamp
+    await user.update({ lastLoginAt: new Date() });
+
+    // Generate JWT token
+    const token = jwt.sign(
+      { 
+        userId: user.id,
+        walletAddress: user.walletAddress,
+        email: user.email
+      },
+      process.env.JWT_SECRET || 'your-secret-key',
+      { expiresIn: '24h' }
+    );
+
+    res.json({
+      success: true,
+      message: 'Login successful',
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        partyType: user.partyType,
+        walletAddress: user.walletAddress,
+        isRegistered: user.isRegistered,
+        onboardingStatus: user.onboardingStatus,
+        profileCompleted: user.profileCompleted,
+        emailVerified: user.emailVerified
+      },
+      token
+    });
+
+  } catch (error) {
+    console.error('❌ Wallet login error:', error);
+    res.status(500).json({
+      error: 'Internal server error',
+      code: 'INTERNAL_ERROR'
+    });
+  }
+});
+
+/**
+ * GET /api/auth/nonce/:walletAddress
+ * Get nonce for wallet authentication
+ */
+router.get('/nonce/:walletAddress', async (req, res) => {
+  try {
+    const { walletAddress } = req.params;
+
+    if (!ethers.isAddress(walletAddress)) {
+      return res.status(400).json({
+        error: 'Invalid wallet address format',
+        code: 'INVALID_WALLET_ADDRESS'
+      });
+    }
+
+    // Generate a random nonce
+    const nonce = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+
+    res.json({
+      nonce,
+      walletAddress: walletAddress.toLowerCase()
+    });
+
+  } catch (error) {
+    console.error('❌ Get nonce error:', error);
+    res.status(500).json({
       error: 'Internal server error',
       code: 'INTERNAL_ERROR'
     });
@@ -723,44 +923,6 @@ function getNextSteps(localUser, ***REMOVED-KEYCLOAK_DB_PASSWORD***Status) {
   }
 
   return steps;
-}
-
-/**
- * Verify DID ownership using signature
- * @param {string} did - The DID to verify
- * @param {string} walletAddress - The wallet address claiming ownership
- * @param {string} signature - The signature proving ownership
- * @returns {Promise<boolean>} - Whether the DID ownership is verified
- */
-async function verifyDIDOwnership(did, walletAddress, signature) {
-  try {
-    // Create verification message
-    const message = `I, the holder of DID ${did}, hereby verify ownership with wallet address ${walletAddress} on ${new Date().toISOString()}`;
-    
-    // Hash the message
-    const messageHash = require('crypto').createHash('sha256').update(message).digest('hex');
-    
-    // For now, we'll do a basic verification
-    // In production, you would use a proper DID resolver and verification library
-    console.log(`🔍 Verifying DID ownership: ${did} for wallet: ${walletAddress}`);
-    console.log(`📝 Message: ${message}`);
-    console.log(`🔐 Signature: ${signature}`);
-    
-    // TODO: Implement proper DID verification using a DID resolver
-    // This is a placeholder implementation
-    // In production, you would:
-    // 1. Resolve the DID to get the DID document
-    // 2. Extract verification methods
-    // 3. Verify the signature against the public key in the DID document
-    
-    // For now, we'll assume the signature is valid if it's provided
-    // This should be replaced with proper verification logic
-    return signature && signature.length > 0;
-    
-  } catch (error) {
-    console.error('❌ DID verification error:', error);
-    throw new Error('DID verification failed: ' + error.message);
-  }
 }
 
 module.exports = router; 

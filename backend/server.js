@@ -11,9 +11,10 @@ const blockchainService = require('./services/blockchainService');
 const contractsRouter = require('./routes/contracts');
 const datasetsRouter = require('./routes/datasets');
 const authRouter = require('./routes/auth');
+const didRouter = require('./routes/did');
 
 const app = express();
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 8000;
 
 // Security middleware
 app.use(helmet());
@@ -26,10 +27,32 @@ const limiter = rateLimit({
 app.use(limiter);
 
 // CORS configuration
-app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:3000',
-  credentials: true
-}));
+const corsOptions = {
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    
+    const allowedOrigins = [
+      'http://localhost:3000',
+      'http://localhost:3001',
+      'http://127.0.0.1:3000',
+      'http://127.0.0.1:3001',
+      process.env.FRONTEND_URL
+    ].filter(Boolean);
+    
+    if (allowedOrigins.indexOf(origin) !== -1 || process.env.NODE_ENV === 'development') {
+      callback(null, true);
+    } else {
+      console.log('🚫 [CORS] Blocked origin:', origin);
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
+};
+
+app.use(cors(corsOptions));
 
 // Body parsing middleware
 app.use(express.json({ limit: '10mb' }));
@@ -48,6 +71,7 @@ app.get('/health', (req, res) => {
 app.use('/api/auth', authRouter);
 app.use('/api/contracts', contractsRouter);
 app.use('/api/datasets', datasetsRouter);
+app.use('/api/did', didRouter);
 
 // Users routes (basic CRUD)
 app.get('/api/users', async (req, res) => {
@@ -427,9 +451,14 @@ async function initializeServices() {
     await db.sequelize.authenticate();
     console.log('Database connection established successfully.');
 
-    // Initialize blockchain service
-    await blockchainService.initialize();
-    console.log('Blockchain service initialized successfully.');
+    // Initialize blockchain service (optional for development)
+    try {
+      await blockchainService.initialize();
+      console.log('Blockchain service initialized successfully.');
+    } catch (blockchainError) {
+      console.warn('⚠️  Blockchain service initialization failed (optional for development):', blockchainError.message);
+      console.log('ℹ️  The application will continue without blockchain functionality.');
+    }
 
     // Start server
     app.listen(PORT, () => {

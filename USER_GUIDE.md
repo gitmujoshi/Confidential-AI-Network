@@ -1,342 +1,433 @@
 # User Guide
-## How to Use the Contract Management System
+## Contract Management System
 
-**Document Version:** 2.0  
-**Date:** December 2024  
-**Author:** Contract Management System Team
+**Version:** 2.0  
+**Date:** December 2024
 
 ---
 
 ## Table of Contents
 
 1. [Getting Started](#getting-started)
-2. [User Registration](#user-registration)
+2. [Account Registration](#account-registration)
 3. [DID Management](#did-management)
-4. [Profile Management](#profile-management)
-5. [Contract Management](#contract-management)
-6. [Dataset Management](#dataset-management)
-7. [Notifications](#notifications)
-8. [Security Best Practices](#security-best-practices)
-9. [Troubleshooting](#troubleshooting)
+4. [Contract Management](#contract-management)
+5. [Dataset Management](#dataset-management)
+6. [User Profile](#user-profile)
+7. [Security Best Practices](#security-best-practices)
+8. [Troubleshooting](#troubleshooting)
 
 ---
 
-## 1. Getting Started
+## Getting Started
 
 ### System Overview
-The Contract Management System is a blockchain-based platform that enables secure, verifiable contract creation and management between Training Data Providers (TDPs), Training Data Consumers (TDCs), and Confidential Clean Room Providers (CCRPs).
+The Contract Management System is a blockchain-based platform that enables secure, transparent contract management between Training Data Providers (TDP), Training Data Consumers (TDC), and Confidential Clean Room Providers (CCRP).
 
-### User Roles
-- **TDP (Training Data Provider)**: Organizations that own and provide training datasets
-- **TDC (Training Data Consumer)**: Organizations that purchase and use training data
-- **CCRP (Confidential Clean Room Provider)**: Independent reviewers who validate contracts for compliance
+### Key Features
+- **Decentralized Identity**: Use DIDs for self-sovereign identity
+- **Smart Contracts**: Automated contract execution on Ethereum
+- **Multi-Party Support**: TDP, TDC, and CCRP roles
+- **Enterprise IAM**: Keycloak integration for enterprise security
+- **Real-time Tracking**: Live contract status monitoring
 
 ### Prerequisites
-- A modern web browser (Chrome, Firefox, Safari, Edge)
-- MetaMask or compatible Web3 wallet extension
-- Access to the platform URL
-- Valid email address for account verification
+- **Web Browser**: Chrome, Firefox, Safari, or Edge
+- **MetaMask**: Ethereum wallet extension
+- **Ethereum Network**: Goerli testnet (for development)
+- **Organization Domain**: For web-based DIDs (optional)
 
 ---
 
-## 2. User Registration
+## Account Registration
 
-### Step 1: Access the Platform
-1. Navigate to the platform URL in your web browser
-2. Click "Create Account" or "Register" to begin the registration process
+### Step 1: Connect Your Wallet
+1. Open the application in your browser
+2. Click "Connect MetaMask" button
+3. Approve the connection in MetaMask
+4. Ensure you're connected to the correct network (Goerli testnet for development)
 
-### Step 2: Connect Your Wallet
-1. Click "Connect MetaMask" to link your wallet
-2. Approve the connection request in MetaMask
-3. Ensure your wallet is connected to the correct network (Goerli for testing, Mainnet for production)
+### Step 2: Choose Your DID Method
 
-### Step 3: DID Selection
-You have two options for your digital identity:
+#### Option A: System-Generated DID (did:ethr)
+- **Best for**: Individual users with Ethereum wallets
+- **Process**: System automatically creates a DID from your wallet address
+- **Format**: `did:ethr:goerli:0x[your-wallet-address]`
+- **Benefits**: No setup required, fully decentralized
 
-#### Option A: Use System-Generated DID
-- Leave the "I have an existing DID" option unchecked
-- The system will automatically create a new DID for you
-- This DID will be linked to your wallet address
-- Suitable for new users or those without existing DIDs
+#### Option B: User-Provided DID (did:ethr)
+- **Best for**: Users with existing Ethereum-based DIDs
+- **Process**: Enter your existing DID and verify ownership
+- **Example**: `did:ethr:mainnet:0x1234567890abcdef...`
+- **Benefits**: Maintains identity continuity across platforms
 
-#### Option B: Use Your Existing DID
-- Check the "I have an existing DID" option
-- Enter your existing DID in the provided field
-- Click "Verify DID Ownership" to prove you control the DID
-- Sign the verification message with your wallet
-- This maintains your digital identity across platforms
+#### Option C: User-Provided DID (did:web)
+- **Best for**: Organizations with web domains
+- **Process**: Enter your organization's web-based DID
+- **Example**: `did:web:company.com:user:alice`
+- **Benefits**: Cost-effective, organization-controlled
 
-### Step 4: Complete Registration
-1. Fill in your personal information (name, email, organization)
-2. Select your role (TDP, TDC, or CCRP)
-3. Add additional profile information (phone, website, location)
-4. Review and submit your registration
+### Step 3: Complete Registration
+1. Fill in your profile information:
+   - Full name
+   - Email address
+   - Organization (optional)
+   - Phone number (optional)
+   - Website (optional)
+   - Location (optional)
 
-### Step 5: Email Verification
-1. Check your email for a verification link
-2. Click the link to verify your email address
-3. Return to the platform to complete onboarding
+2. Select your role:
+   - **TDP (Training Data Provider)**: Dataset owners who create and manage datasets
+   - **TDC (Training Data Consumer)**: Contract initiators who create contracts
+   - **CCRP (Confidential Clean Room Provider)**: Compliance reviewers who sign contracts
+
+3. If using a user-provided DID:
+   - Enter your existing DID
+   - Verify DID ownership through wallet signature
+   - Wait for DID verification to complete
+
+4. Submit registration and wait for confirmation
 
 ---
 
-## 3. DID Management
+## DID Management
 
 ### Understanding DIDs
-A Decentralized Identifier (DID) is your digital identity on the blockchain. It's like a digital passport that proves who you are without revealing personal information.
+Decentralized Identifiers (DIDs) are your digital identity on the blockchain or web. They provide:
+- **Self-ownership**: You control your identity completely
+- **Portability**: Use the same DID across multiple platforms
+- **Verifiability**: Others can prove you are who you claim to be
+- **Privacy**: You choose what information to share
 
-### DID Types
-- **System-Generated DIDs**: Created automatically by the platform
-- **User-Provided DIDs**: DIDs you bring from other platforms or create yourself
+### DID Method Comparison
 
-### DID Verification
-When you provide an existing DID, the system verifies your ownership by:
-1. Checking the DID format is correct
-2. Ensuring the DID isn't already registered
-3. Requiring you to sign a message with your wallet
-4. Verifying the signature matches your DID
-
-### DID Benefits
-- **Identity Continuity**: Use the same identity across platforms
-- **Self-Sovereign**: You control your own identity
-- **Privacy-Preserving**: Choose what information to reveal
-- **Verifiable**: Cryptographic proof of identity
+| Feature | did:ethr | did:web |
+|---------|----------|---------|
+| **Best For** | Individual users | Organizations |
+| **Infrastructure** | Ethereum blockchain | Web servers |
+| **Cost** | Gas fees | Hosting costs |
+| **Speed** | Slower (blockchain) | Fast (HTTP) |
+| **Control** | Wallet owner | Domain owner |
+| **Decentralization** | Fully decentralized | Centralized hosting |
+| **Setup** | Simple (wallet) | Moderate (web server) |
 
 ### Managing Your DID
-- View your DID information in your profile
-- Check verification status
-- Update DID if needed (contact support)
-- Monitor DID activity and usage
+
+#### Viewing DID Information
+1. Go to your profile page
+2. View your DID details:
+   - DID string
+   - DID method (ethr or web)
+   - Verification status
+   - Creation date
+   - Last verification date
+
+#### DID Verification Status
+- **Active**: Your DID is working normally
+- **Pending Verification**: Waiting for ownership verification
+- **Verification Failed**: Ownership verification was unsuccessful
+- **Suspended**: Temporarily disabled (rare)
+
+#### Updating Your DID
+In most cases, your DID remains the same. You may need to update it if:
+- You change your wallet address (for did:ethr)
+- Your organization changes domains (for did:web)
+- Your DID becomes compromised
+- You want to use a different DID method
+
+### DID Security Best Practices
+
+#### For did:ethr Users:
+- Never share your private keys
+- Use hardware wallets for high-value DIDs
+- Backup your keys securely
+- Use multi-signature setups when possible
+
+#### For did:web Users:
+- Ensure your web server is properly secured
+- Always use HTTPS for DID document hosting
+- Protect your domain registration
+- Keep SSL certificates up to date
 
 ---
 
-## 4. Profile Management
+## Contract Management
 
-### Accessing Your Profile
-1. Log into the platform
-2. Click on your name or avatar in the top navigation
-3. Select "Profile" or "Account Settings"
+### Understanding Contract Roles
 
-### Profile Information
-- **Personal Details**: Name, email, phone number
-- **Organization**: Company name, job title, department
-- **Contact Information**: Website, location, description
-- **Identity Information**: DID, wallet address, verification status
+#### TDP (Training Data Provider)
+- **Responsibilities**: Create and manage datasets, set pricing, approve contracts
+- **Permissions**: Dataset creation, contract approval, usage analytics
+- **Workflow**: Create dataset → Set pricing → Review contract requests → Sign contracts
 
-### Updating Your Profile
-1. Click "Edit Profile" or the edit icon
-2. Modify the information you want to change
-3. Save your changes
-4. Some fields may require verification before updating
+#### TDC (Training Data Consumer)
+- **Responsibilities**: Browse datasets, initiate contracts, manage negotiations
+- **Permissions**: Dataset browsing, contract creation, payment management
+- **Workflow**: Browse datasets → Initiate contract → Negotiate terms → Sign contract
 
-### Profile Completion
-- Complete profiles have better visibility in the system
-- Some features require a complete profile
-- Profile completion status is shown in your dashboard
+#### CCRP (Confidential Clean Room Provider)
+- **Responsibilities**: Review compliance, verify privacy requirements, sign contracts
+- **Permissions**: Compliance review, contract signing, audit access
+- **Workflow**: Review contract → Verify compliance → Sign contract → Monitor execution
 
----
+### Creating a Contract
 
-## 5. Contract Management
+#### Step 1: Contract Initiation (TDC)
+1. Navigate to "Contracts" → "Create Contract"
+2. Select the datasets you want to access
+3. Choose the TDP (dataset owner)
+4. Select a CCRP for compliance review
+5. Set contract terms and duration
+6. Specify compensation amount
+7. Submit contract for review
 
-### Creating Contracts (TDC Role)
+#### Step 2: TDP Review
+1. Receive notification of new contract request
+2. Review contract terms and compensation
+3. Approve or reject the contract
+4. If approved, contract moves to CCRP review
 
-#### Step 1: Browse Datasets
-1. Navigate to the "Datasets" section
-2. Browse available datasets from TDPs
-3. Review dataset descriptions, pricing, and terms
-4. Select a dataset that meets your needs
+#### Step 3: CCRP Review
+1. Receive notification of contract for review
+2. Review compliance requirements
+3. Verify data privacy measures
+4. Approve or reject the contract
+5. If approved, contract is ready for signing
 
-#### Step 2: Select CCRP
-1. Choose a Confidential Clean Room Provider for contract review
-2. Review CCRP profiles and compliance history
-3. Select a CCRP that meets your requirements
+#### Step 4: Contract Signing
+1. All parties receive signing notification
+2. Review final contract terms
+3. Sign contract using your DID
+4. Contract becomes active upon all signatures
 
-#### Step 3: Create Contract
-1. Click "Create Contract" on your selected dataset
-2. Fill in contract details and terms
-3. Review all information carefully
-4. Submit the contract for review
+### Managing Contracts
 
-#### Step 4: Sign Contract
-1. Review the contract terms
-2. Sign the contract using your wallet
-3. Wait for other parties to sign
-4. Monitor contract status
+#### Viewing Contracts
+- **All Contracts**: See all contracts you're involved in
+- **My Contracts**: Filter by your role (TDP, TDC, CCRP)
+- **Contract Status**: Track contract lifecycle stages
+- **Contract Details**: View full contract information
 
-### Managing Contracts (TDP Role)
+#### Contract Status Tracking
+- **Draft**: Contract being created
+- **Pending TDP**: Waiting for TDP approval
+- **Pending CCRP**: Waiting for CCRP review
+- **Ready to Sign**: All approvals received
+- **Active**: Contract is signed and active
+- **Completed**: Contract execution finished
+- **Cancelled**: Contract was cancelled
 
-#### Auto-Signing
-- TDP contracts are automatically signed when created by TDCs
-- You'll receive notifications when contracts are created
-- Review contract history in your dashboard
-
-#### Contract Monitoring
-- Track all contracts involving your datasets
-- Monitor contract status and execution
-- View payment and usage analytics
-
-### Reviewing Contracts (CCRP Role)
-
-#### Contract Review Process
-1. Receive notifications for new contract reviews
-2. Review contract terms and conditions
-3. Verify compliance with regulations
-4. Sign contracts after approval
-5. Maintain audit trail of decisions
-
-#### Compliance Validation
-- Check data privacy requirements
-- Verify security measures
-- Ensure regulatory compliance
-- Document review decisions
+#### Contract Actions
+- **View Details**: See complete contract information
+- **Download**: Export contract as PDF
+- **Update Status**: Change contract status (if authorized)
+- **Add Comments**: Add notes to contract
+- **Request Changes**: Propose contract modifications
 
 ---
 
-## 6. Dataset Management
+## Dataset Management
 
-### Creating Datasets (TDP Role)
+### Creating Datasets (TDP Only)
 
 #### Step 1: Dataset Information
-1. Navigate to "My Datasets" section
-2. Click "Create New Dataset"
-3. Enter dataset name and description
-4. Specify data type and format
+1. Navigate to "Datasets" → "Create Dataset"
+2. Enter dataset name and description
+3. Select dataset type and format
+4. Specify dataset size and characteristics
+5. Add metadata and tags
 
-#### Step 2: Access Controls
-1. Set access permissions and restrictions
-2. Define usage terms and conditions
-3. Specify pricing and payment terms
-4. Set data retention policies
+#### Step 2: Access Control
+1. Set access permissions
+2. Define pricing structure
+3. Specify usage terms
+4. Set data privacy requirements
 
-#### Step 3: Upload and Publish
-1. Upload dataset files or provide access links
-2. Review all information
-3. Publish the dataset
-4. Monitor access and usage
+#### Step 3: Publication
+1. Review dataset information
+2. Publish dataset to marketplace
+3. Monitor dataset usage and analytics
 
-### Managing Existing Datasets
-- Update dataset information
-- Modify access controls
-- Monitor usage and analytics
-- Handle access requests
+### Managing Datasets
+
+#### Dataset Dashboard
+- **Overview**: Dataset statistics and usage
+- **Access Requests**: Review access requests
+- **Analytics**: Usage patterns and metrics
+- **Revenue**: Earnings from dataset access
+
+#### Dataset Actions
+- **Edit**: Update dataset information
+- **Pause**: Temporarily disable access
+- **Archive**: Remove from marketplace
+- **Delete**: Permanently remove dataset
+
+### Browsing Datasets (TDC)
+
+#### Search and Filter
+- **Search**: Find datasets by name or description
+- **Filter**: Filter by type, format, price, or provider
+- **Sort**: Sort by relevance, price, or date
+
+#### Dataset Details
+- **Information**: Complete dataset description
+- **Pricing**: Cost and payment terms
+- **Terms**: Usage and access conditions
+- **Provider**: TDP information and rating
 
 ---
 
-## 7. Notifications
+## User Profile
 
-### Notification Types
-- **Contract Updates**: New contracts, signatures, status changes
-- **Profile Updates**: Verification status, profile completion
-- **System Alerts**: Security notices, maintenance updates
-- **DID Updates**: Verification status, ownership changes
+### Profile Management
 
-### Managing Notifications
-- View notifications in the notification center
-- Mark notifications as read
-- Configure notification preferences
-- Set up email notifications
+#### Personal Information
+- **Basic Info**: Name, email, phone number
+- **Organization**: Company and role information
+- **Location**: Geographic location and timezone
+- **Website**: Personal or company website
 
-### Email Notifications
-- Contract status updates
-- Profile verification confirmations
-- Security alerts
-- System maintenance notices
+#### Professional Information
+- **Role**: TDP, TDC, or CCRP designation
+- **Specializations**: Areas of expertise
+- **Experience**: Years of experience and background
+- **Certifications**: Professional certifications
+
+#### Security Settings
+- **Password**: Change account password
+- **Two-Factor Authentication**: Enable MFA
+- **Session Management**: Manage active sessions
+- **Privacy Settings**: Control data sharing
+
+### Account Settings
+
+#### Notifications
+- **Email Notifications**: Contract updates and alerts
+- **Push Notifications**: Real-time updates
+- **Frequency**: Daily, weekly, or immediate
+- **Types**: Contract, dataset, or system notifications
+
+#### Preferences
+- **Language**: Interface language
+- **Timezone**: Local timezone
+- **Currency**: Preferred currency for pricing
+- **Theme**: Light or dark mode
 
 ---
 
-## 8. Security Best Practices
-
-### Wallet Security
-- **Never share your private keys** with anyone
-- **Use hardware wallets** for high-value operations
-- **Keep your wallet software updated**
-- **Backup your wallet securely**
+## Security Best Practices
 
 ### Account Security
-- **Use strong passwords** for your account
-- **Enable two-factor authentication** if available
-- **Log out when not using the platform**
-- **Monitor account activity regularly**
+- **Strong Passwords**: Use complex, unique passwords
+- **Two-Factor Authentication**: Enable MFA for all accounts
+- **Regular Updates**: Keep software and browsers updated
+- **Secure Networks**: Avoid public WiFi for sensitive operations
 
 ### DID Security
-- **Verify your DID ownership** regularly
-- **Keep your DID credentials secure**
-- **Monitor DID usage and activity**
-- **Report suspicious activity immediately**
+- **Private Key Protection**: Never share private keys
+- **Hardware Wallets**: Use hardware wallets for high-value DIDs
+- **Key Backup**: Securely backup your keys
+- **Regular Audits**: Periodically verify your DID status
 
-### General Security
-- **Use secure networks** (avoid public WiFi)
-- **Keep your browser updated**
-- **Be cautious of phishing attempts**
-- **Report security issues to support**
+### Contract Security
+- **Review Terms**: Carefully review all contract terms
+- **Verify Parties**: Confirm the identity of all parties
+- **Secure Signing**: Use secure devices for contract signing
+- **Audit Trail**: Keep records of all contract activities
+
+### Data Security
+- **Access Control**: Only grant necessary permissions
+- **Data Encryption**: Ensure data is encrypted in transit
+- **Regular Backups**: Backup important data regularly
+- **Incident Response**: Know how to report security incidents
 
 ---
 
-## 9. Troubleshooting
+## Troubleshooting
 
 ### Common Issues
 
 #### Wallet Connection Problems
-- **Issue**: MetaMask not connecting
-- **Solution**: Check if MetaMask is installed and unlocked
-- **Solution**: Ensure you're on the correct network
-- **Solution**: Try refreshing the page and reconnecting
+**Problem**: MetaMask won't connect
+**Solutions**:
+- Ensure MetaMask is installed and unlocked
+- Check that you're on the correct network
+- Try refreshing the page
+- Clear browser cache and cookies
 
 #### DID Verification Issues
-- **Issue**: DID verification failing
-- **Solution**: Ensure your wallet address matches your DID
-- **Solution**: Try signing the verification message again
-- **Solution**: Check if your DID is still active and resolvable
+**Problem**: DID verification fails
+**Solutions**:
+- Check DID format is correct
+- Ensure wallet address matches DID controller
+- Try signing the verification message again
+- Verify your DID is still active
 
-#### Contract Signing Problems
-- **Issue**: Unable to sign contracts
-- **Solution**: Ensure your wallet is connected and unlocked
-- **Solution**: Check if you have sufficient funds for gas fees
-- **Solution**: Verify you're on the correct network
+#### Contract Creation Problems
+**Problem**: Can't create contract
+**Solutions**:
+- Verify all required fields are filled
+- Check that selected parties are valid
+- Ensure you have sufficient permissions
+- Try refreshing the page
 
-#### Profile Update Issues
-- **Issue**: Cannot update profile information
-- **Solution**: Check if all required fields are filled
-- **Solution**: Ensure your email is verified
-- **Solution**: Contact support if issues persist
+#### Dataset Access Issues
+**Problem**: Can't access datasets
+**Solutions**:
+- Check if you have active contracts
+- Verify payment has been made
+- Contact the dataset provider
+- Check your account status
 
 ### Getting Help
-1. **Check the FAQ**: Common solutions are documented
-2. **Review error messages**: Look for specific error details
-3. **Contact support**: Provide detailed information about the issue
-4. **Community forum**: Ask questions in the user community
 
-### Support Information
+#### Self-Service Resources
+- **Documentation**: Check the documentation guides
+- **FAQ**: Review frequently asked questions
+- **Video Tutorials**: Watch step-by-step guides
+- **Community Forum**: Ask questions in the community
+
+#### Contact Support
 - **Email**: support@contractmanagement.com
-- **Documentation**: Check the guides and FAQs
-- **Community**: Join the user community forum
-- **Emergency**: Contact support for urgent issues
+- **Live Chat**: Available during business hours
+- **Phone**: +1-800-CONTRACT
+- **Ticket System**: Submit support tickets
+
+#### Escalation Process
+1. **Self-Service**: Try documentation and FAQ first
+2. **Community Support**: Ask in community forum
+3. **Email Support**: Contact support team
+4. **Phone Support**: Call for urgent issues
+5. **Escalation**: Request manager review if needed
 
 ---
 
-## 10. Advanced Features
+## Advanced Features
 
-### Multi-DID Support
-- Link multiple DIDs to your account
-- Use different DIDs for different purposes
-- Manage DID permissions and access
+### DID Delegation
+- **Temporary Access**: Grant temporary access to your DID
+- **Limited Permissions**: Restrict what delegated keys can do
+- **Time Limits**: Set expiration dates for delegations
+- **Revocation**: Revoke delegations when needed
+
+### Multi-Signature Contracts
+- **Multiple Signers**: Require multiple parties to sign
+- **Threshold Signing**: Set minimum number of required signatures
+- **Role-Based Signing**: Different roles have different signing requirements
+- **Audit Trail**: Complete record of all signing activities
 
 ### Contract Templates
-- Save frequently used contract terms
-- Create standardized contract templates
-- Speed up contract creation process
+- **Pre-built Templates**: Use standard contract templates
+- **Custom Templates**: Create your own templates
+- **Template Library**: Access shared template library
+- **Version Control**: Track template changes and updates
 
 ### Analytics and Reporting
-- View contract analytics and metrics
-- Generate compliance reports
-- Monitor system usage and performance
-
-### API Access
-- Programmatic access to platform features
-- Integration with external systems
-- Automated contract management
+- **Contract Analytics**: Track contract performance
+- **Usage Reports**: Monitor dataset usage
+- **Revenue Reports**: Track earnings and payments
+- **Compliance Reports**: Generate compliance documentation
 
 ---
-
-**Note**: This guide is continuously updated. For the latest information, check the platform documentation or contact support.
 
 **User Guide End** 

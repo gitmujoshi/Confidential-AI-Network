@@ -78,7 +78,8 @@ class KeycloakService {
         }), {
           headers: {
             'Content-Type': 'application/x-www-form-urlencoded'
-          }
+          },
+          timeout: 5000 // 5 second timeout
         }
       );
 
@@ -187,7 +188,8 @@ class KeycloakService {
           headers: {
             'Authorization': `Bearer ${adminToken}`,
             'Content-Type': 'application/json'
-          }
+          },
+          timeout: 10000 // 10 second timeout
         }
       );
 
