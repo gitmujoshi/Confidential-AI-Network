@@ -196,6 +196,7 @@ router.post('/register', authRateLimit, logAuthEvent('REGISTER'), async (req, re
     // --- KEYCLOAK USER CREATION FIRST ---
     let ***REMOVED-KEYCLOAK_DB_PASSWORD***Result = null;
     let ***REMOVED-KEYCLOAK_DB_PASSWORD***Success = false;
+    let temporaryPassword = null;
     try {
       ***REMOVED-KEYCLOAK_DB_PASSWORD***Result = await ***REMOVED-KEYCLOAK_DB_PASSWORD***Service.createUser({
         email,
@@ -209,6 +210,7 @@ router.post('/register', authRateLimit, logAuthEvent('REGISTER'), async (req, re
         location
       });
       ***REMOVED-KEYCLOAK_DB_PASSWORD***Success = true;
+      temporaryPassword = ***REMOVED-KEYCLOAK_DB_PASSWORD***Result.temporaryPassword;
     } catch (***REMOVED-KEYCLOAK_DB_PASSWORD***Error) {
       console.error('❌ Failed to create user in Keycloak:', ***REMOVED-KEYCLOAK_DB_PASSWORD***Error.message);
       // Instead of returning, proceed to DB creation
@@ -263,16 +265,22 @@ router.post('/register', authRateLimit, logAuthEvent('REGISTER'), async (req, re
 
     // --- BLOCKCHAIN REGISTRATION (optional) ---
     let blockchainSuccess = false;
-    let blockchainNote = 'Blockchain registration is currently not implemented or disabled.';
-    // If you implement blockchain registration, update this section accordingly.
-    // Example:
-    // try {
-    //   await blockchainService.registerUserOnChain(...);
-    //   blockchainSuccess = true;
-    //   blockchainNote = 'User registered on blockchain.';
-    // } catch (bcError) {
-    //   blockchainNote = 'Blockchain registration failed: ' + bcError.message;
-    // }
+    let blockchainNote = 'Blockchain registration is optional and not required for account creation. You can connect to blockchain later when you need to sign contracts or perform blockchain operations.';
+    
+    // Check if blockchain service is available and enabled
+    try {
+      const BlockchainService = require('../services/blockchainService');
+      const blockchainInstance = new BlockchainService();
+      const isBlockchainAvailable = await blockchainInstance.isConnected();
+      
+      if (isBlockchainAvailable) {
+        blockchainNote = 'Blockchain is available but registration on-chain is optional. You can register on blockchain later when needed.';
+      } else {
+        blockchainNote = 'Blockchain is not currently available, but this won\'t prevent registration. You can connect to blockchain later when you need to sign contracts.';
+      }
+    } catch (bcError) {
+      blockchainNote = 'Blockchain service is not configured. Registration works without blockchain - you can connect later when needed.';
+    }
 
     // --- TRIGGER EMAIL VERIFICATION ---
     try {
@@ -320,18 +328,31 @@ router.post('/register', authRateLimit, logAuthEvent('REGISTER'), async (req, re
         profileCompleted: dbUser.profileCompleted,
         emailVerified: dbUser.emailVerified
       },
+      loginCredentials: temporaryPassword ? {
+        email: dbUser.email,
+        password: temporaryPassword,
+        note: 'Use these credentials to log in. This is a temporary password that should be changed on first login.'
+      } : null,
       nextSteps: [
-        'Verify your email address',
+        'Use the provided credentials to log in',
+        'Change your password on first login',
         'Complete your profile',
-        'Connect your wallet'
+        'Connect your wallet (optional - can be done later)'
       ]
     });
 
   } catch (error) {
-    console.error('❌ Registration error:', error);
+    const errorId = `REG-${Date.now()}`;
+    console.error(`[${errorId}] ❌ Registration error:`, {
+      message: error.message,
+      stack: error.stack,
+      requestBody: req.body
+    });
     res.status(500).json({
-      error: 'Internal server error',
-      code: 'INTERNAL_ERROR'
+      error: 'Registration failed. Please contact support with the error ID below.',
+      code: 'INTERNAL_ERROR',
+      errorId,
+      details: error.message
     });
   }
 });

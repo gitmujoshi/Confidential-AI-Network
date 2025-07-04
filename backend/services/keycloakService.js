@@ -144,6 +144,9 @@ class KeycloakService {
     try {
       const adminToken = await this.getAdminToken();
       
+      // Generate temporary password if not provided
+      const temporaryPassword = userData.password || this.generateTemporaryPassword();
+      
       const ***REMOVED-KEYCLOAK_DB_PASSWORD***User = {
         username: userData.email,
         email: userData.email,
@@ -163,7 +166,7 @@ class KeycloakService {
         credentials: [
           {
             type: 'password',
-            value: userData.password || this.generateTemporaryPassword(),
+            value: temporaryPassword,
             temporary: true
           }
         ],
@@ -185,10 +188,18 @@ class KeycloakService {
       const userId = response.headers.location.split('/').pop();
       console.log(`✅ User created in Keycloak: ${userId}`);
       
+      // Log temporary password for development/testing
+      console.log('📧 [EMAIL DISABLED] Temporary password for user login:');
+      console.log(`   Email: ${userData.email}`);
+      console.log(`   Password: ${temporaryPassword}`);
+      console.log(`   ⚠️  This password is temporary and should be changed on first login`);
+      console.log(`   🔗 Login URL: ${this.baseURL}/realms/${this.realm}/protocol/openid-connect/auth?client_id=contract-management-frontend&response_type=code&scope=openid&redirect_uri=http://localhost:3000/callback`);
+      
       return {
         success: true,
         ***REMOVED-KEYCLOAK_DB_PASSWORD***UserId: userId,
-        user: ***REMOVED-KEYCLOAK_DB_PASSWORD***User
+        user: ***REMOVED-KEYCLOAK_DB_PASSWORD***User,
+        temporaryPassword: temporaryPassword // Return password for frontend display
       };
     } catch (error) {
       console.error('❌ Failed to create user in Keycloak:', error.response?.data || error.message);
