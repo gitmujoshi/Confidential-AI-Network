@@ -16,6 +16,27 @@ const didRouter = require('./routes/did');
 const app = express();
 const PORT = process.env.PORT || 8000;
 
+// Memory monitoring
+setInterval(() => {
+  const used = process.memoryUsage();
+  const heapUsedMB = Math.round(used.heapUsed / 1024 / 1024);
+  const heapTotalMB = Math.round(used.heapTotal / 1024 / 1024);
+  console.log(`🧠 [Memory] Heap used: ${heapUsedMB}MB, Total: ${heapTotalMB}MB`);
+  
+  // Warning if memory usage is high
+  if (heapUsedMB > 400) {
+    console.warn(`⚠️ [Memory] High memory usage: ${heapUsedMB}MB`);
+  }
+}, 30000); // Check every 30 seconds
+
+// Garbage collection hints (if available)
+setInterval(() => {
+  if (global.gc) {
+    global.gc();
+    console.log('🗑️ [Memory] Garbage collection triggered');
+  }
+}, 60000); // Every minute
+
 // Security middleware
 app.use(helmet());
 

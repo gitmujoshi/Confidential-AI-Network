@@ -7,10 +7,15 @@ A comprehensive contract management system that combines blockchain technology, 
 
 ### 🔐 **Identity Management**
 - **Enterprise IAM Integration**: Full Keycloak integration for enterprise-grade authentication and authorization
-- **Decentralized Identifiers (DIDs)**: Support for both `did:ethr` and `did:web` methods
-- **Multiple DID Options**: 
-  - **did:ethr**: Ethereum-based DIDs for individual users (e.g., `did:ethr:goerli:0x1234567890abcdef...`)
-  - **did:web**: Web-based DIDs for organizations (e.g., `did:web:company.com:user:alice`)
+- **Decentralized Identifiers (DIDs)**: Primary support for `did:web` with `did:ethr` for blockchain operations
+- **Enterprise DID Strategy**: 
+  - **did:web**: **Primary choice** for enterprise organizations (e.g., `did:web:company.com:employees:john.doe`)
+  - **did:ethr**: For blockchain-specific operations and individual users (e.g., `did:ethr:goerli:0x1234567890abcdef...`)
+- **Enterprise Benefits**:
+  - **Cost-effective**: No blockchain gas fees for identity management
+  - **Fast resolution**: HTTP-based DID resolution with caching
+  - **Organization control**: Full control over identity infrastructure
+  - **Compliance ready**: Meets enterprise security and audit requirements
 - **Bring Your Own DID**: Users can integrate their existing DIDs for identity continuity
 - **Multi-factor Authentication**: Enhanced security with IAM-based MFA
 - **Role-based Access Control**: TDP, TDC, and CCRP roles with specific permissions
@@ -81,6 +86,8 @@ The system is built with a modern, scalable architecture:
 - **[API Documentation](API_DOCS.md)**: Complete API reference
 - **[Security Guide](SECURITY_GUIDE.md)**: Security features and best practices
 - **[DID Management Guide](DID_MANAGEMENT_GUIDE.md)**: DID implementation details
+- **[Enterprise DID:web Implementation](ENTERPRISE_DID_WEB_IMPLEMENTATION.md)**: Comprehensive enterprise setup guide
+- **[IAM Integration Strategy](IAM_INTEGRATION_STRATEGY.md)**: Enterprise IAM integration with did:web
 
 ### Deployment Guides
 - **[Kubernetes Deployment](KUBERNETES_DEPLOYMENT_GUIDE.md)**: Production deployment
@@ -88,10 +95,27 @@ The system is built with a modern, scalable architecture:
 
 ## 🔧 DID Integration
 
-### Supported DID Methods
+### Enterprise DID Strategy
 
-#### did:ethr (Ethereum-based DIDs)
-**Best for**: Individual users with Ethereum wallets
+#### did:web (Primary Enterprise Choice)
+**Best for**: Enterprise organizations with web domains
+- **Format**: `did:web:[domain]:[path]`
+- **Examples**:
+  - `did:web:company.com` (organization main DID)
+  - `did:web:company.com:legal` (department DID)
+  - `did:web:company.com:employees:john.doe` (employee DID)
+  - `did:web:company.com:roles:compliance-officer` (role-based DID)
+- **Enterprise Benefits**:
+  - **Cost-effective**: No blockchain gas fees
+  - **Fast resolution**: HTTP-based with caching
+  - **Organization control**: Full control over identity infrastructure
+  - **Compliance ready**: Meets enterprise security requirements
+  - **Scalable**: Easy to manage thousands of organizational DIDs
+  - **Integration friendly**: Works with existing web infrastructure
+- **Verification**: DID document resolution, domain validation, and SSL certificate verification
+
+#### did:ethr (Blockchain Operations)
+**Best for**: Blockchain-specific operations and individual users
 - **Format**: `did:ethr:[network]:[ethereum-address]`
 - **Examples**: 
   - `did:ethr:goerli:0x1234567890abcdef...` (testnet)
@@ -99,22 +123,9 @@ The system is built with a modern, scalable architecture:
 - **Benefits**:
   - Fully decentralized
   - Works with existing MetaMask wallets
-  - No additional setup required
+  - Built-in cryptographic verification
   - Cross-platform compatibility
 - **Verification**: Wallet signature verification
-
-#### did:web (Web-based DIDs)
-**Best for**: Organizations with web domains
-- **Format**: `did:web:[domain]:[path]`
-- **Examples**:
-  - `did:web:company.com:user:alice`
-  - `did:web:university.edu:students:student123`
-- **Benefits**:
-  - Cost-effective (no gas fees)
-  - Fast resolution via HTTP
-  - Organization control
-  - Easy integration with existing web infrastructure
-- **Verification**: DID document resolution and domain validation
 
 ### System-Generated DIDs (did:ethr)
 When users register without providing an existing DID, the system automatically generates a new `did:ethr` based on their wallet address. This DID is:

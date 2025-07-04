@@ -187,14 +187,27 @@ This architecture ensures that the Contract Management System can serve both tra
 
 ### **DID Method Selection**
 
-#### **Recommended: did:ethr**
+#### **Primary Recommendation: did:web (Enterprise)**
+- **Advantage**: Domain-based identity with enterprise control
+- **Compatibility**: Works with existing web infrastructure
+- **Format**: `did:web:company.com:user:alice` or `did:web:company.com`
+- **Resolution**: HTTP-based DID document resolution
+- **Enterprise Benefits**: 
+  - No blockchain fees or complexity
+  - Full organizational control
+  - Integration with existing domain infrastructure
+  - Fast resolution and verification
+  - Compliance with enterprise security policies
+
+#### **Secondary: did:ethr (Blockchain Operations)**
 - **Advantage**: Direct mapping to Ethereum addresses
 - **Compatibility**: Works with existing wallet infrastructure
 - **Format**: `did:ethr:0x1234...` (wallet address as DID)
 - **Resolution**: On-chain DID documents via Ethereum registry
+- **Use Case**: Blockchain-specific operations requiring on-chain verification
 
-#### **Alternative: did:key**
-- **Advantage**: No blockchain dependency
+#### **Alternative: did:key (Self-contained)**
+- **Advantage**: No external dependencies
 - **Use case**: Off-chain identity verification
 - **Format**: `did:key:z6Mk...` (key-based DID)
 - **Storage**: Local or IPFS-based DID documents
@@ -203,7 +216,15 @@ This architecture ensures that the Contract Management System can serve both tra
 
 #### **Step 1: DID Creation and Registration**
 ```javascript
-// DID creation for Ethereum addresses
+// DID creation for web-based enterprise identities
+const createWebDID = (domain, path = '') => {
+  if (path) {
+    return `did:web:${domain}:${path}`;
+  }
+  return `did:web:${domain}`;
+};
+
+// DID creation for Ethereum addresses (blockchain operations)
 const createEthrDID = (walletAddress) => {
   return `did:ethr:${walletAddress}`;
 };
@@ -221,10 +242,71 @@ const createKeyDID = async (keyPair) => {
   };
   return didDocument;
 };
+
+// Enterprise DID document creation
+const createEnterpriseDIDDocument = (did, organizationInfo) => {
+  return {
+    "@context": [
+      "https://www.w3.org/ns/did/v1",
+      "https://w3id.org/security/suites/ed25519-2020/v1"
+    ],
+    "id": did,
+    "verificationMethod": [
+      {
+        "id": `${did}#key-1`,
+        "type": "Ed25519VerificationKey2020",
+        "controller": did,
+        "publicKeyMultibase": organizationInfo.publicKey
+      }
+    ],
+    "authentication": [`${did}#key-1`],
+    "assertionMethod": [`${did}#key-1`],
+    "service": [
+      {
+        "id": `${did}#linkeddomains`,
+        "type": "LinkedDomains",
+        "serviceEndpoint": [`https://${did.replace('did:web:', '')}`]
+      },
+      {
+        "id": `${did}#organization`,
+        "type": "Organization",
+        "serviceEndpoint": {
+          "name": organizationInfo.name,
+          "url": `https://${did.replace('did:web:', '')}`,
+          "description": organizationInfo.description
+        }
+      }
+    ],
+    "created": new Date().toISOString(),
+    "updated": new Date().toISOString()
+  };
+};
 ```
 
 #### **Step 2: DID Document Storage**
 ```javascript
+// Store DID documents on web servers (for did:web)
+const storeWebDIDDocument = async (did, didDocument, webServerConfig) => {
+  const domain = did.replace('did:web:', '');
+  const didPath = `https://${domain}/.well-known/did.json`;
+  
+  // Upload DID document to web server
+  const response = await fetch(didPath, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${webServerConfig.apiToken}`
+    },
+    body: JSON.stringify(didDocument)
+  });
+  
+  if (!response.ok) {
+    throw new Error(`Failed to store DID document: ${response.statusText}`);
+  }
+  
+  return didPath;
+};
+
 // Store DID documents on-chain (for did:ethr)
 const storeDIDDocument = async (did, didDocument, privateKey) => {
   const contract = new ethers.Contract(DID_REGISTRY_ADDRESS, ABI, wallet);
@@ -238,13 +320,39 @@ const storeDIDDocumentOffChain = async (did, didDocument) => {
   const cid = await ipfs.add(JSON.stringify(didDocument));
   return cid.toString();
 };
+
+// Enterprise DID document hosting setup
+const setupEnterpriseDIDHosting = async (domain, organizationInfo) => {
+  const did = createWebDID(domain);
+  const didDocument = createEnterpriseDIDDocument(did, organizationInfo);
+  
+  // Create web server configuration
+  const webServerConfig = {
+    domain: domain,
+    didPath: '/.well-known/did.json',
+    sslRequired: true,
+    corsEnabled: true,
+    cacheHeaders: true
+  };
+  
+  // Store DID document
+  const didUrl = await storeWebDIDDocument(did, didDocument, webServerConfig);
+  
+  return {
+    did: did,
+    didUrl: didUrl,
+    webServerConfig: webServerConfig
+  };
+};
 ```
 
 #### **Step 3: DID Resolution and Verification**
 ```javascript
 // Resolve DID to DID Document
 const resolveDID = async (did) => {
-  if (did.startsWith('did:ethr:')) {
+  if (did.startsWith('did:web:')) {
+    return await resolveWebDID(did);
+  } else if (did.startsWith('did:ethr:')) {
     return await resolveEthrDID(did);
   } else if (did.startsWith('did:key:')) {
     return await resolveKeyDID(did);
@@ -252,10 +360,82 @@ const resolveDID = async (did) => {
   throw new Error(`Unsupported DID method: ${did}`);
 };
 
+// Resolve web-based DIDs
+const resolveWebDID = async (did) => {
+  const domain = did.replace('did:web:', '');
+  const didUrl = `https://${domain}/.well-known/did.json`;
+  
+  try {
+    const response = await fetch(didUrl, {
+      method: 'GET',
+      headers: {
+        'Accept': 'application/json',
+        'User-Agent': 'ContractManagement-DID-Resolver/1.0'
+      },
+      timeout: 10000 // 10 second timeout
+    });
+    
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
+    
+    const didDocument = await response.json();
+    
+    // Validate DID document
+    if (!didDocument.id || didDocument.id !== did) {
+      throw new Error('Invalid DID document: ID mismatch');
+    }
+    
+    return didDocument;
+  } catch (error) {
+    throw new Error(`Failed to resolve DID ${did}: ${error.message}`);
+  }
+};
+
+// Enterprise DID validation
+const validateEnterpriseDID = async (did) => {
+  const didDocument = await resolveWebDID(did);
+  
+  // Check for enterprise services
+  const hasLinkedDomains = didDocument.service?.some(s => s.type === 'LinkedDomains');
+  const hasOrganization = didDocument.service?.some(s => s.type === 'Organization');
+  
+  // Validate domain against allowed list
+  const domain = did.replace('did:web:', '');
+  const allowedDomains = process.env.ALLOWED_DID_WEB_DOMAINS?.split(',') || [];
+  const isDomainAllowed = allowedDomains.some(allowed => 
+    domain === allowed || domain.endsWith(`.${allowed}`)
+  );
+  
+  return {
+    isValid: true,
+    hasLinkedDomains,
+    hasOrganization,
+    isDomainAllowed,
+    didDocument
+  };
+};
+
 // Verify DID-based signature
 const verifyDIDSignature = async (did, message, signature) => {
   const didDocument = await resolveDID(did);
-  const publicKey = didDocument.verificationMethod[0].publicKeyBase58;
+  
+  // Get verification method
+  const verificationMethod = didDocument.verificationMethod?.[0];
+  if (!verificationMethod) {
+    throw new Error('No verification method found in DID document');
+  }
+  
+  // Extract public key based on type
+  let publicKey;
+  if (verificationMethod.type === 'Ed25519VerificationKey2020') {
+    publicKey = verificationMethod.publicKeyMultibase;
+  } else if (verificationMethod.type === 'EcdsaSecp256k1VerificationKey2019') {
+    publicKey = verificationMethod.publicKeyHex;
+  } else {
+    throw new Error(`Unsupported verification method type: ${verificationMethod.type}`);
+  }
+  
   return await verifySignature(message, signature, publicKey);
 };
 ```
@@ -264,56 +444,233 @@ const verifyDIDSignature = async (did, message, signature) => {
 
 #### **User Registration with DID**
 ```javascript
-// Enhanced user registration
+// Enhanced user registration with did:web support
 const registerUserWithDID = async (userData) => {
-  const { walletAddress, partyType, name, email } = userData;
+  const { partyType, name, email, organizationDomain, userPath } = userData;
   
-  // Create DID from wallet address
-  const did = createEthrDID(walletAddress);
+  // Determine DID method based on user type
+  let did, didDocument;
   
-  // Create DID document
-  const didDocument = {
-    "@context": "https://www.w3.org/ns/did/v1",
-    "id": did,
-    "verificationMethod": [{
-      "id": `${did}#keys-1`,
-      "type": "EcdsaSecp256k1VerificationKey2019",
-      "publicKeyHex": userData.publicKey
-    }],
-    "authentication": [`${did}#keys-1`]
-  };
+  if (organizationDomain) {
+    // Enterprise user with did:web
+    did = createWebDID(organizationDomain, userPath);
+    didDocument = createEnterpriseDIDDocument(did, {
+      name: userData.organizationName,
+      publicKey: userData.publicKey,
+      description: userData.organizationDescription
+    });
+    
+    // Store DID document on web server
+    await storeWebDIDDocument(did, didDocument, userData.webServerConfig);
+  } else if (userData.walletAddress) {
+    // Individual user with did:ethr
+    did = createEthrDID(userData.walletAddress);
+    didDocument = {
+      "@context": "https://www.w3.org/ns/did/v1",
+      "id": did,
+      "verificationMethod": [{
+        "id": `${did}#keys-1`,
+        "type": "EcdsaSecp256k1VerificationKey2019",
+        "publicKeyHex": userData.publicKey
+      }],
+      "authentication": [`${did}#keys-1`]
+    };
+    
+    // Store DID document on blockchain
+    await storeDIDDocument(did, didDocument, userData.privateKey);
+  } else {
+    throw new Error('Either organizationDomain or walletAddress must be provided');
+  }
   
-  // Store DID document
-  await storeDIDDocument(did, didDocument, userData.privateKey);
-  
-  // Create IAM user
+  // Create IAM user with DID attributes
   const iamUser = await createIAMUser({
     username: email,
     email: email,
     attributes: {
       did: did,
-      walletAddress: walletAddress,
-      partyType: partyType
+      didMethod: did.startsWith('did:web:') ? 'web' : 'ethr',
+      organizationDomain: organizationDomain,
+      walletAddress: userData.walletAddress,
+      partyType: partyType,
+      organizationName: userData.organizationName
     }
   });
   
   // Create local user record
   const user = await db.User.create({
-    walletAddress,
+    walletAddress: userData.walletAddress,
     publicKey: userData.publicKey,
     partyType,
     name,
     email,
     did: did,
+    didMethod: did.startsWith('did:web:') ? 'web' : 'ethr',
+    organizationDomain: organizationDomain,
     iamUserId: iamUser.id,
-    isRegistered: true
+    isRegistered: true,
+    didVerified: false // Will be verified during first login
   });
   
-  return { user, did, iamUser };
+  return { user, did, didDocument, iamUser };
+};
+
+// Enterprise organization registration
+const registerEnterpriseOrganization = async (orgData) => {
+  const { domain, name, description, adminEmail } = orgData;
+  
+  // Create organization DID
+  const orgDid = createWebDID(domain);
+  const orgDidDocument = createEnterpriseDIDDocument(orgDid, {
+    name: name,
+    publicKey: orgData.publicKey,
+    description: description
+  });
+  
+  // Setup web hosting for DID document
+  const hostingConfig = await setupEnterpriseDIDHosting(domain, {
+    name: name,
+    publicKey: orgData.publicKey,
+    description: description
+  });
+  
+  // Create organization record
+  const organization = await db.Organization.create({
+    domain: domain,
+    name: name,
+    description: description,
+    did: orgDid,
+    adminEmail: adminEmail,
+    webServerConfig: hostingConfig.webServerConfig
+  });
+  
+  return { organization, did: orgDid, hostingConfig };
 };
 ```
 
 ## 🔄 **IAM Integration Strategy**
+
+### **Enterprise IAM with did:web Integration**
+
+#### **Keycloak Enterprise Configuration for did:web**
+```javascript
+// Keycloak realm configuration for enterprise did:web support
+const keycloakEnterpriseConfig = {
+  realm: 'contract-management-enterprise',
+  'auth-server-url': process.env.KEYCLOAK_URL || 'http://localhost:8080',
+  'ssl-required': 'external',
+  resource: 'contract-management-enterprise',
+  'public-client': false,
+  'confidential-port': 0,
+  'verify-token-audience': true,
+  'use-resource-role-mappings': true,
+  'bearer-only': false,
+  
+  // Enterprise-specific attributes
+  customAttributes: {
+    'did': 'string',
+    'didMethod': 'string',
+    'organizationDomain': 'string',
+    'organizationName': 'string',
+    'walletAddress': 'string',
+    'partyType': 'string',
+    'didVerified': 'boolean',
+    'enterpriseRole': 'string'
+  }
+};
+
+// Enterprise user federation with LDAP/Active Directory
+const enterpriseUserFederation = {
+  providerId: 'ldap',
+  config: {
+    enabled: 'true',
+    editMode: 'READ_ONLY',
+    syncRegistrations: 'false',
+    vendor: 'ad', // Active Directory
+    usernameLDAPAttribute: 'sAMAccountName',
+    rdnLDAPAttribute: 'cn',
+    uuidLDAPAttribute: 'objectGUID',
+    userObjectClasses: 'person, organizationalPerson, user',
+    connectionUrl: process.env.LDAP_URL,
+    bindDn: process.env.LDAP_BIND_DN,
+    bindCredential: process.env.LDAP_BIND_PASSWORD,
+    searchBase: process.env.LDAP_SEARCH_BASE,
+    searchFilter: '(sAMAccountName={0})',
+    readTimeout: '5000',
+    pagination: 'true'
+  },
+  mappers: [
+    {
+      name: 'DID Mapper',
+      config: {
+        'ldap.attribute': 'employeeID',
+        'user.attribute': 'did',
+        'read.only': 'true'
+      }
+    },
+    {
+      name: 'Organization Domain Mapper',
+      config: {
+        'ldap.attribute': 'company',
+        'user.attribute': 'organizationDomain',
+        'read.only': 'true'
+      }
+    }
+  ]
+};
+```
+
+#### **Enterprise Authentication Flow with did:web**
+```javascript
+// Enterprise authentication middleware with did:web verification
+const authenticateEnterpriseUser = async (req, res, next) => {
+  const authHeader = req.headers['authorization'];
+  const token = authHeader && authHeader.split(' ')[1];
+
+  if (!token) {
+    return res.status(401).json({ error: 'Access token required' });
+  }
+
+  try {
+    // Verify JWT token with Keycloak
+    const decoded = jwt.verify(token, client.getSigningKey, {
+      algorithms: ['RS256'],
+      audience: 'contract-management-enterprise'
+    });
+
+    // Extract DID and organization info
+    const did = decoded.did;
+    const organizationDomain = decoded.organizationDomain;
+    const didMethod = decoded.didMethod;
+
+    // For did:web users, verify DID document is accessible
+    if (didMethod === 'web' && did) {
+      try {
+        const validation = await validateEnterpriseDID(did);
+        if (!validation.isValid || !validation.isDomainAllowed) {
+          return res.status(403).json({ 
+            error: 'Invalid or unauthorized enterprise DID',
+            details: validation
+          });
+        }
+      } catch (error) {
+        return res.status(403).json({ 
+          error: 'Failed to verify enterprise DID',
+          details: error.message
+        });
+      }
+    }
+
+    // Map Keycloak user to local user
+    const user = await mapKeycloakUserToLocalUser(decoded, did);
+    req.user = user;
+    req.did = did;
+    req.organizationDomain = organizationDomain;
+    next();
+  } catch (error) {
+    return res.status(403).json({ error: 'Invalid token' });
+  }
+};
+```
 
 ### **Recommended IAM Solutions**
 
@@ -544,6 +901,9 @@ export const UserProvider = ({ children }) => {
 ```sql
 -- Add DID and IAM integration fields
 ALTER TABLE users ADD COLUMN did VARCHAR(255);
+ALTER TABLE users ADD COLUMN did_method VARCHAR(20) DEFAULT 'ethr';
+ALTER TABLE users ADD COLUMN organization_domain VARCHAR(255);
+ALTER TABLE users ADD COLUMN organization_name VARCHAR(255);
 ALTER TABLE users ADD COLUMN iam_user_id VARCHAR(255);
 ALTER TABLE users ADD COLUMN identity_provider VARCHAR(50) DEFAULT 'keycloak';
 ALTER TABLE users ADD COLUMN external_id VARCHAR(255);
@@ -551,6 +911,42 @@ ALTER TABLE users ADD COLUMN last_sso_login TIMESTAMP;
 ALTER TABLE users ADD COLUMN sso_enabled BOOLEAN DEFAULT false;
 ALTER TABLE users ADD COLUMN did_verified BOOLEAN DEFAULT false;
 ALTER TABLE users ADD COLUMN did_document JSONB;
+ALTER TABLE users ADD COLUMN enterprise_role VARCHAR(100);
+ALTER TABLE users ADD COLUMN department VARCHAR(100);
+ALTER TABLE users ADD COLUMN employee_id VARCHAR(100);
+
+-- Create indexes for DID and IAM lookups
+CREATE INDEX idx_users_did ON users(did);
+CREATE INDEX idx_users_did_method ON users(did_method);
+CREATE INDEX idx_users_organization_domain ON users(organization_domain);
+CREATE INDEX idx_users_iam_id ON users(iam_user_id);
+CREATE INDEX idx_users_identity_provider ON users(identity_provider);
+
+-- Create organizations table for enterprise support
+CREATE TABLE organizations (
+  id SERIAL PRIMARY KEY,
+  domain VARCHAR(255) UNIQUE NOT NULL,
+  name VARCHAR(255) NOT NULL,
+  description TEXT,
+  did VARCHAR(255) UNIQUE NOT NULL,
+  admin_email VARCHAR(255) NOT NULL,
+  web_server_config JSONB,
+  ssl_certificate_info JSONB,
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Create organization users mapping
+CREATE TABLE organization_users (
+  id SERIAL PRIMARY KEY,
+  organization_id INTEGER REFERENCES organizations(id),
+  user_id INTEGER REFERENCES users(id),
+  role VARCHAR(100) DEFAULT 'employee',
+  department VARCHAR(100),
+  employee_id VARCHAR(100),
+  created_at TIMESTAMP DEFAULT NOW(),
+  UNIQUE(organization_id, user_id)
+);
 
 -- Create indexes for DID and IAM lookups
 CREATE INDEX idx_users_did ON users(did);
@@ -725,6 +1121,105 @@ router.post('/:contractId/sign', authenticateDID, async (req, res) => {
 ```
 
 ## 🚀 **Migration Strategy**
+
+### **Enterprise Deployment Configuration**
+
+#### **Environment Variables for did:web**
+```bash
+# Enterprise DID:web Configuration
+ALLOWED_DID_WEB_DOMAINS=company.com,subsidiary.com,partner.org
+REQUIRE_HTTPS=true
+MAX_DID_REDIRECTS=3
+DID_RESOLUTION_TIMEOUT=10000
+DID_CACHE_TTL=3600
+
+# Enterprise IAM Configuration
+KEYCLOAK_URL=https://keycloak.company.com
+KEYCLOAK_ADMIN_PASSWORD=secure_password
+KEYCLOAK_REALM=contract-management-enterprise
+
+# LDAP/Active Directory Integration
+LDAP_URL=ldaps://ldap.company.com:636
+LDAP_BIND_DN=CN=ServiceAccount,OU=ServiceAccounts,DC=company,DC=com
+LDAP_BIND_PASSWORD=secure_ldap_password
+LDAP_SEARCH_BASE=DC=company,DC=com
+
+# Enterprise Security
+ENTERPRISE_MODE=true
+REQUIRE_ENTERPRISE_DID=true
+ENABLE_DID_VERIFICATION=true
+AUDIT_LOG_ENABLED=true
+```
+
+#### **Docker Compose for Enterprise Setup**
+```yaml
+# docker-compose.enterprise.yml
+version: '3.8'
+services:
+  keycloak:
+    image: quay.io/keycloak/keycloak:latest
+    environment:
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://postgres:5432/keycloak
+      KC_HOSTNAME: keycloak.company.com
+      KC_HTTP_ENABLED: false
+      KC_HTTPS_ENABLED: true
+      KC_HTTPS_CERTIFICATE_FILE: /opt/keycloak/certs/tls.crt
+      KC_HTTPS_CERTIFICATE_KEY_FILE: /opt/keycloak/certs/tls.key
+    ports:
+      - "8443:8443"
+    volumes:
+      - ./keycloak/certs:/opt/keycloak/certs
+      - ./keycloak/themes:/opt/keycloak/themes
+      - ./keycloak/providers:/opt/keycloak/providers
+    depends_on:
+      - postgres
+
+  backend:
+    build: .
+    environment:
+      NODE_ENV: production
+      ALLOWED_DID_WEB_DOMAINS: ${ALLOWED_DID_WEB_DOMAINS}
+      REQUIRE_HTTPS: ${REQUIRE_HTTPS}
+      KEYCLOAK_URL: ${KEYCLOAK_URL}
+      ENTERPRISE_MODE: ${ENTERPRISE_MODE}
+      REQUIRE_ENTERPRISE_DID: ${REQUIRE_ENTERPRISE_DID}
+    ports:
+      - "3000:3000"
+    depends_on:
+      - postgres
+      - keycloak
+
+  frontend:
+    build: ./frontend
+    environment:
+      REACT_APP_KEYCLOAK_URL: ${KEYCLOAK_URL}
+      REACT_APP_ENTERPRISE_MODE: ${ENTERPRISE_MODE}
+      REACT_APP_ALLOWED_DOMAINS: ${ALLOWED_DID_WEB_DOMAINS}
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./frontend/certs:/etc/nginx/certs
+    depends_on:
+      - backend
+
+  postgres:
+    image: postgres:13
+    environment:
+      POSTGRES_DB: contract_management
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+volumes:
+  postgres_data:
+```
 
 ### **Phase 1: DID Infrastructure (4-6 weeks)**
 - Deploy DID registry and resolution services
