@@ -4,36 +4,56 @@ const db = require('../models');
 class NotificationService {
   constructor() {
     this.transporter = null;
+    this.emailEnabled = process.env.EMAIL_ENABLED === 'true';
     this.initializeTransporter();
   }
 
   initializeTransporter() {
-    // For development, use a test account or configure your email service
-    this.transporter = nodemailer.createTransport({
-      host: process.env.EMAIL_HOST || 'smtp.gmail.com',
-      port: process.env.EMAIL_PORT || 587,
-      secure: false,
-      auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS
-      }
-    });
+    if (this.emailEnabled) {
+      // For development, use a test account or configure your email service
+      this.transporter = nodemailer.createTransport({
+        host: process.env.EMAIL_HOST || 'smtp.gmail.com',
+        port: process.env.EMAIL_PORT || 587,
+        secure: false,
+        auth: {
+          user: process.env.EMAIL_USER,
+          pass: process.env.EMAIL_PASS
+        }
+      });
+    } else {
+      console.log('📧 Email sending is disabled. Emails will be logged instead.');
+    }
   }
 
   async sendEmail(to, subject, html) {
     try {
       const mailOptions = {
-        from: process.env.EMAIL_USER,
+        from: process.env.EMAIL_USER || 'noreply@example.com',
         to: to,
         subject: subject,
         html: html
       };
 
-      const info = await this.transporter.sendMail(mailOptions);
-      console.log('Email sent:', info.messageId);
-      return info;
+      if (this.emailEnabled && this.transporter) {
+        const info = await this.transporter.sendMail(mailOptions);
+        console.log('📧 Email sent:', info.messageId);
+        return info;
+      } else {
+        // Log email instead of sending
+        console.log('📧 [EMAIL LOGGED - NOT SENT]');
+        console.log('📧 To:', to);
+        console.log('📧 Subject:', subject);
+        console.log('📧 Content:', html);
+        console.log('📧 --- End Email ---');
+        
+        // Return a mock response
+        return {
+          messageId: `logged-${Date.now()}`,
+          response: 'Email logged (not sent)'
+        };
+      }
     } catch (error) {
-      console.error('Error sending email:', error);
+      console.error('❌ Error sending email:', error);
       throw error;
     }
   }

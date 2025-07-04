@@ -1,13 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import {
   Container,
-  Box,
   Paper,
-  Typography,
   TextField,
   Button,
-  Grid,
+  Typography,
+  Box,
   FormControl,
   InputLabel,
   Select,
@@ -16,186 +14,122 @@ import {
   CircularProgress,
   Card,
   CardContent,
-  FormControlLabel,
+  Grid,
   Switch,
+  FormControlLabel,
   Divider,
-  Chip,
-  Accordion,
-  AccordionSummary,
-  AccordionDetails
+  Chip
 } from '@mui/material';
-import PersonAddOutlined from '@mui/icons-material/PersonAddOutlined';
-import AccountBalanceWallet from '@mui/icons-material/AccountBalanceWallet';
-import VerifiedUser from '@mui/icons-material/VerifiedUser';
-import ExpandMore from '@mui/icons-material/ExpandMore';
-import Info from '@mui/icons-material/Info';
-import CheckCircle from '@mui/icons-material/CheckCircle';
-import ErrorIcon from '@mui/icons-material/Error';
-import Business from '@mui/icons-material/Business';
-import { apiService } from '../services/api';
-import EnterpriseDIDRegistration from '../components/EnterpriseDIDRegistration';
+import { useNavigate } from 'react-router-dom';
+import { ethers } from 'ethers';
+import apiService from '../services/api';
 
 const UserRegistration = () => {
   const navigate = useNavigate();
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
-  const [walletConnected, setWalletConnected] = useState(false);
-  const [walletAddress, setWalletAddress] = useState('');
-  const [publicKey, setPublicKey] = useState('');
   
+  // Form state
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     partyType: '',
-    description: '',
-    organization: '',
-    phoneNumber: '',
-    website: '',
-    location: ''
+    organization: ''
   });
 
-  // DID-related state
+  // User type and DID options
+  const [userType, setUserType] = useState('individual');
   const [useExistingDID, setUseExistingDID] = useState(false);
   const [existingDID, setExistingDID] = useState('');
+
+  // Wallet state
+  const [walletConnected, setWalletConnected] = useState(false);
+  const [walletAddress, setWalletAddress] = useState('');
+  const [publicKey, setPublicKey] = useState('');
+
+  // DID verification state
+  const [didValidationStatus, setDidValidationStatus] = useState('idle');
   const [didVerificationSignature, setDidVerificationSignature] = useState('');
-  const [didVerificationMessage, setDidVerificationMessage] = useState('');
-  const [didValidationStatus, setDidValidationStatus] = useState(null);
-  const [didInfo, setDidInfo] = useState(null);
-  
-  // Enterprise DID state
-  const [isEnterpriseUser, setIsEnterpriseUser] = useState(false);
-  const [enterpriseDID, setEnterpriseDID] = useState('');
-  const [enterpriseValidation, setEnterpriseValidation] = useState(null);
+  const [didPublicKey, setDidPublicKey] = useState('');
+  const [didPublicKeyLoading, setDidPublicKeyLoading] = useState(false);
+  const [didPublicKeyError, setDidPublicKeyError] = useState('');
 
-  const partyTypes = [
-    {
-      value: 'TDP',
-      title: 'Training Data Provider',
-      description: 'Dataset owners who can create and manage datasets'
-    },
-    {
-      value: 'TDC',
-      title: 'Training Data Consumer',
-      description: 'Contract initiators who can create contracts'
-    },
-    {
-      value: 'CCRP',
-      title: 'Confidential Clean Room Provider',
-      description: 'Compliance reviewers who sign contracts'
-    }
-  ];
+  // UI state
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
 
-  // Account name mapping - simplified
-  const getAccountName = (address) => {
-    if (!address) return 'Unknown';
+  // Mock API mode
+  const [mockMode, setMockMode] = useState(false);
+
+  useEffect(() => {
+    // Check for mock mode in localStorage or URL params
+    const urlParams = new URLSearchParams(window.location.search);
+    const mockParam = urlParams.get('mock');
+    const storedMock = localStorage.getItem('mockApiMode');
     
-    // Simple direct mapping
-    switch (address.toLowerCase()) {
-      case '0x70997970c51812dc3a010c7d01b50e0d17dc79c8':
-        return 'TDC';
-      case '0x3c44cdddb6a900fa2b585dd299e03d12fa4293bc':
-        return 'TDP';
-      case '0x90f79bf6eb2c4f870365e785982e1f101e93b906':
-        return 'CCRP';
-      case '0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266':
-        return 'TDP';
-      default:
-        return 'Unknown';
+    if (mockParam === 'true' || storedMock === 'true') {
+      setMockMode(true);
+      localStorage.setItem('mockApiMode', 'true');
+    }
+
+    // Initialize wallet connection
+    initializeWallet();
+  }, []);
+
+  const initializeWallet = async () => {
+    if (typeof window.ethereum !== 'undefined') {
+      try {
+        const accounts = await window.ethereum.request({ method: 'eth_accounts' });
+        if (accounts.length > 0) {
+          setWalletAddress(accounts[0]);
+          setWalletConnected(true);
+          await derivePublicKeyFromSignature(accounts[0]);
+        }
+      } catch (error) {
+        console.error('Failed to get accounts:', error);
+      }
     }
   };
 
-  // Derive public key from MetaMask signature
-  const derivePublicKeyFromSignature = async (walletAddress) => {
+  const derivePublicKeyFromSignature = async (address) => {
     try {
-      console.log('🔑 [Registration] Requesting signature to derive public key...');
+      const provider = new ethers.BrowserProvider(window.ethereum);
+      const signer = await provider.getSigner();
       
-      // Create a message for the user to sign
-      const message = `I authorize this application to derive my public key for registration.\n\nWallet: ${walletAddress}\nTimestamp: ${new Date().toISOString()}`;
+      const message = `I, ${address}, hereby verify my identity for the Contract Management System on ${new Date().toISOString()}`;
+      const signature = await signer.signMessage(message);
       
-      // Request signature from MetaMask
-      const signature = await window.ethereum.request({
-        method: 'personal_sign',
-        params: [message, walletAddress]
-      });
-      
-      console.log('✅ [Registration] Signature received:', signature);
-      
-      // Import ethers dynamically to avoid SSR issues
-      const { ethers } = await import('ethers');
-      
-      // Verify the signature to ensure it's valid
-      const recoveredAddress = ethers.verifyMessage(message, signature);
-      
-      if (recoveredAddress.toLowerCase() !== walletAddress.toLowerCase()) {
-        throw new Error('Signature verification failed');
-      }
-      
-      // Create a deterministic public key based on the wallet address
-      // This is a simplified approach - in production you might want to use a more sophisticated method
-      const addressHash = ethers.keccak256(ethers.toUtf8Bytes(walletAddress));
-      const publicKey = `0x${addressHash.slice(2)}${addressHash.slice(2, 66)}`; // 64 bytes total
-      
-      console.log('✅ [Registration] Public key derived:', publicKey);
-      return publicKey;
-      
+      // For demo purposes, we'll use a simple hash of the signature as the public key
+      const publicKeyHash = ethers.keccak256(signature);
+      setPublicKey(publicKeyHash);
     } catch (error) {
-      console.error('❌ [Registration] Failed to derive public key:', error);
-      
-      if (error.code === 4001) {
-        throw new Error('Public key derivation rejected. Please sign the message to continue.');
-      } else {
-        throw new Error('Failed to derive public key: ' + error.message);
-      }
+      console.error('Failed to derive public key:', error);
     }
   };
 
-  // Simple wallet connection function - completely independent of UserContext
   const connectWallet = async () => {
+    if (typeof window.ethereum === 'undefined') {
+      setError('MetaMask is not installed. Please install MetaMask to continue.');
+      return;
+    }
+
     try {
       setLoading(true);
       setError('');
 
-      // Check if MetaMask is installed
-      if (typeof window.ethereum === 'undefined') {
-        setError('MetaMask is not installed. Please install MetaMask to continue.');
-        return;
-      }
-
-      console.log('🔗 [Registration] Requesting accounts from MetaMask...');
-
-      // Always request account access to get the current selection
       const accounts = await window.ethereum.request({
         method: 'eth_requestAccounts'
       });
 
-      console.log('✅ [Registration] MetaMask returned accounts:', accounts);
-
-      if (!accounts || accounts.length === 0) {
-        setError('No accounts found. Please unlock MetaMask and try again.');
-        return;
+      if (accounts.length > 0) {
+        setWalletAddress(accounts[0]);
+        setWalletConnected(true);
+        await derivePublicKeyFromSignature(accounts[0]);
+        setSuccess('Wallet connected successfully!');
       }
-
-      const selectedAddress = accounts[0];
-      const accountName = getAccountName(selectedAddress);
-      
-      console.log('✅ [Registration] Selected address:', selectedAddress, 'Account name:', accountName);
-
-      // Derive public key from signature
-      const publicKey = await derivePublicKeyFromSignature(selectedAddress);
-
-      // Update state
-      setWalletAddress(selectedAddress);
-      setPublicKey(publicKey);
-      setWalletConnected(true);
-      setSuccess(`Wallet connected! ${accountName} (${selectedAddress.slice(0, 6)}...${selectedAddress.slice(-4)})`);
-
     } catch (error) {
-      console.error('❌ [Registration] Wallet connection error:', error);
+      console.error('Failed to connect wallet:', error);
       if (error.code === 4001) {
-        setError('Connection rejected. Please connect your wallet to continue.');
-      } else if (error.code === -32002) {
-        setError('Connection request already pending. Please check MetaMask.');
+        setError('Wallet connection rejected. Please try again.');
       } else {
         setError('Failed to connect wallet: ' + error.message);
       }
@@ -204,177 +138,125 @@ const UserRegistration = () => {
     }
   };
 
-  // Get active account using official MetaMask API
-  const getCurrentAccount = async () => {
-    try {
-      setLoading(true);
-      setError('');
-
-      if (typeof window.ethereum === 'undefined') {
-        setError('MetaMask is not installed.');
-        return;
-      }
-
-      console.log('🔍 [Registration] Requesting active account via eth_requestAccounts...');
-
-      // Official MetaMask method to get the active account
-      // This shows popup and returns the user's current selection
-      const accounts = await window.ethereum.request({
-        method: 'eth_requestAccounts'
-      });
-
-      console.log('✅ [Registration] MetaMask returned accounts:', accounts);
-
-      if (!accounts || accounts.length === 0) {
-        setError('No accounts found. Please connect MetaMask first.');
-        return;
-      } else {
-        setError('Accounts found = ' + accounts.length);
-        return;
-      }
-
-      const activeAddress = accounts[0];
-      const accountName = getAccountName(activeAddress);
-      
-      console.log('✅ [Registration] Active address:', activeAddress, 'Account name:', accountName);
-
-      // Derive public key from signature
-      const publicKey = await derivePublicKeyFromSignature(activeAddress);
-
-      // Update the wallet address and public key
-      setWalletAddress(activeAddress);
-      setPublicKey(publicKey);
-      setWalletConnected(true);
-      setSuccess(`Active account: ${accountName} (${activeAddress.slice(0, 6)}...${activeAddress.slice(-4)})`);
-
-    } catch (error) {
-      console.error('❌ [Registration] Get active account error:', error);
-      if (error.code === 4001) {
-        setError('Account access rejected. Please connect your wallet.');
-      } else if (error.code === -32002) {
-        setError('Request already pending. Please check MetaMask.');
-      } else {
-        setError('Failed to get active account: ' + error.message);
-      }
-    } finally {
-      setLoading(false);
-    }
+  const getDIDType = (did) => {
+    if (!did) return null;
+    if (did.startsWith('did:ethr:')) return 'ethr';
+    if (did.startsWith('did:web:')) return 'web';
+    return 'unknown';
   };
 
-  // Get connected accounts without popup (for initial check)
-  const getConnectedAccounts = async () => {
-    try {
-      if (typeof window.ethereum === 'undefined') {
-        return [];
-      }
-
-      // Get connected accounts without showing popup
-      const accounts = await window.ethereum.request({
-        method: 'eth_accounts'
-      });
-
-      console.log('🔍 [Registration] Connected accounts:', accounts);
-      return accounts;
-    } catch (error) {
-      console.error('❌ [Registration] Get connected accounts error:', error);
-      return [];
-    }
-  };
-
-  // Simple account switching function
-  const switchAccount = async () => {
-    try {
-      setLoading(true);
-      setError('');
-
-      if (typeof window.ethereum === 'undefined') {
-        setError('MetaMask is not installed.');
-        return;
-      }
-
-      console.log('🔄 [Registration] Requesting account switch...');
-
-      // Always request account access to get the current selection
-      const accounts = await window.ethereum.request({
-        method: 'eth_requestAccounts'
-      });
-
-      console.log('✅ [Registration] MetaMask returned accounts for switch:', accounts);
-
-      if (!accounts || accounts.length === 0) {
-        setError('No accounts selected.');
-        return;
-      }
-
-      const selectedAddress = accounts[0];
-      const accountName = getAccountName(selectedAddress);
-      
-      console.log('✅ [Registration] Switched to address:', selectedAddress, 'Account name:', accountName);
-
-      // Derive public key from signature
-      const publicKey = await derivePublicKeyFromSignature(selectedAddress);
-
-      // Update the wallet address and public key
-      setWalletAddress(selectedAddress);
-      setPublicKey(publicKey);
-      setSuccess(`Switched to: ${accountName} (${selectedAddress.slice(0, 6)}...${selectedAddress.slice(-4)})`);
-
-    } catch (error) {
-      console.error('❌ [Registration] Switch account error:', error);
-      if (error.code === 4001) {
-        setError('Account switch rejected.');
-      } else {
-        setError('Failed to switch account: ' + error.message);
-      }
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Validate DID format
-  const validateDID = async (did) => {
-    if (!did.trim()) {
-      setDidValidationStatus(null);
-      setDidInfo(null);
+  const validateDID = async (didParam) => {
+    if (!didParam.trim()) {
+      setDidValidationStatus('idle');
       return;
     }
 
+    setDidValidationStatus('validating');
+
     try {
-      setDidValidationStatus('validating');
+      const didType = getDIDType(didParam);
       
-      // Check if DID is available
-      const response = await apiService.checkDIDAvailability(encodeURIComponent(did));
-      
-      if (response.data.success) {
-        if (response.data.available) {
-          setDidValidationStatus('available');
-          
-          // Get DID info
-          try {
-            const infoResponse = await apiService.getDIDInfo(encodeURIComponent(did));
-            if (infoResponse.data.success) {
-              setDidInfo(infoResponse.data.didInfo);
-            }
-          } catch (infoError) {
-            console.log('Could not fetch DID info:', infoError);
+      if (didType === 'unknown') {
+        setDidValidationStatus('invalid');
+        return;
+      }
+
+      if (didType === 'web') {
+        // For did:web, we'll validate by checking if the DID document exists
+        const domain = didParam.replace('did:web:', '').split(':')[0];
+        const didDocumentUrl = `https://${domain}/.well-known/did.json`;
+        
+        try {
+          const response = await fetch(didDocumentUrl);
+          if (response.ok) {
+            setDidValidationStatus('available');
+          } else {
+            setDidValidationStatus('unavailable');
           }
-        } else {
-          setDidValidationStatus('taken');
+        } catch (error) {
+          setDidValidationStatus('unavailable');
         }
       } else {
-        setDidValidationStatus('invalid');
+        // For did:ethr, assume it's available
+        setDidValidationStatus('available');
       }
     } catch (error) {
-      console.error('DID validation error:', error);
-      if (error.response?.data?.code === 'INVALID_DID_FORMAT') {
-        setDidValidationStatus('invalid');
-      } else {
-        setDidValidationStatus('error');
-      }
+      setDidValidationStatus('invalid');
     }
   };
 
-  // DID verification function
+  const fetchDIDPublicKey = async (didParam) => {
+    try {
+      setDidPublicKeyLoading(true);
+      setDidPublicKeyError('');
+      setDidPublicKey('');
+
+      const didType = getDIDType(didParam);
+      if (didType !== 'web') {
+        setDidPublicKeyError('Public key fetching is only available for did:web DIDs');
+        return;
+      }
+
+      const domain = didParam.replace('did:web:', '').split(':')[0];
+      const didDocumentUrl = `https://${domain}/.well-known/did.json`;
+      
+      const response = await fetch(didDocumentUrl);
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+      
+      const didDocument = await response.json();
+      
+      if (!didDocument.id || !didDocument['@context']) {
+        throw new Error('Invalid DID document structure');
+      }
+      
+      if (didDocument.id !== didParam) {
+        throw new Error('DID document ID does not match the provided DID');
+      }
+      
+      // Extract public key from verification method
+      let verificationMethod = null;
+
+      if (didDocument.verificationMethod && Array.isArray(didDocument.verificationMethod)) {
+        verificationMethod = didDocument.verificationMethod[0];
+      } else if (didDocument.publicKey && Array.isArray(didDocument.publicKey)) {
+        verificationMethod = didDocument.publicKey[0];
+      } else if (didDocument.assertionMethod && Array.isArray(didDocument.assertionMethod)) {
+        verificationMethod = didDocument.assertionMethod[0];
+      } else if (didDocument.authentication && Array.isArray(didDocument.authentication)) {
+        verificationMethod = didDocument.authentication[0];
+      } else if (didDocument.capabilityInvocation && Array.isArray(didDocument.capabilityInvocation)) {
+        verificationMethod = didDocument.capabilityInvocation[0];
+      } else {
+        throw new Error('DID document missing verification methods');
+      }
+
+      // Extract public key
+      let publicKey = '';
+      if (verificationMethod.publicKeyMultibase) {
+        publicKey = verificationMethod.publicKeyMultibase;
+      } else if (verificationMethod.publicKeyPem) {
+        publicKey = verificationMethod.publicKeyPem;
+      } else if (verificationMethod.publicKeyJwk) {
+        publicKey = JSON.stringify(verificationMethod.publicKeyJwk, null, 2);
+      } else if (verificationMethod.publicKeyHex) {
+        publicKey = verificationMethod.publicKeyHex;
+      } else {
+        throw new Error('No public key found in verification method');
+      }
+      
+      setDidPublicKey(publicKey);
+      setSuccess(`Public key fetched successfully from ${domain}`);
+      
+    } catch (error) {
+      console.error('Public key fetch failed:', error);
+      setDidPublicKeyError('Failed to fetch public key: ' + error.message);
+    } finally {
+      setDidPublicKeyLoading(false);
+    }
+  };
+
   const verifyDIDOwnership = async () => {
     try {
       setLoading(true);
@@ -385,35 +267,59 @@ const UserRegistration = () => {
         return;
       }
 
-      if (!walletConnected) {
-        setError('Please connect your wallet first.');
-        return;
-      }
-
-      // Create verification message
-      const message = `I, the holder of DID ${existingDID}, hereby verify ownership with wallet address ${walletAddress} on ${new Date().toISOString()}`;
+      const didType = getDIDType(existingDID);
       
-      console.log('🔍 [Registration] Creating DID verification message:', message);
+      if (didType === 'ethr') {
+        if (!walletConnected) {
+          setError('Please connect your wallet first.');
+          return;
+        }
 
-      // Request signature from MetaMask
-      const signature = await window.ethereum.request({
-        method: 'personal_sign',
-        params: [message, walletAddress]
-      });
-
-      console.log('✅ [Registration] DID verification signature:', signature);
-
-      setDidVerificationSignature(signature);
-      setDidVerificationMessage(message);
-      setSuccess('DID ownership verified! You can now proceed with registration.');
-
-    } catch (error) {
-      console.error('❌ [Registration] DID verification error:', error);
-      if (error.code === 4001) {
-        setError('DID verification rejected. Please sign the message to verify ownership.');
+        const provider = new ethers.BrowserProvider(window.ethereum);
+        const signer = await provider.getSigner();
+        
+        const message = `I, the holder of DID ${existingDID}, hereby verify ownership with wallet address ${walletAddress} on ${new Date().toISOString()}`;
+        const signature = await signer.signMessage(message);
+        
+        setDidVerificationSignature(signature);
+        setSuccess('DID ownership verified! You can now proceed with registration.');
+        
+      } else if (didType === 'web') {
+        const domain = existingDID.replace('did:web:', '').split(':')[0];
+        const didDocumentUrl = `https://${domain}/.well-known/did.json`;
+        
+        const response = await fetch(didDocumentUrl);
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        
+        const didDocument = await response.json();
+        
+        if (!didDocument.id || !didDocument['@context']) {
+          throw new Error('Invalid DID document structure');
+        }
+        
+        if (didDocument.id !== existingDID) {
+          throw new Error('DID document ID does not match the provided DID');
+        }
+        
+        const verificationData = {
+          type: 'domain_verification',
+          domain: domain,
+          didDocument: didDocument,
+          verifiedAt: new Date().toISOString()
+        };
+        
+        setDidVerificationSignature(JSON.stringify(verificationData));
+        setSuccess(`Domain ownership verified for ${domain}! DID document found and validated.`);
+        
       } else {
-        setError('DID verification failed: ' + error.message);
+        setError('Unsupported DID method. Please use did:ethr or did:web.');
       }
+      
+    } catch (error) {
+      console.error('DID verification error:', error);
+      setError('DID verification failed: ' + error.message);
     } finally {
       setLoading(false);
     }
@@ -430,26 +336,7 @@ const UserRegistration = () => {
     validateDID(value);
   };
 
-  const handleEnterpriseDIDChange = (did) => {
-    setEnterpriseDID(did);
-    setExistingDID(did);
-  };
-
-  const handleEnterpriseValidationChange = (validation) => {
-    setEnterpriseValidation(validation);
-    setDidValidationStatus('available');
-    setDidInfo({
-      method: 'web',
-      identifier: did.split(':')[2]
-    });
-  };
-
   const validateForm = () => {
-    if (!walletConnected) {
-      setError('Please connect your wallet first.');
-      return false;
-    }
-
     if (!formData.name.trim()) {
       setError('Please enter your full name.');
       return false;
@@ -465,7 +352,6 @@ const UserRegistration = () => {
       return false;
     }
 
-    // Validate DID if using existing DID
     if (useExistingDID) {
       if (!existingDID.trim()) {
         setError('Please enter your existing DID.');
@@ -477,9 +363,15 @@ const UserRegistration = () => {
         return false;
       }
 
-      // For enterprise DIDs, we don't need signature verification
-      if (!isEnterpriseUser && !didVerificationSignature) {
-        setError('Please verify your DID ownership first.');
+      if (userType === 'individual' && !didVerificationSignature) {
+        const didType = getDIDType(existingDID);
+        if (didType === 'ethr') {
+          setError('Please verify your DID ownership with your wallet first.');
+        } else if (didType === 'web') {
+          setError('Please verify your domain ownership first.');
+        } else {
+          setError('Please verify your DID ownership first.');
+        }
         return false;
       }
     }
@@ -500,8 +392,8 @@ const UserRegistration = () => {
 
       const registrationData = {
         ...formData,
-        walletAddress,
-        publicKey,
+        userType,
+        ...(userType === 'individual' && { walletAddress, publicKey }),
         ...(useExistingDID && {
           existingDID,
           didVerificationSignature
@@ -510,13 +402,32 @@ const UserRegistration = () => {
 
       console.log('Submitting registration data:', registrationData);
 
-      const response = await apiService.register(registrationData);
-
-      if (response.data.success) {
-        setSuccess('Registration successful! Please log in.');
+      if (mockMode) {
+        // Mock response
+        console.log('Mock mode: Registration would be submitted with:', registrationData);
+        setSuccess('Registration successful! (Mock mode) Please log in.');
         setTimeout(() => {
           navigate('/login');
         }, 2000);
+        return;
+      }
+
+      const response = await apiService.register(registrationData);
+
+      if (response.data.success) {
+        // Compose a status message
+        const details = response.data.details || {};
+        let statusMsg = 'Registration successful!';
+        statusMsg += `\n\nStatus:`;
+        statusMsg += `\n- Database: ${details.db ? '✅' : '❌'}`;
+        statusMsg += `\n- Keycloak: ${details.keycloak ? '✅' : '❌'}`;
+        statusMsg += `\n- Blockchain: ${details.blockchain ? '✅' : '❌'}`;
+        if (details.note) statusMsg += `\nNote: ${details.note}`;
+        setSuccess(statusMsg);
+        setTimeout(() => {
+          navigate('/login');
+        }, 4000);
+        return;
       }
     } catch (error) {
       console.error('Registration error:', error);
@@ -532,497 +443,260 @@ const UserRegistration = () => {
     }
   };
 
-  // Listen for MetaMask account changes
-  useEffect(() => {
-    if (window.ethereum) {
-      const handleAccountsChanged = async (accounts) => {
-        console.log('🔄 [Registration] MetaMask accounts changed:', accounts);
-        
-        if (accounts.length > 0) {
-          const newAddress = accounts[0];
-          const accountName = getAccountName(newAddress);
-          
-          console.log('🔄 [Registration] Switching to:', accountName, newAddress);
-          
-          try {
-            // Derive public key from signature
-            const publicKey = await derivePublicKeyFromSignature(newAddress);
-            
-            setWalletAddress(newAddress);
-            setPublicKey(publicKey);
-            setWalletConnected(true);
-            setSuccess(`Switched to: ${accountName} (${newAddress.slice(0, 6)}...${newAddress.slice(-4)})`);
-          } catch (error) {
-            console.log('⚠️ [Registration] Could not derive public key for account change:', error.message);
-            // Don't set wallet as connected if we can't get the public key
-            setWalletAddress('');
-            setPublicKey('');
-            setWalletConnected(false);
-            setError('Failed to derive public key. Please reconnect your wallet.');
-          }
-        } else {
-          console.log('🔌 [Registration] MetaMask disconnected');
-          setWalletAddress('');
-          setPublicKey('');
-          setWalletConnected(false);
-          setSuccess('');
-        }
-      };
-
-      const handleChainChanged = (chainId) => {
-        console.log('🔄 [Registration] MetaMask chain changed:', chainId);
-        window.location.reload();
-      };
-
-      const handleDisconnect = (error) => {
-        console.log('🔌 [Registration] MetaMask disconnected:', error);
-        setWalletAddress('');
-        setPublicKey('');
-        setWalletConnected(false);
-        setSuccess('');
-      };
-
-      // Set up event listeners
-      window.ethereum.on('accountsChanged', handleAccountsChanged);
-      window.ethereum.on('chainChanged', handleChainChanged);
-      window.ethereum.on('disconnect', handleDisconnect);
-
-      // Cleanup on unmount
-      return () => {
-        window.ethereum.removeListener('accountsChanged', handleAccountsChanged);
-        window.ethereum.removeListener('chainChanged', handleChainChanged);
-        window.ethereum.removeListener('disconnect', handleDisconnect);
-      };
-    }
-  }, []);
-
-  // Get current account on component mount
-  useEffect(() => {
-    const initializeAccount = async () => {
-      if (typeof window.ethereum !== 'undefined') {
-        // First check if we have connected accounts without showing popup
-        const connectedAccounts = await getConnectedAccounts();
-        
-        if (connectedAccounts.length > 0) {
-          // We have connected accounts, use the first one
-          const initialAddress = connectedAccounts[0];
-          const accountName = getAccountName(initialAddress);
-          
-          console.log('✅ [Registration] Using connected account:', accountName, initialAddress);
-          
-          try {
-            // Derive public key from signature for connected account
-            const publicKey = await derivePublicKeyFromSignature(initialAddress);
-            
-            setWalletAddress(initialAddress);
-            setPublicKey(publicKey);
-            setWalletConnected(true);
-            setSuccess(`Connected: ${accountName} (${initialAddress.slice(0, 6)}...${initialAddress.slice(-4)})`);
-          } catch (error) {
-            console.log('⚠️ [Registration] Could not derive public key for connected account:', error.message);
-            // Don't set wallet as connected if we can't get the public key
-            setWalletAddress('');
-            setPublicKey('');
-            setWalletConnected(false);
-          }
-        } else {
-          console.log('🔍 [Registration] No connected accounts found');
-        }
-      }
-    };
-
-    initializeAccount();
-  }, []);
-
-  // Get DID validation status display
   const getDIDStatusDisplay = () => {
     switch (didValidationStatus) {
       case 'validating':
-        return <CircularProgress size={16} />;
+        return <Chip label="Validating..." color="warning" size="small" />;
       case 'available':
-        return <CheckCircle color="success" fontSize="small" />;
-      case 'taken':
-        return <ErrorIcon color="error" fontSize="small" />;
+        return <Chip label="Available" color="success" size="small" />;
+      case 'unavailable':
+        return <Chip label="Unavailable" color="error" size="small" />;
       case 'invalid':
-        return <ErrorIcon color="error" fontSize="small" />;
-      case 'error':
-        return <ErrorIcon color="warning" fontSize="small" />;
+        return <Chip label="Invalid" color="error" size="small" />;
       default:
         return null;
     }
   };
 
-  const getDIDStatusText = () => {
-    switch (didValidationStatus) {
-      case 'validating':
-        return 'Validating DID...';
-      case 'available':
-        return 'DID is available';
-      case 'taken':
-        return 'DID is already registered';
-      case 'invalid':
-        return 'Invalid DID format';
-      case 'error':
-        return 'Error validating DID';
-      default:
-        return '';
-    }
-  };
-
   return (
-    <Container component="main" maxWidth="md">
-      <Box
-        sx={{
-          marginTop: 4,
-          marginBottom: 4,
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-        }}
-      >
-        <Paper
-          elevation={3}
-          sx={{
-            padding: 4,
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            width: '100%',
-          }}
-        >
-          <Box
-            sx={{
-              width: 56,
-              height: 56,
-              borderRadius: '50%',
-              backgroundColor: 'primary.main',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              marginBottom: 2,
-            }}
-          >
-            <PersonAddOutlined sx={{ color: 'white', fontSize: 28 }} />
-          </Box>
+    <Container maxWidth="md" sx={{ py: 4 }}>
+      <Paper elevation={3} sx={{ p: 4 }}>
+        <Typography variant="h4" component="h1" gutterBottom align="center">
+          User Registration
+        </Typography>
 
-          <Typography component="h1" variant="h4" gutterBottom>
-            Create Account
-          </Typography>
-          <Typography variant="body1" color="text.secondary" gutterBottom>
-            Join the Contract Management System
-          </Typography>
-
-          {error && (
-            <Alert severity="error" sx={{ width: '100%', mb: 2 }}>
-              {error}
+        {/* Mock Mode Toggle */}
+        <Box sx={{ mb: 3, textAlign: 'center' }}>
+          <FormControlLabel
+            control={
+              <Switch
+                checked={mockMode}
+                onChange={(e) => {
+                  setMockMode(e.target.checked);
+                  localStorage.setItem('mockApiMode', e.target.checked.toString());
+                }}
+              />
+            }
+            label="Mock API Mode"
+          />
+          {mockMode && (
+            <Alert severity="info" sx={{ mt: 1 }}>
+              Mock mode enabled. No actual API calls will be made.
             </Alert>
           )}
+        </Box>
 
-          {success && (
-            <Alert severity="success" sx={{ width: '100%', mb: 2 }}>
-              {success}
-            </Alert>
-          )}
+        <form onSubmit={handleSubmit}>
+          <Grid container spacing={3}>
+            {/* User Type Selection */}
+            <Grid item xs={12}>
+              <FormControl fullWidth>
+                <InputLabel>User Type</InputLabel>
+                <Select
+                  value={userType}
+                  onChange={(e) => setUserType(e.target.value)}
+                  label="User Type"
+                >
+                  <MenuItem value="individual">Individual</MenuItem>
+                  <MenuItem value="enterprise">Enterprise</MenuItem>
+                </Select>
+              </FormControl>
+            </Grid>
 
-          {/* Wallet Connection */}
-          <Box sx={{ width: '100%', mb: 3 }}>
-            <Typography variant="h6" gutterBottom>
-              Step 1: Connect Your Wallet
-            </Typography>
-            {!walletConnected ? (
-              <Button
-                variant="outlined"
-                startIcon={<AccountBalanceWallet />}
-                onClick={connectWallet}
-                disabled={loading}
+            {/* Basic Information */}
+            <Grid item xs={12} md={6}>
+              <TextField
                 fullWidth
-                sx={{ py: 2 }}
-              >
-                {loading ? <CircularProgress size={20} /> : 'Connect MetaMask'}
-              </Button>
-            ) : (
-              <Box sx={{ width: '100%' }}>
-                <Card sx={{ mb: 2, bgcolor: 'success.light' }}>
-                  <CardContent>
-                    <Typography variant="body1" color="success.dark" gutterBottom>
-                      ✅ Wallet Connected
-                    </Typography>
-                    <Typography variant="h6" color="success.dark">
-                      {getAccountName(walletAddress)} ({walletAddress.slice(0, 6)}...{walletAddress.slice(-4)})
-                    </Typography>
-                    <Box sx={{ mt: 2, display: 'flex', gap: 1 }}>
-                      <Button
-                        variant="outlined"
-                        size="small"
-                        onClick={switchAccount}
-                        disabled={loading}
-                        startIcon={<AccountBalanceWallet />}
-                      >
-                        Switch Account
-                      </Button>
-                      <Button
-                        variant="outlined"
-                        size="small"
-                        onClick={getCurrentAccount}
-                        disabled={loading}
-                      >
-                        Get Active Account
-                      </Button>
-                    </Box>
-                  </CardContent>
-                </Card>
-              </Box>
-            )}
-          </Box>
+                label="Full Name"
+                name="name"
+                value={formData.name}
+                onChange={handleInputChange}
+                required
+              />
+            </Grid>
 
-          {/* Registration Form */}
-          <Box component="form" onSubmit={handleSubmit} sx={{ width: '100%' }}>
-            <Typography variant="h6" gutterBottom>
-              Step 2: Account Information
-            </Typography>
-            
-            <Grid container spacing={2}>
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  required
-                  fullWidth
-                  id="name"
-                  label="Full Name"
-                  name="name"
-                  autoComplete="name"
-                  value={formData.name}
-                  onChange={handleInputChange}
-                />
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  required
-                  fullWidth
-                  id="email"
-                  label="Email Address"
-                  name="email"
-                  autoComplete="email"
-                  value={formData.email}
-                  onChange={handleInputChange}
-                />
-              </Grid>
-              <Grid item xs={12}>
-                <FormControl fullWidth required>
-                  <InputLabel id="party-type-label">Role</InputLabel>
-                  <Select
-                    labelId="party-type-label"
-                    id="partyType"
-                    name="partyType"
-                    value={formData.partyType}
-                    label="Role"
-                    onChange={handleInputChange}
-                  >
-                    {partyTypes.map((type) => (
-                      <MenuItem key={type.value} value={type.value}>
-                        <Box>
-                          <Typography variant="body1">{type.title}</Typography>
-                          <Typography variant="caption" color="text.secondary">
-                            {type.description}
-                          </Typography>
-                        </Box>
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
-              </Grid>
-              <Grid item xs={12} sm={6}>
+            <Grid item xs={12} md={6}>
+              <TextField
+                fullWidth
+                label="Email"
+                name="email"
+                type="email"
+                value={formData.email}
+                onChange={handleInputChange}
+                required
+              />
+            </Grid>
+
+            <Grid item xs={12} md={6}>
+              <FormControl fullWidth>
+                <InputLabel>Role</InputLabel>
+                                 <Select
+                   name="partyType"
+                   value={formData.partyType}
+                   onChange={handleInputChange}
+                   label="Role"
+                   required
+                 >
+                   <MenuItem value="TDP">Training Data Provider (TDP)</MenuItem>
+                   <MenuItem value="TDC">Training Data Consumer (TDC)</MenuItem>
+                   <MenuItem value="CCRP">Confidential Clean Room Provider (CCRP)</MenuItem>
+                 </Select>
+              </FormControl>
+            </Grid>
+
+            {userType === 'enterprise' && (
+              <Grid item xs={12} md={6}>
                 <TextField
                   fullWidth
-                  id="organization"
                   label="Organization"
                   name="organization"
                   value={formData.organization}
                   onChange={handleInputChange}
                 />
               </Grid>
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  fullWidth
-                  id="phoneNumber"
-                  label="Phone Number"
-                  name="phoneNumber"
-                  value={formData.phoneNumber}
-                  onChange={handleInputChange}
-                />
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  fullWidth
-                  id="website"
-                  label="Website"
-                  name="website"
-                  value={formData.website}
-                  onChange={handleInputChange}
-                />
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  fullWidth
-                  id="location"
-                  label="Location"
-                  name="location"
-                  value={formData.location}
-                  onChange={handleInputChange}
-                />
-              </Grid>
-            </Grid>
+            )}
 
             {/* DID Section */}
-            <Box sx={{ mt: 3, mb: 3 }}>
-              <Typography variant="h6" gutterBottom>
-                Step 3: Digital Identity (Optional)
-              </Typography>
-              
+            <Grid item xs={12}>
+              <Divider sx={{ my: 2 }}>
+                <Typography variant="h6">DID (Decentralized Identifier)</Typography>
+              </Divider>
+            </Grid>
+
+            <Grid item xs={12}>
               <FormControlLabel
                 control={
                   <Switch
-                    checked={isEnterpriseUser}
-                    onChange={(e) => setIsEnterpriseUser(e.target.checked)}
-                    color="primary"
+                    checked={useExistingDID}
+                    onChange={(e) => setUseExistingDID(e.target.checked)}
                   />
                 }
-                label="I am registering as an enterprise user"
+                label="Use Existing DID"
               />
+            </Grid>
 
-              {isEnterpriseUser && (
-                <Box sx={{ mt: 2, p: 2, border: '1px solid', borderColor: 'primary.main', borderRadius: 1, bgcolor: 'primary.50' }}>
-                  <EnterpriseDIDRegistration 
-                    onDIDChange={handleEnterpriseDIDChange}
-                    onValidationChange={handleEnterpriseValidationChange}
+            {useExistingDID && (
+              <>
+                <Grid item xs={12}>
+                  <TextField
+                    fullWidth
+                    label="Existing DID"
+                    placeholder="did:web:example.com or did:ethr:0x..."
+                    value={existingDID}
+                    onChange={handleDIDChange}
+                    helperText="Enter your DID (did:web or did:ethr)"
                   />
-                </Box>
-              )}
+                  {getDIDStatusDisplay()}
+                </Grid>
 
-              {!isEnterpriseUser && (
-                <>
-                  <FormControlLabel
-                    control={
-                      <Switch
-                        checked={useExistingDID}
-                        onChange={(e) => setUseExistingDID(e.target.checked)}
-                        color="primary"
-                      />
-                    }
-                    label="I have an existing DID (did:ethr or did:web)"
-                  />
-
-                  {useExistingDID && (
-                <Box sx={{ mt: 2, p: 2, border: '1px solid', borderColor: 'divider', borderRadius: 1 }}>
-                  <Typography variant="body2" color="text.secondary" gutterBottom>
-                    Enter your existing DID to maintain your digital identity across platforms.
-                  </Typography>
-                  
-                  <Grid container spacing={2} alignItems="center">
-                    <Grid item xs={12} sm={8}>
-                      <TextField
-                        fullWidth
-                        label="Your DID"
-                        placeholder="did:ethr:goerli:0x123... or did:web:company.com:user:alice"
-                        value={existingDID}
-                        onChange={handleDIDChange}
-                        helperText="Supports did:ethr and did:web methods"
-                      />
-                    </Grid>
-                    <Grid item xs={12} sm={4}>
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        {getDIDStatusDisplay()}
-                        <Typography variant="caption" color="text.secondary">
-                          {getDIDStatusText()}
-                        </Typography>
-                      </Box>
-                    </Grid>
+                {didValidationStatus === 'available' && (
+                  <Grid item xs={12}>
+                    <Button
+                      variant="outlined"
+                      onClick={() => fetchDIDPublicKey(existingDID)}
+                      disabled={didPublicKeyLoading}
+                      sx={{ mr: 1 }}
+                    >
+                      {didPublicKeyLoading ? <CircularProgress size={20} /> : 'Fetch Public Key'}
+                    </Button>
+                    <Button
+                      variant="outlined"
+                      onClick={verifyDIDOwnership}
+                      disabled={loading}
+                    >
+                      {loading ? <CircularProgress size={20} /> : 'Verify Ownership'}
+                    </Button>
                   </Grid>
+                )}
 
-                  {didInfo && (
-                    <Box sx={{ mt: 2 }}>
-                      <Chip 
-                        label={`Method: ${didInfo.method.toUpperCase()}`} 
-                        color="primary" 
-                        size="small" 
-                        sx={{ mr: 1 }}
-                      />
-                      <Chip 
-                        label={`Identifier: ${didInfo.identifier}`} 
-                        variant="outlined" 
-                        size="small"
-                      />
-                    </Box>
+                {didPublicKey && (
+                  <Grid item xs={12}>
+                    <Card variant="outlined">
+                      <CardContent>
+                        <Typography variant="h6" gutterBottom>
+                          Public Key
+                        </Typography>
+                        <TextField
+                          fullWidth
+                          multiline
+                          rows={4}
+                          value={didPublicKey}
+                          InputProps={{ readOnly: true }}
+                          variant="outlined"
+                        />
+                      </CardContent>
+                    </Card>
+                  </Grid>
+                )}
+
+                {didPublicKeyError && (
+                  <Grid item xs={12}>
+                    <Alert severity="error">{didPublicKeyError}</Alert>
+                  </Grid>
+                )}
+              </>
+            )}
+
+            {/* Wallet Connection (for individual users or did:ethr) */}
+            {(userType === 'individual' || (useExistingDID && getDIDType(existingDID) === 'ethr')) && (
+              <>
+                <Grid item xs={12}>
+                  <Divider sx={{ my: 2 }}>
+                    <Typography variant="h6">Wallet Connection</Typography>
+                  </Divider>
+                </Grid>
+
+                <Grid item xs={12}>
+                  {!walletConnected ? (
+                    <Button
+                      variant="contained"
+                      onClick={connectWallet}
+                      disabled={loading}
+                      startIcon={loading ? <CircularProgress size={20} /> : null}
+                    >
+                      Connect Wallet
+                    </Button>
+                  ) : (
+                    <Alert severity="success">
+                      Wallet connected: {walletAddress}
+                    </Alert>
                   )}
+                </Grid>
+              </>
+            )}
 
-                  {didValidationStatus === 'available' && (
-                    <Box sx={{ mt: 2 }}>
-                      <Button
-                        variant="outlined"
-                        startIcon={<VerifiedUser />}
-                        onClick={verifyDIDOwnership}
-                        disabled={loading || !walletConnected}
-                        fullWidth
-                      >
-                        {loading ? <CircularProgress size={20} /> : 'Verify DID Ownership'}
-                      </Button>
-                      {didVerificationSignature && (
-                        <Alert severity="success" sx={{ mt: 1 }}>
-                          ✅ DID ownership verified successfully!
-                        </Alert>
-                      )}
-                    </Box>
-                  )}
+            {/* Submit Button */}
+            <Grid item xs={12}>
+              <Box sx={{ display: 'flex', justifyContent: 'center', mt: 3 }}>
+                <Button
+                  type="submit"
+                  variant="contained"
+                  size="large"
+                  disabled={loading}
+                  startIcon={loading ? <CircularProgress size={20} /> : null}
+                >
+                  {loading ? 'Registering...' : 'Register'}
+                </Button>
+              </Box>
+            </Grid>
+          </Grid>
+        </form>
 
-                  <Accordion sx={{ mt: 2 }}>
-                    <AccordionSummary expandIcon={<ExpandMore />}>
-                      <Typography variant="body2">
-                        <Info sx={{ mr: 1, fontSize: 16 }} />
-                        DID Information & Examples
-                      </Typography>
-                    </AccordionSummary>
-                    <AccordionDetails>
-                      <Typography variant="body2" gutterBottom>
-                        <strong>did:ethr</strong> - Ethereum-based DIDs using wallet addresses
-                      </Typography>
-                      <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                        Example: did:ethr:goerli:0x1234567890abcdef1234567890abcdef12345678
-                      </Typography>
-                      
-                      <Typography variant="body2" gutterBottom>
-                        <strong>did:web</strong> - Web-based DIDs hosted on web domains
-                      </Typography>
-                      <Typography variant="body2" color="text.secondary">
-                        Example: did:web:company.com:user:alice
-                      </Typography>
-                    </AccordionDetails>
-                  </Accordion>
-                </Box>
-              )}
-            </>
-          )}
-            </Box>
+        {/* Error and Success Messages */}
+        {error && (
+          <Alert severity="error" sx={{ mt: 3 }}>
+            {error}
+          </Alert>
+        )}
 
-            <Button
-              type="submit"
-              fullWidth
-              variant="contained"
-              sx={{ mt: 3, mb: 2, py: 2 }}
-              disabled={loading || !walletConnected}
-            >
-              {loading ? <CircularProgress size={20} /> : 'Create Account'}
-            </Button>
-
-            <Button
-              fullWidth
-              variant="text"
-              onClick={() => navigate('/login')}
-              sx={{ mt: 1 }}
-            >
-              Already have an account? Sign in
-            </Button>
-          </Box>
-        </Paper>
-      </Box>
+        {success && (
+          <Alert severity="success" sx={{ mt: 3 }}>
+            {success.split('\n').map((line, idx) => (
+              <div key={idx}>{line}</div>
+            ))}
+          </Alert>
+        )}
+      </Paper>
     </Container>
   );
 };

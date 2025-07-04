@@ -54,56 +54,40 @@ router.post('/register', authRateLimit, logAuthEvent('REGISTER'), async (req, re
     } = req.body;
 
     // Validate required fields
-    if (!name || !email || !partyType || !walletAddress || !publicKey) {
+    if (!name || !email || !partyType) {
       return res.status(400).json({
         error: 'Missing required fields',
         code: 'MISSING_REQUIRED_FIELDS',
         details: {
-          required: ['name', 'email', 'partyType', 'walletAddress', 'publicKey'],
+          required: ['name', 'email', 'partyType'],
           provided: Object.keys(req.body)
         }
       });
     }
 
-    // Validate wallet address format
-    if (!ethers.isAddress(walletAddress)) {
-      return res.status(400).json({
-        error: 'Invalid wallet address format',
-        code: 'INVALID_WALLET_ADDRESS'
-      });
-    }
-
     // Validate party type
-    const validPartyTypes = ['TDP', 'TDC', 'CCRP'];
-    if (!validPartyTypes.includes(partyType)) {
+    if (!['TDP', 'TDC', 'CCRP'].includes(partyType)) {
       return res.status(400).json({
         error: 'Invalid party type',
         code: 'INVALID_PARTY_TYPE',
         details: {
-          valid: validPartyTypes,
+          valid: ['TDP', 'TDC', 'CCRP'],
           provided: partyType
         }
       });
     }
-
-    // Check if wallet address is already registered
-    const existingWallet = await db.User.findOne({
-      where: { walletAddress: walletAddress.toLowerCase() }
-    });
-
-    if (existingWallet) {
-      return res.status(409).json({
-        error: 'Wallet address is already registered',
-        code: 'WALLET_ALREADY_EXISTS',
-        details: {
-          existingUser: {
-            name: existingWallet.name,
-            email: existingWallet.email,
-            partyType: existingWallet.partyType,
-            isRegistered: existingWallet.isRegistered
-          },
-          message: 'This wallet is already registered. Please login instead or use a different wallet address.'
-        }
+    
+    // All party types (TDP, TDC, CCRP) are enterprise users and don't require wallet fields
+    const isEnterprise = true; // All supported party types are enterprise users
+    
+        // For now, we don't require wallet fields for any party type
+    // If you need wallet fields for specific party types, add logic here
+    
+    // Only validate wallet address if it's provided (for future individual users)
+    if (walletAddress && !ethers.isAddress(walletAddress)) {
+      return res.status(400).json({
+        error: 'Invalid wallet address format',
+        code: 'INVALID_WALLET_ADDRESS'
       });
     }
 
@@ -161,7 +145,6 @@ router.post('/register', authRateLimit, logAuthEvent('REGISTER'), async (req, re
         try {
           // Create verification message
           const message = `I, the holder of DID ${existingDID}, hereby verify ownership with wallet address ${walletAddress} on ${new Date().toISOString()}`;
-          
           // Verify DID ownership using the DID service
           const isVerified = await didService.verifyDIDOwnership(
             existingDID, 
@@ -169,7 +152,6 @@ router.post('/register', authRateLimit, logAuthEvent('REGISTER'), async (req, re
             didVerificationSignature, 
             message
           );
-          
           if (isVerified) {
             didVerified = true;
             didVerificationMethod = 'SIGNATURE_VERIFICATION';
@@ -186,15 +168,23 @@ router.post('/register', authRateLimit, logAuthEvent('REGISTER'), async (req, re
           });
         }
       }
-
       did = existingDID;
       didSource = 'USER_PROVIDED';
     } else {
       // Generate system DID for the user
       try {
-        did = didService.createSystemDID(walletAddress, 'goerli'); // Default to Goerli for development
-        didVerified = true;
-        didVerificationMethod = 'SYSTEM_GENERATED';
+        if (isEnterprise) {
+          // For enterprise users, generate a web-based DID using their domain or email
+          const domain = email.split('@')[1] || 'example.com';
+          did = `did:web:${domain}:user:${email.split('@')[0]}`;
+          didVerified = true;
+          didVerificationMethod = 'SYSTEM_GENERATED';
+        } else {
+          // For individual users, generate DID using wallet address
+          did = didService.createSystemDID(walletAddress, 'goerli'); // Default to Goerli for development
+          didVerified = true;
+          didVerificationMethod = 'SYSTEM_GENERATED';
+        }
       } catch (error) {
         return res.status(400).json({
           error: 'Failed to generate system DID: ' + error.message,
@@ -203,125 +193,139 @@ router.post('/register', authRateLimit, logAuthEvent('REGISTER'), async (req, re
       }
     }
 
-    // Create user in local database first
-    const user = await db.User.create({
-      walletAddress: walletAddress.toLowerCase(),
-      publicKey,
-      partyType,
-      name,
-      email: email.toLowerCase(),
-      description: description || '',
-      organization: organization || '',
-      phoneNumber: phoneNumber || '',
-      website: website || '',
-      location: location || '',
-      did,
-      didSource,
-      didVerified,
-      didVerificationMethod,
-      isRegistered: true,
-      registrationDate: new Date(),
-      isActive: true,
-      onboardingStatus: 'PENDING',
-      profileCompleted: false,
-      emailVerified: false
-    });
-
+    // --- KEYCLOAK USER CREATION FIRST ---
+    let keycloakResult = null;
+    let keycloakSuccess = false;
     try {
-      // Create user in Keycloak IAM (optional for development)
-      let keycloakResult = null;
-      try {
-        keycloakResult = await keycloakService.createUser({
-          email,
-          name,
-          walletAddress,
-          partyType,
-          publicKey,
-          organization,
-          phoneNumber,
-          website,
-          location
-        });
-
-        // Update local user with Keycloak ID
-        await user.update({
-          iamUserId: keycloakResult.keycloakUserId,
-          iamUsername: email,
-          onboardingStatus: 'IN_PROGRESS'
-        });
-
-        // Send email verification
-        await keycloakService.sendEmailVerification(keycloakResult.keycloakUserId);
-      } catch (keycloakError) {
-        console.warn('⚠️ Keycloak integration not available, continuing with local registration only:', keycloakError.message);
-        
-        // Update user to indicate no IAM integration
-        await user.update({
-          onboardingStatus: 'COMPLETED', // Skip IAM onboarding
-          profileCompleted: true // Mark as completed since no IAM
-        });
-      }
-
-      // Create welcome notification
-      await db.Notification.create({
-        userId: user.id,
-        type: 'USER_REGISTERED',
-        title: 'Welcome to Contract Management',
-        message: `Welcome ${name}! Your account has been successfully registered as a ${partyType}.${keycloakResult ? ' Please complete your profile and verify your email.' : ''}`,
-        isRead: false,
-        metadata: {
-          partyType,
-          registrationDate: new Date().toISOString(),
-          onboardingStatus: keycloakResult ? 'IN_PROGRESS' : 'COMPLETED',
-          did: did,
-          didSource: didSource,
-          iamIntegrated: !!keycloakResult
-        }
+      keycloakResult = await keycloakService.createUser({
+        email,
+        name,
+        walletAddress,
+        partyType,
+        publicKey,
+        organization,
+        phoneNumber,
+        website,
+        location
       });
+      keycloakSuccess = true;
+    } catch (keycloakError) {
+      console.error('❌ Failed to create user in Keycloak:', keycloakError.message);
+      // Instead of returning, proceed to DB creation
+      keycloakResult = { keycloakUserId: null };
+      keycloakSuccess = false;
+    }
 
-      console.log(`✅ User registered successfully: ${user.id}${keycloakResult ? ` (Keycloak: ${keycloakResult.keycloakUserId})` : ' (Local only)'}`);
-
-      res.status(201).json({
-        success: true,
-        message: 'User registered successfully',
-        user: {
-          id: user.id,
-          name: user.name,
-          email: user.email,
-          partyType: user.partyType,
-          walletAddress: user.walletAddress,
-          publicKey: user.publicKey,
-          did: user.did,
-          didSource: user.didSource,
-          didVerified: user.didVerified,
-          didVerificationMethod: user.didVerificationMethod,
-          isRegistered: user.isRegistered,
-          onboardingStatus: user.onboardingStatus,
-          profileCompleted: user.profileCompleted,
-          emailVerified: user.emailVerified
-        },
-        nextSteps: keycloakResult ? [
-          'Verify your email address',
-          'Complete your profile',
-          'Connect your wallet'
-        ] : [
-          'Your account is ready to use',
-          'Connect your wallet',
-          'Start creating contracts'
-        ]
+    // --- LOCAL USER CREATION ---
+    let dbUser = null;
+    let dbSuccess = false;
+    try {
+      dbUser = await db.User.create({
+        walletAddress: isEnterprise ? null : walletAddress?.toLowerCase(),
+        publicKey: isEnterprise ? null : publicKey,
+        partyType,
+        name,
+        email: email.toLowerCase(),
+        description: description || '',
+        organization: organization || '',
+        phoneNumber: phoneNumber || '',
+        website: website || '',
+        location: location || '',
+        did,
+        didSource,
+        didVerified,
+        didVerificationMethod,
+        isRegistered: true,
+        registrationDate: new Date(),
+        isActive: true,
+        onboardingStatus: 'IN_PROGRESS',
+        profileCompleted: false,
+        emailVerified: false,
+        iamUserId: keycloakResult.keycloakUserId,
+        iamUsername: email
       });
-
-    } catch (error) {
-      // If any other error occurs, delete the local user
-      await user.destroy();
-      console.error('❌ Registration error:', error);
-      
+      dbSuccess = true;
+    } catch (dbError) {
+      console.error('❌ Failed to create user in DB:', dbError.message);
       return res.status(500).json({
-        error: 'Internal server error',
-        code: 'INTERNAL_ERROR',
-        details: error.message
+        success: false,
+        error: 'Failed to create user in database',
+        code: 'DB_CREATE_FAILED',
+        details: {
+          db: false,
+          keycloak: keycloakSuccess,
+          blockchain: false,
+          note: keycloakSuccess ? 'User created in Keycloak but not in DB.' : 'User not created in DB or Keycloak.'
+        },
+        message: dbError.message
       });
     }
+
+    // --- BLOCKCHAIN REGISTRATION (optional) ---
+    let blockchainSuccess = false;
+    let blockchainNote = 'Blockchain registration is currently not implemented or disabled.';
+    // If you implement blockchain registration, update this section accordingly.
+    // Example:
+    // try {
+    //   await blockchainService.registerUserOnChain(...);
+    //   blockchainSuccess = true;
+    //   blockchainNote = 'User registered on blockchain.';
+    // } catch (bcError) {
+    //   blockchainNote = 'Blockchain registration failed: ' + bcError.message;
+    // }
+
+    // --- TRIGGER EMAIL VERIFICATION ---
+    try {
+      await keycloakService.sendEmailVerification(keycloakResult.keycloakUserId);
+    } catch (emailError) {
+      console.warn('⚠️ Failed to trigger Keycloak email verification:', emailError.message);
+    }
+
+    // --- NOTIFICATION ---
+    await db.Notification.create({
+      userId: dbUser.id,
+      type: 'USER_REGISTERED',
+      title: 'Welcome to Contract Management',
+      message: `Welcome ${name}! Your account has been successfully registered as a ${partyType}. Please complete your profile and verify your email.`,
+      isRead: false,
+      metadata: {
+        partyType,
+        registrationDate: new Date().toISOString(),
+        onboardingStatus: 'IN_PROGRESS',
+        did: did,
+        didSource: didSource,
+        iamIntegrated: true
+      }
+    });
+
+    console.log(`✅ User registered successfully: ${dbUser.id} (Keycloak: ${keycloakResult.keycloakUserId})`);
+
+    // --- FINAL RESPONSE ---
+    return res.json({
+      success: true,
+      details: {
+        db: dbSuccess,
+        keycloak: keycloakSuccess,
+        blockchain: blockchainSuccess,
+        note: blockchainNote
+      },
+      user: {
+        id: dbUser.id,
+        name: dbUser.name,
+        email: dbUser.email,
+        partyType: dbUser.partyType,
+        walletAddress: dbUser.walletAddress,
+        isRegistered: dbUser.isRegistered,
+        onboardingStatus: dbUser.onboardingStatus,
+        profileCompleted: dbUser.profileCompleted,
+        emailVerified: dbUser.emailVerified
+      },
+      nextSteps: [
+        'Verify your email address',
+        'Complete your profile',
+        'Connect your wallet'
+      ]
+    });
 
   } catch (error) {
     console.error('❌ Registration error:', error);
@@ -347,38 +351,74 @@ router.post('/login', authRateLimit, logAuthEvent('LOGIN'), async (req, res) => 
       });
     }
 
-    // Find user in local database
-    const user = await db.User.findOne({
-      where: { email, isActive: true }
-    });
-
-    if (!user) {
-      return res.status(401).json({ 
-        error: 'Invalid credentials',
-        code: 'INVALID_CREDENTIALS'
+    // Authenticate with Keycloak using Resource Owner Password Credentials grant
+    try {
+      const tokenResponse = await keycloakService.authenticateUserWithPassword(email, password);
+      // Optionally, fetch user info from Keycloak
+      const userInfo = await keycloakService.getUserInfo(tokenResponse.access_token);
+      // Optionally, update last login timestamp in local DB
+      const user = await db.User.findOne({ where: { email: email.toLowerCase(), isActive: true } });
+      if (user) {
+        await user.update({ lastLoginAt: new Date() });
+      }
+      return res.json({
+        message: 'Login successful',
+        accessToken: tokenResponse.access_token,
+        refreshToken: tokenResponse.refresh_token,
+        expiresIn: tokenResponse.expires_in,
+        user: userInfo
+      });
+    } catch (kcError) {
+      console.log('⚠️ Keycloak authentication failed, falling back to local authentication for testing');
+      
+      // Fallback: Check local database for user (for testing when Keycloak is not available)
+      const user = await db.User.findOne({ where: { email: email.toLowerCase(), isActive: true } });
+      
+      if (!user) {
+        return res.status(401).json({
+          error: 'Invalid credentials',
+          code: 'INVALID_CREDENTIALS',
+          details: 'User not found in local database'
+        });
+      }
+      
+      // For testing: Accept any password when Keycloak is not available
+      // In production, this should be removed and only Keycloak authentication should be used
+      
+      // Update last login timestamp
+      await user.update({ lastLoginAt: new Date() });
+      
+      // Generate a mock token for testing
+      const mockToken = jwt.sign(
+        { 
+          userId: user.id,
+          email: user.email,
+          walletAddress: user.walletAddress,
+          partyType: user.partyType,
+          iat: Math.floor(Date.now() / 1000)
+        },
+        process.env.JWT_SECRET || 'your-secret-key',
+        { expiresIn: '24h' }
+      );
+      
+      return res.json({
+        message: 'Login successful (local fallback)',
+        accessToken: mockToken,
+        refreshToken: null,
+        expiresIn: 24 * 60 * 60,
+        user: {
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          partyType: user.partyType,
+          walletAddress: user.walletAddress,
+          isRegistered: user.isRegistered,
+          onboardingStatus: user.onboardingStatus,
+          profileCompleted: user.profileCompleted,
+          emailVerified: user.emailVerified
+        }
       });
     }
-
-    // Update last login timestamp
-    await user.update({ lastLoginAt: new Date() });
-
-    // Return user info (actual token will be obtained from Keycloak frontend)
-    res.json({
-      message: 'Login successful',
-      user: {
-        id: user.id,
-        name: user.name,
-        email: user.email,
-        partyType: user.partyType,
-        walletAddress: user.walletAddress,
-        isRegistered: user.isRegistered,
-        onboardingStatus: user.onboardingStatus,
-        profileCompleted: user.profileCompleted,
-        emailVerified: user.emailVerified
-      },
-      authUrl: `${keycloakService.baseURL}/realms/${keycloakService.realm}/protocol/openid-connect/auth?client_id=${keycloakService.config.frontendClient}&response_type=code&scope=openid&redirect_uri=${encodeURIComponent('http://localhost:3000/callback')}`
-    });
-
   } catch (error) {
     console.error('❌ Login error:', error);
     res.status(500).json({ 

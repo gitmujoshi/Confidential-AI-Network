@@ -77,9 +77,9 @@ kill_process() {
 
 # Stop services by PID files
 print_status "Stopping services by PID files..."
-kill_by_pid_file ".frontend.pid" "Frontend"
-kill_by_pid_file ".backend.pid" "Backend"
-kill_by_pid_file ".hardhat.pid" "Blockchain"
+kill_by_pid_file "../../.frontend.pid" "Frontend"
+kill_by_pid_file "../../.backend.pid" "Backend"
+kill_by_pid_file "../../.hardhat.pid" "Blockchain"
 
 # Stop Keycloak Docker container
 print_status "Stopping Keycloak Docker container..."
@@ -98,7 +98,7 @@ kill_process "node server.js" "Backend"
 kill_process "hardhat" "Blockchain"
 
 # Clean up PID files
-rm -f .frontend.pid .backend.pid .hardhat.pid .keycloak.pid
+rm -f ../../.frontend.pid ../../.backend.pid ../../.hardhat.pid ../../.keycloak.pid
 
 # Check if any services are still running
 echo ""
