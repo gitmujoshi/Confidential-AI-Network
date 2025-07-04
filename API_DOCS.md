@@ -1,7 +1,7 @@
 # API Documentation
 ## Contract Management System API
 
-**Version:** 2.0  
+**Version:** 3.0  
 **Base URL:** `http://localhost:3001/api`  
 **Date:** December 2024
 
@@ -11,10 +11,13 @@
 
 1. [Authentication](#authentication)
 2. [User Management](#user-management)
-3. [Contract Management](#contract-management)
-4. [Dataset Management](#dataset-management)
-5. [DID Management](#did-management)
-6. [Error Handling](#error-handling)
+3. [Enterprise Management](#enterprise-management)
+4. [Contract Management](#contract-management)
+5. [Dataset Management](#dataset-management)
+6. [DID Management](#did-management)
+7. [Organization Management](#organization-management)
+8. [Notification Management](#notification-management)
+9. [Error Handling](#error-handling)
 
 ---
 
@@ -23,7 +26,7 @@
 ### Register User
 **POST** `/auth/register`
 
-Register a new user with support for both `did:ethr` and `did:web` DIDs.
+Register a new user with support for both `did:web` (primary for enterprise) and `did:ethr` (for blockchain operations).
 
 **Request Body:**
 ```json
@@ -38,15 +41,21 @@ Register a new user with support for both `did:ethr` and `did:web` DIDs.
   "phoneNumber": "+1234567890",
   "website": "https://example.com",
   "location": "New York, USA",
-  "existingDID": "did:ethr:goerli:0x1234567890abcdef...",
-  "didVerificationSignature": "0xsignature..."
+  "existingDID": "did:web:company.com:user:john.doe",
+  "didVerificationSignature": "0xsignature...",
+  "enterpriseUser": false,
+  "organizationDomain": "company.com",
+  "department": "Engineering",
+  "role": "Developer",
+  "employeeId": "EMP001"
 }
 ```
 
 **DID Options:**
+- **Enterprise (did:web) - Primary Recommendation**: Provide `did:web:company.com:user:john.doe` for enterprise users
 - **System-Generated (did:ethr)**: Omit `existingDID` and `didVerificationSignature` - system creates DID from wallet address
 - **User-Provided (did:ethr)**: Provide existing Ethereum-based DID with signature verification
-- **User-Provided (did:web)**: Provide existing web-based DID (e.g., `did:web:company.com:user:alice`)
+- **User-Provided (did:web)**: Provide existing web-based DID
 
 **Response:**
 ```json
@@ -59,12 +68,17 @@ Register a new user with support for both `did:ethr` and `did:web` DIDs.
     "email": "john@example.com",
     "partyType": "TDP",
     "walletAddress": "0x1234567890abcdef...",
-    "did": "did:ethr:goerli:0x1234567890abcdef...",
+    "did": "did:web:company.com:user:john.doe",
     "didSource": "USER_PROVIDED",
     "didVerified": true,
-    "didVerificationMethod": "signature",
+    "didVerificationMethod": "web_resolution",
     "onboardingStatus": "COMPLETED",
     "profileCompleted": true,
+    "enterpriseUser": true,
+    "organizationDomain": "company.com",
+    "department": "Engineering",
+    "role": "Developer",
+    "employeeId": "EMP001",
     "createdAt": "2024-12-01T10:00:00.000Z"
   }
 }
@@ -94,10 +108,12 @@ Register a new user with support for both `did:ethr` and `did:web` DIDs.
     "email": "john@example.com",
     "partyType": "TDP",
     "walletAddress": "0x1234567890abcdef...",
-    "did": "did:ethr:goerli:0x1234567890abcdef...",
+    "did": "did:web:company.com:user:john.doe",
     "didSource": "USER_PROVIDED",
     "didVerified": true,
-    "onboardingStatus": "COMPLETED"
+    "onboardingStatus": "COMPLETED",
+    "enterpriseUser": true,
+    "organizationDomain": "company.com"
   }
 }
 ```
@@ -122,16 +138,21 @@ Register a new user with support for both `did:ethr` and `did:web` DIDs.
     "partyType": "TDP",
     "walletAddress": "0x1234567890abcdef...",
     "publicKey": "0xabcdef123456...",
-    "did": "did:ethr:goerli:0x1234567890abcdef...",
+    "did": "did:web:company.com:user:john.doe",
     "didSource": "USER_PROVIDED",
     "didVerified": true,
-    "didVerificationMethod": "signature",
+    "didVerificationMethod": "web_resolution",
     "onboardingStatus": "COMPLETED",
     "profileCompleted": true,
     "organization": "Company Name",
     "phoneNumber": "+1234567890",
     "website": "https://example.com",
     "location": "New York, USA",
+    "enterpriseUser": true,
+    "organizationDomain": "company.com",
+    "department": "Engineering",
+    "role": "Developer",
+    "employeeId": "EMP001",
     "createdAt": "2024-12-01T10:00:00.000Z",
     "lastLoginAt": "2024-12-01T15:30:00.000Z"
   }
@@ -151,7 +172,9 @@ Register a new user with support for both `did:ethr` and `did:web` DIDs.
   "organization": "Updated Company",
   "phoneNumber": "+1234567890",
   "website": "https://updated-example.com",
-  "location": "San Francisco, USA"
+  "location": "San Francisco, USA",
+  "department": "Product",
+  "role": "Senior Developer"
 }
 ```
 
@@ -159,6 +182,12 @@ Register a new user with support for both `did:ethr` and `did:web` DIDs.
 **GET** `/users`
 
 **Headers:** `Authorization: Bearer <token>`
+
+**Query Parameters:**
+- `enterpriseUser` (boolean): Filter by enterprise users
+- `organizationDomain` (string): Filter by organization domain
+- `department` (string): Filter by department
+- `role` (string): Filter by role
 
 **Response:**
 ```json
@@ -171,11 +200,15 @@ Register a new user with support for both `did:ethr` and `did:web` DIDs.
       "email": "john@example.com",
       "partyType": "TDP",
       "walletAddress": "0x1234567890abcdef...",
-      "did": "did:ethr:goerli:0x1234567890abcdef...",
+      "did": "did:web:company.com:user:john.doe",
       "didSource": "USER_PROVIDED",
       "didVerified": true,
       "onboardingStatus": "COMPLETED",
       "organization": "Company Name",
+      "enterpriseUser": true,
+      "organizationDomain": "company.com",
+      "department": "Engineering",
+      "role": "Developer",
       "createdAt": "2024-12-01T10:00:00.000Z"
     }
   ]
@@ -184,7 +217,206 @@ Register a new user with support for both `did:ethr` and `did:web` DIDs.
 
 ---
 
+## Enterprise Management
+
+### Register Organization
+**POST** `/enterprise/organizations`
+
+Register a new organization for enterprise DID management.
+
+**Request Body:**
+```json
+{
+  "name": "Acme Corporation",
+  "domain": "acme.com",
+  "description": "Leading technology company",
+  "website": "https://acme.com",
+  "contactEmail": "admin@acme.com",
+  "contactPhone": "+1234567890",
+  "address": "123 Business St, New York, NY",
+  "industry": "Technology",
+  "size": "1000-5000",
+  "adminWalletAddress": "0x1234567890abcdef...",
+  "adminSignature": "0xsignature...",
+  "adminMessage": "Organization registration message"
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Organization registered successfully",
+  "organization": {
+    "id": 1,
+    "name": "Acme Corporation",
+    "domain": "acme.com",
+    "did": "did:web:acme.com",
+    "status": "ACTIVE",
+    "createdAt": "2024-12-01T10:00:00.000Z"
+  }
+}
+```
+
+### Get Organization Details
+**GET** `/enterprise/organizations/:domain`
+
+**Response:**
+```json
+{
+  "success": true,
+  "organization": {
+    "id": 1,
+    "name": "Acme Corporation",
+    "domain": "acme.com",
+    "did": "did:web:acme.com",
+    "description": "Leading technology company",
+    "website": "https://acme.com",
+    "contactEmail": "admin@acme.com",
+    "contactPhone": "+1234567890",
+    "address": "123 Business St, New York, NY",
+    "industry": "Technology",
+    "size": "1000-5000",
+    "status": "ACTIVE",
+    "userCount": 150,
+    "createdAt": "2024-12-01T10:00:00.000Z"
+  }
+}
+```
+
+### Get Organization Users
+**GET** `/enterprise/organizations/:domain/users`
+
+**Headers:** `Authorization: Bearer <token>`
+
+**Query Parameters:**
+- `department` (string): Filter by department
+- `role` (string): Filter by role
+- `status` (string): Filter by user status
+
+**Response:**
+```json
+{
+  "success": true,
+  "users": [
+    {
+      "id": 1,
+      "name": "John Doe",
+      "email": "john@acme.com",
+      "did": "did:web:acme.com:user:john.doe",
+      "department": "Engineering",
+      "role": "Developer",
+      "employeeId": "EMP001",
+      "status": "ACTIVE",
+      "createdAt": "2024-12-01T10:00:00.000Z"
+    }
+  ]
+}
+```
+
+### Bulk Register Enterprise Users
+**POST** `/enterprise/organizations/:domain/users/bulk`
+
+**Headers:** `Authorization: Bearer <token>`
+
+**Request Body:**
+```json
+{
+  "users": [
+    {
+      "name": "Jane Smith",
+      "email": "jane@acme.com",
+      "department": "Legal",
+      "role": "Legal Counsel",
+      "employeeId": "EMP002"
+    },
+    {
+      "name": "Bob Johnson",
+      "email": "bob@acme.com",
+      "department": "Finance",
+      "role": "Financial Analyst",
+      "employeeId": "EMP003"
+    }
+  ]
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Bulk user registration completed",
+  "results": {
+    "successful": 2,
+    "failed": 0,
+    "users": [
+      {
+        "name": "Jane Smith",
+        "email": "jane@acme.com",
+        "did": "did:web:acme.com:user:jane.smith",
+        "status": "REGISTERED"
+      },
+      {
+        "name": "Bob Johnson",
+        "email": "bob@acme.com",
+        "did": "did:web:acme.com:user:bob.johnson",
+        "status": "REGISTERED"
+      }
+    ]
+  }
+}
+```
+
+---
+
 ## DID Management
+
+### Create Web DID
+**POST** `/did/web/create`
+
+Create a new `did:web` for enterprise users.
+
+**Headers:** `Authorization: Bearer <token>`
+
+**Request Body:**
+```json
+{
+  "domain": "company.com",
+  "path": "user:john.doe",
+  "verificationMethods": [
+    {
+      "id": "key-1",
+      "type": "Ed25519VerificationKey2020",
+      "publicKeyMultibase": "z6MkhaXgBZDvotDkL5257faiztiGiC2QtKLGpbnnEGta2doK"
+    }
+  ],
+  "authentication": ["key-1"],
+  "assertionMethod": ["key-1"]
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Web DID created successfully",
+  "did": "did:web:company.com:user:john.doe",
+  "didDocument": {
+    "@context": "https://www.w3.org/ns/did/v1",
+    "id": "did:web:company.com:user:john.doe",
+    "verificationMethod": [
+      {
+        "id": "did:web:company.com:user:john.doe#key-1",
+        "type": "Ed25519VerificationKey2020",
+        "controller": "did:web:company.com:user:john.doe",
+        "publicKeyMultibase": "z6MkhaXgBZDvotDkL5257faiztiGiC2QtKLGpbnnEGta2doK"
+      }
+    ],
+    "authentication": ["did:web:company.com:user:john.doe#key-1"],
+    "assertionMethod": ["did:web:company.com:user:john.doe#key-1"]
+  }
+}
+```
 
 ### Verify DID Ownership
 **POST** `/did/verify`
@@ -194,7 +426,7 @@ Verify ownership of a user-provided DID (both `did:ethr` and `did:web`).
 **Request Body:**
 ```json
 {
-  "did": "did:ethr:goerli:0x1234567890abcdef...",
+  "did": "did:web:company.com:user:john.doe",
   "walletAddress": "0x1234567890abcdef...",
   "signature": "0xsignature...",
   "message": "Verification message"
@@ -207,9 +439,9 @@ Verify ownership of a user-provided DID (both `did:ethr` and `did:web`).
   "success": true,
   "message": "DID ownership verified successfully",
   "verification": {
-    "did": "did:ethr:goerli:0x1234567890abcdef...",
+    "did": "did:web:company.com:user:john.doe",
     "verified": true,
-    "method": "signature",
+    "method": "web_resolution",
     "verifiedAt": "2024-12-01T10:00:00.000Z"
   }
 }
@@ -225,20 +457,21 @@ Get information about a specific DID.
 {
   "success": true,
   "didInfo": {
-    "did": "did:ethr:goerli:0x1234567890abcdef...",
-    "method": "ethr",
-    "network": "goerli",
-    "controller": "0x1234567890abcdef...",
+    "did": "did:web:company.com:user:john.doe",
+    "method": "web",
+    "domain": "company.com",
+    "path": "user:john.doe",
+    "controller": "did:web:company.com:user:john.doe",
     "verificationMethods": [
       {
-        "id": "did:ethr:goerli:0x1234567890abcdef...#controller",
-        "type": "EcdsaSecp256k1VerificationKey2019",
-        "controller": "did:ethr:goerli:0x1234567890abcdef...",
-        "publicKeyHex": "0xabcdef123456..."
+        "id": "did:web:company.com:user:john.doe#key-1",
+        "type": "Ed25519VerificationKey2020",
+        "controller": "did:web:company.com:user:john.doe",
+        "publicKeyMultibase": "z6MkhaXgBZDvotDkL5257faiztiGiC2QtKLGpbnnEGta2doK"
       }
     ],
-    "authentication": ["did:ethr:goerli:0x1234567890abcdef...#controller"],
-    "assertionMethod": ["did:ethr:goerli:0x1234567890abcdef...#controller"],
+    "authentication": ["did:web:company.com:user:john.doe#key-1"],
+    "assertionMethod": ["did:web:company.com:user:john.doe#key-1"],
     "created": "2024-12-01T10:00:00.000Z",
     "updated": "2024-12-01T10:00:00.000Z"
   }
@@ -249,6 +482,27 @@ Get information about a specific DID.
 **GET** `/did/resolve/:did`
 
 Resolve a DID to its document (supports both `did:ethr` and `did:web`).
+
+**Response for did:web:**
+```json
+{
+  "success": true,
+  "didDocument": {
+    "@context": "https://www.w3.org/ns/did/v1",
+    "id": "did:web:company.com:user:john.doe",
+    "verificationMethod": [
+      {
+        "id": "did:web:company.com:user:john.doe#key-1",
+        "type": "Ed25519VerificationKey2020",
+        "controller": "did:web:company.com:user:john.doe",
+        "publicKeyMultibase": "z6MkhaXgBZDvotDkL5257faiztiGiC2QtKLGpbnnEGta2doK"
+      }
+    ],
+    "authentication": ["did:web:company.com:user:john.doe#key-1"],
+    "assertionMethod": ["did:web:company.com:user:john.doe#key-1"]
+  }
+}
+```
 
 **Response for did:ethr:**
 ```json
@@ -271,26 +525,6 @@ Resolve a DID to its document (supports both `did:ethr` and `did:web`).
 }
 ```
 
-**Response for did:web:**
-```json
-{
-  "success": true,
-  "didDocument": {
-    "@context": "https://www.w3.org/ns/did/v1",
-    "id": "did:web:company.com:user:alice",
-    "verificationMethod": [
-      {
-        "id": "did:web:company.com:user:alice#key-1",
-        "type": "Ed25519VerificationKey2020",
-        "controller": "did:web:company.com:user:alice",
-        "publicKeyMultibase": "z6MkhaXgBZDvotDkL5257faiztiGiC2QtKLGpbnnEGta2doK"
-      }
-    ],
-    "authentication": ["did:web:company.com:user:alice#key-1"]
-  }
-}
-```
-
 ### Check DID Availability
 **GET** `/did/check/:did`
 
@@ -301,8 +535,122 @@ Check if a DID is available for registration.
 {
   "success": true,
   "available": true,
-  "did": "did:ethr:goerli:0x1234567890abcdef...",
+  "did": "did:web:company.com:user:john.doe",
   "message": "DID is available for registration"
+}
+```
+
+### List User DIDs
+**GET** `/did/user/:userId`
+
+**Headers:** `Authorization: Bearer <token>`
+
+**Response:**
+```json
+{
+  "success": true,
+  "dids": [
+    {
+      "did": "did:web:company.com:user:john.doe",
+      "method": "web",
+      "source": "USER_PROVIDED",
+      "verified": true,
+      "verificationMethod": "web_resolution",
+      "primary": true,
+      "createdAt": "2024-12-01T10:00:00.000Z"
+    }
+  ]
+}
+```
+
+---
+
+## Organization Management
+
+### Create Organization
+**POST** `/organizations`
+
+**Headers:** `Authorization: Bearer <token>`
+
+**Request Body:**
+```json
+{
+  "name": "Acme Corporation",
+  "domain": "acme.com",
+  "description": "Leading technology company",
+  "website": "https://acme.com",
+  "contactEmail": "admin@acme.com",
+  "contactPhone": "+1234567890",
+  "address": "123 Business St, New York, NY",
+  "industry": "Technology",
+  "size": "1000-5000"
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Organization created successfully",
+  "organization": {
+    "id": 1,
+    "name": "Acme Corporation",
+    "domain": "acme.com",
+    "did": "did:web:acme.com",
+    "status": "ACTIVE",
+    "createdAt": "2024-12-01T10:00:00.000Z"
+  }
+}
+```
+
+### Get Organization
+**GET** `/organizations/:id`
+
+**Headers:** `Authorization: Bearer <token>`
+
+**Response:**
+```json
+{
+  "success": true,
+  "organization": {
+    "id": 1,
+    "name": "Acme Corporation",
+    "domain": "acme.com",
+    "did": "did:web:acme.com",
+    "description": "Leading technology company",
+    "website": "https://acme.com",
+    "contactEmail": "admin@acme.com",
+    "contactPhone": "+1234567890",
+    "address": "123 Business St, New York, NY",
+    "industry": "Technology",
+    "size": "1000-5000",
+    "status": "ACTIVE",
+    "userCount": 150,
+    "createdAt": "2024-12-01T10:00:00.000Z"
+  }
+}
+```
+
+### Get All Organizations
+**GET** `/organizations`
+
+**Headers:** `Authorization: Bearer <token>`
+
+**Response:**
+```json
+{
+  "success": true,
+  "organizations": [
+    {
+      "id": 1,
+      "name": "Acme Corporation",
+      "domain": "acme.com",
+      "did": "did:web:acme.com",
+      "status": "ACTIVE",
+      "userCount": 150,
+      "createdAt": "2024-12-01T10:00:00.000Z"
+    }
+  ]
 }
 ```
 
@@ -366,12 +714,12 @@ Check if a DID is available for registration.
       "tdp": {
         "id": 1,
         "name": "John Doe",
-        "did": "did:ethr:goerli:0x1234567890abcdef..."
+        "did": "did:web:company.com:user:john.doe"
       },
       "tdc": {
         "id": 2,
         "name": "Jane Smith",
-        "did": "did:web:company.com:user:jane"
+        "did": "did:web:company.com:user:jane.smith"
       },
       "ccrp": {
         "id": 3,
@@ -404,12 +752,12 @@ Check if a DID is available for registration.
     "tdp": {
       "id": 1,
       "name": "John Doe",
-      "did": "did:ethr:goerli:0x1234567890abcdef..."
+      "did": "did:web:company.com:user:john.doe"
     },
     "tdc": {
       "id": 2,
       "name": "Jane Smith",
-      "did": "did:web:company.com:user:jane"
+      "did": "did:web:company.com:user:jane.smith"
     },
     "ccrp": {
       "id": 3,
@@ -504,11 +852,72 @@ Check if a DID is available for registration.
       "owner": {
         "id": 1,
         "name": "John Doe",
-        "did": "did:ethr:goerli:0x1234567890abcdef..."
+        "did": "did:web:company.com:user:john.doe"
       },
       "createdAt": "2024-12-01T10:00:00.000Z"
     }
   ]
+}
+```
+
+---
+
+## Notification Management
+
+### Get User Notifications
+**GET** `/notifications`
+
+**Headers:** `Authorization: Bearer <token>`
+
+**Query Parameters:**
+- `type` (string): Filter by notification type
+- `read` (boolean): Filter by read status
+- `limit` (number): Limit number of notifications
+
+**Response:**
+```json
+{
+  "success": true,
+  "notifications": [
+    {
+      "id": 1,
+      "type": "CONTRACT_SIGNED",
+      "title": "Contract Signed",
+      "message": "Contract 'Data Sharing Agreement' has been signed",
+      "read": false,
+      "data": {
+        "contractId": 1,
+        "contractTitle": "Data Sharing Agreement"
+      },
+      "createdAt": "2024-12-01T10:00:00.000Z"
+    }
+  ]
+}
+```
+
+### Mark Notification as Read
+**PUT** `/notifications/:id/read`
+
+**Headers:** `Authorization: Bearer <token>`
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Notification marked as read"
+}
+```
+
+### Mark All Notifications as Read
+**PUT** `/notifications/read-all`
+
+**Headers:** `Authorization: Bearer <token>`
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "All notifications marked as read"
 }
 ```
 
@@ -541,6 +950,15 @@ Check if a DID is available for registration.
 - `DID_VERIFICATION_FAILED`: DID ownership verification failed
 - `DID_NOT_RESOLVABLE`: DID cannot be resolved
 - `UNSUPPORTED_DID_METHOD`: DID method is not supported
+- `WEB_DID_RESOLUTION_FAILED`: Web DID document resolution failed
+- `DOMAIN_NOT_VERIFIED`: Domain ownership not verified
+
+#### Enterprise Errors
+- `ORGANIZATION_NOT_FOUND`: Organization not found
+- `DOMAIN_ALREADY_REGISTERED`: Domain already registered
+- `INVALID_EMPLOYEE_ID`: Employee ID format is invalid
+- `DEPARTMENT_NOT_FOUND`: Department not found in organization
+- `ROLE_NOT_FOUND`: Role not found in organization
 
 #### Validation Errors
 - `MISSING_REQUIRED_FIELD`: Required field is missing
@@ -571,37 +989,72 @@ Check if a DID is available for registration.
 
 ### Supported DID Methods
 
-#### did:ethr (Ethereum-based)
+#### did:web (Web-based) - Primary for Enterprise
+- **Format**: `did:web:[domain]:[path]`
+- **Examples**:
+  - `did:web:company.com:user:john.doe`
+  - `did:web:university.edu:students:student123`
+  - `did:web:organization.org:employees:jane.smith`
+  - `did:web:company.com:departments:legal`
+  - `did:web:company.com:roles:compliance-officer`
+- **Verification**: DID document resolution via HTTPS
+- **Best for**: **Enterprise organizations** with web domains
+- **Benefits**:
+  - **Enterprise control** over identity infrastructure
+  - **No blockchain fees** or complex setup
+  - **Fast resolution** via HTTP requests with caching
+  - **Integration** with existing web infrastructure
+  - **Compliance** with enterprise security policies
+  - **Scalability** for large organizations
+
+#### did:ethr (Ethereum-based) - For Blockchain Operations
 - **Format**: `did:ethr:[network]:[ethereum-address]`
 - **Examples**:
   - `did:ethr:goerli:0x1234567890abcdef...`
   - `did:ethr:mainnet:0x1234567890abcdef...`
   - `did:ethr:polygon:0x1234567890abcdef...`
 - **Verification**: Wallet signature
-- **Best for**: Individual users with Ethereum wallets
-
-#### did:web (Web-based)
-- **Format**: `did:web:[domain]:[path]`
-- **Examples**:
-  - `did:web:company.com:user:alice`
-  - `did:web:university.edu:students:student123`
-  - `did:web:organization.org:employees:john`
-- **Verification**: DID document resolution
-- **Best for**: Organizations with web domains
+- **Best for**: Individual users with Ethereum wallets and blockchain operations
+- **Benefits**:
+  - Self-sovereign identity
+  - No central authority
+  - Works with existing wallets
+  - Widely supported in blockchain ecosystem
+  - Fully decentralized
+  - Built-in cryptographic verification
 
 ### DID Verification Methods
 
-#### For did:ethr:
-1. User provides DID and wallet address
-2. System creates verification message
-3. User signs message with wallet
-4. System verifies signature against DID controller
-
 #### For did:web:
 1. User provides DID
-2. System resolves DID document from web server
-3. System validates DID document format
-4. System verifies domain ownership and SSL certificate
+2. System resolves DID document from web server via HTTPS
+3. System validates DID document format and structure
+4. System verifies domain ownership and SSL certificate validity
+5. System checks that the DID document is properly hosted at the expected URL
+
+#### For did:ethr:
+1. User provides DID and wallet address
+2. System creates verification message with timestamp and nonce
+3. User signs message with their wallet
+4. System verifies signature against the DID controller address
+5. System confirms the wallet address matches the DID controller
+
+### DID Method Comparison
+
+| Feature | did:web | did:ethr |
+|---------|---------|----------|
+| **Primary Use** | **Enterprise identity** | Blockchain operations |
+| **Infrastructure** | Web servers (existing) | Ethereum blockchain |
+| **Cost** | **Hosting costs only** | Gas fees + infrastructure |
+| **Speed** | **Fast (HTTP + caching)** | Slower (blockchain) |
+| **Control** | **Organization control** | Individual wallet control |
+| **Decentralization** | Organization-controlled | Fully decentralized |
+| **Setup Complexity** | **Simple (web hosting)** | Moderate (blockchain) |
+| **Enterprise Integration** | **Native support** | Limited integration |
+| **Compliance** | **Enterprise-ready** | Blockchain-focused |
+| **Scalability** | **High (thousands of users)** | Individual-focused |
+| **Security** | **SSL/TLS + enterprise** | Cryptographic only |
+| **Audit Trails** | **Enterprise logging** | Blockchain transactions |
 
 ---
 
@@ -609,17 +1062,18 @@ Check if a DID is available for registration.
 
 - **Authentication endpoints**: 10 requests per minute
 - **DID verification**: 5 requests per minute
+- **Enterprise endpoints**: 20 requests per minute
 - **General API endpoints**: 100 requests per minute
 
 ---
 
 ## Versioning
 
-API versioning is handled through the URL path. Current version is v2.0.
+API versioning is handled through the URL path. Current version is v3.0.
 
 **Example:**
 - Current: `/api/auth/register`
-- Future: `/api/v3/auth/register`
+- Future: `/api/v4/auth/register`
 
 ---
 
