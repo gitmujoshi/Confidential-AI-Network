@@ -19,6 +19,7 @@ import Users from './pages/Users';
 import Notifications from './pages/Notifications';
 import UserRegistration from './pages/UserRegistration';
 import Login from './pages/Login';
+import EnterpriseDIDManagement from './pages/EnterpriseDIDManagement';
 
 // Protected Route Component
 const ProtectedRoute = ({ children }) => {
@@ -168,6 +169,13 @@ function AppRoutes() {
         <ProtectedRoute>
           <Layout>
             <Notifications />
+          </Layout>
+        </ProtectedRoute>
+      } />
+      <Route path="/enterprise-did" element={
+        <ProtectedRoute>
+          <Layout>
+            <EnterpriseDIDManagement />
           </Layout>
         </ProtectedRoute>
       } />

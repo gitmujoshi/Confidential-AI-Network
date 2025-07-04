@@ -26,6 +26,7 @@ import {
 } from '@mui/icons-material';
 import { useUser } from '../contexts/UserContext';
 import api from '../services/api';
+import DIDInfoCard from '../components/DIDInfoCard';
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -179,6 +180,64 @@ const Dashboard = () => {
                 </div>
                 <People className="text-orange-600 text-3xl" />
               </div>
+            </CardContent>
+          </Card>
+        </Grid>
+      </Grid>
+
+      {/* DID Information */}
+      <Grid container spacing={3}>
+        <Grid item xs={12} md={6}>
+          <DIDInfoCard 
+            did={user?.did}
+            didSource={user?.didSource}
+            didVerified={user?.didVerified}
+            didVerificationMethod={user?.didVerificationMethod}
+            isEnterprise={user?.did?.startsWith('did:web:')}
+          />
+        </Grid>
+        <Grid item xs={12} md={6}>
+          <Card>
+            <CardContent>
+              <Typography variant="h6" className="font-medium mb-4">
+                User Profile
+              </Typography>
+              <Box sx={{ mb: 2 }}>
+                <Typography variant="body2" color="text.secondary" gutterBottom>
+                  Name
+                </Typography>
+                <Typography variant="body1" className="font-medium">
+                  {user?.name || 'Not provided'}
+                </Typography>
+              </Box>
+              <Box sx={{ mb: 2 }}>
+                <Typography variant="body2" color="text.secondary" gutterBottom>
+                  Email
+                </Typography>
+                <Typography variant="body1" className="font-medium">
+                  {user?.email || 'Not provided'}
+                </Typography>
+              </Box>
+              <Box sx={{ mb: 2 }}>
+                <Typography variant="body2" color="text.secondary" gutterBottom>
+                  Role
+                </Typography>
+                <Chip 
+                  label={user?.partyType || 'Unknown'} 
+                  color="primary" 
+                  size="small"
+                />
+              </Box>
+              {user?.organization && (
+                <Box sx={{ mb: 2 }}>
+                  <Typography variant="body2" color="text.secondary" gutterBottom>
+                    Organization
+                  </Typography>
+                  <Typography variant="body1" className="font-medium">
+                    {user.organization}
+                  </Typography>
+                </Box>
+              )}
             </CardContent>
           </Card>
         </Grid>

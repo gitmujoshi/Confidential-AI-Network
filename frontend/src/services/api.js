@@ -82,6 +82,13 @@ export const apiService = {
   createSystemDID: (data) => api.post('/api/did/create-system', data),
   getSupportedDIDMethods: () => api.get('/api/did/supported-methods'),
 
+  // Enterprise DID Management
+  validateEnterpriseDID: (did) => api.get(`/api/did/enterprise/validate/${did}`),
+  getEnterpriseDomains: () => api.get('/api/did/enterprise/domains'),
+  updateEnterpriseDomains: (config) => api.post('/api/did/enterprise/domains', config),
+  getDIDCacheStats: () => api.get('/api/did/cache/stats'),
+  clearDIDCache: () => api.post('/api/did/cache/clear'),
+
   // Datasets
   getDatasets: async (params) => {
     const response = await api.get('/api/datasets/public', { params });

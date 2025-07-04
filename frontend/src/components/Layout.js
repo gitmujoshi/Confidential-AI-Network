@@ -29,6 +29,7 @@ import {
   AccountCircle,
   Logout,
   Add,
+  Business,
 } from '@mui/icons-material';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useQuery } from 'react-query';
@@ -76,7 +77,8 @@ const Layout = ({ children }) => {
     { text: 'Datasets', icon: <Storage />, path: '/datasets' },
     { text: 'Contracts', icon: <Description />, path: '/contracts' },
     { text: 'Users', icon: <People />, path: '/users' },
-    { text: 'Notifications', icon: <Notifications />, path: '/notifications' }
+    { text: 'Notifications', icon: <Notifications />, path: '/notifications' },
+    { text: 'Enterprise DID', icon: <Business />, path: '/enterprise-did' }
   ];
 
   const getRoleColor = (role) => {

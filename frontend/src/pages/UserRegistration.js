@@ -31,7 +31,9 @@ import ExpandMore from '@mui/icons-material/ExpandMore';
 import Info from '@mui/icons-material/Info';
 import CheckCircle from '@mui/icons-material/CheckCircle';
 import ErrorIcon from '@mui/icons-material/Error';
+import Business from '@mui/icons-material/Business';
 import { apiService } from '../services/api';
+import EnterpriseDIDRegistration from '../components/EnterpriseDIDRegistration';
 
 const UserRegistration = () => {
   const navigate = useNavigate();
@@ -60,6 +62,11 @@ const UserRegistration = () => {
   const [didVerificationMessage, setDidVerificationMessage] = useState('');
   const [didValidationStatus, setDidValidationStatus] = useState(null);
   const [didInfo, setDidInfo] = useState(null);
+  
+  // Enterprise DID state
+  const [isEnterpriseUser, setIsEnterpriseUser] = useState(false);
+  const [enterpriseDID, setEnterpriseDID] = useState('');
+  const [enterpriseValidation, setEnterpriseValidation] = useState(null);
 
   const partyTypes = [
     {
@@ -423,6 +430,20 @@ const UserRegistration = () => {
     validateDID(value);
   };
 
+  const handleEnterpriseDIDChange = (did) => {
+    setEnterpriseDID(did);
+    setExistingDID(did);
+  };
+
+  const handleEnterpriseValidationChange = (validation) => {
+    setEnterpriseValidation(validation);
+    setDidValidationStatus('available');
+    setDidInfo({
+      method: 'web',
+      identifier: did.split(':')[2]
+    });
+  };
+
   const validateForm = () => {
     if (!walletConnected) {
       setError('Please connect your wallet first.');
@@ -456,7 +477,8 @@ const UserRegistration = () => {
         return false;
       }
 
-      if (!didVerificationSignature) {
+      // For enterprise DIDs, we don't need signature verification
+      if (!isEnterpriseUser && !didVerificationSignature) {
         setError('Please verify your DID ownership first.');
         return false;
       }
@@ -859,15 +881,37 @@ const UserRegistration = () => {
               <FormControlLabel
                 control={
                   <Switch
-                    checked={useExistingDID}
-                    onChange={(e) => setUseExistingDID(e.target.checked)}
+                    checked={isEnterpriseUser}
+                    onChange={(e) => setIsEnterpriseUser(e.target.checked)}
                     color="primary"
                   />
                 }
-                label="I have an existing DID (did:ethr or did:web)"
+                label="I am registering as an enterprise user"
               />
 
-              {useExistingDID && (
+              {isEnterpriseUser && (
+                <Box sx={{ mt: 2, p: 2, border: '1px solid', borderColor: 'primary.main', borderRadius: 1, bgcolor: 'primary.50' }}>
+                  <EnterpriseDIDRegistration 
+                    onDIDChange={handleEnterpriseDIDChange}
+                    onValidationChange={handleEnterpriseValidationChange}
+                  />
+                </Box>
+              )}
+
+              {!isEnterpriseUser && (
+                <>
+                  <FormControlLabel
+                    control={
+                      <Switch
+                        checked={useExistingDID}
+                        onChange={(e) => setUseExistingDID(e.target.checked)}
+                        color="primary"
+                      />
+                    }
+                    label="I have an existing DID (did:ethr or did:web)"
+                  />
+
+                  {useExistingDID && (
                 <Box sx={{ mt: 2, p: 2, border: '1px solid', borderColor: 'divider', borderRadius: 1 }}>
                   <Typography variant="body2" color="text.secondary" gutterBottom>
                     Enter your existing DID to maintain your digital identity across platforms.
@@ -954,6 +998,8 @@ const UserRegistration = () => {
                   </Accordion>
                 </Box>
               )}
+            </>
+          )}
             </Box>
 
             <Button
