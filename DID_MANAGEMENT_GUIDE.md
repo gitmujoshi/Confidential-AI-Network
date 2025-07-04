@@ -45,13 +45,40 @@ For example:
 
 ## 2. Types of DIDs
 
-### Ethereum DIDs (did:ethr) - Recommended for Individuals
-These are the most common type in our system for individual users. They are:
-- **Based on your wallet address**: Your DID is derived from your Ethereum wallet
-- **Easy to manage**: You control them with your existing wallet
-- **Widely supported**: Compatible with many blockchain applications
+### Web DIDs (did:web) - Primary Recommendation for Enterprise
+These are hosted on web domains and are the **primary choice** for enterprise environments:
+- **Domain-based**: Tied to a specific website or organization
+- **Enterprise control**: Organizations control their own DID space
+- **Cost-effective**: No blockchain gas fees or complex infrastructure
+- **Fast resolution**: Standard HTTP requests with caching
+- **Integration friendly**: Works with existing web infrastructure
+- **Security**: Leverages existing domain security and SSL certificates
+- **Compliance**: Meets enterprise security and audit requirements
+- **Scalability**: Easy to manage thousands of organizational DIDs
+
+**Examples:**
+- Organization main DID: `did:web:company.com`
+- Department DID: `did:web:company.com:legal`
+- Employee DID: `did:web:company.com:employees:john.doe`
+- Role-based DID: `did:web:company.com:roles:compliance-officer`
+- Partner organization: `did:web:partner.com:company:integration`
+
+**Best for:**
+- **Enterprise organizations** with web domains
+- **Large-scale identity management**
+- **Cost-conscious implementations**
+- **Integration with existing enterprise systems**
+- **Centralized identity control**
+- **Compliance and audit requirements**
+- **Multi-department organizations**
+
+### Ethereum DIDs (did:ethr) - For Blockchain Operations
+These are used for blockchain-specific operations and individual users:
+- **Based on wallet address**: Your DID is derived from your Ethereum wallet
+- **Blockchain-native**: Designed for blockchain applications
+- **Self-sovereign**: Individual control over identity
 - **Network-specific**: Different networks have different DIDs
-- **Fully decentralized**: No central authority controls your identity
+- **Cryptographic proof**: Built-in cryptographic verification
 
 **Examples:**
 - Test network: `did:ethr:goerli:0x1234567890abcdef...`
@@ -59,32 +86,11 @@ These are the most common type in our system for individual users. They are:
 - Polygon network: `did:ethr:polygon:0x1234567890abcdef...`
 
 **Best for:**
-- Individual users with Ethereum wallets
-- Self-sovereign identity needs
-- Cross-platform blockchain applications
-- Users who want full control over their identity
-
-### Web DIDs (did:web) - Recommended for Organizations
-These are hosted on web domains and are ideal for organizations:
-- **Domain-based**: Tied to a specific website or organization
-- **Easy to remember**: Based on familiar web addresses
-- **Organization control**: Companies control their own DID space
-- **Cost-effective**: No blockchain gas fees
-- **Fast resolution**: Standard HTTP requests
-- **Integration friendly**: Works with existing web infrastructure
-
-**Examples:**
-- Company employee: `did:web:company.com:employees:john`
-- Department member: `did:web:company.com:dept:legal:lawyer1`
-- Role-based: `did:web:company.com:roles:compliance-officer`
-- University student: `did:web:university.edu:students:student123`
-
-**Best for:**
-- Organizations with web domains
-- Enterprise identity management
-- Cost-conscious implementations
-- Integration with existing web systems
-- Centralized identity control
+- **Blockchain-specific operations**
+- **Individual users** with Ethereum wallets
+- **Cross-platform blockchain applications**
+- **Users who want full decentralized control**
+- **Smart contract interactions**
 
 ### Key-based DIDs (did:key)
 These are self-contained DIDs that include the public key:
@@ -99,8 +105,27 @@ These are self-contained DIDs that include the public key:
 
 ## 3. DID Creation Process
 
-### System-Generated DIDs (did:ethr)
-When you register without providing an existing DID, the system automatically creates one for you:
+### Enterprise DID Creation (did:web) - Primary Method
+For enterprise organizations, the system creates `did:web` DIDs based on your organization's domain:
+
+1. **Domain Verification**: The system verifies your organization owns the domain
+2. **DID Generation**: A new `did:web` is created using your domain
+3. **Document Creation**: A DID document is created with your organization's information
+4. **Web Hosting**: The DID document is hosted at `https://yourdomain.com/.well-known/did.json`
+5. **SSL Verification**: The system ensures HTTPS is properly configured
+6. **Database Storage**: The DID is stored securely in the database
+7. **IAM Integration**: The DID is linked to your enterprise IAM system
+
+**Benefits:**
+- **Enterprise control** over identity infrastructure
+- **No blockchain fees** or complex setup
+- **Fast resolution** and verification
+- **Integration** with existing web infrastructure
+- **Compliance** with enterprise security policies
+- **Scalability** for large organizations
+
+### System-Generated DIDs (did:ethr) - For Blockchain Operations
+When you register for blockchain operations without providing an existing DID:
 
 1. **Wallet Connection**: You connect your MetaMask wallet
 2. **Address Extraction**: The system uses your wallet address
@@ -367,50 +392,61 @@ If you encounter persistent issues:
 
 ## 9. Choosing the Right DID Method
 
-### For Individual Users: Choose did:ethr
+### For Enterprise Organizations: Choose did:web (Primary Recommendation)
+**When to use did:web:**
+- Your organization owns a web domain
+- You need enterprise-grade identity management
+- Cost and complexity are primary concerns
+- You want to integrate with existing enterprise systems
+- You need fast DID resolution and verification
+- You require compliance with enterprise security policies
+- You manage large numbers of users across departments
+- You want centralized control over identity infrastructure
+
+**Benefits:**
+- **Enterprise control** over identity space
+- **Cost-effective** - no blockchain fees
+- **Fast resolution** via HTTP requests
+- **Easy integration** with existing web infrastructure
+- **Compliance** with enterprise security requirements
+- **Scalability** for large organizations
+- **SSL/TLS security** leveraging existing certificates
+- **Audit trails** and enterprise logging
+
+### For Individual Users and Blockchain Operations: Choose did:ethr
 **When to use did:ethr:**
 - You have an Ethereum wallet (MetaMask, etc.)
-- You want full control over your identity
-- You prefer decentralized solutions
+- You need to perform blockchain-specific operations
+- You want full decentralized control over your identity
 - You use blockchain applications regularly
 - You want cross-platform portability
 - You're comfortable with blockchain technology
+- You need cryptographic proof for smart contracts
 
 **Benefits:**
 - Self-sovereign identity
 - No central authority
 - Works with existing wallets
-- Widely supported
+- Widely supported in blockchain ecosystem
 - Fully decentralized
-
-### For Organizations: Choose did:web
-**When to use did:web:**
-- Your organization owns a web domain
-- You want to control your identity space
-- Cost is a primary concern
-- You prefer web infrastructure
-- You need fast DID resolution
-- You want to integrate with existing systems
-
-**Benefits:**
-- Domain-based identity
-- Cost-effective
-- Fast resolution
-- Easy integration
-- Organization control
+- Built-in cryptographic verification
 
 ### Comparison Table
 
-| Feature | did:ethr | did:web |
-|---------|----------|---------|
-| **Best For** | Individual users | Organizations |
-| **Infrastructure** | Ethereum blockchain | Web servers |
-| **Cost** | Gas fees | Hosting costs |
-| **Speed** | Slower (blockchain) | Fast (HTTP) |
-| **Control** | Wallet owner | Domain owner |
-| **Decentralization** | Fully decentralized | Centralized hosting |
-| **Setup Complexity** | Simple (wallet) | Moderate (web server) |
-| **Use Case** | Personal identity | Enterprise identity |
+| Feature | did:web | did:ethr |
+|---------|---------|----------|
+| **Primary Use** | **Enterprise identity** | Blockchain operations |
+| **Infrastructure** | Web servers (existing) | Ethereum blockchain |
+| **Cost** | **Hosting costs only** | Gas fees + infrastructure |
+| **Speed** | **Fast (HTTP + caching)** | Slower (blockchain) |
+| **Control** | **Organization control** | Individual wallet control |
+| **Decentralization** | Organization-controlled | Fully decentralized |
+| **Setup Complexity** | **Simple (web hosting)** | Moderate (blockchain) |
+| **Enterprise Integration** | **Native support** | Limited integration |
+| **Compliance** | **Enterprise-ready** | Blockchain-focused |
+| **Scalability** | **High (thousands of users)** | Individual-focused |
+| **Security** | **SSL/TLS + enterprise** | Cryptographic only |
+| **Audit Trails** | **Enterprise logging** | Blockchain transactions |
 
 ### Migration Considerations
 If you need to switch between DID methods:

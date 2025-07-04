@@ -6,7 +6,7 @@
   "scripts": {
     "compile": "hardhat compile",
     "test": "hardhat test",
-    "node": "hardhat node",
+    "node": "NODE_OPTIONS='--max-old-space-size=512' hardhat node",
     "deploy": "hardhat run scripts/deploy.js --network localhost",
     "deploy:local": "hardhat run scripts/deploy.js --network localhost"
   },

@@ -12,15 +12,18 @@ The Contract Management System is a blockchain-based platform that enables secur
 - **CCRP (Confidential Clean Room Provider)**: Independent reviewers who validate contracts
 
 ### Key Features
-- **Enterprise IAM Integration**: Keycloak-based identity and access management
-- **DID Support**: Decentralized Identifiers for self-sovereign identity
+- **Enterprise IAM Integration**: Keycloak-based identity and access management with LDAP/AD support
+- **Enterprise DID Strategy**: Primary support for `did:web` with `did:ethr` for blockchain operations
+- **Enterprise Identity Management**: 
+  - **did:web**: Cost-effective, fast, organization-controlled identity for enterprise users
+  - **did:ethr**: Blockchain-specific operations for smart contract interactions
 - **Secure Private Key Management**: Client-side signing with private keys never transmitted
 - **Blockchain Immutability**: All contracts stored on Ethereum-compatible blockchain
 - **Multi-Party Workflow**: Sequential signing process with role-based permissions
-- **User Onboarding**: Multi-step registration with email verification
+- **Enterprise User Onboarding**: Multi-step registration with enterprise IAM integration
 - **Real-time Notifications**: Email and in-app notifications for contract events
-- **Comprehensive Audit Trail**: Complete history of all contract actions
-- **Profile Management**: Enhanced user profiles with organization details
+- **Comprehensive Audit Trail**: Complete history of all contract actions with enterprise logging
+- **Enterprise Profile Management**: Enhanced user profiles with organization and department details
 
 ## 🏛️ System Architecture
 
@@ -39,28 +42,37 @@ graph TB
         BE[Backend API Services]
     end
     
-    subgraph "Identity Layer"
+    subgraph "Enterprise Identity Layer"
         IAM[Keycloak IAM]
-        DID[DID Management]
+        LDAP[LDAP/Active Directory]
+        DID_WEB[DID:web Management]
+        DID_ETHR[DID:ethr Management]
     end
     
     subgraph "Data Layer"
         DB[(PostgreSQL Database)]
         BC[(Blockchain Network)]
+        WEB_SERVER[Web Server<br/>DID Documents]
     end
     
     FE --> BE
     BE --> IAM
-    BE --> DID
+    BE --> LDAP
+    BE --> DID_WEB
+    BE --> DID_ETHR
     BE --> DB
     BE --> BC
+    DID_WEB --> WEB_SERVER
     
     style FE fill:#e3f2fd
     style BE fill:#f3e5f5
     style IAM fill:#ffebee
-    style DID fill:#fff3e0
+    style LDAP fill:#ffebee
+    style DID_WEB fill:#fff3e0
+    style DID_ETHR fill:#fff8e1
     style DB fill:#e8f5e8
     style BC fill:#fff8e1
+    style WEB_SERVER fill:#e0f2f1
 ```
 
 ## 📱 Frontend Architecture
@@ -116,11 +128,19 @@ graph TB
         US[User Service]
         NS[Notification Service]
         IAM_S[Keycloak Service]
+        ORG_S[Organization Service]
+    end
+    
+    subgraph "Enterprise Identity Services"
+        DID_WEB_S[DID:web Service]
+        DID_ETHR_S[DID:ethr Service]
+        LDAP_S[LDAP Service]
+        ENTERPRISE_S[Enterprise Auth Service]
     end
     
     subgraph "External Integrations"
         BC_S[Blockchain Service]
-        DID_S[DID Service]
+        WEB_S[Web Server Service]
     end
     
     API --> CS
@@ -128,49 +148,74 @@ graph TB
     API --> US
     API --> NS
     API --> IAM_S
+    API --> ORG_S
+    API --> DID_WEB_S
+    API --> DID_ETHR_S
+    API --> LDAP_S
+    API --> ENTERPRISE_S
+    
     CS --> BC_S
-    US --> DID_S
+    US --> DID_WEB_S
+    US --> DID_ETHR_S
+    DID_WEB_S --> WEB_S
+    ENTERPRISE_S --> LDAP_S
     
     style API fill:#f3e5f5
     style CS fill:#e8f5e8
+    style DID_WEB_S fill:#fff3e0
+    style DID_ETHR_S fill:#fff8e1
     style BC_S fill:#fff3e0
 ```
 
 ## 🔐 Identity & Access Management
 
-### IAM Architecture
+### Enterprise IAM Architecture
 ```mermaid
 graph TB
-    subgraph "Keycloak IAM"
+    subgraph "Enterprise IAM"
         KC[Keycloak Server]
+        LDAP[LDAP/Active Directory]
         AUTH[Authentication]
         RBAC[Role-Based Access]
-        EMAIL[Email Verification]
+        USER_FED[User Federation]
     end
     
-    subgraph "DID Management"
-        DID[DID Registry]
+    subgraph "Enterprise DID Management"
+        DID_WEB[DID:web Registry]
+        DID_ETHR[DID:ethr Registry]
         DID_RES[DID Resolution]
         DID_VER[DID Verification]
         DID_DOC[DID Documents]
+        WEB_HOST[Web Server Hosting]
     end
     
-    subgraph "IAM Database"
+    subgraph "Enterprise Database"
         IAM_DB[(Keycloak PostgreSQL)]
+        ORG_DB[(Organization DB)]
     end
     
     KC --> AUTH
     KC --> RBAC
-    KC --> EMAIL
+    KC --> USER_FED
     KC --> IAM_DB
+    USER_FED --> LDAP
     
-    DID --> DID_RES
-    DID --> DID_VER
-    DID --> DID_DOC
+    DID_WEB --> DID_RES
+    DID_WEB --> DID_VER
+    DID_WEB --> DID_DOC
+    DID_WEB --> WEB_HOST
+    DID_ETHR --> DID_RES
+    DID_ETHR --> DID_VER
+    
+    DID_WEB --> ORG_DB
+    DID_ETHR --> ORG_DB
     
     style KC fill:#ffebee
-    style DID fill:#fff3e0
+    style LDAP fill:#ffebee
+    style DID_WEB fill:#fff3e0
+    style DID_ETHR fill:#fff8e1
     style IAM_DB fill:#e8f5e8
+    style ORG_DB fill:#e8f5e8
 ```
 
 ## 💾 Data Architecture
@@ -191,9 +236,15 @@ graph TB
         UI3[Profile Data]
     end
     
-    subgraph "DID Support"
+    subgraph "Enterprise DID Support"
         UD[DID Field]
+        UDM[DID Method Field]
+        UOD[Organization Domain]
+        UON[Organization Name]
         UPK[Public Key Field]
+        UER[Enterprise Role]
+        UDEPT[Department]
+        UEID[Employee ID]
     end
     
     U --> UI
@@ -209,6 +260,127 @@ graph TB
     style U fill:#e8f5e8
     style UI fill:#ffebee
     style UD fill:#fff3e0
+```
+
+## 🌐 Enterprise DID Architecture
+
+### DID:web Enterprise Flow
+```mermaid
+graph TB
+    subgraph "Enterprise User"
+        EU[Employee]
+        EU_BROWSER[Browser]
+    end
+    
+    subgraph "Enterprise IAM"
+        KC[Keycloak]
+        LDAP[LDAP/AD]
+        JWT[JWT Token]
+    end
+    
+    subgraph "DID:web Resolution"
+        DID_WEB[DID:web Service]
+        DID_DOC[DID Document]
+        WEB_SERVER[Web Server]
+        SSL[SSL Certificate]
+    end
+    
+    subgraph "Application"
+        APP[Contract Management App]
+        AUTH[Authentication]
+        VERIFY[DID Verification]
+    end
+    
+    EU --> EU_BROWSER
+    EU_BROWSER --> KC
+    KC --> LDAP
+    KC --> JWT
+    JWT --> APP
+    APP --> AUTH
+    AUTH --> DID_WEB
+    DID_WEB --> DID_DOC
+    DID_DOC --> WEB_SERVER
+    WEB_SERVER --> SSL
+    DID_WEB --> VERIFY
+    
+    style EU fill:#e3f2fd
+    style KC fill:#ffebee
+    style DID_WEB fill:#fff3e0
+    style APP fill:#f3e5f5
+```
+
+### DID:web vs DID:ethr Usage
+```mermaid
+graph TB
+    subgraph "Enterprise Operations"
+        EO1[User Authentication]
+        EO2[Role Management]
+        EO3[Access Control]
+        EO4[Profile Management]
+        EO5[Audit Logging]
+    end
+    
+    subgraph "Blockchain Operations"
+        BO1[Contract Signing]
+        BO2[Smart Contract Calls]
+        BO3[Transaction Verification]
+        BO4[Blockchain Events]
+    end
+    
+    subgraph "DID Methods"
+        DID_WEB[DID:web<br/>Enterprise Identity]
+        DID_ETHR[DID:ethr<br/>Blockchain Identity]
+    end
+    
+    EO1 --> DID_WEB
+    EO2 --> DID_WEB
+    EO3 --> DID_WEB
+    EO4 --> DID_WEB
+    EO5 --> DID_WEB
+    
+    BO1 --> DID_ETHR
+    BO2 --> DID_ETHR
+    BO3 --> DID_ETHR
+    BO4 --> DID_ETHR
+    
+    style DID_WEB fill:#fff3e0
+    style DID_ETHR fill:#fff8e1
+```
+
+### Enterprise DID Document Structure
+```mermaid
+graph TB
+    subgraph "Organization DID"
+        ORG_DID[did:web:company.com]
+        ORG_VER[Verification Methods]
+        ORG_SERV[Services]
+    end
+    
+    subgraph "Department DID"
+        DEPT_DID[did:web:company.com:legal]
+        DEPT_VER[Verification Methods]
+        DEPT_SERV[Department Services]
+    end
+    
+    subgraph "Employee DID"
+        EMP_DID[did:web:company.com:employees:john.doe]
+        EMP_VER[Verification Methods]
+        EMP_SERV[Employee Services]
+    end
+    
+    ORG_DID --> ORG_VER
+    ORG_DID --> ORG_SERV
+    DEPT_DID --> DEPT_VER
+    DEPT_DID --> DEPT_SERV
+    EMP_DID --> EMP_VER
+    EMP_DID --> EMP_SERV
+    
+    ORG_DID --> DEPT_DID
+    DEPT_DID --> EMP_DID
+    
+    style ORG_DID fill:#fff3e0
+    style DEPT_DID fill:#fff3e0
+    style EMP_DID fill:#fff3e0
 ```
 
 ## ⛓️ Blockchain Architecture
@@ -266,12 +438,18 @@ graph TB
             B2[Express.js]
         end
         
+        subgraph "Enterprise Identity"
+            B3[Keycloak IAM]
+            B4[LDAP/Active Directory]
+            B5[DID:web Service]
+            B6[DID:ethr Service]
+        end
+        
         subgraph "Data & Security"
-            B3[Sequelize ORM]
-            B4[Keycloak IAM]
-            B5[JWT Authentication]
-            B6[Helmet Security]
-            B7[CORS]
+            B7[Sequelize ORM]
+            B8[JWT Authentication]
+            B9[Helmet Security]
+            B10[CORS]
         end
     end
     
@@ -352,22 +530,53 @@ graph TB
 
 ## 🔄 Data Flow Architecture
 
-### User Registration Flow
+### Enterprise User Registration Flow
+```mermaid
+sequenceDiagram
+    participant U as Employee
+    participant F as Frontend
+    participant B as Backend
+    participant IAM as Keycloak
+    participant LDAP as LDAP/AD
+    participant DID_WEB as DID:web Service
+    participant WEB as Web Server
+    participant DB as Database
+    
+    U->>F: Enterprise Login
+    F->>B: Authenticate User
+    B->>IAM: Verify JWT Token
+    IAM->>LDAP: Validate User
+    LDAP->>IAM: User Valid
+    IAM->>B: Token Valid
+    B->>DID_WEB: Create DID:web
+    DID_WEB->>WEB: Store DID Document
+    WEB->>DID_WEB: Document Stored
+    DID_WEB->>B: DID Created
+    B->>DB: Store User Data
+    DB->>B: User Stored
+    B->>F: Registration Complete
+    F->>U: Success
+```
+
+### Individual User Registration Flow (did:ethr)
 ```mermaid
 sequenceDiagram
     participant U as User
     participant F as Frontend
     participant B as Backend
     participant IAM as Keycloak
-    participant DID as DID Registry
+    participant DID_ETHR as DID:ethr Registry
+    participant BC as Blockchain
     participant DB as Database
     
     U->>F: Connect Wallet
     F->>B: Register User
     B->>IAM: Create IAM User
     IAM->>B: User Created
-    B->>DID: Create DID
-    DID->>B: DID Created
+    B->>DID_ETHR: Create DID:ethr
+    DID_ETHR->>BC: Store on Blockchain
+    BC->>DID_ETHR: DID Created
+    DID_ETHR->>B: DID Created
     B->>DB: Store User Data
     DB->>B: User Stored
     B->>F: Registration Complete
@@ -396,20 +605,47 @@ sequenceDiagram
     F->>TDC: Success
 ```
 
-### Contract Signing Flow
+### Enterprise Contract Signing Flow
 ```mermaid
 sequenceDiagram
-    participant U as User
+    participant U as Employee
     participant F as Frontend
     participant B as Backend
-    participant DID as DID Registry
+    participant IAM as Keycloak
+    participant DID_WEB as DID:web Service
+    participant DID_ETHR as DID:ethr Service
     participant BC as Blockchain
     participant DB as Database
     
     U->>F: Sign Contract
     F->>B: Sign Request
-    B->>DID: Verify DID
-    DID->>B: DID Verified
+    B->>IAM: Verify JWT Token
+    IAM->>B: Token Valid
+    B->>DID_WEB: Verify DID:web
+    DID_WEB->>B: DID:web Verified
+    B->>DID_ETHR: Create DID:ethr for Blockchain
+    DID_ETHR->>BC: Submit Signature
+    BC->>B: Signature Confirmed
+    B->>DB: Update Contract Status
+    DB->>B: Status Updated
+    B->>F: Contract Signed
+    F->>U: Success
+```
+
+### Individual Contract Signing Flow (did:ethr only)
+```mermaid
+sequenceDiagram
+    participant U as User
+    participant F as Frontend
+    participant B as Backend
+    participant DID_ETHR as DID:ethr Registry
+    participant BC as Blockchain
+    participant DB as Database
+    
+    U->>F: Sign Contract
+    F->>B: Sign Request
+    B->>DID_ETHR: Verify DID:ethr
+    DID_ETHR->>B: DID Verified
     B->>BC: Submit Signature
     BC->>B: Signature Confirmed
     B->>DB: Update Contract Status
@@ -465,9 +701,11 @@ graph TB
 ### Key Design Principles
 - **Separation of Concerns**: Each layer has a specific responsibility
 - **Modularity**: Components can be developed and tested independently
-- **Scalability**: Services can be scaled horizontally
-- **Security**: Multi-layer security with IAM and DID integration
-- **Interoperability**: Standards-based integration (OAuth2, OpenID Connect, DID)
+- **Scalability**: Services can be scaled horizontally for enterprise deployments
+- **Enterprise Security**: Multi-layer security with IAM, LDAP/AD, and DID integration
+- **Hybrid DID Strategy**: `did:web` for enterprise identity, `did:ethr` for blockchain operations
+- **Interoperability**: Standards-based integration (OAuth2, OpenID Connect, DID, LDAP)
+- **Enterprise Compliance**: Audit trails, logging, and security policies
 
 ### Technology Stack by Layer
 ```mermaid
@@ -486,11 +724,13 @@ graph TB
         B4[JWT Authentication]
     end
     
-    subgraph "Identity Layer"
+    subgraph "Enterprise Identity Layer"
         I1[Keycloak IAM]
-        I2[OAuth2/OpenID Connect]
-        I3[DID Registry]
-        I4[DID Resolution]
+        I2[LDAP/Active Directory]
+        I3[OAuth2/OpenID Connect]
+        I4[DID:web Service]
+        I5[DID:ethr Service]
+        I6[DID Resolution]
     end
     
     subgraph "Data Layer"
@@ -507,7 +747,9 @@ graph TB
     
     F1 --> B1
     B1 --> I1
-    B1 --> I3
+    B1 --> I2
+    B1 --> I4
+    B1 --> I5
     B1 --> D1
     B1 --> BC1
     
@@ -597,6 +839,15 @@ erDiagram
         boolean is_active
         datetime created_at
         datetime updated_at
+        string did
+        string did_method
+        string organization_domain
+        string organization_name
+        string enterprise_role
+        string department
+        string employee_id
+        string iam_user_id
+        boolean did_verified
     }
     
     DATASETS {
@@ -638,11 +889,36 @@ erDiagram
     }
     
     USERS ||--o{ DATASETS : "owns"
+    ORGANIZATIONS {
+        int id PK
+        string domain UK
+        string name
+        text description
+        string did UK
+        string admin_email
+        json web_server_config
+        json ssl_certificate_info
+        datetime created_at
+        datetime updated_at
+    }
+    
+    ORGANIZATION_USERS {
+        int id PK
+        int organization_id FK
+        int user_id FK
+        string role
+        string department
+        string employee_id
+        datetime created_at
+    }
+    
     USERS ||--o{ CONTRACTS : "tdp_contracts"
     USERS ||--o{ CONTRACTS : "tdc_contracts"
     USERS ||--o{ CONTRACTS : "ccrp_contracts"
     USERS ||--o{ NOTIFICATIONS : "receives"
     DATASETS ||--o{ CONTRACTS : "included_in"
+    ORGANIZATIONS ||--o{ ORGANIZATION_USERS : "has"
+    ORGANIZATION_USERS ||--o{ USERS : "belongs_to"
 ```
 
 ## 🔗 API Endpoints
@@ -677,6 +953,17 @@ graph LR
         U2[GET /api/users/:id]
         U3[PUT /api/users/:id]
         U4[POST /api/users/register-party]
+    end
+    
+    subgraph "Enterprise"
+        E1[GET /api/organizations]
+        E2[POST /api/organizations]
+        E3[GET /api/organizations/:id]
+        E4[PUT /api/organizations/:id]
+        E5[GET /api/did/resolve/:did]
+        E6[POST /api/did/verify]
+        E7[GET /api/enterprise/users]
+        E8[POST /api/enterprise/sync-ldap]
     end
     
     subgraph "Notifications"
@@ -804,6 +1091,13 @@ graph TB
             PB3[API Gateway]
         end
         
+        subgraph "Enterprise Identity"
+            PE1[Keycloak Server]
+            PE2[LDAP/AD Server]
+            PE3[DID:web Service]
+            PE4[Web Server (DID Docs)]
+        end
+        
         subgraph "Database"
             PD1[PostgreSQL Primary]
             PD2[PostgreSQL Replica]
@@ -871,17 +1165,29 @@ backend/
 │   ├── contracts.js           # Contract CRUD operations
 │   ├── datasets.js            # Dataset management
 │   ├── users.js               # User registration and management
-│   └── notifications.js       # Notification system
+│   ├── notifications.js       # Notification system
+│   ├── organizations.js       # Enterprise organization management
+│   ├── did.js                 # DID resolution and verification
+│   └── enterprise.js          # Enterprise-specific endpoints
 ├── services/
 │   ├── blockchainService.js   # Smart contract interactions
-│   └── notificationService.js # Email and in-app notifications
+│   ├── notificationService.js # Email and in-app notifications
+│   ├── didWebService.js       # DID:web management
+│   ├── didEthrService.js      # DID:ethr management
+│   ├── ***REMOVED-KEYCLOAK_DB_PASSWORD***Service.js     # Keycloak IAM integration
+│   ├── ldapService.js         # LDAP/AD integration
+│   └── enterpriseService.js   # Enterprise user management
 ├── models/
-│   ├── User.js                # User model with role-based fields
+│   ├── User.js                # User model with enterprise fields
 │   ├── Contract.js            # Contract model with relationships
 │   ├── Dataset.js             # Dataset model
-│   └── Notification.js        # Notification model
+│   ├── Notification.js        # Notification model
+│   ├── Organization.js        # Organization model
+│   └── OrganizationUser.js    # Organization user mapping
 └── middleware/
     ├── auth.js                # JWT authentication
+    ├── enterpriseAuth.js      # Enterprise authentication
+    ├── didValidation.js       # DID validation
     └── validation.js          # Request validation
 ```
 
@@ -938,6 +1244,67 @@ contract ContractManager {
 - **Batch Operations**: Grouped transactions where possible
 - **Event Filtering**: Efficient event listening
 - **Nonce Management**: Proper transaction ordering
+
+## 🏢 Enterprise Deployment Considerations
+
+### Enterprise Architecture Benefits
+- **Cost-Effective Identity Management**: `did:web` eliminates blockchain gas fees for identity operations
+- **Fast Resolution**: HTTP-based DID resolution with caching for optimal performance
+- **Organization Control**: Full control over identity infrastructure and policies
+- **Compliance Ready**: Built-in audit trails and enterprise security features
+- **Scalable**: Easy management of thousands of organizational DIDs
+- **Integration Friendly**: Works with existing enterprise infrastructure
+
+### Enterprise Security Architecture
+```mermaid
+graph TB
+    subgraph "Enterprise Security Layers"
+        subgraph "Identity Security"
+            IS1[Keycloak IAM]
+            IS2[LDAP/AD Integration]
+            IS3[Multi-Factor Authentication]
+            IS4[Role-Based Access Control]
+        end
+        
+        subgraph "DID Security"
+            DS1[DID:web Domain Validation]
+            DS2[SSL Certificate Verification]
+            DS3[DID Document Integrity]
+            DS4[DID:ethr Cryptographic Proof]
+        end
+        
+        subgraph "Network Security"
+            NS1[HTTPS/TLS Encryption]
+            NS2[Enterprise Firewall]
+            NS3[VPN Access]
+            NS4[Intrusion Detection]
+        end
+        
+        subgraph "Application Security"
+            AS1[Input Validation]
+            AS2[SQL Injection Prevention]
+            AS3[XSS Protection]
+            AS4[CSRF Protection]
+            AS5[Enterprise Audit Logging]
+        end
+    end
+    
+    IS1 --> DS1
+    IS2 --> DS2
+    DS1 --> NS1
+    DS2 --> NS2
+    NS1 --> AS1
+    NS2 --> AS2
+    AS1 --> AS5
+```
+
+### Enterprise Integration Points
+- **LDAP/Active Directory**: User federation and authentication
+- **Keycloak IAM**: Centralized identity management
+- **Web Server Infrastructure**: DID document hosting
+- **SSL Certificate Management**: Domain security
+- **Enterprise Monitoring**: Performance and security monitoring
+- **Audit Systems**: Compliance and logging integration
 
 ## 🔒 Security Considerations
 
@@ -996,6 +1363,9 @@ contract ContractManager {
 - **User Guide**: See [User Guide](./USER_GUIDE.md) for usage
 - **Wallet Guide**: See [Wallet Guide](./WALLET_GUIDE.md) for MetaMask setup
 - **Test Wallets**: See [Test Wallets](./TEST_WALLETS.md) for development accounts
+- **Enterprise DID:web Implementation**: See [Enterprise DID:web Implementation](./ENTERPRISE_DID_WEB_IMPLEMENTATION.md) for comprehensive enterprise setup
+- **IAM Integration Strategy**: See [IAM Integration Strategy](./IAM_INTEGRATION_STRATEGY.md) for enterprise IAM integration
+- **DID Management Guide**: See [DID Management Guide](./DID_MANAGEMENT_GUIDE.md) for DID implementation details
 
 ## 🆘 Support
 
