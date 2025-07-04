@@ -1095,7 +1095,7 @@ graph TB
             PE1[Keycloak Server]
             PE2[LDAP/AD Server]
             PE3[DID:web Service]
-            PE4[Web Server (DID Docs)]
+            PE4[Web Server DID Docs]
         end
         
         subgraph "Database"
