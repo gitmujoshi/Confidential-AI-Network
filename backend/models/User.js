@@ -32,18 +32,23 @@ module.exports = (sequelize, DataTypes) => {
     // Ethereum wallet address (unique identifier)
     walletAddress: {
       type: DataTypes.STRING,
-      allowNull: false,
+      allowNull: true,
       unique: true,
       validate: {
-        is: /^0x[a-fA-F0-9]{40}$/  // Ethereum address format validation
-      }
+        is: function(value) {
+          if (value && !/^0x[a-fA-F0-9]{40}$/.test(value)) {
+            throw new Error('Invalid Ethereum address format');
+          }
+        }
+      },
+      comment: 'Ethereum wallet address (optional for enterprise users)'
     },
     
     // Public key for cryptographic operations (hex format)
     publicKey: {
       type: DataTypes.TEXT,
-      allowNull: false,
-      comment: 'Public key for cryptographic operations (hex format)'
+      allowNull: true,
+      comment: 'Public key for cryptographic operations (hex format, optional for enterprise users)'
     },
     
     // User role in the system (TDP, TDC, or CCRP)
@@ -195,7 +200,12 @@ module.exports = (sequelize, DataTypes) => {
     indexes: [
       {
         unique: true,
-        fields: ['walletAddress']  // Fast wallet address lookups
+        fields: ['walletAddress'],
+        where: {
+          walletAddress: {
+            [db.Sequelize.Op.ne]: null
+          }
+        }
       },
       {
         unique: true,
@@ -212,7 +222,12 @@ module.exports = (sequelize, DataTypes) => {
         fields: ['email']          // Fast email lookups
       },
       {
-        fields: ['publicKey']      // Fast public key lookups
+        fields: ['publicKey'],
+        where: {
+          publicKey: {
+            [db.Sequelize.Op.ne]: null
+          }
+        }
       },
       {
         fields: ['onboardingStatus'] // Fast onboarding status queries

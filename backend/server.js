@@ -88,6 +88,29 @@ app.get('/health', (req, res) => {
   });
 });
 
+// Blockchain status endpoint
+app.get('/api/blockchain/status', async (req, res) => {
+  try {
+    const BlockchainService = require('./services/blockchainService');
+    const blockchainInstance = new BlockchainService();
+    const isConnected = await blockchainInstance.isConnected();
+    
+    res.json({
+      connected: isConnected,
+      enabled: process.env.BLOCKCHAIN_ENABLED !== 'false',
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    console.error('Error checking blockchain status:', error);
+    res.json({
+      connected: false,
+      enabled: process.env.BLOCKCHAIN_ENABLED !== 'false',
+      error: error.message,
+      timestamp: new Date().toISOString()
+    });
+  }
+});
+
 // API routes
 app.use('/api/auth', authRouter);
 app.use('/api/contracts', contractsRouter);
