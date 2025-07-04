@@ -333,6 +333,57 @@ class DIDService {
   }
 
   /**
+   * Extract public key from DID document
+   * @param {Object} didDocument - The DID document
+   * @returns {string|null} - The public key or null if not found
+   */
+  extractPublicKey(didDocument) {
+    try {
+      // Check verificationMethod first, then assertionMethod
+      const methods = didDocument.verificationMethod || didDocument.assertionMethod || [];
+      
+      if (!Array.isArray(methods) || methods.length === 0) {
+        return null;
+      }
+
+      // Look for the first method with a public key
+      for (const method of methods) {
+        if (method.publicKeyPem) {
+          return method.publicKeyPem;
+        }
+        if (method.publicKeyJwk) {
+          // Convert JWK to PEM format (simplified)
+          return this.jwkToPem(method.publicKeyJwk);
+        }
+        if (method.publicKeyMultibase) {
+          // For multibase encoded keys
+          return method.publicKeyMultibase;
+        }
+      }
+
+      return null;
+    } catch (error) {
+      console.error('Error extracting public key from DID document:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Convert JWK to PEM format (simplified)
+   * @param {Object} jwk - The JSON Web Key
+   * @returns {string} - The PEM formatted public key
+   */
+  jwkToPem(jwk) {
+    // This is a simplified conversion - in production you'd want a proper JWK to PEM converter
+    if (jwk.kty === 'RSA') {
+      // For RSA keys, you'd need to reconstruct the PEM
+      return `-----BEGIN PUBLIC KEY-----\n${jwk.n}\n-----END PUBLIC KEY-----`;
+    }
+    // For other key types, return the JWK as a string
+    return JSON.stringify(jwk);
+  }
+
+  /**
    * Extract enterprise metadata from DID document
    * @param {Object} didDocument - The DID document
    * @param {string} domain - The domain
@@ -451,12 +502,14 @@ class DIDService {
       throw new Error('Missing or invalid @context in DID document');
     }
 
-    if (!didDocument.verificationMethod || !Array.isArray(didDocument.verificationMethod)) {
-      throw new Error('Missing or invalid verificationMethod in DID document');
+    if ((!didDocument.verificationMethod || !Array.isArray(didDocument.verificationMethod)) &&
+        (!didDocument.assertionMethod || !Array.isArray(didDocument.assertionMethod))) {
+      throw new Error('Missing or invalid verificationMethod/assertionMethod in DID document');
     }
 
     // Validate verification methods
-    for (const vm of didDocument.verificationMethod) {
+    const verificationMethods = didDocument.verificationMethod || [];
+    for (const vm of verificationMethods) {
       if (!vm.id || !vm.type || !vm.controller) {
         throw new Error('Invalid verification method in DID document');
       }

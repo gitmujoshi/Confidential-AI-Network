@@ -16,9 +16,10 @@ import {
   Extension,
   Security,
   CheckCircle,
+  Info,
 } from '@mui/icons-material';
 
-const MetaMaskGuide = ({ onInstallClick }) => {
+const MetaMaskGuide = ({ onInstallClick, isOptional = true }) => {
   const steps = [
     {
       icon: <Download />,
@@ -46,11 +47,17 @@ const MetaMaskGuide = ({ onInstallClick }) => {
     <Card sx={{ maxWidth: 600, mx: 'auto', mt: 4 }}>
       <CardContent>
         <Typography variant="h5" gutterBottom>
-          MetaMask Required
+          {isOptional ? 'Connect MetaMask (Optional)' : 'MetaMask Required'}
         </Typography>
         
-        <Alert severity="info" sx={{ mb: 3 }}>
-          This application requires MetaMask to connect to the blockchain and manage your digital identity.
+        <Alert severity={isOptional ? "info" : "warning"} sx={{ mb: 3 }}>
+          {isOptional ? (
+            <>
+              <strong>Blockchain connection is optional for registration.</strong> You can complete registration without connecting a wallet, but you'll need MetaMask later for contract signing and blockchain operations.
+            </>
+          ) : (
+            'This application requires MetaMask to connect to the blockchain and manage your digital identity.'
+          )}
         </Alert>
 
         <Typography variant="body1" paragraph>
@@ -87,6 +94,15 @@ const MetaMaskGuide = ({ onInstallClick }) => {
           </ListItem>
         </List>
 
+        {isOptional && (
+          <Alert severity="success" sx={{ mb: 3 }}>
+            <Typography variant="body2">
+              <strong>Registration without blockchain:</strong> You can register with just your email and basic information. 
+              Blockchain features will be available after you connect your wallet later.
+            </Typography>
+          </Alert>
+        )}
+
         <Typography variant="h6" gutterBottom sx={{ mt: 3 }}>
           Installation Steps:
         </Typography>
@@ -105,7 +121,7 @@ const MetaMaskGuide = ({ onInstallClick }) => {
           ))}
         </List>
 
-        <Box sx={{ mt: 3, display: 'flex', gap: 2, justifyContent: 'center' }}>
+        <Box sx={{ mt: 3, display: 'flex', gap: 2, justifyContent: 'center', flexWrap: 'wrap' }}>
           <Button
             variant="contained"
             size="large"
@@ -121,10 +137,22 @@ const MetaMaskGuide = ({ onInstallClick }) => {
           >
             I've Installed MetaMask
           </Button>
+          {isOptional && (
+            <Button
+              variant="text"
+              size="large"
+              onClick={() => window.history.back()}
+            >
+              Skip for Now
+            </Button>
+          )}
         </Box>
 
         <Typography variant="caption" display="block" sx={{ mt: 2, textAlign: 'center' }}>
-          After installing MetaMask, refresh this page and try connecting again.
+          {isOptional 
+            ? "You can install MetaMask now or skip and connect later when you need blockchain features."
+            : "After installing MetaMask, refresh this page and try connecting again."
+          }
         </Typography>
       </CardContent>
     </Card>

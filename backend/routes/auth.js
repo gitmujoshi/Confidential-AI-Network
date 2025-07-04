@@ -117,6 +117,7 @@ router.post('/register', authRateLimit, logAuthEvent('REGISTER'), async (req, re
     let didSource = 'SYSTEM_GENERATED';
     let didVerified = false;
     let didVerificationMethod = null;
+    let resolvedPublicKey = null;
 
     if (existingDID) {
       // Validate DID format using the DID service
@@ -170,6 +171,28 @@ router.post('/register', authRateLimit, logAuthEvent('REGISTER'), async (req, re
       }
       did = existingDID;
       didSource = 'USER_PROVIDED';
+      
+      // Resolve DID to fetch public key from host
+      try {
+        console.log(`🔍 Resolving DID to fetch public key: ${existingDID}`);
+        const didResolution = await didService.resolveDID(existingDID);
+        resolvedPublicKey = didService.extractPublicKey(didResolution.didDocument);
+        
+        if (resolvedPublicKey) {
+          console.log(`✅ Public key extracted from DID: ${existingDID}`);
+        } else {
+          console.log(`⚠️ No public key found in DID document: ${existingDID}`);
+        }
+      } catch (error) {
+        console.warn(`⚠️ Failed to resolve DID for public key: ${error.message}`);
+        // Continue with registration even if DID resolution fails
+      }
+      
+      // Auto-verify user-provided DIDs if they're in valid format
+      if (!didVerificationSignature) {
+        didVerified = true;
+        didVerificationMethod = 'AUTO_VERIFIED';
+      }
     } else {
       // Generate system DID for the user
       try {
@@ -193,73 +216,133 @@ router.post('/register', authRateLimit, logAuthEvent('REGISTER'), async (req, re
       }
     }
 
-    // --- KEYCLOAK USER CREATION FIRST ---
+    // --- TRANSACTION-BASED USER CREATION ---
     let ***REMOVED-KEYCLOAK_DB_PASSWORD***Result = null;
     let ***REMOVED-KEYCLOAK_DB_PASSWORD***Success = false;
     let temporaryPassword = null;
-    try {
-      ***REMOVED-KEYCLOAK_DB_PASSWORD***Result = await ***REMOVED-KEYCLOAK_DB_PASSWORD***Service.createUser({
-        email,
-        name,
-        walletAddress,
-        partyType,
-        publicKey,
-        organization,
-        phoneNumber,
-        website,
-        location
-      });
-      ***REMOVED-KEYCLOAK_DB_PASSWORD***Success = true;
-      temporaryPassword = ***REMOVED-KEYCLOAK_DB_PASSWORD***Result.temporaryPassword;
-    } catch (***REMOVED-KEYCLOAK_DB_PASSWORD***Error) {
-      console.error('❌ Failed to create user in Keycloak:', ***REMOVED-KEYCLOAK_DB_PASSWORD***Error.message);
-      // Instead of returning, proceed to DB creation
-      ***REMOVED-KEYCLOAK_DB_PASSWORD***Result = { ***REMOVED-KEYCLOAK_DB_PASSWORD***UserId: null };
-      ***REMOVED-KEYCLOAK_DB_PASSWORD***Success = false;
-    }
-
-    // --- LOCAL USER CREATION ---
     let dbUser = null;
     let dbSuccess = false;
+
+    // Start database transaction
+    const transaction = await db.sequelize.transaction();
+
     try {
-      dbUser = await db.User.create({
-        walletAddress: isEnterprise ? null : walletAddress?.toLowerCase(),
-        publicKey: isEnterprise ? null : publicKey,
-        partyType,
-        name,
-        email: email.toLowerCase(),
-        description: description || '',
-        organization: organization || '',
-        phoneNumber: phoneNumber || '',
-        website: website || '',
-        location: location || '',
-        did,
-        didSource,
-        didVerified,
-        didVerificationMethod,
-        isRegistered: true,
-        registrationDate: new Date(),
-        isActive: true,
-        onboardingStatus: 'IN_PROGRESS',
-        profileCompleted: false,
-        emailVerified: false,
-        iamUserId: ***REMOVED-KEYCLOAK_DB_PASSWORD***Result.***REMOVED-KEYCLOAK_DB_PASSWORD***UserId,
-        iamUsername: email
-      });
-      dbSuccess = true;
-    } catch (dbError) {
-      console.error('❌ Failed to create user in DB:', dbError.message);
+      // Step 1: Try to create user in Keycloak first
+      try {
+        ***REMOVED-KEYCLOAK_DB_PASSWORD***Result = await ***REMOVED-KEYCLOAK_DB_PASSWORD***Service.createUser({
+          email,
+          name,
+          walletAddress,
+          partyType,
+          publicKey,
+          organization,
+          phoneNumber,
+          website,
+          location
+        });
+        ***REMOVED-KEYCLOAK_DB_PASSWORD***Success = true;
+        temporaryPassword = ***REMOVED-KEYCLOAK_DB_PASSWORD***Result.temporaryPassword;
+        console.log('✅ Keycloak user created successfully');
+      } catch (***REMOVED-KEYCLOAK_DB_PASSWORD***Error) {
+        console.error('❌ Failed to create user in Keycloak:', ***REMOVED-KEYCLOAK_DB_PASSWORD***Error.message);
+        // Rollback transaction and return error
+        await transaction.rollback();
+        return res.status(500).json({
+          success: false,
+          error: 'Failed to create user in IAM system',
+          code: 'KEYCLOAK_CREATE_FAILED',
+          details: {
+            db: false,
+            ***REMOVED-KEYCLOAK_DB_PASSWORD***: false,
+            blockchain: false,
+            note: 'User creation failed in IAM system. Please try again or contact support.'
+          },
+          message: ***REMOVED-KEYCLOAK_DB_PASSWORD***Error.message
+        });
+      }
+
+      // Step 2: Create user in database (only if Keycloak succeeded)
+      try {
+        dbUser = await db.User.create({
+          walletAddress: isEnterprise ? null : walletAddress?.toLowerCase(),
+          publicKey: resolvedPublicKey || publicKey || null, // Use resolved public key from DID, fallback to provided
+          partyType,
+          name,
+          email: email.toLowerCase(),
+          description: description || '',
+          organization: organization || '',
+          phoneNumber: phoneNumber || '',
+          website: website || '',
+          location: location || '',
+          did,
+          didSource,
+          didVerified,
+          didVerificationMethod,
+          isRegistered: true,
+          registrationDate: new Date(),
+          isActive: true,
+          onboardingStatus: 'IN_PROGRESS',
+          profileCompleted: false,
+          emailVerified: false,
+          iamUserId: ***REMOVED-KEYCLOAK_DB_PASSWORD***Result.***REMOVED-KEYCLOAK_DB_PASSWORD***UserId,
+          iamUsername: email
+        }, { transaction });
+        dbSuccess = true;
+        console.log('✅ Database user created successfully');
+      } catch (dbError) {
+        console.error('❌ Failed to create user in DB:', dbError.message);
+        // Rollback transaction and return error
+        await transaction.rollback();
+        return res.status(500).json({
+          success: false,
+          error: 'Failed to create user in database',
+          code: 'DB_CREATE_FAILED',
+          details: {
+            db: false,
+            ***REMOVED-KEYCLOAK_DB_PASSWORD***: ***REMOVED-KEYCLOAK_DB_PASSWORD***Success,
+            blockchain: false,
+            note: 'User created in Keycloak but failed in database. Please contact support.'
+          },
+          message: dbError.message
+        });
+      }
+
+      // Step 3: Create notification (within transaction)
+      await db.Notification.create({
+        userId: dbUser.id,
+        type: 'USER_REGISTERED',
+        title: 'Welcome to Contract Management',
+        message: `Welcome ${name}! Your account has been successfully registered as a ${partyType}. Please complete your profile and verify your email.`,
+        isRead: false,
+        metadata: {
+          partyType,
+          registrationDate: new Date().toISOString(),
+          onboardingStatus: 'IN_PROGRESS',
+          did: did,
+          didSource: didSource,
+          iamIntegrated: ***REMOVED-KEYCLOAK_DB_PASSWORD***Success
+        }
+      }, { transaction });
+
+      // Step 4: Commit transaction if everything succeeded
+      await transaction.commit();
+      console.log(`✅ User registered successfully: ${dbUser.id} (Keycloak: ${***REMOVED-KEYCLOAK_DB_PASSWORD***Result.***REMOVED-KEYCLOAK_DB_PASSWORD***UserId})`);
+
+    } catch (transactionError) {
+      // Rollback transaction on any unexpected error
+      await transaction.rollback();
+      console.error('❌ Transaction failed:', transactionError.message);
       return res.status(500).json({
         success: false,
-        error: 'Failed to create user in database',
-        code: 'DB_CREATE_FAILED',
+        error: 'Registration transaction failed',
+        code: 'TRANSACTION_FAILED',
         details: {
           db: false,
-          ***REMOVED-KEYCLOAK_DB_PASSWORD***: ***REMOVED-KEYCLOAK_DB_PASSWORD***Success,
+          ***REMOVED-KEYCLOAK_DB_PASSWORD***: false,
           blockchain: false,
-          note: ***REMOVED-KEYCLOAK_DB_PASSWORD***Success ? 'User created in Keycloak but not in DB.' : 'User not created in DB or Keycloak.'
+          note: 'An unexpected error occurred during registration. Please try again.'
         },
-        message: dbError.message
+        message: transactionError.message
       });
     }
 
@@ -282,31 +365,12 @@ router.post('/register', authRateLimit, logAuthEvent('REGISTER'), async (req, re
       blockchainNote = 'Blockchain service is not configured. Registration works without blockchain - you can connect later when needed.';
     }
 
-    // --- TRIGGER EMAIL VERIFICATION ---
+    // --- TRIGGER EMAIL VERIFICATION (after successful transaction) ---
     try {
       await ***REMOVED-KEYCLOAK_DB_PASSWORD***Service.sendEmailVerification(***REMOVED-KEYCLOAK_DB_PASSWORD***Result.***REMOVED-KEYCLOAK_DB_PASSWORD***UserId);
     } catch (emailError) {
       console.warn('⚠️ Failed to trigger Keycloak email verification:', emailError.message);
     }
-
-    // --- NOTIFICATION ---
-    await db.Notification.create({
-      userId: dbUser.id,
-      type: 'USER_REGISTERED',
-      title: 'Welcome to Contract Management',
-      message: `Welcome ${name}! Your account has been successfully registered as a ${partyType}. Please complete your profile and verify your email.`,
-      isRead: false,
-      metadata: {
-        partyType,
-        registrationDate: new Date().toISOString(),
-        onboardingStatus: 'IN_PROGRESS',
-        did: did,
-        didSource: didSource,
-        iamIntegrated: true
-      }
-    });
-
-    console.log(`✅ User registered successfully: ${dbUser.id} (Keycloak: ${***REMOVED-KEYCLOAK_DB_PASSWORD***Result.***REMOVED-KEYCLOAK_DB_PASSWORD***UserId})`);
 
     // --- FINAL RESPONSE ---
     return res.json({
@@ -323,6 +387,10 @@ router.post('/register', authRateLimit, logAuthEvent('REGISTER'), async (req, re
         email: dbUser.email,
         partyType: dbUser.partyType,
         walletAddress: dbUser.walletAddress,
+        publicKey: dbUser.publicKey,
+        did: dbUser.did,
+        didVerified: dbUser.didVerified,
+        didSource: dbUser.didSource,
         isRegistered: dbUser.isRegistered,
         onboardingStatus: dbUser.onboardingStatus,
         profileCompleted: dbUser.profileCompleted,

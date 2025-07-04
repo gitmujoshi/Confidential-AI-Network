@@ -152,7 +152,7 @@ export const UserProvider = ({ children }) => {
     }
   }, [queryClient, walletAddress]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Fetch user data when wallet address changes
+  // Fetch user data when wallet address changes (only if wallet is connected)
   const { isLoading, error, refetch } = useQuery(
     ['user', walletAddress, accountChangeTimestamp],
     () => {
@@ -160,7 +160,7 @@ export const UserProvider = ({ children }) => {
       return apiService.getUserByWallet(walletAddress);
     },
     {
-      enabled: !!walletAddress,
+      enabled: !!walletAddress, // Only fetch if wallet is connected
       retry: false,
       staleTime: 0, // Always consider data stale
       cacheTime: 0, // Don't cache at all
@@ -176,7 +176,10 @@ export const UserProvider = ({ children }) => {
           data: error.response?.data,
           config: error.config
         });
-        setCurrentUser(null);
+        // Don't clear currentUser on wallet lookup error - user might be logged in via email/password
+        if (walletAddress) {
+          setCurrentUser(null);
+        }
       }
     }
   );
@@ -301,6 +304,24 @@ export const UserProvider = ({ children }) => {
     }
   };
 
+  // Check if user is logged in via token (for email/password auth)
+  const checkTokenAuth = async () => {
+    const token = localStorage.getItem('authToken');
+    if (token && !currentUser) {
+      try {
+        console.log('🔍 [UserContext] Checking token authentication...');
+        const response = await apiService.get('/api/auth/profile');
+        if (response.data.user) {
+          console.log('✅ [UserContext] Token authentication successful:', response.data.user);
+          setCurrentUser(response.data.user);
+        }
+      } catch (error) {
+        console.log('❌ [UserContext] Token authentication failed, clearing token');
+        localStorage.removeItem('authToken');
+      }
+    }
+  };
+
   const isTDC = currentUser?.partyType === 'TDC';
   const isTDP = currentUser?.partyType === 'TDP';
   const isCCRP = currentUser?.partyType === 'CCRP';
@@ -328,6 +349,12 @@ export const UserProvider = ({ children }) => {
   //   isCCRP
   // });
 
+  // Function to set user manually (for email/password login)
+  const setUser = (user) => {
+    console.log('👤 [UserContext] Setting user manually:', user);
+    setCurrentUser(user);
+  };
+
   const value = {
     currentUser,
     walletAddress,
@@ -340,6 +367,8 @@ export const UserProvider = ({ children }) => {
     refreshUserData,
     detectAndSetCurrentAccount,
     checkWalletConnection,
+    setUser, // Add setUser function
+    checkTokenAuth, // Add token auth check
     isTDC,
     isTDP,
     isCCRP,
