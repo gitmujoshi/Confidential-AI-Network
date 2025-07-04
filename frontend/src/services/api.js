@@ -183,11 +183,35 @@ const mockApiService = {
   // Registration endpoints
   register: async (userData) => {
     await delay(500);
-    return { data: { success: true, userId: 'mock-user-123', ...userData } };
+    const mockPassword = 'TempPass123!';
+    return { 
+      data: { 
+        success: true, 
+        userId: 'mock-user-123', 
+        loginCredentials: {
+          email: userData.email,
+          password: mockPassword,
+          note: 'Mock credentials for testing. Use these to log in.'
+        },
+        ...userData 
+      } 
+    };
   },
   registerUser: async (userData) => {
     await delay(500);
-    return { data: { success: true, userId: 'mock-user-123', ...userData } };
+    const mockPassword = 'TempPass123!';
+    return { 
+      data: { 
+        success: true, 
+        userId: 'mock-user-123',
+        loginCredentials: {
+          email: userData.email,
+          password: mockPassword,
+          note: 'Mock credentials for testing. Use these to log in.'
+        },
+        ...userData 
+      } 
+    };
   },
   verifyDID: async (didData) => {
     await delay(300);
@@ -209,6 +233,12 @@ const mockApiService = {
     await delay(300);
     return { data: { verified: true, ...didData } };
   },
+  // Blockchain status for mock mode
+  getBlockchainStatus: async () => {
+    await delay(300);
+    return { connected: false, enabled: false, timestamp: new Date().toISOString() };
+  },
+  
   // For other methods, throw error indicating mock mode
   get: () => { throw new Error('Mock API: get() not implemented for registration testing'); },
   post: () => { throw new Error('Mock API: post() not implemented for registration testing'); },
@@ -247,7 +277,6 @@ const mockApiService = {
   updateUserRegistration: () => { throw new Error('Mock API: updateUserRegistration() not implemented for registration testing'); },
   getNotifications: () => { throw new Error('Mock API: getNotifications() not implemented for registration testing'); },
   markNotificationAsRead: () => { throw new Error('Mock API: markNotificationAsRead() not implemented for registration testing'); },
-  getBlockchainStatus: () => { throw new Error('Mock API: getBlockchainStatus() not implemented for registration testing'); },
   healthCheck: () => { throw new Error('Mock API: healthCheck() not implemented for registration testing'); },
 };
 

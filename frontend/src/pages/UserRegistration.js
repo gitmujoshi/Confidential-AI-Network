@@ -51,14 +51,20 @@ const UserRegistration = () => {
   const [didPublicKey, setDidPublicKey] = useState('');
   const [didPublicKeyLoading, setDidPublicKeyLoading] = useState(false);
   const [didPublicKeyError, setDidPublicKeyError] = useState('');
+  const [publicKeyFetched, setPublicKeyFetched] = useState(false);
 
   // UI state
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [keycloakFailed, setKeycloakFailed] = useState(false);
 
   // Mock API mode
   const [mockMode, setMockMode] = useState(false);
+
+  // Blockchain status
+  const [blockchainStatus, setBlockchainStatus] = useState('unknown');
+  const [blockchainLoading, setBlockchainLoading] = useState(false);
 
   useEffect(() => {
     // Check for mock mode in localStorage or URL params
@@ -73,7 +79,28 @@ const UserRegistration = () => {
 
     // Initialize wallet connection
     initializeWallet();
+    
+    // Check blockchain status
+    checkBlockchainStatus();
   }, []);
+
+  const checkBlockchainStatus = async () => {
+    if (mockMode) {
+      setBlockchainStatus('mock');
+      return;
+    }
+
+    try {
+      setBlockchainLoading(true);
+      const response = await apiService.getBlockchainStatus();
+      setBlockchainStatus(response.connected ? 'connected' : 'disconnected');
+    } catch (error) {
+      console.log('Blockchain not available:', error.message);
+      setBlockchainStatus('disconnected');
+    } finally {
+      setBlockchainLoading(false);
+    }
+  };
 
   const initializeWallet = async () => {
     if (typeof window.ethereum !== 'undefined') {
@@ -247,6 +274,8 @@ const UserRegistration = () => {
       }
       
       setDidPublicKey(publicKey);
+      setPublicKey(publicKey); // Set the main public key field
+      setPublicKeyFetched(true);
       setSuccess(`Public key fetched successfully from ${domain}`);
       
     } catch (error) {
@@ -363,16 +392,17 @@ const UserRegistration = () => {
         return false;
       }
 
+      // DID verification is optional - don't block registration if not verified
       if (userType === 'individual' && !didVerificationSignature) {
         const didType = getDIDType(existingDID);
         if (didType === 'ethr') {
-          setError('Please verify your DID ownership with your wallet first.');
+          console.log('DID ownership not verified, but registration can proceed');
         } else if (didType === 'web') {
-          setError('Please verify your domain ownership first.');
+          console.log('Domain ownership not verified, but registration can proceed');
         } else {
-          setError('Please verify your DID ownership first.');
+          console.log('DID ownership not verified, but registration can proceed');
         }
-        return false;
+        // Don't return false - allow registration to proceed
       }
     }
 
@@ -393,7 +423,8 @@ const UserRegistration = () => {
       const registrationData = {
         ...formData,
         userType,
-        ...(userType === 'individual' && { walletAddress, publicKey }),
+        ...(userType === 'individual' && { walletAddress }),
+        ...(publicKey && { publicKey }), // Include public key for all users if provided
         ...(useExistingDID && {
           existingDID,
           didVerificationSignature
@@ -405,10 +436,7 @@ const UserRegistration = () => {
       if (mockMode) {
         // Mock response
         console.log('Mock mode: Registration would be submitted with:', registrationData);
-        setSuccess('Registration successful! (Mock mode) Please log in.');
-        setTimeout(() => {
-          navigate('/login');
-        }, 2000);
+        setSuccess('Registration successful! (Mock mode)\n\nStatus:\n- Database: ✅\n- Keycloak: ✅\n- Blockchain: ✅\n\n🔑 Login Credentials:\nEmail: ' + formData.email + '\nPassword: TempPass123!\n\n⚠️  This is a temporary password. Please change it on first login.');
         return;
       }
 
@@ -423,10 +451,26 @@ const UserRegistration = () => {
         statusMsg += `\n- Keycloak: ${details.keycloak ? '✅' : '❌'}`;
         statusMsg += `\n- Blockchain: ${details.blockchain ? '✅' : '❌'}`;
         if (details.note) statusMsg += `\nNote: ${details.note}`;
+        
+        // Add appropriate message based on Keycloak status
+        if (!details.keycloak) {
+          statusMsg += `\n\n⚠️  Keycloak integration failed, but you can still log in using the credentials above.`;
+        } else {
+          statusMsg += `\n\n✅  All systems integrated successfully!`;
+        }
+        
+        // Add login credentials if provided
+        if (response.data.loginCredentials) {
+          statusMsg += `\n\n🔑 Login Credentials:`;
+          statusMsg += `\nEmail: ${response.data.loginCredentials.email}`;
+          statusMsg += `\nPassword: ${response.data.loginCredentials.password}`;
+          statusMsg += `\n\n⚠️  This is a temporary password. Please change it on first login.`;
+        }
+        
+        // Set keycloak failed state for UI
+        setKeycloakFailed(!details.keycloak);
+        
         setSuccess(statusMsg);
-        setTimeout(() => {
-          navigate('/login');
-        }, 4000);
         return;
       }
     } catch (error) {
@@ -609,25 +653,7 @@ const UserRegistration = () => {
                   </Grid>
                 )}
 
-                {didPublicKey && (
-                  <Grid item xs={12}>
-                    <Card variant="outlined">
-                      <CardContent>
-                        <Typography variant="h6" gutterBottom>
-                          Public Key
-                        </Typography>
-                        <TextField
-                          fullWidth
-                          multiline
-                          rows={4}
-                          value={didPublicKey}
-                          InputProps={{ readOnly: true }}
-                          variant="outlined"
-                        />
-                      </CardContent>
-                    </Card>
-                  </Grid>
-                )}
+
 
                 {didPublicKeyError && (
                   <Grid item xs={12}>
@@ -637,24 +663,114 @@ const UserRegistration = () => {
               </>
             )}
 
-            {/* Wallet Connection (for individual users or did:ethr) */}
+            {/* Public Key Section */}
+            <Grid item xs={12}>
+              <Divider sx={{ my: 2 }}>
+                <Typography variant="h6">Public Key</Typography>
+              </Divider>
+            </Grid>
+
+            <Grid item xs={12}>
+              <TextField
+                fullWidth
+                label="Public Key"
+                placeholder="Enter your public key or fetch from DID"
+                multiline
+                rows={4}
+                value={publicKey}
+                onChange={(e) => setPublicKey(e.target.value)}
+                helperText={
+                  publicKeyFetched 
+                    ? "Public key fetched from DID - you can edit if needed" 
+                    : "Enter your public key manually or use 'Fetch Public Key' button above"
+                }
+                InputProps={{
+                  endAdornment: publicKeyFetched && (
+                    <Chip 
+                      label="Fetched" 
+                      color="success" 
+                      size="small" 
+                      sx={{ mr: 1 }}
+                    />
+                  )
+                }}
+              />
+            </Grid>
+
+            {/* Blockchain Status */}
+            <Grid item xs={12}>
+              <Divider sx={{ my: 2 }}>
+                <Typography variant="h6">Blockchain Status (Optional)</Typography>
+              </Divider>
+            </Grid>
+
+            <Grid item xs={12}>
+              <Card variant="outlined">
+                <CardContent>
+                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                    <Typography variant="h6" sx={{ mr: 2 }}>
+                      Blockchain Connection:
+                    </Typography>
+                    {blockchainLoading ? (
+                      <CircularProgress size={20} />
+                    ) : (
+                      <Chip
+                        label={
+                          blockchainStatus === 'connected' ? 'Connected' :
+                          blockchainStatus === 'disconnected' ? 'Not Available' :
+                          blockchainStatus === 'mock' ? 'Mock Mode' : 'Unknown'
+                        }
+                        color={
+                          blockchainStatus === 'connected' ? 'success' :
+                          blockchainStatus === 'disconnected' ? 'warning' :
+                          blockchainStatus === 'mock' ? 'info' : 'default'
+                        }
+                        size="small"
+                      />
+                    )}
+                  </Box>
+                  
+                  <Alert severity="info" sx={{ mb: 2 }}>
+                    <Typography variant="body2">
+                      <strong>Registration works without blockchain!</strong> You can complete registration now and connect to blockchain later when you need to sign contracts or perform blockchain operations.
+                    </Typography>
+                  </Alert>
+
+                  {blockchainStatus === 'disconnected' && (
+                    <Alert severity="warning" sx={{ mb: 2 }}>
+                      <Typography variant="body2">
+                        Blockchain is not currently available. This won't prevent registration, but you'll need blockchain access later for contract signing.
+                      </Typography>
+                    </Alert>
+                  )}
+                </CardContent>
+              </Card>
+            </Grid>
+
+            {/* Wallet Connection (Optional) */}
             {(userType === 'individual' || (useExistingDID && getDIDType(existingDID) === 'ethr')) && (
               <>
                 <Grid item xs={12}>
                   <Divider sx={{ my: 2 }}>
-                    <Typography variant="h6">Wallet Connection</Typography>
+                    <Typography variant="h6">Wallet Connection (Optional)</Typography>
                   </Divider>
                 </Grid>
 
                 <Grid item xs={12}>
+                  <Alert severity="info" sx={{ mb: 2 }}>
+                    <Typography variant="body2">
+                      Wallet connection is optional for registration. You can connect now or later when you need blockchain features.
+                    </Typography>
+                  </Alert>
+
                   {!walletConnected ? (
                     <Button
-                      variant="contained"
+                      variant="outlined"
                       onClick={connectWallet}
                       disabled={loading}
                       startIcon={loading ? <CircularProgress size={20} /> : null}
                     >
-                      Connect Wallet
+                      Connect Wallet (Optional)
                     </Button>
                   ) : (
                     <Alert severity="success">
@@ -695,6 +811,30 @@ const UserRegistration = () => {
               <div key={idx}>{line}</div>
             ))}
           </Alert>
+        )}
+
+        {/* Manual Login Buttons - Always show after successful registration */}
+        {success && (
+          <Box sx={{ mt: 3, textAlign: 'center' }}>
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={() => navigate('/login')}
+              sx={{ mr: 2 }}
+            >
+              Go to Login Page
+            </Button>
+            <Button
+              variant="outlined"
+              onClick={() => {
+                setSuccess('');
+                setKeycloakFailed(false);
+                setError('');
+              }}
+            >
+              Register Another User
+            </Button>
+          </Box>
         )}
       </Paper>
     </Container>

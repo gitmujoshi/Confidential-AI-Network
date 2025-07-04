@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useUser } from '../contexts/UserContext';
-import api from '../services/api';
+import { apiService } from '../services/api';
 import {
   Box,
   TextField,
@@ -15,7 +15,7 @@ import { LockOutlined } from '@mui/icons-material';
 
 const Login = () => {
   const navigate = useNavigate();
-  const { setUser } = useUser();
+  const { setUser, checkTokenAuth } = useUser();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -26,23 +26,8 @@ const Login = () => {
 
   // Check if user is already logged in
   useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        const token = localStorage.getItem('authToken');
-        if (token) {
-          const response = await api.get('/auth/me');
-          if (response.data.user) {
-            setUser(response.data.user);
-            navigate('/dashboard');
-          }
-        }
-      } catch (error) {
-        localStorage.removeItem('authToken');
-      }
-    };
-
-    checkAuth();
-  }, [navigate, setUser]);
+    checkTokenAuth();
+  }, [checkTokenAuth]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -62,7 +47,7 @@ const Login = () => {
       setLoading(true);
       setError('');
 
-      const response = await api.post('/auth/login', {
+      const response = await apiService.login({
         email: formData.email,
         password: formData.password
       });

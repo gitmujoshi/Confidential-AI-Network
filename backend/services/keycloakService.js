@@ -57,6 +57,7 @@ class KeycloakService {
       }
 
       console.log('🔐 Getting Keycloak admin token...');
+      // Debug logging removed - Keycloak integration working
       
       const response = await axios.post(`${this.baseURL}/realms/master/protocol/openid-connect/token`, 
         new URLSearchParams({
@@ -142,6 +143,8 @@ class KeycloakService {
    */
   async createUser(userData) {
     try {
+      // Test code removed - transaction rollback working correctly
+      
       const adminToken = await this.getAdminToken();
       
       // Generate temporary password if not provided

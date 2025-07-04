@@ -20,18 +20,18 @@
  * - Has many contracts (as TDP, TDC, or CCRP)
  * - Has many notifications
  */
-module.exports = (sequelize, DataTypes) => {
+module.exports = (sequelize, Sequelize) => {
   const User = sequelize.define('User', {
     // Primary key
     id: {
-      type: DataTypes.INTEGER,
+      type: Sequelize.DataTypes.INTEGER,
       primaryKey: true,
       autoIncrement: true
     },
     
     // Ethereum wallet address (unique identifier)
     walletAddress: {
-      type: DataTypes.STRING,
+      type: Sequelize.DataTypes.STRING,
       allowNull: true,
       unique: true,
       validate: {
@@ -46,26 +46,26 @@ module.exports = (sequelize, DataTypes) => {
     
     // Public key for cryptographic operations (hex format)
     publicKey: {
-      type: DataTypes.TEXT,
+      type: Sequelize.DataTypes.TEXT,
       allowNull: true,
       comment: 'Public key for cryptographic operations (hex format, optional for enterprise users)'
     },
     
     // User role in the system (TDP, TDC, or CCRP)
     partyType: {
-      type: DataTypes.ENUM('TDP', 'TDC', 'CCRP'),
+      type: Sequelize.DataTypes.ENUM('TDP', 'TDC', 'CCRP'),
       allowNull: false
     },
     
     // Human-readable name
     name: {
-      type: DataTypes.STRING,
+      type: Sequelize.DataTypes.STRING,
       allowNull: false
     },
     
     // Email address (unique)
     email: {
-      type: DataTypes.STRING,
+      type: Sequelize.DataTypes.STRING,
       allowNull: false,
       unique: true,
       validate: {
@@ -75,45 +75,45 @@ module.exports = (sequelize, DataTypes) => {
     
     // Optional description of the user/company
     description: {
-      type: DataTypes.TEXT,
+      type: Sequelize.DataTypes.TEXT,
       allowNull: true
     },
     
     // Registration status flag
     isRegistered: {
-      type: DataTypes.BOOLEAN,
+      type: Sequelize.DataTypes.BOOLEAN,
       defaultValue: false
     },
     
     // Date when user was registered
     registrationDate: {
-      type: DataTypes.DATE,
-      defaultValue: DataTypes.NOW
+      type: Sequelize.DataTypes.DATE,
+      defaultValue: Sequelize.DataTypes.NOW
     },
     
     // Active status flag (for soft deletes)
     isActive: {
-      type: DataTypes.BOOLEAN,
+      type: Sequelize.DataTypes.BOOLEAN,
       defaultValue: true
     },
     
     // IAM Integration fields
     iamUserId: {
-      type: DataTypes.STRING,
+      type: Sequelize.DataTypes.STRING,
       allowNull: true,
       unique: true,
       comment: 'Keycloak user ID for IAM integration'
     },
     
     iamUsername: {
-      type: DataTypes.STRING,
+      type: Sequelize.DataTypes.STRING,
       allowNull: true,
       comment: 'Keycloak username (usually email)'
     },
     
     // DID (Decentralized Identifier) support
     did: {
-      type: DataTypes.STRING,
+      type: Sequelize.DataTypes.STRING,
       allowNull: true,
       unique: true,
       comment: 'Decentralized Identifier for blockchain identity'
@@ -121,74 +121,74 @@ module.exports = (sequelize, DataTypes) => {
     
     // DID source - whether it was created by system or brought by user
     didSource: {
-      type: DataTypes.ENUM('SYSTEM_GENERATED', 'USER_PROVIDED'),
+      type: Sequelize.DataTypes.ENUM('SYSTEM_GENERATED', 'USER_PROVIDED'),
       allowNull: true,
       comment: 'Source of the DID - system generated or user provided'
     },
     
     // DID verification status
     didVerified: {
-      type: DataTypes.BOOLEAN,
+      type: Sequelize.DataTypes.BOOLEAN,
       defaultValue: false,
       comment: 'Whether the user-provided DID has been verified'
     },
     
     // DID verification method (how it was verified)
     didVerificationMethod: {
-      type: DataTypes.STRING,
+      type: Sequelize.DataTypes.STRING,
       allowNull: true,
       comment: 'Method used to verify the DID (e.g., signature, credential)'
     },
     
     // Onboarding status
     onboardingStatus: {
-      type: DataTypes.ENUM('PENDING', 'IN_PROGRESS', 'COMPLETED', 'VERIFIED'),
+      type: Sequelize.DataTypes.ENUM('PENDING', 'IN_PROGRESS', 'COMPLETED', 'VERIFIED'),
       defaultValue: 'PENDING',
       comment: 'User onboarding status'
     },
     
     // Profile completion
     profileCompleted: {
-      type: DataTypes.BOOLEAN,
+      type: Sequelize.DataTypes.BOOLEAN,
       defaultValue: false,
       comment: 'Whether user has completed profile setup'
     },
     
     // Email verification status
     emailVerified: {
-      type: DataTypes.BOOLEAN,
+      type: Sequelize.DataTypes.BOOLEAN,
       defaultValue: false,
       comment: 'Email verification status from IAM'
     },
     
     // Last login timestamp
     lastLoginAt: {
-      type: DataTypes.DATE,
+      type: Sequelize.DataTypes.DATE,
       allowNull: true,
       comment: 'Last login timestamp'
     },
     
     // Additional profile fields
     organization: {
-      type: DataTypes.STRING,
+      type: Sequelize.DataTypes.STRING,
       allowNull: true,
       comment: 'User organization/company'
     },
     
     phoneNumber: {
-      type: DataTypes.STRING,
+      type: Sequelize.DataTypes.STRING,
       allowNull: true,
       comment: 'User phone number'
     },
     
     website: {
-      type: DataTypes.STRING,
+      type: Sequelize.DataTypes.STRING,
       allowNull: true,
       comment: 'User website URL'
     },
     
     location: {
-      type: DataTypes.STRING,
+      type: Sequelize.DataTypes.STRING,
       allowNull: true,
       comment: 'User location/country'
     }
@@ -203,7 +203,7 @@ module.exports = (sequelize, DataTypes) => {
         fields: ['walletAddress'],
         where: {
           walletAddress: {
-            [db.Sequelize.Op.ne]: null
+            [Sequelize.Op.ne]: null
           }
         }
       },
@@ -225,7 +225,7 @@ module.exports = (sequelize, DataTypes) => {
         fields: ['publicKey'],
         where: {
           publicKey: {
-            [db.Sequelize.Op.ne]: null
+            [Sequelize.Op.ne]: null
           }
         }
       },
