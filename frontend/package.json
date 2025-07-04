@@ -26,8 +26,8 @@
     "web-vitals": "^2.1.4"
   },
   "scripts": {
-    "start": "NODE_OPTIONS='--max-old-space-size=512' react-scripts start",
-    "build": "NODE_OPTIONS='--max-old-space-size=1024' react-scripts build",
+    "start": "NODE_OPTIONS='--max-old-space-size=2048' PORT=3000 react-scripts start",
+    "build": "NODE_OPTIONS='--max-old-space-size=4096' react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },
@@ -49,5 +49,5 @@
       "last 1 safari version"
     ]
   },
-  "proxy": "http://localhost:5000"
+  "proxy": "http://localhost:5001"
 }

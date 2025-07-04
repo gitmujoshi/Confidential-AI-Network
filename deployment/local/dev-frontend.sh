@@ -34,4 +34,10 @@ fi
 # Start frontend development server
 echo -e "${BLUE}Starting frontend development server...${NC}"
 cd frontend
+
+# Set higher memory limit for Node.js
+export NODE_OPTIONS="--max-old-space-size=2048"
+
+# Start with error handling
+echo -e "${BLUE}Using Node.js with 2GB memory allocation${NC}"
 npm start 

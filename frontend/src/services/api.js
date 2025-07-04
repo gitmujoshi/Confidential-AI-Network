@@ -59,8 +59,23 @@ api.interceptors.response.use(
   }
 );
 
-// API functions
-export const apiService = {
+// MOCK MODE: To enable mock API responses for registration, you can use either:
+// 1. URL parameter: Add ?mock=true to your URL (e.g., http://localhost:3000?mock=true)
+// 2. Browser console: localStorage.setItem('USE_MOCK_API', 'true') (if localStorage is available)
+// To disable, remove the URL parameter or run: localStorage.removeItem('USE_MOCK_API')
+//
+// This will make registration, DID, and verification endpoints return fake data for frontend-only testing.
+
+// Check for mock mode via URL parameter or localStorage
+const isMock = typeof window !== 'undefined' && (
+  (window.localStorage && window.localStorage.getItem('USE_MOCK_API') === 'true') ||
+  new URLSearchParams(window.location.search).get('mock') === 'true'
+);
+
+function delay(ms) { return new Promise(res => setTimeout(res, ms)); }
+
+// Create the real API service first
+const realApiService = {
   // Generic HTTP methods
   get: (url, config) => api.get(url, config),
   post: (url, data, config) => api.post(url, data, config),
@@ -162,5 +177,81 @@ export const apiService = {
   // Health check
   healthCheck: () => api.get('/health'),
 };
+
+// Create mock API service that only implements registration endpoints
+const mockApiService = {
+  // Registration endpoints
+  register: async (userData) => {
+    await delay(500);
+    return { data: { success: true, userId: 'mock-user-123', ...userData } };
+  },
+  registerUser: async (userData) => {
+    await delay(500);
+    return { data: { success: true, userId: 'mock-user-123', ...userData } };
+  },
+  verifyDID: async (didData) => {
+    await delay(300);
+    return { data: { verified: true, ...didData } };
+  },
+  checkDIDAvailability: async (did) => {
+    await delay(300);
+    // Simulate that all DIDs except one are available
+    if (decodeURIComponent(did) === 'did:ethr:goerli:0x1234567890abcdef1234567890abcdef12345678') {
+      return { data: { available: false } };
+    }
+    return { data: { available: true } };
+  },
+  getDIDInfo: async (did) => {
+    await delay(300);
+    return { data: { did: decodeURIComponent(did), owner: '0xMockOwner', created: '2024-01-01' } };
+  },
+  verifyDIDOwnership: async (didData) => {
+    await delay(300);
+    return { data: { verified: true, ...didData } };
+  },
+  // For other methods, throw error indicating mock mode
+  get: () => { throw new Error('Mock API: get() not implemented for registration testing'); },
+  post: () => { throw new Error('Mock API: post() not implemented for registration testing'); },
+  put: () => { throw new Error('Mock API: put() not implemented for registration testing'); },
+  delete: () => { throw new Error('Mock API: delete() not implemented for registration testing'); },
+  login: () => { throw new Error('Mock API: login() not implemented for registration testing'); },
+  logout: () => { throw new Error('Mock API: logout() not implemented for registration testing'); },
+  getAuthDIDInfo: () => { throw new Error('Mock API: getAuthDIDInfo() not implemented for registration testing'); },
+  resolveDID: () => { throw new Error('Mock API: resolveDID() not implemented for registration testing'); },
+  createSystemDID: () => { throw new Error('Mock API: createSystemDID() not implemented for registration testing'); },
+  getSupportedDIDMethods: () => { throw new Error('Mock API: getSupportedDIDMethods() not implemented for registration testing'); },
+  validateEnterpriseDID: () => { throw new Error('Mock API: validateEnterpriseDID() not implemented for registration testing'); },
+  getEnterpriseDomains: () => { throw new Error('Mock API: getEnterpriseDomains() not implemented for registration testing'); },
+  updateEnterpriseDomains: () => { throw new Error('Mock API: updateEnterpriseDomains() not implemented for registration testing'); },
+  getDIDCacheStats: () => { throw new Error('Mock API: getDIDCacheStats() not implemented for registration testing'); },
+  clearDIDCache: () => { throw new Error('Mock API: clearDIDCache() not implemented for registration testing'); },
+  getDatasets: () => { throw new Error('Mock API: getDatasets() not implemented for registration testing'); },
+  getDataset: () => { throw new Error('Mock API: getDataset() not implemented for registration testing'); },
+  createDataset: () => { throw new Error('Mock API: createDataset() not implemented for registration testing'); },
+  updateDataset: () => { throw new Error('Mock API: updateDataset() not implemented for registration testing'); },
+  deleteDataset: () => { throw new Error('Mock API: deleteDataset() not implemented for registration testing'); },
+  searchDatasets: () => { throw new Error('Mock API: searchDatasets() not implemented for registration testing'); },
+  getDatasetCategories: () => { throw new Error('Mock API: getDatasetCategories() not implemented for registration testing'); },
+  getDatasetStats: () => { throw new Error('Mock API: getDatasetStats() not implemented for registration testing'); },
+  getContracts: () => { throw new Error('Mock API: getContracts() not implemented for registration testing'); },
+  getContract: () => { throw new Error('Mock API: getContract() not implemented for registration testing'); },
+  createContract: () => { throw new Error('Mock API: createContract() not implemented for registration testing'); },
+  getContractSigningData: () => { throw new Error('Mock API: getContractSigningData() not implemented for registration testing'); },
+  signContract: () => { throw new Error('Mock API: signContract() not implemented for registration testing'); },
+  selectCCRP: () => { throw new Error('Mock API: selectCCRP() not implemented for registration testing'); },
+  completeContract: () => { throw new Error('Mock API: completeContract() not implemented for registration testing'); },
+  cancelContract: () => { throw new Error('Mock API: cancelContract() not implemented for registration testing'); },
+  getUsers: () => { throw new Error('Mock API: getUsers() not implemented for registration testing'); },
+  getUser: () => { throw new Error('Mock API: getUser() not implemented for registration testing'); },
+  getUserByWallet: () => { throw new Error('Mock API: getUserByWallet() not implemented for registration testing'); },
+  updateUserRegistration: () => { throw new Error('Mock API: updateUserRegistration() not implemented for registration testing'); },
+  getNotifications: () => { throw new Error('Mock API: getNotifications() not implemented for registration testing'); },
+  markNotificationAsRead: () => { throw new Error('Mock API: markNotificationAsRead() not implemented for registration testing'); },
+  getBlockchainStatus: () => { throw new Error('Mock API: getBlockchainStatus() not implemented for registration testing'); },
+  healthCheck: () => { throw new Error('Mock API: healthCheck() not implemented for registration testing'); },
+};
+
+// Export the appropriate service based on mock mode
+export const apiService = isMock ? mockApiService : realApiService;
 
 export default apiService; 

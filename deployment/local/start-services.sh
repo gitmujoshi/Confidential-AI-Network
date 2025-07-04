@@ -81,7 +81,7 @@ kill_by_pid_file() {
 }
 
 # Create logs directory
-mkdir -p logs
+mkdir -p ../../logs
 
 # Stop any existing services
 print_status "Stopping any existing services..."
@@ -102,10 +102,10 @@ else
             -e KEYCLOAK_ADMIN=admin \
             -e KEYCLOAK_ADMIN_PASSWORD=***REMOVED-KEYCLOAK_ADMIN_PASSWORD*** \
             -e KC_HEALTH_ENABLED=true \
-            quay.io/***REMOVED-KEYCLOAK_DB_PASSWORD***/***REMOVED-KEYCLOAK_DB_PASSWORD***:latest start-dev > logs/***REMOVED-KEYCLOAK_DB_PASSWORD***.log 2>&1 &
+            quay.io/***REMOVED-KEYCLOAK_DB_PASSWORD***/***REMOVED-KEYCLOAK_DB_PASSWORD***:latest start-dev > ../../logs/***REMOVED-KEYCLOAK_DB_PASSWORD***.log 2>&1 &
         
-        echo $! > .***REMOVED-KEYCLOAK_DB_PASSWORD***.pid
-        print_success "Keycloak started with Docker (PID: $(cat .***REMOVED-KEYCLOAK_DB_PASSWORD***.pid))"
+        echo $! > ../../.***REMOVED-KEYCLOAK_DB_PASSWORD***.pid
+        print_success "Keycloak started with Docker (PID: $(cat ../../.***REMOVED-KEYCLOAK_DB_PASSWORD***.pid))"
     else
         print_error "Docker not found. Please install Docker to run Keycloak."
         print_warning "Continuing without Keycloak..."
@@ -123,10 +123,10 @@ if check_port 8545; then
     print_warning "Port 8545 is already in use. Skipping Hardhat startup."
 else
     print_status "Starting Hardhat blockchain on port 8545..."
-    cd blockchain
-    npx hardhat node > ../logs/hardhat.log 2>&1 &
-    echo $! > ../.hardhat.pid
-    cd ..
+    cd ../../blockchain
+    npx hardhat node > ../../logs/hardhat.log 2>&1 &
+    echo $! > ../../.hardhat.pid
+    cd ../..
     print_success "Hardhat started (PID: $(cat .hardhat.pid))"
 fi
 
@@ -141,14 +141,14 @@ if check_port 5001; then
     print_warning "Port 5001 is already in use. Skipping backend startup."
 else
     print_status "Starting backend on port 5001..."
-    cd backend
+    cd ../../backend
     
     # Enable blockchain in config
     sed -i '' 's/BLOCKCHAIN_ENABLED=false/BLOCKCHAIN_ENABLED=true/' config.env
     
-    node server.js > ../logs/backend.log 2>&1 &
-    echo $! > ../.backend.pid
-    cd ..
+    node server.js > ../../logs/backend.log 2>&1 &
+    echo $! > ../../.backend.pid
+    cd ../..
     print_success "Backend started (PID: $(cat .backend.pid))"
 fi
 
@@ -172,10 +172,10 @@ else
     print_status "Starting frontend on port 3000..."
 fi
 
-cd frontend
-npm start > ../logs/frontend.log 2>&1 &
-echo $! > ../.frontend.pid
-cd ..
+cd ../../frontend
+npm start > ../../logs/frontend.log 2>&1 &
+echo $! > ../../.frontend.pid
+cd ../..
 print_success "Frontend started (PID: $(cat .frontend.pid))"
 
 # Wait for frontend to be ready

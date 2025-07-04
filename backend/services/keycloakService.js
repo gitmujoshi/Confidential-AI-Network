@@ -33,28 +33,17 @@ class KeycloakService {
    * Load Keycloak configuration
    */
   loadConfig() {
-    try {
-      const configPath = path.join(__dirname, '../../***REMOVED-KEYCLOAK_DB_PASSWORD***-config/***REMOVED-KEYCLOAK_DB_PASSWORD***-config.json');
-      if (fs.existsSync(configPath)) {
-        return JSON.parse(fs.readFileSync(configPath, 'utf8'));
+    return {
+      ***REMOVED-KEYCLOAK_DB_PASSWORD***Url: process.env.KEYCLOAK_URL || 'http://localhost:8080',
+      realm: process.env.KEYCLOAK_REALM || 'contract-management',
+      frontendClient: process.env.KEYCLOAK_CLIENT_ID || 'frontend-app',
+      backendClient: process.env.KEYCLOAK_CLIENT_ID || 'backend-service',
+      backendClientSecret: process.env.KEYCLOAK_CLIENT_SECRET || '',
+      adminUser: {
+        username: process.env.KEYCLOAK_ADMIN_USER || 'admin',
+        password: process.env.KEYCLOAK_ADMIN_PASSWORD || 'admin'
       }
-      
-      // Fallback to environment variables
-      return {
-        ***REMOVED-KEYCLOAK_DB_PASSWORD***Url: process.env.KEYCLOAK_URL || 'http://localhost:8080',
-        realm: process.env.KEYCLOAK_REALM || 'contract-management',
-        frontendClient: process.env.KEYCLOAK_FRONTEND_CLIENT || 'contract-management-frontend',
-        backendClient: process.env.KEYCLOAK_BACKEND_CLIENT || 'contract-management-backend',
-        backendClientSecret: process.env.KEYCLOAK_BACKEND_CLIENT_SECRET || '',
-        adminUser: {
-          username: process.env.KEYCLOAK_ADMIN_USERNAME || 'admin',
-          password: process.env.KEYCLOAK_ADMIN_PASSWORD || '***REMOVED-KEYCLOAK_ADMIN_PASSWORD***'
-        }
-      };
-    } catch (error) {
-      console.error('Failed to load Keycloak config:', error);
-      throw new Error('Keycloak configuration not found');
-    }
+    };
   }
 
   /**
@@ -512,6 +501,51 @@ class KeycloakService {
     } catch (error) {
       console.error('❌ Failed to get onboarding status:', error.message);
       throw error;
+    }
+  }
+
+  /**
+   * Authenticate user with email and password (Resource Owner Password Credentials grant)
+   */
+  async authenticateUserWithPassword(email, password) {
+    try {
+      const response = await axios.post(
+        `${this.baseURL}/realms/${this.realm}/protocol/openid-connect/token`,
+        new URLSearchParams({
+          username: email,
+          password: password,
+          grant_type: 'password',
+          client_id: this.config.frontendClient,
+          client_secret: this.config.backendClientSecret
+        }),
+        {
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          timeout: 5000
+        }
+      );
+      return response.data;
+    } catch (error) {
+      console.error('❌ Keycloak user authentication failed:', error.response?.data || error.message);
+      throw new Error('Keycloak authentication failed');
+    }
+  }
+
+  /**
+   * Get user info from Keycloak using access token
+   */
+  async getUserInfo(accessToken) {
+    try {
+      const response = await axios.get(
+        `${this.baseURL}/realms/${this.realm}/protocol/openid-connect/userinfo`,
+        {
+          headers: { 'Authorization': `Bearer ${accessToken}` },
+          timeout: 5000
+        }
+      );
+      return response.data;
+    } catch (error) {
+      console.error('❌ Failed to get user info from Keycloak:', error.response?.data || error.message);
+      throw new Error('Failed to get user info from Keycloak');
     }
   }
 }

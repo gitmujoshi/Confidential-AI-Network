@@ -77,6 +77,8 @@ cd deployment/monitoring
 - **`emergency-stop.sh`**: Emergency force kill all processes
 - **`restart.sh`**: Restart services with proper shutdown/startup sequence
 - **`status.sh`**: Check status of all running services
+- **`start-frontend.sh`**: Memory-optimized frontend startup with error handling
+- **`cleanup-memory.sh`**: Memory cleanup and cache clearing for Node.js issues
 
 #### Development Environment
 - **`dev-backend.sh`**: Start backend in development mode
@@ -128,6 +130,12 @@ cd deployment/local
 
 # Start development mode for specific service
 ./dev-backend.sh
+
+# If frontend has memory issues, use the optimized script
+./start-frontend.sh
+
+# Clean up memory if needed
+./cleanup-memory.sh
 ```
 
 ### Shutdown and Restart Options
@@ -197,6 +205,47 @@ node generateMnemonic.js
 # Setup Keycloak
 node setupKeycloak.js
 ```
+
+## 🔧 Troubleshooting
+
+### Frontend Memory Issues
+
+If you encounter "JavaScript heap out of memory" errors when starting the frontend:
+
+```bash
+# Use the memory-optimized frontend script
+./deployment/local/start-frontend.sh
+
+# Or clean up memory first
+./deployment/local/cleanup-memory.sh
+./deployment/local/start-frontend.sh
+
+# For severe memory issues, clean dependencies
+./deployment/local/cleanup-memory.sh --clean-deps
+cd frontend && npm ci && cd ..
+./deployment/local/start-frontend.sh
+```
+
+### Common Issues and Solutions
+
+1. **Frontend won't start (memory error)**
+   - Use `./deployment/local/start-frontend.sh` instead of `npm start`
+   - Run `./deployment/local/cleanup-memory.sh` to clear cache
+   - Check available system memory
+
+2. **Port conflicts**
+   - Check if ports 3000 (frontend) or 5000 (backend) are in use
+   - Use `./deployment/local/status.sh` to see running services
+   - Stop conflicting services with `./deployment/local/shutdown.sh`
+
+3. **Node modules issues**
+   - Run `./deployment/local/cleanup-memory.sh --clean-deps`
+   - Reinstall with `npm ci` in frontend and backend directories
+
+4. **Services not starting**
+   - Check logs for specific error messages
+   - Ensure all dependencies are installed
+   - Verify environment variables are set correctly
 
 ## 🔒 Security Considerations
 
