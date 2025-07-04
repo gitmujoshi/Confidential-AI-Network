@@ -1,0 +1,48 @@
+# OCI Authentication
+tenancy_ocid     = "ocid1.tenancy.oc1..example"
+user_ocid        = "ocid1.user.oc1..example"
+fingerprint      = "xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx"
+private_key_path = "~/.oci/oci_api_key.pem"
+region           = "us-ashburn-1"
+compartment_id   = "ocid1.compartment.oc1..example"
+
+# Network Configuration
+vcn_cidr = "10.0.0.0/16"
+
+# OKE Cluster Configuration
+cluster_name       = "contract-management-cluster"
+kubernetes_version = "v1.28.2"
+node_pool_size     = 3
+node_shape         = "VM.Standard.E4.Flex"
+node_ocpus         = 2
+node_memory_in_gbs = 16
+
+# Database Configuration
+db_name     = "contractmanagement"
+db_password = "your-secure-database-password"
+db_size     = 1
+
+# Load Balancer Configuration
+lb_name = "contract-management-lb"
+
+# Container Registry Configuration
+repository_name = "contract-management"
+
+# Application Configuration
+app_domain = "contract-management.example.com"
+environment = "production"
+
+# Keycloak Configuration
+***REMOVED-KEYCLOAK_DB_PASSWORD***_admin_username = "admin"
+***REMOVED-KEYCLOAK_DB_PASSWORD***_admin_password = "your-secure-***REMOVED-KEYCLOAK_DB_PASSWORD***-password"
+
+# Blockchain Configuration
+ethereum_network  = "goerli"
+infura_project_id = "your-infura-project-id"
+
+# Resource Tags
+project_tags = {
+  Project     = "ContractManagement"
+  Environment = "Production"
+  Owner       = "DevOps"
+} 

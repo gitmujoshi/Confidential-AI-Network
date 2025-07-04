@@ -1,230 +1,68 @@
 # Contract Management System
-## Enterprise-Grade Contract Management with DID and IAM Integration
 
-A comprehensive contract management system that combines blockchain technology, Decentralized Identifiers (DIDs), and enterprise Identity and Access Management (IAM) for secure, transparent, and efficient contract lifecycle management.
+A comprehensive blockchain-based contract management system with DID (Decentralized Identifier) support, IAM integration, and enterprise-grade security.
 
-## 🌟 Key Features
+## 🚀 Quick Start
 
-### 🔐 **Identity Management**
-- **Enterprise IAM Integration**: Full Keycloak integration for enterprise-grade authentication and authorization
-- **Decentralized Identifiers (DIDs)**: Primary support for `did:web` with `did:ethr` for blockchain operations
-- **Enterprise DID Strategy**: 
-  - **did:web**: **Primary choice** for enterprise organizations (e.g., `did:web:company.com:employees:john.doe`)
-  - **did:ethr**: For blockchain-specific operations and individual users (e.g., `did:ethr:goerli:0x1234567890abcdef...`)
-- **Enterprise Benefits**:
-  - **Cost-effective**: No blockchain gas fees for identity management
-  - **Fast resolution**: HTTP-based DID resolution with caching
-  - **Organization control**: Full control over identity infrastructure
-  - **Compliance ready**: Meets enterprise security and audit requirements
-- **Bring Your Own DID**: Users can integrate their existing DIDs for identity continuity
-- **Multi-factor Authentication**: Enhanced security with IAM-based MFA
-- **Role-based Access Control**: TDP, TDC, and CCRP roles with specific permissions
+1. **Setup**: Follow the [Setup and Deployment Guide](docs/SETUP_AND_DEPLOYMENT.md)
+2. **User Guide**: See [User and Security Guides](docs/USER_AND_SECURITY_GUIDES.md)
+3. **Technical Details**: Review [Technical Documentation](docs/TECHNICAL_DOCUMENTATION.md)
+4. **DID & IAM**: Learn about [DID and IAM Integration](docs/DID_AND_IAM_GUIDES.md)
 
-### 📋 **Contract Management**
-- **Smart Contract Integration**: Ethereum-based smart contracts for immutable contract storage
-- **Multi-party Signing**: Support for TDP, TDC, and CCRP parties
-- **DID-based Signing**: Cryptographic contract signing using DIDs
-- **Contract Lifecycle Management**: Complete workflow from creation to execution
-- **Audit Trail**: Immutable blockchain records of all contract activities
+## 📚 Documentation Structure
 
-### 🗄️ **Data Management**
-- **Dataset Management**: Secure dataset creation and management for TDPs
-- **Access Control**: Granular permissions for dataset access
-- **Data Privacy**: Privacy-preserving data sharing mechanisms
-- **Compliance Tracking**: Built-in compliance and audit features
+All documentation has been consolidated into the `docs/` folder:
 
-### 🔒 **Security & Compliance**
-- **Zero-trust Architecture**: Comprehensive security model
-- **Cryptographic Verification**: All operations cryptographically verified
-- **Audit Logging**: Complete audit trail for compliance
-- **Data Encryption**: End-to-end encryption for sensitive data
-- **Privacy by Design**: Privacy-preserving identity management
+- **[MAIN_README.md](docs/MAIN_README.md)** - Comprehensive project overview
+- **[TECHNICAL_DOCUMENTATION.md](docs/TECHNICAL_DOCUMENTATION.md)** - Architecture, API, and technical details
+- **[SETUP_AND_DEPLOYMENT.md](docs/SETUP_AND_DEPLOYMENT.md)** - Installation, configuration, and deployment
+- **[USER_AND_SECURITY_GUIDES.md](docs/USER_AND_SECURITY_GUIDES.md)** - User guides, security, and onboarding
+- **[DID_AND_IAM_GUIDES.md](docs/DID_AND_IAM_GUIDES.md)** - DID implementation and IAM integration
 
-## 🏗️ Architecture
+## 🏗️ Project Structure
 
-The system is built with a modern, scalable architecture:
+```
+ContractManagement/
+├── docs/                    # Consolidated documentation
+├── archive/                 # Archived original documentation
+├── deployment/              # Deployment scripts and configurations
+│   ├── oci/                # Oracle Cloud Infrastructure deployment
+│   ├── local/              # Local development scripts
+│   ├── monitoring/         # System monitoring scripts
+│   └── utilities/          # Utility scripts and configs
+├── backend/                 # Node.js/Express backend
+├── frontend/                # React frontend
+├── blockchain/              # Smart contracts and blockchain integration
+└── k8s/                     # Kubernetes deployment files
+```
 
-- **Frontend**: React-based user interface with Material-UI
-- **Backend**: Node.js/Express API with comprehensive IAM integration
-- **Database**: PostgreSQL with advanced indexing and security
-- **Blockchain**: Ethereum smart contracts for immutable storage
-- **IAM**: Keycloak for enterprise identity management
-- **DID**: Decentralized identifier support for self-sovereign identity
+## 🔧 Key Features
 
-## 🚀 Getting Started
+- **Smart Contract Management**: Ethereum-based contract lifecycle management
+- **DID Integration**: Decentralized identifier support (DID:web, DID:ethr)
+- **IAM Integration**: Keycloak-based identity and access management
+- **Enterprise Security**: Multi-layer security with role-based access
+- **Blockchain Integration**: Web3.js integration with MetaMask support
+- **Kubernetes Ready**: Containerized deployment with K8s manifests
 
-### Prerequisites
-- Node.js (v16 or higher)
-- PostgreSQL (v12 or higher)
-- Docker and Docker Compose
-- MetaMask or compatible Web3 wallet
+## 🚦 Status
 
-### Quick Start
-1. **Clone the repository**
-2. **Set up environment variables** (see `.env.example`)
-3. **Start the IAM services**: `docker-compose -f docker-compose.iam.yml up -d`
-4. **Run database setup**: `cd backend && npm run setup`
-5. **Start the backend**: `cd backend && npm start`
-6. **Start the frontend**: `cd frontend && npm start`
+- ✅ Core contract management functionality
+- ✅ DID implementation (DID:web and DID:ethr)
+- ✅ IAM integration with Keycloak
+- ✅ Frontend with React
+- ✅ Backend API with Express
+- ✅ Smart contracts with Solidity
+- ✅ Kubernetes deployment configuration
 
-### User Onboarding
-1. **Register**: Create an account with your wallet and DID
-2. **Verify Identity**: Complete IAM verification process
-3. **Set Up Profile**: Configure your organization and role
-4. **Start Managing Contracts**: Begin creating and managing contracts
+## 📖 Getting Started
 
-## 📚 Documentation
-
-### User Guides
-- **[Setup Guide](SETUP_GUIDE.md)**: Complete installation and configuration
-- **[User Guide](USER_GUIDE.md)**: How to use the system
-- **[Wallet Guide](WALLET_GUIDE.md)**: MetaMask setup and usage
-- **[Existing DID Guide](EXISTING_DID_GUIDE.md)**: Using your existing DIDs
-
-### Technical Documentation
-- **[Architecture Guide](ARCHITECTURE_GUIDE.md)**: System architecture and design
-- **[API Documentation](API_DOCS.md)**: Complete API reference
-- **[Security Guide](SECURITY_GUIDE.md)**: Security features and best practices
-- **[DID Management Guide](DID_MANAGEMENT_GUIDE.md)**: DID implementation details
-- **[Enterprise DID:web Implementation](ENTERPRISE_DID_WEB_IMPLEMENTATION.md)**: Comprehensive enterprise setup guide
-- **[IAM Integration Strategy](IAM_INTEGRATION_STRATEGY.md)**: Enterprise IAM integration with did:web
-
-### Deployment Guides
-- **[Kubernetes Deployment](KUBERNETES_DEPLOYMENT_GUIDE.md)**: Production deployment
-- **[Local Kubernetes](LOCAL_KUBERNETES_GUIDE.md)**: Local development setup
-
-## 🔧 DID Integration
-
-### Enterprise DID Strategy
-
-#### did:web (Primary Enterprise Choice)
-**Best for**: Enterprise organizations with web domains
-- **Format**: `did:web:[domain]:[path]`
-- **Examples**:
-  - `did:web:company.com` (organization main DID)
-  - `did:web:company.com:legal` (department DID)
-  - `did:web:company.com:employees:john.doe` (employee DID)
-  - `did:web:company.com:roles:compliance-officer` (role-based DID)
-- **Enterprise Benefits**:
-  - **Cost-effective**: No blockchain gas fees
-  - **Fast resolution**: HTTP-based with caching
-  - **Organization control**: Full control over identity infrastructure
-  - **Compliance ready**: Meets enterprise security requirements
-  - **Scalable**: Easy to manage thousands of organizational DIDs
-  - **Integration friendly**: Works with existing web infrastructure
-- **Verification**: DID document resolution, domain validation, and SSL certificate verification
-
-#### did:ethr (Blockchain Operations)
-**Best for**: Blockchain-specific operations and individual users
-- **Format**: `did:ethr:[network]:[ethereum-address]`
-- **Examples**: 
-  - `did:ethr:goerli:0x1234567890abcdef...` (testnet)
-  - `did:ethr:mainnet:0x1234567890abcdef...` (mainnet)
-- **Benefits**:
-  - Fully decentralized
-  - Works with existing MetaMask wallets
-  - Built-in cryptographic verification
-  - Cross-platform compatibility
-- **Verification**: Wallet signature verification
-
-### System-Generated DIDs (did:ethr)
-When users register without providing an existing DID, the system automatically generates a new `did:ethr` based on their wallet address. This DID is:
-- Created using the Ethereum DID method
-- Linked to their wallet address
-- Stored securely in the database
-- Used for all cryptographic operations
-
-### User-Provided DIDs
-Users can bring their existing DIDs from other platforms or systems. This feature:
-- Maintains identity continuity across platforms
-- Supports both `did:ethr` and `did:web` methods
-- Requires cryptographic proof of ownership
-- Enables self-sovereign identity principles
-
-### DID Verification Process
-When users provide an existing DID, the system verifies ownership through:
-
-#### For did:ethr:
-1. **Format Validation**: Ensures the DID follows correct standards
-2. **Uniqueness Check**: Confirms the DID isn't already registered
-3. **Ownership Proof**: Requires wallet signature to prove control
-4. **DID Resolution**: Verifies the DID exists on the blockchain
-5. **Document Validation**: Checks the DID document structure
-
-#### For did:web:
-1. **Format Validation**: Ensures the DID follows correct standards
-2. **Uniqueness Check**: Confirms the DID isn't already registered
-3. **DID Resolution**: Fetches DID document from web server
-4. **Document Validation**: Checks the DID document structure
-5. **Domain Verification**: Validates domain ownership and SSL certificate
-
-## 🎯 Use Cases
-
-### Training Data Providers (TDP)
-- Create and manage datasets
-- Set access permissions and pricing
-- Monitor dataset usage and analytics
-- Sign contracts for data sharing
-
-### Training Data Consumers (TDC)
-- Browse available datasets
-- Initiate contract requests
-- Manage contract negotiations
-- Access purchased datasets
-
-### Confidential Clean Room Providers (CCRP)
-- Review contract compliance
-- Verify data privacy requirements
-- Sign contracts as compliance authority
-- Monitor contract execution
-
-## 🔒 Security Features
-
-### Identity Security
-- **Multi-factor Authentication**: IAM-based MFA support
-- **Session Management**: Secure session handling
-- **Access Control**: Role-based permissions
-- **Audit Logging**: Complete access logs
-
-### Data Security
-- **End-to-End Encryption**: All sensitive data encrypted
-- **Blockchain Immutability**: Tamper-proof contract storage
-- **Cryptographic Verification**: All operations verified
-- **Privacy Protection**: Data minimization principles
-
-### DID Security
-- **Ownership Verification**: Cryptographic proof of DID control
-- **Key Management**: Secure key storage and rotation
-- **Delegation Support**: Controlled DID delegation
-- **Recovery Mechanisms**: Secure DID recovery options
-
-## 🌐 Supported Networks
-
-### Development
-- **Goerli Testnet**: For development and testing
-- **Local Hardhat**: For local development
-
-### Production
-- **Ethereum Mainnet**: For production deployments
-- **Polygon**: For cost-effective transactions
-- **Other EVM Networks**: As needed
+For detailed setup instructions, see [SETUP_AND_DEPLOYMENT.md](docs/SETUP_AND_DEPLOYMENT.md).
 
 ## 🤝 Contributing
 
-We welcome contributions! Please see our contributing guidelines and ensure all code follows our security standards.
+Please refer to the [Technical Documentation](docs/TECHNICAL_DOCUMENTATION.md) for development guidelines and contribution information.
 
 ## 📄 License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
-
-## 🆘 Support
-
-For support and questions:
-- Check the documentation guides
-- Review the troubleshooting sections
-- Contact the development team
-- Join our community forum
-
----
-
-**Contract Management System** - Secure, verifiable, and compliant contract management with enterprise IAM and DID support. 
+This project is proprietary software. All rights reserved. 
