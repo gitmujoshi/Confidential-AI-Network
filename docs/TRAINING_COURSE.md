@@ -74,6 +74,25 @@ A successful contract management solution must address real-world pain points ac
 
 > **Outcome-Driven Requirements:** These use cases translate into non-functional requirements such as high availability, horizontal scalability, end-to-end encryption, auditable actions, and pluggable authentication providers.
 
+### Reference Architecture Snapshot
+A high-level diagram tying the above use-cases to system components. Detailed diagrams live in section 7, but this snapshot sets the stage early.
+
+```mermaid
+graph TD
+    user[End User] --> spa[React SPA]
+    spa --> api[Express API]
+    api --> db[(PostgreSQL)]
+    api --> iam[Keycloak]
+    api --> chain[ContractManager SmartContract]
+```
+
+*Reading Guide*
+1. **User Stories to Components** – Each arrow shows data flow supporting the use cases (contract drafting, signing, notifications).
+2. **Edge-to-On-Chain Traceability** – From browser action to immutable blockchain hash.
+3. **Security Touch-points** – Keycloak for auth, TLS on every hop.
+
+➡ Proceed to Backend Fundamentals (next section) for deep dives; full architecture breakdowns remain in section 7.
+
 ---
 
 ## 1. Backend Fundamentals
