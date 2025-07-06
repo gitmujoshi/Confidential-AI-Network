@@ -191,22 +191,28 @@ When users provide an existing DID, the system verifies ownership through:
 ## 🎯 Use Cases
 
 ### Training Data Providers (TDP)
-- Create and manage datasets
-- Set access permissions and pricing
-- Monitor dataset usage and analytics
-- Sign contracts for data sharing
+
+Training Data Providers are organizations or individuals who own and manage datasets. They can:
+- Create and publish datasets
+- Set pricing and terms for data usage
+- Automatically sign contracts when TDC initiates them
+- Monitor contract execution and data usage
 
 ### Training Data Consumers (TDC)
+
+Training Data Consumers are organizations that need data for AI model training or analytics. They can:
 - Browse available datasets
-- Initiate contract requests
-- Manage contract negotiations
-- Access purchased datasets
+- Create contracts with TDPs
+- Select CCRPs for compliance review
+- Access data after contract activation
 
 ### Confidential Clean Room Providers (CCRP)
-- Review contract compliance
-- Verify data privacy requirements
-- Sign contracts as compliance authority
-- Monitor contract execution
+
+Confidential Clean Room Providers set up secure runtime environments for data analytics or AI model training based on contracts. They can:
+- Review contracts for compliance
+- Set up secure computing environments
+- Provide data processing infrastructure
+- Ensure data privacy and security during model training
 
 ## 🔒 Security Features
 

@@ -114,7 +114,7 @@ sequenceDiagram
 
 ```mermaid
 sequenceDiagram
-    participant TDC as TDC User
+    participant TDC as Training Data Consumer
     participant F as Frontend
     participant C as Contract API
     participant D as DPDP Service
