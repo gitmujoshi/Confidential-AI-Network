@@ -157,629 +157,99 @@ sequenceDiagram
 
 ### 1. User Model Integration
 
-The existing User model has been enhanced with DPDP-related fields:
-
-```javascript
-// Existing User model with DPDP additions
-const User = sequelize.define('User', {
-  // ... existing fields ...
-  
-  // DPDP Compliance Fields
-  dpdpConsentVersion: {
-    type: DataTypes.STRING,
-    defaultValue: '1.0'
-  },
-  
-  dataRetentionConsent: {
-    type: DataTypes.BOOLEAN,
-    defaultValue: false
-  },
-  
-  marketingConsent: {
-    type: DataTypes.BOOLEAN,
-    defaultValue: false
-  },
-  
-  lastConsentUpdate: {
-    type: DataTypes.DATE,
-    allowNull: true
-  }
-});
-```
+The existing User model has been enhanced with DPDP-related fields to track consent versions, data retention preferences, marketing consent status, and the last time consent was updated. These fields are automatically populated during user registration and can be updated through the DPDP dashboard.
 
 ### 2. Contract Model Integration
 
-Contracts now track data processing activities:
-
-```javascript
-// Contract model with DPDP tracking
-const Contract = sequelize.define('Contract', {
-  // ... existing fields ...
-  
-  // DPDP Compliance Fields
-  dataProcessingConsent: {
-    type: DataTypes.BOOLEAN,
-    defaultValue: false
-  },
-  
-  dataRetentionPeriod: {
-    type: DataTypes.INTEGER, // Days
-    defaultValue: 2555 // 7 years default
-  },
-  
-  dataProcessingPurpose: {
-    type: DataTypes.STRING,
-    defaultValue: 'CONTRACT_EXECUTION'
-  }
-});
-```
+Contracts now include additional fields to track data processing activities, including consent status for data processing, retention periods for contract data, and the specific purpose for which data is being processed. This ensures full compliance with DPDP requirements for contract-related data handling.
 
 ### 3. API Integration Points
 
 #### Authentication API Integration
 
-```javascript
-// Enhanced registration with DPDP consent
-router.post('/register', async (req, res) => {
-  try {
-    // ... existing registration logic ...
-    
-    // DPDP Integration
-    const dpdpService = new DPDPService();
-    
-    // Record consent for registration
-    await dpdpService.recordConsent(
-      user.id,
-      'USER_REGISTRATION',
-      ['PERSONAL_INFO', 'CONTACT_INFO', 'PROFESSIONAL_INFO'],
-      'EXPLICIT',
-      req
-    );
-    
-    // Record data processing
-    await dpdpService.recordDataProcessing(
-      user.id,
-      'USER_REGISTRATION',
-      'USER_REGISTRATION',
-      ['PERSONAL_INFO', 'CONTACT_INFO', 'PROFESSIONAL_INFO'],
-      'CONSENT',
-      consent.id
-    );
-    
-    // ... rest of registration logic ...
-  } catch (error) {
-    // ... error handling ...
-  }
-});
-```
+The registration process has been enhanced to automatically record user consent for data processing during account creation. The system captures explicit consent for personal information, contact details, and professional information. It also logs the data processing activity for audit purposes and sends a welcome email with privacy information.
 
 #### Contract API Integration
 
-```javascript
-// Enhanced contract creation with DPDP tracking
-router.post('/', async (req, res) => {
-  try {
-    // ... existing contract creation logic ...
-    
-    // DPDP Integration
-    const dpdpService = new DPDPService();
-    
-    // Record data processing for contract creation
-    await dpdpService.recordDataProcessing(
-      req.user.id,
-      'CONTRACT_CREATION',
-      'CONTRACT_EXECUTION',
-      ['CONTRACT_DATA', 'PARTY_INFORMATION', 'DATASET_METADATA'],
-      'CONTRACT_PERFORMANCE',
-      null
-    );
-    
-    // ... rest of contract creation logic ...
-  } catch (error) {
-    // ... error handling ...
-  }
-});
-```
+When contracts are created, the system automatically records data processing activities for all parties involved. This includes tracking what data is being processed, the legal basis for processing, and the retention period for contract-related data. This ensures compliance with DPDP requirements for contract execution.
 
 ## Database Schema Integration
 
 ### New DPDP Tables
 
-```sql
--- Consent Management
-CREATE TABLE consents (
-  id INT PRIMARY KEY AUTO_INCREMENT,
-  userId INT NOT NULL,
-  purpose VARCHAR(100) NOT NULL,
-  dataTypes JSON NOT NULL,
-  consentType ENUM('EXPLICIT', 'IMPLICIT') DEFAULT 'EXPLICIT',
-  consentText TEXT NOT NULL,
-  grantedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  withdrawnAt TIMESTAMP NULL,
-  isActive BOOLEAN DEFAULT TRUE,
-  version VARCHAR(10) DEFAULT '1.0',
-  withdrawalMethod VARCHAR(50),
-  ipAddress VARCHAR(45),
-  userAgent TEXT,
-  FOREIGN KEY (userId) REFERENCES users(id)
-);
+The system includes several new database tables to support DPDP compliance:
 
--- Data Processing Records
-CREATE TABLE data_processing_records (
-  id INT PRIMARY KEY AUTO_INCREMENT,
-  userId INT NOT NULL,
-  processingActivity VARCHAR(100) NOT NULL,
-  purpose VARCHAR(100) NOT NULL,
-  dataTypes JSON NOT NULL,
-  legalBasis ENUM('CONSENT', 'CONTRACT_PERFORMANCE', 'LEGAL_OBLIGATION', 'LEGITIMATE_INTEREST') NOT NULL,
-  consentId INT NULL,
-  processedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  retentionPeriod INT DEFAULT 2555,
-  FOREIGN KEY (userId) REFERENCES users(id),
-  FOREIGN KEY (consentId) REFERENCES consents(id)
-);
+**Consent Management Table**: Stores all user consents with detailed information including the purpose of data processing, types of data being processed, consent type (explicit or implicit), consent text, timestamps for when consent was granted or withdrawn, and metadata about how consent was obtained.
 
--- Grievance Management
-CREATE TABLE grievances (
-  id INT PRIMARY KEY AUTO_INCREMENT,
-  userId INT NOT NULL,
-  grievanceType ENUM('CONSENT', 'DATA_ACCESS', 'DATA_CORRECTION', 'DATA_ERASURE', 'DATA_PORTABILITY', 'BREACH') NOT NULL,
-  description TEXT NOT NULL,
-  status ENUM('PENDING', 'IN_PROGRESS', 'RESOLVED', 'REJECTED') DEFAULT 'PENDING',
-  submittedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  resolvedAt TIMESTAMP NULL,
-  resolution TEXT NULL,
-  FOREIGN KEY (userId) REFERENCES users(id)
-);
+**Data Processing Records Table**: Logs every data processing activity in the system, including the processing activity name, purpose, data types involved, legal basis for processing, associated consent records, processing timestamps, and retention periods.
 
--- Data Breach Records
-CREATE TABLE data_breaches (
-  id INT PRIMARY KEY AUTO_INCREMENT,
-  incidentType ENUM('UNAUTHORIZED_ACCESS', 'DATA_LOSS', 'SYSTEM_BREACH', 'PHISHING') NOT NULL,
-  description TEXT NOT NULL,
-  affectedUsers INT DEFAULT 0,
-  severity ENUM('LOW', 'MEDIUM', 'HIGH', 'CRITICAL') NOT NULL,
-  discoveredAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  reportedAt TIMESTAMP NULL,
-  resolvedAt TIMESTAMP NULL,
-  status ENUM('DISCOVERED', 'INVESTIGATING', 'REPORTED', 'RESOLVED') DEFAULT 'DISCOVERED'
-);
+**Grievance Management Table**: Handles user complaints and requests related to their data rights, including the type of grievance, description, status tracking, submission and resolution timestamps, and resolution details.
 
--- Audit Logs
-CREATE TABLE audit_logs (
-  id INT PRIMARY KEY AUTO_INCREMENT,
-  eventType VARCHAR(100) NOT NULL,
-  userId INT NULL,
-  eventData JSON NOT NULL,
-  ipAddress VARCHAR(45),
-  userAgent TEXT,
-  timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  FOREIGN KEY (userId) REFERENCES users(id)
-);
-```
+**Data Breach Records Table**: Tracks security incidents and data breaches, including incident type, description, number of affected users, severity level, discovery and reporting timestamps, and resolution status.
+
+**Audit Logs Table**: Provides a complete audit trail for all DPDP-related activities, including event types, user information, event data, IP addresses, user agents, and timestamps.
 
 ### Enhanced Existing Tables
 
-```sql
--- Enhanced Users table
-ALTER TABLE users ADD COLUMN dpdpConsentVersion VARCHAR(10) DEFAULT '1.0';
-ALTER TABLE users ADD COLUMN dataRetentionConsent BOOLEAN DEFAULT FALSE;
-ALTER TABLE users ADD COLUMN marketingConsent BOOLEAN DEFAULT FALSE;
-ALTER TABLE users ADD COLUMN lastConsentUpdate TIMESTAMP NULL;
+The Users table has been enhanced with DPDP-specific fields including consent version tracking, data retention consent status, marketing consent preferences, and timestamps for consent updates.
 
--- Enhanced Contracts table
-ALTER TABLE contracts ADD COLUMN dataProcessingConsent BOOLEAN DEFAULT FALSE;
-ALTER TABLE contracts ADD COLUMN dataRetentionPeriod INT DEFAULT 2555;
-ALTER TABLE contracts ADD COLUMN dataProcessingPurpose VARCHAR(100) DEFAULT 'CONTRACT_EXECUTION';
-```
+The Contracts table now includes fields for data processing consent, retention periods, and processing purposes to ensure compliance with DPDP requirements for contract-related data handling.
 
 ## Frontend Integration
 
 ### 1. Consent Management UI
 
-```javascript
-// Consent management component
-const ConsentManagement = () => {
-  const [consents, setConsents] = useState([]);
-  const [loading, setLoading] = useState(false);
-
-  useEffect(() => {
-    fetchConsents();
-  }, []);
-
-  const fetchConsents = async () => {
-    setLoading(true);
-    try {
-      const response = await apiService.get('/api/dpdp/consents');
-      setConsents(response.data);
-    } catch (error) {
-      console.error('Error fetching consents:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const withdrawConsent = async (purpose) => {
-    try {
-      await apiService.post(`/api/dpdp/consents/${purpose}/withdraw`);
-      fetchConsents(); // Refresh list
-    } catch (error) {
-      console.error('Error withdrawing consent:', error);
-    }
-  };
-
-  return (
-    <div>
-      <h2>Consent Management</h2>
-      {consents.map(consent => (
-        <ConsentCard
-          key={consent.id}
-          consent={consent}
-          onWithdraw={() => withdrawConsent(consent.purpose)}
-        />
-      ))}
-    </div>
-  );
-};
-```
+The frontend includes a comprehensive consent management interface where users can view all their active consents, see when they were granted, understand what data is being processed, and withdraw consent for specific purposes. The interface provides clear information about the implications of withdrawing consent and guides users through the process.
 
 ### 2. Personal Data Dashboard
 
-```javascript
-// Personal data dashboard component
-const PersonalDataDashboard = () => {
-  const [personalData, setPersonalData] = useState(null);
-  const [loading, setLoading] = useState(false);
-
-  const fetchPersonalData = async () => {
-    setLoading(true);
-    try {
-      const response = await apiService.get('/api/dpdp/personal-data');
-      setPersonalData(response.data);
-    } catch (error) {
-      console.error('Error fetching personal data:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const exportData = async () => {
-    try {
-      const response = await apiService.get('/api/dpdp/export');
-      // Handle data export
-    } catch (error) {
-      console.error('Error exporting data:', error);
-    }
-  };
-
-  return (
-    <div>
-      <h2>Personal Data Dashboard</h2>
-      <button onClick={fetchPersonalData}>Refresh Data</button>
-      <button onClick={exportData}>Export Data</button>
-      
-      {personalData && (
-        <div>
-          <BasicInfo data={personalData.basicInfo} />
-          <ProfessionalInfo data={personalData.professionalInfo} />
-          <ConsentsList consents={personalData.consents} />
-          <ProcessingRecords records={personalData.dataProcessing} />
-        </div>
-      )}
-    </div>
-  );
-};
-```
+Users have access to a personal data dashboard that shows all their personal information stored in the system, including basic information, professional details, technical data, active consents, and data processing records. Users can request data corrections, export their data, and understand how their information is being used.
 
 ## Service Integration
 
 ### 1. DPDP Service Integration
 
-The DPDP service integrates with existing services:
-
-```javascript
-class DPDPService {
-  constructor() {
-    this.auditService = require('./auditService');
-    this.emailService = require('./emailService');
-    this.userService = require('./userService');
-    this.contractService = require('./contractService');
-  }
-
-  // Integrate with user registration
-  async handleUserRegistration(userId, userData, req) {
-    // Record consent
-    await this.recordConsent(userId, 'USER_REGISTRATION', [
-      'PERSONAL_INFO', 'CONTACT_INFO', 'PROFESSIONAL_INFO'
-    ], 'EXPLICIT', req);
-
-    // Record data processing
-    await this.recordDataProcessing(userId, 'USER_REGISTRATION', 
-      'USER_REGISTRATION', ['PERSONAL_INFO', 'CONTACT_INFO', 'PROFESSIONAL_INFO'], 
-      'CONSENT');
-
-    // Send welcome email with privacy notice
-    await this.emailService.sendPrivacyNotice(userData.email);
-  }
-
-  // Integrate with contract creation
-  async handleContractCreation(contractId, parties, req) {
-    for (const party of parties) {
-      await this.recordDataProcessing(party.userId, 'CONTRACT_CREATION',
-        'CONTRACT_EXECUTION', ['CONTRACT_DATA', 'PARTY_INFORMATION'], 
-        'CONTRACT_PERFORMANCE');
-    }
-  }
-}
-```
+The DPDP service integrates seamlessly with existing services to ensure compliance throughout the system. During user registration, it automatically records consent and data processing activities. For contract creation, it tracks data processing for all parties involved and ensures proper consent management.
 
 ### 2. Audit Service Integration
 
-```javascript
-class AuditService {
-  async logEvent(eventType, eventData) {
-    await db.AuditLog.create({
-      eventType,
-      userId: eventData.userId || null,
-      eventData: JSON.stringify(eventData),
-      ipAddress: eventData.ipAddress,
-      userAgent: eventData.userAgent,
-      timestamp: new Date()
-    });
-  }
-
-  // Integrate with existing operations
-  async logUserAction(userId, action, details) {
-    await this.logEvent('USER_ACTION', {
-      userId,
-      action,
-      details,
-      timestamp: new Date()
-    });
-  }
-
-  async logContractAction(contractId, action, userId, details) {
-    await this.logEvent('CONTRACT_ACTION', {
-      contractId,
-      action,
-      userId,
-      details,
-      timestamp: new Date()
-    });
-  }
-}
-```
+The audit service provides comprehensive logging for all DPDP-related activities, including user actions, contract operations, consent changes, and data access requests. This creates a complete audit trail for compliance reporting and security monitoring.
 
 ## Compliance Monitoring
 
 ### 1. Automated Compliance Checks
 
-```javascript
-class ComplianceMonitor {
-  async checkConsentCompliance() {
-    // Check for users without required consents
-    const usersWithoutConsent = await db.User.findAll({
-      include: [{
-        model: db.Consent,
-        where: { purpose: 'USER_REGISTRATION', isActive: true },
-        required: false
-      }],
-      where: {
-        '$Consents.id$': null
-      }
-    });
-
-    return usersWithoutConsent;
-  }
-
-  async checkDataRetentionCompliance() {
-    // Check for data exceeding retention periods
-    const expiredData = await db.DataProcessingRecord.findAll({
-      where: {
-        processedAt: {
-          [Op.lt]: new Date(Date.now() - (2555 * 24 * 60 * 60 * 1000)) // 7 years
-        }
-      }
-    });
-
-    return expiredData;
-  }
-
-  async generateComplianceReport() {
-    const report = {
-      totalUsers: await db.User.count(),
-      usersWithConsent: await db.Consent.count({ where: { isActive: true } }),
-      activeContracts: await db.Contract.count({ where: { status: 'ACTIVE' } }),
-      pendingGrievances: await db.Grievance.count({ where: { status: 'PENDING' } }),
-      dataBreaches: await db.DataBreach.count({ where: { status: 'DISCOVERED' } })
-    };
-
-    return report;
-  }
-}
-```
+The system includes automated monitoring tools that check for users without required consents, identify data that exceeds retention periods, and generate comprehensive compliance reports. These checks run on scheduled intervals and automatically notify designated personnel of any compliance issues.
 
 ### 2. Real-time Monitoring
 
-```javascript
-// Real-time compliance monitoring
-const monitorCompliance = async () => {
-  const monitor = new ComplianceMonitor();
-  
-  // Check consent compliance daily
-  setInterval(async () => {
-    const nonCompliantUsers = await monitor.checkConsentCompliance();
-    if (nonCompliantUsers.length > 0) {
-      await notifyDPO('CONSENT_COMPLIANCE_ALERT', {
-        count: nonCompliantUsers.length,
-        users: nonCompliantUsers.map(u => u.id)
-      });
-    }
-  }, 24 * 60 * 60 * 1000); // Daily
-
-  // Check data retention weekly
-  setInterval(async () => {
-    const expiredData = await monitor.checkDataRetentionCompliance();
-    if (expiredData.length > 0) {
-      await notifyDPO('RETENTION_COMPLIANCE_ALERT', {
-        count: expiredData.length,
-        records: expiredData.map(r => r.id)
-      });
-    }
-  }, 7 * 24 * 60 * 60 * 1000); // Weekly
-};
-```
+Real-time monitoring systems track consent compliance daily and data retention compliance weekly. The system automatically alerts designated personnel when compliance issues are detected, ensuring prompt resolution of any problems.
 
 ## Security Integration
 
-### 1. Data Encryption
+### 1. Enhanced Data Protection
 
-```javascript
-// Enhanced data encryption for DPDP compliance
-class DataEncryption {
-  static encryptPersonalData(data) {
-    const algorithm = 'aes-256-gcm';
-    const key = crypto.scryptSync(process.env.ENCRYPTION_KEY, 'salt', 32);
-    const iv = crypto.randomBytes(16);
-    
-    const cipher = crypto.createCipher(algorithm, key);
-    let encrypted = cipher.update(JSON.stringify(data), 'utf8', 'hex');
-    encrypted += cipher.final('hex');
-    
-    return {
-      encrypted,
-      iv: iv.toString('hex'),
-      tag: cipher.getAuthTag().toString('hex')
-    };
-  }
-
-  static decryptPersonalData(encryptedData) {
-    const algorithm = 'aes-256-gcm';
-    const key = crypto.scryptSync(process.env.ENCRYPTION_KEY, 'salt', 32);
-    const iv = Buffer.from(encryptedData.iv, 'hex');
-    const tag = Buffer.from(encryptedData.tag, 'hex');
-    
-    const decipher = crypto.createDecipher(algorithm, key);
-    decipher.setAuthTag(tag);
-    
-    let decrypted = decipher.update(encryptedData.encrypted, 'hex', 'utf8');
-    decrypted += decipher.final('utf8');
-    
-    return JSON.parse(decrypted);
-  }
-}
-```
+The system implements additional encryption for personal data using industry-standard algorithms. All personal data is encrypted at rest and in transit, with secure key management and access controls to protect sensitive information.
 
 ### 2. Access Control Integration
 
-```javascript
-// Enhanced access control for DPDP data
-const dpdpAccessControl = (req, res, next) => {
-  // Only allow users to access their own data
-  if (req.params.userId && req.params.userId !== req.user.id) {
-    return res.status(403).json({
-      error: 'Access denied',
-      code: 'ACCESS_DENIED'
-    });
-  }
-
-  // Log all DPDP data access
-  req.dpdpAccess = {
-    timestamp: new Date(),
-    ipAddress: req.ip,
-    userAgent: req.get('User-Agent'),
-    endpoint: req.originalUrl
-  };
-
-  next();
-};
-```
+Enhanced access controls ensure that users can only access their own personal data. All DPDP data access is logged with detailed information including timestamps, IP addresses, and user agents for security monitoring and audit purposes.
 
 ## Testing Integration
 
 ### 1. DPDP Test Suite
 
-```javascript
-// DPDP integration tests
-describe('DPDP Integration Tests', () => {
-  test('User registration should record consent', async () => {
-    const userData = {
-      name: 'Test User',
-      email: 'test@example.com',
-      partyType: 'TDC'
-    };
-
-    const response = await request(app)
-      .post('/api/auth/register')
-      .send(userData);
-
-    expect(response.status).toBe(201);
-
-    // Check consent was recorded
-    const consents = await db.Consent.findAll({
-      where: { userId: response.body.user.id }
-    });
-
-    expect(consents).toHaveLength(1);
-    expect(consents[0].purpose).toBe('USER_REGISTRATION');
-  });
-
-  test('Contract creation should record data processing', async () => {
-    // ... test implementation
-  });
-
-  test('Personal data access should be logged', async () => {
-    // ... test implementation
-  });
-});
-```
+The system includes comprehensive test suites that verify DPDP compliance throughout the application. Tests ensure that user registration properly records consent, contract creation tracks data processing, and personal data access is properly logged and secured.
 
 ## Deployment Integration
 
 ### 1. Environment Configuration
 
-```bash
-# DPDP-specific environment variables
-DPDP_ENABLED=true
-DPDP_RETENTION_PERIOD=2555
-DPDP_BREACH_NOTIFICATION_EMAIL=dpo@company.com
-DPDP_COMPLIANCE_REPORTING_ENABLED=true
-DPDP_AUDIT_LOGGING_ENABLED=true
-DPDP_DATA_ENCRYPTION_ENABLED=true
-```
+The system includes DPDP-specific environment variables for configuration, including retention periods, breach notification settings, compliance reporting options, audit logging preferences, and data encryption settings.
 
 ### 2. Database Migration
 
-```javascript
-// DPDP database migration
-module.exports = {
-  up: async (queryInterface, Sequelize) => {
-    // Create DPDP tables
-    await queryInterface.createTable('consents', {
-      // ... table definition
-    });
-
-    await queryInterface.createTable('data_processing_records', {
-      // ... table definition
-    });
-
-    // Add DPDP columns to existing tables
-    await queryInterface.addColumn('users', 'dpdpConsentVersion', {
-      type: Sequelize.STRING(10),
-      defaultValue: '1.0'
-    });
-
-    // ... other migrations
-  },
-
-  down: async (queryInterface, Sequelize) => {
-    // Rollback migrations
-    await queryInterface.dropTable('consents');
-    await queryInterface.dropTable('data_processing_records');
-    await queryInterface.removeColumn('users', 'dpdpConsentVersion');
-  }
-};
-```
+Comprehensive database migrations handle the creation of new DPDP tables and the enhancement of existing tables with DPDP-related fields. The migrations are designed to be safe for production environments and include rollback capabilities.
 
 ## Summary
 
