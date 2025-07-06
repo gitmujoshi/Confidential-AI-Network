@@ -1969,3 +1969,65 @@ graph LR
 ---
 
 *Next: 9. Deployment, Observability, and Scalability sections will be added in upcoming revisions.* 
+
+### 4.11 DID:web Integration for Contract Signing
+... existing text ...
+
+### 4.12 Role-Based User Journeys
+
+| Role | Primary Goals | Key Screens | APIs Touched | On-Chain Actions |
+|------|---------------|-------------|--------------|------------------|
+| **TDP** (Trusted Data Provider) | Publish datasets, draft contracts, sign & activate | Dashboard, Datasets, Create Contract, Contract Detail | `POST /api/datasets`, `POST /api/contracts`, `POST /api/contracts/:id/sign` | Draft hash recorded, first signature stored |
+| **TDC** (Trusted Data Consumer) | Browse datasets, negotiate & sign contracts, access purchased data | Browse Datasets, Contract Detail | `GET /api/datasets`, `GET/POST /api/contracts/:id/sign` | Counter-signature transaction |
+| **CCRP** (Compliance & Contract Review Panel) | Review contracts, approve or reject, audit signing history | Contract Review Queue | `PATCH /api/contracts/:id/approve`, `GET /api/audit` | Emits approval event |
+
+#### 4.12.1 Onboarding & Authentication Flow
+```mermaid
+sequenceDiagram
+    participant User
+    participant UI
+    participant KC as Keycloak
+    participant API
+    User->>UI: Register (role, org, did:web)
+    UI->>KC: CreateAccount
+    KC-->>UI: ConfirmEmailLink
+    User->>KC: Verify email
+    KC-->>User: AccountReady
+    User->>UI: Login
+    UI->>KC: OAuthCode
+    KC-->>UI: AccessToken
+    UI->>API: Bearer Token
+    API-->>UI: Role-scoped dashboard
+```
+*RBAC Enforcement* – After token introspection, backend attaches `req.user.role`. Route middlewares like `requirePermission('contracts','write')` gate access.
+
+#### 4.12.2 Contract Lifecycle Swim-Lane
+```mermaid
+sequenceDiagram
+    participant TDP
+    participant API
+    participant TDC
+    participant CCRP
+    participant SC as SmartContract
+
+    TDP->>API: Create Draft
+    API-->>SC: storeHash(draft)
+    API-->>TDP: draftId
+
+    TDP->>API: Sign Draft
+    API-->>SC: sign(draftId, TDP)
+
+    TDC->>API: Counter-Sign
+    API-->>SC: sign(draftId, TDC)
+
+    CCRP->>API: Approve
+    API-->>SC: approve(draftId)
+
+    SC-->>API: status=ACTIVE
+    API-->>All: Notify via WebSocket / email
+```
+States: `DRAFT → SIGNED_TDP → SIGNED_TDC → PENDING_CCRP → ACTIVE → ARCHIVED`.
+
+> **Design Note**: each transition triggers `notificationService` which writes to `notification` table and pushes real-time update to the frontend.
+
+---
