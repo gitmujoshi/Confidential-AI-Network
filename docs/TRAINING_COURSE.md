@@ -502,6 +502,49 @@ const validateToken = async (token) => {
 - **User Analytics:** Monitor login patterns and user behavior.
 - **Backup and Recovery:** Regular backups of realm configurations and user data.
 
+### 4.11 DID:web Integration for Contract Signing
+
+Decentralized Identifiers (DIDs) provide a W3C-standard way to represent user identities without central authority. **DID:web** is the most straightforward method because it relies only on HTTPS domain ownership—perfect for enterprises who already control DNS and TLS certificates.
+
+*Key Concepts*
+- **DID Format** – `did:web:example.com:user:alice` maps to `https://example.com/user/alice/did.json` (or `.well-known/did.json`).
+- **Verification Method** – Public keys listed under `verificationMethod` are used to verify signatures.
+- **Key Rotation** – New keys can be published by updating the DID document; old keys can be revoked via `revocation` property.
+
+*Registration Workflow*
+1. **User Provides DID** – During onboarding, the user enters their `did:web` identifier.
+2. **Backend Resolves DID** – Express service fetches the DID document via HTTPS.
+3. **Public Key Extraction** – The first `Ed25519VerificationKey2020` (or preferred type) is stored in the `users` table.
+4. **Signature Validation** – When a signature is submitted, backend verifies against the cached key.
+5. **Revocation Check** – On each verification, backend re-fetches the DID document if the `updated` timestamp has changed.
+
+*Contract Signing Flow Update*
+```mermaid
+sequenceDiagram
+    participant User
+    participant Backend
+    participant DIDWeb as DIDResolver
+
+    User->>Backend: Submit contract signature + DID
+    Backend->>DIDWeb: GET did.json
+    DIDWeb-->>Backend: PublicKeyJWK
+    Backend-->>Backend: Verify signature
+    Backend-->>User: Signature accepted
+```
+
+*Implementation Tips*
+- Cache DID documents with a short TTL (e.g., 5 min) to reduce latency.
+- Use libraries such as `did-resolver` and `did-method-web` in Node.js.
+- Support multiple verification key types (Ed25519, RSA) to future-proof the platform.
+- Store a hash of the public key to detect silent key rotation.
+
+*Security Considerations*
+- Enforce HTTPS and valid TLS certificates when fetching DID documents.
+- Rate-limit DID resolution to mitigate SSRF abuse.
+- Validate that the DID domain matches the email domain (optional enterprise policy).
+
+This integration allows contracts to be **cryptographically signed** by any web-hosted identity without extra infrastructure, aligning with modern decentralized identity standards.
+
 ---
 
 ## References (IAM & Keycloak)
