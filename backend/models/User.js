@@ -7,7 +7,7 @@
  * User Types:
  * - TDP (Training Data Provider): Dataset owners who can create and manage datasets
  * - TDC (Training Data Consumer): Contract initiators who can create contracts
- * - CCRP (Confidential Clean Room Provider): Compliance reviewers who sign contracts
+ * - CCRP (Confidential Clean Room Provider): Runtime environment providers who set up secure environments for data analytics or AI model training based on contracts
  * 
  * Security Features:
  * - Wallet address validation (Ethereum address format)

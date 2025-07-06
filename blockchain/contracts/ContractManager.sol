@@ -6,18 +6,27 @@ import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
 /**
  * @title ContractManager
- * @dev Smart contract for managing training data contracts between TDP, TDC, and CCRP parties
+ * @dev Smart contract for managing contracts between Training Data Providers (TDP), 
+ * Training Data Consumers (TDC), and Confidential Clean Room Providers (CCRP)
  * 
- * This contract implements a role-based contract management system where:
+ * Contract Workflow:
+ * 1. TDC creates contract with TDP and dataset
+ * 2. TDP automatically signs (backend handles)
+ * 3. If CCRP selected, contract moves to PENDING_CCRP_APPROVAL
+ * 4. If no CCRP, contract moves to PENDING_TDC_APPROVAL
+ * 5. Contract becomes ACTIVE when all required parties sign
+ * 
+ * Party Roles:
  * - TDC (Training Data Consumer): ONLY role that can initiate contracts
  * - TDP (Training Data Provider): Automatically signs contracts when created by TDC
- * - CCRP (Confidential Clean Room Provider): Reviews and signs contracts for compliance
+ * - CCRP (Confidential Clean Room Provider): Reviews and signs contracts for compliance, sets up runtime environment for data analytics or AI model training
  * 
  * Security Features:
- * - ReentrancyGuard: Prevents reentrancy attacks
- * - Ownable: Contract owner controls critical functions
- * - Access control modifiers: Ensure only authorized parties can perform actions
- * - Event logging: Complete audit trail of all contract actions
+ * - Only registered parties can perform actions
+ * - Contract party validation
+ * - Signature tracking with timestamps
+ * - Status-based workflow enforcement
+ * - Event emission for frontend integration
  */
 contract ContractManager is Ownable, ReentrancyGuard {
     

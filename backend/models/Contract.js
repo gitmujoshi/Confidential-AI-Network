@@ -14,7 +14,7 @@
  * Parties:
  * - TDP (Training Data Provider): Dataset owner, auto-signs when contract created
  * - TDC (Training Data Consumer): Contract initiator, signs to finalize
- * - CCRP (Confidential Clean Room Provider): Optional compliance reviewer
+ * - CCRP (Confidential Clean Room Provider): Runtime environment provider who sets up secure environments for data analytics or AI model training based on contracts
  * 
  * Security Features:
  * - Blockchain contract ID tracking
