@@ -1821,16 +1821,16 @@ DevSecOps integrates security practices at every phase of the software delivery 
 
 ```mermaid
 graph LR
-    A[SourceCode] --> B[SAST_CodeQL]
-    A --> C[DepScan_npm_audit_Snyk]
-    B --> D[Unit & Integration Tests]
-    C --> D
-    D --> E[Container Build]
-    E --> F[ContainerScan_Trivy]
-    F --> G[IaCScan_tfsec]
-    G --> H[Policy Engine (OPA / Conftest)]
-    H --> I[Runtime Deploy (K8s)]
-    I --> J[RuntimeSec_Falco_Kyverno]
+    SRC[SourceCode] --> SAST[SAST_CodeQL]
+    SRC --> SCA[DepScan_Snyk]
+    SAST --> TESTS[UnitIntegrationTests]
+    SCA --> TESTS
+    TESTS --> BUILD[ContainerBuild]
+    BUILD --> IMGSCAN[ImageScan_Trivy]
+    IMGSCAN --> IAC[IaCScan_tfsec]
+    IAC --> POLICY[OPA_Policy]
+    POLICY --> DEPLOY[K8sDeploy]
+    DEPLOY --> RUNTIME[RuntimeSec_Falco]
 ```
 
 *Highlights*
