@@ -1,104 +1,97 @@
 # Contract Management System
-## Enterprise-Grade Contract Management with DID and IAM Integration
 
-A comprehensive contract management system that combines blockchain technology, Decentralized Identifiers (DIDs), and enterprise Identity and Access Management (IAM) for secure, transparent, and efficient contract lifecycle management.
+A comprehensive blockchain-based contract management platform with IAM integration, DID support, and DPDP compliance for secure data sharing between Training Data Providers, Training Data Consumers, and Confidential Clean Room Providers.
 
-**Document Version:** 3.0  
-**Date:** December 2024  
-**Author:** Contract Management System Team
+## 🏗️ System Architecture
 
----
-
-## 🌟 Key Features
-
-### 🔐 **Identity Management**
-- **Enterprise IAM Integration**: Full Keycloak integration for enterprise-grade authentication and authorization
-- **Decentralized Identifiers (DIDs)**: Primary support for `did:web` with `did:ethr` for blockchain operations
-- **Enterprise DID Strategy**: 
-  - **did:web**: **Primary choice** for enterprise organizations (e.g., `did:web:company.com:employees:john.doe`)
-  - **did:ethr**: For blockchain-specific operations and individual users (e.g., `did:ethr:goerli:0x1234567890abcdef...`)
-- **Enterprise Benefits**:
-  - **Cost-effective**: No blockchain gas fees for identity management
-  - **Fast resolution**: HTTP-based DID resolution with caching
-  - **Organization control**: Full control over identity infrastructure
-  - **Compliance ready**: Meets enterprise security and audit requirements
-- **Bring Your Own DID**: Users can integrate their existing DIDs for identity continuity
-- **Multi-factor Authentication**: Enhanced security with IAM-based MFA
-- **Role-based Access Control**: TDP, TDC, and CCRP roles with specific permissions
-
-### 📋 **Contract Management**
-- **Smart Contract Integration**: Ethereum-based smart contracts for immutable contract storage
-- **Multi-party Signing**: Support for TDP, TDC, and CCRP parties
-- **DID-based Signing**: Cryptographic contract signing using DIDs
-- **Contract Lifecycle Management**: Complete workflow from creation to execution
-- **Audit Trail**: Immutable blockchain records of all contract activities
-
-### 🗄️ **Data Management**
-- **Dataset Management**: Secure dataset creation and management for TDPs
-- **Access Control**: Granular permissions for dataset access
-- **Data Privacy**: Privacy-preserving data sharing mechanisms
-- **Compliance Tracking**: Built-in compliance and audit features
-
-### 🔒 **Security & Compliance**
-- **Zero-trust Architecture**: Comprehensive security model
-- **Cryptographic Verification**: All operations cryptographically verified
-- **Audit Logging**: Complete audit trail for compliance
-- **Data Encryption**: End-to-end encryption for sensitive data
-- **Privacy by Design**: Privacy-preserving identity management
-
-## 🏗️ Architecture
-
-The system is built with a modern, scalable architecture:
-
-- **Frontend**: React-based user interface with Material-UI
-- **Backend**: Node.js/Express API with comprehensive IAM integration
-- **Database**: PostgreSQL with advanced indexing and security
-- **Blockchain**: Ethereum smart contracts for immutable storage
-- **IAM**: Keycloak for enterprise identity management
-- **DID**: Decentralized identifier support for self-sovereign identity
-
-### System Layers
 ```mermaid
 graph TB
-    subgraph "Presentation Layer"
-        FE[Frontend React App]
+    subgraph "Frontend Layer"
+        REACT[React App]
+        DID_UI[DID Management]
+        CONTRACT_UI[Contract Management]
     end
     
-    subgraph "Application Layer"
-        BE[Backend API Services]
+    subgraph "API Layer"
+        AUTH_API[Authentication API]
+        CONTRACT_API[Contract API]
+        DATASET_API[Dataset API]
+        DID_API[DID API]
+        DPDP_API[DPDP API]
     end
     
-    subgraph "Enterprise Identity Layer"
-        IAM[Keycloak IAM]
-        LDAP[LDAP/Active Directory]
-        DID_WEB[DID:web Management]
-        DID_ETHR[DID:ethr Management]
+    subgraph "Service Layer"
+        AUTH_SERVICE[Auth Service]
+        CONTRACT_SERVICE[Contract Service]
+        DID_SERVICE[DID Service]
+        KEYCLOAK_SERVICE[Keycloak Service]
+        DPDP_SERVICE[DPDP Service]
     end
     
     subgraph "Data Layer"
-        DB[(PostgreSQL Database)]
-        BC[(Blockchain Network)]
-        WEB_SERVER[Web Server<br/>DID Documents]
+        subgraph "Database"
+            USERS[(Users)]
+            CONTRACTS[(Contracts)]
+            DATASETS[(Datasets)]
+            CONSENTS[(Consents)]
+            AUDIT_LOGS[(Audit Logs)]
+        end
+        
+        subgraph "Blockchain"
+            SMART_CONTRACTS[Smart Contracts]
+            DID_REGISTRY[DID Registry]
+        end
     end
     
-    FE --> BE
-    BE --> IAM
-    BE --> LDAP
-    BE --> DID_WEB
-    BE --> DID_ETHR
-    BE --> DB
-    BE --> BC
-    DID_WEB --> WEB_SERVER
+    subgraph "External Services"
+        KEYCLOAK[Keycloak IAM]
+        DID_WEB[DID Web Servers]
+        DID_ETHR[Ethereum DID]
+        EMAIL[Email Service]
+    end
     
-    style FE fill:#e3f2fd
-    style BE fill:#f3e5f5
-    style IAM fill:#ffebee
-    style LDAP fill:#ffebee
+    REACT --> AUTH_API
+    REACT --> CONTRACT_API
+    REACT --> DATASET_API
+    REACT --> DID_API
+    REACT --> DPDP_API
+    
+    AUTH_API --> AUTH_SERVICE
+    CONTRACT_API --> CONTRACT_SERVICE
+    DATASET_API --> CONTRACT_SERVICE
+    DID_API --> DID_SERVICE
+    DPDP_API --> DPDP_SERVICE
+    
+    AUTH_SERVICE --> USERS
+    CONTRACT_SERVICE --> CONTRACTS
+    CONTRACT_SERVICE --> DATASETS
+    DID_SERVICE --> DID_REGISTRY
+    DPDP_SERVICE --> CONSENTS
+    DPDP_SERVICE --> AUDIT_LOGS
+    
+    AUTH_SERVICE --> KEYCLOAK
+    DID_SERVICE --> DID_WEB
+    DID_SERVICE --> DID_ETHR
+    DPDP_SERVICE --> EMAIL
+    
+    CONTRACT_SERVICE --> SMART_CONTRACTS
+    
+    style REACT fill:#61dafb
+    style AUTH_SERVICE fill:#ff6b6b
+    style CONTRACT_SERVICE fill:#4ecdc4
+    style DID_SERVICE fill:#45b7d1
+    style DPDP_SERVICE fill:#96ceb4
+    style KEYCLOAK fill:#ffa726
     style DID_WEB fill:#fff3e0
     style DID_ETHR fill:#fff8e1
-    style DB fill:#e8f5e8
-    style BC fill:#fff8e1
-    style WEB_SERVER fill:#e0f2f1
+    style USERS fill:#e8f5e8
+    style CONTRACTS fill:#e8f5e8
+    style DATASETS fill:#e8f5e8
+    style CONSENTS fill:#e8f5e8
+    style AUDIT_LOGS fill:#e8f5e8
+    style SMART_CONTRACTS fill:#fff8e1
+    style DID_REGISTRY fill:#fff8e1
+    style EMAIL fill:#e0f2f1
 ```
 
 ## 🚀 Getting Started
