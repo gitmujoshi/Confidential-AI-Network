@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testExecutions version="1">
+  <file path="/Users/mukeshjoshi/gitprojects/ContractManagement/backend/tests/models.test.js">
+    <testCase name="Database Models Test Suite User Model should create a user with valid data" duration="21"/>
+    <testCase name="Database Models Test Suite User Model should enforce unique email constraint" duration="23"/>
+    <testCase name="Database Models Test Suite User Model should validate partyType enum values" duration="4"/>
+    <testCase name="Database Models Test Suite User Model should validate email format" duration="3"/>
+    <testCase name="Database Models Test Suite User Model should allow optional fields to be null" duration="4"/>
+    <testCase name="Database Models Test Suite Contract Model should create a contract with valid data" duration="11"/>
+    <testCase name="Database Models Test Suite Contract Model should validate status enum values" duration="7"/>
+    <testCase name="Database Models Test Suite Contract Model should enforce foreign key constraints" duration="6"/>
+    <testCase name="Database Models Test Suite Dataset Model should create a dataset with valid data" duration="6"/>
+    <testCase name="Database Models Test Suite Dataset Model should validate status enum values" duration="5"/>
+    <testCase name="Database Models Test Suite Dataset Model should enforce foreign key constraints" duration="4"/>
+    <testCase name="Database Models Test Suite Notification Model should create a notification with valid data" duration="5"/>
+    <testCase name="Database Models Test Suite Notification Model should validate type enum values" duration="4"/>
+    <testCase name="Database Models Test Suite Notification Model should enforce foreign key constraints" duration="5"/>
+    <testCase name="Database Models Test Suite Model Relationships should establish user-contract relationships" duration="11"/>
+    <testCase name="Database Models Test Suite Model Relationships should establish user-dataset relationships" duration="9"/>
+    <testCase name="Database Models Test Suite Model Relationships should establish user-notification relationships" duration="8"/>
+    <testCase name="Database Models Test Suite Database Transactions should handle successful transactions" duration="8"/>
+    <testCase name="Database Models Test Suite Database Transactions should handle transaction rollback on error" duration="7"/>
+  </file>
+</testExecutions>
