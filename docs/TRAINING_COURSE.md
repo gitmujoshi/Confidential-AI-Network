@@ -1768,13 +1768,15 @@ graph LR
 
 ```mermaid
 graph TD
+    %% Testing pyramid
     subgraph Pyramid
-        C[Unit Tests] --> B[Integration Tests] --> A[E2E Tests]
+        UT[UnitTests] --> IT[IntegrationTests] --> E2E[E2ETests]
     end
-    subgraph Continuous Quality
-        Lint[Static Analysis] --> Cov[Coverage Thresholds] --> Perf[Performance / Load] --> Sec[Security Scans]
+    %% Continuous quality checks
+    subgraph Quality
+        LINT[StaticAnalysis] --> COV[Coverage] --> PERF[Performance] --> SEC[SecurityScans]
     end
-    Pyramid -->|CI| Continuous Quality
+    E2E --> LINT
 ```
 
 *Guidelines*
