@@ -4,7 +4,26 @@
 
 ## Introduction
 
-Welcome to the Contract Management System (CMS) training course! This course is designed to provide a deep understanding of the architecture, components, and best practices for building and maintaining a modern, secure, and scalable contract management platform. Whether you are a developer, architect, or DevOps engineer, this guide will help you master the system from fundamentals to advanced topics.
+Welcome to the Contract Management System (CMS) training course!  I'm **Alex**, your senior web3 solutions architect for this journey.  Over the past decade I've helped financial institutions, biotech firms, and data marketplaces digitise complex agreements on-chain—so I've sprinkled real anecdotes and "battle-scars" throughout the chapters.
+
+### Why This Course?
+Too many tutorials throw code at you without context.  Here we **blend narrative and practice**:
+* **Story-Driven** – We'll follow *DataTrust Corp.*—a fictional (but realistic) data provider— as they roll out CMS to commercialise genomic datasets.  Each section mirrors a milestone in their project.
+* **Opinionated Guidance** – Every pattern recommended here is something my team has shipped and supported in production.
+* **Hands-On Labs** – You'll pause regularly for keyboard time: deploy smart contracts, trace API calls, write security tests.
+
+### Learning Objectives
+By the end you will be able to:
+1. Articulate CMS use-cases and map them to user stories.
+2. Sketch a secure web3 reference architecture from edge to blockchain.
+3. Stand up a full-stack DApp using this repository—backend, frontend, Keycloak, and Hardhat chain.
+4. Implement DID:web signatures and verify them server-side.
+5. Embed DevSecOps checks (SAST, SCA, IaC scanning) into CI so that "security becomes code".
+
+---
+
+> **ℹ️ Instructor Insight**  
+> The biggest hurdle teams face is not technology—it's shared mental models.  Keep your designers, lawyers, and auditors in the loop early; they care about *what accountability looks like when things go wrong*.  You'll see this theme recur in our DataTrust story.
 
 ---
 
