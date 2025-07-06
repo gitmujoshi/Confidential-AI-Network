@@ -2031,3 +2031,84 @@ States: `DRAFT → SIGNED_TDP → SIGNED_TDC → PENDING_CCRP → ACTIVE → ARC
 > **Design Note**: each transition triggers `notificationService` which writes to `notification` table and pushes real-time update to the frontend.
 
 ---
+
+## 9. Multi-Cloud Deployment Playbook
+
+Below we outline **production-ready blueprints** for Oracle Cloud Infrastructure (OCI), Google Cloud Platform (GCP) and Microsoft Azure.  Each cloud follows the same high-level pattern—Terraform → Kubernetes → Helm—but differs in managed services and IAM specifics.
+
+### 9.1 Common Deployment Stack
+| Layer | Tool | Purpose |
+|-------|------|---------|
+| IaC   | Terraform modules (`deployment/*/terraform`) | Provision VCN/VPC, managed DB, Container registry, K8s cluster |
+| Images| GitHub Actions → Docker | Build & push version-tagged images |
+| Helm  | Helm charts (`deployment/helm/`) | Declare K8s objects (Deployments, Services, Ingress) |
+| Secrets| External Secrets Operator | Pulls secrets from cloud vault at runtime |
+| GitOps | ArgoCD / Flux (optional) | Reconcile cluster state from Git branch |
+
+### 9.2 Oracle Cloud Infrastructure (OCI)
+*Directory:* `deployment/oci/terraform/`
+1. **OKE Cluster** – Module `oke/` spins up Oracle Kubernetes Engine with three worker nodes.
+2. **Autonomous DB** – Module `database/` provisions an Autonomous Postgres instance; connection string passed to Helm via Terraform outputs.
+3. **Secrets** – Use **OCI Vault**; Terraform creates secret objects for `DB_PASSWORD`, `JWT_SECRET`.
+4. **Ingress** – OCI Load Balancer with TLS; certificate managed by OCI Certificate Service.
+5. **Push Pipeline** – `docker login iad.ocir.io/...` then `docker push`; imagePullSecrets injected via Helm values.
+
+```mermaid
+graph TD
+    git[GitHub Actions] --> ocir[OCIRegistry]
+    ocir --> oke[OKECluster]
+    oke --> pods[CMS Pods]
+    pods --> adb[AutonomousPostgres]
+```
+
+### 9.3 Google Cloud Platform (GCP)
+*Modules live in* `deployment/gcp/terraform/` (create when adopting).
+1. **GKE Standard** – Regional cluster with Workload Identity.
+2. **Cloud SQL Postgres** – Private Service Connect; Cloud SQL Auth Proxy side-car added via Helm.
+3. **Artifact Registry** – `gcloud auth configure-docker` then push.
+4. **Secret Manager** – External Secrets Operator pulls secrets.
+5. **Load Balancer** – Cloud Load Balancer + Cloud Armor (WAF).
+6. **Observability** – Cloud Logging & Cloud Monitoring scraped via Prometheus side-car.
+
+### 9.4 Microsoft Azure
+*Modules directory to add:* `deployment/azure/terraform/`
+1. **AKS** – Azure Kubernetes Service with AAD integration.
+2. **Azure Database for PostgreSQL Flexible Server** – VNet-integrated.
+3. **ACR** – Azure Container Registry; `az acr login` push.
+4. **Key Vault** – CSI driver mounts secrets directly to pods.
+5. **Ingress** – Application Gateway Ingress Controller (AGIC) offers native WAF + TLS.
+6. **Scaling** – AKS Cluster Autoscaler + KEDA for job spikes.
+
+### 9.5 Deployment Steps (CI Job Snippet)
+```yaml
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+      - name: Terraform Init & Apply
+        working-directory: deployment/oci/terraform   # swap for gcp/ azure/
+        run: |
+          terraform init -backend-config="bucket=$TF_BUCKET"
+          terraform apply -auto-approve -var "image_tag=${{ github.sha }}"
+      - name: Helm Upgrade
+        run: |
+          helm upgrade --install cms-deploy deployment/helm \
+            --set image.tag=${{ github.sha }}
+```
+
+### 9.6 Zero-Downtime Release Strategy
+1. **Blue/Green** – Helm sets `color` label; traffic switch via Ingress annotation.
+2. **Canary (Argo Rollouts)** – 10-50-100% weight progression with automated metrics check (p95 latency < 300 ms).
+3. **Rollback** – `helm rollback cms-deploy <previous>` or `argo rollouts undo`.
+
+### 9.7 Cloud-Specific Cost Tips
+* **OCI** – Use *Burstable* node shapes for lower dev cost; enable Autonomous DB auto-scaling.
+* **GCP** – Preemptible nodes for CI runners; committed use discounts for Cloud SQL.
+* **Azure** – Reserved Instances for Postgres; spot node pools for batch jobs.
+
+---
+
+Course continues with Observability & Scalability best-practices.
