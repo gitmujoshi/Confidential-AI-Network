@@ -11,8 +11,8 @@ Welcome to the Contract Management System (CMS) training course! This course is 
 ### Course Sequence & Navigation
 To maximise learning efficiency, follow the CMS knowledge journey in this order:
 1. **Use Cases & Business Requirements** – Understand *why* the platform exists and the problems it solves.
-2. **Design & Implementation** – Dive deep into each component (Backend, Frontend, Blockchain, IAM).
-3. **System Architecture** – Visual diagrams that connect the components end-to-end.
+2. **System Architecture** – High-level diagrams that connect every component end-to-end.
+3. **Design & Implementation** – Deep dives into each layer (Backend, Frontend, Blockchain, IAM).
 4. **Security** – Defence-in-depth principles and practices woven throughout the stack.
 5. **Testing & Quality** – Validate correctness, performance, and resilience.
 6. **DevSecOps & Continuous Security** – Automate security from commit to production.
