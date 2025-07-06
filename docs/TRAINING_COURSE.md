@@ -288,48 +288,45 @@ const result = await contract.methods.createContract(
 ).send({ from: userAddress });
 ```
 
-### 3.5 Gas and Transaction Costs
-- **Gas** is the unit of computational effort required to execute operations on the Ethereum network.
-- **Gas Price:** The amount of Ether paid per unit of gas, determined by network congestion.
-- **Transaction Fees:** Total cost = Gas Used × Gas Price.
+### 3.5 Hands-On Web3 Workshop – Building the Contract Management DApp
 
-**Optimization Strategies:**
-- Batch operations to reduce transaction count.
-- Use efficient data structures and algorithms.
-- Optimize contract code to minimize gas consumption.
+This guided lab transforms theory into practice. You will:
 
-### 3.6 Security Considerations
-- **Reentrancy Attacks:** Prevent recursive calls to contract functions.
-- **Integer Overflow/Underflow:** Use SafeMath library or Solidity 0.8+ built-in checks.
-- **Access Control:** Implement proper authorization mechanisms.
-- **Code Audits:** Regular security audits by professional firms.
+1. **Deploy the Smart Contract**  
+   a. `cd blockchain`  
+   b. `npm install` to install Hardhat dependencies  
+   c. `npx hardhat node` to start a local chain  
+   d. In a new terminal: `npx hardhat run scripts/deploy.js --network localhost`  
+   ➜ Note the deployed `ContractManager` address printed in the console.
 
-### 3.7 Real-World Use Cases
-- **Contract Signing:** Immutable record of contract agreements and signatures.
-- **Payment Processing:** Automated payments based on contract terms.
-- **Compliance Tracking:** Transparent audit trail for regulatory compliance.
-- **Dispute Resolution:** Tamper-proof evidence for legal proceedings.
+2. **Configure Backend to Use Contract Address**  
+   Edit `backend/config.env`:  
+   `CONTRACT_MANAGER_ADDRESS=<address from step 1>`
 
-### 3.8 Testing Smart Contracts
-- **Unit Tests:** Test individual contract functions in isolation.
-- **Integration Tests:** Test interactions between multiple contracts.
-- **Gas Testing:** Measure and optimize gas consumption.
-- **Security Testing:** Identify vulnerabilities and attack vectors.
+3. **Run Backend in Web3 Mode**  
+   a. `cd backend && npm install`  
+   b. Ensure `BLOCKCHAIN_ENABLED=true` in `backend/config.env`  
+   c. `node server.js`
 
-**Example Test:**
-```javascript
-describe("ContractManager", function () {
-  it("Should create a contract", async function () {
-    const ContractManager = await ethers.getContractFactory("ContractManager");
-    const contractManager = await ContractManager.deploy();
-    
-    await contractManager.createContract("TEST-001", tdp.address, ccrp.address, 100);
-    const contract = await contractManager.contracts("TEST-001");
-    
-    expect(contract.contractId).to.equal("TEST-001");
-  });
-});
-```
+4. **Spin Up Frontend**  
+   a. `cd frontend && npm install`  
+   b. `npm start` – the React SPA connects to backend at `http://localhost:5001`.
+
+5. **Create & Sign a Contract (DID:web)**  
+   a. Register/login as TDP via UI (Keycloak running)  
+   b. Navigate to "Create Contract", fill details, select dataset, click **Save Draft**  
+   c. Click **Sign** – MetaMask pops up (connected to Hardhat with account #0). Confirm transaction.  
+   d. Share Contract ID with CCRP user to counter-sign.
+
+6. **Verify On-Chain State**  
+   a. In blockchain console: `npx hardhat console --network localhost`  
+   b. `const cm = await ethers.getContractAt('ContractManager', '<address>')`  
+   c. `await cm.contracts(contractId)` returns struct showing signatures.
+
+7. **Automated Test (Bonus)**  
+   Run `npm test blockchain/tests/blockchainService.simple.test.js` to execute a Jest test that signs and verifies a sample contract.
+
+> **Outcome:** You have a fully working Web3 contract management flow—draft → blockchain hash → multi-sig → active—and have interacted with every project layer.
 
 ---
 
