@@ -12,6 +12,7 @@ const contractsRouter = require('./routes/contracts');
 const datasetsRouter = require('./routes/datasets');
 const authRouter = require('./routes/auth');
 const didRouter = require('./routes/did');
+const dpdpRouter = require('./routes/dpdp');
 
 const app = express();
 const PORT = process.env.PORT || 8000;
@@ -116,6 +117,7 @@ app.use('/api/auth', authRouter);
 app.use('/api/contracts', contractsRouter);
 app.use('/api/datasets', datasetsRouter);
 app.use('/api/did', didRouter);
+app.use('/api/dpdp', dpdpRouter);
 
 // Users routes (basic CRUD)
 app.get('/api/users', async (req, res) => {
