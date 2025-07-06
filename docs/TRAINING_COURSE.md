@@ -1,5 +1,26 @@
 # Contract Management System - Comprehensive Training Course
 
+<details>
+<summary>📚 Table of Contents</summary>
+
+- [Introduction](#introduction)
+- [Course Sequence & Navigation](#course-sequence--navigation)
+- [Project Reference Map](#project-reference-map--where-to-look-in-the-repository)
+- [0. Use Cases & Business Requirements](#0-use-cases--business-requirements)
+- [1. Backend Fundamentals](#1-backend-fundamentals)
+- [2. Frontend Fundamentals](#2-frontend-fundamentals)
+- [3. Blockchain Integration](#3-blockchain-integration)
+- [4. Identity and Access Management (IAM) & Keycloak](#4-identity-and-access-management-iam--keycloak)
+  - [4.11 DID:web Integration](#411-didweb-integration-for-contract-signing)
+  - [4.12 Role-Based User Journeys](#412-role-based-user-journeys)
+- [5. Security](#5-security)
+- [6. Testing](#6-testing)
+- [7. Architecture Diagrams & Advanced Technical Concepts](#7-architecture-diagrams-and-advanced-technical-concepts)
+- [8. DevSecOps & Continuous Security](#8-devsecops--continuous-security)
+- [9. Multi-Cloud Deployment Playbook](#9-multi-cloud-deployment-playbook)
+
+</details>
+
 ---
 
 ## Introduction
