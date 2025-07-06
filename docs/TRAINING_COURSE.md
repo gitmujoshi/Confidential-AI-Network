@@ -867,6 +867,7 @@ describe('Security Tests', () => {
         termsAndConditions: maliciousInput
       });
     
+    // Should sanitize input or reject it
     expect(response.status).toBe(400);
   });
 });
@@ -1604,20 +1605,20 @@ The diagram below illustrates how the Contract Management System components inte
 
 ```mermaid
 graph TD
-    subgraph Client Tier
-        A[Browser ‑ SPA]
+    subgraph ClientTier
+        A[Browser-SPA]
     end
-    subgraph Edge Tier
-        B[NGINX / Reverse Proxy]
+    subgraph EdgeTier
+        B[NGINX-Proxy]
     end
-    subgraph Application Tier
-        C[React Frontend]
-        D[Express Backend]
+    subgraph AppTier
+        C[ReactFrontend]
+        D[ExpressBackend]
     end
     subgraph Services
-        E[Keycloak IAM]
-        F[PostgreSQL DB]
-        G[Blockchain Node (Hardhat / Ethereum)]
+        E[KeycloakIAM]
+        F[PostgreSQLDB]
+        G[BlockchainNode]
     end
     A --> B --> C
     C -->|HTTPS / REST| D
@@ -1702,8 +1703,8 @@ sequenceDiagram
     KC-->>UI: AuthZ Code
     UI->>KC: Code + Client Secret
     KC-->>UI: ID & Access Tokens
-    UI->>API: Bearer <Access Token>
-    API->>KC: Introspect / JWKS
+    UI->>API: Bearer ACCESS_TOKEN
+    API->>KC: Introspect_JWKS
     KC-->>API: Token valid
     API-->>UI: Protected resource
 ```
@@ -1818,16 +1819,16 @@ DevSecOps integrates security practices at every phase of the software delivery 
 
 ```mermaid
 graph LR
-    A[Source Code] --> B[SAST (CodeQL)]
-    A --> C[Dependency Scanner (npm-audit / Snyk)]
+    A[SourceCode] --> B[SAST_CodeQL]
+    A --> C[DepScan_npm_audit_Snyk]
     B --> D[Unit & Integration Tests]
     C --> D
     D --> E[Container Build]
-    E --> F[Container Scanner (Trivy)]
-    F --> G[IaC Scanner (Checkov / tfsec)]
+    E --> F[ContainerScan_Trivy]
+    F --> G[IaCScan_tfsec]
     G --> H[Policy Engine (OPA / Conftest)]
     H --> I[Runtime Deploy (K8s)]
-    I --> J[Runtime Security (Falco / Kyverno)]
+    I --> J[RuntimeSec_Falco_Kyverno]
 ```
 
 *Highlights*
