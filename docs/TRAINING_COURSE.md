@@ -22,6 +22,33 @@ To maximise learning efficiency, follow the CMS knowledge journey in this order:
 
 ---
 
+## Project Reference Map – Where to Look in the Repository
+
+Use this quick-reference table to connect **theory** from the training to **practice** in the ContractManagement codebase.  Browse these paths as you progress through the course.
+
+| Concept / Topic                               | Key Files & Directories (📂 path from repo root)                                          |
+|-----------------------------------------------|-------------------------------------------------------------------------------------------|
+| Backend API entrypoint                        | `backend/server.js`, `backend/routes/`, `backend/middleware/auth.js`                    |
+| Business logic / Services                     | `backend/services/*.js` (e.g., `blockchainService.js`, `didService.js`)                 |
+| Data models & migrations                      | `backend/models/*.js`, migration scripts in `backend/scripts/`                          |
+| PostgreSQL config & ENV                       | `backend/config.env`, `config.env` at project root                                       |
+| Unit & integration tests                      | `backend/tests/`, Jest setup at `backend/jest.config.js`                                |
+| React SPA entrypoint                          | `frontend/src/index.js`, `frontend/src/App.js`                                           |
+| React pages & components                      | `frontend/src/pages/`, `frontend/src/components/`                                        |
+| Frontend API wrapper                          | `frontend/src/services/api.js`                                                           |
+| Keycloak realm import / automation            | `deployment/utilities/***REMOVED-KEYCLOAK_DB_PASSWORD***-config/`, `backend/scripts/setupKeycloak.js`             |
+| Hardhat smart-contract workspace              | `blockchain/`, `blockchain/contracts/ContractManager.sol`                               |
+| Dev & prod Dockerfiles                        | `backend/Dockerfile`, `frontend/Dockerfile`                                              |
+| Local orchestration scripts                   | `deployment/local/*.sh` (e.g., `start-services.sh`, `stop-services.sh`)                 |
+| Terraform IaC                                 | `deployment/oci/terraform/`                                                              |
+| CI/CD workflow example                        | Referenced in course but see `.github/workflows/` (create when adopting GitHub Actions)  |
+| Security scans & DevSecOps                    | Sample configs under `backend/`, `Dockerfile`, and pipeline snippets in this course     |
+| DID:web resolution helper (to implement)      | Suggested path: `backend/services/didWebResolver.js`                                     |
+
+> Tip: clone the repo and keep it open while reading—jump to these files for hands-on context.
+
+---
+
 ## 0. Use Cases & Business Requirements
 
 A successful contract management solution must address real-world pain points across industries. Below are the core use cases that shaped CMS design:
