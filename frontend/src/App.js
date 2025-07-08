@@ -19,11 +19,16 @@ import Users from './pages/Users';
 import Notifications from './pages/Notifications';
 import UserRegistration from './pages/UserRegistration';
 import Login from './pages/Login';
+import ForgotPassword from './pages/ForgotPassword';
+import ResetPassword from './pages/ResetPassword';
 import EnterpriseDIDManagement from './pages/EnterpriseDIDManagement';
+import Profile from './pages/Profile';
+import TestContracts from './pages/TestContracts';
+import DirectTest from './pages/DirectTest';
 
 // Protected Route Component
 const ProtectedRoute = ({ children }) => {
-  const { user } = useUser();
+  const { currentUser: user } = useUser();
   const token = localStorage.getItem('authToken');
   
   if (!user && !token) {
@@ -35,7 +40,7 @@ const ProtectedRoute = ({ children }) => {
 
 // Public Route Component (redirects to dashboard if already authenticated)
 const PublicRoute = ({ children }) => {
-  const { user } = useUser();
+  const { currentUser: user } = useUser();
   const token = localStorage.getItem('authToken');
   
   if (user || token) {
@@ -114,6 +119,16 @@ function AppRoutes() {
           <UserRegistration />
         </PublicRoute>
       } />
+      <Route path="/forgot-password" element={
+        <PublicRoute>
+          <ForgotPassword />
+        </PublicRoute>
+      } />
+      <Route path="/reset-password" element={
+        <PublicRoute>
+          <ResetPassword />
+        </PublicRoute>
+      } />
       
       {/* Protected Routes */}
       <Route path="/" element={
@@ -176,6 +191,22 @@ function AppRoutes() {
         <ProtectedRoute>
           <Layout>
             <EnterpriseDIDManagement />
+          </Layout>
+        </ProtectedRoute>
+      } />
+      <Route path="/profile" element={
+        <ProtectedRoute>
+          <Layout>
+            <Profile />
+          </Layout>
+        </ProtectedRoute>
+      } />
+      <Route path="/test-contracts" element={<TestContracts />} />
+      <Route path="/direct-test" element={<DirectTest />} />
+      <Route path="/profile/:userId" element={
+        <ProtectedRoute>
+          <Layout>
+            <Profile />
           </Layout>
         </ProtectedRoute>
       } />

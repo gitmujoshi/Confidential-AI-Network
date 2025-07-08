@@ -11,7 +11,8 @@
  * - Error handling
  */
 
-const ***REMOVED-KEYCLOAK_DB_PASSWORD***Service = require('../services/***REMOVED-KEYCLOAK_DB_PASSWORD***Service');
+const KeycloakService = require('../services/***REMOVED-KEYCLOAK_DB_PASSWORD***Service');
+const ***REMOVED-KEYCLOAK_DB_PASSWORD***Service = new KeycloakService();
 const db = require('../models');
 
 /**
@@ -29,43 +30,86 @@ const authenticateToken = async (req, res, next) => {
       });
     }
 
-    // Validate token with Keycloak
-    const validationResult = await ***REMOVED-KEYCLOAK_DB_PASSWORD***Service.validateToken(token);
-    
-    if (!validationResult.valid) {
+    // Try to validate token with Keycloak first
+    try {
+      const validationResult = await ***REMOVED-KEYCLOAK_DB_PASSWORD***Service.validateToken(token);
+      
+      if (validationResult.valid) {
+        // Keycloak token is valid
+        const user = await db.User.findOne({
+          where: { 
+            walletAddress: validationResult.user.walletAddress,
+            isActive: true 
+          }
+        });
+
+        if (!user) {
+          return res.status(404).json({ 
+            error: 'User not found in local database',
+            code: 'USER_NOT_FOUND'
+          });
+        }
+
+        // Update last login timestamp
+        await user.update({ lastLoginAt: new Date() });
+
+        // Attach user information to request
+        req.user = {
+          ...validationResult.user,
+          localUser: user,
+          token: token
+        };
+
+        return next();
+      }
+    } catch (***REMOVED-KEYCLOAK_DB_PASSWORD***Error) {
+      console.log('⚠️ Keycloak token validation failed, trying local JWT validation');
+    }
+
+    // Fallback: Try to validate as local JWT token
+    try {
+      const jwt = require('jsonwebtoken');
+      const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key');
+      
+      // Get user from local database using email
+      const user = await db.User.findOne({
+        where: { 
+          email: decoded.email,
+          isActive: true 
+        }
+      });
+
+      if (!user) {
+        return res.status(404).json({ 
+          error: 'User not found in local database',
+          code: 'USER_NOT_FOUND'
+        });
+      }
+
+      // Update last login timestamp
+      await user.update({ lastLoginAt: new Date() });
+
+      // Attach user information to request
+      req.user = {
+        userId: user.id,
+        email: user.email,
+        walletAddress: user.walletAddress,
+        partyType: user.partyType,
+        roles: [user.partyType], // Map partyType to roles
+        localUser: user,
+        token: token
+      };
+
+      return next();
+    } catch (jwtError) {
+      console.error('❌ Local JWT validation failed:', jwtError.message);
       return res.status(401).json({ 
         error: 'Invalid or expired token',
         code: 'TOKEN_INVALID',
-        details: validationResult.error
+        details: 'Token validation failed'
       });
     }
 
-    // Get user from local database
-    const user = await db.User.findOne({
-      where: { 
-        walletAddress: validationResult.user.walletAddress,
-        isActive: true 
-      }
-    });
-
-    if (!user) {
-      return res.status(404).json({ 
-        error: 'User not found in local database',
-        code: 'USER_NOT_FOUND'
-      });
-    }
-
-    // Update last login timestamp
-    await user.update({ lastLoginAt: new Date() });
-
-    // Attach user information to request
-    req.user = {
-      ...validationResult.user,
-      localUser: user,
-      token: token
-    };
-
-    next();
   } catch (error) {
     console.error('❌ Authentication error:', error);
     return res.status(500).json({ 
@@ -127,6 +171,16 @@ const requireCCRP = requireRole('CCRP');
  * Require admin role
  */
 const requireAdmin = requireRole('ADMIN');
+
+/**
+ * Require AppAdmin role
+ */
+const requireAppAdmin = requireRole('AppAdmin');
+
+/**
+ * Require any admin role (ADMIN or AppAdmin)
+ */
+const requireAnyAdmin = requireRole(['ADMIN', 'AppAdmin']);
 
 /**
  * Optional authentication - doesn't fail if no token provided
@@ -336,6 +390,8 @@ module.exports = {
   requireTDC,
   requireCCRP,
   requireAdmin,
+  requireAppAdmin,
+  requireAnyAdmin,
   optionalAuth,
   requireOnboardingComplete,
   requireEmailVerified,

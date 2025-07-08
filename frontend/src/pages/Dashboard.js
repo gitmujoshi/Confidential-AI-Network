@@ -30,7 +30,7 @@ import DIDInfoCard from '../components/DIDInfoCard';
 
 const Dashboard = () => {
   const navigate = useNavigate();
-  const { user } = useUser();
+  const { currentUser: user } = useUser();
 
   // Fetch dashboard data
   const { data: dashboardData, isLoading } = useQuery('dashboard', async () => {

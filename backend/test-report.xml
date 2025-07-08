@@ -1,24 +1,195 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <testExecutions version="1">
   <file path="/Users/mukeshjoshi/gitprojects/ContractManagement/backend/tests/models.test.js">
-    <testCase name="Database Models Test Suite User Model should create a user with valid data" duration="21"/>
-    <testCase name="Database Models Test Suite User Model should enforce unique email constraint" duration="23"/>
-    <testCase name="Database Models Test Suite User Model should validate partyType enum values" duration="4"/>
-    <testCase name="Database Models Test Suite User Model should validate email format" duration="3"/>
-    <testCase name="Database Models Test Suite User Model should allow optional fields to be null" duration="4"/>
-    <testCase name="Database Models Test Suite Contract Model should create a contract with valid data" duration="11"/>
-    <testCase name="Database Models Test Suite Contract Model should validate status enum values" duration="7"/>
-    <testCase name="Database Models Test Suite Contract Model should enforce foreign key constraints" duration="6"/>
-    <testCase name="Database Models Test Suite Dataset Model should create a dataset with valid data" duration="6"/>
-    <testCase name="Database Models Test Suite Dataset Model should validate status enum values" duration="5"/>
-    <testCase name="Database Models Test Suite Dataset Model should enforce foreign key constraints" duration="4"/>
-    <testCase name="Database Models Test Suite Notification Model should create a notification with valid data" duration="5"/>
-    <testCase name="Database Models Test Suite Notification Model should validate type enum values" duration="4"/>
-    <testCase name="Database Models Test Suite Notification Model should enforce foreign key constraints" duration="5"/>
-    <testCase name="Database Models Test Suite Model Relationships should establish user-contract relationships" duration="11"/>
-    <testCase name="Database Models Test Suite Model Relationships should establish user-dataset relationships" duration="9"/>
-    <testCase name="Database Models Test Suite Model Relationships should establish user-notification relationships" duration="8"/>
-    <testCase name="Database Models Test Suite Database Transactions should handle successful transactions" duration="8"/>
-    <testCase name="Database Models Test Suite Database Transactions should handle transaction rollback on error" duration="7"/>
+    <testCase name="Database Models Test Suite User Model should create a user with valid data" duration="1">
+      <failure message="Error: "><![CDATA[Error: 
+    at Query.run (/Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/dialects/***REMOVED-DB_PASSWORD***/query.js:76:25)
+    at /Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/sequelize.js:650:28
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at PostgresQueryInterface.createTable (/Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/dialects/abstract/query-interface.js:229:12)
+    at Consent.sync (/Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/model.js:1353:7)
+    at Sequelize.sync (/Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/sequelize.js:825:9)
+    at Object.<anonymous> (/Users/mukeshjoshi/gitprojects/ContractManagement/backend/tests/models.test.js:7:5)]]></failure>
+    </testCase>
+    <testCase name="Database Models Test Suite User Model should enforce unique email constraint" duration="0">
+      <failure message="Error: "><![CDATA[Error: 
+    at Query.run (/Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/dialects/***REMOVED-DB_PASSWORD***/query.js:76:25)
+    at /Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/sequelize.js:650:28
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at PostgresQueryInterface.createTable (/Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/dialects/abstract/query-interface.js:229:12)
+    at Consent.sync (/Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/model.js:1353:7)
+    at Sequelize.sync (/Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/sequelize.js:825:9)
+    at Object.<anonymous> (/Users/mukeshjoshi/gitprojects/ContractManagement/backend/tests/models.test.js:7:5)]]></failure>
+    </testCase>
+    <testCase name="Database Models Test Suite User Model should validate partyType enum values" duration="0">
+      <failure message="Error: "><![CDATA[Error: 
+    at Query.run (/Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/dialects/***REMOVED-DB_PASSWORD***/query.js:76:25)
+    at /Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/sequelize.js:650:28
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at PostgresQueryInterface.createTable (/Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/dialects/abstract/query-interface.js:229:12)
+    at Consent.sync (/Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/model.js:1353:7)
+    at Sequelize.sync (/Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/sequelize.js:825:9)
+    at Object.<anonymous> (/Users/mukeshjoshi/gitprojects/ContractManagement/backend/tests/models.test.js:7:5)]]></failure>
+    </testCase>
+    <testCase name="Database Models Test Suite User Model should validate email format" duration="0">
+      <failure message="Error: "><![CDATA[Error: 
+    at Query.run (/Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/dialects/***REMOVED-DB_PASSWORD***/query.js:76:25)
+    at /Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/sequelize.js:650:28
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at PostgresQueryInterface.createTable (/Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/dialects/abstract/query-interface.js:229:12)
+    at Consent.sync (/Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/model.js:1353:7)
+    at Sequelize.sync (/Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/sequelize.js:825:9)
+    at Object.<anonymous> (/Users/mukeshjoshi/gitprojects/ContractManagement/backend/tests/models.test.js:7:5)]]></failure>
+    </testCase>
+    <testCase name="Database Models Test Suite User Model should allow optional fields to be null" duration="0">
+      <failure message="Error: "><![CDATA[Error: 
+    at Query.run (/Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/dialects/***REMOVED-DB_PASSWORD***/query.js:76:25)
+    at /Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/sequelize.js:650:28
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at PostgresQueryInterface.createTable (/Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/dialects/abstract/query-interface.js:229:12)
+    at Consent.sync (/Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/model.js:1353:7)
+    at Sequelize.sync (/Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/sequelize.js:825:9)
+    at Object.<anonymous> (/Users/mukeshjoshi/gitprojects/ContractManagement/backend/tests/models.test.js:7:5)]]></failure>
+    </testCase>
+    <testCase name="Database Models Test Suite Contract Model should create a contract with valid data" duration="0">
+      <failure message="Error: "><![CDATA[Error: 
+    at Query.run (/Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/dialects/***REMOVED-DB_PASSWORD***/query.js:76:25)
+    at /Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/sequelize.js:650:28
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at PostgresQueryInterface.createTable (/Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/dialects/abstract/query-interface.js:229:12)
+    at Consent.sync (/Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/model.js:1353:7)
+    at Sequelize.sync (/Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/sequelize.js:825:9)
+    at Object.<anonymous> (/Users/mukeshjoshi/gitprojects/ContractManagement/backend/tests/models.test.js:7:5)]]></failure>
+    </testCase>
+    <testCase name="Database Models Test Suite Contract Model should validate status enum values" duration="0">
+      <failure message="Error: "><![CDATA[Error: 
+    at Query.run (/Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/dialects/***REMOVED-DB_PASSWORD***/query.js:76:25)
+    at /Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/sequelize.js:650:28
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at PostgresQueryInterface.createTable (/Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/dialects/abstract/query-interface.js:229:12)
+    at Consent.sync (/Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/model.js:1353:7)
+    at Sequelize.sync (/Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/sequelize.js:825:9)
+    at Object.<anonymous> (/Users/mukeshjoshi/gitprojects/ContractManagement/backend/tests/models.test.js:7:5)]]></failure>
+    </testCase>
+    <testCase name="Database Models Test Suite Contract Model should enforce foreign key constraints" duration="0">
+      <failure message="Error: "><![CDATA[Error: 
+    at Query.run (/Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/dialects/***REMOVED-DB_PASSWORD***/query.js:76:25)
+    at /Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/sequelize.js:650:28
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at PostgresQueryInterface.createTable (/Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/dialects/abstract/query-interface.js:229:12)
+    at Consent.sync (/Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/model.js:1353:7)
+    at Sequelize.sync (/Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/sequelize.js:825:9)
+    at Object.<anonymous> (/Users/mukeshjoshi/gitprojects/ContractManagement/backend/tests/models.test.js:7:5)]]></failure>
+    </testCase>
+    <testCase name="Database Models Test Suite Dataset Model should create a dataset with valid data" duration="0">
+      <failure message="Error: "><![CDATA[Error: 
+    at Query.run (/Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/dialects/***REMOVED-DB_PASSWORD***/query.js:76:25)
+    at /Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/sequelize.js:650:28
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at PostgresQueryInterface.createTable (/Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/dialects/abstract/query-interface.js:229:12)
+    at Consent.sync (/Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/model.js:1353:7)
+    at Sequelize.sync (/Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/sequelize.js:825:9)
+    at Object.<anonymous> (/Users/mukeshjoshi/gitprojects/ContractManagement/backend/tests/models.test.js:7:5)]]></failure>
+    </testCase>
+    <testCase name="Database Models Test Suite Dataset Model should validate status enum values" duration="1">
+      <failure message="Error: "><![CDATA[Error: 
+    at Query.run (/Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/dialects/***REMOVED-DB_PASSWORD***/query.js:76:25)
+    at /Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/sequelize.js:650:28
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at PostgresQueryInterface.createTable (/Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/dialects/abstract/query-interface.js:229:12)
+    at Consent.sync (/Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/model.js:1353:7)
+    at Sequelize.sync (/Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/sequelize.js:825:9)
+    at Object.<anonymous> (/Users/mukeshjoshi/gitprojects/ContractManagement/backend/tests/models.test.js:7:5)]]></failure>
+    </testCase>
+    <testCase name="Database Models Test Suite Dataset Model should enforce foreign key constraints" duration="0">
+      <failure message="Error: "><![CDATA[Error: 
+    at Query.run (/Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/dialects/***REMOVED-DB_PASSWORD***/query.js:76:25)
+    at /Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/sequelize.js:650:28
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at PostgresQueryInterface.createTable (/Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/dialects/abstract/query-interface.js:229:12)
+    at Consent.sync (/Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/model.js:1353:7)
+    at Sequelize.sync (/Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/sequelize.js:825:9)
+    at Object.<anonymous> (/Users/mukeshjoshi/gitprojects/ContractManagement/backend/tests/models.test.js:7:5)]]></failure>
+    </testCase>
+    <testCase name="Database Models Test Suite Notification Model should create a notification with valid data" duration="0">
+      <failure message="Error: "><![CDATA[Error: 
+    at Query.run (/Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/dialects/***REMOVED-DB_PASSWORD***/query.js:76:25)
+    at /Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/sequelize.js:650:28
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at PostgresQueryInterface.createTable (/Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/dialects/abstract/query-interface.js:229:12)
+    at Consent.sync (/Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/model.js:1353:7)
+    at Sequelize.sync (/Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/sequelize.js:825:9)
+    at Object.<anonymous> (/Users/mukeshjoshi/gitprojects/ContractManagement/backend/tests/models.test.js:7:5)]]></failure>
+    </testCase>
+    <testCase name="Database Models Test Suite Notification Model should validate type enum values" duration="0">
+      <failure message="Error: "><![CDATA[Error: 
+    at Query.run (/Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/dialects/***REMOVED-DB_PASSWORD***/query.js:76:25)
+    at /Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/sequelize.js:650:28
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at PostgresQueryInterface.createTable (/Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/dialects/abstract/query-interface.js:229:12)
+    at Consent.sync (/Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/model.js:1353:7)
+    at Sequelize.sync (/Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/sequelize.js:825:9)
+    at Object.<anonymous> (/Users/mukeshjoshi/gitprojects/ContractManagement/backend/tests/models.test.js:7:5)]]></failure>
+    </testCase>
+    <testCase name="Database Models Test Suite Notification Model should enforce foreign key constraints" duration="0">
+      <failure message="Error: "><![CDATA[Error: 
+    at Query.run (/Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/dialects/***REMOVED-DB_PASSWORD***/query.js:76:25)
+    at /Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/sequelize.js:650:28
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at PostgresQueryInterface.createTable (/Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/dialects/abstract/query-interface.js:229:12)
+    at Consent.sync (/Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/model.js:1353:7)
+    at Sequelize.sync (/Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/sequelize.js:825:9)
+    at Object.<anonymous> (/Users/mukeshjoshi/gitprojects/ContractManagement/backend/tests/models.test.js:7:5)]]></failure>
+    </testCase>
+    <testCase name="Database Models Test Suite Model Relationships should establish user-contract relationships" duration="0">
+      <failure message="Error: "><![CDATA[Error: 
+    at Query.run (/Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/dialects/***REMOVED-DB_PASSWORD***/query.js:76:25)
+    at /Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/sequelize.js:650:28
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at PostgresQueryInterface.createTable (/Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/dialects/abstract/query-interface.js:229:12)
+    at Consent.sync (/Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/model.js:1353:7)
+    at Sequelize.sync (/Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/sequelize.js:825:9)
+    at Object.<anonymous> (/Users/mukeshjoshi/gitprojects/ContractManagement/backend/tests/models.test.js:7:5)]]></failure>
+    </testCase>
+    <testCase name="Database Models Test Suite Model Relationships should establish user-dataset relationships" duration="0">
+      <failure message="Error: "><![CDATA[Error: 
+    at Query.run (/Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/dialects/***REMOVED-DB_PASSWORD***/query.js:76:25)
+    at /Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/sequelize.js:650:28
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at PostgresQueryInterface.createTable (/Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/dialects/abstract/query-interface.js:229:12)
+    at Consent.sync (/Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/model.js:1353:7)
+    at Sequelize.sync (/Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/sequelize.js:825:9)
+    at Object.<anonymous> (/Users/mukeshjoshi/gitprojects/ContractManagement/backend/tests/models.test.js:7:5)]]></failure>
+    </testCase>
+    <testCase name="Database Models Test Suite Model Relationships should establish user-notification relationships" duration="0">
+      <failure message="Error: "><![CDATA[Error: 
+    at Query.run (/Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/dialects/***REMOVED-DB_PASSWORD***/query.js:76:25)
+    at /Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/sequelize.js:650:28
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at PostgresQueryInterface.createTable (/Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/dialects/abstract/query-interface.js:229:12)
+    at Consent.sync (/Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/model.js:1353:7)
+    at Sequelize.sync (/Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/sequelize.js:825:9)
+    at Object.<anonymous> (/Users/mukeshjoshi/gitprojects/ContractManagement/backend/tests/models.test.js:7:5)]]></failure>
+    </testCase>
+    <testCase name="Database Models Test Suite Database Transactions should handle successful transactions" duration="0">
+      <failure message="Error: "><![CDATA[Error: 
+    at Query.run (/Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/dialects/***REMOVED-DB_PASSWORD***/query.js:76:25)
+    at /Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/sequelize.js:650:28
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at PostgresQueryInterface.createTable (/Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/dialects/abstract/query-interface.js:229:12)
+    at Consent.sync (/Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/model.js:1353:7)
+    at Sequelize.sync (/Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/sequelize.js:825:9)
+    at Object.<anonymous> (/Users/mukeshjoshi/gitprojects/ContractManagement/backend/tests/models.test.js:7:5)]]></failure>
+    </testCase>
+    <testCase name="Database Models Test Suite Database Transactions should handle transaction rollback on error" duration="0">
+      <failure message="Error: "><![CDATA[Error: 
+    at Query.run (/Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/dialects/***REMOVED-DB_PASSWORD***/query.js:76:25)
+    at /Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/sequelize.js:650:28
+    at processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at PostgresQueryInterface.createTable (/Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/dialects/abstract/query-interface.js:229:12)
+    at Consent.sync (/Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/model.js:1353:7)
+    at Sequelize.sync (/Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/sequelize.js:825:9)
+    at Object.<anonymous> (/Users/mukeshjoshi/gitprojects/ContractManagement/backend/tests/models.test.js:7:5)]]></failure>
+    </testCase>
   </file>
 </testExecutions>

@@ -85,6 +85,8 @@ export const UserProvider = ({ children }) => {
     const initializeAccount = async () => {
       setIsInitializing(true);
       await detectAndSetCurrentAccount();
+      // Also check for token authentication
+      await checkTokenAuth();
       setIsInitializing(false);
     };
 
@@ -316,8 +318,15 @@ export const UserProvider = ({ children }) => {
           setCurrentUser(response.data.user);
         }
       } catch (error) {
-        console.log('❌ [UserContext] Token authentication failed, clearing token');
-        localStorage.removeItem('authToken');
+        console.log('❌ [UserContext] Token authentication failed:', error.response?.status, error.message);
+        
+        // If token is invalid (401) or expired, clear it
+        if (error.response?.status === 401 || error.response?.status === 403) {
+          console.log('🧹 [UserContext] Clearing invalid/expired token');
+          localStorage.removeItem('authToken');
+          setCurrentUser(null);
+        }
+        // Don't set any error state here to prevent brief error display
       }
     }
   };
@@ -355,6 +364,18 @@ export const UserProvider = ({ children }) => {
     setCurrentUser(user);
   };
 
+  // Function to refresh authentication (clear invalid tokens and re-check)
+  const refreshAuth = async () => {
+    console.log('🔄 [UserContext] Refreshing authentication...');
+    
+    // Clear any existing invalid token
+    localStorage.removeItem('authToken');
+    setCurrentUser(null);
+    
+    // Re-check token authentication
+    await checkTokenAuth();
+  };
+
   const value = {
     currentUser,
     walletAddress,
@@ -373,6 +394,7 @@ export const UserProvider = ({ children }) => {
     isTDP,
     isCCRP,
     isAuthenticated: !!currentUser,
+    refreshAuth, // Add refreshAuth function
   };
 
   return (

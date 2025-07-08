@@ -42,6 +42,7 @@ import { useQuery } from 'react-query';
 import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
 import { apiService } from '../services/api';
+import { useUser } from '../contexts/UserContext';
 
 const StatusChip = ({ status }) => {
   const getStatusColor = (status) => {
@@ -156,14 +157,61 @@ function Contracts() {
   const [viewDialogOpen, setViewDialogOpen] = useState(false);
   const [selectedContract, setSelectedContract] = useState(null);
   const navigate = useNavigate();
+  const { currentUser } = useUser();
 
-  // Fetch contracts for user ID 1 (demo)
-  const { data: contractsResponse } = useQuery(
-    ['contracts', statusFilter],
-    () => apiService.getContracts(1, { status: statusFilter })
+  // Debug logging
+  console.log('🔍 [Contracts] Current user:', currentUser);
+  console.log('🔍 [Contracts] Auth token:', localStorage.getItem('authToken'));
+
+  // Fetch contracts for the current authenticated user
+  const { data: contractsResponse, isLoading, error } = useQuery(
+    ['contracts', currentUser?.id, statusFilter],
+    async () => {
+      if (!currentUser?.id) {
+        throw new Error('No authenticated user');
+      }
+      console.log('🔍 [Contracts] Fetching contracts for user ID:', currentUser.id);
+      console.log('🔍 [Contracts] Status filter:', statusFilter);
+      
+      const result = await apiService.getContracts(currentUser.id);
+      console.log('🔍 [Contracts] Raw API response:', result);
+      console.log('🔍 [Contracts] Response type:', typeof result);
+      console.log('🔍 [Contracts] Has contracts property:', !!result?.contracts);
+      console.log('🔍 [Contracts] Contracts length:', result?.contracts?.length || 0);
+      
+      return result;
+    },
+    {
+      enabled: !!currentUser?.id, // Only fetch if user is authenticated
+      retry: false,
+      staleTime: 30000, // Cache for 30 seconds
+      onSuccess: (data) => {
+        console.log('✅ [Contracts] Contracts fetched successfully:', data);
+        console.log('✅ [Contracts] Data structure:', {
+          hasData: !!data,
+          hasContracts: !!data?.contracts,
+          hasDataContracts: !!data?.data?.contracts,
+          contractsLength: data?.contracts?.length || data?.data?.contracts?.length || 0,
+          fullResponse: data
+        });
+      },
+      onError: (error) => {
+        console.error('❌ [Contracts] Error fetching contracts:', error);
+        console.error('❌ [Contracts] Error details:', {
+          message: error.message,
+          status: error.response?.status,
+          data: error.response?.data
+        });
+      }
+    }
   );
 
   const contracts = contractsResponse?.contracts || [];
+
+  // Debug logging for contracts
+  console.log('🔍 [Contracts] Contracts data:', contracts);
+  console.log('🔍 [Contracts] Loading state:', isLoading);
+  console.log('🔍 [Contracts] Error state:', error);
 
   const handleView = (contract) => {
     setSelectedContract(contract);
@@ -193,68 +241,120 @@ function Contracts() {
         </Button>
       </Box>
 
-      {/* Filter */}
-      <Card sx={{ mb: 3 }}>
-        <CardContent>
-          <Grid container spacing={2} alignItems="center">
-            <Grid item xs={12} md={4}>
-              <FormControl fullWidth>
-                <InputLabel>Status Filter</InputLabel>
-                <Select
-                  value={statusFilter}
-                  label="Status Filter"
-                  onChange={(e) => setStatusFilter(e.target.value)}
-                >
-                  <MenuItem value="">All Statuses</MenuItem>
-                  <MenuItem value="PENDING_TDP_APPROVAL">Pending TDP Approval</MenuItem>
-                  <MenuItem value="PENDING_CCRP_APPROVAL">Pending CCRP Approval</MenuItem>
-                  <MenuItem value="ACTIVE">Active</MenuItem>
-                  <MenuItem value="COMPLETED">Completed</MenuItem>
-                  <MenuItem value="CANCELLED">Cancelled</MenuItem>
-                </Select>
-              </FormControl>
-            </Grid>
-            <Grid item xs={12} md={8}>
-              <Typography variant="body2" color="textSecondary">
-                Showing {contracts.length} contracts
-              </Typography>
-            </Grid>
-          </Grid>
-        </CardContent>
-      </Card>
+      {/* Debug Information */}
+      {process.env.NODE_ENV === 'development' && (
+        <Card sx={{ mb: 3, bgcolor: '#f5f5f5' }}>
+          <CardContent>
+            <Typography variant="h6" gutterBottom>Debug Information</Typography>
+            <Typography variant="body2">
+              <strong>Current User:</strong> {currentUser ? `${currentUser.name} (ID: ${currentUser.id})` : 'Not logged in'}
+            </Typography>
+            <Typography variant="body2">
+              <strong>Auth Token:</strong> {localStorage.getItem('authToken') ? 'Present' : 'Missing'}
+            </Typography>
+            <Typography variant="body2">
+              <strong>Loading:</strong> {isLoading ? 'Yes' : 'No'}
+            </Typography>
+            <Typography variant="body2">
+              <strong>Error:</strong> {error ? error.message : 'None'}
+            </Typography>
+            <Typography variant="body2">
+              <strong>Contracts Count:</strong> {contracts.length}
+            </Typography>
+          </CardContent>
+        </Card>
+      )}
 
-      {/* Contracts Table */}
-      <Card>
-        <TableContainer component={Paper}>
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableCell>Contract ID</TableCell>
-                <TableCell>Dataset</TableCell>
-                <TableCell>Parties</TableCell>
-                <TableCell>Price</TableCell>
-                <TableCell>Duration</TableCell>
-                <TableCell>Status</TableCell>
-                <TableCell>Created</TableCell>
-                <TableCell>Actions</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {contracts.map((contract) => (
-                <ContractRow
-                  key={contract.id}
-                  contract={contract}
-                  onView={handleView}
-                  onEdit={handleEdit}
-                  onDelete={handleDelete}
-                />
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
-      </Card>
+      {/* Loading State */}
+      {isLoading && (
+        <Box textAlign="center" py={4}>
+          <Typography variant="h6" color="textSecondary">
+            Loading contracts...
+          </Typography>
+        </Box>
+      )}
 
-      {contracts.length === 0 && (
+      {/* Error State */}
+      {error && (
+        <Box textAlign="center" py={4}>
+          <Typography variant="h6" color="error">
+            Error loading contracts
+          </Typography>
+          <Typography variant="body2" color="textSecondary" mb={2}>
+            {error.message}
+          </Typography>
+          <Button variant="contained" onClick={() => window.location.reload()}>
+            Retry
+          </Button>
+        </Box>
+      )}
+
+      {/* Filter - Only show if not loading and no error */}
+      {!isLoading && !error && (
+        <Card sx={{ mb: 3 }}>
+          <CardContent>
+            <Grid container spacing={2} alignItems="center">
+              <Grid item xs={12} md={4}>
+                <FormControl fullWidth>
+                  <InputLabel>Status Filter</InputLabel>
+                  <Select
+                    value={statusFilter}
+                    label="Status Filter"
+                    onChange={(e) => setStatusFilter(e.target.value)}
+                  >
+                    <MenuItem value="">All Statuses</MenuItem>
+                    <MenuItem value="PENDING_TDP_APPROVAL">Pending TDP Approval</MenuItem>
+                    <MenuItem value="PENDING_CCRP_APPROVAL">Pending CCRP Approval</MenuItem>
+                    <MenuItem value="ACTIVE">Active</MenuItem>
+                    <MenuItem value="COMPLETED">Completed</MenuItem>
+                    <MenuItem value="CANCELLED">Cancelled</MenuItem>
+                  </Select>
+                </FormControl>
+              </Grid>
+              <Grid item xs={12} md={8}>
+                <Typography variant="body2" color="textSecondary">
+                  Showing {contracts.length} contracts
+                </Typography>
+              </Grid>
+            </Grid>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Contracts Table - Only show if not loading and no error */}
+      {!isLoading && !error && (
+        <Card>
+          <TableContainer component={Paper}>
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableCell>Contract ID</TableCell>
+                  <TableCell>Dataset</TableCell>
+                  <TableCell>Parties</TableCell>
+                  <TableCell>Price</TableCell>
+                  <TableCell>Duration</TableCell>
+                  <TableCell>Status</TableCell>
+                  <TableCell>Created</TableCell>
+                  <TableCell>Actions</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {contracts.map((contract) => (
+                  <ContractRow
+                    key={contract.id}
+                    contract={contract}
+                    onView={handleView}
+                    onEdit={handleEdit}
+                    onDelete={handleDelete}
+                  />
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </Card>
+      )}
+
+      {!isLoading && !error && contracts.length === 0 && (
         <Box textAlign="center" py={4}>
           <Typography variant="h6" color="textSecondary">
             No contracts found

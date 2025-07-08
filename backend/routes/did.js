@@ -12,7 +12,8 @@
 const express = require('express');
 const rateLimit = require('express-rate-limit');
 const { authenticateToken, requireRole } = require('../middleware/auth');
-const didService = require('../services/didService');
+const DIDService = require('../services/didService');
+const didService = new DIDService();
 const db = require('../models');
 
 const router = express.Router();

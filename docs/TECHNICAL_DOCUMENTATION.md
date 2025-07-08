@@ -1,982 +1,369 @@
 # Technical Documentation
-## Contract Management System
 
-Complete technical architecture, API documentation, and implementation details for the Contract Management System.
+## Overview
 
-**Document Version:** 3.0  
-**Date:** December 2024  
-**Author:** Contract Management System Team
-
----
-
-## Table of Contents
-
-1. [System Architecture](#system-architecture)
-2. [Frontend Architecture](#frontend-architecture)
-3. [Backend Architecture](#backend-architecture)
-4. [Database Design](#database-design)
-5. [API Documentation](#api-documentation)
-6. [Smart Contract Architecture](#smart-contract-architecture)
-7. [Security Architecture](#security-architecture)
-8. [Performance Considerations](#performance-considerations)
-9. [Monitoring and Logging](#monitoring-and-logging)
-
----
+This comprehensive technical documentation provides detailed information about the Contract Management System architecture, components, APIs, and implementation details. The documentation serves as a reference for developers, system administrators, and technical stakeholders.
 
 ## System Architecture
 
-### Overview
-The Contract Management System follows a **layered architecture** with clear separation of concerns. The system is designed for enterprise scalability with comprehensive security features.
+### High-Level Architecture
 
-### System Layers
-```mermaid
-graph TB
-    subgraph "Presentation Layer"
-        FE[Frontend React App]
-    end
-    
-    subgraph "Application Layer"
-        BE[Backend API Services]
-    end
-    
-    subgraph "Enterprise Identity Layer"
-        IAM[Keycloak IAM]
-        LDAP[LDAP/Active Directory]
-        DID_WEB[DID:web Management]
-        DID_ETHR[DID:ethr Management]
-    end
-    
-    subgraph "Data Layer"
-        DB[(PostgreSQL Database)]
-        BC[(Blockchain Network)]
-        WEB_SERVER[Web Server<br/>DID Documents]
-    end
-    
-    FE --> BE
-    BE --> IAM
-    BE --> LDAP
-    BE --> DID_WEB
-    BE --> DID_ETHR
-    BE --> DB
-    BE --> BC
-    DID_WEB --> WEB_SERVER
-    
-    style FE fill:#e3f2fd
-    style BE fill:#f3e5f5
-    style IAM fill:#ffebee
-    style LDAP fill:#ffebee
-    style DID_WEB fill:#fff3e0
-    style DID_ETHR fill:#fff8e1
-    style DB fill:#e8f5e8
-    style BC fill:#fff8e1
-    style WEB_SERVER fill:#e0f2f1
-```
+The Contract Management System follows a modern microservices architecture with clear separation of concerns and scalable design patterns:
 
-### Key Components
+**Frontend Layer**: React-based user interfaces that provide role-specific dashboards and workflows for Training Data Providers, Training Data Consumers, and Confidential Clean Room Providers.
 
-#### Frontend (React)
-- **Technology**: React 18 with Material-UI
-- **State Management**: React Context + Hooks
-- **Web3 Integration**: Ethers.js for blockchain interaction
-- **HTTP Client**: Axios for API communication
-- **Routing**: React Router for navigation
+**Backend API Layer**: Node.js/Express REST APIs that handle business logic, data processing, and integration with external services including blockchain networks and identity providers.
 
-#### Backend (Node.js/Express)
-- **Technology**: Node.js with Express.js
-- **Authentication**: JWT with Keycloak integration
-- **Database**: PostgreSQL with Sequelize ORM
-- **Blockchain**: Web3.js for smart contract interaction
-- **Validation**: Joi for request validation
+**Database Layer**: PostgreSQL database with comprehensive schema design for user management, contract lifecycle, dataset management, and audit logging.
 
-#### Database (PostgreSQL)
-- **Version**: PostgreSQL 13+
-- **ORM**: Sequelize with migrations
-- **Indexing**: Optimized for query performance
-- **Backup**: Automated backup strategy
+**Blockchain Layer**: Ethereum-based smart contracts that handle contract creation, multi-party signing, and immutable audit trails for contract lifecycle management.
 
-#### Blockchain (Ethereum)
-- **Network**: Goerli testnet (development), Mainnet (production)
-- **Smart Contracts**: Solidity with Hardhat framework
-- **Gas Optimization**: Efficient contract design
-- **Security**: Comprehensive testing and auditing
+**IAM Layer**: Keycloak integration for enterprise-grade identity and access management with support for traditional authentication and Decentralized Identifiers (DIDs).
 
----
+### Component Architecture
+
+Each system component is designed with specific responsibilities and clear interfaces:
+
+**User Management Component**: Handles user registration, authentication, authorization, and profile management with role-based access control and comprehensive audit trails.
+
+**Contract Management Component**: Manages the complete contract lifecycle from creation to completion including multi-party signing, status tracking, and automated execution.
+
+**Dataset Management Component**: Provides capabilities for creating, publishing, and managing datasets with metadata, pricing, and access controls.
+
+**Blockchain Integration Component**: Handles smart contract deployment, interaction, and monitoring with proper error handling and transaction management.
+
+**DID Management Component**: Manages Decentralized Identifiers for decentralized identity verification and blockchain-based authentication.
+
+**Notification Component**: Provides comprehensive notification services including email, in-app notifications, and real-time updates for system events.
+
+### Data Flow Architecture
+
+The system implements clear data flow patterns for secure and efficient information processing:
+
+**User Authentication Flow**: Secure authentication process with multi-factor support, session management, and comprehensive audit logging.
+
+**Contract Creation Flow**: Multi-step contract creation process with validation, approval workflows, and automated signing procedures.
+
+**Data Access Flow**: Secure data access with proper authorization, audit logging, and privacy protection measures.
+
+**Blockchain Transaction Flow**: Secure blockchain transactions with proper gas management, error handling, and transaction monitoring.
+
+## Backend Architecture
+
+### API Design Principles
+
+The backend APIs follow RESTful design principles with comprehensive security and performance considerations:
+
+**RESTful Design**: All APIs follow REST conventions with proper HTTP methods, status codes, and resource-based URL structures.
+
+**Comprehensive Error Handling**: Standardized error responses with appropriate HTTP status codes and detailed error messages for debugging and user feedback.
+
+**Input Validation**: Comprehensive input validation and sanitization to prevent security vulnerabilities and ensure data integrity.
+
+**Rate Limiting**: Implementation of rate limiting and abuse prevention measures to protect against malicious attacks and ensure fair resource usage.
+
+**Security Measures**: Multiple layers of security including authentication, authorization, input validation, and secure communication protocols.
+
+### Core API Modules
+
+The backend consists of several core modules that handle specific business functions:
+
+**Authentication APIs**: Handle user authentication, session management, and token validation with support for multiple authentication methods.
+
+**User Management APIs**: Provide comprehensive user management capabilities including registration, profile management, and role assignment.
+
+**Contract Management APIs**: Handle all aspects of contract lifecycle management including creation, signing, status tracking, and execution.
+
+**Dataset Management APIs**: Manage dataset creation, publishing, and access with proper metadata management and access controls.
+
+**DID Management APIs**: Handle Decentralized Identifier operations including creation, verification, and integration with authentication systems.
+
+**DPDP Compliance APIs**: Implement Digital Personal Data Protection Act compliance including consent management, user rights, and grievance handling.
+
+### Database Schema Design
+
+The database schema is designed for optimal performance, scalability, and data integrity:
+
+**User Management Tables**: Comprehensive user data storage with role-based access, profile information, and authentication details.
+
+**Contract Management Tables**: Complete contract lifecycle tracking with status management, party information, and audit trails.
+
+**Dataset Management Tables**: Dataset metadata storage with pricing information, access controls, and usage tracking.
+
+**Consent and Compliance Tables**: DPDP compliance data including consent records, processing activities, and grievance management.
+
+**Audit Logging Tables**: Comprehensive audit trails for all system activities with detailed event logging and compliance reporting.
+
+**DID Management Tables**: Decentralized identifier storage with verification methods and associated metadata.
+
+### Service Layer Architecture
+
+The service layer provides business logic abstraction and integration capabilities:
+
+**Authentication Service**: Handles user authentication, session management, and token validation with support for multiple providers.
+
+**Contract Service**: Manages contract lifecycle operations including creation, validation, signing, and execution with proper business rules.
+
+**Dataset Service**: Handles dataset operations including creation, validation, publishing, and access management with proper security controls.
+
+**Blockchain Service**: Manages blockchain interactions including smart contract deployment, transaction handling, and event monitoring.
+
+**DID Service**: Handles Decentralized Identifier operations including resolution, verification, and integration with authentication systems.
+
+**Notification Service**: Provides comprehensive notification capabilities including email, in-app notifications, and real-time updates.
 
 ## Frontend Architecture
 
 ### React Application Structure
-```mermaid
-graph TB
-    subgraph "User Interface Components"
-        A[Dashboard] --> B[Contracts]
-        B --> C[Datasets]
-        C --> D[Users]
-        D --> E[Notifications]
-        A --> F[Onboarding]
-    end
-    
-    subgraph "Client Services"
-        G[API Service]
-        H[Ethers.js]
-        I[React Query]
-        J[State Management]
-    end
-    
-    subgraph "Authentication"
-        K[Wallet Connection]
-        L[IAM Integration]
-        M[Role Management]
-    end
-    
-    A --> G
-    G --> H
-    G --> I
-    G --> J
-    K --> L
-    L --> M
-    
-    style A fill:#e3f2fd
-    style G fill:#f3e5f5
-    style K fill:#ffebee
-```
 
-### Component Hierarchy
-```
-src/
-├── components/
-│   ├── Layout/
-│   │   ├── Header.js
-│   │   ├── Sidebar.js
-│   │   └── Footer.js
-│   ├── Contract/
-│   │   ├── ContractList.js
-│   │   ├── ContractDetail.js
-│   │   └── ContractForm.js
-│   ├── Dataset/
-│   │   ├── DatasetList.js
-│   │   ├── DatasetDetail.js
-│   │   └── DatasetForm.js
-│   ├── User/
-│   │   ├── UserProfile.js
-│   │   ├── UserList.js
-│   │   └── UserForm.js
-│   └── Common/
-│       ├── Loading.js
-│       ├── ErrorBoundary.js
-│       └── Modal.js
-├── pages/
-│   ├── Dashboard.js
-│   ├── Contracts.js
-│   ├── Datasets.js
-│   ├── Users.js
-│   └── Profile.js
-├── services/
-│   ├── api.js
-│   ├── web3.js
-│   └── auth.js
-├── contexts/
-│   ├── UserContext.js
-│   ├── ContractContext.js
-│   └── Web3Context.js
-└── utils/
-    ├── constants.js
-    ├── helpers.js
-    └── validation.js
-```
+The frontend is built using React with modern development practices and comprehensive state management:
+
+**Component Architecture**: Modular component design with clear separation of concerns and reusable components for consistent user experience.
+
+**State Management**: React Context for global state management with local state for component-specific data and efficient state updates.
+
+**Routing System**: React Router for navigation with role-based route protection and dynamic routing based on user permissions.
+
+**Form Handling**: Comprehensive form management with validation, error handling, and user-friendly feedback mechanisms.
+
+**Responsive Design**: Mobile-first responsive design with consistent user experience across all device types and screen sizes.
+
+### User Interface Design
+
+The user interface is designed for optimal user experience and accessibility:
+
+**Design System**: Consistent design language with standardized components, colors, typography, and spacing for professional appearance.
+
+**Accessibility Compliance**: WCAG 2.1 AA compliance with proper semantic markup, keyboard navigation, and screen reader support.
+
+**User Experience**: Intuitive navigation, clear information architecture, and helpful feedback mechanisms for optimal user experience.
+
+**Performance Optimization**: Optimized rendering, lazy loading, and efficient state management for fast and responsive user interface.
+
+**Cross-Browser Compatibility**: Consistent functionality across all modern browsers with graceful degradation for older browsers.
 
 ### State Management
-- **User Context**: Global user state and authentication
-- **Contract Context**: Contract-related state management
-- **Web3 Context**: Blockchain connection and wallet state
-- **Local State**: Component-specific state using React hooks
-
----
-
-## Backend Architecture
-
-### API Services Structure
-```mermaid
-graph TB
-    subgraph "API Gateway"
-        API[Express Router]
-    end
-    
-    subgraph "Business Logic Services"
-        CS[Contract Service]
-        DS[Dataset Service]
-        US[User Service]
-        NS[Notification Service]
-        IAM_S[Keycloak Service]
-        ORG_S[Organization Service]
-    end
-    
-    subgraph "Enterprise Identity Services"
-        DID_WEB_S[DID:web Service]
-        DID_ETHR_S[DID:ethr Service]
-        LDAP_S[LDAP Service]
-        ENTERPRISE_S[Enterprise Auth Service]
-    end
-    
-    subgraph "External Integrations"
-        BC_S[Blockchain Service]
-        WEB_S[Web Server Service]
-    end
-    
-    API --> CS
-    API --> DS
-    API --> US
-    API --> NS
-    API --> IAM_S
-    API --> ORG_S
-    API --> DID_WEB_S
-    API --> DID_ETHR_S
-    API --> LDAP_S
-    API --> ENTERPRISE_S
-    
-    CS --> BC_S
-    US --> DID_WEB_S
-    US --> DID_ETHR_S
-    DID_WEB_S --> WEB_S
-    ENTERPRISE_S --> LDAP_S
-    
-    style API fill:#f3e5f5
-    style CS fill:#e8f5e8
-    style DID_WEB_S fill:#fff3e0
-    style DID_ETHR_S fill:#fff8e1
-    style BC_S fill:#fff3e0
-```
-
-### Service Layer Architecture
-```
-backend/
-├── routes/
-│   ├── auth.js
-│   ├── contracts.js
-│   ├── datasets.js
-│   ├── users.js
-│   ├── did.js
-│   └── notifications.js
-├── services/
-│   ├── contractService.js
-│   ├── datasetService.js
-│   ├── userService.js
-│   ├── notificationService.js
-│   ├── blockchainService.js
-│   ├── didService.js
-│   ├── ***REMOVED-KEYCLOAK_DB_PASSWORD***Service.js
-│   └── organizationService.js
-├── models/
-│   ├── Contract.js
-│   ├── Dataset.js
-│   ├── User.js
-│   ├── Notification.js
-│   └── Organization.js
-├── middleware/
-│   ├── auth.js
-│   ├── validation.js
-│   ├── errorHandler.js
-│   └── rateLimiter.js
-└── utils/
-    ├── constants.js
-    ├── helpers.js
-    └── validation.js
-```
-
-### Authentication Flow
-1. **User Registration**: Wallet connection + DID verification
-2. **IAM Integration**: Keycloak authentication for enterprise users
-3. **JWT Token**: Secure token-based session management
-4. **Role-based Access**: TDP, TDC, CCRP permissions
-5. **Session Management**: Secure session handling with refresh tokens
-
----
-
-## Database Design
-
-### Entity Relationship Diagram
-```mermaid
-erDiagram
-    USERS {
-        int id PK
-        string name
-        string email
-        string wallet_address
-        string did
-        string did_source
-        boolean did_verified
-        string party_type
-        string organization
-        string department
-        string role
-        boolean enterprise_user
-        string organization_domain
-        datetime created_at
-        datetime updated_at
-    }
-    
-    CONTRACTS {
-        int id PK
-        int tdp_id FK
-        int tdc_id FK
-        int ccrp_id FK
-        string contract_hash
-        string status
-        json terms
-        decimal compensation
-        datetime created_at
-        datetime updated_at
-        datetime signed_at
-    }
-    
-    DATASETS {
-        int id PK
-        int tdp_id FK
-        string name
-        string description
-        json metadata
-        string access_level
-        decimal price
-        boolean active
-        datetime created_at
-        datetime updated_at
-    }
-    
-    NOTIFICATIONS {
-        int id PK
-        int user_id FK
-        string type
-        string message
-        json data
-        boolean read
-        datetime created_at
-    }
-    
-    ORGANIZATIONS {
-        int id PK
-        string name
-        string domain
-        string description
-        json settings
-        datetime created_at
-        datetime updated_at
-    }
-    
-    USERS ||--o{ CONTRACTS : "participates_in"
-    USERS ||--o{ DATASETS : "owns"
-    USERS ||--o{ NOTIFICATIONS : "receives"
-    USERS ||--o{ ORGANIZATIONS : "belongs_to"
-```
-
-### Database Schema
-
-#### Users Table
-```sql
-CREATE TABLE users (
-    id SERIAL PRIMARY KEY,
-    name VARCHAR(255) NOT NULL,
-    email VARCHAR(255) UNIQUE NOT NULL,
-    wallet_address VARCHAR(42) UNIQUE NOT NULL,
-    did VARCHAR(255) UNIQUE NOT NULL,
-    did_source VARCHAR(50) DEFAULT 'SYSTEM_GENERATED',
-    did_verified BOOLEAN DEFAULT FALSE,
-    did_verification_method VARCHAR(50),
-    party_type VARCHAR(10) CHECK (party_type IN ('TDP', 'TDC', 'CCRP')),
-    organization VARCHAR(255),
-    phone_number VARCHAR(20),
-    website VARCHAR(255),
-    location VARCHAR(255),
-    description TEXT,
-    public_key TEXT,
-    onboarding_status VARCHAR(50) DEFAULT 'PENDING',
-    profile_completed BOOLEAN DEFAULT FALSE,
-    enterprise_user BOOLEAN DEFAULT FALSE,
-    organization_domain VARCHAR(255),
-    department VARCHAR(100),
-    role VARCHAR(100),
-    employee_id VARCHAR(50),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    last_login_at TIMESTAMP
-);
-```
-
-#### Contracts Table
-```sql
-CREATE TABLE contracts (
-    id SERIAL PRIMARY KEY,
-    tdp_id INTEGER REFERENCES users(id),
-    tdc_id INTEGER REFERENCES users(id),
-    ccrp_id INTEGER REFERENCES users(id),
-    contract_hash VARCHAR(66) UNIQUE,
-    status VARCHAR(20) DEFAULT 'DRAFT',
-    terms JSONB,
-    compensation DECIMAL(18,8),
-    tdp_signed BOOLEAN DEFAULT FALSE,
-    tdc_signed BOOLEAN DEFAULT FALSE,
-    ccrp_signed BOOLEAN DEFAULT FALSE,
-    tdp_signature TEXT,
-    tdc_signature TEXT,
-    ccrp_signature TEXT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    signed_at TIMESTAMP
-);
-```
-
-#### Datasets Table
-```sql
-CREATE TABLE datasets (
-    id SERIAL PRIMARY KEY,
-    tdp_id INTEGER REFERENCES users(id),
-    name VARCHAR(255) NOT NULL,
-    description TEXT,
-    metadata JSONB,
-    access_level VARCHAR(20) DEFAULT 'PUBLIC',
-    price DECIMAL(18,8) DEFAULT 0,
-    active BOOLEAN DEFAULT TRUE,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-```
-
-### Indexing Strategy
-- **Primary Keys**: Auto-incrementing integers
-- **Foreign Keys**: Indexed for join performance
-- **Search Fields**: Full-text search on descriptions
-- **Status Fields**: Indexed for filtering
-- **Timestamps**: Indexed for sorting and date range queries
-
----
-
-## API Documentation
-
-### Base Configuration
-- **Base URL**: `http://localhost:3001/api`
-- **Authentication**: Bearer token in Authorization header
-- **Content-Type**: `application/json`
-- **Rate Limiting**: 100 requests per minute per IP
-
-### Authentication Endpoints
-
-#### Register User
-**POST** `/auth/register`
-
-Register a new user with support for both `did:web` (primary for enterprise) and `did:ethr` (for blockchain operations).
-
-**Request Body:**
-```json
-{
-  "name": "John Doe",
-  "email": "john@example.com",
-  "partyType": "TDP",
-  "walletAddress": "0x1234567890abcdef...",
-  "publicKey": "0xabcdef123456...",
-  "description": "Optional description",
-  "organization": "Company Name",
-  "phoneNumber": "+1234567890",
-  "website": "https://example.com",
-  "location": "New York, USA",
-  "existingDID": "did:web:company.com:user:john.doe",
-  "didVerificationSignature": "0xsignature...",
-  "enterpriseUser": false,
-  "organizationDomain": "company.com",
-  "department": "Engineering",
-  "role": "Developer",
-  "employeeId": "EMP001"
-}
-```
-
-**Response:**
-```json
-{
-  "success": true,
-  "message": "User registered successfully",
-  "user": {
-    "id": 1,
-    "name": "John Doe",
-    "email": "john@example.com",
-    "partyType": "TDP",
-    "walletAddress": "0x1234567890abcdef...",
-    "did": "did:web:company.com:user:john.doe",
-    "didSource": "USER_PROVIDED",
-    "didVerified": true,
-    "didVerificationMethod": "web_resolution",
-    "onboardingStatus": "COMPLETED",
-    "profileCompleted": true,
-    "enterpriseUser": true,
-    "organizationDomain": "company.com",
-    "department": "Engineering",
-    "role": "Developer",
-    "employeeId": "EMP001",
-    "createdAt": "2024-12-01T10:00:00.000Z"
-  }
-}
-```
-
-#### Login User
-**POST** `/auth/login`
-
-**Request Body:**
-```json
-{
-  "walletAddress": "0x1234567890abcdef...",
-  "signature": "0xsignature...",
-  "message": "Login message to sign"
-}
-```
-
-**Response:**
-```json
-{
-  "success": true,
-  "message": "Login successful",
-  "token": "jwt_token_here",
-  "user": {
-    "id": 1,
-    "name": "John Doe",
-    "email": "john@example.com",
-    "partyType": "TDP",
-    "walletAddress": "0x1234567890abcdef...",
-    "did": "did:web:company.com:user:john.doe",
-    "didSource": "USER_PROVIDED",
-    "didVerified": true,
-    "onboardingStatus": "COMPLETED",
-    "enterpriseUser": true,
-    "organizationDomain": "company.com"
-  }
-}
-```
-
-### User Management Endpoints
-
-#### Get User Profile
-**GET** `/users/profile`
-
-**Headers:** `Authorization: Bearer <token>`
-
-**Response:**
-```json
-{
-  "success": true,
-  "user": {
-    "id": 1,
-    "name": "John Doe",
-    "email": "john@example.com",
-    "partyType": "TDP",
-    "walletAddress": "0x1234567890abcdef...",
-    "publicKey": "0xabcdef123456...",
-    "did": "did:web:company.com:user:john.doe",
-    "didSource": "USER_PROVIDED",
-    "didVerified": true,
-    "didVerificationMethod": "web_resolution",
-    "onboardingStatus": "COMPLETED",
-    "profileCompleted": true,
-    "organization": "Company Name",
-    "phoneNumber": "+1234567890",
-    "website": "https://example.com",
-    "location": "New York, USA",
-    "enterpriseUser": true,
-    "organizationDomain": "company.com",
-    "department": "Engineering",
-    "role": "Developer",
-    "employeeId": "EMP001",
-    "createdAt": "2024-12-01T10:00:00.000Z",
-    "lastLoginAt": "2024-12-01T15:30:00.000Z"
-  }
-}
-```
-
-#### Update User Profile
-**PUT** `/users/profile`
-
-**Headers:** `Authorization: Bearer <token>`
-
-**Request Body:**
-```json
-{
-  "name": "John Doe Updated",
-  "description": "Updated description",
-  "organization": "Updated Company",
-  "phoneNumber": "+1234567890",
-  "website": "https://updated-example.com",
-  "location": "San Francisco, USA",
-  "department": "Product",
-  "role": "Senior Developer"
-}
-```
-
-#### Get All Users
-**GET** `/users`
-
-**Headers:** `Authorization: Bearer <token>`
-
-**Query Parameters:**
-- `enterpriseUser` (boolean): Filter by enterprise users
-- `organizationDomain` (string): Filter by organization domain
-- `department` (string): Filter by department
-- `role` (string): Filter by role
-
-### Contract Management Endpoints
-
-#### Create Contract
-**POST** `/contracts`
-
-**Headers:** `Authorization: Bearer <token>`
-
-**Request Body:**
-```json
-{
-  "tdpId": 1,
-  "ccrpId": 2,
-  "datasets": [1, 2, 3],
-  "terms": {
-    "duration": "12 months",
-    "usage": "AI training only",
-    "restrictions": ["No redistribution", "No commercial use"]
-  },
-  "compensation": "1000.00"
-}
-```
-
-#### Get Contracts
-**GET** `/contracts`
-
-**Headers:** `Authorization: Bearer <token>`
-
-**Query Parameters:**
-- `status` (string): Filter by contract status
-- `partyType` (string): Filter by user's party type
-- `limit` (number): Number of results (default: 10)
-- `offset` (number): Pagination offset (default: 0)
-
-#### Sign Contract
-**POST** `/contracts/:id/sign`
-
-**Headers:** `Authorization: Bearer <token>`
-
-**Request Body:**
-```json
-{
-  "signature": "0xsignature...",
-  "message": "Contract signing message"
-}
-```
-
-### Dataset Management Endpoints
-
-#### Create Dataset
-**POST** `/datasets`
-
-**Headers:** `Authorization: Bearer <token>`
-
-**Request Body:**
-```json
-{
-  "name": "AI Training Dataset",
-  "description": "High-quality dataset for AI training",
-  "metadata": {
-    "size": "1GB",
-    "format": "JSON",
-    "license": "MIT",
-    "tags": ["AI", "training", "machine-learning"]
-  },
-  "accessLevel": "PUBLIC",
-  "price": "100.00"
-}
-```
-
-#### Get Datasets
-**GET** `/datasets`
-
-**Headers:** `Authorization: Bearer <token>`
-
-**Query Parameters:**
-- `tdpId` (number): Filter by TDP
-- `accessLevel` (string): Filter by access level
-- `active` (boolean): Filter by active status
-- `search` (string): Search in name and description
-
-### DID Management Endpoints
-
-#### Verify DID
-**POST** `/did/verify`
-
-**Headers:** `Authorization: Bearer <token>`
-
-**Request Body:**
-```json
-{
-  "did": "did:web:company.com:user:john.doe",
-  "signature": "0xsignature...",
-  "message": "DID verification message"
-}
-```
-
-#### Resolve DID
-**GET** `/did/resolve/:did`
-
-**Response:**
-```json
-{
-  "success": true,
-  "didDocument": {
-    "@context": ["https://www.w3.org/ns/did/v1"],
-    "id": "did:web:company.com:user:john.doe",
-    "verificationMethod": [...],
-    "authentication": [...],
-    "service": [...]
-  }
-}
-```
-
-### Error Handling
-
-#### Standard Error Response
-```json
-{
-  "success": false,
-  "error": {
-    "code": "VALIDATION_ERROR",
-    "message": "Invalid input parameters",
-    "details": {
-      "field": "email",
-      "issue": "Email format is invalid"
-    }
-  }
-}
-```
-
-#### Error Codes
-- `AUTHENTICATION_ERROR`: Invalid or missing authentication
-- `AUTHORIZATION_ERROR`: Insufficient permissions
-- `VALIDATION_ERROR`: Invalid input parameters
-- `NOT_FOUND`: Resource not found
-- `CONFLICT`: Resource conflict (e.g., duplicate DID)
-- `BLOCKCHAIN_ERROR`: Blockchain operation failed
-- `DID_RESOLUTION_ERROR`: DID resolution failed
-- `INTERNAL_ERROR`: Server internal error
-
----
-
-## Smart Contract Architecture
-
-### Contract Structure
-```solidity
-// SPDX-License-Identifier: MIT
-pragma solidity ^0.8.0;
-
-contract ContractManager {
-    struct Contract {
-        uint256 id;
-        address tdp;
-        address tdc;
-        address ccrp;
-        string contractHash;
-        ContractStatus status;
-        uint256 compensation;
-        uint256 createdAt;
-        uint256 signedAt;
-        mapping(address => bool) signatures;
-    }
-    
-    enum ContractStatus {
-        DRAFT,
-        PENDING_TDP,
-        PENDING_CCRP,
-        PENDING_SIGNATURES,
-        ACTIVE,
-        COMPLETED,
-        CANCELLED
-    }
-    
-    mapping(uint256 => Contract) public contracts;
-    uint256 public contractCount;
-    
-    event ContractCreated(uint256 indexed contractId, address indexed tdc);
-    event ContractSigned(uint256 indexed contractId, address indexed signer);
-    event ContractStatusChanged(uint256 indexed contractId, ContractStatus status);
-}
-```
-
-### Key Functions
-
-#### Create Contract
-```solidity
-function createContract(
-    address _tdp,
-    address _ccrp,
-    uint256 _compensation
-) external returns (uint256) {
-    require(_tdp != address(0), "Invalid TDP address");
-    require(_ccrp != address(0), "Invalid CCRP address");
-    require(_compensation > 0, "Compensation must be positive");
-    
-    contractCount++;
-    Contract storage newContract = contracts[contractCount];
-    
-    newContract.id = contractCount;
-    newContract.tdp = _tdp;
-    newContract.tdc = msg.sender;
-    newContract.ccrp = _ccrp;
-    newContract.compensation = _compensation;
-    newContract.status = ContractStatus.DRAFT;
-    newContract.createdAt = block.timestamp;
-    
-    emit ContractCreated(contractCount, msg.sender);
-    return contractCount;
-}
-```
-
-#### Sign Contract
-```solidity
-function signContract(uint256 _contractId) external {
-    Contract storage contract = contracts[_contractId];
-    require(contract.id != 0, "Contract does not exist");
-    require(!contract.signatures[msg.sender], "Already signed");
-    
-    // Verify signer is authorized
-    require(
-        msg.sender == contract.tdp ||
-        msg.sender == contract.tdc ||
-        msg.sender == contract.ccrp,
-        "Not authorized to sign"
-    );
-    
-    contract.signatures[msg.sender] = true;
-    
-    // Check if all parties have signed
-    if (contract.signatures[contract.tdp] &&
-        contract.signatures[contract.tdc] &&
-        contract.signatures[contract.ccrp]) {
-        contract.status = ContractStatus.ACTIVE;
-        contract.signedAt = block.timestamp;
-        emit ContractStatusChanged(_contractId, ContractStatus.ACTIVE);
-    }
-    
-    emit ContractSigned(_contractId, msg.sender);
-}
-```
-
-### Gas Optimization
-- **Batch Operations**: Group multiple operations
-- **Storage Optimization**: Use packed structs
-- **Event Optimization**: Minimize event data
-- **Function Optimization**: Reduce storage reads/writes
-
----
+
+Comprehensive state management ensures efficient data flow and user experience:
+
+**Global State**: React Context for application-wide state including user authentication, theme preferences, and global settings.
+
+**Local State**: Component-specific state for UI interactions, form data, and temporary information with proper lifecycle management.
+
+**API Integration**: Efficient API integration with proper error handling, loading states, and optimistic updates for better user experience.
+
+**Data Caching**: Intelligent caching strategies for frequently accessed data with proper invalidation and update mechanisms.
+
+**Real-time Updates**: WebSocket integration for real-time updates and notifications with proper connection management and error handling.
+
+### Integration with Backend
+
+Seamless integration with backend APIs ensures reliable data flow and user experience:
+
+**API Client Configuration**: Configured HTTP client with interceptors for authentication, error handling, and request/response processing.
+
+**Authentication Integration**: Seamless integration with authentication systems including token management and session handling.
+
+**Error Handling**: Comprehensive error handling with user-friendly error messages and appropriate fallback mechanisms.
+
+**Loading States**: Proper loading states and progress indicators for better user experience during data fetching and processing.
+
+**Optimistic Updates**: Optimistic UI updates for immediate user feedback with proper error handling and rollback mechanisms.
+
+## Blockchain Integration
+
+### Smart Contract Architecture
+
+Smart contracts are designed for security, efficiency, and maintainability:
+
+**Contract Design**: Modular contract design with clear separation of concerns and reusable components for maintainability and security.
+
+**Security Features**: Comprehensive security measures including access controls, input validation, and protection against common vulnerabilities.
+
+**Gas Optimization**: Efficient gas usage through optimized data structures, batch operations, and minimal storage requirements.
+
+**Upgradeability**: Support for contract upgrades with proper versioning and migration strategies for long-term maintainability.
+
+**Event System**: Comprehensive event emission for frontend integration and external system monitoring with proper indexing and filtering.
+
+### Contract Lifecycle Management
+
+Smart contracts handle the complete contract lifecycle with immutable audit trails:
+
+**Contract Creation**: Secure contract creation with proper validation, party registration, and initial state setup.
+
+**Multi-Party Signing**: Automated signing process with DID verification and proper authorization checks for all parties.
+
+**Status Tracking**: Real-time status tracking with event emission and frontend integration for transparent contract management.
+
+**Execution Management**: Automated contract execution with proper validation and error handling for reliable operation.
+
+**Audit Trail**: Immutable audit trail for all contract operations with comprehensive event logging and compliance support.
+
+### DID Integration
+
+Decentralized Identifiers provide secure and verifiable identity management:
+
+**DID Resolution**: Efficient DID resolution with caching and fallback mechanisms for reliable identity verification.
+
+**Cryptographic Verification**: Secure cryptographic proof validation using industry-standard algorithms and verification methods.
+
+**Identity Management**: Comprehensive identity management with proper key management and revocation procedures.
+
+**Cross-Chain Support**: Support for multiple blockchain networks and DID methods for flexible deployment and integration.
+
+**Privacy Protection**: Privacy-preserving identity verification with minimal data disclosure and user control over information sharing.
+
+### Gas Management
+
+Efficient gas management ensures cost-effective blockchain operations:
+
+**Gas Estimation**: Accurate gas estimation for transactions with proper buffer allocation and error handling.
+
+**Transaction Optimization**: Optimized transaction design with batch operations and minimal data transfer for cost efficiency.
+
+**Network Selection**: Intelligent network selection based on gas prices and transaction requirements for optimal cost management.
+
+**Error Handling**: Comprehensive error handling for gas-related issues with proper retry mechanisms and user feedback.
+
+**Cost Monitoring**: Real-time cost monitoring and reporting for transparent fee management and budget control.
 
 ## Security Architecture
 
-### Authentication & Authorization
-- **Multi-factor Authentication**: IAM-based MFA support
-- **JWT Tokens**: Secure token-based authentication
-- **Role-based Access Control**: TDP, TDC, CCRP permissions
-- **Session Management**: Secure session handling
-- **Rate Limiting**: API rate limiting protection
+### Authentication and Authorization
 
-### Data Security
-- **Encryption at Rest**: Database encryption
-- **Encryption in Transit**: TLS/SSL for all communications
-- **Input Validation**: Comprehensive input sanitization
-- **SQL Injection Protection**: Parameterized queries
-- **XSS Protection**: Content Security Policy headers
+Comprehensive authentication and authorization ensure secure system access:
 
-### Blockchain Security
-- **Private Key Management**: Secure key storage
-- **Signature Verification**: Cryptographic verification
-- **Replay Attack Protection**: Nonce-based protection
-- **Access Control**: Contract-level permissions
+**Multi-Factor Authentication**: Support for multiple authentication factors including SMS, email, and authenticator apps for enhanced security.
 
-### DID Security
-- **Ownership Verification**: Cryptographic proof
-- **Document Validation**: DID document verification
-- **Key Rotation**: Secure key management
-- **Delegation Control**: Controlled DID delegation
+**Role-Based Access Control**: Granular access control based on user roles and permissions with dynamic permission evaluation.
 
----
+**Session Management**: Secure session management with proper timeout controls, session invalidation, and multi-device support.
 
-## Performance Considerations
+**Token Security**: Secure token handling with proper encryption, validation, and refresh mechanisms for continuous security.
 
-### Database Optimization
-- **Indexing Strategy**: Optimized indexes for queries
-- **Query Optimization**: Efficient SQL queries
-- **Connection Pooling**: Database connection management
-- **Caching**: Redis caching for frequently accessed data
+**Audit Logging**: Comprehensive audit logging of all authentication and authorization events for security monitoring and compliance.
 
-### API Performance
-- **Response Caching**: HTTP caching headers
-- **Pagination**: Efficient pagination for large datasets
-- **Compression**: Gzip compression for responses
-- **CDN Integration**: Content delivery network
+### Data Protection
 
-### Blockchain Performance
-- **Gas Optimization**: Efficient smart contract design
-- **Batch Processing**: Group blockchain operations
-- **Off-chain Processing**: Minimize on-chain operations
-- **Network Selection**: Choose appropriate networks
+Comprehensive data protection measures ensure user privacy and regulatory compliance:
 
-### Frontend Performance
-- **Code Splitting**: Lazy loading of components
-- **Bundle Optimization**: Webpack optimization
-- **Image Optimization**: Compressed images
-- **Caching Strategy**: Browser caching
+**Data Encryption**: Encryption of sensitive data both at rest and in transit using industry-standard algorithms and protocols.
 
----
+**Access Controls**: Fine-grained access controls for data access with proper authorization and audit logging.
 
-## Monitoring and Logging
+**Data Minimization**: Implementation of data minimization principles with proper retention policies and secure deletion procedures.
+
+**Privacy Compliance**: Compliance with data protection regulations including DPDP Act 2023 with proper consent management and user rights.
+
+**Breach Management**: Comprehensive breach detection and response procedures with proper notification and mitigation strategies.
+
+### Network Security
+
+Network security measures protect against various threats and ensure secure communication:
+
+**Transport Layer Security**: TLS/SSL encryption for all network communications with proper certificate management and validation.
+
+**Firewall Configuration**: Proper firewall configuration with network segmentation and access controls for threat prevention.
+
+**Intrusion Detection**: Intrusion detection and prevention systems with real-time monitoring and automated response capabilities.
+
+**DDoS Protection**: Protection against distributed denial of service attacks with traffic filtering and rate limiting mechanisms.
+
+**Security Monitoring**: Continuous security monitoring with threat detection, alerting, and incident response procedures.
+
+## Performance Architecture
+
+### Database Performance
+
+Database optimization ensures efficient data access and system performance:
+
+**Query Optimization**: Optimized database queries with proper indexing, query planning, and performance monitoring.
+
+**Connection Pooling**: Efficient connection pooling with proper resource management and connection lifecycle handling.
+
+**Caching Strategy**: Multi-level caching strategy including application-level and database-level caching for improved performance.
+
+**Partitioning**: Database partitioning for large tables with proper partition management and query optimization.
+
+**Backup and Recovery**: Efficient backup and recovery procedures with minimal impact on system performance and data protection.
+
+### Application Performance
+
+Application performance optimization ensures responsive user experience:
+
+**Code Optimization**: Optimized application code with efficient algorithms, data structures, and resource management.
+
+**Caching Implementation**: Comprehensive caching implementation at multiple levels for improved response times and reduced resource usage.
+
+**Load Balancing**: Load balancing across multiple application instances with proper health checking and failover mechanisms.
+
+**Resource Management**: Efficient resource management including memory, CPU, and network resources for optimal performance.
+
+**Performance Monitoring**: Real-time performance monitoring with metrics collection, alerting, and optimization recommendations.
+
+### Scalability Design
+
+Scalable architecture design ensures system growth and performance under load:
+
+**Horizontal Scaling**: Horizontal scaling capabilities with proper load balancing and resource distribution across multiple instances.
+
+**Vertical Scaling**: Vertical scaling support with resource allocation and performance optimization for increased capacity.
+
+**Microservices Architecture**: Microservices-based architecture with proper service boundaries and communication patterns.
+
+**Database Scaling**: Database scaling strategies including read replicas, sharding, and distributed database architectures.
+
+**Cloud Integration**: Cloud-native design with proper resource management and auto-scaling capabilities for flexible deployment.
+
+## Monitoring and Observability
 
 ### Application Monitoring
-- **Health Checks**: API health monitoring
-- **Performance Metrics**: Response time tracking
-- **Error Tracking**: Error rate monitoring
-- **User Analytics**: Usage analytics
 
-### Blockchain Monitoring
-- **Transaction Monitoring**: Transaction status tracking
-- **Gas Usage**: Gas consumption monitoring
-- **Network Status**: Blockchain network health
-- **Contract Events**: Smart contract event monitoring
+Comprehensive application monitoring provides visibility into system health and performance:
 
-### Security Monitoring
-- **Access Logs**: Authentication and authorization logs
-- **Audit Trails**: Complete audit logging
-- **Threat Detection**: Security threat monitoring
-- **Compliance Monitoring**: Regulatory compliance tracking
+**Performance Metrics**: Real-time performance metrics including response times, throughput, and error rates for system health tracking.
 
-### Logging Strategy
-- **Structured Logging**: JSON-formatted logs
-- **Log Levels**: DEBUG, INFO, WARN, ERROR
-- **Log Aggregation**: Centralized log management
-- **Log Retention**: Configurable retention policies
+**Business Metrics**: Business-specific metrics including user activity, contract processing, and revenue tracking for business intelligence.
 
----
+**Error Tracking**: Comprehensive error tracking with detailed error information, stack traces, and impact analysis for debugging.
 
-## Development Guidelines
+**User Experience Monitoring**: User experience monitoring with real user metrics, performance tracking, and usability analysis.
 
-### Code Standards
-- **ESLint**: JavaScript/TypeScript linting
-- **Prettier**: Code formatting
-- **TypeScript**: Type safety for JavaScript
-- **Jest**: Unit and integration testing
+**Alerting System**: Intelligent alerting system with proper thresholds, escalation procedures, and notification mechanisms.
 
-### Git Workflow
-- **Feature Branches**: Branch-based development
-- **Pull Requests**: Code review process
-- **Semantic Versioning**: Version management
-- **Changelog**: Release documentation
+### Infrastructure Monitoring
 
-### Testing Strategy
-- **Unit Tests**: Component and function testing
-- **Integration Tests**: API integration testing
-- **E2E Tests**: End-to-end testing
-- **Security Tests**: Security vulnerability testing
+Infrastructure monitoring ensures reliable system operation and resource management:
 
-### Deployment Pipeline
-- **CI/CD**: Automated deployment pipeline
-- **Environment Management**: Multiple environment support
-- **Rollback Strategy**: Deployment rollback procedures
-- **Monitoring**: Post-deployment monitoring
+**Server Monitoring**: Comprehensive server monitoring including CPU, memory, disk, and network utilization for resource management.
 
----
+**Container Monitoring**: Container monitoring with resource usage, health status, and performance metrics for containerized deployments.
 
-This technical documentation provides a comprehensive overview of the Contract Management System's architecture, implementation details, and technical considerations. For specific implementation details, refer to the individual service files and API documentation. 
+**Network Monitoring**: Network monitoring with bandwidth usage, latency, and connectivity status for network health tracking.
+
+**Database Monitoring**: Database monitoring with query performance, connection status, and resource utilization for database health.
+
+**Security Monitoring**: Security monitoring with threat detection, vulnerability scanning, and incident response for security management.
+
+### Logging and Analytics
+
+Comprehensive logging and analytics provide insights into system behavior and user activity:
+
+**Structured Logging**: Structured logging with consistent formats, proper levels, and comprehensive coverage for analysis and debugging.
+
+**Log Aggregation**: Centralized log aggregation with search, filtering, and analysis capabilities for operational insights.
+
+**Real-time Analytics**: Real-time analytics with streaming data processing and visualization for immediate insights and decision making.
+
+**Historical Analysis**: Historical data analysis with trend identification, pattern recognition, and predictive analytics for planning.
+
+**Compliance Reporting**: Automated compliance reporting with audit trails, data processing records, and regulatory submissions.
+
+## Summary
+
+The Technical Documentation provides comprehensive information about the Contract Management System architecture, components, and implementation details. The documentation covers all aspects of the system including backend architecture, frontend design, blockchain integration, security measures, and performance optimization.
+
+The documentation is designed to serve as a reference for developers, system administrators, and technical stakeholders, providing detailed information about system design, implementation patterns, and operational procedures. The comprehensive coverage ensures successful system development, deployment, and maintenance.
+
+The technical architecture emphasizes security, performance, scalability, and maintainability while providing clear guidance for implementation and operation in enterprise environments. 

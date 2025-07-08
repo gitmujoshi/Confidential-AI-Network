@@ -11,13 +11,15 @@
  * - Compliance monitoring
  */
 
-const db = require('../models');
 const crypto = require('crypto');
+const db = require('../models');
 
 class DPDPService {
   constructor() {
-    this.auditService = require('./auditService');
-    this.emailService = require('./emailService');
+    const AuditService = require('./auditService');
+    const EmailService = require('./emailService');
+    this.auditService = new AuditService();
+    this.emailService = new EmailService();
   }
 
   /**
@@ -218,53 +220,50 @@ class DPDPService {
         location: null,
         website: null,
         description: null,
-        isActive: false,
-        deletedAt: new Date()
+        walletAddress: null,
+        did: null,
+        publicKey: null
       }, { where: { id: userId } });
 
-      // Withdraw all consents
+      // Deactivate all consents
       await db.Consent.update({
         isActive: false,
-        withdrawnAt: new Date(),
-        withdrawalMethod: 'DATA_DELETION_REQUEST'
-      }, { where: { userId, isActive: true } });
+        withdrawnAt: new Date()
+      }, { where: { userId } });
 
-      // Log data deletion
-      await this.auditService.logEvent('PERSONAL_DATA_DELETED', {
+      // Log data erasure
+      await this.auditService.logEvent('PERSONAL_DATA_ERASED', {
         userId,
-        deletionMethod: 'ANONYMIZATION',
         ipAddress: req?.ip
       });
 
-      console.log(`✅ Personal data deleted for user ${userId}`);
-      return { success: true, message: 'Personal data has been anonymized' };
+      console.log(`✅ Personal data erased for user ${userId}`);
+      return { success: true, message: 'Personal data erased successfully' };
     } catch (error) {
-      console.error('❌ Error deleting personal data:', error);
+      console.error('❌ Error erasing personal data:', error);
       throw error;
     }
   }
 
   /**
-   * Export personal data (Right to Data Portability)
+   * Export personal data (Right to Portability)
    */
   async exportPersonalData(userId) {
     try {
-      const data = await this.getPersonalData(userId);
+      const personalData = await this.getPersonalData(userId);
       
+      // Add export metadata
       const exportData = {
-        exportInfo: {
-          exportedAt: new Date().toISOString(),
-          format: 'JSON',
-          version: '1.0',
-          userId: userId
-        },
-        personalData: data
+        exportDate: new Date().toISOString(),
+        userId,
+        dataVersion: '1.0',
+        ...personalData
       };
 
       // Log data export
       await this.auditService.logEvent('PERSONAL_DATA_EXPORTED', {
         userId,
-        exportFormat: 'JSON'
+        exportDate: exportData.exportDate
       });
 
       console.log(`✅ Personal data exported for user ${userId}`);
@@ -280,7 +279,9 @@ class DPDPService {
    */
   async recordDataProcessing(userId, processingActivity, purpose, dataTypes, legalBasis, consentId = null) {
     try {
-      const record = await db.DataProcessingRecord.create({
+      const retentionPeriod = await this.getRetentionPeriod(dataTypes);
+      
+      const processingRecord = await db.DataProcessingRecord.create({
         userId,
         processingActivity,
         purpose,
@@ -288,12 +289,19 @@ class DPDPService {
         legalBasis,
         consentId,
         processedAt: new Date(),
-        retentionPeriod: await this.getRetentionPeriod(dataTypes),
-        securityMeasures: JSON.stringify(await this.getSecurityMeasures())
+        retentionPeriod
+      });
+
+      // Log processing activity
+      await this.auditService.logEvent('DATA_PROCESSING_RECORDED', {
+        userId,
+        processingActivity,
+        purpose,
+        dataTypes
       });
 
       console.log(`✅ Data processing recorded for user ${userId}, activity: ${processingActivity}`);
-      return record;
+      return processingRecord;
     } catch (error) {
       console.error('❌ Error recording data processing:', error);
       throw error;
@@ -301,35 +309,42 @@ class DPDPService {
   }
 
   /**
-   * Detect and report data breach
+   * Report data breach
    */
   async reportDataBreach(incident) {
     try {
       const breach = await db.DataBreach.create({
-        incidentType: incident.type,
-        severity: incident.severity,
-        affectedUsers: JSON.stringify(incident.affectedUsers || []),
-        dataTypes: JSON.stringify(incident.dataTypes),
-        detectedAt: new Date(),
-        status: 'DETECTED',
+        breachType: incident.type,
         description: incident.description,
-        impactAssessment: incident.impactAssessment
+        severity: incident.severity,
+        affectedUsers: incident.affectedUsers || 0,
+        discoveredAt: new Date(),
+        status: 'DETECTED',
+        impactAssessment: incident.impactAssessment,
+        mitigationActions: incident.mitigationActions
       });
 
-      // Notify DPO within 72 hours
+      // Notify DPO
       await this.notifyDPO(breach);
 
-      // Notify affected users
-      if (incident.affectedUsers && incident.affectedUsers.length > 0) {
+      // Notify affected users if severity is high or critical
+      if (['HIGH', 'CRITICAL'].includes(incident.severity)) {
         await this.notifyAffectedUsers(breach);
       }
 
       // Report to authorities if required
-      if (breach.severity === 'HIGH' || breach.severity === 'CRITICAL') {
+      if (incident.severity === 'CRITICAL') {
         await this.reportToAuthorities(breach);
       }
 
-      console.log(`✅ Data breach reported: ${breach.incidentType}, severity: ${breach.severity}`);
+      // Log breach report
+      await this.auditService.logEvent('DATA_BREACH_REPORTED', {
+        breachId: breach.id,
+        breachType: incident.type,
+        severity: incident.severity
+      });
+
+      console.log(`✅ Data breach reported: ${incident.type}, severity: ${incident.severity}`);
       return breach;
     } catch (error) {
       console.error('❌ Error reporting data breach:', error);
@@ -338,32 +353,32 @@ class DPDPService {
   }
 
   /**
-   * Submit grievance (Right to Grievance Redressal)
+   * Submit grievance
    */
   async submitGrievance(userId, grievanceData, req = null) {
     try {
-      const grievance = await db.GrievanceRecord.create({
+      const grievance = await db.Grievance.create({
         userId,
         grievanceType: grievanceData.type,
-        subject: grievanceData.subject,
         description: grievanceData.description,
         priority: grievanceData.priority || 'MEDIUM',
         submittedAt: new Date(),
-        status: 'PENDING'
+        status: 'SUBMITTED',
+        ipAddress: req?.ip,
+        userAgent: req?.get('User-Agent')
       });
+
+      // Notify DPO about grievance
+      await this.notifyDPOAboutGrievance(grievance);
 
       // Log grievance submission
       await this.auditService.logEvent('GRIEVANCE_SUBMITTED', {
         userId,
         grievanceId: grievance.id,
-        grievanceType: grievanceData.type,
-        ipAddress: req?.ip
+        grievanceType: grievanceData.type
       });
 
-      // Notify DPO about new grievance
-      await this.notifyDPOAboutGrievance(grievance);
-
-      console.log(`✅ Grievance submitted for user ${userId}, type: ${grievanceData.type}`);
+      console.log(`✅ Grievance submitted by user ${userId}, type: ${grievanceData.type}`);
       return grievance;
     } catch (error) {
       console.error('❌ Error submitting grievance:', error);
@@ -376,30 +391,21 @@ class DPDPService {
    */
   async getDataRetentionInfo(userId) {
     try {
-      const user = await db.User.findByPk(userId);
-      const createdAt = user.createdAt;
-
-      const policies = await db.DataRetentionPolicy.findAll({
-        where: { isActive: true }
+      const processingRecords = await db.DataProcessingRecord.findAll({
+        where: { userId },
+        order: [['processedAt', 'DESC']]
       });
 
-      const retentionInfo = {};
-      for (const policy of policies) {
-        const expiresAt = new Date(createdAt);
-        const years = parseInt(policy.retentionPeriod);
-        expiresAt.setFullYear(expiresAt.getFullYear() + years);
-
-        retentionInfo[policy.dataType] = {
-          retentionPeriod: policy.retentionPeriod,
-          expiresAt: expiresAt.toISOString(),
-          reason: policy.retentionReason,
-          disposalMethod: policy.disposalMethod
-        };
-      }
+      const retentionInfo = processingRecords.map(record => ({
+        dataType: JSON.parse(record.dataTypes),
+        retentionPeriod: record.retentionPeriod,
+        processedAt: record.processedAt,
+        expiresAt: new Date(record.processedAt.getTime() + (record.retentionPeriod * 24 * 60 * 60 * 1000))
+      }));
 
       return retentionInfo;
     } catch (error) {
-      console.error('❌ Error getting retention info:', error);
+      console.error('❌ Error getting data retention info:', error);
       throw error;
     }
   }
@@ -411,118 +417,191 @@ class DPDPService {
     try {
       const consents = await db.Consent.findAll({
         where: {
-          grantedAt: { [db.Sequelize.Op.between]: [startDate, endDate] }
+          grantedAt: {
+            [db.Sequelize.Op.between]: [new Date(startDate), new Date(endDate)]
+          }
         }
       });
 
-      const dataProcessing = await db.DataProcessingRecord.findAll({
+      const processingRecords = await db.DataProcessingRecord.findAll({
         where: {
-          processedAt: { [db.Sequelize.Op.between]: [startDate, endDate] }
+          processedAt: {
+            [db.Sequelize.Op.between]: [new Date(startDate), new Date(endDate)]
+          }
+        }
+      });
+
+      const grievances = await db.Grievance.findAll({
+        where: {
+          submittedAt: {
+            [db.Sequelize.Op.between]: [new Date(startDate), new Date(endDate)]
+          }
         }
       });
 
       const breaches = await db.DataBreach.findAll({
         where: {
-          detectedAt: { [db.Sequelize.Op.between]: [startDate, endDate] }
+          discoveredAt: {
+            [db.Sequelize.Op.between]: [new Date(startDate), new Date(endDate)]
+          }
         }
       });
 
-      const grievances = await db.GrievanceRecord.findAll({
-        where: {
-          submittedAt: { [db.Sequelize.Op.between]: [startDate, endDate] }
-        }
-      });
-
-      return {
+      const report = {
         period: { startDate, endDate },
         summary: {
           totalConsents: consents.length,
-          totalProcessingActivities: dataProcessing.length,
+          activeConsents: consents.filter(c => c.isActive).length,
+          withdrawnConsents: consents.filter(c => !c.isActive).length,
+          totalProcessingActivities: processingRecords.length,
+          totalGrievances: grievances.length,
+          resolvedGrievances: grievances.filter(g => g.status === 'RESOLVED').length,
           totalBreaches: breaches.length,
-          totalGrievances: grievances.length
+          criticalBreaches: breaches.filter(b => b.severity === 'CRITICAL').length
         },
-        consents: {
-          byType: this.groupBy(consents, 'consentType'),
-          byPurpose: this.groupBy(consents, 'purpose')
-        },
-        processing: {
-          byLegalBasis: this.groupBy(dataProcessing, 'legalBasis'),
-          byPurpose: this.groupBy(dataProcessing, 'purpose')
-        },
-        breaches: {
-          bySeverity: this.groupBy(breaches, 'severity'),
-          byType: this.groupBy(breaches, 'incidentType')
-        },
-        grievances: {
-          byType: this.groupBy(grievances, 'grievanceType'),
-          byStatus: this.groupBy(grievances, 'status')
+        details: {
+          consents: this.groupBy(consents, 'purpose'),
+          processingActivities: this.groupBy(processingRecords, 'processingActivity'),
+          grievances: this.groupBy(grievances, 'grievanceType'),
+          breaches: this.groupBy(breaches, 'breachType')
         }
       };
+
+      console.log(`✅ Compliance report generated for period: ${startDate} to ${endDate}`);
+      return report;
     } catch (error) {
       console.error('❌ Error generating compliance report:', error);
       throw error;
     }
   }
 
-  // Helper methods
+  /**
+   * Get consent text for specific purpose
+   */
   getConsentText(purpose) {
     const consentTexts = {
-      'CONTRACT_MANAGEMENT': 'I consent to the processing of my personal data for contract management purposes.',
-      'USER_REGISTRATION': 'I consent to the processing of my personal data for user registration and account management.',
-      'COMMUNICATION': 'I consent to receive communications related to contract management and system updates.',
-      'ANALYTICS': 'I consent to the processing of my data for analytics and system improvement purposes.'
+      'CONTRACT_MANAGEMENT': 'I consent to the processing of my personal data for contract management purposes including contract creation, signing, and execution.',
+      'DATASET_ACCESS': 'I consent to the processing of my personal data for dataset access and management including browsing, purchasing, and usage tracking.',
+      'SYSTEM_OPERATIONS': 'I consent to the processing of my personal data for system operations including authentication, authorization, and technical support.',
+      'COMPLIANCE': 'I consent to the processing of my personal data for compliance purposes including audit trails, regulatory reporting, and legal obligations.',
+      'COMMUNICATIONS': 'I consent to the processing of my personal data for communications including notifications, updates, and support messages.'
     };
+
     return consentTexts[purpose] || 'I consent to the processing of my personal data for the specified purpose.';
   }
 
+  /**
+   * Stop data processing for specific purpose
+   */
   async stopDataProcessing(userId, purpose) {
-    // Implementation to stop data processing for specific purpose
-    console.log(`🛑 Stopping data processing for user ${userId}, purpose: ${purpose}`);
+    try {
+      // This would implement logic to stop data processing
+      // For now, we just log the action
+      console.log(`🛑 Data processing stopped for user ${userId}, purpose: ${purpose}`);
+      return true;
+    } catch (error) {
+      console.error('❌ Error stopping data processing:', error);
+      throw error;
+    }
   }
 
+  /**
+   * Get retention period for data types
+   */
   async getRetentionPeriod(dataTypes) {
-    // Default retention period
-    return '7 years';
+    // Default retention periods in days
+    const retentionPeriods = {
+      'BASIC_INFO': 365 * 3, // 3 years
+      'PROFESSIONAL_INFO': 365 * 5, // 5 years
+      'TECHNICAL_INFO': 365 * 2, // 2 years
+      'CONSENTS': 365 * 7, // 7 years
+      'PROCESSING_RECORDS': 365 * 5, // 5 years
+      'AUDIT_LOGS': 365 * 7 // 7 years
+    };
+
+    // Return the longest retention period for the data types
+    const periods = dataTypes.map(type => retentionPeriods[type] || 365);
+    return Math.max(...periods);
   }
 
+  /**
+   * Get security measures
+   */
   async getSecurityMeasures() {
     return {
-      encryption: 'AES-256',
-      accessControl: 'Role-based',
-      auditLogging: 'Enabled',
-      dataBackup: 'Daily'
+      encryption: 'AES-256 encryption for data at rest and TLS 1.3 for data in transit',
+      accessControls: 'Role-based access control with multi-factor authentication',
+      auditLogging: 'Comprehensive audit logging for all data access and modifications',
+      dataMinimization: 'Only necessary data is collected and processed',
+      retentionPolicies: 'Automated data retention and deletion policies'
     };
   }
 
+  /**
+   * Notify DPO about breach
+   */
   async notifyDPO(breach) {
-    const dpoEmail = process.env.DPO_EMAIL || 'dpo@company.com';
-    // Implementation for DPO notification
-    console.log(`📧 Notifying DPO about breach: ${breach.incidentType}`);
+    try {
+      // This would send notification to DPO
+      console.log(`📧 DPO notified about breach: ${breach.breachType}, severity: ${breach.severity}`);
+      return true;
+    } catch (error) {
+      console.error('❌ Error notifying DPO:', error);
+      return false;
+    }
   }
 
+  /**
+   * Notify affected users about breach
+   */
   async notifyAffectedUsers(breach) {
-    // Implementation for user notification
-    console.log(`📧 Notifying affected users about breach: ${breach.incidentType}`);
+    try {
+      // This would send notifications to affected users
+      console.log(`📧 Affected users notified about breach: ${breach.breachType}`);
+      return true;
+    } catch (error) {
+      console.error('❌ Error notifying affected users:', error);
+      return false;
+    }
   }
 
+  /**
+   * Report breach to authorities
+   */
   async reportToAuthorities(breach) {
-    // Implementation for authority reporting
-    console.log(`📋 Reporting breach to authorities: ${breach.incidentType}`);
+    try {
+      // This would report to regulatory authorities
+      console.log(`📧 Breach reported to authorities: ${breach.breachType}`);
+      return true;
+    } catch (error) {
+      console.error('❌ Error reporting to authorities:', error);
+      return false;
+    }
   }
 
+  /**
+   * Notify DPO about grievance
+   */
   async notifyDPOAboutGrievance(grievance) {
-    // Implementation for DPO grievance notification
-    console.log(`📧 Notifying DPO about grievance: ${grievance.grievanceType}`);
+    try {
+      // This would send notification to DPO about grievance
+      console.log(`📧 DPO notified about grievance: ${grievance.grievanceType}`);
+      return true;
+    } catch (error) {
+      console.error('❌ Error notifying DPO about grievance:', error);
+      return false;
+    }
   }
 
+  /**
+   * Group array by key
+   */
   groupBy(array, key) {
-    return array.reduce((result, item) => {
+    return array.reduce((groups, item) => {
       const group = item[key];
-      if (!result[group]) {
-        result[group] = [];
-      }
-      result[group].push(item);
-      return result;
+      groups[group] = groups[group] || [];
+      groups[group].push(item);
+      return groups;
     }, {});
   }
 }

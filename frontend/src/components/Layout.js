@@ -41,9 +41,8 @@ const drawerWidth = 240;
 const Layout = ({ children }) => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { user, setUser } = useUser();
+  const { currentUser: user, setUser } = useUser();
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [anchorEl, setAnchorEl] = useState(null);
 
   // Fetch notifications
   const { data: notifications = [] } = useQuery(
@@ -58,14 +57,6 @@ const Layout = ({ children }) => {
     setMobileOpen(!mobileOpen);
   };
 
-  const handleProfileMenuOpen = (event) => {
-    setAnchorEl(event.currentTarget);
-  };
-
-  const handleProfileMenuClose = () => {
-    setAnchorEl(null);
-  };
-
   const handleLogout = () => {
     localStorage.removeItem('authToken');
     setUser(null);
@@ -76,9 +67,10 @@ const Layout = ({ children }) => {
     { text: 'Dashboard', icon: <Dashboard />, path: '/dashboard' },
     { text: 'Datasets', icon: <Storage />, path: '/datasets' },
     { text: 'Contracts', icon: <Description />, path: '/contracts' },
-    { text: 'Users', icon: <People />, path: '/users' },
+    // Only show Users menu for AppAdmin
+    ...(user?.partyType === 'AppAdmin' ? [{ text: 'Users', icon: <People />, path: '/users' }] : []),
     { text: 'Notifications', icon: <Notifications />, path: '/notifications' },
-    { text: 'Enterprise DID', icon: <Business />, path: '/enterprise-did' }
+    { text: 'Enterprise DID', icon: <Business />, path: '/enterprise-did' },
   ];
 
   const getRoleColor = (role) => {
@@ -104,7 +96,10 @@ const Layout = ({ children }) => {
 
       {/* User Profile */}
       {user && (
-        <div className="p-4 border-b border-gray-200">
+        <div 
+          className="p-4 border-b border-gray-200 cursor-pointer hover:bg-gray-50 transition-colors"
+          onClick={() => navigate('/profile')}
+        >
           <div className="flex items-center space-x-3">
             <Avatar className="w-10 h-10 bg-blue-600">
               {user.name?.charAt(0) || 'U'}
@@ -227,7 +222,7 @@ const Layout = ({ children }) => {
 
           {/* User Menu */}
           {user && (
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-3">
               {/* Notifications */}
               <IconButton
                 color="inherit"
@@ -239,40 +234,31 @@ const Layout = ({ children }) => {
                 </Badge>
               </IconButton>
 
-              {/* Profile Menu */}
-              <div>
-                <IconButton
-                  onClick={handleProfileMenuOpen}
-                  className="flex items-center space-x-2"
-                >
-                  <Avatar className="w-8 h-8 bg-blue-600">
-                    {user.name?.charAt(0) || 'U'}
-                  </Avatar>
-                </IconButton>
-                <Menu
-                  anchorEl={anchorEl}
-                  open={Boolean(anchorEl)}
-                  onClose={handleProfileMenuClose}
-                  anchorOrigin={{
-                    vertical: 'bottom',
-                    horizontal: 'right',
-                  }}
-                  transformOrigin={{
-                    vertical: 'top',
-                    horizontal: 'right',
-                  }}
-                >
-                  <MenuItem onClick={handleProfileMenuClose}>
-                    <AccountCircle className="mr-2" />
-                    Profile
-                  </MenuItem>
-                  <Divider />
-                  <MenuItem onClick={handleLogout}>
-                    <Logout className="mr-2" />
-                    Logout
-                  </MenuItem>
-                </Menu>
-              </div>
+              {/* User Avatar */}
+              <IconButton
+                onClick={() => navigate('/profile')}
+                className="hover:bg-gray-100 rounded-full p-1"
+              >
+                <Avatar className="w-8 h-8 bg-blue-600">
+                  {user.name?.charAt(0) || 'U'}
+                </Avatar>
+              </IconButton>
+
+              {/* User Role */}
+              <Chip
+                label={user.partyType}
+                size="small"
+                className={`${getRoleColor(user.partyType)} text-xs`}
+              />
+
+              {/* Logout Button */}
+              <IconButton
+                onClick={handleLogout}
+                className="text-gray-500 hover:text-red-600"
+                title="Logout"
+              >
+                <Logout />
+              </IconButton>
             </div>
           )}
         </Toolbar>

@@ -76,11 +76,11 @@ function CreateContract() {
   // Fetch datasets and users for dropdowns
   const { data: datasetsResponse } = useQuery('datasets', apiService.getDatasets);
   const { data: users = [] } = useQuery('users', apiService.getUsers);
+  const { data: ccrpUsers = [] } = useQuery('ccrp-users', apiService.getCCRPUsers);
   
   // Filter users by role for dropdowns
   const datasets = datasetsResponse?.datasets || [];
   const tdpUsers = users.filter(user => user.partyType === 'TDP');
-  const ccrpUsers = users.filter(user => user.partyType === 'CCRP');
 
   // Contract creation mutation with React Query
   const createContractMutation = useMutation(
@@ -102,7 +102,7 @@ function CreateContract() {
     return (
       <Box sx={{ p: 3 }}>
         <Alert severity="warning">
-          Please connect your wallet to access this page.
+          Please log in to access this page.
         </Alert>
       </Box>
     );
@@ -165,10 +165,6 @@ function CreateContract() {
       toast.error('Please fill in all required fields');
       return;
     }
-    if (!currentUser?.walletAddress) {
-      toast.error('Please connect your wallet');
-      return;
-    }
     
     // Find selected users by ID
     const tdpUser = tdpUsers.find(user => user.id === parseInt(selectedTdp));
@@ -176,14 +172,14 @@ function CreateContract() {
     
     // Prepare contract payload for API
     const contractPayload = {
-      tdpWalletAddress: tdpUser.walletAddress,
+      tdpId: tdpUser.id, // Use user ID instead of wallet address
       datasetId: selectedDataset.datasetId,
       modelId: contractData.modelId,
       price: parseFloat(contractData.price),
       duration: parseInt(contractData.duration),
       termsAndConditions: contractData.termsAndConditions,
-      ccrpWalletAddress: ccrpUser ? ccrpUser.walletAddress : null,
-      tdcWalletAddress: currentUser.walletAddress, // Add TDC wallet address
+      ccrpId: ccrpUser ? ccrpUser.id : null, // Use user ID instead of wallet address
+      tdcId: currentUser.id, // Use current user ID
     };
     
     createContractMutation.mutate(contractPayload);

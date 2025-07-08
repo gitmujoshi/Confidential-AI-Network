@@ -88,6 +88,11 @@ const realApiService = {
   logout: () => api.post('/api/auth/logout'),
   verifyDID: (didData) => api.post('/api/auth/verify-did', didData),
   getAuthDIDInfo: () => api.get('/api/auth/did-info'),
+  forgotPassword: (email) => api.post('/api/auth/forgot-password', { email }),
+  resetPassword: (token, newPassword) => api.post('/api/auth/reset-password', { token, newPassword }),
+  verifyResetToken: (token) => api.get(`/api/auth/verify-reset-token/${token}`),
+  getDevResetToken: (email) => api.get(`/api/auth/dev/reset-token/${email}`),
+  updateProfile: (profileData) => api.put('/api/auth/profile', profileData),
 
   // DID Management
   verifyDIDOwnership: (didData) => api.post('/api/did/verify', didData),
@@ -130,18 +135,46 @@ const realApiService = {
   },
 
   // Contracts
-  getContracts: (userId) => api.get(`/api/contracts/user/${userId}`),
-  getContract: (contractId) => api.get(`/api/contracts/${contractId}`),
-  createContract: (contractData) => api.post('/api/contracts', contractData),
-  getContractSigningData: (contractId) => api.get(`/api/contracts/${contractId}/signing-data`),
-  signContract: (contractId, data) => api.post(`/api/contracts/${contractId}/sign`, data),
-  selectCCRP: (contractId, data) => api.post(`/api/contracts/${contractId}/select-ccrp`, data),
-  completeContract: (contractId, data) => api.post(`/api/contracts/${contractId}/complete`, data),
-  cancelContract: (contractId, data) => api.post(`/api/contracts/${contractId}/cancel`, data),
+  getContracts: async (userId) => {
+    const response = await api.get(`/api/contracts/user/${userId}`);
+    return response.data;
+  },
+  getContract: async (contractId) => {
+    const response = await api.get(`/api/contracts/${contractId}`);
+    return response.data;
+  },
+  createContract: async (contractData) => {
+    const response = await api.post('/api/contracts', contractData);
+    return response.data;
+  },
+  getContractSigningData: async (contractId) => {
+    const response = await api.get(`/api/contracts/${contractId}/signing-data`);
+    return response.data;
+  },
+  signContract: async (contractId, data) => {
+    const response = await api.post(`/api/contracts/${contractId}/sign`, data);
+    return response.data;
+  },
+  selectCCRP: async (contractId, data) => {
+    const response = await api.post(`/api/contracts/${contractId}/select-ccrp`, data);
+    return response.data;
+  },
+  completeContract: async (contractId, data) => {
+    const response = await api.post(`/api/contracts/${contractId}/complete`, data);
+    return response.data;
+  },
+  cancelContract: async (contractId, data) => {
+    const response = await api.post(`/api/contracts/${contractId}/cancel`, data);
+    return response.data;
+  },
 
   // Users
   getUsers: async () => {
     const response = await api.get('/api/users');
+    return response.data;
+  },
+  getCCRPUsers: async () => {
+    const response = await api.get('/api/users/ccrp');
     return response.data;
   },
   getUser: (userId) => api.get(`/api/users/${userId}`),
