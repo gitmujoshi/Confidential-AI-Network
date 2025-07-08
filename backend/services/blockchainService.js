@@ -383,4 +383,4 @@ class BlockchainService {
   }
 }
 
-module.exports = new BlockchainService(); 
+module.exports = BlockchainService; 

@@ -30,6 +30,13 @@ db.Dataset = require('./Dataset')(sequelize, Sequelize);
 db.Contract = require('./Contract')(sequelize, Sequelize);
 db.Notification = require('./Notification')(sequelize, Sequelize);
 
+// Import DPDP-related models
+db.Consent = require('./Consent')(sequelize, Sequelize);
+db.DataProcessingRecord = require('./DataProcessingRecord')(sequelize, Sequelize);
+db.Grievance = require('./Grievance')(sequelize, Sequelize);
+db.DataBreach = require('./DataBreach')(sequelize, Sequelize);
+db.AuditLog = require('./AuditLog')(sequelize, Sequelize);
+
 // Define associations
 db.User.hasMany(db.Dataset, { foreignKey: 'ownerId', as: 'datasets' });
 db.Dataset.belongsTo(db.User, { foreignKey: 'ownerId', as: 'owner' });
@@ -47,5 +54,24 @@ db.Dataset.hasMany(db.Contract, { foreignKey: 'datasetId', as: 'contracts' });
 
 db.User.hasMany(db.Notification, { foreignKey: 'userId', as: 'notifications' });
 db.Notification.belongsTo(db.User, { foreignKey: 'userId', as: 'user' });
+
+// DPDP-related associations
+db.User.hasMany(db.Consent, { foreignKey: 'userId', as: 'consents' });
+db.Consent.belongsTo(db.User, { foreignKey: 'userId', as: 'user' });
+
+db.User.hasMany(db.DataProcessingRecord, { foreignKey: 'userId', as: 'dataProcessingRecords' });
+db.DataProcessingRecord.belongsTo(db.User, { foreignKey: 'userId', as: 'user' });
+
+db.User.hasMany(db.Grievance, { foreignKey: 'userId', as: 'grievances' });
+db.Grievance.belongsTo(db.User, { foreignKey: 'userId', as: 'user' });
+
+db.User.hasMany(db.Grievance, { foreignKey: 'assignedTo', as: 'assignedGrievances' });
+db.Grievance.belongsTo(db.User, { foreignKey: 'assignedTo', as: 'assignedUser' });
+
+db.User.hasMany(db.AuditLog, { foreignKey: 'userId', as: 'auditLogs' });
+db.AuditLog.belongsTo(db.User, { foreignKey: 'userId', as: 'user' });
+
+db.Consent.hasMany(db.DataProcessingRecord, { foreignKey: 'consentId', as: 'dataProcessingRecords' });
+db.DataProcessingRecord.belongsTo(db.Consent, { foreignKey: 'consentId', as: 'consent' });
 
 module.exports = db; 

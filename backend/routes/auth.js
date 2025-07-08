@@ -18,7 +18,8 @@
 
 const express = require('express');
 const router = express.Router();
-const keycloakService = require('../services/keycloakService');
+const KeycloakService = require('../services/keycloakService');
+const keycloakService = new KeycloakService();
 const db = require('../models');
 const { 
   authenticateToken, 
@@ -30,7 +31,8 @@ const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const rateLimit = require('express-rate-limit');
 const { ethers } = require('ethers');
-const didService = require('../services/didService');
+const DIDService = require('../services/didService');
+const didService = new DIDService();
 
 /**
  * POST /api/auth/register
@@ -66,12 +68,12 @@ router.post('/register', authRateLimit, logAuthEvent('REGISTER'), async (req, re
     }
 
     // Validate party type
-    if (!['TDP', 'TDC', 'CCRP'].includes(partyType)) {
+    if (!['TDP', 'TDC', 'CCRP', 'AppAdmin'].includes(partyType)) {
       return res.status(400).json({
         error: 'Invalid party type',
         code: 'INVALID_PARTY_TYPE',
         details: {
-          valid: ['TDP', 'TDC', 'CCRP'],
+          valid: ['TDP', 'TDC', 'CCRP', 'AppAdmin'],
           provided: partyType
         }
       });
@@ -291,8 +293,16 @@ router.post('/register', authRateLimit, logAuthEvent('REGISTER'), async (req, re
         console.log('✅ Database user created successfully');
       } catch (dbError) {
         console.error('❌ Failed to create user in DB:', dbError.message);
-        // Rollback transaction and return error
+        // Rollback transaction and delete orphaned Keycloak user
         await transaction.rollback();
+        if (keycloakResult && keycloakResult.keycloakUserId) {
+          try {
+            await keycloakService.deleteUser(keycloakResult.keycloakUserId);
+            console.log('🧹 Orphaned Keycloak user deleted after DB failure');
+          } catch (deleteError) {
+            console.error('⚠️ Failed to delete orphaned Keycloak user:', deleteError.message);
+          }
+        }
         return res.status(500).json({
           success: false,
           error: 'Failed to create user in database',
@@ -301,7 +311,7 @@ router.post('/register', authRateLimit, logAuthEvent('REGISTER'), async (req, re
             db: false,
             keycloak: keycloakSuccess,
             blockchain: false,
-            note: 'User created in Keycloak but failed in database. Please contact support.'
+            note: 'User created in Keycloak but failed in database. Orphaned Keycloak user has been deleted.'
           },
           message: dbError.message
         });
@@ -501,6 +511,9 @@ router.post('/login', authRateLimit, logAuthEvent('LOGIN'), async (req, res) => 
           email: user.email,
           partyType: user.partyType,
           walletAddress: user.walletAddress,
+          did: user.did,
+          didVerified: user.didVerified,
+          didVerificationMethod: user.didVerificationMethod,
           isRegistered: user.isRegistered,
           onboardingStatus: user.onboardingStatus,
           profileCompleted: user.profileCompleted,
@@ -543,7 +556,11 @@ router.get('/profile', authenticateToken, logAuthEvent('GET_PROFILE'), async (re
         profileCompleted: localUser.profileCompleted,
         emailVerified: localUser.emailVerified,
         registrationDate: localUser.registrationDate,
-        lastLoginAt: localUser.lastLoginAt
+        lastLoginAt: localUser.lastLoginAt,
+        did: localUser.did,
+        didSource: localUser.didSource,
+        didVerified: localUser.didVerified,
+        didVerificationMethod: localUser.didVerificationMethod
       }
     });
 
@@ -646,19 +663,88 @@ router.post('/verify-email', authenticateToken, logAuthEvent('SEND_EMAIL_VERIFIC
       });
     }
 
-    // Send email verification
-    await keycloakService.sendEmailVerification(localUser.iamUserId);
+    // Send email verification (with fallback support)
+    const result = await keycloakService.sendEmailVerification(localUser.iamUserId);
 
     res.json({
-      message: 'Email verification sent successfully',
-      email: localUser.email
+      message: result.message || 'Email verification sent successfully',
+      email: localUser.email,
+      method: result.method || 'keycloak'
     });
 
   } catch (error) {
     console.error('❌ Send email verification error:', error);
     res.status(500).json({ 
       error: 'Failed to send email verification',
-      code: 'EMAIL_VERIFICATION_FAILED'
+      code: 'EMAIL_VERIFICATION_FAILED',
+      details: error.message
+    });
+  }
+});
+
+/**
+ * GET /api/auth/verify-email/:token
+ * Verify email with token
+ */
+router.get('/verify-email/:token', logAuthEvent('VERIFY_EMAIL_TOKEN'), async (req, res) => {
+  try {
+    const { token } = req.params;
+
+    if (!token) {
+      return res.status(400).json({
+        error: 'Verification token is required',
+        code: 'TOKEN_REQUIRED'
+      });
+    }
+
+    // Find user with this verification token
+    const user = await db.User.findOne({
+      where: {
+        emailVerificationToken: token,
+        emailVerificationExpires: {
+          [db.Sequelize.Op.gt]: new Date() // Token not expired
+        }
+      }
+    });
+
+    if (!user) {
+      return res.status(400).json({
+        error: 'Invalid or expired verification token',
+        code: 'INVALID_TOKEN'
+      });
+    }
+
+    // Mark email as verified
+    await user.update({
+      emailVerified: true,
+      emailVerificationToken: null,
+      emailVerificationExpires: null
+    });
+
+    // Create notification
+    await db.Notification.create({
+      userId: user.id,
+      type: 'EMAIL_VERIFIED',
+      title: 'Email Verified',
+      message: `Your email address ${user.email} has been successfully verified.`,
+      isRead: false,
+      metadata: {
+        verificationDate: new Date().toISOString()
+      }
+    });
+
+    res.json({
+      success: true,
+      message: 'Email verified successfully',
+      email: user.email
+    });
+
+  } catch (error) {
+    console.error('❌ Email verification error:', error);
+    res.status(500).json({
+      error: 'Email verification failed',
+      code: 'VERIFICATION_FAILED',
+      details: error.message
     });
   }
 });
@@ -1030,6 +1116,257 @@ router.get('/nonce/:walletAddress', async (req, res) => {
 });
 
 /**
+ * POST /api/auth/forgot-password
+ * Request password reset
+ */
+router.post('/forgot-password', authRateLimit, logAuthEvent('FORGOT_PASSWORD'), async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    if (!email) {
+      return res.status(400).json({
+        error: 'Email is required',
+        code: 'EMAIL_REQUIRED'
+      });
+    }
+
+    // Find user by email
+    const user = await db.User.findOne({
+      where: { email: email.toLowerCase(), isActive: true }
+    });
+
+    if (!user) {
+      // Don't reveal if user exists or not for security
+      return res.json({
+        success: true,
+        message: 'If an account with this email exists, a password reset link has been sent.',
+        email: email.toLowerCase()
+      });
+    }
+
+    // Generate reset token
+    const resetToken = require('crypto').randomBytes(32).toString('hex');
+    const resetTokenExpiry = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
+
+    // Store reset token in database
+    await user.update({
+      passwordResetToken: resetToken,
+      passwordResetExpires: resetTokenExpiry
+    });
+
+    // Try to send reset email via Keycloak first
+    let emailSent = false;
+    if (user.iamUserId) {
+      try {
+        await keycloakService.sendPasswordResetEmail(user.iamUserId);
+        emailSent = true;
+        console.log('✅ Password reset email sent via Keycloak');
+      } catch (keycloakError) {
+        console.warn('⚠️ Failed to send password reset via Keycloak:', keycloakError.message);
+      }
+    }
+
+    // Fallback: Send email via local email service
+    if (!emailSent) {
+      try {
+        const EmailService = require('../services/emailService');
+        const emailService = new EmailService();
+        
+        const resetUrl = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/reset-password?token=${resetToken}`;
+        
+        await emailService.sendPasswordResetEmail({
+          to: user.email,
+          name: user.name,
+          resetUrl: resetUrl,
+          expiryTime: '1 hour'
+        });
+        
+        emailSent = true;
+        console.log('✅ Password reset email sent via local service');
+      } catch (emailError) {
+        console.error('❌ Failed to send password reset email:', emailError.message);
+      }
+    }
+
+    // Create notification
+    await db.Notification.create({
+      userId: user.id,
+      type: 'PASSWORD_RESET_REQUESTED',
+      title: 'Password Reset Requested',
+      message: `A password reset was requested for your account. If you didn't request this, please ignore this notification.`,
+      isRead: false,
+      metadata: {
+        requestTime: new Date().toISOString(),
+        emailSent: emailSent,
+        resetTokenExpiry: resetTokenExpiry.toISOString()
+      }
+    });
+
+    res.json({
+      success: true,
+      message: 'If an account with this email exists, a password reset link has been sent.',
+      email: email.toLowerCase(),
+      note: emailSent ? 'Reset email sent successfully' : 'Reset token generated but email delivery failed'
+    });
+
+  } catch (error) {
+    console.error('❌ Forgot password error:', error);
+    res.status(500).json({
+      error: 'Failed to process password reset request',
+      code: 'PASSWORD_RESET_FAILED',
+      details: error.message
+    });
+  }
+});
+
+/**
+ * POST /api/auth/reset-password
+ * Reset password with token
+ */
+router.post('/reset-password', authRateLimit, logAuthEvent('RESET_PASSWORD'), async (req, res) => {
+  try {
+    const { token, newPassword } = req.body;
+
+    if (!token || !newPassword) {
+      return res.status(400).json({
+        error: 'Token and new password are required',
+        code: 'MISSING_REQUIRED_FIELDS'
+      });
+    }
+
+    // Validate password strength
+    if (newPassword.length < 8) {
+      return res.status(400).json({
+        error: 'Password must be at least 8 characters long',
+        code: 'WEAK_PASSWORD'
+      });
+    }
+
+    // Find user with valid reset token
+    const user = await db.User.findOne({
+      where: {
+        passwordResetToken: token,
+        passwordResetExpires: {
+          [db.Sequelize.Op.gt]: new Date() // Token not expired
+        },
+        isActive: true
+      }
+    });
+
+    if (!user) {
+      return res.status(400).json({
+        error: 'Invalid or expired reset token',
+        code: 'INVALID_RESET_TOKEN'
+      });
+    }
+
+    // Update password in Keycloak if IAM user exists
+    let keycloakUpdated = false;
+    if (user.iamUserId) {
+      try {
+        await keycloakService.updateUserPassword(user.iamUserId, newPassword);
+        keycloakUpdated = true;
+        console.log('✅ Password updated in Keycloak');
+      } catch (keycloakError) {
+        console.error('❌ Failed to update password in Keycloak:', keycloakError.message);
+        // Continue with local update even if Keycloak fails
+      }
+    }
+
+    // Clear reset token and update user
+    await user.update({
+      passwordResetToken: null,
+      passwordResetExpires: null,
+      lastLoginAt: new Date()
+    });
+
+    // Create notification
+    await db.Notification.create({
+      userId: user.id,
+      type: 'PASSWORD_RESET_COMPLETED',
+      title: 'Password Reset Completed',
+      message: `Your password has been successfully reset. If you didn't perform this action, please contact support immediately.`,
+      isRead: false,
+      metadata: {
+        resetTime: new Date().toISOString(),
+        keycloakUpdated: keycloakUpdated
+      }
+    });
+
+    res.json({
+      success: true,
+      message: 'Password reset successfully',
+      note: keycloakUpdated ? 'Password updated in both local system and IAM' : 'Password updated in local system only'
+    });
+
+  } catch (error) {
+    console.error('❌ Reset password error:', error);
+    res.status(500).json({
+      error: 'Failed to reset password',
+      code: 'PASSWORD_RESET_ERROR',
+      details: error.message
+    });
+  }
+});
+
+/**
+ * GET /api/auth/verify-reset-token
+ * Verify if reset token is valid
+ */
+router.get('/verify-reset-token/:token', logAuthEvent('VERIFY_RESET_TOKEN'), async (req, res) => {
+  try {
+    const { token } = req.params;
+
+    if (!token) {
+      return res.status(400).json({
+        error: 'Reset token is required',
+        code: 'TOKEN_REQUIRED'
+      });
+    }
+
+    // Find user with valid reset token
+    const user = await db.User.findOne({
+      where: {
+        passwordResetToken: token,
+        passwordResetExpires: {
+          [db.Sequelize.Op.gt]: new Date() // Token not expired
+        },
+        isActive: true
+      },
+      attributes: ['id', 'email', 'name', 'passwordResetExpires']
+    });
+
+    if (!user) {
+      return res.status(400).json({
+        error: 'Invalid or expired reset token',
+        code: 'INVALID_RESET_TOKEN'
+      });
+    }
+
+    // Calculate time remaining
+    const timeRemaining = Math.max(0, user.passwordResetExpires.getTime() - Date.now());
+    const minutesRemaining = Math.ceil(timeRemaining / (1000 * 60));
+
+    res.json({
+      success: true,
+      valid: true,
+      email: user.email,
+      name: user.name,
+      expiresAt: user.passwordResetExpires,
+      minutesRemaining: minutesRemaining
+    });
+
+  } catch (error) {
+    console.error('❌ Verify reset token error:', error);
+    res.status(500).json({
+      error: 'Failed to verify reset token',
+      code: 'TOKEN_VERIFICATION_ERROR',
+      details: error.message
+    });
+  }
+});
+
+/**
  * Helper function to determine next steps for onboarding
  */
 function getNextSteps(localUser, keycloakStatus) {
@@ -1053,5 +1390,64 @@ function getNextSteps(localUser, keycloakStatus) {
 
   return steps;
 }
+
+/**
+ * DEVELOPMENT ONLY: Get reset token for testing
+ * This endpoint should be removed in production
+ */
+router.get('/dev/reset-token/:email', async (req, res) => {
+  try {
+    // Only allow in development
+    if (process.env.NODE_ENV === 'production') {
+      return res.status(404).json({ error: 'Not found' });
+    }
+
+    const { email } = req.params;
+
+    // Find user with valid reset token
+    const user = await db.User.findOne({
+      where: {
+        email: email.toLowerCase(),
+        passwordResetToken: {
+          [db.Sequelize.Op.ne]: null
+        },
+        passwordResetExpires: {
+          [db.Sequelize.Op.gt]: new Date() // Token not expired
+        },
+        isActive: true
+      },
+      attributes: ['id', 'email', 'passwordResetToken', 'passwordResetExpires'],
+      order: [['updatedAt', 'DESC']]
+    });
+
+    if (!user || !user.passwordResetToken) {
+      return res.status(404).json({
+        error: 'No valid reset token found for this email',
+        note: 'Request a password reset first using /api/auth/forgot-password'
+      });
+    }
+
+    // Calculate time remaining
+    const timeRemaining = Math.max(0, user.passwordResetExpires.getTime() - Date.now());
+    const minutesRemaining = Math.ceil(timeRemaining / (1000 * 60));
+
+    res.json({
+      success: true,
+      token: user.passwordResetToken,
+      email: user.email,
+      expiresAt: user.passwordResetExpires,
+      minutesRemaining: minutesRemaining,
+      note: 'This endpoint is for development testing only'
+    });
+
+  } catch (error) {
+    console.error('❌ Get dev reset token error:', error);
+    res.status(500).json({
+      error: 'Failed to get reset token',
+      code: 'DEV_TOKEN_ERROR',
+      details: error.message
+    });
+  }
+});
 
 module.exports = router; 

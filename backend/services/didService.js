@@ -868,4 +868,4 @@ class DIDService {
   }
 }
 
-module.exports = new DIDService();
+module.exports = DIDService;

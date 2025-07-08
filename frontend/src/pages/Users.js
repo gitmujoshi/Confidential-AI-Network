@@ -33,7 +33,7 @@ import { useQuery, useQueryClient } from 'react-query';
 import { useNavigate } from 'react-router-dom';
 import { apiService } from '../services/api';
 
-const UserCard = ({ user }) => {
+const UserCard = ({ user, onUserClick }) => {
   const getPartyTypeIcon = (partyType) => {
     switch (partyType) {
       case 'TDP':
@@ -61,7 +61,18 @@ const UserCard = ({ user }) => {
   };
 
   return (
-    <Card sx={{ height: '100%' }}>
+    <Card 
+      sx={{ 
+        height: '100%', 
+        cursor: 'pointer',
+        transition: 'all 0.2s ease-in-out',
+        '&:hover': {
+          transform: 'translateY(-2px)',
+          boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+        }
+      }}
+      onClick={() => onUserClick(user)}
+    >
       <CardContent>
         <Box display="flex" alignItems="center" mb={2}>
           <Avatar sx={{ mr: 2, bgcolor: `${getPartyTypeColor(user.partyType)}.main` }}>
@@ -133,6 +144,11 @@ function Users() {
   const ccrpUsers = users.filter(user => user.partyType === 'CCRP');
 
   const navigate = useNavigate();
+
+  const handleUserClick = (user) => {
+    // Navigate to user profile
+    navigate(`/profile/${user.id}`);
+  };
 
   const handleRegistration = () => {
     navigate('/user-registration');
@@ -266,7 +282,7 @@ function Users() {
             </Grid>
             <Grid item xs={12} md={8}>
               <Typography variant="body2" color="textSecondary">
-                Showing {filteredUsers.length} users
+                Showing {filteredUsers.length} users • Click on any user to view their profile
               </Typography>
             </Grid>
           </Grid>
@@ -277,7 +293,7 @@ function Users() {
       <Grid container spacing={3}>
         {filteredUsers.map((user) => (
           <Grid item xs={12} sm={6} md={4} key={user.id}>
-            <UserCard user={user} />
+            <UserCard user={user} onUserClick={handleUserClick} />
           </Grid>
         ))}
       </Grid>
@@ -302,7 +318,16 @@ function Users() {
           <List>
             {users.map((user, index) => (
               <React.Fragment key={user.id}>
-                <ListItem>
+                <ListItem 
+                  button 
+                  onClick={() => handleUserClick(user)}
+                  sx={{
+                    cursor: 'pointer',
+                    '&:hover': {
+                      backgroundColor: 'action.hover',
+                    }
+                  }}
+                >
                   <ListItemAvatar>
                     <Avatar sx={{ bgcolor: `${user.partyType === 'TDP' ? 'primary' : user.partyType === 'TDC' ? 'secondary' : 'success'}.main` }}>
                       {user.partyType === 'TDP' ? <Business /> : user.partyType === 'TDC' ? <Person /> : <Security />}
@@ -336,7 +361,14 @@ function Users() {
                     }
                   />
                   <ListItemSecondaryAction>
-                    <IconButton edge="end" aria-label="view">
+                    <IconButton 
+                      edge="end" 
+                      aria-label="view profile"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleUserClick(user);
+                      }}
+                    >
                       <Visibility />
                     </IconButton>
                   </ListItemSecondaryAction>

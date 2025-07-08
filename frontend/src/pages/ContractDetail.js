@@ -148,7 +148,13 @@ function ContractDetail() {
 
   // Fetch users for CCRP selection
   const { data: users = [] } = useQuery('users', apiService.getUsers);
-  const ccrpUsers = users.filter(user => user.partyType === 'CCRP');
+  const { 
+    data: ccrpUsers = [], 
+    isLoading: ccrpLoading, 
+    error: ccrpError 
+  } = useQuery('ccrp-users', apiService.getCCRPUsers);
+
+
 
   // Mutations
   const signContractMutation = useMutation(
@@ -218,25 +224,74 @@ function ContractDetail() {
 
 
   const handleSignContract = async (partyType) => {
-    if (!currentUser?.walletAddress) {
-      setSignError('Please connect your wallet');
-      return;
-    }
-
     setSigning(true);
     setSignError('');
 
     try {
-      if (!window.ethereum) {
-        setSignError('MetaMask is not installed.');
+      // Check if user has a DID for DID-based signing
+      if (currentUser?.did && currentUser.did.startsWith('did:web:')) {
+        // Use DID-based signing for did:web users
+        await handleDIDBasedSigning(partyType);
+      } else if (currentUser?.walletAddress) {
+        // Use wallet-based signing for users with wallet addresses
+        await handleWalletBasedSigning(partyType);
+      } else {
+        setSignError('No wallet address or DID found for signing. Please connect your wallet or verify your DID.');
         setSigning(false);
         return;
       }
+      
+      toast.success('Contract signed successfully!');
+      queryClient.invalidateQueries(['contract', contractId]);
+    } catch (err) {
+      setSignError('Failed to sign contract: ' + (err?.message || 'Unknown error'));
+    } finally {
+      setSigning(false);
+    }
+  };
+
+  const handleDIDBasedSigning = async (partyType) => {
+    try {
+      console.log('🔐 Using DID-based signing for:', currentUser.did);
+      
+      // Create a message to sign (contract hash)
+      const message = `I, the holder of DID ${currentUser.did}, hereby sign contract ${contractId} as ${partyType} on ${new Date().toISOString()}`;
+      
+      // For did:web, we'll use a simple signature approach
+      // In production, this should use proper DID signing libraries
+      const signature = `DID_SIGNATURE_${currentUser.did}_${Date.now()}_${partyType}`;
+      
+      // Call backend to sign contract with DID
+      await apiService.signContract(contractId, {
+        did: currentUser.did,
+        signature: signature,
+        message: message,
+        partyType: partyType,
+        signatureType: 'DID'
+      });
+      
+      console.log('✅ DID-based signing completed');
+    } catch (error) {
+      console.error('❌ DID-based signing failed:', error);
+      throw error;
+    }
+  };
+
+  const handleWalletBasedSigning = async (partyType) => {
+    try {
+      console.log('🔐 Using wallet-based signing for:', currentUser.walletAddress);
+      
+      if (!window.ethereum) {
+        throw new Error('MetaMask is not installed.');
+      }
+      
       const provider = new ethers.BrowserProvider(window.ethereum);
       const signer = await provider.getSigner();
+      
       // Get transaction data from backend
       const signingDataResponse = await apiService.getContractSigningData(contractId);
       const { signingData } = signingDataResponse;
+      
       // Send transaction
       const tx = await signer.sendTransaction({
         to: signingData.to,
@@ -245,18 +300,19 @@ function ContractDetail() {
         gasLimit: signingData.gasLimit || 100000,
       });
       await tx.wait();
+      
       // Call backend to notify contract signed
       await apiService.signContract(contractId, {
         userWalletAddress: currentUser.walletAddress,
         transactionHash: tx.hash,
-        partyType: partyType
+        partyType: partyType,
+        signatureType: 'WALLET'
       });
-      toast.success('Contract signed successfully!');
-      queryClient.invalidateQueries(['contract', contractId]);
-    } catch (err) {
-      setSignError('Failed to sign contract: ' + (err?.message || 'Unknown error'));
-    } finally {
-      setSigning(false);
+      
+      console.log('✅ Wallet-based signing completed');
+    } catch (error) {
+      console.error('❌ Wallet-based signing failed:', error);
+      throw error;
     }
   };
 
@@ -267,45 +323,10 @@ function ContractDetail() {
     }
     
     try {
-      const ccrpUser = ccrpUsers.find(user => user.id === parseInt(selectedCcrp));
-      
-      // For now, we'll use a hardcoded private key for TDC
-      // In production, this should come from user input or wallet connection
-      // TODO: Get private key from secure storage or user input
-    const privateKey = process.env.REACT_APP_TDC_PRIVATE_KEY || '0x0000000000000000000000000000000000000000000000000000000000000000';
-      
-      // Create wallet from private key
-      const wallet = new ethers.Wallet(privateKey);
-      
-      // Get transaction data for CCRP selection
-      const signingDataResponse = await apiService.getContractSigningData(contractId);
-      const { signingData } = signingDataResponse;
-      
-      // Get current nonce
-      const provider = new ethers.JsonRpcProvider('http://localhost:8545');
-      const nonce = await provider.getTransactionCount(wallet.address);
-      
-      // Create transaction for CCRP selection
-      const transaction = {
-        to: signingData.to,
-        data: signingData.data, // This would need to be updated for CCRP selection
-        gasLimit: signingData.gasLimit,
-        gasPrice: signingData.gasPrice,
-        nonce: nonce
-      };
-      
-      // Sign the transaction locally
-      const signedTransaction = await wallet.signTransaction(transaction);
-      
-      // Send signed transaction to backend
+      // Send simple CCRP selection request
       await selectCcrpMutation.mutateAsync({
-        signedTransaction,
-        ccrpWalletAddress: ccrpUser.walletAddress,
-        userWalletAddress: wallet.address
+        ccrpId: parseInt(selectedCcrp)
       });
-      
-      // Clear wallet from memory
-      wallet = null;
       
     } catch (error) {
       console.error('Error selecting CCRP:', error);
@@ -529,7 +550,7 @@ function ContractDetail() {
               </Typography>
               <Box display="flex" gap={2} flexWrap="wrap">
                 {/* TDP Actions */}
-                {isTDP && contract.tdp?.walletAddress === currentUser?.walletAddress && (
+                {isTDP && (contract.tdp?.walletAddress === currentUser?.walletAddress || contract.tdp?.did === currentUser?.did) && (
                   <>
                     {contract.status === 'PENDING_TDP_APPROVAL' && !contract.tdpSigned && (
                       <Button 
@@ -619,6 +640,7 @@ function ContractDetail() {
           <Typography variant="body2" color="textSecondary" paragraph>
             Choose a Confidential Clean Room Provider for this contract:
           </Typography>
+
           <FormControl fullWidth>
             <InputLabel>CCRP</InputLabel>
             <Select

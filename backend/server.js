@@ -5,7 +5,9 @@ const rateLimit = require('express-rate-limit');
 require('dotenv').config();
 
 const db = require('./models');
-const blockchainService = require('./services/blockchainService');
+const BlockchainService = require('./services/blockchainService');
+const blockchainService = new BlockchainService();
+const { authenticateToken } = require('./middleware/auth');
 
 // Import routes
 const contractsRouter = require('./routes/contracts');
@@ -92,9 +94,7 @@ app.get('/health', (req, res) => {
 // Blockchain status endpoint
 app.get('/api/blockchain/status', async (req, res) => {
   try {
-    const BlockchainService = require('./services/blockchainService');
-    const blockchainInstance = new BlockchainService();
-    const isConnected = await blockchainInstance.isConnected();
+    const isConnected = await blockchainService.isConnected();
     
     res.json({
       connected: isConnected,
@@ -119,37 +119,9 @@ app.use('/api/datasets', datasetsRouter);
 app.use('/api/did', didRouter);
 app.use('/api/dpdp', dpdpRouter);
 
-// Users routes (basic CRUD)
-app.get('/api/users', async (req, res) => {
-  try {
-    const users = await db.User.findAll({
-      attributes: ['id', 'name', 'email', 'partyType', 'walletAddress', 'publicKey', 'description', 'isRegistered', 'registrationDate', 'createdAt'],
-      where: { isActive: true }
-    });
-    res.json(users);
-  } catch (error) {
-    console.error('Error getting users:', error);
-    res.status(500).json({ error: 'Internal server error' });
-  }
-});
-
-app.get('/api/users/:id', async (req, res) => {
-  try {
-    const user = await db.User.findOne({
-      where: { id: req.params.id, isActive: true },
-      attributes: ['id', 'name', 'email', 'partyType', 'walletAddress', 'publicKey', 'description', 'isRegistered']
-    });
-    
-    if (!user) {
-      return res.status(404).json({ error: 'User not found' });
-    }
-    
-    res.json(user);
-  } catch (error) {
-    console.error('Error getting user:', error);
-    res.status(500).json({ error: 'Internal server error' });
-  }
-});
+// Import users router
+const usersRouter = require('./routes/users');
+app.use('/api/users', usersRouter);
 
 // Get user by wallet address
 app.get('/api/users/wallet/:walletAddress', async (req, res) => {
@@ -475,6 +447,119 @@ app.post('/api/blockchain/register-party', async (req, res) => {
     });
   } catch (error) {
     console.error('Error registering party on blockchain:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Update user profile (supports AppAdmin editing other users)
+app.put('/api/users/:id', authenticateToken, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { 
+      name, 
+      organization, 
+      phoneNumber, 
+      website, 
+      location, 
+      description,
+      did,
+      didSource,
+      didVerified,
+      didVerificationMethod,
+      publicKey,
+      isActive,
+      profileCompleted,
+      emailVerified,
+      onboardingStatus
+    } = req.body;
+
+    // Find the user to update
+    const user = await db.User.findOne({
+      where: { id, isActive: true }
+    });
+
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    // Check authorization: Only AppAdmin can update other users, or users can update their own profile
+    const currentUser = req.user.localUser;
+    const isAppAdmin = currentUser.partyType === 'AppAdmin';
+    const isOwnProfile = currentUser.id === parseInt(id);
+
+    if (!isAppAdmin && !isOwnProfile) {
+      return res.status(403).json({ 
+        error: 'Insufficient permissions',
+        code: 'INSUFFICIENT_PERMISSIONS',
+        details: 'Only AppAdmin users can update other users\' profiles'
+      });
+    }
+
+    // Prepare update data based on user permissions
+    const updateData = {
+      name: name || user.name,
+      organization: organization || user.organization,
+      phoneNumber: phoneNumber || user.phoneNumber,
+      website: website || user.website,
+      location: location || user.location,
+      description: description || user.description,
+      profileCompleted: profileCompleted !== undefined ? profileCompleted : user.profileCompleted
+    };
+
+    // Only AppAdmin can update DID information and account status
+    if (isAppAdmin) {
+      if (did !== undefined) updateData.did = did;
+      if (didSource !== undefined) updateData.didSource = didSource;
+      if (didVerified !== undefined) updateData.didVerified = didVerified;
+      if (didVerificationMethod !== undefined) updateData.didVerificationMethod = didVerificationMethod;
+      if (publicKey !== undefined) updateData.publicKey = publicKey;
+      if (isActive !== undefined) updateData.isActive = isActive;
+      if (emailVerified !== undefined) updateData.emailVerified = emailVerified;
+      if (onboardingStatus !== undefined) updateData.onboardingStatus = onboardingStatus;
+    }
+
+    // Update user profile
+    await user.update(updateData);
+
+    // Create notification for profile update
+    await db.Notification.create({
+      userId: user.id,
+      type: 'PROFILE_UPDATED',
+      title: 'Profile Updated',
+      message: `Your profile has been updated successfully.`,
+      isRead: false,
+      metadata: {
+        updateTime: new Date().toISOString(),
+        updatedFields: Object.keys(req.body).filter(key => req.body[key] !== undefined)
+      }
+    });
+
+    res.json({
+      message: 'User profile updated successfully',
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        partyType: user.partyType,
+        organization: user.organization,
+        phoneNumber: user.phoneNumber,
+        website: user.website,
+        location: user.location,
+        description: user.description,
+        did: user.did,
+        didSource: user.didSource,
+        didVerified: user.didVerified,
+        didVerificationMethod: user.didVerificationMethod,
+        publicKey: user.publicKey,
+        isActive: user.isActive,
+        profileCompleted: user.profileCompleted,
+        emailVerified: user.emailVerified,
+        onboardingStatus: user.onboardingStatus
+      }
+    });
+
+  } catch (error) {
+    console.error('Error updating user profile:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });

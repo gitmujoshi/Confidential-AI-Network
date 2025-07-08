@@ -51,9 +51,9 @@ module.exports = (sequelize, Sequelize) => {
       comment: 'Public key for cryptographic operations (hex format, optional for enterprise users)'
     },
     
-    // User role in the system (TDP, TDC, or CCRP)
+    // User role in the system (TDP, TDC, CCRP, or AppAdmin)
     partyType: {
-      type: Sequelize.DataTypes.ENUM('TDP', 'TDC', 'CCRP'),
+      type: Sequelize.DataTypes.ENUM('TDP', 'TDC', 'CCRP', 'AppAdmin'),
       allowNull: false
     },
     
@@ -161,6 +161,20 @@ module.exports = (sequelize, Sequelize) => {
       comment: 'Email verification status from IAM'
     },
     
+    // Email verification token (for fallback verification)
+    emailVerificationToken: {
+      type: Sequelize.DataTypes.STRING,
+      allowNull: true,
+      comment: 'Token for email verification when Keycloak is not available'
+    },
+    
+    // Email verification token expiry
+    emailVerificationExpires: {
+      type: Sequelize.DataTypes.DATE,
+      allowNull: true,
+      comment: 'Expiry date for email verification token'
+    },
+    
     // Last login timestamp
     lastLoginAt: {
       type: Sequelize.DataTypes.DATE,
@@ -191,6 +205,19 @@ module.exports = (sequelize, Sequelize) => {
       type: Sequelize.DataTypes.STRING,
       allowNull: true,
       comment: 'User location/country'
+    },
+    
+    // Password reset fields
+    passwordResetToken: {
+      type: Sequelize.DataTypes.STRING,
+      allowNull: true,
+      comment: 'Token for password reset functionality'
+    },
+    
+    passwordResetExpires: {
+      type: Sequelize.DataTypes.DATE,
+      allowNull: true,
+      comment: 'Expiry date for password reset token'
     }
   }, {
     tableName: 'users',

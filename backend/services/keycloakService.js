@@ -348,6 +348,14 @@ class KeycloakService {
    */
   async sendEmailVerification(keycloakUserId) {
     try {
+      // First, check if Keycloak is available
+      try {
+        await axios.get(`${this.baseURL}/`, { timeout: 3000 });
+      } catch (connectionError) {
+        console.warn('⚠️ Keycloak is not available, using fallback email verification');
+        return this.sendFallbackEmailVerification(keycloakUserId);
+      }
+
       const adminToken = await this.getAdminToken();
       
       await axios.put(
@@ -364,9 +372,73 @@ class KeycloakService {
       console.log(`✅ Email verification sent to user: ${keycloakUserId}`);
       return { success: true };
     } catch (error) {
-      console.error('❌ Failed to send email verification:', error.response?.data || error.message);
-      throw new Error('Failed to send email verification');
+      console.error('❌ Failed to send email verification via Keycloak:', error.response?.data || error.message);
+      console.warn('⚠️ Falling back to local email verification');
+      return this.sendFallbackEmailVerification(keycloakUserId);
     }
+  }
+
+  /**
+   * Fallback email verification when Keycloak is not available
+   */
+  async sendFallbackEmailVerification(keycloakUserId) {
+    try {
+      // Get user from local database
+      const db = require('../models');
+      const user = await db.User.findOne({ where: { iamUserId: keycloakUserId } });
+      
+      if (!user) {
+        throw new Error('User not found in local database');
+      }
+
+      // Use the email service to send verification
+      const EmailService = require('./emailService');
+      const emailService = new EmailService();
+      
+      const verificationToken = this.generateVerificationToken();
+      const verificationUrl = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/verify-email?token=${verificationToken}`;
+      
+      const emailContent = `
+        <h2>Email Verification</h2>
+        <p>Hello ${user.name},</p>
+        <p>Please verify your email address by clicking the link below:</p>
+        <p><a href="${verificationUrl}" style="background-color: #007bff; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">Verify Email</a></p>
+        <p>Or copy and paste this URL into your browser:</p>
+        <p>${verificationUrl}</p>
+        <p>This link will expire in 24 hours.</p>
+        <p>If you didn't create an account, you can safely ignore this email.</p>
+      `;
+
+      await emailService.sendEmail(
+        user.email,
+        'Verify Your Email Address - Contract Management System',
+        emailContent
+      );
+
+      // Store verification token in user attributes (for now, we'll use a simple approach)
+      await user.update({
+        emailVerificationToken: verificationToken,
+        emailVerificationExpires: new Date(Date.now() + 24 * 60 * 60 * 1000) // 24 hours
+      });
+
+      console.log(`✅ Fallback email verification sent to: ${user.email}`);
+      return { 
+        success: true, 
+        method: 'fallback',
+        message: 'Email verification sent via local email service'
+      };
+    } catch (error) {
+      console.error('❌ Fallback email verification failed:', error.message);
+      throw new Error('Failed to send email verification (both Keycloak and fallback failed)');
+    }
+  }
+
+  /**
+   * Generate a verification token
+   */
+  generateVerificationToken() {
+    const crypto = require('crypto');
+    return crypto.randomBytes(32).toString('hex');
   }
 
   /**
@@ -396,6 +468,62 @@ class KeycloakService {
     } catch (error) {
       console.error('❌ Failed to reset password:', error.response?.data || error.message);
       throw new Error('Failed to reset user password');
+    }
+  }
+
+  /**
+   * Update user password (for password reset flow)
+   */
+  async updateUserPassword(keycloakUserId, newPassword) {
+    try {
+      const adminToken = await this.getAdminToken();
+      
+      await axios.put(
+        `${this.baseURL}/admin/realms/${this.realm}/users/${keycloakUserId}/reset-password`,
+        {
+          type: 'password',
+          value: newPassword,
+          temporary: false
+        },
+        {
+          headers: {
+            'Authorization': `Bearer ${adminToken}`,
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+
+      console.log(`✅ Password updated for user: ${keycloakUserId}`);
+      return { success: true };
+    } catch (error) {
+      console.error('❌ Failed to update password:', error.response?.data || error.message);
+      throw new Error('Failed to update user password');
+    }
+  }
+
+  /**
+   * Send password reset email via Keycloak
+   */
+  async sendPasswordResetEmail(keycloakUserId) {
+    try {
+      const adminToken = await this.getAdminToken();
+      
+      await axios.put(
+        `${this.baseURL}/admin/realms/${this.realm}/users/${keycloakUserId}/execute-actions-email`,
+        ['UPDATE_PASSWORD'],
+        {
+          headers: {
+            'Authorization': `Bearer ${adminToken}`,
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+
+      console.log(`✅ Password reset email sent for user: ${keycloakUserId}`);
+      return { success: true };
+    } catch (error) {
+      console.error('❌ Failed to send password reset email:', error.response?.data || error.message);
+      throw new Error('Failed to send password reset email');
     }
   }
 
@@ -564,4 +692,4 @@ class KeycloakService {
   }
 }
 
-module.exports = new KeycloakService(); 
+module.exports = KeycloakService; 
