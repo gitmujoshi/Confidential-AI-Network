@@ -14,6 +14,7 @@
 const KeycloakService = require('../services/***REMOVED-KEYCLOAK_DB_PASSWORD***Service');
 const ***REMOVED-KEYCLOAK_DB_PASSWORD***Service = new KeycloakService();
 const db = require('../models');
+const axios = require('axios');
 
 /**
  * Validate JWT token and extract user information
@@ -30,40 +31,45 @@ const authenticateToken = async (req, res, next) => {
       });
     }
 
-    // Try to validate token with Keycloak first
+    // Try to validate token with Keycloak first (only if Keycloak is properly configured)
     try {
-      const validationResult = await ***REMOVED-KEYCLOAK_DB_PASSWORD***Service.validateToken(token);
+      // Check if Keycloak is available by testing the connection
+      const ***REMOVED-KEYCLOAK_DB_PASSWORD***HealthCheck = await axios.get(`${process.env.KEYCLOAK_URL || 'http://localhost:8080'}/realms/${process.env.KEYCLOAK_REALM || 'contract-management'}/protocol/openid-connect/certs`, { timeout: 2000 });
       
-      if (validationResult.valid) {
-        // Keycloak token is valid
-        const user = await db.User.findOne({
-          where: { 
-            walletAddress: validationResult.user.walletAddress,
-            isActive: true 
-          }
-        });
-
-        if (!user) {
-          return res.status(404).json({ 
-            error: 'User not found in local database',
-            code: 'USER_NOT_FOUND'
+      if (***REMOVED-KEYCLOAK_DB_PASSWORD***HealthCheck.status === 200) {
+        const validationResult = await ***REMOVED-KEYCLOAK_DB_PASSWORD***Service.validateToken(token);
+        
+        if (validationResult.valid) {
+          // Keycloak token is valid
+          const user = await db.User.findOne({
+            where: { 
+              walletAddress: validationResult.user.walletAddress,
+              isActive: true 
+            }
           });
+
+          if (!user) {
+            return res.status(404).json({ 
+              error: 'User not found in local database',
+              code: 'USER_NOT_FOUND'
+            });
+          }
+
+          // Update last login timestamp
+          await user.update({ lastLoginAt: new Date() });
+
+          // Attach user information to request
+          req.user = {
+            ...validationResult.user,
+            localUser: user,
+            token: token
+          };
+
+          return next();
         }
-
-        // Update last login timestamp
-        await user.update({ lastLoginAt: new Date() });
-
-        // Attach user information to request
-        req.user = {
-          ...validationResult.user,
-          localUser: user,
-          token: token
-        };
-
-        return next();
       }
     } catch (***REMOVED-KEYCLOAK_DB_PASSWORD***Error) {
-      console.log('⚠️ Keycloak token validation failed, trying local JWT validation');
+      console.log('⚠️ Keycloak not available or not configured, using local JWT validation only');
     }
 
     // Fallback: Try to validate as local JWT token

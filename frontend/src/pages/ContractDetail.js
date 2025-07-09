@@ -39,6 +39,7 @@ import { ethers } from 'ethers';
 import { apiService } from '../services/api';
 import toast from 'react-hot-toast';
 import { useUser } from '../contexts/UserContext';
+import { signES256, testSigningProcess } from '../utils/es256sign';
 
 const StatusChip = ({ status }) => {
   const getStatusColor = (status) => {
@@ -252,21 +253,30 @@ function ContractDetail() {
 
   const handleDIDBasedSigning = async (partyType) => {
     try {
-      console.log('🔐 Using DID-based signing for:', currentUser.did);
+      console.log('🔐 Using enterprise DID-based signing for:', currentUser.did);
       
-      // Create a message to sign (contract hash)
+      // Create a message to sign
       const message = `I, the holder of DID ${currentUser.did}, hereby sign contract ${contractId} as ${partyType} on ${new Date().toISOString()}`;
       
-      // For did:web, we'll use a simple signature approach
-      // In production, this should use proper DID signing libraries
-      const signature = `DID_SIGNATURE_${currentUser.did}_${Date.now()}_${partyType}`;
+      // Use enterprise signing service instead of prompting for private key
+      console.log('🏢 Using enterprise signing service...');
+      
+      const signingResponse = await apiService.signMessage({
+        message: message,
+        did: currentUser.did
+      });
+      
+      if (!signingResponse.success) {
+        throw new Error('Enterprise signing failed');
+      }
+      
+      console.log('✅ Enterprise signing completed successfully');
       
       // Call backend to sign contract with DID
       await apiService.signContract(contractId, {
         did: currentUser.did,
-        signature: signature,
+        signature: signingResponse.signature,
         message: message,
-        partyType: partyType,
         signatureType: 'DID'
       });
       
@@ -304,8 +314,7 @@ function ContractDetail() {
       // Call backend to notify contract signed
       await apiService.signContract(contractId, {
         userWalletAddress: currentUser.walletAddress,
-        transactionHash: tx.hash,
-        partyType: partyType,
+        signedTransaction: tx.hash,
         signatureType: 'WALLET'
       });
       

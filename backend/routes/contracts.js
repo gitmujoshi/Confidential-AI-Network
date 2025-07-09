@@ -8,31 +8,25 @@ const notificationService = new NotificationService();
 const { authenticateToken } = require('../middleware/auth');
 
 /**
- * Verify DID signature (simplified implementation)
- * In production, this should use proper DID verification libraries
+ * Enhanced DID signature verification using DID service
+ * Supports proper cryptographic verification for did:web, did:key, and did:ethr
  */
 async function verifyDIDSignature(did, message, signature) {
   try {
-    console.log(`🔍 Verifying DID signature for: ${did}`);
+    console.log(`🔐 Verifying DID signature for: ${did}`);
+    console.log(`📝 Message: ${message}`);
+    console.log(`✍️ Signature: ${signature}`);
+
+    const DIDService = require('../services/didService');
+    const didService = new DIDService();
+
+    // Verify the signature using the enhanced DID service
+    const isValid = await didService.verifySignature(did, message, signature);
     
-    // For did:web, we'll do basic validation
-    if (did.startsWith('did:web:')) {
-      // Basic validation - in production, this should verify against the DID document
-      const expectedSignatureFormat = `DID_SIGNATURE_${did}_`;
-      if (signature.startsWith(expectedSignatureFormat)) {
-        console.log('✅ DID signature format is valid');
-        return true;
-      } else {
-        console.log('❌ DID signature format is invalid');
-        return false;
-      }
-    }
-    
-    // For other DID methods, implement proper verification
-    console.log('⚠️ DID method not fully implemented for verification');
-    return true; // For now, accept all signatures
+    console.log(`✅ DID signature verification result: ${isValid}`);
+    return isValid;
   } catch (error) {
-    console.error('❌ DID signature verification error:', error);
+    console.error('❌ Error verifying DID signature:', error);
     return false;
   }
 }
@@ -59,16 +53,30 @@ router.get('/user/:userId', async (req, res) => {
     const { userId } = req.params;
     const { status, limit = 10, offset = 0 } = req.query;
 
-    const whereClause = {
-      [db.Sequelize.Op.or]: [
-        { tdpId: userId },
-        { tdcId: userId },
-        { ccrpId: userId }
-      ]
-    };
+    // Fetch the user to check their role
+    const user = await db.User.findOne({ where: { id: userId } });
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
 
-    if (status) {
-      whereClause.status = status;
+    let whereClause = {};
+    if (user.partyType === 'AppAdmin') {
+      // AppAdmin can view all contracts
+      if (status) {
+        whereClause.status = status;
+      }
+    } else {
+      // Regular users: only contracts where they are a party
+      whereClause = {
+        [db.Sequelize.Op.or]: [
+          { tdpId: userId },
+          { tdcId: userId },
+          { ccrpId: userId }
+        ]
+      };
+      if (status) {
+        whereClause.status = status;
+      }
     }
 
     const contracts = await db.Contract.findAndCountAll({
@@ -434,11 +442,13 @@ router.get('/:contractId/signing-data', async (req, res) => {
  * 
  * Security:
  * - Private keys never transmitted to backend
- * - DID signatures are cryptographically verified
- * - All signatures are recorded on blockchain
- * - Transaction verification on blockchain
+ * - DID signatures are cryptographically verified using multiple algorithms
+ * - Support for did:web, did:key, and did:ethr methods
+ * - Timestamp-based message construction prevents replay attacks
+ * - All signatures are recorded on blockchain with flexible mode support
+ * - Transaction verification on blockchain with graceful fallback
  */
-router.post('/:contractId/sign', async (req, res) => {
+router.post('/:contractId/sign', authenticateToken, async (req, res) => {
   try {
     const { contractId } = req.params;
     const { 
@@ -484,18 +494,21 @@ router.post('/:contractId/sign', async (req, res) => {
       return res.status(404).json({ error: 'Contract not found' });
     }
 
-    let user = null;
+    // Get the authenticated user from the JWT token
+    const authenticatedUser = req.user?.localUser;
+    
+    if (!authenticatedUser) {
+      return res.status(401).json({ error: 'Authentication required' });
+    }
+
+    let user = authenticatedUser;
     let blockchainResult = null;
 
     // Handle different signing types
     if (signatureType === 'WALLET') {
-      // Wallet-based signing
-      user = await db.User.findOne({
-        where: { walletAddress: userWalletAddress }
-      });
-
-      if (!user) {
-        return res.status(404).json({ error: 'User not found' });
+      // For wallet-based signing, verify the wallet address matches the authenticated user
+      if (userWalletAddress && userWalletAddress !== authenticatedUser.walletAddress) {
+        return res.status(403).json({ error: 'Wallet address does not match authenticated user' });
       }
 
       // Broadcast the signed transaction to blockchain
@@ -505,13 +518,9 @@ router.post('/:contractId/sign', async (req, res) => {
         return res.status(500).json({ error: 'Failed to broadcast transaction' });
       }
     } else if (signatureType === 'DID') {
-      // DID-based signing
-      user = await db.User.findOne({
-        where: { did: did }
-      });
-
-      if (!user) {
-        return res.status(404).json({ error: 'User with this DID not found' });
+      // For DID-based signing, verify the DID matches the authenticated user
+      if (did && did !== authenticatedUser.did) {
+        return res.status(403).json({ error: 'DID does not match authenticated user' });
       }
 
       // Verify DID signature (simplified for now)

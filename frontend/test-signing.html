@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ES256 Signing Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .container {
+            background: #f5f5f5;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        .success { color: green; }
+        .error { color: red; }
+        .info { color: blue; }
+        pre {
+            background: #f0f0f0;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        input, textarea {
+            width: 100%;
+            padding: 8px;
+            margin: 5px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <h1>ES256 Signing Test for did:web</h1>
+    
+    <div class="container">
+        <h2>Your DID Information</h2>
+        <p><strong>DID:</strong> did:web:gitmujoshi.github.io</p>
+        <p><strong>Public JWK (from DID document):</strong></p>
+        <pre id="publicJwk">{
+  "kty": "EC",
+  "crv": "P-256",
+  "x": "FFQw_IJcWPr8qZrwq48azt1hVM8JNp3nnJ0367TxUyQ=",
+  "y": "AkPYsoJhbJNqIRGwnUHQN2D3cq4MPtzlVPx8BVuzTAo=",
+  "kid": "120c453f6d39fe0b8dfecceba8b0e7992f9bc650c2bf4001d2e448907b140877",
+  "alg": "ES256"
+}</pre>
+        <p><strong>DID Document URL:</strong> <a href="https://gitmujoshi.github.io/.well-known/did.json" target="_blank">https://gitmujoshi.github.io/.well-known/did.json</a></p>
+    </div>
+
+    <div class="container">
+        <h2>Test ES256 Signing</h2>
+        <p>Paste your private JWK (with "d" field) below:</p>
+        <textarea id="privateJwkInput" rows="10" placeholder='{
+  "kty": "EC",
+  "crv": "P-256",
+  "x": "FFQw_IJcWPr8qZrwq48azt1hVM8JNp3nnJ0367TxUyQ=",
+  "y": "AkPYsoJhbJNqIRGwnUHQN2D3cq4MPtzlVPx8BVuzTAo=",
+  "d": "YOUR_PRIVATE_KEY_D_VALUE",
+  "kid": "120c453f6d39fe0b8dfecceba8b0e7992f9bc650c2bf4001d2e448907b140877",
+  "alg": "ES256"
+}'></textarea>
+        
+        <button onclick="testSigning()">Test Signing Process</button>
+        <button onclick="testContractSigning()">Test Contract Signing</button>
+        
+        <div id="results"></div>
+    </div>
+
+    <div class="container">
+        <h2>Test Message</h2>
+        <input type="text" id="testMessage" value="Test message for ES256 signing" style="width: 100%;">
+        <button onclick="testWithCustomMessage()">Test with Custom Message</button>
+    </div>
+
+    <script type="module">
+        // Import the signing utilities
+        import { signES256, validateSignature, createPublicJwk, testSigningProcess } from './src/utils/es256sign.js';
+
+        window.testSigning = async function() {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = '<p class="info">Testing signing process...</p>';
+            
+            try {
+                const privateJwkString = document.getElementById('privateJwkInput').value;
+                if (!privateJwkString) {
+                    resultsDiv.innerHTML = '<p class="error">Please paste your private JWK first.</p>';
+                    return;
+                }
+
+                const privateJwk = JSON.parse(privateJwkString);
+                const testMessage = document.getElementById('testMessage').value;
+                
+                console.log('🧪 Testing ES256 signing process...');
+                const result = await testSigningProcess(privateJwk, testMessage);
+                
+                if (result.success) {
+                    resultsDiv.innerHTML = `
+                        <p class="success">✅ Signing test PASSED!</p>
+                        <p><strong>Message:</strong> ${testMessage}</p>
+                        <p><strong>Signature:</strong> ${result.signature}</p>
+                        <p><strong>Public JWK:</strong></p>
+                        <pre>${JSON.stringify(result.publicJwk, null, 2)}</pre>
+                    `;
+                } else {
+                    resultsDiv.innerHTML = `
+                        <p class="error">❌ Signing test FAILED!</p>
+                        <p><strong>Error:</strong> ${result.error}</p>
+                    `;
+                }
+            } catch (error) {
+                resultsDiv.innerHTML = `
+                    <p class="error">❌ Error during testing:</p>
+                    <p>${error.message}</p>
+                `;
+            }
+        };
+
+        window.testContractSigning = async function() {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = '<p class="info">Testing contract signing...</p>';
+            
+            try {
+                const privateJwkString = document.getElementById('privateJwkInput').value;
+                if (!privateJwkString) {
+                    resultsDiv.innerHTML = '<p class="error">Please paste your private JWK first.</p>';
+                    return;
+                }
+
+                const privateJwk = JSON.parse(privateJwkString);
+                const contractId = 'CONTRACT-1752057959130';
+                const did = 'did:web:gitmujoshi.github.io';
+                const partyType = 'TDP';
+                
+                const message = `I, the holder of DID ${did}, hereby sign contract ${contractId} as ${partyType} on ${new Date().toISOString()}`;
+                
+                console.log('🔐 Testing contract signing...');
+                const signature = await signES256(message, privateJwk);
+                
+                resultsDiv.innerHTML = `
+                    <p class="success">✅ Contract signing test completed!</p>
+                    <p><strong>Contract ID:</strong> ${contractId}</p>
+                    <p><strong>DID:</strong> ${did}</p>
+                    <p><strong>Party Type:</strong> ${partyType}</p>
+                    <p><strong>Message:</strong> ${message}</p>
+                    <p><strong>Signature:</strong> ${signature}</p>
+                    <p class="info">You can now use this signature in the contract management system.</p>
+                `;
+            } catch (error) {
+                resultsDiv.innerHTML = `
+                    <p class="error">❌ Contract signing test failed:</p>
+                    <p>${error.message}</p>
+                `;
+            }
+        };
+
+        window.testWithCustomMessage = function() {
+            const testMessage = document.getElementById('testMessage').value;
+            console.log('Testing with custom message:', testMessage);
+            testSigning();
+        };
+    </script>
+</body>
+</html> 
