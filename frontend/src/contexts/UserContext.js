@@ -324,6 +324,8 @@ export const UserProvider = ({ children }) => {
         if (error.response?.status === 401 || error.response?.status === 403) {
           console.log('🧹 [UserContext] Clearing invalid/expired token');
           localStorage.removeItem('authToken');
+          localStorage.removeItem('user');
+          localStorage.removeItem('currentUser');
           setCurrentUser(null);
         }
         // Don't set any error state here to prevent brief error display

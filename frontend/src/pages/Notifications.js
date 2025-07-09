@@ -30,6 +30,7 @@ import {
 import { useQuery, useMutation, useQueryClient } from 'react-query';
 import { format } from 'date-fns';
 import { apiService } from '../services/api';
+import { useUser } from '../contexts/UserContext';
 import toast from 'react-hot-toast';
 
 const NotificationItem = ({ notification, onMarkAsRead, onDelete }) => {
@@ -137,11 +138,13 @@ const NotificationItem = ({ notification, onMarkAsRead, onDelete }) => {
 function Notifications() {
   const [filter, setFilter] = useState('all'); // all, unread, read
   const queryClient = useQueryClient();
+  const { currentUser: user } = useUser();
 
-  // Fetch notifications for user ID 1 (demo)
+  // Fetch notifications for current user
   const { data: notificationsResponse } = useQuery(
-    ['notifications', filter],
-    () => apiService.getNotifications(1, { limit: 50 })
+    ['notifications', user?.id, filter],
+    () => user?.id ? apiService.getNotifications(user.id, { limit: 50 }) : Promise.resolve({ notifications: [] }),
+    { enabled: !!user?.id }
   );
 
   const notifications = notificationsResponse?.notifications || [];
@@ -154,10 +157,10 @@ function Notifications() {
 
   // Mark notification as read mutation
   const markAsReadMutation = useMutation(
-    (notificationId) => apiService.markNotificationAsRead(notificationId, { userId: 1 }),
+    (notificationId) => apiService.markNotificationAsRead(notificationId, { userId: user?.id }),
     {
       onSuccess: () => {
-        queryClient.invalidateQueries('notifications');
+        queryClient.invalidateQueries(['notifications', user?.id]);
         toast.success('Notification marked as read');
       },
       onError: () => {

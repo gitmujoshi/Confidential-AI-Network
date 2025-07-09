@@ -51,9 +51,16 @@ api.interceptors.response.use(
     });
     
     if (error.response?.status === 401) {
-      // Handle unauthorized access
+      // Handle unauthorized access - clear token and redirect
+      console.log('🔐 [API] Token expired or invalid, clearing auth token');
       localStorage.removeItem('authToken');
-      window.location.href = '/login';
+      localStorage.removeItem('user');
+      localStorage.removeItem('currentUser');
+      
+      // Only redirect if we're not already on the login page
+      if (!window.location.pathname.includes('/login')) {
+        window.location.href = '/login';
+      }
     }
     return Promise.reject(error);
   }
@@ -193,6 +200,28 @@ const realApiService = {
       });
       throw error;
     }
+  },
+
+  // Enterprise Signing Service
+  signMessage: async (data) => {
+    const response = await api.post('/api/signing/sign', data);
+    return response.data;
+  },
+  getAvailableDIDs: async () => {
+    const response = await api.get('/api/signing/dids');
+    return response.data;
+  },
+  getPublicKey: async (did) => {
+    const response = await api.get(`/api/signing/public-key/${encodeURIComponent(did)}`);
+    return response.data;
+  },
+  validateSigningPermission: async (data) => {
+    const response = await api.post('/api/signing/validate-permission', data);
+    return response.data;
+  },
+  testSigning: async (data) => {
+    const response = await api.post('/api/signing/test', data);
+    return response.data;
   },
   registerUser: (userData) => api.post('/api/users/register', userData),
   updateUserRegistration: (userId, userData) => api.put(`/api/users/${userId}/register`, userData),

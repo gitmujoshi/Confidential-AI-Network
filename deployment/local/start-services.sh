@@ -122,18 +122,18 @@ if [ -f "$PROJECT_ROOT/.keycloak.pid" ]; then
 fi
 
 # Step 2: Start Blockchain (Hardhat)
-# print_status "Step 2: Starting Blockchain (Hardhat)..."
-#if check_port 8545; then
-    #print_warning "Port 8545 is already in use. Skipping Hardhat startup."
-#else
-    # print_status "Starting Hardhat blockchain on port 8545..."
-    # cd ../../blockchain
-    # print_warning "Blockchain disabled for development"
-    # npx hardhat node > ../../logs/hardhat.log 2>&1 &
-    # echo $! > ../../.hardhat.pid
-    # cd ../..
-    # print_success "Hardhat started (PID: $(cat .hardhat.pid))"
-#fi
+print_status "Step 2: Starting Blockchain (Hardhat)..."
+if check_port 8545; then
+    print_warning "Port 8545 is already in use. Skipping Hardhat startup."
+else
+    print_status "Starting Hardhat blockchain on port 8545..."
+    cd ../../blockchain
+    print_warning "Blockchain disabled for development"
+    npx hardhat node > ../../logs/hardhat.log 2>&1 &
+    echo $! > ../../.hardhat.pid
+    cd ../..
+    print_success "Hardhat started (PID: $(cat .hardhat.pid))"
+fi
 
 # Wait for blockchain to be ready
 #if [ -f ".hardhat.pid" ]; then

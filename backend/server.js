@@ -15,6 +15,7 @@ const datasetsRouter = require('./routes/datasets');
 const authRouter = require('./routes/auth');
 const didRouter = require('./routes/did');
 const dpdpRouter = require('./routes/dpdp');
+const signingRouter = require('./routes/signing');
 
 const app = express();
 const PORT = process.env.PORT || 8000;
@@ -118,10 +119,44 @@ app.use('/api/contracts', contractsRouter);
 app.use('/api/datasets', datasetsRouter);
 app.use('/api/did', didRouter);
 app.use('/api/dpdp', dpdpRouter);
+app.use('/api/signing', signingRouter);
 
 // Import users router
 const usersRouter = require('./routes/users');
 app.use('/api/users', usersRouter);
+
+/**
+ * Blockchain Health Check Endpoint
+ * 
+ * Provides comprehensive status information about the blockchain service including:
+ * - Current operating mode (BLOCKCHAIN_ENABLED/DATABASE_ONLY)
+ * - Blockchain availability and connectivity
+ * - Contract address and deployment status
+ * - Last block number and network status
+ * - Service health and error information
+ * 
+ * This endpoint is useful for:
+ * - Monitoring blockchain service status
+ * - Debugging connectivity issues
+ * - Verifying configuration settings
+ * - Health checks and system monitoring
+ * 
+ * @returns {Object} Blockchain service health status
+ * @throws {Error} If health check fails
+ */
+app.get('/api/blockchain/health', async (req, res) => {
+  try {
+    const blockchainService = require('./services/blockchainService');
+    const health = await blockchainService.healthCheck();
+    res.json(health);
+  } catch (error) {
+    console.error('Error checking blockchain health:', error);
+    res.status(500).json({ 
+      error: 'Failed to check blockchain health',
+      details: error.message 
+    });
+  }
+});
 
 // Get user by wallet address
 app.get('/api/users/wallet/:walletAddress', async (req, res) => {

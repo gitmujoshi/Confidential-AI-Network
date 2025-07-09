@@ -16,6 +16,7 @@ import {
   StepLabel,
   Alert,
   Divider,
+  CircularProgress,
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from 'react-query';
@@ -64,7 +65,6 @@ function CreateContract() {
   // Component state
   const [activeStep, setActiveStep] = useState(0);
   const [selectedDataset, setSelectedDataset] = useState(null);
-  const [selectedTdp, setSelectedTdp] = useState('');
   const [selectedCcrp, setSelectedCcrp] = useState('');
   const [contractData, setContractData] = useState({
     modelId: '',
@@ -73,14 +73,33 @@ function CreateContract() {
     termsAndConditions: '',
   });
 
-  // Fetch datasets and users for dropdowns
-  const { data: datasetsResponse } = useQuery('datasets', apiService.getDatasets);
-  const { data: users = [] } = useQuery('users', apiService.getUsers);
+  // Fetch datasets and CCRP users for dropdowns
+  const { data: datasetsResponse, isLoading: datasetsLoading } = useQuery('datasets', apiService.getDatasets);
   const { data: ccrpUsers = [] } = useQuery('ccrp-users', apiService.getCCRPUsers);
   
-  // Filter users by role for dropdowns
+  // Get datasets and extract unique TDP users from dataset owners
   const datasets = datasetsResponse?.datasets || [];
-  const tdpUsers = users.filter(user => user.partyType === 'TDP');
+  
+  // Debug: Log the first dataset's owner when data changes
+  React.useEffect(() => {
+    if (datasets.length > 0) {
+      console.log('📊 First dataset owner in useEffect:', datasets[0].owner);
+      console.log('📊 First dataset owner name:', datasets[0].owner?.name);
+      console.log('📊 Datasets response:', datasetsResponse);
+    }
+  }, [datasets, datasetsResponse]);
+
+  // Debug: Monitor selectedDataset state changes
+  React.useEffect(() => {
+    console.log('🔍 selectedDataset state changed:', selectedDataset);
+    console.log('🔍 selectedDataset owner:', selectedDataset?.owner);
+    console.log('🔍 selectedDataset owner name:', selectedDataset?.owner?.name);
+  }, [selectedDataset]);
+  const tdpUsers = datasets
+    .map(dataset => dataset.owner)
+    .filter((owner, index, self) => 
+      owner && self.findIndex(o => o.id === owner.id) === index
+    );
 
   // Contract creation mutation with React Query
   const createContractMutation = useMutation(
@@ -119,6 +138,21 @@ function CreateContract() {
     );
   }
 
+  // Show loading state while fetching data
+  if (datasetsLoading) {
+    return (
+      <Box sx={{ p: 3 }}>
+        <Typography variant="h4" gutterBottom>
+          Create New Contract
+        </Typography>
+        <CircularProgress />
+        <Typography variant="body1" sx={{ mt: 2 }}>
+          Loading datasets...
+        </Typography>
+      </Box>
+    );
+  }
+
   /**
    * Handle next step in the stepper
    * Validates current step before proceeding
@@ -128,6 +162,18 @@ function CreateContract() {
       toast.error('Please select a dataset');
       return;
     }
+    
+    // Ensure dataset is selected when moving to step 1
+    if (activeStep === 0 && !selectedDataset) {
+      toast.error('Please select a dataset first');
+      return;
+    }
+    
+    if (activeStep === 0 && selectedDataset && !selectedDataset.owner) {
+      toast.error('Could not determine dataset owner. Please try selecting the dataset again.');
+      return;
+    }
+    
     if (activeStep === 1 && !isFormValid()) {
       toast.error('Please fill in all required fields');
       return;
@@ -147,13 +193,27 @@ function CreateContract() {
    * @returns {boolean} True if form is valid
    */
   const isFormValid = () => {
-    return (
+    const isValid = (
       contractData.modelId &&
       contractData.price &&
       contractData.duration &&
       contractData.termsAndConditions &&
-      selectedTdp
+      selectedDataset &&
+      selectedDataset.owner
     );
+    
+    if (!isValid) {
+      console.log('❌ Form validation failed:', {
+        modelId: !!contractData.modelId,
+        price: !!contractData.price,
+        duration: !!contractData.duration,
+        termsAndConditions: !!contractData.termsAndConditions,
+        selectedDataset: !!selectedDataset,
+        datasetOwner: !!selectedDataset?.owner
+      });
+    }
+    
+    return isValid;
   };
 
   /**
@@ -166,13 +226,13 @@ function CreateContract() {
       return;
     }
     
-    // Find selected users by ID
-    const tdpUser = tdpUsers.find(user => user.id === parseInt(selectedTdp));
+    // Use dataset owner as TDP
+    const tdpUser = selectedDataset.owner;
     const ccrpUser = ccrpUsers.find(user => user.id === parseInt(selectedCcrp));
     
     // Prepare contract payload for API
     const contractPayload = {
-      tdpId: tdpUser.id, // Use user ID instead of wallet address
+      tdpId: tdpUser.id, // Use dataset owner ID
       datasetId: selectedDataset.datasetId,
       modelId: contractData.modelId,
       price: parseFloat(contractData.price),
@@ -182,20 +242,24 @@ function CreateContract() {
       tdcId: currentUser.id, // Use current user ID
     };
     
+    console.log('📝 Creating contract with payload:', contractPayload);
     createContractMutation.mutate(contractPayload);
   };
 
   /**
    * Handle dataset selection
-   * Auto-selects the TDP (dataset owner) when dataset is selected
    * @param {Object} dataset - Selected dataset object
    */
   const handleDatasetSelect = (dataset) => {
+    console.log('🔍 Selected dataset:', dataset);
+    console.log('🔍 Dataset owner info:', dataset.owner);
+    
     setSelectedDataset(dataset);
-    // Auto-select the TDP if dataset is selected
-    const datasetOwner = tdpUsers.find(user => user.id === dataset.ownerId);
-    if (datasetOwner) {
-      setSelectedTdp(datasetOwner.id.toString());
+    
+    if (dataset.owner) {
+      console.log('✅ Dataset owner found:', dataset.owner.name, 'for dataset:', dataset.name);
+    } else {
+      console.error('❌ Dataset has no owner information:', dataset);
     }
   };
 
@@ -268,20 +332,13 @@ function CreateContract() {
               </Grid>
               
               <Grid item xs={12} md={6}>
-                <FormControl fullWidth>
-                  <InputLabel>Training Data Provider</InputLabel>
-                  <Select
-                    value={selectedTdp}
-                    label="Training Data Provider"
-                    onChange={(e) => setSelectedTdp(e.target.value)}
-                  >
-                    {tdpUsers.map((user) => (
-                      <MenuItem key={user.id} value={user.id}>
-                        {user.name} - {user.email}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
+                <TextField
+                  fullWidth
+                  label="Training Data Provider"
+                  value={selectedDataset?.owner?.name || ''}
+                  disabled
+                  placeholder="Select a dataset to see the provider"
+                />
               </Grid>
               
               <Grid item xs={12} md={6}>
@@ -407,7 +464,7 @@ function CreateContract() {
                   </Grid>
                   <Grid item xs={12} md={6}>
                     <Typography variant="body2" color="textSecondary">
-                      <strong>TDP:</strong> {tdpUsers.find(u => u.id === parseInt(selectedTdp))?.name}
+                      <strong>TDP:</strong> {selectedDataset?.owner?.name || 'Not selected'}
                     </Typography>
                   </Grid>
                   <Grid item xs={12} md={6}>

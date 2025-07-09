@@ -5,6 +5,9 @@ import { CssBaseline } from '@mui/material';
 import { QueryClient, QueryClientProvider } from 'react-query';
 import { Toaster } from 'react-hot-toast';
 
+// Import token manager for automatic token cleaning
+import './utils/tokenManager';
+
 // Contexts
 import { UserProvider, useUser } from './contexts/UserContext';
 
@@ -226,7 +229,7 @@ function App() {
       <ThemeProvider theme={theme}>
         <CssBaseline />
         <UserProvider>
-          <Router>
+          <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
             <AppRoutes />
           </Router>
         </UserProvider>

@@ -46,9 +46,12 @@ const Layout = ({ children }) => {
 
   // Fetch notifications
   const { data: notifications = [] } = useQuery(
-    'notifications',
-    () => api.get('/notifications').then(res => res.data.notifications),
-    { refetchInterval: 30000 }
+    ['notifications', user?.id],
+    () => user?.id ? api.get(`/api/notifications/${user.id}`).then(res => res.data.notifications) : Promise.resolve([]),
+    { 
+      refetchInterval: 30000,
+      enabled: !!user?.id
+    }
   );
 
   const unreadCount = notifications.filter(n => !n.isRead).length;
@@ -94,34 +97,7 @@ const Layout = ({ children }) => {
         </Typography>
       </div>
 
-      {/* User Profile */}
-      {user && (
-        <div 
-          className="p-4 border-b border-gray-200 cursor-pointer hover:bg-gray-50 transition-colors"
-          onClick={() => navigate('/profile')}
-        >
-          <div className="flex items-center space-x-3">
-            <Avatar className="w-10 h-10 bg-blue-600">
-              {user.name?.charAt(0) || 'U'}
-            </Avatar>
-            <div className="flex-1 min-w-0">
-              <Typography variant="subtitle2" className="font-medium text-gray-900 truncate">
-                {user.name || 'User'}
-              </Typography>
-              <Chip
-                label={user.partyType}
-                size="small"
-                className={`${getRoleColor(user.partyType)} text-xs`}
-              />
-            </div>
-          </div>
-          {user.email && (
-            <div className="mt-2 text-xs text-gray-600 truncate">
-              {user.email}
-            </div>
-          )}
-        </div>
-      )}
+
 
       {/* Navigation */}
       <div className="flex-1 overflow-y-auto">

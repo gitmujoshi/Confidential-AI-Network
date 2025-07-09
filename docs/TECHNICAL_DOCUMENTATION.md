@@ -30,9 +30,9 @@ Each system component is designed with specific responsibilities and clear inter
 
 **Dataset Management Component**: Provides capabilities for creating, publishing, and managing datasets with metadata, pricing, and access controls.
 
-**Blockchain Integration Component**: Handles smart contract deployment, interaction, and monitoring with proper error handling and transaction management.
+**Blockchain Integration Component**: Handles smart contract deployment, interaction, and monitoring with flexible mode support (enabled/disabled), graceful fallback to database-only operation, and comprehensive health monitoring.
 
-**DID Management Component**: Manages Decentralized Identifiers for decentralized identity verification and blockchain-based authentication.
+**DID Management Component**: Manages Decentralized Identifiers for decentralized identity verification and blockchain-based authentication with enhanced cryptographic signature verification and multi-method DID support (did:web, did:key, did:ethr).
 
 **Notification Component**: Provides comprehensive notification services including email, in-app notifications, and real-time updates for system events.
 
@@ -76,7 +76,7 @@ The backend consists of several core modules that handle specific business funct
 
 **Dataset Management APIs**: Manage dataset creation, publishing, and access with proper metadata management and access controls.
 
-**DID Management APIs**: Handle Decentralized Identifier operations including creation, verification, and integration with authentication systems.
+**DID Management APIs**: Handle Decentralized Identifier operations including creation, verification, and integration with authentication systems. Enhanced with cryptographic signature verification, multi-method DID support, and comprehensive health monitoring.
 
 **DPDP Compliance APIs**: Implement Digital Personal Data Protection Act compliance including consent management, user rights, and grievance handling.
 
@@ -106,9 +106,9 @@ The service layer provides business logic abstraction and integration capabiliti
 
 **Dataset Service**: Handles dataset operations including creation, validation, publishing, and access management with proper security controls.
 
-**Blockchain Service**: Manages blockchain interactions including smart contract deployment, transaction handling, and event monitoring.
+**Blockchain Service**: Manages blockchain interactions including smart contract deployment, transaction handling, and event monitoring. Enhanced with flexible mode support (BLOCKCHAIN_ENABLED/DATABASE_ONLY), graceful fallback to database-only operation, and comprehensive health monitoring.
 
-**DID Service**: Handles Decentralized Identifier operations including resolution, verification, and integration with authentication systems.
+**DID Service**: Handles Decentralized Identifier operations including resolution, verification, and integration with authentication systems. Enhanced with cryptographic signature verification (Ed25519, ECDSA, RSA), multi-method DID support (did:web, did:key, did:ethr), and comprehensive health monitoring.
 
 **Notification Service**: Provides comprehensive notification capabilities including email, in-app notifications, and real-time updates.
 
@@ -169,6 +169,66 @@ Seamless integration with backend APIs ensures reliable data flow and user exper
 **Loading States**: Proper loading states and progress indicators for better user experience during data fetching and processing.
 
 **Optimistic Updates**: Optimistic UI updates for immediate user feedback with proper error handling and rollback mechanisms.
+
+## Enhanced Features
+
+### DID-Based Contract Signing
+
+The system now supports enhanced Decentralized Identifier (DID) based contract signing with comprehensive cryptographic verification:
+
+**Multi-Method DID Support**:
+- **did:web**: Web-hosted DID documents (e.g., GitHub Pages)
+- **did:key**: Public key-based DIDs
+- **did:ethr**: Ethereum-based DIDs
+
+**Cryptographic Signature Verification**:
+- Ed25519 signature verification for high-performance signing
+- ECDSA signature verification for Ethereum compatibility
+- RSA signature verification for traditional PKI integration
+- Message integrity validation with timestamp-based security
+
+**Enhanced Security Features**:
+- Timestamp-based message construction to prevent replay attacks
+- DID document validation and integrity checking
+- Multiple verification method support
+- Comprehensive health monitoring and status reporting
+
+### Flexible Blockchain Integration
+
+The blockchain service now supports flexible operation modes for enhanced reliability and testing:
+
+**Operating Modes**:
+- **BLOCKCHAIN_ENABLED**: Uses real blockchain when available, gracefully falls back to database
+- **DATABASE_ONLY**: Operates entirely in database mode with mock blockchain results
+
+**Configuration Options**:
+- Environment variable control via `BLOCKCHAIN_ENABLED`
+- Automatic fallback detection and mode switching
+- Health monitoring and status reporting
+- Mock result generation for testing and development
+
+**Benefits**:
+- Improved system reliability with graceful degradation
+- Enhanced testing capabilities with configurable modes
+- Reduced dependency on blockchain availability
+- Better development and debugging experience
+
+### Frontend DID Signing Interface
+
+The frontend includes a comprehensive DID signing modal with user-friendly features:
+
+**Key Features**:
+- Automatic signing message construction with timestamps
+- DID document display and validation
+- Test signature generation for development
+- Copy-to-clipboard functionality for messages and signatures
+- Real-time error handling and user feedback
+
+**User Experience**:
+- Intuitive interface for DID-based signing
+- Clear display of DID information and verification methods
+- Immediate feedback on signature validation
+- Helpful error messages and troubleshooting guidance
 
 ## Blockchain Integration
 
