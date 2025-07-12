@@ -470,3 +470,91 @@ describe('Database Models Test Suite', () => {
     });
   });
 }); 
+
+describe('AIModel Model', () => {
+  let AIModel, Contract;
+  beforeAll(() => {
+    AIModel = require('../models').AIModel;
+    Contract = require('../models').Contract;
+  });
+
+  it('should create an AIModel with valid data', async () => {
+    const modelData = {
+      modelId: 'test-model-001',
+      name: 'Test Model',
+      description: 'A test AI model',
+      type: 'transformer',
+      architecture: 'test-arch',
+      parameters: '1M',
+      framework: 'PyTorch',
+      privacyTechnique: 'federated-learning',
+      validationMetrics: ['accuracy', 'precision'],
+      maxEpochs: 10,
+      batchSize: 16,
+      learningRate: 0.001,
+      isActive: true
+    };
+    const model = await AIModel.create(modelData);
+    expect(model.modelId).toBe(modelData.modelId);
+    expect(model.name).toBe(modelData.name);
+    expect(model.isActive).toBe(true);
+  });
+
+  it('should enforce unique modelId', async () => {
+    const modelData = {
+      modelId: 'unique-model-001',
+      name: 'Unique Model',
+      description: 'Unique test model',
+      type: 'cnn',
+      architecture: 'cnn-arch',
+      parameters: '2M',
+      framework: 'TensorFlow',
+      privacyTechnique: 'differential-privacy',
+      validationMetrics: ['accuracy'],
+      maxEpochs: 5,
+      batchSize: 8,
+      learningRate: 0.01,
+      isActive: true
+    };
+    await AIModel.create(modelData);
+    await expect(AIModel.create(modelData)).rejects.toThrow();
+  });
+
+  it('should require all mandatory fields', async () => {
+    const modelData = {
+      modelId: 'missing-fields',
+      name: 'Missing Fields Model'
+      // missing required fields
+    };
+    await expect(AIModel.create(modelData)).rejects.toThrow();
+  });
+
+  it('should relate contracts to AIModel', async () => {
+    const model = await AIModel.create({
+      modelId: 'rel-model-001',
+      name: 'Rel Model',
+      description: 'Relationship test',
+      type: 'gan',
+      architecture: 'gan-arch',
+      parameters: '3M',
+      framework: 'PyTorch',
+      privacyTechnique: 'homomorphic-encryption',
+      validationMetrics: ['fid-score'],
+      maxEpochs: 20,
+      batchSize: 32,
+      learningRate: 0.002,
+      isActive: true
+    });
+    const contract = await Contract.create({
+      contractId: 'REL-CONTRACT-001',
+      status: 'PENDING_TDP_APPROVAL',
+      price: 100.00,
+      duration: 30,
+      termsAndConditions: 'Test terms',
+      modelId: model.modelId
+    });
+    const found = await model.getContracts();
+    expect(found.length).toBeGreaterThan(0);
+    expect(found[0].contractId).toBe('REL-CONTRACT-001');
+  });
+}); 

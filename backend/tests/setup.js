@@ -25,19 +25,6 @@ afterAll(async () => {
 });
 
 // Mock external services
-jest.mock('../services/keycloakService', () => ({
-  createUser: jest.fn().mockResolvedValue({ id: 'mock-keycloak-id' }),
-  getAdminToken: jest.fn().mockResolvedValue('mock-admin-token'),
-  createRealm: jest.fn().mockResolvedValue(true),
-  createClient: jest.fn().mockResolvedValue(true)
-}));
-
-jest.mock('../services/blockchainService', () => ({
-  createContract: jest.fn().mockResolvedValue({ hash: 'mock-tx-hash' }),
-  signContract: jest.fn().mockResolvedValue({ hash: 'mock-sign-hash' }),
-  getContract: jest.fn().mockResolvedValue({ status: 'SIGNED' })
-}));
-
 jest.mock('../services/didService', () => ({
   resolveDID: jest.fn().mockResolvedValue({
     id: 'did:web:github.com:testuser',

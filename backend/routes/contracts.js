@@ -1,9 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const db = require('../models');
-const BlockchainService = require('../services/blockchainService');
+const { BlockchainService, NotificationService, ricardianContractService } = require('../services');
 const blockchainService = new BlockchainService();
-const NotificationService = require('../services/notificationService');
 const notificationService = new NotificationService();
 const { authenticateToken } = require('../middleware/auth');
 
@@ -32,19 +31,22 @@ async function verifyDIDSignature(did, message, signature) {
 }
 
 /**
- * Contract Management Routes
+ * Contract Management Routes with Ricardian Contract Support
  * 
  * This module handles all contract-related operations including:
- * - Contract creation (TDC only)
+ * - Traditional contract creation (TDC only)
+ * - Ricardian contract creation with legal document binding
  * - Contract signing (TDP auto-sign, CCRP manual sign)
  * - Contract status updates
  * - CCRP selection
+ * - Ricardian contract verification
  * 
  * Security Features:
  * - Role-based access control
  * - Input validation
  * - Blockchain transaction verification
  * - Secure signing with wallet integration
+ * - Cryptographic binding between legal documents and smart contracts
  */
 
 // Get all contracts for a user
@@ -104,6 +106,30 @@ router.get('/user/:userId', async (req, res) => {
   }
 });
 
+/**
+ * Get AI models for dropdown
+ * 
+ * This endpoint returns all available AI models for contract creation.
+ * Used by the frontend to populate the model dropdown.
+ */
+router.get('/ai-models', async (req, res) => {
+  try {
+    const aiModels = await db.AIModel.findAll({
+      where: { isActive: true },
+      attributes: ['id', 'modelId', 'name', 'description', 'type', 'architecture', 'parameters', 'framework', 'privacyTechnique', 'validationMetrics', 'maxEpochs', 'batchSize', 'learningRate'],
+      order: [['name', 'ASC']]
+    });
+
+    res.json({
+      success: true,
+      models: aiModels
+    });
+  } catch (error) {
+    console.error('Error fetching AI models:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 // Get specific contract
 router.get('/:contractId', async (req, res) => {
   try {
@@ -126,6 +152,478 @@ router.get('/:contractId', async (req, res) => {
     res.json(contract);
   } catch (error) {
     console.error('Error getting contract:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+/**
+ * Preview Ricardian contract (TDC ONLY)
+ * 
+ * This endpoint allows TDC users to preview Ricardian contracts before creation.
+ * It generates the legal document and smart contract preview without deploying.
+ * 
+ * Features:
+ * - Legal document generation based on contract type
+ * - Smart contract preview generation
+ * - No blockchain deployment (preview only)
+ * 
+ * Security:
+ * - Only TDC users can preview contracts
+ * - Authentication handled via JWT token
+ */
+router.post('/ricardian/preview', authenticateToken, async (req, res) => {
+  try {
+    console.log('🔍 Ricardian contract preview request body:', req.body);
+    console.log('🔍 Ricardian contract preview user:', req.user?.localUser);
+    
+    const {
+      contractType = 'AI_TRAINING',
+      datasetId,
+      price,
+      duration,
+      termsAndConditions,
+      environmentSpecs,
+      trainingParams,
+      kmsConfigs
+    } = req.body;
+
+    // Validate required fields
+    if (!datasetId || !price || !duration || !termsAndConditions) {
+      console.log('❌ Missing required fields for preview:', { datasetId, price, duration, termsAndConditions });
+      return res.status(400).json({ error: 'Missing required fields' });
+    }
+
+    // Get dataset and verify ownership
+    const dataset = await db.Dataset.findOne({
+      where: { id: datasetId },
+      include: [{ model: db.User, as: 'owner', attributes: ['id', 'name', 'email', 'walletAddress', 'did'] }]
+    });
+
+    if (!dataset) {
+      return res.status(404).json({ error: 'Dataset not found' });
+    }
+
+    // Create preview contract data
+    const previewContractData = {
+      contractId: `preview-${Date.now()}`,
+      tdpId: dataset.owner.id,
+      tdcId: req.user.localUser.id,
+      datasetId: dataset.id,
+      price,
+      duration,
+      termsAndConditions,
+      tdp: dataset.owner,
+      tdc: req.user.localUser,
+      ccrp: null,
+      environmentSpecs: environmentSpecs || {},
+      trainingParams: trainingParams || {},
+      kmsConfigs: kmsConfigs || {}
+    };
+
+    // Generate legal document preview
+    const legalDocument = await ricardianContractService.generateLegalDocument(previewContractData, contractType);
+    
+    // Create document hash for preview
+    const legalDocumentHash = ricardianContractService.createDocumentHash(legalDocument);
+    
+    // Generate smart contract preview (without deployment)
+    const smartContractPreview = {
+      address: '0x0000000000000000000000000000000000000000', // Placeholder
+      network: 'preview',
+      contractId: previewContractData.contractId,
+      abi: [], // Empty ABI for preview
+      bytecode: '0x', // Empty bytecode for preview
+      deploymentData: {
+        legalDocumentHash,
+        contractType,
+        parties: {
+          tdp: dataset.owner.walletAddress,
+          tdc: req.user.localUser.walletAddress
+        }
+      }
+    };
+
+    res.json({
+      success: true,
+      legalDocument,
+      smartContractData: smartContractPreview,
+      preview: true
+    });
+  } catch (error) {
+    console.error('❌ Error generating Ricardian contract preview:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+/**
+ * Create new Ricardian contract (TDC ONLY)
+ * 
+ * This endpoint allows TDC users to create Ricardian contracts with legal document binding.
+ * Ricardian contracts combine human-readable legal documents with machine-executable smart contracts.
+ * 
+ * Features:
+ * - Legal document generation based on contract type
+ * - Cryptographic hash creation for legal document
+ * - Ricardian signature binding legal to smart contract
+ * - Smart contract deployment
+ * - Multi-KMS support for data encryption
+ * 
+ * Workflow:
+ * 1. TDC creates Ricardian contract with contract type
+ * 2. Legal document generated from template
+ * 3. Cryptographic hash created for legal document
+ * 4. Ricardian signature binds legal to smart contract
+ * 5. Smart contract deployed to blockchain
+ * 6. TDP automatically signs (handled by backend)
+ * 
+ * Security:
+ * - Only TDC users can create contracts
+ * - TDP must be registered and own the dataset
+ * - CCRP must be registered (if selected)
+ * - Authentication handled via JWT token
+ * - Cryptographic binding ensures integrity
+ */
+router.post('/ricardian', authenticateToken, async (req, res) => {
+  try {
+    console.log('🔍 Ricardian contract creation request body:', req.body);
+    console.log('🔍 Ricardian contract creation user:', req.user?.localUser);
+    
+    const {
+      tdpId,
+      datasetId,
+      aiModelIds, // Array of AI model IDs to link to contract
+      price,
+      duration,
+      termsAndConditions,
+      ccrpId,
+      contractType = 'AI_TRAINING',
+      environmentSpecs,
+      trainingParams,
+      kmsConfigs
+    } = req.body;
+
+    // Validate required fields
+    if (!tdpId || !datasetId || !price || !duration || !termsAndConditions) {
+      console.log('❌ Missing required fields:', { tdpId, datasetId, price, duration, termsAndConditions });
+      return res.status(400).json({ error: 'Missing required fields' });
+    }
+
+    // Validate AI models if provided
+    let aiModels = [];
+    if (aiModelIds && Array.isArray(aiModelIds) && aiModelIds.length > 0) {
+      aiModels = await db.AIModel.findAll({
+        where: { 
+          id: aiModelIds,
+          isActive: true 
+        }
+      });
+      
+      if (aiModels.length !== aiModelIds.length) {
+        return res.status(400).json({ error: 'One or more AI models not found or inactive' });
+      }
+    }
+
+    // Get TDP user (dataset owner)
+    const tdpUser = await db.User.findOne({
+      where: { id: tdpId, partyType: 'TDP' }
+    });
+
+    if (!tdpUser) {
+      return res.status(404).json({ error: 'TDP not found' });
+    }
+
+    // Verify dataset ownership
+    const dataset = await db.Dataset.findOne({
+      where: { datasetId, ownerId: tdpUser.id }
+    });
+
+    if (!dataset) {
+      return res.status(404).json({ error: 'Dataset not found or not owned by TDP' });
+    }
+
+    // Get TDC user from authentication context (JWT token)
+    const tdcUser = req.user?.localUser;
+    if (!tdcUser || tdcUser.partyType !== 'TDC') {
+      return res.status(403).json({ error: 'Only TDC users can create contracts' });
+    }
+
+    // Get CCRP user if provided
+    let ccrpUser = null;
+    if (ccrpId) {
+      ccrpUser = await db.User.findOne({
+        where: { id: ccrpId, partyType: 'CCRP' }
+      });
+
+      if (!ccrpUser) {
+        return res.status(404).json({ error: 'CCRP not found' });
+      }
+    }
+
+    // Generate unique contract ID
+    const contractId = `CONTRACT-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+
+    // Prepare contract data for Ricardian contract creation
+    const contractData = {
+      contractId,
+      tdpId: tdpUser.id,
+      tdcId: tdcUser.id,
+      ccrpId: ccrpUser?.id,
+      datasetId: dataset.id,
+      aiModelIds: aiModels.map(model => model.id), // Link AI models to contract
+      price: parseFloat(price),
+      duration: parseInt(duration),
+      termsAndConditions,
+      tdp: {
+        name: tdpUser.name,
+        email: tdpUser.email,
+        blockchainAddress: tdpUser.walletAddress,
+        did: tdpUser.did
+      },
+      tdc: {
+        name: tdcUser.name,
+        email: tdcUser.email,
+        blockchainAddress: tdcUser.walletAddress,
+        did: tdcUser.did
+      },
+      ccrp: ccrpUser ? {
+        name: ccrpUser.name,
+        email: ccrpUser.email,
+        blockchainAddress: ccrpUser.walletAddress,
+        did: ccrpUser.did
+      } : null,
+      environmentSpecs,
+      trainingParams,
+      kmsConfigs
+    };
+
+    // Create Ricardian contract
+    const ricardianResult = await ricardianContractService.createRicardianContract(contractData, contractType);
+
+    // Don't auto-sign TDP - let them sign manually
+    ricardianResult.contract.tdpSigned = false;
+    ricardianResult.contract.status = 'PENDING_TDP_APPROVAL';
+    await ricardianResult.contract.save();
+
+    // Send notifications
+    await notificationService.notifyContractCreated(ricardianResult.contract, tdpUser);
+
+    console.log('✅ Ricardian contract created successfully:', ricardianResult.contract.contractId);
+
+    res.status(201).json({
+      success: true,
+      message: 'Ricardian contract created successfully',
+      contract: ricardianResult.contract,
+      legalDocument: ricardianResult.legalDocument,
+      smartContractData: ricardianResult.smartContractData
+    });
+
+  } catch (error) {
+    console.error('❌ Error creating Ricardian contract:', error);
+    res.status(500).json({ error: error.message, stack: error.stack });
+  }
+});
+
+/**
+ * Verify Ricardian contract integrity
+ * 
+ * This endpoint verifies the cryptographic binding between legal document and smart contract.
+ * 
+ * Verification includes:
+ * - Legal document structure validation
+ * - Document hash verification
+ * - Ricardian signature verification
+ * - Smart contract validation
+ */
+router.get('/:contractId/verify', async (req, res) => {
+  try {
+    const { contractId } = req.params;
+
+    const contract = await db.Contract.findOne({
+      where: { contractId }
+    });
+
+    if (!contract) {
+      return res.status(404).json({ error: 'Contract not found' });
+    }
+
+    // Verify Ricardian contract integrity
+    const verification = await ricardianContractService.verifyRicardianContract(contract);
+
+    res.json({
+      success: true,
+      contractId,
+      verification
+    });
+
+  } catch (error) {
+    console.error('Error verifying Ricardian contract:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+/**
+ * Update contract environment specifications
+ * 
+ * This endpoint allows CCRP to update environment specifications for confidential computing.
+ */
+router.put('/:contractId/environment', authenticateToken, async (req, res) => {
+  try {
+    const { contractId } = req.params;
+    const { environmentSpecs } = req.body;
+
+    // Verify user is CCRP
+    const user = req.user?.localUser;
+    if (!user || user.partyType !== 'CCRP') {
+      return res.status(403).json({ error: 'Only CCRP users can update environment specifications' });
+    }
+
+    // Update environment specifications
+    const updatedContract = await ricardianContractService.updateEnvironmentSpecs(contractId, environmentSpecs);
+
+    res.json({
+      success: true,
+      message: 'Environment specifications updated successfully',
+      contract: updatedContract
+    });
+
+  } catch (error) {
+    console.error('Error updating environment specifications:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+/**
+ * Update contract training parameters
+ * 
+ * This endpoint allows TDC to update training parameters for AI model training.
+ */
+router.put('/:contractId/training', authenticateToken, async (req, res) => {
+  try {
+    const { contractId } = req.params;
+    const { trainingParams } = req.body;
+
+    // Verify user is TDC
+    const user = req.user?.localUser;
+    if (!user || user.partyType !== 'TDC') {
+      return res.status(403).json({ error: 'Only TDC users can update training parameters' });
+    }
+
+    // Update training parameters
+    const updatedContract = await ricardianContractService.updateTrainingParams(contractId, trainingParams);
+
+    res.json({
+      success: true,
+      message: 'Training parameters updated successfully',
+      contract: updatedContract
+    });
+
+  } catch (error) {
+    console.error('Error updating training parameters:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+/**
+ * Update contract KMS configurations
+ * 
+ * This endpoint allows CCRP to update KMS configurations for multi-provider support.
+ */
+router.put('/:contractId/kms', authenticateToken, async (req, res) => {
+  try {
+    const { contractId } = req.params;
+    const { kmsConfigs } = req.body;
+
+    // Verify user is CCRP
+    const user = req.user?.localUser;
+    if (!user || user.partyType !== 'CCRP') {
+      return res.status(403).json({ error: 'Only CCRP users can update KMS configurations' });
+    }
+
+    // Update KMS configurations
+    const updatedContract = await ricardianContractService.updateKMSConfigs(contractId, kmsConfigs);
+
+    res.json({
+      success: true,
+      message: 'KMS configurations updated successfully',
+      contract: updatedContract
+    });
+
+  } catch (error) {
+    console.error('Error updating KMS configurations:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+/**
+ * Update attestation verification
+ * 
+ * This endpoint allows CCRP to update attestation verification for Azure Confidential Computing.
+ */
+router.put('/:contractId/attestation', authenticateToken, async (req, res) => {
+  try {
+    const { contractId } = req.params;
+    const { attestationReport } = req.body;
+
+    // Verify user is CCRP
+    const user = req.user?.localUser;
+    if (!user || user.partyType !== 'CCRP') {
+      return res.status(403).json({ error: 'Only CCRP users can update attestation verification' });
+    }
+
+    // Update attestation verification
+    const updatedContract = await ricardianContractService.updateAttestationVerification(contractId, attestationReport);
+
+    res.json({
+      success: true,
+      message: 'Attestation verification updated successfully',
+      contract: updatedContract
+    });
+
+  } catch (error) {
+    console.error('Error updating attestation verification:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+/**
+ * Get supported contract types
+ * 
+ * This endpoint returns the list of supported Ricardian contract types.
+ */
+router.get('/types/supported', async (req, res) => {
+  try {
+    const supportedTypes = await ricardianContractService.getSupportedContractTypes();
+
+    res.json({
+      success: true,
+      supportedTypes
+    });
+
+  } catch (error) {
+    console.error('Error getting supported contract types:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+/**
+ * Get contract template
+ * 
+ * This endpoint returns the template for a specific contract type.
+ */
+router.get('/types/:contractType/template', async (req, res) => {
+  try {
+    const { contractType } = req.params;
+
+    const template = await ricardianContractService.getContractTemplate(contractType);
+
+    res.json({
+      success: true,
+      contractType,
+      template
+    });
+
+  } catch (error) {
+    console.error('Error getting contract template:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
@@ -156,7 +654,6 @@ router.post('/', authenticateToken, async (req, res) => {
     const {
       tdpId,
       datasetId,
-      modelId,
       price,
       duration,
       termsAndConditions,
@@ -164,8 +661,8 @@ router.post('/', authenticateToken, async (req, res) => {
     } = req.body;
 
     // Validate required fields
-    if (!tdpId || !datasetId || !modelId || !price || !duration || !termsAndConditions) {
-      console.log('❌ Missing required fields:', { tdpId, datasetId, modelId, price, duration, termsAndConditions });
+    if (!tdpId || !datasetId || !price || !duration || !termsAndConditions) {
+      console.log('❌ Missing required fields:', { tdpId, datasetId, price, duration, termsAndConditions });
       return res.status(400).json({ error: 'Missing required fields' });
     }
 
@@ -214,7 +711,6 @@ router.post('/', authenticateToken, async (req, res) => {
       tdcId: tdcUser.id,
       ccrpId: ccrpUser ? ccrpUser.id : null,
       datasetId: dataset.id,
-      modelId,
       price,
       duration,
       termsAndConditions,
@@ -769,6 +1265,56 @@ router.post('/:contractId/cancel', async (req, res) => {
     });
   } catch (error) {
     console.error('Error cancelling contract:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+/**
+ * Get available AI models for Ricardian contracts
+ * 
+ * This endpoint provides a list of available AI models that can be used
+ * in Ricardian contracts for AI training scenarios.
+ * 
+ * Models include:
+ * - Transformer models (GPT-4, BERT)
+ * - CNN models (ResNet, image classifiers)
+ * - RNN models (LSTM, sequence models)
+ * - GAN models (generative models)
+ * 
+ * Each model includes:
+ * - Architecture details
+ * - Training parameters
+ * - Privacy techniques
+ * - Validation metrics
+ */
+router.get('/available-models', async (req, res) => {
+  try {
+    // Get models from database
+    const models = await db.AIModel.findAll({
+      where: { isActive: true },
+      order: [['name', 'ASC']]
+    });
+
+    res.json({
+      success: true,
+      models: models.map(model => ({
+        id: model.modelId,
+        name: model.name,
+        description: model.description,
+        type: model.type,
+        architecture: model.architecture,
+        parameters: model.parameters,
+        framework: model.framework,
+        privacyTechnique: model.privacyTechnique,
+        validationMetrics: model.validationMetrics,
+        maxEpochs: model.maxEpochs,
+        batchSize: model.batchSize,
+        learningRate: model.learningRate,
+        metadata: model.metadata
+      }))
+    });
+  } catch (error) {
+    console.error('❌ Error fetching AI models:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });

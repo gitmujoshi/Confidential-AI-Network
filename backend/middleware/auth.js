@@ -31,12 +31,9 @@ const authenticateToken = async (req, res, next) => {
       });
     }
 
-    // Try to validate token with Keycloak first (only if Keycloak is properly configured)
-    try {
-      // Check if Keycloak is available by testing the connection
-      const keycloakHealthCheck = await axios.get(`${process.env.KEYCLOAK_URL || 'http://localhost:8080'}/realms/${process.env.KEYCLOAK_REALM || 'contract-management'}/protocol/openid-connect/certs`, { timeout: 2000 });
-      
-      if (keycloakHealthCheck.status === 200) {
+    // Try Keycloak validation first
+    if (process.env.KEYCLOAK_ENABLED === 'true') {
+      try {
         const validationResult = await keycloakService.validateToken(token);
         
         if (validationResult.valid) {
@@ -51,7 +48,8 @@ const authenticateToken = async (req, res, next) => {
           if (!user) {
             return res.status(404).json({ 
               error: 'User not found in local database',
-              code: 'USER_NOT_FOUND'
+              code: 'USER_NOT_FOUND',
+              details: 'User exists in Keycloak but not in local database'
             });
           }
 
@@ -62,24 +60,59 @@ const authenticateToken = async (req, res, next) => {
           req.user = {
             ...validationResult.user,
             localUser: user,
-            token: token
+            token: token,
+            authType: 'keycloak'
           };
 
           return next();
         }
+      } catch (keycloakError) {
+        console.error('❌ Keycloak validation failed, trying database token:', keycloakError);
+        // Continue to database token validation
       }
-    } catch (keycloakError) {
-      console.log('⚠️ Keycloak not available or not configured, using local JWT validation only');
     }
 
-    // Fallback: Try to validate as local JWT token
+    // Database JWT token validation fallback
     try {
       const jwt = require('jsonwebtoken');
-      const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key');
       
-      // Get user from local database using email
+      // Check if this is a Keycloak token (they have a specific structure)
+      if (token.includes('.') && token.split('.').length === 3) {
+        // This looks like a JWT token, but let's check if it's a Keycloak token
+        try {
+          // Try to decode the token without verification to check its structure
+          const decoded = jwt.decode(token);
+          if (decoded && decoded.iss && (decoded.iss.includes('keycloak') || decoded.iss.includes('localhost:3000'))) {
+            // This is a Keycloak token, but Keycloak validation already failed above
+            // So this token is invalid or expired
+            return res.status(401).json({ 
+              error: 'Invalid or expired token',
+              code: 'TOKEN_INVALID',
+              details: 'Keycloak token validation failed'
+            });
+          }
+        } catch (decodeError) {
+          // Not a valid JWT, continue to database validation
+        }
+      }
+      
+      // Try database JWT validation with proper algorithm
+      const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key', {
+        algorithms: ['HS256']
+      });
+      
+      if (decoded.authType !== 'database') {
+        return res.status(401).json({ 
+          error: 'Invalid token type',
+          code: 'TOKEN_INVALID',
+          details: 'Token is not a database authentication token'
+        });
+      }
+
+      // Get user from database
       const user = await db.User.findOne({
         where: { 
+          id: decoded.userId,
           email: decoded.email,
           isActive: true 
         }
@@ -87,8 +120,9 @@ const authenticateToken = async (req, res, next) => {
 
       if (!user) {
         return res.status(404).json({ 
-          error: 'User not found in local database',
-          code: 'USER_NOT_FOUND'
+          error: 'User not found',
+          code: 'USER_NOT_FOUND',
+          details: 'User does not exist or is inactive'
         });
       }
 
@@ -99,16 +133,16 @@ const authenticateToken = async (req, res, next) => {
       req.user = {
         userId: user.id,
         email: user.email,
-        walletAddress: user.walletAddress,
         partyType: user.partyType,
-        roles: [user.partyType], // Map partyType to roles
         localUser: user,
-        token: token
+        token: token,
+        authType: 'database'
       };
 
       return next();
+
     } catch (jwtError) {
-      console.error('❌ Local JWT validation failed:', jwtError.message);
+      console.error('❌ Database token validation failed:', jwtError);
       return res.status(401).json({ 
         error: 'Invalid or expired token',
         code: 'TOKEN_INVALID',
@@ -202,33 +236,44 @@ const optionalAuth = async (req, res, next) => {
       return next();
     }
 
-    // Validate token if provided
-    const validationResult = await keycloakService.validateToken(token);
-    
-    if (!validationResult.valid) {
-      // Invalid token, continue without authentication
+    // Only validate with Keycloak if enabled
+    if (process.env.KEYCLOAK_ENABLED !== 'true') {
       req.user = null;
       return next();
     }
 
-    // Get user from local database
-    const user = await db.User.findOne({
-      where: { 
-        walletAddress: validationResult.user.walletAddress,
-        isActive: true 
-      }
-    });
-
-    if (user) {
-      // Update last login timestamp
-      await user.update({ lastLoginAt: new Date() });
+    // Validate token with Keycloak
+    try {
+      const validationResult = await keycloakService.validateToken(token);
       
-      req.user = {
-        ...validationResult.user,
-        localUser: user,
-        token: token
-      };
-    } else {
+      if (!validationResult.valid) {
+        // Invalid token, continue without authentication
+        req.user = null;
+        return next();
+      }
+
+      // Get user from local database
+      const user = await db.User.findOne({
+        where: { 
+          walletAddress: validationResult.user.walletAddress,
+          isActive: true 
+        }
+      });
+
+      if (user) {
+        // Update last login timestamp
+        await user.update({ lastLoginAt: new Date() });
+        
+        req.user = {
+          ...validationResult.user,
+          localUser: user,
+          token: token
+        };
+      } else {
+        req.user = null;
+      }
+    } catch (keycloakError) {
+      console.error('❌ Keycloak validation failed in optional auth:', keycloakError);
       req.user = null;
     }
 

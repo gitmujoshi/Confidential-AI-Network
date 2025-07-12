@@ -450,77 +450,139 @@ router.post('/login', authRateLimit, logAuthEvent('LOGIN'), async (req, res) => 
       });
     }
 
-    // Authenticate with Keycloak using Resource Owner Password Credentials grant
-    try {
-      const tokenResponse = await keycloakService.authenticateUserWithPassword(email, password);
-      // Optionally, fetch user info from Keycloak
-      const userInfo = await keycloakService.getUserInfo(tokenResponse.access_token);
-      // Optionally, update last login timestamp in local DB
-      const user = await db.User.findOne({ where: { email: email.toLowerCase(), isActive: true } });
-      if (user) {
-        await user.update({ lastLoginAt: new Date() });
+    // Try Keycloak authentication first
+    if (process.env.KEYCLOAK_ENABLED === 'true') {
+      try {
+        const tokenResponse = await keycloakService.authenticateUserWithPassword(email, password);
+        
+        // Fetch user info from Keycloak
+        const userInfo = await keycloakService.getUserInfo(tokenResponse.access_token);
+        
+        // Update last login timestamp in local DB
+        const user = await db.User.findOne({ where: { email: email.toLowerCase(), isActive: true } });
+        if (user) {
+          await user.update({ lastLoginAt: new Date() });
+        }
+        
+        return res.json({
+          message: 'Login successful',
+          accessToken: tokenResponse.access_token,
+          refreshToken: tokenResponse.refresh_token,
+          expiresIn: tokenResponse.expires_in,
+          user: userInfo
+        });
+      } catch (kcError) {
+        console.error('❌ Keycloak authentication failed, trying database fallback:', kcError);
+        // Continue to database fallback
       }
-      return res.json({
-        message: 'Login successful',
-        accessToken: tokenResponse.access_token,
-        refreshToken: tokenResponse.refresh_token,
-        expiresIn: tokenResponse.expires_in,
-        user: userInfo
+    }
+
+    // Database authentication fallback
+    try {
+      console.log('🔍 Attempting database authentication for:', email);
+      
+      const user = await db.User.findOne({ 
+        where: { 
+          email: email.toLowerCase(), 
+          isActive: true 
+        } 
       });
-    } catch (kcError) {
-      console.log('⚠️ Keycloak authentication failed, falling back to local authentication for testing');
-      
-      // Fallback: Check local database for user (for testing when Keycloak is not available)
-      const user = await db.User.findOne({ where: { email: email.toLowerCase(), isActive: true } });
-      
+
       if (!user) {
+        console.log('❌ User not found in database');
         return res.status(401).json({
-          error: 'Invalid credentials',
-          code: 'INVALID_CREDENTIALS',
-          details: 'User not found in local database'
+          error: 'Authentication failed',
+          code: 'AUTHENTICATION_FAILED',
+          details: 'User not found or inactive'
         });
       }
+
+      console.log('✅ User found in database:', user.email, 'Has password:', !!user.password);
+
+      // Check if user has password set
+      if (!user.password) {
+        console.log('❌ User has no password set');
+        return res.status(401).json({
+          error: 'Authentication failed',
+          code: 'AUTHENTICATION_FAILED',
+          details: 'User account not properly configured'
+        });
+      }
+
+      // Verify password
+      const bcrypt = require('bcryptjs');
+      console.log('🔐 Verifying password...');
+      const isValidPassword = await bcrypt.compare(password, user.password);
       
-      // For testing: Accept any password when Keycloak is not available
-      // In production, this should be removed and only Keycloak authentication should be used
+      console.log('🔐 Password verification result:', isValidPassword);
       
-      // Update last login timestamp
+      if (!isValidPassword) {
+        console.log('❌ Password verification failed');
+        return res.status(401).json({
+          error: 'Authentication failed',
+          code: 'AUTHENTICATION_FAILED',
+          details: 'Invalid credentials'
+        });
+      }
+
+      console.log('✅ Password verified successfully');
+
+      // Update last login
       await user.update({ lastLoginAt: new Date() });
-      
-      // Generate a mock token for testing
-      const mockToken = jwt.sign(
+
+      // Generate JWT token for database authentication
+      const jwt = require('jsonwebtoken');
+      const accessToken = jwt.sign(
         { 
-          userId: user.id,
+          userId: user.id, 
           email: user.email,
-          walletAddress: user.walletAddress,
           partyType: user.partyType,
-          iat: Math.floor(Date.now() / 1000)
+          authType: 'database'
         },
         process.env.JWT_SECRET || 'your-secret-key',
         { expiresIn: '24h' }
       );
-      
+
+      console.log('✅ Database authentication successful, returning token');
+
       return res.json({
-        message: 'Login successful (local fallback)',
-        accessToken: mockToken,
-        refreshToken: null,
-        expiresIn: 24 * 60 * 60,
+        message: 'Login successful (database authentication)',
+        accessToken: accessToken,
+        expiresIn: 86400, // 24 hours
         user: {
           id: user.id,
           name: user.name,
           email: user.email,
           partyType: user.partyType,
           walletAddress: user.walletAddress,
-          did: user.did,
-          didVerified: user.didVerified,
-          didVerificationMethod: user.didVerificationMethod,
+          publicKey: user.publicKey,
+          description: user.description,
+          organization: user.organization,
+          phoneNumber: user.phoneNumber,
+          website: user.website,
+          location: user.location,
           isRegistered: user.isRegistered,
           onboardingStatus: user.onboardingStatus,
           profileCompleted: user.profileCompleted,
-          emailVerified: user.emailVerified
+          emailVerified: user.emailVerified,
+          registrationDate: user.registrationDate,
+          lastLoginAt: user.lastLoginAt,
+          did: user.did,
+          didSource: user.didSource,
+          didVerified: user.didVerified,
+          didVerificationMethod: user.didVerificationMethod
         }
       });
+
+    } catch (dbError) {
+      console.error('❌ Database authentication failed:', dbError);
+      return res.status(401).json({
+        error: 'Authentication failed',
+        code: 'AUTHENTICATION_FAILED',
+        details: 'Database authentication failed'
+      });
     }
+
   } catch (error) {
     console.error('❌ Login error:', error);
     res.status(500).json({ 

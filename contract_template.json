@@ -1,0 +1,657 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Contract Management System - Contract Template",
+  "description": "Comprehensive JSON template for contracts in the Contract Management System supporting TDP, TDC, and CCRP parties",
+  "type": "object",
+  "properties": {
+    "metadata": {
+      "type": "object",
+      "description": "Contract metadata and system information",
+      "properties": {
+        "templateVersion": {
+          "type": "string",
+          "description": "Version of this contract template",
+          "example": "2.0.0"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "ISO 8601 timestamp when contract was created",
+          "example": "2024-01-15T10:30:00.000Z"
+        },
+        "lastModified": {
+          "type": "string",
+          "format": "date-time",
+          "description": "ISO 8601 timestamp when contract was last modified",
+          "example": "2024-01-15T10:30:00.000Z"
+        },
+        "contractType": {
+          "type": "string",
+          "enum": ["DATA_SHARING", "MODEL_TRAINING", "ANALYTICS", "CUSTOM"],
+          "description": "Type of contract being created",
+          "example": "DATA_SHARING"
+        }
+      },
+      "required": ["templateVersion", "createdAt", "contractType"]
+    },
+    "contractId": {
+      "type": "string",
+      "description": "Unique human-readable contract identifier",
+      "pattern": "^CONTRACT-[0-9]{13}$",
+      "example": "CONTRACT-1705312200000"
+    },
+    "blockchainContractId": {
+      "type": ["integer", "null"],
+      "description": "Blockchain smart contract ID (null if not yet created on blockchain)",
+      "example": 12345
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "PENDING_TDP_APPROVAL",
+        "PENDING_CCRP_APPROVAL", 
+        "ACTIVE",
+        "COMPLETED",
+        "CANCELLED"
+      ],
+      "description": "Current status of the contract in the workflow",
+      "example": "PENDING_TDP_APPROVAL"
+    },
+    "parties": {
+      "type": "object",
+      "description": "All parties involved in the contract",
+      "properties": {
+        "tdp": {
+          "type": "object",
+          "description": "Training Data Provider (dataset owner)",
+          "properties": {
+            "id": {
+              "type": "integer",
+              "description": "Database user ID",
+              "example": 1
+            },
+            "name": {
+              "type": "string",
+              "description": "Full name of the TDP",
+              "example": "Acme Data Corp"
+            },
+            "email": {
+              "type": "string",
+              "format": "email",
+              "description": "Email address of the TDP",
+              "example": "tdp@acmedata.com"
+            },
+            "walletAddress": {
+              "type": ["string", "null"],
+              "description": "Ethereum wallet address (optional for enterprise users)",
+              "pattern": "^0x[a-fA-F0-9]{40}$",
+              "example": "0x1234567890abcdef1234567890abcdef12345678"
+            },
+            "did": {
+              "type": ["string", "null"],
+              "description": "Decentralized Identifier",
+              "example": "did:web:acmedata.com:user:123"
+            },
+            "partyType": {
+              "type": "string",
+              "enum": ["TDP"],
+              "description": "Party type - always TDP for this role",
+              "example": "TDP"
+            },
+            "organization": {
+              "type": "string",
+              "description": "Organization name",
+              "example": "Acme Data Corporation"
+            },
+            "signed": {
+              "type": "boolean",
+              "description": "Whether TDP has signed the contract",
+              "example": false
+            },
+            "signedAt": {
+              "type": ["string", "null"],
+              "format": "date-time",
+              "description": "Timestamp when TDP signed (auto-signed when contract created)",
+              "example": "2024-01-15T10:35:00.000Z"
+            }
+          },
+          "required": ["id", "name", "email", "partyType", "signed"]
+        },
+        "tdc": {
+          "type": "object",
+          "description": "Training Data Consumer (contract initiator)",
+          "properties": {
+            "id": {
+              "type": "integer",
+              "description": "Database user ID",
+              "example": 2
+            },
+            "name": {
+              "type": "string",
+              "description": "Full name of the TDC",
+              "example": "AI Training Inc"
+            },
+            "email": {
+              "type": "string",
+              "format": "email",
+              "description": "Email address of the TDC",
+              "example": "tdc@aitraining.com"
+            },
+            "walletAddress": {
+              "type": ["string", "null"],
+              "description": "Ethereum wallet address (optional for enterprise users)",
+              "pattern": "^0x[a-fA-F0-9]{40}$",
+              "example": "0xabcdef1234567890abcdef1234567890abcdef12"
+            },
+            "did": {
+              "type": ["string", "null"],
+              "description": "Decentralized Identifier",
+              "example": "did:web:aitraining.com:user:456"
+            },
+            "partyType": {
+              "type": "string",
+              "enum": ["TDC"],
+              "description": "Party type - always TDC for this role",
+              "example": "TDC"
+            },
+            "organization": {
+              "type": "string",
+              "description": "Organization name",
+              "example": "AI Training Incorporated"
+            }
+          },
+          "required": ["id", "name", "email", "partyType"]
+        },
+        "ccrp": {
+          "type": ["object", "null"],
+          "description": "Confidential Clean Room Provider (optional)",
+          "properties": {
+            "id": {
+              "type": "integer",
+              "description": "Database user ID",
+              "example": 3
+            },
+            "name": {
+              "type": "string",
+              "description": "Full name of the CCRP",
+              "example": "Secure Analytics LLC"
+            },
+            "email": {
+              "type": "string",
+              "format": "email",
+              "description": "Email address of the CCRP",
+              "example": "ccrp@secureanalytics.com"
+            },
+            "walletAddress": {
+              "type": ["string", "null"],
+              "description": "Ethereum wallet address (optional for enterprise users)",
+              "pattern": "^0x[a-fA-F0-9]{40}$",
+              "example": "0x9876543210fedcba9876543210fedcba98765432"
+            },
+            "did": {
+              "type": ["string", "null"],
+              "description": "Decentralized Identifier",
+              "example": "did:web:secureanalytics.com:user:789"
+            },
+            "partyType": {
+              "type": "string",
+              "enum": ["CCRP"],
+              "description": "Party type - always CCRP for this role",
+              "example": "CCRP"
+            },
+            "organization": {
+              "type": "string",
+              "description": "Organization name",
+              "example": "Secure Analytics LLC"
+            },
+            "signed": {
+              "type": "boolean",
+              "description": "Whether CCRP has signed the contract",
+              "example": false
+            },
+            "signedAt": {
+              "type": ["string", "null"],
+              "format": "date-time",
+              "description": "Timestamp when CCRP signed (manual review and sign)",
+              "example": "2024-01-15T11:00:00.000Z"
+            }
+          },
+          "required": ["id", "name", "email", "partyType", "signed"]
+        }
+      },
+      "required": ["tdp", "tdc"]
+    },
+    "dataset": {
+      "type": "object",
+      "description": "Dataset being contracted",
+      "properties": {
+        "id": {
+          "type": "integer",
+          "description": "Database dataset ID",
+          "example": 1
+        },
+        "datasetId": {
+          "type": "string",
+          "description": "Unique dataset identifier",
+          "example": "DS-2024-001"
+        },
+        "name": {
+          "type": "string",
+          "description": "Human-readable dataset name",
+          "example": "Customer Behavior Dataset 2024"
+        },
+        "description": {
+          "type": "string",
+          "description": "Detailed description of the dataset",
+          "example": "Comprehensive dataset containing customer behavior patterns, purchase history, and demographic information for machine learning model training."
+        },
+        "category": {
+          "type": "string",
+          "enum": ["CUSTOMER_DATA", "FINANCIAL_DATA", "HEALTHCARE_DATA", "RESEARCH_DATA", "CUSTOM"],
+          "description": "Category of the dataset",
+          "example": "CUSTOMER_DATA"
+        },
+        "size": {
+          "type": "string",
+          "description": "Size of the dataset in human-readable format",
+          "example": "2.5 GB"
+        },
+        "recordCount": {
+          "type": "integer",
+          "description": "Number of records in the dataset",
+          "example": 1000000
+        },
+        "price": {
+          "type": "number",
+          "description": "Price of the dataset in USD",
+          "example": 5000.00
+        },
+        "license": {
+          "type": "string",
+          "description": "License type for the dataset",
+          "example": "COMMERCIAL_USE"
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Tags associated with the dataset",
+          "example": ["customer-behavior", "e-commerce", "machine-learning"]
+        },
+        "metadata": {
+          "type": "object",
+          "description": "Additional metadata about the dataset",
+          "properties": {
+            "dataQuality": {
+              "type": "string",
+              "enum": ["HIGH", "MEDIUM", "LOW"],
+              "example": "HIGH"
+            },
+            "updateFrequency": {
+              "type": "string",
+              "example": "MONTHLY"
+            },
+            "geographicCoverage": {
+              "type": "string",
+              "example": "GLOBAL"
+            },
+            "timeRange": {
+              "type": "string",
+              "example": "2020-2024"
+            }
+          }
+        }
+      },
+      "required": ["id", "datasetId", "name", "description", "category", "size", "recordCount", "price", "license"]
+    },
+    "model": {
+      "type": "object",
+      "description": "Model being trained",
+      "properties": {
+        "modelId": {
+          "type": "string",
+          "description": "Unique model identifier",
+          "example": "MODEL-2024-001"
+        },
+        "name": {
+          "type": "string",
+          "description": "Human-readable model name",
+          "example": "Customer Churn Prediction Model"
+        },
+        "description": {
+          "type": "string",
+          "description": "Description of the model being trained",
+          "example": "Machine learning model to predict customer churn based on behavior patterns and purchase history."
+        },
+        "type": {
+          "type": "string",
+          "enum": ["CLASSIFICATION", "REGRESSION", "CLUSTERING", "RECOMMENDATION", "CUSTOM"],
+          "description": "Type of machine learning model",
+          "example": "CLASSIFICATION"
+        },
+        "algorithm": {
+          "type": "string",
+          "description": "Primary algorithm being used",
+          "example": "XGBoost"
+        },
+        "framework": {
+          "type": "string",
+          "description": "Machine learning framework",
+          "example": "TensorFlow"
+        }
+      },
+      "required": ["modelId", "name", "description", "type"]
+    },
+    "financial": {
+      "type": "object",
+      "description": "Financial terms of the contract",
+      "properties": {
+        "price": {
+          "type": "number",
+          "description": "Contract price in USD",
+          "minimum": 0,
+          "example": 10000.00
+        },
+        "currency": {
+          "type": "string",
+          "enum": ["USD", "EUR", "GBP", "ETH"],
+          "description": "Currency for the contract",
+          "example": "USD"
+        },
+        "blockchainPrice": {
+          "type": "string",
+          "description": "Price in wei (blockchain currency)",
+          "example": "10000000000000000000000"
+        },
+        "paymentTerms": {
+          "type": "string",
+          "enum": ["UPFRONT", "INSTALLMENTS", "UPON_COMPLETION"],
+          "description": "Payment terms",
+          "example": "UPFRONT"
+        },
+        "installments": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "amount": {
+                "type": "number",
+                "description": "Installment amount"
+              },
+              "dueDate": {
+                "type": "string",
+                "format": "date",
+                "description": "Due date for installment"
+              }
+            }
+          },
+          "description": "Installment schedule (if applicable)"
+        }
+      },
+      "required": ["price", "currency"]
+    },
+    "timeline": {
+      "type": "object",
+      "description": "Timeline and duration information",
+      "properties": {
+        "duration": {
+          "type": "integer",
+          "description": "Contract duration in days",
+          "minimum": 1,
+          "example": 30
+        },
+        "startDate": {
+          "type": "string",
+          "format": "date",
+          "description": "Contract start date",
+          "example": "2024-01-15"
+        },
+        "endDate": {
+          "type": "string",
+          "format": "date",
+          "description": "Contract end date",
+          "example": "2024-02-14"
+        },
+        "milestones": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string",
+                "description": "Milestone name"
+              },
+              "description": {
+                "type": "string",
+                "description": "Milestone description"
+              },
+              "dueDate": {
+                "type": "string",
+                "format": "date",
+                "description": "Due date for milestone"
+              },
+              "completed": {
+                "type": "boolean",
+                "description": "Whether milestone is completed"
+              }
+            }
+          },
+          "description": "Project milestones"
+        }
+      },
+      "required": ["duration"]
+    },
+    "termsAndConditions": {
+      "type": "string",
+      "description": "Contract terms and conditions",
+      "minLength": 10,
+      "example": "This contract governs the sharing of customer behavior data for machine learning model training. The TDP (Acme Data Corp) will provide the specified dataset to the TDC (AI Training Inc) for the purpose of training a customer churn prediction model. The CCRP (Secure Analytics LLC) will provide a secure environment for data processing and model training. All parties agree to maintain data confidentiality and comply with applicable data protection regulations including the DPDP Act 2023. The contract duration is 30 days from the date of activation. Payment of $10,000 USD is due upfront upon contract activation. The TDC may use the trained model for commercial purposes but may not redistribute the original dataset. The CCRP will ensure secure data handling and provide audit trails for compliance purposes."
+    },
+    "dataProcessing": {
+      "type": "object",
+      "description": "Data processing and privacy requirements",
+      "properties": {
+        "purpose": {
+          "type": "string",
+          "description": "Purpose of data processing",
+          "example": "Machine learning model training for customer churn prediction"
+        },
+        "dataTypes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Types of data being processed",
+          "example": ["customer-behavior", "purchase-history", "demographics"]
+        },
+        "retentionPeriod": {
+          "type": "integer",
+          "description": "Data retention period in days",
+          "example": 90
+        },
+        "securityMeasures": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Security measures to be implemented",
+          "example": ["encryption-at-rest", "access-controls", "audit-logging"]
+        },
+        "compliance": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Compliance requirements",
+          "example": ["DPDP_2023", "GDPR", "ISO_27001"]
+        }
+      },
+      "required": ["purpose", "dataTypes", "retentionPeriod"]
+    },
+    "blockchain": {
+      "type": "object",
+      "description": "Blockchain-related information",
+      "properties": {
+        "network": {
+          "type": "string",
+          "enum": ["mainnet", "goerli", "sepolia", "localhost"],
+          "description": "Blockchain network",
+          "example": "goerli"
+        },
+        "contractAddress": {
+          "type": "string",
+          "description": "Smart contract address",
+          "pattern": "^0x[a-fA-F0-9]{40}$",
+          "example": "0x5FbDB2315678afecb367f032d93F642f64180aa3"
+        },
+        "transactionHash": {
+          "type": ["string", "null"],
+          "description": "Transaction hash for contract creation",
+          "pattern": "^0x[a-fA-F0-9]{64}$",
+          "example": "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef"
+        },
+        "gasUsed": {
+          "type": "integer",
+          "description": "Gas used for contract creation",
+          "example": 150000
+        },
+        "gasPrice": {
+          "type": "string",
+          "description": "Gas price in wei",
+          "example": "20000000000"
+        },
+        "blockNumber": {
+          "type": "integer",
+          "description": "Block number where contract was created",
+          "example": 12345678
+        }
+      }
+    },
+    "notifications": {
+      "type": "object",
+      "description": "Notification settings and history",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "description": "Whether notifications are enabled",
+          "example": true
+        },
+        "emailNotifications": {
+          "type": "boolean",
+          "description": "Whether email notifications are enabled",
+          "example": true
+        },
+        "inAppNotifications": {
+          "type": "boolean",
+          "description": "Whether in-app notifications are enabled",
+          "example": true
+        },
+        "history": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "type": {
+                "type": "string",
+                "description": "Notification type"
+              },
+              "message": {
+                "type": "string",
+                "description": "Notification message"
+              },
+              "timestamp": {
+                "type": "string",
+                "format": "date-time",
+                "description": "Notification timestamp"
+              },
+              "recipient": {
+                "type": "string",
+                "description": "Notification recipient"
+              }
+            }
+          },
+          "description": "Notification history"
+        }
+      }
+    },
+    "audit": {
+      "type": "object",
+      "description": "Audit trail and compliance information",
+      "properties": {
+        "createdBy": {
+          "type": "string",
+          "description": "User who created the contract",
+          "example": "tdc@aitraining.com"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Contract creation timestamp",
+          "example": "2024-01-15T10:30:00.000Z"
+        },
+        "lastModifiedBy": {
+          "type": "string",
+          "description": "User who last modified the contract",
+          "example": "tdp@acmedata.com"
+        },
+        "lastModifiedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Last modification timestamp",
+          "example": "2024-01-15T10:35:00.000Z"
+        },
+        "version": {
+          "type": "integer",
+          "description": "Contract version number",
+          "example": 1
+        },
+        "changes": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "field": {
+                "type": "string",
+                "description": "Field that was changed"
+              },
+              "oldValue": {
+                "type": "string",
+                "description": "Previous value"
+              },
+              "newValue": {
+                "type": "string",
+                "description": "New value"
+              },
+              "changedBy": {
+                "type": "string",
+                "description": "User who made the change"
+              },
+              "timestamp": {
+                "type": "string",
+                "format": "date-time",
+                "description": "Change timestamp"
+              }
+            }
+          },
+          "description": "History of changes to the contract"
+        }
+      },
+      "required": ["createdBy", "createdAt", "version"]
+    }
+  },
+  "required": [
+    "metadata",
+    "contractId", 
+    "status",
+    "parties",
+    "dataset",
+    "model",
+    "financial",
+    "timeline",
+    "termsAndConditions",
+    "dataProcessing",
+    "audit"
+  ],
+  "additionalProperties": false
+} 

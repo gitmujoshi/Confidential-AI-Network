@@ -105,7 +105,7 @@ class KeycloakService {
           const publicKey = `-----BEGIN PUBLIC KEY-----\n${key.n}\n-----END PUBLIC KEY-----`;
           const decoded = jwt.verify(token, publicKey, {
             algorithms: ['RS256'],
-            audience: this.config.frontendClient,
+            audience: this.config.backendClient,
             issuer: `${this.baseURL}/realms/${this.realm}`
           });
           
@@ -657,8 +657,9 @@ class KeycloakService {
           username: email,
           password: password,
           grant_type: 'password',
-          client_id: this.config.frontendClient,
-          client_secret: this.config.backendClientSecret
+          client_id: this.config.backendClient,
+          client_secret: this.config.backendClientSecret,
+          scope: 'openid profile email'
         }),
         {
           headers: { 'Content-Type': 'application/x-www-form-urlencoded' },

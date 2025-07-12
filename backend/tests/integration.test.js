@@ -7,13 +7,98 @@ const jwt = require('jsonwebtoken');
 const app = require('../server');
 
 describe('Integration Test Suite', () => {
-  let tdpUser, tdcUser, ccrpUser;
-  let tdpToken, tdcToken, ccrpToken;
-  let testDataset, testContract;
+  let tdpUser, tdcUser, ccrpUser, tdpToken, tdcToken, ccrpToken, testDataset, testContract, AIModel;
 
   beforeAll(async () => {
+    AIModel = require('../models').AIModel;
     // Setup test database
     await sequelize.sync({ force: true });
+    // Create users and tokens as before
+    const tdpData = {
+      email: 'tdp@example.com',
+      name: 'TDP User',
+      partyType: 'TDP',
+      password: 'Password123'
+    };
+
+    const tdcData = {
+      email: 'tdc@example.com',
+      name: 'TDC User',
+      partyType: 'TDC',
+      password: 'Password123'
+    };
+
+    const ccrpData = {
+      email: 'ccrp@example.com',
+      name: 'CCRP User',
+      partyType: 'CCRP',
+      password: 'Password123'
+    };
+
+    // Register TDP
+    const tdpResponse = await request(app)
+      .post('/api/auth/register')
+      .send(tdpData)
+      .expect(201);
+
+    tdpUser = tdpResponse.body.user;
+    tdpToken = tdpResponse.body.token;
+
+    // Register TDC
+    const tdcResponse = await request(app)
+      .post('/api/auth/register')
+      .send(tdcData)
+      .expect(201);
+
+    tdcUser = tdcResponse.body.user;
+    tdcToken = tdcResponse.body.token;
+
+    // Register CCRP
+    const ccrpResponse = await request(app)
+      .post('/api/auth/register')
+      .send(ccrpData)
+      .expect(201);
+
+    ccrpUser = ccrpResponse.body.user;
+    ccrpToken = ccrpResponse.body.token;
+
+    // Step 2: TDP creates a dataset
+    const datasetData = {
+      datasetId: 'INTEGRATION-DATASET-001',
+      name: 'Integration Test Dataset',
+      description: 'Dataset for integration testing',
+      category: 'Computer Vision',
+      size: 1500,
+      recordCount: 15000,
+      price: 75.00,
+      license: 'MIT',
+      metadata: { type: 'integration-test' }
+    };
+
+    const datasetResponse = await request(app)
+      .post('/api/datasets')
+      .set('Authorization', `Bearer ${tdpToken}`)
+      .send(datasetData)
+      .expect(201);
+
+    testDataset = datasetResponse.body;
+
+    // Create a real AI model
+    await AIModel.create({
+      modelId: 'integration-model-001',
+      name: 'Integration Model',
+      description: 'Integration test model',
+      type: 'cnn',
+      architecture: 'cnn-arch',
+      parameters: '2M',
+      framework: 'TensorFlow',
+      privacyTechnique: 'differential-privacy',
+      validationMetrics: ['accuracy'],
+      maxEpochs: 5,
+      batchSize: 8,
+      learningRate: 0.01,
+      isActive: true
+    });
   });
 
   afterAll(async () => {
@@ -31,74 +116,74 @@ describe('Integration Test Suite', () => {
   describe('Complete Contract Lifecycle', () => {
     it('should complete full contract workflow from registration to signing', async () => {
       // Step 1: Register all three parties
-      const tdpData = {
-        email: 'tdp@example.com',
-        name: 'TDP User',
-        partyType: 'TDP',
-        password: 'Password123'
-      };
+      // const tdpData = {
+      //   email: 'tdp@example.com',
+      //   name: 'TDP User',
+      //   partyType: 'TDP',
+      //   password: 'Password123'
+      // };
 
-      const tdcData = {
-        email: 'tdc@example.com',
-        name: 'TDC User',
-        partyType: 'TDC',
-        password: 'Password123'
-      };
+      // const tdcData = {
+      //   email: 'tdc@example.com',
+      //   name: 'TDC User',
+      //   partyType: 'TDC',
+      //   password: 'Password123'
+      // };
 
-      const ccrpData = {
-        email: 'ccrp@example.com',
-        name: 'CCRP User',
-        partyType: 'CCRP',
-        password: 'Password123'
-      };
+      // const ccrpData = {
+      //   email: 'ccrp@example.com',
+      //   name: 'CCRP User',
+      //   partyType: 'CCRP',
+      //   password: 'Password123'
+      // };
 
       // Register TDP
-      const tdpResponse = await request(app)
-        .post('/api/auth/register')
-        .send(tdpData)
-        .expect(201);
+      // const tdpResponse = await request(app)
+      //   .post('/api/auth/register')
+      //   .send(tdpData)
+      //   .expect(201);
 
-      tdpUser = tdpResponse.body.user;
-      tdpToken = tdpResponse.body.token;
+      // tdpUser = tdpResponse.body.user;
+      // tdpToken = tdpResponse.body.token;
 
       // Register TDC
-      const tdcResponse = await request(app)
-        .post('/api/auth/register')
-        .send(tdcData)
-        .expect(201);
+      // const tdcResponse = await request(app)
+      //   .post('/api/auth/register')
+      //   .send(tdcData)
+      //   .expect(201);
 
-      tdcUser = tdcResponse.body.user;
-      tdcToken = tdcResponse.body.token;
+      // tdcUser = tdcResponse.body.user;
+      // tdcToken = tdcResponse.body.token;
 
       // Register CCRP
-      const ccrpResponse = await request(app)
-        .post('/api/auth/register')
-        .send(ccrpData)
-        .expect(201);
+      // const ccrpResponse = await request(app)
+      //   .post('/api/auth/register')
+      //   .send(ccrpData)
+      //   .expect(201);
 
-      ccrpUser = ccrpResponse.body.user;
-      ccrpToken = ccrpResponse.body.token;
+      // ccrpUser = ccrpResponse.body.user;
+      // ccrpToken = ccrpResponse.body.token;
 
       // Step 2: TDP creates a dataset
-      const datasetData = {
-        datasetId: 'INTEGRATION-DATASET-001',
-        name: 'Integration Test Dataset',
-        description: 'Dataset for integration testing',
-        category: 'Computer Vision',
-        size: 1500,
-        recordCount: 15000,
-        price: 75.00,
-        license: 'MIT',
-        metadata: { type: 'integration-test' }
-      };
+      // const datasetData = {
+      //   datasetId: 'INTEGRATION-DATASET-001',
+      //   name: 'Integration Test Dataset',
+      //   description: 'Dataset for integration testing',
+      //   category: 'Computer Vision',
+      //   size: 1500,
+      //   recordCount: 15000,
+      //   price: 75.00,
+      //   license: 'MIT',
+      //   metadata: { type: 'integration-test' }
+      // };
 
-      const datasetResponse = await request(app)
-        .post('/api/datasets')
-        .set('Authorization', `Bearer ${tdpToken}`)
-        .send(datasetData)
-        .expect(201);
+      // const datasetResponse = await request(app)
+      //   .post('/api/datasets')
+      //   .set('Authorization', `Bearer ${tdpToken}`)
+      //   .send(datasetData)
+      //   .expect(201);
 
-      testDataset = datasetResponse.body;
+      // testDataset = datasetResponse.body;
 
       // Step 3: TDP creates a contract
       const contractData = {
@@ -106,7 +191,7 @@ describe('Integration Test Suite', () => {
         price: 200.00,
         duration: 60,
         termsAndConditions: 'Integration test contract terms',
-        modelId: 'INTEGRATION-MODEL-001',
+        modelId: 'integration-model-001', // Use real modelId
         tdpId: tdpUser.id,
         tdcId: tdcUser.id,
         ccrpId: ccrpUser.id,

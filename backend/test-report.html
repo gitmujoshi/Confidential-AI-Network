@@ -1,0 +1,277 @@
+<html><head><meta charset="utf-8"/><title>Test Report</title><style type="text/css">:root {
+  --text-primary: #111;
+  --text-secondary: #4f4f4f;
+  --success: #006633;
+  --success-bright: #80ffbf;
+  --danger: #cc071e;
+  --danger-bright: #fbdfe0;
+  --warning: #995c00;
+  --warning-bright: #ffeea8;
+  --panel: #eee;
+  --border: #949494;
+  --disabled: #6b6b6b;
+}
+
+html,
+body {
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 16px;
+  margin: 0;
+  padding: 0;
+  color: var(--text-primary);
+}
+body {
+  padding: 2rem 1rem;
+}
+.jesthtml-content {
+  margin: 0 auto;
+  max-width: 70rem;
+}
+header {
+  display: flex;
+  align-items: center;
+}
+#title {
+  margin: 0;
+  flex-grow: 1;
+}
+#logo {
+  height: 4rem;
+}
+#timestamp {
+  color: var(--text-secondary);
+  margin-top: 0.5rem;
+}
+
+#metadata-container {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  margin-bottom: 2rem;
+}
+
+.additional-information-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  color: var(--text-secondary);
+}
+
+/** SUMMARY */
+#summary {
+  color: var(--text-primary);
+  display: flex;
+  font-family: monospace;
+  font-size: 1rem;
+}
+#summary > div {
+  margin-right: 0.5rem;
+  background: var(--panel);
+  padding: 1rem;
+  min-width: 15rem;
+}
+#summary > div:last-child {
+  margin-right: 0;
+}
+@media only screen and (max-width: 720px) {
+  #summary {
+    flex-direction: column;
+  }
+  #summary > div {
+    margin-right: 0;
+    margin-top: 1rem;
+  }
+  #summary > div:first-child {
+    margin-top: 0;
+  }
+}
+
+.summary-total {
+  font-weight: bold;
+  margin-bottom: 0.5rem;
+}
+.summary-passed {
+  color: var(--success);
+  border-left: 0.4rem solid var(--success);
+  padding-left: 0.5rem;
+  margin-bottom: 0.15rem;
+}
+.summary-failed,
+.summary-obsolete-snapshots {
+  color: var(--danger);
+  border-left: 0.4rem solid var(--danger);
+  padding-left: 0.5rem;
+  margin-bottom: 0.15rem;
+}
+.summary-pending {
+  color: var(--warning);
+  border-left: 0.4rem solid var(--warning);
+  padding-left: 0.5rem;
+  margin-bottom: 0.15rem;
+}
+.summary-empty {
+  color: var(--disabled);
+  border-left: 0.4rem solid var(--disabled);
+  margin-bottom: 0.15rem;
+}
+
+.test-result {
+  padding: 1rem;
+  margin-bottom: 0.25rem;
+}
+.test-result:last-child {
+  border: 0;
+}
+.test-result.passed {
+  background-color: var(--success-bright);
+  color: var(--success);
+}
+.test-result.failed {
+  background-color: var(--danger-bright);
+  color: var(--danger);
+}
+.test-result.pending {
+  background-color: var(--warning-bright);
+  color: var(--warning);
+}
+
+.test-info {
+  display: flex;
+  justify-content: space-between;
+}
+.test-suitename {
+  width: 20%;
+  text-align: left;
+  font-weight: bold;
+  word-break: break-word;
+}
+.test-title {
+  width: 40%;
+  text-align: left;
+  font-style: italic;
+}
+.test-status {
+  width: 20%;
+  text-align: right;
+}
+.test-duration {
+  width: 10%;
+  text-align: right;
+  font-size: 0.85rem;
+}
+
+.failureMessages {
+  padding: 0 1rem;
+  margin-top: 1rem;
+  border-top: 1px dashed var(--danger);
+}
+.failureMessages.suiteFailure {
+  border-top: none;
+}
+.failureMsg {
+  white-space: pre-wrap;
+  white-space: -moz-pre-wrap;
+  white-space: -pre-wrap;
+  white-space: -o-pre-wrap;
+  word-wrap: break-word;
+}
+
+.suite-container {
+  margin-bottom: 1rem;
+}
+.suite-info {
+  padding: 1rem;
+  background-color: var(--panel);
+  color: var(--text-secondary);
+  border: 0.15rem solid;
+  border-color: var(--panel);
+  display: flex;
+  align-items: center;
+  margin-bottom: 0.25rem;
+}
+.suite-info:hover {
+  border-color: var(--border);
+  cursor: pointer;
+}
+.suite-info .suite-path {
+  word-break: break-all;
+  flex-grow: 1;
+  font-family: monospace;
+  font-size: 1rem;
+}
+.suite-info .suite-time {
+  margin-left: 1rem;
+  padding: 0.2rem 0.3rem;
+  font-size: 0.85rem;
+}
+.suite-info .suite-time.warn {
+  background-color: var(--danger);
+  color: #fff;
+}
+.suite-info:before {
+  content: "\2303";
+  display: inline-block;
+  margin-right: 1rem;
+  transform: rotate(180deg) translateY(0.15rem);
+}
+.suite-container[open] .suite-info:before {
+  transform: rotate(0deg) translateY(0.15rem);
+}
+
+/* CONSOLE LOGS */
+.suite-consolelog {
+  margin-bottom: 0.25rem;
+  padding: 1rem;
+  background-color: var(--panel);
+}
+.suite-consolelog-header {
+  font-weight: bold;
+}
+.suite-consolelog-item {
+  padding: 0.5rem;
+}
+.suite-consolelog-item pre {
+  margin: 0.5rem 0;
+  white-space: pre-wrap;
+  white-space: -moz-pre-wrap;
+  white-space: -pre-wrap;
+  white-space: -o-pre-wrap;
+  word-wrap: break-word;
+}
+.suite-consolelog-item-origin {
+  color: var(--text-secondary);
+  font-weight: bold;
+}
+.suite-consolelog-item-message {
+  color: var(--text-primary);
+  font-size: 1rem;
+  padding: 0 0.5rem;
+}
+
+/* OBSOLETE SNAPSHOTS */
+.suite-obsolete-snapshots {
+  margin-bottom: 0.25rem;
+  padding: 1rem;
+  background-color: var(--danger-bright);
+  color: var(--danger);
+}
+.suite-obsolete-snapshots-header {
+  font-weight: bold;
+}
+.suite-obsolete-snapshots-item {
+  padding: 0.5rem;
+}
+.suite-obsolete-snapshots-item pre {
+  margin: 0.5rem 0;
+  white-space: pre-wrap;
+  white-space: -moz-pre-wrap;
+  white-space: -pre-wrap;
+  white-space: -o-pre-wrap;
+  word-wrap: break-word;
+}
+.suite-obsolete-snapshots-item-message {
+  color: var(--text-primary);
+  font-size: 1rem;
+  padding: 0 0.5rem;
+}
+</style></head><body><main class="jesthtml-content"><header><h1 id="title">Test Report</h1></header><section id="metadata-container"><div id="timestamp">Started: 2025-07-10 18:02:48</div><div id="summary"><div id="suite-summary"><div class="summary-total">Suites (10)</div><div class="summary-passed  summary-empty">0 passed</div><div class="summary-failed ">10 failed</div><div class="summary-pending  summary-empty">0 pending</div></div><div id="test-summary"><div class="summary-total">Tests (49)</div><div class="summary-passed ">1 passed</div><div class="summary-failed ">48 failed</div><div class="summary-pending  summary-empty">0 pending</div></div></div></section><details id="suite-1" class="suite-container" open=""><summary class="suite-info"><div class="suite-path">/Users/mukeshjoshi/gitprojects/ContractManagement/backend/tests/models.test.js</div><div class="suite-time">0.469s</div></summary><div class="suite-tests"><div class="test-result failed"><div class="test-info"><div class="test-suitename">Database Models Test Suite &gt; User Model</div><div class="test-title">should create a user with valid data</div><div class="test-status">failed</div><div class="test-duration"> </div></div></div><div class="test-result failed"><div class="test-info"><div class="test-suitename">Database Models Test Suite &gt; User Model</div><div class="test-title">should enforce unique email constraint</div><div class="test-status">failed</div><div class="test-duration">0.001s</div></div></div><div class="test-result failed"><div class="test-info"><div class="test-suitename">Database Models Test Suite &gt; User Model</div><div class="test-title">should validate partyType enum values</div><div class="test-status">failed</div><div class="test-duration"> </div></div></div><div class="test-result failed"><div class="test-info"><div class="test-suitename">Database Models Test Suite &gt; User Model</div><div class="test-title">should validate email format</div><div class="test-status">failed</div><div class="test-duration"> </div></div></div><div class="test-result failed"><div class="test-info"><div class="test-suitename">Database Models Test Suite &gt; User Model</div><div class="test-title">should allow optional fields to be null</div><div class="test-status">failed</div><div class="test-duration"> </div></div></div><div class="test-result failed"><div class="test-info"><div class="test-suitename">Database Models Test Suite &gt; Contract Model</div><div class="test-title">should create a contract with valid data</div><div class="test-status">failed</div><div class="test-duration"> </div></div></div><div class="test-result failed"><div class="test-info"><div class="test-suitename">Database Models Test Suite &gt; Contract Model</div><div class="test-title">should validate status enum values</div><div class="test-status">failed</div><div class="test-duration"> </div></div></div><div class="test-result failed"><div class="test-info"><div class="test-suitename">Database Models Test Suite &gt; Contract Model</div><div class="test-title">should enforce foreign key constraints</div><div class="test-status">failed</div><div class="test-duration"> </div></div></div><div class="test-result failed"><div class="test-info"><div class="test-suitename">Database Models Test Suite &gt; Dataset Model</div><div class="test-title">should create a dataset with valid data</div><div class="test-status">failed</div><div class="test-duration"> </div></div></div><div class="test-result failed"><div class="test-info"><div class="test-suitename">Database Models Test Suite &gt; Dataset Model</div><div class="test-title">should validate status enum values</div><div class="test-status">failed</div><div class="test-duration"> </div></div></div><div class="test-result failed"><div class="test-info"><div class="test-suitename">Database Models Test Suite &gt; Dataset Model</div><div class="test-title">should enforce foreign key constraints</div><div class="test-status">failed</div><div class="test-duration"> </div></div></div><div class="test-result failed"><div class="test-info"><div class="test-suitename">Database Models Test Suite &gt; Notification Model</div><div class="test-title">should create a notification with valid data</div><div class="test-status">failed</div><div class="test-duration"> </div></div></div><div class="test-result failed"><div class="test-info"><div class="test-suitename">Database Models Test Suite &gt; Notification Model</div><div class="test-title">should validate type enum values</div><div class="test-status">failed</div><div class="test-duration"> </div></div></div><div class="test-result failed"><div class="test-info"><div class="test-suitename">Database Models Test Suite &gt; Notification Model</div><div class="test-title">should enforce foreign key constraints</div><div class="test-status">failed</div><div class="test-duration"> </div></div></div><div class="test-result failed"><div class="test-info"><div class="test-suitename">Database Models Test Suite &gt; Model Relationships</div><div class="test-title">should establish user-contract relationships</div><div class="test-status">failed</div><div class="test-duration"> </div></div></div><div class="test-result failed"><div class="test-info"><div class="test-suitename">Database Models Test Suite &gt; Model Relationships</div><div class="test-title">should establish user-dataset relationships</div><div class="test-status">failed</div><div class="test-duration"> </div></div></div><div class="test-result failed"><div class="test-info"><div class="test-suitename">Database Models Test Suite &gt; Model Relationships</div><div class="test-title">should establish user-notification relationships</div><div class="test-status">failed</div><div class="test-duration"> </div></div></div><div class="test-result failed"><div class="test-info"><div class="test-suitename">Database Models Test Suite &gt; Database Transactions</div><div class="test-title">should handle successful transactions</div><div class="test-status">failed</div><div class="test-duration"> </div></div></div><div class="test-result failed"><div class="test-info"><div class="test-suitename">Database Models Test Suite &gt; Database Transactions</div><div class="test-title">should handle transaction rollback on error</div><div class="test-status">failed</div><div class="test-duration"> </div></div></div><div class="test-result failed"><div class="test-info"><div class="test-suitename">AIModel Model</div><div class="test-title">should create an AIModel with valid data</div><div class="test-status">failed</div><div class="test-duration">0.008s</div></div></div><div class="test-result failed"><div class="test-info"><div class="test-suitename">AIModel Model</div><div class="test-title">should enforce unique modelId</div><div class="test-status">failed</div><div class="test-duration">0.001s</div></div></div><div class="test-result passed"><div class="test-info"><div class="test-suitename">AIModel Model</div><div class="test-title">should require all mandatory fields</div><div class="test-status">passed</div><div class="test-duration">0.002s</div></div></div><div class="test-result failed"><div class="test-info"><div class="test-suitename">AIModel Model</div><div class="test-title">should relate contracts to AIModel</div><div class="test-status">failed</div><div class="test-duration"> </div></div></div></div></details><details id="suite-2" class="suite-container" open=""><summary class="suite-info"><div class="suite-path">/Users/mukeshjoshi/gitprojects/ContractManagement/backend/tests/blockchainService.test.js</div><div class="suite-time">0.151s</div></summary><div class="suite-tests"><div class="test-result failed"><div class="test-info"><div class="test-suitename">BlockchainService Tests &gt; Connection Tests</div><div class="test-title">should connect to blockchain</div><div class="test-status">failed</div><div class="test-duration">0.001s</div></div></div><div class="test-result failed"><div class="test-info"><div class="test-suitename">BlockchainService Tests &gt; Party Registration Tests</div><div class="test-title">should register TDP party</div><div class="test-status">failed</div><div class="test-duration"> </div></div></div><div class="test-result failed"><div class="test-info"><div class="test-suitename">BlockchainService Tests &gt; Party Registration Tests</div><div class="test-title">should register TDC party</div><div class="test-status">failed</div><div class="test-duration"> </div></div></div><div class="test-result failed"><div class="test-info"><div class="test-suitename">BlockchainService Tests &gt; Party Registration Tests</div><div class="test-title">should register CCRP party</div><div class="test-status">failed</div><div class="test-duration"> </div></div></div><div class="test-result failed"><div class="test-info"><div class="test-suitename">BlockchainService Tests &gt; Party Registration Tests</div><div class="test-title">should get registered party</div><div class="test-status">failed</div><div class="test-duration"> </div></div></div><div class="test-result failed"><div class="test-info"><div class="test-suitename">BlockchainService Tests &gt; Party Registration Tests</div><div class="test-title">should get current block number after registration</div><div class="test-status">failed</div><div class="test-duration"> </div></div></div><div class="test-result failed"><div class="test-info"><div class="test-suitename">BlockchainService Tests &gt; Contract Creation Tests</div><div class="test-title">should create contract</div><div class="test-status">failed</div><div class="test-duration"> </div></div></div><div class="test-result failed"><div class="test-info"><div class="test-suitename">BlockchainService Tests &gt; Contract Creation Tests</div><div class="test-title">should get created contract</div><div class="test-status">failed</div><div class="test-duration"> </div></div></div><div class="test-result failed"><div class="test-info"><div class="test-suitename">BlockchainService Tests &gt; Contract Signing Tests</div><div class="test-title">should sign contract as TDP</div><div class="test-status">failed</div><div class="test-duration"> </div></div></div><div class="test-result failed"><div class="test-info"><div class="test-suitename">BlockchainService Tests &gt; Contract Signing Tests</div><div class="test-title">should verify TDP signature on contract</div><div class="test-status">failed</div><div class="test-duration"> </div></div></div><div class="test-result failed"><div class="test-info"><div class="test-suitename">BlockchainService Tests &gt; Contract Signing Tests</div><div class="test-title">should select CCRP for contract</div><div class="test-status">failed</div><div class="test-duration"> </div></div></div><div class="test-result failed"><div class="test-info"><div class="test-suitename">BlockchainService Tests &gt; Contract Signing Tests</div><div class="test-title">should sign contract as CCRP</div><div class="test-status">failed</div><div class="test-duration"> </div></div></div><div class="test-result failed"><div class="test-info"><div class="test-suitename">BlockchainService Tests &gt; Contract Signing Tests</div><div class="test-title">should verify CCRP signature and contract activation</div><div class="test-status">failed</div><div class="test-duration"> </div></div></div><div class="test-result failed"><div class="test-info"><div class="test-suitename">BlockchainService Tests &gt; Error Handling Tests</div><div class="test-title">should handle invalid contract ID</div><div class="test-status">failed</div><div class="test-duration"> </div></div></div><div class="test-result failed"><div class="test-info"><div class="test-suitename">BlockchainService Tests &gt; Error Handling Tests</div><div class="test-title">should handle signing with wrong party type</div><div class="test-status">failed</div><div class="test-duration"> </div></div></div><div class="test-result failed"><div class="test-info"><div class="test-suitename">BlockchainService Tests &gt; Error Handling Tests</div><div class="test-title">should handle invalid private key</div><div class="test-status">failed</div><div class="test-duration"> </div></div></div><div class="test-result failed"><div class="test-info"><div class="test-suitename">BlockchainService Tests &gt; Event Tests</div><div class="test-title">should get contract creation events</div><div class="test-status">failed</div><div class="test-duration"> </div></div></div><div class="test-result failed"><div class="test-info"><div class="test-suitename">BlockchainService Tests &gt; Event Tests</div><div class="test-title">should get contract signing events</div><div class="test-status">failed</div><div class="test-duration"> </div></div></div><div class="test-result failed"><div class="test-info"><div class="test-suitename">BlockchainService Tests &gt; Party Contracts Tests</div><div class="test-title">should get TDP contracts</div><div class="test-status">failed</div><div class="test-duration"> </div></div></div><div class="test-result failed"><div class="test-info"><div class="test-suitename">BlockchainService Tests &gt; Party Contracts Tests</div><div class="test-title">should get TDC contracts</div><div class="test-status">failed</div><div class="test-duration"> </div></div></div><div class="test-result failed"><div class="test-info"><div class="test-suitename">BlockchainService Tests &gt; Party Contracts Tests</div><div class="test-title">should get CCRP contracts</div><div class="test-status">failed</div><div class="test-duration"> </div></div></div></div></details><details id="suite-3" class="suite-container" open=""><summary class="suite-info"><div class="suite-path">/Users/mukeshjoshi/gitprojects/ContractManagement/backend/tests/blockchainService.simple.test.js</div><div class="suite-time">0.066s</div></summary><div class="suite-tests"><div class="test-result failed"><div class="test-info"><div class="test-suitename">BlockchainService Simple Tests</div><div class="test-title">should connect to blockchain</div><div class="test-status">failed</div><div class="test-duration"> </div></div></div><div class="test-result failed"><div class="test-info"><div class="test-suitename">BlockchainService Simple Tests</div><div class="test-title">should get current block number</div><div class="test-status">failed</div><div class="test-duration"> </div></div></div><div class="test-result failed"><div class="test-info"><div class="test-suitename">BlockchainService Simple Tests</div><div class="test-title">should get contract address</div><div class="test-status">failed</div><div class="test-duration"> </div></div></div><div class="test-result failed"><div class="test-info"><div class="test-suitename">BlockchainService Simple Tests</div><div class="test-title">should have contract instance</div><div class="test-status">failed</div><div class="test-duration"> </div></div></div><div class="test-result failed"><div class="test-info"><div class="test-suitename">BlockchainService Simple Tests</div><div class="test-title">should have provider instance</div><div class="test-status">failed</div><div class="test-duration"> </div></div></div></div></details><details id="suite-4" class="suite-container" open=""><summary class="suite-info"><div class="suite-path">/Users/mukeshjoshi/gitprojects/ContractManagement/backend/tests/services.test.js</div><div class="suite-time">0s</div></summary><div class="suite-tests"/></details><details id="suite-5" class="suite-container" open=""><summary class="suite-info"><div class="suite-path">/Users/mukeshjoshi/gitprojects/ContractManagement/backend/tests/security.test.js</div><div class="suite-time">0s</div></summary><div class="suite-tests"/></details><details id="suite-6" class="suite-container" open=""><summary class="suite-info"><div class="suite-path">/Users/mukeshjoshi/gitprojects/ContractManagement/backend/tests/performance.test.js</div><div class="suite-time">0s</div></summary><div class="suite-tests"/></details><details id="suite-7" class="suite-container" open=""><summary class="suite-info"><div class="suite-path">/Users/mukeshjoshi/gitprojects/ContractManagement/backend/tests/integration.test.js</div><div class="suite-time">0s</div></summary><div class="suite-tests"/></details><details id="suite-8" class="suite-container" open=""><summary class="suite-info"><div class="suite-path">/Users/mukeshjoshi/gitprojects/ContractManagement/backend/tests/core.test.js</div><div class="suite-time">0s</div></summary><div class="suite-tests"/></details><details id="suite-9" class="suite-container" open=""><summary class="suite-info"><div class="suite-path">/Users/mukeshjoshi/gitprojects/ContractManagement/backend/tests/comprehensive.test.js</div><div class="suite-time">0s</div></summary><div class="suite-tests"/></details><details id="suite-10" class="suite-container" open=""><summary class="suite-info"><div class="suite-path">/Users/mukeshjoshi/gitprojects/ContractManagement/backend/tests/api.test.js</div><div class="suite-time">0s</div></summary><div class="suite-tests"/></details></main></body></html>

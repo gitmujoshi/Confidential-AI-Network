@@ -1,0 +1,83 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database for testing
+  postgres-test:
+    image: postgres:15
+    container_name: contract-management-postgres-test
+    environment:
+      POSTGRES_DB: contract_management_test
+      POSTGRES_USER: testuser
+      POSTGRES_PASSWORD: testpass
+    ports:
+      - "5433:5432"  # Different port to avoid conflicts
+    volumes:
+      - postgres_test_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U testuser -d contract_management_test"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Keycloak for authentication testing
+  keycloak-test:
+    image: quay.io/keycloak/keycloak:23.0
+    container_name: contract-management-keycloak-test
+    environment:
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin123
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://postgres-test:5432/keycloak_test
+      KC_DB_USERNAME: testuser
+      KC_DB_PASSWORD: testpass
+      KC_HEALTH_ENABLED: true
+      KC_METRICS_ENABLED: true
+    ports:
+      - "8081:8080"  # Different port to avoid conflicts
+    depends_on:
+      postgres-test:
+        condition: service_healthy
+    command: start-dev
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health/ready"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  # Ganache for blockchain testing
+  ganache-test:
+    image: trufflesuite/ganache:latest
+    container_name: contract-management-ganache-test
+    ports:
+      - "8546:8545"  # Different port to avoid conflicts
+    command: ganache --host 0.0.0.0 --port 8545 --accounts 10 --deterministic --mnemonic "test test test test test test test test test test test junk"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "-X", "POST", "-H", "Content-Type: application/json", "--data", '{"jsonrpc":"2.0","method":"eth_blockNumber","params":[],"id":1}', "http://localhost:8545"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Hardhat node for more advanced blockchain testing
+  hardhat-test:
+    image: node:18-alpine
+    container_name: contract-management-hardhat-test
+    working_dir: /app
+    volumes:
+      - ../blockchain:/app
+    ports:
+      - "8547:8545"  # Different port to avoid conflicts
+    command: >
+      sh -c "
+        npm install &&
+        npx hardhat node --host 0.0.0.0 --port 8545
+      "
+    depends_on:
+      - postgres-test
+    healthcheck:
+      test: ["CMD", "curl", "-f", "-X", "POST", "-H", "Content-Type: application/json", "--data", '{"jsonrpc":"2.0","method":"eth_blockNumber","params":[],"id":1}', "http://localhost:8545"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_test_data: 

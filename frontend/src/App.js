@@ -18,6 +18,7 @@ import Datasets from './pages/Datasets';
 import Contracts from './pages/Contracts';
 import ContractDetail from './pages/ContractDetail';
 import CreateContract from './pages/CreateContract';
+import CreateRicardianContract from './pages/CreateRicardianContract';
 import Users from './pages/Users';
 import Notifications from './pages/Notifications';
 import UserRegistration from './pages/UserRegistration';
@@ -173,6 +174,13 @@ function AppRoutes() {
         <ProtectedRoute>
           <Layout>
             <CreateContract />
+          </Layout>
+        </ProtectedRoute>
+      } />
+      <Route path="/contracts/create-ricardian" element={
+        <ProtectedRoute>
+          <Layout>
+            <CreateRicardianContract />
           </Layout>
         </ProtectedRoute>
       } />

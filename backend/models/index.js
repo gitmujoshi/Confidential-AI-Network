@@ -29,6 +29,7 @@ db.User = require('./User')(sequelize, Sequelize);
 db.Dataset = require('./Dataset')(sequelize, Sequelize);
 db.Contract = require('./Contract')(sequelize, Sequelize);
 db.Notification = require('./Notification')(sequelize, Sequelize);
+db.AIModel = require('./AIModel')(sequelize, Sequelize);
 
 // Import DPDP-related models
 db.Consent = require('./Consent')(sequelize, Sequelize);
@@ -51,6 +52,10 @@ db.Contract.belongsTo(db.User, { foreignKey: 'ccrpId', as: 'ccrp' });
 
 db.Contract.belongsTo(db.Dataset, { foreignKey: 'datasetId', as: 'dataset' });
 db.Dataset.hasMany(db.Contract, { foreignKey: 'datasetId', as: 'contracts' });
+
+// AI Model associations (removed - AI models are independent of contracts)
+// db.AIModel.hasMany(db.Contract, { foreignKey: 'modelId', sourceKey: 'modelId', as: 'contracts' });
+// db.Contract.belongsTo(db.AIModel, { foreignKey: 'modelId', targetKey: 'modelId', as: 'aiModel' });
 
 db.User.hasMany(db.Notification, { foreignKey: 'userId', as: 'notifications' });
 db.Notification.belongsTo(db.User, { foreignKey: 'userId', as: 'user' });

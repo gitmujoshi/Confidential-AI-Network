@@ -21,11 +21,20 @@ check_service() {
     
     echo -n "$name: "
     
-    # Check if process is running
-    if pgrep -f "$process_name" >/dev/null 2>&1; then
-        echo -e "${GREEN}✅ RUNNING${NC}"
+    # Special handling for Keycloak (Docker container)
+    if [ "$name" = "Keycloak IAM" ]; then
+        if command -v docker &> /dev/null && docker ps | grep -q "keycloak-cms"; then
+            echo -e "${GREEN}✅ RUNNING${NC}"
+        else
+            echo -e "${RED}❌ NOT RUNNING${NC}"
+        fi
     else
-        echo -e "${RED}❌ NOT RUNNING${NC}"
+        # Check if process is running
+        if pgrep -f "$process_name" >/dev/null 2>&1; then
+            echo -e "${GREEN}✅ RUNNING${NC}"
+        else
+            echo -e "${RED}❌ NOT RUNNING${NC}"
+        fi
     fi
     
     echo "  URL: $url"

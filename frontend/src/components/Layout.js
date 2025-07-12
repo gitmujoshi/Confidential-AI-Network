@@ -30,6 +30,7 @@ import {
   Logout,
   Add,
   Business,
+  Security,
 } from '@mui/icons-material';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useQuery } from 'react-query';
@@ -139,6 +140,15 @@ const Layout = ({ children }) => {
               size="small"
             >
               Create Contract
+            </Button>
+            <Button
+              variant="outlined"
+              startIcon={<Security />}
+              onClick={() => navigate('/contracts/create-ricardian')}
+              className="w-full justify-start"
+              size="small"
+            >
+              Create Ricardian Contract
             </Button>
             <Button
               variant="outlined"

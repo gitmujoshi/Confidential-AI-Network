@@ -17,6 +17,10 @@ import {
   Alert,
   Divider,
   CircularProgress,
+  Chip,
+  Checkbox,
+  ListItemText,
+  FormHelperText,
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from 'react-query';
@@ -66,16 +70,20 @@ function CreateContract() {
   const [activeStep, setActiveStep] = useState(0);
   const [selectedDataset, setSelectedDataset] = useState(null);
   const [selectedCcrp, setSelectedCcrp] = useState('');
+  const [selectedAiModels, setSelectedAiModels] = useState([]); // Array of selected AI model IDs
   const [contractData, setContractData] = useState({
-    modelId: '',
     price: '',
     duration: '',
     termsAndConditions: '',
   });
 
-  // Fetch datasets and CCRP users for dropdowns
+  // Fetch datasets, CCRP users, and AI models for dropdowns
   const { data: datasetsResponse, isLoading: datasetsLoading } = useQuery('datasets', apiService.getDatasets);
   const { data: ccrpUsers = [] } = useQuery('ccrp-users', apiService.getCCRPUsers);
+  const { data: aiModelsResponse, isLoading: aiModelsLoading } = useQuery('ai-models', apiService.getAIModels);
+  
+  // Extract AI models from response
+  const aiModels = aiModelsResponse?.models || [];
   
   // Get datasets and extract unique TDP users from dataset owners
   const datasets = datasetsResponse?.datasets || [];
@@ -194,7 +202,6 @@ function CreateContract() {
    */
   const isFormValid = () => {
     const isValid = (
-      contractData.modelId &&
       contractData.price &&
       contractData.duration &&
       contractData.termsAndConditions &&
@@ -204,7 +211,6 @@ function CreateContract() {
     
     if (!isValid) {
       console.log('❌ Form validation failed:', {
-        modelId: !!contractData.modelId,
         price: !!contractData.price,
         duration: !!contractData.duration,
         termsAndConditions: !!contractData.termsAndConditions,
@@ -234,7 +240,7 @@ function CreateContract() {
     const contractPayload = {
       tdpId: tdpUser.id, // Use dataset owner ID
       datasetId: selectedDataset.datasetId,
-      modelId: contractData.modelId,
+      aiModelIds: selectedAiModels, // Include selected AI models
       price: parseFloat(contractData.price),
       duration: parseInt(contractData.duration),
       termsAndConditions: contractData.termsAndConditions,
@@ -321,14 +327,40 @@ function CreateContract() {
 
             <Grid container spacing={3}>
               <Grid item xs={12} md={6}>
-                <TextField
-                  fullWidth
-                  label="Model ID"
-                  value={contractData.modelId}
-                  onChange={(e) => setContractData({ ...contractData, modelId: e.target.value })}
-                  placeholder="e.g., GPT-4-FineTuned-v1"
-                  helperText="Unique identifier for your AI model"
-                />
+                <FormControl fullWidth>
+                  <InputLabel>AI Models</InputLabel>
+                  <Select
+                    multiple
+                    value={selectedAiModels || []}
+                    onChange={(e) => setSelectedAiModels(e.target.value)}
+                    label="AI Models"
+                    renderValue={(selected) => (
+                      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                        {selected.map((modelId) => {
+                          const model = aiModels?.find(m => m.id === modelId);
+                          return (
+                            <Chip 
+                              key={modelId} 
+                              label={model?.name || modelId} 
+                              size="small" 
+                            />
+                          );
+                        })}
+                      </Box>
+                    )}
+                  >
+                    {aiModels?.map((model) => (
+                      <MenuItem key={model.id} value={model.id}>
+                        <Checkbox checked={(selectedAiModels || []).indexOf(model.id) > -1} />
+                        <ListItemText 
+                          primary={model.name}
+                          secondary={`${model.type} - ${model.architecture}`}
+                        />
+                      </MenuItem>
+                    ))}
+                  </Select>
+                  <FormHelperText>Select AI models to be used in this contract (optional)</FormHelperText>
+                </FormControl>
               </Grid>
               
               <Grid item xs={12} md={6}>
@@ -449,7 +481,7 @@ function CreateContract() {
                 <Grid container spacing={2}>
                   <Grid item xs={12} md={6}>
                     <Typography variant="body2" color="textSecondary">
-                      <strong>Model ID:</strong> {contractData.modelId}
+                      <strong>Model ID:</strong> <em>Not applicable</em>
                     </Typography>
                   </Grid>
                   <Grid item xs={12} md={6}>
