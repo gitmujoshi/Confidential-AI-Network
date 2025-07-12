@@ -726,6 +726,213 @@ describe('API Endpoints Test Suite', () => {
     });
   });
 
+  describe('AI Model API Endpoints', () => {
+    let authToken, AIModel;
+    beforeAll(async () => {
+      AIModel = require('../models').AIModel;
+      // Create a test user and token
+      const user = await User.create({
+        email: 'aimodelapi@example.com',
+        name: 'AI Model API User',
+        partyType: 'TDC',
+        publicKey: 'test-public-key',
+        did: 'did:web:github.com:aimodelapi',
+        didVerified: true
+      });
+      authToken = jwt.sign(
+        { userId: user.id, role: user.partyType },
+        process.env.JWT_SECRET || 'test-secret',
+        { expiresIn: '1h' }
+      );
+      // Create a test AI model
+      await AIModel.create({
+        modelId: 'api-model-001',
+        name: 'API Model',
+        description: 'API test model',
+        type: 'transformer',
+        architecture: 'api-arch',
+        parameters: '1M',
+        framework: 'PyTorch',
+        privacyTechnique: 'federated-learning',
+        validationMetrics: ['accuracy'],
+        maxEpochs: 10,
+        batchSize: 16,
+        learningRate: 0.001,
+        isActive: true
+      });
+    });
+
+    it('should fetch available AI models', async () => {
+      const response = await request(app)
+        .get('/api/contracts/available-models')
+        .set('Authorization', `Bearer ${authToken}`)
+        .expect(200);
+      expect(response.body.success).toBe(true);
+      expect(Array.isArray(response.body.models)).toBe(true);
+      expect(response.body.models.length).toBeGreaterThan(0);
+      expect(response.body.models[0].id).toBeDefined();
+    });
+
+    it('should return empty if no active models', async () => {
+      // Deactivate all models
+      await AIModel.update({ isActive: false }, { where: {} });
+      const response = await request(app)
+        .get('/api/contracts/available-models')
+        .set('Authorization', `Bearer ${authToken}`)
+        .expect(200);
+      expect(response.body.success).toBe(true);
+      expect(Array.isArray(response.body.models)).toBe(true);
+      expect(response.body.models.length).toBe(0);
+      // Reactivate for other tests
+      await AIModel.update({ isActive: true }, { where: {} });
+    });
+  });
+
+  describe('Ricardian Contract Endpoints', () => {
+    let tdcUser, tdpUser, tdcToken, tdpDataset, AIModel;
+
+    beforeAll(async () => {
+      AIModel = require('../models').AIModel;
+      // Register TDP
+      tdpUser = await User.create({
+        email: 'tdp-ricardian@example.com',
+        name: 'Ricardian TDP',
+        partyType: 'TDP',
+        publicKey: 'tdp-public-key',
+        did: 'did:web:github.com:ricardian-tdp',
+        didVerified: true
+      });
+      // Register TDC
+      tdcUser = await User.create({
+        email: 'tdc-ricardian@example.com',
+        name: 'Ricardian TDC',
+        partyType: 'TDC',
+        publicKey: 'tdc-public-key',
+        did: 'did:web:github.com:ricardian-tdc',
+        didVerified: true
+      });
+      // Create dataset owned by TDP
+      tdpDataset = await Dataset.create({
+        datasetId: 'RICARDIAN-DS-001',
+        name: 'Ricardian Test Dataset',
+        description: 'Dataset for Ricardian contract E2E test',
+        category: 'Computer Vision',
+        size: 500,
+        recordCount: 5000,
+        price: 123.45,
+        license: 'MIT',
+        ownerId: tdpUser.id
+      });
+      // Create a real AI model
+      await AIModel.create({
+        modelId: 'api-model-001',
+        name: 'API Model',
+        description: 'API test model',
+        type: 'transformer',
+        architecture: 'api-arch',
+        parameters: '1M',
+        framework: 'PyTorch',
+        privacyTechnique: 'federated-learning',
+        validationMetrics: ['accuracy'],
+        maxEpochs: 10,
+        batchSize: 16,
+        learningRate: 0.001,
+        isActive: true
+      });
+      // Authenticate as TDC
+      tdcToken = jwt.sign(
+        { userId: tdcUser.id, partyType: tdcUser.partyType, email: tdcUser.email, walletAddress: '0xtdc', partyType: 'TDC' },
+        process.env.JWT_SECRET || 'test-secret',
+        { expiresIn: '1h' }
+      );
+    });
+
+    it('should create a Ricardian contract successfully with a real AI model', async () => {
+      const contractPayload = {
+        tdpId: tdpUser.id,
+        datasetId: tdpDataset.datasetId,
+        modelId: 'api-model-001',
+        price: 123.45,
+        duration: 45,
+        termsAndConditions: 'Ricardian contract E2E test terms',
+        contractType: 'AI_TRAINING',
+        environmentSpecs: { infrastructure: { computeType: 'confidential-vm' } },
+        trainingParams: { modelType: 'transformer' },
+        kmsConfigs: { provider: 'azure-key-vault' }
+      };
+      const response = await request(app)
+        .post('/api/contracts/ricardian')
+        .set('Authorization', `Bearer ${tdcToken}`)
+        .send(contractPayload)
+        .expect(201);
+      expect(response.body.success).toBe(true);
+      expect(response.body.contract).toBeDefined();
+      expect(response.body.legalDocument).toBeDefined();
+      expect(response.body.smartContractData).toBeDefined();
+      expect(response.body.contract.termsAndConditions).toBe(contractPayload.termsAndConditions);
+    });
+
+    it('should fail if modelId does not exist', async () => {
+      const contractPayload = {
+        tdpId: tdpUser.id,
+        datasetId: tdpDataset.datasetId,
+        modelId: 'nonexistent-model',
+        price: 123.45,
+        duration: 45,
+        termsAndConditions: 'Ricardian contract E2E test terms',
+        contractType: 'AI_TRAINING'
+      };
+      const response = await request(app)
+        .post('/api/contracts/ricardian')
+        .set('Authorization', `Bearer ${tdcToken}`)
+        .send(contractPayload)
+        .expect(400);
+      expect(response.body.error).toBeDefined();
+    });
+
+    it('should fail if dataset does not exist or not owned by TDP', async () => {
+      const contractPayload = {
+        tdpId: tdpUser.id,
+        datasetId: 'NON-EXISTENT-DS',
+        modelId: 'ricardian-model-2',
+        price: 123.45,
+        duration: 45,
+        termsAndConditions: 'Ricardian contract E2E test terms',
+        contractType: 'AI_TRAINING'
+      };
+      const response = await request(app)
+        .post('/api/contracts/ricardian')
+        .set('Authorization', `Bearer ${tdcToken}`)
+        .send(contractPayload)
+        .expect(404);
+      expect(response.body.error).toBeDefined();
+    });
+
+    it('should fail if user is not TDC', async () => {
+      // Authenticate as TDP
+      const tdpToken = jwt.sign(
+        { userId: tdpUser.id, partyType: tdpUser.partyType, email: tdpUser.email, walletAddress: '0xtdp', partyType: 'TDP' },
+        process.env.JWT_SECRET || 'test-secret',
+        { expiresIn: '1h' }
+      );
+      const contractPayload = {
+        tdpId: tdpUser.id,
+        datasetId: tdpDataset.datasetId,
+        modelId: 'ricardian-model-3',
+        price: 123.45,
+        duration: 45,
+        termsAndConditions: 'Ricardian contract E2E test terms',
+        contractType: 'AI_TRAINING'
+      };
+      const response = await request(app)
+        .post('/api/contracts/ricardian')
+        .set('Authorization', `Bearer ${tdpToken}`)
+        .send(contractPayload)
+        .expect(403);
+      expect(response.body.error).toBeDefined();
+    });
+  });
+
   describe('Error Handling', () => {
     it('should handle 404 for non-existent routes', async () => {
       const response = await request(app)

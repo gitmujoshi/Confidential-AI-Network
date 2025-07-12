@@ -1,0 +1,83 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database for testing
+  ***REMOVED-DB_PASSWORD***-test:
+    image: ***REMOVED-DB_PASSWORD***:15
+    container_name: contract-management-***REMOVED-DB_PASSWORD***-test
+    environment:
+      POSTGRES_DB: contract_management_test
+      POSTGRES_USER: testuser
+      POSTGRES_PASSWORD: testpass
+    ports:
+      - "5433:5432"  # Different port to avoid conflicts
+    volumes:
+      - ***REMOVED-DB_PASSWORD***_test_data:/var/lib/***REMOVED-DB_PASSWORD***ql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U testuser -d contract_management_test"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Keycloak for authentication testing
+  ***REMOVED-KEYCLOAK_DB_PASSWORD***-test:
+    image: quay.io/***REMOVED-KEYCLOAK_DB_PASSWORD***/***REMOVED-KEYCLOAK_DB_PASSWORD***:23.0
+    container_name: contract-management-***REMOVED-KEYCLOAK_DB_PASSWORD***-test
+    environment:
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: ***REMOVED-KEYCLOAK_ADMIN_PASSWORD***
+      KC_DB: ***REMOVED-DB_PASSWORD***
+      KC_DB_URL: jdbc:***REMOVED-DB_PASSWORD***ql://***REMOVED-DB_PASSWORD***-test:5432/***REMOVED-KEYCLOAK_DB_PASSWORD***_test
+      KC_DB_USERNAME: testuser
+      KC_DB_PASSWORD: testpass
+      KC_HEALTH_ENABLED: true
+      KC_METRICS_ENABLED: true
+    ports:
+      - "8081:8080"  # Different port to avoid conflicts
+    depends_on:
+      ***REMOVED-DB_PASSWORD***-test:
+        condition: service_healthy
+    command: start-dev
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health/ready"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  # Ganache for blockchain testing
+  ganache-test:
+    image: trufflesuite/ganache:latest
+    container_name: contract-management-ganache-test
+    ports:
+      - "8546:8545"  # Different port to avoid conflicts
+    command: ganache --host 0.0.0.0 --port 8545 --accounts 10 --deterministic --mnemonic "test test test test test test test test test test test junk"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "-X", "POST", "-H", "Content-Type: application/json", "--data", '{"jsonrpc":"2.0","method":"eth_blockNumber","params":[],"id":1}', "http://localhost:8545"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Hardhat node for more advanced blockchain testing
+  hardhat-test:
+    image: node:18-alpine
+    container_name: contract-management-hardhat-test
+    working_dir: /app
+    volumes:
+      - ../blockchain:/app
+    ports:
+      - "8547:8545"  # Different port to avoid conflicts
+    command: >
+      sh -c "
+        npm install &&
+        npx hardhat node --host 0.0.0.0 --port 8545
+      "
+    depends_on:
+      - ***REMOVED-DB_PASSWORD***-test
+    healthcheck:
+      test: ["CMD", "curl", "-f", "-X", "POST", "-H", "Content-Type: application/json", "--data", '{"jsonrpc":"2.0","method":"eth_blockNumber","params":[],"id":1}', "http://localhost:8545"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  ***REMOVED-DB_PASSWORD***_test_data: 

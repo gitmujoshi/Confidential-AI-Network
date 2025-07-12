@@ -22,6 +22,9 @@ import {
   Select,
   MenuItem,
   Alert,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails,
 } from '@mui/material';
 import {
   CheckCircle,
@@ -31,6 +34,9 @@ import {
   Storage,
   Description,
   Security,
+  Download,
+  Visibility,
+  ExpandMore,
 } from '@mui/icons-material';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from 'react-query';
@@ -355,6 +361,107 @@ function ContractDetail() {
     cancelContractMutation.mutate({ privateKey });
   };
 
+  // Download contract as JSON file
+  const downloadContract = () => {
+    if (!contract) return;
+    
+    const contractData = {
+      contract: {
+        contractId: contract.contractId,
+        status: contract.status,
+        price: contract.price,
+        duration: contract.duration,
+        termsAndConditions: contract.termsAndConditions,
+        modelId: contract.modelId,
+        tdpSigned: contract.tdpSigned,
+        ccrpSigned: contract.ccrpSigned,
+        tdpSignedAt: contract.tdpSignedAt,
+        ccrpSignedAt: contract.ccrpSignedAt,
+        createdAt: contract.createdAt,
+        updatedAt: contract.updatedAt
+      },
+      parties: {
+        tdp: contract.tdp,
+        tdc: contract.tdc,
+        ccrp: contract.ccrp
+      },
+      dataset: contract.dataset,
+      legalDocument: contract.legalDocument,
+      legalDocumentHash: contract.legalDocumentHash,
+      ricardianSignature: contract.ricardianSignature,
+      smartContractAddress: contract.smartContractAddress,
+      smartContractNetwork: contract.smartContractNetwork,
+      environmentSpecs: contract.environmentSpecs,
+      trainingParams: contract.trainingParams,
+      kmsConfigs: contract.kmsConfigs,
+      attestationVerified: contract.attestationVerified,
+      attestationReport: contract.attestationReport,
+      timestamp: new Date().toISOString()
+    };
+    
+    const blob = new Blob([JSON.stringify(contractData, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `contract-${contract.contractId}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    
+    toast.success('Contract downloaded successfully!');
+  };
+
+  // Download legal document separately
+  const downloadLegalDocument = () => {
+    if (!contract?.legalDocument) {
+      toast.error('No legal document available for this contract');
+      return;
+    }
+    
+    const legalDoc = contract.legalDocument;
+    const blob = new Blob([JSON.stringify(legalDoc, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `legal-document-${contract.contractId}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    
+    toast.success('Legal document downloaded successfully!');
+  };
+
+  // Download smart contract data
+  const downloadSmartContractData = () => {
+    if (!contract?.smartContractAddress) {
+      toast.error('No smart contract data available for this contract');
+      return;
+    }
+    
+    const smartContractData = {
+      address: contract.smartContractAddress,
+      network: contract.smartContractNetwork,
+      contractId: contract.contractId,
+      legalDocumentHash: contract.legalDocumentHash,
+      ricardianSignature: contract.ricardianSignature,
+      timestamp: new Date().toISOString()
+    };
+    
+    const blob = new Blob([JSON.stringify(smartContractData, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `smart-contract-${contract.contractId}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    
+    toast.success('Smart contract data downloaded successfully!');
+  };
+
   if (isLoading) {
     return (
       <Box textAlign="center" py={4}>
@@ -407,7 +514,7 @@ function ContractDetail() {
                     <strong>Model ID:</strong>
                   </Typography>
                   <Typography variant="body1" gutterBottom>
-                    {contract.modelId}
+                    <em>Not applicable</em>
                   </Typography>
                 </Grid>
                 
@@ -637,6 +744,201 @@ function ContractDetail() {
                 </Button>
               </Box>
               {signError && <Alert severity="error" sx={{ mt: 2 }}>{signError}</Alert>}
+            </CardContent>
+          </Card>
+        </Grid>
+
+        {/* Download & Preview Section */}
+        <Grid item xs={12}>
+          <Card>
+            <CardContent>
+              <Typography variant="h6" gutterBottom>
+                📄 Contract Documents & Downloads
+              </Typography>
+              
+              {/* Download Buttons */}
+              <Box display="flex" gap={2} flexWrap="wrap" sx={{ mb: 3 }}>
+                <Button
+                  variant="contained"
+                  color="primary"
+                  onClick={downloadContract}
+                  startIcon={<Download />}
+                >
+                  Download Complete Contract
+                </Button>
+                
+                {contract.legalDocument && (
+                  <Button
+                    variant="outlined"
+                    color="primary"
+                    onClick={downloadLegalDocument}
+                    startIcon={<Download />}
+                  >
+                    Download Legal Document
+                  </Button>
+                )}
+                
+                {contract.smartContractAddress && (
+                  <Button
+                    variant="outlined"
+                    color="secondary"
+                    onClick={downloadSmartContractData}
+                    startIcon={<Download />}
+                  >
+                    Download Smart Contract Data
+                  </Button>
+                )}
+              </Box>
+
+              {/* Contract Preview Sections */}
+              {contract.legalDocument && (
+                <Accordion>
+                  <AccordionSummary expandIcon={<ExpandMore />}>
+                    <Box display="flex" alignItems="center" gap={1}>
+                      <Visibility color="primary" />
+                      <Typography variant="h6">
+                        📋 Legal Document Preview
+                      </Typography>
+                    </Box>
+                  </AccordionSummary>
+                  <AccordionDetails>
+                    <Box sx={{ maxHeight: '400px', overflow: 'auto' }}>
+                      <pre style={{ 
+                        fontFamily: 'monospace', 
+                        fontSize: '0.8rem', 
+                        backgroundColor: '#f5f5f5', 
+                        padding: '16px',
+                        borderRadius: '4px',
+                        whiteSpace: 'pre-wrap'
+                      }}>
+                        {JSON.stringify(contract.legalDocument, null, 2)}
+                      </pre>
+                    </Box>
+                  </AccordionDetails>
+                </Accordion>
+              )}
+
+              {contract.smartContractAddress && (
+                <Accordion>
+                  <AccordionSummary expandIcon={<ExpandMore />}>
+                    <Box display="flex" alignItems="center" gap={1}>
+                      <Visibility color="secondary" />
+                      <Typography variant="h6">
+                        ⚡ Smart Contract Details
+                      </Typography>
+                    </Box>
+                  </AccordionSummary>
+                  <AccordionDetails>
+                    <Grid container spacing={2}>
+                      <Grid item xs={12} md={6}>
+                        <Typography variant="subtitle2">Smart Contract Address:</Typography>
+                        <Typography variant="body2" sx={{ fontFamily: 'monospace', fontSize: '0.8rem' }}>
+                          {contract.smartContractAddress}
+                        </Typography>
+                      </Grid>
+                      <Grid item xs={12} md={6}>
+                        <Typography variant="subtitle2">Network:</Typography>
+                        <Typography variant="body2">
+                          {contract.smartContractNetwork}
+                        </Typography>
+                      </Grid>
+                      <Grid item xs={12} md={6}>
+                        <Typography variant="subtitle2">Legal Document Hash:</Typography>
+                        <Typography variant="body2" sx={{ fontFamily: 'monospace', fontSize: '0.8rem' }}>
+                          {contract.legalDocumentHash}
+                        </Typography>
+                      </Grid>
+                      <Grid item xs={12} md={6}>
+                        <Typography variant="subtitle2">Ricardian Signature:</Typography>
+                        <Typography variant="body2" sx={{ fontFamily: 'monospace', fontSize: '0.8rem' }}>
+                          {contract.ricardianSignature}
+                        </Typography>
+                      </Grid>
+                    </Grid>
+                  </AccordionDetails>
+                </Accordion>
+              )}
+
+              {contract.environmentSpecs && (
+                <Accordion>
+                  <AccordionSummary expandIcon={<ExpandMore />}>
+                    <Box display="flex" alignItems="center" gap={1}>
+                      <Storage color="info" />
+                      <Typography variant="h6">
+                        🏗️ Environment Specifications
+                      </Typography>
+                    </Box>
+                  </AccordionSummary>
+                  <AccordionDetails>
+                    <Box sx={{ maxHeight: '400px', overflow: 'auto' }}>
+                      <pre style={{ 
+                        fontFamily: 'monospace', 
+                        fontSize: '0.8rem', 
+                        backgroundColor: '#f5f5f5', 
+                        padding: '16px',
+                        borderRadius: '4px',
+                        whiteSpace: 'pre-wrap'
+                      }}>
+                        {JSON.stringify(contract.environmentSpecs, null, 2)}
+                      </pre>
+                    </Box>
+                  </AccordionDetails>
+                </Accordion>
+              )}
+
+              {contract.trainingParams && (
+                <Accordion>
+                  <AccordionSummary expandIcon={<ExpandMore />}>
+                    <Box display="flex" alignItems="center" gap={1}>
+                      <Description color="success" />
+                      <Typography variant="h6">
+                        🎯 Training Parameters
+                      </Typography>
+                    </Box>
+                  </AccordionSummary>
+                  <AccordionDetails>
+                    <Box sx={{ maxHeight: '400px', overflow: 'auto' }}>
+                      <pre style={{ 
+                        fontFamily: 'monospace', 
+                        fontSize: '0.8rem', 
+                        backgroundColor: '#f5f5f5', 
+                        padding: '16px',
+                        borderRadius: '4px',
+                        whiteSpace: 'pre-wrap'
+                      }}>
+                        {JSON.stringify(contract.trainingParams, null, 2)}
+                      </pre>
+                    </Box>
+                  </AccordionDetails>
+                </Accordion>
+              )}
+
+              {contract.kmsConfigs && (
+                <Accordion>
+                  <AccordionSummary expandIcon={<ExpandMore />}>
+                    <Box display="flex" alignItems="center" gap={1}>
+                      <Security color="warning" />
+                      <Typography variant="h6">
+                        🔐 KMS Configurations
+                      </Typography>
+                    </Box>
+                  </AccordionSummary>
+                  <AccordionDetails>
+                    <Box sx={{ maxHeight: '400px', overflow: 'auto' }}>
+                      <pre style={{ 
+                        fontFamily: 'monospace', 
+                        fontSize: '0.8rem', 
+                        backgroundColor: '#f5f5f5', 
+                        padding: '16px',
+                        borderRadius: '4px',
+                        whiteSpace: 'pre-wrap'
+                      }}>
+                        {JSON.stringify(contract.kmsConfigs, null, 2)}
+                      </pre>
+                    </Box>
+                  </AccordionDetails>
+                </Accordion>
+              )}
             </CardContent>
           </Card>
         </Grid>

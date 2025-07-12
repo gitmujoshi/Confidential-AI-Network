@@ -1,0 +1,232 @@
+{
+  "ricardianContract": {
+    "metadata": {
+      "contractType": "RICARDIAN_CONTRACT",
+      "version": "1.0.0",
+      "createdAt": "2024-01-15T10:30:00.000Z",
+      "legalDocumentHash": "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef",
+      "smartContractAddress": "0x5FbDB2315678afecb367f032d93F642f64180aa3",
+      "ricardianSignature": "0x9876543210fedcba9876543210fedcba9876543210fedcba9876543210fedcba"
+    },
+    "legalDocument": {
+      "title": "Data Sharing and Model Training Agreement",
+      "documentType": "CONTRACT",
+      "effectiveDate": "2024-01-15",
+      "expirationDate": "2024-02-14",
+      "parties": {
+        "provider": {
+          "name": "Acme Data Corporation",
+          "address": "123 Data Street, Tech City, TC 12345",
+          "email": "legal@acmedata.com",
+          "blockchainAddress": "0x1234567890abcdef1234567890abcdef12345678",
+          "did": "did:web:acmedata.com:organization"
+        },
+        "consumer": {
+          "name": "AI Training Incorporated",
+          "address": "456 AI Avenue, Innovation District, ID 67890",
+          "email": "legal@aitraining.com",
+          "blockchainAddress": "0xabcdef1234567890abcdef1234567890abcdef12",
+          "did": "did:web:aitraining.com:organization"
+        },
+        "reviewer": {
+          "name": "Secure Analytics LLC",
+          "address": "789 Security Blvd, Compliance City, CC 11111",
+          "email": "legal@secureanalytics.com",
+          "blockchainAddress": "0x9876543210fedcba9876543210fedcba98765432",
+          "did": "did:web:secureanalytics.com:organization"
+        }
+      },
+      "recitals": [
+        "Provider owns and controls the Customer Behavior Dataset 2024 (DS-2024-001)",
+        "Consumer desires to train a Customer Churn Prediction Model using said dataset",
+        "Reviewer will provide a secure environment for data processing and model training",
+        "All parties agree to comply with applicable data protection regulations"
+      ],
+      "terms": [
+        {
+          "section": "1.0",
+          "title": "Data Provision",
+          "content": "Provider agrees to provide the Customer Behavior Dataset 2024 (DS-2024-001) to Consumer for the purpose of training a Customer Churn Prediction Model. The dataset contains anonymized customer behavior patterns, purchase history, and demographic information."
+        },
+        {
+          "section": "2.0",
+          "title": "Payment Terms",
+          "content": "Consumer agrees to pay Provider the sum of $10,000 USD (Ten Thousand United States Dollars) for the dataset and associated services. Payment shall be made upfront upon contract activation."
+        },
+        {
+          "section": "3.0",
+          "title": "Secure Environment",
+          "content": "Reviewer shall provide a secure, isolated environment for data processing and model training. The environment shall include encryption at rest and in transit, access controls, and comprehensive audit logging."
+        },
+        {
+          "section": "4.0",
+          "title": "Data Retention",
+          "content": "All data shall be retained for a maximum of 90 days from the date of contract completion, after which it shall be securely deleted in accordance with DPDP Act 2023 requirements."
+        },
+        {
+          "section": "5.0",
+          "title": "Compliance",
+          "content": "All parties agree to comply with the Digital Personal Data Protection Act 2023, GDPR, and ISO 27001 security standards. Any breach of compliance requirements shall result in immediate contract termination."
+        },
+        {
+          "section": "6.0",
+          "title": "Intellectual Property",
+          "content": "Consumer may use the trained model for commercial purposes but may not redistribute the original dataset. Provider retains ownership of the original dataset."
+        }
+      ],
+      "signatures": [
+        {
+          "party": "provider",
+          "name": "John Smith",
+          "title": "Chief Data Officer",
+          "signature": "0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890",
+          "timestamp": "2024-01-15T10:35:00.000Z",
+          "did": "did:web:acmedata.com:user:john.smith"
+        },
+        {
+          "party": "consumer",
+          "name": "Jane Doe",
+          "title": "Chief Technology Officer",
+          "signature": "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef",
+          "timestamp": "2024-01-15T10:30:00.000Z",
+          "did": "did:web:aitraining.com:user:jane.doe"
+        },
+        {
+          "party": "reviewer",
+          "name": "Bob Wilson",
+          "title": "Chief Security Officer",
+          "signature": "0x9876543210fedcba9876543210fedcba9876543210fedcba9876543210fedcba",
+          "timestamp": "2024-01-15T11:00:00.000Z",
+          "did": "did:web:secureanalytics.com:user:bob.wilson"
+        }
+      ]
+    },
+    "smartContract": {
+      "address": "0x5FbDB2315678afecb367f032d93F642f64180aa3",
+      "network": "goerli",
+      "contractType": "RicardianContractManager",
+      "functions": {
+        "createContract": {
+          "description": "Creates a new Ricardian contract with legal document hash",
+          "parameters": ["legalDocumentHash", "effectiveDate", "expirationDate"],
+          "events": ["ContractCreated"]
+        },
+        "executeContract": {
+          "description": "Executes contract terms based on conditions",
+          "parameters": ["contractId", "action", "parameters"],
+          "events": ["ContractExecuted"]
+        },
+        "verifySignature": {
+          "description": "Verifies digital signatures of parties",
+          "parameters": ["contractId", "partyAddress", "signature"],
+          "returns": "bool"
+        }
+      },
+      "state": {
+        "contractId": 12345,
+        "legalDocumentHash": "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef",
+        "status": "ACTIVE",
+        "effectiveDate": 1705312200,
+        "expirationDate": 1707944400,
+        "parties": [
+          "0x1234567890abcdef1234567890abcdef12345678",
+          "0xabcdef1234567890abcdef1234567890abcdef12",
+          "0x9876543210fedcba9876543210fedcba98765432"
+        ],
+        "signatures": [
+          "0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890",
+          "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef",
+          "0x9876543210fedcba9876543210fedcba9876543210fedcba9876543210fedcba"
+        ]
+      }
+    },
+    "execution": {
+      "automatedActions": [
+        {
+          "trigger": "CONTRACT_ACTIVATION",
+          "action": "TRANSFER_DATASET",
+          "description": "Automatically transfer dataset to secure environment",
+          "status": "PENDING"
+        },
+        {
+          "trigger": "MODEL_TRAINING_COMPLETE",
+          "action": "VALIDATE_MODEL",
+          "description": "Validate model performance against agreed metrics",
+          "status": "PENDING"
+        },
+        {
+          "trigger": "CONTRACT_EXPIRATION",
+          "action": "DELETE_DATA",
+          "description": "Automatically delete all data after retention period",
+          "status": "SCHEDULED"
+        }
+      ],
+      "manualActions": [
+        {
+          "action": "PAYMENT_RELEASE",
+          "description": "Release payment to provider upon successful delivery",
+          "status": "PENDING",
+          "requiresApproval": true
+        },
+        {
+          "action": "DISPUTE_RESOLUTION",
+          "description": "Handle disputes through legal document terms",
+          "status": "AVAILABLE",
+          "requiresApproval": true
+        }
+      ]
+    },
+    "compliance": {
+      "regulations": [
+        {
+          "name": "DPDP_2023",
+          "status": "COMPLIANT",
+          "requirements": [
+            "Data minimization implemented",
+            "Purpose limitation enforced",
+            "Retention period set to 90 days",
+            "Consent management in place"
+          ]
+        },
+        {
+          "name": "GDPR",
+          "status": "COMPLIANT",
+          "requirements": [
+            "Right to erasure implemented",
+            "Data portability supported",
+            "Privacy by design applied"
+          ]
+        },
+        {
+          "name": "ISO_27001",
+          "status": "COMPLIANT",
+          "requirements": [
+            "Information security management",
+            "Risk assessment completed",
+            "Security controls implemented"
+          ]
+        }
+      ],
+      "auditTrail": [
+        {
+          "timestamp": "2024-01-15T10:30:00.000Z",
+          "action": "CONTRACT_CREATED",
+          "actor": "0xabcdef1234567890abcdef1234567890abcdef12",
+          "details": "Ricardian contract created with legal document hash"
+        },
+        {
+          "timestamp": "2024-01-15T10:35:00.000Z",
+          "action": "PROVIDER_SIGNED",
+          "actor": "0x1234567890abcdef1234567890abcdef12345678",
+          "details": "Provider signed legal document and smart contract"
+        },
+        {
+          "timestamp": "2024-01-15T11:00:00.000Z",
+          "action": "REVIEWER_SIGNED",
+          "actor": "0x9876543210fedcba9876543210fedcba98765432",
+          "details": "Reviewer signed legal document and smart contract"
+        }
+      ]
+    }
+  }
+} 

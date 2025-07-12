@@ -405,7 +405,7 @@ function Contracts() {
                     <strong>Model ID:</strong>
                   </Typography>
                   <Typography variant="body1">
-                    {selectedContract.modelId}
+                    <em>Not applicable</em>
                   </Typography>
                 </Grid>
                 

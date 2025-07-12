@@ -1,8 +1,8 @@
 /**
- * Contract Model
+ * Contract Model with Ricardian Contract Support
  * 
- * This model represents contracts in the Contract Management System.
- * Contracts are created by TDC users and involve TDP (dataset owner) and optionally CCRP.
+ * This model represents contracts in the Contract Management System with Ricardian contract pattern.
+ * Ricardian contracts combine human-readable legal documents with machine-executable smart contracts.
  * 
  * Contract Workflow:
  * 1. PENDING_TDP_APPROVAL: Contract created by TDC, waiting for TDP auto-sign
@@ -10,6 +10,13 @@
  * 3. ACTIVE: All required parties signed, contract is legally binding
  * 4. COMPLETED: Contract execution finished
  * 5. CANCELLED: Contract cancelled by any party
+ * 
+ * Ricardian Contract Features:
+ * - Legal document hash for human-readable terms
+ * - Cryptographic signature binding legal to smart contract
+ * - Smart contract address for automated execution
+ * - Attestation verification for confidential computing
+ * - Multi-KMS support for data encryption
  * 
  * Parties:
  * - TDP (Training Data Provider): Dataset owner, auto-signs when contract created
@@ -21,6 +28,8 @@
  * - Signature timestamps
  * - Status tracking with audit trail
  * - Foreign key relationships for data integrity
+ * - Ricardian cryptographic binding
+ * - Attestation verification
  */
 module.exports = (sequelize, DataTypes) => {
   const Contract = sequelize.define('Contract', {
@@ -42,6 +51,36 @@ module.exports = (sequelize, DataTypes) => {
     blockchainContractId: {
       type: DataTypes.INTEGER,
       allowNull: true
+    },
+    
+    // Ricardian Contract Fields
+    legalDocumentHash: {
+      field: 'legaldocumenthash',
+      type: DataTypes.STRING(66), // SHA-256 hash with 0x prefix (always 66 chars)
+      allowNull: true,
+      comment: 'Hash of human-readable legal document for Ricardian binding'
+    },
+    
+    ricardianSignature: {
+      field: 'ricardiansignature',
+      type: DataTypes.STRING(132), // Cryptographic signature
+      allowNull: true,
+      comment: 'Cryptographic signature binding legal document to smart contract'
+    },
+    
+    smartContractAddress: {
+      field: 'smartcontractaddress',
+      type: DataTypes.STRING(42), // Ethereum address format
+      allowNull: true,
+      comment: 'Smart contract address for automated execution'
+    },
+    
+    smartContractNetwork: {
+      field: 'smartcontractnetwork',
+      type: DataTypes.STRING,
+      allowNull: true,
+      defaultValue: 'goerli',
+      comment: 'Blockchain network (goerli, mainnet, etc.)'
     },
     
     // Contract status in the workflow
@@ -74,10 +113,57 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: false
     },
     
-    // Model identifier for the training model
-    modelId: {
-      type: DataTypes.STRING,
-      allowNull: false
+    // Model identifier for the training model (removed - AI models are independent)
+    // modelId: {
+    //   type: DataTypes.STRING,
+    //   allowNull: false
+    // },
+    
+    // Ricardian Contract Legal Document (JSON)
+    legalDocument: {
+      field: 'legaldocument',
+      type: DataTypes.JSON,
+      allowNull: true,
+      comment: 'Complete legal document with terms, parties, and signatures'
+    },
+    
+    // Environment Specifications for CCRP
+    environmentSpecs: {
+      field: 'environmentspecs',
+      type: DataTypes.JSON,
+      allowNull: true,
+      comment: 'CCRP environment specifications including compute, security, and KMS config'
+    },
+    
+    // Training Parameters
+    trainingParams: {
+      field: 'trainingparams',
+      type: DataTypes.JSON,
+      allowNull: true,
+      comment: 'AI training parameters including model type, privacy techniques, and validation metrics'
+    },
+    
+    // Attestation Verification
+    attestationVerified: {
+      field: 'attestationverified',
+      type: DataTypes.BOOLEAN,
+      defaultValue: false,
+      comment: 'Whether Azure attestation has been verified'
+    },
+    
+    attestationReport: {
+      field: 'attestationreport',
+      type: DataTypes.JSON,
+      allowNull: true,
+      comment: 'Azure Confidential Computing attestation report'
+    },
+    
+    // KMS Configuration
+    kmsConfigs: {
+      field: 'kmsconfigs',
+      type: DataTypes.JSON,
+      allowNull: true,
+      comment: 'Multi-KMS provider configurations for data decryption'
     },
     
     // TDP signature status
@@ -167,6 +253,15 @@ module.exports = (sequelize, DataTypes) => {
       },
       {
         fields: ['blockchainContractId']  // Fast blockchain ID lookups
+      },
+      {
+        fields: ['legaldocumenthash']     // Fast legal document hash lookups
+      },
+      {
+        fields: ['smartcontractaddress']  // Fast smart contract address lookups
+      },
+      {
+        fields: ['attestationverified']   // Fast attestation verification queries
       }
     ]
   });

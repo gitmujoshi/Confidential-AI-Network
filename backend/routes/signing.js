@@ -21,7 +21,7 @@ const signingService = new SigningService();
 router.post('/sign', authenticateToken, async (req, res) => {
   try {
     const { message, did } = req.body;
-    const userId = req.user.id;
+    const userId = req.user?.localUser?.id || req.user?.userId;
 
     console.log('🔐 Signing request received:', { userId, did, messageLength: message?.length });
 
@@ -69,7 +69,7 @@ router.post('/sign', authenticateToken, async (req, res) => {
  */
 router.get('/dids', authenticateToken, async (req, res) => {
   try {
-    const userId = req.user.id;
+    const userId = req.user?.localUser?.id || req.user?.userId;
     console.log('📋 User requesting available DIDs:', userId);
 
     const availableDIDs = signingService.getAvailableDIDs();
@@ -114,7 +114,7 @@ router.get('/dids', authenticateToken, async (req, res) => {
 router.get('/public-key/:did', authenticateToken, async (req, res) => {
   try {
     const { did } = req.params;
-    const userId = req.user.id;
+    const userId = req.user?.localUser?.id || req.user?.userId;
 
     console.log('🔑 User requesting public key for DID:', { userId, did });
 
@@ -143,7 +143,7 @@ router.get('/public-key/:did', authenticateToken, async (req, res) => {
 router.post('/validate-permission', authenticateToken, async (req, res) => {
   try {
     const { did } = req.body;
-    const userId = req.user.id;
+    const userId = req.user?.localUser?.id || req.user?.userId;
 
     console.log('🔐 Validating user permission:', { userId, did });
 
@@ -173,7 +173,7 @@ router.post('/validate-permission', authenticateToken, async (req, res) => {
 router.post('/test', authenticateToken, async (req, res) => {
   try {
     const { did } = req.body;
-    const userId = req.user.id;
+    const userId = req.user?.localUser?.id || req.user?.userId;
 
     console.log('🧪 Testing signing for user:', { userId, did });
 

@@ -175,6 +175,54 @@ const realApiService = {
     return response.data;
   },
 
+  // AI Models
+  getAIModels: async () => {
+    const response = await api.get('/api/contracts/ai-models');
+    return response.data;
+  },
+
+  // Ricardian Contracts
+  createRicardianContract: async (contractData) => {
+    const response = await api.post('/api/contracts/ricardian', contractData);
+    return response.data;
+  },
+  previewRicardianContract: async (contractData) => {
+    const response = await api.post('/api/contracts/ricardian/preview', contractData);
+    return response.data;
+  },
+  verifyRicardianContract: async (contractId) => {
+    const response = await api.get(`/api/contracts/${contractId}/verify`);
+    return response.data;
+  },
+  updateContractEnvironment: async (contractId, environmentSpecs) => {
+    const response = await api.put(`/api/contracts/${contractId}/environment`, { environmentSpecs });
+    return response.data;
+  },
+  updateContractTraining: async (contractId, trainingParams) => {
+    const response = await api.put(`/api/contracts/${contractId}/training`, { trainingParams });
+    return response.data;
+  },
+  updateContractKMS: async (contractId, kmsConfigs) => {
+    const response = await api.put(`/api/contracts/${contractId}/kms`, { kmsConfigs });
+    return response.data;
+  },
+  updateContractAttestation: async (contractId, attestationReport) => {
+    const response = await api.put(`/api/contracts/${contractId}/attestation`, { attestationReport });
+    return response.data;
+  },
+  getSupportedContractTypes: async () => {
+    const response = await api.get('/api/contracts/types/supported');
+    return response.data.supportedTypes;
+  },
+  getAvailableModels: async () => {
+    const response = await api.get('/api/contracts/ricardian/available-models');
+    return response.data;
+  },
+  getContractTemplate: async (contractType) => {
+    const response = await api.get(`/api/contracts/types/${contractType}/template`);
+    return response.data;
+  },
+
   // Users
   getUsers: async () => {
     const response = await api.get('/api/users');

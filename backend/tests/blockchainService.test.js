@@ -1,6 +1,9 @@
 const { ethers } = require('ethers');
-const blockchainService = require('../services/blockchainService');
+const BlockchainService = require('../services/blockchainService');
 const axios = require('axios');
+
+// Create blockchain service instance
+const blockchainService = new BlockchainService();
 
 // Test configuration
 const TEST_PRIVATE_KEYS = {

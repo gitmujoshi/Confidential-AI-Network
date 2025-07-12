@@ -1,4 +1,7 @@
-const blockchainService = require('../services/blockchainService');
+const BlockchainService = require('../services/blockchainService');
+
+// Create blockchain service instance
+const blockchainService = new BlockchainService();
 
 describe('BlockchainService Simple Tests', () => {
   beforeAll(async () => {

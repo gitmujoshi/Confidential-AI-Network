@@ -1,0 +1,1155 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <meta name="author" content="Contract Management System Team" />
+  <meta name="dcterms.date" content="2025-07-09" />
+  <title>API Specifications - Contract Management System</title>
+  <style>
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+    /* CSS for syntax highlighting */
+    html { -webkit-text-size-adjust: 100%; }
+    pre > code.sourceCode { white-space: pre; position: relative; }
+    pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+    pre > code.sourceCode > span:empty { height: 1.2em; }
+    .sourceCode { overflow: visible; }
+    code.sourceCode > span { color: inherit; text-decoration: inherit; }
+    div.sourceCode { margin: 1em 0; }
+    pre.sourceCode { margin: 0; }
+    @media screen {
+    div.sourceCode { overflow: auto; }
+    }
+    @media print {
+    pre > code.sourceCode { white-space: pre-wrap; }
+    pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+    }
+    pre.numberSource code
+      { counter-reset: source-line 0; }
+    pre.numberSource code > span
+      { position: relative; left: -4em; counter-increment: source-line; }
+    pre.numberSource code > span > a:first-child::before
+      { content: counter(source-line);
+        position: relative; left: -1em; text-align: right; vertical-align: baseline;
+        border: none; display: inline-block;
+        -webkit-touch-callout: none; -webkit-user-select: none;
+        -khtml-user-select: none; -moz-user-select: none;
+        -ms-user-select: none; user-select: none;
+        padding: 0 4px; width: 4em;
+        color: #aaaaaa;
+      }
+    pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+    div.sourceCode
+      {   }
+    @media screen {
+    pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+    }
+    code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+    code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+    code span.at { color: #7d9029; } /* Attribute */
+    code span.bn { color: #40a070; } /* BaseN */
+    code span.bu { color: #008000; } /* BuiltIn */
+    code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+    code span.ch { color: #4070a0; } /* Char */
+    code span.cn { color: #880000; } /* Constant */
+    code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+    code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+    code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+    code span.dt { color: #902000; } /* DataType */
+    code span.dv { color: #40a070; } /* DecVal */
+    code span.er { color: #ff0000; font-weight: bold; } /* Error */
+    code span.ex { } /* Extension */
+    code span.fl { color: #40a070; } /* Float */
+    code span.fu { color: #06287e; } /* Function */
+    code span.im { color: #008000; font-weight: bold; } /* Import */
+    code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+    code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+    code span.op { color: #666666; } /* Operator */
+    code span.ot { color: #007020; } /* Other */
+    code span.pp { color: #bc7a00; } /* Preprocessor */
+    code span.sc { color: #4070a0; } /* SpecialChar */
+    code span.ss { color: #bb6688; } /* SpecialString */
+    code span.st { color: #4070a0; } /* String */
+    code span.va { color: #19177c; } /* Variable */
+    code span.vs { color: #4070a0; } /* VerbatimString */
+    code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+  </style>
+  <link rel="stylesheet" href="../styles/document.css" />
+</head>
+<body>
+<header id="title-block-header">
+<h1 class="title">API Specifications - Contract Management System</h1>
+<p class="author">Contract Management System Team</p>
+<p class="date">2025-07-09</p>
+</header>
+<nav id="TOC" role="doc-toc">
+<ul>
+<li><a href="#api-specifications" id="toc-api-specifications"><span
+class="toc-section-number">1</span> API Specifications</a>
+<ul>
+<li><a href="#contract-management-system"
+id="toc-contract-management-system"><span
+class="toc-section-number">1.1</span> Contract Management
+System</a></li>
+<li><a href="#table-of-contents" id="toc-table-of-contents"><span
+class="toc-section-number">1.2</span> Table of Contents</a></li>
+<li><a href="#overview" id="toc-overview"><span
+class="toc-section-number">1.3</span> Overview</a>
+<ul>
+<li><a href="#key-features" id="toc-key-features"><span
+class="toc-section-number">1.3.1</span> Key Features</a></li>
+</ul></li>
+<li><a href="#authentication-authorization"
+id="toc-authentication-authorization"><span
+class="toc-section-number">1.4</span> Authentication &amp;
+Authorization</a>
+<ul>
+<li><a href="#authentication-methods"
+id="toc-authentication-methods"><span
+class="toc-section-number">1.4.1</span> Authentication Methods</a></li>
+<li><a href="#authorization-roles" id="toc-authorization-roles"><span
+class="toc-section-number">1.4.2</span> Authorization Roles</a></li>
+</ul></li>
+<li><a href="#base-url-headers" id="toc-base-url-headers"><span
+class="toc-section-number">1.5</span> Base URL &amp; Headers</a>
+<ul>
+<li><a href="#base-url" id="toc-base-url"><span
+class="toc-section-number">1.5.1</span> Base URL</a></li>
+<li><a href="#required-headers" id="toc-required-headers"><span
+class="toc-section-number">1.5.2</span> Required Headers</a></li>
+<li><a href="#optional-headers" id="toc-optional-headers"><span
+class="toc-section-number">1.5.3</span> Optional Headers</a></li>
+</ul></li>
+<li><a href="#error-handling" id="toc-error-handling"><span
+class="toc-section-number">1.6</span> Error Handling</a>
+<ul>
+<li><a href="#standard-error-response-format"
+id="toc-standard-error-response-format"><span
+class="toc-section-number">1.6.1</span> Standard Error Response
+Format</a></li>
+<li><a href="#common-error-codes" id="toc-common-error-codes"><span
+class="toc-section-number">1.6.2</span> Common Error Codes</a></li>
+</ul></li>
+<li><a href="#iam-api-endpoints" id="toc-iam-api-endpoints"><span
+class="toc-section-number">1.7</span> IAM API Endpoints</a>
+<ul>
+<li><a href="#authentication-endpoints"
+id="toc-authentication-endpoints"><span
+class="toc-section-number">1.7.1</span> Authentication
+Endpoints</a></li>
+<li><a href="#user-management-endpoints"
+id="toc-user-management-endpoints"><span
+class="toc-section-number">1.7.2</span> User Management
+Endpoints</a></li>
+</ul></li>
+<li><a href="#contract-api-endpoints"
+id="toc-contract-api-endpoints"><span
+class="toc-section-number">1.8</span> Contract API Endpoints</a>
+<ul>
+<li><a href="#contract-management" id="toc-contract-management"><span
+class="toc-section-number">1.8.1</span> Contract Management</a></li>
+</ul></li>
+<li><a href="#signing-api-endpoints"
+id="toc-signing-api-endpoints"><span
+class="toc-section-number">1.9</span> Signing API Endpoints</a>
+<ul>
+<li><a href="#enterprise-signing-service"
+id="toc-enterprise-signing-service"><span
+class="toc-section-number">1.9.1</span> Enterprise Signing
+Service</a></li>
+</ul></li>
+<li><a href="#data-models" id="toc-data-models"><span
+class="toc-section-number">1.10</span> Data Models</a>
+<ul>
+<li><a href="#user-model" id="toc-user-model"><span
+class="toc-section-number">1.10.1</span> User Model</a></li>
+<li><a href="#contract-model" id="toc-contract-model"><span
+class="toc-section-number">1.10.2</span> Contract Model</a></li>
+<li><a href="#dataset-model" id="toc-dataset-model"><span
+class="toc-section-number">1.10.3</span> Dataset Model</a></li>
+</ul></li>
+<li><a href="#response-formats" id="toc-response-formats"><span
+class="toc-section-number">1.11</span> Response Formats</a>
+<ul>
+<li><a href="#success-response" id="toc-success-response"><span
+class="toc-section-number">1.11.1</span> Success Response</a></li>
+<li><a href="#error-response" id="toc-error-response"><span
+class="toc-section-number">1.11.2</span> Error Response</a></li>
+<li><a href="#paginated-response" id="toc-paginated-response"><span
+class="toc-section-number">1.11.3</span> Paginated Response</a></li>
+</ul></li>
+<li><a href="#rate-limiting" id="toc-rate-limiting"><span
+class="toc-section-number">1.12</span> Rate Limiting</a>
+<ul>
+<li><a href="#authentication-endpoints-1"
+id="toc-authentication-endpoints-1"><span
+class="toc-section-number">1.12.1</span> Authentication
+Endpoints</a></li>
+<li><a href="#contract-endpoints" id="toc-contract-endpoints"><span
+class="toc-section-number">1.12.2</span> Contract Endpoints</a></li>
+<li><a href="#signing-endpoints" id="toc-signing-endpoints"><span
+class="toc-section-number">1.12.3</span> Signing Endpoints</a></li>
+<li><a href="#rate-limit-response" id="toc-rate-limit-response"><span
+class="toc-section-number">1.12.4</span> Rate Limit Response</a></li>
+</ul></li>
+<li><a href="#security-considerations"
+id="toc-security-considerations"><span
+class="toc-section-number">1.13</span> Security Considerations</a>
+<ul>
+<li><a href="#authentication" id="toc-authentication"><span
+class="toc-section-number">1.13.1</span> Authentication</a></li>
+<li><a href="#authorization" id="toc-authorization"><span
+class="toc-section-number">1.13.2</span> Authorization</a></li>
+<li><a href="#data-protection" id="toc-data-protection"><span
+class="toc-section-number">1.13.3</span> Data Protection</a></li>
+<li><a href="#input-validation" id="toc-input-validation"><span
+class="toc-section-number">1.13.4</span> Input Validation</a></li>
+</ul></li>
+<li><a href="#testing" id="toc-testing"><span
+class="toc-section-number">1.14</span> Testing</a>
+<ul>
+<li><a href="#test-endpoints" id="toc-test-endpoints"><span
+class="toc-section-number">1.14.1</span> Test Endpoints</a></li>
+<li><a href="#test-data" id="toc-test-data"><span
+class="toc-section-number">1.14.2</span> Test Data</a></li>
+</ul></li>
+<li><a href="#conclusion" id="toc-conclusion"><span
+class="toc-section-number">1.15</span> Conclusion</a>
+<ul>
+<li><a href="#key-features-1" id="toc-key-features-1"><span
+class="toc-section-number">1.15.1</span> Key Features</a></li>
+</ul></li>
+</ul></li>
+</ul>
+</nav>
+<h1 data-number="1" id="api-specifications"><span
+class="header-section-number">1</span> API Specifications</h1>
+<h2 data-number="1.1" id="contract-management-system"><span
+class="header-section-number">1.1</span> Contract Management System</h2>
+<hr />
+<p><strong>Document Version:</strong> 1.0<br />
+<strong>Last Updated:</strong> January 2025<br />
+<strong>Author:</strong> Contract Management System Team<br />
+<strong>Classification:</strong> Internal Technical Specification</p>
+<hr />
+<h2 data-number="1.2" id="table-of-contents"><span
+class="header-section-number">1.2</span> Table of Contents</h2>
+<ol type="1">
+<li><a href="#overview">Overview</a></li>
+<li><a href="#authentication--authorization">Authentication &amp;
+Authorization</a></li>
+<li><a href="#base-url--headers">Base URL &amp; Headers</a></li>
+<li><a href="#error-handling">Error Handling</a></li>
+<li><a href="#iam-api-endpoints">IAM API Endpoints</a></li>
+<li><a href="#contract-api-endpoints">Contract API Endpoints</a></li>
+<li><a href="#signing-api-endpoints">Signing API Endpoints</a></li>
+<li><a href="#data-models">Data Models</a></li>
+<li><a href="#response-formats">Response Formats</a></li>
+<li><a href="#rate-limiting">Rate Limiting</a></li>
+</ol>
+<hr />
+<h2 data-number="1.3" id="overview"><span
+class="header-section-number">1.3</span> Overview</h2>
+<p>This document provides comprehensive API specifications for the
+Contract Management System, focusing on Identity and Access Management
+(IAM) and Contract operations. The API supports enterprise-grade
+authentication, role-based access control, and secure contract
+management.</p>
+<h3 data-number="1.3.1" id="key-features"><span
+class="header-section-number">1.3.1</span> Key Features</h3>
+<ul>
+<li><strong>Multi-Method Authentication</strong>: JWT tokens, Keycloak
+integration, DID-based authentication</li>
+<li><strong>Role-Based Access Control</strong>: TDP, TDC, CCRP, and
+Admin roles</li>
+<li><strong>Enterprise Signing Service</strong>: Secure cryptographic
+signing with private key management</li>
+<li><strong>DID Integration</strong>: Support for did:web, did:ethr, and
+did:key</li>
+<li><strong>Contract Lifecycle Management</strong>: Complete contract
+creation, signing, and execution workflow</li>
+</ul>
+<hr />
+<h2 data-number="1.4" id="authentication-authorization"><span
+class="header-section-number">1.4</span> Authentication &amp;
+Authorization</h2>
+<h3 data-number="1.4.1" id="authentication-methods"><span
+class="header-section-number">1.4.1</span> Authentication Methods</h3>
+<h4 data-number="1.4.1.1" id="jwt-token-authentication"><span
+class="header-section-number">1.4.1.1</span> 1. JWT Token
+Authentication</h4>
+<ul>
+<li><strong>Header</strong>:
+<code>Authorization: Bearer &lt;jwt_token&gt;</code></li>
+<li><strong>Token Format</strong>: JSON Web Token with user
+information</li>
+<li><strong>Expiration</strong>: 24 hours (configurable)</li>
+</ul>
+<h4 data-number="1.4.1.2" id="***REMOVED-KEYCLOAK_DB_PASSWORD***-integration"><span
+class="header-section-number">1.4.1.2</span> 2. Keycloak
+Integration</h4>
+<ul>
+<li><strong>Enterprise SSO</strong>: Centralized user management</li>
+<li><strong>Token Introspection</strong>: Real-time token
+validation</li>
+<li><strong>Fallback</strong>: Local JWT validation when Keycloak
+unavailable</li>
+</ul>
+<h3 data-number="1.4.2" id="authorization-roles"><span
+class="header-section-number">1.4.2</span> Authorization Roles</h3>
+<table>
+<colgroup>
+<col style="width: 18%" />
+<col style="width: 40%" />
+<col style="width: 40%" />
+</colgroup>
+<thead>
+<tr>
+<th>Role</th>
+<th>Description</th>
+<th>Permissions</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>TDP</strong></td>
+<td>Training Data Provider</td>
+<td>Create datasets, sign contracts, view own contracts</td>
+</tr>
+<tr>
+<td><strong>TDC</strong></td>
+<td>Training Data Consumer</td>
+<td>Create contracts, sign contracts, browse datasets</td>
+</tr>
+<tr>
+<td><strong>CCRP</strong></td>
+<td>Confidential Clean Room Provider</td>
+<td>Complete contracts, manage clean room environments</td>
+</tr>
+<tr>
+<td><strong>AppAdmin</strong></td>
+<td>System Administrator</td>
+<td>Full system access, user management</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 data-number="1.5" id="base-url-headers"><span
+class="header-section-number">1.5</span> Base URL &amp; Headers</h2>
+<h3 data-number="1.5.1" id="base-url"><span
+class="header-section-number">1.5.1</span> Base URL</h3>
+<pre><code>Development: http://localhost:5001/api
+Production: https://api.contractmanagement.com/api</code></pre>
+<h3 data-number="1.5.2" id="required-headers"><span
+class="header-section-number">1.5.2</span> Required Headers</h3>
+<pre class="http"><code>Content-Type: application/json
+Authorization: Bearer &lt;jwt_token&gt;</code></pre>
+<h3 data-number="1.5.3" id="optional-headers"><span
+class="header-section-number">1.5.3</span> Optional Headers</h3>
+<pre class="http"><code>X-Request-ID: &lt;unique_request_id&gt;
+X-Client-Version: &lt;client_version&gt;</code></pre>
+<hr />
+<h2 data-number="1.6" id="error-handling"><span
+class="header-section-number">1.6</span> Error Handling</h2>
+<h3 data-number="1.6.1" id="standard-error-response-format"><span
+class="header-section-number">1.6.1</span> Standard Error Response
+Format</h3>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;error&quot;</span><span class="fu">:</span> <span class="st">&quot;Error message&quot;</span><span class="fu">,</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;code&quot;</span><span class="fu">:</span> <span class="st">&quot;ERROR_CODE&quot;</span><span class="fu">,</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;details&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;field&quot;</span><span class="fu">:</span> <span class="st">&quot;Additional error details&quot;</span></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">},</span></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;timestamp&quot;</span><span class="fu">:</span> <span class="st">&quot;2024-01-01T00:00:00.000Z&quot;</span></span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<h3 data-number="1.6.2" id="common-error-codes"><span
+class="header-section-number">1.6.2</span> Common Error Codes</h3>
+<table>
+<thead>
+<tr>
+<th>Code</th>
+<th>Description</th>
+<th>HTTP Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>MISSING_REQUIRED_FIELDS</code></td>
+<td>Required fields not provided</td>
+<td>400</td>
+</tr>
+<tr>
+<td><code>INVALID_PARTY_TYPE</code></td>
+<td>Invalid user role specified</td>
+<td>400</td>
+</tr>
+<tr>
+<td><code>EMAIL_ALREADY_EXISTS</code></td>
+<td>Email already registered</td>
+<td>409</td>
+</tr>
+<tr>
+<td><code>DID_ALREADY_EXISTS</code></td>
+<td>DID already registered</td>
+<td>409</td>
+</tr>
+<tr>
+<td><code>INVALID_DID_FORMAT</code></td>
+<td>Invalid DID format</td>
+<td>400</td>
+</tr>
+<tr>
+<td><code>DID_VERIFICATION_FAILED</code></td>
+<td>DID ownership verification failed</td>
+<td>400</td>
+</tr>
+<tr>
+<td><code>UNAUTHORIZED</code></td>
+<td>Authentication required</td>
+<td>401</td>
+</tr>
+<tr>
+<td><code>FORBIDDEN</code></td>
+<td>Insufficient permissions</td>
+<td>403</td>
+</tr>
+<tr>
+<td><code>NOT_FOUND</code></td>
+<td>Resource not found</td>
+<td>404</td>
+</tr>
+<tr>
+<td><code>INTERNAL_SERVER_ERROR</code></td>
+<td>Server error</td>
+<td>500</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 data-number="1.7" id="iam-api-endpoints"><span
+class="header-section-number">1.7</span> IAM API Endpoints</h2>
+<h3 data-number="1.7.1" id="authentication-endpoints"><span
+class="header-section-number">1.7.1</span> Authentication Endpoints</h3>
+<h4 data-number="1.7.1.1" id="post-apiauthregister"><span
+class="header-section-number">1.7.1.1</span> POST
+/api/auth/register</h4>
+<p><strong>Purpose</strong>: Register a new user with support for DID
+integration</p>
+<p><strong>Request Body</strong>:</p>
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;name&quot;</span><span class="fu">:</span> <span class="st">&quot;John Doe&quot;</span><span class="fu">,</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;email&quot;</span><span class="fu">:</span> <span class="st">&quot;john.doe@example.com&quot;</span><span class="fu">,</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;partyType&quot;</span><span class="fu">:</span> <span class="st">&quot;TDP&quot;</span><span class="fu">,</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;walletAddress&quot;</span><span class="fu">:</span> <span class="st">&quot;0x1234567890abcdef...&quot;</span><span class="fu">,</span></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;publicKey&quot;</span><span class="fu">:</span> <span class="st">&quot;public_key_string&quot;</span><span class="fu">,</span></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;description&quot;</span><span class="fu">:</span> <span class="st">&quot;User description&quot;</span><span class="fu">,</span></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;organization&quot;</span><span class="fu">:</span> <span class="st">&quot;DataCorp Inc&quot;</span><span class="fu">,</span></span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;phoneNumber&quot;</span><span class="fu">:</span> <span class="st">&quot;+1234567890&quot;</span><span class="fu">,</span></span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;website&quot;</span><span class="fu">:</span> <span class="st">&quot;https://datacorp.com&quot;</span><span class="fu">,</span></span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;location&quot;</span><span class="fu">:</span> <span class="st">&quot;New York, NY&quot;</span><span class="fu">,</span></span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;existingDID&quot;</span><span class="fu">:</span> <span class="st">&quot;did:web:example.com&quot;</span><span class="fu">,</span></span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;didVerificationSignature&quot;</span><span class="fu">:</span> <span class="st">&quot;signature_string&quot;</span></span>
+<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<p><strong>Response</strong>:</p>
+<div class="sourceCode" id="cb6"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;success&quot;</span><span class="fu">:</span> <span class="kw">true</span><span class="fu">,</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;message&quot;</span><span class="fu">:</span> <span class="st">&quot;Registration successful&quot;</span><span class="fu">,</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;user&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;id&quot;</span><span class="fu">:</span> <span class="dv">1</span><span class="fu">,</span></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;name&quot;</span><span class="fu">:</span> <span class="st">&quot;John Doe&quot;</span><span class="fu">,</span></span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;email&quot;</span><span class="fu">:</span> <span class="st">&quot;john.doe@example.com&quot;</span><span class="fu">,</span></span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;partyType&quot;</span><span class="fu">:</span> <span class="st">&quot;TDP&quot;</span><span class="fu">,</span></span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;walletAddress&quot;</span><span class="fu">:</span> <span class="st">&quot;0x1234567890abcdef...&quot;</span><span class="fu">,</span></span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;did&quot;</span><span class="fu">:</span> <span class="st">&quot;did:web:example.com&quot;</span><span class="fu">,</span></span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;didVerified&quot;</span><span class="fu">:</span> <span class="kw">true</span><span class="fu">,</span></span>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;isRegistered&quot;</span><span class="fu">:</span> <span class="kw">true</span><span class="fu">,</span></span>
+<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;onboardingStatus&quot;</span><span class="fu">:</span> <span class="st">&quot;COMPLETED&quot;</span></span>
+<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">}</span></span>
+<span id="cb6-15"><a href="#cb6-15" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<h4 data-number="1.7.1.2" id="post-apiauthlogin"><span
+class="header-section-number">1.7.1.2</span> POST /api/auth/login</h4>
+<p><strong>Purpose</strong>: Authenticate user and get JWT token</p>
+<p><strong>Request Body</strong>:</p>
+<div class="sourceCode" id="cb7"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;email&quot;</span><span class="fu">:</span> <span class="st">&quot;john.doe@example.com&quot;</span><span class="fu">,</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;password&quot;</span><span class="fu">:</span> <span class="st">&quot;secure_password&quot;</span></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<p><strong>Response</strong>:</p>
+<div class="sourceCode" id="cb8"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;success&quot;</span><span class="fu">:</span> <span class="kw">true</span><span class="fu">,</span></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;token&quot;</span><span class="fu">:</span> <span class="st">&quot;jwt_token_string&quot;</span><span class="fu">,</span></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;user&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;id&quot;</span><span class="fu">:</span> <span class="dv">1</span><span class="fu">,</span></span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;name&quot;</span><span class="fu">:</span> <span class="st">&quot;John Doe&quot;</span><span class="fu">,</span></span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;email&quot;</span><span class="fu">:</span> <span class="st">&quot;john.doe@example.com&quot;</span><span class="fu">,</span></span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;partyType&quot;</span><span class="fu">:</span> <span class="st">&quot;TDP&quot;</span><span class="fu">,</span></span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;walletAddress&quot;</span><span class="fu">:</span> <span class="st">&quot;0x1234567890abcdef...&quot;</span><span class="fu">,</span></span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;did&quot;</span><span class="fu">:</span> <span class="st">&quot;did:web:example.com&quot;</span></span>
+<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">}</span></span>
+<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<h4 data-number="1.7.1.3" id="post-apiauthforgot-password"><span
+class="header-section-number">1.7.1.3</span> POST
+/api/auth/forgot-password</h4>
+<p><strong>Purpose</strong>: Initiate password reset process</p>
+<p><strong>Request Body</strong>:</p>
+<div class="sourceCode" id="cb9"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;email&quot;</span><span class="fu">:</span> <span class="st">&quot;john.doe@example.com&quot;</span></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<p><strong>Response</strong>:</p>
+<div class="sourceCode" id="cb10"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;success&quot;</span><span class="fu">:</span> <span class="kw">true</span><span class="fu">,</span></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;message&quot;</span><span class="fu">:</span> <span class="st">&quot;Password reset email sent&quot;</span></span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<h4 data-number="1.7.1.4" id="post-apiauthreset-password"><span
+class="header-section-number">1.7.1.4</span> POST
+/api/auth/reset-password</h4>
+<p><strong>Purpose</strong>: Reset password using token</p>
+<p><strong>Request Body</strong>:</p>
+<div class="sourceCode" id="cb11"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;token&quot;</span><span class="fu">:</span> <span class="st">&quot;reset_token_from_email&quot;</span><span class="fu">,</span></span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;newPassword&quot;</span><span class="fu">:</span> <span class="st">&quot;NewSecurePass123!&quot;</span></span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<p><strong>Response</strong>:</p>
+<div class="sourceCode" id="cb12"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;success&quot;</span><span class="fu">:</span> <span class="kw">true</span><span class="fu">,</span></span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;message&quot;</span><span class="fu">:</span> <span class="st">&quot;Password reset successfully&quot;</span></span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<h4 data-number="1.7.1.5" id="post-apiauthchange-password"><span
+class="header-section-number">1.7.1.5</span> POST
+/api/auth/change-password</h4>
+<p><strong>Purpose</strong>: Change password for authenticated user</p>
+<p><strong>Headers</strong>:
+<code>Authorization: Bearer &lt;jwt_token&gt;</code></p>
+<p><strong>Request Body</strong>:</p>
+<div class="sourceCode" id="cb13"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;currentPassword&quot;</span><span class="fu">:</span> <span class="st">&quot;CurrentPass123!&quot;</span><span class="fu">,</span></span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;newPassword&quot;</span><span class="fu">:</span> <span class="st">&quot;NewSecurePass456!&quot;</span></span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<p><strong>Response</strong>:</p>
+<div class="sourceCode" id="cb14"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;success&quot;</span><span class="fu">:</span> <span class="kw">true</span><span class="fu">,</span></span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;message&quot;</span><span class="fu">:</span> <span class="st">&quot;Password changed successfully&quot;</span></span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<h3 data-number="1.7.2" id="user-management-endpoints"><span
+class="header-section-number">1.7.2</span> User Management
+Endpoints</h3>
+<h4 data-number="1.7.2.1" id="get-apiauthprofile"><span
+class="header-section-number">1.7.2.1</span> GET /api/auth/profile</h4>
+<p><strong>Purpose</strong>: Get current user profile</p>
+<p><strong>Headers</strong>:
+<code>Authorization: Bearer &lt;jwt_token&gt;</code></p>
+<p><strong>Response</strong>:</p>
+<div class="sourceCode" id="cb15"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;success&quot;</span><span class="fu">:</span> <span class="kw">true</span><span class="fu">,</span></span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;user&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;id&quot;</span><span class="fu">:</span> <span class="dv">1</span><span class="fu">,</span></span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;name&quot;</span><span class="fu">:</span> <span class="st">&quot;John Doe&quot;</span><span class="fu">,</span></span>
+<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;email&quot;</span><span class="fu">:</span> <span class="st">&quot;john.doe@example.com&quot;</span><span class="fu">,</span></span>
+<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;partyType&quot;</span><span class="fu">:</span> <span class="st">&quot;TDP&quot;</span><span class="fu">,</span></span>
+<span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;walletAddress&quot;</span><span class="fu">:</span> <span class="st">&quot;0x1234567890abcdef...&quot;</span><span class="fu">,</span></span>
+<span id="cb15-9"><a href="#cb15-9" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;did&quot;</span><span class="fu">:</span> <span class="st">&quot;did:web:example.com&quot;</span><span class="fu">,</span></span>
+<span id="cb15-10"><a href="#cb15-10" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;didVerified&quot;</span><span class="fu">:</span> <span class="kw">true</span><span class="fu">,</span></span>
+<span id="cb15-11"><a href="#cb15-11" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;organization&quot;</span><span class="fu">:</span> <span class="st">&quot;DataCorp Inc&quot;</span><span class="fu">,</span></span>
+<span id="cb15-12"><a href="#cb15-12" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;phoneNumber&quot;</span><span class="fu">:</span> <span class="st">&quot;+1234567890&quot;</span><span class="fu">,</span></span>
+<span id="cb15-13"><a href="#cb15-13" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;website&quot;</span><span class="fu">:</span> <span class="st">&quot;https://datacorp.com&quot;</span><span class="fu">,</span></span>
+<span id="cb15-14"><a href="#cb15-14" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;location&quot;</span><span class="fu">:</span> <span class="st">&quot;New York, NY&quot;</span><span class="fu">,</span></span>
+<span id="cb15-15"><a href="#cb15-15" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;isRegistered&quot;</span><span class="fu">:</span> <span class="kw">true</span><span class="fu">,</span></span>
+<span id="cb15-16"><a href="#cb15-16" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;onboardingStatus&quot;</span><span class="fu">:</span> <span class="st">&quot;COMPLETED&quot;</span><span class="fu">,</span></span>
+<span id="cb15-17"><a href="#cb15-17" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;lastLoginAt&quot;</span><span class="fu">:</span> <span class="st">&quot;2024-01-01T00:00:00.000Z&quot;</span></span>
+<span id="cb15-18"><a href="#cb15-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">}</span></span>
+<span id="cb15-19"><a href="#cb15-19" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<h4 data-number="1.7.2.2" id="put-apiauthprofile"><span
+class="header-section-number">1.7.2.2</span> PUT /api/auth/profile</h4>
+<p><strong>Purpose</strong>: Update user profile</p>
+<p><strong>Headers</strong>:
+<code>Authorization: Bearer &lt;jwt_token&gt;</code></p>
+<p><strong>Request Body</strong>:</p>
+<div class="sourceCode" id="cb16"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;name&quot;</span><span class="fu">:</span> <span class="st">&quot;John Doe Updated&quot;</span><span class="fu">,</span></span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;organization&quot;</span><span class="fu">:</span> <span class="st">&quot;Updated Corp Inc&quot;</span><span class="fu">,</span></span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;phoneNumber&quot;</span><span class="fu">:</span> <span class="st">&quot;+1987654321&quot;</span><span class="fu">,</span></span>
+<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;website&quot;</span><span class="fu">:</span> <span class="st">&quot;https://updatedcorp.com&quot;</span><span class="fu">,</span></span>
+<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;location&quot;</span><span class="fu">:</span> <span class="st">&quot;San Francisco, CA&quot;</span></span>
+<span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<p><strong>Response</strong>:</p>
+<div class="sourceCode" id="cb17"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;success&quot;</span><span class="fu">:</span> <span class="kw">true</span><span class="fu">,</span></span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;message&quot;</span><span class="fu">:</span> <span class="st">&quot;Profile updated successfully&quot;</span><span class="fu">,</span></span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;user&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;id&quot;</span><span class="fu">:</span> <span class="dv">1</span><span class="fu">,</span></span>
+<span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;name&quot;</span><span class="fu">:</span> <span class="st">&quot;John Doe Updated&quot;</span><span class="fu">,</span></span>
+<span id="cb17-7"><a href="#cb17-7" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;email&quot;</span><span class="fu">:</span> <span class="st">&quot;john.doe@example.com&quot;</span><span class="fu">,</span></span>
+<span id="cb17-8"><a href="#cb17-8" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;partyType&quot;</span><span class="fu">:</span> <span class="st">&quot;TDP&quot;</span><span class="fu">,</span></span>
+<span id="cb17-9"><a href="#cb17-9" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;organization&quot;</span><span class="fu">:</span> <span class="st">&quot;Updated Corp Inc&quot;</span><span class="fu">,</span></span>
+<span id="cb17-10"><a href="#cb17-10" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;phoneNumber&quot;</span><span class="fu">:</span> <span class="st">&quot;+1987654321&quot;</span><span class="fu">,</span></span>
+<span id="cb17-11"><a href="#cb17-11" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;website&quot;</span><span class="fu">:</span> <span class="st">&quot;https://updatedcorp.com&quot;</span><span class="fu">,</span></span>
+<span id="cb17-12"><a href="#cb17-12" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;location&quot;</span><span class="fu">:</span> <span class="st">&quot;San Francisco, CA&quot;</span></span>
+<span id="cb17-13"><a href="#cb17-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">}</span></span>
+<span id="cb17-14"><a href="#cb17-14" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<hr />
+<h2 data-number="1.8" id="contract-api-endpoints"><span
+class="header-section-number">1.8</span> Contract API Endpoints</h2>
+<h3 data-number="1.8.1" id="contract-management"><span
+class="header-section-number">1.8.1</span> Contract Management</h3>
+<h4 data-number="1.8.1.1" id="get-apicontractsuseruserid"><span
+class="header-section-number">1.8.1.1</span> GET
+/api/contracts/user/:userId</h4>
+<p><strong>Purpose</strong>: Get all contracts for a user</p>
+<p><strong>Headers</strong>:
+<code>Authorization: Bearer &lt;jwt_token&gt;</code></p>
+<p><strong>Query Parameters</strong>: - <code>status</code> (optional):
+Filter by contract status - <code>limit</code> (optional): Number of
+contracts to return (default: 10) - <code>offset</code> (optional):
+Number of contracts to skip (default: 0)</p>
+<p><strong>Response</strong>:</p>
+<div class="sourceCode" id="cb18"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;contracts&quot;</span><span class="fu">:</span> <span class="ot">[</span></span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>    <span class="fu">{</span></span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;contractId&quot;</span><span class="fu">:</span> <span class="st">&quot;CONTRACT_001&quot;</span><span class="fu">,</span></span>
+<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;tdpId&quot;</span><span class="fu">:</span> <span class="dv">1</span><span class="fu">,</span></span>
+<span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;tdcId&quot;</span><span class="fu">:</span> <span class="dv">2</span><span class="fu">,</span></span>
+<span id="cb18-7"><a href="#cb18-7" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;ccrpId&quot;</span><span class="fu">:</span> <span class="dv">3</span><span class="fu">,</span></span>
+<span id="cb18-8"><a href="#cb18-8" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;datasetId&quot;</span><span class="fu">:</span> <span class="st">&quot;DATASET_001&quot;</span><span class="fu">,</span></span>
+<span id="cb18-9"><a href="#cb18-9" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;modelId&quot;</span><span class="fu">:</span> <span class="st">&quot;MODEL_001&quot;</span><span class="fu">,</span></span>
+<span id="cb18-10"><a href="#cb18-10" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;price&quot;</span><span class="fu">:</span> <span class="fl">1000.00</span><span class="fu">,</span></span>
+<span id="cb18-11"><a href="#cb18-11" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;duration&quot;</span><span class="fu">:</span> <span class="dv">30</span><span class="fu">,</span></span>
+<span id="cb18-12"><a href="#cb18-12" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;status&quot;</span><span class="fu">:</span> <span class="st">&quot;ACTIVE&quot;</span><span class="fu">,</span></span>
+<span id="cb18-13"><a href="#cb18-13" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;termsAndConditions&quot;</span><span class="fu">:</span> <span class="st">&quot;Contract terms...&quot;</span><span class="fu">,</span></span>
+<span id="cb18-14"><a href="#cb18-14" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;tdpSignature&quot;</span><span class="fu">:</span> <span class="st">&quot;signature_hash&quot;</span><span class="fu">,</span></span>
+<span id="cb18-15"><a href="#cb18-15" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;tdcSignature&quot;</span><span class="fu">:</span> <span class="st">&quot;signature_hash&quot;</span><span class="fu">,</span></span>
+<span id="cb18-16"><a href="#cb18-16" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;ccrpSignature&quot;</span><span class="fu">:</span> <span class="st">&quot;signature_hash&quot;</span><span class="fu">,</span></span>
+<span id="cb18-17"><a href="#cb18-17" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;createdAt&quot;</span><span class="fu">:</span> <span class="st">&quot;2024-01-01T00:00:00.000Z&quot;</span><span class="fu">,</span></span>
+<span id="cb18-18"><a href="#cb18-18" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;updatedAt&quot;</span><span class="fu">:</span> <span class="st">&quot;2024-01-01T00:00:00.000Z&quot;</span><span class="fu">,</span></span>
+<span id="cb18-19"><a href="#cb18-19" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;tdp&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb18-20"><a href="#cb18-20" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;id&quot;</span><span class="fu">:</span> <span class="dv">1</span><span class="fu">,</span></span>
+<span id="cb18-21"><a href="#cb18-21" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;name&quot;</span><span class="fu">:</span> <span class="st">&quot;Data Provider&quot;</span><span class="fu">,</span></span>
+<span id="cb18-22"><a href="#cb18-22" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;email&quot;</span><span class="fu">:</span> <span class="st">&quot;tdp@example.com&quot;</span><span class="fu">,</span></span>
+<span id="cb18-23"><a href="#cb18-23" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;walletAddress&quot;</span><span class="fu">:</span> <span class="st">&quot;0x1234567890abcdef...&quot;</span></span>
+<span id="cb18-24"><a href="#cb18-24" aria-hidden="true" tabindex="-1"></a>      <span class="fu">},</span></span>
+<span id="cb18-25"><a href="#cb18-25" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;tdc&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb18-26"><a href="#cb18-26" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;id&quot;</span><span class="fu">:</span> <span class="dv">2</span><span class="fu">,</span></span>
+<span id="cb18-27"><a href="#cb18-27" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;name&quot;</span><span class="fu">:</span> <span class="st">&quot;Data Consumer&quot;</span><span class="fu">,</span></span>
+<span id="cb18-28"><a href="#cb18-28" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;email&quot;</span><span class="fu">:</span> <span class="st">&quot;tdc@example.com&quot;</span><span class="fu">,</span></span>
+<span id="cb18-29"><a href="#cb18-29" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;walletAddress&quot;</span><span class="fu">:</span> <span class="st">&quot;0xabcdef1234567890...&quot;</span></span>
+<span id="cb18-30"><a href="#cb18-30" aria-hidden="true" tabindex="-1"></a>      <span class="fu">},</span></span>
+<span id="cb18-31"><a href="#cb18-31" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;ccrp&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb18-32"><a href="#cb18-32" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;id&quot;</span><span class="fu">:</span> <span class="dv">3</span><span class="fu">,</span></span>
+<span id="cb18-33"><a href="#cb18-33" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;name&quot;</span><span class="fu">:</span> <span class="st">&quot;Clean Room Provider&quot;</span><span class="fu">,</span></span>
+<span id="cb18-34"><a href="#cb18-34" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;email&quot;</span><span class="fu">:</span> <span class="st">&quot;ccrp@example.com&quot;</span><span class="fu">,</span></span>
+<span id="cb18-35"><a href="#cb18-35" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;walletAddress&quot;</span><span class="fu">:</span> <span class="st">&quot;0x7890abcdef123456...&quot;</span></span>
+<span id="cb18-36"><a href="#cb18-36" aria-hidden="true" tabindex="-1"></a>      <span class="fu">},</span></span>
+<span id="cb18-37"><a href="#cb18-37" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;dataset&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb18-38"><a href="#cb18-38" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;id&quot;</span><span class="fu">:</span> <span class="st">&quot;DATASET_001&quot;</span><span class="fu">,</span></span>
+<span id="cb18-39"><a href="#cb18-39" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;name&quot;</span><span class="fu">:</span> <span class="st">&quot;Training Dataset&quot;</span><span class="fu">,</span></span>
+<span id="cb18-40"><a href="#cb18-40" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;description&quot;</span><span class="fu">:</span> <span class="st">&quot;High-quality training data&quot;</span><span class="fu">,</span></span>
+<span id="cb18-41"><a href="#cb18-41" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;category&quot;</span><span class="fu">:</span> <span class="st">&quot;IMAGE_RECOGNITION&quot;</span><span class="fu">,</span></span>
+<span id="cb18-42"><a href="#cb18-42" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;price&quot;</span><span class="fu">:</span> <span class="fl">500.00</span></span>
+<span id="cb18-43"><a href="#cb18-43" aria-hidden="true" tabindex="-1"></a>      <span class="fu">}</span></span>
+<span id="cb18-44"><a href="#cb18-44" aria-hidden="true" tabindex="-1"></a>    <span class="fu">}</span></span>
+<span id="cb18-45"><a href="#cb18-45" aria-hidden="true" tabindex="-1"></a>  <span class="ot">]</span><span class="fu">,</span></span>
+<span id="cb18-46"><a href="#cb18-46" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;total&quot;</span><span class="fu">:</span> <span class="dv">25</span><span class="fu">,</span></span>
+<span id="cb18-47"><a href="#cb18-47" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;limit&quot;</span><span class="fu">:</span> <span class="dv">10</span><span class="fu">,</span></span>
+<span id="cb18-48"><a href="#cb18-48" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;offset&quot;</span><span class="fu">:</span> <span class="dv">0</span></span>
+<span id="cb18-49"><a href="#cb18-49" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<h4 data-number="1.8.1.2" id="get-apicontractscontractid"><span
+class="header-section-number">1.8.1.2</span> GET
+/api/contracts/:contractId</h4>
+<p><strong>Purpose</strong>: Get specific contract details</p>
+<p><strong>Headers</strong>:
+<code>Authorization: Bearer &lt;jwt_token&gt;</code></p>
+<p><strong>Response</strong>:</p>
+<div class="sourceCode" id="cb19"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;contractId&quot;</span><span class="fu">:</span> <span class="st">&quot;CONTRACT_001&quot;</span><span class="fu">,</span></span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;tdpId&quot;</span><span class="fu">:</span> <span class="dv">1</span><span class="fu">,</span></span>
+<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;tdcId&quot;</span><span class="fu">:</span> <span class="dv">2</span><span class="fu">,</span></span>
+<span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;ccrpId&quot;</span><span class="fu">:</span> <span class="dv">3</span><span class="fu">,</span></span>
+<span id="cb19-6"><a href="#cb19-6" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;datasetId&quot;</span><span class="fu">:</span> <span class="st">&quot;DATASET_001&quot;</span><span class="fu">,</span></span>
+<span id="cb19-7"><a href="#cb19-7" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;modelId&quot;</span><span class="fu">:</span> <span class="st">&quot;MODEL_001&quot;</span><span class="fu">,</span></span>
+<span id="cb19-8"><a href="#cb19-8" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;price&quot;</span><span class="fu">:</span> <span class="fl">1000.00</span><span class="fu">,</span></span>
+<span id="cb19-9"><a href="#cb19-9" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;duration&quot;</span><span class="fu">:</span> <span class="dv">30</span><span class="fu">,</span></span>
+<span id="cb19-10"><a href="#cb19-10" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;status&quot;</span><span class="fu">:</span> <span class="st">&quot;ACTIVE&quot;</span><span class="fu">,</span></span>
+<span id="cb19-11"><a href="#cb19-11" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;termsAndConditions&quot;</span><span class="fu">:</span> <span class="st">&quot;Contract terms...&quot;</span><span class="fu">,</span></span>
+<span id="cb19-12"><a href="#cb19-12" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;tdpSignature&quot;</span><span class="fu">:</span> <span class="st">&quot;signature_hash&quot;</span><span class="fu">,</span></span>
+<span id="cb19-13"><a href="#cb19-13" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;tdcSignature&quot;</span><span class="fu">:</span> <span class="st">&quot;signature_hash&quot;</span><span class="fu">,</span></span>
+<span id="cb19-14"><a href="#cb19-14" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;ccrpSignature&quot;</span><span class="fu">:</span> <span class="st">&quot;signature_hash&quot;</span><span class="fu">,</span></span>
+<span id="cb19-15"><a href="#cb19-15" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;createdAt&quot;</span><span class="fu">:</span> <span class="st">&quot;2024-01-01T00:00:00.000Z&quot;</span><span class="fu">,</span></span>
+<span id="cb19-16"><a href="#cb19-16" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;updatedAt&quot;</span><span class="fu">:</span> <span class="st">&quot;2024-01-01T00:00:00.000Z&quot;</span><span class="fu">,</span></span>
+<span id="cb19-17"><a href="#cb19-17" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;tdp&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb19-18"><a href="#cb19-18" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;id&quot;</span><span class="fu">:</span> <span class="dv">1</span><span class="fu">,</span></span>
+<span id="cb19-19"><a href="#cb19-19" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;name&quot;</span><span class="fu">:</span> <span class="st">&quot;Data Provider&quot;</span><span class="fu">,</span></span>
+<span id="cb19-20"><a href="#cb19-20" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;email&quot;</span><span class="fu">:</span> <span class="st">&quot;tdp@example.com&quot;</span><span class="fu">,</span></span>
+<span id="cb19-21"><a href="#cb19-21" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;walletAddress&quot;</span><span class="fu">:</span> <span class="st">&quot;0x1234567890abcdef...&quot;</span></span>
+<span id="cb19-22"><a href="#cb19-22" aria-hidden="true" tabindex="-1"></a>  <span class="fu">},</span></span>
+<span id="cb19-23"><a href="#cb19-23" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;tdc&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb19-24"><a href="#cb19-24" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;id&quot;</span><span class="fu">:</span> <span class="dv">2</span><span class="fu">,</span></span>
+<span id="cb19-25"><a href="#cb19-25" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;name&quot;</span><span class="fu">:</span> <span class="st">&quot;Data Consumer&quot;</span><span class="fu">,</span></span>
+<span id="cb19-26"><a href="#cb19-26" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;email&quot;</span><span class="fu">:</span> <span class="st">&quot;tdc@example.com&quot;</span><span class="fu">,</span></span>
+<span id="cb19-27"><a href="#cb19-27" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;walletAddress&quot;</span><span class="fu">:</span> <span class="st">&quot;0xabcdef1234567890...&quot;</span></span>
+<span id="cb19-28"><a href="#cb19-28" aria-hidden="true" tabindex="-1"></a>  <span class="fu">},</span></span>
+<span id="cb19-29"><a href="#cb19-29" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;ccrp&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb19-30"><a href="#cb19-30" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;id&quot;</span><span class="fu">:</span> <span class="dv">3</span><span class="fu">,</span></span>
+<span id="cb19-31"><a href="#cb19-31" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;name&quot;</span><span class="fu">:</span> <span class="st">&quot;Clean Room Provider&quot;</span><span class="fu">,</span></span>
+<span id="cb19-32"><a href="#cb19-32" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;email&quot;</span><span class="fu">:</span> <span class="st">&quot;ccrp@example.com&quot;</span><span class="fu">,</span></span>
+<span id="cb19-33"><a href="#cb19-33" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;walletAddress&quot;</span><span class="fu">:</span> <span class="st">&quot;0x7890abcdef123456...&quot;</span></span>
+<span id="cb19-34"><a href="#cb19-34" aria-hidden="true" tabindex="-1"></a>  <span class="fu">},</span></span>
+<span id="cb19-35"><a href="#cb19-35" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;dataset&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb19-36"><a href="#cb19-36" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;id&quot;</span><span class="fu">:</span> <span class="st">&quot;DATASET_001&quot;</span><span class="fu">,</span></span>
+<span id="cb19-37"><a href="#cb19-37" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;name&quot;</span><span class="fu">:</span> <span class="st">&quot;Training Dataset&quot;</span><span class="fu">,</span></span>
+<span id="cb19-38"><a href="#cb19-38" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;description&quot;</span><span class="fu">:</span> <span class="st">&quot;High-quality training data&quot;</span><span class="fu">,</span></span>
+<span id="cb19-39"><a href="#cb19-39" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;category&quot;</span><span class="fu">:</span> <span class="st">&quot;IMAGE_RECOGNITION&quot;</span><span class="fu">,</span></span>
+<span id="cb19-40"><a href="#cb19-40" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;price&quot;</span><span class="fu">:</span> <span class="fl">500.00</span></span>
+<span id="cb19-41"><a href="#cb19-41" aria-hidden="true" tabindex="-1"></a>  <span class="fu">}</span></span>
+<span id="cb19-42"><a href="#cb19-42" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<h4 data-number="1.8.1.3" id="post-apicontracts"><span
+class="header-section-number">1.8.1.3</span> POST /api/contracts</h4>
+<p><strong>Purpose</strong>: Create new contract (TDC only)</p>
+<p><strong>Headers</strong>:
+<code>Authorization: Bearer &lt;jwt_token&gt;</code></p>
+<p><strong>Request Body</strong>:</p>
+<div class="sourceCode" id="cb20"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;tdpId&quot;</span><span class="fu">:</span> <span class="dv">1</span><span class="fu">,</span></span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;datasetId&quot;</span><span class="fu">:</span> <span class="st">&quot;DATASET_001&quot;</span><span class="fu">,</span></span>
+<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;modelId&quot;</span><span class="fu">:</span> <span class="st">&quot;MODEL_001&quot;</span><span class="fu">,</span></span>
+<span id="cb20-5"><a href="#cb20-5" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;price&quot;</span><span class="fu">:</span> <span class="fl">1000.00</span><span class="fu">,</span></span>
+<span id="cb20-6"><a href="#cb20-6" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;duration&quot;</span><span class="fu">:</span> <span class="dv">30</span><span class="fu">,</span></span>
+<span id="cb20-7"><a href="#cb20-7" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;termsAndConditions&quot;</span><span class="fu">:</span> <span class="st">&quot;Contract terms and conditions...&quot;</span><span class="fu">,</span></span>
+<span id="cb20-8"><a href="#cb20-8" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;ccrpId&quot;</span><span class="fu">:</span> <span class="dv">3</span></span>
+<span id="cb20-9"><a href="#cb20-9" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<p><strong>Response</strong>:</p>
+<div class="sourceCode" id="cb21"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;success&quot;</span><span class="fu">:</span> <span class="kw">true</span><span class="fu">,</span></span>
+<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;message&quot;</span><span class="fu">:</span> <span class="st">&quot;Contract created successfully&quot;</span><span class="fu">,</span></span>
+<span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;contract&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb21-5"><a href="#cb21-5" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;contractId&quot;</span><span class="fu">:</span> <span class="st">&quot;CONTRACT_001&quot;</span><span class="fu">,</span></span>
+<span id="cb21-6"><a href="#cb21-6" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;tdpId&quot;</span><span class="fu">:</span> <span class="dv">1</span><span class="fu">,</span></span>
+<span id="cb21-7"><a href="#cb21-7" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;tdcId&quot;</span><span class="fu">:</span> <span class="dv">2</span><span class="fu">,</span></span>
+<span id="cb21-8"><a href="#cb21-8" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;ccrpId&quot;</span><span class="fu">:</span> <span class="dv">3</span><span class="fu">,</span></span>
+<span id="cb21-9"><a href="#cb21-9" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;datasetId&quot;</span><span class="fu">:</span> <span class="st">&quot;DATASET_001&quot;</span><span class="fu">,</span></span>
+<span id="cb21-10"><a href="#cb21-10" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;modelId&quot;</span><span class="fu">:</span> <span class="st">&quot;MODEL_001&quot;</span><span class="fu">,</span></span>
+<span id="cb21-11"><a href="#cb21-11" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;price&quot;</span><span class="fu">:</span> <span class="fl">1000.00</span><span class="fu">,</span></span>
+<span id="cb21-12"><a href="#cb21-12" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;duration&quot;</span><span class="fu">:</span> <span class="dv">30</span><span class="fu">,</span></span>
+<span id="cb21-13"><a href="#cb21-13" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;status&quot;</span><span class="fu">:</span> <span class="st">&quot;PENDING_CCRP_APPROVAL&quot;</span><span class="fu">,</span></span>
+<span id="cb21-14"><a href="#cb21-14" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;termsAndConditions&quot;</span><span class="fu">:</span> <span class="st">&quot;Contract terms and conditions...&quot;</span><span class="fu">,</span></span>
+<span id="cb21-15"><a href="#cb21-15" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;createdAt&quot;</span><span class="fu">:</span> <span class="st">&quot;2024-01-01T00:00:00.000Z&quot;</span></span>
+<span id="cb21-16"><a href="#cb21-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">}</span></span>
+<span id="cb21-17"><a href="#cb21-17" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<h4 data-number="1.8.1.4" id="post-apicontractscontractidsign"><span
+class="header-section-number">1.8.1.4</span> POST
+/api/contracts/:contractId/sign</h4>
+<p><strong>Purpose</strong>: Sign contract with DID signature</p>
+<p><strong>Headers</strong>:
+<code>Authorization: Bearer &lt;jwt_token&gt;</code></p>
+<p><strong>Request Body</strong>:</p>
+<div class="sourceCode" id="cb22"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;did&quot;</span><span class="fu">:</span> <span class="st">&quot;did:web:example.com&quot;</span><span class="fu">,</span></span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;signature&quot;</span><span class="fu">:</span> <span class="st">&quot;base64url_signature&quot;</span><span class="fu">,</span></span>
+<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;message&quot;</span><span class="fu">:</span> <span class="st">&quot;Contract signing message&quot;</span></span>
+<span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<p><strong>Response</strong>:</p>
+<div class="sourceCode" id="cb23"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;success&quot;</span><span class="fu">:</span> <span class="kw">true</span><span class="fu">,</span></span>
+<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;message&quot;</span><span class="fu">:</span> <span class="st">&quot;Contract signed successfully&quot;</span><span class="fu">,</span></span>
+<span id="cb23-4"><a href="#cb23-4" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;contract&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb23-5"><a href="#cb23-5" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;contractId&quot;</span><span class="fu">:</span> <span class="st">&quot;CONTRACT_001&quot;</span><span class="fu">,</span></span>
+<span id="cb23-6"><a href="#cb23-6" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;status&quot;</span><span class="fu">:</span> <span class="st">&quot;ACTIVE&quot;</span><span class="fu">,</span></span>
+<span id="cb23-7"><a href="#cb23-7" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;tdpSignature&quot;</span><span class="fu">:</span> <span class="st">&quot;signature_hash&quot;</span><span class="fu">,</span></span>
+<span id="cb23-8"><a href="#cb23-8" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;tdcSignature&quot;</span><span class="fu">:</span> <span class="st">&quot;signature_hash&quot;</span><span class="fu">,</span></span>
+<span id="cb23-9"><a href="#cb23-9" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;ccrpSignature&quot;</span><span class="fu">:</span> <span class="st">&quot;signature_hash&quot;</span><span class="fu">,</span></span>
+<span id="cb23-10"><a href="#cb23-10" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;updatedAt&quot;</span><span class="fu">:</span> <span class="st">&quot;2024-01-01T00:00:00.000Z&quot;</span></span>
+<span id="cb23-11"><a href="#cb23-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">}</span></span>
+<span id="cb23-12"><a href="#cb23-12" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<h4 data-number="1.8.1.5" id="put-apicontractscontractidstatus"><span
+class="header-section-number">1.8.1.5</span> PUT
+/api/contracts/:contractId/status</h4>
+<p><strong>Purpose</strong>: Update contract status (CCRP only)</p>
+<p><strong>Headers</strong>:
+<code>Authorization: Bearer &lt;jwt_token&gt;</code></p>
+<p><strong>Request Body</strong>:</p>
+<div class="sourceCode" id="cb24"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;status&quot;</span><span class="fu">:</span> <span class="st">&quot;COMPLETED&quot;</span><span class="fu">,</span></span>
+<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;reason&quot;</span><span class="fu">:</span> <span class="st">&quot;Contract execution completed successfully&quot;</span></span>
+<span id="cb24-4"><a href="#cb24-4" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<p><strong>Response</strong>:</p>
+<div class="sourceCode" id="cb25"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;success&quot;</span><span class="fu">:</span> <span class="kw">true</span><span class="fu">,</span></span>
+<span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;message&quot;</span><span class="fu">:</span> <span class="st">&quot;Contract status updated&quot;</span><span class="fu">,</span></span>
+<span id="cb25-4"><a href="#cb25-4" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;contract&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb25-5"><a href="#cb25-5" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;contractId&quot;</span><span class="fu">:</span> <span class="st">&quot;CONTRACT_001&quot;</span><span class="fu">,</span></span>
+<span id="cb25-6"><a href="#cb25-6" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;status&quot;</span><span class="fu">:</span> <span class="st">&quot;COMPLETED&quot;</span><span class="fu">,</span></span>
+<span id="cb25-7"><a href="#cb25-7" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;updatedAt&quot;</span><span class="fu">:</span> <span class="st">&quot;2024-01-01T00:00:00.000Z&quot;</span></span>
+<span id="cb25-8"><a href="#cb25-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">}</span></span>
+<span id="cb25-9"><a href="#cb25-9" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<hr />
+<h2 data-number="1.9" id="signing-api-endpoints"><span
+class="header-section-number">1.9</span> Signing API Endpoints</h2>
+<h3 data-number="1.9.1" id="enterprise-signing-service"><span
+class="header-section-number">1.9.1</span> Enterprise Signing
+Service</h3>
+<h4 data-number="1.9.1.1" id="post-apisigningsign"><span
+class="header-section-number">1.9.1.1</span> POST /api/signing/sign</h4>
+<p><strong>Purpose</strong>: Sign a message with enterprise DID</p>
+<p><strong>Headers</strong>:
+<code>Authorization: Bearer &lt;jwt_token&gt;</code></p>
+<p><strong>Request Body</strong>:</p>
+<div class="sourceCode" id="cb26"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;message&quot;</span><span class="fu">:</span> <span class="st">&quot;Message to sign&quot;</span><span class="fu">,</span></span>
+<span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;did&quot;</span><span class="fu">:</span> <span class="st">&quot;did:web:example.com&quot;</span></span>
+<span id="cb26-4"><a href="#cb26-4" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<p><strong>Response</strong>:</p>
+<div class="sourceCode" id="cb27"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;success&quot;</span><span class="fu">:</span> <span class="kw">true</span><span class="fu">,</span></span>
+<span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;signature&quot;</span><span class="fu">:</span> <span class="st">&quot;base64url_signature&quot;</span><span class="fu">,</span></span>
+<span id="cb27-4"><a href="#cb27-4" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;did&quot;</span><span class="fu">:</span> <span class="st">&quot;did:web:example.com&quot;</span><span class="fu">,</span></span>
+<span id="cb27-5"><a href="#cb27-5" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;timestamp&quot;</span><span class="fu">:</span> <span class="st">&quot;2024-01-01T00:00:00.000Z&quot;</span></span>
+<span id="cb27-6"><a href="#cb27-6" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<h4 data-number="1.9.1.2" id="get-apisigningdids"><span
+class="header-section-number">1.9.1.2</span> GET /api/signing/dids</h4>
+<p><strong>Purpose</strong>: Get available enterprise DIDs</p>
+<p><strong>Headers</strong>:
+<code>Authorization: Bearer &lt;jwt_token&gt;</code></p>
+<p><strong>Response</strong>:</p>
+<div class="sourceCode" id="cb28"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;success&quot;</span><span class="fu">:</span> <span class="kw">true</span><span class="fu">,</span></span>
+<span id="cb28-3"><a href="#cb28-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;dids&quot;</span><span class="fu">:</span> <span class="ot">[</span></span>
+<span id="cb28-4"><a href="#cb28-4" aria-hidden="true" tabindex="-1"></a>    <span class="fu">{</span></span>
+<span id="cb28-5"><a href="#cb28-5" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;did&quot;</span><span class="fu">:</span> <span class="st">&quot;did:web:example.com&quot;</span><span class="fu">,</span></span>
+<span id="cb28-6"><a href="#cb28-6" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;publicKey&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb28-7"><a href="#cb28-7" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;kty&quot;</span><span class="fu">:</span> <span class="st">&quot;EC&quot;</span><span class="fu">,</span></span>
+<span id="cb28-8"><a href="#cb28-8" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;crv&quot;</span><span class="fu">:</span> <span class="st">&quot;P-256&quot;</span><span class="fu">,</span></span>
+<span id="cb28-9"><a href="#cb28-9" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;x&quot;</span><span class="fu">:</span> <span class="st">&quot;FFQw_IJcWPr8qZrwq48azt1hVM8JNp3nnJ0367TxUyQ=&quot;</span><span class="fu">,</span></span>
+<span id="cb28-10"><a href="#cb28-10" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;y&quot;</span><span class="fu">:</span> <span class="st">&quot;AkPYsoJhbJNqIRGwnUHQN2D3cq4MPtzlVPx8BVuzTAo=&quot;</span><span class="fu">,</span></span>
+<span id="cb28-11"><a href="#cb28-11" aria-hidden="true" tabindex="-1"></a>        <span class="dt">&quot;alg&quot;</span><span class="fu">:</span> <span class="st">&quot;ES256&quot;</span></span>
+<span id="cb28-12"><a href="#cb28-12" aria-hidden="true" tabindex="-1"></a>      <span class="fu">},</span></span>
+<span id="cb28-13"><a href="#cb28-13" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;available&quot;</span><span class="fu">:</span> <span class="kw">true</span></span>
+<span id="cb28-14"><a href="#cb28-14" aria-hidden="true" tabindex="-1"></a>    <span class="fu">}</span></span>
+<span id="cb28-15"><a href="#cb28-15" aria-hidden="true" tabindex="-1"></a>  <span class="ot">]</span></span>
+<span id="cb28-16"><a href="#cb28-16" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<h4 data-number="1.9.1.3" id="get-apisigningpublic-keydid"><span
+class="header-section-number">1.9.1.3</span> GET
+/api/signing/public-key/:did</h4>
+<p><strong>Purpose</strong>: Get public key for a specific DID</p>
+<p><strong>Headers</strong>:
+<code>Authorization: Bearer &lt;jwt_token&gt;</code></p>
+<p><strong>Response</strong>:</p>
+<div class="sourceCode" id="cb29"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;success&quot;</span><span class="fu">:</span> <span class="kw">true</span><span class="fu">,</span></span>
+<span id="cb29-3"><a href="#cb29-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;did&quot;</span><span class="fu">:</span> <span class="st">&quot;did:web:example.com&quot;</span><span class="fu">,</span></span>
+<span id="cb29-4"><a href="#cb29-4" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;publicKey&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb29-5"><a href="#cb29-5" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;kty&quot;</span><span class="fu">:</span> <span class="st">&quot;EC&quot;</span><span class="fu">,</span></span>
+<span id="cb29-6"><a href="#cb29-6" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;crv&quot;</span><span class="fu">:</span> <span class="st">&quot;P-256&quot;</span><span class="fu">,</span></span>
+<span id="cb29-7"><a href="#cb29-7" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;x&quot;</span><span class="fu">:</span> <span class="st">&quot;FFQw_IJcWPr8qZrwq48azt1hVM8JNp3nnJ0367TxUyQ=&quot;</span><span class="fu">,</span></span>
+<span id="cb29-8"><a href="#cb29-8" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;y&quot;</span><span class="fu">:</span> <span class="st">&quot;AkPYsoJhbJNqIRGwnUHQN2D3cq4MPtzlVPx8BVuzTAo=&quot;</span><span class="fu">,</span></span>
+<span id="cb29-9"><a href="#cb29-9" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;alg&quot;</span><span class="fu">:</span> <span class="st">&quot;ES256&quot;</span></span>
+<span id="cb29-10"><a href="#cb29-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">}</span></span>
+<span id="cb29-11"><a href="#cb29-11" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<h4 data-number="1.9.1.4" id="post-apisigningvalidate-permission"><span
+class="header-section-number">1.9.1.4</span> POST
+/api/signing/validate-permission</h4>
+<p><strong>Purpose</strong>: Validate if user can sign with a specific
+DID</p>
+<p><strong>Headers</strong>:
+<code>Authorization: Bearer &lt;jwt_token&gt;</code></p>
+<p><strong>Request Body</strong>:</p>
+<div class="sourceCode" id="cb30"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;did&quot;</span><span class="fu">:</span> <span class="st">&quot;did:web:example.com&quot;</span></span>
+<span id="cb30-3"><a href="#cb30-3" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<p><strong>Response</strong>:</p>
+<div class="sourceCode" id="cb31"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;success&quot;</span><span class="fu">:</span> <span class="kw">true</span><span class="fu">,</span></span>
+<span id="cb31-3"><a href="#cb31-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;hasPermission&quot;</span><span class="fu">:</span> <span class="kw">true</span><span class="fu">,</span></span>
+<span id="cb31-4"><a href="#cb31-4" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;userId&quot;</span><span class="fu">:</span> <span class="dv">1</span><span class="fu">,</span></span>
+<span id="cb31-5"><a href="#cb31-5" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;did&quot;</span><span class="fu">:</span> <span class="st">&quot;did:web:example.com&quot;</span></span>
+<span id="cb31-6"><a href="#cb31-6" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<h4 data-number="1.9.1.5" id="post-apisigningtest"><span
+class="header-section-number">1.9.1.5</span> POST /api/signing/test</h4>
+<p><strong>Purpose</strong>: Test signing with a simple message</p>
+<p><strong>Headers</strong>:
+<code>Authorization: Bearer &lt;jwt_token&gt;</code></p>
+<p><strong>Request Body</strong>:</p>
+<div class="sourceCode" id="cb32"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;did&quot;</span><span class="fu">:</span> <span class="st">&quot;did:web:example.com&quot;</span></span>
+<span id="cb32-3"><a href="#cb32-3" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<p><strong>Response</strong>:</p>
+<div class="sourceCode" id="cb33"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb33-2"><a href="#cb33-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;success&quot;</span><span class="fu">:</span> <span class="kw">true</span><span class="fu">,</span></span>
+<span id="cb33-3"><a href="#cb33-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;testMessage&quot;</span><span class="fu">:</span> <span class="st">&quot;Test message for enterprise signing by user 1 at 2024-01-01T00:00:00.000Z&quot;</span><span class="fu">,</span></span>
+<span id="cb33-4"><a href="#cb33-4" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;signature&quot;</span><span class="fu">:</span> <span class="st">&quot;base64url_signature&quot;</span><span class="fu">,</span></span>
+<span id="cb33-5"><a href="#cb33-5" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;did&quot;</span><span class="fu">:</span> <span class="st">&quot;did:web:example.com&quot;</span><span class="fu">,</span></span>
+<span id="cb33-6"><a href="#cb33-6" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;timestamp&quot;</span><span class="fu">:</span> <span class="st">&quot;2024-01-01T00:00:00.000Z&quot;</span></span>
+<span id="cb33-7"><a href="#cb33-7" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<hr />
+<h2 data-number="1.10" id="data-models"><span
+class="header-section-number">1.10</span> Data Models</h2>
+<h3 data-number="1.10.1" id="user-model"><span
+class="header-section-number">1.10.1</span> User Model</h3>
+<div class="sourceCode" id="cb34"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb34-1"><a href="#cb34-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb34-2"><a href="#cb34-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;id&quot;</span><span class="fu">:</span> <span class="st">&quot;integer&quot;</span><span class="fu">,</span></span>
+<span id="cb34-3"><a href="#cb34-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;name&quot;</span><span class="fu">:</span> <span class="st">&quot;string&quot;</span><span class="fu">,</span></span>
+<span id="cb34-4"><a href="#cb34-4" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;email&quot;</span><span class="fu">:</span> <span class="st">&quot;string&quot;</span><span class="fu">,</span></span>
+<span id="cb34-5"><a href="#cb34-5" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;password&quot;</span><span class="fu">:</span> <span class="st">&quot;string (hashed)&quot;</span><span class="fu">,</span></span>
+<span id="cb34-6"><a href="#cb34-6" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;partyType&quot;</span><span class="fu">:</span> <span class="st">&quot;enum (TDP, TDC, CCRP, AppAdmin)&quot;</span><span class="fu">,</span></span>
+<span id="cb34-7"><a href="#cb34-7" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;walletAddress&quot;</span><span class="fu">:</span> <span class="st">&quot;string (optional)&quot;</span><span class="fu">,</span></span>
+<span id="cb34-8"><a href="#cb34-8" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;publicKey&quot;</span><span class="fu">:</span> <span class="st">&quot;string (optional)&quot;</span><span class="fu">,</span></span>
+<span id="cb34-9"><a href="#cb34-9" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;did&quot;</span><span class="fu">:</span> <span class="st">&quot;string (optional)&quot;</span><span class="fu">,</span></span>
+<span id="cb34-10"><a href="#cb34-10" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;didSource&quot;</span><span class="fu">:</span> <span class="st">&quot;enum (SYSTEM_GENERATED, USER_PROVIDED)&quot;</span><span class="fu">,</span></span>
+<span id="cb34-11"><a href="#cb34-11" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;didVerified&quot;</span><span class="fu">:</span> <span class="st">&quot;boolean&quot;</span><span class="fu">,</span></span>
+<span id="cb34-12"><a href="#cb34-12" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;didVerificationMethod&quot;</span><span class="fu">:</span> <span class="st">&quot;string (optional)&quot;</span><span class="fu">,</span></span>
+<span id="cb34-13"><a href="#cb34-13" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;organization&quot;</span><span class="fu">:</span> <span class="st">&quot;string (optional)&quot;</span><span class="fu">,</span></span>
+<span id="cb34-14"><a href="#cb34-14" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;phoneNumber&quot;</span><span class="fu">:</span> <span class="st">&quot;string (optional)&quot;</span><span class="fu">,</span></span>
+<span id="cb34-15"><a href="#cb34-15" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;website&quot;</span><span class="fu">:</span> <span class="st">&quot;string (optional)&quot;</span><span class="fu">,</span></span>
+<span id="cb34-16"><a href="#cb34-16" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;location&quot;</span><span class="fu">:</span> <span class="st">&quot;string (optional)&quot;</span><span class="fu">,</span></span>
+<span id="cb34-17"><a href="#cb34-17" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;isActive&quot;</span><span class="fu">:</span> <span class="st">&quot;boolean&quot;</span><span class="fu">,</span></span>
+<span id="cb34-18"><a href="#cb34-18" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;isRegistered&quot;</span><span class="fu">:</span> <span class="st">&quot;boolean&quot;</span><span class="fu">,</span></span>
+<span id="cb34-19"><a href="#cb34-19" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;onboardingStatus&quot;</span><span class="fu">:</span> <span class="st">&quot;enum (PENDING, IN_PROGRESS, COMPLETED)&quot;</span><span class="fu">,</span></span>
+<span id="cb34-20"><a href="#cb34-20" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;emailVerified&quot;</span><span class="fu">:</span> <span class="st">&quot;boolean&quot;</span><span class="fu">,</span></span>
+<span id="cb34-21"><a href="#cb34-21" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;lastLoginAt&quot;</span><span class="fu">:</span> <span class="st">&quot;datetime&quot;</span><span class="fu">,</span></span>
+<span id="cb34-22"><a href="#cb34-22" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;createdAt&quot;</span><span class="fu">:</span> <span class="st">&quot;datetime&quot;</span><span class="fu">,</span></span>
+<span id="cb34-23"><a href="#cb34-23" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;updatedAt&quot;</span><span class="fu">:</span> <span class="st">&quot;datetime&quot;</span></span>
+<span id="cb34-24"><a href="#cb34-24" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<h3 data-number="1.10.2" id="contract-model"><span
+class="header-section-number">1.10.2</span> Contract Model</h3>
+<div class="sourceCode" id="cb35"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb35-2"><a href="#cb35-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;contractId&quot;</span><span class="fu">:</span> <span class="st">&quot;string&quot;</span><span class="fu">,</span></span>
+<span id="cb35-3"><a href="#cb35-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;tdpId&quot;</span><span class="fu">:</span> <span class="st">&quot;integer&quot;</span><span class="fu">,</span></span>
+<span id="cb35-4"><a href="#cb35-4" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;tdcId&quot;</span><span class="fu">:</span> <span class="st">&quot;integer&quot;</span><span class="fu">,</span></span>
+<span id="cb35-5"><a href="#cb35-5" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;ccrpId&quot;</span><span class="fu">:</span> <span class="st">&quot;integer (optional)&quot;</span><span class="fu">,</span></span>
+<span id="cb35-6"><a href="#cb35-6" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;datasetId&quot;</span><span class="fu">:</span> <span class="st">&quot;string&quot;</span><span class="fu">,</span></span>
+<span id="cb35-7"><a href="#cb35-7" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;modelId&quot;</span><span class="fu">:</span> <span class="st">&quot;string&quot;</span><span class="fu">,</span></span>
+<span id="cb35-8"><a href="#cb35-8" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;price&quot;</span><span class="fu">:</span> <span class="st">&quot;decimal&quot;</span><span class="fu">,</span></span>
+<span id="cb35-9"><a href="#cb35-9" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;duration&quot;</span><span class="fu">:</span> <span class="st">&quot;integer&quot;</span><span class="fu">,</span></span>
+<span id="cb35-10"><a href="#cb35-10" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;status&quot;</span><span class="fu">:</span> <span class="st">&quot;enum (DRAFT, PENDING_TDP_APPROVAL, PENDING_TDC_APPROVAL, PENDING_CCRP_APPROVAL, ACTIVE, COMPLETED, CANCELLED)&quot;</span><span class="fu">,</span></span>
+<span id="cb35-11"><a href="#cb35-11" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;termsAndConditions&quot;</span><span class="fu">:</span> <span class="st">&quot;text&quot;</span><span class="fu">,</span></span>
+<span id="cb35-12"><a href="#cb35-12" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;tdpSignature&quot;</span><span class="fu">:</span> <span class="st">&quot;string (optional)&quot;</span><span class="fu">,</span></span>
+<span id="cb35-13"><a href="#cb35-13" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;tdcSignature&quot;</span><span class="fu">:</span> <span class="st">&quot;string (optional)&quot;</span><span class="fu">,</span></span>
+<span id="cb35-14"><a href="#cb35-14" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;ccrpSignature&quot;</span><span class="fu">:</span> <span class="st">&quot;string (optional)&quot;</span><span class="fu">,</span></span>
+<span id="cb35-15"><a href="#cb35-15" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;createdAt&quot;</span><span class="fu">:</span> <span class="st">&quot;datetime&quot;</span><span class="fu">,</span></span>
+<span id="cb35-16"><a href="#cb35-16" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;updatedAt&quot;</span><span class="fu">:</span> <span class="st">&quot;datetime&quot;</span></span>
+<span id="cb35-17"><a href="#cb35-17" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<h3 data-number="1.10.3" id="dataset-model"><span
+class="header-section-number">1.10.3</span> Dataset Model</h3>
+<div class="sourceCode" id="cb36"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb36-2"><a href="#cb36-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;datasetId&quot;</span><span class="fu">:</span> <span class="st">&quot;string&quot;</span><span class="fu">,</span></span>
+<span id="cb36-3"><a href="#cb36-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;name&quot;</span><span class="fu">:</span> <span class="st">&quot;string&quot;</span><span class="fu">,</span></span>
+<span id="cb36-4"><a href="#cb36-4" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;description&quot;</span><span class="fu">:</span> <span class="st">&quot;text&quot;</span><span class="fu">,</span></span>
+<span id="cb36-5"><a href="#cb36-5" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;category&quot;</span><span class="fu">:</span> <span class="st">&quot;enum (IMAGE_RECOGNITION, NLP, AUDIO_PROCESSING, etc.)&quot;</span><span class="fu">,</span></span>
+<span id="cb36-6"><a href="#cb36-6" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;price&quot;</span><span class="fu">:</span> <span class="st">&quot;decimal&quot;</span><span class="fu">,</span></span>
+<span id="cb36-7"><a href="#cb36-7" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;ownerId&quot;</span><span class="fu">:</span> <span class="st">&quot;integer&quot;</span><span class="fu">,</span></span>
+<span id="cb36-8"><a href="#cb36-8" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;isActive&quot;</span><span class="fu">:</span> <span class="st">&quot;boolean&quot;</span><span class="fu">,</span></span>
+<span id="cb36-9"><a href="#cb36-9" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;createdAt&quot;</span><span class="fu">:</span> <span class="st">&quot;datetime&quot;</span><span class="fu">,</span></span>
+<span id="cb36-10"><a href="#cb36-10" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;updatedAt&quot;</span><span class="fu">:</span> <span class="st">&quot;datetime&quot;</span></span>
+<span id="cb36-11"><a href="#cb36-11" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<hr />
+<h2 data-number="1.11" id="response-formats"><span
+class="header-section-number">1.11</span> Response Formats</h2>
+<h3 data-number="1.11.1" id="success-response"><span
+class="header-section-number">1.11.1</span> Success Response</h3>
+<div class="sourceCode" id="cb37"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb37-2"><a href="#cb37-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;success&quot;</span><span class="fu">:</span> <span class="kw">true</span><span class="fu">,</span></span>
+<span id="cb37-3"><a href="#cb37-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;message&quot;</span><span class="fu">:</span> <span class="st">&quot;Operation completed successfully&quot;</span><span class="fu">,</span></span>
+<span id="cb37-4"><a href="#cb37-4" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;data&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb37-5"><a href="#cb37-5" aria-hidden="true" tabindex="-1"></a>    <span class="er">//</span> <span class="er">Response</span> <span class="er">data</span></span>
+<span id="cb37-6"><a href="#cb37-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">}</span></span>
+<span id="cb37-7"><a href="#cb37-7" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<h3 data-number="1.11.2" id="error-response"><span
+class="header-section-number">1.11.2</span> Error Response</h3>
+<div class="sourceCode" id="cb38"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb38-2"><a href="#cb38-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;success&quot;</span><span class="fu">:</span> <span class="kw">false</span><span class="fu">,</span></span>
+<span id="cb38-3"><a href="#cb38-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;error&quot;</span><span class="fu">:</span> <span class="st">&quot;Error message&quot;</span><span class="fu">,</span></span>
+<span id="cb38-4"><a href="#cb38-4" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;code&quot;</span><span class="fu">:</span> <span class="st">&quot;ERROR_CODE&quot;</span><span class="fu">,</span></span>
+<span id="cb38-5"><a href="#cb38-5" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;details&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb38-6"><a href="#cb38-6" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;field&quot;</span><span class="fu">:</span> <span class="st">&quot;Additional error details&quot;</span></span>
+<span id="cb38-7"><a href="#cb38-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">},</span></span>
+<span id="cb38-8"><a href="#cb38-8" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;timestamp&quot;</span><span class="fu">:</span> <span class="st">&quot;2024-01-01T00:00:00.000Z&quot;</span></span>
+<span id="cb38-9"><a href="#cb38-9" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<h3 data-number="1.11.3" id="paginated-response"><span
+class="header-section-number">1.11.3</span> Paginated Response</h3>
+<div class="sourceCode" id="cb39"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb39-1"><a href="#cb39-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb39-2"><a href="#cb39-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;success&quot;</span><span class="fu">:</span> <span class="kw">true</span><span class="fu">,</span></span>
+<span id="cb39-3"><a href="#cb39-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;data&quot;</span><span class="fu">:</span> <span class="ot">[</span></span>
+<span id="cb39-4"><a href="#cb39-4" aria-hidden="true" tabindex="-1"></a>    <span class="er">//</span> <span class="er">Array</span> <span class="er">of</span> <span class="er">items</span></span>
+<span id="cb39-5"><a href="#cb39-5" aria-hidden="true" tabindex="-1"></a>  <span class="ot">]</span><span class="fu">,</span></span>
+<span id="cb39-6"><a href="#cb39-6" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;pagination&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb39-7"><a href="#cb39-7" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;total&quot;</span><span class="fu">:</span> <span class="dv">100</span><span class="fu">,</span></span>
+<span id="cb39-8"><a href="#cb39-8" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;limit&quot;</span><span class="fu">:</span> <span class="dv">10</span><span class="fu">,</span></span>
+<span id="cb39-9"><a href="#cb39-9" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;offset&quot;</span><span class="fu">:</span> <span class="dv">0</span><span class="fu">,</span></span>
+<span id="cb39-10"><a href="#cb39-10" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;hasMore&quot;</span><span class="fu">:</span> <span class="kw">true</span></span>
+<span id="cb39-11"><a href="#cb39-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">}</span></span>
+<span id="cb39-12"><a href="#cb39-12" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<hr />
+<h2 data-number="1.12" id="rate-limiting"><span
+class="header-section-number">1.12</span> Rate Limiting</h2>
+<h3 data-number="1.12.1" id="authentication-endpoints-1"><span
+class="header-section-number">1.12.1</span> Authentication
+Endpoints</h3>
+<ul>
+<li><strong>Registration</strong>: 5 requests per 15 minutes per IP</li>
+<li><strong>Login</strong>: 10 requests per 15 minutes per IP</li>
+<li><strong>Password Reset</strong>: 3 requests per hour per email</li>
+</ul>
+<h3 data-number="1.12.2" id="contract-endpoints"><span
+class="header-section-number">1.12.2</span> Contract Endpoints</h3>
+<ul>
+<li><strong>Contract Creation</strong>: 20 requests per hour per
+user</li>
+<li><strong>Contract Signing</strong>: 50 requests per hour per
+user</li>
+<li><strong>Contract Retrieval</strong>: 100 requests per hour per
+user</li>
+</ul>
+<h3 data-number="1.12.3" id="signing-endpoints"><span
+class="header-section-number">1.12.3</span> Signing Endpoints</h3>
+<ul>
+<li><strong>Message Signing</strong>: 100 requests per hour per
+user</li>
+<li><strong>DID Operations</strong>: 50 requests per hour per user</li>
+</ul>
+<h3 data-number="1.12.4" id="rate-limit-response"><span
+class="header-section-number">1.12.4</span> Rate Limit Response</h3>
+<div class="sourceCode" id="cb40"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb40-1"><a href="#cb40-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb40-2"><a href="#cb40-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;error&quot;</span><span class="fu">:</span> <span class="st">&quot;Too many requests&quot;</span><span class="fu">,</span></span>
+<span id="cb40-3"><a href="#cb40-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;code&quot;</span><span class="fu">:</span> <span class="st">&quot;RATE_LIMIT_EXCEEDED&quot;</span><span class="fu">,</span></span>
+<span id="cb40-4"><a href="#cb40-4" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;retryAfter&quot;</span><span class="fu">:</span> <span class="dv">900</span><span class="fu">,</span></span>
+<span id="cb40-5"><a href="#cb40-5" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;message&quot;</span><span class="fu">:</span> <span class="st">&quot;Rate limit exceeded. Please try again later.&quot;</span></span>
+<span id="cb40-6"><a href="#cb40-6" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<hr />
+<h2 data-number="1.13" id="security-considerations"><span
+class="header-section-number">1.13</span> Security Considerations</h2>
+<h3 data-number="1.13.1" id="authentication"><span
+class="header-section-number">1.13.1</span> Authentication</h3>
+<ul>
+<li>JWT tokens expire after 24 hours</li>
+<li>Tokens are invalidated on password change</li>
+<li>Failed login attempts are rate-limited</li>
+<li>Account lockout after 5 failed attempts</li>
+</ul>
+<h3 data-number="1.13.2" id="authorization"><span
+class="header-section-number">1.13.2</span> Authorization</h3>
+<ul>
+<li>Role-based access control enforced</li>
+<li>Resource ownership validation</li>
+<li>DID signature verification required for sensitive operations</li>
+</ul>
+<h3 data-number="1.13.3" id="data-protection"><span
+class="header-section-number">1.13.3</span> Data Protection</h3>
+<ul>
+<li>All sensitive data encrypted in transit (HTTPS)</li>
+<li>Passwords hashed using bcrypt</li>
+<li>Private keys stored securely (HSM in production)</li>
+<li>Audit logging for all security events</li>
+</ul>
+<h3 data-number="1.13.4" id="input-validation"><span
+class="header-section-number">1.13.4</span> Input Validation</h3>
+<ul>
+<li>All input validated and sanitized</li>
+<li>SQL injection prevention</li>
+<li>XSS protection</li>
+<li>CSRF protection</li>
+</ul>
+<hr />
+<h2 data-number="1.14" id="testing"><span
+class="header-section-number">1.14</span> Testing</h2>
+<h3 data-number="1.14.1" id="test-endpoints"><span
+class="header-section-number">1.14.1</span> Test Endpoints</h3>
+<ul>
+<li><strong>Health Check</strong>: <code>GET /api/health</code></li>
+<li><strong>API Status</strong>: <code>GET /api/status</code></li>
+<li><strong>Test Signing</strong>:
+<code>POST /api/signing/test</code></li>
+</ul>
+<h3 data-number="1.14.2" id="test-data"><span
+class="header-section-number">1.14.2</span> Test Data</h3>
+<div class="sourceCode" id="cb41"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb41-1"><a href="#cb41-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
+<span id="cb41-2"><a href="#cb41-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;testUser&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb41-3"><a href="#cb41-3" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;email&quot;</span><span class="fu">:</span> <span class="st">&quot;test@example.com&quot;</span><span class="fu">,</span></span>
+<span id="cb41-4"><a href="#cb41-4" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;password&quot;</span><span class="fu">:</span> <span class="st">&quot;TestPass123!&quot;</span><span class="fu">,</span></span>
+<span id="cb41-5"><a href="#cb41-5" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;partyType&quot;</span><span class="fu">:</span> <span class="st">&quot;TDP&quot;</span></span>
+<span id="cb41-6"><a href="#cb41-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">},</span></span>
+<span id="cb41-7"><a href="#cb41-7" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;testContract&quot;</span><span class="fu">:</span> <span class="fu">{</span></span>
+<span id="cb41-8"><a href="#cb41-8" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;tdpId&quot;</span><span class="fu">:</span> <span class="dv">1</span><span class="fu">,</span></span>
+<span id="cb41-9"><a href="#cb41-9" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;datasetId&quot;</span><span class="fu">:</span> <span class="st">&quot;TEST_DATASET_001&quot;</span><span class="fu">,</span></span>
+<span id="cb41-10"><a href="#cb41-10" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;modelId&quot;</span><span class="fu">:</span> <span class="st">&quot;TEST_MODEL_001&quot;</span><span class="fu">,</span></span>
+<span id="cb41-11"><a href="#cb41-11" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;price&quot;</span><span class="fu">:</span> <span class="fl">100.00</span><span class="fu">,</span></span>
+<span id="cb41-12"><a href="#cb41-12" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;duration&quot;</span><span class="fu">:</span> <span class="dv">7</span><span class="fu">,</span></span>
+<span id="cb41-13"><a href="#cb41-13" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;termsAndConditions&quot;</span><span class="fu">:</span> <span class="st">&quot;Test contract terms&quot;</span></span>
+<span id="cb41-14"><a href="#cb41-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">}</span></span>
+<span id="cb41-15"><a href="#cb41-15" aria-hidden="true" tabindex="-1"></a><span class="fu">}</span></span></code></pre></div>
+<hr />
+<h2 data-number="1.15" id="conclusion"><span
+class="header-section-number">1.15</span> Conclusion</h2>
+<p>This API specification provides a comprehensive framework for secure
+contract management with enterprise-grade IAM integration. The
+implementation supports multiple authentication methods, role-based
+access control, and secure cryptographic operations.</p>
+<h3 data-number="1.15.1" id="key-features-1"><span
+class="header-section-number">1.15.1</span> Key Features</h3>
+<ul>
+<li><strong>Secure Authentication</strong>: JWT and Keycloak
+integration</li>
+<li><strong>Role-Based Access</strong>: Granular permissions for
+different user types</li>
+<li><strong>DID Integration</strong>: Support for decentralized
+identity</li>
+<li><strong>Enterprise Signing</strong>: Secure cryptographic
+operations</li>
+<li><strong>Audit Logging</strong>: Complete audit trail for
+compliance</li>
+<li><strong>Rate Limiting</strong>: Protection against abuse</li>
+<li><strong>Error Handling</strong>: Comprehensive error responses</li>
+</ul>
+<p>For production deployment, ensure all security controls are properly
+configured and regularly audited.</p>
+</body>
+</html>

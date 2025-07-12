@@ -1,0 +1,199 @@
+{
+  "metadata": {
+    "templateVersion": "2.0.0",
+    "createdAt": "2024-01-15T10:30:00.000Z",
+    "lastModified": "2024-01-15T10:35:00.000Z",
+    "contractType": "DATA_SHARING"
+  },
+  "contractId": "CONTRACT-1705312200000",
+  "blockchainContractId": 12345,
+  "status": "PENDING_TDP_APPROVAL",
+  "parties": {
+    "tdp": {
+      "id": 1,
+      "name": "Acme Data Corp",
+      "email": "tdp@acmedata.com",
+      "walletAddress": "0x1234567890abcdef1234567890abcdef12345678",
+      "did": "did:web:acmedata.com:user:123",
+      "partyType": "TDP",
+      "organization": "Acme Data Corporation",
+      "signed": false,
+      "signedAt": null
+    },
+    "tdc": {
+      "id": 2,
+      "name": "AI Training Inc",
+      "email": "tdc@aitraining.com",
+      "walletAddress": "0xabcdef1234567890abcdef1234567890abcdef12",
+      "did": "did:web:aitraining.com:user:456",
+      "partyType": "TDC",
+      "organization": "AI Training Incorporated"
+    },
+    "ccrp": {
+      "id": 3,
+      "name": "Secure Analytics LLC",
+      "email": "ccrp@secureanalytics.com",
+      "walletAddress": "0x9876543210fedcba9876543210fedcba98765432",
+      "did": "did:web:secureanalytics.com:user:789",
+      "partyType": "CCRP",
+      "organization": "Secure Analytics LLC",
+      "signed": false,
+      "signedAt": null
+    }
+  },
+  "dataset": {
+    "id": 1,
+    "datasetId": "DS-2024-001",
+    "name": "Customer Behavior Dataset 2024",
+    "description": "Comprehensive dataset containing customer behavior patterns, purchase history, and demographic information for machine learning model training. Includes anonymized customer data with purchase frequency, average order value, customer lifetime value, and demographic indicators.",
+    "category": "CUSTOMER_DATA",
+    "size": "2.5 GB",
+    "recordCount": 1000000,
+    "price": 5000.00,
+    "license": "COMMERCIAL_USE",
+    "tags": ["customer-behavior", "e-commerce", "machine-learning", "retail"],
+    "metadata": {
+      "dataQuality": "HIGH",
+      "updateFrequency": "MONTHLY",
+      "geographicCoverage": "GLOBAL",
+      "timeRange": "2020-2024",
+      "dataSource": "E-commerce platform",
+      "anonymizationLevel": "FULL",
+      "complianceStatus": "DPDP_2023_COMPLIANT"
+    }
+  },
+  "model": {
+    "modelId": "MODEL-2024-001",
+    "name": "Customer Churn Prediction Model",
+    "description": "Machine learning model to predict customer churn based on behavior patterns and purchase history. The model will analyze customer engagement metrics, purchase frequency, and interaction patterns to identify customers at risk of churning.",
+    "type": "CLASSIFICATION",
+    "algorithm": "XGBoost",
+    "framework": "TensorFlow",
+    "targetMetric": "AUC-ROC",
+    "expectedAccuracy": 0.85,
+    "features": ["purchase_frequency", "avg_order_value", "days_since_last_purchase", "total_orders", "customer_lifetime_value"]
+  },
+  "financial": {
+    "price": 10000.00,
+    "currency": "USD",
+    "blockchainPrice": "10000000000000000000000",
+    "paymentTerms": "UPFRONT",
+    "installments": null,
+    "breakdown": {
+      "datasetCost": 5000.00,
+      "processingCost": 3000.00,
+      "ccrpFee": 2000.00
+    }
+  },
+  "timeline": {
+    "duration": 30,
+    "startDate": "2024-01-15",
+    "endDate": "2024-02-14",
+    "milestones": [
+      {
+        "name": "Contract Activation",
+        "description": "Contract becomes active after all parties sign",
+        "dueDate": "2024-01-15",
+        "completed": false
+      },
+      {
+        "name": "Data Transfer",
+        "description": "TDP transfers dataset to CCRP secure environment",
+        "dueDate": "2024-01-16",
+        "completed": false
+      },
+      {
+        "name": "Model Training",
+        "description": "TDC trains model in CCRP secure environment",
+        "dueDate": "2024-01-25",
+        "completed": false
+      },
+      {
+        "name": "Model Validation",
+        "description": "Model performance validation and testing",
+        "dueDate": "2024-02-05",
+        "completed": false
+      },
+      {
+        "name": "Project Completion",
+        "description": "Final model delivery and project closure",
+        "dueDate": "2024-02-14",
+        "completed": false
+      }
+    ]
+  },
+  "termsAndConditions": "This contract governs the sharing of customer behavior data for machine learning model training. The TDP (Acme Data Corp) will provide the specified dataset to the TDC (AI Training Inc) for the purpose of training a customer churn prediction model. The CCRP (Secure Analytics LLC) will provide a secure environment for data processing and model training. All parties agree to maintain data confidentiality and comply with applicable data protection regulations including the DPDP Act 2023. The contract duration is 30 days from the date of activation. Payment of $10,000 USD is due upfront upon contract activation. The TDC may use the trained model for commercial purposes but may not redistribute the original dataset. The CCRP will ensure secure data handling and provide audit trails for compliance purposes. Data will be retained for 90 days after project completion and then securely deleted. All parties agree to maintain appropriate security measures including encryption at rest and in transit, access controls, and audit logging.",
+  "dataProcessing": {
+    "purpose": "Machine learning model training for customer churn prediction",
+    "dataTypes": ["customer-behavior", "purchase-history", "demographics", "engagement-metrics"],
+    "retentionPeriod": 90,
+    "securityMeasures": [
+      "encryption-at-rest",
+      "encryption-in-transit",
+      "access-controls",
+      "audit-logging",
+      "data-anonymization",
+      "secure-environment"
+    ],
+    "compliance": [
+      "DPDP_2023",
+      "GDPR",
+      "ISO_27001",
+      "SOC_2"
+    ],
+    "dataMinimization": true,
+    "purposeLimitation": true,
+    "storageLimitation": true
+  },
+  "blockchain": {
+    "network": "goerli",
+    "contractAddress": "0x5FbDB2315678afecb367f032d93F642f64180aa3",
+    "transactionHash": "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef",
+    "gasUsed": 150000,
+    "gasPrice": "20000000000",
+    "blockNumber": 12345678,
+    "status": "CONFIRMED"
+  },
+  "notifications": {
+    "enabled": true,
+    "emailNotifications": true,
+    "inAppNotifications": true,
+    "history": [
+      {
+        "type": "CONTRACT_CREATED",
+        "message": "Contract CONTRACT-1705312200000 has been created by AI Training Inc",
+        "timestamp": "2024-01-15T10:30:00.000Z",
+        "recipient": "tdp@acmedata.com"
+      },
+      {
+        "type": "CCRP_SELECTED",
+        "message": "Secure Analytics LLC has been selected as CCRP for contract CONTRACT-1705312200000",
+        "timestamp": "2024-01-15T10:32:00.000Z",
+        "recipient": "ccrp@secureanalytics.com"
+      }
+    ]
+  },
+  "audit": {
+    "createdBy": "tdc@aitraining.com",
+    "createdAt": "2024-01-15T10:30:00.000Z",
+    "lastModifiedBy": "tdc@aitraining.com",
+    "lastModifiedAt": "2024-01-15T10:35:00.000Z",
+    "version": 1,
+    "changes": [
+      {
+        "field": "ccrpId",
+        "oldValue": null,
+        "newValue": "3",
+        "changedBy": "tdc@aitraining.com",
+        "timestamp": "2024-01-15T10:32:00.000Z"
+      },
+      {
+        "field": "status",
+        "oldValue": "PENDING_TDP_APPROVAL",
+        "newValue": "PENDING_TDP_APPROVAL",
+        "changedBy": "system",
+        "timestamp": "2024-01-15T10:30:00.000Z"
+      }
+    ]
+  }
+} 

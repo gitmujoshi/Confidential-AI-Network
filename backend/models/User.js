@@ -73,6 +73,13 @@ module.exports = (sequelize, Sequelize) => {
       }
     },
     
+    // Password for database authentication (hashed)
+    password: {
+      type: Sequelize.DataTypes.STRING,
+      allowNull: true,
+      comment: 'Hashed password for database authentication (fallback when Keycloak is not available)'
+    },
+    
     // Optional description of the user/company
     description: {
       type: Sequelize.DataTypes.TEXT,

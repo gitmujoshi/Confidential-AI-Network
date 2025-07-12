@@ -146,7 +146,6 @@ app.use('/api/users', usersRouter);
  */
 app.get('/api/blockchain/health', async (req, res) => {
   try {
-    const blockchainService = require('./services/blockchainService');
     const health = await blockchainService.healthCheck();
     res.json(health);
   } catch (error) {
