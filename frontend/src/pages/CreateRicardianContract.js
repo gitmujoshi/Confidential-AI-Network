@@ -129,7 +129,25 @@ function CreateRicardianContract() {
     validationMetrics: ['accuracy', 'f1-score', 'precision', 'recall'],
     maxEpochs: 100,
     batchSize: 32,
-    learningRate: 0.001
+    learningRate: 0.001,
+    // Add privacy parameters
+    maxPrivacyLoss: 0.1,
+    minAccuracy: 0.95,
+    differentialPrivacy: {
+      enabled: true,
+      epsilon: 0.1,
+      delta: 1e-5
+    },
+    federatedLearning: {
+      enabled: true,
+      aggregationMethod: 'secure-aggregation',
+      communicationRounds: 100
+    },
+    secureMultiPartyComputation: {
+      enabled: true,
+      protocol: 'shamir-secret-sharing',
+      threshold: 3
+    }
   });
   const [legalDocument, setLegalDocument] = useState(null);
   const [smartContractData, setSmartContractData] = useState(null);
@@ -252,11 +270,27 @@ function CreateRicardianContract() {
    * @returns {boolean} True if form is valid
    */
   const isFormValid = () => {
-    return (
+    // Basic validation
+    const basicValid = (
       contractData.price &&
       contractData.duration &&
       contractData.termsAndConditions
     );
+
+    // Privacy validation
+    const privacyValid = (
+      trainingParams.maxPrivacyLoss >= 0.01 && trainingParams.maxPrivacyLoss <= 1.0 &&
+      trainingParams.minAccuracy >= 0.5 && trainingParams.minAccuracy <= 0.999
+    );
+
+    // At least one privacy technique must be enabled
+    const techniqueValid = (
+      trainingParams.differentialPrivacy.enabled ||
+      trainingParams.federatedLearning.enabled ||
+      trainingParams.secureMultiPartyComputation.enabled
+    );
+
+    return basicValid && privacyValid && techniqueValid;
   };
 
   /**
@@ -343,7 +377,17 @@ function CreateRicardianContract() {
       ccrpId: selectedCcrp || null,
       contractType: selectedContractType,
       environmentSpecs,
-      trainingParams,
+      trainingParams: {
+        ...trainingParams,
+        // Add privacy requirements
+        privacyRequirements: {
+          maxPrivacyLoss: trainingParams.maxPrivacyLoss,
+          minAccuracy: trainingParams.minAccuracy,
+          differentialPrivacy: trainingParams.differentialPrivacy,
+          federatedLearning: trainingParams.federatedLearning,
+          secureMultiPartyComputation: trainingParams.secureMultiPartyComputation
+        }
+      },
       kmsConfigs: environmentSpecs.kms
     };
 
@@ -554,8 +598,198 @@ function CreateRicardianContract() {
                       onChange={(e) => setContractData({ ...contractData, termsAndConditions: e.target.value })}
                       margin="normal"
                     />
+                  </CardContent>
+                </Card>
+              </Grid>
+
+              <Grid item xs={12} md={6}>
+                <Card>
+                  <CardContent>
+                    <Typography variant="h6" gutterBottom>
+                      Privacy & Accuracy Requirements
+                    </Typography>
                     
+                    <TextField
+                      fullWidth
+                      label="Maximum Privacy Loss (ε)"
+                      type="number"
+                      inputProps={{ step: 0.01, min: 0.01, max: 1.0 }}
+                      value={trainingParams.maxPrivacyLoss}
+                      onChange={(e) => setTrainingParams({ 
+                        ...trainingParams, 
+                        maxPrivacyLoss: parseFloat(e.target.value) 
+                      })}
+                      margin="normal"
+                      helperText="Differential privacy epsilon parameter (0.01-1.0, lower = more private)"
+                    />
+                    
+                    <TextField
+                      fullWidth
+                      label="Minimum Accuracy (%)"
+                      type="number"
+                      inputProps={{ step: 0.1, min: 50, max: 99.9 }}
+                      value={trainingParams.minAccuracy * 100}
+                      onChange={(e) => setTrainingParams({ 
+                        ...trainingParams, 
+                        minAccuracy: parseFloat(e.target.value) / 100 
+                      })}
+                      margin="normal"
+                      helperText="Minimum required model accuracy (50%-99.9%)"
+                    />
+
                     <FormControl fullWidth margin="normal">
+                      <InputLabel>Privacy Techniques</InputLabel>
+                      <Select
+                        multiple
+                        value={[
+                          trainingParams.differentialPrivacy.enabled && 'differential-privacy',
+                          trainingParams.federatedLearning.enabled && 'federated-learning',
+                          trainingParams.secureMultiPartyComputation.enabled && 'secure-mpc'
+                        ].filter(Boolean)}
+                        onChange={(e) => {
+                          const selected = e.target.value;
+                          setTrainingParams({
+                            ...trainingParams,
+                            differentialPrivacy: {
+                              ...trainingParams.differentialPrivacy,
+                              enabled: selected.includes('differential-privacy')
+                            },
+                            federatedLearning: {
+                              ...trainingParams.federatedLearning,
+                              enabled: selected.includes('federated-learning')
+                            },
+                            secureMultiPartyComputation: {
+                              ...trainingParams.secureMultiPartyComputation,
+                              enabled: selected.includes('secure-mpc')
+                            }
+                          });
+                        }}
+                        label="Privacy Techniques"
+                        renderValue={(selected) => (
+                          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                            {selected.map((technique) => (
+                              <Chip 
+                                key={technique} 
+                                label={technique.replace('-', ' ')} 
+                                size="small" 
+                              />
+                            ))}
+                          </Box>
+                        )}
+                      >
+                        <MenuItem value="differential-privacy">
+                          <Checkbox checked={trainingParams.differentialPrivacy.enabled} />
+                          <ListItemText 
+                            primary="Differential Privacy"
+                            secondary="Adds noise to protect individual data"
+                          />
+                        </MenuItem>
+                        <MenuItem value="federated-learning">
+                          <Checkbox checked={trainingParams.federatedLearning.enabled} />
+                          <ListItemText 
+                            primary="Federated Learning"
+                            secondary="Train model without sharing raw data"
+                          />
+                        </MenuItem>
+                        <MenuItem value="secure-mpc">
+                          <Checkbox checked={trainingParams.secureMultiPartyComputation.enabled} />
+                          <ListItemText 
+                            primary="Secure Multi-Party Computation"
+                            secondary="Compute on encrypted data"
+                          />
+                        </MenuItem>
+                      </Select>
+                      <Typography variant="caption" color="text.secondary">
+                        Select privacy-preserving techniques to be used
+                      </Typography>
+                    </FormControl>
+
+                    {trainingParams.differentialPrivacy.enabled && (
+                      <Box sx={{ mt: 2, p: 2, bgcolor: 'grey.50', borderRadius: 1 }}>
+                        <Typography variant="subtitle2" gutterBottom>
+                          Differential Privacy Settings
+                        </Typography>
+                        <Grid container spacing={2}>
+                          <Grid item xs={6}>
+                            <TextField
+                              fullWidth
+                              label="Epsilon (ε)"
+                              type="number"
+                              inputProps={{ step: 0.01, min: 0.01, max: 1.0 }}
+                              value={trainingParams.differentialPrivacy.epsilon}
+                              onChange={(e) => setTrainingParams({
+                                ...trainingParams,
+                                differentialPrivacy: {
+                                  ...trainingParams.differentialPrivacy,
+                                  epsilon: parseFloat(e.target.value)
+                                }
+                              })}
+                              size="small"
+                            />
+                          </Grid>
+                          <Grid item xs={6}>
+                            <TextField
+                              fullWidth
+                              label="Delta (δ)"
+                              type="number"
+                              inputProps={{ step: 1e-6, min: 1e-6, max: 1e-3 }}
+                              value={trainingParams.differentialPrivacy.delta}
+                              onChange={(e) => setTrainingParams({
+                                ...trainingParams,
+                                differentialPrivacy: {
+                                  ...trainingParams.differentialPrivacy,
+                                  delta: parseFloat(e.target.value)
+                                }
+                              })}
+                              size="small"
+                            />
+                          </Grid>
+                        </Grid>
+                      </Box>
+                    )}
+
+                    {trainingParams.federatedLearning.enabled && (
+                      <Box sx={{ mt: 2, p: 2, bgcolor: 'grey.50', borderRadius: 1 }}>
+                        <Typography variant="subtitle2" gutterBottom>
+                          Federated Learning Settings
+                        </Typography>
+                        <TextField
+                          fullWidth
+                          label="Communication Rounds"
+                          type="number"
+                          inputProps={{ min: 10, max: 1000 }}
+                          value={trainingParams.federatedLearning.communicationRounds}
+                          onChange={(e) => setTrainingParams({
+                            ...trainingParams,
+                            federatedLearning: {
+                              ...trainingParams.federatedLearning,
+                              communicationRounds: parseInt(e.target.value)
+                            }
+                          })}
+                          size="small"
+                          margin="normal"
+                        />
+                      </Box>
+                    )}
+
+                    <Alert severity="info" sx={{ mt: 2 }}>
+                      <Typography variant="body2">
+                        <strong>Privacy-Accuracy Trade-off:</strong> Lower privacy loss (ε) provides better privacy but may reduce model accuracy. 
+                        Higher minimum accuracy requirements may limit privacy protection.
+                      </Typography>
+                    </Alert>
+                  </CardContent>
+                </Card>
+              </Grid>
+
+              <Grid item xs={12}>
+                <Card>
+                  <CardContent>
+                    <Typography variant="h6" gutterBottom>
+                      CCRP Selection (Optional)
+                    </Typography>
+                    
+                    <FormControl fullWidth>
                       <InputLabel>CCRP (Optional)</InputLabel>
                       <Select
                         value={selectedCcrp}
@@ -567,10 +801,13 @@ function CreateRicardianContract() {
                         </MenuItem>
                         {ccrpUsers.map((ccrp) => (
                           <MenuItem key={ccrp.id} value={ccrp.id}>
-                            {ccrp.name}
+                            {ccrp.name} - {ccrp.email}
                           </MenuItem>
                         ))}
                       </Select>
+                      <Typography variant="caption" color="text.secondary">
+                        Select a Confidential Clean Room Provider for secure training environment (optional)
+                      </Typography>
                     </FormControl>
                   </CardContent>
                 </Card>

@@ -536,7 +536,8 @@ function Users() {
                 </TableBody>
               </Table>
             </TableContainer>
-          </Card>
+          </CardContent>
+        </Card>
       )}
 
       {filteredAndSortedUsers.length === 0 && (

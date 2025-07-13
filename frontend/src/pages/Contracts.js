@@ -26,6 +26,10 @@ import {
   MenuItem,
   IconButton,
   Tooltip,
+  ToggleButtonGroup,
+  ToggleButton,
+  Avatar,
+  TableSortLabel,
 } from '@mui/material';
 import {
   Add,
@@ -37,6 +41,9 @@ import {
   Error,
   Person,
   Storage,
+  ViewModule,
+  ViewList,
+  Description,
 } from '@mui/icons-material';
 import { useQuery } from 'react-query';
 import { useNavigate } from 'react-router-dom';
@@ -86,6 +93,63 @@ const StatusChip = ({ status }) => {
     />
   );
 };
+
+const ContractCard = ({ contract, onView, onEdit, onDelete }) => (
+  <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+    <CardContent sx={{ flexGrow: 1 }}>
+      <Box display="flex" justifyContent="space-between" alignItems="flex-start" mb={2}>
+        <Typography variant="h6" component="h2" gutterBottom>
+          {contract.contractId}
+        </Typography>
+        <StatusChip status={contract.status} />
+      </Box>
+      
+      <Typography variant="body2" color="textSecondary" paragraph>
+        <strong>Dataset:</strong> {contract.dataset?.name || 'N/A'}
+      </Typography>
+      
+      <Box display="flex" flexDirection="column" gap={1} mb={2}>
+        <Typography variant="body2" fontSize="0.75rem">
+          <strong>TDP:</strong> {contract.tdp?.name}
+        </Typography>
+        <Typography variant="body2" fontSize="0.75rem">
+          <strong>TDC:</strong> {contract.tdc?.name}
+        </Typography>
+        {contract.ccrp && (
+          <Typography variant="body2" fontSize="0.75rem">
+            <strong>CCRP:</strong> {contract.ccrp?.name}
+          </Typography>
+        )}
+      </Box>
+      
+      <Box display="flex" gap={1} mb={2} flexWrap="wrap">
+        <Chip label={`$${contract.price}`} size="small" color="primary" />
+        <Chip label={`${contract.duration} days`} size="small" variant="outlined" />
+      </Box>
+      
+      <Typography variant="body2" color="textSecondary" fontSize="0.75rem">
+        Created: {format(new Date(contract.createdAt), 'MMM dd, yyyy')}
+      </Typography>
+    </CardContent>
+    
+    <CardActions>
+      <Button size="small" startIcon={<Visibility />} onClick={() => onView(contract)}>
+        View
+      </Button>
+      <Button size="small" startIcon={<Edit />} onClick={() => onEdit(contract)}>
+        Edit
+      </Button>
+      <Button 
+        size="small" 
+        startIcon={<Delete />} 
+        onClick={() => onDelete(contract)}
+        color="error"
+      >
+        Delete
+      </Button>
+    </CardActions>
+  </Card>
+);
 
 const ContractRow = ({ contract, onView, onEdit, onDelete }) => (
   <TableRow hover>
@@ -154,6 +218,9 @@ const ContractRow = ({ contract, onView, onEdit, onDelete }) => (
 
 function Contracts() {
   const [statusFilter, setStatusFilter] = useState('');
+  const [viewMode, setViewMode] = useState('table');
+  const [sortBy, setSortBy] = useState('createdAt');
+  const [sortOrder, setSortOrder] = useState('desc');
   const [viewDialogOpen, setViewDialogOpen] = useState(false);
   const [selectedContract, setSelectedContract] = useState(null);
   const navigate = useNavigate();
@@ -208,6 +275,29 @@ function Contracts() {
 
   const contracts = contractsResponse?.contracts || [];
 
+  // Filter contracts based on status
+  const filteredContracts = contracts.filter(contract => {
+    if (!statusFilter) return true;
+    return contract.status === statusFilter;
+  });
+
+  // Sort filtered contracts
+  const filteredAndSortedContracts = [...filteredContracts].sort((a, b) => {
+    let aValue = a[sortBy];
+    let bValue = b[sortBy];
+    
+    if (sortBy === 'contractId' || sortBy === 'dataset.name') {
+      aValue = aValue?.toLowerCase() || '';
+      bValue = bValue?.toLowerCase() || '';
+    }
+    
+    if (sortOrder === 'asc') {
+      return aValue > bValue ? 1 : -1;
+    } else {
+      return aValue < bValue ? 1 : -1;
+    }
+  });
+
   // Debug logging for contracts
   console.log('🔍 [Contracts] Contracts data:', contracts);
   console.log('🔍 [Contracts] Loading state:', isLoading);
@@ -230,6 +320,12 @@ function Contracts() {
 
   const handleCreateContract = () => {
     navigate('/contracts/create');
+  };
+
+  const handleSort = (property) => {
+    const isAsc = sortBy === property && sortOrder === 'asc';
+    setSortOrder(isAsc ? 'desc' : 'asc');
+    setSortBy(property);
   };
 
   return (
@@ -289,7 +385,7 @@ function Contracts() {
         </Box>
       )}
 
-      {/* Filter - Only show if not loading and no error */}
+      {/* Filter and View Toggle - Only show if not loading and no error */}
       {!isLoading && !error && (
         <Card sx={{ mb: 3 }}>
           <CardContent>
@@ -311,9 +407,29 @@ function Contracts() {
                   </Select>
                 </FormControl>
               </Grid>
-              <Grid item xs={12} md={8}>
+              <Grid item xs={12} md={4}>
+                <ToggleButtonGroup
+                  value={viewMode}
+                  exclusive
+                  onChange={(e, newViewMode) => {
+                    if (newViewMode !== null) {
+                      setViewMode(newViewMode);
+                    }
+                  }}
+                  aria-label="view mode"
+                  size="small"
+                >
+                  <ToggleButton value="grid" aria-label="grid view">
+                    <ViewModule />
+                  </ToggleButton>
+                  <ToggleButton value="table" aria-label="table view">
+                    <ViewList />
+                  </ToggleButton>
+                </ToggleButtonGroup>
+              </Grid>
+              <Grid item xs={12} md={4}>
                 <Typography variant="body2" color="textSecondary">
-                  Showing {contracts.length} contracts
+                  {filteredAndSortedContracts.length} contracts
                 </Typography>
               </Grid>
             </Grid>
@@ -321,40 +437,98 @@ function Contracts() {
         </Card>
       )}
 
-      {/* Contracts Table - Only show if not loading and no error */}
-      {!isLoading && !error && (
+      {/* Contracts Grid View */}
+      {!isLoading && !error && viewMode === 'grid' && (
+        <Grid container spacing={3}>
+          {filteredAndSortedContracts.map((contract) => (
+            <Grid item xs={12} sm={6} md={4} key={contract.id}>
+              <ContractCard
+                contract={contract}
+                onView={handleView}
+                onEdit={handleEdit}
+                onDelete={handleDelete}
+              />
+            </Grid>
+          ))}
+        </Grid>
+      )}
+
+      {/* Contracts Table View */}
+      {!isLoading && !error && viewMode === 'table' && (
         <Card>
-          <TableContainer component={Paper}>
-            <Table>
-              <TableHead>
-                <TableRow>
-                  <TableCell>Contract ID</TableCell>
-                  <TableCell>Dataset</TableCell>
-                  <TableCell>Parties</TableCell>
-                  <TableCell>Price</TableCell>
-                  <TableCell>Duration</TableCell>
-                  <TableCell>Status</TableCell>
-                  <TableCell>Created</TableCell>
-                  <TableCell>Actions</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {contracts.map((contract) => (
-                  <ContractRow
-                    key={contract.id}
-                    contract={contract}
-                    onView={handleView}
-                    onEdit={handleEdit}
-                    onDelete={handleDelete}
-                  />
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
+          <CardContent>
+            <TableContainer component={Paper} elevation={0}>
+              <Table>
+                <TableHead>
+                  <TableRow>
+                    <TableCell>
+                      <TableSortLabel
+                        active={sortBy === 'contractId'}
+                        direction={sortBy === 'contractId' ? sortOrder : 'asc'}
+                        onClick={() => handleSort('contractId')}
+                      >
+                        Contract ID
+                      </TableSortLabel>
+                    </TableCell>
+                    <TableCell>
+                      <TableSortLabel
+                        active={sortBy === 'dataset.name'}
+                        direction={sortBy === 'dataset.name' ? sortOrder : 'asc'}
+                        onClick={() => handleSort('dataset.name')}
+                      >
+                        Dataset
+                      </TableSortLabel>
+                    </TableCell>
+                    <TableCell>Parties</TableCell>
+                    <TableCell>
+                      <TableSortLabel
+                        active={sortBy === 'price'}
+                        direction={sortBy === 'price' ? sortOrder : 'asc'}
+                        onClick={() => handleSort('price')}
+                      >
+                        Price
+                      </TableSortLabel>
+                    </TableCell>
+                    <TableCell>
+                      <TableSortLabel
+                        active={sortBy === 'duration'}
+                        direction={sortBy === 'duration' ? sortOrder : 'asc'}
+                        onClick={() => handleSort('duration')}
+                      >
+                        Duration
+                      </TableSortLabel>
+                    </TableCell>
+                    <TableCell>Status</TableCell>
+                    <TableCell>
+                      <TableSortLabel
+                        active={sortBy === 'createdAt'}
+                        direction={sortBy === 'createdAt' ? sortOrder : 'asc'}
+                        onClick={() => handleSort('createdAt')}
+                      >
+                        Created
+                      </TableSortLabel>
+                    </TableCell>
+                    <TableCell>Actions</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {filteredAndSortedContracts.map((contract) => (
+                    <ContractRow
+                      key={contract.id}
+                      contract={contract}
+                      onView={handleView}
+                      onEdit={handleEdit}
+                      onDelete={handleDelete}
+                    />
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          </CardContent>
         </Card>
       )}
 
-      {!isLoading && !error && contracts.length === 0 && (
+      {!isLoading && !error && filteredAndSortedContracts.length === 0 && (
         <Box textAlign="center" py={4}>
           <Typography variant="h6" color="textSecondary">
             No contracts found
