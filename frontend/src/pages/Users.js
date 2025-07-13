@@ -19,6 +19,18 @@ import {
   MenuItem,
   Divider,
   Button,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Paper,
+  TableSortLabel,
+  TextField,
+  InputAdornment,
+  ToggleButton,
+  ToggleButtonGroup,
 } from '@mui/material';
 import {
   Business,
@@ -28,6 +40,10 @@ import {
   Visibility,
   PersonAdd,
   Refresh,
+  ViewList,
+  ViewModule,
+  Search,
+  Sort,
 } from '@mui/icons-material';
 import { useQuery, useQueryClient } from 'react-query';
 import { useNavigate } from 'react-router-dom';
@@ -117,6 +133,10 @@ const UserCard = ({ user, onUserClick }) => {
 
 function Users() {
   const [partyTypeFilter, setPartyTypeFilter] = useState('');
+  const [viewMode, setViewMode] = useState('grid'); // 'grid' or 'table'
+  const [searchTerm, setSearchTerm] = useState('');
+  const [sortBy, setSortBy] = useState('name');
+  const [sortOrder, setSortOrder] = useState('asc');
   const queryClient = useQueryClient();
 
   const { data: usersResponse, isLoading, error, refetch } = useQuery(
@@ -135,9 +155,34 @@ function Users() {
   // Ensure users is always an array
   const users = Array.isArray(usersResponse) ? usersResponse : [];
 
-  const filteredUsers = partyTypeFilter 
-    ? users.filter(user => user.partyType === partyTypeFilter)
-    : users;
+  // Filter and sort users
+  const filteredAndSortedUsers = users
+    .filter(user => {
+      const matchesPartyType = !partyTypeFilter || user.partyType === partyTypeFilter;
+      const matchesSearch = !searchTerm || 
+        user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (user.description && user.description.toLowerCase().includes(searchTerm.toLowerCase()));
+      return matchesPartyType && matchesSearch;
+    })
+    .sort((a, b) => {
+      let aValue = a[sortBy];
+      let bValue = b[sortBy];
+      
+      // Handle null/undefined values
+      if (!aValue) aValue = '';
+      if (!bValue) bValue = '';
+      
+      // Convert to string for comparison
+      aValue = String(aValue).toLowerCase();
+      bValue = String(bValue).toLowerCase();
+      
+      if (sortOrder === 'asc') {
+        return aValue.localeCompare(bValue);
+      } else {
+        return bValue.localeCompare(aValue);
+      }
+    });
 
   const tdpUsers = users.filter(user => user.partyType === 'TDP');
   const tdcUsers = users.filter(user => user.partyType === 'TDC');
@@ -162,6 +207,38 @@ function Users() {
       await refetch();
     } catch (error) {
       console.error('Manual refresh failed:', error);
+    }
+  };
+
+  const handleSort = (property) => {
+    const isAsc = sortBy === property && sortOrder === 'asc';
+    setSortOrder(isAsc ? 'desc' : 'asc');
+    setSortBy(property);
+  };
+
+  const getPartyTypeIcon = (partyType) => {
+    switch (partyType) {
+      case 'TDP':
+        return <Business />;
+      case 'TDC':
+        return <Person />;
+      case 'CCRP':
+        return <Security />;
+      default:
+        return <Person />;
+    }
+  };
+
+  const getPartyTypeColor = (partyType) => {
+    switch (partyType) {
+      case 'TDP':
+        return 'primary';
+      case 'TDC':
+        return 'secondary';
+      case 'CCRP':
+        return 'success';
+      default:
+        return 'default';
     }
   };
 
@@ -265,7 +342,7 @@ function Users() {
       <Card sx={{ mb: 3 }}>
         <CardContent>
           <Grid container spacing={2} alignItems="center">
-            <Grid item xs={12} md={4}>
+            <Grid item xs={12} md={3}>
               <FormControl fullWidth>
                 <InputLabel>Party Type Filter</InputLabel>
                 <Select
@@ -280,105 +357,198 @@ function Users() {
                 </Select>
               </FormControl>
             </Grid>
-            <Grid item xs={12} md={8}>
+            <Grid item xs={12} md={4}>
+              <TextField
+                fullWidth
+                placeholder="Search users..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <Search />
+                    </InputAdornment>
+                  ),
+                }}
+              />
+            </Grid>
+            <Grid item xs={12} md={3}>
+              <ToggleButtonGroup
+                value={viewMode}
+                exclusive
+                onChange={(e, newViewMode) => {
+                  if (newViewMode !== null) {
+                    setViewMode(newViewMode);
+                  }
+                }}
+                aria-label="view mode"
+                size="small"
+              >
+                <ToggleButton value="grid" aria-label="grid view">
+                  <ViewModule />
+                </ToggleButton>
+                <ToggleButton value="table" aria-label="table view">
+                  <ViewList />
+                </ToggleButton>
+              </ToggleButtonGroup>
+            </Grid>
+            <Grid item xs={12} md={2}>
               <Typography variant="body2" color="textSecondary">
-                Showing {filteredUsers.length} users • Click on any user to view their profile
+                {filteredAndSortedUsers.length} users
               </Typography>
             </Grid>
           </Grid>
         </CardContent>
       </Card>
 
-      {/* Users Grid */}
-      <Grid container spacing={3}>
-        {filteredUsers.map((user) => (
-          <Grid item xs={12} sm={6} md={4} key={user.id}>
-            <UserCard user={user} onUserClick={handleUserClick} />
-          </Grid>
-        ))}
-      </Grid>
+      {/* Users Grid View */}
+      {viewMode === 'grid' && (
+        <Grid container spacing={3}>
+          {filteredAndSortedUsers.map((user) => (
+            <Grid item xs={12} sm={6} md={4} key={user.id}>
+              <UserCard user={user} onUserClick={handleUserClick} />
+            </Grid>
+          ))}
+        </Grid>
+      )}
 
-      {filteredUsers.length === 0 && (
+      {/* Users Table View */}
+      {viewMode === 'table' && (
+        <Card>
+          <CardContent>
+            <TableContainer component={Paper} elevation={0}>
+              <Table>
+                <TableHead>
+                  <TableRow>
+                    <TableCell>
+                      <TableSortLabel
+                        active={sortBy === 'name'}
+                        direction={sortBy === 'name' ? sortOrder : 'asc'}
+                        onClick={() => handleSort('name')}
+                      >
+                        Name
+                      </TableSortLabel>
+                    </TableCell>
+                    <TableCell>
+                      <TableSortLabel
+                        active={sortBy === 'email'}
+                        direction={sortBy === 'email' ? sortOrder : 'asc'}
+                        onClick={() => handleSort('email')}
+                      >
+                        Email
+                      </TableSortLabel>
+                    </TableCell>
+                    <TableCell>
+                      <TableSortLabel
+                        active={sortBy === 'partyType'}
+                        direction={sortBy === 'partyType' ? sortOrder : 'asc'}
+                        onClick={() => handleSort('partyType')}
+                      >
+                        Role
+                      </TableSortLabel>
+                    </TableCell>
+                    <TableCell>Description</TableCell>
+                    <TableCell>Wallet Address</TableCell>
+                    <TableCell>
+                      <TableSortLabel
+                        active={sortBy === 'registrationDate'}
+                        direction={sortBy === 'registrationDate' ? sortOrder : 'asc'}
+                        onClick={() => handleSort('registrationDate')}
+                      >
+                        Registered
+                      </TableSortLabel>
+                    </TableCell>
+                    <TableCell>Status</TableCell>
+                    <TableCell>Actions</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {filteredAndSortedUsers.map((user) => (
+                    <TableRow 
+                      key={user.id}
+                      hover
+                      sx={{ cursor: 'pointer' }}
+                      onClick={() => handleUserClick(user)}
+                    >
+                      <TableCell>
+                        <Box display="flex" alignItems="center" gap={1}>
+                          <Avatar 
+                            sx={{ 
+                              width: 32, 
+                              height: 32,
+                              bgcolor: `${getPartyTypeColor(user.partyType)}.main`
+                            }}
+                          >
+                            {getPartyTypeIcon(user.partyType)}
+                          </Avatar>
+                          <Typography variant="body2" fontWeight="medium">
+                            {user.name}
+                          </Typography>
+                        </Box>
+                      </TableCell>
+                      <TableCell>
+                        <Typography variant="body2">
+                          {user.email}
+                        </Typography>
+                      </TableCell>
+                      <TableCell>
+                        <Chip 
+                          label={user.partyType} 
+                          size="small"
+                          color={getPartyTypeColor(user.partyType)}
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <Typography variant="body2" color="textSecondary" sx={{ maxWidth: 200 }}>
+                          {user.description || 'No description'}
+                        </Typography>
+                      </TableCell>
+                      <TableCell>
+                        <Typography variant="body2" fontFamily="monospace" fontSize="0.75rem">
+                          {user.walletAddress || 'No wallet'}
+                        </Typography>
+                      </TableCell>
+                      <TableCell>
+                        <Typography variant="body2" color="textSecondary">
+                          {new Date(user.registrationDate).toLocaleDateString()}
+                        </Typography>
+                      </TableCell>
+                      <TableCell>
+                        <Chip 
+                          label={user.isActive ? 'Active' : 'Inactive'} 
+                          size="small"
+                          color={user.isActive ? 'success' : 'error'}
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <IconButton 
+                          size="small"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleUserClick(user);
+                          }}
+                        >
+                          <Visibility />
+                        </IconButton>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          </Card>
+      )}
+
+      {filteredAndSortedUsers.length === 0 && (
         <Box textAlign="center" py={4}>
           <Typography variant="h6" color="textSecondary">
             No users found
           </Typography>
           <Typography variant="body2" color="textSecondary">
-            Try adjusting your filter criteria
+            Try adjusting your search or filter criteria
           </Typography>
         </Box>
       )}
-
-      {/* Detailed List View */}
-      <Card sx={{ mt: 4 }}>
-        <CardContent>
-          <Typography variant="h6" gutterBottom>
-            All Users
-          </Typography>
-          <List>
-            {users.map((user, index) => (
-              <React.Fragment key={user.id}>
-                <ListItem 
-                  button 
-                  onClick={() => handleUserClick(user)}
-                  sx={{
-                    cursor: 'pointer',
-                    '&:hover': {
-                      backgroundColor: 'action.hover',
-                    }
-                  }}
-                >
-                  <ListItemAvatar>
-                    <Avatar sx={{ bgcolor: `${user.partyType === 'TDP' ? 'primary' : user.partyType === 'TDC' ? 'secondary' : 'success'}.main` }}>
-                      {user.partyType === 'TDP' ? <Business /> : user.partyType === 'TDC' ? <Person /> : <Security />}
-                    </Avatar>
-                  </ListItemAvatar>
-                  <ListItemText
-                    primary={
-                      <Box display="flex" alignItems="center" gap={1}>
-                        <Typography variant="body1" fontWeight="medium">
-                          {user.name}
-                        </Typography>
-                        <Chip 
-                          label={user.partyType} 
-                          size="small"
-                          color={user.partyType === 'TDP' ? 'primary' : user.partyType === 'TDC' ? 'secondary' : 'success'}
-                        />
-                      </Box>
-                    }
-                    secondary={
-                      <Box>
-                        <Typography variant="body2" color="textSecondary">
-                          {user.email}
-                        </Typography>
-                        <Typography variant="body2" fontSize="0.75rem" fontFamily="monospace">
-                          {user.walletAddress}
-                        </Typography>
-                        <Typography variant="body2" color="textSecondary">
-                          {user.description}
-                        </Typography>
-                      </Box>
-                    }
-                  />
-                  <ListItemSecondaryAction>
-                    <IconButton 
-                      edge="end" 
-                      aria-label="view profile"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleUserClick(user);
-                      }}
-                    >
-                      <Visibility />
-                    </IconButton>
-                  </ListItemSecondaryAction>
-                </ListItem>
-                {index < users.length - 1 && <Divider />}
-              </React.Fragment>
-            ))}
-          </List>
-        </CardContent>
-      </Card>
     </Box>
   );
 }
