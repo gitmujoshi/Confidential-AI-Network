@@ -114,6 +114,9 @@ router.post('/register', authRateLimit, logAuthEvent('REGISTER'), async (req, re
       });
     }
 
+    // Check Keycloak configuration
+    const isKeycloakEnabled = process.env.KEYCLOAK_ENABLED === 'true';
+    
     // Handle existing DID if provided
     let did = null;
     let didSource = 'SYSTEM_GENERATED';
@@ -134,12 +137,13 @@ router.post('/register', authRateLimit, logAuthEvent('REGISTER'), async (req, re
         });
       }
 
-      // Check if DID is already in use
-      const isAvailable = await didService.isDIDAvailable(existingDID, db);
-      if (!isAvailable) {
+      // Check if DID is available
+      const didAvailability = await didService.isDIDAvailable(existingDID);
+      if (!didAvailability.available) {
         return res.status(409).json({
-          error: 'DID is already registered by another user',
-          code: 'DID_ALREADY_EXISTS'
+          error: 'DID validation failed',
+          code: 'DID_VALIDATION_FAILED',
+          message: didAvailability.message
         });
       }
 
@@ -389,7 +393,7 @@ router.post('/register', authRateLimit, logAuthEvent('REGISTER'), async (req, re
         db: dbSuccess,
         ***REMOVED-KEYCLOAK_DB_PASSWORD***: ***REMOVED-KEYCLOAK_DB_PASSWORD***Success,
         blockchain: blockchainSuccess,
-        note: blockchainNote
+        note: isKeycloakEnabled ? blockchainNote : 'Registration successful without IAM integration. You can enable Keycloak later for enhanced authentication features.'
       },
       user: {
         id: dbUser.id,
@@ -427,7 +431,7 @@ router.post('/register', authRateLimit, logAuthEvent('REGISTER'), async (req, re
       requestBody: req.body
     });
     res.status(500).json({
-      error: 'Registration failed. Please contact support with the error ID below.',
+      error: 'Registration failed. Please ./starcontact support with the error ID below.',
       code: 'INTERNAL_ERROR',
       errorId,
       details: error.message
@@ -593,6 +597,175 @@ router.post('/login', authRateLimit, logAuthEvent('LOGIN'), async (req, res) => 
 });
 
 /**
+ * POST /api/auth/refresh
+ * Refresh access token using refresh token
+ */
+router.post('/refresh', async (req, res) => {
+  try {
+    const { refreshToken } = req.body;
+
+    if (!refreshToken) {
+      return res.status(400).json({ 
+        error: 'Refresh token is required',
+        code: 'MISSING_REFRESH_TOKEN'
+      });
+    }
+
+    // Try Keycloak token refresh first
+    if (process.env.KEYCLOAK_ENABLED === 'true') {
+      try {
+        const tokenResponse = await ***REMOVED-KEYCLOAK_DB_PASSWORD***Service.refreshToken(refreshToken);
+        
+        // Fetch user info from Keycloak
+        const userInfo = await ***REMOVED-KEYCLOAK_DB_PASSWORD***Service.getUserInfo(tokenResponse.access_token);
+        
+        return res.json({
+          message: 'Token refreshed successfully',
+          accessToken: tokenResponse.access_token,
+          refreshToken: tokenResponse.refresh_token,
+          expiresIn: tokenResponse.expires_in,
+          user: userInfo
+        });
+      } catch (kcError) {
+        console.error('❌ Keycloak token refresh failed:', kcError);
+        return res.status(401).json({
+          error: 'Token refresh failed',
+          code: 'REFRESH_FAILED',
+          details: 'Refresh token is invalid or expired'
+        });
+      }
+    }
+
+    // If Keycloak is disabled, return error
+    return res.status(400).json({
+      error: 'Token refresh not supported',
+      code: 'REFRESH_NOT_SUPPORTED',
+      details: 'Keycloak is not enabled'
+    });
+
+  } catch (error) {
+    console.error('❌ Refresh token error:', error);
+    res.status(500).json({ 
+      error: 'Internal server error',
+      code: 'INTERNAL_ERROR'
+    });
+  }
+});
+
+/**
+ * POST /api/auth/update-password
+ * Update user password
+ */
+router.post('/update-password', authenticateToken, logAuthEvent('UPDATE_PASSWORD'), async (req, res) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+    const localUser = req.user.localUser;
+
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({ 
+        error: 'Current password and new password are required',
+        code: 'MISSING_PASSWORDS'
+      });
+    }
+
+    if (newPassword.length < 8) {
+      return res.status(400).json({ 
+        error: 'New password must be at least 8 characters long',
+        code: 'PASSWORD_TOO_SHORT'
+      });
+    }
+
+    // Try Keycloak password update first
+    if (process.env.KEYCLOAK_ENABLED === 'true' && localUser.iamUserId) {
+      try {
+        // Verify current password with Keycloak
+        await ***REMOVED-KEYCLOAK_DB_PASSWORD***Service.authenticateUserWithPassword(localUser.email, currentPassword);
+        
+        // Update password in Keycloak
+        await ***REMOVED-KEYCLOAK_DB_PASSWORD***Service.updateUserPassword(localUser.iamUserId, newPassword);
+        
+        console.log('✅ Password updated in Keycloak successfully');
+        
+        return res.json({
+          message: 'Password updated successfully',
+          success: true,
+          note: 'Password updated in Keycloak. You may need to log in again with your new password for security.'
+        });
+      } catch (kcError) {
+        console.error('❌ Keycloak password update failed:', kcError);
+        
+        // If Keycloak fails, try database fallback
+        if (localUser.password) {
+          const bcrypt = require('bcryptjs');
+          const isValidPassword = await bcrypt.compare(currentPassword, localUser.password);
+          
+          if (!isValidPassword) {
+            return res.status(401).json({
+              error: 'Current password is incorrect',
+              code: 'INVALID_CURRENT_PASSWORD'
+            });
+          }
+          
+          // Update password in database
+          const hashedNewPassword = await bcrypt.hash(newPassword, 10);
+          await localUser.update({ password: hashedNewPassword });
+          
+          console.log('✅ Password updated in database successfully');
+          
+          return res.json({
+            message: 'Password updated successfully (database)',
+            success: true,
+            note: 'Password updated in local database.'
+          });
+        }
+        
+        return res.status(401).json({
+          error: 'Current password is incorrect',
+          code: 'INVALID_CURRENT_PASSWORD'
+        });
+      }
+    }
+
+    // Database-only password update
+    if (localUser.password) {
+      const bcrypt = require('bcryptjs');
+      const isValidPassword = await bcrypt.compare(currentPassword, localUser.password);
+      
+      if (!isValidPassword) {
+        return res.status(401).json({
+          error: 'Current password is incorrect',
+          code: 'INVALID_CURRENT_PASSWORD'
+        });
+      }
+      
+      // Update password in database
+      const hashedNewPassword = await bcrypt.hash(newPassword, 10);
+      await localUser.update({ password: hashedNewPassword });
+      
+      console.log('✅ Password updated in database successfully');
+      
+      return res.json({
+        message: 'Password updated successfully (database)',
+        success: true
+      });
+    }
+
+    return res.status(400).json({
+      error: 'Password update not supported',
+      code: 'PASSWORD_UPDATE_NOT_SUPPORTED',
+      details: 'User account not properly configured'
+    });
+
+  } catch (error) {
+    console.error('❌ Password update error:', error);
+    res.status(500).json({ 
+      error: 'Internal server error',
+      code: 'INTERNAL_ERROR'
+    });
+  }
+});
+
+/**
  * GET /api/auth/profile
  * Get current user profile
  */
@@ -616,13 +789,7 @@ router.get('/profile', authenticateToken, logAuthEvent('GET_PROFILE'), async (re
         isRegistered: localUser.isRegistered,
         onboardingStatus: localUser.onboardingStatus,
         profileCompleted: localUser.profileCompleted,
-        emailVerified: localUser.emailVerified,
-        registrationDate: localUser.registrationDate,
-        lastLoginAt: localUser.lastLoginAt,
-        did: localUser.did,
-        didSource: localUser.didSource,
-        didVerified: localUser.didVerified,
-        didVerificationMethod: localUser.didVerificationMethod
+        emailVerified: localUser.emailVerified
       }
     });
 

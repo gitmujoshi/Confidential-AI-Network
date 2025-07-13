@@ -56,6 +56,17 @@ const Profile = () => {
     emailVerified: false,
     onboardingStatus: ''
   });
+  
+  // Password update state
+  const [passwordData, setPasswordData] = useState({
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: ''
+  });
+  const [showPasswordForm, setShowPasswordForm] = useState(false);
+  const [passwordLoading, setPasswordLoading] = useState(false);
+  const [passwordError, setPasswordError] = useState('');
+  const [passwordSuccess, setPasswordSuccess] = useState('');
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState('');
   const [error, setError] = useState('');
@@ -461,27 +472,89 @@ const Profile = () => {
   };
 
   const handleCancel = () => {
-    // Reset form data to original values
-    setFormData({
-      name: profileUser?.name || '',
-      organization: profileUser?.organization || '',
-      phoneNumber: profileUser?.phoneNumber || '',
-      website: profileUser?.website || '',
-      location: profileUser?.location || '',
-      description: profileUser?.description || '',
-      did: profileUser?.did || '',
-      didSource: profileUser?.didSource || '',
-      didVerified: profileUser?.didVerified || false,
-      didVerificationMethod: profileUser?.didVerificationMethod || '',
-      publicKey: profileUser?.publicKey || '',
-      isActive: profileUser?.isActive !== undefined ? profileUser.isActive : true,
-      profileCompleted: profileUser?.profileCompleted || false,
-      emailVerified: profileUser?.emailVerified || false,
-      onboardingStatus: profileUser?.onboardingStatus || ''
-    });
     setIsEditing(false);
     setError('');
     setSuccess('');
+    // Reset form data to original values
+    if (profileUser) {
+      setFormData({
+        name: profileUser.name || '',
+        organization: profileUser.organization || '',
+        phoneNumber: profileUser.phoneNumber || '',
+        website: profileUser.website || '',
+        location: profileUser.location || '',
+        description: profileUser.description || '',
+        did: profileUser.did || '',
+        didSource: profileUser.didSource || '',
+        didVerified: profileUser.didVerified || false,
+        didVerificationMethod: profileUser.didVerificationMethod || '',
+        publicKey: profileUser.publicKey || '',
+        isActive: profileUser.isActive !== undefined ? profileUser.isActive : true,
+        profileCompleted: profileUser.profileCompleted || false,
+        emailVerified: profileUser.emailVerified || false,
+        onboardingStatus: profileUser.onboardingStatus || ''
+      });
+    }
+  };
+
+  const handlePasswordChange = (e) => {
+    setPasswordData(prev => ({
+      ...prev,
+      [e.target.name]: e.target.value
+    }));
+  };
+
+  const handlePasswordUpdate = async (e) => {
+    e.preventDefault();
+    
+    // Validate passwords
+    if (passwordData.newPassword !== passwordData.confirmPassword) {
+      setPasswordError('New passwords do not match');
+      return;
+    }
+    
+    if (passwordData.newPassword.length < 8) {
+      setPasswordError('New password must be at least 8 characters long');
+      return;
+    }
+    
+    setPasswordLoading(true);
+    setPasswordError('');
+    setPasswordSuccess('');
+    
+    try {
+      // Call the password update API
+      const response = await apiService.updatePassword({
+        currentPassword: passwordData.currentPassword,
+        newPassword: passwordData.newPassword
+      });
+      
+      setPasswordSuccess(`Password updated successfully! ${response.data.note || ''}`);
+      setPasswordData({
+        currentPassword: '',
+        newPassword: '',
+        confirmPassword: ''
+      });
+      setShowPasswordForm(false);
+      
+      // Show a notification that the user might need to log in again
+      if (response.data.note && response.data.note.includes('log in again')) {
+        setTimeout(() => {
+          if (window.confirm('For security reasons, you may need to log in again with your new password. Would you like to log out now?')) {
+            localStorage.removeItem('authToken');
+            localStorage.removeItem('refreshToken');
+            localStorage.removeItem('user');
+            localStorage.removeItem('currentUser');
+            window.location.href = '/login';
+          }
+        }, 2000);
+      }
+    } catch (error) {
+      console.error('Password update error:', error);
+      setPasswordError(error.response?.data?.error || 'Failed to update password');
+    } finally {
+      setPasswordLoading(false);
+    }
   };
 
   // Show loading spinner while checking user
@@ -985,6 +1058,106 @@ const Profile = () => {
                         />
                       </Box>
                     </>
+                  )}
+                </CardContent>
+              </Card>
+            </Grid>
+
+            {/* Password Update Section */}
+            <Grid item xs={12} md={6}>
+              <Card>
+                <CardContent>
+                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                    <SecurityIcon sx={{ mr: 1 }} />
+                    <Typography variant="h6">Password Management</Typography>
+                  </Box>
+                  
+                  {passwordError && (
+                    <Alert severity="error" sx={{ mb: 2 }}>
+                      {passwordError}
+                    </Alert>
+                  )}
+                  
+                  {passwordSuccess && (
+                    <Alert severity="success" sx={{ mb: 2 }}>
+                      {passwordSuccess}
+                    </Alert>
+                  )}
+
+                  {!showPasswordForm ? (
+                    <Button
+                      variant="outlined"
+                      color="primary"
+                      onClick={() => setShowPasswordForm(true)}
+                      startIcon={<SecurityIcon />}
+                    >
+                      Change Password
+                    </Button>
+                  ) : (
+                    <Box component="form" onSubmit={handlePasswordUpdate}>
+                      <TextField
+                        label="Current Password"
+                        name="currentPassword"
+                        type="password"
+                        value={passwordData.currentPassword}
+                        onChange={handlePasswordChange}
+                        fullWidth
+                        margin="normal"
+                        required
+                      />
+                      
+                      <TextField
+                        label="New Password"
+                        name="newPassword"
+                        type="password"
+                        value={passwordData.newPassword}
+                        onChange={handlePasswordChange}
+                        fullWidth
+                        margin="normal"
+                        required
+                        helperText="Password must be at least 8 characters long"
+                      />
+                      
+                      <TextField
+                        label="Confirm New Password"
+                        name="confirmPassword"
+                        type="password"
+                        value={passwordData.confirmPassword}
+                        onChange={handlePasswordChange}
+                        fullWidth
+                        margin="normal"
+                        required
+                        error={passwordData.newPassword !== passwordData.confirmPassword && passwordData.confirmPassword !== ''}
+                        helperText={passwordData.newPassword !== passwordData.confirmPassword && passwordData.confirmPassword !== '' ? 'Passwords do not match' : ''}
+                      />
+                      
+                      <Box sx={{ mt: 2, display: 'flex', gap: 2 }}>
+                        <Button
+                          type="submit"
+                          variant="contained"
+                          color="primary"
+                          disabled={passwordLoading}
+                        >
+                          {passwordLoading ? 'Updating...' : 'Update Password'}
+                        </Button>
+                        <Button
+                          variant="outlined"
+                          onClick={() => {
+                            setShowPasswordForm(false);
+                            setPasswordData({
+                              currentPassword: '',
+                              newPassword: '',
+                              confirmPassword: ''
+                            });
+                            setPasswordError('');
+                            setPasswordSuccess('');
+                          }}
+                          disabled={passwordLoading}
+                        >
+                          Cancel
+                        </Button>
+                      </Box>
+                    </Box>
                   )}
                 </CardContent>
               </Card>

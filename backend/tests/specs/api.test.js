@@ -5,7 +5,7 @@ const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 
 // Import app
-const app = require('../server');
+const app = require('../test-server');
 
 describe('API Endpoints Test Suite', () => {
   let testUser, testContract, testDataset;

@@ -92,5 +92,26 @@ module.exports = {
     '/scripts/',
     '/coverage/',
     '/logs/'
+  ],
+  
+  // Reporters configuration
+  reporters: [
+    'default',
+    ['jest-junit', {
+      outputDirectory: './',
+      outputName: 'test-report.xml',
+      classNameTemplate: '{classname}',
+      titleTemplate: '{title}',
+      ancestorSeparator: ' › ',
+      usePathForSuiteName: true
+    }],
+    ['jest-html-reporter', {
+      pageTitle: 'Contract Management Backend Test Report',
+      outputPath: './test-report.html',
+      includeFailureMsg: true,
+      includeConsoleLog: true,
+      includeStackTrace: true,
+      styleOverridePath: './custom-style.css'
+    }]
   ]
 }; 

@@ -1,0 +1,16 @@
+{
+  "timestamp": "2025-07-12T21:28:27.884Z",
+  "summary": {
+    "totalSuites": 1,
+    "passed": 0,
+    "failed": 1,
+    "totalDuration": 0
+  },
+  "results": [
+    {
+      "suite": "mock",
+      "success": false,
+      "code": 1
+    }
+  ]
+}

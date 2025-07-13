@@ -85,7 +85,7 @@ class KeycloakSetup {
         displayName: 'Contract Management System',
         displayNameHtml: '<div class="kc-logo-text"><span>Contract Management</span></div>',
         attributes: {
-          frontendUrl: 'http://localhost:3000',
+          frontendUrl: 'http://localhost:8080',
           backendUrl: 'http://localhost:5001'
         }
       };

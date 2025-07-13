@@ -84,6 +84,19 @@ const ForgotPassword = () => {
     } catch (error) {
       console.error('Forgot password error:', error);
       setError(error.response?.data?.error || 'Failed to send password reset email. Please try again.');
+      // In development, try to fetch the reset token even if the API call failed
+      if (process.env.NODE_ENV === 'development') {
+        try {
+          const tokenResponse = await fetch(`http://localhost:5001/api/auth/dev/reset-token/${email}`);
+          if (tokenResponse.ok) {
+            const tokenData = await tokenResponse.json();
+            setResetToken(tokenData.token);
+            setResetLink(`${window.location.origin}/reset-password?token=${tokenData.token}`);
+          }
+        } catch (tokenError) {
+          console.log('Could not get reset token for development display after error');
+        }
+      }
     } finally {
       setLoading(false);
     }

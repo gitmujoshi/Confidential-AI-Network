@@ -38,12 +38,23 @@ const authenticateToken = async (req, res, next) => {
         
         if (validationResult.valid) {
           // Keycloak token is valid
-          const user = await db.User.findOne({
-            where: { 
-              walletAddress: validationResult.user.walletAddress,
-              isActive: true 
-            }
-          });
+          // Build where clause based on available user data
+          const whereClause = { isActive: true };
+          
+          if (validationResult.user.walletAddress) {
+            whereClause.walletAddress = validationResult.user.walletAddress;
+          } else if (validationResult.user.email) {
+            whereClause.email = validationResult.user.email;
+          } else {
+            // No wallet address or email available, can't find user
+            return res.status(404).json({ 
+              error: 'User not found in local database',
+              code: 'USER_NOT_FOUND',
+              details: 'No wallet address or email available for user lookup'
+            });
+          }
+          
+          const user = await db.User.findOne({ where: whereClause });
 
           if (!user) {
             return res.status(404).json({ 
@@ -253,12 +264,20 @@ const optionalAuth = async (req, res, next) => {
       }
 
       // Get user from local database
-      const user = await db.User.findOne({
-        where: { 
-          walletAddress: validationResult.user.walletAddress,
-          isActive: true 
-        }
-      });
+      // Build where clause based on available user data
+      const whereClause = { isActive: true };
+      
+      if (validationResult.user.walletAddress) {
+        whereClause.walletAddress = validationResult.user.walletAddress;
+      } else if (validationResult.user.email) {
+        whereClause.email = validationResult.user.email;
+      } else {
+        // No wallet address or email available, skip user lookup
+        req.user = null;
+        return next();
+      }
+      
+      const user = await db.User.findOne({ where: whereClause });
 
       if (user) {
         // Update last login timestamp

@@ -14,10 +14,19 @@
     "create-wallets": "cd backend && npm run create-wallets",
     "register-hardhat": "cd backend && npm run register-hardhat"
   },
-  "keywords": ["blockchain", "smart-contracts", "ai", "training-data"],
+  "keywords": [
+    "blockchain",
+    "smart-contracts",
+    "ai",
+    "training-data"
+  ],
   "author": "Contract Management Team",
   "license": "MIT",
   "devDependencies": {
-    "concurrently": "^8.2.2"
+    "concurrently": "^8.2.2",
+    "jest-junit": "^16.0.0"
+  },
+  "dependencies": {
+    "axios": "^1.10.0"
   }
-} 
+}

@@ -88,9 +88,24 @@ const Login = () => {
 
       // Use new backend response: accessToken and user
       if (response.data.accessToken) {
-        const { user, accessToken } = response.data;
+        const { user, accessToken, refreshToken } = response.data;
         localStorage.setItem('authToken', accessToken);
-        setUser(user);
+        if (refreshToken) {
+          localStorage.setItem('refreshToken', refreshToken);
+        }
+        
+        // Get complete user profile with partyType and other fields
+        try {
+          const profileResponse = await apiService.get('/api/auth/profile');
+          const completeUser = profileResponse.data.user;
+          setUser(completeUser);
+          console.log('✅ Login successful with complete user data:', completeUser);
+        } catch (profileError) {
+          console.warn('⚠️ Failed to get complete user profile, using login response:', profileError);
+          // Fallback to login response user data
+          setUser(user);
+        }
+        
         setSuccess('Login successful! Redirecting to dashboard...');
         setTimeout(() => navigate('/dashboard'), 2000);
       } else {

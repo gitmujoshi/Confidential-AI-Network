@@ -4,7 +4,7 @@ const { sequelize } = require('../models');
 const jwt = require('jsonwebtoken');
 
 // Import app
-const app = require('../server');
+const app = require('../test-server');
 
 describe('Performance Test Suite', () => {
   let testUsers = [];

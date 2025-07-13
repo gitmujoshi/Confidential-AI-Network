@@ -32,6 +32,19 @@ services:
       KC_HTTP_ENABLED: true
       KC_HEALTH_ENABLED: true
       KC_METRICS_ENABLED: true
+      # Complete email configuration for MailHog
+      KC_SPI_EMAIL_TEMPLATE_PROVIDER: freemarker
+      KC_SPI_EMAIL_SENDER_PROVIDER: default
+      KC_SPI_EMAIL_SENDER_DEFAULT_HOST: mailhog
+      KC_SPI_EMAIL_SENDER_DEFAULT_PORT: 1025
+      KC_SPI_EMAIL_SENDER_DEFAULT_FROM: noreply@contract-management.local
+      KC_SPI_EMAIL_SENDER_DEFAULT_FROM_DISPLAY_NAME: Contract Management System
+      KC_SPI_EMAIL_SENDER_DEFAULT_REPLY_TO: noreply@contract-management.local
+      KC_SPI_EMAIL_SENDER_DEFAULT_ENVELOPE_FROM: noreply@contract-management.local
+      KC_SPI_EMAIL_SENDER_DEFAULT_STARTTLS: false
+      KC_SPI_EMAIL_SENDER_DEFAULT_SSL: false
+      KC_SPI_EMAIL_SENDER_DEFAULT_USER: ""
+      KC_SPI_EMAIL_SENDER_DEFAULT_PASSWORD: ""
     command: start-dev
     depends_on:
       - ***REMOVED-KEYCLOAK_DB_PASSWORD***-db
@@ -58,6 +71,18 @@ services:
       - "6379:6379"
     volumes:
       - redis-data:/data
+
+  # MailHog - Mock SMTP server for email testing
+  mailhog:
+    image: mailhog/mailhog:latest
+    container_name: mailhog
+    networks:
+      - iam-network
+    ports:
+      - "1025:1025"  # SMTP port
+      - "8025:8025"  # Web UI port
+    environment:
+      MH_STORAGE: memory
 
 volumes:
   ***REMOVED-KEYCLOAK_DB_PASSWORD***-db-data:
