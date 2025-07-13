@@ -1,399 +1,338 @@
 #!/usr/bin/env node
 
-/**
- * Comprehensive Test Runner for Contract Management System
- * 
- * This script runs all test suites with proper configuration, reporting,
- * and coverage analysis. It provides detailed output and handles
- * different test scenarios.
- */
-
-const { spawn } = require('child_process');
+const { execSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 
 // Test configuration
-const TEST_CONFIG = {
-  // Test suites to run
-  suites: [
-    'models.test.js',
-    'api.test.js', 
-    'integration.test.js',
-    'security.test.js',
-    'services.test.js',
-    'performance.test.js'
-  ],
+const testConfig = {
+  timeout: 60000, // 60 seconds
+  verbose: true,
+  coverage: true,
+  watch: false,
+  bail: false, // Don't stop on first failure
+  maxWorkers: 4, // Limit concurrent test processes
+  testSequencer: './test-sequencer.js'
+};
+
+// Test suites configuration
+const testSuites = {
+  mock: {
+    name: 'Mock Tests',
+    description: 'Fast unit tests with mocked external services',
+    files: [
+      'mock-integration.test.js',
+      'models.test.js',
+      'api.test.js',
+      'core.test.js',
+      'security.test.js',
+      'performance.test.js'
+    ],
+    environment: {
+      TEST_MODE: 'mock',
+      NODE_ENV: 'test',
+      JWT_SECRET: 'test-secret-key',
+      DATABASE_URL: 'postgresql://mukeshjoshi@localhost:5432/contract_management_test',
+      BLOCKCHAIN_ENABLED: 'false',
+      KEYCLOAK_ENABLED: 'false'
+    }
+  },
+  integration: {
+    name: 'Integration Tests',
+    description: 'Full integration tests with real external services',
+    files: [
+      'integration.test.js',
+      'registration-integration.test.js',
+      'blockchainService.test.js',
+      'blockchainService.simple.test.js',
+      'blockchainService.constructor.test.js',
+      'simple-ai-model.test.js'
+    ],
+    environment: {
+      TEST_MODE: 'integration',
+      NODE_ENV: 'test',
+      JWT_SECRET: 'test-secret-key',
+      DATABASE_URL: 'postgresql://mukeshjoshi@localhost:5432/contract_management_test',
+      BLOCKCHAIN_ENABLED: 'true',
+      KEYCLOAK_ENABLED: 'true',
+      KEYCLOAK_URL: 'http://localhost:8080',
+      KEYCLOAK_REALM: 'contract-management',
+      KEYCLOAK_ADMIN_USER: 'admin',
+      KEYCLOAK_ADMIN_PASSWORD: 'admin'
+    },
+    prerequisites: [
+      'Keycloak server running on http://localhost:8080',
+      'Blockchain node running on http://localhost:8545',
+      'PostgreSQL database running'
+    ]
+  },
+  all: {
+    name: 'All Tests',
+    description: 'Complete test suite including both mock and integration tests',
+    files: [
+      'mock-integration.test.js',
+      'integration.test.js',
+      'models.test.js',
+      'api.test.js',
+      'core.test.js',
+      'security.test.js',
+      'performance.test.js',
+      'registration-integration.test.js',
+      'blockchainService.test.js',
+      'blockchainService.simple.test.js',
+      'blockchainService.constructor.test.js',
+      'simple-ai-model.test.js'
+    ],
+    environment: {
+      TEST_MODE: 'auto', // Will automatically choose based on service availability
+      NODE_ENV: 'test',
+      JWT_SECRET: 'test-secret-key',
+      DATABASE_URL: 'postgresql://mukeshjoshi@localhost:5432/contract_management_test',
+      BLOCKCHAIN_ENABLED: 'auto',
+      KEYCLOAK_ENABLED: 'auto'
+    }
+  }
+};
+
+// Utility functions
+function log(message, type = 'info') {
+  const timestamp = new Date().toISOString();
+  const prefix = type === 'error' ? '❌' : type === 'warning' ? '⚠️' : type === 'success' ? '✅' : 'ℹ️';
+  console.log(`${prefix} [${timestamp}] ${message}`);
+}
+
+function checkPrerequisites(suite) {
+  log(`Checking prerequisites for ${suite.name}...`);
   
-  // Jest configuration
-  jestConfig: {
-    verbose: true,
-    collectCoverage: true,
-    coverageDirectory: './coverage',
-    coverageReporters: ['text', 'lcov', 'html'],
-    coverageThreshold: {
+  if (suite.prerequisites) {
+    for (const prerequisite of suite.prerequisites) {
+      log(`  - ${prerequisite}`);
+    }
+  }
+  
+  // Check if test database exists
+  try {
+    execSync('psql -d contract_management_test -c "SELECT 1;"', { stdio: 'ignore' });
+    log('✅ Test database is accessible');
+  } catch (error) {
+    log('⚠️ Test database not accessible, attempting to create...', 'warning');
+    try {
+      execSync('createdb contract_management_test', { stdio: 'inherit' });
+      log('✅ Test database created successfully');
+    } catch (createError) {
+      log('❌ Failed to create test database', 'error');
+      return false;
+    }
+  }
+  
+  return true;
+}
+
+function setupEnvironment(suite) {
+  log(`Setting up environment for ${suite.name}...`);
+  
+  // Set environment variables
+  Object.entries(suite.environment).forEach(([key, value]) => {
+    process.env[key] = value;
+  });
+  
+  log('✅ Environment variables configured');
+}
+
+function runDatabaseMigrations() {
+  log('Running database migrations...');
+  try {
+    execSync('npx sequelize-cli db:migrate --env test', { stdio: 'inherit' });
+    log('✅ Database migrations completed');
+  } catch (error) {
+    log('⚠️ Migration failed, continuing with existing schema', 'warning');
+  }
+}
+
+function buildJestArgs(suite, options = {}) {
+  const args = [
+    '--testTimeout=' + testConfig.timeout,
+    '--verbose',
+    '--detectOpenHandles',
+    '--forceExit',
+    '--maxWorkers=' + testConfig.maxWorkers
+  ];
+
+  if (testConfig.bail) {
+    args.push('--bail');
+  }
+
+  if (testConfig.coverage) {
+    args.push('--coverage');
+    args.push('--coverageDirectory=./coverage');
+    args.push('--coverageReporters=text,html,lcov');
+    args.push('--coverageThreshold=' + JSON.stringify({
       global: {
         branches: 70,
         functions: 70,
         lines: 70,
         statements: 70
       }
-    },
-    testTimeout: 30000,
-    maxWorkers: 2, // Limit concurrent tests to avoid resource conflicts
-    setupFilesAfterEnv: ['./tests/setup.js']
-  },
-  
-  // Performance thresholds
-  performanceThresholds: {
-    maxTestTime: 60000, // 60 seconds per test suite
-    maxMemoryUsage: 500 * 1024 * 1024, // 500MB
-    minSuccessRate: 0.95 // 95% success rate
+    }));
   }
-};
 
-// Colors for console output
-const COLORS = {
-  reset: '\x1b[0m',
-  bright: '\x1b[1m',
-  red: '\x1b[31m',
-  green: '\x1b[32m',
-  yellow: '\x1b[33m',
-  blue: '\x1b[34m',
-  magenta: '\x1b[35m',
-  cyan: '\x1b[36m'
-};
-
-// Test results tracking
-let testResults = {
-  total: 0,
-  passed: 0,
-  failed: 0,
-  skipped: 0,
-  suites: [],
-  startTime: null,
-  endTime: null,
-  coverage: null
-};
-
-/**
- * Print colored output
- */
-function print(message, color = 'reset') {
-  console.log(`${COLORS[color]}${message}${COLORS.reset}`);
-}
-
-/**
- * Print header
- */
-function printHeader() {
-  print('\n' + '='.repeat(80), 'cyan');
-  print('🚀 CONTRACT MANAGEMENT SYSTEM - COMPREHENSIVE TEST SUITE', 'bright');
-  print('='.repeat(80), 'cyan');
-  print(`📅 Started at: ${new Date().toISOString()}`, 'blue');
-  print(`🔧 Node.js: ${process.version}`, 'blue');
-  print(`📁 Working directory: ${process.cwd()}`, 'blue');
-  print('='.repeat(80), 'cyan');
-}
-
-/**
- * Print test suite header
- */
-function printSuiteHeader(suiteName) {
-  print('\n' + '-'.repeat(60), 'yellow');
-  print(`🧪 Running Test Suite: ${suiteName}`, 'bright');
-  print('-'.repeat(60), 'yellow');
-}
-
-/**
- * Print test results summary
- */
-function printResultsSummary() {
-  const duration = testResults.endTime - testResults.startTime;
-  const successRate = testResults.total > 0 ? (testResults.passed / testResults.total * 100).toFixed(1) : 0;
-  
-  print('\n' + '='.repeat(80), 'cyan');
-  print('📊 TEST RESULTS SUMMARY', 'bright');
-  print('='.repeat(80), 'cyan');
-  print(`⏱️  Total Duration: ${(duration / 1000).toFixed(2)}s`, 'blue');
-  print(`📈 Total Tests: ${testResults.total}`, 'blue');
-  print(`✅ Passed: ${testResults.passed}`, 'green');
-  print(`❌ Failed: ${testResults.failed}`, 'red');
-  print(`⏭️  Skipped: ${testResults.skipped}`, 'yellow');
-  print(`📊 Success Rate: ${successRate}%`, successRate >= 95 ? 'green' : 'red');
-  
-  if (testResults.coverage) {
-    print(`📊 Coverage: ${testResults.coverage}%`, testResults.coverage >= 70 ? 'green' : 'yellow');
+  if (options.watch) {
+    args.push('--watch');
   }
-  
-  print('='.repeat(80), 'cyan');
-}
 
-/**
- * Print detailed suite results
- */
-function printSuiteResults() {
-  print('\n📋 DETAILED SUITE RESULTS:', 'bright');
-  print('-'.repeat(60), 'yellow');
-  
-  testResults.suites.forEach(suite => {
-    const status = suite.passed ? '✅' : '❌';
-    const color = suite.passed ? 'green' : 'red';
-    const duration = suite.duration ? `(${(suite.duration / 1000).toFixed(2)}s)` : '';
-    
-    print(`${status} ${suite.name} ${duration}`, color);
-    
-    if (suite.error) {
-      print(`   Error: ${suite.error}`, 'red');
-    }
-    
-    if (suite.coverage) {
-      print(`   Coverage: ${suite.coverage}%`, suite.coverage >= 70 ? 'green' : 'yellow');
-    }
+  // Add test files
+  suite.files.forEach(file => {
+    args.push(`./tests/${file}`);
   });
+
+  return args;
 }
 
-/**
- * Run a single test suite
- */
-function runTestSuite(suiteName) {
-  return new Promise((resolve, reject) => {
-    const startTime = Date.now();
-    const suiteResult = {
-      name: suiteName,
-      passed: false,
-      duration: 0,
-      error: null,
-      coverage: null
-    };
-    
-    printSuiteHeader(suiteName);
-    
-    // Build Jest command
-    const jestArgs = [
-      '--testPathPattern', suiteName,
-      '--verbose',
-      '--collectCoverage',
-      '--coverageDirectory', './coverage',
-      '--coverageReporters', 'text,lcov,html',
-      '--testTimeout', '30000',
-      '--maxWorkers', '2'
-    ];
-    
-    const jestProcess = spawn('npx', ['jest', ...jestArgs], {
-      stdio: ['pipe', 'pipe', 'pipe'],
-      env: { ...process.env, NODE_ENV: 'test' }
-    });
-    
-    let stdout = '';
-    let stderr = '';
-    
-    jestProcess.stdout.on('data', (data) => {
-      const output = data.toString();
-      stdout += output;
-      process.stdout.write(output);
-    });
-    
-    jestProcess.stderr.on('data', (data) => {
-      const output = data.toString();
-      stderr += output;
-      process.stderr.write(output);
-    });
-    
-    jestProcess.on('close', (code) => {
-      const endTime = Date.now();
-      suiteResult.duration = endTime - startTime;
-      
-      if (code === 0) {
-        suiteResult.passed = true;
-        print(`✅ ${suiteName} completed successfully`, 'green');
-      } else {
-        suiteResult.passed = false;
-        suiteResult.error = `Test suite failed with exit code ${code}`;
-        print(`❌ ${suiteName} failed`, 'red');
-      }
-      
-      // Extract coverage information
-      const coverageMatch = stdout.match(/All files\s+\|\s+(\d+(?:\.\d+)?)/);
-      if (coverageMatch) {
-        suiteResult.coverage = parseFloat(coverageMatch[1]);
-      }
-      
-      resolve(suiteResult);
-    });
-    
-    jestProcess.on('error', (error) => {
-      suiteResult.error = error.message;
-      reject(suiteResult);
-    });
-    
-    // Set timeout for test suite
-    setTimeout(() => {
-      jestProcess.kill('SIGTERM');
-      suiteResult.error = 'Test suite timed out';
-      reject(suiteResult);
-    }, TEST_CONFIG.performanceThresholds.maxTestTime);
-  });
-}
-
-/**
- * Run all test suites
- */
-async function runAllTests() {
-  testResults.startTime = Date.now();
+function runTestSuite(suite, options = {}) {
+  log(`\n🚀 Starting ${suite.name}`);
+  log(`📝 ${suite.description}`);
   
-  printHeader();
-  
-  // Check if we're in the correct directory
-  if (!fs.existsSync('./tests')) {
-    print('❌ Error: tests directory not found. Please run this script from the backend directory.', 'red');
-    process.exit(1);
+  if (!checkPrerequisites(suite)) {
+    log('❌ Prerequisites not met, skipping test suite', 'error');
+    return { success: false, error: 'Prerequisites not met' };
   }
   
-  // Check if Jest is available
+  setupEnvironment(suite);
+  runDatabaseMigrations();
+  
+  const jestArgs = buildJestArgs(suite, options);
+  const command = `npx jest ${jestArgs.join(' ')}`;
+  
+  log(`📋 Running command: ${command}`);
+  
   try {
-    await new Promise((resolve, reject) => {
-      const checkProcess = spawn('npx', ['jest', '--version'], { stdio: 'pipe' });
-      checkProcess.on('close', (code) => {
-        if (code === 0) resolve();
-        else reject(new Error('Jest not available'));
-      });
+    const startTime = Date.now();
+    execSync(command, { 
+      stdio: 'inherit',
+      env: { ...process.env, ...suite.environment }
     });
+    const endTime = Date.now();
+    const duration = ((endTime - startTime) / 1000).toFixed(2);
+    
+    log(`✅ ${suite.name} completed successfully in ${duration}s`, 'success');
+    return { success: true, duration };
   } catch (error) {
-    print('❌ Error: Jest is not available. Please install it with: npm install --save-dev jest', 'red');
+    log(`❌ ${suite.name} failed`, 'error');
+    return { success: false, error: error.message };
+  }
+}
+
+function generateTestReport(results) {
+  const report = {
+    timestamp: new Date().toISOString(),
+    summary: {
+      total: results.length,
+      passed: results.filter(r => r.success).length,
+      failed: results.filter(r => !r.success).length,
+      totalDuration: results.reduce((sum, r) => sum + (r.duration || 0), 0)
+    },
+    suites: results
+  };
+  
+  // Save report to file
+  const reportPath = './test-report.json';
+  fs.writeFileSync(reportPath, JSON.stringify(report, null, 2));
+  
+  log(`📊 Test report saved to ${reportPath}`);
+  
+  // Print summary
+  console.log('\n📋 Test Summary:');
+  console.log(`  Total Suites: ${report.summary.total}`);
+  console.log(`  Passed: ${report.summary.passed}`);
+  console.log(`  Failed: ${report.summary.failed}`);
+  console.log(`  Total Duration: ${report.summary.totalDuration.toFixed(2)}s`);
+  
+  if (report.summary.failed > 0) {
+    console.log('\n❌ Failed Suites:');
+    results.filter(r => !r.success).forEach(result => {
+      console.log(`  - ${result.suite.name}: ${result.error}`);
+    });
+  }
+  
+  return report;
+}
+
+// Main execution
+async function main() {
+  const args = process.argv.slice(2);
+  const suiteName = args[0] || 'all';
+  const options = {
+    watch: args.includes('--watch'),
+    coverage: !args.includes('--no-coverage')
+  };
+  
+  console.log('🧪 Contract Management System - Test Runner');
+  console.log('===========================================\n');
+  
+  if (!testSuites[suiteName]) {
+    log(`❌ Unknown test suite: ${suiteName}`, 'error');
+    console.log('\nAvailable test suites:');
+    Object.keys(testSuites).forEach(name => {
+      console.log(`  - ${name}: ${testSuites[name].description}`);
+    });
     process.exit(1);
   }
   
-  // Run each test suite
-  for (const suite of TEST_CONFIG.suites) {
-    try {
-      const result = await runTestSuite(suite);
-      testResults.suites.push(result);
-      
-      if (result.passed) {
-        testResults.passed++;
-      } else {
-        testResults.failed++;
-      }
-      testResults.total++;
-      
-    } catch (error) {
-      testResults.suites.push({
-        name: suite,
-        passed: false,
-        error: error.message || 'Unknown error',
-        duration: 0
-      });
-      testResults.failed++;
-      testResults.total++;
-    }
+  const suite = testSuites[suiteName];
+  log(`🎯 Running ${suite.name}`);
+  
+  const results = [];
+  
+  if (suiteName === 'all') {
+    // Run mock tests first
+    log('\n🔄 Running mock tests...');
+    const mockResult = runTestSuite(testSuites.mock, options);
+    results.push({ suite: testSuites.mock, ...mockResult });
+    
+    // Then run integration tests
+    log('\n🔄 Running integration tests...');
+    const integrationResult = runTestSuite(testSuites.integration, options);
+    results.push({ suite: testSuites.integration, ...integrationResult });
+  } else {
+    const result = runTestSuite(suite, options);
+    results.push({ suite, ...result });
   }
   
-  testResults.endTime = Date.now();
-  
-  // Generate coverage report
-  await generateCoverageReport();
-  
-  // Print results
-  printResultsSummary();
-  printSuiteResults();
-  
-  // Print recommendations
-  printRecommendations();
+  // Generate and display report
+  const report = generateTestReport(results);
   
   // Exit with appropriate code
-  const exitCode = testResults.failed > 0 ? 1 : 0;
-  process.exit(exitCode);
-}
-
-/**
- * Generate coverage report
- */
-async function generateCoverageReport() {
-  try {
-    const coveragePath = './coverage/lcov-report/index.html';
-    if (fs.existsSync(coveragePath)) {
-      const lcovPath = './coverage/lcov.info';
-      if (fs.existsSync(lcovPath)) {
-        const lcovContent = fs.readFileSync(lcovPath, 'utf8');
-        const coverageMatch = lcovContent.match(/LF:(\d+)/g);
-        const hitMatch = lcovContent.match(/LH:(\d+)/g);
-        
-        if (coverageMatch && hitMatch) {
-          const totalLines = coverageMatch.reduce((sum, match) => sum + parseInt(match.split(':')[1]), 0);
-          const hitLines = hitMatch.reduce((sum, match) => sum + parseInt(match.split(':')[1]), 0);
-          testResults.coverage = totalLines > 0 ? Math.round((hitLines / totalLines) * 100) : 0;
-        }
-      }
-      
-      print(`📊 Coverage report generated: ${path.resolve(coveragePath)}`, 'blue');
-    }
-  } catch (error) {
-    print(`⚠️  Warning: Could not generate coverage report: ${error.message}`, 'yellow');
+  if (report.summary.failed > 0) {
+    log('❌ Some test suites failed', 'error');
+    process.exit(1);
+  } else {
+    log('✅ All test suites passed', 'success');
+    process.exit(0);
   }
 }
 
-/**
- * Print recommendations based on test results
- */
-function printRecommendations() {
-  print('\n💡 RECOMMENDATIONS:', 'bright');
-  print('-'.repeat(60), 'yellow');
-  
-  if (testResults.failed > 0) {
-    print('🔧 Fix failing tests before deployment', 'red');
-  }
-  
-  if (testResults.coverage && testResults.coverage < 70) {
-    print('📈 Increase test coverage to at least 70%', 'yellow');
-  }
-  
-  if (testResults.suites.some(s => s.duration > 30000)) {
-    print('⚡ Optimize slow test suites', 'yellow');
-  }
-  
-  if (testResults.passed === testResults.total) {
-    print('🎉 All tests passed! Ready for deployment', 'green');
-  }
-  
-  print('📚 Run individual test suites for focused testing:', 'blue');
-  TEST_CONFIG.suites.forEach(suite => {
-    print(`   npm test -- ${suite}`, 'cyan');
-  });
-}
-
-/**
- * Handle process termination
- */
+// Handle process termination
 process.on('SIGINT', () => {
-  print('\n⚠️  Test execution interrupted by user', 'yellow');
+  log('🛑 Test execution interrupted by user', 'warning');
   process.exit(1);
 });
 
 process.on('SIGTERM', () => {
-  print('\n⚠️  Test execution terminated', 'yellow');
+  log('🛑 Test execution terminated', 'warning');
   process.exit(1);
 });
 
-process.on('uncaughtException', (error) => {
-  print(`\n❌ Uncaught exception: ${error.message}`, 'red');
-  process.exit(1);
-});
-
-process.on('unhandledRejection', (reason, promise) => {
-  print(`\n❌ Unhandled rejection at ${promise}: ${reason}`, 'red');
-  process.exit(1);
-});
-
-// Run the tests
+// Run the main function
 if (require.main === module) {
-  runAllTests().catch(error => {
-    print(`\n❌ Test runner failed: ${error.message}`, 'red');
+  main().catch(error => {
+    log(`❌ Test runner failed: ${error.message}`, 'error');
     process.exit(1);
   });
 }
 
 module.exports = {
-  runAllTests,
-  TEST_CONFIG,
-  testResults
+  testSuites,
+  testConfig,
+  runTestSuite,
+  generateTestReport
 }; 

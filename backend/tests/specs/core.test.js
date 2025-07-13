@@ -5,7 +5,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
 // Import app
-const app = require('../server');
+const app = require('../test-server');
 
 describe('Contract Management System - Core Test Suite', () => {
   let testUser, testContract, testDataset;
@@ -25,22 +25,31 @@ describe('Contract Management System - Core Test Suite', () => {
       didVerified: true
     });
 
-    // Create test contract
-    testContract = await Contract.create({
-      title: 'Test Contract',
-      description: 'Test contract description',
-      status: 'DRAFT',
-      tdpId: testUser.id,
-      tdcId: testUser.id,
-      ccrpId: testUser.id
-    });
-
     // Create test dataset
     testDataset = await Dataset.create({
+      datasetId: 'TEST-DATASET-001',
       name: 'Test Dataset',
       description: 'Test dataset description',
+      category: 'Computer Vision',
+      size: 1000,
+      recordCount: 10000,
+      price: 50.00,
+      license: 'MIT',
       ownerId: testUser.id,
       status: 'ACTIVE'
+    });
+
+    // Create test contract
+    testContract = await Contract.create({
+      contractId: 'TEST-CONTRACT-001',
+      price: 100.00,
+      duration: 30,
+      termsAndConditions: 'Test terms and conditions',
+      status: 'PENDING_TDP_APPROVAL',
+      tdpId: testUser.id,
+      tdcId: testUser.id,
+      ccrpId: testUser.id,
+      datasetId: testDataset.id
     });
 
     // Generate auth token
@@ -109,22 +118,28 @@ describe('Contract Management System - Core Test Suite', () => {
     describe('Contract Model', () => {
       it('should create a contract with valid data', async () => {
         const contractData = {
-          title: 'New Contract',
-          description: 'New contract description',
-          status: 'PENDING',
+          contractId: 'NEW-CONTRACT-001',
+          price: 150.00,
+          duration: 45,
+          termsAndConditions: 'New contract terms and conditions',
+          status: 'PENDING_TDP_APPROVAL',
           tdpId: testUser.id,
           tdcId: testUser.id,
-          ccrpId: testUser.id
+          ccrpId: testUser.id,
+          datasetId: testDataset.id
         };
 
         const contract = await Contract.create(contractData);
         
-        expect(contract.title).toBe(contractData.title);
-        expect(contract.description).toBe(contractData.description);
+        expect(contract.contractId).toBe(contractData.contractId);
+        expect(contract.price).toBe(contractData.price);
+        expect(contract.duration).toBe(contractData.duration);
+        expect(contract.termsAndConditions).toBe(contractData.termsAndConditions);
         expect(contract.status).toBe(contractData.status);
         expect(contract.tdpId).toBe(contractData.tdpId);
         expect(contract.tdcId).toBe(contractData.tdcId);
         expect(contract.ccrpId).toBe(contractData.ccrpId);
+        expect(contract.datasetId).toBe(contractData.datasetId);
         expect(contract.id).toBeDefined();
         expect(contract.createdAt).toBeDefined();
         expect(contract.updatedAt).toBeDefined();
@@ -132,12 +147,15 @@ describe('Contract Management System - Core Test Suite', () => {
 
       it('should validate status enum values', async () => {
         const invalidContract = {
-          title: 'Invalid Contract',
-          description: 'Invalid contract description',
+          contractId: 'INVALID-CONTRACT-001',
+          price: 100.00,
+          duration: 30,
+          termsAndConditions: 'Invalid contract terms',
           status: 'INVALID_STATUS',
           tdpId: testUser.id,
           tdcId: testUser.id,
-          ccrpId: testUser.id
+          ccrpId: testUser.id,
+          datasetId: testDataset.id
         };
 
         await expect(Contract.create(invalidContract)).rejects.toThrow();
@@ -147,8 +165,14 @@ describe('Contract Management System - Core Test Suite', () => {
     describe('Dataset Model', () => {
       it('should create a dataset with valid data', async () => {
         const datasetData = {
+          datasetId: 'NEW-DATASET-001',
           name: 'New Dataset',
           description: 'New dataset description',
+          category: 'Natural Language Processing',
+          size: 2000,
+          recordCount: 20000,
+          price: 75.00,
+          license: 'Apache 2.0',
           ownerId: testUser.id,
           metadata: { type: 'training', size: 1000 },
           status: 'ACTIVE'
@@ -156,8 +180,14 @@ describe('Contract Management System - Core Test Suite', () => {
 
         const dataset = await Dataset.create(datasetData);
         
+        expect(dataset.datasetId).toBe(datasetData.datasetId);
         expect(dataset.name).toBe(datasetData.name);
         expect(dataset.description).toBe(datasetData.description);
+        expect(dataset.category).toBe(datasetData.category);
+        expect(dataset.size).toBe(datasetData.size);
+        expect(dataset.recordCount).toBe(datasetData.recordCount);
+        expect(dataset.price).toBe(datasetData.price);
+        expect(dataset.license).toBe(datasetData.license);
         expect(dataset.ownerId).toBe(datasetData.ownerId);
         expect(dataset.metadata).toEqual(datasetData.metadata);
         expect(dataset.status).toBe(datasetData.status);

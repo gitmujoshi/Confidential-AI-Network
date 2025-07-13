@@ -19,6 +19,7 @@ const axios = require('axios');
 const jwt = require('jsonwebtoken');
 const fs = require('fs');
 const path = require('path');
+const forge = require('node-forge');
 
 class KeycloakService {
   constructor() {
@@ -36,12 +37,12 @@ class KeycloakService {
     return {
       keycloakUrl: process.env.KEYCLOAK_URL || 'http://localhost:8080',
       realm: process.env.KEYCLOAK_REALM || 'contract-management',
-      frontendClient: process.env.KEYCLOAK_CLIENT_ID || 'frontend-app',
-      backendClient: process.env.KEYCLOAK_CLIENT_ID || 'backend-service',
+      frontendClient: process.env.KEYCLOAK_CLIENT_ID || 'contract-management-frontend',
+      backendClient: process.env.KEYCLOAK_CLIENT_ID || 'contract-management-backend',
       backendClientSecret: process.env.KEYCLOAK_CLIENT_SECRET || '',
       adminUser: {
         username: process.env.KEYCLOAK_ADMIN_USER || 'admin',
-        password: process.env.KEYCLOAK_ADMIN_PASSWORD || 'admin'
+        password: process.env.KEYCLOAK_ADMIN_PASSWORD || 'admin123'
       }
     };
   }
@@ -102,26 +103,34 @@ class KeycloakService {
       // Try to verify with each key
       for (const key of keys) {
         try {
-          const publicKey = `-----BEGIN PUBLIC KEY-----\n${key.n}\n-----END PUBLIC KEY-----`;
-          const decoded = jwt.verify(token, publicKey, {
-            algorithms: ['RS256'],
-            audience: this.config.backendClient,
-            issuer: `${this.baseURL}/realms/${this.realm}`
-          });
+          // Extract public key from certificate using node-forge
+          const certPem = `-----BEGIN CERTIFICATE-----\n${key.x5c[0]}\n-----END CERTIFICATE-----`;
+          const cert = forge.pki.certificateFromPem(certPem);
+          const publicKey = forge.pki.publicKeyToPem(cert.publicKey);
           
-          return {
-            valid: true,
-            payload: decoded,
-            user: {
-              id: decoded.sub,
-              username: decoded.preferred_username,
-              email: decoded.email,
-              walletAddress: decoded.walletAddress,
-              partyType: decoded.partyType,
-              publicKey: decoded.publicKey,
-              roles: decoded.realm_access?.roles || []
-            }
-          };
+          // Try different issuer URLs
+          try {
+            const decoded = jwt.verify(token, publicKey, {
+              algorithms: ['RS256'],
+              issuer: `${this.baseURL}/realms/${this.realm}`
+            });
+            return {
+              valid: true,
+              payload: decoded,
+              user: {
+                id: decoded.sub,
+                username: decoded.preferred_username,
+                email: decoded.email,
+                walletAddress: decoded.walletAddress,
+                partyType: decoded.partyType,
+                publicKey: decoded.publicKey,
+                roles: decoded.realm_access?.roles || []
+              }
+            };
+          } catch (issuerError) {
+            // Continue to next key
+            continue;
+          }
         } catch (verifyError) {
           // Continue to next key
           continue;
@@ -657,8 +666,7 @@ class KeycloakService {
           username: email,
           password: password,
           grant_type: 'password',
-          client_id: this.config.backendClient,
-          client_secret: this.config.backendClientSecret,
+          client_id: 'admin-cli',
           scope: 'openid profile email'
         }),
         {
@@ -689,6 +697,70 @@ class KeycloakService {
     } catch (error) {
       console.error('❌ Failed to get user info from Keycloak:', error.response?.data || error.message);
       throw new Error('Failed to get user info from Keycloak');
+    }
+  }
+
+  /**
+   * Refresh access token using refresh token
+   */
+  async refreshToken(refreshToken) {
+    try {
+      console.log('🔄 Refreshing Keycloak token...');
+      
+      const response = await axios.post(
+        `${this.baseURL}/realms/${this.realm}/protocol/openid-connect/token`,
+        new URLSearchParams({
+          grant_type: 'refresh_token',
+          refresh_token: refreshToken,
+          client_id: this.config.frontendClient,
+          client_secret: this.config.backendClientSecret
+        }),
+        {
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded'
+          },
+          timeout: 10000
+        }
+      );
+
+      console.log('✅ Token refreshed successfully');
+      return {
+        access_token: response.data.access_token,
+        refresh_token: response.data.refresh_token,
+        expires_in: response.data.expires_in,
+        token_type: response.data.token_type
+      };
+    } catch (error) {
+      console.error('❌ Token refresh failed:', error.response?.data || error.message);
+      throw new Error('Failed to refresh token');
+    }
+  }
+
+  /**
+   * Set user password by email
+   */
+  async setUserPasswordByEmail(email, newPassword, temporary = false) {
+    try {
+      const adminToken = await this.getAdminToken();
+      // Find user by email
+      const response = await axios.get(
+        `${this.baseURL}/admin/realms/${this.realm}/users`,
+        {
+          headers: { 'Authorization': `Bearer ${adminToken}` },
+          params: { email }
+        }
+      );
+      const users = response.data;
+      if (!users || users.length === 0) {
+        throw new Error(`User with email ${email} not found in Keycloak`);
+      }
+      const userId = users[0].id;
+      // Reset password
+      await this.resetPassword(userId, newPassword, temporary);
+      return { success: true };
+    } catch (error) {
+      console.error(`❌ Failed to set password for ${email} in Keycloak:`, error.response?.data || error.message);
+      throw new Error(`Failed to set password for ${email} in Keycloak`);
     }
   }
 }

@@ -42,7 +42,7 @@ api.interceptors.response.use(
     });
     return response;
   },
-  (error) => {
+  async (error) => {
     console.error('❌ [API] Response error:', {
       message: error.message,
       status: error.response?.status,
@@ -51,15 +51,67 @@ api.interceptors.response.use(
     });
     
     if (error.response?.status === 401) {
-      // Handle unauthorized access - clear token and redirect
-      console.log('🔐 [API] Token expired or invalid, clearing auth token');
-      localStorage.removeItem('authToken');
-      localStorage.removeItem('user');
-      localStorage.removeItem('currentUser');
-      
-      // Only redirect if we're not already on the login page
-      if (!window.location.pathname.includes('/login')) {
-        window.location.href = '/login';
+      // Check if this is a refresh request to avoid infinite loops
+      if (error.config?.url?.includes('/auth/refresh')) {
+        console.log('🔐 [API] Refresh token failed, clearing auth tokens');
+        localStorage.removeItem('authToken');
+        localStorage.removeItem('refreshToken');
+        localStorage.removeItem('user');
+        localStorage.removeItem('currentUser');
+        
+        // Only redirect if we're not already on the login page
+        if (!window.location.pathname.includes('/login')) {
+          window.location.href = '/login';
+        }
+        return Promise.reject(error);
+      }
+
+      // Check if this is a password update request - don't auto-logout for password updates
+      if (error.config?.url?.includes('/auth/update-password')) {
+        console.log('🔐 [API] Password update returned 401, but not auto-logging out');
+        return Promise.reject(error);
+      }
+
+      // Try to refresh the token
+      const refreshToken = localStorage.getItem('refreshToken');
+      if (refreshToken) {
+        console.log('🔄 [API] Attempting to refresh token...');
+        try {
+          const refreshResponse = await api.post('/api/auth/refresh', { refreshToken });
+          
+          // Update tokens in localStorage
+          localStorage.setItem('authToken', refreshResponse.data.accessToken);
+          localStorage.setItem('refreshToken', refreshResponse.data.refreshToken);
+          
+          // Update the original request with new token
+          error.config.headers.Authorization = `Bearer ${refreshResponse.data.accessToken}`;
+          
+          console.log('✅ [API] Token refreshed, retrying original request');
+          return api(error.config);
+        } catch (refreshError) {
+          console.log('❌ [API] Token refresh failed, clearing auth tokens');
+          localStorage.removeItem('authToken');
+          localStorage.removeItem('refreshToken');
+          localStorage.removeItem('user');
+          localStorage.removeItem('currentUser');
+          
+          // Only redirect if we're not already on the login page
+          if (!window.location.pathname.includes('/login')) {
+            window.location.href = '/login';
+          }
+        }
+      } else {
+        // No refresh token available, clear auth tokens
+        console.log('🔐 [API] No refresh token available, clearing auth tokens');
+        localStorage.removeItem('authToken');
+        localStorage.removeItem('refreshToken');
+        localStorage.removeItem('user');
+        localStorage.removeItem('currentUser');
+        
+        // Only redirect if we're not already on the login page
+        if (!window.location.pathname.includes('/login')) {
+          window.location.href = '/login';
+        }
       }
     }
     return Promise.reject(error);
@@ -93,6 +145,8 @@ const realApiService = {
   login: (credentials) => api.post('/api/auth/login', credentials),
   register: (userData) => api.post('/api/auth/register', userData),
   logout: () => api.post('/api/auth/logout'),
+  refreshToken: (refreshToken) => api.post('/api/auth/refresh', { refreshToken }),
+  updatePassword: (passwordData) => api.post('/api/auth/update-password', passwordData),
   verifyDID: (didData) => api.post('/api/auth/verify-did', didData),
   getAuthDIDInfo: () => api.get('/api/auth/did-info'),
   forgotPassword: (email) => api.post('/api/auth/forgot-password', { email }),

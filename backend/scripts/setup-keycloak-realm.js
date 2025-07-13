@@ -264,8 +264,8 @@ class KeycloakRealmSetup {
         {
           username: 'tdp.medical@example.com',
           email: 'tdp.medical@example.com',
-          firstName: 'MedData',
-          lastName: 'Solutions',
+          firstName: 'tdp.medical@example.com',
+          lastName: '',
           enabled: true,
           emailVerified: true,
           credentials: [{
@@ -278,8 +278,8 @@ class KeycloakRealmSetup {
         {
           username: 'tdc.healthcare@example.com',
           email: 'tdc.healthcare@example.com',
-          firstName: 'AI Healthcare',
-          lastName: 'Innovations',
+          firstName: 'tdc.healthcare@example.com',
+          lastName: '',
           enabled: true,
           emailVerified: true,
           credentials: [{
@@ -292,8 +292,8 @@ class KeycloakRealmSetup {
         {
           username: 'ccrp.securecloud@example.com',
           email: 'ccrp.securecloud@example.com',
-          firstName: 'SecureCloud',
-          lastName: 'Computing',
+          firstName: 'ccrp.securecloud@example.com',
+          lastName: '',
           enabled: true,
           emailVerified: true,
           credentials: [{
@@ -361,7 +361,7 @@ class KeycloakRealmSetup {
       console.log('   3. Select the "contract-management" realm');
       console.log('   4. You should now be able to view users, roles, and clients');
       console.log('');
-      console.log('🔗 Test users created:');
+      console.log('🔗 Test users created (email and name are identical):');
       console.log('   - tdp.medical@example.com / password123 (TDP role)');
       console.log('   - tdc.healthcare@example.com / password123 (TDC role)');
       console.log('   - ccrp.securecloud@example.com / password123 (CCRP role)');

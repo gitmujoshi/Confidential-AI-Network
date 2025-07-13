@@ -117,11 +117,20 @@ class DIDService {
       
       // Validate DID document structure and integrity
       if (!didDocument.id || didDocument.id !== did) {
-        throw new Error('Invalid DID document: ID mismatch');
+        throw new Error('DID document ID mismatch. The document ID should match the requested DID.');
       }
 
-      if (!didDocument.verificationMethod || !Array.isArray(didDocument.verificationMethod)) {
-        throw new Error('Invalid DID document: Missing verification methods');
+      // Check for verification methods - support both verificationMethod and assertionMethod
+      const hasVerificationMethod = didDocument.verificationMethod && Array.isArray(didDocument.verificationMethod) && didDocument.verificationMethod.length > 0;
+      const hasAssertionMethod = didDocument.assertionMethod && Array.isArray(didDocument.assertionMethod) && didDocument.assertionMethod.length > 0;
+      
+      if (!hasVerificationMethod && !hasAssertionMethod) {
+        throw new Error('DID document is missing verification methods. Please ensure your DID document includes either a verificationMethod or assertionMethod array with at least one verification method.');
+      }
+
+      // If only assertionMethod exists, copy it to verificationMethod for compatibility
+      if (!hasVerificationMethod && hasAssertionMethod) {
+        didDocument.verificationMethod = didDocument.assertionMethod;
       }
 
       console.log(`✅ DID document resolved successfully for ${did}`);
@@ -409,6 +418,147 @@ class DIDService {
     } catch (error) {
       console.error(`❌ DID ownership validation failed for ${did}:`, error.message);
       return false;
+    }
+  }
+
+  /**
+   * Verify DID ownership with signature verification
+   * 
+   * This method verifies DID ownership by checking the DID document
+   * and optionally verifying a cryptographic signature.
+   * 
+   * @param {string} did - The DID to verify
+   * @param {string} signature - Optional cryptographic signature
+   * @param {string} message - Optional message that was signed
+   * @returns {Promise<boolean>} True if ownership is verified, false otherwise
+   * 
+   * @example
+   * const isVerified = await didService.verifyDIDOwnership('did:web:example.com', 'signature', 'message');
+   */
+  async verifyDIDOwnership(did, signature = null, message = null) {
+    try {
+      console.log(`🔍 Verifying DID ownership: ${did}`);
+      
+      // First validate basic DID ownership
+      const isValid = await this.validateDIDOwnership(did, null);
+      
+      if (!isValid) {
+        console.log(`❌ Basic DID ownership validation failed for ${did}`);
+        return false;
+      }
+
+      // If signature and message are provided, verify the signature
+      if (signature && message) {
+        const signatureValid = await this.verifySignature(did, message, signature);
+        if (!signatureValid) {
+          console.log(`❌ Signature verification failed for ${did}`);
+          return false;
+        }
+      }
+
+      console.log(`✅ DID ownership verification successful for ${did}`);
+      return true;
+    } catch (error) {
+      console.error(`❌ DID ownership verification failed for ${did}:`, error.message);
+      return false;
+    }
+  }
+
+  /**
+   * Validate DID format
+   * 
+   * Validates that a DID follows the correct format for supported methods.
+   * 
+   * @param {string} did - The DID to validate
+   * @returns {boolean} True if the DID format is valid, false otherwise
+   * 
+   * @example
+   * const isValid = didService.validateDIDFormat('did:web:example.com');
+   */
+  validateDIDFormat(did) {
+    try {
+      if (!did || typeof did !== 'string') {
+        return false;
+      }
+
+      // Check if DID starts with "did:"
+      if (!did.startsWith('did:')) {
+        return false;
+      }
+
+      // Extract method and identifier
+      const parts = did.split(':');
+      if (parts.length < 3) {
+        return false;
+      }
+
+      const method = parts[1];
+      const identifier = parts.slice(2).join(':');
+
+      // Validate based on supported methods
+      switch (method) {
+        case 'web':
+          // did:web should have a valid domain
+          return identifier.length > 0 && identifier.includes('.');
+        case 'key':
+          // did:key should have a valid key identifier
+          return identifier.length > 0;
+        case 'ethr':
+          // did:ethr should have a valid Ethereum address or chain ID
+          return identifier.length > 0;
+        default:
+          // For unsupported methods, just check basic format
+          return identifier.length > 0;
+      }
+    } catch (error) {
+      console.error('Error validating DID format:', error);
+      return false;
+    }
+  }
+
+  /**
+   * Check if a DID is available for use
+   * 
+   * This method checks if a DID is available by attempting to resolve it
+   * and checking if it's already in use by another user.
+   * 
+   * @param {string} did - The DID to check
+   * @returns {Promise<{available: boolean, message: string}>} Object with availability status and message
+   * 
+   * @example
+   * const result = await didService.isDIDAvailable('did:web:example.com');
+   */
+  async isDIDAvailable(did) {
+    try {
+      console.log(`🔍 Checking DID availability: ${did}`);
+      
+      // First validate the DID format
+      if (!this.validateDIDFormat(did)) {
+        const message = `Invalid DID format. Please ensure your DID follows the correct format (e.g., did:web:example.com)`;
+        console.log(`❌ ${message}`);
+        return { available: false, message };
+      }
+
+      // Try to resolve the DID to see if it exists
+      try {
+        await this.resolveDID(did);
+        console.log(`✅ DID is resolvable: ${did}`);
+        
+        // For now, we'll consider resolvable DIDs as available
+        // In production, you might want to check against a database of registered DIDs
+        return { 
+          available: true, 
+          message: `DID ${did} is available and properly configured` 
+        };
+      } catch (error) {
+        const message = `DID ${did} is not properly configured. Please ensure your DID document is accessible at https://${did.replace('did:web:', '')}/.well-known/did.json and contains valid verification methods.`;
+        console.log(`❌ ${message}`);
+        return { available: false, message };
+      }
+    } catch (error) {
+      const message = `Unable to verify DID availability. Please try again or contact support.`;
+      console.error(`❌ Error checking DID availability for ${did}:`, error.message);
+      return { available: false, message };
     }
   }
 

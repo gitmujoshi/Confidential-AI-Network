@@ -1,258 +1,526 @@
-# Contract Management System - Comprehensive Test Suite Summary
+# Contract Management System - Test Suite Summary
 
 ## 🎯 Overview
 
-We have successfully created a comprehensive test suite for the Contract Management System backend that covers all critical aspects of the application. This test suite ensures reliability, security, performance, and maintainability of the system.
+This document provides a comprehensive summary of the robust test suite implemented for the Contract Management System, featuring both **mock tests** and **real integration tests** with proper cleanup mechanisms for both database and Keycloak.
 
-## 📊 Test Suite Coverage
+## 🏗️ Test Architecture
 
-### ✅ Completed Test Suites
+### Dual Testing Strategy
 
-| Test Suite | Status | Tests | Coverage Focus |
-|------------|--------|-------|----------------|
-| **Models** | ✅ Complete | 19 tests | Database models, relationships, constraints |
-| **API** | ✅ Complete | 50+ tests | Endpoint functionality, request/response handling |
-| **Integration** | ✅ Complete | 30+ tests | End-to-end workflows, multi-party scenarios |
-| **Security** | ✅ Complete | 40+ tests | Authentication, authorization, vulnerability prevention |
-| **Services** | ✅ Complete | 35+ tests | Business logic, external integrations |
-| **Performance** | ✅ Complete | 25+ tests | Load testing, scalability, response times |
-
-### 🧪 Test Categories
-
-#### 1. **Model Tests** (`models.test.js`)
-- **Purpose**: Validate database models and relationships
-- **Coverage**: User, Contract, Dataset, Notification models
-- **Key Features**:
-  - ✅ Data validation and constraints
-  - ✅ Foreign key relationships
-  - ✅ Enum value validation
-  - ✅ Database transactions
-  - ✅ Error handling scenarios
-
-#### 2. **API Tests** (`api.test.js`)
-- **Purpose**: Test all API endpoints and responses
-- **Coverage**: Authentication, CRUD operations, error handling
-- **Key Features**:
-  - ✅ User registration and login
-  - ✅ Contract lifecycle management
-  - ✅ Dataset operations
-  - ✅ DID resolution
-  - ✅ Input validation
-  - ✅ Error responses
-
-#### 3. **Integration Tests** (`integration.test.js`)
-- **Purpose**: Test complete workflows and user journeys
-- **Coverage**: Multi-party contract workflows
-- **Key Features**:
-  - ✅ Complete contract lifecycle
-  - ✅ User role interactions
-  - ✅ Data consistency
-  - ✅ Concurrent operations
-  - ✅ Error recovery
-
-#### 4. **Security Tests** (`security.test.js`)
-- **Purpose**: Validate security measures and prevent vulnerabilities
-- **Coverage**: Authentication, authorization, input validation
-- **Key Features**:
-  - ✅ Password security and hashing
-  - ✅ JWT token validation
-  - ✅ SQL injection prevention
-  - ✅ XSS attack prevention
-  - ✅ Rate limiting
-  - ✅ Security headers
-
-#### 5. **Service Tests** (`services.test.js`)
-- **Purpose**: Test service layer and external integrations
-- **Coverage**: Blockchain, DID, Keycloak, Notification services
-- **Key Features**:
-  - ✅ Blockchain contract deployment
-  - ✅ DID resolution and verification
-  - ✅ Keycloak user management
-  - ✅ Notification operations
-  - ✅ Service integration scenarios
-
-#### 6. **Performance Tests** (`performance.test.js`)
-- **Purpose**: Validate system performance and scalability
-- **Coverage**: Load testing, response times, memory usage
-- **Key Features**:
-  - ✅ Database query performance
-  - ✅ Concurrent user handling
-  - ✅ Memory usage monitoring
-  - ✅ Stress testing
-  - ✅ Scalability validation
-
-## 🛠️ Test Infrastructure
-
-### **Test Runner** (`run-all-tests.js`)
-- **Features**:
-  - ✅ Comprehensive test execution
-  - ✅ Detailed reporting with colors
-  - ✅ Coverage analysis
-  - ✅ Performance monitoring
-  - ✅ Error handling and recovery
-
-### **Configuration Files**
-- **Jest Config** (`jest.config.js`): Test framework configuration
-- **Setup Files** (`setup.js`, `env-setup.js`): Environment and test setup
-- **Package Scripts**: Easy-to-use npm commands
-
-### **Documentation** (`tests/README.md`)
-- **Complete guide** for running and maintaining tests
-- **Best practices** and troubleshooting
-- **Examples** and patterns for new tests
-
-## 📈 Test Statistics
-
-### **Current Status**
-- **Total Test Suites**: 6
-- **Total Tests**: 200+ individual test cases
-- **Coverage Areas**: Models, API, Integration, Security, Services, Performance
-- **Success Rate**: 100% (all tests passing)
-
-### **Coverage Metrics**
-- **Models**: 75%+ coverage
-- **API Endpoints**: Comprehensive endpoint testing
-- **Security**: All major vulnerability vectors covered
-- **Performance**: Response time and load benchmarks established
-
-## 🚀 Usage Commands
-
-### **Quick Start**
-```bash
-# Run all tests with comprehensive reporting
-npm run test:all
-
-# Run specific test suites
-npm run test:models      # Database models
-npm run test:api         # API endpoints
-npm run test:integration # Integration workflows
-npm run test:security    # Security validation
-npm run test:services    # Service layer
-npm run test:performance # Performance testing
-
-# Development and debugging
-npm run test:watch       # Watch mode for development
-npm run test:coverage    # Generate coverage reports
+```mermaid
+graph TD
+    A[Test Suite] --> B[Mock Tests]
+    A --> C[Integration Tests]
+    
+    B --> B1[Fast Execution]
+    B --> B2[No External Dependencies]
+    B --> B3[Consistent Results]
+    B --> B4[Perfect for CI/CD]
+    
+    C --> C1[Real Service Interactions]
+    C --> C2[End-to-End Testing]
+    C --> C3[Actual Database Operations]
+    C --> C4[Real Keycloak Management]
+    
+    D[Cleanup Strategy] --> D1[Database Cleanup]
+    D --> D2[Keycloak Cleanup]
+    D --> D3[Test Data Tracking]
 ```
 
-### **Individual Test Execution**
-```bash
-# Run specific test files
-npm test -- tests/models.test.js
-npm test -- tests/api.test.js
+## 📁 Test Structure
 
+### Core Test Files
+
+| File | Purpose | Mode |
+|------|---------|------|
+| `setup.js` | Global test setup with mock/integration mode support | Both |
+| `integration.test.js` | Real integration tests with external services | Integration |
+| `mock-integration.test.js` | Mock integration tests for fast development | Mock |
+| `models.test.js` | Database model tests | Both |
+| `api.test.js` | API endpoint tests | Both |
+| `registration-integration.test.js` | User registration flow tests | Integration |
+| `blockchainService.test.js` | Blockchain service tests | Integration |
+| `simple-ai-model.test.js` | AI model tests | Both |
+
+### Test Runner
+
+| File | Purpose |
+|------|---------|
+| `run-all-tests.js` | Comprehensive test runner with different modes |
+| `README.md` | Detailed test documentation |
+
+## 🧪 Test Modes
+
+### Mock Mode (`TEST_MODE=mock`)
+
+**Purpose**: Fast unit tests with mocked external services
+
+**Features**:
+- ✅ **Fast execution** (no external dependencies)
+- ✅ **Consistent results** (predictable mocks)
+- ✅ **No external service requirements**
+- ✅ **Perfect for CI/CD pipelines**
+- ✅ **Development and debugging**
+
+**Mocked Services**:
+- Keycloak IAM service
+- Blockchain service
+- DID resolution service
+- Email service
+- Notification service
+- Audit service
+- DPDP service
+- Ricardian contract service
+- Signing service
+
+### Integration Mode (`TEST_MODE=integration`)
+
+**Purpose**: Full integration tests with real external services
+
+**Features**:
+- ✅ **Real service interactions**
+- ✅ **End-to-end testing**
+- ✅ **Actual database operations**
+- ✅ **Real Keycloak user management**
+- ✅ **Blockchain contract deployment**
+
+**Required Services**:
+- PostgreSQL database
+- Keycloak server (http://localhost:8080)
+- Blockchain node (http://localhost:8545)
+
+## 🧹 Cleanup Strategy
+
+### Database Cleanup
+
+```javascript
+// Comprehensive database cleanup
+await global.testUtils.cleanupDatabaseData();
+
+// Cleans up:
+// - Users
+// - Contracts
+// - Datasets
+// - Notifications
+// - AI Models
+// - Audit logs
+```
+
+### Keycloak Cleanup
+
+```javascript
+// Keycloak user cleanup (integration mode only)
+await global.testUtils.cleanupKeycloakData();
+
+// Features:
+// - Tracks created Keycloak users
+// - Deletes test users after tests
+// - Handles cleanup failures gracefully
+// - No cleanup needed in mock mode
+```
+
+### Test Data Tracking
+
+```javascript
+// Global test tracking
+global.testTracker = {
+  createdKeycloakUsers: [],    // Track Keycloak users
+  createdDatabaseUsers: [],    // Track database users
+  testMode: 'mock|integration', // Current test mode
+  keycloakService: null        // Keycloak service instance
+};
+```
+
+## 📊 Test Utilities
+
+### Global Test Utilities
+
+```javascript
+// Create test users with tracking
+const user = await global.testUtils.createTestUser({
+  email: 'test@example.com',
+  partyType: 'TDP'
+});
+
+// Create Keycloak users (integration mode)
+const keycloakUser = await global.testUtils.createKeycloakUser({
+  email: 'keycloak@example.com',
+  partyType: 'TDP'
+});
+
+// Generate auth tokens
+const token = global.testUtils.generateAuthToken(user);
+
+// Comprehensive cleanup
+await global.testUtils.cleanupAllTestData();
+
+// Check test mode
+const isIntegration = global.testUtils.isIntegrationMode();
+```
+
+### Custom Jest Matchers
+
+```javascript
+// UUID validation
+expect(userId).toBeValidUUID();
+
+// Email validation
+expect(email).toBeValidEmail();
+
+// Keycloak user ID validation
+expect(keycloakUserId).toBeValidKeycloakUserId();
+```
+
+## 🚀 Running Tests
+
+### Quick Commands
+
+```bash
+# Run all tests (mock + integration)
+npm test
+
+# Run only mock tests (fast)
+npm run test:mock
+
+# Run only integration tests
+npm run test:integration
+
+# Run with coverage
+npm run test:coverage
+
+# Use the test runner
+npm run test:runner
+```
+
+### Test Runner Commands
+
+```bash
+# Run all test suites
+node tests/run-all-tests.js
+
+# Run only mock tests
+node tests/run-all-tests.js mock
+
+# Run only integration tests
+node tests/run-all-tests.js integration
+
+# Run with watch mode
+node tests/run-all-tests.js mock --watch
+
+# Run without coverage
+node tests/run-all-tests.js mock --no-coverage
+```
+
+## 🔧 Configuration
+
+### Environment Variables
+
+```bash
+# Test mode
+TEST_MODE=mock|integration|auto
+
+# Database
+DATABASE_URL=postgresql://user:pass@localhost:5432/db
+
+# Keycloak (integration mode)
+KEYCLOAK_URL=http://localhost:8080
+KEYCLOAK_REALM=contract-management
+KEYCLOAK_ADMIN_USER=admin
+KEYCLOAK_ADMIN_PASSWORD=admin
+
+# Blockchain (integration mode)
+BLOCKCHAIN_ENABLED=true|false|auto
+BLOCKCHAIN_URL=http://localhost:8545
+
+# JWT
+JWT_SECRET=your-secret-key
+```
+
+### Jest Configuration
+
+```javascript
+// jest.config.js
+module.exports = {
+  testEnvironment: 'node',
+  setupFilesAfterEnv: ['./tests/setup.js'],
+  testTimeout: 60000,
+  verbose: true,
+  collectCoverage: true,
+  coverageDirectory: './coverage',
+  coverageReporters: ['text', 'html', 'lcov'],
+  coverageThreshold: {
+    global: {
+      branches: 70,
+      functions: 70,
+      lines: 70,
+      statements: 70
+    }
+  }
+};
+```
+
+## 📈 Test Coverage
+
+### Coverage Reports
+
+```bash
+# Generate coverage report
+npm run test:coverage
+
+# View HTML coverage report
+open coverage/lcov-report/index.html
+```
+
+### Coverage Thresholds
+
+- **Branches**: 70%
+- **Functions**: 70%
+- **Lines**: 70%
+- **Statements**: 70%
+
+## 🐛 Debugging Tests
+
+### Debug Mock Tests
+
+```bash
+# Run with debug logging
+DEBUG=* npm test -- tests/mock-integration.test.js
+
+# Run specific test
+npm test -- --testNamePattern="should create mock Keycloak user"
+```
+
+### Debug Integration Tests
+
+```bash
 # Run with verbose output
-npm test -- --verbose
+npm test -- tests/integration.test.js --verbose
 
-# Run with custom timeout
-npm test -- --testTimeout=60000
+# Run with debug logging
+DEBUG=* npm test -- tests/integration.test.js
 ```
 
-## 🔧 Test Configuration
+### Debug Test Setup
 
-### **Environment Setup**
-- **Test Database**: Separate test database for isolation
-- **Mock Services**: External services mocked for unit tests
-- **Environment Variables**: Test-specific configuration
-- **Cleanup**: Automatic test data cleanup
+```bash
+# Check test environment
+node -e "console.log(process.env.TEST_MODE)"
 
-### **Performance Thresholds**
-- **Response Times**: < 1 second for most operations
-- **Concurrent Users**: 50+ concurrent operations
-- **Memory Usage**: < 100MB increase during testing
-- **Success Rate**: > 95% for all test suites
+# Verify database connection
+node -e "require('./models').sequelize.authenticate().then(() => console.log('DB OK')).catch(console.error)"
+```
 
-## 🎯 Key Benefits
+## 🚨 Common Issues
 
-### **1. Reliability Assurance**
-- ✅ All core functionality validated
-- ✅ Edge cases and error scenarios covered
-- ✅ Database integrity maintained
-- ✅ API contract compliance verified
+### Database Connection Issues
 
-### **2. Security Validation**
-- ✅ Authentication and authorization tested
-- ✅ Input validation and sanitization verified
-- ✅ Vulnerability prevention measures tested
-- ✅ Security headers and CORS validated
+```bash
+# Create test database
+createdb contract_management_test
 
-### **3. Performance Monitoring**
-- ✅ Response time benchmarks established
-- ✅ Load testing scenarios defined
-- ✅ Memory usage patterns monitored
-- ✅ Scalability characteristics validated
+# Run migrations
+npx sequelize-cli db:migrate --env test
+```
 
-### **4. Maintainability**
-- ✅ Code changes safely validated
-- ✅ Regression testing automated
-- ✅ Documentation as living tests
-- ✅ Continuous integration ready
+### Keycloak Connection Issues
 
-### **5. Development Efficiency**
-- ✅ Fast feedback loop with watch mode
-- ✅ Isolated test environments
-- ✅ Comprehensive error reporting
-- ✅ Easy debugging and troubleshooting
+```bash
+# Check Keycloak status
+curl http://localhost:8080/health
 
-## 🔄 Continuous Integration Ready
+# Verify admin credentials
+curl -X POST http://localhost:8080/realms/master/protocol/openid-connect/token \
+  -d "username=admin&password=admin&grant_type=password&client_id=admin-cli"
+```
 
-### **GitHub Actions Integration**
+### Test Timeout Issues
+
+```javascript
+// Increase timeout for specific test
+it('should complete long operation', async () => {
+  // Test code
+}, 120000); // 2 minutes
+```
+
+## 📋 Test Best Practices
+
+### Writing Mock Tests
+
+```javascript
+describe('Mock Service Tests', () => {
+  it('should mock external service call', async () => {
+    // Arrange
+    const mockService = require('../services/mockService');
+    
+    // Act
+    const result = await mockService.doSomething();
+    
+    // Assert
+    expect(result).toBeDefined();
+    expect(result.success).toBe(true);
+  });
+});
+```
+
+### Writing Integration Tests
+
+```javascript
+describe('Integration Tests', () => {
+  it('should work with real services', async () => {
+    // Skip if not in integration mode
+    if (!global.testUtils.isIntegrationMode()) {
+      console.log('⏭️ Skipping integration test in mock mode');
+      return;
+    }
+    
+    // Test with real services
+    const realService = global.testUtils.getKeycloakService();
+    const result = await realService.createUser(userData);
+    
+    expect(result.keycloakUserId).toBeValidKeycloakUserId();
+  });
+});
+```
+
+### Cleanup Best Practices
+
+```javascript
+describe('Test Suite', () => {
+  afterAll(async () => {
+    // Always cleanup after tests
+    await global.testUtils.cleanupAllTestData();
+  });
+  
+  beforeEach(async () => {
+    // Clean specific data before each test
+    await Notification.destroy({ where: {} });
+  });
+});
+```
+
+## 📊 Performance Monitoring
+
+### Test Performance Metrics
+
+```bash
+# Run with performance monitoring
+npm test -- --verbose --detectOpenHandles
+
+# Monitor memory usage
+node --max-old-space-size=4096 tests/run-all-tests.js
+```
+
+### Performance Thresholds
+
+- **Test Timeout**: 60 seconds per test
+- **Memory Usage**: 500MB max
+- **Success Rate**: 95% minimum
+
+## 🔄 CI/CD Integration
+
+### GitHub Actions Example
+
 ```yaml
-name: Backend Tests
+name: Tests
 on: [push, pull_request]
 jobs:
   test:
     runs-on: ubuntu-latest
     services:
       postgres:
-        image: postgres:14
+        image: postgres:13
         env:
-          POSTGRES_DB: contract_management_test
+          POSTGRES_PASSWORD: postgres
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
         with:
-          node-version: '18'
+          node-version: '16'
       - run: npm ci
-      - run: npm run test:ci
+      - run: npm test
 ```
 
-### **CI/CD Benefits**
-- ✅ Automated testing on every commit
-- ✅ Quality gates for deployment
-- ✅ Coverage reporting
-- ✅ Performance regression detection
+## 📚 Key Features
 
-## 📋 Test Maintenance
+### ✅ Comprehensive Cleanup
 
-### **Adding New Tests**
-1. **Follow naming conventions**: `describe('Feature', () => {})`
-2. **Use descriptive names**: `it('should handle edge case', () => {})`
-3. **Maintain isolation**: Each test independent
-4. **Include assertions**: Test both success and failure
-5. **Update documentation**: Document new patterns
+- **Database cleanup**: Automatically cleans up all test data
+- **Keycloak cleanup**: Tracks and deletes test users
+- **Test data tracking**: Monitors created resources
+- **Graceful failure handling**: Continues cleanup even if some operations fail
 
-### **Best Practices**
-- **Arrange-Act-Assert**: Clear test structure
-- **Test isolation**: Independent test execution
-- **Meaningful assertions**: Test behavior, not implementation
-- **Performance awareness**: Mock external services appropriately
+### ✅ Dual Testing Strategy
 
-## 🎉 Summary
+- **Mock tests**: Fast, reliable, no external dependencies
+- **Integration tests**: Real service interactions, end-to-end testing
+- **Automatic mode detection**: Chooses appropriate mode based on service availability
 
-This comprehensive test suite provides:
+### ✅ Robust Test Utilities
 
-- **🛡️ Security**: Complete vulnerability prevention and detection
-- **⚡ Performance**: Validated response times and scalability
-- **🔧 Reliability**: All functionality thoroughly tested
-- **📚 Documentation**: Living documentation through tests
-- **🚀 Maintainability**: Safe code changes and refactoring
-- **🔄 CI/CD Ready**: Automated testing and quality gates
+- **Global test utilities**: Standardized test data creation
+- **Custom matchers**: Specialized assertions for UUIDs, emails, etc.
+- **Environment management**: Proper test environment setup
+- **Service availability checking**: Verifies external services before running integration tests
 
-The test suite is production-ready and provides confidence in the system's reliability, security, and performance. All tests are passing and the infrastructure supports continuous development and deployment workflows.
+### ✅ Performance Optimization
 
-**Next Steps:**
-1. Run `npm run test:all` to execute the complete test suite
-2. Review coverage reports in `coverage/lcov-report/index.html`
-3. Integrate with CI/CD pipeline for automated testing
-4. Use test results to guide development and deployment decisions 
+- **Parallel test execution**: Runs tests concurrently
+- **Resource management**: Limits memory and CPU usage
+- **Timeout management**: Prevents hanging tests
+- **Coverage optimization**: Efficient coverage collection
+
+### ✅ Developer Experience
+
+- **Clear documentation**: Comprehensive README and examples
+- **Easy commands**: Simple npm scripts for different test modes
+- **Debug support**: Verbose logging and debugging tools
+- **Error reporting**: Clear error messages and troubleshooting guides
+
+## 🎉 Benefits
+
+### For Developers
+
+- **Fast feedback**: Mock tests run quickly during development
+- **Reliable testing**: Consistent results regardless of external service availability
+- **Easy debugging**: Clear error messages and debugging tools
+- **Comprehensive coverage**: Tests all aspects of the system
+
+### For CI/CD
+
+- **Reliable builds**: Mock tests ensure builds don't fail due to external dependencies
+- **Fast pipelines**: Quick test execution for rapid feedback
+- **Comprehensive validation**: Both unit and integration testing
+- **Coverage reporting**: Detailed coverage analysis
+
+### For Production
+
+- **Quality assurance**: Comprehensive testing prevents bugs
+- **Performance validation**: Tests ensure system meets performance requirements
+- **Security validation**: Tests verify security measures
+- **Integration verification**: Real integration tests validate external service interactions
+
+## 📞 Support
+
+For test-related issues:
+
+1. Check the [Common Issues](#-common-issues) section
+2. Review test logs for specific error messages
+3. Verify service availability for integration tests
+4. Check database and Keycloak connectivity
+5. Ensure proper environment variables are set
+
+## 🚀 Next Steps
+
+1. **Run the test suite**: `npm test`
+2. **Review coverage**: `npm run test:coverage`
+3. **Add new tests**: Follow the patterns in existing test files
+4. **Customize configuration**: Modify environment variables as needed
+5. **Integrate with CI/CD**: Use the provided GitHub Actions example
+
+This comprehensive test suite ensures the Contract Management System is robust, reliable, and ready for production deployment. 
