@@ -287,13 +287,196 @@ class NotificationService {
   async getUnreadNotificationCount(userId) {
     try {
       const count = await db.Notification.count({
-        where: { userId, isRead: false }
+        where: {
+          userId,
+          isRead: false
+        }
       });
-
       return count;
     } catch (error) {
       console.error('Error getting unread notification count:', error);
-      throw error;
+      return 0;
+    }
+  }
+
+  // Multi-TDP Contract Notification Methods
+
+  async notifyTdpSigned(contract, tdpUser, tdpDataset) {
+    try {
+      const title = 'TDP Contract Signed';
+      const message = `TDP ${tdpUser.name} has signed the contract for dataset ${tdpDataset.datasetName}`;
+      
+      // Notify TDC
+      const tdcUser = await db.User.findByPk(contract.tdcId);
+      if (tdcUser) {
+        await this.createNotification(
+          tdcUser.id,
+          'TDP_SIGNED',
+          title,
+          message,
+          { 
+            contractId: contract.contractId, 
+            tdpId: tdpUser.id,
+            datasetName: tdpDataset.datasetName 
+          }
+        );
+
+        const emailHtml = `
+          <h2>TDP Contract Signed</h2>
+          <p>TDP ${tdpUser.name} has signed the contract for dataset ${tdpDataset.datasetName}.</p>
+          <p><strong>Contract ID:</strong> ${contract.contractId}</p>
+          <p><strong>Dataset:</strong> ${tdpDataset.datasetName}</p>
+          <p><strong>Price:</strong> $${tdpDataset.individualPrice}</p>
+          <p><a href="${process.env.FRONTEND_URL}/contracts/${contract.contractId}">View Contract</a></p>
+        `;
+
+        await this.sendEmail(tdcUser.email, title, emailHtml);
+      }
+
+      // Notify other TDPs in the same contract
+      const contractDatasets = contract.contractDatasets || [];
+      for (const dataset of contractDatasets) {
+        if (dataset.tdpId !== tdpUser.id) {
+          const otherTdpUser = await db.User.findByPk(dataset.tdpId);
+          if (otherTdpUser) {
+            await this.createNotification(
+              otherTdpUser.id,
+              'TDP_SIGNED',
+              `TDP ${tdpUser.name} signed contract for ${tdpDataset.datasetName}`,
+              `Another TDP has signed the contract. Your dataset ${dataset.datasetName} is still pending.`,
+              { 
+                contractId: contract.contractId, 
+                signedTdpId: tdpUser.id,
+                signedDatasetName: tdpDataset.datasetName 
+              }
+            );
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Error notifying TDP signing:', error);
+    }
+  }
+
+  async notifyCCRPApprovalRequired(contract, ccrpUser) {
+    try {
+      const title = 'CCRP Approval Required';
+      const message = `All TDPs have signed the contract. CCRP approval is now required.`;
+      
+      await this.createNotification(
+        ccrpUser.id,
+        'CCRP_APPROVAL_REQUIRED',
+        title,
+        message,
+        { contractId: contract.contractId }
+      );
+
+      const emailHtml = `
+        <h2>CCRP Approval Required</h2>
+        <p>All Training Data Providers have signed the contract ${contract.contractId}.</p>
+        <p><strong>Total Price:</strong> $${contract.totalPrice}</p>
+        <p><strong>Dataset Count:</strong> ${contract.datasetCount}</p>
+        <p>Please review and sign the contract in your dashboard.</p>
+        <p><a href="${process.env.FRONTEND_URL}/contracts/${contract.contractId}">View Contract</a></p>
+      `;
+
+      await this.sendEmail(ccrpUser.email, title, emailHtml);
+    } catch (error) {
+      console.error('Error notifying CCRP approval required:', error);
+    }
+  }
+
+  async notifyTdcApprovalRequired(contract, tdcUser) {
+    try {
+      const title = 'TDC Approval Required';
+      const message = `All TDPs have signed the contract. Your final approval is required.`;
+      
+      await this.createNotification(
+        tdcUser.id,
+        'TDC_APPROVAL_REQUIRED',
+        title,
+        message,
+        { contractId: contract.contractId }
+      );
+
+      const emailHtml = `
+        <h2>TDC Approval Required</h2>
+        <p>All Training Data Providers have signed the contract ${contract.contractId}.</p>
+        <p><strong>Total Price:</strong> $${contract.totalPrice}</p>
+        <p><strong>Dataset Count:</strong> ${contract.datasetCount}</p>
+        <p>Please review and provide final approval in your dashboard.</p>
+        <p><a href="${process.env.FRONTEND_URL}/contracts/${contract.contractId}">View Contract</a></p>
+      `;
+
+      await this.sendEmail(tdcUser.email, title, emailHtml);
+    } catch (error) {
+      console.error('Error notifying TDC approval required:', error);
+    }
+  }
+
+  async notifyTdpPaymentReceived(contract, tdpUser, paymentAmount) {
+    try {
+      const title = 'Payment Received';
+      const message = `Payment of $${paymentAmount} has been received for your dataset in contract ${contract.contractId}`;
+      
+      await this.createNotification(
+        tdpUser.id,
+        'PAYMENT_RECEIVED',
+        title,
+        message,
+        { 
+          contractId: contract.contractId, 
+          paymentAmount: paymentAmount 
+        }
+      );
+
+      const emailHtml = `
+        <h2>Payment Received</h2>
+        <p>Payment of $${paymentAmount} has been received for your dataset in contract ${contract.contractId}.</p>
+        <p><strong>Contract ID:</strong> ${contract.contractId}</p>
+        <p><strong>Payment Amount:</strong> $${paymentAmount}</p>
+        <p><a href="${process.env.FRONTEND_URL}/contracts/${contract.contractId}">View Contract</a></p>
+      `;
+
+      await this.sendEmail(tdpUser.email, title, emailHtml);
+    } catch (error) {
+      console.error('Error notifying TDP payment received:', error);
+    }
+  }
+
+  async notifyMultiTdpContractCreated(contract, tdpUsers) {
+    try {
+      const title = 'Multi-TDP Contract Created';
+      const message = `A new contract has been created with multiple datasets. Contract ID: ${contract.contractId}`;
+      
+      // Notify all TDPs
+      for (const tdpUser of tdpUsers) {
+        await this.createNotification(
+          tdpUser.id,
+          'MULTI_TDP_CONTRACT_CREATED',
+          title,
+          message,
+          { 
+            contractId: contract.contractId,
+            datasetCount: contract.datasetCount,
+            totalPrice: contract.totalPrice
+          }
+        );
+
+        const emailHtml = `
+          <h2>Multi-TDP Contract Created</h2>
+          <p>A new contract has been created with multiple datasets.</p>
+          <p><strong>Contract ID:</strong> ${contract.contractId}</p>
+          <p><strong>Total Datasets:</strong> ${contract.datasetCount}</p>
+          <p><strong>Total Price:</strong> $${contract.totalPrice}</p>
+          <p>Please review and sign the contract in your dashboard.</p>
+          <p><a href="${process.env.FRONTEND_URL}/contracts/${contract.contractId}">View Contract</a></p>
+        `;
+
+        await this.sendEmail(tdpUser.email, title, emailHtml);
+      }
+    } catch (error) {
+      console.error('Error notifying multi-TDP contract creation:', error);
     }
   }
 }

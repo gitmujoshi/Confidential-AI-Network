@@ -47,6 +47,7 @@ import { useQuery, useMutation, useQueryClient } from 'react-query';
 import { apiService } from '../services/api';
 import toast from 'react-hot-toast';
 import { useUser } from '../contexts/UserContext';
+import MultiDatasetSelector from '../components/MultiDatasetSelector';
 
 /**
  * CreateRicardianContract Component
@@ -81,7 +82,7 @@ import { useUser } from '../contexts/UserContext';
 
 // Stepper steps for Ricardian contract creation process
 const steps = [
-  'Select Contract Type & Dataset',
+  'Select Contract Type & Datasets (1-3)',
   'Configure Contract & Environment',
   'Review Legal Document & Smart Contract',
   'Create Ricardian Contract'
@@ -95,7 +96,8 @@ function CreateRicardianContract() {
   // Component state
   const [activeStep, setActiveStep] = useState(0);
   const [selectedContractType, setSelectedContractType] = useState('AI_TRAINING');
-  const [selectedDataset, setSelectedDataset] = useState(null);
+  const [selectedDatasets, setSelectedDatasets] = useState([]); // Array of selected datasets
+  const [datasetPrices, setDatasetPrices] = useState({}); // Individual pricing per dataset
   const [selectedCcrp, setSelectedCcrp] = useState('');
   const [selectedAiModels, setSelectedAiModels] = useState([]); // Array of selected AI model IDs
   const [contractData, setContractData] = useState({
@@ -171,18 +173,18 @@ function CreateRicardianContract() {
 
   // Ricardian contract creation mutation
   const createRicardianContractMutation = useMutation(
-    (data) => apiService.createRicardianContract(data),
+    (data) => apiService.createContract(data), // Use regular contract creation for multi-TDP
     {
       onSuccess: (response) => {
         setContractCreationError(null);
         setCreatedContract(response);
         queryClient.invalidateQueries('contracts');
-        toast.success('Ricardian contract created successfully!');
+        toast.success('Multi-TDP contract created successfully!');
         // Don't navigate immediately, show the contract document first
       },
       onError: (error) => {
-        console.error('Ricardian contract creation error:', error);
-        let errorMsg = 'Failed to create Ricardian contract';
+        console.error('Multi-TDP contract creation error:', error);
+        let errorMsg = 'Failed to create multi-TDP contract';
         if (error?.response?.data?.error) {
           errorMsg = error.response.data.error;
           if (error.response.data.stack) {
@@ -192,7 +194,7 @@ function CreateRicardianContract() {
           errorMsg = error.message;
         }
         setContractCreationError(errorMsg);
-        toast.error('Failed to create Ricardian contract');
+        toast.error('Failed to create multi-TDP contract');
       },
     }
   );
@@ -236,22 +238,21 @@ function CreateRicardianContract() {
 
   /**
    * Handle next step in the stepper
-   * Validates current step before proceeding
    */
   const handleNext = () => {
-    if (activeStep === 0 && (!selectedContractType || !selectedDataset)) {
-      toast.error('Please select both contract type and dataset');
+    if (activeStep === 0 && (!selectedContractType || selectedDatasets.length === 0)) {
+      toast.error('Please select both contract type and at least one dataset');
+      return;
+    }
+    
+    if (activeStep === 0 && selectedDatasets.length > 3) {
+      toast.error('You can only select up to 3 datasets');
       return;
     }
     
     if (activeStep === 1 && !isFormValid()) {
       toast.error('Please fill in all required fields');
       return;
-    }
-
-    if (activeStep === 2) {
-      // Generate preview of legal document and smart contract
-      generatePreview();
     }
     
     setActiveStep((prevStep) => prevStep + 1);
@@ -266,120 +267,55 @@ function CreateRicardianContract() {
   };
 
   /**
-   * Validate form data for contract creation
-   * @returns {boolean} True if form is valid
+   * Validate form data
    */
   const isFormValid = () => {
-    // Basic validation
-    const basicValid = (
-      contractData.price &&
-      contractData.duration &&
-      contractData.termsAndConditions
+    // Check if at least one dataset is selected
+    if (selectedDatasets.length === 0) {
+      return false;
+    }
+
+    // Check if all selected datasets have prices
+    const allDatasetsHavePrices = selectedDatasets.every(dataset => 
+      datasetPrices[dataset.id] && parseFloat(datasetPrices[dataset.id]) > 0
     );
 
-    // Privacy validation
-    const privacyValid = (
-      trainingParams.maxPrivacyLoss >= 0.01 && trainingParams.maxPrivacyLoss <= 1.0 &&
-      trainingParams.minAccuracy >= 0.5 && trainingParams.minAccuracy <= 0.999
-    );
+    if (!allDatasetsHavePrices) {
+      return false;
+    }
 
-    // At least one privacy technique must be enabled
-    const techniqueValid = (
-      trainingParams.differentialPrivacy.enabled ||
-      trainingParams.federatedLearning.enabled ||
-      trainingParams.secureMultiPartyComputation.enabled
-    );
+    // Check contract data
+    if (!contractData.duration || !contractData.termsAndConditions) {
+      return false;
+    }
 
-    return basicValid && privacyValid && techniqueValid;
+    return true;
   };
 
   /**
    * Generate preview of legal document and smart contract
    */
   const generatePreview = async () => {
-    try {
-      setIsGeneratingPreview(true);
-      toast.loading('Generating legal document and smart contract preview...', { id: 'preview-generation' });
-      
-      // Simulate processing time for better UX
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      // This would typically call the backend to generate a preview
-      // For now, we'll create mock data
-      setLegalDocument({
-        metadata: {
-          contractId: 'PREVIEW-CONTRACT-ID',
-          createdAt: new Date().toISOString(),
-          legalDocumentHash: '0x' + 'a'.repeat(64),
-          smartContractAddress: '0x' + 'b'.repeat(40),
-          ricardianSignature: '0x' + 'c'.repeat(132)
-        },
-        legalDocument: {
-          effectiveDate: new Date().toISOString().split('T')[0],
-          expirationDate: new Date(Date.now() + contractData.duration * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-          parties: {
-            dataProvider: {
-              name: selectedDataset?.owner?.name || 'TDP Name',
-              email: selectedDataset?.owner?.email || 'tdp@example.com',
-              blockchainAddress: selectedDataset?.owner?.walletAddress || '0x...',
-              did: selectedDataset?.owner?.did || 'did:web:example.com'
-            },
-            modelTrainer: {
-              name: currentUser?.name || 'TDC Name',
-              email: currentUser?.email || 'tdc@example.com',
-              blockchainAddress: currentUser?.walletAddress || '0x...',
-              did: currentUser?.did || 'did:web:example.com'
-            }
-          }
-        }
-      });
-
-      setSmartContractData({
-        address: '0x' + 'd'.repeat(40),
-        network: 'goerli',
-        contractId: Math.floor(Math.random() * 1000000),
-        transactionHash: '0x' + 'e'.repeat(64)
-      });
-      
-      toast.success('Preview generated successfully!', { id: 'preview-generation' });
-    } catch (error) {
-      console.error('Error generating preview:', error);
-      toast.error('Failed to generate preview', { id: 'preview-generation' });
-    } finally {
-      setIsGeneratingPreview(false);
-    }
-  };
-
-  /**
-   * Handle dataset selection
-   */
-  const handleDatasetSelect = (dataset) => {
-    setSelectedDataset(dataset);
-    console.log('Selected dataset:', dataset);
-  };
-
-  /**
-   * Handle contract creation
-   */
-  const handleCreateRicardianContract = () => {
-    if (!selectedDataset || !isFormValid()) {
-      toast.error('Please fill in all required fields');
+    if (selectedDatasets.length === 0) {
+      toast.error('Please select at least one dataset');
       return;
     }
 
-    const contractPayload = {
-      tdpId: selectedDataset.owner.id,
-      datasetId: selectedDataset.datasetId,
-      aiModelIds: selectedAiModels, // Include selected AI models
-      price: parseFloat(contractData.price),
-      duration: parseInt(contractData.duration),
-      termsAndConditions: contractData.termsAndConditions,
-      ccrpId: selectedCcrp || null,
-      contractType: selectedContractType,
-      environmentSpecs,
-      trainingParams: {
-        ...trainingParams,
-        // Add privacy requirements
+    setIsGeneratingPreview(true);
+    toast.loading('Generating preview...', { id: 'preview-generation' });
+
+    try {
+      // Prepare dataset selections for the preview API
+      const datasetSelections = selectedDatasets.map(dataset => ({
+        datasetId: dataset.datasetId,
+        individualPrice: parseFloat(datasetPrices[dataset.id])
+      }));
+
+      const previewPayload = {
+        datasetSelections,
+        duration: parseInt(contractData.duration),
+        termsAndConditions: contractData.termsAndConditions,
+        contractType: selectedContractType,
         privacyRequirements: {
           maxPrivacyLoss: trainingParams.maxPrivacyLoss,
           minAccuracy: trainingParams.minAccuracy,
@@ -387,10 +323,133 @@ function CreateRicardianContract() {
           federatedLearning: trainingParams.federatedLearning,
           secureMultiPartyComputation: trainingParams.secureMultiPartyComputation
         }
-      },
-      kmsConfigs: environmentSpecs.kms
+      };
+
+      console.log('📝 Generating multi-TDP preview with payload:', previewPayload);
+      
+      // Call the multi-TDP preview API
+      const previewResponse = await apiService.previewMultiTDPRicardianContract(previewPayload);
+      
+      console.log('📝 Preview response:', previewResponse);
+      
+      if (previewResponse.success) {
+        setLegalDocument(previewResponse.legalDocument);
+        setSmartContractData(previewResponse.smartContractData);
+        console.log('✅ Preview data set:', {
+          legalDocument: previewResponse.legalDocument,
+          smartContractData: previewResponse.smartContractData
+        });
+        toast.success('Preview generated successfully!', { id: 'preview-generation' });
+      } else {
+        throw new Error('Preview generation failed');
+      }
+    } catch (error) {
+      console.error('❌ Error generating preview:', error);
+      console.error('❌ Error details:', {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status
+      });
+      toast.error(`Failed to generate preview: ${error.message}`, { id: 'preview-generation' });
+    } finally {
+      setIsGeneratingPreview(false);
+    }
+  };
+
+  /**
+   * Handle dataset selection/deselection
+   * @param {Object} dataset - Selected dataset object
+   */
+  const handleDatasetToggle = (dataset) => {
+    console.log('🔍 Toggling dataset:', dataset);
+    console.log('🔍 Dataset owner info:', dataset.owner);
+    
+    const isSelected = selectedDatasets.some(d => d.id === dataset.id);
+    
+    if (isSelected) {
+      // Remove dataset
+      setSelectedDatasets(prev => prev.filter(d => d.id !== dataset.id));
+      setDatasetPrices(prev => {
+        const newPrices = { ...prev };
+        delete newPrices[dataset.id];
+        return newPrices;
+      });
+    } else {
+      // Add dataset (check limit)
+      if (selectedDatasets.length >= 3) {
+        toast.error('You can only select up to 3 datasets');
+        return;
+      }
+      
+      // Check if TDP is already selected
+      const tdpAlreadySelected = selectedDatasets.some(d => d.owner.id === dataset.owner.id);
+      if (tdpAlreadySelected) {
+        toast.error('You can only select one dataset per TDP');
+        return;
+      }
+      
+      setSelectedDatasets(prev => [...prev, dataset]);
+      // Set default price to dataset's base price
+      setDatasetPrices(prev => ({
+        ...prev,
+        [dataset.id]: dataset.price.toString()
+      }));
+    }
+  };
+
+  /**
+   * Handle price change for a specific dataset
+   * @param {number} datasetId - Dataset ID
+   * @param {string} price - New price
+   */
+  const handlePriceChange = (datasetId, price) => {
+    setDatasetPrices(prev => ({
+      ...prev,
+      [datasetId]: price
+    }));
+  };
+
+  /**
+   * Handle contract creation
+   */
+  const handleCreateRicardianContract = () => {
+    if (selectedDatasets.length === 0 || !isFormValid()) {
+      toast.error('Please fill in all required fields and select at least one dataset');
+      return;
+    }
+
+    // Prepare dataset selections array for the backend
+    const datasetSelections = selectedDatasets.map(dataset => ({
+      datasetId: dataset.datasetId,
+      individualPrice: parseFloat(datasetPrices[dataset.id])
+    }));
+    
+    console.log('🔍 Selected datasets:', selectedDatasets.map(d => ({ 
+      id: d.id, 
+      datasetId: d.datasetId, 
+      name: d.name,
+      price: datasetPrices[d.id]
+    })));
+    console.log('🔍 Dataset selections for backend:', datasetSelections);
+    
+    const ccrpUser = ccrpUsers.find(user => user.id === parseInt(selectedCcrp));
+    
+    const contractPayload = {
+      datasetSelections, // Array of {datasetId, individualPrice} objects
+      duration: parseInt(contractData.duration),
+      termsAndConditions: contractData.termsAndConditions,
+      ccrpId: ccrpUser ? ccrpUser.id : null,
+      // Add privacy requirements
+      privacyRequirements: {
+        maxPrivacyLoss: trainingParams.maxPrivacyLoss,
+        minAccuracy: trainingParams.minAccuracy,
+        differentialPrivacy: trainingParams.differentialPrivacy,
+        federatedLearning: trainingParams.federatedLearning,
+        secureMultiPartyComputation: trainingParams.secureMultiPartyComputation
+      }
     };
 
+    console.log('📝 Creating multi-TDP contract with payload:', contractPayload);
     createRicardianContractMutation.mutate(contractPayload);
   };
 
@@ -443,7 +502,7 @@ function CreateRicardianContract() {
         return (
           <Box>
             <Typography variant="h6" gutterBottom>
-              Select Contract Type & Dataset
+              Select Contract Type & Datasets (1-3)
             </Typography>
             
             <Grid container spacing={3}>
@@ -482,36 +541,21 @@ function CreateRicardianContract() {
                 <Card>
                   <CardContent>
                     <Typography variant="h6" gutterBottom>
-                      Select Dataset
+                      Select Datasets (1-3 from Different TDPs)
                     </Typography>
-                    <Grid container spacing={2}>
-                      {datasets.map((dataset) => (
-                        <Grid item xs={12} key={dataset.id}>
-                          <Card
-                            variant="outlined"
-                            sx={{
-                              cursor: 'pointer',
-                              borderColor: selectedDataset?.id === dataset.id ? 'primary.main' : 'divider',
-                              backgroundColor: selectedDataset?.id === dataset.id ? 'primary.50' : 'background.paper'
-                            }}
-                            onClick={() => handleDatasetSelect(dataset)}
-                          >
-                            <CardContent>
-                              <Typography variant="h6">{dataset.name}</Typography>
-                              <Typography variant="body2" color="text.secondary">
-                                {dataset.description}
-                              </Typography>
-                              <Typography variant="caption" display="block">
-                                Owner: {dataset.owner?.name}
-                              </Typography>
-                              <Typography variant="caption" display="block">
-                                Category: {dataset.category}
-                              </Typography>
-                            </CardContent>
-                          </Card>
-                        </Grid>
-                      ))}
-                    </Grid>
+                    <Typography variant="body2" color="textSecondary" paragraph>
+                      Choose 1 to 3 AI training datasets from different Training Data Providers (TDPs).
+                      Use the checkboxes to select datasets. Each dataset will have its own pricing and TDP.
+                    </Typography>
+                    
+                    <MultiDatasetSelector
+                      datasets={datasets}
+                      selectedDatasets={selectedDatasets}
+                      datasetPrices={datasetPrices}
+                      onDatasetToggle={handleDatasetToggle}
+                      onPriceChange={handlePriceChange}
+                      maxDatasets={3}
+                    />
                   </CardContent>
                 </Card>
               </Grid>
@@ -1400,7 +1444,7 @@ function CreateRicardianContract() {
                     
                     <Typography variant="subtitle2">Dataset:</Typography>
                     <Typography variant="body2" gutterBottom>
-                      {selectedDataset?.name}
+                      {selectedDatasets.map(ds => ds.name).join(', ')}
                     </Typography>
                     
                     <Typography variant="subtitle2">Model ID:</Typography>
@@ -1422,7 +1466,7 @@ function CreateRicardianContract() {
                     
                     <Typography variant="subtitle2">CCRP:</Typography>
                     <Typography variant="body2" gutterBottom>
-                      {selectedCcrp ? ccrpUsers.find(c => c.id === selectedCcrp)?.name : 'None selected'}
+                      {selectedCcrp ? ccrpUsers.find(c => c.id === parseInt(selectedCcrp))?.name : 'None selected'}
                     </Typography>
                     
                     <Typography variant="subtitle2">Environment:</Typography>
@@ -1438,16 +1482,22 @@ function CreateRicardianContract() {
                 </Grid>
                 
                 <Box sx={{ mt: 3 }}>
-                  <Button
-                    variant="contained"
-                    color="primary"
-                    size="large"
-                    onClick={handleCreateRicardianContract}
-                    disabled={createRicardianContractMutation.isLoading}
-                    startIcon={createRicardianContractMutation.isLoading ? <CircularProgress size={20} /> : null}
-                  >
-                    {createRicardianContractMutation.isLoading ? 'Creating Contract...' : 'Create Ricardian Contract'}
-                  </Button>
+                  {!createdContract ? (
+                    <Button
+                      variant="contained"
+                      color="primary"
+                      size="large"
+                      onClick={handleCreateRicardianContract}
+                      disabled={createRicardianContractMutation.isLoading}
+                      startIcon={createRicardianContractMutation.isLoading ? <CircularProgress size={20} /> : null}
+                    >
+                      {createRicardianContractMutation.isLoading ? 'Creating Contract...' : 'Create Ricardian Contract'}
+                    </Button>
+                  ) : (
+                    <Alert severity="success" sx={{ mb: 2 }}>
+                      Contract created successfully! You can now download the contract documents.
+                    </Alert>
+                  )}
                 </Box>
               </CardContent>
             </Card>

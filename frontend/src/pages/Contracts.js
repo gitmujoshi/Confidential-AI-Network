@@ -94,127 +94,206 @@ const StatusChip = ({ status }) => {
   );
 };
 
-const ContractCard = ({ contract, onView, onEdit, onDelete }) => (
-  <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-    <CardContent sx={{ flexGrow: 1 }}>
-      <Box display="flex" justifyContent="space-between" alignItems="flex-start" mb={2}>
-        <Typography variant="h6" component="h2" gutterBottom>
-          {contract.contractId}
-        </Typography>
-        <StatusChip status={contract.status} />
-      </Box>
-      
-      <Typography variant="body2" color="textSecondary" paragraph>
-        <strong>Dataset:</strong> {contract.dataset?.name || 'N/A'}
-      </Typography>
-      
-      <Box display="flex" flexDirection="column" gap={1} mb={2}>
-        <Typography variant="body2" fontSize="0.75rem">
-          <strong>TDP:</strong> {contract.tdp?.name}
-        </Typography>
-        <Typography variant="body2" fontSize="0.75rem">
-          <strong>TDC:</strong> {contract.tdc?.name}
-        </Typography>
-        {contract.ccrp && (
-          <Typography variant="body2" fontSize="0.75rem">
-            <strong>CCRP:</strong> {contract.ccrp?.name}
+const ContractCard = ({ contract, onView, onEdit, onDelete }) => {
+  // Check if this is a multi-TDP contract
+  const isMultiTDPContract = contract?.datasets && contract.datasets.length > 1;
+  
+  return (
+    <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+      <CardContent sx={{ flexGrow: 1 }}>
+        <Box display="flex" justifyContent="space-between" alignItems="flex-start" mb={2}>
+          <Typography variant="h6" component="h2" gutterBottom>
+            {contract.contractId}
           </Typography>
+          <Box display="flex" gap={1}>
+            <StatusChip status={contract.status} />
+            {isMultiTDPContract && (
+              <Chip label="Multi-TDP" color="primary" size="small" />
+            )}
+          </Box>
+        </Box>
+        
+        {isMultiTDPContract ? (
+          // Multi-TDP contract display
+          <>
+            <Typography variant="body2" color="textSecondary" paragraph>
+              <strong>Datasets:</strong> {contract.datasets.length} datasets
+            </Typography>
+            
+            <Box display="flex" flexDirection="column" gap={1} mb={2}>
+              <Typography variant="body2" fontSize="0.75rem">
+                <strong>TDC:</strong> {contract.tdc?.name}
+              </Typography>
+              {contract.ccrp && (
+                <Typography variant="body2" fontSize="0.75rem">
+                  <strong>CCRP:</strong> {contract.ccrp?.name}
+                </Typography>
+              )}
+            </Box>
+            
+            <Box display="flex" gap={1} mb={2} flexWrap="wrap">
+              <Chip 
+                label={`$${contract.datasets.reduce((sum, d) => sum + (d.price || 0), 0)}`} 
+                size="small" 
+                color="primary" 
+              />
+              <Chip label={`${contract.duration} days`} size="small" variant="outlined" />
+              <Chip 
+                label={`${contract.datasets.filter(d => d.tdpSigned).length}/${contract.datasets.length} signed`} 
+                size="small" 
+                variant="outlined"
+                color={contract.datasets.filter(d => d.tdpSigned).length === contract.datasets.length ? 'success' : 'warning'}
+              />
+            </Box>
+          </>
+        ) : (
+          // Single TDP contract display (legacy)
+          <>
+            <Typography variant="body2" color="textSecondary" paragraph>
+              <strong>Dataset:</strong> {contract.dataset?.name || 'N/A'}
+            </Typography>
+            
+            <Box display="flex" flexDirection="column" gap={1} mb={2}>
+              <Typography variant="body2" fontSize="0.75rem">
+                <strong>TDP:</strong> {contract.tdp?.name}
+              </Typography>
+              <Typography variant="body2" fontSize="0.75rem">
+                <strong>TDC:</strong> {contract.tdc?.name}
+              </Typography>
+              {contract.ccrp && (
+                <Typography variant="body2" fontSize="0.75rem">
+                  <strong>CCRP:</strong> {contract.ccrp?.name}
+                </Typography>
+              )}
+            </Box>
+            
+            <Box display="flex" gap={1} mb={2} flexWrap="wrap">
+              <Chip label={`$${contract.price}`} size="small" color="primary" />
+              <Chip label={`${contract.duration} days`} size="small" variant="outlined" />
+            </Box>
+          </>
         )}
-      </Box>
+        
+        <Typography variant="body2" color="textSecondary" fontSize="0.75rem">
+          Created: {format(new Date(contract.createdAt), 'MMM dd, yyyy')}
+        </Typography>
+      </CardContent>
       
-      <Box display="flex" gap={1} mb={2} flexWrap="wrap">
-        <Chip label={`$${contract.price}`} size="small" color="primary" />
-        <Chip label={`${contract.duration} days`} size="small" variant="outlined" />
-      </Box>
-      
-      <Typography variant="body2" color="textSecondary" fontSize="0.75rem">
-        Created: {format(new Date(contract.createdAt), 'MMM dd, yyyy')}
-      </Typography>
-    </CardContent>
-    
-    <CardActions>
-      <Button size="small" startIcon={<Visibility />} onClick={() => onView(contract)}>
-        View
-      </Button>
-      <Button size="small" startIcon={<Edit />} onClick={() => onEdit(contract)}>
-        Edit
-      </Button>
-      <Button 
-        size="small" 
-        startIcon={<Delete />} 
-        onClick={() => onDelete(contract)}
-        color="error"
-      >
-        Delete
-      </Button>
-    </CardActions>
-  </Card>
-);
+      <CardActions>
+        <Button size="small" onClick={() => onView(contract)}>
+          View Details
+        </Button>
+        <Button size="small" onClick={() => onEdit(contract)}>
+          Edit
+        </Button>
+        <Button size="small" color="error" onClick={() => onDelete(contract)}>
+          Delete
+        </Button>
+      </CardActions>
+    </Card>
+  );
+};
 
-const ContractRow = ({ contract, onView, onEdit, onDelete }) => (
-  <TableRow hover>
-    <TableCell>
-      <Typography variant="body2" fontWeight="medium">
-        {contract.contractId}
-      </Typography>
-    </TableCell>
-    <TableCell>
-      <Typography variant="body2">{contract.dataset?.name}</Typography>
-    </TableCell>
-    <TableCell>
-      <Box display="flex" flexDirection="column" gap={0.5}>
-        <Typography variant="body2" fontSize="0.75rem">
-          TDP: {contract.tdp?.name}
-        </Typography>
-        <Typography variant="body2" fontSize="0.75rem">
-          TDC: {contract.tdc?.name}
-        </Typography>
-        {contract.ccrp && (
-          <Typography variant="body2" fontSize="0.75rem">
-            CCRP: {contract.ccrp?.name}
+const ContractRow = ({ contract, onView, onEdit, onDelete }) => {
+  // Check if this is a multi-TDP contract
+  const isMultiTDPContract = contract?.datasets && contract.datasets.length > 1;
+  
+  return (
+    <TableRow hover>
+      <TableCell>
+        <Box display="flex" alignItems="center" gap={1}>
+          <Typography variant="body2" fontWeight="medium">
+            {contract.contractId}
           </Typography>
+          {isMultiTDPContract && (
+            <Chip label="Multi-TDP" color="primary" size="small" />
+          )}
+        </Box>
+      </TableCell>
+      <TableCell>
+        {isMultiTDPContract ? (
+          <Typography variant="body2">
+            {contract.datasets.length} datasets
+          </Typography>
+        ) : (
+          <Typography variant="body2">{contract.dataset?.name}</Typography>
         )}
-      </Box>
-    </TableCell>
-    <TableCell>
-      <Typography variant="body2">${contract.price}</Typography>
-    </TableCell>
-    <TableCell>
-      <Typography variant="body2">{contract.duration} days</Typography>
-    </TableCell>
-    <TableCell>
-      <StatusChip status={contract.status} />
-    </TableCell>
-    <TableCell>
-      <Typography variant="body2" fontSize="0.75rem">
-        {format(new Date(contract.createdAt), 'MMM dd, yyyy')}
-      </Typography>
-    </TableCell>
-    <TableCell>
-      <Box display="flex" gap={1}>
-        <Tooltip title="View Details">
-          <IconButton size="small" onClick={() => onView(contract)}>
-            <Visibility />
-          </IconButton>
-        </Tooltip>
-        <Tooltip title="Edit Contract">
-          <IconButton size="small" onClick={() => onEdit(contract)}>
-            <Edit />
-          </IconButton>
-        </Tooltip>
-        <Tooltip title="Delete Contract">
-          <IconButton 
-            size="small" 
-            onClick={() => onDelete(contract)}
-            color="error"
-          >
-            <Delete />
-          </IconButton>
-        </Tooltip>
-      </Box>
-    </TableCell>
-  </TableRow>
-);
+      </TableCell>
+      <TableCell>
+        <Box display="flex" flexDirection="column" gap={0.5}>
+          {isMultiTDPContract ? (
+            <>
+              <Typography variant="body2" fontSize="0.75rem">
+                TDC: {contract.tdc?.name}
+              </Typography>
+              {contract.ccrp && (
+                <Typography variant="body2" fontSize="0.75rem">
+                  CCRP: {contract.ccrp?.name}
+                </Typography>
+              )}
+            </>
+          ) : (
+            <>
+              <Typography variant="body2" fontSize="0.75rem">
+                TDP: {contract.tdp?.name}
+              </Typography>
+              <Typography variant="body2" fontSize="0.75rem">
+                TDC: {contract.tdc?.name}
+              </Typography>
+              {contract.ccrp && (
+                <Typography variant="body2" fontSize="0.75rem">
+                  CCRP: {contract.ccrp?.name}
+                </Typography>
+              )}
+            </>
+          )}
+        </Box>
+      </TableCell>
+      <TableCell>
+        <Typography variant="body2">
+          {isMultiTDPContract 
+            ? `$${contract.datasets.reduce((sum, d) => sum + (d.price || 0), 0)}`
+            : `$${contract.price}`
+          }
+        </Typography>
+      </TableCell>
+      <TableCell>
+        <Typography variant="body2">{contract.duration} days</Typography>
+      </TableCell>
+      <TableCell>
+        <StatusChip status={contract.status} />
+      </TableCell>
+      <TableCell>
+        <Typography variant="body2" fontSize="0.75rem">
+          {format(new Date(contract.createdAt), 'MMM dd, yyyy')}
+        </Typography>
+      </TableCell>
+      <TableCell>
+        <Box display="flex" gap={1}>
+          <Tooltip title="View Details">
+            <IconButton size="small" onClick={() => onView(contract)}>
+              <Visibility />
+            </IconButton>
+          </Tooltip>
+          <Tooltip title="Edit Contract">
+            <IconButton size="small" onClick={() => onEdit(contract)}>
+              <Edit />
+            </IconButton>
+          </Tooltip>
+          <Tooltip title="Delete Contract">
+            <IconButton 
+              size="small" 
+              onClick={() => onDelete(contract)}
+              color="error"
+            >
+              <Delete />
+            </IconButton>
+          </Tooltip>
+        </Box>
+      </TableCell>
+    </TableRow>
+  );
+};
 
 function Contracts() {
   const [statusFilter, setStatusFilter] = useState('');

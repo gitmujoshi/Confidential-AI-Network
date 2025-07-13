@@ -27,26 +27,33 @@ import { useQuery, useMutation, useQueryClient } from 'react-query';
 import { apiService } from '../services/api';
 import toast from 'react-hot-toast';
 import { useUser } from '../contexts/UserContext';
+import MultiDatasetSelector from '../components/MultiDatasetSelector';
 
 /**
- * CreateContract Component
+ * CreateContract Component - Multi-TDP Support
  * 
  * This component allows TDC (Training Data Consumer) users to create contracts by:
- * 1. Selecting a dataset from available datasets
+ * 1. Selecting up to 3 datasets from different TDPs
  * 2. Configuring contract details (price, duration, terms)
  * 3. Optionally selecting a CCRP (Confidential Clean Room Provider)
  * 4. Reviewing and creating the contract
+ * 
+ * Multi-TDP Features:
+ * - Select up to 3 datasets from different TDPs
+ * - Individual pricing per dataset
+ * - TDP-specific signing and payment tracking
+ * - Multi-TDP contract status monitoring
  * 
  * Role-Based Access Control:
  * - ONLY TDC users can access this component
  * - TDP and CCRP users will see access denied message
  * 
  * Workflow:
- * 1. TDC selects dataset (auto-selects TDP)
+ * 1. TDC selects up to 3 datasets from different TDPs
  * 2. TDC configures contract parameters
  * 3. TDC optionally selects CCRP
  * 4. TDC reviews contract details
- * 5. TDC creates contract (TDP auto-signs)
+ * 5. TDC creates contract (all TDPs notified)
  * 
  * Security:
  * - Wallet-based authentication required
@@ -56,7 +63,7 @@ import { useUser } from '../contexts/UserContext';
 
 // Stepper steps for contract creation process
 const steps = [
-  'Select Dataset',
+  'Select Datasets (1-3)',
   'Configure Contract',
   'Review & Create'
 ];
@@ -66,13 +73,13 @@ function CreateContract() {
   const queryClient = useQueryClient();
   const { currentUser, isTDC, isAuthenticated } = useUser();
   
-  // Component state
+  // Component state - Updated for multi-TDP
   const [activeStep, setActiveStep] = useState(0);
-  const [selectedDataset, setSelectedDataset] = useState(null);
+  const [selectedDatasets, setSelectedDatasets] = useState([]); // Array of selected datasets
+  const [datasetPrices, setDatasetPrices] = useState({}); // Individual prices per dataset
   const [selectedCcrp, setSelectedCcrp] = useState('');
   const [selectedAiModels, setSelectedAiModels] = useState([]); // Array of selected AI model IDs
   const [contractData, setContractData] = useState({
-    price: '',
     duration: '',
     termsAndConditions: '',
   });
@@ -118,12 +125,12 @@ function CreateContract() {
     }
   }, [datasets, datasetsResponse]);
 
-  // Debug: Monitor selectedDataset state changes
+  // Debug: Monitor selectedDatasets state changes
   React.useEffect(() => {
-    console.log('🔍 selectedDataset state changed:', selectedDataset);
-    console.log('🔍 selectedDataset owner:', selectedDataset?.owner);
-    console.log('🔍 selectedDataset owner name:', selectedDataset?.owner?.name);
-  }, [selectedDataset]);
+    console.log('🔍 selectedDatasets state changed:', selectedDatasets);
+    console.log('🔍 datasetPrices state changed:', datasetPrices);
+  }, [selectedDatasets, datasetPrices]);
+
   const tdpUsers = datasets
     .map(dataset => dataset.owner)
     .filter((owner, index, self) => 
@@ -132,15 +139,17 @@ function CreateContract() {
 
   // Contract creation mutation with React Query
   const createContractMutation = useMutation(
-    (data) => apiService.createContract(data),
+    (data) => apiService.createMultiTDPContract(data),
     {
       onSuccess: (response) => {
         queryClient.invalidateQueries('contracts');
-        toast.success('Contract created successfully!');
+        toast.success('Multi-TDP contract created successfully!');
         navigate(`/contracts/${response.contract.contractId}`);
       },
-      onError: () => {
-        toast.error('Failed to create contract');
+      onError: (error) => {
+        console.error('Contract creation error:', error);
+        const errorMsg = error.response?.data?.error || 'Failed to create contract';
+        toast.error(errorMsg);
       },
     }
   );
@@ -172,7 +181,7 @@ function CreateContract() {
     return (
       <Box sx={{ p: 3 }}>
         <Typography variant="h4" gutterBottom>
-          Create New Contract
+          Create New Multi-TDP Contract
         </Typography>
         <CircularProgress />
         <Typography variant="body1" sx={{ mt: 2 }}>
@@ -187,19 +196,13 @@ function CreateContract() {
    * Validates current step before proceeding
    */
   const handleNext = () => {
-    if (activeStep === 0 && !selectedDataset) {
-      toast.error('Please select a dataset');
+    if (activeStep === 0 && selectedDatasets.length === 0) {
+      toast.error('Please select at least one dataset');
       return;
     }
     
-    // Ensure dataset is selected when moving to step 1
-    if (activeStep === 0 && !selectedDataset) {
-      toast.error('Please select a dataset first');
-      return;
-    }
-    
-    if (activeStep === 0 && selectedDataset && !selectedDataset.owner) {
-      toast.error('Could not determine dataset owner. Please try selecting the dataset again.');
+    if (activeStep === 0 && selectedDatasets.length > 3) {
+      toast.error('You can only select up to 3 datasets');
       return;
     }
     
@@ -207,6 +210,7 @@ function CreateContract() {
       toast.error('Please fill in all required fields and privacy requirements');
       return;
     }
+    
     setActiveStep((prevStep) => prevStep + 1);
   };
 
@@ -218,47 +222,34 @@ function CreateContract() {
   };
 
   /**
-   * Validate form data for contract creation
-   * @returns {boolean} True if form is valid
+   * Validate form data
    */
   const isFormValid = () => {
-    // Basic validation
-    const basicValid = (
-      contractData.price &&
-      contractData.duration &&
-      contractData.termsAndConditions &&
-      selectedDataset &&
-      selectedDataset.owner
-    );
-    
-    // Privacy validation
-    const privacyValid = (
-      privacyParams.maxPrivacyLoss >= 0.01 && privacyParams.maxPrivacyLoss <= 1.0 &&
-      privacyParams.minAccuracy >= 0.5 && privacyParams.minAccuracy <= 0.999
+    // Check if at least one dataset is selected
+    if (selectedDatasets.length === 0) {
+      return false;
+    }
+
+    // Check if all selected datasets have prices
+    const allDatasetsHavePrices = selectedDatasets.every(dataset => 
+      datasetPrices[dataset.id] && parseFloat(datasetPrices[dataset.id]) > 0
     );
 
-    // At least one privacy technique must be enabled
-    const techniqueValid = (
-      privacyParams.differentialPrivacy.enabled ||
-      privacyParams.federatedLearning.enabled ||
-      privacyParams.secureMultiPartyComputation.enabled
-    );
-    
-    const isValid = basicValid && privacyValid && techniqueValid;
-    
-    if (!isValid) {
-      console.log('❌ Form validation failed:', {
-        price: !!contractData.price,
-        duration: !!contractData.duration,
-        termsAndConditions: !!contractData.termsAndConditions,
-        selectedDataset: !!selectedDataset,
-        datasetOwner: !!selectedDataset?.owner,
-        privacyValid,
-        techniqueValid
-      });
+    if (!allDatasetsHavePrices) {
+      return false;
     }
-    
-    return isValid;
+
+    // Check contract data
+    if (!contractData.duration || !contractData.termsAndConditions) {
+      return false;
+    }
+
+    // Check privacy requirements
+    if (privacyParams.maxPrivacyLoss <= 0 || privacyParams.minAccuracy <= 0) {
+      return false;
+    }
+
+    return true;
   };
 
   /**
@@ -271,16 +262,21 @@ function CreateContract() {
       return;
     }
     
-    // Use dataset owner as TDP
-    const tdpUser = selectedDataset.owner;
+    // Prepare datasets array with individual prices
+    const datasetsWithPrices = selectedDatasets.map(dataset => ({
+      datasetId: dataset.datasetId,
+      tdpId: dataset.owner.id,
+      price: parseFloat(datasetPrices[dataset.id]),
+      datasetName: dataset.name,
+      tdpName: dataset.owner.name
+    }));
+    
     const ccrpUser = ccrpUsers.find(user => user.id === parseInt(selectedCcrp));
     
     // Prepare contract payload for API
     const contractPayload = {
-      tdpId: tdpUser.id, // Use dataset owner ID
-      datasetId: selectedDataset.datasetId,
+      datasets: datasetsWithPrices,
       aiModelIds: selectedAiModels, // Include selected AI models
-      price: parseFloat(contractData.price),
       duration: parseInt(contractData.duration),
       termsAndConditions: contractData.termsAndConditions,
       ccrpId: ccrpUser ? ccrpUser.id : null, // Use user ID instead of wallet address
@@ -295,25 +291,61 @@ function CreateContract() {
       }
     };
     
-    console.log('📝 Creating contract with payload:', contractPayload);
+    console.log('📝 Creating multi-TDP contract with payload:', contractPayload);
     createContractMutation.mutate(contractPayload);
   };
 
   /**
-   * Handle dataset selection
+   * Handle dataset selection/deselection
    * @param {Object} dataset - Selected dataset object
    */
-  const handleDatasetSelect = (dataset) => {
-    console.log('🔍 Selected dataset:', dataset);
+  const handleDatasetToggle = (dataset) => {
+    console.log('🔍 Toggling dataset:', dataset);
     console.log('🔍 Dataset owner info:', dataset.owner);
     
-    setSelectedDataset(dataset);
+    const isSelected = selectedDatasets.some(d => d.id === dataset.id);
     
-    if (dataset.owner) {
-      console.log('✅ Dataset owner found:', dataset.owner.name, 'for dataset:', dataset.name);
+    if (isSelected) {
+      // Remove dataset
+      setSelectedDatasets(prev => prev.filter(d => d.id !== dataset.id));
+      setDatasetPrices(prev => {
+        const newPrices = { ...prev };
+        delete newPrices[dataset.id];
+        return newPrices;
+      });
     } else {
-      console.error('❌ Dataset has no owner information:', dataset);
+      // Add dataset (check limit)
+      if (selectedDatasets.length >= 3) {
+        toast.error('You can only select up to 3 datasets');
+        return;
+      }
+      
+      // Check if TDP is already selected
+      const tdpAlreadySelected = selectedDatasets.some(d => d.owner.id === dataset.owner.id);
+      if (tdpAlreadySelected) {
+        toast.error('You can only select one dataset per TDP');
+        return;
+      }
+      
+      setSelectedDatasets(prev => [...prev, dataset]);
+      // Set default price to dataset's base price
+      setDatasetPrices(prev => ({
+        ...prev,
+        [dataset.id]: dataset.price.toString()
+      }));
     }
+  };
+
+  /**
+   * Handle price change for a specific dataset
+   * @param {number} datasetId - Dataset ID
+   * @param {string} price - New price
+   */
+  const handlePriceChange = (datasetId, price) => {
+    setDatasetPrices(prev => ({
+      ...prev,
+      [datasetId]: price
+    }));
   };
 
   const renderStepContent = (step) => {
@@ -322,43 +354,21 @@ function CreateContract() {
         return (
           <Box>
             <Typography variant="h6" gutterBottom>
-              Select a Dataset
+              Select Datasets (1-3 from Different TDPs)
             </Typography>
             <Typography variant="body2" color="textSecondary" paragraph>
-              Choose the AI training dataset you want to use for your model.
+              Choose 1 to 3 AI training datasets from different Training Data Providers (TDPs).
+              Use the checkboxes to select datasets. Each dataset will have its own pricing and TDP.
             </Typography>
             
-            <Grid container spacing={2}>
-              {datasets.map((dataset) => (
-                <Grid item xs={12} sm={6} md={4} key={dataset.id}>
-                  <Card 
-                    sx={{ 
-                      cursor: 'pointer',
-                      border: selectedDataset?.id === dataset.id ? 2 : 1,
-                      borderColor: selectedDataset?.id === dataset.id ? 'primary.main' : 'divider',
-                    }}
-                    onClick={() => handleDatasetSelect(dataset)}
-                  >
-                    <CardContent>
-                      <Typography variant="h6" gutterBottom>
-                        {dataset.name}
-                      </Typography>
-                      <Typography variant="body2" color="textSecondary" paragraph>
-                        {dataset.description}
-                      </Typography>
-                      <Box display="flex" justifyContent="space-between" alignItems="center">
-                        <Typography variant="body2" fontWeight="medium">
-                          ${dataset.price}
-                        </Typography>
-                        <Typography variant="caption" color="textSecondary">
-                          {dataset.category}
-                        </Typography>
-                      </Box>
-                    </CardContent>
-                  </Card>
-                </Grid>
-              ))}
-            </Grid>
+            <MultiDatasetSelector
+              datasets={datasets}
+              selectedDatasets={selectedDatasets}
+              datasetPrices={datasetPrices}
+              onDatasetToggle={handleDatasetToggle}
+              onPriceChange={handlePriceChange}
+              maxDatasets={3}
+            />
           </Box>
         );
 
@@ -369,7 +379,7 @@ function CreateContract() {
               Configure Contract Details
             </Typography>
             <Typography variant="body2" color="textSecondary" paragraph>
-              Fill in the contract details and terms.
+              Fill in the contract details and terms for your multi-TDP contract.
             </Typography>
 
             <Grid container spacing={3}>
@@ -411,16 +421,6 @@ function CreateContract() {
               </Grid>
               
               <Grid item xs={12} md={6}>
-                <TextField
-                  fullWidth
-                  label="Training Data Provider"
-                  value={selectedDataset?.owner?.name || ''}
-                  disabled
-                  placeholder="Select a dataset to see the provider"
-                />
-              </Grid>
-              
-              <Grid item xs={12} md={6}>
                 <FormControl fullWidth>
                   <InputLabel>CCRP (Optional)</InputLabel>
                   <Select
@@ -443,18 +443,6 @@ function CreateContract() {
               <Grid item xs={12} md={6}>
                 <TextField
                   fullWidth
-                  label="Price (USD)"
-                  type="number"
-                  value={contractData.price}
-                  onChange={(e) => setContractData({ ...contractData, price: e.target.value })}
-                  placeholder="5000"
-                  helperText="Contract price in USD"
-                />
-              </Grid>
-              
-              <Grid item xs={12} md={6}>
-                <TextField
-                  fullWidth
                   label="Duration (days)"
                   type="number"
                   value={contractData.duration}
@@ -467,128 +455,45 @@ function CreateContract() {
               <Grid item xs={12}>
                 <TextField
                   fullWidth
-                  label="Terms & Conditions"
                   multiline
-                  rows={6}
+                  rows={4}
+                  label="Terms and Conditions"
                   value={contractData.termsAndConditions}
                   onChange={(e) => setContractData({ ...contractData, termsAndConditions: e.target.value })}
-                  placeholder="Enter the terms and conditions for this contract..."
+                  placeholder="Enter contract terms and conditions..."
                   helperText="Detailed terms and conditions for the contract"
                 />
               </Grid>
               
+              {/* Privacy Requirements */}
               <Grid item xs={12}>
-                <Card sx={{ mt: 2 }}>
-                  <CardContent>
-                    <Typography variant="h6" gutterBottom>
-                      Privacy & Accuracy Requirements
-                    </Typography>
-                    
-                    <Grid container spacing={2}>
-                      <Grid item xs={12} md={6}>
-                        <TextField
-                          fullWidth
-                          label="Maximum Privacy Loss (ε)"
-                          type="number"
-                          inputProps={{ step: 0.01, min: 0.01, max: 1.0 }}
-                          value={privacyParams.maxPrivacyLoss}
-                          onChange={(e) => setPrivacyParams({ 
-                            ...privacyParams, 
-                            maxPrivacyLoss: parseFloat(e.target.value) 
-                          })}
-                          helperText="Differential privacy epsilon parameter (0.01-1.0, lower = more private)"
-                        />
-                      </Grid>
-                      
-                      <Grid item xs={12} md={6}>
-                        <TextField
-                          fullWidth
-                          label="Minimum Accuracy (%)"
-                          type="number"
-                          inputProps={{ step: 0.1, min: 50, max: 99.9 }}
-                          value={privacyParams.minAccuracy * 100}
-                          onChange={(e) => setPrivacyParams({ 
-                            ...privacyParams, 
-                            minAccuracy: parseFloat(e.target.value) / 100 
-                          })}
-                          helperText="Minimum required model accuracy (50%-99.9%)"
-                        />
-                      </Grid>
-                    </Grid>
-
-                    <FormControl fullWidth sx={{ mt: 2 }}>
-                      <InputLabel>Privacy Techniques</InputLabel>
-                      <Select
-                        multiple
-                        value={[
-                          privacyParams.differentialPrivacy.enabled && 'differential-privacy',
-                          privacyParams.federatedLearning.enabled && 'federated-learning',
-                          privacyParams.secureMultiPartyComputation.enabled && 'secure-mpc'
-                        ].filter(Boolean)}
-                        onChange={(e) => {
-                          const selected = e.target.value;
-                          setPrivacyParams({
-                            ...privacyParams,
-                            differentialPrivacy: {
-                              ...privacyParams.differentialPrivacy,
-                              enabled: selected.includes('differential-privacy')
-                            },
-                            federatedLearning: {
-                              ...privacyParams.federatedLearning,
-                              enabled: selected.includes('federated-learning')
-                            },
-                            secureMultiPartyComputation: {
-                              ...privacyParams.secureMultiPartyComputation,
-                              enabled: selected.includes('secure-mpc')
-                            }
-                          });
-                        }}
-                        label="Privacy Techniques"
-                        renderValue={(selected) => (
-                          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-                            {selected.map((technique) => (
-                              <Chip 
-                                key={technique} 
-                                label={technique.replace('-', ' ')} 
-                                size="small" 
-                              />
-                            ))}
-                          </Box>
-                        )}
-                      >
-                        <MenuItem value="differential-privacy">
-                          <Checkbox checked={privacyParams.differentialPrivacy.enabled} />
-                          <ListItemText 
-                            primary="Differential Privacy"
-                            secondary="Adds noise to protect individual data"
-                          />
-                        </MenuItem>
-                        <MenuItem value="federated-learning">
-                          <Checkbox checked={privacyParams.federatedLearning.enabled} />
-                          <ListItemText 
-                            primary="Federated Learning"
-                            secondary="Train model without sharing raw data"
-                          />
-                        </MenuItem>
-                        <MenuItem value="secure-mpc">
-                          <Checkbox checked={privacyParams.secureMultiPartyComputation.enabled} />
-                          <ListItemText 
-                            primary="Secure Multi-Party Computation"
-                            secondary="Compute on encrypted data"
-                          />
-                        </MenuItem>
-                      </Select>
-                      <FormHelperText>Select privacy-preserving techniques to be used</FormHelperText>
-                    </FormControl>
-
-                    <Alert severity="info" sx={{ mt: 2 }}>
-                      <Typography variant="body2">
-                        <strong>Privacy-Accuracy Trade-off:</strong> Lower privacy loss (ε) provides better privacy but may reduce model accuracy. 
-                        Higher minimum accuracy requirements may limit privacy protection.
-                      </Typography>
-                    </Alert>
-                  </CardContent>
-                </Card>
+                <Typography variant="h6" gutterBottom>
+                  Privacy Requirements
+                </Typography>
+                <Grid container spacing={2}>
+                  <Grid item xs={12} md={6}>
+                    <TextField
+                      fullWidth
+                      label="Max Privacy Loss"
+                      type="number"
+                      value={privacyParams.maxPrivacyLoss}
+                      onChange={(e) => setPrivacyParams({ ...privacyParams, maxPrivacyLoss: parseFloat(e.target.value) })}
+                      inputProps={{ step: 0.01, min: 0, max: 1 }}
+                      helperText="Maximum allowed privacy loss (0-1)"
+                    />
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <TextField
+                      fullWidth
+                      label="Min Accuracy"
+                      type="number"
+                      value={privacyParams.minAccuracy}
+                      onChange={(e) => setPrivacyParams({ ...privacyParams, minAccuracy: parseFloat(e.target.value) })}
+                      inputProps={{ step: 0.01, min: 0, max: 1 }}
+                      helperText="Minimum required accuracy (0-1)"
+                    />
+                  </Grid>
+                </Grid>
               </Grid>
             </Grid>
           </Box>
@@ -601,88 +506,80 @@ function CreateContract() {
               Review Contract Details
             </Typography>
             <Typography variant="body2" color="textSecondary" paragraph>
-              Please review all the details before creating the contract.
+              Please review the contract details before creating the contract.
             </Typography>
 
-            <Card sx={{ mb: 3 }}>
-              <CardContent>
-                <Typography variant="h6" gutterBottom>
-                  Selected Dataset
-                </Typography>
-                <Grid container spacing={2}>
-                  <Grid item xs={12} md={6}>
-                    <Typography variant="body2" color="textSecondary">
-                      <strong>Name:</strong> {selectedDataset?.name}
+            <Grid container spacing={3}>
+              <Grid item xs={12}>
+                <Card>
+                  <CardContent>
+                    <Typography variant="h6" gutterBottom>
+                      Selected Datasets
                     </Typography>
-                  </Grid>
-                  <Grid item xs={12} md={6}>
-                    <Typography variant="body2" color="textSecondary">
-                      <strong>Category:</strong> {selectedDataset?.category}
+                    <MultiDatasetSelector
+                      datasets={selectedDatasets}
+                      selectedDatasets={selectedDatasets}
+                      datasetPrices={datasetPrices}
+                      onDatasetToggle={handleDatasetToggle}
+                      onPriceChange={handlePriceChange}
+                      maxDatasets={3}
+                      disabled={true}
+                    />
+                  </CardContent>
+                </Card>
+              </Grid>
+              
+              <Grid item xs={12} md={6}>
+                <Card>
+                  <CardContent>
+                    <Typography variant="h6" gutterBottom>
+                      Contract Summary
                     </Typography>
-                  </Grid>
-                  <Grid item xs={12} md={6}>
-                    <Typography variant="body2" color="textSecondary">
-                      <strong>Size:</strong> {selectedDataset?.size} MB
+                    <Typography variant="body2" paragraph>
+                      <strong>Total Price:</strong> ${selectedDatasets.reduce((sum, dataset) => 
+                      sum + parseFloat(datasetPrices[dataset.id] || 0), 0).toFixed(2)}
                     </Typography>
-                  </Grid>
-                  <Grid item xs={12} md={6}>
-                    <Typography variant="body2" color="textSecondary">
-                      <strong>Records:</strong> {selectedDataset?.recordCount?.toLocaleString()}
-                    </Typography>
-                  </Grid>
-                </Grid>
-              </CardContent>
-            </Card>
-
-            <Card sx={{ mb: 3 }}>
-              <CardContent>
-                <Typography variant="h6" gutterBottom>
-                  Contract Details
-                </Typography>
-                <Grid container spacing={2}>
-                  <Grid item xs={12} md={6}>
-                    <Typography variant="body2" color="textSecondary">
-                      <strong>Model ID:</strong> <em>Not applicable</em>
-                    </Typography>
-                  </Grid>
-                  <Grid item xs={12} md={6}>
-                    <Typography variant="body2" color="textSecondary">
-                      <strong>Price:</strong> ${contractData.price}
-                    </Typography>
-                  </Grid>
-                  <Grid item xs={12} md={6}>
-                    <Typography variant="body2" color="textSecondary">
+                    <Typography variant="body2" paragraph>
                       <strong>Duration:</strong> {contractData.duration} days
                     </Typography>
-                  </Grid>
-                  <Grid item xs={12} md={6}>
-                    <Typography variant="body2" color="textSecondary">
-                      <strong>TDP:</strong> {selectedDataset?.owner?.name || 'Not selected'}
+                    <Typography variant="body2" paragraph>
+                      <strong>AI Models:</strong> {selectedAiModels.length} selected
                     </Typography>
-                  </Grid>
-                  <Grid item xs={12} md={6}>
-                    <Typography variant="body2" color="textSecondary">
-                      <strong>CCRP:</strong> {selectedCcrp ? ccrpUsers.find(u => u.id === parseInt(selectedCcrp))?.name : 'Not selected'}
+                    {selectedCcrp && (
+                      <Typography variant="body2" paragraph>
+                        <strong>CCRP:</strong> {ccrpUsers.find(u => u.id === parseInt(selectedCcrp))?.name}
+                      </Typography>
+                    )}
+                  </CardContent>
+                </Card>
+              </Grid>
+              
+              <Grid item xs={12} md={6}>
+                <Card>
+                  <CardContent>
+                    <Typography variant="h6" gutterBottom>
+                      Privacy Requirements
                     </Typography>
-                  </Grid>
-                </Grid>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardContent>
-                <Typography variant="h6" gutterBottom>
-                  Terms & Conditions
-                </Typography>
-                <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap' }}>
-                  {contractData.termsAndConditions}
-                </Typography>
-              </CardContent>
-            </Card>
+                    <Typography variant="body2" paragraph>
+                      <strong>Max Privacy Loss:</strong> {privacyParams.maxPrivacyLoss}
+                    </Typography>
+                    <Typography variant="body2" paragraph>
+                      <strong>Min Accuracy:</strong> {privacyParams.minAccuracy}
+                    </Typography>
+                    <Typography variant="body2" paragraph>
+                      <strong>Differential Privacy:</strong> {privacyParams.differentialPrivacy.enabled ? 'Enabled' : 'Disabled'}
+                    </Typography>
+                    <Typography variant="body2" paragraph>
+                      <strong>Federated Learning:</strong> {privacyParams.federatedLearning.enabled ? 'Enabled' : 'Disabled'}
+                    </Typography>
+                  </CardContent>
+                </Card>
+              </Grid>
+            </Grid>
 
             <Alert severity="info" sx={{ mt: 3 }}>
               <Typography variant="body2">
-                <strong>Note:</strong> After creating the contract, the TDP will be notified and must sign the contract before it becomes active. 
+                <strong>Note:</strong> After creating the contract, all TDPs will be notified and must sign the contract before it becomes active. 
                 {selectedCcrp && ' If CCRP is selected, they will also be notified and can sign the contract.'}
               </Typography>
             </Alert>
@@ -697,7 +594,7 @@ function CreateContract() {
   return (
     <Box>
       <Typography variant="h4" gutterBottom>
-        Create New Contract
+        Create New Multi-TDP Contract
       </Typography>
 
       <Card sx={{ mb: 3 }}>
@@ -733,7 +630,7 @@ function CreateContract() {
                   onClick={handleCreateContract}
                   disabled={createContractMutation.isLoading || !isFormValid()}
                 >
-                  {createContractMutation.isLoading ? 'Creating...' : 'Create Contract'}
+                  {createContractMutation.isLoading ? 'Creating...' : 'Create Multi-TDP Contract'}
                 </Button>
               ) : (
                 <Button
