@@ -280,7 +280,7 @@ const realApiService = {
   // Users
   getUsers: async () => {
     const response = await api.get('/api/users');
-    return response.data;
+    return response.data.users || [];
   },
   getCCRPUsers: async () => {
     const response = await api.get('/api/users/ccrp');

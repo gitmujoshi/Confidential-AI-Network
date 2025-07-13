@@ -38,7 +38,7 @@ const didService = new DIDService();
  * POST /api/auth/register
  * Register a new user with support for both did:ethr and did:web
  */
-router.post('/register', authRateLimit, logAuthEvent('REGISTER'), async (req, res) => {
+router.post('/register', logAuthEvent('REGISTER'), async (req, res) => {
   try {
     const {
       name,
@@ -443,7 +443,7 @@ router.post('/register', authRateLimit, logAuthEvent('REGISTER'), async (req, re
  * POST /api/auth/login
  * Login user and get access token
  */
-router.post('/login', authRateLimit, logAuthEvent('LOGIN'), async (req, res) => {
+router.post('/login', logAuthEvent('LOGIN'), async (req, res) => {
   try {
     const { email, password } = req.body;
 
@@ -1348,7 +1348,7 @@ router.get('/nonce/:walletAddress', async (req, res) => {
  * POST /api/auth/forgot-password
  * Request password reset
  */
-router.post('/forgot-password', authRateLimit, logAuthEvent('FORGOT_PASSWORD'), async (req, res) => {
+router.post('/forgot-password', logAuthEvent('FORGOT_PASSWORD'), async (req, res) => {
   try {
     const { email } = req.body;
 
@@ -1452,7 +1452,7 @@ router.post('/forgot-password', authRateLimit, logAuthEvent('FORGOT_PASSWORD'), 
  * POST /api/auth/reset-password
  * Reset password with token
  */
-router.post('/reset-password', authRateLimit, logAuthEvent('RESET_PASSWORD'), async (req, res) => {
+router.post('/reset-password', logAuthEvent('RESET_PASSWORD'), async (req, res) => {
   try {
     const { token, newPassword } = req.body;
 

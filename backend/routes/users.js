@@ -37,7 +37,7 @@ router.get('/', authenticateToken, logAuthEvent('GET_ALL_USERS'), async (req, re
       order: [['createdAt', 'DESC']]
     });
 
-    res.json(users);
+    res.json({ users });
 
   } catch (error) {
     console.error('❌ Get all users error:', error);

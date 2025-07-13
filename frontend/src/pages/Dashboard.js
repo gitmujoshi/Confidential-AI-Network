@@ -35,9 +35,9 @@ const Dashboard = () => {
   // Fetch dashboard data
   const { data: dashboardData, isLoading } = useQuery('dashboard', async () => {
     const [datasetsRes, contractsRes, usersRes] = await Promise.all([
-      api.get('/datasets'),
-      api.get('/contracts'),
-      api.get('/users')
+      api.get('/api/datasets/public'),
+      api.get('/api/contracts'),
+      api.get('/api/users')
     ]);
 
     return {

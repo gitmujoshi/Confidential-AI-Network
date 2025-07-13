@@ -5,76 +5,38 @@
  * so it can be used for login via the API.
  */
 
-const axios = require('axios');
+const { User } = require('./models');
+const bcrypt = require('bcryptjs');
 
-const BASE_URL = 'http://localhost:5001/api';
+const ADMIN_EMAIL = 'appadmin@example.com';
+const ADMIN_PASSWORD = 'AppAdmin123!';
+const ADMIN_NAME = 'Application Admin';
 
 async function registerAppAdmin() {
   try {
-    console.log('🚀 Registering AppAdmin user in local database...\n');
-
-    // Register the AppAdmin user
-    console.log('1️⃣ Registering AppAdmin user...');
-    const registerResponse = await axios.post(`${BASE_URL}/auth/register`, {
-      name: 'Application Administrator',
-      email: 'appadmin@contractmanagement.com',
-      partyType: 'AppAdmin',
-      organization: 'Contract Management System',
-      description: 'Application Administrator with full access to all functions',
-      phoneNumber: '+1-555-0000',
-      website: 'https://contractmanagement.com',
-      location: 'System'
-    });
-
-    console.log('✅ AppAdmin user registered successfully!');
-    console.log('   User ID:', registerResponse.data.user.id);
-    console.log('   Email:', registerResponse.data.user.email);
-    console.log('   Party Type:', registerResponse.data.user.partyType);
-    console.log('   Login credentials:', registerResponse.data.loginCredentials);
-
-    // Test login with the registered user
-    console.log('\n2️⃣ Testing login with AppAdmin user...');
-    const loginResponse = await axios.post(`${BASE_URL}/auth/login`, {
-      email: 'appadmin@contractmanagement.com',
-      password: registerResponse.data.loginCredentials.password
-    });
-
-    console.log('✅ Login successful!');
-    console.log('   Access Token:', loginResponse.data.accessToken ? 'Present' : 'Missing');
-    console.log('   User Info:', loginResponse.data.user.name);
-
-    // Test profile access
-    console.log('\n3️⃣ Testing profile access...');
-    const profileResponse = await axios.get(`${BASE_URL}/auth/profile`, {
-      headers: {
-        'Authorization': `Bearer ${loginResponse.data.accessToken}`
-      }
-    });
-
-    console.log('✅ Profile access successful!');
-    console.log('   User Role:', profileResponse.data.user.partyType);
-    console.log('   Email Verified:', profileResponse.data.user.emailVerified);
-
-    console.log('\n🎉 AppAdmin user setup completed successfully!');
-    console.log('\n📋 AppAdmin User Summary:');
-    console.log('   Email: appadmin@contractmanagement.com');
-    console.log('   Password: (use the temporary password from registration)');
-    console.log('   Party Type: AppAdmin');
-    console.log('   Status: Active and ready for use');
-
-    console.log('\n🔗 Test Commands:');
-    console.log('   Login: curl -X POST http://localhost:5001/api/auth/login \\');
-    console.log('     -H "Content-Type: application/json" \\');
-    console.log('     -d \'{"email": "appadmin@contractmanagement.com", "password": "TEMP_PASSWORD"}\'');
-
-  } catch (error) {
-    console.error('❌ AppAdmin registration failed:', error.response?.data || error.message);
-    
-    if (error.response?.data) {
-      console.error('   Error details:', error.response.data);
+    const existing = await User.findOne({ where: { email: ADMIN_EMAIL } });
+    if (existing) {
+      console.log(`AppAdmin user already exists: ${ADMIN_EMAIL}`);
+      return;
     }
+    const hashedPassword = await bcrypt.hash(ADMIN_PASSWORD, 10);
+    await User.create({
+      name: ADMIN_NAME,
+      email: ADMIN_EMAIL,
+      password: hashedPassword,
+      partyType: 'AppAdmin',
+      isActive: true,
+      description: 'Superuser for application management and testing.'
+    });
+    console.log(`✅ AppAdmin user created: ${ADMIN_EMAIL}`);
+    console.log(`🔑 Password: ${ADMIN_PASSWORD}`);
+  } catch (error) {
+    console.error('❌ Error creating AppAdmin:', error.message);
   }
 }
 
-// Run the registration
-registerAppAdmin(); 
+if (require.main === module) {
+  registerAppAdmin().then(() => process.exit(0));
+}
+
+module.exports = { registerAppAdmin }; 

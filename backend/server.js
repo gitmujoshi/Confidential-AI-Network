@@ -16,6 +16,7 @@ const authRouter = require('./routes/auth');
 const didRouter = require('./routes/did');
 const dpdpRouter = require('./routes/dpdp');
 const signingRouter = require('./routes/signing');
+const aiModelsRouter = require('./routes/ai-models');
 
 const app = express();
 const PORT = process.env.PORT || 8000;
@@ -117,6 +118,7 @@ app.get('/api/blockchain/status', async (req, res) => {
 app.use('/api/auth', authRouter);
 app.use('/api/contracts', contractsRouter);
 app.use('/api/datasets', datasetsRouter);
+app.use('/api/ai-models', aiModelsRouter);
 app.use('/api/did', didRouter);
 app.use('/api/dpdp', dpdpRouter);
 app.use('/api/signing', signingRouter);
