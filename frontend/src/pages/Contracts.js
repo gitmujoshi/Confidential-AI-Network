@@ -44,12 +44,14 @@ import {
   ViewModule,
   ViewList,
   Description,
+  Download,
 } from '@mui/icons-material';
 import { useQuery } from 'react-query';
 import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
 import { apiService } from '../services/api';
 import { useUser } from '../contexts/UserContext';
+import toast from 'react-hot-toast';
 
 const StatusChip = ({ status }) => {
   const getStatusColor = (status) => {
@@ -94,7 +96,7 @@ const StatusChip = ({ status }) => {
   );
 };
 
-const ContractCard = ({ contract, onView, onEdit, onDelete }) => {
+const ContractCard = ({ contract, onView, onEdit, onDelete, onDownloadContract, onDownloadLegalDocument }) => {
   // Check if this is a multi-TDP contract
   const isMultiTDPContract = contract?.datasets && contract.datasets.length > 1;
   
@@ -189,12 +191,28 @@ const ContractCard = ({ contract, onView, onEdit, onDelete }) => {
         <Button size="small" color="error" onClick={() => onDelete(contract)}>
           Delete
         </Button>
+        <Button 
+          size="small" 
+          onClick={() => onDownloadContract(contract)}
+          startIcon={<Download />}
+        >
+          Complete Contract
+        </Button>
+        {contract.legalDocument && (
+          <Button 
+            size="small" 
+            onClick={() => onDownloadLegalDocument(contract)}
+            startIcon={<Description />}
+          >
+            Legal Document
+          </Button>
+        )}
       </CardActions>
     </Card>
   );
 };
 
-const ContractRow = ({ contract, onView, onEdit, onDelete }) => {
+const ContractRow = ({ contract, onView, onEdit, onDelete, onDownloadContract, onDownloadLegalDocument }) => {
   // Check if this is a multi-TDP contract
   const isMultiTDPContract = contract?.datasets && contract.datasets.length > 1;
   
@@ -289,6 +307,26 @@ const ContractRow = ({ contract, onView, onEdit, onDelete }) => {
               <Delete />
             </IconButton>
           </Tooltip>
+          <Tooltip title="Download Complete Contract">
+            <IconButton 
+              size="small" 
+              onClick={() => onDownloadContract(contract)}
+              color="primary"
+            >
+              <Download />
+            </IconButton>
+          </Tooltip>
+          {contract.legalDocument && (
+            <Tooltip title="Download Legal Document">
+              <IconButton 
+                size="small" 
+                onClick={() => onDownloadLegalDocument(contract)}
+                color="secondary"
+              >
+                <Description />
+              </IconButton>
+            </Tooltip>
+          )}
         </Box>
       </TableCell>
     </TableRow>
@@ -398,13 +436,114 @@ function Contracts() {
   };
 
   const handleCreateContract = () => {
-    navigate('/contracts/create');
+    navigate('/create-contract');
   };
 
   const handleSort = (property) => {
     const isAsc = sortBy === property && sortOrder === 'asc';
     setSortOrder(isAsc ? 'desc' : 'asc');
     setSortBy(property);
+  };
+
+  const saveContractLocally = async (contract) => {
+    if (!contract) return;
+
+    try {
+      // Fetch complete contract data from API to get all details
+      const completeContract = await apiService.getContract(contract.contractId);
+      
+      const contractData = {
+        contractId: completeContract.contractId,
+        status: completeContract.status,
+        createdAt: completeContract.createdAt,
+        updatedAt: completeContract.updatedAt,
+        duration: completeContract.duration,
+        price: completeContract.price,
+        totalPrice: completeContract.totalPrice,
+        termsAndConditions: completeContract.termsAndConditions,
+        
+        // Parties
+        tdp: completeContract.tdp,
+        tdc: completeContract.tdc,
+        ccrp: completeContract.ccrp,
+        
+        // Dataset information
+        dataset: completeContract.dataset,
+        datasets: completeContract.datasets,
+        contractDatasets: completeContract.contractDatasets,
+        datasetCount: completeContract.datasetCount,
+        tdpCount: completeContract.tdpCount,
+        
+        // Signatures and workflow
+        tdpSigned: completeContract.tdpSigned,
+        tdpSignedAt: completeContract.tdpSignedAt,
+        ccrpSigned: completeContract.ccrpSigned,
+        ccrpSignedAt: completeContract.ccrpSignedAt,
+        tdpSignatures: completeContract.tdpSignatures,
+        tdpPayments: completeContract.tdpPayments,
+        multiTdpStatus: completeContract.multiTdpStatus,
+        
+        // Ricardian contract fields
+        legalDocumentHash: completeContract.legalDocumentHash,
+        ricardianSignature: completeContract.ricardianSignature,
+        smartContractAddress: completeContract.smartContractAddress,
+        smartContractNetwork: completeContract.smartContractNetwork,
+        blockchainContractId: completeContract.blockchainContractId,
+        legalDocument: completeContract.legalDocument,
+        
+        // Technical parameters
+        trainingParams: completeContract.trainingParams,
+        environmentSpecs: completeContract.environmentSpecs,
+        kmsConfigs: completeContract.kmsConfigs,
+        
+        // Attestation and verification
+        attestationVerified: completeContract.attestationVerified,
+        attestationReport: completeContract.attestationReport,
+        
+        // Payment information
+        paidAmount: completeContract.paidAmount,
+        pendingAmount: completeContract.pendingAmount,
+      };
+
+      const blob = new Blob([JSON.stringify(contractData, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${completeContract.contractId}_complete_contract.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      
+      toast.success('Complete contract downloaded successfully!');
+    } catch (error) {
+      console.error('Error downloading complete contract:', error);
+      toast.error('Failed to download complete contract. Please try again.');
+    }
+  };
+
+  const saveLegalDocument = (contract) => {
+    if (!contract.legalDocument) {
+      toast.error('No legal document available to download.');
+      return;
+    }
+
+    const legalDoc = typeof contract.legalDocument === 'string' 
+      ? JSON.parse(contract.legalDocument) 
+      : contract.legalDocument;
+
+    const blob = new Blob([JSON.stringify(legalDoc, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${contract.contractId}_legal_document.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    
+    // Show success message
+    toast.success('Legal document downloaded successfully!');
   };
 
   return (
@@ -526,6 +665,8 @@ function Contracts() {
                 onView={handleView}
                 onEdit={handleEdit}
                 onDelete={handleDelete}
+                onDownloadContract={saveContractLocally}
+                onDownloadLegalDocument={saveLegalDocument}
               />
             </Grid>
           ))}
@@ -598,6 +739,8 @@ function Contracts() {
                       onView={handleView}
                       onEdit={handleEdit}
                       onDelete={handleDelete}
+                      onDownloadContract={saveContractLocally}
+                      onDownloadLegalDocument={saveLegalDocument}
                     />
                   ))}
                 </TableBody>

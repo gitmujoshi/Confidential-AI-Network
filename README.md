@@ -1,68 +1,186 @@
 # Contract Management System
 
-A comprehensive blockchain-based contract management system with DID (Decentralized Identifier) support, IAM integration, and enterprise-grade security.
+A comprehensive contract management system supporting multi-TDP (Training Data Provider) contracts with Ricardian contract functionality, blockchain integration, and Azure Confidential Computing.
 
-## 🚀 Quick Start
+## 🚀 Key Features
 
-1. **Setup**: Follow the [Setup and Deployment Guide](docs/SETUP_AND_DEPLOYMENT.md)
-2. **User Guide**: See [User and Security Guides](docs/USER_AND_SECURITY_GUIDES.md)
-3. **Technical Details**: Review [Technical Documentation](docs/TECHNICAL_DOCUMENTATION.md)
-4. **DID & IAM**: Learn about [DID and IAM Integration](docs/DID_AND_IAM_GUIDES.md)
+### Multi-TDP Contract Management
+- **Up to 3 Datasets**: Create contracts with multiple datasets from different TDPs
+- **Individual Pricing**: Each dataset has its own price within the contract
+- **Independent Signing**: Each TDP signs independently for their dataset
+- **Payment Tracking**: Individual payment status tracking per TDP
+- **Status Monitoring**: Real-time multi-TDP status tracking
 
-## 📚 Documentation Structure
+### Ricardian Contract Support
+- **Legal Documents**: Human-readable legal agreements
+- **Smart Contracts**: Machine-executable blockchain contracts
+- **Cryptographic Binding**: Legal documents bound to smart contracts
+- **Technical Parameters**: AI training parameters and environment specifications
+- **Attestation**: Azure Confidential Computing attestation support
 
-All documentation has been consolidated into the `docs/` folder:
+### Download Functionality
+- **Complete Contract Download**: All contract data including legal, technical, workflow, and signature information
+- **Legal Document Download**: Human-readable legal documents in JSON format
+- **Enhanced Data Coverage**: Includes payment summaries, multi-TDP status, and all Ricardian fields
+- **Clear User Interface**: Descriptive button labels and comprehensive data display
 
-- **[MAIN_README.md](docs/MAIN_README.md)** - Comprehensive project overview
-- **[TECHNICAL_DOCUMENTATION.md](docs/TECHNICAL_DOCUMENTATION.md)** - Architecture, API, and technical details
-- **[SETUP_AND_DEPLOYMENT.md](docs/SETUP_AND_DEPLOYMENT.md)** - Installation, configuration, and deployment
-- **[USER_AND_SECURITY_GUIDES.md](docs/USER_AND_SECURITY_GUIDES.md)** - User guides, security, and onboarding
-- **[DID_AND_IAM_GUIDES.md](docs/DID_AND_IAM_GUIDES.md)** - DID implementation and IAM integration
+### Security & Compliance
+- **JWT Authentication**: Secure user authentication
+- **Role-Based Access**: TDC, TDP, and CCRP user roles
+- **Data Encryption**: KMS integration for data protection
+- **Audit Trail**: Comprehensive logging and tracking
 
-## 🏗️ Project Structure
+## 🏗️ Architecture
 
+### Backend (Node.js + Express)
+- **Database**: PostgreSQL with Sequelize ORM
+- **Authentication**: JWT with Keycloak integration
+- **Blockchain**: Ethereum smart contract integration
+- **Notifications**: Email and in-app notifications
+- **Testing**: Comprehensive test suite
+
+### Frontend (React + Material-UI)
+- **Multi-Dataset Selection**: Interactive dataset selection with pricing
+- **Contract Management**: Comprehensive contract display and management
+- **Download Capabilities**: Complete contract and legal document downloads
+- **Real-time Updates**: Live status tracking and notifications
+
+## 📋 Quick Start
+
+### Prerequisites
+- Node.js 16+
+- PostgreSQL 12+
+- Docker (for Keycloak)
+
+### Installation
+
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/your-username/ContractManagement.git
+   cd ContractManagement
+   ```
+
+2. **Backend Setup**
+   ```bash
+   cd backend
+   npm install
+   cp config.env.example config.env
+   # Configure database and other settings
+   npm run setup-db
+   npm start
+   ```
+
+3. **Frontend Setup**
+   ```bash
+   cd frontend
+   npm install
+   npm start
+   ```
+
+4. **Keycloak Setup**
+   ```bash
+   cd deployment/utilities
+   docker-compose -f docker-compose.iam.yml up -d
+   ```
+
+## 🔧 Configuration
+
+### Environment Variables
+```bash
+# Database
+DATABASE_URL=postgresql://user:password@localhost:5432/contracts
+
+# JWT Secret
+JWT_SECRET=your-secret-key
+
+# Blockchain
+BLOCKCHAIN_NETWORK=goerli
+CONTRACT_ADDRESS=0x...
+
+# Email
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USER=your-email@gmail.com
+SMTP_PASS=your-password
 ```
-ContractManagement/
-├── docs/                    # Consolidated documentation
-├── archive/                 # Archived original documentation
-├── deployment/              # Deployment scripts and configurations
-│   ├── oci/                # Oracle Cloud Infrastructure deployment
-│   ├── local/              # Local development scripts
-│   ├── monitoring/         # System monitoring scripts
-│   └── utilities/          # Utility scripts and configs
-├── backend/                 # Node.js/Express backend
-├── frontend/                # React frontend
-├── blockchain/              # Smart contracts and blockchain integration
-└── k8s/                     # Kubernetes deployment files
+
+## 📖 Usage
+
+### Creating Multi-TDP Contracts
+1. **Select Datasets**: Choose 1-3 datasets from different TDPs
+2. **Set Pricing**: Configure individual prices for each dataset
+3. **Configure Contract**: Set duration, terms, and technical parameters
+4. **Create Contract**: Contract is created with all selected datasets
+
+### Managing Contracts
+1. **View Details**: Comprehensive display of all TDPs and datasets
+2. **Track Status**: Real-time updates on signatures and payments
+3. **Download Documents**: Complete contract and legal document downloads
+4. **Record Payments**: Individual payment tracking per TDP
+
+### Download Functionality
+- **Complete Contract**: Downloads all contract data (legal, technical, workflow, signatures)
+- **Legal Document**: Downloads only the legal document JSON (when available)
+- **Enhanced Coverage**: Includes payment summaries, multi-TDP status, and Ricardian fields
+
+## 🧪 Testing
+
+### Backend Tests
+```bash
+cd backend
+npm test
 ```
 
-## 🔧 Key Features
+### Frontend Tests
+```bash
+cd frontend
+npm test
+```
 
-- **Smart Contract Management**: Ethereum-based contract lifecycle management
-- **DID Integration**: Decentralized identifier support (DID:web, DID:ethr)
-- **IAM Integration**: Keycloak-based identity and access management
-- **Enterprise Security**: Multi-layer security with role-based access
-- **Blockchain Integration**: Web3.js integration with MetaMask support
-- **Kubernetes Ready**: Containerized deployment with K8s manifests
+### Integration Tests
+```bash
+npm run test:integration
+```
 
-## 🚦 Status
+## 📚 Documentation
 
-- ✅ Core contract management functionality
-- ✅ DID implementation (DID:web and DID:ethr)
-- ✅ IAM integration with Keycloak
-- ✅ Frontend with React
-- ✅ Backend API with Express
-- ✅ Smart contracts with Solidity
-- ✅ Kubernetes deployment configuration
-
-## 📖 Getting Started
-
-For detailed setup instructions, see [SETUP_AND_DEPLOYMENT.md](docs/SETUP_AND_DEPLOYMENT.md).
+- [Multi-TDP Implementation Guide](MULTI_TDP_IMPLEMENTATION_SUMMARY.md)
+- [Frontend Update Summary](FRONTEND_MULTI_TDP_UPDATE_SUMMARY.md)
+- [API Documentation](API_DOCUMENTATION.md)
+- [Security Guide](SECURITY_GUIDE.md)
 
 ## 🤝 Contributing
 
-Please refer to the [Technical Documentation](docs/TECHNICAL_DOCUMENTATION.md) for development guidelines and contribution information.
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Add tests
+5. Submit a pull request
 
 ## 📄 License
 
-This project is proprietary software. All rights reserved. 
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🆘 Support
+
+For support and questions:
+- Create an issue on GitHub
+- Check the documentation
+- Review the test examples
+
+## 🔄 Recent Updates
+
+### Latest Features
+- **Multi-TDP Contract Support**: Up to 3 datasets from different TDPs
+- **Download Functionality**: Complete contract and legal document downloads
+- **Enhanced UI**: Clear button labels and comprehensive data display
+- **Ricardian Contract Details**: Full display of legal and technical parameters
+- **Payment Tracking**: Individual payment status per TDP
+- **Real-time Status**: Live updates on contract progress
+
+### Technical Improvements
+- **Database Schema**: Enhanced for multi-TDP support
+- **API Endpoints**: New endpoints for multi-TDP management
+- **Frontend Components**: New components for dataset selection
+- **Error Handling**: Improved error handling and user feedback
+- **Testing Coverage**: Comprehensive test suite for all features 
