@@ -73,6 +73,8 @@ const Layout = ({ children }) => {
     { text: 'Contracts', icon: <Description />, path: '/contracts' },
     // Only show Users menu for AppAdmin
     ...(user?.partyType === 'AppAdmin' ? [{ text: 'Users', icon: <People />, path: '/users' }] : []),
+    // Only show CCRP menu for AppAdmin
+    ...(user?.partyType === 'AppAdmin' ? [{ text: 'CCRP Providers', icon: <Security />, path: '/ccrp' }] : []),
     { text: 'Notifications', icon: <Notifications />, path: '/notifications' },
     { text: 'Enterprise DID', icon: <Business />, path: '/enterprise-did' },
   ];
