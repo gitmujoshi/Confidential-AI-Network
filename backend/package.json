@@ -22,6 +22,8 @@
     "test:api": "jest tests/api.test.js",
     "test:security": "jest tests/security.test.js",
     "test:performance": "jest tests/performance.test.js",
+    "test:multi-tdp": "jest tests/multi-tdp-contracts.test.js --verbose --detectOpenHandles",
+    "test:multi-tdp:runner": "node test-multi-tdp-runner.js",
     "test:ci": "jest --ci --coverage --watchAll=false",
     "setup-db": "node scripts/setupDatabase.js",
     "seed-data": "node scripts/seedData.js",

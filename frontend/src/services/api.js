@@ -208,12 +208,32 @@ const realApiService = {
     const response = await api.post('/api/contracts', contractData);
     return response.data;
   },
+  createMultiTDPContract: async (contractData) => {
+    const response = await api.post('/api/contracts/multi-tdp', contractData);
+    return response.data;
+  },
   getContractSigningData: async (contractId) => {
     const response = await api.get(`/api/contracts/${contractId}/signing-data`);
     return response.data;
   },
   signContract: async (contractId, data) => {
     const response = await api.post(`/api/contracts/${contractId}/sign`, data);
+    return response.data;
+  },
+  signContractAsTDP: async (contractId, tdpId, data) => {
+    const response = await api.post(`/api/contracts/${contractId}/tdp/${tdpId}/sign`, data);
+    return response.data;
+  },
+  getMultiTDPContractStatus: async (contractId) => {
+    const response = await api.get(`/api/contracts/${contractId}/multi-tdp-status`);
+    return response.data;
+  },
+  recordPaymentForTDP: async (contractId, tdpId, paymentData) => {
+    const response = await api.post(`/api/contracts/${contractId}/tdp/${tdpId}/payment`, paymentData);
+    return response.data;
+  },
+  getPaymentSummary: async (contractId) => {
+    const response = await api.get(`/api/contracts/${contractId}/payment-summary`);
     return response.data;
   },
   selectCCRP: async (contractId, data) => {
@@ -242,6 +262,10 @@ const realApiService = {
   },
   previewRicardianContract: async (contractData) => {
     const response = await api.post('/api/contracts/ricardian/preview', contractData);
+    return response.data;
+  },
+  previewMultiTDPRicardianContract: async (contractData) => {
+    const response = await api.post('/api/contracts/ricardian/multi-tdp-preview-test', contractData);
     return response.data;
   },
   verifyRicardianContract: async (contractId) => {

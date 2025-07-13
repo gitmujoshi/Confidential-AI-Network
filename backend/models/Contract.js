@@ -228,6 +228,95 @@ module.exports = (sequelize, DataTypes) => {
         model: 'datasets',
         key: 'id'
       }
+    },
+    
+    // Multiple datasets and TDPs support (up to 3 datasets from different TDPs)
+    // Primary dataset and TDP (for backward compatibility)
+    primaryDatasetId: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      references: {
+        model: 'datasets',
+        key: 'id'
+      },
+      comment: 'Primary dataset for backward compatibility'
+    },
+    
+    primaryTdpId: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      references: {
+        model: 'users',
+        key: 'id'
+      },
+      comment: 'Primary TDP for backward compatibility'
+    },
+    
+    // All datasets and TDPs with individual payments
+    contractDatasets: {
+      type: DataTypes.JSON,
+      allowNull: true,
+      comment: 'Array of dataset objects: [{datasetId, tdpId, datasetName, tdpName, individualPrice, paymentStatus}]'
+    },
+    
+    // Total number of datasets in this contract
+    datasetCount: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      defaultValue: 1,
+      validate: {
+        min: 1,
+        max: 3
+      },
+      comment: 'Total number of datasets in this contract (1-3)'
+    },
+    
+    // Total number of TDPs involved
+    tdpCount: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      defaultValue: 1,
+      validate: {
+        min: 1,
+        max: 3
+      },
+      comment: 'Total number of TDPs involved (1-3, one per dataset)'
+    },
+    
+    // Combined price for all datasets
+    totalPrice: {
+      type: DataTypes.DECIMAL(10, 2),
+      allowNull: true,
+      comment: 'Total price for all datasets combined'
+    },
+    
+    // Contract status for multiple TDPs
+    tdpSignatures: {
+      type: DataTypes.JSON,
+      allowNull: true,
+      comment: 'JSON object tracking signatures from each TDP: {tdpId: {signed: boolean, signedAt: timestamp, paymentAmount: decimal}}'
+    },
+    
+    // Payment tracking for each TDP
+    tdpPayments: {
+      type: DataTypes.JSON,
+      allowNull: true,
+      comment: 'JSON object tracking payments to each TDP: {tdpId: {amount: decimal, status: string, paidAt: timestamp}}'
+    },
+    
+    // Contract status considering multiple TDPs
+    multiTdpStatus: {
+      type: DataTypes.ENUM(
+        'PENDING_ALL_TDP_APPROVAL',    // Waiting for all TDPs to sign
+        'PARTIALLY_TDP_APPROVED',      // Some TDPs signed, others pending
+        'ALL_TDP_APPROVED',            // All TDPs signed
+        'PENDING_CCRP_APPROVAL',       // All TDPs signed, waiting for CCRP
+        'ACTIVE',                      // All parties signed
+        'COMPLETED',                   // Contract execution finished
+        'CANCELLED'                    // Contract cancelled
+      ),
+      defaultValue: 'PENDING_ALL_TDP_APPROVAL',
+      comment: 'Status considering multiple TDP signatures'
     }
   }, {
     tableName: 'contracts',

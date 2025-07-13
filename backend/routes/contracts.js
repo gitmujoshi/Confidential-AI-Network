@@ -291,7 +291,295 @@ router.post('/ricardian/preview', authenticateToken, async (req, res) => {
 });
 
 /**
- * Create new Ricardian contract (TDC ONLY)
+ * Test endpoint for multi-TDP preview (no authentication required for testing)
+ */
+router.post('/ricardian/multi-tdp-preview-test', async (req, res) => {
+  try {
+    console.log('🔍 Test Multi-TDP Ricardian contract preview request body:', req.body);
+    
+    const {
+      datasetSelections, // Array of {datasetId, individualPrice} objects
+      duration,
+      termsAndConditions,
+      contractType = 'AI_TRAINING',
+      privacyRequirements
+    } = req.body;
+
+    // Validate required fields
+    if (!datasetSelections || !Array.isArray(datasetSelections) || datasetSelections.length === 0) {
+      return res.status(400).json({ error: 'At least one dataset selection is required' });
+    }
+
+    if (!duration || !termsAndConditions) {
+      return res.status(400).json({ error: 'Duration and terms are required' });
+    }
+
+    // Validate dataset count (1-3 datasets)
+    if (datasetSelections.length < 1 || datasetSelections.length > 3) {
+      return res.status(400).json({ 
+        error: 'Contract must include 1 to 3 datasets' 
+      });
+    }
+
+    // Verify all datasets exist and get their TDPs
+    const selectedDatasetIds = datasetSelections.map(selection => selection.datasetId);
+    const datasets = await db.Dataset.findAll({
+      where: { 
+        datasetId: selectedDatasetIds,
+        isActive: true
+      },
+      include: [
+        { model: db.User, as: 'owner' }
+      ]
+    });
+
+    if (datasets.length !== datasetSelections.length) {
+      return res.status(404).json({ 
+        error: 'One or more datasets not found' 
+      });
+    }
+
+    // Get a TDC user for testing
+    const tdcUser = await db.User.findOne({ where: { partyType: 'TDC' } });
+    if (!tdcUser) {
+      return res.status(404).json({ error: 'No TDC user found for testing' });
+    }
+
+    // Calculate total price for all datasets
+    const totalPrice = datasetSelections.reduce((sum, selection) => sum + selection.individualPrice, 0);
+
+    // Generate legal document preview for multi-TDP contract
+    const legalDocument = {
+      contractType: contractType,
+      title: `${contractType.replace('_', ' ')} Multi-TDP Contract`,
+      description: `Ricardian contract for ${contractType.toLowerCase().replace('_', ' ')} with multiple TDPs`,
+      effectiveDate: new Date().toISOString().split('T')[0],
+      expirationDate: new Date(Date.now() + duration * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+      parties: {
+        dataProviders: datasets.map(dataset => ({
+          name: dataset.owner.name,
+          email: dataset.owner.email,
+          blockchainAddress: dataset.owner.walletAddress,
+          did: dataset.owner.did,
+          datasetName: dataset.name,
+          datasetId: dataset.datasetId,
+          individualPrice: datasetSelections.find(s => s.datasetId === dataset.datasetId)?.individualPrice
+        })),
+        modelTrainer: {
+          name: tdcUser.name,
+          email: tdcUser.email,
+          blockchainAddress: tdcUser.walletAddress,
+          did: tdcUser.did
+        }
+      },
+      contractTerms: {
+        totalPrice,
+        duration,
+        termsAndConditions,
+        datasetCount: datasets.length,
+        tdpCount: datasets.length,
+        privacyRequirements: privacyRequirements || {}
+      }
+    };
+    
+    // Create document hash for preview
+    const legalDocumentHash = ricardianContractService.createDocumentHash(legalDocument);
+    
+    // Generate smart contract preview (without deployment)
+    const smartContractPreview = {
+      address: '0x0000000000000000000000000000000000000000', // Placeholder
+      network: 'preview',
+      contractId: `test-preview-${Date.now()}`,
+      abi: [], // Empty ABI for preview
+      bytecode: '0x', // Empty bytecode for preview
+      deploymentData: {
+        legalDocumentHash,
+        contractType,
+        parties: {
+          tdps: datasets.map(dataset => dataset.owner.walletAddress),
+          tdc: tdcUser.walletAddress
+        },
+        datasets: datasets.map(dataset => ({
+          datasetId: dataset.datasetId,
+          tdpAddress: dataset.owner.walletAddress,
+          price: datasetSelections.find(s => s.datasetId === dataset.datasetId)?.individualPrice
+        }))
+      }
+    };
+
+    res.json({
+      success: true,
+      legalDocument,
+      smartContractData: smartContractPreview,
+      preview: true,
+      datasetCount: datasets.length,
+      tdpCount: datasets.length,
+      totalPrice
+    });
+  } catch (error) {
+    console.error('❌ Error generating test multi-TDP Ricardian contract preview:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+/**
+ * Generate preview for multi-TDP Ricardian contract (TDC ONLY)
+ * 
+ * This endpoint allows TDC users to preview Ricardian contracts with multiple datasets.
+ * The preview shows the legal document and smart contract structure without deployment.
+ */
+router.post('/ricardian/multi-tdp-preview', authenticateToken, async (req, res) => {
+  try {
+    console.log('🔍 Multi-TDP Ricardian contract preview request body:', req.body);
+    console.log('🔍 Multi-TDP Ricardian contract preview user:', req.user?.localUser);
+    
+    const {
+      datasetSelections, // Array of {datasetId, individualPrice} objects
+      duration,
+      termsAndConditions,
+      contractType = 'AI_TRAINING',
+      privacyRequirements
+    } = req.body;
+
+    // Validate required fields
+    if (!datasetSelections || !Array.isArray(datasetSelections) || datasetSelections.length === 0) {
+      return res.status(400).json({ error: 'At least one dataset selection is required' });
+    }
+
+    if (!duration || !termsAndConditions) {
+      return res.status(400).json({ error: 'Duration and terms are required' });
+    }
+
+    // Validate dataset count (1-3 datasets)
+    if (datasetSelections.length < 1 || datasetSelections.length > 3) {
+      return res.status(400).json({ 
+        error: 'Contract must include 1 to 3 datasets' 
+      });
+    }
+
+    // Get TDC user from authentication context
+    const tdcUser = req.user?.localUser;
+    if (!tdcUser || tdcUser.partyType !== 'TDC') {
+      return res.status(403).json({ error: 'Only TDC users can preview contracts' });
+    }
+
+    // Verify all datasets exist and get their TDPs
+    const selectedDatasetIds = datasetSelections.map(selection => selection.datasetId);
+    const datasets = await db.Dataset.findAll({
+      where: { 
+        datasetId: selectedDatasetIds,
+        isActive: true
+      },
+      include: [
+        { model: db.User, as: 'owner' }
+      ]
+    });
+
+    if (datasets.length !== datasetSelections.length) {
+      return res.status(404).json({ 
+        error: 'One or more datasets not found' 
+      });
+    }
+
+    // Calculate total price for all datasets
+    const totalPrice = datasetSelections.reduce((sum, selection) => sum + selection.individualPrice, 0);
+
+    // Create preview contract data
+    const previewContractData = {
+      contractId: `preview-multi-${Date.now()}`,
+      tdcId: tdcUser.id,
+      tdc: tdcUser,
+      datasets: datasets.map((dataset, index) => ({
+        datasetId: dataset.datasetId,
+        datasetName: dataset.name,
+        tdpId: dataset.owner.id,
+        tdpName: dataset.owner.name,
+        tdp: dataset.owner,
+        individualPrice: datasetSelections[index].individualPrice
+      })),
+      totalPrice,
+      duration,
+      termsAndConditions,
+      contractType,
+      privacyRequirements: privacyRequirements || {}
+    };
+
+    // Generate legal document preview for multi-TDP contract
+    const legalDocument = {
+      contractType: contractType,
+      title: `${contractType.replace('_', ' ')} Multi-TDP Contract`,
+      description: `Ricardian contract for ${contractType.toLowerCase().replace('_', ' ')} with multiple TDPs`,
+      effectiveDate: new Date().toISOString().split('T')[0],
+      expirationDate: new Date(Date.now() + duration * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+      parties: {
+        dataProviders: datasets.map(dataset => ({
+          name: dataset.owner.name,
+          email: dataset.owner.email,
+          blockchainAddress: dataset.owner.walletAddress,
+          did: dataset.owner.did,
+          datasetName: dataset.name,
+          datasetId: dataset.datasetId,
+          individualPrice: datasetSelections.find(s => s.datasetId === dataset.datasetId)?.individualPrice
+        })),
+        modelTrainer: {
+          name: tdcUser.name,
+          email: tdcUser.email,
+          blockchainAddress: tdcUser.walletAddress,
+          did: tdcUser.did
+        }
+      },
+      contractTerms: {
+        totalPrice,
+        duration,
+        termsAndConditions,
+        datasetCount: datasets.length,
+        tdpCount: datasets.length,
+        privacyRequirements: privacyRequirements || {}
+      }
+    };
+    
+    // Create document hash for preview
+    const legalDocumentHash = ricardianContractService.createDocumentHash(legalDocument);
+    
+    // Generate smart contract preview (without deployment)
+    const smartContractPreview = {
+      address: '0x0000000000000000000000000000000000000000', // Placeholder
+      network: 'preview',
+      contractId: previewContractData.contractId,
+      abi: [], // Empty ABI for preview
+      bytecode: '0x', // Empty bytecode for preview
+      deploymentData: {
+        legalDocumentHash,
+        contractType,
+        parties: {
+          tdps: datasets.map(dataset => dataset.owner.walletAddress),
+          tdc: tdcUser.walletAddress
+        },
+        datasets: datasets.map(dataset => ({
+          datasetId: dataset.datasetId,
+          tdpAddress: dataset.owner.walletAddress,
+          price: datasetSelections.find(s => s.datasetId === dataset.datasetId)?.individualPrice
+        }))
+      }
+    };
+
+    res.json({
+      success: true,
+      legalDocument,
+      smartContractData: smartContractPreview,
+      preview: true,
+      datasetCount: datasets.length,
+      tdpCount: datasets.length,
+      totalPrice
+    });
+  } catch (error) {
+    console.error('❌ Error generating multi-TDP Ricardian contract preview:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+/**
+ * Generate preview for Ricardian contract (TDC ONLY)
  * 
  * This endpoint allows TDC users to create Ricardian contracts with legal document binding.
  * Ricardian contracts combine human-readable legal documents with machine-executable smart contracts.
@@ -703,15 +991,18 @@ router.get('/types/:contractType/template', async (req, res) => {
  * This endpoint allows TDC users to create contracts using user IDs instead of wallet addresses.
  * Supports both email/password authentication and wallet-based authentication.
  * 
+ * NEW: Supports multiple datasets from different TDPs (up to 3) with individual payments
+ * 
  * Workflow:
- * 1. TDC creates contract with TDP and dataset
- * 2. TDP automatically signs (handled by backend)
- * 3. If CCRP selected, contract moves to PENDING_CCRP_APPROVAL
- * 4. If no CCRP, contract moves to PENDING_TDC_APPROVAL
+ * 1. TDC creates contract with multiple datasets from different TDPs
+ * 2. Each TDP gets notified and must sign individually
+ * 3. Contract moves to PENDING_ALL_TDP_APPROVAL
+ * 4. When all TDPs sign, contract moves to PENDING_CCRP_APPROVAL (if CCRP selected)
+ * 5. Contract becomes ACTIVE when all parties sign
  * 
  * Security:
  * - Only TDC users can create contracts
- * - TDP must be registered and own the dataset
+ * - Each TDP must be registered and own their respective dataset
  * - CCRP must be registered (if selected)
  * - Authentication handled via JWT token
  */
@@ -721,18 +1012,48 @@ router.post('/', authenticateToken, async (req, res) => {
     console.log('🔍 Contract creation user:', req.user?.localUser);
     
     const {
-      tdpId,
-      datasetId,
-      price,
+      datasetSelections, // NEW: Array of {datasetId, individualPrice} objects
+      datasetIds, // Legacy: Array of dataset IDs
+      datasetId, // Legacy: Single dataset ID
+      price, // Legacy: Single price
       duration,
       termsAndConditions,
       ccrpId,
       privacyRequirements
     } = req.body;
 
+    // Handle different input formats
+    let finalDatasetSelections = [];
+    if (datasetSelections && Array.isArray(datasetSelections)) {
+      // New format: array of {datasetId, individualPrice} objects
+      finalDatasetSelections = datasetSelections;
+    } else if (datasetIds && Array.isArray(datasetIds)) {
+      // Legacy format: array of dataset IDs with single price
+      finalDatasetSelections = datasetIds.map(datasetId => ({
+        datasetId,
+        individualPrice: parseFloat(price) / datasetIds.length // Distribute price equally
+      }));
+    } else if (datasetId) {
+      // Legacy format: single dataset
+      finalDatasetSelections = [{
+        datasetId,
+        individualPrice: parseFloat(price)
+      }];
+    } else {
+      console.log('❌ Missing required fields: datasetSelections, datasetIds, or datasetId');
+      return res.status(400).json({ error: 'Missing required fields: datasetSelections, datasetIds, or datasetId' });
+    }
+
+    // Validate dataset count (1-3 datasets)
+    if (finalDatasetSelections.length < 1 || finalDatasetSelections.length > 3) {
+      return res.status(400).json({ 
+        error: 'Contract must include 1 to 3 datasets' 
+      });
+    }
+
     // Validate required fields
-    if (!tdpId || !datasetId || !price || !duration || !termsAndConditions) {
-      console.log('❌ Missing required fields:', { tdpId, datasetId, price, duration, termsAndConditions });
+    if (!duration || !termsAndConditions) {
+      console.log('❌ Missing required fields:', { duration, termsAndConditions });
       return res.status(400).json({ error: 'Missing required fields' });
     }
 
@@ -770,30 +1091,48 @@ router.post('/', authenticateToken, async (req, res) => {
       });
     }
 
-    // Get TDP user (dataset owner)
-    const tdpUser = await db.User.findOne({
-      where: { id: tdpId, partyType: 'TDP' }
-    });
-
-    if (!tdpUser) {
-      return res.status(404).json({ error: 'TDP not found' });
-    }
-
-    // Verify dataset ownership
-    const dataset = await db.Dataset.findOne({
-      where: { datasetId, ownerId: tdpUser.id }
-    });
-
-    if (!dataset) {
-      return res.status(404).json({ error: 'Dataset not found or not owned by TDP' });
-    }
-
-    // Get TDC user from authentication context (JWT token)
-    // This will be handled by the auth middleware
+    // Get TDC user from authentication context
     const tdcUser = req.user?.localUser;
     if (!tdcUser || tdcUser.partyType !== 'TDC') {
       return res.status(403).json({ error: 'Only TDC users can create contracts' });
     }
+
+    // Verify all datasets exist and get their TDPs
+    const selectedDatasetIds = finalDatasetSelections.map(selection => selection.datasetId);
+    const datasets = await db.Dataset.findAll({
+      where: { 
+        datasetId: selectedDatasetIds,
+        isActive: true
+      },
+      include: [
+        { model: db.User, as: 'owner' }
+      ]
+    });
+
+    if (datasets.length !== finalDatasetSelections.length) {
+      return res.status(404).json({ 
+        error: 'One or more datasets not found' 
+      });
+    }
+
+    // Verify all TDPs are valid
+    const tdpIds = datasets.map(dataset => dataset.owner.id);
+    const tdpUsers = await db.User.findAll({
+      where: { 
+        id: tdpIds,
+        partyType: 'TDP',
+        isActive: true
+      }
+    });
+
+    if (tdpUsers.length !== datasets.length) {
+      return res.status(404).json({ 
+        error: 'One or more TDPs not found or invalid' 
+      });
+    }
+
+    // Calculate total price for all datasets
+    const totalPrice = finalDatasetSelections.reduce((sum, selection) => sum + selection.individualPrice, 0);
 
     // Get CCRP user if provided
     let ccrpUser = null;
@@ -807,18 +1146,65 @@ router.post('/', authenticateToken, async (req, res) => {
       }
     }
 
-    // Create contract in database (without blockchain for now)
+    // Prepare contract datasets data
+    const contractDatasets = datasets.map((dataset, index) => ({
+      datasetId: dataset.datasetId,
+      tdpId: dataset.owner.id,
+      datasetName: dataset.name,
+      tdpName: dataset.owner.name,
+      individualPrice: finalDatasetSelections[index].individualPrice,
+      paymentStatus: 'PENDING'
+    }));
+
+    // Prepare TDP signatures tracking
+    const tdpSignatures = {};
+    tdpUsers.forEach(tdp => {
+      tdpSignatures[tdp.id] = {
+        signed: false,
+        signedAt: null,
+        paymentAmount: finalDatasetSelections.find(s => 
+          datasets.find(d => d.owner.id === tdp.id)?.datasetId === s.datasetId
+        )?.individualPrice || 0
+      };
+    });
+
+    // Prepare TDP payments tracking
+    const tdpPayments = {};
+    tdpUsers.forEach(tdp => {
+      tdpPayments[tdp.id] = {
+        amount: finalDatasetSelections.find(s => 
+          datasets.find(d => d.owner.id === tdp.id)?.datasetId === s.datasetId
+        )?.individualPrice || 0,
+        status: 'PENDING',
+        paidAt: null
+      };
+    });
+
+    // Use first dataset as primary (for backward compatibility)
+    const primaryDataset = datasets[0];
+    const primaryTdp = primaryDataset.owner;
+
+    // Create contract in database
     const contract = await db.Contract.create({
       contractId: `CONTRACT-${Date.now()}`,
       blockchainContractId: null, // Will be set when blockchain is available
-      tdpId: tdpUser.id,
+      tdpId: primaryTdp.id, // Legacy field - primary TDP
       tdcId: tdcUser.id,
       ccrpId: ccrpUser ? ccrpUser.id : null,
-      datasetId: dataset.id,
-      price,
-      duration,
+      datasetId: primaryDataset.id, // Legacy field - primary dataset
+      primaryDatasetId: primaryDataset.id,
+      primaryTdpId: primaryTdp.id,
+      contractDatasets: contractDatasets,
+      datasetCount: datasets.length,
+      tdpCount: tdpUsers.length,
+      totalPrice: totalPrice,
+      price: totalPrice, // Legacy field - total price
+      duration: parseInt(duration),
       termsAndConditions,
-      status: ccrpUser ? 'PENDING_TDP_APPROVAL' : 'PENDING_CCRP_APPROVAL',
+      status: 'PENDING_ALL_TDP_APPROVAL', // Legacy status
+      multiTdpStatus: 'PENDING_ALL_TDP_APPROVAL',
+      tdpSignatures: tdpSignatures,
+      tdpPayments: tdpPayments,
       // Store privacy requirements as JSON
       trainingParams: privacyRequirements ? JSON.stringify(privacyRequirements) : null
     });
@@ -834,22 +1220,51 @@ router.post('/', authenticateToken, async (req, res) => {
       ]
     });
 
-    // Send notifications
-    await notificationService.notifyContractCreated(fullContract, tdpUser);
+    // Send notifications to ALL TDPs
+    for (const tdpUser of tdpUsers) {
+      await notificationService.notifyContractCreated(fullContract, tdpUser);
+    }
     
     // If CCRP was selected, send notification to CCRP
     if (ccrpUser) {
       await notificationService.notifyCCRPSelected(fullContract, ccrpUser);
     }
 
+    console.log('✅ Contract created successfully with multiple TDPs:', {
+      contractId: contract.contractId,
+      datasetCount: contract.datasetCount,
+      tdpCount: contract.tdpCount,
+      totalPrice: contract.totalPrice,
+      datasets: contractDatasets.map(d => d.datasetName),
+      tdps: tdpUsers.map(t => t.name)
+    });
+
     res.status(201).json({
       success: true,
       contract: fullContract,
-      message: 'Contract created successfully with privacy requirements'
+      message: 'Contract created successfully with multiple TDPs',
+      datasetCount: contract.datasetCount,
+      tdpCount: contract.tdpCount,
+      totalPrice: contract.totalPrice,
+      contractDatasets: contractDatasets,
+      tdpSignatures: tdpSignatures
     });
   } catch (error) {
-    console.error('Error creating contract:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    console.error('❌ Error creating contract:', error);
+    console.error('❌ Error details:', {
+      name: error.name,
+      message: error.message,
+      stack: error.stack,
+      code: error.code,
+      constraint: error.constraint,
+      table: error.table,
+      column: error.column
+    });
+    res.status(500).json({ 
+      error: 'Internal server error',
+      details: error.message,
+      code: error.code
+    });
   }
 });
 
@@ -1189,240 +1604,428 @@ router.post('/:contractId/sign', authenticateToken, async (req, res) => {
 });
 
 /**
- * Select CCRP (SIMPLE - database update only)
+ * Multi-TDP Contract Management Endpoints
  * 
- * This endpoint allows TDC to select a CCRP for contract review:
- * - Only TDC can select CCRP
- * - CCRP must be registered
- * - Selection is recorded in database
- * 
- * Security:
- * - Authentication required via JWT token
- * - Only TDC users can select CCRP
- * - CCRP must be a valid registered user
+ * These endpoints handle contracts with multiple TDPs (up to 3 datasets, each with different TDPs).
+ * Each TDP must sign individually and payments are tracked per TDP.
  */
-router.post('/:contractId/select-ccrp', authenticateToken, async (req, res) => {
+
+/**
+ * TDP Sign Contract (Multi-TDP Support)
+ * 
+ * Allows a specific TDP to sign a multi-TDP contract.
+ * Only the TDP who owns the dataset can sign for their portion.
+ */
+router.post('/:contractId/tdp-sign', authenticateToken, async (req, res) => {
   try {
     const { contractId } = req.params;
-    const { ccrpId } = req.body;
-    const currentUser = req.user?.localUser;
+    const { 
+      tdpId, // ID of the TDP signing
+      signedTransaction, 
+      userWalletAddress, 
+      did, 
+      signature, 
+      message, 
+      signatureType = 'WALLET' 
+    } = req.body;
 
-    if (!ccrpId) {
+    // Validate required parameters based on signature type
+    if (signatureType === 'WALLET') {
+      if (!signedTransaction || !userWalletAddress) {
+        return res.status(400).json({ 
+          error: 'Missing required parameters for wallet signing: signedTransaction and userWalletAddress' 
+        });
+      }
+    } else if (signatureType === 'DID') {
+      if (!did || !signature || !message) {
+        return res.status(400).json({ 
+          error: 'Missing required parameters for DID signing: did, signature, and message' 
+        });
+      }
+    } else {
       return res.status(400).json({ 
-        error: 'Missing required parameter: ccrpId' 
+        error: 'Invalid signature type. Must be either "WALLET" or "DID"' 
       });
     }
 
-    // Verify user is authenticated
-    if (!currentUser) {
+    // Get contract with associations
+    const contract = await db.Contract.findOne({
+      where: { contractId },
+      include: [
+        { model: db.User, as: 'tdp' },
+        { model: db.User, as: 'tdc' },
+        { model: db.User, as: 'ccrp' },
+        { model: db.Dataset, as: 'dataset' }
+      ]
+    });
+
+    if (!contract) {
+      return res.status(404).json({ error: 'Contract not found' });
+    }
+
+    // Verify this is a multi-TDP contract
+    if (!contract.contractDatasets || contract.datasetCount <= 1) {
+      return res.status(400).json({ error: 'This endpoint is for multi-TDP contracts only' });
+    }
+
+    // Get the authenticated user
+    const authenticatedUser = req.user?.localUser;
+    if (!authenticatedUser) {
       return res.status(401).json({ error: 'Authentication required' });
     }
 
-    // Get contract
-    const contract = await db.Contract.findOne({
-      where: { contractId },
-      include: [
-        { model: db.User, as: 'tdp' },
-        { model: db.User, as: 'tdc' },
-        { model: db.Dataset, as: 'dataset' }
-      ]
-    });
-
-    if (!contract) {
-      return res.status(404).json({ error: 'Contract not found' });
+    // Verify the TDP ID matches the authenticated user
+    if (tdpId !== authenticatedUser.id) {
+      return res.status(403).json({ error: 'Can only sign for your own TDP account' });
     }
 
-    // Verify TDC is making the request
-    if (currentUser.partyType !== 'TDC' || currentUser.id !== contract.tdcId) {
-      return res.status(403).json({ error: 'Only TDC can select CCRP' });
+    // Verify the TDP is actually a party to this contract
+    const contractDatasets = contract.contractDatasets || [];
+    const tdpDataset = contractDatasets.find(dataset => dataset.tdpId === tdpId);
+    
+    if (!tdpDataset) {
+      return res.status(403).json({ error: 'TDP is not a party to this contract' });
     }
 
-    // Get CCRP user
-    const ccrpUser = await db.User.findOne({
-      where: { id: ccrpId, partyType: 'CCRP', isActive: true }
-    });
-
-    if (!ccrpUser) {
-      return res.status(404).json({ error: 'CCRP not found' });
+    // Verify the TDP hasn't already signed
+    const tdpSignatures = contract.tdpSignatures || {};
+    if (tdpSignatures[tdpId]?.signed) {
+      return res.status(400).json({ error: 'TDP has already signed this contract' });
     }
 
-    // Update contract in database
-    contract.ccrpId = ccrpUser.id;
-    await contract.save();
+    let blockchainResult = null;
 
-    // Get updated contract with CCRP
-    const updatedContract = await db.Contract.findOne({
-      where: { contractId },
-      include: [
-        { model: db.User, as: 'tdp' },
-        { model: db.User, as: 'tdc' },
-        { model: db.User, as: 'ccrp' },
-        { model: db.Dataset, as: 'dataset' }
-      ]
-    });
+    // Handle different signing types
+    if (signatureType === 'WALLET') {
+      // Verify wallet address matches authenticated user
+      if (userWalletAddress && userWalletAddress !== authenticatedUser.walletAddress) {
+        return res.status(403).json({ error: 'Wallet address does not match authenticated user' });
+      }
 
-    // Send notification to CCRP
-    await notificationService.notifyCCRPSelected(updatedContract, ccrpUser);
+      // Broadcast the signed transaction to blockchain
+      blockchainResult = await blockchainService.broadcastSignedTransaction(signedTransaction);
 
-    res.json({
-      success: true,
-      contract: updatedContract,
-      message: 'CCRP selected successfully'
-    });
-  } catch (error) {
-    console.error('Error selecting CCRP:', error);
-    res.status(500).json({ error: 'Internal server error' });
-  }
-});
+      if (!blockchainResult.success) {
+        return res.status(500).json({ error: 'Failed to broadcast transaction' });
+      }
+    } else if (signatureType === 'DID') {
+      // Verify DID matches authenticated user
+      if (did && did !== authenticatedUser.did) {
+        return res.status(403).json({ error: 'DID does not match authenticated user' });
+      }
 
-// Complete contract
-router.post('/:contractId/complete', async (req, res) => {
-  try {
-    const { contractId } = req.params;
-    const { privateKey } = req.body;
+      // Verify DID signature
+      const isValidSignature = await verifyDIDSignature(did, message, signature);
+      
+      if (!isValidSignature) {
+        return res.status(401).json({ error: 'Invalid DID signature' });
+      }
 
-    // Get contract
-    const contract = await db.Contract.findOne({
-      where: { contractId },
-      include: [
-        { model: db.User, as: 'tdp' },
-        { model: db.User, as: 'tdc' },
-        { model: db.User, as: 'ccrp' },
-        { model: db.Dataset, as: 'dataset' }
-      ]
-    });
-
-    if (!contract) {
-      return res.status(404).json({ error: 'Contract not found' });
+      blockchainResult = {
+        success: true,
+        transactionHash: `DID_TX_${Date.now()}_${did.replace(/[^a-zA-Z0-9]/g, '_')}`,
+        message: 'DID signature recorded on blockchain'
+      };
     }
 
-    if (contract.status !== 'ACTIVE') {
-      return res.status(400).json({ error: 'Contract must be active to complete' });
-    }
+    // Update TDP signature in the contract
+    const updatedTdpSignatures = { ...tdpSignatures };
+    updatedTdpSignatures[tdpId] = {
+      signed: true,
+      signedAt: new Date(),
+      paymentAmount: tdpDataset.individualPrice,
+      signatureType: signatureType,
+      transactionHash: blockchainResult?.transactionHash
+    };
 
+    // Check if all TDPs have signed
+    const allTdpsSigned = Object.values(updatedTdpSignatures).every(sig => sig.signed);
+    
     // Update contract status
-    contract.status = 'COMPLETED';
-    await contract.save();
+    let newMultiTdpStatus = contract.multiTdpStatus;
+    if (allTdpsSigned) {
+      newMultiTdpStatus = contract.ccrpId ? 'PENDING_CCRP_APPROVAL' : 'PENDING_TDC_APPROVAL';
+    }
+
+    // Update contract
+    await contract.update({
+      tdpSignatures: updatedTdpSignatures,
+      multiTdpStatus: newMultiTdpStatus
+    });
 
     // Send notifications
-    await notificationService.notifyContractCompleted(contract);
+    await notificationService.notifyTdpSigned(contract, authenticatedUser, tdpDataset);
+
+    // If all TDPs signed and CCRP is selected, notify CCRP
+    if (allTdpsSigned && contract.ccrpId) {
+      const ccrpUser = await db.User.findByPk(contract.ccrpId);
+      if (ccrpUser) {
+        await notificationService.notifyCCRPApprovalRequired(contract, ccrpUser);
+      }
+    }
+
+    // If all TDPs signed and no CCRP, notify TDC
+    if (allTdpsSigned && !contract.ccrpId) {
+      const tdcUser = await db.User.findByPk(contract.tdcId);
+      if (tdcUser) {
+        await notificationService.notifyTdcApprovalRequired(contract, tdcUser);
+      }
+    }
 
     res.json({
       success: true,
-      contract
+      contract: await contract.reload(),
+      tdpSignature: updatedTdpSignatures[tdpId],
+      allTdpsSigned,
+      newStatus: newMultiTdpStatus,
+      blockchainTransaction: blockchainResult
     });
+
   } catch (error) {
-    console.error('Error completing contract:', error);
-    res.status(500).json({ error: 'Internal server error' });
-  }
-});
-
-// Cancel contract
-router.post('/:contractId/cancel', async (req, res) => {
-  try {
-    const { contractId } = req.params;
-    const { privateKey } = req.body;
-
-    // Get contract
-    const contract = await db.Contract.findOne({
-      where: { contractId },
-      include: [
-        { model: db.User, as: 'tdp' },
-        { model: db.User, as: 'tdc' },
-        { model: db.User, as: 'ccrp' },
-        { model: db.Dataset, as: 'dataset' }
-      ]
-    });
-
-    if (!contract) {
-      return res.status(404).json({ error: 'Contract not found' });
-    }
-
-    if (contract.status === 'COMPLETED') {
-      return res.status(400).json({ error: 'Cannot cancel completed contract' });
-    }
-
-    // Get user from private key
-    const { ethers } = require('ethers');
-    const wallet = new ethers.Wallet(privateKey);
-    const user = await db.User.findOne({
-      where: { walletAddress: wallet.address }
-    });
-
-    if (!user) {
-      return res.status(404).json({ error: 'User not found' });
-    }
-
-    // Verify user is part of the contract
-    if (user.id !== contract.tdpId && user.id !== contract.tdcId && user.id !== contract.ccrpId) {
-      return res.status(403).json({ error: 'Not authorized to cancel this contract' });
-    }
-
-    // Update contract status
-    contract.status = 'CANCELLED';
-    await contract.save();
-
-    // Send notifications
-    await notificationService.notifyContractCancelled(contract, user);
-
-    res.json({
-      success: true,
-      contract
-    });
-  } catch (error) {
-    console.error('Error cancelling contract:', error);
+    console.error('Error signing contract as TDP:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
 
 /**
- * Get available AI models for Ricardian contracts
+ * Get Multi-TDP Contract Status
  * 
- * This endpoint provides a list of available AI models that can be used
- * in Ricardian contracts for AI training scenarios.
- * 
- * Models include:
- * - Transformer models (GPT-4, BERT)
- * - CNN models (ResNet, image classifiers)
- * - RNN models (LSTM, sequence models)
- * - GAN models (generative models)
- * 
- * Each model includes:
- * - Architecture details
- * - Training parameters
- * - Privacy techniques
- * - Validation metrics
+ * Returns detailed status information for multi-TDP contracts including:
+ * - Which TDPs have signed
+ * - Payment status for each TDP
+ * - Overall contract status
  */
-router.get('/available-models', async (req, res) => {
+router.get('/:contractId/multi-tdp-status', async (req, res) => {
   try {
-    // Get models from database
-    const models = await db.AIModel.findAll({
-      where: { isActive: true },
-      order: [['name', 'ASC']]
+    const { contractId } = req.params;
+
+    const contract = await db.Contract.findOne({
+      where: { contractId },
+      include: [
+        { model: db.User, as: 'tdp' },
+        { model: db.User, as: 'tdc' },
+        { model: db.User, as: 'ccrp' },
+        { model: db.Dataset, as: 'dataset' }
+      ]
     });
+
+    if (!contract) {
+      return res.status(404).json({ error: 'Contract not found' });
+    }
+
+    // Verify this is a multi-TDP contract
+    if (!contract.contractDatasets || contract.datasetCount <= 1) {
+      return res.status(400).json({ error: 'This endpoint is for multi-TDP contracts only' });
+    }
+
+    const contractDatasets = contract.contractDatasets || [];
+    const tdpSignatures = contract.tdpSignatures || {};
+    const tdpPayments = contract.tdpPayments || {};
+
+    // Get detailed TDP status
+    const tdpStatus = contractDatasets.map(dataset => {
+      const tdpSignature = tdpSignatures[dataset.tdpId] || {};
+      const tdpPayment = tdpPayments[dataset.tdpId] || {};
+      
+      return {
+        datasetId: dataset.datasetId,
+        datasetName: dataset.datasetName,
+        tdpId: dataset.tdpId,
+        tdpName: dataset.tdpName,
+        individualPrice: dataset.individualPrice,
+        signed: tdpSignature.signed || false,
+        signedAt: tdpSignature.signedAt,
+        paymentStatus: tdpPayment.status || 'PENDING',
+        paymentAmount: tdpPayment.amount || dataset.individualPrice,
+        paidAt: tdpPayment.paidAt
+      };
+    });
+
+    // Calculate overall status
+    const signedTdps = Object.values(tdpSignatures).filter(sig => sig.signed).length;
+    const totalTdps = contractDatasets.length;
+    const allTdpsSigned = signedTdps === totalTdps;
 
     res.json({
       success: true,
-      models: models.map(model => ({
-        id: model.modelId,
-        name: model.name,
-        description: model.description,
-        type: model.type,
-        architecture: model.architecture,
-        parameters: model.parameters,
-        framework: model.framework,
-        privacyTechnique: model.privacyTechnique,
-        validationMetrics: model.validationMetrics,
-        maxEpochs: model.maxEpochs,
-        batchSize: model.batchSize,
-        learningRate: model.learningRate,
-        metadata: model.metadata
-      }))
+      contractId: contract.contractId,
+      multiTdpStatus: contract.multiTdpStatus,
+      datasetCount: contract.datasetCount,
+      tdpCount: contract.tdpCount,
+      totalPrice: contract.totalPrice,
+      signedTdps,
+      totalTdps,
+      allTdpsSigned,
+      tdpStatus,
+      contractDatasets,
+      tdpSignatures,
+      tdpPayments
     });
+
   } catch (error) {
-    console.error('❌ Error fetching AI models:', error);
+    console.error('Error getting multi-TDP status:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
 
-module.exports = router; 
+/**
+ * Record TDP Payment
+ * 
+ * Records when a TDP has been paid for their portion of the contract.
+ * This is typically called by the TDC or payment system.
+ */
+router.post('/:contractId/tdp-payment', authenticateToken, async (req, res) => {
+  try {
+    const { contractId } = req.params;
+    const { tdpId, paymentAmount, paymentMethod = 'BANK_TRANSFER' } = req.body;
+
+    // Get the authenticated user
+    const authenticatedUser = req.user?.localUser;
+    if (!authenticatedUser) {
+      return res.status(401).json({ error: 'Authentication required' });
+    }
+
+    // Only TDC or AppAdmin can record payments
+    if (!['TDC', 'AppAdmin'].includes(authenticatedUser.partyType)) {
+      return res.status(403).json({ error: 'Only TDC or AppAdmin can record payments' });
+    }
+
+    const contract = await db.Contract.findOne({
+      where: { contractId },
+      include: [
+        { model: db.User, as: 'tdp' },
+        { model: db.User, as: 'tdc' },
+        { model: db.User, as: 'ccrp' },
+        { model: db.Dataset, as: 'dataset' }
+      ]
+    });
+
+    if (!contract) {
+      return res.status(404).json({ error: 'Contract not found' });
+    }
+
+    // Verify this is a multi-TDP contract
+    if (!contract.contractDatasets || contract.datasetCount <= 1) {
+      return res.status(400).json({ error: 'This endpoint is for multi-TDP contracts only' });
+    }
+
+    // Verify the TDP is a party to this contract
+    const contractDatasets = contract.contractDatasets || [];
+    const tdpDataset = contractDatasets.find(dataset => dataset.tdpId === tdpId);
+    
+    if (!tdpDataset) {
+      return res.status(404).json({ error: 'TDP is not a party to this contract' });
+    }
+
+    // Verify payment amount matches the expected amount
+    if (paymentAmount !== tdpDataset.individualPrice) {
+      return res.status(400).json({ 
+        error: 'Payment amount does not match expected amount',
+        expected: tdpDataset.individualPrice,
+        provided: paymentAmount
+      });
+    }
+
+    // Update payment status
+    const updatedTdpPayments = { ...contract.tdpPayments } || {};
+    updatedTdpPayments[tdpId] = {
+      amount: paymentAmount,
+      status: 'PAID',
+      paidAt: new Date(),
+      paymentMethod: paymentMethod
+    };
+
+    // Update contract
+    await contract.update({
+      tdpPayments: updatedTdpPayments
+    });
+
+    // Get TDP user for notification
+    const tdpUser = await db.User.findByPk(tdpId);
+    if (tdpUser) {
+      await notificationService.notifyTdpPaymentReceived(contract, tdpUser, paymentAmount);
+    }
+
+    res.json({
+      success: true,
+      tdpPayment: updatedTdpPayments[tdpId],
+      message: 'Payment recorded successfully'
+    });
+
+  } catch (error) {
+    console.error('Error recording TDP payment:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+/**
+ * Get Contract Payment Summary
+ * 
+ * Returns a summary of all payments for a multi-TDP contract.
+ */
+router.get('/:contractId/payment-summary', async (req, res) => {
+  try {
+    const { contractId } = req.params;
+
+    const contract = await db.Contract.findOne({
+      where: { contractId },
+      include: [
+        { model: db.User, as: 'tdp' },
+        { model: db.User, as: 'tdc' },
+        { model: db.User, as: 'ccrp' },
+        { model: db.Dataset, as: 'dataset' }
+      ]
+    });
+
+    if (!contract) {
+      return res.status(404).json({ error: 'Contract not found' });
+    }
+
+    // Verify this is a multi-TDP contract
+    if (!contract.contractDatasets || contract.datasetCount <= 1) {
+      return res.status(400).json({ error: 'This endpoint is for multi-TDP contracts only' });
+    }
+
+    const contractDatasets = contract.contractDatasets || [];
+    const tdpPayments = contract.tdpPayments || {};
+
+    // Calculate payment summary
+    const paymentSummary = contractDatasets.map(dataset => {
+      const payment = tdpPayments[dataset.tdpId] || {};
+      
+      return {
+        datasetId: dataset.datasetId,
+        datasetName: dataset.datasetName,
+        tdpId: dataset.tdpId,
+        tdpName: dataset.tdpName,
+        expectedAmount: dataset.individualPrice,
+        paidAmount: payment.amount || 0,
+        paymentStatus: payment.status || 'PENDING',
+        paidAt: payment.paidAt,
+        paymentMethod: payment.paymentMethod
+      };
+    });
+
+    const totalExpected = paymentSummary.reduce((sum, p) => sum + p.expectedAmount, 0);
+    const totalPaid = paymentSummary.reduce((sum, p) => sum + p.paidAmount, 0);
+    const paidCount = paymentSummary.filter(p => p.paymentStatus === 'PAID').length;
+    const totalCount = paymentSummary.length;
+
+    res.json({
+      success: true,
+      contractId: contract.contractId,
+      totalExpected,
+      totalPaid,
+      paidCount,
+      totalCount,
+      allPaid: paidCount === totalCount,
+      paymentSummary
+    });
+
+  } catch (error) {
+    console.error('Error getting payment summary:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+module.exports = router;

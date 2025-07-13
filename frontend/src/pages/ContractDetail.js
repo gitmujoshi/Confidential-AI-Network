@@ -25,6 +25,18 @@ import {
   Accordion,
   AccordionSummary,
   AccordionDetails,
+  List,
+  ListItem,
+  ListItemIcon,
+  ListItemText,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Paper,
+  CircularProgress,
 } from '@mui/material';
 import {
   CheckCircle,
@@ -37,6 +49,8 @@ import {
   Download,
   Visibility,
   ExpandMore,
+  Payment,
+  AttachMoney,
 } from '@mui/icons-material';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from 'react-query';
@@ -90,50 +104,46 @@ const StatusChip = ({ status }) => {
   );
 };
 
-const getSteps = (contract) => {
-  const steps = [
-    {
-      label: 'Contract Created',
-      description: 'TDC initiated contract with TDP',
-      completed: true,
-      icon: <Description />,
-    },
-    {
-      label: 'TDP Approval',
-      description: 'TDP reviews and signs contract',
-      completed: contract.tdpSigned,
-      icon: <Person />,
-    },
-    {
-      label: 'CCRP Selection',
-      description: 'TDC selects Confidential Clean Room Provider',
-      completed: !!contract.ccrpId,
-      icon: <Security />,
-    },
-    {
-      label: 'CCRP Approval',
-      description: 'CCRP reviews and signs contract',
-      completed: contract.ccrpSigned,
-      icon: <Security />,
-    },
-    {
-      label: 'Contract Active',
-      description: 'All parties can proceed with model training',
-      completed: contract.status === 'ACTIVE' || contract.status === 'COMPLETED',
-      icon: <CheckCircle />,
-    },
-  ];
-
-  if (contract.status === 'COMPLETED') {
-    steps.push({
-      label: 'Contract Completed',
-      description: 'Model training completed successfully',
-      completed: true,
-      icon: <CheckCircle />,
-    });
+const TDPStatusChip = ({ signed, signedAt }) => {
+  if (signed) {
+    return (
+      <Chip
+        label={`Signed ${format(new Date(signedAt), 'MMM dd, yyyy')}`}
+        color="success"
+        size="small"
+        icon={<CheckCircle fontSize="small" />}
+      />
+    );
   }
+  return (
+    <Chip
+      label="Pending"
+      color="warning"
+      size="small"
+      icon={<Pending fontSize="small" />}
+    />
+  );
+};
 
-  return steps;
+const PaymentStatusChip = ({ paid, paidAt, amount }) => {
+  if (paid) {
+    return (
+      <Chip
+        label={`Paid $${amount} ${format(new Date(paidAt), 'MMM dd, yyyy')}`}
+        color="success"
+        size="small"
+        icon={<AttachMoney fontSize="small" />}
+      />
+    );
+  }
+  return (
+    <Chip
+      label={`Pending $${amount}`}
+      color="warning"
+      size="small"
+      icon={<Payment fontSize="small" />}
+    />
+  );
 };
 
 function ContractDetail() {
@@ -143,6 +153,9 @@ function ContractDetail() {
   const { currentUser, isAuthenticated, isTDC, isTDP, isCCRP } = useUser();
   const [ccrpDialogOpen, setCcrpDialogOpen] = useState(false);
   const [selectedCcrp, setSelectedCcrp] = useState('');
+  const [paymentDialogOpen, setPaymentDialogOpen] = useState(false);
+  const [selectedTDP, setSelectedTDP] = useState(null);
+  const [paymentAmount, setPaymentAmount] = useState('');
 
   const [signing, setSigning] = useState(false);
   const [signError, setSignError] = useState('');
@@ -153,6 +166,56 @@ function ContractDetail() {
     () => apiService.getContract(contractId)
   );
 
+  // Debug: Log contract data to see what Ricardian fields are present
+  React.useEffect(() => {
+    if (contract) {
+      console.log('🔍 Contract data:', contract);
+      console.log('🔍 Ricardian fields check:');
+      console.log('  - legalDocumentHash:', contract.legalDocumentHash);
+      console.log('  - smartContractAddress:', contract.smartContractAddress);
+      console.log('  - ricardianSignature:', contract.ricardianSignature);
+      console.log('  - trainingParams:', contract.trainingParams);
+      console.log('  - environmentSpecs:', contract.environmentSpecs);
+      console.log('  - kmsConfigs:', contract.kmsConfigs);
+      console.log('  - attestationVerified:', contract.attestationVerified);
+      console.log('  - attestationReport:', contract.attestationReport);
+      console.log('  - multiTdpStatus:', contract.multiTdpStatus);
+      console.log('  - totalPrice:', contract.totalPrice);
+      console.log('  - datasetCount:', contract.datasetCount);
+      console.log('  - tdpCount:', contract.tdpCount);
+      console.log('  - contractDatasets:', contract.contractDatasets);
+      console.log('  - tdpSignatures:', contract.tdpSignatures);
+      console.log('  - tdpPayments:', contract.tdpPayments);
+      
+      const hasRicardianFields = (
+        contract.legalDocumentHash || contract.smartContractAddress || contract.ricardianSignature || 
+        contract.trainingParams || contract.environmentSpecs || contract.kmsConfigs || 
+        contract.attestationVerified !== undefined || contract.attestationReport ||
+        contract.multiTdpStatus || contract.totalPrice || contract.datasetCount || contract.tdpCount ||
+        contract.contractDatasets || contract.tdpSignatures || contract.tdpPayments
+      );
+      console.log('🔍 Should show Ricardian section:', hasRicardianFields);
+    }
+  }, [contract]);
+
+  // Fetch multi-TDP contract status
+  const { data: multiTDPStatus } = useQuery(
+    ['multi-tdp-status', contractId],
+    () => apiService.getMultiTDPContractStatus(contractId),
+    {
+      enabled: !!contract?.datasets && contract.datasets.length > 1
+    }
+  );
+
+  // Fetch payment summary
+  const { data: paymentSummary } = useQuery(
+    ['payment-summary', contractId],
+    () => apiService.getPaymentSummary(contractId),
+    {
+      enabled: !!contract?.datasets && contract.datasets.length > 1
+    }
+  );
+
   // Fetch users for CCRP selection
   const { data: users = [] } = useQuery('users', apiService.getUsers);
   const { 
@@ -161,18 +224,47 @@ function ContractDetail() {
     error: ccrpError 
   } = useQuery('ccrp-users', apiService.getCCRPUsers);
 
-
-
   // Mutations
   const signContractMutation = useMutation(
     (data) => apiService.signContract(contractId, data),
     {
       onSuccess: () => {
         queryClient.invalidateQueries(['contract', contractId]);
+        queryClient.invalidateQueries(['multi-tdp-status', contractId]);
         toast.success('Contract signed successfully');
       },
       onError: () => {
         toast.error('Failed to sign contract');
+      },
+    }
+  );
+
+  const signContractAsTDPMutation = useMutation(
+    ({ tdpId, data }) => apiService.signContractAsTDP(contractId, tdpId, data),
+    {
+      onSuccess: () => {
+        queryClient.invalidateQueries(['contract', contractId]);
+        queryClient.invalidateQueries(['multi-tdp-status', contractId]);
+        toast.success('Contract signed successfully as TDP');
+      },
+      onError: () => {
+        toast.error('Failed to sign contract as TDP');
+      },
+    }
+  );
+
+  const recordPaymentMutation = useMutation(
+    ({ tdpId, paymentData }) => apiService.recordPaymentForTDP(contractId, tdpId, paymentData),
+    {
+      onSuccess: () => {
+        queryClient.invalidateQueries(['payment-summary', contractId]);
+        setPaymentDialogOpen(false);
+        setSelectedTDP(null);
+        setPaymentAmount('');
+        toast.success('Payment recorded successfully');
+      },
+      onError: () => {
+        toast.error('Failed to record payment');
       },
     }
   );
@@ -217,425 +309,328 @@ function ContractDetail() {
     }
   );
 
-  // Role-based access control
-  if (!isAuthenticated) {
+  // Check if this is a multi-TDP contract
+  const isMultiTDPContract = contract?.datasets && contract.datasets.length > 1;
+
+  if (isLoading) {
     return (
       <Box sx={{ p: 3 }}>
-        <Alert severity="warning">
-          Please connect your wallet to access this page.
+        <CircularProgress />
+        <Typography variant="body1" sx={{ mt: 2 }}>
+          Loading contract details...
+        </Typography>
+      </Box>
+    );
+  }
+
+  if (error) {
+    return (
+      <Box sx={{ p: 3 }}>
+        <Alert severity="error">
+          Failed to load contract details: {error.message}
         </Alert>
       </Box>
     );
   }
 
-
+  if (!contract) {
+    return (
+      <Box sx={{ p: 3 }}>
+        <Alert severity="warning">
+          Contract not found.
+        </Alert>
+      </Box>
+    );
+  }
 
   const handleSignContract = async (partyType) => {
     setSigning(true);
     setSignError('');
 
     try {
-      // Check if user has a DID for DID-based signing
-      if (currentUser?.did && currentUser.did.startsWith('did:web:')) {
-        // Use DID-based signing for did:web users
-        await handleDIDBasedSigning(partyType);
-      } else if (currentUser?.walletAddress) {
-        // Use wallet-based signing for users with wallet addresses
-        await handleWalletBasedSigning(partyType);
-      } else {
-        setSignError('No wallet address or DID found for signing. Please connect your wallet or verify your DID.');
-        setSigning(false);
-        return;
-      }
+      const signingData = await apiService.getContractSigningData(contractId);
       
-      toast.success('Contract signed successfully!');
-      queryClient.invalidateQueries(['contract', contractId]);
-    } catch (err) {
-      setSignError('Failed to sign contract: ' + (err?.message || 'Unknown error'));
+      // Test signing process
+      const testResult = await testSigningProcess(signingData.message);
+      
+      if (testResult.success) {
+        const signature = testResult.signature;
+        
+        const signPayload = {
+          signature,
+          partyType,
+          timestamp: new Date().toISOString(),
+          walletAddress: currentUser.walletAddress,
+          did: currentUser.did
+        };
+
+        if (partyType === 'TDP' && isMultiTDPContract) {
+          // Find the TDP ID for the current user
+          const tdpDataset = contract.datasets.find(dataset => 
+            dataset.tdpId === currentUser.id || dataset.tdp?.id === currentUser.id
+          );
+          
+          if (tdpDataset) {
+            await signContractAsTDPMutation.mutateAsync({
+              tdpId: tdpDataset.tdpId,
+              data: signPayload
+            });
+          } else {
+            setSignError('You are not a TDP for this contract');
+          }
+        } else {
+          await signContractMutation.mutateAsync(signPayload);
+        }
+      } else {
+        setSignError('Failed to generate signature');
+      }
+    } catch (error) {
+      console.error('Signing error:', error);
+      setSignError(error.message || 'Failed to sign contract');
     } finally {
       setSigning(false);
     }
   };
 
-  const handleDIDBasedSigning = async (partyType) => {
+  const handleCompleteContract = async () => {
     try {
-      console.log('🔐 Using enterprise DID-based signing for:', currentUser.did);
-      
-      // Create a message to sign
-      const message = `I, the holder of DID ${currentUser.did}, hereby sign contract ${contractId} as ${partyType} on ${new Date().toISOString()}`;
-      
-      // Use enterprise signing service instead of prompting for private key
-      console.log('🏢 Using enterprise signing service...');
-      
-      const signingResponse = await apiService.signMessage({
-        message: message,
-        did: currentUser.did
+      await completeContractMutation.mutateAsync({
+        completedAt: new Date().toISOString(),
+        completionNotes: 'Contract completed successfully'
       });
-      
-      if (!signingResponse.success) {
-        throw new Error('Enterprise signing failed');
-      }
-      
-      console.log('✅ Enterprise signing completed successfully');
-      
-      // Call backend to sign contract with DID
-      await apiService.signContract(contractId, {
-        did: currentUser.did,
-        signature: signingResponse.signature,
-        message: message,
-        signatureType: 'DID'
-      });
-      
-      console.log('✅ DID-based signing completed');
     } catch (error) {
-      console.error('❌ DID-based signing failed:', error);
-      throw error;
+      console.error('Complete contract error:', error);
     }
   };
 
-  const handleWalletBasedSigning = async (partyType) => {
+  const handleCancelContract = async () => {
     try {
-      console.log('🔐 Using wallet-based signing for:', currentUser.walletAddress);
-      
-      if (!window.ethereum) {
-        throw new Error('MetaMask is not installed.');
-      }
-      
-      const provider = new ethers.BrowserProvider(window.ethereum);
-      const signer = await provider.getSigner();
-      
-      // Get transaction data from backend
-      const signingDataResponse = await apiService.getContractSigningData(contractId);
-      const { signingData } = signingDataResponse;
-      
-      // Send transaction
-      const tx = await signer.sendTransaction({
-        to: signingData.to,
-        data: signingData.data,
-        value: signingData.value || 0,
-        gasLimit: signingData.gasLimit || 100000,
+      await cancelContractMutation.mutateAsync({
+        cancelledAt: new Date().toISOString(),
+        cancellationReason: 'Contract cancelled by user'
       });
-      await tx.wait();
-      
-      // Call backend to notify contract signed
-      await apiService.signContract(contractId, {
-        userWalletAddress: currentUser.walletAddress,
-        signedTransaction: tx.hash,
-        signatureType: 'WALLET'
-      });
-      
-      console.log('✅ Wallet-based signing completed');
     } catch (error) {
-      console.error('❌ Wallet-based signing failed:', error);
-      throw error;
+      console.error('Cancel contract error:', error);
     }
   };
 
-  const handleSelectCcrp = async () => {
-    if (!selectedCcrp) {
-      toast.error('Please select a CCRP');
+  const handleRecordPayment = async () => {
+    if (!selectedTDP || !paymentAmount) {
+      toast.error('Please select TDP and enter payment amount');
       return;
     }
-    
+
     try {
-      // Send simple CCRP selection request
-      await selectCcrpMutation.mutateAsync({
-        ccrpId: parseInt(selectedCcrp)
+      await recordPaymentMutation.mutateAsync({
+        tdpId: selectedTDP.id,
+        paymentData: {
+          amount: parseFloat(paymentAmount),
+          paidAt: new Date().toISOString(),
+          paymentMethod: 'bank_transfer',
+          reference: `PAY-${Date.now()}`
+        }
       });
-      
     } catch (error) {
-      console.error('Error selecting CCRP:', error);
-      toast.error('Failed to select CCRP: ' + error.message);
+      console.error('Record payment error:', error);
     }
   };
-
-  const handleCompleteContract = () => {
-    // TODO: Get private key from secure storage or user input
-    const privateKey = process.env.REACT_APP_CCRP_PRIVATE_KEY || '0x0000000000000000000000000000000000000000000000000000000000000000';
-    completeContractMutation.mutate({ privateKey });
-  };
-
-  const handleCancelContract = () => {
-    // TODO: Get private key from secure storage or user input
-    const privateKey = process.env.REACT_APP_CCRP_PRIVATE_KEY || '0x0000000000000000000000000000000000000000000000000000000000000000';
-    cancelContractMutation.mutate({ privateKey });
-  };
-
-  // Download contract as JSON file
-  const downloadContract = () => {
-    if (!contract) return;
-    
-    const contractData = {
-      contract: {
-        contractId: contract.contractId,
-        status: contract.status,
-        price: contract.price,
-        duration: contract.duration,
-        termsAndConditions: contract.termsAndConditions,
-        modelId: contract.modelId,
-        tdpSigned: contract.tdpSigned,
-        ccrpSigned: contract.ccrpSigned,
-        tdpSignedAt: contract.tdpSignedAt,
-        ccrpSignedAt: contract.ccrpSignedAt,
-        createdAt: contract.createdAt,
-        updatedAt: contract.updatedAt
-      },
-      parties: {
-        tdp: contract.tdp,
-        tdc: contract.tdc,
-        ccrp: contract.ccrp
-      },
-      dataset: contract.dataset,
-      legalDocument: contract.legalDocument,
-      legalDocumentHash: contract.legalDocumentHash,
-      ricardianSignature: contract.ricardianSignature,
-      smartContractAddress: contract.smartContractAddress,
-      smartContractNetwork: contract.smartContractNetwork,
-      environmentSpecs: contract.environmentSpecs,
-      trainingParams: contract.trainingParams,
-      kmsConfigs: contract.kmsConfigs,
-      attestationVerified: contract.attestationVerified,
-      attestationReport: contract.attestationReport,
-      timestamp: new Date().toISOString()
-    };
-    
-    const blob = new Blob([JSON.stringify(contractData, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `contract-${contract.contractId}.json`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-    
-    toast.success('Contract downloaded successfully!');
-  };
-
-  // Download legal document separately
-  const downloadLegalDocument = () => {
-    if (!contract?.legalDocument) {
-      toast.error('No legal document available for this contract');
-      return;
-    }
-    
-    const legalDoc = contract.legalDocument;
-    const blob = new Blob([JSON.stringify(legalDoc, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `legal-document-${contract.contractId}.json`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-    
-    toast.success('Legal document downloaded successfully!');
-  };
-
-  // Download smart contract data
-  const downloadSmartContractData = () => {
-    if (!contract?.smartContractAddress) {
-      toast.error('No smart contract data available for this contract');
-      return;
-    }
-    
-    const smartContractData = {
-      address: contract.smartContractAddress,
-      network: contract.smartContractNetwork,
-      contractId: contract.contractId,
-      legalDocumentHash: contract.legalDocumentHash,
-      ricardianSignature: contract.ricardianSignature,
-      timestamp: new Date().toISOString()
-    };
-    
-    const blob = new Blob([JSON.stringify(smartContractData, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `smart-contract-${contract.contractId}.json`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-    
-    toast.success('Smart contract data downloaded successfully!');
-  };
-
-  if (isLoading) {
-    return (
-      <Box textAlign="center" py={4}>
-        <Typography>Loading contract details...</Typography>
-      </Box>
-    );
-  }
-
-  if (error || !contract) {
-    return (
-      <Box textAlign="center" py={4}>
-        <Typography color="error">Failed to load contract details</Typography>
-        <Button onClick={() => navigate('/contracts')} sx={{ mt: 2 }}>
-          Back to Contracts
-        </Button>
-      </Box>
-    );
-  }
-
-  const steps = getSteps(contract);
 
   return (
-    <Box>
-      <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
-        <Typography variant="h4">Contract Details</Typography>
-        <StatusChip status={contract.status} />
-      </Box>
+    <Box sx={{ p: 3 }}>
+      <Typography variant="h4" gutterBottom>
+        Contract Details
+      </Typography>
 
       <Grid container spacing={3}>
-        {/* Contract Information */}
-        <Grid item xs={12} md={8}>
-          <Card>
-            <CardContent>
-              <Typography variant="h5" gutterBottom>
-                {contract.contractId}
-              </Typography>
-              
-              <Grid container spacing={3}>
-                <Grid item xs={12} md={6}>
-                  <Typography variant="body2" color="textSecondary" gutterBottom>
-                    <strong>Dataset:</strong>
-                  </Typography>
-                  <Typography variant="body1" gutterBottom>
-                    {contract.dataset?.name}
-                  </Typography>
-                </Grid>
-                
-                <Grid item xs={12} md={6}>
-                  <Typography variant="body2" color="textSecondary" gutterBottom>
-                    <strong>Model ID:</strong>
-                  </Typography>
-                  <Typography variant="body1" gutterBottom>
-                    <em>Not applicable</em>
-                  </Typography>
-                </Grid>
-                
-                <Grid item xs={12} md={6}>
-                  <Typography variant="body2" color="textSecondary" gutterBottom>
-                    <strong>Price:</strong>
-                  </Typography>
-                  <Typography variant="body1" gutterBottom>
-                    ${contract.price}
-                  </Typography>
-                </Grid>
-                
-                <Grid item xs={12} md={6}>
-                  <Typography variant="body2" color="textSecondary" gutterBottom>
-                    <strong>Duration:</strong>
-                  </Typography>
-                  <Typography variant="body1" gutterBottom>
-                    {contract.duration} days
-                  </Typography>
-                </Grid>
-              </Grid>
-
-              <Divider sx={{ my: 3 }} />
-
-              <Typography variant="h6" gutterBottom>
-                Terms & Conditions
-              </Typography>
-              <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap' }}>
-                {contract.termsAndConditions}
-              </Typography>
-            </CardContent>
-          </Card>
-        </Grid>
-
-        {/* Contract Progress */}
-        <Grid item xs={12} md={4}>
-          <Card>
-            <CardContent>
-              <Typography variant="h6" gutterBottom>
-                Contract Progress
-              </Typography>
-              <Stepper orientation="vertical">
-                {steps.map((step, index) => (
-                  <Step key={index} active={!step.completed} completed={step.completed}>
-                    <StepLabel icon={step.icon}>
-                      {step.label}
-                    </StepLabel>
-                    <StepContent>
-                      <Typography variant="body2" color="textSecondary">
-                        {step.description}
-                      </Typography>
-                    </StepContent>
-                  </Step>
-                ))}
-              </Stepper>
-            </CardContent>
-          </Card>
-        </Grid>
-
-        {/* Parties Information */}
+        {/* Contract Header */}
         <Grid item xs={12}>
           <Card>
             <CardContent>
-              <Typography variant="h6" gutterBottom>
-                Contract Parties
-              </Typography>
-              <Grid container spacing={3}>
-                <Grid item xs={12} md={4}>
-                  <Box display="flex" alignItems="center" gap={2}>
-                    <Person color="primary" />
-                    <Box>
-                      <Typography variant="body1" fontWeight="medium">
-                        Training Data Provider (TDP)
-                      </Typography>
-                      <Typography variant="body2" color="textSecondary">
-                        {contract.tdp?.name}
-                      </Typography>
-                      <Typography variant="body2" fontSize="0.75rem" fontFamily="monospace">
-                        {contract.tdp?.walletAddress}
-                      </Typography>
-                      <Chip 
-                        label={contract.tdpSigned ? 'Signed' : 'Pending'} 
-                        color={contract.tdpSigned ? 'success' : 'warning'}
-                        size="small"
-                        sx={{ mt: 1 }}
-                      />
-                    </Box>
-                  </Box>
-                </Grid>
+              <Box display="flex" justifyContent="space-between" alignItems="flex-start">
+                <Box>
+                  <Typography variant="h5" gutterBottom>
+                    {contract.contractId}
+                  </Typography>
+                  <Typography variant="body2" color="textSecondary">
+                    Created: {format(new Date(contract.createdAt), 'MMM dd, yyyy HH:mm')}
+                  </Typography>
+                  {isMultiTDPContract && (
+                    <Chip 
+                      label="Multi-TDP Contract" 
+                      color="primary" 
+                      size="small" 
+                      sx={{ mt: 1 }}
+                    />
+                  )}
+                </Box>
+                <StatusChip status={contract.status} />
+              </Box>
+            </CardContent>
+          </Card>
+        </Grid>
+
+        {/* Multi-TDP Contract Information */}
+        {isMultiTDPContract && (
+          <Grid item xs={12}>
+            <Card>
+              <CardContent>
+                <Typography variant="h6" gutterBottom>
+                  Multi-TDP Contract Details
+                </Typography>
                 
-                <Grid item xs={12} md={4}>
-                  <Box display="flex" alignItems="center" gap={2}>
-                    <Person color="secondary" />
-                    <Box>
-                      <Typography variant="body1" fontWeight="medium">
-                        Training Data Consumer (TDC)
-                      </Typography>
-                      <Typography variant="body2" color="textSecondary">
-                        {contract.tdc?.name}
-                      </Typography>
-                      <Typography variant="body2" fontSize="0.75rem" fontFamily="monospace">
-                        {contract.tdc?.walletAddress}
-                      </Typography>
+                <TableContainer component={Paper} variant="outlined">
+                  <Table>
+                    <TableHead>
+                      <TableRow>
+                        <TableCell>Dataset</TableCell>
+                        <TableCell>TDP</TableCell>
+                        <TableCell>Price</TableCell>
+                        <TableCell>Status</TableCell>
+                        <TableCell>Payment</TableCell>
+                        <TableCell>Actions</TableCell>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {contract.datasets.map((dataset) => (
+                        <TableRow key={dataset.id}>
+                          <TableCell>
+                            <Typography variant="body2" fontWeight="medium">
+                              {dataset.name}
+                            </Typography>
+                            <Typography variant="caption" color="textSecondary">
+                              {dataset.description}
+                            </Typography>
+                          </TableCell>
+                          <TableCell>
+                            <Typography variant="body2">
+                              {dataset.tdp?.name || 'Unknown TDP'}
+                            </Typography>
+                            <Typography variant="caption" color="textSecondary">
+                              {dataset.tdp?.email}
+                            </Typography>
+                          </TableCell>
+                          <TableCell>
+                            <Typography variant="body2" fontWeight="medium">
+                              ${dataset.price}
+                            </Typography>
+                          </TableCell>
+                          <TableCell>
+                            <TDPStatusChip 
+                              signed={dataset.tdpSigned} 
+                              signedAt={dataset.tdpSignedAt}
+                            />
+                          </TableCell>
+                          <TableCell>
+                            <PaymentStatusChip 
+                              paid={dataset.paymentPaid}
+                              paidAt={dataset.paymentPaidAt}
+                              amount={dataset.price}
+                            />
+                          </TableCell>
+                          <TableCell>
+                            <Box display="flex" gap={1}>
+                              {/* TDP Signing */}
+                              {isTDP && (dataset.tdp?.id === currentUser.id || dataset.tdpId === currentUser.id) && 
+                               !dataset.tdpSigned && contract.status === 'PENDING_TDP_APPROVAL' && (
+                                <Button
+                                  variant="outlined"
+                                  size="small"
+                                  onClick={() => handleSignContract('TDP')}
+                                  disabled={signing}
+                                >
+                                  {signing ? 'Signing...' : 'Sign'}
+                                </Button>
+                              )}
+                              
+                              {/* TDC Payment Recording */}
+                              {isTDC && contract.tdc?.id === currentUser.id && 
+                               dataset.tdpSigned && !dataset.paymentPaid && (
+                                <Button
+                                  variant="outlined"
+                                  size="small"
+                                  onClick={() => {
+                                    setSelectedTDP(dataset.tdp);
+                                    setPaymentAmount(dataset.price.toString());
+                                    setPaymentDialogOpen(true);
+                                  }}
+                                >
+                                  Record Payment
+                                </Button>
+                              )}
+                            </Box>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
+              </CardContent>
+            </Card>
+          </Grid>
+        )}
+
+        {/* Single TDP Contract Information (Legacy Support) */}
+        {!isMultiTDPContract && (
+          <Grid item xs={12}>
+            <Card>
+              <CardContent>
+                <Typography variant="h6" gutterBottom>
+                  Contract Parties
+                </Typography>
+                <Grid container spacing={3}>
+                  <Grid item xs={12} md={4}>
+                    <Box display="flex" alignItems="center" gap={2}>
+                      <Person color="primary" />
+                      <Box>
+                        <Typography variant="body1" fontWeight="medium">
+                          Training Data Provider (TDP)
+                        </Typography>
+                        <Typography variant="body2" color="textSecondary">
+                          {contract.tdp?.name}
+                        </Typography>
+                        <Typography variant="body2" fontSize="0.75rem" fontFamily="monospace">
+                          {contract.tdp?.walletAddress}
+                        </Typography>
+                        <Chip 
+                          label={contract.tdpSigned ? 'Signed' : 'Pending'} 
+                          color={contract.tdpSigned ? 'success' : 'warning'}
+                          size="small"
+                          sx={{ mt: 1 }}
+                        />
+                      </Box>
                     </Box>
-                  </Box>
-                </Grid>
-                
-                <Grid item xs={12} md={4}>
-                  <Box display="flex" alignItems="center" gap={2}>
-                    <Security color="success" />
-                    <Box>
-                      <Typography variant="body1" fontWeight="medium">
-                        Confidential Clean Room Provider (CCRP)
-                      </Typography>
-                      {contract.ccrp ? (
-                        <>
+                  </Grid>
+                  
+                  <Grid item xs={12} md={4}>
+                    <Box display="flex" alignItems="center" gap={2}>
+                      <Person color="secondary" />
+                      <Box>
+                        <Typography variant="body1" fontWeight="medium">
+                          Training Data Consumer (TDC)
+                        </Typography>
+                        <Typography variant="body2" color="textSecondary">
+                          {contract.tdc?.name}
+                        </Typography>
+                        <Typography variant="body2" fontSize="0.75rem" fontFamily="monospace">
+                          {contract.tdc?.walletAddress}
+                        </Typography>
+                      </Box>
+                    </Box>
+                  </Grid>
+                  
+                  {contract.ccrp && (
+                    <Grid item xs={12} md={4}>
+                      <Box display="flex" alignItems="center" gap={2}>
+                        <Person color="success" />
+                        <Box>
+                          <Typography variant="body1" fontWeight="medium">
+                            CCRP
+                          </Typography>
                           <Typography variant="body2" color="textSecondary">
-                            {contract.ccrp.name}
+                            {contract.ccrp?.name}
                           </Typography>
                           <Typography variant="body2" fontSize="0.75rem" fontFamily="monospace">
-                            {contract.ccrp.walletAddress}
+                            {contract.ccrp?.walletAddress}
                           </Typography>
                           <Chip 
                             label={contract.ccrpSigned ? 'Signed' : 'Pending'} 
@@ -643,16 +638,117 @@ function ContractDetail() {
                             size="small"
                             sx={{ mt: 1 }}
                           />
-                        </>
-                      ) : (
-                        <Typography variant="body2" color="textSecondary">
-                          Not selected yet
-                        </Typography>
-                      )}
-                    </Box>
-                  </Box>
+                        </Box>
+                      </Box>
+                    </Grid>
+                  )}
                 </Grid>
-              </Grid>
+              </CardContent>
+            </Card>
+          </Grid>
+        )}
+
+        {/* Contract Details */}
+        <Grid item xs={12} md={6}>
+          <Card>
+            <CardContent>
+              <Typography variant="h6" gutterBottom>
+                Contract Details
+              </Typography>
+              
+              <Box display="flex" flexDirection="column" gap={2}>
+                <Box>
+                  <Typography variant="body2" color="textSecondary">
+                    Status
+                  </Typography>
+                  <StatusChip status={contract.status} />
+                </Box>
+                
+                <Box>
+                  <Typography variant="body2" color="textSecondary">
+                    Duration
+                  </Typography>
+                  <Typography variant="body1">
+                    {contract.duration} days
+                  </Typography>
+                </Box>
+                
+                {!isMultiTDPContract && (
+                  <Box>
+                    <Typography variant="body2" color="textSecondary">
+                      Price
+                    </Typography>
+                    <Typography variant="body1">
+                      ${contract.price}
+                    </Typography>
+                  </Box>
+                )}
+                
+                {isMultiTDPContract && paymentSummary && (
+                  <Box>
+                    <Typography variant="body2" color="textSecondary">
+                      Total Price
+                    </Typography>
+                    <Typography variant="body1">
+                      ${paymentSummary.totalAmount}
+                    </Typography>
+                    <Typography variant="caption" color="textSecondary">
+                      Paid: ${paymentSummary.paidAmount} | Pending: ${paymentSummary.pendingAmount}
+                    </Typography>
+                  </Box>
+                )}
+                
+                <Box>
+                  <Typography variant="body2" color="textSecondary">
+                    Created
+                  </Typography>
+                  <Typography variant="body1">
+                    {format(new Date(contract.createdAt), 'MMM dd, yyyy HH:mm')}
+                  </Typography>
+                </Box>
+              </Box>
+            </CardContent>
+          </Card>
+        </Grid>
+
+        {/* Dataset Information */}
+        <Grid item xs={12} md={6}>
+          <Card>
+            <CardContent>
+              <Typography variant="h6" gutterBottom>
+                Dataset Information
+              </Typography>
+              
+              {isMultiTDPContract ? (
+                <List>
+                  {contract.datasets.map((dataset) => (
+                    <ListItem key={dataset.id}>
+                      <ListItemIcon>
+                        <Storage />
+                      </ListItemIcon>
+                      <ListItemText
+                        primary={dataset.name}
+                        secondary={`${dataset.description} | $${dataset.price}`}
+                      />
+                    </ListItem>
+                  ))}
+                </List>
+              ) : (
+                <Box display="flex" alignItems="center" gap={2}>
+                  <Storage color="primary" />
+                  <Box>
+                    <Typography variant="body1" fontWeight="medium">
+                      {contract.dataset?.name}
+                    </Typography>
+                    <Typography variant="body2" color="textSecondary">
+                      {contract.dataset?.description}
+                    </Typography>
+                    <Typography variant="body2" fontSize="0.75rem" color="textSecondary">
+                      Category: {contract.dataset?.category} | Size: {contract.dataset?.size} MB
+                    </Typography>
+                  </Box>
+                </Box>
+              )}
             </CardContent>
           </Card>
         </Grid>
@@ -666,7 +762,7 @@ function ContractDetail() {
               </Typography>
               <Box display="flex" gap={2} flexWrap="wrap">
                 {/* TDP Actions */}
-                {isTDP && (contract.tdp?.walletAddress === currentUser?.walletAddress || contract.tdp?.did === currentUser?.did) && (
+                {isTDP && !isMultiTDPContract && (contract.tdp?.walletAddress === currentUser?.walletAddress || contract.tdp?.did === currentUser?.did) && (
                   <>
                     {contract.status === 'PENDING_TDP_APPROVAL' && !contract.tdpSigned && (
                       <Button 
@@ -735,229 +831,776 @@ function ContractDetail() {
                     {cancelContractMutation.isLoading ? 'Cancelling...' : 'Cancel Contract'}
                   </Button>
                 )}
-                
-                <Button 
-                  variant="outlined"
-                  onClick={() => navigate('/contracts')}
-                >
-                  Back to Contracts
-                </Button>
               </Box>
-              {signError && <Alert severity="error" sx={{ mt: 2 }}>{signError}</Alert>}
+              
+              {signError && (
+                <Alert severity="error" sx={{ mt: 2 }}>
+                  {signError}
+                </Alert>
+              )}
             </CardContent>
           </Card>
         </Grid>
 
-        {/* Download & Preview Section */}
-        <Grid item xs={12}>
-          <Card>
-            <CardContent>
-              <Typography variant="h6" gutterBottom>
-                📄 Contract Documents & Downloads
-              </Typography>
-              
-              {/* Download Buttons */}
-              <Box display="flex" gap={2} flexWrap="wrap" sx={{ mb: 3 }}>
-                <Button
-                  variant="contained"
-                  color="primary"
-                  onClick={downloadContract}
-                  startIcon={<Download />}
-                >
-                  Download Complete Contract
-                </Button>
-                
-                {contract.legalDocument && (
-                  <Button
-                    variant="outlined"
-                    color="primary"
-                    onClick={downloadLegalDocument}
-                    startIcon={<Download />}
-                  >
-                    Download Legal Document
-                  </Button>
-                )}
-                
-                {contract.smartContractAddress && (
-                  <Button
-                    variant="outlined"
-                    color="secondary"
-                    onClick={downloadSmartContractData}
-                    startIcon={<Download />}
-                  >
-                    Download Smart Contract Data
-                  </Button>
-                )}
-              </Box>
+        {/* Terms and Conditions */}
+        {contract.termsAndConditions && (
+          <Grid item xs={12}>
+            <Card>
+              <CardContent>
+                <Typography variant="h6" gutterBottom>
+                  Terms and Conditions
+                </Typography>
+                <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap' }}>
+                  {contract.termsAndConditions}
+                </Typography>
+              </CardContent>
+            </Card>
+          </Grid>
+        )}
 
-              {/* Contract Preview Sections */}
-              {contract.legalDocument && (
-                <Accordion>
-                  <AccordionSummary expandIcon={<ExpandMore />}>
-                    <Box display="flex" alignItems="center" gap={1}>
-                      <Visibility color="primary" />
-                      <Typography variant="h6">
-                        📋 Legal Document Preview
-                      </Typography>
+        {/* Ricardian Contract Details */}
+        {(contract.legalDocumentHash || contract.smartContractAddress || contract.ricardianSignature || 
+          contract.trainingParams || contract.environmentSpecs || contract.kmsConfigs || 
+          contract.attestationVerified !== undefined || contract.attestationReport ||
+          contract.multiTdpStatus || contract.totalPrice || contract.datasetCount || contract.tdpCount ||
+          contract.contractDatasets || contract.tdpSignatures || contract.tdpPayments) && (
+          <Grid item xs={12}>
+            <Card>
+              <CardContent>
+                <Typography variant="h6" gutterBottom>
+                  <Security sx={{ mr: 1, verticalAlign: 'middle' }} />
+                  Ricardian Contract Details
+                </Typography>
+                
+                <Grid container spacing={3}>
+                  {/* Legal Document Information */}
+                  <Grid item xs={12} md={6}>
+                    <Typography variant="subtitle1" gutterBottom>
+                      Legal Document
+                    </Typography>
+                    <Box display="flex" flexDirection="column" gap={1}>
+                      {contract.legalDocumentHash && (
+                        <Box>
+                          <Typography variant="body2" color="textSecondary">
+                            Document Hash
+                          </Typography>
+                          <Typography variant="body2" fontFamily="monospace" fontSize="0.8rem">
+                            {contract.legalDocumentHash}
+                          </Typography>
+                        </Box>
+                      )}
+                      
+                      {contract.ricardianSignature && (
+                        <Box>
+                          <Typography variant="body2" color="textSecondary">
+                            Ricardian Signature
+                          </Typography>
+                          <Typography variant="body2" fontFamily="monospace" fontSize="0.8rem">
+                            {contract.ricardianSignature}
+                          </Typography>
+                        </Box>
+                      )}
+                      
+                      {contract.legalDocument && (
+                        <Box>
+                          <Typography variant="body2" color="textSecondary">
+                            Legal Document
+                          </Typography>
+                          <Accordion>
+                            <AccordionSummary expandIcon={<ExpandMore />}>
+                              <Typography variant="body2">View Legal Document</Typography>
+                            </AccordionSummary>
+                            <AccordionDetails>
+                              <Typography variant="body2" fontFamily="monospace" fontSize="0.8rem" sx={{ whiteSpace: 'pre-wrap' }}>
+                                {(() => {
+                                  try {
+                                    const legalDoc = typeof contract.legalDocument === 'string' 
+                                      ? JSON.parse(contract.legalDocument) 
+                                      : contract.legalDocument;
+                                    return JSON.stringify(legalDoc, null, 2);
+                                  } catch (error) {
+                                    return contract.legalDocument;
+                                  }
+                                })()}
+                              </Typography>
+                            </AccordionDetails>
+                          </Accordion>
+                        </Box>
+                      )}
                     </Box>
-                  </AccordionSummary>
-                  <AccordionDetails>
-                    <Box sx={{ maxHeight: '400px', overflow: 'auto' }}>
-                      <pre style={{ 
-                        fontFamily: 'monospace', 
-                        fontSize: '0.8rem', 
-                        backgroundColor: '#f5f5f5', 
-                        padding: '16px',
-                        borderRadius: '4px',
-                        whiteSpace: 'pre-wrap'
-                      }}>
-                        {JSON.stringify(contract.legalDocument, null, 2)}
-                      </pre>
-                    </Box>
-                  </AccordionDetails>
-                </Accordion>
-              )}
+                  </Grid>
 
-              {contract.smartContractAddress && (
-                <Accordion>
-                  <AccordionSummary expandIcon={<ExpandMore />}>
-                    <Box display="flex" alignItems="center" gap={1}>
-                      <Visibility color="secondary" />
-                      <Typography variant="h6">
-                        ⚡ Smart Contract Details
-                      </Typography>
+                  {/* Smart Contract Information */}
+                  <Grid item xs={12} md={6}>
+                    <Typography variant="subtitle1" gutterBottom>
+                      Smart Contract
+                    </Typography>
+                    <Box display="flex" flexDirection="column" gap={1}>
+                      {contract.smartContractAddress && (
+                        <Box>
+                          <Typography variant="body2" color="textSecondary">
+                            Contract Address
+                          </Typography>
+                          <Typography variant="body2" fontFamily="monospace" fontSize="0.8rem">
+                            {contract.smartContractAddress}
+                          </Typography>
+                        </Box>
+                      )}
+                      
+                      {contract.smartContractNetwork && (
+                        <Box>
+                          <Typography variant="body2" color="textSecondary">
+                            Network
+                          </Typography>
+                          <Typography variant="body1">
+                            {contract.smartContractNetwork}
+                          </Typography>
+                        </Box>
+                      )}
+                      
+                      {contract.blockchainContractId && (
+                        <Box>
+                          <Typography variant="body2" color="textSecondary">
+                            Blockchain Contract ID
+                          </Typography>
+                          <Typography variant="body1">
+                            {contract.blockchainContractId}
+                          </Typography>
+                        </Box>
+                      )}
                     </Box>
-                  </AccordionSummary>
-                  <AccordionDetails>
-                    <Grid container spacing={2}>
-                      <Grid item xs={12} md={6}>
-                        <Typography variant="subtitle2">Smart Contract Address:</Typography>
-                        <Typography variant="body2" sx={{ fontFamily: 'monospace', fontSize: '0.8rem' }}>
-                          {contract.smartContractAddress}
-                        </Typography>
-                      </Grid>
-                      <Grid item xs={12} md={6}>
-                        <Typography variant="subtitle2">Network:</Typography>
-                        <Typography variant="body2">
-                          {contract.smartContractNetwork}
-                        </Typography>
-                      </Grid>
-                      <Grid item xs={12} md={6}>
-                        <Typography variant="subtitle2">Legal Document Hash:</Typography>
-                        <Typography variant="body2" sx={{ fontFamily: 'monospace', fontSize: '0.8rem' }}>
-                          {contract.legalDocumentHash}
-                        </Typography>
-                      </Grid>
-                      <Grid item xs={12} md={6}>
-                        <Typography variant="subtitle2">Ricardian Signature:</Typography>
-                        <Typography variant="body2" sx={{ fontFamily: 'monospace', fontSize: '0.8rem' }}>
-                          {contract.ricardianSignature}
-                        </Typography>
+                  </Grid>
+
+                  {/* Training Parameters */}
+                  {contract.trainingParams && (
+                    <Grid item xs={12}>
+                      <Typography variant="subtitle1" gutterBottom>
+                        Training Parameters
+                      </Typography>
+                      <Accordion>
+                        <AccordionSummary expandIcon={<ExpandMore />}>
+                          <Typography variant="body2">View Training Parameters</Typography>
+                        </AccordionSummary>
+                        <AccordionDetails>
+                          <Typography variant="body2" fontFamily="monospace" fontSize="0.8rem" sx={{ whiteSpace: 'pre-wrap' }}>
+                            {(() => {
+                              try {
+                                const trainingParams = typeof contract.trainingParams === 'string' 
+                                  ? JSON.parse(contract.trainingParams) 
+                                  : contract.trainingParams;
+                                return JSON.stringify(trainingParams, null, 2);
+                              } catch (error) {
+                                return contract.trainingParams;
+                              }
+                            })()}
+                          </Typography>
+                        </AccordionDetails>
+                      </Accordion>
+                    </Grid>
+                  )}
+
+                  {/* Environment Specifications */}
+                  {contract.environmentSpecs && (
+                    <Grid item xs={12}>
+                      <Typography variant="subtitle1" gutterBottom>
+                        Environment Specifications
+                      </Typography>
+                      <Accordion>
+                        <AccordionSummary expandIcon={<ExpandMore />}>
+                          <Typography variant="body2">View Environment Specs</Typography>
+                        </AccordionSummary>
+                        <AccordionDetails>
+                          <Typography variant="body2" fontFamily="monospace" fontSize="0.8rem" sx={{ whiteSpace: 'pre-wrap' }}>
+                            {(() => {
+                              try {
+                                const envSpecs = typeof contract.environmentSpecs === 'string' 
+                                  ? JSON.parse(contract.environmentSpecs) 
+                                  : contract.environmentSpecs;
+                                return JSON.stringify(envSpecs, null, 2);
+                              } catch (error) {
+                                return contract.environmentSpecs;
+                              }
+                            })()}
+                          </Typography>
+                        </AccordionDetails>
+                      </Accordion>
+                    </Grid>
+                  )}
+
+                  {/* KMS Configurations */}
+                  {contract.kmsConfigs && (
+                    <Grid item xs={12}>
+                      <Typography variant="subtitle1" gutterBottom>
+                        KMS Configurations
+                      </Typography>
+                      <Accordion>
+                        <AccordionSummary expandIcon={<ExpandMore />}>
+                          <Typography variant="body2">View KMS Configs</Typography>
+                        </AccordionSummary>
+                        <AccordionDetails>
+                          <Typography variant="body2" fontFamily="monospace" fontSize="0.8rem" sx={{ whiteSpace: 'pre-wrap' }}>
+                            {(() => {
+                              try {
+                                const kmsConfigs = typeof contract.kmsConfigs === 'string' 
+                                  ? JSON.parse(contract.kmsConfigs) 
+                                  : contract.kmsConfigs;
+                                return JSON.stringify(kmsConfigs, null, 2);
+                              } catch (error) {
+                                return contract.kmsConfigs;
+                              }
+                            })()}
+                          </Typography>
+                        </AccordionDetails>
+                      </Accordion>
+                    </Grid>
+                  )}
+
+                  {/* Attestation Information */}
+                  {(contract.attestationVerified !== undefined || contract.attestationReport) && (
+                    <Grid item xs={12}>
+                      <Typography variant="subtitle1" gutterBottom>
+                        Attestation Verification
+                      </Typography>
+                      <Box display="flex" flexDirection="column" gap={1}>
+                        {contract.attestationVerified !== undefined && (
+                          <Box>
+                            <Typography variant="body2" color="textSecondary">
+                              Verification Status
+                            </Typography>
+                            <Chip 
+                              label={contract.attestationVerified ? 'Verified' : 'Not Verified'} 
+                              color={contract.attestationVerified ? 'success' : 'warning'}
+                              size="small"
+                            />
+                          </Box>
+                        )}
+                        
+                        {contract.attestationReport && (
+                          <Box>
+                            <Typography variant="body2" color="textSecondary">
+                              Attestation Report
+                            </Typography>
+                            <Accordion>
+                              <AccordionSummary expandIcon={<ExpandMore />}>
+                                <Typography variant="body2">View Attestation Report</Typography>
+                              </AccordionSummary>
+                              <AccordionDetails>
+                                <Typography variant="body2" fontFamily="monospace" fontSize="0.8rem" sx={{ whiteSpace: 'pre-wrap' }}>
+                                  {(() => {
+                                    try {
+                                      const attestationReport = typeof contract.attestationReport === 'string' 
+                                        ? JSON.parse(contract.attestationReport) 
+                                        : contract.attestationReport;
+                                      return JSON.stringify(attestationReport, null, 2);
+                                    } catch (error) {
+                                      return contract.attestationReport;
+                                    }
+                                  })()}
+                                </Typography>
+                              </AccordionDetails>
+                            </Accordion>
+                          </Box>
+                        )}
+                      </Box>
+                    </Grid>
+                  )}
+
+                  {/* Multi-TDP Status (for Ricardian contracts) */}
+                  {contract.multiTdpStatus && (
+                    <Grid item xs={12}>
+                      <Typography variant="subtitle1" gutterBottom>
+                        Multi-TDP Status
+                      </Typography>
+                      <Box display="flex" flexDirection="column" gap={1}>
+                        <Box>
+                          <Typography variant="body2" color="textSecondary">
+                            Status
+                          </Typography>
+                          <Chip 
+                            label={contract.multiTdpStatus.replace(/_/g, ' ')} 
+                            color={contract.multiTdpStatus === 'ACTIVE' ? 'success' : 
+                                   contract.multiTdpStatus.includes('PENDING') ? 'warning' : 'default'}
+                            size="small"
+                          />
+                        </Box>
+                        
+                        {contract.totalPrice && (
+                          <Box>
+                            <Typography variant="body2" color="textSecondary">
+                              Total Contract Value
+                            </Typography>
+                            <Typography variant="body1" fontWeight="medium">
+                              ${contract.totalPrice}
+                            </Typography>
+                          </Box>
+                        )}
+                        
+                        {contract.datasetCount && (
+                          <Box>
+                            <Typography variant="body2" color="textSecondary">
+                              Datasets Involved
+                            </Typography>
+                            <Typography variant="body1">
+                              {contract.datasetCount} dataset{contract.datasetCount > 1 ? 's' : ''}
+                            </Typography>
+                          </Box>
+                        )}
+                        
+                        {contract.tdpCount && (
+                          <Box>
+                            <Typography variant="body2" color="textSecondary">
+                              TDPs Involved
+                            </Typography>
+                            <Typography variant="body1">
+                              {contract.tdpCount} TDP{contract.tdpCount > 1 ? 's' : ''}
+                            </Typography>
+                          </Box>
+                        )}
+                      </Box>
+                    </Grid>
+                  )}
+
+                  {/* All Selected TDPs and Datasets */}
+                  {contract.contractDatasets && (
+                    <Grid item xs={12}>
+                      <Typography variant="subtitle1" gutterBottom>
+                        All Selected TDPs and Datasets
+                      </Typography>
+                      <TableContainer component={Paper} variant="outlined">
+                        <Table>
+                          <TableHead>
+                            <TableRow>
+                              <TableCell>Dataset</TableCell>
+                              <TableCell>TDP</TableCell>
+                              <TableCell>Price</TableCell>
+                              <TableCell>Payment Status</TableCell>
+                              <TableCell>Signature Status</TableCell>
+                              <TableCell>Actions</TableCell>
+                            </TableRow>
+                          </TableHead>
+                          <TableBody>
+                            {(() => {
+                              try {
+                                const datasets = typeof contract.contractDatasets === 'string' 
+                                  ? JSON.parse(contract.contractDatasets) 
+                                  : contract.contractDatasets;
+                                
+                                return datasets.map((dataset, index) => {
+                                  // Get signature status for this TDP
+                                  const tdpSignatures = contract.tdpSignatures ? 
+                                    (typeof contract.tdpSignatures === 'string' 
+                                      ? JSON.parse(contract.tdpSignatures) 
+                                      : contract.tdpSignatures) : {};
+                                  
+                                  const tdpPayments = contract.tdpPayments ? 
+                                    (typeof contract.tdpPayments === 'string' 
+                                      ? JSON.parse(contract.tdpPayments) 
+                                      : contract.tdpPayments) : {};
+                                  
+                                  const tdpSignature = tdpSignatures[dataset.tdpId] || {};
+                                  const tdpPayment = tdpPayments[dataset.tdpId] || {};
+                                  
+                                  return (
+                                    <TableRow key={index}>
+                                      <TableCell>
+                                        <Box>
+                                          <Typography variant="body2" fontWeight="medium">
+                                            {dataset.datasetName}
+                                          </Typography>
+                                          <Typography variant="caption" color="textSecondary">
+                                            ID: {dataset.datasetId}
+                                          </Typography>
+                                        </Box>
+                                      </TableCell>
+                                      <TableCell>
+                                        <Box>
+                                          <Typography variant="body2" fontWeight="medium">
+                                            {dataset.tdpName}
+                                          </Typography>
+                                          <Typography variant="caption" color="textSecondary">
+                                            ID: {dataset.tdpId}
+                                          </Typography>
+                                        </Box>
+                                      </TableCell>
+                                      <TableCell>
+                                        <Typography variant="body2" fontWeight="medium">
+                                          ${dataset.individualPrice}
+                                        </Typography>
+                                      </TableCell>
+                                      <TableCell>
+                                        <Chip 
+                                          label={tdpPayment.status || 'PENDING'} 
+                                          color={tdpPayment.status === 'PAID' ? 'success' : 'warning'}
+                                          size="small"
+                                        />
+                                        {tdpPayment.paidAt && (
+                                          <Typography variant="caption" display="block" color="textSecondary">
+                                            {format(new Date(tdpPayment.paidAt), 'MMM dd, yyyy')}
+                                          </Typography>
+                                        )}
+                                      </TableCell>
+                                      <TableCell>
+                                        <Chip 
+                                          label={tdpSignature.signed ? 'SIGNED' : 'PENDING'} 
+                                          color={tdpSignature.signed ? 'success' : 'warning'}
+                                          size="small"
+                                        />
+                                        {tdpSignature.signedAt && (
+                                          <Typography variant="caption" display="block" color="textSecondary">
+                                            {format(new Date(tdpSignature.signedAt), 'MMM dd, yyyy')}
+                                          </Typography>
+                                        )}
+                                      </TableCell>
+                                      <TableCell>
+                                        <Box display="flex" gap={1}>
+                                          {/* TDP Signing Action */}
+                                          {isTDP && currentUser.id === dataset.tdpId && 
+                                           !tdpSignature.signed && contract.status === 'PENDING_TDP_APPROVAL' && (
+                                            <Button
+                                              variant="outlined"
+                                              size="small"
+                                              onClick={() => handleSignContract('TDP')}
+                                              disabled={signing}
+                                            >
+                                              {signing ? 'Signing...' : 'Sign'}
+                                            </Button>
+                                          )}
+                                          
+                                          {/* TDC Payment Recording Action */}
+                                          {isTDC && contract.tdc?.id === currentUser.id && 
+                                           tdpSignature.signed && tdpPayment.status !== 'PAID' && (
+                                            <Button
+                                              variant="outlined"
+                                              size="small"
+                                              onClick={() => {
+                                                setSelectedTDP({ id: dataset.tdpId, name: dataset.tdpName });
+                                                setPaymentAmount(dataset.individualPrice.toString());
+                                                setPaymentDialogOpen(true);
+                                              }}
+                                            >
+                                              Record Payment
+                                            </Button>
+                                          )}
+                                        </Box>
+                                      </TableCell>
+                                    </TableRow>
+                                  );
+                                });
+                              } catch (error) {
+                                console.error('Error parsing contractDatasets:', error);
+                                return (
+                                  <TableRow>
+                                    <TableCell colSpan={6}>
+                                      <Typography variant="body2" color="error">
+                                        Error parsing dataset information
+                                      </Typography>
+                                    </TableCell>
+                                  </TableRow>
+                                );
+                              }
+                            })()}
+                          </TableBody>
+                        </Table>
+                      </TableContainer>
+                    </Grid>
+                  )}
+
+                  {/* TDP Signatures Summary */}
+                  {contract.tdpSignatures && (
+                    <Grid item xs={12}>
+                      <Typography variant="subtitle1" gutterBottom>
+                        TDP Signatures Summary
+                      </Typography>
+                      <Accordion>
+                        <AccordionSummary expandIcon={<ExpandMore />}>
+                          <Typography variant="body2">View All TDP Signatures</Typography>
+                        </AccordionSummary>
+                        <AccordionDetails>
+                          <Typography variant="body2" fontFamily="monospace" fontSize="0.8rem" sx={{ whiteSpace: 'pre-wrap' }}>
+                            {(() => {
+                              try {
+                                const tdpSignatures = typeof contract.tdpSignatures === 'string' 
+                                  ? JSON.parse(contract.tdpSignatures) 
+                                  : contract.tdpSignatures;
+                                return JSON.stringify(tdpSignatures, null, 2);
+                              } catch (error) {
+                                return contract.tdpSignatures;
+                              }
+                            })()}
+                          </Typography>
+                        </AccordionDetails>
+                      </Accordion>
+                    </Grid>
+                  )}
+
+                  {/* TDP Payments Summary */}
+                  {contract.tdpPayments && (
+                    <Grid item xs={12}>
+                      <Typography variant="subtitle1" gutterBottom>
+                        TDP Payments Summary
+                      </Typography>
+                      <Accordion>
+                        <AccordionSummary expandIcon={<ExpandMore />}>
+                          <Typography variant="body2">View All TDP Payments</Typography>
+                        </AccordionSummary>
+                        <AccordionDetails>
+                          <Typography variant="body2" fontFamily="monospace" fontSize="0.8rem" sx={{ whiteSpace: 'pre-wrap' }}>
+                            {(() => {
+                              try {
+                                const tdpPayments = typeof contract.tdpPayments === 'string' 
+                                  ? JSON.parse(contract.tdpPayments) 
+                                  : contract.tdpPayments;
+                                return JSON.stringify(tdpPayments, null, 2);
+                              } catch (error) {
+                                return contract.tdpPayments;
+                              }
+                            })()}
+                          </Typography>
+                        </AccordionDetails>
+                      </Accordion>
+                    </Grid>
+                  )}
+
+                  {/* Detailed Dataset and TDP Cards */}
+                  {contract.contractDatasets && (
+                    <Grid item xs={12}>
+                      <Typography variant="subtitle1" gutterBottom>
+                        Detailed Dataset and TDP Information
+                      </Typography>
+                      <Grid container spacing={2}>
+                        {(() => {
+                          try {
+                            const datasets = typeof contract.contractDatasets === 'string' 
+                              ? JSON.parse(contract.contractDatasets) 
+                              : contract.contractDatasets;
+                            
+                            const tdpSignatures = contract.tdpSignatures ? 
+                              (typeof contract.tdpSignatures === 'string' 
+                                ? JSON.parse(contract.tdpSignatures) 
+                                : contract.tdpSignatures) : {};
+                            
+                            const tdpPayments = contract.tdpPayments ? 
+                              (typeof contract.tdpPayments === 'string' 
+                                ? JSON.parse(contract.tdpPayments) 
+                                : contract.tdpPayments) : {};
+                            
+                            return datasets.map((dataset, index) => {
+                              const tdpSignature = tdpSignatures[dataset.tdpId] || {};
+                              const tdpPayment = tdpPayments[dataset.tdpId] || {};
+                              
+                              return (
+                                <Grid item xs={12} md={6} lg={4} key={index}>
+                                  <Card variant="outlined">
+                                    <CardContent>
+                                      <Typography variant="h6" gutterBottom>
+                                        Dataset {index + 1}
+                                      </Typography>
+                                      
+                                      {/* Dataset Information */}
+                                      <Box sx={{ mb: 2 }}>
+                                        <Typography variant="subtitle2" color="primary">
+                                          Dataset Details
+                                        </Typography>
+                                        <Typography variant="body2" fontWeight="medium">
+                                          {dataset.datasetName}
+                                        </Typography>
+                                        <Typography variant="caption" color="textSecondary">
+                                          ID: {dataset.datasetId}
+                                        </Typography>
+                                        <Typography variant="body2" sx={{ mt: 1 }}>
+                                          Price: <strong>${dataset.individualPrice}</strong>
+                                        </Typography>
+                                      </Box>
+                                      
+                                      {/* TDP Information */}
+                                      <Box sx={{ mb: 2 }}>
+                                        <Typography variant="subtitle2" color="secondary">
+                                          TDP Details
+                                        </Typography>
+                                        <Typography variant="body2" fontWeight="medium">
+                                          {dataset.tdpName}
+                                        </Typography>
+                                        <Typography variant="caption" color="textSecondary">
+                                          TDP ID: {dataset.tdpId}
+                                        </Typography>
+                                      </Box>
+                                      
+                                      {/* Status Information */}
+                                      <Box sx={{ mb: 2 }}>
+                                        <Typography variant="subtitle2" color="textSecondary">
+                                          Status
+                                        </Typography>
+                                        <Box display="flex" gap={1} sx={{ mb: 1 }}>
+                                          <Chip 
+                                            label={tdpSignature.signed ? 'SIGNED' : 'PENDING'} 
+                                            color={tdpSignature.signed ? 'success' : 'warning'}
+                                            size="small"
+                                          />
+                                          <Chip 
+                                            label={tdpPayment.status || 'PENDING'} 
+                                            color={tdpPayment.status === 'PAID' ? 'success' : 'warning'}
+                                            size="small"
+                                          />
+                                        </Box>
+                                        {tdpSignature.signedAt && (
+                                          <Typography variant="caption" display="block" color="textSecondary">
+                                            Signed: {format(new Date(tdpSignature.signedAt), 'MMM dd, yyyy')}
+                                          </Typography>
+                                        )}
+                                        {tdpPayment.paidAt && (
+                                          <Typography variant="caption" display="block" color="textSecondary">
+                                            Paid: {format(new Date(tdpPayment.paidAt), 'MMM dd, yyyy')}
+                                          </Typography>
+                                        )}
+                                      </Box>
+                                      
+                                      {/* Actions */}
+                                      <Box display="flex" gap={1} flexWrap="wrap">
+                                        {/* TDP Signing Action */}
+                                        {isTDP && currentUser.id === dataset.tdpId && 
+                                         !tdpSignature.signed && contract.status === 'PENDING_TDP_APPROVAL' && (
+                                          <Button
+                                            variant="outlined"
+                                            size="small"
+                                            onClick={() => handleSignContract('TDP')}
+                                            disabled={signing}
+                                          >
+                                            {signing ? 'Signing...' : 'Sign'}
+                                          </Button>
+                                        )}
+                                        
+                                        {/* TDC Payment Recording Action */}
+                                        {isTDC && contract.tdc?.id === currentUser.id && 
+                                         tdpSignature.signed && tdpPayment.status !== 'PAID' && (
+                                          <Button
+                                            variant="outlined"
+                                            size="small"
+                                            onClick={() => {
+                                              setSelectedTDP({ id: dataset.tdpId, name: dataset.tdpName });
+                                              setPaymentAmount(dataset.individualPrice.toString());
+                                              setPaymentDialogOpen(true);
+                                            }}
+                                          >
+                                            Record Payment
+                                          </Button>
+                                        )}
+                                      </Box>
+                                    </CardContent>
+                                  </Card>
+                                </Grid>
+                              );
+                            });
+                          } catch (error) {
+                            console.error('Error parsing contractDatasets for cards:', error);
+                            return (
+                              <Grid item xs={12}>
+                                <Card variant="outlined">
+                                  <CardContent>
+                                    <Typography variant="body2" color="error">
+                                      Error parsing dataset information
+                                    </Typography>
+                                  </CardContent>
+                                </Card>
+                              </Grid>
+                            );
+                          }
+                        })()}
                       </Grid>
                     </Grid>
-                  </AccordionDetails>
-                </Accordion>
-              )}
+                  )}
 
-              {contract.environmentSpecs && (
+                  {/* Contract Timestamps */}
+                  <Grid item xs={12}>
+                    <Typography variant="subtitle1" gutterBottom>
+                      Contract Timeline
+                    </Typography>
+                    <Box display="flex" flexDirection="column" gap={1}>
+                      <Box>
+                        <Typography variant="body2" color="textSecondary">
+                          Created
+                        </Typography>
+                        <Typography variant="body1">
+                          {format(new Date(contract.createdAt), 'MMM dd, yyyy HH:mm:ss')}
+                        </Typography>
+                      </Box>
+                      
+                      {contract.tdpSignedAt && (
+                        <Box>
+                          <Typography variant="body2" color="textSecondary">
+                            TDP Signed
+                          </Typography>
+                          <Typography variant="body1">
+                            {format(new Date(contract.tdpSignedAt), 'MMM dd, yyyy HH:mm:ss')}
+                          </Typography>
+                        </Box>
+                      )}
+                      
+                      {contract.ccrpSignedAt && (
+                        <Box>
+                          <Typography variant="body2" color="textSecondary">
+                            CCRP Signed
+                          </Typography>
+                          <Typography variant="body1">
+                            {format(new Date(contract.ccrpSignedAt), 'MMM dd, yyyy HH:mm:ss')}
+                          </Typography>
+                        </Box>
+                      )}
+                      
+                      {contract.updatedAt && contract.updatedAt !== contract.createdAt && (
+                        <Box>
+                          <Typography variant="body2" color="textSecondary">
+                            Last Updated
+                          </Typography>
+                          <Typography variant="body1">
+                            {format(new Date(contract.updatedAt), 'MMM dd, yyyy HH:mm:ss')}
+                          </Typography>
+                        </Box>
+                      )}
+                    </Box>
+                  </Grid>
+                </Grid>
+              </CardContent>
+            </Card>
+          </Grid>
+        )}
+
+        {/* Fallback: Basic Contract Information (for debugging) */}
+        {contract && (
+          <Grid item xs={12}>
+            <Card>
+              <CardContent>
+                <Typography variant="h6" gutterBottom>
+                  Contract Debug Information
+                </Typography>
+                <Typography variant="body2" color="textSecondary">
+                  This section shows all available contract fields for debugging purposes.
+                </Typography>
                 <Accordion>
                   <AccordionSummary expandIcon={<ExpandMore />}>
-                    <Box display="flex" alignItems="center" gap={1}>
-                      <Storage color="info" />
-                      <Typography variant="h6">
-                        🏗️ Environment Specifications
-                      </Typography>
-                    </Box>
+                    <Typography variant="body2">View All Contract Data</Typography>
                   </AccordionSummary>
                   <AccordionDetails>
-                    <Box sx={{ maxHeight: '400px', overflow: 'auto' }}>
-                      <pre style={{ 
-                        fontFamily: 'monospace', 
-                        fontSize: '0.8rem', 
-                        backgroundColor: '#f5f5f5', 
-                        padding: '16px',
-                        borderRadius: '4px',
-                        whiteSpace: 'pre-wrap'
-                      }}>
-                        {JSON.stringify(contract.environmentSpecs, null, 2)}
-                      </pre>
-                    </Box>
+                    <Typography variant="body2" fontFamily="monospace" fontSize="0.8rem" sx={{ whiteSpace: 'pre-wrap' }}>
+                      {JSON.stringify(contract, null, 2)}
+                    </Typography>
                   </AccordionDetails>
                 </Accordion>
-              )}
-
-              {contract.trainingParams && (
-                <Accordion>
-                  <AccordionSummary expandIcon={<ExpandMore />}>
-                    <Box display="flex" alignItems="center" gap={1}>
-                      <Description color="success" />
-                      <Typography variant="h6">
-                        🎯 Training Parameters
-                      </Typography>
-                    </Box>
-                  </AccordionSummary>
-                  <AccordionDetails>
-                    <Box sx={{ maxHeight: '400px', overflow: 'auto' }}>
-                      <pre style={{ 
-                        fontFamily: 'monospace', 
-                        fontSize: '0.8rem', 
-                        backgroundColor: '#f5f5f5', 
-                        padding: '16px',
-                        borderRadius: '4px',
-                        whiteSpace: 'pre-wrap'
-                      }}>
-                        {JSON.stringify(contract.trainingParams, null, 2)}
-                      </pre>
-                    </Box>
-                  </AccordionDetails>
-                </Accordion>
-              )}
-
-              {contract.kmsConfigs && (
-                <Accordion>
-                  <AccordionSummary expandIcon={<ExpandMore />}>
-                    <Box display="flex" alignItems="center" gap={1}>
-                      <Security color="warning" />
-                      <Typography variant="h6">
-                        🔐 KMS Configurations
-                      </Typography>
-                    </Box>
-                  </AccordionSummary>
-                  <AccordionDetails>
-                    <Box sx={{ maxHeight: '400px', overflow: 'auto' }}>
-                      <pre style={{ 
-                        fontFamily: 'monospace', 
-                        fontSize: '0.8rem', 
-                        backgroundColor: '#f5f5f5', 
-                        padding: '16px',
-                        borderRadius: '4px',
-                        whiteSpace: 'pre-wrap'
-                      }}>
-                        {JSON.stringify(contract.kmsConfigs, null, 2)}
-                      </pre>
-                    </Box>
-                  </AccordionDetails>
-                </Accordion>
-              )}
-            </CardContent>
-          </Card>
-        </Grid>
+              </CardContent>
+            </Card>
+          </Grid>
+        )}
       </Grid>
 
       {/* CCRP Selection Dialog */}
-      <Dialog open={ccrpDialogOpen} onClose={() => setCcrpDialogOpen(false)} maxWidth="sm" fullWidth>
+      <Dialog open={ccrpDialogOpen} onClose={() => setCcrpDialogOpen(false)}>
         <DialogTitle>Select CCRP</DialogTitle>
         <DialogContent>
-          <Typography variant="body2" color="textSecondary" paragraph>
-            Choose a Confidential Clean Room Provider for this contract:
-          </Typography>
-
-          <FormControl fullWidth>
+          <FormControl fullWidth sx={{ mt: 2 }}>
             <InputLabel>CCRP</InputLabel>
             <Select
               value={selectedCcrp}
-              label="CCRP"
               onChange={(e) => setSelectedCcrp(e.target.value)}
+              label="CCRP"
             >
               {ccrpUsers.map((user) => (
                 <MenuItem key={user.id} value={user.id}>
@@ -970,11 +1613,39 @@ function ContractDetail() {
         <DialogActions>
           <Button onClick={() => setCcrpDialogOpen(false)}>Cancel</Button>
           <Button 
-            variant="contained" 
-            onClick={handleSelectCcrp}
+            onClick={() => selectCcrpMutation.mutate({ ccrpId: parseInt(selectedCcrp) })}
             disabled={!selectedCcrp || selectCcrpMutation.isLoading}
           >
-            Select CCRP
+            Select
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Payment Recording Dialog */}
+      <Dialog open={paymentDialogOpen} onClose={() => setPaymentDialogOpen(false)}>
+        <DialogTitle>Record Payment for TDP</DialogTitle>
+        <DialogContent>
+          <Box sx={{ mt: 2 }}>
+            <Typography variant="body2" color="textSecondary" gutterBottom>
+              TDP: {selectedTDP?.name}
+            </Typography>
+            <TextField
+              fullWidth
+              label="Payment Amount (USD)"
+              type="number"
+              value={paymentAmount}
+              onChange={(e) => setPaymentAmount(e.target.value)}
+              sx={{ mt: 2 }}
+            />
+          </Box>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setPaymentDialogOpen(false)}>Cancel</Button>
+          <Button 
+            onClick={handleRecordPayment}
+            disabled={!paymentAmount || recordPaymentMutation.isLoading}
+          >
+            {recordPaymentMutation.isLoading ? 'Recording...' : 'Record Payment'}
           </Button>
         </DialogActions>
       </Dialog>
