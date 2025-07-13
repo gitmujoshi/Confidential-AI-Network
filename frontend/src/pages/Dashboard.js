@@ -25,7 +25,7 @@ import {
   Add,
 } from '@mui/icons-material';
 import { useUser } from '../contexts/UserContext';
-import api from '../services/api';
+import { apiService } from '../services/api';
 import DIDInfoCard from '../components/DIDInfoCard';
 
 const Dashboard = () => {
@@ -35,9 +35,9 @@ const Dashboard = () => {
   // Fetch dashboard data
   const { data: dashboardData, isLoading } = useQuery('dashboard', async () => {
     const [datasetsRes, contractsRes, usersRes] = await Promise.all([
-      api.get('/api/datasets/public'),
-      api.get('/api/contracts'),
-      api.get('/api/users')
+      apiService.get('/api/datasets/public'),
+      apiService.get('/api/contracts'),
+      apiService.get('/api/users')
     ]);
 
     return {
@@ -431,7 +431,7 @@ const Dashboard = () => {
                       {users.filter(u => u.partyType === 'CCRP').length}
                     </Typography>
                     <Typography variant="body2" className="text-gray-600">
-                      Compliance Providers
+                      CCR Providers
                     </Typography>
                   </div>
                 </Grid>
