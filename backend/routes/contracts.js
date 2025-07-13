@@ -49,6 +49,41 @@ async function verifyDIDSignature(did, message, signature) {
  * - Cryptographic binding between legal documents and smart contracts
  */
 
+// Get all contracts (admin endpoint)
+router.get('/', async (req, res) => {
+  try {
+    const { status, limit = 10, offset = 0 } = req.query;
+
+    let whereClause = {};
+    if (status) {
+      whereClause.status = status;
+    }
+
+    const contracts = await db.Contract.findAndCountAll({
+      where: whereClause,
+      include: [
+        { model: db.User, as: 'tdp', attributes: ['id', 'name', 'email', 'walletAddress'] },
+        { model: db.User, as: 'tdc', attributes: ['id', 'name', 'email', 'walletAddress'] },
+        { model: db.User, as: 'ccrp', attributes: ['id', 'name', 'email', 'walletAddress'] },
+        { model: db.Dataset, as: 'dataset', attributes: ['id', 'name', 'description', 'category'] }
+      ],
+      order: [['createdAt', 'DESC']],
+      limit: parseInt(limit),
+      offset: parseInt(offset)
+    });
+
+    res.json({
+      contracts: contracts.rows,
+      total: contracts.count,
+      limit: parseInt(limit),
+      offset: parseInt(offset)
+    });
+  } catch (error) {
+    console.error('Error getting all contracts:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 // Get all contracts for a user
 router.get('/user/:userId', async (req, res) => {
   try {

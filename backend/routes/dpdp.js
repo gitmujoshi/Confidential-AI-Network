@@ -26,8 +26,8 @@ const dpdpRateLimit = rateLimit({
   }
 });
 
-// Apply rate limiting to all DPDP routes
-router.use(dpdpRateLimit);
+// Rate limiting disabled for development
+// router.use(dpdpRateLimit); // Disabled for development
 
 /**
  * GET /api/dpdp/personal-data
