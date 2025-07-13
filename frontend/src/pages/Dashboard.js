@@ -56,7 +56,7 @@ const Dashboard = () => {
   const totalContracts = contracts.length;
   const totalUsers = users.length;
   const activeContracts = contracts.filter(c => c.status === 'ACTIVE').length;
-  const pendingContracts = contracts.filter(c => c.status === 'PENDING').length;
+  const pendingContracts = contracts.filter(c => c.status.includes('PENDING')).length;
 
   // Get recent activities
   const recentContracts = contracts.slice(0, 5);

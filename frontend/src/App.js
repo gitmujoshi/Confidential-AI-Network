@@ -20,6 +20,7 @@ import ContractDetail from './pages/ContractDetail';
 import CreateContract from './pages/CreateContract';
 import CreateRicardianContract from './pages/CreateRicardianContract';
 import Users from './pages/Users';
+import CCRP from './pages/CCRP';
 import Notifications from './pages/Notifications';
 import UserRegistration from './pages/UserRegistration';
 import Login from './pages/Login';
@@ -188,6 +189,13 @@ function AppRoutes() {
         <ProtectedRoute>
           <Layout>
             <Users />
+          </Layout>
+        </ProtectedRoute>
+      } />
+      <Route path="/ccrp" element={
+        <ProtectedRoute>
+          <Layout>
+            <CCRP />
           </Layout>
         </ProtectedRoute>
       } />
