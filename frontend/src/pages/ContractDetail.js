@@ -435,6 +435,100 @@ function ContractDetail() {
     }
   };
 
+  const saveContractLocally = () => {
+    if (!contract) return;
+
+    const contractData = {
+      contractId: contract.contractId,
+      status: contract.status,
+      createdAt: contract.createdAt,
+      updatedAt: contract.updatedAt,
+      duration: contract.duration,
+      price: contract.price,
+      totalPrice: contract.totalPrice,
+      termsAndConditions: contract.termsAndConditions,
+      
+      // Parties
+      tdp: contract.tdp,
+      tdc: contract.tdc,
+      ccrp: contract.ccrp,
+      
+      // Dataset information
+      dataset: contract.dataset,
+      datasets: contract.datasets,
+      contractDatasets: contract.contractDatasets,
+      datasetCount: contract.datasetCount,
+      tdpCount: contract.tdpCount,
+      
+      // Signatures and workflow
+      tdpSigned: contract.tdpSigned,
+      tdpSignedAt: contract.tdpSignedAt,
+      ccrpSigned: contract.ccrpSigned,
+      ccrpSignedAt: contract.ccrpSignedAt,
+      tdpSignatures: contract.tdpSignatures,
+      tdpPayments: contract.tdpPayments,
+      multiTdpStatus: contract.multiTdpStatus,
+      
+      // Ricardian contract fields
+      legalDocumentHash: contract.legalDocumentHash,
+      ricardianSignature: contract.ricardianSignature,
+      smartContractAddress: contract.smartContractAddress,
+      smartContractNetwork: contract.smartContractNetwork,
+      blockchainContractId: contract.blockchainContractId,
+      legalDocument: contract.legalDocument,
+      
+      // Technical parameters
+      trainingParams: contract.trainingParams,
+      environmentSpecs: contract.environmentSpecs,
+      kmsConfigs: contract.kmsConfigs,
+      
+      // Attestation and verification
+      attestationVerified: contract.attestationVerified,
+      attestationReport: contract.attestationReport,
+      
+      // Payment information
+      paidAmount: paymentSummary?.paidAmount || 0,
+      pendingAmount: paymentSummary?.pendingAmount || 0,
+      totalAmount: paymentSummary?.totalAmount || 0,
+      
+      // Multi-TDP status information
+      multiTdpStatus: multiTDPStatus,
+    };
+
+    const blob = new Blob([JSON.stringify(contractData, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${contract.contractId}_complete_contract.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    toast.success('Complete contract downloaded successfully!');
+  };
+
+  const saveLegalDocument = () => {
+    if (!contract.legalDocument) {
+      toast.error('No legal document available to download.');
+      return;
+    }
+
+    const legalDoc = typeof contract.legalDocument === 'string' 
+      ? JSON.parse(contract.legalDocument) 
+      : contract.legalDocument;
+
+    const blob = new Blob([JSON.stringify(legalDoc, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${contract.contractId}_legal_document.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    toast.success('Legal document downloaded successfully!');
+  };
+
   return (
     <Box sx={{ p: 3 }}>
       <Typography variant="h4" gutterBottom>
@@ -829,6 +923,26 @@ function ContractDetail() {
                     disabled={cancelContractMutation.isLoading}
                   >
                     {cancelContractMutation.isLoading ? 'Cancelling...' : 'Cancel Contract'}
+                  </Button>
+                )}
+
+                {/* Download Contract Documents */}
+                <Button
+                  variant="contained"
+                  color="primary"
+                  onClick={() => saveContractLocally()}
+                  startIcon={<Download />}
+                >
+                  Download Complete Contract
+                </Button>
+                {contract.legalDocument && (
+                  <Button
+                    variant="outlined"
+                    color="primary"
+                    onClick={() => saveLegalDocument()}
+                    startIcon={<Description />}
+                  >
+                    Download Legal Document
                   </Button>
                 )}
               </Box>
