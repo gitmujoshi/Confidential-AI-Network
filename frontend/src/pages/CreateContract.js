@@ -76,6 +76,27 @@ function CreateContract() {
     duration: '',
     termsAndConditions: '',
   });
+  
+  // Add privacy parameters state
+  const [privacyParams, setPrivacyParams] = useState({
+    maxPrivacyLoss: 0.1,
+    minAccuracy: 0.95,
+    differentialPrivacy: {
+      enabled: true,
+      epsilon: 0.1,
+      delta: 1e-5
+    },
+    federatedLearning: {
+      enabled: true,
+      aggregationMethod: 'secure-aggregation',
+      communicationRounds: 100
+    },
+    secureMultiPartyComputation: {
+      enabled: true,
+      protocol: 'shamir-secret-sharing',
+      threshold: 3
+    }
+  });
 
   // Fetch datasets, CCRP users, and AI models for dropdowns
   const { data: datasetsResponse, isLoading: datasetsLoading } = useQuery('datasets', apiService.getDatasets);
@@ -183,7 +204,7 @@ function CreateContract() {
     }
     
     if (activeStep === 1 && !isFormValid()) {
-      toast.error('Please fill in all required fields');
+      toast.error('Please fill in all required fields and privacy requirements');
       return;
     }
     setActiveStep((prevStep) => prevStep + 1);
@@ -201,7 +222,8 @@ function CreateContract() {
    * @returns {boolean} True if form is valid
    */
   const isFormValid = () => {
-    const isValid = (
+    // Basic validation
+    const basicValid = (
       contractData.price &&
       contractData.duration &&
       contractData.termsAndConditions &&
@@ -209,13 +231,30 @@ function CreateContract() {
       selectedDataset.owner
     );
     
+    // Privacy validation
+    const privacyValid = (
+      privacyParams.maxPrivacyLoss >= 0.01 && privacyParams.maxPrivacyLoss <= 1.0 &&
+      privacyParams.minAccuracy >= 0.5 && privacyParams.minAccuracy <= 0.999
+    );
+
+    // At least one privacy technique must be enabled
+    const techniqueValid = (
+      privacyParams.differentialPrivacy.enabled ||
+      privacyParams.federatedLearning.enabled ||
+      privacyParams.secureMultiPartyComputation.enabled
+    );
+    
+    const isValid = basicValid && privacyValid && techniqueValid;
+    
     if (!isValid) {
       console.log('❌ Form validation failed:', {
         price: !!contractData.price,
         duration: !!contractData.duration,
         termsAndConditions: !!contractData.termsAndConditions,
         selectedDataset: !!selectedDataset,
-        datasetOwner: !!selectedDataset?.owner
+        datasetOwner: !!selectedDataset?.owner,
+        privacyValid,
+        techniqueValid
       });
     }
     
@@ -228,7 +267,7 @@ function CreateContract() {
    */
   const handleCreateContract = () => {
     if (!isFormValid()) {
-      toast.error('Please fill in all required fields');
+      toast.error('Please fill in all required fields and privacy requirements');
       return;
     }
     
@@ -246,6 +285,14 @@ function CreateContract() {
       termsAndConditions: contractData.termsAndConditions,
       ccrpId: ccrpUser ? ccrpUser.id : null, // Use user ID instead of wallet address
       tdcId: currentUser.id, // Use current user ID
+      // Add privacy requirements
+      privacyRequirements: {
+        maxPrivacyLoss: privacyParams.maxPrivacyLoss,
+        minAccuracy: privacyParams.minAccuracy,
+        differentialPrivacy: privacyParams.differentialPrivacy,
+        federatedLearning: privacyParams.federatedLearning,
+        secureMultiPartyComputation: privacyParams.secureMultiPartyComputation
+      }
     };
     
     console.log('📝 Creating contract with payload:', contractPayload);
@@ -428,6 +475,120 @@ function CreateContract() {
                   placeholder="Enter the terms and conditions for this contract..."
                   helperText="Detailed terms and conditions for the contract"
                 />
+              </Grid>
+              
+              <Grid item xs={12}>
+                <Card sx={{ mt: 2 }}>
+                  <CardContent>
+                    <Typography variant="h6" gutterBottom>
+                      Privacy & Accuracy Requirements
+                    </Typography>
+                    
+                    <Grid container spacing={2}>
+                      <Grid item xs={12} md={6}>
+                        <TextField
+                          fullWidth
+                          label="Maximum Privacy Loss (ε)"
+                          type="number"
+                          inputProps={{ step: 0.01, min: 0.01, max: 1.0 }}
+                          value={privacyParams.maxPrivacyLoss}
+                          onChange={(e) => setPrivacyParams({ 
+                            ...privacyParams, 
+                            maxPrivacyLoss: parseFloat(e.target.value) 
+                          })}
+                          helperText="Differential privacy epsilon parameter (0.01-1.0, lower = more private)"
+                        />
+                      </Grid>
+                      
+                      <Grid item xs={12} md={6}>
+                        <TextField
+                          fullWidth
+                          label="Minimum Accuracy (%)"
+                          type="number"
+                          inputProps={{ step: 0.1, min: 50, max: 99.9 }}
+                          value={privacyParams.minAccuracy * 100}
+                          onChange={(e) => setPrivacyParams({ 
+                            ...privacyParams, 
+                            minAccuracy: parseFloat(e.target.value) / 100 
+                          })}
+                          helperText="Minimum required model accuracy (50%-99.9%)"
+                        />
+                      </Grid>
+                    </Grid>
+
+                    <FormControl fullWidth sx={{ mt: 2 }}>
+                      <InputLabel>Privacy Techniques</InputLabel>
+                      <Select
+                        multiple
+                        value={[
+                          privacyParams.differentialPrivacy.enabled && 'differential-privacy',
+                          privacyParams.federatedLearning.enabled && 'federated-learning',
+                          privacyParams.secureMultiPartyComputation.enabled && 'secure-mpc'
+                        ].filter(Boolean)}
+                        onChange={(e) => {
+                          const selected = e.target.value;
+                          setPrivacyParams({
+                            ...privacyParams,
+                            differentialPrivacy: {
+                              ...privacyParams.differentialPrivacy,
+                              enabled: selected.includes('differential-privacy')
+                            },
+                            federatedLearning: {
+                              ...privacyParams.federatedLearning,
+                              enabled: selected.includes('federated-learning')
+                            },
+                            secureMultiPartyComputation: {
+                              ...privacyParams.secureMultiPartyComputation,
+                              enabled: selected.includes('secure-mpc')
+                            }
+                          });
+                        }}
+                        label="Privacy Techniques"
+                        renderValue={(selected) => (
+                          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                            {selected.map((technique) => (
+                              <Chip 
+                                key={technique} 
+                                label={technique.replace('-', ' ')} 
+                                size="small" 
+                              />
+                            ))}
+                          </Box>
+                        )}
+                      >
+                        <MenuItem value="differential-privacy">
+                          <Checkbox checked={privacyParams.differentialPrivacy.enabled} />
+                          <ListItemText 
+                            primary="Differential Privacy"
+                            secondary="Adds noise to protect individual data"
+                          />
+                        </MenuItem>
+                        <MenuItem value="federated-learning">
+                          <Checkbox checked={privacyParams.federatedLearning.enabled} />
+                          <ListItemText 
+                            primary="Federated Learning"
+                            secondary="Train model without sharing raw data"
+                          />
+                        </MenuItem>
+                        <MenuItem value="secure-mpc">
+                          <Checkbox checked={privacyParams.secureMultiPartyComputation.enabled} />
+                          <ListItemText 
+                            primary="Secure Multi-Party Computation"
+                            secondary="Compute on encrypted data"
+                          />
+                        </MenuItem>
+                      </Select>
+                      <FormHelperText>Select privacy-preserving techniques to be used</FormHelperText>
+                    </FormControl>
+
+                    <Alert severity="info" sx={{ mt: 2 }}>
+                      <Typography variant="body2">
+                        <strong>Privacy-Accuracy Trade-off:</strong> Lower privacy loss (ε) provides better privacy but may reduce model accuracy. 
+                        Higher minimum accuracy requirements may limit privacy protection.
+                      </Typography>
+                    </Alert>
+                  </CardContent>
+                </Card>
               </Grid>
             </Grid>
           </Box>

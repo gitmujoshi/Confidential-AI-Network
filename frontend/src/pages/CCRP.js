@@ -19,6 +19,17 @@ import {
   MenuItem,
   TextField,
   InputAdornment,
+  ToggleButtonGroup,
+  ToggleButton,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  TableSortLabel,
+  Paper,
+  IconButton,
 } from '@mui/material';
 import {
   Security,
@@ -29,6 +40,9 @@ import {
   Email,
   Search,
   FilterList,
+  ViewModule,
+  ViewList,
+  Visibility,
 } from '@mui/icons-material';
 import { useQuery } from 'react-query';
 import { useNavigate } from 'react-router-dom';
@@ -132,6 +146,9 @@ const CCRPCard = ({ ccrp, onCCRPClick }) => {
 function CCRP() {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
+  const [viewMode, setViewMode] = useState('grid');
+  const [sortBy, setSortBy] = useState('name');
+  const [sortOrder, setSortOrder] = useState('asc');
   const navigate = useNavigate();
 
   const { data: ccrpUsers = [], isLoading, error, refetch } = useQuery(
@@ -161,6 +178,23 @@ function CCRP() {
     return matchesSearch && matchesStatus;
   });
 
+  // Sort filtered CCRPs
+  const filteredAndSortedCCRPs = [...filteredCCRPs].sort((a, b) => {
+    let aValue = a[sortBy];
+    let bValue = b[sortBy];
+    
+    if (sortBy === 'name' || sortBy === 'email') {
+      aValue = aValue?.toLowerCase() || '';
+      bValue = bValue?.toLowerCase() || '';
+    }
+    
+    if (sortOrder === 'asc') {
+      return aValue > bValue ? 1 : -1;
+    } else {
+      return aValue < bValue ? 1 : -1;
+    }
+  });
+
   const activeCCRPs = ccrpUsers.filter(ccrp => ccrp.isActive);
   const inactiveCCRPs = ccrpUsers.filter(ccrp => !ccrp.isActive);
 
@@ -175,6 +209,12 @@ function CCRP() {
     } catch (error) {
       console.error('Manual refresh failed:', error);
     }
+  };
+
+  const handleSort = (property) => {
+    const isAsc = sortBy === property && sortOrder === 'asc';
+    setSortOrder(isAsc ? 'desc' : 'asc');
+    setSortBy(property);
   };
 
   if (isLoading) {
@@ -262,11 +302,25 @@ function CCRP() {
         </Grid>
       </Grid>
 
-      {/* Filters */}
+      {/* Filters and View Toggle */}
       <Card sx={{ mb: 3 }}>
         <CardContent>
           <Grid container spacing={2} alignItems="center">
-            <Grid item xs={12} md={6}>
+            <Grid item xs={12} md={4}>
+              <FormControl fullWidth>
+                <InputLabel>Status Filter</InputLabel>
+                <Select
+                  value={statusFilter}
+                  label="Status Filter"
+                  onChange={(e) => setStatusFilter(e.target.value)}
+                >
+                  <MenuItem value="">All Status</MenuItem>
+                  <MenuItem value="active">Active</MenuItem>
+                  <MenuItem value="inactive">Inactive</MenuItem>
+                </Select>
+              </FormControl>
+            </Grid>
+            <Grid item xs={12} md={4}>
               <TextField
                 fullWidth
                 placeholder="Search CCRP providers..."
@@ -281,113 +335,160 @@ function CCRP() {
                 }}
               />
             </Grid>
-            <Grid item xs={12} md={3}>
-              <FormControl fullWidth>
-                <InputLabel>Status Filter</InputLabel>
-                <Select
-                  value={statusFilter}
-                  label="Status Filter"
-                  onChange={(e) => setStatusFilter(e.target.value)}
-                >
-                  <MenuItem value="">All Status</MenuItem>
-                  <MenuItem value="active">Active</MenuItem>
-                  <MenuItem value="inactive">Inactive</MenuItem>
-                </Select>
-              </FormControl>
+            <Grid item xs={12} md={2}>
+              <ToggleButtonGroup
+                value={viewMode}
+                exclusive
+                onChange={(e, newViewMode) => {
+                  if (newViewMode !== null) {
+                    setViewMode(newViewMode);
+                  }
+                }}
+                aria-label="view mode"
+                size="small"
+              >
+                <ToggleButton value="grid" aria-label="grid view">
+                  <ViewModule />
+                </ToggleButton>
+                <ToggleButton value="table" aria-label="table view">
+                  <ViewList />
+                </ToggleButton>
+              </ToggleButtonGroup>
             </Grid>
-            <Grid item xs={12} md={3}>
+            <Grid item xs={12} md={2}>
               <Typography variant="body2" color="textSecondary">
-                Showing {filteredCCRPs.length} of {ccrpUsers.length} providers
+                {filteredAndSortedCCRPs.length} providers
               </Typography>
             </Grid>
           </Grid>
         </CardContent>
       </Card>
 
-      {/* CCRP Grid */}
-      <Grid container spacing={3}>
-        {filteredCCRPs.map((ccrp) => (
-          <Grid item xs={12} sm={6} md={4} key={ccrp.id}>
-            <CCRPCard ccrp={ccrp} onCCRPClick={handleCCRPClick} />
-          </Grid>
-        ))}
-      </Grid>
+      {/* CCRP Grid View */}
+      {viewMode === 'grid' && (
+        <Grid container spacing={3}>
+          {filteredAndSortedCCRPs.map((ccrp) => (
+            <Grid item xs={12} sm={6} md={4} key={ccrp.id}>
+              <CCRPCard ccrp={ccrp} onCCRPClick={handleCCRPClick} />
+            </Grid>
+          ))}
+        </Grid>
+      )}
 
-      {filteredCCRPs.length === 0 && (
+      {/* CCRP Table View */}
+      {viewMode === 'table' && (
+        <Card>
+          <CardContent>
+            <TableContainer component={Paper} elevation={0}>
+              <Table>
+                <TableHead>
+                  <TableRow>
+                    <TableCell>
+                      <TableSortLabel
+                        active={sortBy === 'name'}
+                        direction={sortBy === 'name' ? sortOrder : 'asc'}
+                        onClick={() => handleSort('name')}
+                      >
+                        Name
+                      </TableSortLabel>
+                    </TableCell>
+                    <TableCell>
+                      <TableSortLabel
+                        active={sortBy === 'email'}
+                        direction={sortBy === 'email' ? sortOrder : 'asc'}
+                        onClick={() => handleSort('email')}
+                      >
+                        Email
+                      </TableSortLabel>
+                    </TableCell>
+                    <TableCell>Organization</TableCell>
+                    <TableCell>Location</TableCell>
+                    <TableCell>Description</TableCell>
+                    <TableCell>Status</TableCell>
+                    <TableCell>Actions</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {filteredAndSortedCCRPs.map((ccrp) => (
+                    <TableRow 
+                      key={ccrp.id}
+                      hover
+                      sx={{ cursor: 'pointer' }}
+                      onClick={() => handleCCRPClick(ccrp)}
+                    >
+                      <TableCell>
+                        <Box display="flex" alignItems="center" gap={1}>
+                          <Avatar 
+                            sx={{ 
+                              width: 32, 
+                              height: 32,
+                              bgcolor: 'purple.600'
+                            }}
+                          >
+                            <Security />
+                          </Avatar>
+                          <Typography variant="body2" fontWeight="medium">
+                            {ccrp.name}
+                          </Typography>
+                        </Box>
+                      </TableCell>
+                      <TableCell>
+                        <Typography variant="body2">
+                          {ccrp.email}
+                        </Typography>
+                      </TableCell>
+                      <TableCell>
+                        <Typography variant="body2" color="textSecondary">
+                          {ccrp.organization || 'N/A'}
+                        </Typography>
+                      </TableCell>
+                      <TableCell>
+                        <Typography variant="body2" color="textSecondary">
+                          {ccrp.location || 'N/A'}
+                        </Typography>
+                      </TableCell>
+                      <TableCell>
+                        <Typography variant="body2" color="textSecondary" sx={{ maxWidth: 200 }}>
+                          {ccrp.description || 'No description'}
+                        </Typography>
+                      </TableCell>
+                      <TableCell>
+                        <Chip 
+                          label={ccrp.isActive ? 'Active' : 'Inactive'} 
+                          size="small"
+                          color={ccrp.isActive ? 'success' : 'error'}
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <IconButton 
+                          size="small"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleCCRPClick(ccrp);
+                          }}
+                        >
+                          <Visibility />
+                        </IconButton>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          </CardContent>
+        </Card>
+      )}
+
+      {filteredAndSortedCCRPs.length === 0 && (
         <Box textAlign="center" py={4}>
           <Typography variant="h6" color="textSecondary">
             No CCRP providers found
           </Typography>
           <Typography variant="body2" color="textSecondary">
-            Try adjusting your search criteria
+            Try adjusting your search or filter criteria
           </Typography>
         </Box>
       )}
-
-      {/* Detailed List View */}
-      <Card sx={{ mt: 4 }}>
-        <CardContent>
-          <Typography variant="h6" gutterBottom>
-            All CCRP Providers
-          </Typography>
-          <List>
-            {ccrpUsers.map((ccrp, index) => (
-              <React.Fragment key={ccrp.id}>
-                <ListItem 
-                  button 
-                  onClick={() => handleCCRPClick(ccrp)}
-                  sx={{ 
-                    '&:hover': { bgcolor: 'action.hover' },
-                    borderRadius: 1,
-                    mb: 1
-                  }}
-                >
-                  <ListItemAvatar>
-                    <Avatar sx={{ bgcolor: 'purple.600' }}>
-                      <Security />
-                    </Avatar>
-                  </ListItemAvatar>
-                  <ListItemText
-                    primary={
-                      <Box display="flex" alignItems="center" gap={1}>
-                        <Typography variant="subtitle1" className="font-medium">
-                          {ccrp.name}
-                        </Typography>
-                        <Chip 
-                          label={ccrp.isActive ? 'Active' : 'Inactive'} 
-                          color={ccrp.isActive ? 'success' : 'error'} 
-                          size="small" 
-                        />
-                      </Box>
-                    }
-                    secondary={
-                      <Box>
-                        <Typography variant="body2" color="textSecondary">
-                          {ccrp.email}
-                        </Typography>
-                        {ccrp.description && (
-                          <Typography variant="body2" color="textSecondary">
-                            {ccrp.description}
-                          </Typography>
-                        )}
-                        <Box display="flex" gap={1} mt={1}>
-                          {ccrp.organization && (
-                            <Chip label={ccrp.organization} size="small" variant="outlined" />
-                          )}
-                          {ccrp.location && (
-                            <Chip label={ccrp.location} size="small" variant="outlined" />
-                          )}
-                        </Box>
-                      </Box>
-                    }
-                  />
-                </ListItem>
-                {index < ccrpUsers.length - 1 && <Divider />}
-              </React.Fragment>
-            ))}
-          </List>
-        </CardContent>
-      </Card>
     </Box>
   );
 }

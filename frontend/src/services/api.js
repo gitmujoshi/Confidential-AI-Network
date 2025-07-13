@@ -329,7 +329,10 @@ const realApiService = {
   updateUserRegistration: (userId, userData) => api.put(`/api/users/${userId}/register`, userData),
 
   // Notifications
-  getNotifications: (userId, params) => api.get(`/api/notifications/${userId}`, { params }),
+  getNotifications: async (userId, params) => {
+    const response = await api.get(`/api/notifications/${userId}`, { params });
+    return response.data;
+  },
   markNotificationAsRead: (notificationId, data) => api.put(`/api/notifications/${notificationId}/read`, data),
 
   // Blockchain

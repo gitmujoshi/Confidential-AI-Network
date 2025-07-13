@@ -343,6 +343,40 @@ router.post('/ricardian', authenticateToken, async (req, res) => {
       return res.status(400).json({ error: 'Missing required fields' });
     }
 
+    // Validate privacy requirements if provided in trainingParams
+    if (trainingParams && trainingParams.privacyRequirements) {
+      const { maxPrivacyLoss, minAccuracy, differentialPrivacy, federatedLearning, secureMultiPartyComputation } = trainingParams.privacyRequirements;
+      
+      // Validate privacy loss (epsilon)
+      if (maxPrivacyLoss < 0.01 || maxPrivacyLoss > 1.0) {
+        return res.status(400).json({ error: 'Maximum privacy loss must be between 0.01 and 1.0' });
+      }
+      
+      // Validate minimum accuracy
+      if (minAccuracy < 0.5 || minAccuracy > 0.999) {
+        return res.status(400).json({ error: 'Minimum accuracy must be between 50% and 99.9%' });
+      }
+      
+      // Validate that at least one privacy technique is enabled
+      const hasPrivacyTechnique = (
+        (differentialPrivacy && differentialPrivacy.enabled) ||
+        (federatedLearning && federatedLearning.enabled) ||
+        (secureMultiPartyComputation && secureMultiPartyComputation.enabled)
+      );
+      
+      if (!hasPrivacyTechnique) {
+        return res.status(400).json({ error: 'At least one privacy-preserving technique must be enabled' });
+      }
+      
+      console.log('✅ Privacy requirements validated for Ricardian contract:', {
+        maxPrivacyLoss,
+        minAccuracy,
+        differentialPrivacy: differentialPrivacy?.enabled,
+        federatedLearning: federatedLearning?.enabled,
+        secureMultiPartyComputation: secureMultiPartyComputation?.enabled
+      });
+    }
+
     // Validate AI models if provided
     let aiModels = [];
     if (aiModelIds && Array.isArray(aiModelIds) && aiModelIds.length > 0) {
@@ -442,11 +476,11 @@ router.post('/ricardian', authenticateToken, async (req, res) => {
     // Send notifications
     await notificationService.notifyContractCreated(ricardianResult.contract, tdpUser);
 
-    console.log('✅ Ricardian contract created successfully:', ricardianResult.contract.contractId);
+    console.log('✅ Ricardian contract created successfully with privacy requirements:', ricardianResult.contract.contractId);
 
     res.status(201).json({
       success: true,
-      message: 'Ricardian contract created successfully',
+      message: 'Ricardian contract created successfully with privacy requirements',
       contract: ricardianResult.contract,
       legalDocument: ricardianResult.legalDocument,
       smartContractData: ricardianResult.smartContractData
@@ -692,13 +726,48 @@ router.post('/', authenticateToken, async (req, res) => {
       price,
       duration,
       termsAndConditions,
-      ccrpId
+      ccrpId,
+      privacyRequirements
     } = req.body;
 
     // Validate required fields
     if (!tdpId || !datasetId || !price || !duration || !termsAndConditions) {
       console.log('❌ Missing required fields:', { tdpId, datasetId, price, duration, termsAndConditions });
       return res.status(400).json({ error: 'Missing required fields' });
+    }
+
+    // Validate privacy requirements if provided
+    if (privacyRequirements) {
+      const { maxPrivacyLoss, minAccuracy, differentialPrivacy, federatedLearning, secureMultiPartyComputation } = privacyRequirements;
+      
+      // Validate privacy loss (epsilon)
+      if (maxPrivacyLoss < 0.01 || maxPrivacyLoss > 1.0) {
+        return res.status(400).json({ error: 'Maximum privacy loss must be between 0.01 and 1.0' });
+      }
+      
+      // Validate minimum accuracy
+      if (minAccuracy < 0.5 || minAccuracy > 0.999) {
+        return res.status(400).json({ error: 'Minimum accuracy must be between 50% and 99.9%' });
+      }
+      
+      // Validate that at least one privacy technique is enabled
+      const hasPrivacyTechnique = (
+        (differentialPrivacy && differentialPrivacy.enabled) ||
+        (federatedLearning && federatedLearning.enabled) ||
+        (secureMultiPartyComputation && secureMultiPartyComputation.enabled)
+      );
+      
+      if (!hasPrivacyTechnique) {
+        return res.status(400).json({ error: 'At least one privacy-preserving technique must be enabled' });
+      }
+      
+      console.log('✅ Privacy requirements validated:', {
+        maxPrivacyLoss,
+        minAccuracy,
+        differentialPrivacy: differentialPrivacy?.enabled,
+        federatedLearning: federatedLearning?.enabled,
+        secureMultiPartyComputation: secureMultiPartyComputation?.enabled
+      });
     }
 
     // Get TDP user (dataset owner)
@@ -749,7 +818,9 @@ router.post('/', authenticateToken, async (req, res) => {
       price,
       duration,
       termsAndConditions,
-      status: ccrpUser ? 'PENDING_TDP_APPROVAL' : 'PENDING_CCRP_APPROVAL'
+      status: ccrpUser ? 'PENDING_TDP_APPROVAL' : 'PENDING_CCRP_APPROVAL',
+      // Store privacy requirements as JSON
+      trainingParams: privacyRequirements ? JSON.stringify(privacyRequirements) : null
     });
 
     // Get full contract with associations
@@ -774,7 +845,7 @@ router.post('/', authenticateToken, async (req, res) => {
     res.status(201).json({
       success: true,
       contract: fullContract,
-      message: 'Contract created successfully'
+      message: 'Contract created successfully with privacy requirements'
     });
   } catch (error) {
     console.error('Error creating contract:', error);

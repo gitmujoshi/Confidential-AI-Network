@@ -19,6 +19,17 @@ import {
   DialogActions,
   IconButton,
   Tooltip,
+  ToggleButtonGroup,
+  ToggleButton,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  TableSortLabel,
+  Paper,
+  Avatar,
 } from '@mui/material';
 import {
   Search,
@@ -27,6 +38,9 @@ import {
   Visibility,
   Edit,
   Delete,
+  ViewModule,
+  ViewList,
+  Storage,
 } from '@mui/icons-material';
 import { useQuery } from 'react-query';
 import { apiService } from '../services/api';
@@ -79,9 +93,73 @@ const DatasetCard = ({ dataset, onView, onEdit, onDelete }) => (
   </Card>
 );
 
+const DatasetRow = ({ dataset, onView, onEdit, onDelete }) => (
+  <TableRow hover>
+    <TableCell>
+      <Box display="flex" alignItems="center" gap={1}>
+        <Avatar sx={{ width: 32, height: 32, bgcolor: 'primary.main' }}>
+          <Storage />
+        </Avatar>
+        <Typography variant="body2" fontWeight="medium">
+          {dataset.name}
+        </Typography>
+      </Box>
+    </TableCell>
+    <TableCell>
+      <Typography variant="body2" color="textSecondary" sx={{ maxWidth: 200 }}>
+        {dataset.description}
+      </Typography>
+    </TableCell>
+    <TableCell>
+      <Chip label={dataset.category} size="small" variant="outlined" />
+    </TableCell>
+    <TableCell>
+      <Typography variant="body2">{dataset.owner?.name}</Typography>
+    </TableCell>
+    <TableCell>
+      <Typography variant="body2">${dataset.price}</Typography>
+    </TableCell>
+    <TableCell>
+      <Typography variant="body2">{dataset.size} MB</Typography>
+    </TableCell>
+    <TableCell>
+      <Typography variant="body2">{dataset.recordCount.toLocaleString()}</Typography>
+    </TableCell>
+    <TableCell>
+      <Chip label={dataset.license} size="small" />
+    </TableCell>
+    <TableCell>
+      <Box display="flex" gap={1}>
+        <Tooltip title="View Details">
+          <IconButton size="small" onClick={() => onView(dataset)}>
+            <Visibility />
+          </IconButton>
+        </Tooltip>
+        <Tooltip title="Edit Dataset">
+          <IconButton size="small" onClick={() => onEdit(dataset)}>
+            <Edit />
+          </IconButton>
+        </Tooltip>
+        <Tooltip title="Delete Dataset">
+          <IconButton 
+            size="small" 
+            onClick={() => onDelete(dataset)}
+            color="error"
+          >
+            <Delete />
+          </IconButton>
+        </Tooltip>
+      </Box>
+    </TableCell>
+  </TableRow>
+);
+
 function Datasets() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
+  const [viewMode, setViewMode] = useState('grid');
+  const [sortBy, setSortBy] = useState('name');
+  const [sortOrder, setSortOrder] = useState('asc');
   const [viewDialogOpen, setViewDialogOpen] = useState(false);
   const [selectedDataset, setSelectedDataset] = useState(null);
 
@@ -100,6 +178,23 @@ function Datasets() {
   const { data: categories, isLoading: categoriesLoading, error: categoriesError } = useQuery('categories', apiService.getDatasetCategories);
 
   const datasets = datasetsResponse?.datasets || [];
+
+  // Sort datasets
+  const sortedDatasets = [...datasets].sort((a, b) => {
+    let aValue = a[sortBy];
+    let bValue = b[sortBy];
+    
+    if (sortBy === 'name' || sortBy === 'description' || sortBy === 'category') {
+      aValue = aValue?.toLowerCase() || '';
+      bValue = bValue?.toLowerCase() || '';
+    }
+    
+    if (sortOrder === 'asc') {
+      return aValue > bValue ? 1 : -1;
+    } else {
+      return aValue < bValue ? 1 : -1;
+    }
+  });
   
   const handleView = (dataset) => {
     setSelectedDataset(dataset);
@@ -116,6 +211,12 @@ function Datasets() {
     console.log('Delete dataset:', dataset);
   };
 
+  const handleSort = (property) => {
+    const isAsc = sortBy === property && sortOrder === 'asc';
+    setSortOrder(isAsc ? 'desc' : 'asc');
+    setSortBy(property);
+  };
+
   return (
     <Box>
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
@@ -129,7 +230,7 @@ function Datasets() {
       <Card sx={{ mb: 3 }}>
         <CardContent>
           <Grid container spacing={2} alignItems="center">
-            <Grid item xs={12} md={6}>
+            <Grid item xs={12} md={4}>
               <TextField
                 fullWidth
                 placeholder="Search datasets..."
@@ -140,7 +241,7 @@ function Datasets() {
                 }}
               />
             </Grid>
-            <Grid item xs={12} md={4}>
+            <Grid item xs={12} md={3}>
               <FormControl fullWidth>
                 <InputLabel>Category</InputLabel>
                 <Select
@@ -156,6 +257,26 @@ function Datasets() {
                   ))}
                 </Select>
               </FormControl>
+            </Grid>
+            <Grid item xs={12} md={3}>
+              <ToggleButtonGroup
+                value={viewMode}
+                exclusive
+                onChange={(e, newViewMode) => {
+                  if (newViewMode !== null) {
+                    setViewMode(newViewMode);
+                  }
+                }}
+                aria-label="view mode"
+                size="small"
+              >
+                <ToggleButton value="grid" aria-label="grid view">
+                  <ViewModule />
+                </ToggleButton>
+                <ToggleButton value="table" aria-label="table view">
+                  <ViewList />
+                </ToggleButton>
+              </ToggleButtonGroup>
             </Grid>
             <Grid item xs={12} md={2}>
               <Button
@@ -174,41 +295,141 @@ function Datasets() {
         </CardContent>
       </Card>
 
-      {/* Datasets Grid */}
-      {datasetsLoading ? (
-        <Box textAlign="center" py={4}>
-          <Typography variant="h6" color="textSecondary">
-            Loading datasets...
-          </Typography>
-        </Box>
-      ) : datasetsError ? (
-        <Box textAlign="center" py={4}>
-          <Typography variant="h6" color="error">
-            Error loading datasets: {datasetsError.message}
-          </Typography>
-        </Box>
-      ) : (
-        <Grid container spacing={3}>
-          {datasets.map((dataset) => (
-            <Grid item xs={12} sm={6} md={4} key={dataset.id}>
-              <DatasetCard
-                dataset={dataset}
-                onView={handleView}
-                onEdit={handleEdit}
-                onDelete={handleDelete}
-              />
-            </Grid>
-          ))}
-        </Grid>
+      {/* Datasets Grid View */}
+      {viewMode === 'grid' && (
+        datasetsLoading ? (
+          <Box textAlign="center" py={4}>
+            <Typography variant="h6" color="textSecondary">
+              Loading datasets...
+            </Typography>
+          </Box>
+        ) : datasetsError ? (
+          <Box textAlign="center" py={4}>
+            <Typography variant="h6" color="error">
+              Error loading datasets: {datasetsError.message}
+            </Typography>
+          </Box>
+        ) : (
+          <Grid container spacing={3}>
+            {sortedDatasets.map((dataset) => (
+              <Grid item xs={12} sm={6} md={4} key={dataset.id}>
+                <DatasetCard
+                  dataset={dataset}
+                  onView={handleView}
+                  onEdit={handleEdit}
+                  onDelete={handleDelete}
+                />
+              </Grid>
+            ))}
+          </Grid>
+        )
       )}
 
-      {!datasetsLoading && !datasetsError && datasets.length === 0 && (
+      {/* Datasets Table View */}
+      {viewMode === 'table' && (
+        datasetsLoading ? (
+          <Box textAlign="center" py={4}>
+            <Typography variant="h6" color="textSecondary">
+              Loading datasets...
+            </Typography>
+          </Box>
+        ) : datasetsError ? (
+          <Box textAlign="center" py={4}>
+            <Typography variant="h6" color="error">
+              Error loading datasets: {datasetsError.message}
+            </Typography>
+          </Box>
+        ) : (
+          <Card>
+            <CardContent>
+              <TableContainer component={Paper} elevation={0}>
+                <Table>
+                  <TableHead>
+                    <TableRow>
+                      <TableCell>
+                        <TableSortLabel
+                          active={sortBy === 'name'}
+                          direction={sortBy === 'name' ? sortOrder : 'asc'}
+                          onClick={() => handleSort('name')}
+                        >
+                          Name
+                        </TableSortLabel>
+                      </TableCell>
+                      <TableCell>
+                        <TableSortLabel
+                          active={sortBy === 'description'}
+                          direction={sortBy === 'description' ? sortOrder : 'asc'}
+                          onClick={() => handleSort('description')}
+                        >
+                          Description
+                        </TableSortLabel>
+                      </TableCell>
+                      <TableCell>
+                        <TableSortLabel
+                          active={sortBy === 'category'}
+                          direction={sortBy === 'category' ? sortOrder : 'asc'}
+                          onClick={() => handleSort('category')}
+                        >
+                          Category
+                        </TableSortLabel>
+                      </TableCell>
+                      <TableCell>Provider</TableCell>
+                      <TableCell>
+                        <TableSortLabel
+                          active={sortBy === 'price'}
+                          direction={sortBy === 'price' ? sortOrder : 'asc'}
+                          onClick={() => handleSort('price')}
+                        >
+                          Price
+                        </TableSortLabel>
+                      </TableCell>
+                      <TableCell>
+                        <TableSortLabel
+                          active={sortBy === 'size'}
+                          direction={sortBy === 'size' ? sortOrder : 'asc'}
+                          onClick={() => handleSort('size')}
+                        >
+                          Size
+                        </TableSortLabel>
+                      </TableCell>
+                      <TableCell>
+                        <TableSortLabel
+                          active={sortBy === 'recordCount'}
+                          direction={sortBy === 'recordCount' ? sortOrder : 'asc'}
+                          onClick={() => handleSort('recordCount')}
+                        >
+                          Records
+                        </TableSortLabel>
+                      </TableCell>
+                      <TableCell>License</TableCell>
+                      <TableCell>Actions</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {sortedDatasets.map((dataset) => (
+                      <DatasetRow
+                        key={dataset.id}
+                        dataset={dataset}
+                        onView={handleView}
+                        onEdit={handleEdit}
+                        onDelete={handleDelete}
+                      />
+                    ))}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            </CardContent>
+          </Card>
+        )
+      )}
+
+      {!datasetsLoading && !datasetsError && sortedDatasets.length === 0 && (
         <Box textAlign="center" py={4}>
           <Typography variant="h6" color="textSecondary">
             No datasets found
           </Typography>
           <Typography variant="body2" color="textSecondary">
-            Try adjusting your search criteria
+            Try adjusting your search or filter criteria
           </Typography>
         </Box>
       )}
@@ -223,55 +444,63 @@ function Datasets() {
         {selectedDataset && (
           <>
             <DialogTitle>
-              <Box display="flex" justifyContent="space-between" alignItems="center">
+              <Box display="flex" alignItems="center" gap={2}>
+                <Avatar sx={{ bgcolor: 'primary.main' }}>
+                  <Storage />
+                </Avatar>
                 <Typography variant="h6">{selectedDataset.name}</Typography>
-                <Chip label={`$${selectedDataset.price}`} color="primary" />
               </Box>
             </DialogTitle>
             <DialogContent>
-              <Typography variant="body1" paragraph>
-                {selectedDataset.description}
-              </Typography>
-              
-              <Grid container spacing={2}>
-                <Grid item xs={6}>
-                  <Typography variant="body2" color="textSecondary">
+              <Grid container spacing={3}>
+                <Grid item xs={12}>
+                  <Typography variant="body1" paragraph>
+                    {selectedDataset.description}
+                  </Typography>
+                </Grid>
+                
+                <Grid item xs={12} md={6}>
+                  <Typography variant="body2" color="textSecondary" gutterBottom>
                     <strong>Category:</strong>
                   </Typography>
                   <Chip label={selectedDataset.category} size="small" />
                 </Grid>
-                <Grid item xs={6}>
-                  <Typography variant="body2" color="textSecondary">
+                
+                <Grid item xs={12} md={6}>
+                  <Typography variant="body2" color="textSecondary" gutterBottom>
+                    <strong>Price:</strong>
+                  </Typography>
+                  <Typography variant="body1">${selectedDataset.price}</Typography>
+                </Grid>
+                
+                <Grid item xs={12} md={6}>
+                  <Typography variant="body2" color="textSecondary" gutterBottom>
                     <strong>Size:</strong>
                   </Typography>
-                  <Typography variant="body2">
-                    {selectedDataset.size} MB
-                  </Typography>
+                  <Typography variant="body1">{selectedDataset.size} MB</Typography>
                 </Grid>
-                <Grid item xs={6}>
-                  <Typography variant="body2" color="textSecondary">
+                
+                <Grid item xs={12} md={6}>
+                  <Typography variant="body2" color="textSecondary" gutterBottom>
                     <strong>Records:</strong>
                   </Typography>
-                  <Typography variant="body2">
-                    {selectedDataset.recordCount.toLocaleString()}
-                  </Typography>
+                  <Typography variant="body1">{selectedDataset.recordCount.toLocaleString()}</Typography>
                 </Grid>
-                <Grid item xs={6}>
-                  <Typography variant="body2" color="textSecondary">
+                
+                <Grid item xs={12} md={6}>
+                  <Typography variant="body2" color="textSecondary" gutterBottom>
                     <strong>License:</strong>
                   </Typography>
-                  <Typography variant="body2">
-                    {selectedDataset.license}
-                  </Typography>
+                  <Typography variant="body1">{selectedDataset.license}</Typography>
                 </Grid>
-                <Grid item xs={12}>
-                  <Typography variant="body2" color="textSecondary">
+                
+                <Grid item xs={12} md={6}>
+                  <Typography variant="body2" color="textSecondary" gutterBottom>
                     <strong>Provider:</strong>
                   </Typography>
-                  <Typography variant="body2">
-                    {selectedDataset.owner?.name}
-                  </Typography>
+                  <Typography variant="body1">{selectedDataset.owner?.name}</Typography>
                 </Grid>
+                
                 {selectedDataset.tags && selectedDataset.tags.length > 0 && (
                   <Grid item xs={12}>
                     <Typography variant="body2" color="textSecondary" gutterBottom>
@@ -284,25 +513,12 @@ function Datasets() {
                     </Box>
                   </Grid>
                 )}
-                {selectedDataset.metadata && (
-                  <Grid item xs={12}>
-                    <Typography variant="body2" color="textSecondary" gutterBottom>
-                      <strong>Metadata:</strong>
-                    </Typography>
-                    <Typography variant="body2" fontFamily="monospace" fontSize="0.875rem">
-                      {JSON.stringify(selectedDataset.metadata, null, 2)}
-                    </Typography>
-                  </Grid>
-                )}
               </Grid>
             </DialogContent>
             <DialogActions>
               <Button onClick={() => setViewDialogOpen(false)}>Close</Button>
-              <Button variant="contained" onClick={() => {
-                setViewDialogOpen(false);
-                // Navigate to create contract with this dataset
-              }}>
-                Create Contract
+              <Button variant="contained" onClick={() => handleEdit(selectedDataset)}>
+                Edit Dataset
               </Button>
             </DialogActions>
           </>
