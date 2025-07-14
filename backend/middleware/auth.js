@@ -70,10 +70,20 @@ const authenticateToken = async (req, res, next) => {
           // Attach user information to request
           req.user = {
             ...validationResult.user,
-            localUser: user,
+            id: validationResult.user.dbUserId || user.id, // Use dbUserId if available, fallback to local user id
+            partyType: user.partyType,
+            localUser: {
+              id: user.id,
+              partyType: user.partyType,
+              email: user.email,
+              // add any other fields needed for downstream checks
+            },
             token: token,
             authType: 'keycloak'
           };
+
+          // Debug logging
+          console.log('🔑 [auth.js] req.user after Keycloak validation:', req.user);
 
           return next();
         }

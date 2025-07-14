@@ -225,6 +225,13 @@ module.exports = (sequelize, Sequelize) => {
       type: Sequelize.DataTypes.DATE,
       allowNull: true,
       comment: 'Expiry date for password reset token'
+    },
+    
+    // Cloud providers for CCRP users (array of supported providers)
+    cloudProviders: {
+      type: Sequelize.DataTypes.JSON,
+      allowNull: true,
+      comment: 'Array of cloud providers supported by CCRP users (AWS, Azure, GCP, OCI)'
     }
   }, {
     tableName: 'users',

@@ -119,6 +119,7 @@ class KeycloakService {
               payload: decoded,
               user: {
                 id: decoded.sub,
+                dbUserId: decoded.dbUserId, // Extract dbUserId from token
                 username: decoded.preferred_username,
                 email: decoded.email,
                 walletAddress: decoded.walletAddress,

@@ -18,6 +18,15 @@ const dpdpRouter = require('./routes/dpdp');
 const signingRouter = require('./routes/signing');
 const aiModelsRouter = require('./routes/ai-models');
 
+// Import role-specific routes
+const adminRouter = require('./routes/admin');
+const tdpRouter = require('./routes/tdp');
+const tdcRouter = require('./routes/tdc');
+const ccrpRouter = require('./routes/ccrp');
+
+// Import infrastructure routes
+const infrastructureRouter = require('./routes/infrastructure');
+
 const app = express();
 const PORT = process.env.PORT || 8000;
 
@@ -122,6 +131,15 @@ app.use('/api/ai-models', aiModelsRouter);
 app.use('/api/did', didRouter);
 app.use('/api/dpdp', dpdpRouter);
 app.use('/api/signing', signingRouter);
+
+// Role-specific API routes
+app.use('/api/admin', adminRouter);
+app.use('/api/tdp', tdpRouter);
+app.use('/api/tdc', tdcRouter);
+app.use('/api/ccrp', ccrpRouter);
+
+// Infrastructure API routes
+app.use('/api/infrastructure', infrastructureRouter);
 
 // Import users router
 const usersRouter = require('./routes/users');

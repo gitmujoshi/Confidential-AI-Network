@@ -220,6 +220,13 @@ module.exports = (sequelize, DataTypes) => {
       }
     },
     
+    // Selected cloud provider for this contract
+    ccrpCloudProvider: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      comment: 'Selected cloud provider for this contract (AWS, GCP, Azure, OCI)'
+    },
+    
     // Foreign key to dataset being contracted
     datasetId: {
       type: DataTypes.INTEGER,
