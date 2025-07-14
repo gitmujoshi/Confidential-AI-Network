@@ -51,8 +51,9 @@ import {
   ExpandMore,
   Payment,
   AttachMoney,
+  Edit,
 } from '@mui/icons-material';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from 'react-query';
 import { format } from 'date-fns';
 import { ethers } from 'ethers';
@@ -149,6 +150,7 @@ const PaymentStatusChip = ({ paid, paidAt, amount }) => {
 function ContractDetail() {
   const { contractId } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const queryClient = useQueryClient();
   const { currentUser, isAuthenticated, isTDC, isTDP, isCCRP } = useUser();
   const [ccrpDialogOpen, setCcrpDialogOpen] = useState(false);
@@ -159,6 +161,17 @@ function ContractDetail() {
 
   const [signing, setSigning] = useState(false);
   const [signError, setSignError] = useState('');
+  
+  // Edit mode state
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [editFormData, setEditFormData] = useState({
+    duration: '',
+    termsAndConditions: '',
+    ccrpId: '',
+    ccrpCloudProvider: ''
+  });
+  const [editLoading, setEditLoading] = useState(false);
+  const [editError, setEditError] = useState('');
 
   // Fetch contract details
   const { data: contract, isLoading, error } = useQuery(
@@ -198,12 +211,42 @@ function ContractDetail() {
     }
   }, [contract]);
 
+  // Check for edit parameter in URL and enter edit mode if present
+  React.useEffect(() => {
+    const searchParams = new URLSearchParams(location.search);
+    const editParam = searchParams.get('edit');
+    
+    if (editParam === 'true' && contract && canEditContract()) {
+      handleEditMode();
+      // Remove the edit parameter from URL
+      navigate(`/contracts/${contractId}`, { replace: true });
+    }
+  }, [contract, location.search]);
+
   // Fetch multi-TDP contract status
   const { data: multiTDPStatus } = useQuery(
     ['multi-tdp-status', contractId],
     () => apiService.getMultiTDPContractStatus(contractId),
     {
       enabled: !!contract?.datasets && contract.datasets.length > 1
+    }
+  );
+
+  // Contract update mutation
+  const updateContractMutation = useMutation(
+    (updateData) => apiService.updateContract(contractId, updateData),
+    {
+      onSuccess: (data) => {
+        queryClient.invalidateQueries(['contract', contractId]);
+        setIsEditMode(false);
+        toast.success('Contract updated successfully!');
+      },
+      onError: (error) => {
+        console.error('Contract update error:', error);
+        const errorMsg = error.response?.data?.error || 'Failed to update contract';
+        setEditError(errorMsg);
+        toast.error(errorMsg);
+      },
     }
   );
 
@@ -218,11 +261,32 @@ function ContractDetail() {
 
   // Fetch users for CCRP selection
   const { data: users = [] } = useQuery('users', apiService.getUsers);
-  const { 
-    data: ccrpUsers = [], 
-    isLoading: ccrpLoading, 
-    error: ccrpError 
-  } = useQuery('ccrp-users', apiService.getCCRPUsers);
+  
+  // Manual CCRP users fetch to avoid React Query parameter injection
+  const [ccrpUsersResponse, setCcrpUsersResponse] = React.useState(null);
+  const [ccrpLoading, setCcrpLoading] = React.useState(true);
+  const [ccrpError, setCcrpError] = React.useState(null);
+  
+  React.useEffect(() => {
+    const fetchCcrpUsers = async () => {
+      try {
+        setCcrpLoading(true);
+        const response = await apiService.getCCRPUsers();
+        setCcrpUsersResponse(response);
+        setCcrpError(null);
+      } catch (error) {
+        console.error('❌ CCRP users fetch error:', error);
+        setCcrpError(error);
+        setCcrpUsersResponse(null);
+      } finally {
+        setCcrpLoading(false);
+      }
+    };
+    
+    fetchCcrpUsers();
+  }, []);
+  
+  const ccrpUsers = ccrpUsersResponse?.ccrpUsers || [];
 
   // Mutations
   const signContractMutation = useMutation(
@@ -412,6 +476,89 @@ function ContractDetail() {
     } catch (error) {
       console.error('Cancel contract error:', error);
     }
+  };
+
+  // Edit mode handlers
+  const handleEditMode = () => {
+    if (!contract) return;
+    
+    setEditFormData({
+      duration: contract.duration?.toString() || '',
+      termsAndConditions: contract.termsAndConditions || '',
+      ccrpId: contract.ccrpId?.toString() || '',
+      ccrpCloudProvider: contract.ccrpCloudProvider || ''
+    });
+    setIsEditMode(true);
+    setEditError('');
+  };
+
+  const handleCancelEdit = () => {
+    setIsEditMode(false);
+    setEditFormData({
+      duration: '',
+      termsAndConditions: '',
+      ccrpId: '',
+      ccrpCloudProvider: ''
+    });
+    setEditError('');
+  };
+
+  const handleSaveEdit = async () => {
+    if (!contract) return;
+
+    setEditLoading(true);
+    setEditError('');
+
+    try {
+      const updateData = {};
+      
+      // Only include fields that have changed
+      if (editFormData.duration !== contract.duration?.toString()) {
+        updateData.duration = parseInt(editFormData.duration);
+      }
+      
+      if (editFormData.termsAndConditions !== contract.termsAndConditions) {
+        updateData.termsAndConditions = editFormData.termsAndConditions;
+      }
+      
+      if (editFormData.ccrpId !== contract.ccrpId?.toString()) {
+        updateData.ccrpId = editFormData.ccrpId ? parseInt(editFormData.ccrpId) : null;
+      }
+      
+      if (editFormData.ccrpCloudProvider !== contract.ccrpCloudProvider) {
+        updateData.ccrpCloudProvider = editFormData.ccrpCloudProvider;
+      }
+
+      // Only update if there are changes
+      if (Object.keys(updateData).length > 0) {
+        await updateContractMutation.mutateAsync(updateData);
+      } else {
+        setIsEditMode(false);
+        toast.info('No changes to save');
+      }
+    } catch (error) {
+      console.error('Error saving contract:', error);
+    } finally {
+      setEditLoading(false);
+    }
+  };
+
+  // Check if contract can be edited
+  const canEditContract = () => {
+    if (!contract || !isTDC) return false;
+    
+    // Only TDC who created the contract can edit
+    if (contract.tdcId !== currentUser?.id) return false;
+    
+    // Only pending contracts can be edited
+    const editableStatuses = ['PENDING_TDP_APPROVAL', 'PENDING_ALL_TDP_APPROVAL'];
+    const isEditableStatus = editableStatuses.includes(contract.status) || 
+                            editableStatuses.includes(contract.multiTdpStatus);
+    
+    // Cannot edit if any party has signed
+    const hasSignedParties = contract.tdpSigned || contract.ccrpSigned;
+    
+    return isEditableStatus && !hasSignedParties;
   };
 
   const handleRecordPayment = async () => {
@@ -726,6 +873,24 @@ function ContractDetail() {
                           <Typography variant="body2" fontSize="0.75rem" fontFamily="monospace">
                             {contract.ccrp?.walletAddress}
                           </Typography>
+                          {contract.ccrp?.description && (
+                            <Typography variant="body2" color="textSecondary" sx={{ mt: 0.5 }}>
+                              {contract.ccrp.description}
+                            </Typography>
+                          )}
+                          {contract.ccrp?.cloudProviders && contract.ccrp.cloudProviders.length > 0 && (
+                            <Box sx={{ mt: 1, display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                              {contract.ccrp.cloudProviders.map((provider) => (
+                                <Chip
+                                  key={provider}
+                                  label={provider}
+                                  color="primary"
+                                  size="small"
+                                  variant="outlined"
+                                />
+                              ))}
+                            </Box>
+                          )}
                           <Chip 
                             label={contract.ccrpSigned ? 'Signed' : 'Pending'} 
                             color={contract.ccrpSigned ? 'success' : 'warning'}
@@ -746,9 +911,22 @@ function ContractDetail() {
         <Grid item xs={12} md={6}>
           <Card>
             <CardContent>
-              <Typography variant="h6" gutterBottom>
-                Contract Details
-              </Typography>
+              <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+                <Typography variant="h6">
+                  Contract Details
+                </Typography>
+                {canEditContract() && (
+                  <Button
+                    size="small"
+                    startIcon={<Edit />}
+                    onClick={isEditMode ? handleCancelEdit : handleEditMode}
+                    variant={isEditMode ? "contained" : "outlined"}
+                    color={isEditMode ? "secondary" : "primary"}
+                  >
+                    {isEditMode ? "Cancel Edit" : "Edit"}
+                  </Button>
+                )}
+              </Box>
               
               <Box display="flex" flexDirection="column" gap={2}>
                 <Box>
@@ -805,6 +983,116 @@ function ContractDetail() {
           </Card>
         </Grid>
 
+        {/* Edit Contract Form */}
+        {isEditMode && (
+          <Grid item xs={12}>
+            <Card sx={{ border: '2px solid #1976d2' }}>
+              <CardContent>
+                <Box display="flex" alignItems="center" gap={1} mb={2}>
+                  <Edit color="primary" />
+                  <Typography variant="h6">
+                    Edit Contract
+                  </Typography>
+                </Box>
+                
+                {editError && (
+                  <Alert severity="error" sx={{ mb: 2 }}>
+                    {editError}
+                  </Alert>
+                )}
+                
+                <Grid container spacing={3}>
+                  <Grid item xs={12} md={6}>
+                    <TextField
+                      fullWidth
+                      label="Duration (days)"
+                      type="number"
+                      value={editFormData.duration}
+                      onChange={(e) => setEditFormData({ ...editFormData, duration: e.target.value })}
+                      helperText="Contract duration in days"
+                      disabled={editLoading}
+                    />
+                  </Grid>
+                  
+                  <Grid item xs={12}>
+                    <TextField
+                      fullWidth
+                      multiline
+                      rows={4}
+                      label="Terms and Conditions"
+                      value={editFormData.termsAndConditions}
+                      onChange={(e) => setEditFormData({ ...editFormData, termsAndConditions: e.target.value })}
+                      helperText="Detailed terms and conditions for the contract"
+                      disabled={editLoading}
+                    />
+                  </Grid>
+                  
+                  <Grid item xs={12} md={6}>
+                    <FormControl fullWidth>
+                      <InputLabel>CCRP Provider (Optional)</InputLabel>
+                      <Select
+                        value={editFormData.ccrpId}
+                        onChange={(e) => setEditFormData({ ...editFormData, ccrpId: e.target.value })}
+                        label="CCRP Provider (Optional)"
+                        disabled={editLoading}
+                      >
+                        <MenuItem value="">
+                          <em>No CCRP</em>
+                        </MenuItem>
+                        {ccrpUsers?.map((ccrp) => (
+                          <MenuItem key={ccrp.id} value={ccrp.id.toString()}>
+                            {ccrp.name} ({ccrp.email})
+                          </MenuItem>
+                        ))}
+                      </Select>
+                    </FormControl>
+                  </Grid>
+                  
+                  {editFormData.ccrpId && (
+                    <Grid item xs={12} md={6}>
+                      <FormControl fullWidth>
+                        <InputLabel>Cloud Provider</InputLabel>
+                        <Select
+                          value={editFormData.ccrpCloudProvider}
+                          onChange={(e) => setEditFormData({ ...editFormData, ccrpCloudProvider: e.target.value })}
+                          label="Cloud Provider"
+                          disabled={editLoading}
+                        >
+                          <MenuItem value="">
+                            <em>Select cloud provider</em>
+                          </MenuItem>
+                          <MenuItem value="AWS">AWS</MenuItem>
+                          <MenuItem value="GCP">GCP</MenuItem>
+                          <MenuItem value="Azure">Azure</MenuItem>
+                          <MenuItem value="OCI">OCI</MenuItem>
+                        </Select>
+                      </FormControl>
+                    </Grid>
+                  )}
+                </Grid>
+                
+                <Box display="flex" gap={2} sx={{ mt: 3 }}>
+                  <Button
+                    variant="contained"
+                    onClick={handleSaveEdit}
+                    disabled={editLoading}
+                    startIcon={editLoading ? <CircularProgress size={20} /> : null}
+                  >
+                    {editLoading ? 'Saving...' : 'Save Changes'}
+                  </Button>
+                  <Button
+                    variant="outlined"
+                    onClick={handleCancelEdit}
+                    disabled={editLoading}
+                  >
+                    Cancel
+                  </Button>
+                </Box>
+              </CardContent>
+            </Card>
+          </Grid>
+        )}
+
         {/* Dataset Information */}
         <Grid item xs={12} md={6}>
           <Card>
@@ -847,6 +1135,160 @@ function ContractDetail() {
           </Card>
         </Grid>
 
+        {/* CCRP Detail Card */}
+        {contract.ccrp && (
+          <Grid item xs={12}>
+            <Card>
+              <CardContent>
+                <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+                  <Typography variant="h6">
+                    <Security sx={{ mr: 1, verticalAlign: 'middle' }} />
+                    CCRP (Confidential Clean Room Provider) Details
+                  </Typography>
+                  {canEditContract() && (
+                    <Button
+                      size="small"
+                      startIcon={<Edit />}
+                      onClick={isEditMode ? handleCancelEdit : handleEditMode}
+                      variant={isEditMode ? "contained" : "outlined"}
+                      color={isEditMode ? "secondary" : "primary"}
+                    >
+                      {isEditMode ? "Cancel Edit" : "Edit"}
+                    </Button>
+                  )}
+                </Box>
+                
+                <Grid container spacing={3}>
+                  <Grid item xs={12} md={6}>
+                    <Typography variant="subtitle1" gutterBottom>
+                      Provider Information
+                    </Typography>
+                    <Box display="flex" flexDirection="column" gap={2}>
+                      <Box>
+                        <Typography variant="body2" color="textSecondary">
+                          Provider Name
+                        </Typography>
+                        <Typography variant="body1" fontWeight="medium">
+                          {contract.ccrp.name}
+                        </Typography>
+                      </Box>
+                      
+                      <Box>
+                        <Typography variant="body2" color="textSecondary">
+                          Email
+                        </Typography>
+                        <Typography variant="body2">
+                          {contract.ccrp.email}
+                        </Typography>
+                      </Box>
+                      
+                      {contract.ccrp.description && (
+                        <Box>
+                          <Typography variant="body2" color="textSecondary">
+                            Description
+                          </Typography>
+                          <Typography variant="body2">
+                            {contract.ccrp.description}
+                          </Typography>
+                        </Box>
+                      )}
+                      
+                      <Box>
+                        <Typography variant="body2" color="textSecondary">
+                          Wallet Address
+                        </Typography>
+                        <Typography variant="body2" fontFamily="monospace" fontSize="0.8rem">
+                          {contract.ccrp.walletAddress || 'Not provided'}
+                        </Typography>
+                      </Box>
+                      
+                      <Box>
+                        <Typography variant="body2" color="textSecondary">
+                          Signing Status
+                        </Typography>
+                        <Chip 
+                          label={contract.ccrpSigned ? 'Signed' : 'Pending'} 
+                          color={contract.ccrpSigned ? 'success' : 'warning'}
+                          size="small"
+                        />
+                        {contract.ccrpSignedAt && (
+                          <Typography variant="caption" color="textSecondary" display="block" sx={{ mt: 0.5 }}>
+                            Signed on: {format(new Date(contract.ccrpSignedAt), 'MMM dd, yyyy HH:mm')}
+                          </Typography>
+                        )}
+                      </Box>
+                    </Box>
+                  </Grid>
+                  
+                  <Grid item xs={12} md={6}>
+                    <Typography variant="subtitle1" gutterBottom>
+                      {contract.ccrpCloudProvider ? 'Cloud Provider Selected' : 'Cloud Provider Support'}
+                    </Typography>
+                    <Box display="flex" flexDirection="column" gap={2}>
+                      {contract.ccrpCloudProvider ? (
+                        <Box>
+                          <Typography variant="body2" color="textSecondary" gutterBottom>
+                            Selected Cloud Provider
+                          </Typography>
+                          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                            <Chip
+                              label={contract.ccrpCloudProvider}
+                              color="success"
+                              variant="filled"
+                              size="medium"
+                            />
+                          </Box>
+                        </Box>
+                      ) : contract.ccrp.cloudProviders && contract.ccrp.cloudProviders.length > 0 ? (
+                        <Box>
+                          <Typography variant="body2" color="textSecondary" gutterBottom>
+                            Supported Cloud Providers
+                          </Typography>
+                          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                            {contract.ccrp.cloudProviders.map((provider) => (
+                              <Chip
+                                key={provider}
+                                label={provider}
+                                color="primary"
+                                variant="outlined"
+                                size="medium"
+                              />
+                            ))}
+                          </Box>
+                        </Box>
+                      ) : (
+                        <Box>
+                          <Typography variant="body2" color="textSecondary">
+                            No cloud providers specified
+                          </Typography>
+                        </Box>
+                      )}
+                      
+                      <Box>
+                        <Typography variant="body2" color="textSecondary">
+                          Environment Type
+                        </Typography>
+                        <Typography variant="body2">
+                          Confidential Computing Environment
+                        </Typography>
+                      </Box>
+                      
+                      <Box>
+                        <Typography variant="body2" color="textSecondary">
+                          Security Level
+                        </Typography>
+                        <Typography variant="body2">
+                          High (Encrypted data processing)
+                        </Typography>
+                      </Box>
+                    </Box>
+                  </Grid>
+                </Grid>
+              </CardContent>
+            </Card>
+          </Grid>
+        )}
+
         {/* Actions */}
         <Grid item xs={12}>
           <Card>
@@ -874,6 +1316,18 @@ function ContractDetail() {
                 {/* TDC Actions */}
                 {isTDC && contract.tdc?.walletAddress === currentUser?.walletAddress && (
                   <>
+                    {/* Edit Contract Button */}
+                    {canEditContract() && (
+                      <Button 
+                        variant="contained" 
+                        color="primary"
+                        onClick={handleEditMode}
+                        disabled={isEditMode}
+                      >
+                        Edit Contract
+                      </Button>
+                    )}
+                    
                     {contract.status === 'PENDING_CCRP_APPROVAL' && !contract.ccrpId && (
                       <Button 
                         variant="contained" 
@@ -961,9 +1415,21 @@ function ContractDetail() {
           <Grid item xs={12}>
             <Card>
               <CardContent>
-                <Typography variant="h6" gutterBottom>
-                  Terms and Conditions
-                </Typography>
+                <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+                  <Typography variant="h6">
+                    Terms and Conditions
+                  </Typography>
+                  {canEditContract() && !isEditMode && (
+                    <Button
+                      size="small"
+                      startIcon={<Edit />}
+                      onClick={handleEditMode}
+                      variant="outlined"
+                    >
+                      Edit
+                    </Button>
+                  )}
+                </Box>
                 <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap' }}>
                   {contract.termsAndConditions}
                 </Typography>

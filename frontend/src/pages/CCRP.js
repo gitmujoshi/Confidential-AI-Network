@@ -151,18 +151,31 @@ function CCRP() {
   const [sortOrder, setSortOrder] = useState('asc');
   const navigate = useNavigate();
 
-  const { data: ccrpUsers = [], isLoading, error, refetch } = useQuery(
-    'ccrp-users', 
-    apiService.getCCRPUsers,
-    {
-      refetchOnMount: true,
-      refetchOnWindowFocus: true,
-      staleTime: 0,
-      cacheTime: 0,
-      retry: false,
-      refetchInterval: false,
+  // Manual CCRP users fetch to avoid React Query parameter injection
+  const [ccrpUsersResponse, setCcrpUsersResponse] = React.useState(null);
+  const [isLoading, setIsLoading] = React.useState(true);
+  const [error, setError] = React.useState(null);
+  
+  const fetchCcrpUsers = React.useCallback(async () => {
+    try {
+      setIsLoading(true);
+      const response = await apiService.getCCRPUsers();
+      setCcrpUsersResponse(response);
+      setError(null);
+    } catch (error) {
+      console.error('❌ CCRP users fetch error:', error);
+      setError(error);
+      setCcrpUsersResponse(null);
+    } finally {
+      setIsLoading(false);
     }
-  );
+  }, []);
+  
+  React.useEffect(() => {
+    fetchCcrpUsers();
+  }, [fetchCcrpUsers]);
+  
+  const ccrpUsers = ccrpUsersResponse?.ccrpUsers || [];
 
   // Filter CCRP users based on search and status
   const filteredCCRPs = ccrpUsers.filter(ccrp => {
@@ -205,7 +218,7 @@ function CCRP() {
 
   const handleRefresh = async () => {
     try {
-      await refetch();
+      await fetchCcrpUsers();
     } catch (error) {
       console.error('Manual refresh failed:', error);
     }

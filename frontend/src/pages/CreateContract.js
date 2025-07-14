@@ -28,6 +28,7 @@ import { apiService } from '../services/api';
 import toast from 'react-hot-toast';
 import { useUser } from '../contexts/UserContext';
 import MultiDatasetSelector from '../components/MultiDatasetSelector';
+import MultiCCRPSelector from '../components/MultiCCRPSelector';
 
 /**
  * CreateContract Component - Multi-TDP Support
@@ -78,6 +79,7 @@ function CreateContract() {
   const [selectedDatasets, setSelectedDatasets] = useState([]); // Array of selected datasets
   const [datasetPrices, setDatasetPrices] = useState({}); // Individual prices per dataset
   const [selectedCcrp, setSelectedCcrp] = useState('');
+  const [selectedCloudProvider, setSelectedCloudProvider] = useState('');
   const [selectedAiModels, setSelectedAiModels] = useState([]); // Array of selected AI model IDs
   const [contractData, setContractData] = useState({
     duration: '',
@@ -107,8 +109,43 @@ function CreateContract() {
 
   // Fetch datasets, CCRP users, and AI models for dropdowns
   const { data: datasetsResponse, isLoading: datasetsLoading } = useQuery('datasets', apiService.getDatasets);
-  const { data: ccrpUsers = [] } = useQuery('ccrp-users', apiService.getCCRPUsers);
   const { data: aiModelsResponse, isLoading: aiModelsLoading } = useQuery('ai-models', apiService.getAIModels);
+  
+  // Manual CCRP users fetch to avoid React Query parameter injection
+  const [ccrpUsersResponse, setCcrpUsersResponse] = React.useState(null);
+  const [ccrpError, setCcrpError] = React.useState(null);
+  
+  React.useEffect(() => {
+    const fetchCcrpUsers = async () => {
+      try {
+        console.log('🔍 Fetching CCRP users manually...');
+        console.log('🔍 Auth token:', localStorage.getItem('authToken'));
+        console.log('🔍 Current user:', currentUser);
+        const response = await apiService.getCCRPUsers();
+        console.log('✅ CCRP users fetched:', response);
+        setCcrpUsersResponse(response);
+        setCcrpError(null);
+      } catch (error) {
+        console.error('❌ CCRP users fetch error:', error);
+        console.error('❌ Error response:', error.response?.data);
+        setCcrpError(error);
+        setCcrpUsersResponse(null);
+      }
+    };
+    
+    fetchCcrpUsers();
+  }, [currentUser]);
+  
+  const ccrpUsers = ccrpUsersResponse?.ccrpUsers || [];
+  
+  // Debug CCRP users
+  React.useEffect(() => {
+    console.log('🔍 CCRP Users Response:', ccrpUsersResponse);
+    console.log('🔍 CCRP Users:', ccrpUsers);
+    console.log('🔍 CCRP Error:', ccrpError);
+    console.log('🔍 Current User:', currentUser);
+    console.log('🔍 Is Authenticated:', isAuthenticated);
+  }, [ccrpUsersResponse, ccrpUsers, ccrpError, currentUser, isAuthenticated]);
   
   // Extract AI models from response
   const aiModels = aiModelsResponse?.models || [];
@@ -348,6 +385,25 @@ function CreateContract() {
     }));
   };
 
+  const handleCcrpToggle = (ccrpId) => {
+    setSelectedCcrp(ccrpId);
+  };
+
+  const handleCloudProviderChange = (cloudProvider) => {
+    setSelectedCloudProvider(cloudProvider);
+  };
+
+  // Manual test function for debugging
+  const testCcrpApi = async () => {
+    try {
+      console.log('🧪 Testing CCRP API manually...');
+      const response = await apiService.getCCRPUsers();
+      console.log('✅ Manual CCRP API Response:', response);
+    } catch (error) {
+      console.error('❌ Manual CCRP API Error:', error);
+    }
+  };
+
   const renderStepContent = (step) => {
     switch (step) {
       case 0:
@@ -420,24 +476,27 @@ function CreateContract() {
                 </FormControl>
               </Grid>
               
-              <Grid item xs={12} md={6}>
-                <FormControl fullWidth>
-                  <InputLabel>CCRP (Optional)</InputLabel>
-                  <Select
-                    value={selectedCcrp}
-                    label="CCRP (Optional)"
-                    onChange={(e) => setSelectedCcrp(e.target.value)}
-                  >
-                    <MenuItem value="">
-                      <em>Select CCRP (optional)</em>
-                    </MenuItem>
-                    {ccrpUsers.map((user) => (
-                      <MenuItem key={user.id} value={user.id}>
-                        {user.name} - {user.email}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
+              <Grid item xs={12}>
+                <Typography variant="h6" gutterBottom>
+                  CCRP Provider Selection (Optional)
+                </Typography>
+                <Typography variant="body2" color="textSecondary" paragraph>
+                  Select a CCRP provider to handle confidential computing environments for your contract.
+                </Typography>
+                <Button 
+                  variant="outlined" 
+                  onClick={testCcrpApi}
+                  sx={{ mb: 2 }}
+                >
+                  Test CCRP API
+                </Button>
+                <MultiCCRPSelector
+                  ccrpUsers={ccrpUsers}
+                  selectedCcrp={selectedCcrp}
+                  selectedCloudProvider={selectedCloudProvider}
+                  onCcrpToggle={handleCcrpToggle}
+                  onCloudProviderChange={handleCloudProviderChange}
+                />
               </Grid>
               
               <Grid item xs={12} md={6}>
@@ -548,6 +607,10 @@ function CreateContract() {
                     {selectedCcrp && (
                       <Typography variant="body2" paragraph>
                         <strong>CCRP:</strong> {ccrpUsers.find(u => u.id === parseInt(selectedCcrp))?.name}
+                        {ccrpUsers.find(u => u.id === parseInt(selectedCcrp))?.cloudProviders && 
+                         ccrpUsers.find(u => u.id === parseInt(selectedCcrp))?.cloudProviders.length > 0 && (
+                          <span> ({ccrpUsers.find(u => u.id === parseInt(selectedCcrp))?.cloudProviders.join(', ')})</span>
+                        )}
                       </Typography>
                     )}
                   </CardContent>
