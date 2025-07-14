@@ -31,6 +31,11 @@ db.Contract = require('./Contract')(sequelize, Sequelize);
 db.Notification = require('./Notification')(sequelize, Sequelize);
 db.AIModel = require('./AIModel')(sequelize, Sequelize);
 
+// Import training environment models
+db.TrainingEnvironment = require('./TrainingEnvironment')(sequelize, Sequelize);
+db.EnvironmentResource = require('./EnvironmentResource')(sequelize, Sequelize);
+db.EnvironmentCost = require('./EnvironmentCost')(sequelize, Sequelize);
+
 // Import DPDP-related models
 db.Consent = require('./Consent')(sequelize, Sequelize);
 db.DataProcessingRecord = require('./DataProcessingRecord')(sequelize, Sequelize);
@@ -78,5 +83,21 @@ db.AuditLog.belongsTo(db.User, { foreignKey: 'userId', as: 'user' });
 
 db.Consent.hasMany(db.DataProcessingRecord, { foreignKey: 'consentId', as: 'dataProcessingRecords' });
 db.DataProcessingRecord.belongsTo(db.Consent, { foreignKey: 'consentId', as: 'consent' });
+
+// Training environment associations
+db.Contract.hasMany(db.TrainingEnvironment, { foreignKey: 'contractId', sourceKey: 'contractId', as: 'trainingEnvironments' });
+db.TrainingEnvironment.belongsTo(db.Contract, { foreignKey: 'contractId', targetKey: 'contractId', as: 'contract' });
+
+db.TrainingEnvironment.hasMany(db.EnvironmentResource, { foreignKey: 'environmentId', sourceKey: 'environmentId', as: 'resources' });
+db.EnvironmentResource.belongsTo(db.TrainingEnvironment, { foreignKey: 'environmentId', targetKey: 'environmentId', as: 'environment' });
+
+db.TrainingEnvironment.hasMany(db.EnvironmentCost, { foreignKey: 'environmentId', sourceKey: 'environmentId', as: 'costs' });
+db.EnvironmentCost.belongsTo(db.TrainingEnvironment, { foreignKey: 'environmentId', targetKey: 'environmentId', as: 'environment' });
+
+db.User.hasMany(db.TrainingEnvironment, { foreignKey: 'createdBy', as: 'createdEnvironments' });
+db.TrainingEnvironment.belongsTo(db.User, { foreignKey: 'createdBy', as: 'creator' });
+
+db.User.hasMany(db.TrainingEnvironment, { foreignKey: 'updatedBy', as: 'updatedEnvironments' });
+db.TrainingEnvironment.belongsTo(db.User, { foreignKey: 'updatedBy', as: 'updater' });
 
 module.exports = db; 

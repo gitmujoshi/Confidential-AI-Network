@@ -64,7 +64,7 @@ router.get('/', async (req, res) => {
       include: [
         { model: db.User, as: 'tdp', attributes: ['id', 'name', 'email', 'walletAddress'] },
         { model: db.User, as: 'tdc', attributes: ['id', 'name', 'email', 'walletAddress'] },
-        { model: db.User, as: 'ccrp', attributes: ['id', 'name', 'email', 'walletAddress'] },
+        { model: db.User, as: 'ccrp', attributes: ['id', 'name', 'email', 'walletAddress', 'cloudProviders', 'description'] },
         { model: db.Dataset, as: 'dataset', attributes: ['id', 'name', 'description', 'category'] }
       ],
       order: [['createdAt', 'DESC']],
@@ -121,7 +121,7 @@ router.get('/user/:userId', async (req, res) => {
       include: [
         { model: db.User, as: 'tdp', attributes: ['id', 'name', 'email', 'walletAddress'] },
         { model: db.User, as: 'tdc', attributes: ['id', 'name', 'email', 'walletAddress'] },
-        { model: db.User, as: 'ccrp', attributes: ['id', 'name', 'email', 'walletAddress'] },
+        { model: db.User, as: 'ccrp', attributes: ['id', 'name', 'email', 'walletAddress', 'cloudProviders', 'description'] },
         { model: db.Dataset, as: 'dataset', attributes: ['id', 'name', 'description', 'category'] }
       ],
       order: [['createdAt', 'DESC']],
@@ -175,7 +175,7 @@ router.get('/:contractId', async (req, res) => {
       include: [
         { model: db.User, as: 'tdp', attributes: ['id', 'name', 'email', 'walletAddress'] },
         { model: db.User, as: 'tdc', attributes: ['id', 'name', 'email', 'walletAddress'] },
-        { model: db.User, as: 'ccrp', attributes: ['id', 'name', 'email', 'walletAddress'] },
+        { model: db.User, as: 'ccrp', attributes: ['id', 'name', 'email', 'walletAddress', 'cloudProviders', 'description'] },
         { model: db.Dataset, as: 'dataset', attributes: ['id', 'name', 'description', 'category', 'price'] }
       ]
     });
@@ -187,6 +187,170 @@ router.get('/:contractId', async (req, res) => {
     res.json(contract);
   } catch (error) {
     console.error('Error getting contract:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+/**
+ * Update Contract (TDC ONLY)
+ * 
+ * This endpoint allows TDC users to update contract details before it becomes active.
+ * Only certain fields can be updated and only if the contract is in a pending state.
+ * 
+ * Editable fields:
+ * - duration
+ * - termsAndConditions
+ * - ccrpId (if no CCRP selected yet)
+ * - ccrpCloudProvider (if CCRP is selected)
+ * 
+ * Restrictions:
+ * - Only TDC who created the contract can edit
+ * - Only pending contracts can be edited
+ * - Cannot change datasets or prices after creation
+ * - Cannot edit after any party has signed
+ */
+router.put('/:contractId', authenticateToken, async (req, res) => {
+  try {
+    console.log('🔍 Contract update request:', { 
+      contractId: req.params.contractId, 
+      body: req.body,
+      user: req.user?.localUser?.email,
+      method: req.method,
+      url: req.url
+    });
+    const { contractId } = req.params;
+    const {
+      duration,
+      termsAndConditions,
+      ccrpId,
+      ccrpCloudProvider
+    } = req.body;
+
+    // Get the authenticated user
+    const authenticatedUser = req.user?.localUser;
+    if (!authenticatedUser) {
+      return res.status(401).json({ error: 'Authentication required' });
+    }
+
+    // Only TDC can edit contracts
+    if (authenticatedUser.partyType !== 'TDC') {
+      return res.status(403).json({ error: 'Only TDC users can edit contracts' });
+    }
+
+    // Find the contract
+    const contract = await db.Contract.findOne({
+      where: { contractId },
+      include: [
+        { model: db.User, as: 'tdp' },
+        { model: db.User, as: 'tdc' },
+        { model: db.User, as: 'ccrp' },
+        { model: db.Dataset, as: 'dataset' }
+      ]
+    });
+
+    if (!contract) {
+      return res.status(404).json({ error: 'Contract not found' });
+    }
+
+    // Verify the TDC owns this contract
+    if (contract.tdcId !== authenticatedUser.id) {
+      return res.status(403).json({ error: 'You can only edit contracts you created' });
+    }
+
+    // Check if contract can be edited (only pending contracts)
+    const editableStatuses = ['PENDING_TDP_APPROVAL', 'PENDING_ALL_TDP_APPROVAL'];
+    if (!editableStatuses.includes(contract.status) && !editableStatuses.includes(contract.multiTdpStatus)) {
+      return res.status(400).json({ 
+        error: 'Contract cannot be edited. Only pending contracts can be modified.' 
+      });
+    }
+
+    // Check if any party has signed (if so, cannot edit)
+    if (contract.tdpSigned || contract.ccrpSigned) {
+      return res.status(400).json({ 
+        error: 'Contract cannot be edited after parties have signed' 
+      });
+    }
+
+    // Prepare update data
+    const updateData = {};
+
+    // Update duration if provided
+    if (duration !== undefined) {
+      if (!duration || duration < 1) {
+        return res.status(400).json({ error: 'Duration must be at least 1 day' });
+      }
+      updateData.duration = duration;
+    }
+
+    // Update terms and conditions if provided
+    if (termsAndConditions !== undefined) {
+      if (!termsAndConditions.trim()) {
+        return res.status(400).json({ error: 'Terms and conditions cannot be empty' });
+      }
+      updateData.termsAndConditions = termsAndConditions;
+    }
+
+    // Update CCRP if provided
+    if (ccrpId !== undefined) {
+      if (ccrpId) {
+        // Verify CCRP exists and is valid
+        const ccrpUser = await db.User.findOne({
+          where: { id: ccrpId, partyType: 'CCRP', isActive: true }
+        });
+
+        if (!ccrpUser) {
+          return res.status(404).json({ error: 'CCRP not found or invalid' });
+        }
+
+        updateData.ccrpId = ccrpId;
+        updateData.status = 'PENDING_CCRP_APPROVAL';
+      } else {
+        // Remove CCRP
+        updateData.ccrpId = null;
+        updateData.ccrpCloudProvider = null;
+        // Revert status based on contract type
+        if (contract.datasetCount > 1) {
+          updateData.status = 'PENDING_ALL_TDP_APPROVAL';
+        } else {
+          updateData.status = 'PENDING_TDP_APPROVAL';
+        }
+      }
+    }
+
+    // Update cloud provider if provided
+    if (ccrpCloudProvider !== undefined && contract.ccrpId) {
+      const validProviders = ['AWS', 'GCP', 'Azure', 'OCI'];
+      if (ccrpCloudProvider && !validProviders.includes(ccrpCloudProvider)) {
+        return res.status(400).json({ 
+          error: 'Invalid cloud provider. Must be one of: AWS, GCP, Azure, OCI' 
+        });
+      }
+      updateData.ccrpCloudProvider = ccrpCloudProvider;
+    }
+
+    // Update the contract
+    await contract.update(updateData);
+
+    // Get updated contract with associations
+    const updatedContract = await db.Contract.findOne({
+      where: { contractId },
+      include: [
+        { model: db.User, as: 'tdp', attributes: ['id', 'name', 'email', 'walletAddress'] },
+        { model: db.User, as: 'tdc', attributes: ['id', 'name', 'email', 'walletAddress'] },
+        { model: db.User, as: 'ccrp', attributes: ['id', 'name', 'email', 'walletAddress', 'cloudProviders', 'description'] },
+        { model: db.Dataset, as: 'dataset', attributes: ['id', 'name', 'description', 'category'] }
+      ]
+    });
+
+    res.json({
+      success: true,
+      message: 'Contract updated successfully',
+      contract: updatedContract
+    });
+
+  } catch (error) {
+    console.error('Error updating contract:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
