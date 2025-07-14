@@ -44,6 +44,7 @@ import {
 } from '@mui/icons-material';
 import { useQuery } from 'react-query';
 import { apiService } from '../services/api';
+import { useUser } from '../contexts/UserContext';
 
 const DatasetCard = ({ dataset, onView, onEdit, onDelete }) => (
   <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
@@ -155,6 +156,7 @@ const DatasetRow = ({ dataset, onView, onEdit, onDelete }) => (
 );
 
 function Datasets() {
+  const { currentUser: user } = useUser();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
   const [viewMode, setViewMode] = useState('grid');
@@ -163,21 +165,77 @@ function Datasets() {
   const [viewDialogOpen, setViewDialogOpen] = useState(false);
   const [selectedDataset, setSelectedDataset] = useState(null);
 
+  // Role-based dataset fetching
+  const getDatasetsQuery = () => {
+    if (!user) {
+      // Not logged in - show public datasets
+      return {
+        queryKey: ['datasets', 'public', searchTerm, selectedCategory],
+        queryFn: async () => {
+          const response = await apiService.searchDatasets({ q: searchTerm, category: selectedCategory });
+          return response;
+        },
+        enabled: true
+      };
+    }
+
+    // Role-based API calls
+    switch (user.partyType) {
+      case 'TDP':
+        // TDP users see only their own datasets
+        return {
+          queryKey: ['datasets', 'tdp', user.id, searchTerm, selectedCategory],
+          queryFn: async () => {
+            const response = await apiService.get(`/api/tdp/datasets/${user.id}`);
+            return response.data; // Extract the data from the response
+          },
+          enabled: !!user.id
+        };
+      case 'TDC':
+      case 'CCRP':
+      case 'AppAdmin':
+        // TDC, CCRP, and Admin users see all public datasets
+        return {
+          queryKey: ['datasets', 'public', searchTerm, selectedCategory],
+          queryFn: async () => {
+            const response = await apiService.searchDatasets({ q: searchTerm, category: selectedCategory });
+            return response;
+          },
+          enabled: true
+        };
+      default:
+        // Fallback to public datasets
+        return {
+          queryKey: ['datasets', 'public', searchTerm, selectedCategory],
+          queryFn: async () => {
+            const response = await apiService.searchDatasets({ q: searchTerm, category: selectedCategory });
+            return response;
+          },
+          enabled: true
+        };
+    }
+  };
+
+  const queryConfig = getDatasetsQuery();
+  
   // Fetch datasets and categories
   const { data: datasetsResponse, isLoading: datasetsLoading, error: datasetsError } = useQuery(
-    ['datasets', searchTerm, selectedCategory],
-    () => apiService.searchDatasets({ q: searchTerm, category: selectedCategory }),
+    queryConfig.queryKey,
+    queryConfig.queryFn,
     {
       refetchOnMount: true,
       refetchOnWindowFocus: true,
       staleTime: 0,
       cacheTime: 0,
+      enabled: queryConfig.enabled
     }
   );
   
   const { data: categories, isLoading: categoriesLoading, error: categoriesError } = useQuery('categories', apiService.getDatasetCategories);
 
   const datasets = datasetsResponse?.datasets || [];
+  
+
 
   // Sort datasets
   const sortedDatasets = [...datasets].sort((a, b) => {
@@ -220,11 +278,24 @@ function Datasets() {
   return (
     <Box>
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
-        <Typography variant="h4">Datasets</Typography>
-        <Button variant="contained" startIcon={<Add />}>
-          Add Dataset
-        </Button>
+        <Typography variant="h4">
+          {user?.partyType === 'TDP' ? 'My Datasets' : 'Datasets'}
+        </Typography>
+        {user?.partyType === 'TDP' && (
+          <Button variant="contained" startIcon={<Add />}>
+            Add Dataset
+          </Button>
+        )}
       </Box>
+      
+      {/* Role-based messaging */}
+      {user?.partyType === 'TDP' && (
+        <Box mb={2}>
+          <Typography variant="body2" color="textSecondary">
+            Showing your datasets only. Other users can see your public datasets in the marketplace.
+          </Typography>
+        </Box>
+      )}
 
       {/* Search and Filter */}
       <Card sx={{ mb: 3 }}>

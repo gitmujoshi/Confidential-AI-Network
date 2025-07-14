@@ -48,6 +48,7 @@ import { apiService } from '../services/api';
 import toast from 'react-hot-toast';
 import { useUser } from '../contexts/UserContext';
 import MultiDatasetSelector from '../components/MultiDatasetSelector';
+import MultiCCRPSelector from '../components/MultiCCRPSelector';
 
 /**
  * CreateRicardianContract Component
@@ -99,7 +100,9 @@ function CreateRicardianContract() {
   const [selectedDatasets, setSelectedDatasets] = useState([]); // Array of selected datasets
   const [datasetPrices, setDatasetPrices] = useState({}); // Individual pricing per dataset
   const [selectedCcrp, setSelectedCcrp] = useState('');
+  const [selectedCcrpCloudProviders, setSelectedCcrpCloudProviders] = useState({}); // { [ccrpId]: provider }
   const [selectedAiModels, setSelectedAiModels] = useState([]); // Array of selected AI model IDs
+  const [selectedCloudProvider, setSelectedCloudProvider] = useState(''); // Add cloud provider filter
   const [contractData, setContractData] = useState({
     price: '',
     duration: '',
@@ -159,9 +162,27 @@ function CreateRicardianContract() {
 
   // Fetch data
   const { data: datasetsResponse, isLoading: datasetsLoading } = useQuery('datasets', apiService.getDatasets);
-  const { data: ccrpUsers = [] } = useQuery('ccrp-users', apiService.getCCRPUsers);
   const { data: supportedTypes = [] } = useQuery('contract-types', apiService.getSupportedContractTypes);
   const { data: aiModelsResponse, isLoading: aiModelsLoading } = useQuery('ai-models', apiService.getAIModels);
+  
+  // Manual CCRP users fetch to avoid React Query parameter injection
+  const [ccrpUsersResponse, setCcrpUsersResponse] = React.useState(null);
+  
+  React.useEffect(() => {
+    const fetchCcrpUsers = async () => {
+      try {
+        const response = await apiService.getCCRPUsers();
+        setCcrpUsersResponse(response);
+      } catch (error) {
+        console.error('❌ CCRP users fetch error:', error);
+        setCcrpUsersResponse(null);
+      }
+    };
+    
+    fetchCcrpUsers();
+  }, []);
+  
+  const ccrpUsers = ccrpUsersResponse?.ccrpUsers || [];
   
   // Get datasets and extract unique TDP users from dataset owners
   const datasets = datasetsResponse?.datasets || [];
@@ -833,26 +854,64 @@ function CreateRicardianContract() {
                       CCRP Selection (Optional)
                     </Typography>
                     
-                    <FormControl fullWidth>
-                      <InputLabel>CCRP (Optional)</InputLabel>
-                      <Select
-                        value={selectedCcrp}
-                        onChange={(e) => setSelectedCcrp(e.target.value)}
-                        label="CCRP (Optional)"
-                      >
-                        <MenuItem value="">
-                          <em>No CCRP selected</em>
-                        </MenuItem>
-                        {ccrpUsers.map((ccrp) => (
-                          <MenuItem key={ccrp.id} value={ccrp.id}>
-                            {ccrp.name} - {ccrp.email}
-                          </MenuItem>
-                        ))}
-                      </Select>
-                      <Typography variant="caption" color="text.secondary">
-                        Select a Confidential Clean Room Provider for secure training environment (optional)
+                    <Typography variant="body2" color="textSecondary" paragraph>
+                      All CCRPs are displayed below. Use the cloud provider filter to find CCRPs that support specific cloud services.
+                    </Typography>
+                    
+                    <Grid container spacing={2}>
+                      <Grid item xs={12} md={4}>
+                        <FormControl fullWidth>
+                          <InputLabel>Filter by Cloud Provider</InputLabel>
+                          <Select
+                            value={selectedCloudProvider}
+                            onChange={(e) => setSelectedCloudProvider(e.target.value)}
+                            label="Filter by Cloud Provider"
+                          >
+                            <MenuItem value="">
+                              <em>All Cloud Providers</em>
+                            </MenuItem>
+                            <MenuItem value="AWS">AWS</MenuItem>
+                            <MenuItem value="Azure">Azure</MenuItem>
+                            <MenuItem value="GCP">GCP</MenuItem>
+                            <MenuItem value="OCI">OCI</MenuItem>
+                          </Select>
+                        </FormControl>
+                      </Grid>
+                    </Grid>
+                    
+                    <Box sx={{ mt: 2 }}>
+                      <Typography variant="subtitle2" gutterBottom>
+                        Available CCRPs:
                       </Typography>
-                    </FormControl>
+                      
+                      {ccrpUsers.length === 0 ? (
+                        <Alert severity="info">
+                          No CCRPs available at the moment.
+                        </Alert>
+                      ) : (
+                        <MultiCCRPSelector
+                          ccrpUsers={ccrpUsers}
+                          selectedCcrp={selectedCcrp}
+                          selectedCloudProvider={selectedCloudProvider}
+                          onCcrpToggle={setSelectedCcrp}
+                          onCloudProviderChange={setSelectedCloudProvider}
+                          onCcrpCloudProviderSelect={(ccrpId, provider) => setSelectedCcrpCloudProviders(prev => ({ ...prev, [ccrpId]: provider }))}
+                          ccrpCloudProviderSelections={selectedCcrpCloudProviders}
+                        />
+                      )}
+                      
+                      {selectedCcrp && (
+                        <Alert severity="success" sx={{ mt: 2 }}>
+                          <Typography variant="body2">
+                            <strong>Selected CCRP:</strong> {ccrpUsers.find(c => c.id === selectedCcrp)?.name}
+                          </Typography>
+                        </Alert>
+                      )}
+                    </Box>
+                    
+                    <Typography variant="caption" color="text.secondary" sx={{ mt: 2, display: 'block' }}>
+                      Select a Confidential Clean Room Provider for secure training environment (optional)
+                    </Typography>
                   </CardContent>
                 </Card>
               </Grid>

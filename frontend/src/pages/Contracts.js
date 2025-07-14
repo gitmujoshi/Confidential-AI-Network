@@ -185,7 +185,7 @@ const ContractCard = ({ contract, onView, onEdit, onDelete, onDownloadContract, 
         <Button size="small" onClick={() => onView(contract)}>
           View Details
         </Button>
-        <Button size="small" onClick={() => onEdit(contract)}>
+        <Button size="small" onClick={() => onEdit(contract)} startIcon={<Edit />}>
           Edit
         </Button>
         <Button size="small" color="error" onClick={() => onDelete(contract)}>
@@ -426,8 +426,8 @@ function Contracts() {
   };
 
   const handleEdit = (contract) => {
-    // Navigate to contract detail page
-    navigate(`/contracts/${contract.contractId}`);
+    // Navigate to contract detail page with edit mode
+    navigate(`/contracts/${contract.contractId}?edit=true`);
   };
 
   const handleDelete = (contract) => {

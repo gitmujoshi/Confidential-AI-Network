@@ -13,7 +13,7 @@ import { UserProvider, useUser } from './contexts/UserContext';
 
 // Components
 import Layout from './components/Layout';
-import Dashboard from './pages/Dashboard';
+import DashboardSelector from './components/dashboards/DashboardSelector';
 import Datasets from './pages/Datasets';
 import Contracts from './pages/Contracts';
 import ContractDetail from './pages/ContractDetail';
@@ -30,6 +30,7 @@ import EnterpriseDIDManagement from './pages/EnterpriseDIDManagement';
 import Profile from './pages/Profile';
 import TestContracts from './pages/TestContracts';
 import DirectTest from './pages/DirectTest';
+import RoleProtectedRoute from './components/RoleProtectedRoute';
 
 // Protected Route Component
 const ProtectedRoute = ({ children }) => {
@@ -143,13 +144,83 @@ function AppRoutes() {
           </Layout>
         </ProtectedRoute>
       } />
+      
+      {/* Role-Based Dashboard */}
       <Route path="/dashboard" element={
         <ProtectedRoute>
           <Layout>
-            <Dashboard />
+            <DashboardSelector />
           </Layout>
         </ProtectedRoute>
       } />
+      
+      {/* Admin Routes */}
+      <Route path="/admin/*" element={
+        <RoleProtectedRoute allowedRoles={['AppAdmin']}>
+          <Layout>
+            <Routes>
+              <Route path="/" element={<Navigate to="/admin/dashboard" replace />} />
+              <Route path="/dashboard" element={<DashboardSelector />} />
+              <Route path="/users" element={<Users />} />
+              <Route path="/analytics" element={<div>Admin Analytics</div>} />
+              <Route path="/compliance" element={<div>DPDP Compliance</div>} />
+              <Route path="/system" element={<div>System Settings</div>} />
+            </Routes>
+          </Layout>
+        </RoleProtectedRoute>
+      } />
+      
+      {/* TDP Routes */}
+      <Route path="/tdp/*" element={
+        <RoleProtectedRoute allowedRoles={['TDP']}>
+          <Layout>
+            <Routes>
+              <Route path="/" element={<Navigate to="/tdp/dashboard" replace />} />
+              <Route path="/dashboard" element={<DashboardSelector />} />
+              <Route path="/datasets" element={<Datasets />} />
+              <Route path="/contracts" element={<Contracts />} />
+              <Route path="/payments" element={<div>TDP Payments</div>} />
+              <Route path="/analytics" element={<div>TDP Analytics</div>} />
+            </Routes>
+          </Layout>
+        </RoleProtectedRoute>
+      } />
+      
+      {/* TDC Routes */}
+      <Route path="/tdc/*" element={
+        <RoleProtectedRoute allowedRoles={['TDC']}>
+          <Layout>
+            <Routes>
+              <Route path="/" element={<Navigate to="/tdc/dashboard" replace />} />
+              <Route path="/dashboard" element={<DashboardSelector />} />
+              <Route path="/datasets" element={<Datasets />} />
+              <Route path="/contracts" element={<Contracts />} />
+              <Route path="/training" element={<div>TDC Training Progress</div>} />
+              <Route path="/payments" element={<div>TDC Payments</div>} />
+            </Routes>
+          </Layout>
+        </RoleProtectedRoute>
+      } />
+      
+      {/* CCRP Routes */}
+      <Route path="/ccrp/*" element={
+        <RoleProtectedRoute allowedRoles={['CCRP', 'AppAdmin']}>
+          <Layout>
+            <Routes>
+              <Route path="/" element={<Navigate to="/ccrp/dashboard" replace />} />
+              <Route path="/dashboard" element={<DashboardSelector />} />
+              <Route path="/environments" element={<div>CCRP Environments</div>} />
+              <Route path="/contracts" element={<Contracts />} />
+              <Route path="/attestation" element={<div>CCRP Attestation</div>} />
+              <Route path="/resources" element={<div>CCRP Resources</div>} />
+              <Route path="/analytics" element={<div>CCRP Analytics</div>} />
+              <Route path="/security" element={<div>CCRP Security</div>} />
+            </Routes>
+          </Layout>
+        </RoleProtectedRoute>
+      } />
+      
+      {/* Shared Routes (accessible to all authenticated users) */}
       <Route path="/datasets" element={
         <ProtectedRoute>
           <Layout>
@@ -185,19 +256,12 @@ function AppRoutes() {
           </Layout>
         </ProtectedRoute>
       } />
-      <Route path="/users" element={
-        <ProtectedRoute>
-          <Layout>
-            <Users />
-          </Layout>
-        </ProtectedRoute>
-      } />
       <Route path="/ccrp" element={
-        <ProtectedRoute>
+        <RoleProtectedRoute allowedRoles={['CCRP', 'AppAdmin']}>
           <Layout>
             <CCRP />
           </Layout>
-        </ProtectedRoute>
+        </RoleProtectedRoute>
       } />
       <Route path="/notifications" element={
         <ProtectedRoute>
@@ -220,8 +284,6 @@ function AppRoutes() {
           </Layout>
         </ProtectedRoute>
       } />
-      <Route path="/test-contracts" element={<TestContracts />} />
-      <Route path="/direct-test" element={<DirectTest />} />
       <Route path="/profile/:userId" element={
         <ProtectedRoute>
           <Layout>
@@ -229,6 +291,10 @@ function AppRoutes() {
           </Layout>
         </ProtectedRoute>
       } />
+      
+      {/* Test Routes */}
+      <Route path="/test-contracts" element={<TestContracts />} />
+      <Route path="/direct-test" element={<DirectTest />} />
       
       {/* Legacy route redirect */}
       <Route path="/user-registration" element={<Navigate to="/register" replace />} />
@@ -248,17 +314,8 @@ function App() {
           <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
             <AppRoutes />
           </Router>
+          <Toaster position="top-right" />
         </UserProvider>
-        <Toaster
-          position="top-right"
-          toastOptions={{
-            duration: 4000,
-            style: {
-              background: '#363636',
-              color: '#fff',
-            },
-          }}
-        />
       </ThemeProvider>
     </QueryClientProvider>
   );

@@ -288,6 +288,12 @@ const realApiService = {
     const response = await api.put(`/api/contracts/${contractId}/attestation`, { attestationReport });
     return response.data;
   },
+
+  // Update contract (TDC only)
+  updateContract: async (contractId, updateData) => {
+    const response = await api.put(`/api/contracts/${contractId}`, updateData);
+    return response.data;
+  },
   getSupportedContractTypes: async () => {
     const response = await api.get('/api/contracts/types/supported');
     return response.data.supportedTypes;
@@ -306,8 +312,13 @@ const realApiService = {
     const response = await api.get('/api/users');
     return response.data.users || [];
   },
-  getCCRPUsers: async () => {
-    const response = await api.get('/api/users/ccrp');
+  getCCRPUsers: async (cloudProvider = null) => {
+    // Create a clean URL with only the parameters we want
+    let url = '/api/ccrp/all';
+    if (cloudProvider) {
+      url += `?cloudProvider=${encodeURIComponent(cloudProvider)}`;
+    }
+    const response = await api.get(url);
     return response.data;
   },
   getUser: (userId) => api.get(`/api/users/${userId}`),
