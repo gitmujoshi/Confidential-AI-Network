@@ -417,15 +417,19 @@ export const mockApiService = {
 
   createContract: async (contractData) => {
     await delay();
-    console.log('🔧 [Mock API] Create Contract:', contractData);
+    console.log('🔧 [Mock API] Create Ricardian Contract (redirected from plain contract):', contractData);
     const newContract = {
       id: mockStorage.contracts.length + 1,
       ...contractData,
-      status: 'pending',
-      createdAt: new Date().toISOString()
+      status: 'PENDING_TDP_APPROVAL',
+      createdAt: new Date().toISOString(),
+      legalDocumentHash: '0x' + Math.random().toString(36).substring(2, 15),
+      ricardianSignature: '0x' + Math.random().toString(36).substring(2, 15),
+      smartContractAddress: '0x' + Math.random().toString(36).substring(2, 42),
+      contractType: 'AI_TRAINING'
     };
     mockStorage.contracts.push(newContract);
-    return { data: { success: true, contract: newContract } };
+    return { data: { success: true, contract: newContract, message: 'Ricardian contract created successfully' } };
   },
 
   getContractSigningData: async (contractId) => {
