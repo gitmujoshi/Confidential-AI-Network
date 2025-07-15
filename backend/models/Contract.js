@@ -83,16 +83,21 @@ module.exports = (sequelize, DataTypes) => {
       comment: 'Blockchain network (goerli, mainnet, etc.)'
     },
     
-    // Contract status in the workflow
+    // Contract status in the workflow - Updated to match UML state diagram
     status: {
       type: DataTypes.ENUM(
-        'PENDING_TDP_APPROVAL',    // TDC created, waiting for TDP auto-sign
-        'PENDING_CCRP_APPROVAL',   // TDP signed, waiting for CCRP (if selected)
-        'ACTIVE',                  // All required parties signed
-        'COMPLETED',               // Contract execution finished
-        'CANCELLED'                // Contract cancelled
+        'DRAFT',                    // Contract created by TDC, can be edited
+        'PENDING_TDP',              // Waiting for TDP signature
+        'PENDING_TDC',              // Waiting for TDC signature  
+        'PENDING_CCRP',             // Waiting for CCRP signature
+        'SIGNED',                   // All parties signed, ready for execution
+        'EXECUTING',                // Contract being executed
+        'COMPLETED',                // Contract fulfilled successfully
+        'REJECTED',                 // Contract rejected by any party
+        'FAILED'                    // Execution failed
       ),
-      defaultValue: 'PENDING_TDP_APPROVAL'
+      defaultValue: 'DRAFT',
+      comment: 'Contract status following UML state diagram workflow'
     },
     
     // Contract price in wei (blockchain currency)
@@ -319,19 +324,21 @@ module.exports = (sequelize, DataTypes) => {
       comment: 'JSON object tracking payments to each TDP: {tdpId: {amount: decimal, status: string, paidAt: timestamp}}'
     },
     
-    // Contract status considering multiple TDPs
+    // Contract status considering multiple TDPs - Updated to match UML state diagram
     multiTdpStatus: {
       type: DataTypes.ENUM(
-        'PENDING_ALL_TDP_APPROVAL',    // Waiting for all TDPs to sign
-        'PARTIALLY_TDP_APPROVED',      // Some TDPs signed, others pending
-        'ALL_TDP_APPROVED',            // All TDPs signed
-        'PENDING_CCRP_APPROVAL',       // All TDPs signed, waiting for CCRP
-        'ACTIVE',                      // All parties signed
-        'COMPLETED',                   // Contract execution finished
-        'CANCELLED'                    // Contract cancelled
+        'DRAFT',                    // Contract created by TDC, can be edited
+        'PENDING_TDP',              // Waiting for all TDPs to sign
+        'PENDING_TDC',              // Waiting for TDC signature
+        'PENDING_CCRP',             // Waiting for CCRP signature
+        'SIGNED',                   // All parties signed, ready for execution
+        'EXECUTING',                // Contract being executed
+        'COMPLETED',                // Contract fulfilled successfully
+        'REJECTED',                 // Contract rejected by any party
+        'FAILED'                    // Execution failed
       ),
-      defaultValue: 'PENDING_ALL_TDP_APPROVAL',
-      comment: 'Status considering multiple TDP signatures'
+      defaultValue: 'DRAFT',
+      comment: 'Multi-TDP status following UML state diagram workflow'
     }
   }, {
     tableName: 'contracts',

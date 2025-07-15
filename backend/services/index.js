@@ -1,5 +1,6 @@
 // Export all services as classes (no singleton instantiation here)
 const BlockchainService = require('./blockchainService');
+const ContractService = require('./contractService');
 const DIDService = require('./didService');
 const DPDPService = require('./dpdpService');
 const EmailService = require('./emailService');
@@ -11,6 +12,7 @@ const ricardianContractService = require('./ricardianContractService');
 
 module.exports = {
   BlockchainService,
+  ContractService,
   DIDService,
   DPDPService,
   EmailService,
