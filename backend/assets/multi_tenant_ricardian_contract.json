@@ -1,0 +1,1259 @@
+{
+  "ricardianContract": {
+    "metadata": {
+      "contractType": "MULTI_TENANT_AI_TRAINING_CONTRACT",
+      "version": "4.0.0",
+      "createdAt": "2024-12-15T10:30:00.000Z",
+      "legalDocumentHash": "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef",
+      "smartContractAddress": "0x5FbDB2315678afecb367f032d93F642f64180aa3",
+      "ricardianSignature": "0x9876543210fedcba9876543210fedcba9876543210fedcba9876543210fedcba",
+      "confidentialityLevel": "HIGHLY_CONFIDENTIAL",
+      "dataClassification": "SENSITIVE_PERSONAL_DATA",
+      "privacyCompliance": ["DPDP_2023", "GDPR", "HIPAA", "ISO_27001"],
+      "multiTenantArchitecture": "ENABLED",
+      "crossCloudTraining": "ENABLED"
+    },
+    "legalDocument": {
+      "title": "Multi-Tenant Cross-Cloud AI Model Training Agreement",
+      "documentType": "MULTI_TENANT_AI_TRAINING_CONTRACT",
+      "effectiveDate": "2024-12-15",
+      "expirationDate": "2025-01-14",
+      "parties": {
+        "dataProvider": {
+          "name": "Acme Healthcare Corporation",
+          "address": "123 Medical Center Dr, Healthcare City, HC 12345",
+          "email": "legal@acmehealthcare.com",
+          "blockchainAddress": "0x1234567890abcdef1234567890abcdef12345678",
+          "did": "did:web:acmehealthcare.com:organization",
+          "role": "TRAINING_DATA_PROVIDER",
+          "dataOwnership": "ORIGINAL_OWNER",
+          "privacyCertifications": ["HIPAA_COMPLIANT", "DPDP_CERTIFIED"],
+          "tenantInfrastructure": {
+            "cloudProvider": "AWS",
+            "kmsProvider": "AWS_KMS",
+            "storageProvider": "AWS_S3",
+            "region": "us-east-1",
+            "accountId": "123456789012",
+            "infrastructureType": "PRIVATE_CLOUD",
+            "complianceStandards": ["HIPAA", "SOC2", "ISO27001"]
+          }
+        },
+        "modelTrainer": {
+          "name": "AI Research Institute",
+          "address": "456 AI Research Blvd, Innovation District, ID 67890",
+          "email": "legal@airesearch.org",
+          "blockchainAddress": "0xabcdef1234567890abcdef1234567890abcdef12",
+          "did": "did:web:airesearch.org:organization",
+          "role": "TRAINING_DATA_CONSUMER",
+          "expertise": "MACHINE_LEARNING",
+          "privacyCertifications": ["AI_ETHICS_CERTIFIED", "PRIVACY_BY_DESIGN"],
+          "tenantInfrastructure": {
+            "cloudProvider": "AZURE",
+            "kmsProvider": "AZURE_KEY_VAULT",
+            "storageProvider": "AZURE_BLOB",
+            "region": "eastus",
+            "subscriptionId": "98765432-1234-5678-9012-123456789012",
+            "infrastructureType": "HYBRID_CLOUD",
+            "complianceStandards": ["GDPR", "ISO27001", "SOC2"]
+          }
+        },
+        "ccrp": {
+          "name": "Secure Cloud Analytics LLC",
+          "address": "789 Security Blvd, Compliance City, CC 11111",
+          "email": "legal@securecloud.com",
+          "blockchainAddress": "0x9876543210fedcba9876543210fedcba98765432",
+          "did": "did:web:securecloud.com:organization",
+          "role": "CONFIDENTIAL_CLEAN_ROOM_PROVIDER",
+          "certifications": ["ISO_27001", "SOC_2", "HIPAA", "GDPR", "DPDP_2023"],
+          "privacyInfrastructure": ["SECURE_ENCLAVES", "ZERO_KNOWLEDGE_PROOFS"],
+          "tenantInfrastructure": {
+            "cloudProvider": "MULTI_CLOUD",
+            "supportedClouds": ["AWS", "AZURE", "GCP", "ON_PREMISES"],
+            "kmsProviders": ["AWS_KMS", "AZURE_KEY_VAULT", "GCP_KMS", "HASHICORP_VAULT"],
+            "storageProviders": ["AWS_S3", "AZURE_BLOB", "GCP_GCS", "ON_PREMISES"],
+            "infrastructureType": "MULTI_CLOUD",
+            "complianceStandards": ["ISO27001", "SOC2", "HIPAA", "GDPR", "DPDP_2023"],
+            "crossCloudCapabilities": {
+              "dataTransfer": true,
+              "keyCoordination": true,
+              "trainingOrchestration": true,
+              "securityIsolation": true
+            }
+          }
+        }
+      },
+      "recitals": [
+        "Data Provider owns confidential patient health data stored in their private AWS cloud infrastructure",
+        "Model Trainer desires to train a diagnostic AI model using said confidential data from their Azure cloud environment",
+        "CCRP will provide secure, isolated multi-cloud environment with cross-cloud privacy-preserving infrastructure",
+        "All parties agree to maintain strict confidentiality and comply with healthcare regulations across different cloud environments",
+        "Training environment must coordinate KMS and storage across multiple cloud providers",
+        "Cross-cloud training execution with secure data transfer and key coordination will be employed"
+      ],
+      "terms": [
+        {
+          "section": "1.0",
+          "title": "Multi-Tenant Data Provision",
+          "content": "Data Provider agrees to provide confidential patient health dataset (DS-MEDICAL-2024-001) from their AWS S3 storage, encrypted using AWS KMS keys, for the purpose of training a diagnostic AI model. Data will be securely transferred to CCRP's multi-cloud environment using cross-cloud encryption protocols. All data shall be de-identified in accordance with HIPAA requirements and DPDP Act 2023 standards."
+        },
+        {
+          "section": "2.0",
+          "title": "Multi-Cloud Training Environment",
+          "content": "CCRP shall provide a secure, isolated multi-cloud environment with cross-cloud privacy-preserving infrastructure meeting the following specifications: (a) Multi-cloud orchestration supporting AWS, Azure, GCP, and on-premises infrastructure, (b) Cross-cloud KMS coordination for secure key management, (c) Unified storage gateway for accessing data across different cloud providers, (d) Secure data transfer protocols between different cloud environments, (e) Tenant isolation with complete security separation, (f) Cross-cloud monitoring and audit logging."
+        },
+        {
+          "section": "3.0",
+          "title": "Cross-Cloud Model Training Specifications",
+          "content": "Model Trainer shall train a diagnostic AI model using cross-cloud privacy-preserving techniques: (a) Model type: Multi-class classification for disease diagnosis, (b) Training approach: Cross-cloud federated learning with secure aggregation, (c) Privacy techniques: Differential privacy (ε=0.1, δ=1e-5), secure multiparty computation across clouds, (d) Target accuracy: Minimum 95% on validation set, (e) Training framework: TensorFlow with cross-cloud privacy-preserving extensions, (f) Cross-cloud validation metrics: Precision, Recall, F1-Score, AUC-ROC with privacy-preserving validation, (g) Training duration: Maximum 30 days, (h) Cross-cloud model validation: Secure multiparty validation across different cloud environments."
+        },
+        {
+          "section": "4.0",
+          "title": "Multi-Cloud Security and Privacy",
+          "content": "All parties agree to implement comprehensive multi-cloud privacy-preserving measures: (a) Cross-cloud data encryption using tenant-specific KMS providers, (b) Secure key coordination across different KMS systems, (c) Unified storage access with tenant-specific storage providers, (d) Cross-cloud network isolation with secure bridges, (e) Regular security audits across all cloud environments, (f) Privacy budget tracking across multiple cloud providers, (g) Cross-cloud membership inference attack protection, (h) Multi-cloud privacy-preserving analytics and aggregation."
+        },
+        {
+          "section": "5.0",
+          "title": "Cross-Cloud Payment and Compensation",
+          "content": "Model Trainer agrees to pay Data Provider $50,000 USD for dataset access and CCRP $25,000 USD for multi-cloud secure environment provision. Payment shall be made in installments: 50% upon contract activation, 30% upon successful cross-cloud model training, 20% upon final model delivery and cross-cloud privacy-preserving validation."
+        },
+        {
+          "section": "6.0",
+          "title": "Multi-Cloud Intellectual Property Rights",
+          "content": "Data Provider retains ownership of original dataset in their AWS environment. Model Trainer shall own the trained model but may not redistribute the original data. CCRP shall have no rights to data or model. All parties agree to maintain confidentiality of shared information for 5 years beyond contract completion. Cross-cloud privacy-preserving techniques and infrastructure remain proprietary to respective parties."
+        },
+        {
+          "section": "7.0",
+          "title": "Multi-Cloud Compliance and Regulatory Requirements",
+          "content": "All parties shall comply with: (a) DPDP Act 2023 for data protection across multiple cloud environments, (b) HIPAA for healthcare data privacy with cross-cloud de-identification, (c) GDPR for international data transfers with multi-cloud privacy impact assessments, (d) ISO 27001 for information security across multiple cloud providers, (e) SOC 2 for service organization controls with multi-cloud privacy criteria, (f) Local healthcare regulations and medical device standards with cross-cloud privacy-preserving validation."
+        },
+        {
+          "section": "8.0",
+          "title": "Multi-Cloud Liability and Indemnification",
+          "content": "Each party shall indemnify others against claims arising from their breach of this agreement. Data Provider warrants data quality and legal right to share with multi-cloud privacy compliance. Model Trainer warrants cross-cloud privacy-preserving training methodology and techniques. CCRP warrants multi-cloud security infrastructure and cross-cloud privacy-preserving environment isolation."
+        },
+        {
+          "section": "9.0",
+          "title": "Cross-Cloud Training and Compliance",
+          "content": "All parties agree to implement comprehensive cross-cloud privacy-preserving techniques: (a) Multi-cloud federated learning with secure aggregation protocols, (b) Cross-cloud differential privacy with epsilon-delta parameters (ε=0.1, δ=1e-5), (c) Secure multiparty computation across different cloud environments, (d) Cross-cloud homomorphic encryption for encrypted model training, (e) Zero-knowledge proofs for privacy verification across clouds, (f) Multi-cloud privacy budget tracking and alerting systems, (g) Cross-cloud membership inference attack protection, (h) Regular privacy impact assessments across all cloud environments, (i) Cross-cloud incident response procedures for privacy breaches, (j) Compliance with DPDP 2023, GDPR, and HIPAA regulations across multiple cloud providers."
+        }
+      ],
+      "signatures": [
+        {
+          "party": "dataProvider",
+          "name": "Dr. Sarah Johnson",
+          "title": "Chief Medical Officer",
+          "signature": "0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890",
+          "timestamp": "2024-12-15T10:35:00.000Z",
+          "did": "did:web:acmehealthcare.com:user:sarah.johnson",
+          "certification": "MEDICAL_LICENSE_VERIFIED",
+          "privacyCertification": "HIPAA_PRIVACY_OFFICER",
+          "cloudCertification": "AWS_SOLUTIONS_ARCHITECT"
+        },
+        {
+          "party": "modelTrainer",
+          "name": "Dr. Michael Chen",
+          "title": "Chief AI Officer",
+          "signature": "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef",
+          "timestamp": "2024-12-15T10:30:00.000Z",
+          "did": "did:web:airesearch.org:user:michael.chen",
+          "certification": "AI_ETHICS_CERTIFIED",
+          "privacyCertification": "PRIVACY_PRESERVING_AI_SPECIALIST",
+          "cloudCertification": "AZURE_SOLUTIONS_ARCHITECT"
+        },
+        {
+          "party": "ccrp",
+          "name": "Robert Wilson",
+          "title": "Chief Security Officer",
+          "signature": "0x9876543210fedcba9876543210fedcba9876543210fedcba9876543210fedcba",
+          "timestamp": "2024-12-15T11:00:00.000Z",
+          "did": "did:web:securecloud.com:user:robert.wilson",
+          "certification": "SECURITY_CLEARANCE_VERIFIED",
+          "privacyCertification": "PRIVACY_INFRASTRUCTURE_SPECIALIST",
+          "cloudCertification": "MULTI_CLOUD_ARCHITECT"
+        }
+      ]
+    },
+    "multiTenantInfrastructure": {
+      "tenantConfigurations": {
+        "tdp": {
+          "tenantId": "tdp-acme-healthcare",
+          "organization": "Acme Healthcare Corporation",
+          "cloudProvider": "AWS",
+          "kmsConfiguration": {
+            "provider": "AWS_KMS",
+            "region": "us-east-1",
+            "keyPrefix": "tdp-acme-healthcare",
+            "encryptionAlgorithm": "AES_256_GCM",
+            "keyRotationPolicy": {
+              "automaticRotation": true,
+              "rotationPeriod": "30_DAYS"
+            },
+            "accessControl": {
+              "roleBased": true,
+              "principle": "LEAST_PRIVILEGE",
+              "auditLogging": true
+            }
+          },
+          "storageConfiguration": {
+            "provider": "AWS_S3",
+            "region": "us-east-1",
+            "bucket": "acme-healthcare-datasets",
+            "encryptionAtRest": true,
+            "encryptionInTransit": true,
+            "accessControl": {
+              "bucketPolicy": "private",
+              "corsEnabled": false,
+              "versioning": true
+            },
+            "dataClassification": {
+              "sensitivityLevel": "HIGHLY_SENSITIVE",
+              "dataTypes": ["PERSONAL_HEALTH_DATA", "DIAGNOSTIC_IMAGES"],
+              "retentionPolicy": "90_DAYS"
+            }
+          },
+          "securityConfiguration": {
+            "encryptionAtRest": true,
+            "encryptionInTransit": true,
+            "accessControl": "role-based",
+            "auditLogging": true,
+            "complianceStandards": ["HIPAA", "SOC2", "ISO27001"]
+          }
+        },
+        "tdc": {
+          "tenantId": "tdc-ai-research",
+          "organization": "AI Research Institute",
+          "cloudProvider": "AZURE",
+          "kmsConfiguration": {
+            "provider": "AZURE_KEY_VAULT",
+            "region": "eastus",
+            "vaultUrl": "https://ai-research-kv.vault.azure.net/",
+            "keyPrefix": "tdc-ai-research",
+            "encryptionAlgorithm": "AES_256_GCM",
+            "keyRotationPolicy": {
+              "automaticRotation": true,
+              "rotationPeriod": "30_DAYS"
+            },
+            "accessControl": {
+              "roleBased": true,
+              "principle": "LEAST_PRIVILEGE",
+              "auditLogging": true
+            }
+          },
+          "storageConfiguration": {
+            "provider": "AZURE_BLOB",
+            "region": "eastus",
+            "container": "ai-research-models",
+            "encryptionAtRest": true,
+            "encryptionInTransit": true,
+            "accessControl": {
+              "containerPolicy": "private",
+              "versioning": true
+            },
+            "dataClassification": {
+              "sensitivityLevel": "HIGHLY_SENSITIVE",
+              "dataTypes": ["AI_MODELS", "TRAINING_SPECIFICATIONS"],
+              "retentionPolicy": "90_DAYS"
+            }
+          },
+          "securityConfiguration": {
+            "encryptionAtRest": true,
+            "encryptionInTransit": true,
+            "accessControl": "role-based",
+            "auditLogging": true,
+            "complianceStandards": ["GDPR", "ISO27001", "SOC2"]
+          }
+        },
+        "ccrp": {
+          "tenantId": "ccrp-secure-cloud",
+          "organization": "Secure Cloud Analytics LLC",
+          "cloudProvider": "MULTI_CLOUD",
+          "supportedClouds": {
+            "aws": {
+              "region": "us-east-1",
+              "accountId": "111111111111",
+              "kmsProvider": "AWS_KMS",
+              "storageProvider": "AWS_S3"
+            },
+            "azure": {
+              "region": "eastus",
+              "subscriptionId": "22222222-2222-2222-2222-222222222222",
+              "kmsProvider": "AZURE_KEY_VAULT",
+              "storageProvider": "AZURE_BLOB"
+            },
+            "gcp": {
+              "region": "us-central1",
+              "projectId": "secure-cloud-analytics",
+              "kmsProvider": "GCP_KMS",
+              "storageProvider": "GCP_GCS"
+            },
+            "onPremises": {
+              "location": "SECURE_DATA_CENTER",
+              "kmsProvider": "HASHICORP_VAULT",
+              "storageProvider": "ON_PREMISES_STORAGE"
+            }
+          },
+          "crossCloudCapabilities": {
+            "dataTransfer": {
+              "enabled": true,
+              "protocols": ["ENCRYPTED_BRIDGE", "SECURE_TUNNEL"],
+              "bandwidth": "10_Gbps"
+            },
+            "keyCoordination": {
+              "enabled": true,
+              "methods": ["KEY_ESCROW", "SECURE_KEY_EXCHANGE"],
+              "providers": ["AWS_KMS", "AZURE_KEY_VAULT", "GCP_KMS", "HASHICORP_VAULT"]
+            },
+            "trainingOrchestration": {
+              "enabled": true,
+              "orchestrator": "KUBERNETES_MULTI_CLOUD",
+              "loadBalancing": true
+            },
+            "securityIsolation": {
+              "enabled": true,
+              "methods": ["NETWORK_ISOLATION", "TENANT_ISOLATION", "DATA_ISOLATION"]
+            }
+          }
+        }
+      },
+      "crossCloudTraining": {
+        "environment": {
+          "type": "MULTI_CLOUD_ORCHESTRATED",
+          "orchestrator": "KUBERNETES_MULTI_CLOUD",
+          "loadBalancer": "CROSS_CLOUD_LOAD_BALANCER",
+          "monitoring": "UNIFIED_MONITORING",
+          "logging": "CENTRALIZED_LOGGING"
+        },
+        "dataFlow": {
+          "sourceToCCRP": {
+            "protocol": "ENCRYPTED_TRANSFER",
+            "encryption": "AES_256_GCM",
+            "authentication": "MUTUAL_TLS",
+            "bandwidth": "10_Gbps"
+          },
+          "ccrpToTraining": {
+            "protocol": "SECURE_MOUNT",
+            "encryption": "TRANSPARENT_ENCRYPTION",
+            "access": "READ_ONLY"
+          },
+          "trainingToTarget": {
+            "protocol": "ENCRYPTED_UPLOAD",
+            "encryption": "AES_256_GCM",
+            "authentication": "MUTUAL_TLS"
+          }
+        },
+        "keyManagement": {
+          "coordination": {
+            "method": "SECURE_KEY_EXCHANGE",
+            "providers": ["AWS_KMS", "AZURE_KEY_VAULT", "GCP_KMS"],
+            "sessionKeys": true,
+            "keyRotation": "AUTOMATIC"
+          },
+          "accessControl": {
+            "roleBased": true,
+            "timeBased": true,
+            "locationBased": true,
+            "auditLogging": true
+          }
+        }
+      }
+    },
+    "trainingEnvironment": {
+      "ccrpPlatform": {
+        "provider": "Secure Cloud Analytics LLC",
+        "platform": "MULTI_CLOUD",
+        "infrastructure": {
+          "compute": {
+            "type": "DISTRIBUTED_COMPUTE",
+            "specifications": {
+              "aws": {
+                "cpu": "64 cores (AMD EPYC 7763)",
+                "memory": "512 GB DDR4 ECC",
+                "gpu": "8x NVIDIA A100 (80GB each)",
+                "storage": "10 TB NVMe SSD"
+              },
+              "azure": {
+                "cpu": "64 cores (Intel Xeon)",
+                "memory": "512 GB DDR4 ECC",
+                "gpu": "8x NVIDIA A100 (80GB each)",
+                "storage": "10 TB Premium SSD"
+              },
+              "gcp": {
+                "cpu": "64 cores (Intel Xeon)",
+                "memory": "512 GB DDR4 ECC",
+                "gpu": "8x NVIDIA A100 (80GB each)",
+                "storage": "10 TB Local SSD"
+              }
+            },
+            "isolation": "MULTI_TENANT_ISOLATION",
+            "location": "DISTRIBUTED_MULTI_CLOUD",
+            "privacyEnhancements": ["SECURE_ENCLAVES", "TRUSTED_EXECUTION_ENVIRONMENT"]
+          },
+          "storage": {
+            "type": "DISTRIBUTED_ENCRYPTED_STORAGE",
+            "encryption": "AES-256-XTS",
+            "keyManagement": "MULTI_CLOUD_KMS",
+            "backup": "CROSS_CLOUD_BACKUP",
+            "redundancy": "3X_REPLICATION",
+            "privacyFeatures": ["HOMOMORPHIC_ENCRYPTION", "ZERO_KNOWLEDGE_STORAGE"]
+          },
+          "network": {
+            "type": "MULTI_CLOUD_NETWORK",
+            "isolation": "CROSS_CLOUD_VPN",
+            "firewall": "NEXT_GEN_FIREWALL",
+            "monitoring": "24X7_SURVEILLANCE",
+            "bandwidth": "100 Gbps distributed",
+            "privacyProtocols": ["SECURE_MULTIPARTY_COMMUNICATION", "ZERO_KNOWLEDGE_PROOFS"]
+          }
+        },
+        "security": {
+          "authentication": {
+            "method": "MULTI_CLOUD_AUTH",
+            "factors": ["SMART_CARD", "BIOMETRIC", "PIN"],
+            "sessionTimeout": "4 hours",
+            "maxAttempts": 3,
+            "privacyEnhancements": ["ZERO_KNOWLEDGE_AUTHENTICATION", "PRIVACY_PRESERVING_VERIFICATION"]
+          },
+          "authorization": {
+            "model": "CROSS_CLOUD_ROLE_BASED_ACCESS",
+            "roles": ["DATA_SCIENTIST", "SYSTEM_ADMIN", "AUDITOR", "PRIVACY_OFFICER"],
+            "principle": "LEAST_PRIVILEGE",
+            "privacyControls": ["PRIVACY_BUDGET_TRACKING", "DIFFERENTIAL_PRIVACY_ENFORCEMENT"]
+          },
+          "monitoring": {
+            "logging": "CROSS_CLOUD_AUDIT_LOG",
+            "alerting": "REAL_TIME_ALERTS",
+            "analytics": "BEHAVIOR_ANALYTICS",
+            "retention": "7 years",
+            "privacyMonitoring": ["PRIVACY_LEAKAGE_DETECTION", "MEMBERSHIP_INFERENCE_PROTECTION"]
+          },
+          "compliance": {
+            "standards": ["ISO_27001", "SOC_2", "HIPAA", "GDPR", "DPDP_2023"],
+            "certifications": ["FEDRAMP", "HITRUST", "PRIVACY_BY_DESIGN"],
+            "audits": "QUARTERLY_SECURITY_AUDITS",
+            "privacyAudits": ["PRIVACY_IMPACT_ASSESSMENTS", "DIFFERENTIAL_PRIVACY_AUDITS"]
+          }
+        }
+      },
+      "trainingSpecifications": {
+        "modelType": "CROSS_CLOUD_DIAGNOSTIC_AI_MODEL",
+        "architecture": {
+          "type": "DISTRIBUTED_DEEP_LEARNING",
+          "framework": "TensorFlow 2.12",
+          "model": "Transformer-based classifier",
+          "parameters": "500M parameters",
+          "inputSize": "512x512x3 (medical images)",
+          "outputClasses": 15,
+          "privacyLayers": ["DIFFERENTIAL_PRIVACY_LAYER", "SECURE_AGGREGATION_LAYER"]
+        },
+        "training": {
+          "algorithm": "CROSS_CLOUD_FEDERATED_LEARNING",
+          "privacyTechniques": [
+            "DIFFERENTIAL_PRIVACY",
+            "SECURE_MULTIPARTY_COMPUTATION",
+            "HOMOMORPHIC_ENCRYPTION"
+          ],
+          "hyperparameters": {
+            "learningRate": 0.001,
+            "batchSize": 32,
+            "epochs": 100,
+            "optimizer": "DP_ADAM",
+            "lossFunction": "Categorical Crossentropy"
+          },
+          "validation": {
+            "method": "CROSS_CLOUD_5_FOLD_CROSS_VALIDATION",
+            "metrics": ["Precision", "Recall", "F1-Score", "AUC-ROC"],
+            "targetAccuracy": 0.95,
+            "privacyValidation": "CROSS_CLOUD_SECURE_MULTIPARTY_VALIDATION"
+          }
+        },
+        "privacyPreservingTechniques": {
+          "federatedLearning": {
+            "enabled": true,
+            "type": "CROSS_CLOUD_HORIZONTAL_FEDERATED_LEARNING",
+            "aggregationMethod": "CROSS_CLOUD_SECURE_AGGREGATION",
+            "communicationRounds": 100,
+            "privacyBudget": 1.0
+          },
+          "differentialPrivacy": {
+            "epsilon": 0.1,
+            "delta": 1e-5,
+            "mechanism": "GAUSSIAN_MECHANISM",
+            "sensitivity": "CALIBRATED_PER_FEATURE"
+          },
+          "secureMultiPartyComputation": {
+            "protocol": "CROSS_CLOUD_SHAMIR_SECRET_SHARING",
+            "threshold": 3,
+            "participants": ["TDP", "TDC", "CCRP"],
+            "verification": "CROSS_CLOUD_ZK_PROOF"
+          },
+          "homomorphicEncryption": {
+            "scheme": "CKKS",
+            "securityLevel": 128,
+            "precision": "FIXED_POINT_16_BIT"
+          }
+        },
+        "dataProcessing": {
+          "preprocessing": [
+            "CROSS_CLOUD_IMAGE_NORMALIZATION",
+            "DATA_AUGMENTATION",
+            "FEATURE_EXTRACTION"
+          ],
+          "privacy": [
+            "CROSS_CLOUD_DATA_ANONYMIZATION",
+            "K_ANONYMITY",
+            "DIFFERENTIAL_PRIVACY"
+          ],
+          "quality": [
+            "CROSS_CLOUD_DATA_VALIDATION",
+            "OUTLIER_DETECTION",
+            "MISSING_DATA_HANDLING"
+          ]
+        }
+      },
+      "deployment": {
+        "environment": "MULTI_CLOUD_CONTAINER",
+        "orchestration": "CROSS_CLOUD_KUBERNETES",
+        "scaling": "CROSS_CLOUD_AUTO_SCALING",
+        "monitoring": "UNIFIED_PROMETHEUS_GRAFANA",
+        "backup": "CROSS_CLOUD_AUTOMATED_BACKUP",
+        "privacyDeployment": {
+          "secureInference": true,
+          "modelWatermarking": true,
+          "privacyPreservingInference": true
+        }
+      }
+    },
+    "dataPrivacyControls": {
+      "dataMinimization": {
+        "enabled": true,
+        "retentionPeriod": "90_DAYS",
+        "purposeLimitation": ["CROSS_CLOUD_MODEL_TRAINING_ONLY"],
+        "dataSubjectRights": {
+          "rightToErasure": true,
+          "rightToPortability": true,
+          "rightToRectification": true
+        }
+      },
+      "consentManagement": {
+        "explicitConsent": true,
+        "consentWithdrawal": true,
+        "consentAuditTrail": true,
+        "granularConsent": ["CROSS_CLOUD_TRAINING", "VALIDATION", "TESTING"]
+      },
+      "dataClassification": {
+        "sensitivityLevel": "HIGHLY_SENSITIVE",
+        "dataTypes": ["PERSONAL_HEALTH_DATA", "DIAGNOSTIC_IMAGES"],
+        "deidentificationMethod": "CROSS_CLOUD_HIPAA_SAFE_HARBOR"
+      }
+    },
+    "privacyInfrastructure": {
+      "secureEnclaves": {
+        "enabled": true,
+        "type": "MULTI_CLOUD_INTEL_SGX",
+        "attestation": "CROSS_CLOUD_REMOTE_ATTESTATION",
+        "enclaveSize": "32GB"
+      },
+      "zeroKnowledgeProofs": {
+        "enabled": true,
+        "proofSystem": "GROTH16",
+        "circuitComplexity": "OPTIMIZED",
+        "verificationTime": "<1_SECOND"
+      },
+      "privacyPreservingAnalytics": {
+        "enabled": true,
+        "techniques": ["CROSS_CLOUD_SECURE_SUM", "SECURE_MEAN", "SECURE_VARIANCE"],
+        "aggregationMethod": "CROSS_CLOUD_SECURE_MULTIPARTY_AGGREGATION"
+      }
+    },
+    "privacyMonitoring": {
+      "privacyMetrics": {
+        "differentialPrivacyBudget": {
+          "tracking": true,
+          "alertThreshold": 0.8,
+          "resetPolicy": "DAILY"
+        },
+        "privacyLeakageDetection": {
+          "enabled": true,
+          "detectionMethod": "CROSS_CLOUD_MEMBERSHIP_INFERENCE_TEST",
+          "alertThreshold": 0.05
+        }
+      },
+      "privacyIncidentResponse": {
+        "breachNotification": {
+          "timeframe": "72_HOURS",
+          "notificationMethod": "CROSS_CLOUD_SECURE_CHANNEL",
+          "regulatoryReporting": true
+        },
+        "privacyIncidentClassification": {
+          "levels": ["LOW", "MEDIUM", "HIGH", "CRITICAL"],
+          "responseTime": ["24_HOURS", "4_HOURS", "1_HOUR", "IMMEDIATE"]
+        }
+      }
+    },
+    "smartContract": {
+      "address": "0x5FbDB2315678afecb367f032d93F642f64180aa3",
+      "network": "goerli",
+      "contractType": "MultiTenantAITrainingRicardianContract",
+      "functions": {
+        "createMultiTenantTrainingContract": {
+          "description": "Creates multi-tenant AI training contract with cross-cloud specifications",
+          "parameters": ["legalDocumentHash", "multiTenantConfig", "crossCloudSpecs", "privacyParams"],
+          "events": ["MultiTenantTrainingContractCreated"]
+        },
+        "provisionMultiCloudEnvironment": {
+          "description": "CCRP provisions multi-cloud training environment with cross-cloud infrastructure",
+          "parameters": ["contractId", "multiCloudConfig", "crossCloudConfig"],
+          "events": ["MultiCloudEnvironmentProvisioned"]
+        },
+        "startCrossCloudTraining": {
+          "description": "Initiates cross-cloud AI model training with privacy-preserving techniques",
+          "parameters": ["contractId", "crossCloudConfig", "privacyTechniques"],
+          "events": ["CrossCloudTrainingStarted"]
+        },
+        "validateCrossCloudModel": {
+          "description": "Validates trained model with cross-cloud privacy-preserving validation",
+          "parameters": ["contractId", "modelMetrics", "crossCloudPrivacyMetrics"],
+          "events": ["CrossCloudModelValidated"]
+        },
+        "releaseCrossCloudPayment": {
+          "description": "Releases payment based on cross-cloud milestone completion",
+          "parameters": ["contractId", "milestone"],
+          "events": ["CrossCloudPaymentReleased"]
+        },
+        "cleanupMultiCloudEnvironment": {
+          "description": "Securely deletes all data across multiple cloud environments",
+          "parameters": ["contractId"],
+          "events": ["MultiCloudEnvironmentCleaned"]
+        },
+        "crossCloudPrivacyAudit": {
+          "description": "Conducts cross-cloud privacy audit and compliance check",
+          "parameters": ["contractId", "auditType"],
+          "events": ["CrossCloudPrivacyAuditCompleted"]
+        },
+        "crossCloudPrivacyIncidentResponse": {
+          "description": "Handles cross-cloud privacy incidents and breach notifications",
+          "parameters": ["contractId", "incidentType", "severity"],
+          "events": ["CrossCloudPrivacyIncidentReported"]
+        },
+        "captureProvenance": {
+          "description": "Captures Merkle tree provenance for model auditing",
+          "parameters": ["contractId", "nodeType", "dataHash", "timestamp", "crossCloudVerified"],
+          "events": ["ProvenanceCaptured"]
+        },
+        "verifyProvenance": {
+          "description": "Verifies Merkle tree provenance for model audit",
+          "parameters": ["contractId", "nodeType", "merkleProof", "expectedHash"],
+          "events": ["ProvenanceVerified"]
+        },
+        "auditModelProvenance": {
+          "description": "Conducts comprehensive model provenance audit",
+          "parameters": ["contractId", "auditType", "provenanceData"],
+          "events": ["ModelProvenanceAuditCompleted"]
+        },
+        "generateProvenanceReport": {
+          "description": "Generates detailed provenance report for model governance",
+          "parameters": ["contractId", "reportType", "dateRange"],
+          "events": ["ProvenanceReportGenerated"]
+        }
+      },
+      "state": {
+        "contractId": 12345,
+        "legalDocumentHash": "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef",
+        "status": "MULTI_CLOUD_ENVIRONMENT_PROVISIONING",
+        "multiCloudEnvironmentProvisioned": false,
+        "crossCloudTrainingStarted": false,
+        "crossCloudModelValidated": false,
+        "crossCloudPaymentReleased": 0,
+        "multiCloudDataDeleted": false,
+        "crossCloudPrivacyBudget": 1.0,
+        "crossCloudPrivacyAuditCompleted": false,
+        "provenanceCaptured": {
+          "datasetProvenance": false,
+          "modelSpecificationProvenance": false,
+          "trainingConfigurationProvenance": false,
+          "trainedModelProvenance": false,
+          "validationResultsProvenance": false,
+          "privacyMetricsProvenance": false
+        },
+        "provenanceVerified": {
+          "datasetProvenance": false,
+          "modelSpecificationProvenance": false,
+          "trainingConfigurationProvenance": false,
+          "trainedModelProvenance": false,
+          "validationResultsProvenance": false,
+          "privacyMetricsProvenance": false
+        },
+        "modelProvenanceAuditCompleted": false,
+        "provenanceReportGenerated": false
+      }
+    },
+    "execution": {
+      "automatedActions": [
+        {
+          "trigger": "MULTI_TENANT_CONTRACT_ACTIVATION",
+          "action": "PROVISION_MULTI_CLOUD_ENVIRONMENT",
+          "description": "CCRP automatically provisions multi-cloud training environment with cross-cloud infrastructure",
+          "status": "PENDING",
+          "estimatedDuration": "4 hours"
+        },
+        {
+          "trigger": "MULTI_CLOUD_ENVIRONMENT_READY",
+          "action": "COORDINATE_CROSS_CLOUD_KEYS",
+          "description": "Coordinate KMS keys across multiple cloud providers for secure data access",
+          "status": "PENDING",
+          "estimatedDuration": "2 hours"
+        },
+        {
+          "trigger": "CROSS_CLOUD_KEYS_COORDINATED",
+          "action": "TRANSFER_CROSS_CLOUD_DATA",
+          "description": "Securely transfer confidential data across multiple cloud environments with privacy-preserving protocols",
+          "status": "PENDING",
+          "estimatedDuration": "3 hours"
+        },
+        {
+          "trigger": "CROSS_CLOUD_DATA_TRANSFER_COMPLETE",
+          "action": "START_CROSS_CLOUD_TRAINING",
+          "description": "Initiate cross-cloud AI model training with comprehensive privacy-preserving techniques",
+          "status": "PENDING",
+          "estimatedDuration": "30 days"
+        },
+        {
+          "trigger": "CROSS_CLOUD_TRAINING_COMPLETE",
+          "action": "VALIDATE_CROSS_CLOUD_MODEL",
+          "description": "Validate model performance with cross-cloud privacy-preserving validation techniques",
+          "status": "PENDING",
+          "estimatedDuration": "6 hours"
+        },
+        {
+          "trigger": "CROSS_CLOUD_MODEL_VALIDATED",
+          "action": "RELEASE_CROSS_CLOUD_PAYMENT",
+          "description": "Release final payment to data provider and CCRP for cross-cloud services",
+          "status": "PENDING",
+          "estimatedDuration": "2 hours"
+        },
+        {
+          "trigger": "MULTI_TENANT_CONTRACT_EXPIRATION",
+          "action": "DELETE_CROSS_CLOUD_DATA",
+          "description": "Securely delete all data across multiple cloud environments with privacy verification",
+          "status": "SCHEDULED",
+          "estimatedDuration": "4 hours"
+        },
+        {
+          "trigger": "DATASET_READY",
+          "action": "CAPTURE_DATASET_PROVENANCE",
+          "description": "Capture Merkle tree provenance for dataset before training",
+          "status": "PENDING",
+          "estimatedDuration": "30 minutes"
+        },
+        {
+          "trigger": "MODEL_SPECIFICATION_READY",
+          "action": "CAPTURE_MODEL_SPECIFICATION_PROVENANCE",
+          "description": "Capture Merkle tree provenance for model specification",
+          "status": "PENDING",
+          "estimatedDuration": "30 minutes"
+        },
+        {
+          "trigger": "TRAINING_CONFIGURATION_READY",
+          "action": "CAPTURE_TRAINING_CONFIGURATION_PROVENANCE",
+          "description": "Capture Merkle tree provenance for training configuration",
+          "status": "PENDING",
+          "estimatedDuration": "30 minutes"
+        },
+        {
+          "trigger": "CROSS_CLOUD_TRAINING_COMPLETE",
+          "action": "CAPTURE_TRAINED_MODEL_PROVENANCE",
+          "description": "Capture Merkle tree provenance for trained model",
+          "status": "PENDING",
+          "estimatedDuration": "1 hour"
+        },
+        {
+          "trigger": "CROSS_CLOUD_MODEL_VALIDATED",
+          "action": "CAPTURE_VALIDATION_RESULTS_PROVENANCE",
+          "description": "Capture Merkle tree provenance for validation results",
+          "status": "PENDING",
+          "estimatedDuration": "30 minutes"
+        },
+        {
+          "trigger": "PRIVACY_METRICS_COMPLETE",
+          "action": "CAPTURE_PRIVACY_METRICS_PROVENANCE",
+          "description": "Capture Merkle tree provenance for privacy metrics",
+          "status": "PENDING",
+          "estimatedDuration": "30 minutes"
+        },
+        {
+          "trigger": "ALL_PROVENANCE_CAPTURED",
+          "action": "VERIFY_ALL_PROVENANCE",
+          "description": "Verify all Merkle tree provenance for model audit",
+          "status": "PENDING",
+          "estimatedDuration": "2 hours"
+        },
+        {
+          "trigger": "ALL_PROVENANCE_VERIFIED",
+          "action": "GENERATE_PROVENANCE_REPORT",
+          "description": "Generate comprehensive provenance report for model governance",
+          "status": "PENDING",
+          "estimatedDuration": "1 hour"
+        }
+      ],
+      "manualActions": [
+        {
+          "action": "MULTI_CLOUD_SECURITY_AUDIT",
+          "description": "Manual security audit of multi-cloud training environment",
+          "status": "REQUIRED",
+          "requiresApproval": true,
+          "frequency": "WEEKLY"
+        },
+        {
+          "action": "CROSS_CLOUD_COMPLIANCE_CHECK",
+          "description": "Verify compliance with healthcare regulations across multiple cloud providers",
+          "status": "REQUIRED",
+          "requiresApproval": true,
+          "frequency": "DAILY"
+        },
+        {
+          "action": "CROSS_CLOUD_PRIVACY_AUDIT",
+          "description": "Conduct cross-cloud privacy impact assessment and differential privacy audit",
+          "status": "REQUIRED",
+          "requiresApproval": true,
+          "frequency": "WEEKLY"
+        },
+        {
+          "action": "MULTI_TENANT_DISPUTE_RESOLUTION",
+          "description": "Handle disputes through legal document terms across multiple cloud environments",
+          "status": "AVAILABLE",
+          "requiresApproval": true
+        }
+      ]
+    },
+    "compliance": {
+      "regulatoryCompliance": {
+        "dpdp2023": {
+          "dataFiduciary": true,
+          "dataProcessor": true,
+          "consentManager": true,
+          "privacyByDesign": true,
+          "crossCloudRequirements": [
+            "Cross-cloud data minimization implemented",
+            "Multi-cloud purpose limitation enforced",
+            "Cross-cloud retention period set to 90 days",
+            "Multi-cloud consent management in place",
+            "Cross-cloud data subject rights implemented"
+          ]
+        },
+        "gdpr": {
+          "dataProtectionOfficer": true,
+          "privacyImpactAssessment": true,
+          "crossBorderTransfer": "ADEQUACY_DECISION",
+          "crossCloudRequirements": [
+            "Cross-cloud right to erasure implemented",
+            "Multi-cloud data portability supported",
+            "Cross-cloud privacy by design applied",
+            "Multi-cloud DPO contact information",
+            "Cross-cloud transfer safeguards"
+          ]
+        },
+        "hipaa": {
+          "businessAssociateAgreement": true,
+          "minimumNecessaryStandard": true,
+          "deidentification": "CROSS_CLOUD_SAFE_HARBOR_METHOD",
+          "crossCloudRequirements": [
+            "Cross-cloud PHI de-identification implemented",
+            "Multi-cloud access controls enforced",
+            "Cross-cloud audit logging maintained",
+            "Multi-cloud breach notification procedures",
+            "Cross-cloud business associate agreements"
+          ]
+        }
+      },
+      "privacyAudit": {
+        "privacyImpactAssessment": {
+          "required": true,
+          "frequency": "BEFORE_CROSS_CLOUD_TRAINING",
+          "scope": "FULL_CROSS_CLOUD_DATA_LIFECYCLE"
+        },
+        "privacyAuditTrail": {
+          "enabled": true,
+          "retention": "7_YEARS",
+          "immutable": true,
+          "crossCloud": true
+        }
+      },
+      "auditTrail": [
+        {
+          "timestamp": "2024-12-15T10:30:00.000Z",
+          "action": "MULTI_TENANT_CONTRACT_CREATED",
+          "actor": "0xabcdef1234567890abcdef1234567890abcdef12",
+          "details": "Multi-tenant cross-cloud AI training contract created with comprehensive multi-cloud privacy parameters"
+        },
+        {
+          "timestamp": "2024-12-15T10:35:00.000Z",
+          "action": "CROSS_CLOUD_PRIVACY_IMPACT_ASSESSMENT",
+          "actor": "0x1234567890abcdef1234567890abcdef12345678",
+          "details": "Cross-cloud privacy impact assessment completed with multi-cloud differential privacy parameters and cross-cloud federated learning setup"
+        },
+        {
+          "timestamp": "2024-12-15T11:00:00.000Z",
+          "action": "CCRP_MULTI_CLOUD_SIGNED",
+          "actor": "0x9876543210fedcba9876543210fedcba98765432",
+          "details": "CCRP signed multi-tenant contract with enhanced cross-cloud privacy infrastructure and multi-cloud secure enclave verification"
+        }
+      ]
+    },
+    "merkleTreeProvenance": {
+      "provenanceTracking": {
+        "enabled": true,
+        "trackingLevel": "COMPREHENSIVE",
+        "retentionPeriod": "PERMANENT",
+        "immutableStorage": true,
+        "crossCloudReplication": true,
+        "auditVerification": true
+      },
+      "merkleTreeStructure": {
+        "treeType": "BINARY_MERKLE_TREE",
+        "hashAlgorithm": "SHA256",
+        "nodeStructure": {
+          "leafNodes": "DATA_CHUNKS",
+          "intermediateNodes": "HASH_AGGREGATIONS",
+          "rootNode": "FINAL_HASH",
+          "proofNodes": "VERIFICATION_PATH"
+        },
+        "treeDepth": "DYNAMIC",
+        "maxDepth": 32,
+        "nodeCompression": "ENABLED"
+      },
+      "provenanceNodes": {
+        "primaryNodes": [
+          {
+            "nodeType": "DATASET_ROOT",
+            "description": "Root hash of complete dataset before training",
+            "captureFrequency": "BEFORE_TRAINING",
+            "verificationRequired": true,
+            "auditTrail": true,
+            "crossCloudReplication": true
+          },
+          {
+            "nodeType": "MODEL_SPECIFICATION_ROOT",
+            "description": "Root hash of model architecture and hyperparameters",
+            "captureFrequency": "BEFORE_TRAINING",
+            "verificationRequired": true,
+            "auditTrail": true,
+            "crossCloudReplication": true
+          },
+          {
+            "nodeType": "TRAINING_CONFIGURATION_ROOT",
+            "description": "Root hash of training configuration and privacy parameters",
+            "captureFrequency": "BEFORE_TRAINING",
+            "verificationRequired": true,
+            "auditTrail": true,
+            "crossCloudReplication": true
+          },
+          {
+            "nodeType": "TRAINED_MODEL_ROOT",
+            "description": "Root hash of trained model weights and architecture",
+            "captureFrequency": "AFTER_TRAINING",
+            "verificationRequired": true,
+            "auditTrail": true,
+            "crossCloudReplication": true
+          },
+          {
+            "nodeType": "VALIDATION_RESULTS_ROOT",
+            "description": "Root hash of model validation metrics and performance",
+            "captureFrequency": "AFTER_VALIDATION",
+            "verificationRequired": true,
+            "auditTrail": true,
+            "crossCloudReplication": true
+          },
+          {
+            "nodeType": "PRIVACY_METRICS_ROOT",
+            "description": "Root hash of privacy-preserving metrics and compliance",
+            "captureFrequency": "AFTER_TRAINING",
+            "verificationRequired": true,
+            "auditTrail": true,
+            "crossCloudReplication": true
+          }
+        ],
+        "secondaryNodes": [
+          {
+            "nodeType": "DATA_PREPROCESSING_ROOT",
+            "description": "Root hash of data preprocessing steps and transformations",
+            "captureFrequency": "DURING_TRAINING",
+            "verificationRequired": false,
+            "auditTrail": true,
+            "crossCloudReplication": true
+          },
+          {
+            "nodeType": "TRAINING_CHECKPOINTS_ROOT",
+            "description": "Root hash of training checkpoints and intermediate models",
+            "captureFrequency": "DURING_TRAINING",
+            "verificationRequired": false,
+            "auditTrail": true,
+            "crossCloudReplication": true
+          },
+          {
+            "nodeType": "PRIVACY_BUDGET_ROOT",
+            "description": "Root hash of privacy budget consumption and tracking",
+            "captureFrequency": "DURING_TRAINING",
+            "verificationRequired": false,
+            "auditTrail": true,
+            "crossCloudReplication": true
+          },
+          {
+            "nodeType": "COMPLIANCE_METRICS_ROOT",
+            "description": "Root hash of regulatory compliance metrics and evidence",
+            "captureFrequency": "AFTER_TRAINING",
+            "verificationRequired": false,
+            "auditTrail": true,
+            "crossCloudReplication": true
+          }
+        ]
+      },
+      "provenanceCapture": {
+        "beforeTraining": {
+          "datasetProvenance": {
+            "captureMethod": "MERKLE_TREE_HASH",
+            "dataSource": "TDP_AWS_S3",
+            "encryptionKeyId": "tdp-dataset-key-001",
+            "hashAlgorithm": "SHA256",
+            "timestamp": "2024-12-15T10:30:00.000Z",
+            "crossCloudVerification": true,
+            "auditSignature": "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef"
+          },
+          "modelSpecificationProvenance": {
+            "captureMethod": "MERKLE_TREE_HASH",
+            "dataSource": "TDC_AZURE_BLOB",
+            "encryptionKeyId": "tdc-model-spec-key-001",
+            "hashAlgorithm": "SHA256",
+            "timestamp": "2024-12-15T10:30:00.000Z",
+            "crossCloudVerification": true,
+            "auditSignature": "0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890"
+          },
+          "trainingConfigurationProvenance": {
+            "captureMethod": "MERKLE_TREE_HASH",
+            "dataSource": "CCRP_MULTI_CLOUD",
+            "encryptionKeyId": "ccrp-training-config-key-001",
+            "hashAlgorithm": "SHA256",
+            "timestamp": "2024-12-15T10:30:00.000Z",
+            "crossCloudVerification": true,
+            "auditSignature": "0x9876543210fedcba9876543210fedcba9876543210fedcba9876543210fedcba"
+          }
+        },
+        "duringTraining": {
+          "trainingCheckpoints": {
+            "captureFrequency": "EVERY_EPOCH",
+            "captureMethod": "MERKLE_TREE_HASH",
+            "dataSource": "CCRP_MULTI_CLOUD",
+            "encryptionKeyId": "ccrp-checkpoint-key-001",
+            "hashAlgorithm": "SHA256",
+            "crossCloudVerification": true,
+            "auditSignature": "0x1111111111111111111111111111111111111111111111111111111111111111"
+          },
+          "privacyBudgetTracking": {
+            "captureFrequency": "REAL_TIME",
+            "captureMethod": "MERKLE_TREE_HASH",
+            "dataSource": "CCRP_MULTI_CLOUD",
+            "encryptionKeyId": "ccrp-privacy-key-001",
+            "hashAlgorithm": "SHA256",
+            "crossCloudVerification": true,
+            "auditSignature": "0x2222222222222222222222222222222222222222222222222222222222222222"
+          },
+          "dataPreprocessing": {
+            "captureFrequency": "BEFORE_TRAINING",
+            "captureMethod": "MERKLE_TREE_HASH",
+            "dataSource": "CCRP_MULTI_CLOUD",
+            "encryptionKeyId": "ccrp-preprocessing-key-001",
+            "hashAlgorithm": "SHA256",
+            "crossCloudVerification": true,
+            "auditSignature": "0x3333333333333333333333333333333333333333333333333333333333333333"
+          }
+        },
+        "afterTraining": {
+          "trainedModelProvenance": {
+            "captureMethod": "MERKLE_TREE_HASH",
+            "dataSource": "CCRP_MULTI_CLOUD",
+            "encryptionKeyId": "ccrp-trained-model-key-001",
+            "hashAlgorithm": "SHA256",
+            "timestamp": "2025-01-14T10:30:00.000Z",
+            "crossCloudVerification": true,
+            "auditSignature": "0x4444444444444444444444444444444444444444444444444444444444444444"
+          },
+          "validationResultsProvenance": {
+            "captureMethod": "MERKLE_TREE_HASH",
+            "dataSource": "CCRP_MULTI_CLOUD",
+            "encryptionKeyId": "ccrp-validation-key-001",
+            "hashAlgorithm": "SHA256",
+            "timestamp": "2025-01-14T11:00:00.000Z",
+            "crossCloudVerification": true,
+            "auditSignature": "0x5555555555555555555555555555555555555555555555555555555555555555"
+          },
+          "privacyMetricsProvenance": {
+            "captureMethod": "MERKLE_TREE_HASH",
+            "dataSource": "CCRP_MULTI_CLOUD",
+            "encryptionKeyId": "ccrp-privacy-metrics-key-001",
+            "hashAlgorithm": "SHA256",
+            "timestamp": "2025-01-14T11:30:00.000Z",
+            "crossCloudVerification": true,
+            "auditSignature": "0x6666666666666666666666666666666666666666666666666666666666666666"
+          },
+          "complianceMetricsProvenance": {
+            "captureMethod": "MERKLE_TREE_HASH",
+            "dataSource": "CCRP_MULTI_CLOUD",
+            "encryptionKeyId": "ccrp-compliance-key-001",
+            "hashAlgorithm": "SHA256",
+            "timestamp": "2025-01-14T12:00:00.000Z",
+            "crossCloudVerification": true,
+            "auditSignature": "0x7777777777777777777777777777777777777777777777777777777777777777"
+          }
+        }
+      },
+      "provenanceVerification": {
+        "verificationMethods": [
+          {
+            "method": "MERKLE_PROOF_VERIFICATION",
+            "description": "Verify data integrity using Merkle proofs",
+            "enabled": true,
+            "crossCloudVerification": true
+          },
+          {
+            "method": "DIGITAL_SIGNATURE_VERIFICATION",
+            "description": "Verify provenance authenticity using digital signatures",
+            "enabled": true,
+            "crossCloudVerification": true
+          },
+          {
+            "method": "TIMESTAMP_VERIFICATION",
+            "description": "Verify temporal consistency of provenance data",
+            "enabled": true,
+            "crossCloudVerification": true
+          },
+          {
+            "method": "CROSS_CLOUD_CONSISTENCY_CHECK",
+            "description": "Verify consistency across multiple cloud environments",
+            "enabled": true,
+            "crossCloudVerification": true
+          }
+        ],
+        "auditVerification": {
+          "automatedVerification": true,
+          "manualVerification": true,
+          "verificationFrequency": "REAL_TIME",
+          "verificationRetention": "PERMANENT",
+          "crossCloudAuditTrail": true
+        }
+      },
+      "provenanceAudit": {
+        "auditTrail": [
+          {
+            "timestamp": "2024-12-15T10:30:00.000Z",
+            "action": "DATASET_PROVENANCE_CAPTURED",
+            "nodeType": "DATASET_ROOT",
+            "merkleRoot": "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef",
+            "dataSource": "TDP_AWS_S3",
+            "crossCloudVerified": true,
+            "auditSignature": "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef"
+          },
+          {
+            "timestamp": "2024-12-15T10:30:00.000Z",
+            "action": "MODEL_SPECIFICATION_PROVENANCE_CAPTURED",
+            "nodeType": "MODEL_SPECIFICATION_ROOT",
+            "merkleRoot": "0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890",
+            "dataSource": "TDC_AZURE_BLOB",
+            "crossCloudVerified": true,
+            "auditSignature": "0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890"
+          },
+          {
+            "timestamp": "2024-12-15T10:30:00.000Z",
+            "action": "TRAINING_CONFIGURATION_PROVENANCE_CAPTURED",
+            "nodeType": "TRAINING_CONFIGURATION_ROOT",
+            "merkleRoot": "0x9876543210fedcba9876543210fedcba9876543210fedcba9876543210fedcba",
+            "dataSource": "CCRP_MULTI_CLOUD",
+            "crossCloudVerified": true,
+            "auditSignature": "0x9876543210fedcba9876543210fedcba9876543210fedcba9876543210fedcba"
+          },
+          {
+            "timestamp": "2025-01-14T10:30:00.000Z",
+            "action": "TRAINED_MODEL_PROVENANCE_CAPTURED",
+            "nodeType": "TRAINED_MODEL_ROOT",
+            "merkleRoot": "0x4444444444444444444444444444444444444444444444444444444444444444",
+            "dataSource": "CCRP_MULTI_CLOUD",
+            "crossCloudVerified": true,
+            "auditSignature": "0x4444444444444444444444444444444444444444444444444444444444444444"
+          },
+          {
+            "timestamp": "2025-01-14T11:00:00.000Z",
+            "action": "VALIDATION_RESULTS_PROVENANCE_CAPTURED",
+            "nodeType": "VALIDATION_RESULTS_ROOT",
+            "merkleRoot": "0x5555555555555555555555555555555555555555555555555555555555555555",
+            "dataSource": "CCRP_MULTI_CLOUD",
+            "crossCloudVerified": true,
+            "auditSignature": "0x5555555555555555555555555555555555555555555555555555555555555555"
+          },
+          {
+            "timestamp": "2025-01-14T11:30:00.000Z",
+            "action": "PRIVACY_METRICS_PROVENANCE_CAPTURED",
+            "nodeType": "PRIVACY_METRICS_ROOT",
+            "merkleRoot": "0x6666666666666666666666666666666666666666666666666666666666666666",
+            "dataSource": "CCRP_MULTI_CLOUD",
+            "crossCloudVerified": true,
+            "auditSignature": "0x6666666666666666666666666666666666666666666666666666666666666666"
+          }
+        ],
+        "modelAuditCapabilities": {
+          "dataLineage": {
+            "enabled": true,
+            "trackingMethod": "MERKLE_TREE_LINEAGE",
+            "verificationRequired": true,
+            "crossCloudTracking": true
+          },
+          "modelExplainability": {
+            "enabled": true,
+            "explanationMethod": "PROVENANCE_BASED_EXPLANATION",
+            "auditTrail": true,
+            "crossCloudExplanation": true
+          },
+          "complianceVerification": {
+            "enabled": true,
+            "verificationMethod": "PROVENANCE_BASED_COMPLIANCE",
+            "regulatoryStandards": ["DPDP_2023", "GDPR", "HIPAA"],
+            "crossCloudCompliance": true
+          },
+          "biasDetection": {
+            "enabled": true,
+            "detectionMethod": "PROVENANCE_BASED_BIAS_DETECTION",
+            "auditTrail": true,
+            "crossCloudDetection": true
+          }
+        }
+      },
+      "provenanceStorage": {
+        "storageConfiguration": {
+          "primaryStorage": "IMMUTABLE_BLOCKCHAIN",
+          "secondaryStorage": "DISTRIBUTED_STORAGE",
+          "backupStorage": "CROSS_CLOUD_BACKUP",
+          "retentionPolicy": "PERMANENT",
+          "encryptionAtRest": true,
+          "encryptionInTransit": true
+        },
+        "crossCloudReplication": {
+          "enabled": true,
+          "replicationMethod": "SYNCHRONOUS_REPLICATION",
+          "verificationRequired": true,
+          "auditTrail": true
+        },
+        "accessControl": {
+          "roleBasedAccess": true,
+          "auditLogging": true,
+          "immutableAuditTrail": true,
+          "crossCloudAccess": true
+        }
+      }
+    }
+  },
+  "legalDocumentHash": "0xabbccf3589244fe52793ab874454461009023637846ec161c918f02d3a82def9",
+  "ricardianSignature": "0x53a621daea5b8ce2b1868a62c1465e2ee28ccf22092736d048f6ebd3265b446c",
+  "smartContractAddress": "0x15173d910587ce9eea9f16c4d810e70a3132b4fd",
+  "smartContractNetwork": "mock",
+  "blockchainContractId": 437870,
+  "status": "PENDING_TDP_APPROVAL",
+  "tdpSigned": false,
+  "ccrpSigned": false
+} 

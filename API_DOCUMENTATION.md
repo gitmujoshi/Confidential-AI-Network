@@ -1,19 +1,23 @@
 # Contract Management System API Documentation
 
-**Version:** 2.0.0  
+**Version:** 3.0.0  
 **Base URL:** `http://localhost:5001/api`  
-**Last Updated:** July 8, 2024
+**Last Updated:** December 2024
 
 ## Table of Contents
 
 1. [Authentication & User Management](#authentication--user-management)
-2. [DID (Decentralized Identifier) Management](#did-decentralized-identifier-management)
-3. [Contract Management](#contract-management)
-4. [Dataset Management](#dataset-management)
-5. [DPDP (Digital Personal Data Protection) Compliance](#dpdp-digital-personal-data-protection-compliance)
-6. [User Management (AppAdmin)](#user-management-appadmin)
-7. [Notification System](#notification-system)
-8. [Error Handling](#error-handling)
+2. [Multi-Tenant Infrastructure Management](#multi-tenant-infrastructure-management)
+3. [KMS (Key Management Service) Integration](#kms-key-management-service-integration)
+4. [Merkle Tree Provenance Tracking](#merkle-tree-provenance-tracking)
+5. [DID (Decentralized Identifier) Management](#did-decentralized-identifier-management)
+6. [Contract Management](#contract-management)
+7. [Dataset Management](#dataset-management)
+8. [Cross-Cloud Training Management](#cross-cloud-training-management)
+9. [DPDP (Digital Personal Data Protection) Compliance](#dpdp-digital-personal-data-protection-compliance)
+10. [User Management (AppAdmin)](#user-management-appadmin)
+11. [Notification System](#notification-system)
+12. [Error Handling](#error-handling)
 
 ---
 
@@ -22,7 +26,7 @@
 ### User Registration
 **POST** `/auth/register`
 
-Register a new user with support for both `did:ethr` and `did:web` methods.
+Register a new user with support for both `did:ethr` and `did:web` methods, including multi-tenant infrastructure configuration.
 
 **Request Body:**
 ```json
@@ -38,7 +42,15 @@ Register a new user with support for both `did:ethr` and `did:web` methods.
   "website": "https://techailabs.com",
   "location": "Boston, MA",
   "existingDID": "did:web:mukeshjoshidpi.github.io",
-  "didVerificationSignature": "0xsignature..."
+  "didVerificationSignature": "0xsignature...",
+  "tenantInfrastructure": {
+    "cloudProvider": "AZURE",
+    "kmsProvider": "AZURE_KEY_VAULT",
+    "storageProvider": "AZURE_BLOB",
+    "region": "eastus",
+    "infrastructureType": "HYBRID_CLOUD",
+    "complianceStandards": ["GDPR", "ISO27001", "SOC2"]
+  }
 }
 ```
 
@@ -53,7 +65,13 @@ Register a new user with support for both `did:ethr` and `did:web` methods.
     "partyType": "TDC",
     "did": "did:web:mukeshjoshidpi.github.io",
     "didVerified": true,
-    "isRegistered": true
+    "isRegistered": true,
+    "tenantInfrastructure": {
+      "cloudProvider": "AZURE",
+      "kmsProvider": "AZURE_KEY_VAULT",
+      "storageProvider": "AZURE_BLOB",
+      "region": "eastus"
+    }
   },
   "***REMOVED-KEYCLOAK_DB_PASSWORD***Success": true
 }
@@ -83,7 +101,12 @@ Authenticate user with email and password.
     "email": "john@example.com",
     "partyType": "TDC",
     "did": "did:web:mukeshjoshidpi.github.io",
-    "didVerified": true
+    "didVerified": true,
+    "tenantInfrastructure": {
+      "cloudProvider": "AZURE",
+      "kmsProvider": "AZURE_KEY_VAULT",
+      "storageProvider": "AZURE_BLOB"
+    }
   }
 }
 ```
@@ -132,7 +155,7 @@ Reset password using token.
 ### Update Profile
 **PUT** `/auth/profile`
 
-Update user profile information.
+Update user profile information including tenant infrastructure.
 
 **Headers:** `Authorization: Bearer <token>`
 
@@ -144,7 +167,13 @@ Update user profile information.
   "organization": "Updated Organization",
   "phoneNumber": "+1-555-5678",
   "website": "https://updatedwebsite.com",
-  "location": "New York, NY"
+  "location": "New York, NY",
+  "tenantInfrastructure": {
+    "cloudProvider": "AWS",
+    "kmsProvider": "AWS_KMS",
+    "storageProvider": "AWS_S3",
+    "region": "us-east-1"
+  }
 }
 ```
 
@@ -157,7 +186,430 @@ Update user profile information.
     "name": "John Doe Updated",
     "email": "john@example.com",
     "description": "Updated description",
-    "organization": "Updated Organization"
+    "organization": "Updated Organization",
+    "tenantInfrastructure": {
+      "cloudProvider": "AWS",
+      "kmsProvider": "AWS_KMS",
+      "storageProvider": "AWS_S3",
+      "region": "us-east-1"
+    }
+  }
+}
+```
+
+---
+
+## Multi-Tenant Infrastructure Management
+
+### Get Tenant Configuration
+**GET** `/tenants/:tenantId/config`
+
+Get tenant infrastructure configuration.
+
+**Headers:** `Authorization: Bearer <token>`
+
+**Response:**
+```json
+{
+  "success": true,
+  "tenantConfig": {
+    "tenantId": "tdc-ai-research",
+    "organization": "AI Research Institute",
+    "cloudProvider": "AZURE",
+    "kmsConfiguration": {
+      "provider": "AZURE_KEY_VAULT",
+      "region": "eastus",
+      "vaultUrl": "https://ai-research-kv.vault.azure.net/",
+      "keyPrefix": "tdc-ai-research",
+      "encryptionAlgorithm": "AES_256_GCM"
+    },
+    "storageConfiguration": {
+      "provider": "AZURE_BLOB",
+      "region": "eastus",
+      "container": "ai-research-models",
+      "encryptionAtRest": true,
+      "encryptionInTransit": true
+    },
+    "securityConfiguration": {
+      "encryptionAtRest": true,
+      "encryptionInTransit": true,
+      "accessControl": "role-based",
+      "auditLogging": true,
+      "complianceStandards": ["GDPR", "ISO27001", "SOC2"]
+    }
+  }
+}
+```
+
+### Update Tenant Configuration
+**PUT** `/tenants/:tenantId/config`
+
+Update tenant infrastructure configuration.
+
+**Headers:** `Authorization: Bearer <token>`
+
+**Request Body:**
+```json
+{
+  "kmsConfiguration": {
+    "provider": "AZURE_KEY_VAULT",
+    "region": "eastus",
+    "vaultUrl": "https://updated-kv.vault.azure.net/",
+    "keyPrefix": "tdc-ai-research-updated"
+  },
+  "storageConfiguration": {
+    "provider": "AZURE_BLOB",
+    "region": "eastus",
+    "container": "updated-models",
+    "encryptionAtRest": true
+  }
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Tenant configuration updated successfully",
+  "tenantConfig": {
+    "tenantId": "tdc-ai-research",
+    "kmsConfiguration": {
+      "provider": "AZURE_KEY_VAULT",
+      "region": "eastus",
+      "vaultUrl": "https://updated-kv.vault.azure.net/"
+    },
+    "storageConfiguration": {
+      "provider": "AZURE_BLOB",
+      "region": "eastus",
+      "container": "updated-models"
+    }
+  }
+}
+```
+
+### List Supported Cloud Providers
+**GET** `/tenants/cloud-providers`
+
+Get list of supported cloud providers and their capabilities.
+
+**Response:**
+```json
+{
+  "success": true,
+  "cloudProviders": [
+    {
+      "name": "AWS",
+      "kmsProviders": ["AWS_KMS"],
+      "storageProviders": ["AWS_S3"],
+      "regions": ["us-east-1", "us-west-2", "eu-west-1"],
+      "complianceStandards": ["SOC2", "ISO27001", "HIPAA"]
+    },
+    {
+      "name": "AZURE",
+      "kmsProviders": ["AZURE_KEY_VAULT"],
+      "storageProviders": ["AZURE_BLOB"],
+      "regions": ["eastus", "westus", "northeurope"],
+      "complianceStandards": ["SOC2", "ISO27001", "GDPR"]
+    },
+    {
+      "name": "GCP",
+      "kmsProviders": ["GCP_KMS"],
+      "storageProviders": ["GCP_GCS"],
+      "regions": ["us-central1", "europe-west1", "asia-southeast1"],
+      "complianceStandards": ["SOC2", "ISO27001"]
+    }
+  ]
+}
+```
+
+---
+
+## KMS (Key Management Service) Integration
+
+### Create KMS Key
+**POST** `/kms/keys`
+
+Create a new encryption key in the tenant's KMS.
+
+**Headers:** `Authorization: Bearer <token>`
+
+**Request Body:**
+```json
+{
+  "keyType": "DATA_ENCRYPTION",
+  "keyName": "dataset-encryption-key",
+  "description": "Encryption key for dataset DS-MEDICAL-2024-001",
+  "metadata": {
+    "purpose": "dataset-encryption",
+    "datasetId": "DS-MEDICAL-2024-001",
+    "contractId": "CONTRACT-123"
+  }
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "keyInfo": {
+    "keyId": "tdc-ai-research-dataset-key-001",
+    "keyType": "DATA_ENCRYPTION",
+    "algorithm": "AES_256_GCM",
+    "keySize": 256,
+    "createdAt": "2024-12-15T10:30:00.000Z",
+    "expiresAt": "2025-01-15T10:30:00.000Z",
+    "metadata": {
+      "purpose": "dataset-encryption",
+      "datasetId": "DS-MEDICAL-2024-001",
+      "contractId": "CONTRACT-123"
+    },
+    "status": "ACTIVE"
+  }
+}
+```
+
+### Encrypt Data
+**POST** `/kms/encrypt`
+
+Encrypt data using tenant's KMS key.
+
+**Headers:** `Authorization: Bearer <token>`
+
+**Request Body:**
+```json
+{
+  "keyId": "tdc-ai-research-dataset-key-001",
+  "data": "base64_encoded_data_here",
+  "algorithm": "AES_256_GCM"
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "encryptedData": {
+    "encryptedData": "base64_encrypted_data",
+    "keyId": "tdc-ai-research-dataset-key-001",
+    "algorithm": "AES_256_GCM",
+    "iv": "base64_iv",
+    "checksum": "sha256_checksum"
+  }
+}
+```
+
+### Decrypt Data
+**POST** `/kms/decrypt`
+
+Decrypt data using tenant's KMS key.
+
+**Headers:** `Authorization: Bearer <token>`
+
+**Request Body:**
+```json
+{
+  "keyId": "tdc-ai-research-dataset-key-001",
+  "encryptedData": "base64_encrypted_data",
+  "iv": "base64_iv",
+  "algorithm": "AES_256_GCM"
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "decryptedData": "base64_decrypted_data"
+}
+```
+
+### List KMS Keys
+**GET** `/kms/keys`
+
+List all KMS keys for the tenant.
+
+**Headers:** `Authorization: Bearer <token>`
+
+**Response:**
+```json
+{
+  "success": true,
+  "keys": [
+    {
+      "keyId": "tdc-ai-research-dataset-key-001",
+      "keyType": "DATA_ENCRYPTION",
+      "algorithm": "AES_256_GCM",
+      "createdAt": "2024-12-15T10:30:00.000Z",
+      "status": "ACTIVE",
+      "metadata": {
+        "purpose": "dataset-encryption",
+        "datasetId": "DS-MEDICAL-2024-001"
+      }
+    }
+  ]
+}
+```
+
+---
+
+## Merkle Tree Provenance Tracking
+
+### Capture Provenance
+**POST** `/provenance/capture`
+
+Capture Merkle tree provenance for model auditing.
+
+**Headers:** `Authorization: Bearer <token>`
+
+**Request Body:**
+```json
+{
+  "contractId": "CONTRACT-123",
+  "nodeType": "DATASET_ROOT",
+  "dataHash": "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef",
+  "timestamp": "2024-12-15T10:30:00.000Z",
+  "crossCloudVerified": true,
+  "metadata": {
+    "dataSource": "TDP_AWS_S3",
+    "encryptionKeyId": "tdp-dataset-key-001",
+    "hashAlgorithm": "SHA256"
+  }
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "provenance": {
+    "provenanceId": "PROV-001",
+    "contractId": "CONTRACT-123",
+    "nodeType": "DATASET_ROOT",
+    "merkleRoot": "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef",
+    "timestamp": "2024-12-15T10:30:00.000Z",
+    "crossCloudVerified": true,
+    "auditSignature": "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef"
+  }
+}
+```
+
+### Verify Provenance
+**POST** `/provenance/verify`
+
+Verify Merkle tree provenance for model audit.
+
+**Headers:** `Authorization: Bearer <token>`
+
+**Request Body:**
+```json
+{
+  "contractId": "CONTRACT-123",
+  "nodeType": "DATASET_ROOT",
+  "merkleProof": [
+    "0x1111111111111111111111111111111111111111111111111111111111111111",
+    "0x2222222222222222222222222222222222222222222222222222222222222222"
+  ],
+  "expectedHash": "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef"
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "verification": {
+    "verified": true,
+    "nodeType": "DATASET_ROOT",
+    "merkleRoot": "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef",
+    "verificationMethod": "MERKLE_PROOF_VERIFICATION",
+    "crossCloudVerified": true,
+    "timestamp": "2024-12-15T10:30:00.000Z"
+  }
+}
+```
+
+### Get Provenance Audit Trail
+**GET** `/provenance/audit-trail/:contractId`
+
+Get complete provenance audit trail for a contract.
+
+**Headers:** `Authorization: Bearer <token>`
+
+**Response:**
+```json
+{
+  "success": true,
+  "auditTrail": [
+    {
+      "timestamp": "2024-12-15T10:30:00.000Z",
+      "action": "DATASET_PROVENANCE_CAPTURED",
+      "nodeType": "DATASET_ROOT",
+      "merkleRoot": "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef",
+      "dataSource": "TDP_AWS_S3",
+      "crossCloudVerified": true,
+      "auditSignature": "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef"
+    },
+    {
+      "timestamp": "2024-12-15T10:30:00.000Z",
+      "action": "MODEL_SPECIFICATION_PROVENANCE_CAPTURED",
+      "nodeType": "MODEL_SPECIFICATION_ROOT",
+      "merkleRoot": "0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890",
+      "dataSource": "TDC_AZURE_BLOB",
+      "crossCloudVerified": true,
+      "auditSignature": "0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890"
+    }
+  ]
+}
+```
+
+### Generate Provenance Report
+**POST** `/provenance/report`
+
+Generate comprehensive provenance report for model governance.
+
+**Headers:** `Authorization: Bearer <token>`
+
+**Request Body:**
+```json
+{
+  "contractId": "CONTRACT-123",
+  "reportType": "COMPREHENSIVE",
+  "dateRange": {
+    "startDate": "2024-12-15T00:00:00.000Z",
+    "endDate": "2025-01-15T23:59:59.000Z"
+  }
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "report": {
+    "reportId": "REPORT-001",
+    "contractId": "CONTRACT-123",
+    "reportType": "COMPREHENSIVE",
+    "generatedAt": "2024-12-15T12:00:00.000Z",
+    "dataLineage": {
+      "dataSource": "TDP_AWS_S3",
+      "transformations": ["preprocessing", "training", "validation"],
+      "finalOutput": "TDC_AZURE_BLOB"
+    },
+    "modelExplainability": {
+      "dataInfluence": "High",
+      "featureImportance": "Tracked",
+      "decisionPath": "Documented"
+    },
+    "complianceVerification": {
+      "dpdp2023": "Compliant",
+      "gdpr": "Compliant",
+      "hipaa": "Compliant"
+    },
+    "biasDetection": {
+      "dataBias": "None detected",
+      "modelBias": "None detected",
+      "demographicBias": "None detected"
+    }
   }
 }
 ```
@@ -190,7 +642,7 @@ Verify ownership of a user-provided DID.
     "did": "did:web:mukeshjoshidpi.github.io",
     "verified": true,
     "method": "signature",
-    "verifiedAt": "2024-07-08T18:00:00.000Z"
+    "verifiedAt": "2024-12-15T18:00:00.000Z"
   }
 }
 ```
@@ -198,111 +650,29 @@ Verify ownership of a user-provided DID.
 ### Get DID Information
 **GET** `/did/info/:did`
 
-Get detailed information about a specific DID.
+Get detailed information about a DID.
 
 **Response:**
 ```json
 {
   "success": true,
-  "didInfo": {
+  "did": {
     "did": "did:web:mukeshjoshidpi.github.io",
-    "method": "web",
-    "identifier": "mukeshjoshidpi.github.io",
-    "verificationMethods": [...],
-    "authentication": [...],
-    "assertionMethod": [...],
-    "created": "2024-01-01T00:00:00Z",
-    "updated": "2024-01-01T00:00:00Z"
-  }
-}
-```
-
-### Resolve DID Document
-**GET** `/did/resolve/:did`
-
-Resolve a DID to its document.
-
-**Response:**
-```json
-{
-  "success": true,
-  "did": "did:web:mukeshjoshidpi.github.io",
-  "didDocument": {
-    "@context": "https://www.w3.org/ns/did/v1",
-    "id": "did:web:mukeshjoshidpi.github.io",
-    "verificationMethod": [...],
-    "authentication": [...]
-  },
-  "metadata": {
-    "method": "web",
-    "domain": "mukeshjoshidpi.github.io",
-    "resolved": true
-  }
-}
-```
-
-### Check DID Availability
-**GET** `/did/check/:did`
-
-Check if a DID is available for registration.
-
-**Response:**
-```json
-{
-  "success": true,
-  "available": true,
-  "did": "did:web:example.com:user:john"
-}
-```
-
-### Get Supported DID Methods
-**GET** `/did/supported-methods`
-
-Get list of supported DID methods.
-
-**Response:**
-```json
-{
-  "success": true,
-  "methods": [
-    {
-      "method": "web",
-      "description": "Web-based DIDs",
-      "example": "did:web:example.com:user:john"
+    "document": {
+      "@context": ["https://www.w3.org/ns/did/v1"],
+      "id": "did:web:mukeshjoshidpi.github.io",
+      "verificationMethod": [
+        {
+          "id": "did:web:mukeshjoshidpi.github.io#key-1",
+          "type": "Ed25519VerificationKey2020",
+          "controller": "did:web:mukeshjoshidpi.github.io",
+          "publicKeyMultibase": "z6MkhaXgBZDvotDkL5257faiztiGiC2QtKLGpbnnEGta2doK"
+        }
+      ]
     },
-    {
-      "method": "ethr",
-      "description": "Ethereum-based DIDs",
-      "example": "did:ethr:0x1234567890abcdef..."
-    }
-  ]
-}
-```
-
-### Create System DID
-**POST** `/did/create-system`
-
-Create a system-generated DID (Admin only).
-
-**Headers:** `Authorization: Bearer <token>`
-
-**Request Body:**
-```json
-{
-  "walletAddress": "0x1234567890abcdef...",
-  "method": "ethr",
-  "network": "goerli"
-}
-```
-
-**Response:**
-```json
-{
-  "success": true,
-  "did": "did:ethr:goerli:0x1234567890abcdef...",
-  "method": "ethr",
-  "walletAddress": "0x1234567890abcdef...",
-  "network": "goerli"
+    "resolved": true,
+    "resolvedAt": "2024-12-15T18:00:00.000Z"
+  }
 }
 ```
 
@@ -310,184 +680,182 @@ Create a system-generated DID (Admin only).
 
 ## Contract Management
 
-### Get User Contracts
-**GET** `/contracts/user/:userId`
-
-Get all contracts for a specific user.
-
-**Headers:** `Authorization: Bearer <token>`
-
-**Query Parameters:**
-- `status` (string): Filter by contract status
-- `limit` (number): Number of contracts to return (default: 10)
-- `offset` (number): Number of contracts to skip (default: 0)
-
-**Response:**
-```json
-{
-  "contracts": [
-    {
-      "contractId": 1,
-      "title": "Data Sharing Agreement",
-      "status": "PENDING_TDC_APPROVAL",
-      "price": "1000 ETH",
-      "duration": 365,
-      "tdp": {
-        "id": 1,
-        "name": "Data Provider",
-        "email": "provider@example.com",
-        "did": "did:web:provider.com"
-      },
-      "tdc": {
-        "id": 2,
-        "name": "Data Consumer",
-        "email": "consumer@example.com",
-        "did": "did:web:consumer.com"
-      },
-      "ccrp": {
-        "id": 3,
-        "name": "CCRP Provider",
-        "email": "ccrp@example.com",
-        "did": "did:web:ccrp.com"
-      },
-      "dataset": {
-        "id": 1,
-        "name": "Training Dataset",
-        "description": "High-quality training data"
-      }
-    }
-  ],
-  "total": 5,
-  "limit": 10,
-  "offset": 0
-}
-```
-
-### Get Specific Contract
-**GET** `/contracts/:contractId`
-
-Get detailed information about a specific contract.
-
-**Headers:** `Authorization: Bearer <token>`
-
-**Response:**
-```json
-{
-  "contractId": 1,
-  "title": "Data Sharing Agreement",
-  "description": "Contract for sharing training data",
-  "status": "PENDING_TDC_APPROVAL",
-  "price": "1000 ETH",
-  "duration": 365,
-  "termsAndConditions": "Contract terms...",
-  "tdp": {
-    "id": 1,
-    "name": "Data Provider",
-    "email": "provider@example.com",
-    "did": "did:web:provider.com"
-  },
-  "tdc": {
-    "id": 2,
-    "name": "Data Consumer",
-    "email": "consumer@example.com",
-    "did": "did:web:consumer.com"
-  },
-  "ccrp": {
-    "id": 3,
-    "name": "CCRP Provider",
-    "email": "ccrp@example.com",
-    "did": "did:web:ccrp.com"
-  },
-  "dataset": {
-    "id": 1,
-    "name": "Training Dataset",
-    "description": "High-quality training data",
-    "price": "500 ETH"
-  }
-}
-```
-
-### Create Contract
+### Create Multi-Tenant Contract
 **POST** `/contracts`
 
-Create a new contract (TDC only).
+Create a new contract with multi-tenant infrastructure specifications.
 
 **Headers:** `Authorization: Bearer <token>`
 
 **Request Body:**
 ```json
 {
-  "tdpId": 1,
-  "datasetId": 1,
-  "modelId": "gpt-4",
-  "price": "1000 ETH",
-  "duration": 365,
-  "termsAndConditions": "Contract terms and conditions...",
-  "ccrpId": 3
-}
-```
-
-**Response:**
-```json
-{
-  "success": true,
-  "contract": {
-    "contractId": 1,
-    "status": "PENDING_CCRP_APPROVAL",
-    "tdpSigned": true,
-    "tdpSignedAt": "2024-07-08T18:00:00.000Z"
+  "title": "Multi-Cloud AI Training Contract",
+  "description": "Cross-cloud AI model training with privacy preservation",
+  "tdpIds": [1, 2],
+  "datasets": [
+    {
+      "id": 1,
+      "price": 50000,
+      "tdpId": 1
+    },
+    {
+      "id": 2,
+      "price": 30000,
+      "tdpId": 2
+    }
+  ],
+  "duration": 30,
+  "multiTenantInfrastructure": {
+    "tdp": {
+      "cloudProvider": "AWS",
+      "kmsProvider": "AWS_KMS",
+      "storageProvider": "AWS_S3",
+      "region": "us-east-1"
+    },
+    "tdc": {
+      "cloudProvider": "AZURE",
+      "kmsProvider": "AZURE_KEY_VAULT",
+      "storageProvider": "AZURE_BLOB",
+      "region": "eastus"
+    },
+    "ccrp": {
+      "cloudProvider": "MULTI_CLOUD",
+      "supportedClouds": ["AWS", "AZURE", "GCP"]
+    }
   },
-  "blockchainTransaction": {
-    "transactionHash": "0x1234567890abcdef...",
-    "blockNumber": 12345
+  "provenanceTracking": {
+    "enabled": true,
+    "trackingLevel": "COMPREHENSIVE",
+    "retentionPeriod": "PERMANENT"
   }
 }
 ```
 
-### Sign Contract
-**POST** `/contracts/:contractId/sign`
-
-Sign a contract using wallet or DID-based signing.
-
-**Headers:** `Authorization: Bearer <token>`
-
-**Request Body:**
-```json
-{
-  "did": "did:web:mukeshjoshidpi.github.io",
-  "signature": "0xsignature...",
-  "method": "did:web"
-}
-```
-
 **Response:**
 ```json
 {
   "success": true,
   "contract": {
-    "contractId": 1,
-    "status": "SIGNED",
-    "tdcSigned": true,
-    "tdcSignedAt": "2024-07-08T18:00:00.000Z"
-  },
-  "blockchainTransaction": {
-    "transactionHash": "0x1234567890abcdef...",
-    "blockNumber": 12346
+    "id": "CONTRACT-123",
+    "title": "Multi-Cloud AI Training Contract",
+    "status": "PENDING_TDP_APPROVAL",
+    "multiTenantInfrastructure": {
+      "tdp": {
+        "cloudProvider": "AWS",
+        "kmsProvider": "AWS_KMS",
+        "storageProvider": "AWS_S3"
+      },
+      "tdc": {
+        "cloudProvider": "AZURE",
+        "kmsProvider": "AZURE_KEY_VAULT",
+        "storageProvider": "AZURE_BLOB"
+      },
+      "ccrp": {
+        "cloudProvider": "MULTI_CLOUD",
+        "supportedClouds": ["AWS", "AZURE", "GCP"]
+      }
+    },
+    "provenanceTracking": {
+      "enabled": true,
+      "trackingLevel": "COMPREHENSIVE"
+    },
+    "createdAt": "2024-12-15T10:30:00.000Z"
   }
 }
 ```
 
-### Select CCRP
-**POST** `/contracts/:contractId/select-ccrp`
+### Get Contract with Provenance
+**GET** `/contracts/:contractId`
 
-Select a CCRP for contract review.
+Get contract details including provenance information.
+
+**Headers:** `Authorization: Bearer <token>`
+
+**Response:**
+```json
+{
+  "success": true,
+  "contract": {
+    "id": "CONTRACT-123",
+    "title": "Multi-Cloud AI Training Contract",
+    "status": "TRAINING_IN_PROGRESS",
+    "multiTenantInfrastructure": {
+      "tdp": {
+        "cloudProvider": "AWS",
+        "kmsProvider": "AWS_KMS",
+        "storageProvider": "AWS_S3"
+      },
+      "tdc": {
+        "cloudProvider": "AZURE",
+        "kmsProvider": "AZURE_KEY_VAULT",
+        "storageProvider": "AZURE_BLOB"
+      },
+      "ccrp": {
+        "cloudProvider": "MULTI_CLOUD",
+        "supportedClouds": ["AWS", "AZURE", "GCP"]
+      }
+    },
+    "provenanceCaptured": {
+      "datasetProvenance": true,
+      "modelSpecificationProvenance": true,
+      "trainingConfigurationProvenance": true,
+      "trainedModelProvenance": false,
+      "validationResultsProvenance": false,
+      "privacyMetricsProvenance": false
+    },
+    "provenanceVerified": {
+      "datasetProvenance": true,
+      "modelSpecificationProvenance": true,
+      "trainingConfigurationProvenance": true,
+      "trainedModelProvenance": false,
+      "validationResultsProvenance": false,
+      "privacyMetricsProvenance": false
+    },
+    "createdAt": "2024-12-15T10:30:00.000Z"
+  }
+}
+```
+
+---
+
+## Cross-Cloud Training Management
+
+### Provision Cross-Cloud Environment
+**POST** `/training/provision-environment`
+
+Provision cross-cloud training environment.
 
 **Headers:** `Authorization: Bearer <token>`
 
 **Request Body:**
 ```json
 {
-  "ccrpId": 3
+  "contractId": "CONTRACT-123",
+  "environmentConfig": {
+    "compute": {
+      "aws": {
+        "cpu": "64 cores (AMD EPYC 7763)",
+        "memory": "512 GB DDR4 ECC",
+        "gpu": "8x NVIDIA A100 (80GB each)"
+      },
+      "azure": {
+        "cpu": "64 cores (Intel Xeon)",
+        "memory": "512 GB DDR4 ECC",
+        "gpu": "8x NVIDIA A100 (80GB each)"
+      }
+    },
+    "storage": {
+      "type": "DISTRIBUTED_ENCRYPTED_STORAGE",
+      "encryption": "AES-256-XTS",
+      "keyManagement": "MULTI_CLOUD_KMS"
+    },
+    "network": {
+      "type": "MULTI_CLOUD_NETWORK",
+      "isolation": "CROSS_CLOUD_VPN",
+      "bandwidth": "100 Gbps distributed"
+    }
+  }
 }
 ```
 
@@ -495,10 +863,118 @@ Select a CCRP for contract review.
 ```json
 {
   "success": true,
-  "contract": {
-    "contractId": 1,
-    "status": "PENDING_CCRP_APPROVAL",
-    "ccrpId": 3
+  "environment": {
+    "environmentId": "ENV-001",
+    "contractId": "CONTRACT-123",
+    "status": "PROVISIONING",
+    "resources": {
+      "aws": {
+        "instanceId": "i-1234567890abcdef0",
+        "status": "RUNNING"
+      },
+      "azure": {
+        "vmId": "vm-12345678-1234-5678-9012-123456789012",
+        "status": "RUNNING"
+      }
+    },
+    "estimatedDuration": "2 hours"
+  }
+}
+```
+
+### Start Cross-Cloud Training
+**POST** `/training/start`
+
+Start cross-cloud training execution.
+
+**Headers:** `Authorization: Bearer <token>`
+
+**Request Body:**
+```json
+{
+  "contractId": "CONTRACT-123",
+  "trainingConfig": {
+    "algorithm": "CROSS_CLOUD_FEDERATED_LEARNING",
+    "privacyTechniques": [
+      "DIFFERENTIAL_PRIVACY",
+      "SECURE_MULTIPARTY_COMPUTATION",
+      "HOMOMORPHIC_ENCRYPTION"
+    ],
+    "hyperparameters": {
+      "learningRate": 0.001,
+      "batchSize": 32,
+      "epochs": 100
+    },
+    "provenanceTracking": {
+      "enabled": true,
+      "captureFrequency": "EVERY_EPOCH"
+    }
+  }
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "training": {
+    "trainingId": "TRAINING-001",
+    "contractId": "CONTRACT-123",
+    "status": "STARTING",
+    "algorithm": "CROSS_CLOUD_FEDERATED_LEARNING",
+    "privacyTechniques": [
+      "DIFFERENTIAL_PRIVACY",
+      "SECURE_MULTIPARTY_COMPUTATION",
+      "HOMOMORPHIC_ENCRYPTION"
+    ],
+    "estimatedDuration": "30 days",
+    "provenanceTracking": {
+      "enabled": true,
+      "captureFrequency": "EVERY_EPOCH"
+    }
+  }
+}
+```
+
+### Monitor Cross-Cloud Training
+**GET** `/training/:trainingId/status`
+
+Get cross-cloud training status and progress.
+
+**Headers:** `Authorization: Bearer <token>`
+
+**Response:**
+```json
+{
+  "success": true,
+  "training": {
+    "trainingId": "TRAINING-001",
+    "contractId": "CONTRACT-123",
+    "status": "RUNNING",
+    "progress": {
+      "currentEpoch": 45,
+      "totalEpochs": 100,
+      "accuracy": 0.92,
+      "loss": 0.08
+    },
+    "crossCloudStatus": {
+      "aws": {
+        "status": "RUNNING",
+        "resources": "8x NVIDIA A100",
+        "utilization": "85%"
+      },
+      "azure": {
+        "status": "RUNNING",
+        "resources": "8x NVIDIA A100",
+        "utilization": "78%"
+      }
+    },
+    "provenanceCaptured": {
+      "trainingCheckpoints": true,
+      "privacyBudget": true,
+      "dataPreprocessing": true
+    },
+    "estimatedCompletion": "2025-01-14T10:30:00.000Z"
   }
 }
 ```
@@ -507,225 +983,64 @@ Select a CCRP for contract review.
 
 ## Dataset Management
 
-### Get Public Datasets
-**GET** `/datasets/public`
-
-Get all publicly available datasets.
-
-**Query Parameters:**
-- `category` (string): Filter by dataset category
-- `owner` (string): Filter by dataset owner
-- `limit` (number): Number of datasets to return
-- `offset` (number): Number of datasets to skip
-
-**Response:**
-```json
-{
-  "success": true,
-  "datasets": [
-    {
-      "datasetId": 1,
-      "name": "Training Dataset 1",
-      "description": "High-quality training data for AI models",
-      "category": "TEXT",
-      "size": "1GB",
-      "format": "JSON",
-      "price": "500 ETH",
-      "owner": {
-        "id": 1,
-        "name": "Data Provider",
-        "email": "provider@example.com",
-        "did": "did:web:provider.com"
-      },
-      "createdAt": "2024-07-08T18:00:00.000Z"
-    }
-  ],
-  "total": 10,
-  "limit": 10,
-  "offset": 0
-}
-```
-
-### Get Specific Dataset
-**GET** `/datasets/:datasetId`
-
-Get detailed information about a specific dataset.
-
-**Response:**
-```json
-{
-  "success": true,
-  "dataset": {
-    "datasetId": 1,
-    "name": "Training Dataset 1",
-    "description": "High-quality training data for AI models",
-    "category": "TEXT",
-    "size": "1GB",
-    "format": "JSON",
-    "price": "500 ETH",
-    "metadata": {
-      "language": "English",
-      "domain": "Technology",
-      "quality": "High"
-    },
-    "owner": {
-      "id": 1,
-      "name": "Data Provider",
-      "email": "provider@example.com",
-      "did": "did:web:provider.com"
-    },
-    "createdAt": "2024-07-08T18:00:00.000Z"
-  }
-}
-```
-
-### Create Dataset
+### Create Dataset with Multi-Cloud Storage
 **POST** `/datasets`
 
-Create a new dataset (TDP only).
+Create a dataset with multi-cloud storage configuration.
 
 **Headers:** `Authorization: Bearer <token>`
 
 **Request Body:**
 ```json
 {
-  "name": "New Training Dataset",
-  "description": "High-quality training data",
-  "category": "TEXT",
-  "size": "2GB",
-  "format": "JSON",
-  "price": "750 ETH",
-  "metadata": {
-    "language": "English",
-    "domain": "Technology",
-    "quality": "High"
-  }
-}
-```
-
-**Response:**
-```json
-{
-  "success": true,
-  "dataset": {
-    "datasetId": 2,
-    "name": "New Training Dataset",
-    "description": "High-quality training data",
-    "category": "TEXT",
-    "size": "2GB",
-    "format": "JSON",
-    "price": "750 ETH",
-    "ownerId": 1,
-    "createdAt": "2024-07-08T18:00:00.000Z"
-  }
-}
-```
-
-### Update Dataset
-**PUT** `/datasets/:datasetId`
-
-Update dataset information.
-
-**Headers:** `Authorization: Bearer <token>`
-
-**Request Body:**
-```json
-{
-  "name": "Updated Dataset Name",
-  "description": "Updated description",
-  "price": "600 ETH"
-}
-```
-
-**Response:**
-```json
-{
-  "success": true,
-  "dataset": {
-    "datasetId": 1,
-    "name": "Updated Dataset Name",
-    "description": "Updated description",
-    "price": "600 ETH"
-  }
-}
-```
-
-### Delete Dataset
-**DELETE** `/datasets/:datasetId`
-
-Soft delete a dataset.
-
-**Headers:** `Authorization: Bearer <token>`
-
-**Response:**
-```json
-{
-  "success": true,
-  "message": "Dataset deleted successfully"
-}
-```
-
-### Search Datasets
-**GET** `/datasets/search`
-
-Search datasets by various criteria.
-
-**Query Parameters:**
-- `q` (string): Search query
-- `category` (string): Filter by category
-- `minPrice` (number): Minimum price
-- `maxPrice` (number): Maximum price
-- `format` (string): Filter by format
-
-**Response:**
-```json
-{
-  "success": true,
-  "datasets": [...],
-  "total": 5,
-  "query": "training data"
-}
-```
-
-### Get Dataset Categories
-**GET** `/datasets/categories/list`
-
-Get list of available dataset categories.
-
-**Response:**
-```json
-{
-  "success": true,
-  "categories": [
-    "TEXT",
-    "IMAGE",
-    "AUDIO",
-    "VIDEO",
-    "TABULAR",
-    "MULTIMODAL"
-  ]
-}
-```
-
-### Get Dataset Statistics
-**GET** `/datasets/stats/overview`
-
-Get dataset statistics overview.
-
-**Response:**
-```json
-{
-  "success": true,
-  "stats": {
-    "totalDatasets": 50,
-    "totalSize": "100GB",
-    "averagePrice": "500 ETH",
-    "categories": {
-      "TEXT": 20,
-      "IMAGE": 15,
-      "AUDIO": 10,
-      "VIDEO": 5
+  "name": "Medical Imaging Dataset",
+  "description": "High-resolution medical images for AI training",
+  "size": "10GB",
+  "format": "DICOM",
+  "storageConfiguration": {
+    "primaryStorage": {
+      "provider": "AWS_S3",
+      "bucket": "medical-datasets",
+      "region": "us-east-1",
+      "encryptionAtRest": true
+    },
+    "backupStorage": {
+      "provider": "AZURE_BLOB",
+      "container": "medical-datasets-backup",
+      "region": "eastus",
+      "encryptionAtRest": true
     }
+  },
+  "encryptionKeyId": "tdp-dataset-key-001",
+  "complianceStandards": ["HIPAA", "DPDP_2023"]
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "dataset": {
+    "id": 1,
+    "name": "Medical Imaging Dataset",
+    "description": "High-resolution medical images for AI training",
+    "size": "10GB",
+    "format": "DICOM",
+    "storageConfiguration": {
+      "primaryStorage": {
+        "provider": "AWS_S3",
+        "bucket": "medical-datasets",
+        "region": "us-east-1"
+      },
+      "backupStorage": {
+        "provider": "AZURE_BLOB",
+        "container": "medical-datasets-backup",
+        "region": "eastus"
+      }
+    },
+    "encryptionKeyId": "tdp-dataset-key-001",
+    "complianceStandards": ["HIPAA", "DPDP_2023"],
+    "createdAt": "2024-12-15T10:30:00.000Z"
   }
 }
 ```
@@ -734,508 +1049,42 @@ Get dataset statistics overview.
 
 ## DPDP (Digital Personal Data Protection) Compliance
 
-### Get Personal Data
-**GET** `/dpdp/personal-data`
+### Submit Data Subject Request
+**POST** `/dpdp/data-subject-request`
 
-Get user's personal data (Right to Access).
-
-**Headers:** `Authorization: Bearer <token>`
-
-**Response:**
-```json
-{
-  "success": true,
-  "data": {
-    "personalInfo": {
-      "name": "John Doe",
-      "email": "john@example.com",
-      "phoneNumber": "+1-555-1234"
-    },
-    "contracts": [...],
-    "datasets": [...],
-    "consents": [...]
-  },
-  "timestamp": "2024-07-08T18:00:00.000Z"
-}
-```
-
-### Update Personal Data
-**PUT** `/dpdp/personal-data`
-
-Update personal data (Right to Correction).
+Submit a data subject request under DPDP 2023.
 
 **Headers:** `Authorization: Bearer <token>`
 
 **Request Body:**
 ```json
 {
-  "name": "John Doe Updated",
-  "phoneNumber": "+1-555-5678"
-}
-```
-
-**Response:**
-```json
-{
-  "success": true,
-  "message": "Personal data updated successfully",
-  "updatedFields": ["name", "phoneNumber"],
-  "timestamp": "2024-07-08T18:00:00.000Z"
-}
-```
-
-### Delete Personal Data
-**DELETE** `/dpdp/personal-data`
-
-Delete personal data (Right to Erasure).
-
-**Headers:** `Authorization: Bearer <token>`
-
-**Response:**
-```json
-{
-  "success": true,
-  "message": "Personal data deleted successfully",
-  "timestamp": "2024-07-08T18:00:00.000Z"
-}
-```
-
-### Export Personal Data
-**GET** `/dpdp/export`
-
-Export personal data (Right to Data Portability).
-
-**Headers:** `Authorization: Bearer <token>`
-
-**Response:**
-```json
-{
-  "success": true,
-  "data": {
-    "personalInfo": {...},
-    "contracts": [...],
-    "datasets": [...],
-    "consents": [...],
-    "grievances": [...]
-  },
-  "timestamp": "2024-07-08T18:00:00.000Z"
-}
-```
-
-### Get User Consents
-**GET** `/dpdp/consents`
-
-Get user's consent records.
-
-**Headers:** `Authorization: Bearer <token>`
-
-**Response:**
-```json
-{
-  "success": true,
-  "data": [
-    {
-      "id": 1,
-      "purpose": "CONTRACT_MANAGEMENT",
-      "status": "GRANTED",
-      "grantedAt": "2024-07-08T18:00:00.000Z",
-      "withdrawnAt": null
-    }
-  ],
-  "timestamp": "2024-07-08T18:00:00.000Z"
-}
-```
-
-### Withdraw Consent
-**POST** `/dpdp/consents/:purpose/withdraw`
-
-Withdraw consent for specific purpose.
-
-**Headers:** `Authorization: Bearer <token>`
-
-**Response:**
-```json
-{
-  "success": true,
-  "message": "Consent withdrawn successfully",
-  "consent": {
-    "id": 1,
-    "purpose": "CONTRACT_MANAGEMENT",
-    "withdrawnAt": "2024-07-08T18:00:00.000Z"
-  },
-  "timestamp": "2024-07-08T18:00:00.000Z"
-}
-```
-
-### Submit Grievance
-**POST** `/dpdp/grievances`
-
-Submit grievance (Right to Grievance Redressal).
-
-**Headers:** `Authorization: Bearer <token>`
-
-**Request Body:**
-```json
-{
-  "type": "DATA_ACCESS",
-  "subject": "Unable to access personal data",
-  "description": "I am unable to access my personal data through the portal",
-  "priority": "HIGH"
-}
-```
-
-**Response:**
-```json
-{
-  "success": true,
-  "message": "Grievance submitted successfully",
-  "grievance": {
-    "id": 1,
-    "type": "DATA_ACCESS",
-    "subject": "Unable to access personal data",
-    "status": "PENDING",
-    "submittedAt": "2024-07-08T18:00:00.000Z"
-  },
-  "timestamp": "2024-07-08T18:00:00.000Z"
-}
-```
-
-### Get User Grievances
-**GET** `/dpdp/grievances`
-
-Get user's grievances.
-
-**Headers:** `Authorization: Bearer <token>`
-
-**Response:**
-```json
-{
-  "success": true,
-  "data": [
-    {
-      "id": 1,
-      "type": "DATA_ACCESS",
-      "subject": "Unable to access personal data",
-      "status": "PENDING",
-      "submittedAt": "2024-07-08T18:00:00.000Z"
-    }
-  ],
-  "timestamp": "2024-07-08T18:00:00.000Z"
-}
-```
-
-### Get Data Retention Information
-**GET** `/dpdp/retention-info`
-
-Get data retention information.
-
-**Headers:** `Authorization: Bearer <token>`
-
-**Response:**
-```json
-{
-  "success": true,
-  "data": {
-    "personalData": {
-      "retentionPeriod": "7 years",
-      "retentionReason": "Legal compliance",
-      "deletionDate": "2031-07-08T18:00:00.000Z"
-    },
-    "contractData": {
-      "retentionPeriod": "10 years",
-      "retentionReason": "Contractual obligations",
-      "deletionDate": "2034-07-08T18:00:00.000Z"
-    }
-  },
-  "timestamp": "2024-07-08T18:00:00.000Z"
-}
-```
-
-### Report Data Breach (Admin Only)
-**POST** `/dpdp/breach-report`
-
-Report data breach (Admin only).
-
-**Headers:** `Authorization: Bearer <token>`
-
-**Request Body:**
-```json
-{
-  "type": "UNAUTHORIZED_ACCESS",
-  "severity": "HIGH",
-  "affectedUsers": 100,
-  "dataTypes": ["PERSONAL_INFO", "CONTRACT_DATA"],
-  "description": "Unauthorized access to user database",
-  "impactAssessment": "High impact on user privacy"
-}
-```
-
-**Response:**
-```json
-{
-  "success": true,
-  "message": "Data breach reported successfully",
-  "breach": {
-    "id": 1,
-    "type": "UNAUTHORIZED_ACCESS",
-    "severity": "HIGH",
-    "status": "REPORTED",
-    "detectedAt": "2024-07-08T18:00:00.000Z"
-  },
-  "timestamp": "2024-07-08T18:00:00.000Z"
-}
-```
-
-### Get Data Breaches (Admin Only)
-**GET** `/dpdp/breaches`
-
-Get data breaches (Admin only).
-
-**Headers:** `Authorization: Bearer <token>`
-
-**Response:**
-```json
-{
-  "success": true,
-  "data": [
-    {
-      "id": 1,
-      "type": "UNAUTHORIZED_ACCESS",
-      "severity": "HIGH",
-      "affectedUsers": 100,
-      "status": "INVESTIGATING",
-      "detectedAt": "2024-07-08T18:00:00.000Z"
-    }
-  ],
-  "timestamp": "2024-07-08T18:00:00.000Z"
-}
-```
-
-### DPDP Health Check
-**GET** `/dpdp/health`
-
-DPDP service health check.
-
-**Response:**
-```json
-{
-  "success": true,
-  "service": "DPDP Compliance Service",
-  "status": "healthy",
-  "timestamp": "2024-07-08T18:00:00.000Z",
-  "version": "1.0.0",
-  "compliance": {
-    "dpdpAct2023": true,
-    "consentManagement": true,
-    "dataPrincipalRights": true,
-    "breachNotification": true,
-    "auditLogging": true
-  }
-}
-```
-
----
-
-## User Management (AppAdmin)
-
-### Get All Users
-**GET** `/users`
-
-Get all users (AppAdmin only).
-
-**Headers:** `Authorization: Bearer <token>`
-
-**Response:**
-```json
-[
-  {
-    "id": 1,
-    "name": "John Doe",
+  "requestType": "RIGHT_TO_ERASURE",
+  "dataSubjectId": "DS-001",
+  "personalData": {
     "email": "john@example.com",
-    "partyType": "TDC",
-    "walletAddress": "0x1234567890abcdef...",
-    "did": "did:web:mukeshjoshidpi.github.io",
-    "didVerified": true,
-    "isRegistered": true,
-    "createdAt": "2024-07-08T18:00:00.000Z"
+    "phoneNumber": "+1-555-1234"
+  },
+  "reason": "Data subject requests deletion of personal data",
+  "crossCloudRequest": true,
+  "cloudProviders": ["AWS", "AZURE", "GCP"]
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "request": {
+    "requestId": "DSR-001",
+    "requestType": "RIGHT_TO_ERASURE",
+    "status": "PROCESSING",
+    "dataSubjectId": "DS-001",
+    "crossCloudRequest": true,
+    "cloudProviders": ["AWS", "AZURE", "GCP"],
+    "estimatedCompletion": "2024-12-22T10:30:00.000Z",
+    "createdAt": "2024-12-15T10:30:00.000Z"
   }
-]
-```
-
-### Get CCRP Users
-**GET** `/users/ccrp`
-
-Get all CCRP users (available to all authenticated users).
-
-**Headers:** `Authorization: Bearer <token>`
-
-**Response:**
-```json
-[
-  {
-    "id": 3,
-    "name": "CCRP Provider",
-    "email": "ccrp@example.com",
-    "partyType": "CCRP",
-    "organization": "CCRP Organization",
-    "description": "Confidential Clean Room Provider",
-    "website": "https://ccrp.com",
-    "location": "New York, NY",
-    "did": "did:web:ccrp.com",
-    "walletAddress": "0xabcdef123456...",
-    "isActive": true
-  }
-]
-```
-
-### Get Specific User
-**GET** `/users/:id`
-
-Get specific user by ID (AppAdmin only).
-
-**Headers:** `Authorization: Bearer <token>`
-
-**Response:**
-```json
-{
-  "id": 1,
-  "name": "John Doe",
-  "email": "john@example.com",
-  "partyType": "TDC",
-  "walletAddress": "0x1234567890abcdef...",
-  "publicKey": "0xabcdef123456...",
-  "description": "AI research organization",
-  "organization": "TechAI Labs",
-  "phoneNumber": "+1-555-1234",
-  "website": "https://techailabs.com",
-  "location": "Boston, MA",
-  "did": "did:web:mukeshjoshidpi.github.io",
-  "didSource": "USER_PROVIDED",
-  "didVerified": true,
-  "didVerificationMethod": "SIGNATURE_VERIFICATION",
-  "isRegistered": true,
-  "registrationDate": "2024-07-08T18:00:00.000Z",
-  "createdAt": "2024-07-08T18:00:00.000Z",
-  "updatedAt": "2024-07-08T18:00:00.000Z",
-  "lastLoginAt": "2024-07-08T18:00:00.000Z"
-}
-```
-
-### Update User
-**PUT** `/users/:id`
-
-Update user by ID (AppAdmin only).
-
-**Headers:** `Authorization: Bearer <token>`
-
-**Request Body:**
-```json
-{
-  "name": "John Doe Updated",
-  "description": "Updated description",
-  "organization": "Updated Organization",
-  "did": "did:web:updated.github.io",
-  "didVerified": true,
-  "isActive": true
-}
-```
-
-**Response:**
-```json
-{
-  "success": true,
-  "user": {
-    "id": 1,
-    "name": "John Doe Updated",
-    "email": "john@example.com",
-    "description": "Updated description",
-    "organization": "Updated Organization",
-    "did": "did:web:updated.github.io",
-    "didVerified": true,
-    "isActive": true
-  }
-}
-```
-
-### Delete User
-**DELETE** `/users/:id`
-
-Soft delete user by ID (AppAdmin only).
-
-**Headers:** `Authorization: Bearer <token>`
-
-**Response:**
-```json
-{
-  "message": "User deleted successfully",
-  "userId": 1
-}
-```
-
----
-
-## Notification System
-
-### Get User Notifications
-**GET** `/notifications`
-
-Get user notifications.
-
-**Headers:** `Authorization: Bearer <token>`
-
-**Query Parameters:**
-- `type` (string): Filter by notification type
-- `read` (boolean): Filter by read status
-- `limit` (number): Limit number of notifications
-
-**Response:**
-```json
-{
-  "success": true,
-  "notifications": [
-    {
-      "id": 1,
-      "type": "CONTRACT_SIGNED",
-      "title": "Contract Signed",
-      "message": "Contract 'Data Sharing Agreement' has been signed",
-      "read": false,
-      "data": {
-        "contractId": 1,
-        "contractTitle": "Data Sharing Agreement"
-      },
-      "createdAt": "2024-07-08T18:00:00.000Z"
-    }
-  ]
-}
-```
-
-### Mark Notification as Read
-**PUT** `/notifications/:id/read`
-
-Mark notification as read.
-
-**Headers:** `Authorization: Bearer <token>`
-
-**Response:**
-```json
-{
-  "success": true,
-  "message": "Notification marked as read"
-}
-```
-
-### Mark All Notifications as Read
-**PUT** `/notifications/read-all`
-
-Mark all notifications as read.
-
-**Headers:** `Authorization: Bearer <token>`
-
-**Response:**
-```json
-{
-  "success": true,
-  "message": "All notifications marked as read"
 }
 ```
 
@@ -1246,39 +1095,47 @@ Mark all notifications as read.
 ### Error Response Format
 ```json
 {
-  "success": false,
-  "error": "ERROR_TYPE",
-  "message": "Human-readable error message",
+  "error": "Error message description",
+  "code": "ERROR_CODE",
   "details": {
-    "field": "Additional error details"
-  }
+    "field": "Additional error details",
+    "suggestion": "How to fix the error"
+  },
+  "timestamp": "2024-12-15T10:30:00.000Z"
 }
 ```
 
-### Common Error Types
+### Common Error Codes
 
 #### Authentication Errors
-- `INVALID_SIGNATURE`: Wallet signature verification failed
-- `USER_NOT_FOUND`: User not found with provided credentials
-- `INVALID_TOKEN`: JWT token is invalid or expired
-- `ACCESS_DENIED`: User doesn't have required permissions
+- `INVALID_CREDENTIALS`: Invalid email or password
+- `TOKEN_EXPIRED`: JWT token has expired
+- `INSUFFICIENT_PERMISSIONS`: User lacks required permissions
+- `TENANT_ACCESS_DENIED`: Access denied to tenant resources
 
-#### DID Errors
-- `INVALID_DID_FORMAT`: DID format is not supported
-- `DID_ALREADY_EXISTS`: DID is already registered by another user
-- `DID_VERIFICATION_FAILED`: DID ownership verification failed
-- `DID_RESOLUTION_ERROR`: Failed to resolve DID document
+#### Multi-Tenant Errors
+- `TENANT_NOT_FOUND`: Tenant configuration not found
+- `CLOUD_PROVIDER_NOT_SUPPORTED`: Cloud provider not supported
+- `KMS_PROVIDER_NOT_SUPPORTED`: KMS provider not supported
+- `CROSS_CLOUD_VERIFICATION_FAILED`: Cross-cloud verification failed
 
-#### Contract Errors
-- `CONTRACT_NOT_FOUND`: Contract not found
-- `INVALID_CONTRACT_STATUS`: Contract status doesn't allow this operation
-- `SIGNATURE_REQUIRED`: Contract signing requires valid signature
-- `CCRP_REQUIRED`: CCRP selection is required for this contract
+#### KMS Errors
+- `KEY_CREATION_FAILED`: Failed to create KMS key
+- `ENCRYPTION_FAILED`: Data encryption failed
+- `DECRYPTION_FAILED`: Data decryption failed
+- `KEY_ACCESS_DENIED`: Access denied to KMS key
 
-#### Dataset Errors
-- `DATASET_NOT_FOUND`: Dataset not found
-- `DATASET_ACCESS_DENIED`: User doesn't have access to this dataset
-- `INVALID_DATASET_FORMAT`: Dataset format is not supported
+#### Provenance Errors
+- `PROVENANCE_CAPTURE_FAILED`: Failed to capture provenance
+- `PROVENANCE_VERIFICATION_FAILED`: Failed to verify provenance
+- `MERKLE_PROOF_INVALID`: Invalid Merkle proof
+- `CROSS_CLOUD_CONSISTENCY_FAILED`: Cross-cloud consistency check failed
+
+#### Training Errors
+- `ENVIRONMENT_PROVISIONING_FAILED`: Failed to provision training environment
+- `CROSS_CLOUD_TRAINING_FAILED`: Cross-cloud training failed
+- `KEY_COORDINATION_FAILED`: Failed to coordinate keys across clouds
+- `DATA_TRANSFER_FAILED`: Failed to transfer data between clouds
 
 #### DPDP Errors
 - `PERSONAL_DATA_ACCESS_ERROR`: Failed to access personal data
@@ -1314,6 +1171,10 @@ Mark all notifications as read.
 The API implements rate limiting to prevent abuse:
 
 - **Authentication endpoints**: 10 requests per 15 minutes
+- **Multi-tenant endpoints**: 50 requests per 15 minutes
+- **KMS endpoints**: 100 requests per 15 minutes
+- **Provenance endpoints**: 200 requests per 15 minutes
+- **Training endpoints**: 30 requests per 15 minutes
 - **DID endpoints**: 100 requests per 15 minutes
 - **DPDP endpoints**: 50 requests per 15 minutes
 - **General endpoints**: 1000 requests per 15 minutes
@@ -1341,6 +1202,7 @@ JWT tokens are issued upon successful login and contain:
 - User ID
 - Party Type (TDC, TDP, CCRP, AppAdmin)
 - DID information
+- Tenant infrastructure configuration
 - Expiration time
 
 ### Token Expiration
@@ -1350,11 +1212,11 @@ Tokens expire after 24 hours. Use the refresh token endpoint to get a new token.
 
 ## Versioning
 
-API versioning is handled through the URL path. Current version is v1 (default).
+API versioning is handled through the URL path. Current version is v3 (default).
 
 To specify a version explicitly:
 ```
-GET /api/v1/contracts
+GET /api/v3/contracts
 ```
 
 ---
@@ -1370,7 +1232,7 @@ Verify a cryptographic signature using DID-based authentication.
 ```json
 {
   "did": "did:web:mukeshjoshidpi.github.io",
-  "message": "Sign contract CONTRACT-123 as TDP at 2024-01-01T00:00:00.000Z",
+  "message": "Sign contract CONTRACT-123 as TDP at 2024-12-15T00:00:00.000Z",
   "signature": "0x...",
   "verificationMethodId": "did:web:mukeshjoshidpi.github.io#key-1"
 }
@@ -1399,7 +1261,7 @@ Sign a contract using enhanced DID-based authentication with cryptographic verif
   "signatureType": "DID",
   "did": "did:web:mukeshjoshidpi.github.io",
   "signature": "0x...",
-  "message": "Sign contract CONTRACT-123 as TDP at 2024-01-01T00:00:00.000Z"
+  "message": "Sign contract CONTRACT-123 as TDP at 2024-12-15T00:00:00.000Z"
 }
 ```
 
@@ -1420,7 +1282,7 @@ Sign a contract using enhanced DID-based authentication with cryptographic verif
     "contractId": "CONTRACT-123",
     "status": "PENDING_CCRP_APPROVAL",
     "tdpSigned": true,
-    "tdpSignedAt": "2024-01-01T00:00:00.000Z"
+    "tdpSignedAt": "2024-12-15T00:00:00.000Z"
   },
   "blockchainTransaction": {
     "transactionHash": "DID_TX_1704067200000_did_web_mukeshjoshidpi_github_io",
@@ -1442,7 +1304,7 @@ Check the health and status of DID resolution services.
   "supportedMethods": ["did:web", "did:key", "did:ethr"],
   "testDID": "did:web:mukeshjoshidpi.github.io",
   "testResult": "success",
-  "timestamp": "2024-01-01T00:00:00.000Z"
+  "timestamp": "2024-12-15T00:00:00.000Z"
 }
 ```
 
@@ -1471,6 +1333,8 @@ Check the health and status of DID resolution services.
 - **Multiple Verification Methods:** Support for various cryptographic algorithms
 - **Fallback Mode:** Database-only operation when blockchain unavailable
 - **Enterprise Security:** Role-based access control and audit logging
+- **Multi-Cloud Security:** Cross-cloud security isolation and verification
+- **Provenance Security:** Tamper-proof provenance tracking with Merkle trees
 
 ---
 

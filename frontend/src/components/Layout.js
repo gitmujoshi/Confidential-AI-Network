@@ -136,17 +136,8 @@ const Layout = ({ children }) => {
           <div className="space-y-2">
             <Button
               variant="outlined"
-              startIcon={<Add />}
-              onClick={() => navigate('/contracts/create')}
-              className="w-full justify-start"
-              size="small"
-            >
-              Create Contract
-            </Button>
-            <Button
-              variant="outlined"
               startIcon={<Security />}
-              onClick={() => navigate('/contracts/create-ricardian')}
+              onClick={() => navigate('/contracts/create')}
               className="w-full justify-start"
               size="small"
             >

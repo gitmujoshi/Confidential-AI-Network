@@ -143,6 +143,14 @@ module.exports = (sequelize, DataTypes) => {
       comment: 'AI training parameters including model type, privacy techniques, and validation metrics'
     },
     
+    // Selected AI Model IDs
+    aiModelIds: {
+      field: 'aimodelids',
+      type: DataTypes.JSON,
+      allowNull: true,
+      comment: 'Array of selected AI model IDs for this contract'
+    },
+    
     // Attestation Verification
     attestationVerified: {
       field: 'attestationverified',

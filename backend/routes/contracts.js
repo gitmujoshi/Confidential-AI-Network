@@ -72,8 +72,64 @@ router.get('/', async (req, res) => {
       offset: parseInt(offset)
     });
 
+    // Add model information to each contract
+    const enhancedContracts = await Promise.all(contracts.rows.map(async (contract) => {
+      let modelInfo = null;
+      let modelInfoList = [];
+      if (contract.trainingParams) {
+        const trainingParams = contract.trainingParams;
+        // Extract privacy and security parameters
+        const privacyParams = {
+          maxPrivacyLoss: trainingParams.maxPrivacyLoss || 'Not specified',
+          minAccuracy: trainingParams.minAccuracy || 'Not specified',
+          differentialPrivacy: trainingParams.differentialPrivacy || null,
+          federatedLearning: trainingParams.federatedLearning || null,
+          secureMultiPartyComputation: trainingParams.secureMultiPartyComputation || null
+        };
+        // Extract model-specific parameters (if available)
+        const modelParams = {
+          modelType: trainingParams.modelType || 'Not specified',
+          modelName: trainingParams.modelName || 'Not specified',
+          architecture: trainingParams.architecture || 'Not specified',
+          framework: trainingParams.framework || 'Not specified',
+          parameters: trainingParams.parameters || 'Not specified',
+          privacyTechnique: trainingParams.privacyTechnique || 'Not specified',
+          validationMetrics: trainingParams.validationMetrics || [],
+          maxEpochs: trainingParams.maxEpochs || 'Not specified',
+          batchSize: trainingParams.batchSize || 'Not specified',
+          learningRate: trainingParams.learningRate || 'Not specified'
+        };
+        modelInfo = {
+          ...modelParams,
+          privacyParams
+        };
+      }
+      // Fetch all selected models if aiModelIds is present
+      if (contract.aiModelIds && Array.isArray(contract.aiModelIds) && contract.aiModelIds.length > 0) {
+        const db = require('../models');
+        const models = await db.AIModel.findAll({ where: { id: contract.aiModelIds } });
+        modelInfoList = models.map(model => ({
+          modelName: model.name,
+          modelType: model.type,
+          architecture: model.architecture,
+          framework: model.framework,
+          parameters: model.parameters,
+          privacyTechnique: model.privacyTechnique,
+          validationMetrics: model.validationMetrics,
+          maxEpochs: model.maxEpochs,
+          batchSize: model.batchSize,
+          learningRate: model.learningRate
+        }));
+      }
+      return {
+        ...contract.toJSON(),
+        modelInfo,
+        modelInfoList
+      };
+    }));
+
     res.json({
-      contracts: contracts.rows,
+      contracts: enhancedContracts,
       total: contracts.count,
       limit: parseInt(limit),
       offset: parseInt(offset)
@@ -129,8 +185,64 @@ router.get('/user/:userId', async (req, res) => {
       offset: parseInt(offset)
     });
 
+    // Add model information to each contract
+    const enhancedContracts = await Promise.all(contracts.rows.map(async (contract) => {
+      let modelInfo = null;
+      let modelInfoList = [];
+      if (contract.trainingParams) {
+        const trainingParams = contract.trainingParams;
+        // Extract privacy and security parameters
+        const privacyParams = {
+          maxPrivacyLoss: trainingParams.maxPrivacyLoss || 'Not specified',
+          minAccuracy: trainingParams.minAccuracy || 'Not specified',
+          differentialPrivacy: trainingParams.differentialPrivacy || null,
+          federatedLearning: trainingParams.federatedLearning || null,
+          secureMultiPartyComputation: trainingParams.secureMultiPartyComputation || null
+        };
+        // Extract model-specific parameters (if available)
+        const modelParams = {
+          modelType: trainingParams.modelType || 'Not specified',
+          modelName: trainingParams.modelName || 'Not specified',
+          architecture: trainingParams.architecture || 'Not specified',
+          framework: trainingParams.framework || 'Not specified',
+          parameters: trainingParams.parameters || 'Not specified',
+          privacyTechnique: trainingParams.privacyTechnique || 'Not specified',
+          validationMetrics: trainingParams.validationMetrics || [],
+          maxEpochs: trainingParams.maxEpochs || 'Not specified',
+          batchSize: trainingParams.batchSize || 'Not specified',
+          learningRate: trainingParams.learningRate || 'Not specified'
+        };
+        modelInfo = {
+          ...modelParams,
+          privacyParams
+        };
+      }
+      // Fetch all selected models if aiModelIds is present
+      if (contract.aiModelIds && Array.isArray(contract.aiModelIds) && contract.aiModelIds.length > 0) {
+        const db = require('../models');
+        const models = await db.AIModel.findAll({ where: { id: contract.aiModelIds } });
+        modelInfoList = models.map(model => ({
+          modelName: model.name,
+          modelType: model.type,
+          architecture: model.architecture,
+          framework: model.framework,
+          parameters: model.parameters,
+          privacyTechnique: model.privacyTechnique,
+          validationMetrics: model.validationMetrics,
+          maxEpochs: model.maxEpochs,
+          batchSize: model.batchSize,
+          learningRate: model.learningRate
+        }));
+      }
+      return {
+        ...contract.toJSON(),
+        modelInfo,
+        modelInfoList
+      };
+    }));
+
     res.json({
-      contracts: contracts.rows,
+      contracts: enhancedContracts,
       total: contracts.count,
       limit: parseInt(limit),
       offset: parseInt(offset)
@@ -184,7 +296,62 @@ router.get('/:contractId', async (req, res) => {
       return res.status(404).json({ error: 'Contract not found' });
     }
 
-    res.json(contract);
+    // Extract model information from training parameters
+    let modelInfo = null;
+    let modelInfoList = [];
+    if (contract.trainingParams) {
+      const trainingParams = contract.trainingParams;
+      // Extract privacy and security parameters
+      const privacyParams = {
+        maxPrivacyLoss: trainingParams.maxPrivacyLoss || 'Not specified',
+        minAccuracy: trainingParams.minAccuracy || 'Not specified',
+        differentialPrivacy: trainingParams.differentialPrivacy || null,
+        federatedLearning: trainingParams.federatedLearning || null,
+        secureMultiPartyComputation: trainingParams.secureMultiPartyComputation || null
+      };
+      // Extract model-specific parameters (if available)
+      const modelParams = {
+        modelType: trainingParams.modelType || 'Not specified',
+        modelName: trainingParams.modelName || 'Not specified',
+        architecture: trainingParams.architecture || 'Not specified',
+        framework: trainingParams.framework || 'Not specified',
+        parameters: trainingParams.parameters || 'Not specified',
+        privacyTechnique: trainingParams.privacyTechnique || 'Not specified',
+        validationMetrics: trainingParams.validationMetrics || [],
+        maxEpochs: trainingParams.maxEpochs || 'Not specified',
+        batchSize: trainingParams.batchSize || 'Not specified',
+        learningRate: trainingParams.learningRate || 'Not specified'
+      };
+      modelInfo = {
+        ...modelParams,
+        privacyParams
+      };
+    }
+    // Fetch all selected models if aiModelIds is present
+    if (contract.aiModelIds && Array.isArray(contract.aiModelIds) && contract.aiModelIds.length > 0) {
+      const db = require('../models');
+      const models = await db.AIModel.findAll({ where: { id: contract.aiModelIds } });
+      modelInfoList = models.map(model => ({
+        modelName: model.name,
+        modelType: model.type,
+        architecture: model.architecture,
+        framework: model.framework,
+        parameters: model.parameters,
+        privacyTechnique: model.privacyTechnique,
+        validationMetrics: model.validationMetrics,
+        maxEpochs: model.maxEpochs,
+        batchSize: model.batchSize,
+        learningRate: model.learningRate
+      }));
+    }
+    // Create enhanced response with model information
+    const enhancedContract = {
+      ...contract.toJSON(),
+      modelInfo,
+      modelInfoList
+    };
+
+    res.json(enhancedContract);
   } catch (error) {
     console.error('Error getting contract:', error);
     res.status(500).json({ error: 'Internal server error' });
