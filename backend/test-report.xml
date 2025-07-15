@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testExecutions version="1">
+  <file path="/Users/mukeshjoshi/gitprojects/ContractManagement/backend/tests/specs/simple-ai-model.test.js">
+  </file>
+  <file path="/Users/mukeshjoshi/gitprojects/ContractManagement/backend/tests/specs/services.test.js">
+  </file>
+  <file path="/Users/mukeshjoshi/gitprojects/ContractManagement/backend/tests/specs/security.test.js">
+  </file>
+  <file path="/Users/mukeshjoshi/gitprojects/ContractManagement/backend/tests/specs/registration-integration.test.js">
+  </file>
+  <file path="/Users/mukeshjoshi/gitprojects/ContractManagement/backend/tests/specs/performance.test.js">
+  </file>
+  <file path="/Users/mukeshjoshi/gitprojects/ContractManagement/backend/tests/specs/models.test.js">
+  </file>
+  <file path="/Users/mukeshjoshi/gitprojects/ContractManagement/backend/tests/specs/mock-integration.test.js">
+  </file>
+  <file path="/Users/mukeshjoshi/gitprojects/ContractManagement/backend/tests/specs/integration.test.js">
+  </file>
+  <file path="/Users/mukeshjoshi/gitprojects/ContractManagement/backend/tests/specs/core.test.js">
+  </file>
+  <file path="/Users/mukeshjoshi/gitprojects/ContractManagement/backend/tests/specs/comprehensive.test.js">
+  </file>
+  <file path="/Users/mukeshjoshi/gitprojects/ContractManagement/backend/tests/specs/blockchainService.test.js">
+  </file>
+  <file path="/Users/mukeshjoshi/gitprojects/ContractManagement/backend/tests/specs/blockchainService.simple.test.js">
+  </file>
+  <file path="/Users/mukeshjoshi/gitprojects/ContractManagement/backend/tests/specs/blockchainService.constructor.test.js">
+  </file>
+  <file path="/Users/mukeshjoshi/gitprojects/ContractManagement/backend/tests/specs/api.test.js">
+  </file>
+  <file path="/Users/mukeshjoshi/gitprojects/ContractManagement/backend/tests/multi-tdp-contracts.test.js">
+  </file>
+</testExecutions>

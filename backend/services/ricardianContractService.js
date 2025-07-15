@@ -246,7 +246,9 @@ class RicardianContractService {
         blockchainContractId: smartContractData.contractId,
         status: 'PENDING_TDP_APPROVAL',
         tdpSigned: false,
-        ccrpSigned: false
+        ccrpSigned: false,
+        // Add aiModelIds if present
+        aiModelIds: contractData.aiModelIds || null
       };
       
       console.log('🔍 Contract record to save:', JSON.stringify(contractRecord, null, 2));

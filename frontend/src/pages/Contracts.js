@@ -436,7 +436,7 @@ function Contracts() {
   };
 
   const handleCreateContract = () => {
-    navigate('/create-contract');
+    navigate('/contracts/create');
   };
 
   const handleSort = (property) => {

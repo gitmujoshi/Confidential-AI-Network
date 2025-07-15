@@ -1239,6 +1239,125 @@ function CreateRicardianContract() {
                 </Card>
               </Grid>
             </Grid>
+            
+            {/* Model Information */}
+            {selectedAiModels.length > 0 && (
+              <Grid container spacing={3} sx={{ mt: 2 }}>
+                <Grid item xs={12}>
+                  <Card>
+                    <CardContent>
+                      <Typography variant="h6" gutterBottom>
+                        Selected AI Models
+                      </Typography>
+                      <Grid container spacing={2}>
+                        {selectedAiModels.map((modelId) => {
+                          const model = aiModelsResponse?.models?.find(m => m.id === modelId);
+                          if (!model) return null;
+                          
+                          return (
+                            <Grid item xs={12} md={6} key={modelId}>
+                              <Card variant="outlined">
+                                <CardContent>
+                                  <Typography variant="h6" gutterBottom>
+                                    {model.name}
+                                  </Typography>
+                                  <Typography variant="body2" color="textSecondary" paragraph>
+                                    {model.description}
+                                  </Typography>
+                                  <Grid container spacing={1}>
+                                    <Grid item xs={6}>
+                                      <Typography variant="caption" color="textSecondary">
+                                        Type
+                                      </Typography>
+                                      <Typography variant="body2">
+                                        {model.type}
+                                      </Typography>
+                                    </Grid>
+                                    <Grid item xs={6}>
+                                      <Typography variant="caption" color="textSecondary">
+                                        Architecture
+                                      </Typography>
+                                      <Typography variant="body2">
+                                        {model.architecture}
+                                      </Typography>
+                                    </Grid>
+                                    <Grid item xs={6}>
+                                      <Typography variant="caption" color="textSecondary">
+                                        Parameters
+                                      </Typography>
+                                      <Typography variant="body2">
+                                        {model.parameters}
+                                      </Typography>
+                                    </Grid>
+                                    <Grid item xs={6}>
+                                      <Typography variant="caption" color="textSecondary">
+                                        Framework
+                                      </Typography>
+                                      <Typography variant="body2">
+                                        {model.framework}
+                                      </Typography>
+                                    </Grid>
+                                    <Grid item xs={6}>
+                                      <Typography variant="caption" color="textSecondary">
+                                        Privacy Technique
+                                      </Typography>
+                                      <Typography variant="body2">
+                                        {model.privacyTechnique}
+                                      </Typography>
+                                    </Grid>
+                                    <Grid item xs={6}>
+                                      <Typography variant="caption" color="textSecondary">
+                                        Max Epochs
+                                      </Typography>
+                                      <Typography variant="body2">
+                                        {model.maxEpochs}
+                                      </Typography>
+                                    </Grid>
+                                    <Grid item xs={6}>
+                                      <Typography variant="caption" color="textSecondary">
+                                        Batch Size
+                                      </Typography>
+                                      <Typography variant="body2">
+                                        {model.batchSize}
+                                      </Typography>
+                                    </Grid>
+                                    <Grid item xs={6}>
+                                      <Typography variant="caption" color="textSecondary">
+                                        Learning Rate
+                                      </Typography>
+                                      <Typography variant="body2">
+                                        {model.learningRate}
+                                      </Typography>
+                                    </Grid>
+                                  </Grid>
+                                  {model.validationMetrics && model.validationMetrics.length > 0 && (
+                                    <Box sx={{ mt: 2 }}>
+                                      <Typography variant="caption" color="textSecondary">
+                                        Validation Metrics
+                                      </Typography>
+                                      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, mt: 0.5 }}>
+                                        {model.validationMetrics.map((metric, index) => (
+                                          <Chip
+                                            key={index}
+                                            label={metric}
+                                            size="small"
+                                            variant="outlined"
+                                          />
+                                        ))}
+                                      </Box>
+                                    </Box>
+                                  )}
+                                </CardContent>
+                              </Card>
+                            </Grid>
+                          );
+                        })}
+                      </Grid>
+                    </CardContent>
+                  </Card>
+                </Grid>
+              </Grid>
+            )}
           </Box>
         );
 
@@ -1506,9 +1625,15 @@ function CreateRicardianContract() {
                       {selectedDatasets.map(ds => ds.name).join(', ')}
                     </Typography>
                     
-                    <Typography variant="subtitle2">Model ID:</Typography>
+                    <Typography variant="subtitle2">AI Models:</Typography>
                     <Typography variant="body2" gutterBottom>
-                      <em>Not applicable</em>
+                      {selectedAiModels.length > 0 
+                        ? selectedAiModels.map(modelId => {
+                            const model = aiModelsResponse?.models?.find(m => m.id === modelId);
+                            return model?.name || modelId;
+                          }).join(', ')
+                        : 'None selected'
+                      }
                     </Typography>
                     
                     <Typography variant="subtitle2">Price:</Typography>

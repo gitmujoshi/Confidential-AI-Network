@@ -1135,6 +1135,75 @@ function ContractDetail() {
           </Card>
         </Grid>
 
+        {/* Model Information */}
+        {Array.isArray(contract.modelInfoList) && contract.modelInfoList.length > 0 ? (
+          contract.modelInfoList.map((model, idx) => (
+            <Grid item xs={12} md={6} key={idx}>
+              <Card>
+                <CardContent>
+                  <Typography variant="h6" gutterBottom>
+                    Model Information
+                  </Typography>
+                  <Box display="flex" flexDirection="column" gap={1}>
+                    <Typography variant="body2" color="textSecondary">Model Name</Typography>
+                    <Typography variant="body1">{model.modelName}</Typography>
+                    <Typography variant="body2" color="textSecondary">Model Type</Typography>
+                    <Typography variant="body1">{model.modelType}</Typography>
+                    <Typography variant="body2" color="textSecondary">Architecture</Typography>
+                    <Typography variant="body1">{model.architecture}</Typography>
+                    <Typography variant="body2" color="textSecondary">Framework</Typography>
+                    <Typography variant="body1">{model.framework}</Typography>
+                    <Typography variant="body2" color="textSecondary">Parameters</Typography>
+                    <Typography variant="body1">{model.parameters}</Typography>
+                    <Typography variant="body2" color="textSecondary">Privacy Technique</Typography>
+                    <Typography variant="body1">{model.privacyTechnique}</Typography>
+                    <Typography variant="body2" color="textSecondary">Validation Metrics</Typography>
+                    <Typography variant="body1">{Array.isArray(model.validationMetrics) ? model.validationMetrics.join(', ') : model.validationMetrics}</Typography>
+                    <Typography variant="body2" color="textSecondary">Max Epochs</Typography>
+                    <Typography variant="body1">{model.maxEpochs}</Typography>
+                    <Typography variant="body2" color="textSecondary">Batch Size</Typography>
+                    <Typography variant="body1">{model.batchSize}</Typography>
+                    <Typography variant="body2" color="textSecondary">Learning Rate</Typography>
+                    <Typography variant="body1">{model.learningRate}</Typography>
+                  </Box>
+                </CardContent>
+              </Card>
+            </Grid>
+          ))
+        ) : contract.modelInfo && (
+          <Grid item xs={12} md={6}>
+            <Card>
+              <CardContent>
+                <Typography variant="h6" gutterBottom>
+                  Model Information
+                </Typography>
+                <Box display="flex" flexDirection="column" gap={1}>
+                  <Typography variant="body2" color="textSecondary">Model Name</Typography>
+                  <Typography variant="body1">{contract.modelInfo.modelName}</Typography>
+                  <Typography variant="body2" color="textSecondary">Model Type</Typography>
+                  <Typography variant="body1">{contract.modelInfo.modelType}</Typography>
+                  <Typography variant="body2" color="textSecondary">Architecture</Typography>
+                  <Typography variant="body1">{contract.modelInfo.architecture}</Typography>
+                  <Typography variant="body2" color="textSecondary">Framework</Typography>
+                  <Typography variant="body1">{contract.modelInfo.framework}</Typography>
+                  <Typography variant="body2" color="textSecondary">Parameters</Typography>
+                  <Typography variant="body1">{contract.modelInfo.parameters}</Typography>
+                  <Typography variant="body2" color="textSecondary">Privacy Technique</Typography>
+                  <Typography variant="body1">{contract.modelInfo.privacyTechnique}</Typography>
+                  <Typography variant="body2" color="textSecondary">Validation Metrics</Typography>
+                  <Typography variant="body1">{Array.isArray(contract.modelInfo.validationMetrics) ? contract.modelInfo.validationMetrics.join(', ') : contract.modelInfo.validationMetrics}</Typography>
+                  <Typography variant="body2" color="textSecondary">Max Epochs</Typography>
+                  <Typography variant="body1">{contract.modelInfo.maxEpochs}</Typography>
+                  <Typography variant="body2" color="textSecondary">Batch Size</Typography>
+                  <Typography variant="body1">{contract.modelInfo.batchSize}</Typography>
+                  <Typography variant="body2" color="textSecondary">Learning Rate</Typography>
+                  <Typography variant="body1">{contract.modelInfo.learningRate}</Typography>
+                </Box>
+              </CardContent>
+            </Card>
+          </Grid>
+        )}
+
         {/* CCRP Detail Card */}
         {contract.ccrp && (
           <Grid item xs={12}>

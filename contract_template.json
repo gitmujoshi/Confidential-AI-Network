@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "Contract Management System - Contract Template",
-  "description": "Comprehensive JSON template for contracts in the Contract Management System supporting TDP, TDC, and CCRP parties",
+  "description": "Comprehensive JSON template for contracts in the Contract Management System supporting multi-tenant, multi-cloud AI training with provenance tracking",
   "type": "object",
   "properties": {
     "metadata": {
@@ -11,25 +11,25 @@
         "templateVersion": {
           "type": "string",
           "description": "Version of this contract template",
-          "example": "2.0.0"
+          "example": "3.0.0"
         },
         "createdAt": {
           "type": "string",
           "format": "date-time",
           "description": "ISO 8601 timestamp when contract was created",
-          "example": "2024-01-15T10:30:00.000Z"
+          "example": "2024-12-15T10:30:00.000Z"
         },
         "lastModified": {
           "type": "string",
           "format": "date-time",
           "description": "ISO 8601 timestamp when contract was last modified",
-          "example": "2024-01-15T10:30:00.000Z"
+          "example": "2024-12-15T10:30:00.000Z"
         },
         "contractType": {
           "type": "string",
-          "enum": ["DATA_SHARING", "MODEL_TRAINING", "ANALYTICS", "CUSTOM"],
+          "enum": ["DATA_SHARING", "MODEL_TRAINING", "ANALYTICS", "CROSS_CLOUD_TRAINING", "CUSTOM"],
           "description": "Type of contract being created",
-          "example": "DATA_SHARING"
+          "example": "CROSS_CLOUD_TRAINING"
         }
       },
       "required": ["templateVersion", "createdAt", "contractType"]
@@ -51,6 +51,7 @@
         "PENDING_TDP_APPROVAL",
         "PENDING_CCRP_APPROVAL", 
         "ACTIVE",
+        "TRAINING_IN_PROGRESS",
         "COMPLETED",
         "CANCELLED"
       ],
@@ -112,7 +113,7 @@
               "type": ["string", "null"],
               "format": "date-time",
               "description": "Timestamp when TDP signed (auto-signed when contract created)",
-              "example": "2024-01-15T10:35:00.000Z"
+              "example": "2024-12-15T10:35:00.000Z"
             }
           },
           "required": ["id", "name", "email", "partyType", "signed"]
@@ -203,171 +204,490 @@
               "type": "string",
               "description": "Organization name",
               "example": "Secure Analytics LLC"
-            },
-            "signed": {
-              "type": "boolean",
-              "description": "Whether CCRP has signed the contract",
-              "example": false
-            },
-            "signedAt": {
-              "type": ["string", "null"],
-              "format": "date-time",
-              "description": "Timestamp when CCRP signed (manual review and sign)",
-              "example": "2024-01-15T11:00:00.000Z"
             }
-          },
-          "required": ["id", "name", "email", "partyType", "signed"]
+          }
         }
       },
       "required": ["tdp", "tdc"]
     },
+    "multiTenantInfrastructure": {
+      "type": "object",
+      "description": "Multi-tenant infrastructure specifications for each party",
+      "properties": {
+        "tdp": {
+          "type": "object",
+          "description": "TDP infrastructure configuration",
+          "properties": {
+            "cloudProvider": {
+              "type": "string",
+              "enum": ["AWS", "AZURE", "GCP", "ON_PREMISES"],
+              "description": "Primary cloud provider for TDP",
+              "example": "AWS"
+            },
+            "kmsProvider": {
+              "type": "string",
+              "enum": ["AWS_KMS", "AZURE_KEY_VAULT", "GCP_KMS", "HASHICORP_VAULT"],
+              "description": "Key Management Service provider",
+              "example": "AWS_KMS"
+            },
+            "storageProvider": {
+              "type": "string",
+              "enum": ["AWS_S3", "AZURE_BLOB", "GCP_GCS", "LOCAL_STORAGE"],
+              "description": "Storage provider for datasets",
+              "example": "AWS_S3"
+            },
+            "region": {
+              "type": "string",
+              "description": "Cloud region for infrastructure",
+              "example": "us-east-1"
+            },
+            "infrastructureType": {
+              "type": "string",
+              "enum": ["PUBLIC_CLOUD", "PRIVATE_CLOUD", "HYBRID_CLOUD", "ON_PREMISES"],
+              "description": "Type of infrastructure deployment",
+              "example": "PUBLIC_CLOUD"
+            },
+            "complianceStandards": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Compliance standards supported",
+              "example": ["GDPR", "ISO27001", "SOC2", "HIPAA"]
+            }
+          },
+          "required": ["cloudProvider", "kmsProvider", "storageProvider", "region"]
+        },
+        "tdc": {
+          "type": "object",
+          "description": "TDC infrastructure configuration",
+          "properties": {
+            "cloudProvider": {
+              "type": "string",
+              "enum": ["AWS", "AZURE", "GCP", "ON_PREMISES"],
+              "description": "Primary cloud provider for TDC",
+              "example": "AZURE"
+            },
+            "kmsProvider": {
+              "type": "string",
+              "enum": ["AWS_KMS", "AZURE_KEY_VAULT", "GCP_KMS", "HASHICORP_VAULT"],
+              "description": "Key Management Service provider",
+              "example": "AZURE_KEY_VAULT"
+            },
+            "storageProvider": {
+              "type": "string",
+              "enum": ["AWS_S3", "AZURE_BLOB", "GCP_GCS", "LOCAL_STORAGE"],
+              "description": "Storage provider for models",
+              "example": "AZURE_BLOB"
+            },
+            "region": {
+              "type": "string",
+              "description": "Cloud region for infrastructure",
+              "example": "eastus"
+            },
+            "infrastructureType": {
+              "type": "string",
+              "enum": ["PUBLIC_CLOUD", "PRIVATE_CLOUD", "HYBRID_CLOUD", "ON_PREMISES"],
+              "description": "Type of infrastructure deployment",
+              "example": "PUBLIC_CLOUD"
+            },
+            "complianceStandards": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Compliance standards supported",
+              "example": ["GDPR", "ISO27001", "SOC2"]
+            }
+          },
+          "required": ["cloudProvider", "kmsProvider", "storageProvider", "region"]
+        },
+        "ccrp": {
+          "type": "object",
+          "description": "CCRP infrastructure configuration",
+          "properties": {
+            "cloudProvider": {
+              "type": "string",
+              "enum": ["MULTI_CLOUD", "AWS", "AZURE", "GCP", "ON_PREMISES"],
+              "description": "Cloud provider strategy for CCRP",
+              "example": "MULTI_CLOUD"
+            },
+            "supportedClouds": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": ["AWS", "AZURE", "GCP", "ON_PREMISES"]
+              },
+              "description": "List of supported cloud providers",
+              "example": ["AWS", "AZURE", "GCP"]
+            },
+            "kmsProviders": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": ["AWS_KMS", "AZURE_KEY_VAULT", "GCP_KMS", "HASHICORP_VAULT"]
+              },
+              "description": "Supported KMS providers",
+              "example": ["AWS_KMS", "AZURE_KEY_VAULT", "GCP_KMS"]
+            },
+            "storageProviders": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": ["AWS_S3", "AZURE_BLOB", "GCP_GCS", "LOCAL_STORAGE"]
+              },
+              "description": "Supported storage providers",
+              "example": ["AWS_S3", "AZURE_BLOB", "GCP_GCS"]
+            },
+            "crossCloudOrchestration": {
+              "type": "boolean",
+              "description": "Whether cross-cloud orchestration is enabled",
+              "example": true
+            },
+            "complianceStandards": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Compliance standards supported",
+              "example": ["GDPR", "ISO27001", "SOC2", "HIPAA", "DPDP_2023"]
+            }
+          },
+          "required": ["cloudProvider", "supportedClouds"]
+        }
+      },
+      "required": ["tdp", "tdc"]
+    },
+    "provenanceTracking": {
+      "type": "object",
+      "description": "Merkle tree provenance tracking configuration",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "description": "Whether provenance tracking is enabled",
+          "example": true
+        },
+        "trackingLevel": {
+          "type": "string",
+          "enum": ["BASIC", "COMPREHENSIVE", "AUDIT_READY"],
+          "description": "Level of provenance tracking detail",
+          "example": "COMPREHENSIVE"
+        },
+        "retentionPeriod": {
+          "type": "string",
+          "enum": ["30_DAYS", "90_DAYS", "1_YEAR", "PERMANENT"],
+          "description": "How long to retain provenance data",
+          "example": "PERMANENT"
+        },
+        "primaryNodes": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "DATASET_ROOT",
+              "MODEL_SPECIFICATION_ROOT", 
+              "TRAINING_CONFIGURATION_ROOT",
+              "TRAINED_MODEL_ROOT",
+              "VALIDATION_RESULTS_ROOT",
+              "PRIVACY_METRICS_ROOT"
+            ]
+          },
+          "description": "Primary Merkle tree nodes to capture",
+          "example": ["DATASET_ROOT", "MODEL_SPECIFICATION_ROOT", "TRAINED_MODEL_ROOT"]
+        },
+        "secondaryNodes": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "DATA_PREPROCESSING",
+              "FEATURE_ENGINEERING",
+              "HYPERPARAMETER_TUNING",
+              "TRAINING_CHECKPOINTS",
+              "MODEL_EVALUATION",
+              "PRIVACY_BUDGET_TRACKING"
+            ]
+          },
+          "description": "Secondary Merkle tree nodes to capture",
+          "example": ["DATA_PREPROCESSING", "TRAINING_CHECKPOINTS", "PRIVACY_BUDGET_TRACKING"]
+        },
+        "crossCloudVerification": {
+          "type": "boolean",
+          "description": "Whether to verify provenance across multiple clouds",
+          "example": true
+        },
+        "auditCapabilities": {
+          "type": "object",
+          "description": "Audit capabilities configuration",
+          "properties": {
+            "modelExplainability": {
+              "type": "boolean",
+              "description": "Enable model explainability tracking",
+              "example": true
+            },
+            "biasDetection": {
+              "type": "boolean",
+              "description": "Enable bias detection tracking",
+              "example": true
+            },
+            "dataLineage": {
+              "type": "boolean",
+              "description": "Enable complete data lineage tracking",
+              "example": true
+            },
+            "privacyMetrics": {
+              "type": "boolean",
+              "description": "Enable privacy metrics tracking",
+              "example": true
+            }
+          },
+          "required": ["modelExplainability", "biasDetection", "dataLineage", "privacyMetrics"]
+        }
+      },
+      "required": ["enabled", "trackingLevel", "retentionPeriod", "primaryNodes"]
+    },
     "dataset": {
       "type": "object",
-      "description": "Dataset being contracted",
+      "description": "Dataset information and specifications",
       "properties": {
         "id": {
           "type": "integer",
           "description": "Database dataset ID",
           "example": 1
         },
-        "datasetId": {
-          "type": "string",
-          "description": "Unique dataset identifier",
-          "example": "DS-2024-001"
-        },
         "name": {
           "type": "string",
-          "description": "Human-readable dataset name",
-          "example": "Customer Behavior Dataset 2024"
+          "description": "Dataset name",
+          "example": "Customer Behavior Dataset"
         },
         "description": {
           "type": "string",
-          "description": "Detailed description of the dataset",
-          "example": "Comprehensive dataset containing customer behavior patterns, purchase history, and demographic information for machine learning model training."
+          "description": "Detailed dataset description",
+          "example": "High-quality customer behavior data for AI model training"
         },
         "category": {
           "type": "string",
-          "enum": ["CUSTOMER_DATA", "FINANCIAL_DATA", "HEALTHCARE_DATA", "RESEARCH_DATA", "CUSTOM"],
-          "description": "Category of the dataset",
-          "example": "CUSTOMER_DATA"
+          "enum": ["TEXT", "IMAGE", "AUDIO", "VIDEO", "TABULAR", "MULTIMODAL"],
+          "description": "Dataset category",
+          "example": "TABULAR"
         },
         "size": {
           "type": "string",
-          "description": "Size of the dataset in human-readable format",
-          "example": "2.5 GB"
+          "description": "Dataset size in human-readable format",
+          "example": "2.5GB"
         },
-        "recordCount": {
-          "type": "integer",
-          "description": "Number of records in the dataset",
-          "example": 1000000
+        "format": {
+          "type": "string",
+          "description": "Dataset format",
+          "example": "CSV"
         },
         "price": {
-          "type": "number",
-          "description": "Price of the dataset in USD",
-          "example": 5000.00
-        },
-        "license": {
           "type": "string",
-          "description": "License type for the dataset",
-          "example": "COMMERCIAL_USE"
-        },
-        "tags": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          },
-          "description": "Tags associated with the dataset",
-          "example": ["customer-behavior", "e-commerce", "machine-learning"]
+          "description": "Dataset price in ETH",
+          "example": "500 ETH"
         },
         "metadata": {
           "type": "object",
-          "description": "Additional metadata about the dataset",
+          "description": "Additional dataset metadata",
           "properties": {
-            "dataQuality": {
+            "language": {
               "type": "string",
-              "enum": ["HIGH", "MEDIUM", "LOW"],
+              "description": "Primary language of the data",
+              "example": "English"
+            },
+            "domain": {
+              "type": "string",
+              "description": "Domain of the data",
+              "example": "E-commerce"
+            },
+            "quality": {
+              "type": "string",
+              "enum": ["LOW", "MEDIUM", "HIGH"],
+              "description": "Data quality rating",
               "example": "HIGH"
             },
-            "updateFrequency": {
+            "encryptionKeyId": {
               "type": "string",
-              "example": "MONTHLY"
+              "description": "KMS key ID for dataset encryption",
+              "example": "tdp-dataset-key-001"
             },
-            "geographicCoverage": {
+            "storageLocation": {
               "type": "string",
-              "example": "GLOBAL"
-            },
-            "timeRange": {
-              "type": "string",
-              "example": "2020-2024"
+              "description": "Storage location of the dataset",
+              "example": "AWS_S3://medical-datasets/dataset-001"
             }
           }
+        },
+        "owner": {
+          "type": "object",
+          "description": "Dataset owner information",
+          "properties": {
+            "id": {
+              "type": "integer",
+              "description": "Owner user ID",
+              "example": 1
+            },
+            "name": {
+              "type": "string",
+              "description": "Owner name",
+              "example": "Acme Data Corp"
+            },
+            "email": {
+              "type": "string",
+              "format": "email",
+              "description": "Owner email",
+              "example": "tdp@acmedata.com"
+            },
+            "did": {
+              "type": ["string", "null"],
+              "description": "Owner DID",
+              "example": "did:web:acmedata.com:user:123"
+            }
+          },
+          "required": ["id", "name", "email"]
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Dataset creation timestamp",
+          "example": "2024-12-15T10:30:00.000Z"
         }
       },
-      "required": ["id", "datasetId", "name", "description", "category", "size", "recordCount", "price", "license"]
+      "required": ["id", "name", "description", "category", "size", "format", "price", "owner"]
     },
     "model": {
       "type": "object",
-      "description": "Model being trained",
+      "description": "AI model specifications",
       "properties": {
-        "modelId": {
-          "type": "string",
-          "description": "Unique model identifier",
-          "example": "MODEL-2024-001"
+        "id": {
+          "type": "integer",
+          "description": "Database model ID",
+          "example": 1
         },
         "name": {
           "type": "string",
-          "description": "Human-readable model name",
+          "description": "Model name",
           "example": "Customer Churn Prediction Model"
         },
         "description": {
           "type": "string",
-          "description": "Description of the model being trained",
-          "example": "Machine learning model to predict customer churn based on behavior patterns and purchase history."
+          "description": "Model description",
+          "example": "Machine learning model for predicting customer churn"
         },
         "type": {
           "type": "string",
-          "enum": ["CLASSIFICATION", "REGRESSION", "CLUSTERING", "RECOMMENDATION", "CUSTOM"],
-          "description": "Type of machine learning model",
+          "enum": ["CLASSIFICATION", "REGRESSION", "CLUSTERING", "NLP", "COMPUTER_VISION", "RECOMMENDATION"],
+          "description": "Model type",
           "example": "CLASSIFICATION"
         },
         "algorithm": {
           "type": "string",
-          "description": "Primary algorithm being used",
-          "example": "XGBoost"
+          "description": "Machine learning algorithm",
+          "example": "Random Forest"
         },
-        "framework": {
-          "type": "string",
-          "description": "Machine learning framework",
-          "example": "TensorFlow"
+        "hyperparameters": {
+          "type": "object",
+          "description": "Model hyperparameters",
+          "properties": {
+            "learningRate": {
+              "type": "number",
+              "description": "Learning rate",
+              "example": 0.001
+            },
+            "batchSize": {
+              "type": "integer",
+              "description": "Batch size",
+              "example": 32
+            },
+            "epochs": {
+              "type": "integer",
+              "description": "Number of training epochs",
+              "example": 100
+            }
+          }
+        },
+        "privacyTechniques": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "DIFFERENTIAL_PRIVACY",
+              "SECURE_MULTIPARTY_COMPUTATION", 
+              "HOMOMORPHIC_ENCRYPTION",
+              "FEDERATED_LEARNING",
+              "CONFIDENTIAL_COMPUTING"
+            ]
+          },
+          "description": "Privacy-preserving techniques to be used",
+          "example": ["DIFFERENTIAL_PRIVACY", "FEDERATED_LEARNING"]
+        },
+        "performanceMetrics": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Performance metrics to track",
+          "example": ["accuracy", "precision", "recall", "f1_score"]
+        },
+        "owner": {
+          "type": "object",
+          "description": "Model owner information",
+          "properties": {
+            "id": {
+              "type": "integer",
+              "description": "Owner user ID",
+              "example": 2
+            },
+            "name": {
+              "type": "string",
+              "description": "Owner name",
+              "example": "AI Training Inc"
+            },
+            "email": {
+              "type": "string",
+              "format": "email",
+              "description": "Owner email",
+              "example": "tdc@aitraining.com"
+            },
+            "did": {
+              "type": ["string", "null"],
+              "description": "Owner DID",
+              "example": "did:web:aitraining.com:user:456"
+            }
+          },
+          "required": ["id", "name", "email"]
         }
       },
-      "required": ["modelId", "name", "description", "type"]
+      "required": ["id", "name", "description", "type", "algorithm", "owner"]
     },
     "financial": {
       "type": "object",
-      "description": "Financial terms of the contract",
+      "description": "Financial terms and payment information",
       "properties": {
-        "price": {
-          "type": "number",
-          "description": "Contract price in USD",
-          "minimum": 0,
-          "example": 10000.00
-        },
-        "currency": {
+        "totalPrice": {
           "type": "string",
-          "enum": ["USD", "EUR", "GBP", "ETH"],
-          "description": "Currency for the contract",
-          "example": "USD"
+          "description": "Total contract price in ETH",
+          "example": "1000 ETH"
         },
-        "blockchainPrice": {
+        "datasetPrice": {
           "type": "string",
-          "description": "Price in wei (blockchain currency)",
-          "example": "10000000000000000000000"
+          "description": "Dataset price in ETH",
+          "example": "500 ETH"
         },
-        "paymentTerms": {
+        "modelPrice": {
+          "type": "string",
+          "description": "Model price in ETH",
+          "example": "300 ETH"
+        },
+        "infrastructurePrice": {
+          "type": "string",
+          "description": "Infrastructure costs in ETH",
+          "example": "200 ETH"
+        },
+        "paymentSchedule": {
           "type": "string",
           "enum": ["UPFRONT", "INSTALLMENTS", "UPON_COMPLETION"],
-          "description": "Payment terms",
+          "description": "Payment schedule",
           "example": "UPFRONT"
         },
         "installments": {
@@ -376,42 +696,56 @@
             "type": "object",
             "properties": {
               "amount": {
-                "type": "number",
+                "type": "string",
                 "description": "Installment amount"
               },
               "dueDate": {
                 "type": "string",
-                "format": "date",
+                "format": "date-time",
                 "description": "Due date for installment"
+              },
+              "status": {
+                "type": "string",
+                "enum": ["PENDING", "PAID", "OVERDUE"],
+                "description": "Payment status"
               }
             }
           },
-          "description": "Installment schedule (if applicable)"
+          "description": "Payment installments (if applicable)"
+        },
+        "currency": {
+          "type": "string",
+          "description": "Payment currency",
+          "example": "ETH"
+        },
+        "exchangeRate": {
+          "type": "number",
+          "description": "ETH to USD exchange rate at contract creation",
+          "example": 2500.0
         }
       },
-      "required": ["price", "currency"]
+      "required": ["totalPrice", "currency"]
     },
     "timeline": {
       "type": "object",
-      "description": "Timeline and duration information",
+      "description": "Contract timeline and milestones",
       "properties": {
-        "duration": {
-          "type": "integer",
-          "description": "Contract duration in days",
-          "minimum": 1,
-          "example": 30
-        },
         "startDate": {
           "type": "string",
-          "format": "date",
+          "format": "date-time",
           "description": "Contract start date",
-          "example": "2024-01-15"
+          "example": "2024-12-15T10:30:00.000Z"
         },
         "endDate": {
           "type": "string",
-          "format": "date",
+          "format": "date-time",
           "description": "Contract end date",
-          "example": "2024-02-14"
+          "example": "2025-01-15T10:30:00.000Z"
+        },
+        "duration": {
+          "type": "integer",
+          "description": "Contract duration in days",
+          "example": 30
         },
         "milestones": {
           "type": "array",
@@ -428,29 +762,66 @@
               },
               "dueDate": {
                 "type": "string",
-                "format": "date",
-                "description": "Due date for milestone"
+                "format": "date-time",
+                "description": "Milestone due date"
               },
-              "completed": {
-                "type": "boolean",
-                "description": "Whether milestone is completed"
+              "status": {
+                "type": "string",
+                "enum": ["PENDING", "IN_PROGRESS", "COMPLETED", "DELAYED"],
+                "description": "Milestone status"
               }
             }
           },
-          "description": "Project milestones"
+          "description": "Contract milestones"
         }
       },
-      "required": ["duration"]
+      "required": ["startDate", "endDate", "duration"]
     },
     "termsAndConditions": {
-      "type": "string",
-      "description": "Contract terms and conditions",
-      "minLength": 10,
-      "example": "This contract governs the sharing of customer behavior data for machine learning model training. The TDP (Acme Data Corp) will provide the specified dataset to the TDC (AI Training Inc) for the purpose of training a customer churn prediction model. The CCRP (Secure Analytics LLC) will provide a secure environment for data processing and model training. All parties agree to maintain data confidentiality and comply with applicable data protection regulations including the DPDP Act 2023. The contract duration is 30 days from the date of activation. Payment of $10,000 USD is due upfront upon contract activation. The TDC may use the trained model for commercial purposes but may not redistribute the original dataset. The CCRP will ensure secure data handling and provide audit trails for compliance purposes."
+      "type": "object",
+      "description": "Legal terms and conditions",
+      "properties": {
+        "legalDocument": {
+          "type": "string",
+          "description": "Human-readable legal document",
+          "example": "This agreement is entered into between the Training Data Provider (TDP) and Training Data Consumer (TDC)..."
+        },
+        "dataUsageRights": {
+          "type": "string",
+          "description": "Data usage rights and restrictions",
+          "example": "TDC may use the dataset solely for the specified AI model training purpose..."
+        },
+        "intellectualProperty": {
+          "type": "string",
+          "description": "Intellectual property terms",
+          "example": "TDC retains ownership of the trained model, while TDP retains ownership of the original dataset..."
+        },
+        "liability": {
+          "type": "string",
+          "description": "Liability and indemnification terms",
+          "example": "Each party shall indemnify the other against claims arising from their respective obligations..."
+        },
+        "termination": {
+          "type": "string",
+          "description": "Contract termination conditions",
+          "example": "Either party may terminate this agreement with 30 days written notice..."
+        },
+        "governingLaw": {
+          "type": "string",
+          "description": "Governing law and jurisdiction",
+          "example": "This agreement shall be governed by the laws of the State of California..."
+        },
+        "disputeResolution": {
+          "type": "string",
+          "description": "Dispute resolution mechanism",
+          "example": "Any disputes shall be resolved through binding arbitration..."
+        }
+      },
+      "required": ["legalDocument", "dataUsageRights", "intellectualProperty"]
     },
     "dataProcessing": {
       "type": "object",
-      "description": "Data processing and privacy requirements",
+      "description": "Data processing and privacy information",
       "properties": {
         "purpose": {
           "type": "string",
@@ -476,7 +847,7 @@
             "type": "string"
           },
           "description": "Security measures to be implemented",
-          "example": ["encryption-at-rest", "access-controls", "audit-logging"]
+          "example": ["encryption-at-rest", "access-controls", "audit-logging", "cross-cloud-encryption"]
         },
         "compliance": {
           "type": "array",
@@ -484,7 +855,28 @@
             "type": "string"
           },
           "description": "Compliance requirements",
-          "example": ["DPDP_2023", "GDPR", "ISO_27001"]
+          "example": ["DPDP_2023", "GDPR", "ISO_27001", "SOC2"]
+        },
+        "privacyBudget": {
+          "type": "object",
+          "description": "Privacy budget configuration",
+          "properties": {
+            "epsilon": {
+              "type": "number",
+              "description": "Differential privacy epsilon parameter",
+              "example": 1.0
+            },
+            "delta": {
+              "type": "number",
+              "description": "Differential privacy delta parameter",
+              "example": 1e-5
+            },
+            "trackingEnabled": {
+              "type": "boolean",
+              "description": "Whether privacy budget tracking is enabled",
+              "example": true
+            }
+          }
         }
       },
       "required": ["purpose", "dataTypes", "retentionPeriod"]
@@ -588,7 +980,7 @@
           "type": "string",
           "format": "date-time",
           "description": "Contract creation timestamp",
-          "example": "2024-01-15T10:30:00.000Z"
+          "example": "2024-12-15T10:30:00.000Z"
         },
         "lastModifiedBy": {
           "type": "string",
@@ -599,7 +991,7 @@
           "type": "string",
           "format": "date-time",
           "description": "Last modification timestamp",
-          "example": "2024-01-15T10:35:00.000Z"
+          "example": "2024-12-15T10:35:00.000Z"
         },
         "version": {
           "type": "integer",
@@ -645,6 +1037,8 @@
     "contractId", 
     "status",
     "parties",
+    "multiTenantInfrastructure",
+    "provenanceTracking",
     "dataset",
     "model",
     "financial",
