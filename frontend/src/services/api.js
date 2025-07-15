@@ -205,7 +205,8 @@ const realApiService = {
     return response.data;
   },
   createContract: async (contractData) => {
-    const response = await api.post('/api/contracts', contractData);
+    // Redirect to Ricardian contract creation since plain contracts are deprecated
+    const response = await api.post('/api/contracts/ricardian', contractData);
     return response.data;
   },
   createMultiTDPContract: async (contractData) => {

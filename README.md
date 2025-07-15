@@ -1,276 +1,245 @@
 # Contract Management System
 
-A comprehensive contract management system supporting multi-tenant, multi-cloud AI training contracts with Ricardian contract functionality, blockchain integration, Merkle tree provenance tracking, and enterprise-grade security.
+A comprehensive contract management system for AI training data providers, consumers, and confidential clean room providers with **Ricardian Contract** support.
 
-## 🚀 Key Features
+## 🏗️ Architecture Overview
 
-### Multi-Tenant Architecture
-- **Multi-Cloud Support**: AWS, Azure, GCP, and on-premises infrastructure
-- **Tenant Isolation**: Complete security isolation between TDPs and TDCs
-- **KMS Integration**: Support for AWS KMS, Azure Key Vault, GCP KMS, HashiCorp Vault
-- **Storage Gateway**: Unified access to different storage systems (S3, Blob, GCS)
-- **Cross-Cloud Training**: Secure training execution across multiple cloud environments
+This system implements a **Ricardian Contract** pattern that combines human-readable legal documents with machine-executable smart contracts, providing:
 
-### Multi-TDP Contract Management
-- **Up to 3 Datasets**: Create contracts with multiple datasets from different TDPs
-- **Individual Pricing**: Each dataset has its own price within the contract
-- **Independent Signing**: Each TDP signs independently for their dataset
-- **Payment Tracking**: Individual payment status tracking per TDP
-- **Status Monitoring**: Real-time multi-TDP status tracking
+- **Legal Enforceability**: Human-readable terms that courts can interpret
+- **Automated Execution**: Smart contracts for automated enforcement
+- **Cryptographic Binding**: Digital signatures linking legal documents to smart contracts
+- **Multi-Tenant Support**: Each TDP and TDC can have their own private/public cloud infrastructure
+- **Multi-Cloud Support**: Support for multiple cloud providers per CCRP
+- **KMS Integration**: Decentralized Key Management System for data encryption
+- **Training Environment Provisioning**: Automated secure environment setup
+- **Merkle Tree Provenance**: Audit trail for training data integrity
 
-### Merkle Tree Provenance Tracking
-- **Complete Data Lineage**: Track all data transformations from source to trained model
-- **Cryptographic Verification**: Use Merkle trees for tamper-proof provenance
-- **Cross-Cloud Consistency**: Verify provenance across multiple cloud environments
-- **Model Governance**: Enable comprehensive model auditing and explainability
-- **Compliance Support**: Meet regulatory requirements for model transparency
+## 🎯 Key Features
 
-### Ricardian Contract Support
-- **Legal Documents**: Human-readable legal agreements
-- **Smart Contracts**: Machine-executable blockchain contracts
-- **Cryptographic Binding**: Legal documents bound to smart contracts
-- **Technical Parameters**: AI training parameters and environment specifications
-- **Multi-Tenant Specifications**: Cloud provider, KMS, and storage configurations
-- **Provenance Integration**: Merkle tree provenance tracking in contracts
+### **Ricardian Contract System**
+- **Legal Document Generation**: Automated creation of human-readable legal documents
+- **Smart Contract Deployment**: Blockchain-based contract execution
+- **Cryptographic Binding**: Digital signatures ensuring legal-to-code integrity
+- **Multi-Party Signing**: TDP, TDC, and CCRP signature workflows
+- **Contract State Management**: Comprehensive state machine for contract lifecycle
 
-### KMS and Training Environment
-- **Key Management**: Centralized KMS for DID:web, data encryption, and model encryption
-- **Data Encryption**: Encrypted storage and transmission of datasets and models
-- **Automatic Provisioning**: Training environments provisioned based on contract specifications
-- **Automated Training**: Training execution triggered when all parties sign contracts
-- **Confidential Computing**: Secure processing in encrypted VMs/containers
+### **Multi-Tenant Infrastructure**
+- **Private Cloud Support**: Each TDP/TDC can have dedicated private cloud infrastructure
+- **Public Cloud Integration**: Hybrid cloud support for scalability
+- **Storage Gateway**: Unified access to different storage solutions
+- **KMS Adapters**: Support for multiple Key Management Systems
+- **Cross-Cloud Training**: Orchestration across multiple cloud providers
 
-### Download Functionality
-- **Complete Contract Download**: All contract data including legal, technical, workflow, and signature information
-- **Legal Document Download**: Human-readable legal documents in JSON format
-- **Enhanced Data Coverage**: Includes payment summaries, multi-TDP status, and all Ricardian fields
-- **Clear User Interface**: Descriptive button labels and comprehensive data display
+### **Security & Compliance**
+- **DPDP 2023 Compliance**: Full compliance with Indian data protection regulations
+- **DID:web Support**: Decentralized identity management
+- **Attestation Verification**: Hardware security module verification
+- **Privacy-Preserving Training**: Differential privacy, federated learning, secure MPC
+- **Audit Trails**: Comprehensive logging and monitoring
 
-### Security & Compliance
-- **JWT Authentication**: Secure user authentication
-- **Role-Based Access**: TDC, TDP, and CCRP user roles
-- **Data Encryption**: KMS integration for data protection
-- **Audit Trail**: Comprehensive logging and tracking
-- **Cross-Cloud Security**: Security isolation and verification across clouds
+### **Training Environment Management**
+- **Automated Provisioning**: CCRP-driven secure environment setup
+- **Multi-Cloud Orchestration**: Training across different cloud providers
+- **Resource Management**: Dynamic allocation and scaling
+- **Security Isolation**: Tenant and data isolation
+- **Monitoring & Logging**: Real-time training progress tracking
 
-## 🏗️ Architecture
-
-### Multi-Tenant Architecture
-- **Tenant Configurations**: Each TDP/TDC has their own cloud infrastructure
-- **KMS Adapter Pattern**: Abstract different KMS providers
-- **Storage Gateway**: Unified storage access layer
-- **Federated Identity**: Cross-cloud identity management
-- **Encrypted Bridges**: Secure data transfer between clouds
-
-### Backend (Node.js + Express)
-- **Database**: PostgreSQL with Sequelize ORM
-- **Authentication**: JWT with Keycloak integration
-- **Blockchain**: Ethereum smart contract integration
-- **Notifications**: Email and in-app notifications
-- **Testing**: Comprehensive test suite
-- **Multi-Cloud Support**: Cross-cloud environment provisioning
-- **Provenance Tracking**: Merkle tree provenance capture and verification
-
-### Frontend (React + Material-UI)
-- **Multi-Dataset Selection**: Interactive dataset selection with pricing
-- **Contract Management**: Comprehensive contract display and management
-- **Download Capabilities**: Complete contract and legal document downloads
-- **Real-time Updates**: Live status tracking and notifications
-- **Multi-Cloud Dashboard**: Cloud provider and KMS management
-- **Provenance Viewer**: Merkle tree provenance visualization
-
-## 📋 Quick Start
+## 🚀 Quick Start
 
 ### Prerequisites
-- Node.js 16+
-- PostgreSQL 12+
-- Docker (for Keycloak)
-- Cloud provider accounts (AWS, Azure, GCP)
+- Node.js 18+
+- PostgreSQL 13+
+- Docker & Docker Compose
+- Keycloak (for authentication)
 
 ### Installation
 
 1. **Clone the repository**
-   ```bash
-   git clone https://github.com/your-username/ContractManagement.git
-   cd ContractManagement
-   ```
-
-2. **Backend Setup**
-   ```bash
-   cd backend
-   npm install
-   cp config.env.example config.env
-   # Configure database, cloud providers, and KMS settings
-   npm run setup-db
-   npm start
-   ```
-
-3. **Frontend Setup**
-   ```bash
-   cd frontend
-   npm install
-   npm start
-   ```
-
-4. **Keycloak Setup**
-   ```bash
-   cd deployment/utilities
-   docker-compose -f docker-compose.iam.yml up -d
-   ```
-
-5. **Multi-Cloud Configuration**
-   ```bash
-   # Configure cloud provider credentials
-   # Set up KMS providers
-   # Configure storage gateways
-   # Set up cross-cloud networking
-   ```
-
-## 🔧 Configuration
-
-### Environment Variables
 ```bash
-# Database
-DATABASE_URL=postgresql://user:password@localhost:5432/contracts
-
-# JWT Secret
-JWT_SECRET=your-secret-key
-
-# Blockchain
-BLOCKCHAIN_NETWORK=goerli
-CONTRACT_ADDRESS=0x...
-
-# Email
-SMTP_HOST=smtp.gmail.com
-SMTP_PORT=587
-SMTP_USER=your-email@gmail.com
-SMTP_PASS=your-password
-
-# Multi-Cloud Configuration
-AWS_ACCESS_KEY_ID=your-aws-key
-AWS_SECRET_ACCESS_KEY=your-aws-secret
-AZURE_TENANT_ID=your-azure-tenant
-AZURE_CLIENT_ID=your-azure-client
-AZURE_CLIENT_SECRET=your-azure-secret
-GCP_PROJECT_ID=your-gcp-project
-GCP_CREDENTIALS_FILE=path/to/credentials.json
+git clone <repository-url>
+cd ContractManagement
 ```
 
-### Multi-Tenant Configuration
+2. **Set up environment variables**
+```bash
+cp env.example .env
+# Edit .env with your configuration
+```
+
+3. **Start the development environment**
+```bash
+# Start all services
+docker-compose up -d
+
+# Or start individual services
+npm run dev:backend
+npm run dev:frontend
+npm run dev:blockchain
+```
+
+4. **Access the application**
+- Frontend: http://localhost:3000
+- Backend API: http://localhost:5000
+- Keycloak: http://localhost:8080
+
+## 📋 Contract Creation Workflow
+
+### **Ricardian Contract Creation (TDC Only)**
+
+1. **Select Contract Type & Datasets**
+   - Choose from AI Training, Basic, or Custom contract types
+   - Select 1-3 datasets from different TDPs
+   - Configure individual pricing per dataset
+
+2. **Configure Contract & Environment**
+   - Set contract duration and terms
+   - Configure privacy requirements (differential privacy, federated learning)
+   - Select CCRP and cloud providers
+   - Define training environment specifications
+
+3. **Review Legal Document & Smart Contract**
+   - Preview generated legal document
+   - Review smart contract details
+   - Verify cryptographic binding
+
+4. **Create Ricardian Contract**
+   - Deploy smart contract to blockchain
+   - Generate cryptographic signatures
+   - TDP auto-signs (backend handles)
+   - Contract becomes legally binding
+
+### **Contract States**
+- `PENDING_TDP_APPROVAL`: Waiting for TDP signature
+- `PENDING_CCRP_APPROVAL`: Waiting for CCRP signature (if selected)
+- `ACTIVE`: All parties signed, contract is legally binding
+- `COMPLETED`: Contract execution finished
+- `CANCELLED`: Contract cancelled by any party
+
+## 🔧 API Endpoints
+
+### **Ricardian Contract Endpoints**
+- `POST /api/contracts/ricardian` - Create Ricardian contract
+- `POST /api/contracts/ricardian/preview` - Preview contract before creation
+- `GET /api/contracts/:id/verify` - Verify Ricardian contract integrity
+- `POST /api/contracts/:id/sign` - Sign contract as party
+
+### **Multi-Tenant Infrastructure**
+- `GET /api/ccrp/all` - Get all CCRP providers with cloud support
+- `POST /api/contracts/:id/environment` - Update training environment
+- `GET /api/kms/providers` - Get available KMS providers
+- `POST /api/training/provision` - Provision training environment
+
+## 🏛️ Legal Framework
+
+### **DPDP 2023 Compliance**
+- **Data Principal Rights**: Full support for data subject rights
+- **Consent Management**: Granular consent tracking and management
+- **Data Processing Records**: Comprehensive audit trails
+- **Breach Notification**: Automated breach detection and reporting
+- **Cross-Border Transfers**: Secure international data transfers
+
+### **Ricardian Contract Legal Structure**
 ```json
 {
-  "tenantConfigurations": {
-    "tdp": {
-      "cloudProvider": "AWS",
-      "kmsProvider": "AWS_KMS",
-      "storageProvider": "AWS_S3",
-      "region": "us-east-1"
+  "legalDocument": {
+    "title": "AI Training Data Agreement",
+    "parties": {
+      "dataProvider": { "name": "TDP", "did": "did:web:..." },
+      "dataConsumer": { "name": "TDC", "did": "did:web:..." },
+      "cleanRoomProvider": { "name": "CCRP", "did": "did:web:..." }
     },
-    "tdc": {
-      "cloudProvider": "AZURE",
-      "kmsProvider": "AZURE_KEY_VAULT",
-      "storageProvider": "AZURE_BLOB",
-      "region": "eastus"
-    },
-    "ccrp": {
-      "cloudProvider": "MULTI_CLOUD",
-      "supportedClouds": ["AWS", "AZURE", "GCP", "ON_PREMISES"]
-    }
+    "terms": [
+      "Data usage for AI training only",
+      "Privacy-preserving techniques required",
+      "Automated data deletion after training",
+      "Compliance with DPDP 2023"
+    ]
+  },
+  "smartContract": {
+    "address": "0x...",
+    "functions": ["createContract", "executePayment", "transferData"]
   }
 }
 ```
 
-## 📖 Usage
+## 🔐 Security Features
 
-### Creating Multi-Tenant Contracts
-1. **Configure Tenants**: Set up TDP and TDC cloud infrastructure
-2. **Select Datasets**: Choose 1-3 datasets from different TDPs
-3. **Set Pricing**: Configure individual prices for each dataset
-4. **Configure Contract**: Set duration, terms, and technical parameters
-5. **Specify Infrastructure**: Define cloud providers, KMS, and storage
-6. **Create Contract**: Contract is created with all selected datasets
+### **DID:web Integration**
+- **Decentralized Identity**: Self-sovereign identity management
+- **Cryptographic Signatures**: ES256 signing for contract verification
+- **Public Key Infrastructure**: Secure key management
+- **Identity Verification**: Real-time DID resolution and verification
 
-### Managing Contracts
-1. **View Details**: Comprehensive display of all TDPs and datasets
-2. **Track Status**: Real-time updates on signatures and payments
-3. **Download Documents**: Complete contract and legal document downloads
-4. **Record Payments**: Individual payment tracking per TDP
-5. **Monitor Provenance**: Track Merkle tree provenance for model auditing
+### **Multi-KMS Support**
+- **Azure Key Vault**: Enterprise-grade key management
+- **AWS KMS**: Cloud-native key management
+- **Google Cloud KMS**: GCP key management
+- **Hashicorp Vault**: Self-hosted key management
 
-### Cross-Cloud Training
-1. **Environment Provisioning**: Automatic provisioning across multiple clouds
-2. **Key Coordination**: Secure key management across different KMS providers
-3. **Data Transfer**: Encrypted data transfer between cloud environments
-4. **Training Execution**: Secure training execution with provenance tracking
-5. **Model Validation**: Cross-cloud model validation with privacy preservation
+### **Training Environment Security**
+- **Confidential Computing**: Hardware-based security
+- **Network Isolation**: Private network segmentation
+- **Data Encryption**: At-rest and in-transit encryption
+- **Access Control**: Role-based access management
 
-### Download Functionality
-- **Complete Contract**: Downloads all contract data (legal, technical, workflow, signatures)
-- **Legal Document**: Downloads only the legal document JSON (when available)
-- **Enhanced Coverage**: Includes payment summaries, multi-TDP status, and Ricardian fields
-- **Provenance Data**: Includes Merkle tree provenance for model auditing
+## 📊 Monitoring & Analytics
+
+### **Contract Analytics**
+- Contract creation and completion rates
+- Party signature timelines
+- Payment processing metrics
+- Training environment utilization
+
+### **Security Monitoring**
+- DID signature verification logs
+- KMS access patterns
+- Training environment security events
+- Compliance audit trails
 
 ## 🧪 Testing
 
-### Backend Tests
+### **Run Test Suite**
 ```bash
-cd backend
-npm test
-```
+# Backend tests
+npm run test:backend
 
-### Frontend Tests
-```bash
-cd frontend
-npm test
-```
+# Frontend tests
+npm run test:frontend
 
-### Integration Tests
-```bash
+# Integration tests
 npm run test:integration
+
+# Contract state machine tests
+npm run test:contracts
 ```
 
-### Multi-Cloud Tests
+### **Test Ricardian Contracts**
 ```bash
-npm run test:multi-cloud
-```
+# Test contract creation
+npm run test:ricardian
 
-### Provenance Tests
-```bash
-npm run test:provenance
+# Test signature verification
+npm run test:signing
+
+# Test multi-tenant scenarios
+npm run test:multi-tenant
 ```
 
 ## 📚 Documentation
 
-### Core Documentation
-- [Multi-Tenant KMS Architecture](MULTI_TENANT_KMS_ARCHITECTURE.md)
-- [Merkle Tree Provenance Implementation](MERKLE_TREE_PROVENANCE_IMPLEMENTATION.md)
-- [Multi-Tenant Contract Update Summary](MULTI_TENANT_CONTRACT_UPDATE_SUMMARY.md)
-- [KMS and Training Environment Architecture](KMS_TRAINING_ENVIRONMENT_ARCHITECTURE.md)
-
-### Implementation Guides
-- [Multi-TDP Implementation Guide](MULTI_TDP_IMPLEMENTATION_SUMMARY.md)
-- [Frontend Multi-TDP Update Summary](FRONTEND_MULTI_TDP_UPDATE_SUMMARY.md)
-- [Role-Based Dashboard Implementation](ROLE_BASED_DASHBOARD_IMPLEMENTATION.md)
-- [Cloud Provider Implementation](CLOUD_PROVIDER_IMPLEMENTATION.md)
-
-### Technical Documentation
-- [UML 4+1 Architecture Documentation](UML_4PLUS1_ARCHITECTURE_DOCUMENTATION.md)
-- [API Documentation](API_DOCUMENTATION.md)
-- [Enterprise Registration Strategy](ENTERPRISE_REGISTRATION_STRATEGY.md)
-- [Contract Template Guide](CONTRACT_TEMPLATE_GUIDE.md)
-
-### Testing and Deployment
-- [Integration Testing Guide](INTEGRATION_TESTING_GUIDE.md)
-- [Test Suite Update Summary](TEST_SUITE_UPDATE_SUMMARY.md)
-- [Test Data for Testers](TEST_DATA_FOR_TESTERS.md)
-- [Project Status Summary](PROJECT_STATUS_SUMMARY.md)
+- [API Documentation](./API_DOCUMENTATION.md)
+- [Ricardian Contract Guide](./docs/contracts/RICARDIAN_CONTRACT_GUIDE.md)
+- [Multi-Tenant Architecture](./MULTI_TENANT_KMS_ARCHITECTURE.md)
+- [UML 4+1 Architecture](./UML_4PLUS1_ARCHITECTURE_DOCUMENTATION.md)
+- [DPDP Implementation](./DPDP_COMPLIANCE_IMPLEMENTATION.md)
 
 ## 🤝 Contributing
 
 1. Fork the repository
 2. Create a feature branch
 3. Make your changes
-4. Add tests
+4. Add tests for new functionality
 5. Submit a pull request
 
 ## 📄 License
@@ -280,32 +249,10 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## 🆘 Support
 
 For support and questions:
-- Create an issue on GitHub
-- Check the documentation
-- Review the test examples
+- Create an issue in the repository
+- Check the [documentation](./docs/)
+- Review the [FAQ](./FAQ.md)
 
-## 🔄 Recent Updates
+---
 
-### Latest Features (December 2024)
-- **Multi-Tenant Architecture**: Support for different cloud providers per TDP/TDC
-- **Merkle Tree Provenance**: Complete data lineage tracking for model auditing
-- **KMS Integration**: Support for AWS KMS, Azure Key Vault, GCP KMS, HashiCorp Vault
-- **Cross-Cloud Training**: Secure training execution across multiple cloud environments
-- **Enhanced Security**: Cross-cloud security isolation and verification
-- **Model Governance**: Comprehensive model auditing and explainability
-
-### Technical Improvements
-- **Multi-Cloud Support**: AWS, Azure, GCP, and on-premises infrastructure
-- **Provenance Tracking**: Merkle tree provenance capture and verification
-- **KMS Adapter Pattern**: Abstract different KMS providers
-- **Storage Gateway**: Unified access to different storage systems
-- **Cross-Cloud Consistency**: Verify consistency across multiple cloud environments
-- **Enhanced Compliance**: Support for DPDP 2023, GDPR, HIPAA across clouds
-
-### Previous Features
-- **Multi-TDP Contract Support**: Up to 3 datasets from different TDPs
-- **Download Functionality**: Complete contract and legal document downloads
-- **Enhanced UI**: Clear button labels and comprehensive data display
-- **Ricardian Contract Details**: Full display of legal and technical parameters
-- **Payment Tracking**: Individual payment status per TDP
-- **Real-time Status**: Live updates on contract progress 
+**Note**: This system now exclusively supports **Ricardian contracts** for all contract creation. Plain contracts have been deprecated and removed from the system. 
