@@ -69,22 +69,69 @@ This document provides a comprehensive UML 4+1 View Architecture for the Contrac
 
 ```mermaid
 graph TD
-    TDP -- Register/Onboard --> REG[Registration Service]
-    TDC -- Register/Onboard --> REG
-    CCRP -- Register/Onboard --> REG
-    TDP -- Manage Datasets --> DS[Dataset Service]
-    TDP -- Manage Models --> MS[Model Service]
-    TDC -- Create Contract --> CS[Contract Service]
-    TDP -- Sign Contract --> CS
-    CCRP -- Sign Contract --> CS
-    TDC -- Sign Contract --> CS
-    All -- Verify Contract --> CS
-    All -- Notifications --> NS[Notification Service]
-    AppAdmin -- Administer --> ADM[Admin Service]
-    All -- Authenticate --> IAM[Keycloak IAM]
-    CS -- Record/Verify --> BC[Blockchain]
-    All -- Audit Trail --> AUD[Audit Service]
-    CCRP -- Monitor Usage --> MON[Monitoring Service]
+    %% Actors (stick figures in UML)
+    TDP((TDP))
+    TDC((TDC))
+    CCRP((CCRP))
+    AppAdmin((AppAdmin))
+    
+    %% Use Cases (ovals in UML)
+    UC1[Register/Onboard]
+    UC2[Manage Datasets]
+    UC3[Manage Models]
+    UC4[Create Contract]
+    UC5[Sign Contract]
+    UC6[Verify Contract]
+    UC7[Authenticate]
+    UC8[Administer System]
+    UC9[Monitor Usage]
+    UC10[Generate Notifications]
+    UC11[Create Audit Trail]
+    UC12[Record on Blockchain]
+    
+    %% System Boundary
+    subgraph System["Contract Management System"]
+        UC1
+        UC2
+        UC3
+        UC4
+        UC5
+        UC6
+        UC7
+        UC8
+        UC9
+        UC10
+        UC11
+        UC12
+    end
+    
+    %% Actor to Use Case Associations
+    TDP --> UC1
+    TDC --> UC1
+    CCRP --> UC1
+    TDP --> UC2
+    TDP --> UC3
+    TDC --> UC4
+    TDP --> UC5
+    TDC --> UC5
+    CCRP --> UC5
+    TDP --> UC6
+    TDC --> UC6
+    CCRP --> UC6
+    TDP --> UC7
+    TDC --> UC7
+    CCRP --> UC7
+    AppAdmin --> UC7
+    AppAdmin --> UC8
+    CCRP --> UC9
+    
+    %% Include/Extend Relationships
+    UC4 -.->|include| UC7
+    UC5 -.->|include| UC7
+    UC5 -.->|extend| UC10
+    UC5 -.->|extend| UC11
+    UC5 -.->|extend| UC12
+    UC9 -.->|extend| UC11
 ```
 
 ### 2.4 Key Scenarios
@@ -138,6 +185,8 @@ classDiagram
       +API Calls
       +Dashboards
     }
+    
+    %% Backend Services arranged vertically
     class AuthService
     class UserService
     class DIDService
@@ -148,11 +197,14 @@ classDiagram
     class NotificationService
     class AuditService
     class AdminService
+    
+    %% External Services
     class KeycloakIAM
     class BlockchainService
     class Database
     class MonitoringService
 
+    %% Frontend connections to services
     Frontend --> AuthService
     Frontend --> UserService
     Frontend --> DIDService
@@ -163,6 +215,7 @@ classDiagram
     Frontend --> AuditService
     Frontend --> AdminService
 
+    %% Service dependencies arranged vertically
     AuthService --> KeycloakIAM
     UserService --> Database
     DIDService --> Database
@@ -303,23 +356,20 @@ graph TD
 - `frontend/src/pages/dashboards/CCRPDashboard.js`
 - `backend/routes/ccrp.js`
 
-### 5.2 Comprehensive Sequence Diagram: Contract Signing
+### 5.2 Contract Signing Process - Phased Sequence Diagrams
+
+#### 5.2.1 Phase 1: Contract Creation by TDC
 
 ```mermaid
 sequenceDiagram
     participant TDC as TDC User
-    participant TDP as TDP User
-    participant CCRP as CCRP User
     participant FE as Frontend
     participant BE as Backend
     participant KC as Keycloak
     participant DB as Database
-    participant BC as Blockchain
-    participant DID as DID Service
     participant NS as Notification Service
     participant AUD as Audit Service
 
-    %% Contract Creation by TDC
     TDC->>FE: Login & Navigate to Contract Creation
     FE->>BE: GET /api/auth/profile
     BE->>KC: Verify JWT Token
@@ -336,8 +386,22 @@ sequenceDiagram
     BE->>AUD: Log Contract Creation
     BE-->>FE: Contract Created Successfully
     FE-->>TDC: Show Contract Details
-    
-    %% TDP Signs Contract
+```
+
+#### 5.2.2 Phase 2: TDP Signs Contract (DID-based)
+
+```mermaid
+sequenceDiagram
+    participant TDP as TDP User
+    participant FE as Frontend
+    participant BE as Backend
+    participant KC as Keycloak
+    participant DB as Database
+    participant BC as Blockchain
+    participant DID as DID Service
+    participant NS as Notification Service
+    participant AUD as Audit Service
+
     TDP->>FE: Login & View Notifications
     FE->>BE: GET /api/notifications
     BE->>DB: Fetch User Notifications
@@ -355,7 +419,6 @@ sequenceDiagram
     TDP->>FE: Choose DID-based Signing
     FE->>FE: Generate Signing Message
     Note over FE: "Sign contract CONTRACT-123 as TDP at 2024-01-01T00:00:00.000Z"
-    
     FE->>FE: ES256Signer.signMessage(message, privateJwk)
     FE->>FE: Create Signature (base64url)
     FE->>BE: POST /api/contracts/:contractId/sign
@@ -378,8 +441,21 @@ sequenceDiagram
     BE->>AUD: Log TDP Signature
     BE-->>FE: Signature Recorded Successfully
     FE-->>TDP: Show Success Message
-    
-    %% TDC Signs Contract
+```
+
+#### 5.2.3 Phase 3: TDC Signs Contract (Wallet-based)
+
+```mermaid
+sequenceDiagram
+    participant TDC as TDC User
+    participant FE as Frontend
+    participant BE as Backend
+    participant KC as Keycloak
+    participant DB as Database
+    participant BC as Blockchain
+    participant NS as Notification Service
+    participant AUD as Audit Service
+
     TDC->>FE: Login & View Updated Contract
     FE->>BE: GET /api/contracts/:contractId
     BE->>DB: Fetch Updated Contract
@@ -404,8 +480,22 @@ sequenceDiagram
     BE->>AUD: Log TDC Signature
     BE-->>FE: Signature Recorded Successfully
     FE-->>TDC: Show Success Message
-    
-    %% CCRP Signs Contract
+```
+
+#### 5.2.4 Phase 4: CCRP Signs Contract (DID-based)
+
+```mermaid
+sequenceDiagram
+    participant CCRP as CCRP User
+    participant FE as Frontend
+    participant BE as Backend
+    participant KC as Keycloak
+    participant DB as Database
+    participant BC as Blockchain
+    participant DID as DID Service
+    participant NS as Notification Service
+    participant AUD as Audit Service
+
     CCRP->>FE: Login & View Contract
     FE->>BE: GET /api/contracts/:contractId
     BE->>DB: Fetch Contract with All Signatures
@@ -433,13 +523,171 @@ sequenceDiagram
     BE->>AUD: Log Contract Completion
     BE-->>FE: Contract Fully Signed
     FE-->>CCRP: Show Success Message
-    
-    %% Contract Execution
+```
+
+#### 5.2.5 Phase 5: Contract Execution
+
+```mermaid
+sequenceDiagram
+    participant BE as Backend
+    participant BC as Blockchain
+    participant NS as Notification Service
+    participant AUD as Audit Service
+    participant DB as Database
+
     BE->>BC: Trigger Contract Execution
     BC-->>BE: Execution Started
     BE->>NS: Notify All Parties of Execution
     BE->>AUD: Log Contract Execution
     BE->>DB: Update Contract Status to "EXECUTING"
+```
+
+### 5.3 Contract Signing Activity Diagram (Swim Lanes)
+
+```mermaid
+graph TB
+    subgraph TDC_Lane["TDC Lane"]
+        TDC_Start([Start])
+        TDC_Login[Login to System]
+        TDC_Create[Create Contract]
+        TDC_Fill[Fill Contract Details]
+        TDC_Submit[Submit Contract]
+        TDC_Wait[Wait for Signatures]
+        TDC_Sign[Sign with Wallet]
+        TDC_Complete[Contract Complete]
+    end
+    
+    subgraph TDP_Lane["TDP Lane"]
+        TDP_Start([Start])
+        TDP_Login[Login to System]
+        TDP_Notify[Receive Notification]
+        TDP_Review[Review Contract]
+        TDP_Sign[Sign with DID]
+        TDP_Complete[Signature Complete]
+    end
+    
+    subgraph CCRP_Lane["CCRP Lane"]
+        CCRP_Start([Start])
+        CCRP_Login[Login to System]
+        CCRP_Notify[Receive Notification]
+        CCRP_Review[Review Contract]
+        CCRP_Compliance[Check Compliance]
+        CCRP_Sign[Sign with DID]
+        CCRP_Complete[Signature Complete]
+    end
+    
+    subgraph System_Lane["System Lane"]
+        SYS_Validate[Validate Contract]
+        SYS_Notify[Send Notifications]
+        SYS_Record[Record Signatures]
+        SYS_Blockchain[Update Blockchain]
+        SYS_Execute[Execute Contract]
+        SYS_Audit[Log All Actions]
+    end
+    
+    %% Flow connections
+    TDC_Start --> TDC_Login
+    TDC_Login --> TDC_Create
+    TDC_Create --> TDC_Fill
+    TDC_Fill --> TDC_Submit
+    TDC_Submit --> SYS_Validate
+    SYS_Validate --> SYS_Notify
+    SYS_Notify --> TDP_Notify
+    SYS_Notify --> CCRP_Notify
+    
+    TDP_Start --> TDP_Login
+    TDP_Login --> TDP_Notify
+    TDP_Notify --> TDP_Review
+    TDP_Review --> TDP_Sign
+    TDP_Sign --> SYS_Record
+    SYS_Record --> SYS_Blockchain
+    SYS_Record --> SYS_Audit
+    SYS_Record --> TDP_Complete
+    
+    CCRP_Start --> CCRP_Login
+    CCRP_Login --> CCRP_Notify
+    CCRP_Notify --> CCRP_Review
+    CCRP_Review --> CCRP_Compliance
+    CCRP_Compliance --> CCRP_Sign
+    CCRP_Sign --> SYS_Record
+    SYS_Record --> CCRP_Complete
+    
+    TDP_Complete --> TDC_Wait
+    CCRP_Complete --> TDC_Wait
+    TDC_Wait --> TDC_Sign
+    TDC_Sign --> SYS_Record
+    SYS_Record --> TDC_Complete
+    TDC_Complete --> SYS_Execute
+    SYS_Execute --> SYS_Audit
+```
+
+### 5.4 Contract State Diagram
+
+```mermaid
+stateDiagram-v2
+    [*] --> Draft : TDC Creates Contract
+    
+    Draft --> PendingTDP : Contract Submitted
+    Draft --> Draft : Edit Contract
+    
+    PendingTDP --> PendingTDC : TDP Signs
+    PendingTDP --> PendingTDP : TDP Reviews
+    PendingTDP --> Rejected : TDP Rejects
+    
+    PendingTDC --> PendingCCRP : TDC Signs
+    PendingTDC --> PendingTDC : TDC Reviews
+    PendingTDC --> Rejected : TDC Rejects
+    
+    PendingCCRP --> Signed : CCRP Signs
+    PendingCCRP --> PendingCCRP : CCRP Reviews
+    PendingCCRP --> Rejected : CCRP Rejects
+    
+    Signed --> Executing : System Triggers Execution
+    Signed --> Completed : Manual Completion
+    
+    Executing --> Completed : Execution Finished
+    Executing --> Failed : Execution Failed
+    
+    Rejected --> Draft : TDC Resubmits
+    Failed --> Draft : TDC Resubmits
+    
+    Completed --> [*]
+    Rejected --> [*]
+    
+    note right of Draft
+        Contract created by TDC
+        Awaiting TDP signature
+    end note
+    
+    note right of PendingTDP
+        TDP reviewing contract
+        Can sign or reject
+    end note
+    
+    note right of PendingTDC
+        TDC reviewing contract
+        Can sign or reject
+    end note
+    
+    note right of PendingCCRP
+        CCRP reviewing contract
+        Can sign or reject
+    end note
+    
+    note right of Signed
+        All parties signed
+        Ready for execution
+    end note
+    
+    note right of Executing
+        Contract being executed
+        Training environment active
+    end note
+    
+    note right of Completed
+        Contract fulfilled
+        All obligations met
+    end note
 ```
 
 ---
@@ -448,82 +696,78 @@ sequenceDiagram
 
 ### 6.1 Deployment/Infrastructure
 
-#### Production Deployment Architecture
+#### 6.1.1 High-Level Architecture Overview
 
 ```mermaid
 graph TB
     subgraph "Internet"
-        CDN[Cloud CDN / Load Balancer]
+        Users[End Users]
+        CDN[Cloud CDN]
     end
     
-    subgraph "Cloud Infrastructure (AWS/GCP/Azure)"
-        subgraph "Frontend Layer"
-            FE1[Frontend Container 1]
-            FE2[Frontend Container 2]
-            FE3[Frontend Container 3]
-            Nginx[Nginx Reverse Proxy]
-        end
-        
-        subgraph "Backend Layer"
-            BE1[Backend Container 1]
-            BE2[Backend Container 2]
-            BE3[Backend Container 3]
-            BE4[Backend Container 4]
+    subgraph "Cloud Infrastructure"
+        subgraph "Application Layer"
+            Frontend[Frontend Containers]
+            Backend[Backend Containers]
             API_GW[API Gateway]
         end
         
-        subgraph "Database Layer"
-            DB_MASTER[(PostgreSQL Master)]
-            DB_REPLICA1[(PostgreSQL Replica 1)]
-            DB_REPLICA2[(PostgreSQL Replica 2)]
-            Redis[Redis Cache Cluster]
-        end
-        
-        subgraph "IAM Layer"
-            KC1[Keycloak Container 1]
-            KC2[Keycloak Container 2]
-            KC_DB[(Keycloak Database)]
-        end
-        
-        subgraph "Blockchain Layer"
-            ETH_NODE[Ethereum Node]
-            BC_MONITOR[Blockchain Monitor]
-        end
-        
-        subgraph "Monitoring Layer"
-            Prometheus[Prometheus]
-            Grafana[Grafana]
-            ELK[ELK Stack]
-            AlertManager[Alert Manager]
+        subgraph "Data Layer"
+            Database[(PostgreSQL)]
+            Cache[(Redis)]
+            Storage[Object Storage]
         end
         
         subgraph "Security Layer"
-            WAF[Web Application Firewall]
-            VPN[VPN Gateway]
-            HSM[Hardware Security Module]
-            KMS[Key Management Service]
+            IAM[Keycloak IAM]
+            Security[WAF + VPN]
         end
         
-        subgraph "Storage Layer"
-            S3[Object Storage]
-            Backup[Backup Storage]
-            Logs[Log Storage]
+        subgraph "External Services"
+            Blockchain[Ethereum Node]
+            Monitoring[Monitoring Stack]
         end
     end
     
-    %% External Services
-    subgraph "External Services"
-        Email[Email Service]
-        SMS[SMS Service]
-        Audit[External Audit Service]
+    Users --> CDN
+    CDN --> Frontend
+    Frontend --> API_GW
+    API_GW --> Backend
+    Backend --> Database
+    Backend --> Cache
+    Backend --> IAM
+    Backend --> Blockchain
+    Backend --> Monitoring
+```
+
+#### 6.1.2 Application Layer Detail
+
+```mermaid
+graph TB
+    subgraph "Load Balancer"
+        LB[NGINX Load Balancer]
     end
     
-    %% Connections
-    CDN --> WAF
-    WAF --> Nginx
-    Nginx --> FE1
-    Nginx --> FE2
-    Nginx --> FE3
+    subgraph "Frontend Tier"
+        FE1[Frontend Container 1]
+        FE2[Frontend Container 2]
+        FE3[Frontend Container 3]
+    end
+    
+    subgraph "Backend Tier"
+        BE1[Backend Container 1]
+        BE2[Backend Container 2]
+        BE3[Backend Container 3]
+        BE4[Backend Container 4]
+    end
+    
+    subgraph "API Gateway"
+        API_GW[API Gateway]
+    end
+    
+    LB --> FE1
+    LB --> FE2
+    LB --> FE3
     
     FE1 --> API_GW
     FE2 --> API_GW
@@ -533,6 +777,34 @@ graph TB
     API_GW --> BE2
     API_GW --> BE3
     API_GW --> BE4
+```
+
+#### 6.1.3 Data Layer Architecture
+
+```mermaid
+graph TB
+    subgraph "Backend Containers"
+        BE1[Backend 1]
+        BE2[Backend 2]
+        BE3[Backend 3]
+        BE4[Backend 4]
+    end
+    
+    subgraph "Database Cluster"
+        DB_MASTER[(PostgreSQL Master)]
+        DB_REPLICA1[(PostgreSQL Replica 1)]
+        DB_REPLICA2[(PostgreSQL Replica 2)]
+    end
+    
+    subgraph "Cache Layer"
+        Redis1[(Redis Primary)]
+        Redis2[(Redis Replica)]
+    end
+    
+    subgraph "Storage Layer"
+        S3[Object Storage]
+        Backup[Backup Storage]
+    end
     
     BE1 --> DB_MASTER
     BE2 --> DB_MASTER
@@ -542,10 +814,45 @@ graph TB
     DB_MASTER --> DB_REPLICA1
     DB_MASTER --> DB_REPLICA2
     
-    BE1 --> Redis
-    BE2 --> Redis
-    BE3 --> Redis
-    BE4 --> Redis
+    BE1 --> Redis1
+    BE2 --> Redis1
+    BE3 --> Redis1
+    BE4 --> Redis1
+    
+    Redis1 --> Redis2
+    
+    BE1 --> S3
+    BE2 --> S3
+    BE3 --> S3
+    BE4 --> S3
+    
+    DB_MASTER --> Backup
+    S3 --> Backup
+```
+
+#### 6.1.4 Security & Identity Layer
+
+```mermaid
+graph TB
+    subgraph "Backend Containers"
+        BE1[Backend 1]
+        BE2[Backend 2]
+        BE3[Backend 3]
+        BE4[Backend 4]
+    end
+    
+    subgraph "Identity Management"
+        KC1[Keycloak Container 1]
+        KC2[Keycloak Container 2]
+        KC_DB[(Keycloak Database)]
+    end
+    
+    subgraph "Security Services"
+        WAF[Web Application Firewall]
+        VPN[VPN Gateway]
+        HSM[Hardware Security Module]
+        KMS[Key Management Service]
+    end
     
     BE1 --> KC1
     BE2 --> KC2
@@ -555,12 +862,53 @@ graph TB
     KC1 --> KC_DB
     KC2 --> KC_DB
     
-    BE1 --> ETH_NODE
-    BE2 --> ETH_NODE
-    BE3 --> ETH_NODE
-    BE4 --> ETH_NODE
+    BE1 --> HSM
+    BE2 --> HSM
+    BE3 --> HSM
+    BE4 --> HSM
     
-    ETH_NODE --> BC_MONITOR
+    BE1 --> KMS
+    BE2 --> KMS
+    BE3 --> KMS
+    BE4 --> KMS
+    
+    WAF --> BE1
+    WAF --> BE2
+    WAF --> BE3
+    WAF --> BE4
+    
+    VPN --> HSM
+    VPN --> KMS
+```
+
+#### 6.1.5 Monitoring & External Services
+
+```mermaid
+graph TB
+    subgraph "Backend Containers"
+        BE1[Backend 1]
+        BE2[Backend 2]
+        BE3[Backend 3]
+        BE4[Backend 4]
+    end
+    
+    subgraph "Monitoring Stack"
+        Prometheus[Prometheus]
+        Grafana[Grafana]
+        AlertManager[Alert Manager]
+        ELK[ELK Stack]
+    end
+    
+    subgraph "Blockchain Services"
+        ETH_NODE[Ethereum Node]
+        BC_MONITOR[Blockchain Monitor]
+    end
+    
+    subgraph "External Services"
+        Email[Email Service]
+        SMS[SMS Service]
+        Audit[External Audit]
+    end
     
     BE1 --> Prometheus
     BE2 --> Prometheus
@@ -575,20 +923,12 @@ graph TB
     BE3 --> ELK
     BE4 --> ELK
     
-    BE1 --> HSM
-    BE2 --> HSM
-    BE3 --> HSM
-    BE4 --> HSM
+    BE1 --> ETH_NODE
+    BE2 --> ETH_NODE
+    BE3 --> ETH_NODE
+    BE4 --> ETH_NODE
     
-    BE1 --> KMS
-    BE2 --> KMS
-    BE3 --> KMS
-    BE4 --> KMS
-    
-    BE1 --> S3
-    BE2 --> S3
-    BE3 --> S3
-    BE4 --> S3
+    ETH_NODE --> BC_MONITOR
     
     BE1 --> Email
     BE2 --> Email
@@ -604,24 +944,6 @@ graph TB
     BE2 --> Audit
     BE3 --> Audit
     BE4 --> Audit
-    
-    %% Security Connections
-    VPN --> HSM
-    VPN --> KMS
-    
-    %% Backup Connections
-    DB_MASTER --> Backup
-    KC_DB --> Backup
-    S3 --> Backup
-    
-    %% Logging Connections
-    BE1 --> Logs
-    BE2 --> Logs
-    BE3 --> Logs
-    BE4 --> Logs
-    KC1 --> Logs
-    KC2 --> Logs
-    ETH_NODE --> Logs
 ```
 
 ### 6.2 Deployment Configuration
@@ -994,16 +1316,17 @@ classDiagram
     SigningModal --> APIService
     
     %% Backend Relationships
-    User ||--o{ Contract : creates
-    User ||--o{ Dataset : owns
-    User ||--o{ AIModel : owns
-    User ||--o{ Notification : receives
-    User ||--o{ AuditLog : generates
+    User ||--o{ Contract : "creates"
+    User ||--o{ Dataset : "owns"
+    User ||--o{ AIModel : "owns"
+    User ||--o{ Notification : "receives"
+    User ||--o{ AuditLog : "generates"
     
-    Contract ||--o{ Dataset : references
-    Contract ||--o{ AIModel : references
-    Contract ||--o{ Notification : triggers
+    Contract ||--o{ Dataset : "references"
+    Contract ||--o{ AIModel : "references"
+    Contract ||--o{ Notification : "triggers"
     
+    %% Service Relationships
     AuthService --> User
     AuthService --> KeycloakService
     ContractService --> Contract
