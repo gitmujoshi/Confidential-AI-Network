@@ -18,7 +18,7 @@
  */
 
 const { Contract, User, Dataset, AIModel } = require('../models');
-const { NotificationService } = require('./index');
+const NotificationService = require('./notificationService');
 const notificationService = new NotificationService();
 
 class ContractService {
