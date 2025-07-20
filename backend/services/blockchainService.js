@@ -457,11 +457,11 @@ class BlockchainService {
 
   getContractStatusString(statusEnum) {
     const statuses = [
-      'PENDING_TDP_APPROVAL',
-      'PENDING_CCRP_APPROVAL',
-      'ACTIVE',
+      'PENDING_TDP',
+      'PENDING_CCRP',
+      'SIGNED',
       'COMPLETED',
-      'CANCELLED'
+      'REJECTED'
     ];
     return statuses[statusEnum] || 'UNKNOWN';
   }

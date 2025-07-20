@@ -1,4 +1,4 @@
-const BlockchainService = require('../services/blockchainService');
+const BlockchainService = require('../../services/blockchainService');
 
 describe('BlockchainService Simple Tests', () => {
   let blockchainService;

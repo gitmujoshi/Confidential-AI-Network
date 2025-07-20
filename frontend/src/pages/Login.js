@@ -19,7 +19,7 @@ import { LockOutlined, ExpandMore, Code } from '@mui/icons-material';
 
 const Login = () => {
   const navigate = useNavigate();
-  const { setUser, checkTokenAuth } = useUser();
+  const { setUser, checkTokenAuth, clearAuthData } = useUser();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -33,6 +33,15 @@ const Login = () => {
 
   // Check if user is already logged in
   useEffect(() => {
+    // Clear any stale authentication data immediately when Login component mounts
+    console.log('🧹 [Login] Clearing stale authentication data on mount...');
+    localStorage.removeItem('authToken');
+    localStorage.removeItem('refreshToken');
+    localStorage.removeItem('user');
+    localStorage.removeItem('currentUser');
+    sessionStorage.clear();
+    
+    // Then check for valid token authentication
     checkTokenAuth();
   }, [checkTokenAuth]);
 
@@ -81,6 +90,14 @@ const Login = () => {
       setLoading(true);
       setError('');
 
+      // Clear any stale authentication data before login
+      console.log('🧹 Clearing stale authentication data...');
+      localStorage.removeItem('authToken');
+      localStorage.removeItem('refreshToken');
+      localStorage.removeItem('user');
+      localStorage.removeItem('currentUser');
+      sessionStorage.clear();
+
       const response = await apiService.login({
         email: formData.email,
         password: formData.password
@@ -96,7 +113,8 @@ const Login = () => {
         
         // Get complete user profile with partyType and other fields
         try {
-          const profileResponse = await apiService.get('/api/auth/profile');
+          // Add cache-busting parameter to ensure fresh data
+          const profileResponse = await apiService.get('/api/auth/profile?_t=' + Date.now());
           const completeUser = profileResponse.data.user;
           setUser(completeUser);
           console.log('✅ Login successful with complete user data:', completeUser);

@@ -8,10 +8,10 @@
  * 4. Transaction consistency
  */
 
-const db = require('../models');
+const db = require('../../models');
 
 // Mock KeycloakService to avoid constructor issues
-jest.mock('../services/***REMOVED-KEYCLOAK_DB_PASSWORD***Service', () => {
+jest.mock('../../services/***REMOVED-KEYCLOAK_DB_PASSWORD***Service', () => {
   return jest.fn().mockImplementation(() => ({
     createUser: jest.fn().mockResolvedValue({ ***REMOVED-KEYCLOAK_DB_PASSWORD***UserId: 'mock-user-id' }),
     updateUser: jest.fn(),

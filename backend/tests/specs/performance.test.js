@@ -1,6 +1,6 @@
 const request = require('supertest');
-const { User, Contract, Dataset, Notification } = require('../models');
-const { sequelize } = require('../models');
+const { User, Contract, Dataset, Notification } = require('../../models');
+const { sequelize } = require('../../models');
 const jwt = require('jsonwebtoken');
 
 // Import app

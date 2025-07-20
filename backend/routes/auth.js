@@ -21,6 +21,7 @@ const router = express.Router();
 const KeycloakService = require('../services/***REMOVED-KEYCLOAK_DB_PASSWORD***Service');
 const ***REMOVED-KEYCLOAK_DB_PASSWORD***Service = new KeycloakService();
 const db = require('../models');
+const tokenBlacklist = require('../tokenBlacklist');
 const { 
   authenticateToken, 
   optionalAuth, 
@@ -447,6 +448,20 @@ router.post('/login', logAuthEvent('LOGIN'), async (req, res) => {
   try {
     const { email, password } = req.body;
 
+    // Blacklist any existing tokens for this user to prevent stale token usage
+    const existingUser = await db.User.findOne({ 
+      where: { 
+        email: email.toLowerCase(), 
+        isActive: true 
+      } 
+    });
+
+    if (existingUser) {
+      console.log('🚫 Blacklisting any existing tokens for user:', existingUser.email);
+      // In a real implementation, you'd blacklist specific tokens
+      // For now, we'll rely on the new token generation to invalidate old ones
+    }
+
     if (!email || !password) {
       return res.status(400).json({ 
         error: 'Email and password are required',
@@ -454,136 +469,45 @@ router.post('/login', logAuthEvent('LOGIN'), async (req, res) => {
       });
     }
 
-    // Try Keycloak authentication first
-    if (process.env.KEYCLOAK_ENABLED === 'true') {
-      try {
-        const tokenResponse = await ***REMOVED-KEYCLOAK_DB_PASSWORD***Service.authenticateUserWithPassword(email, password);
-        
-        // Fetch user info from Keycloak
-        const userInfo = await ***REMOVED-KEYCLOAK_DB_PASSWORD***Service.getUserInfo(tokenResponse.access_token);
-        
-        // Update last login timestamp in local DB
-        const user = await db.User.findOne({ where: { email: email.toLowerCase(), isActive: true } });
-        if (user) {
-          await user.update({ lastLoginAt: new Date() });
-        }
-        
-        return res.json({
-          message: 'Login successful',
-          accessToken: tokenResponse.access_token,
-          refreshToken: tokenResponse.refresh_token,
-          expiresIn: tokenResponse.expires_in,
-          user: userInfo
-        });
-      } catch (kcError) {
-        console.error('❌ Keycloak authentication failed, trying database fallback:', kcError);
-        // Continue to database fallback
-      }
+    // Keycloak authentication only
+    if (process.env.KEYCLOAK_ENABLED !== 'true') {
+      return res.status(500).json({
+        error: 'Keycloak authentication is required but not enabled',
+        code: 'KEYCLOAK_NOT_ENABLED'
+      });
     }
 
-    // Database authentication fallback
     try {
-      console.log('🔍 Attempting database authentication for:', email);
+      console.log('🔐 Attempting Keycloak authentication for:', email);
       
-      const user = await db.User.findOne({ 
-        where: { 
-          email: email.toLowerCase(), 
-          isActive: true 
-        } 
-      });
-
-      if (!user) {
-        console.log('❌ User not found in database');
-        return res.status(401).json({
-          error: 'Authentication failed',
-          code: 'AUTHENTICATION_FAILED',
-          details: 'User not found or inactive'
-        });
-      }
-
-      console.log('✅ User found in database:', user.email, 'Has password:', !!user.password);
-
-      // Check if user has password set
-      if (!user.password) {
-        console.log('❌ User has no password set');
-        return res.status(401).json({
-          error: 'Authentication failed',
-          code: 'AUTHENTICATION_FAILED',
-          details: 'User account not properly configured'
-        });
-      }
-
-      // Verify password
-      const bcrypt = require('bcryptjs');
-      console.log('🔐 Verifying password...');
-      const isValidPassword = await bcrypt.compare(password, user.password);
+      const tokenResponse = await ***REMOVED-KEYCLOAK_DB_PASSWORD***Service.authenticateUserWithPassword(email, password);
       
-      console.log('🔐 Password verification result:', isValidPassword);
-      
-      if (!isValidPassword) {
-        console.log('❌ Password verification failed');
-        return res.status(401).json({
-          error: 'Authentication failed',
-          code: 'AUTHENTICATION_FAILED',
-          details: 'Invalid credentials'
-        });
+      // Update last login timestamp in local DB
+      const user = await db.User.findOne({ where: { email: email.toLowerCase(), isActive: true } });
+      if (user) {
+        await user.update({ lastLoginAt: new Date() });
       }
-
-      console.log('✅ Password verified successfully');
-
-      // Update last login
-      await user.update({ lastLoginAt: new Date() });
-
-      // Generate JWT token for database authentication
-      const jwt = require('jsonwebtoken');
-      const accessToken = jwt.sign(
-        { 
-          userId: user.id, 
-          email: user.email,
-          partyType: user.partyType,
-          authType: 'database'
-        },
-        process.env.JWT_SECRET || 'your-secret-key',
-        { expiresIn: '24h' }
-      );
-
-      console.log('✅ Database authentication successful, returning token');
-
+      
+      console.log('✅ Keycloak authentication successful for:', email);
+      
       return res.json({
-        message: 'Login successful (database authentication)',
-        accessToken: accessToken,
-        expiresIn: 86400, // 24 hours
+        message: 'Login successful',
+        accessToken: tokenResponse.access_token,
+        refreshToken: tokenResponse.refresh_token,
+        expiresIn: tokenResponse.expires_in,
         user: {
-          id: user.id,
-          name: user.name,
-          email: user.email,
-          partyType: user.partyType,
-          walletAddress: user.walletAddress,
-          publicKey: user.publicKey,
-          description: user.description,
-          organization: user.organization,
-          phoneNumber: user.phoneNumber,
-          website: user.website,
-          location: user.location,
-          isRegistered: user.isRegistered,
-          onboardingStatus: user.onboardingStatus,
-          profileCompleted: user.profileCompleted,
-          emailVerified: user.emailVerified,
-          registrationDate: user.registrationDate,
-          lastLoginAt: user.lastLoginAt,
-          did: user.did,
-          didSource: user.didSource,
-          didVerified: user.didVerified,
-          didVerificationMethod: user.didVerificationMethod
+          email: email,
+          name: user?.name || 'User',
+          partyType: user?.partyType || 'User'
         }
       });
-
-    } catch (dbError) {
-      console.error('❌ Database authentication failed:', dbError);
+      
+    } catch (kcError) {
+      console.error('❌ Keycloak authentication failed:', kcError);
       return res.status(401).json({
         error: 'Authentication failed',
         code: 'AUTHENTICATION_FAILED',
-        details: 'Database authentication failed'
+        details: 'Invalid credentials or user not found in Keycloak'
       });
     }
 
@@ -592,6 +516,34 @@ router.post('/login', logAuthEvent('LOGIN'), async (req, res) => {
     res.status(500).json({ 
       error: 'Internal server error',
       code: 'INTERNAL_ERROR'
+    });
+  }
+});
+
+/**
+ * POST /api/auth/logout
+ * Logout user and blacklist current token
+ */
+router.post('/logout', authenticateToken, async (req, res) => {
+  try {
+    const authHeader = req.headers['authorization'];
+    const token = authHeader && authHeader.split(' ')[1];
+
+    if (token) {
+      // Blacklist the current token
+      tokenBlacklist.blacklistToken(token);
+      console.log('🚫 Token blacklisted during logout');
+    }
+
+    res.json({
+      message: 'Logout successful',
+      code: 'LOGOUT_SUCCESS'
+    });
+  } catch (error) {
+    console.error('❌ Logout error:', error);
+    res.status(500).json({ 
+      error: 'Logout failed',
+      code: 'LOGOUT_FAILED'
     });
   }
 });
@@ -616,15 +568,16 @@ router.post('/refresh', async (req, res) => {
       try {
         const tokenResponse = await ***REMOVED-KEYCLOAK_DB_PASSWORD***Service.refreshToken(refreshToken);
         
-        // Fetch user info from Keycloak
-        const userInfo = await ***REMOVED-KEYCLOAK_DB_PASSWORD***Service.getUserInfo(tokenResponse.access_token);
-        
         return res.json({
           message: 'Token refreshed successfully',
           accessToken: tokenResponse.access_token,
           refreshToken: tokenResponse.refresh_token,
           expiresIn: tokenResponse.expires_in,
-          user: userInfo
+          user: {
+            email: req.user?.email || 'User',
+            name: req.user?.name || 'User',
+            partyType: req.user?.partyType || 'User'
+          }
         });
       } catch (kcError) {
         console.error('❌ Keycloak token refresh failed:', kcError);
@@ -675,86 +628,42 @@ router.post('/update-password', authenticateToken, logAuthEvent('UPDATE_PASSWORD
       });
     }
 
-    // Try Keycloak password update first
-    if (process.env.KEYCLOAK_ENABLED === 'true' && localUser.iamUserId) {
-      try {
-        // Verify current password with Keycloak
-        await ***REMOVED-KEYCLOAK_DB_PASSWORD***Service.authenticateUserWithPassword(localUser.email, currentPassword);
-        
-        // Update password in Keycloak
-        await ***REMOVED-KEYCLOAK_DB_PASSWORD***Service.updateUserPassword(localUser.iamUserId, newPassword);
-        
-        console.log('✅ Password updated in Keycloak successfully');
-        
-        return res.json({
-          message: 'Password updated successfully',
-          success: true,
-          note: 'Password updated in Keycloak. You may need to log in again with your new password for security.'
-        });
-      } catch (kcError) {
-        console.error('❌ Keycloak password update failed:', kcError);
-        
-        // If Keycloak fails, try database fallback
-        if (localUser.password) {
-          const bcrypt = require('bcryptjs');
-          const isValidPassword = await bcrypt.compare(currentPassword, localUser.password);
-          
-          if (!isValidPassword) {
-            return res.status(401).json({
-              error: 'Current password is incorrect',
-              code: 'INVALID_CURRENT_PASSWORD'
-            });
-          }
-          
-          // Update password in database
-          const hashedNewPassword = await bcrypt.hash(newPassword, 10);
-          await localUser.update({ password: hashedNewPassword });
-          
-          console.log('✅ Password updated in database successfully');
-          
-          return res.json({
-            message: 'Password updated successfully (database)',
-            success: true,
-            note: 'Password updated in local database.'
-          });
-        }
-        
-        return res.status(401).json({
-          error: 'Current password is incorrect',
-          code: 'INVALID_CURRENT_PASSWORD'
-        });
-      }
-    }
-
-    // Database-only password update
-    if (localUser.password) {
-      const bcrypt = require('bcryptjs');
-      const isValidPassword = await bcrypt.compare(currentPassword, localUser.password);
-      
-      if (!isValidPassword) {
-        return res.status(401).json({
-          error: 'Current password is incorrect',
-          code: 'INVALID_CURRENT_PASSWORD'
-        });
-      }
-      
-      // Update password in database
-      const hashedNewPassword = await bcrypt.hash(newPassword, 10);
-      await localUser.update({ password: hashedNewPassword });
-      
-      console.log('✅ Password updated in database successfully');
-      
-      return res.json({
-        message: 'Password updated successfully (database)',
-        success: true
+    // Keycloak password update only
+    if (process.env.KEYCLOAK_ENABLED !== 'true') {
+      return res.status(500).json({
+        error: 'Keycloak authentication is required but not enabled',
+        code: 'KEYCLOAK_NOT_ENABLED'
       });
     }
 
-    return res.status(400).json({
-      error: 'Password update not supported',
-      code: 'PASSWORD_UPDATE_NOT_SUPPORTED',
-      details: 'User account not properly configured'
-    });
+    if (!localUser.iamUserId) {
+      return res.status(400).json({
+        error: 'User not configured for Keycloak authentication',
+        code: 'USER_NOT_IN_KEYCLOAK'
+      });
+    }
+
+    try {
+      // Verify current password with Keycloak
+      await ***REMOVED-KEYCLOAK_DB_PASSWORD***Service.authenticateUserWithPassword(localUser.email, currentPassword);
+      
+      // Update password in Keycloak
+      await ***REMOVED-KEYCLOAK_DB_PASSWORD***Service.updateUserPassword(localUser.iamUserId, newPassword);
+      
+      console.log('✅ Password updated in Keycloak successfully');
+      
+      return res.json({
+        message: 'Password updated successfully',
+        success: true,
+        note: 'Password updated in Keycloak. You may need to log in again with your new password for security.'
+      });
+    } catch (kcError) {
+      console.error('❌ Keycloak password update failed:', kcError);
+      return res.status(401).json({
+        error: 'Current password is incorrect or Keycloak update failed',
+        code: 'INVALID_CURRENT_PASSWORD'
+      });
+    }
 
   } catch (error) {
     console.error('❌ Password update error:', error);

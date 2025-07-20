@@ -53,8 +53,8 @@ import MultiCCRPSelector from '../components/MultiCCRPSelector';
 /**
  * CreateRicardianContract Component
  * 
- * This component allows TDC (Training Data Consumer) users to create Ricardian contracts.
- * Ricardian contracts combine human-readable legal documents with machine-executable smart contracts.
+ * This component allows TDC (Training Data Consumer) users to create contracts.
+ * Contracts combine human-readable legal documents with machine-executable smart contracts.
  * 
  * Features:
  * - Legal document generation based on contract type
@@ -72,7 +72,7 @@ import MultiCCRPSelector from '../components/MultiCCRPSelector';
  * 1. TDC selects contract type and dataset
  * 2. TDC configures contract parameters and environment specs
  * 3. TDC reviews legal document and smart contract details
- * 4. TDC creates Ricardian contract (TDP auto-signs)
+ * 4. TDC creates contract (TDP auto-signs)
  * 
  * Security:
  * - Wallet-based authentication required
@@ -81,12 +81,12 @@ import MultiCCRPSelector from '../components/MultiCCRPSelector';
  * - Cryptographic binding ensures integrity
  */
 
-// Stepper steps for Ricardian contract creation process
+// Stepper steps for contract creation process
 const steps = [
   'Select Contract Type & Datasets (1-3)',
   'Configure Contract & Environment',
   'Review Legal Document & Smart Contract',
-  'Create Ricardian Contract'
+  'Create Contract'
 ];
 
 function CreateRicardianContract() {
@@ -128,16 +128,177 @@ function CreateRicardianContract() {
       region: 'eastus'
     }
   });
+
+  // Add comprehensive training environment specifications
+  const [trainingEnvironment, setTrainingEnvironment] = useState({
+    ccrpPlatform: {
+      provider: '',
+      platform: 'PRIVATE_CLOUD',
+      infrastructure: {
+        compute: {
+          type: 'DEDICATED_SERVERS',
+          specifications: {
+            cpu: '64 cores (AMD EPYC 7763)',
+            memory: '512 GB DDR4 ECC',
+            gpu: '8x NVIDIA A100 (80GB each)',
+            storage: '10 TB NVMe SSD',
+            network: '100 Gbps dedicated'
+          },
+          isolation: 'PHYSICAL_SEPARATION',
+          location: 'ON_PREMISE_SECURE_FACILITY'
+        },
+        storage: {
+          type: 'ENCRYPTED_STORAGE',
+          encryption: 'AES-256-XTS',
+          keyManagement: 'HSM_PROTECTED',
+          backup: 'AIR_GAPPED_BACKUP',
+          redundancy: '3X_REPLICATION'
+        },
+        network: {
+          type: 'PRIVATE_NETWORK',
+          isolation: 'VPN_ONLY_ACCESS',
+          firewall: 'NEXT_GEN_FIREWALL',
+          monitoring: '24X7_SURVEILLANCE',
+          bandwidth: '100 Gbps dedicated'
+        }
+      },
+      security: {
+        authentication: {
+          method: 'MULTI_FACTOR_AUTH',
+          factors: ['SMART_CARD', 'BIOMETRIC', 'PIN'],
+          sessionTimeout: '4 hours',
+          maxAttempts: 3
+        },
+        authorization: {
+          model: 'ROLE_BASED_ACCESS',
+          roles: ['DATA_SCIENTIST', 'SYSTEM_ADMIN', 'AUDITOR'],
+          principle: 'LEAST_PRIVILEGE'
+        },
+        monitoring: {
+          logging: 'COMPREHENSIVE_AUDIT_LOG',
+          alerting: 'REAL_TIME_ALERTS',
+          analytics: 'BEHAVIOR_ANALYTICS',
+          retention: '7 years'
+        },
+        compliance: {
+          standards: ['ISO_27001', 'SOC_2', 'HIPAA', 'GDPR', 'DPDP_2023'],
+          certifications: ['FEDRAMP', 'HITRUST'],
+          audits: 'QUARTERLY_SECURITY_AUDITS'
+        }
+      }
+    },
+    trainingSpecifications: {
+      modelType: 'DIAGNOSTIC_AI_MODEL',
+      architecture: {
+        type: 'DEEP_LEARNING',
+        framework: 'TensorFlow 2.12',
+        model: 'Transformer-based classifier',
+        parameters: '500M parameters',
+        inputSize: '512x512x3 (medical images)',
+        outputClasses: 15
+      },
+      training: {
+        algorithm: 'Federated Learning',
+        privacyTechniques: [
+          'DIFFERENTIAL_PRIVACY',
+          'SECURE_MULTIPARTY_COMPUTATION',
+          'HOMOMORPHIC_ENCRYPTION'
+        ],
+        hyperparameters: {
+          learningRate: 0.001,
+          batchSize: 32,
+          epochs: 100,
+          optimizer: 'Adam',
+          lossFunction: 'Categorical Crossentropy'
+        },
+        validation: {
+          method: '5_FOLD_CROSS_VALIDATION',
+          metrics: ['Precision', 'Recall', 'F1-Score', 'AUC-ROC'],
+          targetAccuracy: 0.95
+        }
+      },
+      dataProcessing: {
+        preprocessing: [
+          'IMAGE_NORMALIZATION',
+          'DATA_AUGMENTATION',
+          'FEATURE_EXTRACTION'
+        ],
+        privacy: [
+          'DATA_ANONYMIZATION',
+          'K_ANONYMITY',
+          'DIFFERENTIAL_PRIVACY'
+        ],
+        quality: [
+          'DATA_VALIDATION',
+          'OUTLIER_DETECTION',
+          'MISSING_DATA_HANDLING'
+        ]
+      }
+    },
+    deployment: {
+      environment: 'ISOLATED_CONTAINER',
+      orchestration: 'Kubernetes',
+      scaling: 'AUTO_SCALING',
+      monitoring: 'PROMETHEUS_GRAFANA',
+      backup: 'AUTOMATED_BACKUP'
+    }
+  });
+
+  // Add compliance specifications
+  const [complianceSpecs, setComplianceSpecs] = useState({
+    regulations: [
+      {
+        name: 'DPDP_2023',
+        status: 'COMPLIANT',
+        requirements: [
+          'Data minimization implemented',
+          'Purpose limitation enforced',
+          'Retention period set to 90 days',
+          'Consent management in place',
+          'Data subject rights implemented'
+        ]
+      },
+      {
+        name: 'HIPAA',
+        status: 'COMPLIANT',
+        requirements: [
+          'PHI de-identification implemented',
+          'Access controls enforced',
+          'Audit logging maintained',
+          'Breach notification procedures',
+          'Business associate agreements'
+        ]
+      },
+      {
+        name: 'GDPR',
+        status: 'COMPLIANT',
+        requirements: [
+          'Right to erasure implemented',
+          'Data portability supported',
+          'Privacy by design applied',
+          'DPO contact information',
+          'Cross-border transfer safeguards'
+        ]
+      },
+      {
+        name: 'ISO_27001',
+        status: 'COMPLIANT',
+        requirements: [
+          'Information security management',
+          'Risk assessment completed',
+          'Security controls implemented',
+          'Regular security audits',
+          'Incident response procedures'
+        ]
+      }
+    ]
+  });
+
+  // Add training parameters state
   const [trainingParams, setTrainingParams] = useState({
-    modelType: 'transformer',
-    privacyTechnique: 'federated-learning',
-    validationMetrics: ['accuracy', 'f1-score', 'precision', 'recall'],
-    maxEpochs: 100,
-    batchSize: 32,
-    learningRate: 0.001,
-    // Add privacy parameters
     maxPrivacyLoss: 0.1,
-    minAccuracy: 0.95,
+    minAccuracy: 0.85,
+    maxTrainingRuns: 5, // Maximum number of training runs permitted
     differentialPrivacy: {
       enabled: true,
       epsilon: 0.1,
@@ -145,13 +306,10 @@ function CreateRicardianContract() {
     },
     federatedLearning: {
       enabled: true,
-      aggregationMethod: 'secure-aggregation',
       communicationRounds: 100
     },
     secureMultiPartyComputation: {
-      enabled: true,
-      protocol: 'shamir-secret-sharing',
-      threshold: 3
+      enabled: false
     }
   });
   const [legalDocument, setLegalDocument] = useState(null);
@@ -192,30 +350,37 @@ function CreateRicardianContract() {
       owner && self.findIndex(o => o.id === owner.id) === index
     );
 
-  // Ricardian contract creation mutation
+  // Contract creation mutation
   const createRicardianContractMutation = useMutation(
-    (data) => apiService.createContract(data), // Use regular contract creation for multi-TDP
+    (data) => apiService.createRicardianContract(data), // Use contract creation
     {
       onSuccess: (response) => {
         setContractCreationError(null);
         setCreatedContract(response);
         queryClient.invalidateQueries('contracts');
-        toast.success('Multi-TDP contract created successfully!');
-        // Don't navigate immediately, show the contract document first
+        toast.success('Contract created successfully!');
+        
+        // Navigate to the newly created contract detail page
+        if (response?.contract?.contractId) {
+          navigate(`/contracts/${response.contract.contractId}`);
+        } else {
+          // Fallback: Move to the next step to show the contract document
+          setActiveStep(activeStep + 1);
+        }
       },
       onError: (error) => {
-        console.error('Multi-TDP contract creation error:', error);
-        let errorMsg = 'Failed to create multi-TDP contract';
+        console.error('Contract creation error:', error);
+        let errorMsg = 'Failed to create contract';
         if (error?.response?.data?.error) {
           errorMsg = error.response.data.error;
-          if (error.response.data.stack) {
-            errorMsg += '\n' + error.response.data.stack;
+          if (error.response.data.details) {
+            errorMsg += '\n' + error.response.data.details;
           }
         } else if (error?.message) {
           errorMsg = error.message;
         }
         setContractCreationError(errorMsg);
-        toast.error('Failed to create multi-TDP contract');
+        toast.error('Failed to create contract');
       },
     }
   );
@@ -235,7 +400,7 @@ function CreateRicardianContract() {
     return (
       <Box sx={{ p: 3 }}>
         <Alert severity="error">
-          Only TDC (Training Data Consumer) users can create Ricardian contracts. 
+          Only TDC (Training Data Consumer) users can create contracts. 
           Your role is: {currentUser?.partyType}
         </Alert>
       </Box>
@@ -247,7 +412,7 @@ function CreateRicardianContract() {
     return (
       <Box sx={{ p: 3 }}>
         <Typography variant="h4" gutterBottom>
-          Create Ricardian Contract
+          Create Contract
         </Typography>
         <CircularProgress />
         <Typography variant="body1" sx={{ mt: 2 }}>
@@ -467,7 +632,17 @@ function CreateRicardianContract() {
         differentialPrivacy: trainingParams.differentialPrivacy,
         federatedLearning: trainingParams.federatedLearning,
         secureMultiPartyComputation: trainingParams.secureMultiPartyComputation
-      }
+      },
+      // Add comprehensive training environment specifications
+      trainingEnvironment,
+      // Add compliance specifications
+      complianceSpecs,
+      // Add AI model IDs if selected
+      aiModelIds: selectedAiModels.length > 0 ? selectedAiModels : null,
+      // Add environment specifications
+      environmentSpecs,
+      // Add training parameters
+      trainingParams
     };
 
     console.log('📝 Creating multi-TDP contract with payload:', contractPayload);
@@ -540,9 +715,9 @@ function CreateRicardianContract() {
                         onChange={(e) => setSelectedContractType(e.target.value)}
                         label="Contract Type"
                       >
-                        {supportedTypes.map((type) => (
-                          <MenuItem key={type} value={type}>
-                            {type.replace('_', ' ')}
+                        {(supportedTypes || []).map((type) => (
+                          <MenuItem key={type.id} value={type.id}>
+                            {type.name}
                           </MenuItem>
                         ))}
                       </Select>
@@ -551,7 +726,7 @@ function CreateRicardianContract() {
                     <Box sx={{ mt: 2 }}>
                       <Typography variant="body2" color="text.secondary">
                         <SecurityIcon sx={{ mr: 1, verticalAlign: 'middle' }} />
-                        Ricardian contracts combine human-readable legal documents with machine-executable smart contracts.
+                        Contracts combine human-readable legal documents with machine-executable smart contracts.
                       </Typography>
                     </Box>
                   </CardContent>
@@ -621,7 +796,7 @@ function CreateRicardianContract() {
                           </Box>
                         )}
                       >
-                        {aiModelsResponse?.models?.map((model) => (
+                        {(aiModelsResponse?.models || []).map((model) => (
                           <MenuItem key={model.id} value={model.id}>
                             <Checkbox checked={selectedAiModels.indexOf(model.id) > -1} />
                             <ListItemText 
@@ -1087,6 +1262,336 @@ function CreateRicardianContract() {
                   </CardContent>
                 </Card>
               </Grid>
+
+              {/* Training Environment Specifications */}
+              <Grid item xs={12}>
+                <Card>
+                  <CardContent>
+                    <Typography variant="h6" gutterBottom>
+                      Training Environment Specifications
+                    </Typography>
+                    
+                    <Accordion>
+                      <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                        <Typography variant="subtitle1">
+                          <StorageIcon sx={{ mr: 1 }} />
+                          Infrastructure Specifications
+                        </Typography>
+                      </AccordionSummary>
+                      <AccordionDetails>
+                        <Grid container spacing={2}>
+                          <Grid item xs={12} md={6}>
+                            <TextField
+                              fullWidth
+                              label="CPU Specification"
+                              value={trainingEnvironment.ccrpPlatform.infrastructure.compute.specifications.cpu}
+                              onChange={(e) => setTrainingEnvironment({
+                                ...trainingEnvironment,
+                                ccrpPlatform: {
+                                  ...trainingEnvironment.ccrpPlatform,
+                                  infrastructure: {
+                                    ...trainingEnvironment.ccrpPlatform.infrastructure,
+                                    compute: {
+                                      ...trainingEnvironment.ccrpPlatform.infrastructure.compute,
+                                      specifications: {
+                                        ...trainingEnvironment.ccrpPlatform.infrastructure.compute.specifications,
+                                        cpu: e.target.value
+                                      }
+                                    }
+                                  }
+                                }
+                              })}
+                              margin="normal"
+                            />
+                          </Grid>
+                          <Grid item xs={12} md={6}>
+                            <TextField
+                              fullWidth
+                              label="Memory Specification"
+                              value={trainingEnvironment.ccrpPlatform.infrastructure.compute.specifications.memory}
+                              onChange={(e) => setTrainingEnvironment({
+                                ...trainingEnvironment,
+                                ccrpPlatform: {
+                                  ...trainingEnvironment.ccrpPlatform,
+                                  infrastructure: {
+                                    ...trainingEnvironment.ccrpPlatform.infrastructure,
+                                    compute: {
+                                      ...trainingEnvironment.ccrpPlatform.infrastructure.compute,
+                                      specifications: {
+                                        ...trainingEnvironment.ccrpPlatform.infrastructure.compute.specifications,
+                                        memory: e.target.value
+                                      }
+                                    }
+                                  }
+                                }
+                              })}
+                              margin="normal"
+                            />
+                          </Grid>
+                          <Grid item xs={12} md={6}>
+                            <TextField
+                              fullWidth
+                              label="GPU Specification"
+                              value={trainingEnvironment.ccrpPlatform.infrastructure.compute.specifications.gpu}
+                              onChange={(e) => setTrainingEnvironment({
+                                ...trainingEnvironment,
+                                ccrpPlatform: {
+                                  ...trainingEnvironment.ccrpPlatform,
+                                  infrastructure: {
+                                    ...trainingEnvironment.ccrpPlatform.infrastructure,
+                                    compute: {
+                                      ...trainingEnvironment.ccrpPlatform.infrastructure.compute,
+                                      specifications: {
+                                        ...trainingEnvironment.ccrpPlatform.infrastructure.compute.specifications,
+                                        gpu: e.target.value
+                                      }
+                                    }
+                                  }
+                                }
+                              })}
+                              margin="normal"
+                            />
+                          </Grid>
+                          <Grid item xs={12} md={6}>
+                            <TextField
+                              fullWidth
+                              label="Storage Specification"
+                              value={trainingEnvironment.ccrpPlatform.infrastructure.compute.specifications.storage}
+                              onChange={(e) => setTrainingEnvironment({
+                                ...trainingEnvironment,
+                                ccrpPlatform: {
+                                  ...trainingEnvironment.ccrpPlatform,
+                                  infrastructure: {
+                                    ...trainingEnvironment.ccrpPlatform.infrastructure,
+                                    compute: {
+                                      ...trainingEnvironment.ccrpPlatform.infrastructure.compute,
+                                      specifications: {
+                                        ...trainingEnvironment.ccrpPlatform.infrastructure.compute.specifications,
+                                        storage: e.target.value
+                                      }
+                                    }
+                                  }
+                                }
+                              })}
+                              margin="normal"
+                            />
+                          </Grid>
+                        </Grid>
+                      </AccordionDetails>
+                    </Accordion>
+
+                    <Accordion>
+                      <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                        <Typography variant="subtitle1">
+                          <CodeIcon sx={{ mr: 1 }} />
+                          Training Specifications
+                        </Typography>
+                      </AccordionSummary>
+                      <AccordionDetails>
+                        <Grid container spacing={2}>
+                          <Grid item xs={12} md={6}>
+                            <TextField
+                              fullWidth
+                              label="Model Type"
+                              value={trainingEnvironment.trainingSpecifications.modelType}
+                              onChange={(e) => setTrainingEnvironment({
+                                ...trainingEnvironment,
+                                trainingSpecifications: {
+                                  ...trainingEnvironment.trainingSpecifications,
+                                  modelType: e.target.value
+                                }
+                              })}
+                              margin="normal"
+                            />
+                          </Grid>
+                          <Grid item xs={12} md={6}>
+                            <TextField
+                              fullWidth
+                              label="Framework"
+                              value={trainingEnvironment.trainingSpecifications.architecture.framework}
+                              onChange={(e) => setTrainingEnvironment({
+                                ...trainingEnvironment,
+                                trainingSpecifications: {
+                                  ...trainingEnvironment.trainingSpecifications,
+                                  architecture: {
+                                    ...trainingEnvironment.trainingSpecifications.architecture,
+                                    framework: e.target.value
+                                  }
+                                }
+                              })}
+                              margin="normal"
+                            />
+                          </Grid>
+                          <Grid item xs={12} md={6}>
+                            <TextField
+                              fullWidth
+                              label="Model Architecture"
+                              value={trainingEnvironment.trainingSpecifications.architecture.model}
+                              onChange={(e) => setTrainingEnvironment({
+                                ...trainingEnvironment,
+                                trainingSpecifications: {
+                                  ...trainingEnvironment.trainingSpecifications,
+                                  architecture: {
+                                    ...trainingEnvironment.trainingSpecifications.architecture,
+                                    model: e.target.value
+                                  }
+                                }
+                              })}
+                              margin="normal"
+                            />
+                          </Grid>
+                          <Grid item xs={12} md={6}>
+                            <TextField
+                              fullWidth
+                              label="Parameters"
+                              value={trainingEnvironment.trainingSpecifications.architecture.parameters}
+                              onChange={(e) => setTrainingEnvironment({
+                                ...trainingEnvironment,
+                                trainingSpecifications: {
+                                  ...trainingEnvironment.trainingSpecifications,
+                                  architecture: {
+                                    ...trainingEnvironment.trainingSpecifications.architecture,
+                                    parameters: e.target.value
+                                  }
+                                }
+                              })}
+                              margin="normal"
+                            />
+                          </Grid>
+                          <Grid item xs={12} md={6}>
+                            <TextField
+                              fullWidth
+                              label="Learning Rate"
+                              type="number"
+                              inputProps={{ step: 0.0001, min: 0.0001, max: 1.0 }}
+                              value={trainingEnvironment.trainingSpecifications.training.hyperparameters.learningRate}
+                              onChange={(e) => setTrainingEnvironment({
+                                ...trainingEnvironment,
+                                trainingSpecifications: {
+                                  ...trainingEnvironment.trainingSpecifications,
+                                  training: {
+                                    ...trainingEnvironment.trainingSpecifications.training,
+                                    hyperparameters: {
+                                      ...trainingEnvironment.trainingSpecifications.training.hyperparameters,
+                                      learningRate: parseFloat(e.target.value)
+                                    }
+                                  }
+                                }
+                              })}
+                              margin="normal"
+                            />
+                          </Grid>
+                          <Grid item xs={12} md={6}>
+                            <TextField
+                              fullWidth
+                              label="Batch Size"
+                              type="number"
+                              inputProps={{ min: 1, max: 1024 }}
+                              value={trainingEnvironment.trainingSpecifications.training.hyperparameters.batchSize}
+                              onChange={(e) => setTrainingEnvironment({
+                                ...trainingEnvironment,
+                                trainingSpecifications: {
+                                  ...trainingEnvironment.trainingSpecifications,
+                                  training: {
+                                    ...trainingEnvironment.trainingSpecifications.training,
+                                    hyperparameters: {
+                                      ...trainingEnvironment.trainingSpecifications.training.hyperparameters,
+                                      batchSize: parseInt(e.target.value)
+                                    }
+                                  }
+                                }
+                              })}
+                              margin="normal"
+                            />
+                          </Grid>
+                          <Grid item xs={12} md={6}>
+                            <TextField
+                              fullWidth
+                              label="Epochs"
+                              type="number"
+                              inputProps={{ min: 1, max: 1000 }}
+                              value={trainingEnvironment.trainingSpecifications.training.hyperparameters.epochs}
+                              onChange={(e) => setTrainingEnvironment({
+                                ...trainingEnvironment,
+                                trainingSpecifications: {
+                                  ...trainingEnvironment.trainingSpecifications,
+                                  training: {
+                                    ...trainingEnvironment.trainingSpecifications.training,
+                                    hyperparameters: {
+                                      ...trainingEnvironment.trainingSpecifications.training.hyperparameters,
+                                      epochs: parseInt(e.target.value)
+                                    }
+                                  }
+                                }
+                              })}
+                              margin="normal"
+                            />
+                          </Grid>
+                          <Grid item xs={12} md={6}>
+                            <TextField
+                              fullWidth
+                              label="Target Accuracy"
+                              type="number"
+                              inputProps={{ step: 0.01, min: 0.5, max: 1.0 }}
+                              value={trainingEnvironment.trainingSpecifications.training.validation.targetAccuracy}
+                              onChange={(e) => setTrainingEnvironment({
+                                ...trainingEnvironment,
+                                trainingSpecifications: {
+                                  ...trainingEnvironment.trainingSpecifications,
+                                  training: {
+                                    ...trainingEnvironment.trainingSpecifications.training,
+                                    validation: {
+                                      ...trainingEnvironment.trainingSpecifications.training.validation,
+                                      targetAccuracy: parseFloat(e.target.value)
+                                    }
+                                  }
+                                }
+                              })}
+                              margin="normal"
+                            />
+                          </Grid>
+                        </Grid>
+                      </AccordionDetails>
+                    </Accordion>
+
+                    <Accordion>
+                      <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                        <Typography variant="subtitle1">
+                          <SecurityIcon sx={{ mr: 1 }} />
+                          Compliance Requirements
+                        </Typography>
+                      </AccordionSummary>
+                      <AccordionDetails>
+                        <Typography variant="body2" color="text.secondary" paragraph>
+                          Select compliance standards that must be met:
+                        </Typography>
+                        {complianceSpecs.regulations.map((regulation, index) => (
+                          <FormControlLabel
+                            key={regulation.name}
+                            control={
+                              <Checkbox
+                                checked={regulation.status === 'COMPLIANT'}
+                                onChange={(e) => {
+                                  const updatedRegulations = [...complianceSpecs.regulations];
+                                  updatedRegulations[index] = {
+                                    ...regulation,
+                                    status: e.target.checked ? 'COMPLIANT' : 'NOT_COMPLIANT'
+                                  };
+                                  setComplianceSpecs({
+                                    ...complianceSpecs,
+                                    regulations: updatedRegulations
+                                  });
+                                }}
+                              />
+                            }
+                            label={`${regulation.name} - ${regulation.status}`}
+                          />
+                        ))}
+                      </AccordionDetails>
+                    </Accordion>
+                  </CardContent>
+                </Card>
+              </Grid>
             </Grid>
           </Box>
         );
@@ -1378,7 +1883,7 @@ function CreateRicardianContract() {
                 <Alert severity="success" sx={{ mb: 3 }}>
                   <Typography variant="subtitle2">✅ Contract Created Successfully!</Typography>
                   <Typography variant="body2">
-                    Your Ricardian contract has been created and deployed to the blockchain.
+                    Your contract has been created and deployed to the blockchain.
                   </Typography>
                 </Alert>
                 
@@ -1489,7 +1994,7 @@ function CreateRicardianContract() {
             ) : (
               <Alert severity="info" sx={{ mb: 3 }}>
                 <Typography variant="body2">
-                  This will create a Ricardian contract that combines human-readable legal documents 
+                  This will create a contract that combines human-readable legal documents 
                   with machine-executable smart contracts. The contract will be cryptographically 
                   bound and deployed to the blockchain.
                 </Typography>
@@ -1667,16 +2172,7 @@ function CreateRicardianContract() {
                 
                 <Box sx={{ mt: 3 }}>
                   {!createdContract ? (
-                    <Button
-                      variant="contained"
-                      color="primary"
-                      size="large"
-                      onClick={handleCreateRicardianContract}
-                      disabled={createRicardianContractMutation.isLoading}
-                      startIcon={createRicardianContractMutation.isLoading ? <CircularProgress size={20} /> : null}
-                    >
-                      {createRicardianContractMutation.isLoading ? 'Creating Contract...' : 'Create Ricardian Contract'}
-                    </Button>
+                    null
                   ) : (
                     <Alert severity="success" sx={{ mb: 2 }}>
                       Contract created successfully! You can now download the contract documents.
@@ -1695,9 +2191,9 @@ function CreateRicardianContract() {
 
   return (
     <Box sx={{ p: 3 }}>
-      <Typography variant="h4" gutterBottom>
-        Create Ricardian Contract
-      </Typography>
+                  <Typography variant="h4" gutterBottom>
+              Create Contract
+            </Typography>
       
       <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
         Create a Ricardian contract that combines human-readable legal documents with machine-executable smart contracts.
@@ -1724,15 +2220,15 @@ function CreateRicardianContract() {
         </Button>
         
         <Box>
-          {activeStep === steps.length - 1 ? (
+          {activeStep === steps.length - 1 && !createdContract ? (
             <Button
               variant="contained"
               onClick={handleCreateRicardianContract}
               disabled={createRicardianContractMutation.isLoading}
             >
-              Create Contract
+              {createRicardianContractMutation.isLoading ? 'Creating Contract...' : 'Create Ricardian Contract'}
             </Button>
-          ) : (
+          ) : activeStep < steps.length - 1 ? (
             <Button
               variant="contained"
               onClick={handleNext}
@@ -1741,11 +2237,40 @@ function CreateRicardianContract() {
             >
               {isGeneratingPreview ? 'Generating Preview...' : 'Next'}
             </Button>
-          )}
+          ) : null}
         </Box>
       </Box>
     </Box>
   );
 }
 
-export default CreateRicardianContract; 
+// Add a simple error boundary wrapper for the component
+function ErrorBoundary({ children }) {
+  const [error, setError] = useState(null);
+  if (error) {
+    return (
+      <Box sx={{ p: 3 }}>
+        <Typography variant="h5" color="error" gutterBottom>
+          Something went wrong.
+        </Typography>
+        <Typography variant="body1" color="text.secondary">
+          {error.message}
+        </Typography>
+      </Box>
+    );
+  }
+  return (
+    <React.Suspense fallback={<div>Loading...</div>}>
+      {React.cloneElement(children, { onError: setError })}
+    </React.Suspense>
+  );
+}
+
+// Wrap the main export with the error boundary
+export default function WrappedCreateRicardianContract(props) {
+  return (
+    <ErrorBoundary>
+      <CreateRicardianContract {...props} />
+    </ErrorBoundary>
+  );
+} 

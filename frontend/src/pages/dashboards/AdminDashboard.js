@@ -350,7 +350,7 @@ const AdminDashboard = () => {
                         <TableCell>
                           <Button
                             size="small"
-                            onClick={() => navigate(`/admin/users/${user.id}`)}
+                            onClick={() => navigate(`/profile/${user.id}`)}
                           >
                             View
                           </Button>

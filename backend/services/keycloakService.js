@@ -1,495 +1,111 @@
 /**
- * Keycloak Service
- * 
- * This service handles all Keycloak IAM integration including:
- * - User authentication and token validation
- * - User management (create, update, delete)
- * - Role management
- * - User synchronization between Keycloak and local database
- * 
- * Features:
- * - JWT token validation
- * - User profile management
- * - Role-based access control
- * - Email verification
- * - User onboarding workflow
+ * Keycloak Service for authentication and user management
  */
-
 const axios = require('axios');
-const jwt = require('jsonwebtoken');
-const fs = require('fs');
-const path = require('path');
-const forge = require('node-forge');
 
 class KeycloakService {
   constructor() {
-    this.config = this.loadConfig();
-    this.baseURL = this.config.***REMOVED-KEYCLOAK_DB_PASSWORD***Url;
-    this.realm = this.config.realm;
-    this.adminToken = null;
-    this.tokenExpiry = null;
+    this.baseUrl = process.env.KEYCLOAK_URL || 'http://localhost:8080';
+    this.realm = process.env.KEYCLOAK_REALM || 'contract-management';
+    this.adminRealm = 'master';
+    this.clientId = process.env.KEYCLOAK_CLIENT_ID || 'contract-management-backend';
+    this.clientSecret = process.env.KEYCLOAK_CLIENT_SECRET || 'sncRBEV5Et3E3XxpGoWA0DflTW4dIezX';
+    this.adminUsername = process.env.KEYCLOAK_ADMIN_USERNAME || 'admin';
+    this.adminPassword = process.env.KEYCLOAK_ADMIN_PASSWORD || '***REMOVED-KEYCLOAK_ADMIN_PASSWORD***';
   }
 
   /**
-   * Load Keycloak configuration
-   */
-  loadConfig() {
-    return {
-      ***REMOVED-KEYCLOAK_DB_PASSWORD***Url: process.env.KEYCLOAK_URL || 'http://localhost:8080',
-      realm: process.env.KEYCLOAK_REALM || 'contract-management',
-      frontendClient: process.env.KEYCLOAK_CLIENT_ID || 'contract-management-frontend',
-      backendClient: process.env.KEYCLOAK_CLIENT_ID || 'contract-management-backend',
-      backendClientSecret: process.env.KEYCLOAK_CLIENT_SECRET || '',
-      adminUser: {
-        username: process.env.KEYCLOAK_ADMIN_USER || 'admin',
-        password: process.env.KEYCLOAK_ADMIN_PASSWORD || '***REMOVED-KEYCLOAK_ADMIN_PASSWORD***'
-      }
-    };
-  }
-
-  /**
-   * Get admin access token
+   * Get admin token for Keycloak operations
+   * @returns {Promise<string>} - Admin access token
    */
   async getAdminToken() {
     try {
-      // Check if we have a valid token
-      if (this.adminToken && this.tokenExpiry && Date.now() < this.tokenExpiry) {
-        return this.adminToken;
-      }
-
-      console.log('🔐 Getting Keycloak admin token...');
-      // Debug logging removed - Keycloak integration working
-      
-      const response = await axios.post(`${this.baseURL}/realms/master/protocol/openid-connect/token`, 
-        new URLSearchParams({
-          username: this.config.adminUser.username,
-          password: this.config.adminUser.password,
-          grant_type: 'password',
-          client_id: 'admin-cli'
-        }), {
-          headers: {
-            'Content-Type': 'application/x-www-form-urlencoded'
-          },
-          timeout: 5000 // 5 second timeout
-        }
-      );
-
-      this.adminToken = response.data.access_token;
-      this.tokenExpiry = Date.now() + (response.data.expires_in * 1000) - 60000; // 1 minute buffer
-      
-      console.log('✅ Admin token obtained successfully');
-      return this.adminToken;
-    } catch (error) {
-      console.error('❌ Failed to get admin token:', error.response?.data || error.message);
-      throw new Error('Failed to authenticate with Keycloak');
-    }
-  }
-
-  /**
-   * Validate JWT token
-   */
-  async validateToken(token) {
-    try {
-      // Get public key from Keycloak
-      const publicKeyResponse = await axios.get(
-        `${this.baseURL}/realms/${this.realm}/protocol/openid-connect/certs`
-      );
-      
-      const keys = publicKeyResponse.data.keys;
-      if (!keys || keys.length === 0) {
-        throw new Error('No public keys available');
-      }
-
-      // Try to verify with each key
-      for (const key of keys) {
-        try {
-          // Extract public key from certificate using node-forge
-          const certPem = `-----BEGIN CERTIFICATE-----\n${key.x5c[0]}\n-----END CERTIFICATE-----`;
-          const cert = forge.pki.certificateFromPem(certPem);
-          const publicKey = forge.pki.publicKeyToPem(cert.publicKey);
-          
-          // Try different issuer URLs
-          try {
-            const decoded = jwt.verify(token, publicKey, {
-              algorithms: ['RS256'],
-              issuer: `${this.baseURL}/realms/${this.realm}`
-            });
-            return {
-              valid: true,
-              payload: decoded,
-              user: {
-                id: decoded.sub,
-                dbUserId: decoded.dbUserId, // Extract dbUserId from token
-                username: decoded.preferred_username,
-                email: decoded.email,
-                walletAddress: decoded.walletAddress,
-                partyType: decoded.partyType,
-                publicKey: decoded.publicKey,
-                roles: decoded.realm_access?.roles || []
-              }
-            };
-          } catch (issuerError) {
-            // Continue to next key
-            continue;
-          }
-        } catch (verifyError) {
-          // Continue to next key
-          continue;
-        }
-      }
-      
-      throw new Error('Token verification failed');
-    } catch (error) {
-      console.error('❌ Token validation failed:', error.message);
-      return {
-        valid: false,
-        error: error.message
-      };
-    }
-  }
-
-  /**
-   * Create user in Keycloak
-   */
-  async createUser(userData) {
-    try {
-      // Test code removed - transaction rollback working correctly
-      
-      const adminToken = await this.getAdminToken();
-      
-      // Generate temporary password if not provided
-      const temporaryPassword = userData.password || this.generateTemporaryPassword();
-      
-      const ***REMOVED-KEYCLOAK_DB_PASSWORD***User = {
-        username: userData.email,
-        email: userData.email,
-        enabled: true,
-        emailVerified: false,
-        firstName: userData.name.split(' ')[0] || userData.name,
-        lastName: userData.name.split(' ').slice(1).join(' ') || '',
-        attributes: {
-          walletAddress: [userData.walletAddress],
-          partyType: [userData.partyType],
-          publicKey: [userData.publicKey],
-          organization: [userData.organization || ''],
-          phoneNumber: [userData.phoneNumber || ''],
-          website: [userData.website || ''],
-          location: [userData.location || '']
-        },
-        credentials: [
-          {
-            type: 'password',
-            value: temporaryPassword,
-            temporary: true
-          }
-        ],
-        realmRoles: [userData.partyType]
-      };
-
-      const response = await axios.post(
-        `${this.baseURL}/admin/realms/${this.realm}/users`,
-        ***REMOVED-KEYCLOAK_DB_PASSWORD***User,
+      const response = await axios.post(`${this.baseUrl}/realms/${this.adminRealm}/protocol/openid-connect/token`, 
+        `grant_type=password&client_id=admin-cli&username=${this.adminUsername}&password=${this.adminPassword}`,
         {
-          headers: {
-            'Authorization': `Bearer ${adminToken}`,
-            'Content-Type': 'application/json'
-          },
-          timeout: 10000 // 10 second timeout
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
         }
       );
-
-      const userId = response.headers.location.split('/').pop();
-      console.log(`✅ User created in Keycloak: ${userId}`);
-      
-      // Log temporary password for development/testing
-      console.log('📧 [EMAIL DISABLED] Temporary password for user login:');
-      console.log(`   Email: ${userData.email}`);
-      console.log(`   Password: ${temporaryPassword}`);
-      console.log(`   ⚠️  This password is temporary and should be changed on first login`);
-      console.log(`   🔗 Login URL: ${this.baseURL}/realms/${this.realm}/protocol/openid-connect/auth?client_id=contract-management-frontend&response_type=code&scope=openid&redirect_uri=http://localhost:3000/callback`);
-      
-      return {
-        success: true,
-        ***REMOVED-KEYCLOAK_DB_PASSWORD***UserId: userId,
-        user: ***REMOVED-KEYCLOAK_DB_PASSWORD***User,
-        temporaryPassword: temporaryPassword // Return password for frontend display
-      };
+      return response.data.access_token;
     } catch (error) {
-      console.error('❌ Failed to create user in Keycloak:', error.response?.data || error.message);
-      throw new Error('Failed to create user in IAM system');
+      console.error('Error getting admin token:', error.response?.data || error.message);
+      throw new Error(`Failed to get admin token: ${error.response?.data?.error_description || error.message}`);
     }
   }
 
   /**
-   * Update user in Keycloak
+   * Authenticate user with password
+   * @param {string} username - Username or email
+   * @param {string} password - User password
+   * @returns {Promise<Object>} - Token response
    */
-  async updateUser(***REMOVED-KEYCLOAK_DB_PASSWORD***UserId, userData) {
+  async authenticateUserWithPassword(username, password) {
     try {
-      const adminToken = await this.getAdminToken();
-      
-      const updateData = {};
-      
-      if (userData.name) {
-        const nameParts = userData.name.split(' ');
-        updateData.firstName = nameParts[0] || userData.name;
-        updateData.lastName = nameParts.slice(1).join(' ') || '';
-      }
-      
-      if (userData.email) {
-        updateData.email = userData.email;
-      }
-      
-      if (userData.attributes) {
-        updateData.attributes = userData.attributes;
-      }
-
-      await axios.put(
-        `${this.baseURL}/admin/realms/${this.realm}/users/${***REMOVED-KEYCLOAK_DB_PASSWORD***UserId}`,
-        updateData,
+      const response = await axios.post(`${this.baseUrl}/realms/${this.realm}/protocol/openid-connect/token`,
+        `grant_type=password&client_id=${this.clientId}&client_secret=${this.clientSecret}&username=${username}&password=${password}`,
         {
-          headers: {
-            'Authorization': `Bearer ${adminToken}`,
-            'Content-Type': 'application/json'
-          }
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
         }
       );
-
-      console.log(`✅ User updated in Keycloak: ${***REMOVED-KEYCLOAK_DB_PASSWORD***UserId}`);
-      return { success: true };
+      return response.data;
     } catch (error) {
-      console.error('❌ Failed to update user in Keycloak:', error.response?.data || error.message);
-      throw new Error('Failed to update user in IAM system');
+      console.error('Error authenticating user:', error.response?.data || error.message);
+      throw new Error(`Authentication failed: ${error.response?.data?.error_description || error.message}`);
     }
   }
 
   /**
-   * Get user from Keycloak
+   * Get user info from token
+   * @param {string} token - Access token
+   * @returns {Promise<Object>} - User info
    */
-  async getUser(***REMOVED-KEYCLOAK_DB_PASSWORD***UserId) {
+  async getUserInfo(token) {
     try {
-      const adminToken = await this.getAdminToken();
-      
-      const response = await axios.get(
-        `${this.baseURL}/admin/realms/${this.realm}/users/${***REMOVED-KEYCLOAK_DB_PASSWORD***UserId}`,
-        {
-          headers: {
-            'Authorization': `Bearer ${adminToken}`
-          }
+      const response = await axios.get(`${this.baseUrl}/realms/${this.realm}/protocol/openid-connect/userinfo`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
         }
-      );
-
-      return {
-        success: true,
-        user: response.data
-      };
-    } catch (error) {
-      console.error('❌ Failed to get user from Keycloak:', error.response?.data || error.message);
-      throw new Error('Failed to get user from IAM system');
-    }
-  }
-
-  /**
-   * Get user roles from Keycloak
-   */
-  async getUserRoles(***REMOVED-KEYCLOAK_DB_PASSWORD***UserId) {
-    try {
-      const adminToken = await this.getAdminToken();
-      
-      const response = await axios.get(
-        `${this.baseURL}/admin/realms/${this.realm}/users/${***REMOVED-KEYCLOAK_DB_PASSWORD***UserId}/role-mappings/realm`,
-        {
-          headers: {
-            'Authorization': `Bearer ${adminToken}`
-          }
-        }
-      );
-
-      return {
-        success: true,
-        roles: response.data
-      };
-    } catch (error) {
-      console.error('❌ Failed to get user roles from Keycloak:', error.response?.data || error.message);
-      throw new Error('Failed to get user roles from IAM system');
-    }
-  }
-
-  /**
-   * Assign role to user
-   */
-  async assignRole(***REMOVED-KEYCLOAK_DB_PASSWORD***UserId, roleName) {
-    try {
-      const adminToken = await this.getAdminToken();
-      
-      // Get role ID
-      const roleResponse = await axios.get(
-        `${this.baseURL}/admin/realms/${this.realm}/roles/${roleName}`,
-        {
-          headers: {
-            'Authorization': `Bearer ${adminToken}`
-          }
-        }
-      );
-
-      const role = roleResponse.data;
-      
-      // Assign role to user
-      await axios.post(
-        `${this.baseURL}/admin/realms/${this.realm}/users/${***REMOVED-KEYCLOAK_DB_PASSWORD***UserId}/role-mappings/realm`,
-        [role],
-        {
-          headers: {
-            'Authorization': `Bearer ${adminToken}`,
-            'Content-Type': 'application/json'
-          }
-        }
-      );
-
-      console.log(`✅ Role '${roleName}' assigned to user: ${***REMOVED-KEYCLOAK_DB_PASSWORD***UserId}`);
-      return { success: true };
-    } catch (error) {
-      console.error('❌ Failed to assign role:', error.response?.data || error.message);
-      throw new Error('Failed to assign role to user');
-    }
-  }
-
-  /**
-   * Send email verification
-   */
-  async sendEmailVerification(***REMOVED-KEYCLOAK_DB_PASSWORD***UserId) {
-    try {
-      // First, check if Keycloak is available
-      try {
-        await axios.get(`${this.baseURL}/`, { timeout: 3000 });
-      } catch (connectionError) {
-        console.warn('⚠️ Keycloak is not available, using fallback email verification');
-        return this.sendFallbackEmailVerification(***REMOVED-KEYCLOAK_DB_PASSWORD***UserId);
-      }
-
-      const adminToken = await this.getAdminToken();
-      
-      await axios.put(
-        `${this.baseURL}/admin/realms/${this.realm}/users/${***REMOVED-KEYCLOAK_DB_PASSWORD***UserId}/send-verify-email`,
-        {},
-        {
-          headers: {
-            'Authorization': `Bearer ${adminToken}`,
-            'Content-Type': 'application/json'
-          }
-        }
-      );
-
-      console.log(`✅ Email verification sent to user: ${***REMOVED-KEYCLOAK_DB_PASSWORD***UserId}`);
-      return { success: true };
-    } catch (error) {
-      console.error('❌ Failed to send email verification via Keycloak:', error.response?.data || error.message);
-      console.warn('⚠️ Falling back to local email verification');
-      return this.sendFallbackEmailVerification(***REMOVED-KEYCLOAK_DB_PASSWORD***UserId);
-    }
-  }
-
-  /**
-   * Fallback email verification when Keycloak is not available
-   */
-  async sendFallbackEmailVerification(***REMOVED-KEYCLOAK_DB_PASSWORD***UserId) {
-    try {
-      // Get user from local database
-      const db = require('../models');
-      const user = await db.User.findOne({ where: { iamUserId: ***REMOVED-KEYCLOAK_DB_PASSWORD***UserId } });
-      
-      if (!user) {
-        throw new Error('User not found in local database');
-      }
-
-      // Use the email service to send verification
-      const EmailService = require('./emailService');
-      const emailService = new EmailService();
-      
-      const verificationToken = this.generateVerificationToken();
-      const verificationUrl = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/verify-email?token=${verificationToken}`;
-      
-      const emailContent = `
-        <h2>Email Verification</h2>
-        <p>Hello ${user.name},</p>
-        <p>Please verify your email address by clicking the link below:</p>
-        <p><a href="${verificationUrl}" style="background-color: #007bff; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">Verify Email</a></p>
-        <p>Or copy and paste this URL into your browser:</p>
-        <p>${verificationUrl}</p>
-        <p>This link will expire in 24 hours.</p>
-        <p>If you didn't create an account, you can safely ignore this email.</p>
-      `;
-
-      await emailService.sendEmail(
-        user.email,
-        'Verify Your Email Address - Contract Management System',
-        emailContent
-      );
-
-      // Store verification token in user attributes (for now, we'll use a simple approach)
-      await user.update({
-        emailVerificationToken: verificationToken,
-        emailVerificationExpires: new Date(Date.now() + 24 * 60 * 60 * 1000) // 24 hours
       });
-
-      console.log(`✅ Fallback email verification sent to: ${user.email}`);
-      return { 
-        success: true, 
-        method: 'fallback',
-        message: 'Email verification sent via local email service'
-      };
+      return response.data;
     } catch (error) {
-      console.error('❌ Fallback email verification failed:', error.message);
-      throw new Error('Failed to send email verification (both Keycloak and fallback failed)');
+      console.error('Error getting user info:', error.response?.data || error.message);
+      throw new Error(`Failed to get user info: ${error.response?.data?.error_description || error.message}`);
     }
   }
 
   /**
-   * Generate a verification token
+   * Refresh token
+   * @param {string} refreshToken - Refresh token
+   * @returns {Promise<Object>} - New token response
    */
-  generateVerificationToken() {
-    const crypto = require('crypto');
-    return crypto.randomBytes(32).toString('hex');
-  }
-
-  /**
-   * Reset user password
-   */
-  async resetPassword(***REMOVED-KEYCLOAK_DB_PASSWORD***UserId, newPassword, temporary = true) {
+  async refreshToken(refreshToken) {
     try {
-      const adminToken = await this.getAdminToken();
-      
-      await axios.put(
-        `${this.baseURL}/admin/realms/${this.realm}/users/${***REMOVED-KEYCLOAK_DB_PASSWORD***UserId}/reset-password`,
+      const response = await axios.post(`${this.baseUrl}/realms/${this.realm}/protocol/openid-connect/token`,
+        `grant_type=refresh_token&client_id=${this.clientId}&client_secret=${this.clientSecret}&refresh_token=${refreshToken}`,
         {
-          type: 'password',
-          value: newPassword,
-          temporary: temporary
-        },
-        {
-          headers: {
-            'Authorization': `Bearer ${adminToken}`,
-            'Content-Type': 'application/json'
-          }
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
         }
       );
-
-      console.log(`✅ Password reset for user: ${***REMOVED-KEYCLOAK_DB_PASSWORD***UserId}`);
-      return { success: true };
+      return response.data;
     } catch (error) {
-      console.error('❌ Failed to reset password:', error.response?.data || error.message);
-      throw new Error('Failed to reset user password');
+      console.error('Error refreshing token:', error.response?.data || error.message);
+      throw new Error(`Token refresh failed: ${error.response?.data?.error_description || error.message}`);
     }
   }
 
   /**
-   * Update user password (for password reset flow)
+   * Update user password
+   * @param {string} userId - User ID
+   * @param {string} newPassword - New password
+   * @returns {Promise<boolean>} - Success status
    */
-  async updateUserPassword(***REMOVED-KEYCLOAK_DB_PASSWORD***UserId, newPassword) {
+  async updateUserPassword(userId, newPassword) {
     try {
       const adminToken = await this.getAdminToken();
       
       await axios.put(
-        `${this.baseURL}/admin/realms/${this.realm}/users/${***REMOVED-KEYCLOAK_DB_PASSWORD***UserId}/reset-password`,
+        `${this.baseUrl}/admin/realms/${this.realm}/users/${userId}/reset-password`,
         {
           type: 'password',
           value: newPassword,
@@ -502,25 +118,52 @@ class KeycloakService {
           }
         }
       );
-
-      console.log(`✅ Password updated for user: ${***REMOVED-KEYCLOAK_DB_PASSWORD***UserId}`);
-      return { success: true };
+      
+      return true;
     } catch (error) {
-      console.error('❌ Failed to update password:', error.response?.data || error.message);
-      throw new Error('Failed to update user password');
+      console.error('Error updating user password:', error.response?.data || error.message);
+      throw new Error(`Failed to update password: ${error.response?.data?.errorMessage || error.message}`);
     }
   }
 
   /**
-   * Send password reset email via Keycloak
+   * Create a new user in Keycloak
+   * @param {Object} userData - User data
+   * @returns {Promise<Object>} - Created user info with temporary password
    */
-  async sendPasswordResetEmail(***REMOVED-KEYCLOAK_DB_PASSWORD***UserId) {
+  async createUser(userData) {
     try {
       const adminToken = await this.getAdminToken();
       
-      await axios.put(
-        `${this.baseURL}/admin/realms/${this.realm}/users/${***REMOVED-KEYCLOAK_DB_PASSWORD***UserId}/execute-actions-email`,
-        ['UPDATE_PASSWORD'],
+      // Generate temporary password
+      const temporaryPassword = this.generateTemporaryPassword();
+      
+      // Prepare user data for Keycloak
+      const ***REMOVED-KEYCLOAK_DB_PASSWORD***UserData = {
+        username: userData.email,
+        email: userData.email,
+        firstName: userData.name?.split(' ')[0] || '',
+        lastName: userData.name?.split(' ').slice(1).join(' ') || '',
+        enabled: true,
+        emailVerified: false,
+        credentials: [{
+          type: 'password',
+          value: temporaryPassword,
+          temporary: true
+        }],
+        attributes: {
+          partyType: [userData.partyType],
+          walletAddress: userData.walletAddress ? [userData.walletAddress] : [],
+          organization: userData.organization ? [userData.organization] : [],
+          phoneNumber: userData.phoneNumber ? [userData.phoneNumber] : [],
+          website: userData.website ? [userData.website] : [],
+          location: userData.location ? [userData.location] : []
+        }
+      };
+
+      const response = await axios.post(
+        `${this.baseUrl}/admin/realms/${this.realm}/users`,
+        ***REMOVED-KEYCLOAK_DB_PASSWORD***UserData,
         {
           headers: {
             'Authorization': `Bearer ${adminToken}`,
@@ -529,40 +172,349 @@ class KeycloakService {
         }
       );
 
-      console.log(`✅ Password reset email sent for user: ${***REMOVED-KEYCLOAK_DB_PASSWORD***UserId}`);
-      return { success: true };
+      // Get the created user ID from the Location header
+      const locationHeader = response.headers.location;
+      const userId = locationHeader.split('/').pop();
+
+      console.log(`✅ Keycloak user created: ${userId} (${userData.email})`);
+
+      return {
+        ***REMOVED-KEYCLOAK_DB_PASSWORD***UserId: userId,
+        temporaryPassword: temporaryPassword,
+        username: userData.email,
+        email: userData.email
+      };
     } catch (error) {
-      console.error('❌ Failed to send password reset email:', error.response?.data || error.message);
-      throw new Error('Failed to send password reset email');
+      console.error('Error creating user in Keycloak:', error.response?.data || error.message);
+      throw new Error(`Failed to create user in Keycloak: ${error.response?.data?.errorMessage || error.message}`);
+    }
+  }
+
+  /**
+   * Get user by ID
+   * @param {string} userId - User ID
+   * @returns {Promise<Object|null>} - User info or null
+   */
+  async getUser(userId) {
+    try {
+      const adminToken = await this.getAdminToken();
+      
+      const response = await axios.get(
+        `${this.baseUrl}/admin/realms/${this.realm}/users/${userId}`,
+        {
+          headers: {
+            'Authorization': `Bearer ${adminToken}`,
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+      
+      return response.data;
+    } catch (error) {
+      console.error('Error getting user:', error.response?.data || error.message);
+      return null;
+    }
+  }
+
+  /**
+   * Update user in Keycloak
+   * @param {string} userId - User ID
+   * @param {Object} userData - Updated user data
+   * @returns {Promise<Object>} - Updated user info
+   */
+  async updateUser(userId, userData) {
+    try {
+      const adminToken = await this.getAdminToken();
+      
+      const response = await axios.put(
+        `${this.baseUrl}/admin/realms/${this.realm}/users/${userId}`,
+        userData,
+        {
+          headers: {
+            'Authorization': `Bearer ${adminToken}`,
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+      
+      return response.data;
+    } catch (error) {
+      console.error('Error updating user:', error.response?.data || error.message);
+      throw new Error(`Failed to update user: ${error.response?.data?.errorMessage || error.message}`);
     }
   }
 
   /**
    * Delete user from Keycloak
+   * @param {string} userId - User ID
+   * @returns {Promise<boolean>} - Success status
    */
-  async deleteUser(***REMOVED-KEYCLOAK_DB_PASSWORD***UserId) {
+  async deleteUser(userId) {
     try {
       const adminToken = await this.getAdminToken();
       
       await axios.delete(
-        `${this.baseURL}/admin/realms/${this.realm}/users/${***REMOVED-KEYCLOAK_DB_PASSWORD***UserId}`,
+        `${this.baseUrl}/admin/realms/${this.realm}/users/${userId}`,
         {
           headers: {
-            'Authorization': `Bearer ${adminToken}`
+            'Authorization': `Bearer ${adminToken}`,
+            'Content-Type': 'application/json'
           }
         }
       );
-
-      console.log(`✅ User deleted from Keycloak: ${***REMOVED-KEYCLOAK_DB_PASSWORD***UserId}`);
-      return { success: true };
+      
+      return true;
     } catch (error) {
-      console.error('❌ Failed to delete user from Keycloak:', error.response?.data || error.message);
-      throw new Error('Failed to delete user from IAM system');
+      console.error('Error deleting user:', error.response?.data || error.message);
+      return false;
     }
   }
 
   /**
-   * Generate temporary password
+   * Get all users from Keycloak
+   * @returns {Promise<Array>} - Array of users
+   */
+  async getUsers() {
+    try {
+      const adminToken = await this.getAdminToken();
+      
+      const response = await axios.get(
+        `${this.baseUrl}/admin/realms/${this.realm}/users`,
+        {
+          headers: {
+            'Authorization': `Bearer ${adminToken}`,
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+      
+      return response.data;
+    } catch (error) {
+      console.error('Error getting users:', error.response?.data || error.message);
+      return [];
+    }
+  }
+
+  /**
+   * Assign role to user
+   * @param {string} userId - User ID
+   * @param {string} roleName - Role name
+   * @returns {Promise<boolean>} - Success status
+   */
+  async assignRole(userId, roleName) {
+    try {
+      const adminToken = await this.getAdminToken();
+      
+      // First get the role ID
+      const rolesResponse = await axios.get(
+        `${this.baseUrl}/admin/realms/${this.realm}/roles`,
+        {
+          headers: {
+            'Authorization': `Bearer ${adminToken}`,
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+      
+      const role = rolesResponse.data.find(r => r.name === roleName);
+      if (!role) {
+        throw new Error(`Role ${roleName} not found`);
+      }
+      
+      // Assign the role to the user
+      await axios.post(
+        `${this.baseUrl}/admin/realms/${this.realm}/users/${userId}/role-mappings/realm`,
+        [role],
+        {
+          headers: {
+            'Authorization': `Bearer ${adminToken}`,
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+      
+      return true;
+    } catch (error) {
+      console.error('Error assigning role:', error.response?.data || error.message);
+      return false;
+    }
+  }
+
+  /**
+   * Remove role from user
+   * @param {string} userId - User ID
+   * @param {string} roleName - Role name
+   * @returns {Promise<boolean>} - Success status
+   */
+  async removeRole(userId, roleName) {
+    try {
+      const adminToken = await this.getAdminToken();
+      
+      // First get the role ID
+      const rolesResponse = await axios.get(
+        `${this.baseUrl}/admin/realms/${this.realm}/roles`,
+        {
+          headers: {
+            'Authorization': `Bearer ${adminToken}`,
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+      
+      const role = rolesResponse.data.find(r => r.name === roleName);
+      if (!role) {
+        throw new Error(`Role ${roleName} not found`);
+      }
+      
+      // Remove the role from the user
+      await axios.delete(
+        `${this.baseUrl}/admin/realms/${this.realm}/users/${userId}/role-mappings/realm`,
+        {
+          headers: {
+            'Authorization': `Bearer ${adminToken}`,
+            'Content-Type': 'application/json'
+          },
+          data: [role]
+        }
+      );
+      
+      return true;
+    } catch (error) {
+      console.error('Error removing role:', error.response?.data || error.message);
+      return false;
+    }
+  }
+
+  /**
+   * Get user roles
+   * @param {string} userId - User ID
+   * @returns {Promise<Array>} - Array of roles
+   */
+  async getUserRoles(userId) {
+    try {
+      const adminToken = await this.getAdminToken();
+      
+      const response = await axios.get(
+        `${this.baseUrl}/admin/realms/${this.realm}/users/${userId}/role-mappings/realm`,
+        {
+          headers: {
+            'Authorization': `Bearer ${adminToken}`,
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+      
+      return response.data;
+    } catch (error) {
+      console.error('Error getting user roles:', error.response?.data || error.message);
+      return [];
+    }
+  }
+
+  /**
+   * Send email verification to user
+   * @param {string} userId - User ID
+   * @returns {Promise<boolean>} - Success status
+   */
+  async sendEmailVerification(userId) {
+    try {
+      const adminToken = await this.getAdminToken();
+      
+      await axios.put(
+        `${this.baseUrl}/admin/realms/${this.realm}/users/${userId}/send-verify-email`,
+        {},
+        {
+          headers: {
+            'Authorization': `Bearer ${adminToken}`,
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+      
+      return true;
+    } catch (error) {
+      console.error('Error sending email verification:', error.response?.data || error.message);
+      return false;
+    }
+  }
+
+  /**
+   * Verify token
+   * @param {string} token - JWT token
+   * @returns {Promise<Object|null>} - Token payload or null
+   */
+  async verifyToken(token) {
+    try {
+      const response = await axios.post(
+        `${this.baseUrl}/realms/${this.realm}/protocol/openid-connect/userinfo`,
+        {},
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+      
+      return response.data;
+    } catch (error) {
+      console.error('Error verifying token:', error.response?.data || error.message);
+      return null;
+    }
+  }
+
+  /**
+   * Validate token and extract user information
+   * @param {string} token - JWT token
+   * @returns {Promise<Object>} - Validation result with user info
+   */
+  async validateToken(token) {
+    try {
+      // Decode the JWT token to get user information
+      const tokenParts = token.split('.');
+      if (tokenParts.length !== 3) {
+        return { valid: false, error: 'Invalid token format' };
+      }
+
+      // Decode the payload (second part)
+      const payload = JSON.parse(Buffer.from(tokenParts[1], 'base64').toString());
+      
+      // Check if token is expired
+      const currentTime = Math.floor(Date.now() / 1000);
+      if (payload.exp && payload.exp < currentTime) {
+        return { valid: false, error: 'Token expired' };
+      }
+
+      // Extract user information from token with explicit username-to-email mapping
+      // Keycloak username attribute should be mapped to email in database
+      const ***REMOVED-KEYCLOAK_DB_PASSWORD***Username = payload.preferred_username || payload.username;
+      const ***REMOVED-KEYCLOAK_DB_PASSWORD***Email = payload.email;
+      
+      // Use email if available, otherwise use username (which should be email)
+      const email = ***REMOVED-KEYCLOAK_DB_PASSWORD***Email || ***REMOVED-KEYCLOAK_DB_PASSWORD***Username;
+      
+      const userInfo = {
+        email: email,
+        username: ***REMOVED-KEYCLOAK_DB_PASSWORD***Username, // Keep original username for reference
+        name: payload.name,
+        walletAddress: payload.walletAddress,
+        partyType: payload.partyType,
+        dbUserId: payload.sub // Keycloak user ID
+      };
+
+      return {
+        valid: true,
+        user: userInfo
+      };
+    } catch (error) {
+      console.error('Error validating token:', error);
+      return { valid: false, error: error.message };
+    }
+  }
+
+  /**
+   * Generate a temporary password for new users
+   * @returns {string} - Temporary password
    */
   generateTemporaryPassword() {
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*';
@@ -571,198 +523,6 @@ class KeycloakService {
       password += chars.charAt(Math.floor(Math.random() * chars.length));
     }
     return password;
-  }
-
-  /**
-   * Sync user between Keycloak and local database
-   */
-  async syncUser(localUser, db) {
-    try {
-      if (!localUser.iamUserId) {
-        // Create user in Keycloak
-        const ***REMOVED-KEYCLOAK_DB_PASSWORD***Result = await this.createUser({
-          email: localUser.email,
-          name: localUser.name,
-          walletAddress: localUser.walletAddress,
-          partyType: localUser.partyType,
-          publicKey: localUser.publicKey,
-          organization: localUser.organization,
-          phoneNumber: localUser.phoneNumber,
-          website: localUser.website,
-          location: localUser.location
-        });
-
-        // Update local user with Keycloak ID
-        await localUser.update({
-          iamUserId: ***REMOVED-KEYCLOAK_DB_PASSWORD***Result.***REMOVED-KEYCLOAK_DB_PASSWORD***UserId,
-          iamUsername: localUser.email,
-          onboardingStatus: 'IN_PROGRESS'
-        });
-
-        console.log(`✅ User synced to Keycloak: ${localUser.id}`);
-        return { success: true, ***REMOVED-KEYCLOAK_DB_PASSWORD***UserId: ***REMOVED-KEYCLOAK_DB_PASSWORD***Result.***REMOVED-KEYCLOAK_DB_PASSWORD***UserId };
-      } else {
-        // Update existing user in Keycloak
-        await this.updateUser(localUser.iamUserId, {
-          name: localUser.name,
-          email: localUser.email,
-          attributes: {
-            walletAddress: [localUser.walletAddress],
-            partyType: [localUser.partyType],
-            publicKey: [localUser.publicKey],
-            organization: [localUser.organization || ''],
-            phoneNumber: [localUser.phoneNumber || ''],
-            website: [localUser.website || ''],
-            location: [localUser.location || '']
-          }
-        });
-
-        console.log(`✅ User synced with Keycloak: ${localUser.id}`);
-        return { success: true, ***REMOVED-KEYCLOAK_DB_PASSWORD***UserId: localUser.iamUserId };
-      }
-    } catch (error) {
-      console.error('❌ Failed to sync user:', error.message);
-      throw error;
-    }
-  }
-
-  /**
-   * Get user onboarding status
-   */
-  async getOnboardingStatus(***REMOVED-KEYCLOAK_DB_PASSWORD***UserId) {
-    try {
-      const userResult = await this.getUser(***REMOVED-KEYCLOAK_DB_PASSWORD***UserId);
-      const user = userResult.user;
-      
-      let status = 'PENDING';
-      
-      if (user.emailVerified) {
-        status = 'VERIFIED';
-      } else if (user.attributes?.profileCompleted?.[0] === 'true') {
-        status = 'COMPLETED';
-      } else if (user.attributes?.onboardingStarted?.[0] === 'true') {
-        status = 'IN_PROGRESS';
-      }
-      
-      return {
-        success: true,
-        status: status,
-        emailVerified: user.emailVerified,
-        profileCompleted: user.attributes?.profileCompleted?.[0] === 'true'
-      };
-    } catch (error) {
-      console.error('❌ Failed to get onboarding status:', error.message);
-      throw error;
-    }
-  }
-
-  /**
-   * Authenticate user with email and password (Resource Owner Password Credentials grant)
-   */
-  async authenticateUserWithPassword(email, password) {
-    try {
-      const response = await axios.post(
-        `${this.baseURL}/realms/${this.realm}/protocol/openid-connect/token`,
-        new URLSearchParams({
-          username: email,
-          password: password,
-          grant_type: 'password',
-          client_id: 'admin-cli',
-          scope: 'openid profile email'
-        }),
-        {
-          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-          timeout: 5000
-        }
-      );
-      return response.data;
-    } catch (error) {
-      console.error('❌ Keycloak user authentication failed:', error.response?.data || error.message);
-      throw new Error('Keycloak authentication failed');
-    }
-  }
-
-  /**
-   * Get user info from Keycloak using access token
-   */
-  async getUserInfo(accessToken) {
-    try {
-      const response = await axios.get(
-        `${this.baseURL}/realms/${this.realm}/protocol/openid-connect/userinfo`,
-        {
-          headers: { 'Authorization': `Bearer ${accessToken}` },
-          timeout: 5000
-        }
-      );
-      return response.data;
-    } catch (error) {
-      console.error('❌ Failed to get user info from Keycloak:', error.response?.data || error.message);
-      throw new Error('Failed to get user info from Keycloak');
-    }
-  }
-
-  /**
-   * Refresh access token using refresh token
-   */
-  async refreshToken(refreshToken) {
-    try {
-      console.log('🔄 Refreshing Keycloak token...');
-      
-      const response = await axios.post(
-        `${this.baseURL}/realms/${this.realm}/protocol/openid-connect/token`,
-        new URLSearchParams({
-          grant_type: 'refresh_token',
-          refresh_token: refreshToken,
-          client_id: this.config.frontendClient,
-          client_secret: this.config.backendClientSecret
-        }),
-        {
-          headers: {
-            'Content-Type': 'application/x-www-form-urlencoded'
-          },
-          timeout: 10000
-        }
-      );
-
-      console.log('✅ Token refreshed successfully');
-      return {
-        access_token: response.data.access_token,
-        refresh_token: response.data.refresh_token,
-        expires_in: response.data.expires_in,
-        token_type: response.data.token_type
-      };
-    } catch (error) {
-      console.error('❌ Token refresh failed:', error.response?.data || error.message);
-      throw new Error('Failed to refresh token');
-    }
-  }
-
-  /**
-   * Set user password by email
-   */
-  async setUserPasswordByEmail(email, newPassword, temporary = false) {
-    try {
-      const adminToken = await this.getAdminToken();
-      // Find user by email
-      const response = await axios.get(
-        `${this.baseURL}/admin/realms/${this.realm}/users`,
-        {
-          headers: { 'Authorization': `Bearer ${adminToken}` },
-          params: { email }
-        }
-      );
-      const users = response.data;
-      if (!users || users.length === 0) {
-        throw new Error(`User with email ${email} not found in Keycloak`);
-      }
-      const userId = users[0].id;
-      // Reset password
-      await this.resetPassword(userId, newPassword, temporary);
-      return { success: true };
-    } catch (error) {
-      console.error(`❌ Failed to set password for ${email} in Keycloak:`, error.response?.data || error.message);
-      throw new Error(`Failed to set password for ${email} in Keycloak`);
-    }
   }
 }
 

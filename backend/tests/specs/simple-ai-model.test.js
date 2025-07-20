@@ -1,4 +1,4 @@
-const { sequelize } = require('../models');
+const { sequelize } = require('../../models');
 
 describe('Simple AI Model Tests', () => {
   describe('AIModel Basic Tests', () => {

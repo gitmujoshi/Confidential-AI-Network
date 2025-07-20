@@ -22,6 +22,11 @@ export const UserProvider = ({ children }) => {
 
   // Function to get current MetaMask account
   const getCurrentMetaMaskAccount = async () => {
+    // Skip wallet check if user is authenticated via token
+    if (hasValidToken()) {
+      return null;
+    }
+    
     if (!window.ethereum) {
       return null;
     }
@@ -52,6 +57,12 @@ export const UserProvider = ({ children }) => {
 
   // Function to detect and set current account
   const detectAndSetCurrentAccount = async () => {
+    // Skip wallet detection if user is authenticated via token
+    if (hasValidToken()) {
+      console.log('🔍 [UserContext] User authenticated via token, skipping wallet detection');
+      return;
+    }
+    
     // console.log('🔍 [UserContext] Detecting current MetaMask account...');
     const currentAccount = await getCurrentMetaMaskAccount();
     
@@ -80,21 +91,66 @@ export const UserProvider = ({ children }) => {
     }
   };
 
+  // Check if user is logged in via token (for email/password auth)
+  const checkTokenAuth = async () => {
+    const token = localStorage.getItem('authToken');
+    if (token && !currentUser) {
+      try {
+        console.log('🔍 [UserContext] Checking token authentication...');
+        // Add cache-busting parameter to ensure fresh data
+        const response = await apiService.get('/api/auth/profile?_t=' + Date.now());
+        if (response.data.user) {
+          console.log('✅ [UserContext] Token authentication successful:', response.data.user);
+          setCurrentUser(response.data.user);
+          // Clear wallet address when token auth is successful
+          setWalletAddress('');
+        }
+      } catch (error) {
+        console.log('❌ [UserContext] Token authentication failed:', error.response?.status, error.message);
+        // If token is invalid (401) or expired, clear it
+        if (error.response?.status === 401 || error.response?.status === 403) {
+          localStorage.removeItem('authToken');
+          localStorage.removeItem('user');
+          localStorage.removeItem('currentUser');
+          setCurrentUser(null);
+        }
+        // Don't set any error state here to prevent brief error display
+      }
+    }
+  };
+
+  // Check if user has valid token authentication
+  const hasValidToken = () => {
+    const token = localStorage.getItem('authToken');
+    return !!token && !!currentUser;
+  };
+
   // Initialize account detection on mount
   useEffect(() => {
     const initializeAccount = async () => {
       setIsInitializing(true);
-      await detectAndSetCurrentAccount();
-      // Also check for token authentication
+      
+      // First check for token authentication
       await checkTokenAuth();
+      
+      // Only check wallet if no token authentication
+      if (!hasValidToken()) {
+        await detectAndSetCurrentAccount();
+      }
+      
       setIsInitializing(false);
     };
 
     initializeAccount();
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, []);
 
-  // Listen for MetaMask account changes
+  // Listen for MetaMask account changes (only when not using token auth)
   useEffect(() => {
+    // Skip wallet listeners if user is authenticated via token
+    if (hasValidToken()) {
+      return;
+    }
+
     const handleAccountsChanged = (accounts) => {
       console.log('🔄 [UserContext] MetaMask accounts changed event fired:', accounts);
       
@@ -152,9 +208,9 @@ export const UserProvider = ({ children }) => {
         window.ethereum.removeListener('disconnect', handleDisconnect);
       };
     }
-  }, [queryClient, walletAddress]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [queryClient, walletAddress, currentUser]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Fetch user data when wallet address changes (only if wallet is connected)
+  // Fetch user data when wallet address changes (only if wallet is connected and no token auth)
   const { isLoading, error, refetch } = useQuery(
     ['user', walletAddress, accountChangeTimestamp],
     () => {
@@ -162,7 +218,7 @@ export const UserProvider = ({ children }) => {
       return apiService.getUserByWallet(walletAddress);
     },
     {
-      enabled: !!walletAddress, // Only fetch if wallet is connected
+      enabled: !!walletAddress && !hasValidToken(), // Only fetch if wallet is connected AND no token auth
       retry: false,
       staleTime: 0, // Always consider data stale
       cacheTime: 0, // Don't cache at all
@@ -188,6 +244,13 @@ export const UserProvider = ({ children }) => {
 
   const connectWallet = async () => {
     console.log('🔗 [UserContext] Starting wallet connection...');
+    
+    // If user is authenticated via token, don't allow wallet connection
+    if (hasValidToken()) {
+      console.log('🔗 [UserContext] User authenticated via token, wallet connection not allowed');
+      throw new Error('Cannot connect wallet while logged in via email/password. Please logout first.');
+    }
+    
     setIsConnecting(true);
     try {
       if (!window.ethereum) {
@@ -227,6 +290,12 @@ export const UserProvider = ({ children }) => {
   const disconnectWallet = () => {
     console.log('🔌 [UserContext] Disconnecting wallet...');
     
+    // If user is authenticated via token, this is a no-op
+    if (hasValidToken()) {
+      console.log('🔌 [UserContext] User authenticated via token, wallet disconnect not needed');
+      return;
+    }
+    
     // Clear local state
     setWalletAddress('');
     setCurrentUser(null);
@@ -252,6 +321,12 @@ export const UserProvider = ({ children }) => {
     setIsConnecting(true);
     
     try {
+      // If user is authenticated via token, don't refresh wallet
+      if (hasValidToken()) {
+        console.log('🔄 [UserContext] User authenticated via token, skipping wallet refresh');
+        return;
+      }
+      
       // Force a complete account detection
       console.log('🔄 [UserContext] Forcing account detection...');
       await detectAndSetCurrentAccount();
@@ -291,6 +366,13 @@ export const UserProvider = ({ children }) => {
   // Force check wallet connection status
   const checkWalletConnection = async () => {
     console.log('🔍 [UserContext] Force checking wallet connection...');
+    
+    // If user is authenticated via token, don't check wallet
+    if (hasValidToken()) {
+      console.log('🔍 [UserContext] User authenticated via token, skipping wallet check');
+      return;
+    }
+    
     const currentAccount = await getCurrentMetaMaskAccount();
     
     if (!currentAccount && walletAddress) {
@@ -306,36 +388,11 @@ export const UserProvider = ({ children }) => {
     }
   };
 
-  // Check if user is logged in via token (for email/password auth)
-  const checkTokenAuth = async () => {
-    const token = localStorage.getItem('authToken');
-    if (token && !currentUser) {
-      try {
-        console.log('🔍 [UserContext] Checking token authentication...');
-        const response = await apiService.get('/api/auth/profile');
-        if (response.data.user) {
-          console.log('✅ [UserContext] Token authentication successful:', response.data.user);
-          setCurrentUser(response.data.user);
-        }
-      } catch (error) {
-        console.log('❌ [UserContext] Token authentication failed:', error.response?.status, error.message);
-        
-        // If token is invalid (401) or expired, clear it
-        if (error.response?.status === 401 || error.response?.status === 403) {
-          console.log('🧹 [UserContext] Clearing invalid/expired token');
-          localStorage.removeItem('authToken');
-          localStorage.removeItem('user');
-          localStorage.removeItem('currentUser');
-          setCurrentUser(null);
-        }
-        // Don't set any error state here to prevent brief error display
-      }
-    }
-  };
-
   const isTDC = currentUser?.partyType === 'TDC';
   const isTDP = currentUser?.partyType === 'TDP';
   const isCCRP = currentUser?.partyType === 'CCRP';
+
+
 
   // Log state changes (disabled to reduce console spam)
   // console.log('🔄 [UserContext] State update:', {
@@ -362,8 +419,12 @@ export const UserProvider = ({ children }) => {
 
   // Function to set user manually (for email/password login)
   const setUser = (user) => {
-    console.log('👤 [UserContext] Setting user manually:', user);
+    // Clear any cached data when setting a new user
+    console.log('🧹 [UserContext] Clearing cached data for new user login...');
+    queryClient.removeQueries(['user']);
     setCurrentUser(user);
+    // Clear wallet address when user logs in via email/password
+    setWalletAddress('');
   };
 
   // Function to refresh authentication (clear invalid tokens and re-check)
@@ -376,6 +437,38 @@ export const UserProvider = ({ children }) => {
     
     // Re-check token authentication
     await checkTokenAuth();
+  };
+
+  // Function to clear all authentication data
+  const clearAuthData = async () => {
+    console.log('🧹 [UserContext] Clearing all authentication data...');
+    
+    // Call logout endpoint to blacklist current token
+    const token = localStorage.getItem('authToken');
+    if (token) {
+      try {
+        await apiService.post('/api/auth/logout', {}, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        console.log('🚫 Token blacklisted via logout endpoint');
+      } catch (error) {
+        console.warn('⚠️ Failed to blacklist token:', error.message);
+      }
+    }
+    
+    localStorage.removeItem('authToken');
+    localStorage.removeItem('refreshToken');
+    localStorage.removeItem('user');
+    localStorage.removeItem('currentUser');
+    sessionStorage.clear();
+    setCurrentUser(null);
+    setWalletAddress('');
+    queryClient.removeQueries(['user']);
+    
+    // After clearing token auth, re-enable wallet detection
+    setTimeout(() => {
+      detectAndSetCurrentAccount();
+    }, 100);
   };
 
   const value = {
@@ -397,6 +490,7 @@ export const UserProvider = ({ children }) => {
     isCCRP,
     isAuthenticated: !!currentUser,
     refreshAuth, // Add refreshAuth function
+    clearAuthData, // Add clearAuthData function
   };
 
   return (

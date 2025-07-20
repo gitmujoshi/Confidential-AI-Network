@@ -9,8 +9,10 @@ router.get('/dashboard/:userId', authenticateToken, async (req, res) => {
     const { userId } = req.params;
     
     // Verify user is accessing their own data or is admin
-    const currentUserId = req.user.userId || req.user.id || req.user.localUser?.id;
-    if (currentUserId !== parseInt(userId) && req.user.partyType !== 'AppAdmin') {
+    const currentUserId = req.user.localUser?.id;
+    const userPartyType = req.user.localUser?.partyType;
+    
+    if (currentUserId !== parseInt(userId) && userPartyType !== 'AppAdmin') {
       return res.status(403).json({ error: 'Access denied' });
     }
 
@@ -48,7 +50,7 @@ router.get('/dashboard/:userId', authenticateToken, async (req, res) => {
     };
 
     contracts.forEach(contract => {
-      if (contract.status === 'ACTIVE' || contract.status === 'COMPLETED') {
+      if (contract.status === 'SIGNED' || contract.status === 'EXECUTING' || contract.status === 'COMPLETED') {
         payments.totalRevenue += parseFloat(contract.price || 0);
         
         // Calculate monthly revenue
@@ -79,7 +81,7 @@ router.get('/dashboard/:userId', authenticateToken, async (req, res) => {
       activeDatasets: datasets.filter(d => d.isActive).length,
       totalContracts: contracts.length,
       successRate: contracts.length > 0 
-        ? Math.round((contracts.filter(c => c.status === 'ACTIVE' || c.status === 'COMPLETED').length / contracts.length) * 100)
+        ? Math.round((contracts.filter(c => c.status === 'SIGNED' || c.status === 'EXECUTING' || c.status === 'COMPLETED').length / contracts.length) * 100)
         : 0
     };
 
@@ -140,8 +142,10 @@ router.get('/datasets/:userId', authenticateToken, async (req, res) => {
   try {
     const { userId } = req.params;
     
-    const currentUserId = req.user.userId || req.user.id || req.user.localUser?.id;
-    if (currentUserId !== parseInt(userId) && req.user.partyType !== 'AppAdmin') {
+    const currentUserId = req.user.localUser?.id;
+    const userPartyType = req.user.localUser?.partyType;
+    
+    if (currentUserId !== parseInt(userId) && userPartyType !== 'AppAdmin') {
       return res.status(403).json({ error: 'Access denied' });
     }
 
@@ -165,8 +169,10 @@ router.get('/contracts/:userId', authenticateToken, async (req, res) => {
   try {
     const { userId } = req.params;
     
-    const currentUserId = req.user.userId || req.user.id || req.user.localUser?.id;
-    if (currentUserId !== parseInt(userId) && req.user.partyType !== 'AppAdmin') {
+    const currentUserId = req.user.localUser?.id;
+    const userPartyType = req.user.localUser?.partyType;
+    
+    if (currentUserId !== parseInt(userId) && userPartyType !== 'AppAdmin') {
       return res.status(403).json({ error: 'Access denied' });
     }
 
@@ -191,8 +197,10 @@ router.get('/payments/:userId', authenticateToken, async (req, res) => {
   try {
     const { userId } = req.params;
     
-    const currentUserId = req.user.userId || req.user.id || req.user.localUser?.id;
-    if (currentUserId !== parseInt(userId) && req.user.partyType !== 'AppAdmin') {
+    const currentUserId = req.user.localUser?.id;
+    const userPartyType = req.user.localUser?.partyType;
+    
+    if (currentUserId !== parseInt(userId) && userPartyType !== 'AppAdmin') {
       return res.status(403).json({ error: 'Access denied' });
     }
 
@@ -217,7 +225,7 @@ router.get('/payments/:userId', authenticateToken, async (req, res) => {
         createdAt: contract.createdAt
       };
 
-      if (contract.status === 'ACTIVE' || contract.status === 'COMPLETED') {
+      if (contract.status === 'SIGNED' || contract.status === 'EXECUTING' || contract.status === 'COMPLETED') {
         payments.totalRevenue += payment.amount;
         
         const contractDate = new Date(contract.createdAt);
@@ -250,8 +258,10 @@ router.get('/analytics/:userId', authenticateToken, async (req, res) => {
   try {
     const { userId } = req.params;
     
-    const currentUserId = req.user.userId || req.user.id || req.user.localUser?.id;
-    if (currentUserId !== parseInt(userId) && req.user.partyType !== 'AppAdmin') {
+    const currentUserId = req.user.localUser?.id;
+    const userPartyType = req.user.localUser?.partyType;
+    
+    if (currentUserId !== parseInt(userId) && userPartyType !== 'AppAdmin') {
       return res.status(403).json({ error: 'Access denied' });
     }
 

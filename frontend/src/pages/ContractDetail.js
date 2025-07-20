@@ -37,6 +37,8 @@ import {
   TableRow,
   Paper,
   CircularProgress,
+  FormControlLabel,
+  Switch,
 } from '@mui/material';
 import {
   CheckCircle,
@@ -1158,7 +1160,13 @@ function ContractDetail() {
                     <Typography variant="body2" color="textSecondary">Privacy Technique</Typography>
                     <Typography variant="body1">{model.privacyTechnique}</Typography>
                     <Typography variant="body2" color="textSecondary">Validation Metrics</Typography>
-                    <Typography variant="body1">{Array.isArray(model.validationMetrics) ? model.validationMetrics.join(', ') : model.validationMetrics}</Typography>
+                    <Typography variant="body1">
+                      {Array.isArray(model.validationMetrics) 
+                        ? model.validationMetrics.join(', ') 
+                        : typeof model.validationMetrics === 'object' 
+                          ? Object.keys(model.validationMetrics).join(', ')
+                          : model.validationMetrics || 'Not specified'}
+                    </Typography>
                     <Typography variant="body2" color="textSecondary">Max Epochs</Typography>
                     <Typography variant="body1">{model.maxEpochs}</Typography>
                     <Typography variant="body2" color="textSecondary">Batch Size</Typography>
@@ -1191,7 +1199,13 @@ function ContractDetail() {
                   <Typography variant="body2" color="textSecondary">Privacy Technique</Typography>
                   <Typography variant="body1">{contract.modelInfo.privacyTechnique}</Typography>
                   <Typography variant="body2" color="textSecondary">Validation Metrics</Typography>
-                  <Typography variant="body1">{Array.isArray(contract.modelInfo.validationMetrics) ? contract.modelInfo.validationMetrics.join(', ') : contract.modelInfo.validationMetrics}</Typography>
+                  <Typography variant="body1">
+                    {Array.isArray(contract.modelInfo.validationMetrics) 
+                      ? contract.modelInfo.validationMetrics.join(', ') 
+                      : typeof contract.modelInfo.validationMetrics === 'object' 
+                        ? Object.keys(contract.modelInfo.validationMetrics).join(', ')
+                        : contract.modelInfo.validationMetrics || 'Not specified'}
+                  </Typography>
                   <Typography variant="body2" color="textSecondary">Max Epochs</Typography>
                   <Typography variant="body1">{contract.modelInfo.maxEpochs}</Typography>
                   <Typography variant="body2" color="textSecondary">Batch Size</Typography>
@@ -1507,7 +1521,7 @@ function ContractDetail() {
           </Grid>
         )}
 
-        {/* Ricardian Contract Details */}
+        {/* Contract Details */}
         {(contract.legalDocumentHash || contract.smartContractAddress || contract.ricardianSignature || 
           contract.trainingParams || contract.environmentSpecs || contract.kmsConfigs || 
           contract.attestationVerified !== undefined || contract.attestationReport ||
@@ -1518,7 +1532,7 @@ function ContractDetail() {
               <CardContent>
                 <Typography variant="h6" gutterBottom>
                   <Security sx={{ mr: 1, verticalAlign: 'middle' }} />
-                  Ricardian Contract Details
+                  Contract Details
                 </Typography>
                 
                 <Grid container spacing={3}>
@@ -1628,21 +1642,226 @@ function ContractDetail() {
                       </Typography>
                       <Accordion>
                         <AccordionSummary expandIcon={<ExpandMore />}>
-                          <Typography variant="body2">View Training Parameters</Typography>
+                          <Typography variant="body2">View/Edit Training Parameters</Typography>
                         </AccordionSummary>
                         <AccordionDetails>
-                          <Typography variant="body2" fontFamily="monospace" fontSize="0.8rem" sx={{ whiteSpace: 'pre-wrap' }}>
-                            {(() => {
-                              try {
-                                const trainingParams = typeof contract.trainingParams === 'string' 
-                                  ? JSON.parse(contract.trainingParams) 
-                                  : contract.trainingParams;
-                                return JSON.stringify(trainingParams, null, 2);
-                              } catch (error) {
-                                return contract.trainingParams;
-                              }
-                            })()}
-                          </Typography>
+                          {(() => {
+                            try {
+                              const trainingParams = typeof contract.trainingParams === 'string' 
+                                ? JSON.parse(contract.trainingParams) 
+                                : contract.trainingParams;
+                              
+                              return (
+                                <Box sx={{ width: '100%' }}>
+                                  <Grid container spacing={2}>
+                                    {/* Privacy Parameters */}
+                                    <Grid item xs={12} md={6}>
+                                      <Typography variant="h6" gutterBottom>
+                                        Privacy Parameters
+                                      </Typography>
+                                      <TextField
+                                        fullWidth
+                                        label="Max Privacy Loss"
+                                        type="number"
+                                        value={trainingParams.maxPrivacyLoss || ''}
+                                        onChange={(e) => {
+                                          const updatedParams = { ...trainingParams, maxPrivacyLoss: parseFloat(e.target.value) };
+                                          // Update the contract data
+                                          if (contract.onTrainingParamsChange) {
+                                            contract.onTrainingParamsChange(updatedParams);
+                                          }
+                                        }}
+                                        margin="normal"
+                                        InputProps={{ inputProps: { step: 0.01, min: 0, max: 1 } }}
+                                      />
+                                      <TextField
+                                        fullWidth
+                                        label="Min Accuracy"
+                                        type="number"
+                                        value={trainingParams.minAccuracy || ''}
+                                        onChange={(e) => {
+                                          const updatedParams = { ...trainingParams, minAccuracy: parseFloat(e.target.value) };
+                                          if (contract.onTrainingParamsChange) {
+                                            contract.onTrainingParamsChange(updatedParams);
+                                          }
+                                        }}
+                                        margin="normal"
+                                        InputProps={{ inputProps: { step: 0.01, min: 0, max: 1 } }}
+                                      />
+                                      <TextField
+                                        fullWidth
+                                        label="Max Training Runs"
+                                        type="number"
+                                        value={trainingParams.maxTrainingRuns || ''}
+                                        onChange={(e) => {
+                                          const updatedParams = { ...trainingParams, maxTrainingRuns: parseInt(e.target.value) };
+                                          if (contract.onTrainingParamsChange) {
+                                            contract.onTrainingParamsChange(updatedParams);
+                                          }
+                                        }}
+                                        margin="normal"
+                                        InputProps={{ inputProps: { min: 1, max: 100 } }}
+                                        helperText="Maximum number of training runs permitted for this contract"
+                                      />
+                                    </Grid>
+
+                                    {/* Differential Privacy */}
+                                    <Grid item xs={12} md={6}>
+                                      <Typography variant="h6" gutterBottom>
+                                        Differential Privacy
+                                      </Typography>
+                                      <FormControlLabel
+                                        control={
+                                          <Switch
+                                            checked={trainingParams.differentialPrivacy?.enabled || false}
+                                            onChange={(e) => {
+                                              const updatedParams = {
+                                                ...trainingParams,
+                                                differentialPrivacy: {
+                                                  ...trainingParams.differentialPrivacy,
+                                                  enabled: e.target.checked
+                                                }
+                                              };
+                                              if (contract.onTrainingParamsChange) {
+                                                contract.onTrainingParamsChange(updatedParams);
+                                              }
+                                            }}
+                                          />
+                                        }
+                                        label="Enabled"
+                                      />
+                                      {trainingParams.differentialPrivacy?.enabled && (
+                                        <>
+                                          <TextField
+                                            fullWidth
+                                            label="Epsilon"
+                                            type="number"
+                                            value={trainingParams.differentialPrivacy?.epsilon || ''}
+                                            onChange={(e) => {
+                                              const updatedParams = {
+                                                ...trainingParams,
+                                                differentialPrivacy: {
+                                                  ...trainingParams.differentialPrivacy,
+                                                  epsilon: parseFloat(e.target.value)
+                                                }
+                                              };
+                                              if (contract.onTrainingParamsChange) {
+                                                contract.onTrainingParamsChange(updatedParams);
+                                              }
+                                            }}
+                                            margin="normal"
+                                            InputProps={{ inputProps: { step: 0.01, min: 0 } }}
+                                          />
+                                          <TextField
+                                            fullWidth
+                                            label="Delta"
+                                            type="number"
+                                            value={trainingParams.differentialPrivacy?.delta || ''}
+                                            onChange={(e) => {
+                                              const updatedParams = {
+                                                ...trainingParams,
+                                                differentialPrivacy: {
+                                                  ...trainingParams.differentialPrivacy,
+                                                  delta: parseFloat(e.target.value)
+                                                }
+                                              };
+                                              if (contract.onTrainingParamsChange) {
+                                                contract.onTrainingParamsChange(updatedParams);
+                                              }
+                                            }}
+                                            margin="normal"
+                                            InputProps={{ inputProps: { step: 1e-6, min: 0 } }}
+                                          />
+                                        </>
+                                      )}
+                                    </Grid>
+
+                                    {/* Federated Learning */}
+                                    <Grid item xs={12} md={6}>
+                                      <Typography variant="h6" gutterBottom>
+                                        Federated Learning
+                                      </Typography>
+                                      <FormControlLabel
+                                        control={
+                                          <Switch
+                                            checked={trainingParams.federatedLearning?.enabled || false}
+                                            onChange={(e) => {
+                                              const updatedParams = {
+                                                ...trainingParams,
+                                                federatedLearning: {
+                                                  ...trainingParams.federatedLearning,
+                                                  enabled: e.target.checked
+                                                }
+                                              };
+                                              if (contract.onTrainingParamsChange) {
+                                                contract.onTrainingParamsChange(updatedParams);
+                                              }
+                                            }}
+                                          />
+                                        }
+                                        label="Enabled"
+                                      />
+                                      {trainingParams.federatedLearning?.enabled && (
+                                        <TextField
+                                          fullWidth
+                                          label="Communication Rounds"
+                                          type="number"
+                                          value={trainingParams.federatedLearning?.communicationRounds || ''}
+                                          onChange={(e) => {
+                                            const updatedParams = {
+                                              ...trainingParams,
+                                              federatedLearning: {
+                                                ...trainingParams.federatedLearning,
+                                                communicationRounds: parseInt(e.target.value)
+                                              }
+                                            };
+                                            if (contract.onTrainingParamsChange) {
+                                              contract.onTrainingParamsChange(updatedParams);
+                                            }
+                                          }}
+                                          margin="normal"
+                                          InputProps={{ inputProps: { min: 1 } }}
+                                        />
+                                      )}
+                                    </Grid>
+
+                                    {/* Secure Multi-Party Computation */}
+                                    <Grid item xs={12} md={6}>
+                                      <Typography variant="h6" gutterBottom>
+                                        Secure Multi-Party Computation
+                                      </Typography>
+                                      <FormControlLabel
+                                        control={
+                                          <Switch
+                                            checked={trainingParams.secureMultiPartyComputation?.enabled || false}
+                                            onChange={(e) => {
+                                              const updatedParams = {
+                                                ...trainingParams,
+                                                secureMultiPartyComputation: {
+                                                  ...trainingParams.secureMultiPartyComputation,
+                                                  enabled: e.target.checked
+                                                }
+                                              };
+                                              if (contract.onTrainingParamsChange) {
+                                                contract.onTrainingParamsChange(updatedParams);
+                                              }
+                                            }}
+                                          />
+                                        }
+                                        label="Enabled"
+                                      />
+                                    </Grid>
+                                  </Grid>
+                                </Box>
+                              );
+                            } catch (error) {
+                              return (
+                                <Typography variant="body2" color="error">
+                                  Error parsing training parameters: {error.message}
+                                </Typography>
+                              );
+                            }
+                          })()}
                         </AccordionDetails>
                       </Accordion>
                     </Grid>
@@ -1656,21 +1875,199 @@ function ContractDetail() {
                       </Typography>
                       <Accordion>
                         <AccordionSummary expandIcon={<ExpandMore />}>
-                          <Typography variant="body2">View Environment Specs</Typography>
+                          <Typography variant="body2">View/Edit Environment Specs</Typography>
                         </AccordionSummary>
                         <AccordionDetails>
-                          <Typography variant="body2" fontFamily="monospace" fontSize="0.8rem" sx={{ whiteSpace: 'pre-wrap' }}>
-                            {(() => {
-                              try {
-                                const envSpecs = typeof contract.environmentSpecs === 'string' 
-                                  ? JSON.parse(contract.environmentSpecs) 
-                                  : contract.environmentSpecs;
-                                return JSON.stringify(envSpecs, null, 2);
-                              } catch (error) {
-                                return contract.environmentSpecs;
-                              }
-                            })()}
-                          </Typography>
+                          {(() => {
+                            try {
+                              const envSpecs = typeof contract.environmentSpecs === 'string' 
+                                ? JSON.parse(contract.environmentSpecs) 
+                                : contract.environmentSpecs;
+                              
+                              return (
+                                <Box sx={{ width: '100%' }}>
+                                  <Grid container spacing={2}>
+                                    {/* Infrastructure */}
+                                    {envSpecs.infrastructure && (
+                                      <Grid item xs={12} md={6}>
+                                        <Typography variant="h6" gutterBottom>
+                                          Infrastructure
+                                        </Typography>
+                                        <TextField
+                                          fullWidth
+                                          label="Compute Type"
+                                          value={envSpecs.infrastructure.computeType || ''}
+                                          onChange={(e) => {
+                                            const updatedSpecs = {
+                                              ...envSpecs,
+                                              infrastructure: {
+                                                ...envSpecs.infrastructure,
+                                                computeType: e.target.value
+                                              }
+                                            };
+                                            if (contract.onEnvironmentSpecsChange) {
+                                              contract.onEnvironmentSpecsChange(updatedSpecs);
+                                            }
+                                          }}
+                                          margin="normal"
+                                        />
+                                        <TextField
+                                          fullWidth
+                                          label="Memory"
+                                          value={envSpecs.infrastructure.memory || ''}
+                                          onChange={(e) => {
+                                            const updatedSpecs = {
+                                              ...envSpecs,
+                                              infrastructure: {
+                                                ...envSpecs.infrastructure,
+                                                memory: e.target.value
+                                              }
+                                            };
+                                            if (contract.onEnvironmentSpecsChange) {
+                                              contract.onEnvironmentSpecsChange(updatedSpecs);
+                                            }
+                                          }}
+                                          margin="normal"
+                                        />
+                                        <TextField
+                                          fullWidth
+                                          label="Storage"
+                                          value={envSpecs.infrastructure.storage || ''}
+                                          onChange={(e) => {
+                                            const updatedSpecs = {
+                                              ...envSpecs,
+                                              infrastructure: {
+                                                ...envSpecs.infrastructure,
+                                                storage: e.target.value
+                                              }
+                                            };
+                                            if (contract.onEnvironmentSpecsChange) {
+                                              contract.onEnvironmentSpecsChange(updatedSpecs);
+                                            }
+                                          }}
+                                          margin="normal"
+                                        />
+                                      </Grid>
+                                    )}
+
+                                    {/* KMS Configuration */}
+                                    {envSpecs.kms && (
+                                      <Grid item xs={12} md={6}>
+                                        <Typography variant="h6" gutterBottom>
+                                          Key Management System
+                                        </Typography>
+                                        <TextField
+                                          fullWidth
+                                          label="Provider"
+                                          value={envSpecs.kms.provider || ''}
+                                          onChange={(e) => {
+                                            const updatedSpecs = {
+                                              ...envSpecs,
+                                              kms: {
+                                                ...envSpecs.kms,
+                                                provider: e.target.value
+                                              }
+                                            };
+                                            if (contract.onEnvironmentSpecsChange) {
+                                              contract.onEnvironmentSpecsChange(updatedSpecs);
+                                            }
+                                          }}
+                                          margin="normal"
+                                        />
+                                        <TextField
+                                          fullWidth
+                                          label="Key Vault"
+                                          value={envSpecs.kms.keyVault || ''}
+                                          onChange={(e) => {
+                                            const updatedSpecs = {
+                                              ...envSpecs,
+                                              kms: {
+                                                ...envSpecs.kms,
+                                                keyVault: e.target.value
+                                              }
+                                            };
+                                            if (contract.onEnvironmentSpecsChange) {
+                                              contract.onEnvironmentSpecsChange(updatedSpecs);
+                                            }
+                                          }}
+                                          margin="normal"
+                                        />
+                                      </Grid>
+                                    )}
+
+                                    {/* Security Configuration */}
+                                    {envSpecs.security && (
+                                      <Grid item xs={12}>
+                                        <Typography variant="h6" gutterBottom>
+                                          Security Configuration
+                                        </Typography>
+                                        <Grid container spacing={2}>
+                                          <Grid item xs={12} md={6}>
+                                            <Typography variant="subtitle2" gutterBottom>
+                                              Authentication
+                                            </Typography>
+                                            <TextField
+                                              fullWidth
+                                              label="Method"
+                                              value={envSpecs.security.authentication?.method || ''}
+                                              onChange={(e) => {
+                                                const updatedSpecs = {
+                                                  ...envSpecs,
+                                                  security: {
+                                                    ...envSpecs.security,
+                                                    authentication: {
+                                                      ...envSpecs.security.authentication,
+                                                      method: e.target.value
+                                                    }
+                                                  }
+                                                };
+                                                if (contract.onEnvironmentSpecsChange) {
+                                                  contract.onEnvironmentSpecsChange(updatedSpecs);
+                                                }
+                                              }}
+                                              margin="normal"
+                                            />
+                                          </Grid>
+                                          <Grid item xs={12} md={6}>
+                                            <Typography variant="subtitle2" gutterBottom>
+                                              Authorization
+                                            </Typography>
+                                            <TextField
+                                              fullWidth
+                                              label="Model"
+                                              value={envSpecs.security.authorization?.model || ''}
+                                              onChange={(e) => {
+                                                const updatedSpecs = {
+                                                  ...envSpecs,
+                                                  security: {
+                                                    ...envSpecs.security,
+                                                    authorization: {
+                                                      ...envSpecs.security.authorization,
+                                                      model: e.target.value
+                                                    }
+                                                  }
+                                                };
+                                                if (contract.onEnvironmentSpecsChange) {
+                                                  contract.onEnvironmentSpecsChange(updatedSpecs);
+                                                }
+                                              }}
+                                              margin="normal"
+                                            />
+                                          </Grid>
+                                        </Grid>
+                                      </Grid>
+                                    )}
+                                  </Grid>
+                                </Box>
+                              );
+                            } catch (error) {
+                              return (
+                                <Typography variant="body2" color="error">
+                                  Error parsing environment specifications: {error.message}
+                                </Typography>
+                              );
+                            }
+                          })()}
                         </AccordionDetails>
                       </Accordion>
                     </Grid>
@@ -1754,7 +2151,7 @@ function ContractDetail() {
                     </Grid>
                   )}
 
-                  {/* Multi-TDP Status (for Ricardian contracts) */}
+                  {/* Multi-TDP Status (for contracts) */}
                   {contract.multiTdpStatus && (
                     <Grid item xs={12}>
                       <Typography variant="subtitle1" gutterBottom>

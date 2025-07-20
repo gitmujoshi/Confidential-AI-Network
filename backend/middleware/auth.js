@@ -15,6 +15,7 @@ const KeycloakService = require('../services/***REMOVED-KEYCLOAK_DB_PASSWORD***S
 const ***REMOVED-KEYCLOAK_DB_PASSWORD***Service = new KeycloakService();
 const db = require('../models');
 const axios = require('axios');
+const tokenBlacklist = require('../tokenBlacklist');
 
 /**
  * Validate JWT token and extract user information
@@ -31,30 +32,55 @@ const authenticateToken = async (req, res, next) => {
       });
     }
 
+    // Check if token is blacklisted
+    if (tokenBlacklist.isBlacklisted(token)) {
+      return res.status(401).json({ 
+        error: 'Token has been invalidated',
+        code: 'TOKEN_BLACKLISTED'
+      });
+    }
+
     // Try Keycloak validation first
+    console.log('🔍 [auth.js] KEYCLOAK_ENABLED:', process.env.KEYCLOAK_ENABLED, 'Type:', typeof process.env.KEYCLOAK_ENABLED);
     if (process.env.KEYCLOAK_ENABLED === 'true') {
+      console.log('🔍 [auth.js] Starting Keycloak validation...');
       try {
+        console.log('🔍 [auth.js] Calling ***REMOVED-KEYCLOAK_DB_PASSWORD***Service.validateToken...');
         const validationResult = await ***REMOVED-KEYCLOAK_DB_PASSWORD***Service.validateToken(token);
+        console.log('🔍 [auth.js] Validation result:', validationResult);
         
         if (validationResult.valid) {
-          // Keycloak token is valid
-          // Build where clause based on available user data
-          const whereClause = { isActive: true };
+          // 🔒 FROZEN AUTHENTICATION LOGIC - DO NOT MODIFY
+          // This authentication logic is frozen and should not be changed
+          // unless explicitly requested by the user.
+          // 
+          // Current implementation: Keycloak username ↔ Database iamUsername matching only
+          // Excluded: walletAddress, email, and other attributes
+          // 
+          // To modify this logic, you must:
+          // 1. Get explicit permission from the user
+          // 2. Document the change with clear reasoning
+          // 3. Test thoroughly before deployment
           
-          if (validationResult.user.walletAddress) {
-            whereClause.walletAddress = validationResult.user.walletAddress;
-          } else if (validationResult.user.email) {
-            whereClause.email = validationResult.user.email;
-          } else {
-            // No wallet address or email available, can't find user
+          // Use only Keycloak username to match with database iamUsername
+          // Fallback to email if username is not available
+          const ***REMOVED-KEYCLOAK_DB_PASSWORD***Username = validationResult.user.username || validationResult.user.email;
+          
+          if (!***REMOVED-KEYCLOAK_DB_PASSWORD***Username) {
             return res.status(404).json({ 
               error: 'User not found in local database',
               code: 'USER_NOT_FOUND',
-              details: 'No wallet address or email available for user lookup'
+              details: 'No Keycloak username or email available for user lookup'
             });
           }
           
-          const user = await db.User.findOne({ where: whereClause });
+          // Find user by iamUsername (which should match Keycloak username)
+          const user = await db.User.findOne({ 
+            where: { 
+              iamUsername: ***REMOVED-KEYCLOAK_DB_PASSWORD***Username,
+              isActive: true 
+            } 
+          });
 
           if (!user) {
             return res.status(404).json({ 
@@ -74,9 +100,20 @@ const authenticateToken = async (req, res, next) => {
             partyType: user.partyType,
             localUser: {
               id: user.id,
-              partyType: user.partyType,
+              name: user.name,
               email: user.email,
-              // add any other fields needed for downstream checks
+              partyType: user.partyType,
+              walletAddress: user.walletAddress,
+              publicKey: user.publicKey,
+              description: user.description,
+              organization: user.organization,
+              phoneNumber: user.phoneNumber,
+              website: user.website,
+              location: user.location,
+              isRegistered: user.isRegistered,
+              onboardingStatus: user.onboardingStatus,
+              profileCompleted: user.profileCompleted,
+              emailVerified: user.emailVerified
             },
             token: token,
             authType: '***REMOVED-KEYCLOAK_DB_PASSWORD***'
@@ -86,90 +123,30 @@ const authenticateToken = async (req, res, next) => {
           console.log('🔑 [auth.js] req.user after Keycloak validation:', req.user);
 
           return next();
+        } else {
+          // Token is invalid (expired, malformed, etc.)
+          console.log('❌ [auth.js] Token validation failed:', validationResult.error);
+          return res.status(401).json({ 
+            error: 'Invalid or expired token',
+            code: 'TOKEN_INVALID',
+            details: validationResult.error
+          });
         }
       } catch (***REMOVED-KEYCLOAK_DB_PASSWORD***Error) {
-        console.error('❌ Keycloak validation failed, trying database token:', ***REMOVED-KEYCLOAK_DB_PASSWORD***Error);
-        // Continue to database token validation
-      }
-    }
-
-    // Database JWT token validation fallback
-    try {
-      const jwt = require('jsonwebtoken');
-      
-      // Check if this is a Keycloak token (they have a specific structure)
-      if (token.includes('.') && token.split('.').length === 3) {
-        // This looks like a JWT token, but let's check if it's a Keycloak token
-        try {
-          // Try to decode the token without verification to check its structure
-          const decoded = jwt.decode(token);
-          if (decoded && decoded.iss && (decoded.iss.includes('***REMOVED-KEYCLOAK_DB_PASSWORD***') || decoded.iss.includes('localhost:3000'))) {
-            // This is a Keycloak token, but Keycloak validation already failed above
-            // So this token is invalid or expired
-            return res.status(401).json({ 
-              error: 'Invalid or expired token',
-              code: 'TOKEN_INVALID',
-              details: 'Keycloak token validation failed'
-            });
-          }
-        } catch (decodeError) {
-          // Not a valid JWT, continue to database validation
-        }
-      }
-      
-      // Try database JWT validation with proper algorithm
-      const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key', {
-        algorithms: ['HS256']
-      });
-      
-      if (decoded.authType !== 'database') {
+        console.error('❌ Keycloak validation failed:', ***REMOVED-KEYCLOAK_DB_PASSWORD***Error);
         return res.status(401).json({ 
-          error: 'Invalid token type',
+          error: 'Invalid or expired token',
           code: 'TOKEN_INVALID',
-          details: 'Token is not a database authentication token'
+          details: 'Keycloak token validation failed'
         });
       }
-
-      // Get user from database
-      const user = await db.User.findOne({
-        where: { 
-          id: decoded.userId,
-          email: decoded.email,
-          isActive: true 
-        }
-      });
-
-      if (!user) {
-        return res.status(404).json({ 
-          error: 'User not found',
-          code: 'USER_NOT_FOUND',
-          details: 'User does not exist or is inactive'
-        });
-      }
-
-      // Update last login timestamp
-      await user.update({ lastLoginAt: new Date() });
-
-      // Attach user information to request
-      req.user = {
-        userId: user.id,
-        email: user.email,
-        partyType: user.partyType,
-        localUser: user,
-        token: token,
-        authType: 'database'
-      };
-
-      return next();
-
-    } catch (jwtError) {
-      console.error('❌ Database token validation failed:', jwtError);
-      return res.status(401).json({ 
-        error: 'Invalid or expired token',
-        code: 'TOKEN_INVALID',
-        details: 'Token validation failed'
-      });
     }
+
+    // If Keycloak is not enabled, return error
+    return res.status(500).json({
+      error: 'Keycloak authentication is required but not enabled',
+      code: 'KEYCLOAK_NOT_ENABLED'
+    });
 
   } catch (error) {
     console.error('❌ Authentication error:', error);
@@ -289,7 +266,27 @@ const optionalAuth = async (req, res, next) => {
       
       const user = await db.User.findOne({ where: whereClause });
 
-      if (user) {
+      // If user not found by email, try by iamUsername (which should be the Keycloak username)
+      if (!user && validationResult.user.username) {
+        const userByUsername = await db.User.findOne({ 
+          where: { 
+            iamUsername: validationResult.user.username,
+            isActive: true 
+          } 
+        });
+        if (userByUsername) {
+          // Update last login timestamp
+          await userByUsername.update({ lastLoginAt: new Date() });
+          
+          req.user = {
+            ...validationResult.user,
+            localUser: userByUsername,
+            token: token
+          };
+        } else {
+          req.user = null;
+        }
+      } else if (user) {
         // Update last login timestamp
         await user.update({ lastLoginAt: new Date() });
         

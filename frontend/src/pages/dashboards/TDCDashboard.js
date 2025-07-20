@@ -124,7 +124,7 @@ const TDCDashboard = () => {
             startIcon={<Add />}
             onClick={() => navigate('/tdc/contracts/create')}
           >
-            Create Contract
+            Create Ricardian Contract
           </Button>
           <Button
             variant="outlined"

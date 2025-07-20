@@ -1,5 +1,5 @@
 const request = require('supertest');
-const app = require('../server');
+const app = require('../test-server');
 const db = require('../models');
 
 describe('Multi-TDP Contract Tests', () => {
@@ -57,7 +57,10 @@ describe('Multi-TDP Contract Tests', () => {
       name: 'Test Dataset 1',
       description: 'First test dataset',
       category: 'Tabular',
+      size: 1000, // Size in MB
+      recordCount: 10000,
       price: 1000,
+      license: 'MIT',
       ownerId: testUsers.tdp1.id,
       isPublic: true,
       isActive: true
@@ -68,7 +71,10 @@ describe('Multi-TDP Contract Tests', () => {
       name: 'Test Dataset 2',
       description: 'Second test dataset',
       category: 'Computer Vision',
+      size: 2000, // Size in MB
+      recordCount: 20000,
       price: 2000,
+      license: 'Apache-2.0',
       ownerId: testUsers.tdp2.id,
       isPublic: true,
       isActive: true
@@ -119,7 +125,7 @@ describe('Multi-TDP Contract Tests', () => {
       expect(response.body.contract.datasetCount).toBe(2);
       expect(response.body.contract.tdpCount).toBe(2);
       expect(response.body.contract.totalPrice).toBe(4000);
-      expect(response.body.contract.multiTdpStatus).toBe('PENDING_ALL_TDP_APPROVAL');
+      expect(response.body.contract.multiTdpStatus).toBe('PENDING_TDP');
 
       testContract = response.body.contract;
     });
@@ -183,13 +189,20 @@ describe('Multi-TDP Contract Tests', () => {
       // Create a single-TDP contract
       const singleContract = await db.Contract.create({
         contractId: 'SINGLE-CONTRACT-TEST',
-        tdpId: testUsers.tdp1.id,
         tdcId: testUsers.tdc.id,
         datasetId: testDatasets.dataset1.id,
         price: 1000,
         duration: 30,
         termsAndConditions: 'Test terms',
-        status: 'PENDING_TDP_APPROVAL',
+        status: 'PENDING_TDP',
+        contractDatasets: [{
+          datasetId: testDatasets.dataset1.id,
+          tdpId: testUsers.tdp1.id,
+          datasetName: testDatasets.dataset1.name,
+          tdpName: testUsers.tdp1.name,
+          individualPrice: 1000,
+          paymentStatus: 'PENDING'
+        }],
         datasetCount: 1,
         tdpCount: 1
       });
@@ -303,6 +316,50 @@ describe('Multi-TDP Contract Tests', () => {
       expect(response.body.paidCount).toBe(1);
       expect(response.body.totalCount).toBe(2);
       expect(response.body.allPaid).toBe(false);
+    });
+  });
+
+  describe('Training Parameters', () => {
+    test('should save max training runs in training parameters', async () => {
+      const contractData = {
+        datasetSelections: [
+          {
+            datasetId: testDatasets.dataset1.datasetId,
+            individualPrice: 1000
+          }
+        ],
+        duration: 30,
+        termsAndConditions: 'Test max training runs',
+        trainingParams: {
+          maxPrivacyLoss: 0.1,
+          minAccuracy: 0.85,
+          maxTrainingRuns: 10, // Test the new field
+          differentialPrivacy: {
+            enabled: true,
+            epsilon: 0.1,
+            delta: 1e-5
+          },
+          federatedLearning: {
+            enabled: true,
+            communicationRounds: 100
+          },
+          secureMultiPartyComputation: {
+            enabled: false
+          }
+        }
+      };
+
+      const response = await request(app)
+        .post('/api/contracts')
+        .set('Authorization', `Bearer mock-token`)
+        .send(contractData);
+
+      expect(response.status).toBe(201);
+      expect(response.body.success).toBe(true);
+      expect(response.body.contract.trainingParams).toBeDefined();
+      expect(response.body.contract.trainingParams.maxTrainingRuns).toBe(10);
+      expect(response.body.contract.trainingParams.maxPrivacyLoss).toBe(0.1);
+      expect(response.body.contract.trainingParams.minAccuracy).toBe(0.85);
     });
   });
 

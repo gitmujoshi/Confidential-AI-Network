@@ -15,7 +15,7 @@ This document summarizes the frontend implementation for multi-TDP contract mana
   - Price input fields for each selected dataset
 
 ### 2. Enhanced Contract Creation
-- **CreateContract.js**: Updated for multi-TDP contract creation
+- **CreateRicardianContract.js**: Updated for multi-TDP Ricardian contract creation
 - **CreateRicardianContract.js**: Enhanced for multi-TDP Ricardian contracts
 - **Features**:
   - Multi-dataset selection with validation
@@ -129,7 +129,7 @@ This document summarizes the frontend implementation for multi-TDP contract mana
 - `src/components/MultiDatasetSelector.js` - New multi-dataset selection component
 - `src/pages/ContractDetail.js` - Enhanced contract detail display
 - `src/pages/Contracts.js` - Updated contract listing with download functionality
-- `src/pages/CreateContract.js` - Multi-TDP contract creation
+- `src/pages/CreateRicardianContract.js` - Multi-TDP Ricardian contract creation
 - `src/pages/CreateRicardianContract.js` - Enhanced Ricardian contract creation
 - `src/services/api.js` - Updated API service for multi-TDP endpoints
 

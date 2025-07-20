@@ -252,7 +252,7 @@ const realApiService = {
 
   // AI Models
   getAIModels: async () => {
-    const response = await api.get('/api/contracts/ai-models');
+    const response = await api.get('/api/contracts/ricardian/available-models');
     return response.data;
   },
 

@@ -31,7 +31,8 @@
     "register-hardhat": "node scripts/registerHardhatUsers.js",
     "create-datasets": "node scripts/createTestDatasets.js",
     "migrate-iam": "node scripts/migrateIAMFields.js",
-    "setup-***REMOVED-KEYCLOAK_DB_PASSWORD***": "node scripts/setupKeycloak.js"
+    "setup-***REMOVED-KEYCLOAK_DB_PASSWORD***": "node scripts/setupKeycloak.js",
+    "validate-auth": "node scripts/validate-auth-frozen.js"
   },
   "dependencies": {
     "axios": "^1.6.0",

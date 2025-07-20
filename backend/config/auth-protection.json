@@ -1,0 +1,32 @@
+{
+  "authentication": {
+    "status": "FROZEN",
+    "lastModified": "2025-07-19",
+    "protectedFiles": [
+      "backend/middleware/auth.js"
+    ],
+    "currentLogic": {
+      "matchingCriteria": "Keycloak username ↔ Database iamUsername only",
+      "excludedAttributes": ["walletAddress", "email", "iamUserId"],
+      "errorHandling": "404 with USER_NOT_FOUND code",
+      "userRequirements": [
+        "Must exist in Keycloak",
+        "Must exist in local database",
+        "iamUsername in database must match Keycloak username"
+      ]
+    },
+    "changePolicy": {
+      "allowed": false,
+      "requiresExplicitPermission": true,
+      "documentationRequired": true,
+      "testingRequired": true,
+      "approvalProcess": [
+        "1. Get explicit user permission",
+        "2. Document change reasoning",
+        "3. Test thoroughly",
+        "4. Update this configuration file"
+      ]
+    },
+    "contact": "User must explicitly request authentication changes"
+  }
+} 

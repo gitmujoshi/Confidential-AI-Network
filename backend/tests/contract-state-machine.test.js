@@ -12,7 +12,9 @@
  */
 
 const request = require('supertest');
-const { Contract, User, Dataset } = require('../models');
+const app = require('../test-server');
+const db = require('../models');
+const { User, Dataset, Contract } = db;
 const ContractService = require('../services/contractService');
 
 describe('Contract State Machine Tests', () => {
@@ -31,7 +33,7 @@ describe('Contract State Machine Tests', () => {
       name: 'Test TDC',
       email: 'tdc@test.com',
       partyType: 'TDC',
-      walletAddress: '0x1234567890123456789012345678901234567890',
+      isRegistered: true,
       isActive: true
     });
 
@@ -39,7 +41,7 @@ describe('Contract State Machine Tests', () => {
       name: 'Test TDP',
       email: 'tdp@test.com',
       partyType: 'TDP',
-      walletAddress: '0x2345678901234567890123456789012345678901',
+      isRegistered: true,
       isActive: true
     });
 
@@ -47,17 +49,22 @@ describe('Contract State Machine Tests', () => {
       name: 'Test CCRP',
       email: 'ccrp@test.com',
       partyType: 'CCRP',
-      walletAddress: '0x3456789012345678901234567890123456789012',
+      isRegistered: true,
       isActive: true
     });
 
     // Create test dataset
     testDataset = await Dataset.create({
+      datasetId: 'test-dataset-state-machine',
       name: 'Test Dataset',
       description: 'Test dataset for state machine tests',
-      category: 'Healthcare',
+      category: 'Tabular',
+      size: 1000, // Size in MB
+      recordCount: 10000,
       price: 100.00,
+      license: 'MIT',
       ownerId: tdpUser.id,
+      isPublic: true,
       isActive: true
     });
   });
@@ -65,10 +72,20 @@ describe('Contract State Machine Tests', () => {
   afterAll(async () => {
     // Cleanup test data
     if (testContract) {
-      await Contract.destroy({ where: { contractId: testContract.contractId } });
+      await Contract.destroy({ where: { id: testContract.id } });
     }
-    await User.destroy({ where: { id: [tdcUser.id, tdpUser.id, ccrpUser.id] } });
-    await Dataset.destroy({ where: { id: testDataset.id } });
+    if (testDataset) {
+      await Dataset.destroy({ where: { id: testDataset.id } });
+    }
+    if (tdcUser) {
+      await User.destroy({ where: { id: tdcUser.id } });
+    }
+    if (tdpUser) {
+      await User.destroy({ where: { id: tdpUser.id } });
+    }
+    if (ccrpUser) {
+      await User.destroy({ where: { id: ccrpUser.id } });
+    }
   });
 
   describe('State Machine Validation', () => {
@@ -105,14 +122,19 @@ describe('Contract State Machine Tests', () => {
     it('should create contract in DRAFT state', async () => {
       const contractData = {
         contractId: 'TEST-CONTRACT-001',
-        tdpId: tdpUser.id,
-        datasetId: testDataset.id,
-        primaryDatasetId: testDataset.id,
-        primaryTdpId: tdpUser.id,
+        title: 'Test Contract',
+        description: 'Test contract for state machine',
         price: 100.00,
-        totalPrice: 100.00,
         duration: 30,
-        termsAndConditions: 'Test terms and conditions',
+        termsAndConditions: 'Standard terms',
+        contractDatasets: [{
+          datasetId: testDataset.id,
+          tdpId: tdpUser.id,
+          datasetName: testDataset.name,
+          tdpName: tdpUser.name,
+          individualPrice: 100.00,
+          paymentStatus: 'PENDING'
+        }],
         datasetCount: 1,
         tdpCount: 1
       };
@@ -274,15 +296,20 @@ describe('Contract State Machine Tests', () => {
     it('should reject execution start from non-SIGNED contract', async () => {
       // Create a new contract in DRAFT state
       const newContract = await contractService.createContract({
-        contractId: 'TEST-CONTRACT-002',
-        tdpId: tdpUser.id,
-        datasetId: testDataset.id,
-        primaryDatasetId: testDataset.id,
-        primaryTdpId: tdpUser.id,
-        price: 100.00,
-        totalPrice: 100.00,
-        duration: 30,
-        termsAndConditions: 'Test terms',
+        contractId: 'EXECUTION-TEST-001',
+        title: 'Execution Test Contract',
+        description: 'Contract for execution testing',
+        price: 150.00,
+        duration: 60,
+        termsAndConditions: 'Execution test terms',
+        contractDatasets: [{
+          datasetId: testDataset.id,
+          tdpId: tdpUser.id,
+          datasetName: testDataset.name,
+          tdpName: tdpUser.name,
+          individualPrice: 150.00,
+          paymentStatus: 'PENDING'
+        }],
         datasetCount: 1,
         tdpCount: 1
       }, tdcUser.id);
@@ -303,15 +330,20 @@ describe('Contract State Machine Tests', () => {
     it('should allow any party to reject contract', async () => {
       // Create a new contract for rejection testing
       const rejectionContract = await contractService.createContract({
-        contractId: 'TEST-CONTRACT-REJECT',
-        tdpId: tdpUser.id,
-        datasetId: testDataset.id,
-        primaryDatasetId: testDataset.id,
-        primaryTdpId: tdpUser.id,
-        price: 100.00,
-        totalPrice: 100.00,
-        duration: 30,
-        termsAndConditions: 'Test terms',
+        contractId: 'REJECTION-TEST-001',
+        title: 'Rejection Test Contract',
+        description: 'Contract for rejection testing',
+        price: 200.00,
+        duration: 45,
+        termsAndConditions: 'Rejection test terms',
+        contractDatasets: [{
+          datasetId: testDataset.id,
+          tdpId: tdpUser.id,
+          datasetName: testDataset.name,
+          tdpName: tdpUser.name,
+          individualPrice: 200.00,
+          paymentStatus: 'PENDING'
+        }],
         datasetCount: 1,
         tdpCount: 1
       }, tdcUser.id);
@@ -357,15 +389,20 @@ describe('Contract State Machine Tests', () => {
     it('should allow TDC to resubmit rejected contract', async () => {
       // Create a rejected contract
       const rejectedContract = await contractService.createContract({
-        contractId: 'TEST-CONTRACT-RESUBMIT',
-        tdpId: tdpUser.id,
-        datasetId: testDataset.id,
-        primaryDatasetId: testDataset.id,
-        primaryTdpId: tdpUser.id,
-        price: 100.00,
-        totalPrice: 100.00,
-        duration: 30,
-        termsAndConditions: 'Test terms',
+        contractId: 'RESUBMIT-TEST-001',
+        title: 'Resubmit Test Contract',
+        description: 'Contract for resubmission testing',
+        price: 250.00,
+        duration: 90,
+        termsAndConditions: 'Resubmit test terms',
+        contractDatasets: [{
+          datasetId: testDataset.id,
+          tdpId: tdpUser.id,
+          datasetName: testDataset.name,
+          tdpName: tdpUser.name,
+          individualPrice: 250.00,
+          paymentStatus: 'PENDING'
+        }],
         datasetCount: 1,
         tdpCount: 1
       }, tdcUser.id);
@@ -402,15 +439,20 @@ describe('Contract State Machine Tests', () => {
     it('should handle execution failure', async () => {
       // Create a contract and get it to EXECUTING state
       const failureContract = await contractService.createContract({
-        contractId: 'TEST-CONTRACT-FAILURE',
-        tdpId: tdpUser.id,
-        datasetId: testDataset.id,
-        primaryDatasetId: testDataset.id,
-        primaryTdpId: tdpUser.id,
-        price: 100.00,
-        totalPrice: 100.00,
-        duration: 30,
-        termsAndConditions: 'Test terms',
+        contractId: 'FAILURE-TEST-001',
+        title: 'Failure Test Contract',
+        description: 'Contract for failure testing',
+        price: 300.00,
+        duration: 120,
+        termsAndConditions: 'Failure test terms',
+        contractDatasets: [{
+          datasetId: testDataset.id,
+          tdpId: tdpUser.id,
+          datasetName: testDataset.name,
+          tdpName: tdpUser.name,
+          individualPrice: 300.00,
+          paymentStatus: 'PENDING'
+        }],
         datasetCount: 1,
         tdpCount: 1
       }, tdcUser.id);
@@ -451,15 +493,20 @@ describe('Contract State Machine Tests', () => {
 
     it('should provide correct permissions for DRAFT contract', async () => {
       const draftContract = await contractService.createContract({
-        contractId: 'TEST-CONTRACT-DRAFT-INFO',
-        tdpId: tdpUser.id,
-        datasetId: testDataset.id,
-        primaryDatasetId: testDataset.id,
-        primaryTdpId: tdpUser.id,
-        price: 100.00,
-        totalPrice: 100.00,
-        duration: 30,
-        termsAndConditions: 'Test terms',
+        contractId: 'DRAFT-TEST-001',
+        title: 'Draft Test Contract',
+        description: 'Contract for draft testing',
+        price: 350.00,
+        duration: 150,
+        termsAndConditions: 'Draft test terms',
+        contractDatasets: [{
+          datasetId: testDataset.id,
+          tdpId: tdpUser.id,
+          datasetName: testDataset.name,
+          tdpName: tdpUser.name,
+          individualPrice: 350.00,
+          paymentStatus: 'PENDING'
+        }],
         datasetCount: 1,
         tdpCount: 1
       }, tdcUser.id);

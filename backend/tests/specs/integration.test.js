@@ -1,6 +1,6 @@
 const request = require('supertest');
-const { User, Contract, Dataset, AIModel } = require('../models');
-const { sequelize } = require('../models');
+const { User, Contract, Dataset, AIModel } = require('../../models');
+const { sequelize } = require('../../models');
 const jwt = require('jsonwebtoken');
 
 // Import test server instead of main server
