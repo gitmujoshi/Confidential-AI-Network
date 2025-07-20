@@ -1,6 +1,6 @@
 const request = require('supertest');
-const { User, Contract, Dataset, Notification } = require('../models');
-const { sequelize } = require('../models');
+const { User, Contract, Dataset, Notification } = require('../../models');
+const { sequelize } = require('../../models');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
@@ -49,7 +49,18 @@ describe('Contract Management System - Core Test Suite', () => {
       tdpId: testUser.id,
       tdcId: testUser.id,
       ccrpId: testUser.id,
-      datasetId: testDataset.id
+      datasetId: testDataset.id,
+      contractDatasets: [{
+        datasetId: testDataset.datasetId,
+        tdpId: testUser.id,
+        datasetName: testDataset.name,
+        tdpName: testUser.name,
+        individualPrice: 100.00,
+        paymentStatus: 'PENDING'
+      }],
+      datasetCount: 1,
+      tdpCount: 1,
+      totalPrice: 100.00
     });
 
     // Generate auth token
@@ -126,7 +137,18 @@ describe('Contract Management System - Core Test Suite', () => {
           tdpId: testUser.id,
           tdcId: testUser.id,
           ccrpId: testUser.id,
-          datasetId: testDataset.id
+          datasetId: testDataset.id,
+          contractDatasets: [{
+            datasetId: testDataset.datasetId,
+            tdpId: testUser.id,
+            datasetName: testDataset.name,
+            tdpName: testUser.name,
+            individualPrice: 150.00,
+            paymentStatus: 'PENDING'
+          }],
+          datasetCount: 1,
+          tdpCount: 1,
+          totalPrice: 150.00
         };
 
         const contract = await Contract.create(contractData);

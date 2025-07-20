@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { User, Contract, Dataset, Notification } = require('../models');
 const { authenticateToken } = require('../middleware/auth');
+const db = require('../models');
 
 // TDC dashboard data
 router.get('/dashboard/:userId', authenticateToken, async (req, res) => {
@@ -9,8 +10,8 @@ router.get('/dashboard/:userId', authenticateToken, async (req, res) => {
     const { userId } = req.params;
     
     // Verify user is accessing their own data or is admin
-    const currentUserId = req.user.userId || req.user.id || req.user.localUser?.id;
-    const userPartyType = req.user.partyType || req.user.localUser?.partyType;
+    const currentUserId = req.user.localUser?.id;
+    const userPartyType = req.user.localUser?.partyType;
     
     // Debug logging
     console.log('🔍 TDC Dashboard Debug:');
@@ -53,8 +54,11 @@ router.get('/dashboard/:userId', authenticateToken, async (req, res) => {
       order: [['createdAt', 'DESC']]
     });
 
+    // Defensive: ensure contracts is always an array
+    const safeContracts = Array.isArray(contracts) ? contracts : [];
+
     // Get pending contracts
-    const pendingContracts = contracts.filter(c => c.status.includes('PENDING'));
+    const pendingContracts = safeContracts.filter(c => c.status && c.status.includes('PENDING'));
 
     // Calculate payments
     const payments = {
@@ -64,39 +68,39 @@ router.get('/dashboard/:userId', authenticateToken, async (req, res) => {
       averageContractValue: 0
     };
 
-    contracts.forEach(contract => {
-      if (contract.status === 'ACTIVE' || contract.status === 'COMPLETED') {
+    safeContracts.forEach(contract => {
+      if (contract.status === 'SIGNED' || contract.status === 'EXECUTING' || contract.status === 'COMPLETED') {
         const amount = parseFloat(contract.totalPrice || contract.price || 0);
         payments.totalSpent += amount;
         
         // Calculate monthly spending
-        const contractDate = new Date(contract.createdAt);
+        const contractDate = contract.createdAt ? new Date(contract.createdAt) : null;
         const currentMonth = new Date().getMonth();
         const currentYear = new Date().getFullYear();
         
-        if (contractDate.getMonth() === currentMonth && contractDate.getFullYear() === currentYear) {
+        if (contractDate && contractDate.getMonth() === currentMonth && contractDate.getFullYear() === currentYear) {
           payments.monthlySpent += amount;
         }
         
-        if (contractDate.getMonth() === (currentMonth - 1) && contractDate.getFullYear() === currentYear) {
+        if (contractDate && contractDate.getMonth() === (currentMonth - 1) && contractDate.getFullYear() === currentYear) {
           payments.lastMonthSpent += amount;
         }
       }
     });
 
     // Calculate average contract value
-    payments.averageContractValue = contracts.length > 0 
-      ? payments.totalSpent / contracts.length 
+    payments.averageContractValue = safeContracts.length > 0 
+      ? payments.totalSpent / safeContracts.length 
       : 0;
 
     // Mock training progress data (in real implementation, this would come from training service)
-    const training = contracts
-      .filter(c => c.status === 'ACTIVE')
+    const training = safeContracts
+      .filter(c => c.status === 'SIGNED' || c.status === 'EXECUTING')
       .map(contract => ({
         id: contract.id,
         contractId: contract.contractId,
         modelName: `Model-${contract.id}`,
-        status: 'ACTIVE',
+        status: 'EXECUTING',
         progress: Math.floor(Math.random() * 100),
         startDate: contract.createdAt,
         estimatedCompletion: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) // 30 days from now
@@ -118,7 +122,7 @@ router.get('/dashboard/:userId', authenticateToken, async (req, res) => {
         ownerName: dataset.owner?.name,
         description: dataset.description
       })),
-      myContracts: contracts.map(contract => ({
+      myContracts: safeContracts.map(contract => ({
         id: contract.id,
         contractId: contract.contractId,
         status: contract.status,
@@ -159,8 +163,8 @@ router.get('/contracts/:userId', authenticateToken, async (req, res) => {
   try {
     const { userId } = req.params;
     
-    const currentUserId = req.user.userId || req.user.id || req.user.localUser?.id;
-    const userPartyType = req.user.partyType || req.user.localUser?.partyType;
+    const currentUserId = req.user.localUser?.id;
+    const userPartyType = req.user.localUser?.partyType;
     // Debug logging
     console.log('🔍 TDC Contracts Route Debug:');
     console.log('typeof currentUserId:', typeof currentUserId, 'value:', currentUserId);
@@ -192,8 +196,8 @@ router.get('/training/:userId', authenticateToken, async (req, res) => {
   try {
     const { userId } = req.params;
     
-    const currentUserId = req.user.userId || req.user.id || req.user.localUser?.id;
-    const userPartyType = req.user.partyType || req.user.localUser?.partyType;
+    const currentUserId = req.user.localUser?.id;
+    const userPartyType = req.user.localUser?.partyType;
     
     // Debug logging
     console.log('🔍 TDC Training Route Debug:');
@@ -220,7 +224,10 @@ router.get('/training/:userId', authenticateToken, async (req, res) => {
     }
 
     const contracts = await Contract.findAll({
-      where: { tdcId: userId, status: 'ACTIVE' },
+      where: { 
+        tdcId: userId, 
+        status: { [db.Sequelize.Op.in]: ['SIGNED', 'EXECUTING'] }
+      },
       include: [
         { model: User, as: 'tdp', attributes: ['name'] }
       ]
@@ -231,7 +238,7 @@ router.get('/training/:userId', authenticateToken, async (req, res) => {
       id: contract.id,
       contractId: contract.contractId,
       modelName: `Model-${contract.id}`,
-      status: 'ACTIVE',
+      status: 'EXECUTING',
       progress: Math.floor(Math.random() * 100),
       startDate: contract.createdAt,
       estimatedCompletion: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
@@ -251,8 +258,8 @@ router.get('/payments/:userId', authenticateToken, async (req, res) => {
   try {
     const { userId } = req.params;
     
-    const currentUserId = req.user.userId || req.user.id || req.user.localUser?.id;
-    const userPartyType = req.user.partyType || req.user.localUser?.partyType;
+    const currentUserId = req.user.localUser?.id;
+    const userPartyType = req.user.localUser?.partyType;
     // Debug logging
     console.log('🔍 TDC Payments Route Debug:');
     console.log('typeof currentUserId:', typeof currentUserId, 'value:', currentUserId);
@@ -284,7 +291,7 @@ router.get('/payments/:userId', authenticateToken, async (req, res) => {
         createdAt: contract.createdAt
       };
 
-      if (contract.status === 'ACTIVE' || contract.status === 'COMPLETED') {
+      if (contract.status === 'SIGNED' || contract.status === 'EXECUTING' || contract.status === 'COMPLETED') {
         payments.totalSpent += amount;
         
         const contractDate = new Date(contract.createdAt);

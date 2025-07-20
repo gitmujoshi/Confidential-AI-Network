@@ -1,6 +1,6 @@
 const request = require('supertest');
-const { User, Contract, Dataset, Notification } = require('../models');
-const { sequelize } = require('../models');
+const { User, Contract, Dataset, Notification } = require('../../models');
+const { sequelize } = require('../../models');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 
@@ -41,15 +41,27 @@ describe('API Endpoints Test Suite', () => {
     // Create test contract
     testContract = await Contract.create({
       contractId: 'API-CONTRACT-001',
-      status: 'PENDING_TDP_APPROVAL',
+      status: 'PENDING_TDP',
       price: 100.00,
       duration: 30,
       termsAndConditions: 'Standard terms for API testing',
-      modelId: 'MODEL-001',
       tdpId: testUser.id,
       tdcId: testUser.id,
       ccrpId: testUser.id,
-      datasetId: testDataset.id
+      datasetId: testDataset.id,
+      primaryDatasetId: testDataset.id,
+      primaryTdpId: testUser.id,
+      contractDatasets: [{
+        datasetId: testDataset.datasetId,
+        tdpId: testUser.id,
+        datasetName: testDataset.name,
+        tdpName: testUser.name,
+        individualPrice: 100.00,
+        paymentStatus: 'PENDING'
+      }],
+      datasetCount: 1,
+      tdpCount: 1,
+      totalPrice: 100.00
     });
 
     // Generate auth token
@@ -729,7 +741,7 @@ describe('API Endpoints Test Suite', () => {
   describe('AI Model API Endpoints', () => {
     let authToken, AIModel;
     beforeAll(async () => {
-      AIModel = require('../models').AIModel;
+      AIModel = require('../../models').AIModel;
       // Create a test user and token
       const user = await User.create({
         email: 'aimodelapi@example.com',
@@ -792,7 +804,7 @@ describe('API Endpoints Test Suite', () => {
     let tdcUser, tdpUser, tdcToken, tdpDataset, AIModel;
 
     beforeAll(async () => {
-      AIModel = require('../models').AIModel;
+      AIModel = require('../../models').AIModel;
       // Register TDP
       tdpUser = await User.create({
         email: 'tdp-ricardian@example.com',

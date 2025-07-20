@@ -10,8 +10,10 @@ router.get('/dashboard/:userId', authenticateToken, async (req, res) => {
     const { userId } = req.params;
     
     // Verify user is accessing their own data or is admin
-    const currentUserId = req.user.userId || req.user.id || req.user.localUser?.id;
-    if (currentUserId !== parseInt(userId) && req.user.partyType !== 'AppAdmin') {
+    const currentUserId = req.user.localUser?.id;
+    const userPartyType = req.user.localUser?.partyType;
+    
+    if (currentUserId !== parseInt(userId) && userPartyType !== 'AppAdmin') {
       return res.status(403).json({ error: 'Access denied' });
     }
 
@@ -127,8 +129,9 @@ router.get('/environments/:userId', authenticateToken, async (req, res) => {
   try {
     const { userId } = req.params;
     
-    const currentUserId = req.user.userId || req.user.id || req.user.localUser?.id;
-    if (currentUserId !== parseInt(userId) && req.user.partyType !== 'AppAdmin') {
+    const currentUserId = req.user.localUser?.id;
+    const userPartyType = req.user.localUser?.partyType;
+    if (currentUserId !== parseInt(userId) && userPartyType !== 'AppAdmin') {
       return res.status(403).json({ error: 'Access denied' });
     }
 
@@ -166,8 +169,9 @@ router.get('/contracts/:userId', authenticateToken, async (req, res) => {
   try {
     const { userId } = req.params;
     
-    const currentUserId = req.user.userId || req.user.id || req.user.localUser?.id;
-    if (currentUserId !== parseInt(userId) && req.user.partyType !== 'AppAdmin') {
+    const currentUserId = req.user.localUser?.id;
+    const userPartyType = req.user.localUser?.partyType;
+    if (currentUserId !== parseInt(userId) && userPartyType !== 'AppAdmin') {
       return res.status(403).json({ error: 'Access denied' });
     }
 
@@ -192,8 +196,9 @@ router.get('/resources/:userId', authenticateToken, async (req, res) => {
   try {
     const { userId } = req.params;
     
-    const currentUserId = req.user.userId || req.user.id || req.user.localUser?.id;
-    if (currentUserId !== parseInt(userId) && req.user.partyType !== 'AppAdmin') {
+    const currentUserId = req.user.localUser?.id;
+    const userPartyType = req.user.localUser?.partyType;
+    if (currentUserId !== parseInt(userId) && userPartyType !== 'AppAdmin') {
       return res.status(403).json({ error: 'Access denied' });
     }
 
@@ -220,8 +225,9 @@ router.get('/attestation/:userId', authenticateToken, async (req, res) => {
   try {
     const { userId } = req.params;
     
-    const currentUserId = req.user.userId || req.user.id || req.user.localUser?.id;
-    if (currentUserId !== parseInt(userId) && req.user.partyType !== 'AppAdmin') {
+    const currentUserId = req.user.localUser?.id;
+    const userPartyType = req.user.localUser?.partyType;
+    if (currentUserId !== parseInt(userId) && userPartyType !== 'AppAdmin') {
       return res.status(403).json({ error: 'Access denied' });
     }
 
@@ -257,8 +263,9 @@ router.get('/cloud-providers/:userId', authenticateToken, async (req, res) => {
   try {
     const { userId } = req.params;
     
-    const currentUserId = req.user.userId || req.user.id || req.user.localUser?.id;
-    if (currentUserId !== parseInt(userId) && req.user.partyType !== 'AppAdmin') {
+    const currentUserId = req.user.localUser?.id;
+    const userPartyType = req.user.localUser?.partyType;
+    if (currentUserId !== parseInt(userId) && userPartyType !== 'AppAdmin') {
       return res.status(403).json({ error: 'Access denied' });
     }
 
@@ -286,8 +293,9 @@ router.put('/cloud-providers/:userId', authenticateToken, async (req, res) => {
     const { userId } = req.params;
     const { cloudProviders, description } = req.body;
     
-    const currentUserId = req.user.userId || req.user.id || req.user.localUser?.id;
-    if (currentUserId !== parseInt(userId) && req.user.partyType !== 'AppAdmin') {
+    const currentUserId = req.user.localUser?.id;
+    const userPartyType = req.user.localUser?.partyType;
+    if (currentUserId !== parseInt(userId) && userPartyType !== 'AppAdmin') {
       return res.status(403).json({ error: 'Access denied' });
     }
 
@@ -336,7 +344,7 @@ router.get('/all', authenticateToken, async (req, res) => {
     const { cloudProvider } = req.query;
     
     // Only TDC and AppAdmin can access this endpoint
-    if (req.user.partyType !== 'TDC' && req.user.partyType !== 'AppAdmin') {
+    if (req.user.localUser?.partyType !== 'TDC' && req.user.localUser?.partyType !== 'AppAdmin') {
       return res.status(403).json({ error: 'Access denied' });
     }
 

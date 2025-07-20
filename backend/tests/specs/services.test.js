@@ -1,10 +1,10 @@
 const request = require('supertest');
-const { User, Contract, Dataset, Notification } = require('../models');
-const { sequelize } = require('../models');
+const { User, Contract, Dataset, Notification } = require('../../models');
+const { sequelize } = require('../../models');
 const jwt = require('jsonwebtoken');
 
 // Mock KeycloakService to avoid import issues
-jest.mock('../services/keycloakService', () => {
+jest.mock('../../services/keycloakService', () => {
   return jest.fn().mockImplementation(() => ({
     createUser: jest.fn(),
     updateUser: jest.fn(),

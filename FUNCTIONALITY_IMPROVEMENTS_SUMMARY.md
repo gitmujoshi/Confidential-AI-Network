@@ -10,7 +10,7 @@ This document summarizes all the major functionality improvements and fixes impl
 - **Solution**: Modified contract creation to use user IDs instead of wallet addresses
 - **Files Modified**:
   - `backend/routes/contracts.js` - Updated contract creation endpoint
-  - `frontend/src/pages/CreateContract.js` - Removed wallet connection requirement
+  - `frontend/src/pages/CreateRicardianContract.js` - Removed wallet connection requirement
   - `backend/middleware/auth.js` - Enhanced JWT authentication
 
 **Benefits**:
@@ -65,7 +65,7 @@ This document summarizes all the major functionality improvements and fixes impl
 - **Issue**: Poor user experience during registration and contract creation
 - **Solution**: Streamlined workflows and better error messages
 - **Files Modified**:
-  - `frontend/src/pages/CreateContract.js` - Simplified contract creation form
+  - `frontend/src/pages/CreateRicardianContract.js` - Simplified contract creation form
   - `frontend/src/pages/Login.js` - Better error handling and success messages
   - `backend/routes/auth.js` - Enhanced error responses
 

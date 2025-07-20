@@ -5,11 +5,15 @@
  * Ricardian contracts combine human-readable legal documents with machine-executable smart contracts.
  * 
  * Contract Workflow:
- * 1. PENDING_TDP_APPROVAL: Contract created by TDC, waiting for TDP auto-sign
- * 2. PENDING_CCRP_APPROVAL: TDP signed, waiting for CCRP (if selected)
- * 3. ACTIVE: All required parties signed, contract is legally binding
- * 4. COMPLETED: Contract execution finished
- * 5. CANCELLED: Contract cancelled by any party
+ * 1. DRAFT: Contract created by TDC, can be edited
+ * 2. PENDING_TDP: Waiting for all TDPs to sign
+ * 3. PENDING_TDC: Waiting for TDC signature
+ * 4. PENDING_CCRP: Waiting for CCRP signature
+ * 5. SIGNED: All parties signed, ready for execution
+ * 6. EXECUTING: Contract being executed
+ * 7. COMPLETED: Contract fulfilled successfully
+ * 8. REJECTED: Contract rejected by any party
+ * 9. FAILED: Execution failed
  * 
  * Ricardian Contract Features:
  * - Legal document hash for human-readable terms
@@ -87,9 +91,11 @@ module.exports = (sequelize, DataTypes) => {
     status: {
       type: DataTypes.ENUM(
         'DRAFT',                    // Contract created by TDC, can be edited
-        'PENDING_TDP',              // Waiting for TDP signature
+        'PENDING_TDP',              // Waiting for all TDPs to sign
+        'PENDING_TDP_APPROVAL',     // Waiting for TDP approval (legacy)
         'PENDING_TDC',              // Waiting for TDC signature  
         'PENDING_CCRP',             // Waiting for CCRP signature
+        'PENDING_CCRP_APPROVAL',    // Waiting for CCRP approval (legacy)
         'SIGNED',                   // All parties signed, ready for execution
         'EXECUTING',                // Contract being executed
         'COMPLETED',                // Contract fulfilled successfully
@@ -117,12 +123,6 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.TEXT,
       allowNull: false
     },
-    
-    // Model identifier for the training model (removed - AI models are independent)
-    // modelId: {
-    //   type: DataTypes.STRING,
-    //   allowNull: false
-    // },
     
     // Ricardian Contract Legal Document (JSON)
     legalDocument: {
@@ -203,16 +203,6 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: true
     },
     
-    // Foreign key to TDP user (Training Data Provider)
-    tdpId: {
-      type: DataTypes.INTEGER,
-      allowNull: false,
-      references: {
-        model: 'users',
-        key: 'id'
-      }
-    },
-    
     // Foreign key to TDC user (Training Data Consumer - contract initiator)
     tdcId: {
       type: DataTypes.INTEGER,
@@ -240,42 +230,10 @@ module.exports = (sequelize, DataTypes) => {
       comment: 'Selected cloud provider for this contract (AWS, GCP, Azure, OCI)'
     },
     
-    // Foreign key to dataset being contracted
-    datasetId: {
-      type: DataTypes.INTEGER,
-      allowNull: false,
-      references: {
-        model: 'datasets',
-        key: 'id'
-      }
-    },
-    
-    // Multiple datasets and TDPs support (up to 3 datasets from different TDPs)
-    // Primary dataset and TDP (for backward compatibility)
-    primaryDatasetId: {
-      type: DataTypes.INTEGER,
-      allowNull: false,
-      references: {
-        model: 'datasets',
-        key: 'id'
-      },
-      comment: 'Primary dataset for backward compatibility'
-    },
-    
-    primaryTdpId: {
-      type: DataTypes.INTEGER,
-      allowNull: false,
-      references: {
-        model: 'users',
-        key: 'id'
-      },
-      comment: 'Primary TDP for backward compatibility'
-    },
-    
     // All datasets and TDPs with individual payments
     contractDatasets: {
       type: DataTypes.JSON,
-      allowNull: true,
+      allowNull: false,
       comment: 'Array of dataset objects: [{datasetId, tdpId, datasetName, tdpName, individualPrice, paymentStatus}]'
     },
     
@@ -329,6 +287,7 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.ENUM(
         'DRAFT',                    // Contract created by TDC, can be edited
         'PENDING_TDP',              // Waiting for all TDPs to sign
+        'PENDING_ALL_TDP_APPROVAL', // Waiting for all TDP approvals (legacy)
         'PENDING_TDC',              // Waiting for TDC signature
         'PENDING_CCRP',             // Waiting for CCRP signature
         'SIGNED',                   // All parties signed, ready for execution
@@ -352,9 +311,6 @@ module.exports = (sequelize, DataTypes) => {
       },
       {
         fields: ['status']         // Fast status-based queries
-      },
-      {
-        fields: ['tdpId']          // Fast TDP contract queries
       },
       {
         fields: ['tdcId']          // Fast TDC contract queries
@@ -382,17 +338,11 @@ module.exports = (sequelize, DataTypes) => {
    * @param {Object} models - All Sequelize models
    */
   Contract.associate = (models) => {
-    // Contract belongs to TDP (Training Data Provider)
-    Contract.belongsTo(models.User, { foreignKey: 'tdpId', as: 'tdp' });
-    
     // Contract belongs to TDC (Training Data Consumer)
     Contract.belongsTo(models.User, { foreignKey: 'tdcId', as: 'tdc' });
     
     // Contract belongs to CCRP (Confidential Clean Room Provider) - optional
     Contract.belongsTo(models.User, { foreignKey: 'ccrpId', as: 'ccrp' });
-    
-    // Contract belongs to dataset
-    Contract.belongsTo(models.Dataset, { foreignKey: 'datasetId', as: 'dataset' });
   };
 
   return Contract;

@@ -231,9 +231,11 @@ class RicardianContractService {
       const contractRecord = {
         contractId: contractData.contractId,
         tdpId: contractData.tdpId,
+        primaryTdpId: contractData.primaryTdpId,
         tdcId: contractData.tdcId,
         ccrpId: contractData.ccrpId,
         datasetId: contractData.datasetId,
+        primaryDatasetId: contractData.primaryDatasetId,
         modelId: contractData.modelId,
         price: contractData.price,
         duration: contractData.duration,
@@ -245,10 +247,25 @@ class RicardianContractService {
         smartContractNetwork: smartContractData.network,
         blockchainContractId: smartContractData.contractId,
         status: 'PENDING_TDP_APPROVAL',
+        multiTdpStatus: 'PENDING_ALL_TDP_APPROVAL',
         tdpSigned: false,
         ccrpSigned: false,
         // Add aiModelIds if present
-        aiModelIds: contractData.aiModelIds || null
+        aiModelIds: contractData.aiModelIds || null,
+        // Add training parameters if present
+        trainingParams: contractData.trainingParams ?? {},
+        // Add environment specifications if present
+        environmentSpecs: contractData.environmentSpecs ?? {},
+        // Add KMS configurations if present
+        kmsConfigs: contractData.kmsConfigs || null,
+        // Add contractDatasets - required field for multi-dataset contracts
+        contractDatasets: contractData.datasetSelections || contractData.contractDatasets || [],
+        // Add dataset count
+        datasetCount: contractData.datasetSelections ? contractData.datasetSelections.length : 1,
+        // Add TDP count
+        tdpCount: contractData.datasetSelections ? new Set(contractData.datasetSelections.map(ds => ds.tdpId)).size : 1,
+        // Add total price
+        totalPrice: contractData.price
       };
       
       console.log('🔍 Contract record to save:', JSON.stringify(contractRecord, null, 2));
@@ -328,10 +345,17 @@ class RicardianContractService {
         },
         trainingEnvironment: {
           ...template.ricardianContract.trainingEnvironment,
+          // Use provided training environment if available, otherwise use template defaults
+          ...(contractData.trainingEnvironment || {}),
           ccrpPlatform: {
             ...template.ricardianContract.trainingEnvironment.ccrpPlatform,
-            provider: contractData.ccrp?.name || 'Default CCRP Provider'
-          }
+            ...(contractData.trainingEnvironment?.ccrpPlatform || {}),
+            provider: contractData.ccrp?.name || contractData.trainingEnvironment?.ccrpPlatform?.provider || 'Default CCRP Provider'
+          },
+          // Include training specifications if provided
+          trainingSpecifications: contractData.trainingEnvironment?.trainingSpecifications || template.ricardianContract.trainingEnvironment?.trainingSpecifications,
+          // Include deployment specifications if provided
+          deployment: contractData.trainingEnvironment?.deployment || template.ricardianContract.trainingEnvironment?.deployment
         },
         smartContract: {
           ...template.ricardianContract.smartContract,
@@ -341,6 +365,39 @@ class RicardianContractService {
             contractId: contractData.contractId,
             legalDocumentHash: null // Will be set after hash creation
           }
+        },
+        // Add compliance section if provided
+        compliance: contractData.complianceSpecs ? {
+          regulations: contractData.complianceSpecs.regulations || [],
+          auditTrail: [
+            {
+              timestamp: now,
+              action: 'CONTRACT_CREATED',
+              actor: contractData.tdc.blockchainAddress || 'TDC_USER',
+              details: 'AI training contract created with comprehensive specifications'
+            }
+          ]
+        } : template.ricardianContract.compliance,
+        // Add execution section if not present
+        execution: template.ricardianContract.execution || {
+          automatedActions: [
+            {
+              trigger: 'CONTRACT_ACTIVATION',
+              action: 'PROVISION_ENVIRONMENT',
+              description: 'CCRP automatically provisions secure training environment',
+              status: 'PENDING',
+              estimatedDuration: '2 hours'
+            }
+          ],
+          manualActions: [
+            {
+              action: 'SECURITY_AUDIT',
+              description: 'Manual security audit of training environment',
+              status: 'REQUIRED',
+              requiresApproval: true,
+              frequency: 'WEEKLY'
+            }
+          ]
         }
       };
 

@@ -1,4 +1,4 @@
-const { User, Contract, Dataset, Notification, sequelize } = require('../models');
+const { User, Contract, Dataset, Notification, sequelize } = require('../../models');
 
 describe('Database Models Test Suite', () => {
   let testUser, testDataset, testContract;
@@ -49,14 +49,21 @@ describe('Database Models Test Suite', () => {
       contractId: 'TEST-001',
       title: 'Test Contract',
       description: 'Test contract description',
-      status: 'PENDING_TDP_APPROVAL',
+      status: 'PENDING_TDP',
       price: 100.00,
       duration: 30,
       termsAndConditions: 'Standard terms',
-      modelId: 'MODEL-001',
-      tdpId: testUser.id,
       tdcId: testUser.id,
-      datasetId: testDataset.id
+      contractDatasets: [{
+        datasetId: testDataset.id,
+        tdpId: testUser.id,
+        datasetName: testDataset.name,
+        tdpName: testUser.name,
+        individualPrice: 100.00,
+        paymentStatus: 'PENDING'
+      }],
+      datasetCount: 1,
+      tdpCount: 1
     });
   });
 
@@ -135,18 +142,26 @@ describe('Database Models Test Suite', () => {
     it('should create a contract with valid data', async () => {
       const contract = await Contract.create({
         contractId: 'NEW-CONTRACT-001',
-        status: 'PENDING_TDP_APPROVAL',
+        status: 'PENDING_TDP',
         price: 150.00,
         duration: 60,
         termsAndConditions: 'New terms',
-        tdpId: testUser.id,
         tdcId: testUser.id,
-        datasetId: testDataset.id
+        contractDatasets: [{
+          datasetId: testDataset.id,
+          tdpId: testUser.id,
+          datasetName: testDataset.name,
+          tdpName: testUser.name,
+          individualPrice: 150.00,
+          paymentStatus: 'PENDING'
+        }],
+        datasetCount: 1,
+        tdpCount: 1
       });
 
       expect(contract.id).toBeDefined();
       expect(contract.contractId).toBe('NEW-CONTRACT-001');
-      expect(contract.status).toBe('PENDING_TDP_APPROVAL');
+      expect(contract.status).toBe('PENDING_TDP');
       expect(parseFloat(contract.price)).toBe(150.00);
       expect(contract.duration).toBe(60);
       expect(contract.createdAt).toBeDefined();
@@ -155,11 +170,11 @@ describe('Database Models Test Suite', () => {
 
     it('should validate status enum values', async () => {
       const validStatuses = [
-        'PENDING_TDP_APPROVAL',
-        'PENDING_CCRP_APPROVAL',
-        'ACTIVE',
+        'PENDING_TDP',
+        'PENDING_CCRP',
+        'SIGNED',
         'COMPLETED',
-        'CANCELLED'
+        'REJECTED'
       ];
 
       for (const status of validStatuses) {
@@ -169,9 +184,17 @@ describe('Database Models Test Suite', () => {
           price: 100.00,
           duration: 30,
           termsAndConditions: 'Test terms',
-          tdpId: testUser.id,
           tdcId: testUser.id,
-          datasetId: testDataset.id
+          contractDatasets: [{
+            datasetId: testDataset.id,
+            tdpId: testUser.id,
+            datasetName: testDataset.name,
+            tdpName: testUser.name,
+            individualPrice: 100.00,
+            paymentStatus: 'PENDING'
+          }],
+          datasetCount: 1,
+          tdpCount: 1
         });
 
         expect(contract.status).toBe(status);
@@ -181,13 +204,21 @@ describe('Database Models Test Suite', () => {
     it('should enforce foreign key constraints', async () => {
       await expect(Contract.create({
         contractId: 'FK-TEST-001',
-        status: 'PENDING_TDP_APPROVAL',
+        status: 'PENDING_TDP',
         price: 100.00,
         duration: 30,
         termsAndConditions: 'Test terms',
-        tdpId: 99999, // Non-existent user ID
         tdcId: testUser.id,
-        datasetId: testDataset.id
+        contractDatasets: [{
+          datasetId: testDataset.id,
+          tdpId: 99999, // Non-existent user ID
+          datasetName: testDataset.name,
+          tdpName: 'Non-existent TDP',
+          individualPrice: 100.00,
+          paymentStatus: 'PENDING'
+        }],
+        datasetCount: 1,
+        tdpCount: 1
       })).rejects.toThrow();
     });
   });

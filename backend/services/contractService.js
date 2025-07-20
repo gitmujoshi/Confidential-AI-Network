@@ -67,6 +67,11 @@ class ContractService {
     try {
       console.log('📝 Creating new contract in DRAFT state');
       
+      // Ensure contractDatasets is provided
+      if (!contractData.contractDatasets || !Array.isArray(contractData.contractDatasets)) {
+        throw new Error('contractDatasets is required and must be an array');
+      }
+      
       const contract = await Contract.create({
         ...contractData,
         tdcId,

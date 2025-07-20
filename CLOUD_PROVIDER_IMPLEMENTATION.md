@@ -76,7 +76,7 @@ cloudProvider: {
 
 ### Frontend Components
 - `frontend/src/pages/dashboards/CCRPDashboard.js` - Updated dashboard
-- `frontend/src/pages/CreateContract.js` - Enhanced contract creation
+- `frontend/src/pages/CreateRicardianContract.js` - Enhanced Ricardian contract creation
 
 ### Backend Routes
 - `backend/routes/ccrp.js` - Updated CCRP dashboard route

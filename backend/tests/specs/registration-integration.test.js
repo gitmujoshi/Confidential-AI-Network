@@ -8,10 +8,10 @@
  * 4. Transaction consistency
  */
 
-const db = require('../models');
+const db = require('../../models');
 
 // Mock KeycloakService to avoid constructor issues
-jest.mock('../services/keycloakService', () => {
+jest.mock('../../services/keycloakService', () => {
   return jest.fn().mockImplementation(() => ({
     createUser: jest.fn().mockResolvedValue({ keycloakUserId: 'mock-user-id' }),
     updateUser: jest.fn(),

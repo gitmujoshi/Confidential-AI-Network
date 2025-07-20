@@ -98,7 +98,7 @@ const Dashboard = () => {
             startIcon={<Add />}
             onClick={() => navigate('/contracts/create')}
           >
-            Create Contract
+                          Create Contract
           </Button>
           <Button
             variant="outlined"

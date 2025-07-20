@@ -8,6 +8,14 @@ import CCRPDashboard from '../../pages/dashboards/CCRPDashboard';
 const DashboardSelector = () => {
   const { currentUser: user } = useUser();
 
+  // Add minimal debugging to see what's happening
+  console.log('🔍 DashboardSelector - User data:', {
+    user: user,
+    partyType: user?.partyType,
+    name: user?.name,
+    id: user?.id
+  });
+
   if (!user) {
     return null;
   }

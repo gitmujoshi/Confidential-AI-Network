@@ -56,8 +56,7 @@ multiTdpStatus ENUM,            -- Multi-TDP specific status
 - `MultiDatasetSelector.js` - Multi-dataset selection with pricing
 - Enhanced `ContractDetail.js` - Comprehensive contract display
 - Enhanced `Contracts.js` - Multi-TDP contract listing
-- Enhanced `CreateContract.js` - Multi-TDP contract creation
-- Enhanced `CreateRicardianContract.js` - Ricardian contract creation
+- Enhanced `CreateRicardianContract.js` - Multi-TDP Ricardian contract creation
 
 ## User Workflow
 

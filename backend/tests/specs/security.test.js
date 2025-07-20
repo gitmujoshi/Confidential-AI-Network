@@ -1,6 +1,6 @@
 const request = require('supertest');
-const { User, Contract, Dataset } = require('../models');
-const { sequelize } = require('../models');
+const { User, Contract, Dataset } = require('../../models');
+const { sequelize } = require('../../models');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 
@@ -49,7 +49,18 @@ describe('Security Test Suite', () => {
       tdpId: testUser.id,
       tdcId: testUser.id,
       ccrpId: testUser.id,
-      datasetId: testDataset.id
+      datasetId: testDataset.id,
+      contractDatasets: [{
+        datasetId: testDataset.datasetId,
+        tdpId: testUser.id,
+        datasetName: testDataset.name,
+        tdpName: testUser.name,
+        individualPrice: 100.00,
+        paymentStatus: 'PENDING'
+      }],
+      datasetCount: 1,
+      tdpCount: 1,
+      totalPrice: 100.00
     });
 
     // Generate auth token

@@ -1,76 +1,124 @@
 # Test Data Reference for Testers
 
-This document provides a summary of all test users, datasets, and AI models available in the Contract Management System for testing purposes.
+This document provides a summary of all test users, datasets, AI models, and contracts available in the Contract Management System for testing purposes.
 
 ---
 
 ## Test Users
 
 ### Application Admin
-- **Email:** appadmin@example.com
-- **Password:** AppAdmin123!
+- **Email:** appadmin@example.com  
+- **Temporary Password:** Kcpm6By%yIub
 - **Role:** AppAdmin
+- **Description:** System administrator for the contract management application
+- **Organization:** Contract Management System
 
 ### TDP (Training Data Providers)
-| Name                    | Email                    | Password  | Description                                 |
-|-------------------------|--------------------------|-----------|---------------------------------------------|
-| Healthcare Data Corp    | healthcare@example.com   | Test123!  | Leading provider of healthcare datasets     |
-| Financial Analytics Inc | financial@example.com    | Test123!  | Specialized in financial market datasets    |
-| Retail Insights Ltd     | retail@example.com       | Test123!  | Consumer behavior and retail analytics data |
-| Manufacturing Data Co   | manufacturing@example.com| Test123!  | Industrial and manufacturing datasets       |
-| Transportation Data Hub | transport@example.com    | Test123!  | Logistics and transportation datasets       |
+| Name                    | Email                        | Temporary Password | Organization              | Description                                    |
+|-------------------------|------------------------------|-------------------|---------------------------|------------------------------------------------|
+| Medical Data Provider   | tdp.medical@example.com      | EAhOzhi$G$xr     | Medical Data Corp         | Leading provider of medical datasets for AI training |
+| NLP Research Foundation | tdp.nlp@example.com          | VCpKg3^nSOm@     | NLP Research Foundation   | Specialized in natural language processing datasets |
 
 ### TDC (Training Data Consumers)
-| Name                    | Email                    | Password  | Description                                 |
-|-------------------------|--------------------------|-----------|---------------------------------------------|
-| UI TDC User             | uitdc@example.com        | Test123!  | A TDC user created via API for UI-like flow |
-| Test TDC User           | testtdc@example.com      | Test123!  | A test TDC user for contract creation       |
+| Name                    | Email                        | Temporary Password | Organization              | Description                                    |
+|-------------------------|------------------------------|-------------------|---------------------------|------------------------------------------------|
+| AI Healthcare Innovations | tdc.healthcare@example.com   | dbf121#WQlo5     | Healthcare AI Labs        | Developing AI solutions for healthcare applications |
+| FinTech AI Labs         | tdc.fintech@example.com      | nzY6hJX18YUi     | FinTech Solutions Inc     | AI-powered financial technology solutions |
 
 ### CCRP (Confidential Clean Room Providers)
-| Name                    | Email                        | Password  |
-|-------------------------|------------------------------|-----------|
-| Enterprise Security Hub | enterprise-security@example.com | Test123! |
-| Confidential Computing Lab | confidential-lab@example.com | Test123! |
-| Cloud Security Solutions | cloud-security@example.com    | Test123! |
-| Privacy First Computing | privacy-first@example.com      | Test123! |
-| Secure Compute Hub      | secure-compute@example.com     | Test123! |
+| Name                    | Email                        | Temporary Password | Organization              | Description                                    |
+|-------------------------|------------------------------|-------------------|---------------------------|------------------------------------------------|
+| SecureCloud Computing   | ccrp.securecloud@example.com | ore%Thm$nETX     | SecureCloud Technologies  | Secure cloud infrastructure for confidential computing |
 
 ---
 
-## Datasets by TDP
-
-| Dataset ID                  | Name                        | Owner (TDP)                | Category                  | Price   |
-|-----------------------------|-----------------------------|----------------------------|---------------------------|---------|
-| HEALTH-PATIENT-001          | Patient Health Records      | Healthcare Data Corp       | Tabular                   | $5000   |
-| HEALTH-IMAGING-001          | Medical Imaging Dataset     | Healthcare Data Corp       | Computer Vision           | $7500   |
-| FINANCE-TRADING-001         | Market Trading Data         | Financial Analytics Inc    | Tabular                   | $3000   |
-| FINANCE-CREDIT-001          | Credit Risk Assessment Data | Financial Analytics Inc    | Tabular                   | $4500   |
-| RETAIL-PURCHASE-001         | Customer Purchase History   | Retail Insights Ltd        | Tabular                   | $2500   |
-| RETAIL-REVIEWS-001          | Product Reviews Dataset     | Retail Insights Ltd        | Natural Language Processing| $2000   |
-| MANUFACTURING-SENSOR-001    | Production Line Sensor Data | Manufacturing Data Co      | Tabular                   | $4000   |
-| MANUFACTURING-DEFECT-001    | Quality Control Images      | Manufacturing Data Co      | Computer Vision           | $3500   |
-| TRANSPORT-LOGISTICS-001     | Logistics Network Data      | Transportation Data Hub    | Tabular                   | $2000   |
-| TRANSPORT-TRAFFIC-001       | Traffic Pattern Analysis    | Transportation Data Hub    | Tabular                   | $3000   |
+## System Admin (Keycloak Only)
+- **Email:** admin@contractmanagement.com
+- **Username:** admin
+- **Role:** Keycloak Administrator
+- **Note:** This user exists only in Keycloak for system administration
 
 ---
 
-## AI Models by TDP
+## User Sync Status
 
-> **Note:** AI model creation API is now available, but only one integration model exists by default. Add more as needed using the `/api/ai-models` endpoint.
+### ✅ Users in Sync (100% Sync Rate)
+All database users are properly synced with Keycloak:
 
-| Model ID                    | Name                        | Owner (TDP)                | Type      | Framework   |
-|-----------------------------|-----------------------------|----------------------------|-----------|-------------|
-| integration-model-001       | Integration Model           | (Sample)                   | cnn       | TensorFlow  |
+| Email                        | Database ID | Keycloak ID                           | Party Type |
+|------------------------------|-------------|---------------------------------------|------------|
+| tdp.medical@example.com      | 83          | 69094bb2-e621-43b3-a055-9738cd24b8ea | TDP        |
+| tdp.nlp@example.com          | 84          | 69bf94df-3d6c-4efa-ab7b-6e9ac82611a2 | TDP        |
+| tdc.healthcare@example.com   | 85          | 05ba8eac-6932-45af-9afc-39449ebebd18 | TDC        |
+| tdc.fintech@example.com      | 86          | b17a07c3-1ee6-4734-b4eb-e1e83abea149 | TDC        |
+| ccrp.securecloud@example.com | 87          | 07e98110-7df7-416f-b662-a92f7d80ce56 | CCRP       |
+| appadmin@example.com         | 88          | 9f3e8762-4931-40d1-a7bc-41135be4e2f7 | AppAdmin   |
+
+---
+
+## AI Models
+
+| Model ID                                   | Name        | Type        | Framework   |
+|---------------------------------------------|-------------|-------------|-------------|
+| MODEL-a5f0573f-b63c-4ff3-878d-472b6fe482ed  | VisionNet   | cnn         | TensorFlow  |
+| MODEL-4003c63a-221e-433d-87ef-8e2ce49b4ff3  | TextGen     | transformer | PyTorch     |
+| MODEL-097cdca3-c511-4112-8b88-10f18853e01e  | TabularPro  | other       | Other       |
+
+---
+
+## Datasets
+
+| Dataset ID                                   | Name          | Category                    | Price   |
+|-----------------------------------------------|---------------|-----------------------------|---------|
+| DATASET-4a2201f5-e465-4a96-9ab3-b45062e1ccdf  | Vision Images | Computer Vision             | $5000   |
+| DATASET-f40cfb8c-8071-4aa3-923c-403698f494d4  | NLP Texts     | Natural Language Processing | $3000   |
+| DATASET-6d4322df-af09-49a9-bf52-ae1e8b822bd6  | Tabular Data  | Tabular                     | $2000   |
+
+---
+
+## Contracts
+
+| Contract ID                                   | Price   | Status  |
+|-----------------------------------------------|---------|---------|
+| CONTRACT-98452b1b-d0c0-47fa-9ffe-8417f1d31046 | $5000   | SIGNED  |
+| CONTRACT-a0cdebab-d025-4e01-a6ed-05df0231a13c | $3000   | SIGNED  |
+| CONTRACT-637d94c1-6299-4c9b-b6d0-58cbb0a28d39 | $2000   | SIGNED  |
+
+---
+
+## Authentication Notes
+
+### Login Process
+1. **Use the temporary passwords** provided above for initial login
+2. **Change password on first login** - Keycloak requires password change for security
+3. **Use email as username** for login
+4. **All users are properly synced** between Keycloak and database
+
+### Registration API
+- **Endpoint:** `POST /api/auth/register`
+- **Creates users in both Keycloak and database**
+- **Generates temporary passwords automatically**
+- **Sets up proper IAM integration** with `iamUserId` linking
+- **Creates system-generated DIDs** for users
+
+### User Types
+- **TDP (Training Data Provider):** Can create and manage datasets
+- **TDC (Training Data Consumer):** Can browse and purchase datasets
+- **CCRP (Confidential Clean Room Provider):** Provides secure computing environments
+- **AppAdmin:** System administrator with full access
 
 ---
 
 ## Usage Notes
-- All test users (except AppAdmin) use the password: `Test123!`
-- Use the above emails and passwords to log in and test various flows.
-- Datasets are owned by TDPs and can be used for contract creation and analytics.
-- AI models can be created and managed via the `/api/ai-models` endpoint.
-- For more details on API usage, see `API_DOCUMENTATION.md`.
+- **All users created via registration API** for proper sync
+- **Temporary passwords are randomly generated** for security
+- **Users must change password on first login** (Keycloak requirement)
+- **All database users are 100% synced** with Keycloak
+- **Use the above emails to log in** and test various flows
+- **Datasets and models are linked to TDPs**
+- **Contracts link TDPs, TDCs, CCRPs, and datasets**
+- **For more details on API usage, see `API_DOCUMENTATION.md`**
 
 ---
 
-_Last updated: July 2025_ 
+_Last updated: July 18, 2025 - All users created via registration API with proper Keycloak sync_ 

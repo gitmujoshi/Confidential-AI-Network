@@ -161,9 +161,11 @@ function AppRoutes() {
               <Route path="/" element={<Navigate to="/admin/dashboard" replace />} />
               <Route path="/dashboard" element={<DashboardSelector />} />
               <Route path="/users" element={<Users />} />
+              <Route path="/contracts" element={<Contracts />} />
               <Route path="/analytics" element={<div>Admin Analytics</div>} />
               <Route path="/compliance" element={<div>DPDP Compliance</div>} />
               <Route path="/system" element={<div>System Settings</div>} />
+              <Route path="/breaches/:breachId" element={<div>Data Breach Details</div>} />
             </Routes>
           </Layout>
         </RoleProtectedRoute>
@@ -177,7 +179,9 @@ function AppRoutes() {
               <Route path="/" element={<Navigate to="/tdp/dashboard" replace />} />
               <Route path="/dashboard" element={<DashboardSelector />} />
               <Route path="/datasets" element={<Datasets />} />
+              <Route path="/datasets/:datasetId" element={<div>TDP Dataset Details</div>} />
               <Route path="/contracts" element={<Contracts />} />
+              <Route path="/contracts/:contractId" element={<ContractDetail />} />
               <Route path="/payments" element={<div>TDP Payments</div>} />
               <Route path="/analytics" element={<div>TDP Analytics</div>} />
             </Routes>
@@ -193,7 +197,9 @@ function AppRoutes() {
               <Route path="/" element={<Navigate to="/tdc/dashboard" replace />} />
               <Route path="/dashboard" element={<DashboardSelector />} />
               <Route path="/datasets" element={<Datasets />} />
+              <Route path="/datasets/:datasetId" element={<div>TDC Dataset Details</div>} />
               <Route path="/contracts" element={<Contracts />} />
+              <Route path="/contracts/:contractId" element={<ContractDetail />} />
               <Route path="/training" element={<div>TDC Training Progress</div>} />
               <Route path="/payments" element={<div>TDC Payments</div>} />
             </Routes>
@@ -209,7 +215,9 @@ function AppRoutes() {
               <Route path="/" element={<Navigate to="/ccrp/dashboard" replace />} />
               <Route path="/dashboard" element={<DashboardSelector />} />
               <Route path="/environments" element={<div>CCRP Environments</div>} />
+              <Route path="/environments/:envId" element={<div>CCRP Environment Details</div>} />
               <Route path="/contracts" element={<Contracts />} />
+              <Route path="/contracts/:contractId" element={<ContractDetail />} />
               <Route path="/attestation" element={<div>CCRP Attestation</div>} />
               <Route path="/resources" element={<div>CCRP Resources</div>} />
               <Route path="/analytics" element={<div>CCRP Analytics</div>} />

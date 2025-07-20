@@ -61,7 +61,7 @@ router.get('/ccrp', authenticateToken, logAuthEvent('GET_CCRP_USERS'), async (re
       },
       attributes: [
         'id', 'name', 'email', 'partyType', 'organization', 'description',
-        'website', 'location', 'did', 'walletAddress', 'isActive'
+        'website', 'location', 'did', 'walletAddress', 'isActive', 'cloudProviders'
       ],
       order: [['name', 'ASC']]
     });
@@ -70,6 +70,47 @@ router.get('/ccrp', authenticateToken, logAuthEvent('GET_CCRP_USERS'), async (re
 
   } catch (error) {
     console.error('❌ Get CCRP users error:', error);
+    res.status(500).json({
+      error: 'Internal server error',
+      code: 'INTERNAL_ERROR'
+    });
+  }
+});
+
+/**
+ * GET /api/users/wallet/:walletAddress
+ * Get user by wallet address
+ */
+router.get('/wallet/:walletAddress', authenticateToken, logAuthEvent('GET_USER_BY_WALLET'), async (req, res) => {
+  try {
+    const walletAddress = req.params.walletAddress;
+
+    const user = await db.User.findOne({
+      where: { 
+        walletAddress: walletAddress,
+        isActive: true 
+      },
+      attributes: [
+        'id', 'name', 'email', 'partyType', 'walletAddress', 'publicKey',
+        'description', 'organization', 'phoneNumber', 'website', 'location',
+        'isRegistered', 'registrationDate', 'createdAt', 'updatedAt',
+        'did', 'didSource', 'didVerified', 'didVerificationMethod',
+        'onboardingStatus', 'profileCompleted', 'emailVerified', 'isActive',
+        'lastLoginAt'
+      ]
+    });
+
+    if (!user) {
+      return res.status(404).json({
+        error: 'User not found',
+        code: 'USER_NOT_FOUND'
+      });
+    }
+
+    res.json(user);
+
+  } catch (error) {
+    console.error('❌ Get user by wallet error:', error);
     res.status(500).json({
       error: 'Internal server error',
       code: 'INTERNAL_ERROR'

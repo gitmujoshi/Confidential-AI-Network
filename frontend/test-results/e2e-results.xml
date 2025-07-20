@@ -1,0 +1,237 @@
+<testsuites id="" name="" tests="5" failures="5" skipped="0" errors="0" time="10.945384">
+<testsuite name="auth.spec.js" timestamp="2025-07-17T22:43:15.610Z" hostname="chromium" tests="1" failures="1" skipped="0" time="4.342" errors="0">
+<testcase name="Authentication E2E Tests › should login as TDC and load correct dashboard (regression)" classname="auth.spec.js" time="4.342">
+<failure message="auth.spec.js:101:3 should login as TDC and load correct dashboard (regression)" type="FAILURE">
+<![CDATA[  [chromium] › auth.spec.js:101:3 › Authentication E2E Tests › should login as TDC and load correct dashboard (regression) 
+
+    Error: Dashboard failed to load: 
+        You need to enable JavaScript to run this app.
+        Dashboard1TTDCContract ManagerSecure & TransparentDashboardDatasetsContractsNotifications1Enterprise DIDQuick ActionsCreate ContractBrowse DatasetsLogoutError loading TDC dashboard: Request failed with status code 500
+      
+     Contract ManagerSecure & TransparentDashboardDatasetsContractsNotifications1Enterprise DIDQuick ActionsCreate ContractBrowse DatasetsLogout
+
+      124 |     // Check if there's an error loading the dashboard
+      125 |     if (pageContent.includes('Error loading TDC dashboard')) {
+    > 126 |       throw new Error('Dashboard failed to load: ' + pageContent);
+          |             ^
+      127 |     }
+      128 |
+      129 |     // Should show correct user info
+        at /Users/mukeshjoshi/gitprojects/ContractManagement/frontend/tests/e2e/auth.spec.js:126:13
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../../test-results/auth-Authentication-E2E-Te-001e4-rrect-dashboard-regression--chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../../test-results/auth-Authentication-E2E-Te-001e4-rrect-dashboard-regression--chromium/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../../test-results/auth-Authentication-E2E-Te-001e4-rrect-dashboard-regression--chromium/error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[🔍 Page content after login: 
+    You need to enable JavaScript to run this app.
+    Dashboard1TTDCContract ManagerSecure & TransparentDashboardDatasetsContractsNotifications1Enterprise DIDQuick ActionsCreate ContractBrowse DatasetsLogoutError loading TDC dashboard: Request failed with status code 500
+  
+ Contract ManagerSecure & TransparentDashboardDatasetsContractsNotifications1Enterprise DIDQuick ActionsCreate ContractBrowse DatasetsLogout
+
+[[ATTACHMENT|auth-Authentication-E2E-Te-001e4-rrect-dashboard-regression--chromium/test-failed-1.png]]
+
+[[ATTACHMENT|auth-Authentication-E2E-Te-001e4-rrect-dashboard-regression--chromium/video.webm]]
+
+[[ATTACHMENT|auth-Authentication-E2E-Te-001e4-rrect-dashboard-regression--chromium/error-context.md]]
+]]>
+</system-out>
+</testcase>
+</testsuite>
+<testsuite name="auth.spec.js" timestamp="2025-07-17T22:43:15.610Z" hostname="firefox" tests="1" failures="1" skipped="0" time="5.097" errors="0">
+<testcase name="Authentication E2E Tests › should login as TDC and load correct dashboard (regression)" classname="auth.spec.js" time="5.097">
+<failure message="auth.spec.js:101:3 should login as TDC and load correct dashboard (regression)" type="FAILURE">
+<![CDATA[  [firefox] › auth.spec.js:101:3 › Authentication E2E Tests › should login as TDC and load correct dashboard (regression) 
+
+    Error: Dashboard failed to load: 
+        You need to enable JavaScript to run this app.
+        Dashboard1TTDCContract ManagerSecure & TransparentDashboardDatasetsContractsNotifications1Enterprise DIDQuick ActionsCreate ContractBrowse DatasetsLogoutError loading TDC dashboard: Request failed with status code 500
+      
+     Contract ManagerSecure & TransparentDashboardDatasetsContractsNotifications1Enterprise DIDQuick ActionsCreate ContractBrowse DatasetsLogout
+
+      124 |     // Check if there's an error loading the dashboard
+      125 |     if (pageContent.includes('Error loading TDC dashboard')) {
+    > 126 |       throw new Error('Dashboard failed to load: ' + pageContent);
+          |             ^
+      127 |     }
+      128 |
+      129 |     // Should show correct user info
+        at /Users/mukeshjoshi/gitprojects/ContractManagement/frontend/tests/e2e/auth.spec.js:126:13
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../../test-results/auth-Authentication-E2E-Te-001e4-rrect-dashboard-regression--firefox/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../../test-results/auth-Authentication-E2E-Te-001e4-rrect-dashboard-regression--firefox/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../../test-results/auth-Authentication-E2E-Te-001e4-rrect-dashboard-regression--firefox/error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[🔍 Page content after login: 
+    You need to enable JavaScript to run this app.
+    Dashboard1TTDCContract ManagerSecure & TransparentDashboardDatasetsContractsNotifications1Enterprise DIDQuick ActionsCreate ContractBrowse DatasetsLogoutError loading TDC dashboard: Request failed with status code 500
+  
+ Contract ManagerSecure & TransparentDashboardDatasetsContractsNotifications1Enterprise DIDQuick ActionsCreate ContractBrowse DatasetsLogout
+
+[[ATTACHMENT|auth-Authentication-E2E-Te-001e4-rrect-dashboard-regression--firefox/test-failed-1.png]]
+
+[[ATTACHMENT|auth-Authentication-E2E-Te-001e4-rrect-dashboard-regression--firefox/video.webm]]
+
+[[ATTACHMENT|auth-Authentication-E2E-Te-001e4-rrect-dashboard-regression--firefox/error-context.md]]
+]]>
+</system-out>
+</testcase>
+</testsuite>
+<testsuite name="auth.spec.js" timestamp="2025-07-17T22:43:15.610Z" hostname="webkit" tests="1" failures="1" skipped="0" time="4.934" errors="0">
+<testcase name="Authentication E2E Tests › should login as TDC and load correct dashboard (regression)" classname="auth.spec.js" time="4.934">
+<failure message="auth.spec.js:101:3 should login as TDC and load correct dashboard (regression)" type="FAILURE">
+<![CDATA[  [webkit] › auth.spec.js:101:3 › Authentication E2E Tests › should login as TDC and load correct dashboard (regression) 
+
+    Error: Dashboard failed to load: 
+        You need to enable JavaScript to run this app.
+        Dashboard1TTDCContract ManagerSecure & TransparentDashboardDatasetsContractsNotifications1Enterprise DIDQuick ActionsCreate ContractBrowse DatasetsLogoutError loading TDC dashboard: Request failed with status code 500
+      
+     Contract ManagerSecure & TransparentDashboardDatasetsContractsNotifications1Enterprise DIDQuick ActionsCreate ContractBrowse DatasetsLogout
+
+      124 |     // Check if there's an error loading the dashboard
+      125 |     if (pageContent.includes('Error loading TDC dashboard')) {
+    > 126 |       throw new Error('Dashboard failed to load: ' + pageContent);
+          |             ^
+      127 |     }
+      128 |
+      129 |     // Should show correct user info
+        at /Users/mukeshjoshi/gitprojects/ContractManagement/frontend/tests/e2e/auth.spec.js:126:13
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../../test-results/auth-Authentication-E2E-Te-001e4-rrect-dashboard-regression--webkit/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../../test-results/auth-Authentication-E2E-Te-001e4-rrect-dashboard-regression--webkit/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../../test-results/auth-Authentication-E2E-Te-001e4-rrect-dashboard-regression--webkit/error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[🔍 Page content after login: 
+    You need to enable JavaScript to run this app.
+    Dashboard1TTDCContract ManagerSecure & TransparentDashboardDatasetsContractsNotifications1Enterprise DIDQuick ActionsCreate ContractBrowse DatasetsLogoutError loading TDC dashboard: Request failed with status code 500
+  
+ Contract ManagerSecure & TransparentDashboardDatasetsContractsNotifications1Enterprise DIDQuick ActionsCreate ContractBrowse DatasetsLogout
+
+[[ATTACHMENT|auth-Authentication-E2E-Te-001e4-rrect-dashboard-regression--webkit/test-failed-1.png]]
+
+[[ATTACHMENT|auth-Authentication-E2E-Te-001e4-rrect-dashboard-regression--webkit/video.webm]]
+
+[[ATTACHMENT|auth-Authentication-E2E-Te-001e4-rrect-dashboard-regression--webkit/error-context.md]]
+]]>
+</system-out>
+</testcase>
+</testsuite>
+<testsuite name="auth.spec.js" timestamp="2025-07-17T22:43:15.610Z" hostname="Mobile Chrome" tests="1" failures="1" skipped="0" time="4.359" errors="0">
+<testcase name="Authentication E2E Tests › should login as TDC and load correct dashboard (regression)" classname="auth.spec.js" time="4.359">
+<failure message="auth.spec.js:101:3 should login as TDC and load correct dashboard (regression)" type="FAILURE">
+<![CDATA[  [Mobile Chrome] › auth.spec.js:101:3 › Authentication E2E Tests › should login as TDC and load correct dashboard (regression) 
+
+    Error: Dashboard failed to load: 
+        You need to enable JavaScript to run this app.
+        Dashboard1TTDCContract ManagerSecure & TransparentDashboardDatasetsContractsNotifications1Enterprise DIDQuick ActionsCreate ContractBrowse DatasetsLogoutError loading TDC dashboard: Request failed with status code 500
+      
+     Contract ManagerSecure & TransparentDashboardDatasetsContractsNotifications1Enterprise DIDQuick ActionsCreate ContractBrowse DatasetsLogout
+
+      124 |     // Check if there's an error loading the dashboard
+      125 |     if (pageContent.includes('Error loading TDC dashboard')) {
+    > 126 |       throw new Error('Dashboard failed to load: ' + pageContent);
+          |             ^
+      127 |     }
+      128 |
+      129 |     // Should show correct user info
+        at /Users/mukeshjoshi/gitprojects/ContractManagement/frontend/tests/e2e/auth.spec.js:126:13
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../../test-results/auth-Authentication-E2E-Te-001e4-rrect-dashboard-regression--Mobile-Chrome/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../../test-results/auth-Authentication-E2E-Te-001e4-rrect-dashboard-regression--Mobile-Chrome/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../../test-results/auth-Authentication-E2E-Te-001e4-rrect-dashboard-regression--Mobile-Chrome/error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[🔍 Page content after login: 
+    You need to enable JavaScript to run this app.
+    Dashboard1TTDCContract ManagerSecure & TransparentDashboardDatasetsContractsNotifications1Enterprise DIDQuick ActionsCreate ContractBrowse DatasetsLogoutError loading TDC dashboard: Request failed with status code 500
+  
+ Contract ManagerSecure & TransparentDashboardDatasetsContractsNotifications1Enterprise DIDQuick ActionsCreate ContractBrowse DatasetsLogout
+
+[[ATTACHMENT|auth-Authentication-E2E-Te-001e4-rrect-dashboard-regression--Mobile-Chrome/test-failed-1.png]]
+
+[[ATTACHMENT|auth-Authentication-E2E-Te-001e4-rrect-dashboard-regression--Mobile-Chrome/video.webm]]
+
+[[ATTACHMENT|auth-Authentication-E2E-Te-001e4-rrect-dashboard-regression--Mobile-Chrome/error-context.md]]
+]]>
+</system-out>
+</testcase>
+</testsuite>
+<testsuite name="auth.spec.js" timestamp="2025-07-17T22:43:15.610Z" hostname="Mobile Safari" tests="1" failures="1" skipped="0" time="4.912" errors="0">
+<testcase name="Authentication E2E Tests › should login as TDC and load correct dashboard (regression)" classname="auth.spec.js" time="4.912">
+<failure message="auth.spec.js:101:3 should login as TDC and load correct dashboard (regression)" type="FAILURE">
+<![CDATA[  [Mobile Safari] › auth.spec.js:101:3 › Authentication E2E Tests › should login as TDC and load correct dashboard (regression) 
+
+    Error: Dashboard failed to load: 
+        You need to enable JavaScript to run this app.
+        Dashboard1TTDCContract ManagerSecure & TransparentDashboardDatasetsContractsNotifications1Enterprise DIDQuick ActionsCreate ContractBrowse DatasetsLogoutError loading TDC dashboard: Request failed with status code 500
+      
+     Contract ManagerSecure & TransparentDashboardDatasetsContractsNotifications1Enterprise DIDQuick ActionsCreate ContractBrowse DatasetsLogout
+
+      124 |     // Check if there's an error loading the dashboard
+      125 |     if (pageContent.includes('Error loading TDC dashboard')) {
+    > 126 |       throw new Error('Dashboard failed to load: ' + pageContent);
+          |             ^
+      127 |     }
+      128 |
+      129 |     // Should show correct user info
+        at /Users/mukeshjoshi/gitprojects/ContractManagement/frontend/tests/e2e/auth.spec.js:126:13
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../../test-results/auth-Authentication-E2E-Te-001e4-rrect-dashboard-regression--Mobile-Safari/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: video (video/webm) ──────────────────────────────────────────────────────────────
+    ../../test-results/auth-Authentication-E2E-Te-001e4-rrect-dashboard-regression--Mobile-Safari/video.webm
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: ../../test-results/auth-Authentication-E2E-Te-001e4-rrect-dashboard-regression--Mobile-Safari/error-context.md
+]]>
+</failure>
+<system-out>
+<![CDATA[🔍 Page content after login: 
+    You need to enable JavaScript to run this app.
+    Dashboard1TTDCContract ManagerSecure & TransparentDashboardDatasetsContractsNotifications1Enterprise DIDQuick ActionsCreate ContractBrowse DatasetsLogoutError loading TDC dashboard: Request failed with status code 500
+  
+ Contract ManagerSecure & TransparentDashboardDatasetsContractsNotifications1Enterprise DIDQuick ActionsCreate ContractBrowse DatasetsLogout
+
+[[ATTACHMENT|auth-Authentication-E2E-Te-001e4-rrect-dashboard-regression--Mobile-Safari/test-failed-1.png]]
+
+[[ATTACHMENT|auth-Authentication-E2E-Te-001e4-rrect-dashboard-regression--Mobile-Safari/video.webm]]
+
+[[ATTACHMENT|auth-Authentication-E2E-Te-001e4-rrect-dashboard-regression--Mobile-Safari/error-context.md]]
+]]>
+</system-out>
+</testcase>
+</testsuite>
+</testsuites>

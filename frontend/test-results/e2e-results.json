@@ -1,0 +1,552 @@
+{
+  "config": {
+    "configFile": "/Users/mukeshjoshi/gitprojects/ContractManagement/frontend/playwright.config.js",
+    "rootDir": "/Users/mukeshjoshi/gitprojects/ContractManagement/frontend/tests/e2e",
+    "forbidOnly": false,
+    "fullyParallel": true,
+    "globalSetup": "/Users/mukeshjoshi/gitprojects/ContractManagement/frontend/tests/e2e/global-setup.js",
+    "globalTeardown": "/Users/mukeshjoshi/gitprojects/ContractManagement/frontend/tests/e2e/global-teardown.js",
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 5
+    },
+    "preserveOutput": "always",
+    "reporter": [
+      [
+        "html",
+        null
+      ],
+      [
+        "json",
+        {
+          "outputFile": "test-results/e2e-results.json"
+        }
+      ],
+      [
+        "junit",
+        {
+          "outputFile": "test-results/e2e-results.xml"
+        }
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "quiet": false,
+    "projects": [
+      {
+        "outputDir": "/Users/mukeshjoshi/gitprojects/ContractManagement/frontend/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 5
+        },
+        "id": "chromium",
+        "name": "chromium",
+        "testDir": "/Users/mukeshjoshi/gitprojects/ContractManagement/frontend/tests/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Users/mukeshjoshi/gitprojects/ContractManagement/frontend/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 5
+        },
+        "id": "firefox",
+        "name": "firefox",
+        "testDir": "/Users/mukeshjoshi/gitprojects/ContractManagement/frontend/tests/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Users/mukeshjoshi/gitprojects/ContractManagement/frontend/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 5
+        },
+        "id": "webkit",
+        "name": "webkit",
+        "testDir": "/Users/mukeshjoshi/gitprojects/ContractManagement/frontend/tests/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Users/mukeshjoshi/gitprojects/ContractManagement/frontend/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 5
+        },
+        "id": "Mobile Chrome",
+        "name": "Mobile Chrome",
+        "testDir": "/Users/mukeshjoshi/gitprojects/ContractManagement/frontend/tests/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Users/mukeshjoshi/gitprojects/ContractManagement/frontend/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 5
+        },
+        "id": "Mobile Safari",
+        "name": "Mobile Safari",
+        "testDir": "/Users/mukeshjoshi/gitprojects/ContractManagement/frontend/tests/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      }
+    ],
+    "shard": null,
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.54.1",
+    "workers": 5,
+    "webServer": {
+      "command": "npm run start",
+      "url": "http://localhost:3000",
+      "reuseExistingServer": true,
+      "timeout": 120000
+    }
+  },
+  "suites": [
+    {
+      "title": "auth.spec.js",
+      "file": "auth.spec.js",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Authentication E2E Tests",
+          "file": "auth.spec.js",
+          "line": 3,
+          "column": 6,
+          "specs": [
+            {
+              "title": "should login as TDC and load correct dashboard (regression)",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "failed",
+                      "duration": 4342,
+                      "error": {
+                        "message": "Error: Dashboard failed to load: \n    You need to enable JavaScript to run this app.\n    Dashboard1TTDCContract ManagerSecure & TransparentDashboardDatasetsContractsNotifications1Enterprise DIDQuick ActionsCreate ContractBrowse DatasetsLogoutError loading TDC dashboard: Request failed with status code 500\n  \n Contract ManagerSecure & TransparentDashboardDatasetsContractsNotifications1Enterprise DIDQuick ActionsCreate ContractBrowse DatasetsLogout",
+                        "stack": "Error: Dashboard failed to load: \n    You need to enable JavaScript to run this app.\n    Dashboard1TTDCContract ManagerSecure & TransparentDashboardDatasetsContractsNotifications1Enterprise DIDQuick ActionsCreate ContractBrowse DatasetsLogoutError loading TDC dashboard: Request failed with status code 500\n  \n Contract ManagerSecure & TransparentDashboardDatasetsContractsNotifications1Enterprise DIDQuick ActionsCreate ContractBrowse DatasetsLogout\n    at /Users/mukeshjoshi/gitprojects/ContractManagement/frontend/tests/e2e/auth.spec.js:126:13",
+                        "location": {
+                          "file": "/Users/mukeshjoshi/gitprojects/ContractManagement/frontend/tests/e2e/auth.spec.js",
+                          "column": 13,
+                          "line": 126
+                        },
+                        "snippet": "\u001b[0m \u001b[90m 124 |\u001b[39m     \u001b[90m// Check if there's an error loading the dashboard\u001b[39m\n \u001b[90m 125 |\u001b[39m     \u001b[36mif\u001b[39m (pageContent\u001b[33m.\u001b[39mincludes(\u001b[32m'Error loading TDC dashboard'\u001b[39m)) {\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 126 |\u001b[39m       \u001b[36mthrow\u001b[39m \u001b[36mnew\u001b[39m \u001b[33mError\u001b[39m(\u001b[32m'Dashboard failed to load: '\u001b[39m \u001b[33m+\u001b[39m pageContent)\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m             \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 127 |\u001b[39m     }\n \u001b[90m 128 |\u001b[39m\n \u001b[90m 129 |\u001b[39m     \u001b[90m// Should show correct user info\u001b[39m\u001b[0m"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "/Users/mukeshjoshi/gitprojects/ContractManagement/frontend/tests/e2e/auth.spec.js",
+                            "column": 13,
+                            "line": 126
+                          },
+                          "message": "Error: Dashboard failed to load: \n    You need to enable JavaScript to run this app.\n    Dashboard1TTDCContract ManagerSecure & TransparentDashboardDatasetsContractsNotifications1Enterprise DIDQuick ActionsCreate ContractBrowse DatasetsLogoutError loading TDC dashboard: Request failed with status code 500\n  \n Contract ManagerSecure & TransparentDashboardDatasetsContractsNotifications1Enterprise DIDQuick ActionsCreate ContractBrowse DatasetsLogout\n\n\u001b[0m \u001b[90m 124 |\u001b[39m     \u001b[90m// Check if there's an error loading the dashboard\u001b[39m\n \u001b[90m 125 |\u001b[39m     \u001b[36mif\u001b[39m (pageContent\u001b[33m.\u001b[39mincludes(\u001b[32m'Error loading TDC dashboard'\u001b[39m)) {\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 126 |\u001b[39m       \u001b[36mthrow\u001b[39m \u001b[36mnew\u001b[39m \u001b[33mError\u001b[39m(\u001b[32m'Dashboard failed to load: '\u001b[39m \u001b[33m+\u001b[39m pageContent)\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m             \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 127 |\u001b[39m     }\n \u001b[90m 128 |\u001b[39m\n \u001b[90m 129 |\u001b[39m     \u001b[90m// Should show correct user info\u001b[39m\u001b[0m\n\u001b[2m    at /Users/mukeshjoshi/gitprojects/ContractManagement/frontend/tests/e2e/auth.spec.js:126:13\u001b[22m"
+                        }
+                      ],
+                      "stdout": [
+                        {
+                          "text": "🔍 Page content after login: \n    You need to enable JavaScript to run this app.\n    Dashboard1TTDCContract ManagerSecure & TransparentDashboardDatasetsContractsNotifications1Enterprise DIDQuick ActionsCreate ContractBrowse DatasetsLogoutError loading TDC dashboard: Request failed with status code 500\n  \n Contract ManagerSecure & TransparentDashboardDatasetsContractsNotifications1Enterprise DIDQuick ActionsCreate ContractBrowse DatasetsLogout\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-07-17T22:43:16.094Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "/Users/mukeshjoshi/gitprojects/ContractManagement/frontend/test-results/auth-Authentication-E2E-Te-001e4-rrect-dashboard-regression--chromium/test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "/Users/mukeshjoshi/gitprojects/ContractManagement/frontend/test-results/auth-Authentication-E2E-Te-001e4-rrect-dashboard-regression--chromium/video.webm"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "/Users/mukeshjoshi/gitprojects/ContractManagement/frontend/test-results/auth-Authentication-E2E-Te-001e4-rrect-dashboard-regression--chromium/error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "/Users/mukeshjoshi/gitprojects/ContractManagement/frontend/tests/e2e/auth.spec.js",
+                        "column": 13,
+                        "line": 126
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "d5ed79a6b333c2ba7209-538ca6acf1011f5026ff",
+              "file": "auth.spec.js",
+              "line": 101,
+              "column": 3
+            },
+            {
+              "title": "should login as TDC and load correct dashboard (regression)",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "firefox",
+                  "projectName": "firefox",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 1,
+                      "status": "failed",
+                      "duration": 5097,
+                      "error": {
+                        "message": "Error: Dashboard failed to load: \n    You need to enable JavaScript to run this app.\n    Dashboard1TTDCContract ManagerSecure & TransparentDashboardDatasetsContractsNotifications1Enterprise DIDQuick ActionsCreate ContractBrowse DatasetsLogoutError loading TDC dashboard: Request failed with status code 500\n  \n Contract ManagerSecure & TransparentDashboardDatasetsContractsNotifications1Enterprise DIDQuick ActionsCreate ContractBrowse DatasetsLogout",
+                        "stack": "Error: Dashboard failed to load: \n    You need to enable JavaScript to run this app.\n    Dashboard1TTDCContract ManagerSecure & TransparentDashboardDatasetsContractsNotifications1Enterprise DIDQuick ActionsCreate ContractBrowse DatasetsLogoutError loading TDC dashboard: Request failed with status code 500\n  \n Contract ManagerSecure & TransparentDashboardDatasetsContractsNotifications1Enterprise DIDQuick ActionsCreate ContractBrowse DatasetsLogout\n    at /Users/mukeshjoshi/gitprojects/ContractManagement/frontend/tests/e2e/auth.spec.js:126:13",
+                        "location": {
+                          "file": "/Users/mukeshjoshi/gitprojects/ContractManagement/frontend/tests/e2e/auth.spec.js",
+                          "column": 13,
+                          "line": 126
+                        },
+                        "snippet": "\u001b[0m \u001b[90m 124 |\u001b[39m     \u001b[90m// Check if there's an error loading the dashboard\u001b[39m\n \u001b[90m 125 |\u001b[39m     \u001b[36mif\u001b[39m (pageContent\u001b[33m.\u001b[39mincludes(\u001b[32m'Error loading TDC dashboard'\u001b[39m)) {\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 126 |\u001b[39m       \u001b[36mthrow\u001b[39m \u001b[36mnew\u001b[39m \u001b[33mError\u001b[39m(\u001b[32m'Dashboard failed to load: '\u001b[39m \u001b[33m+\u001b[39m pageContent)\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m             \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 127 |\u001b[39m     }\n \u001b[90m 128 |\u001b[39m\n \u001b[90m 129 |\u001b[39m     \u001b[90m// Should show correct user info\u001b[39m\u001b[0m"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "/Users/mukeshjoshi/gitprojects/ContractManagement/frontend/tests/e2e/auth.spec.js",
+                            "column": 13,
+                            "line": 126
+                          },
+                          "message": "Error: Dashboard failed to load: \n    You need to enable JavaScript to run this app.\n    Dashboard1TTDCContract ManagerSecure & TransparentDashboardDatasetsContractsNotifications1Enterprise DIDQuick ActionsCreate ContractBrowse DatasetsLogoutError loading TDC dashboard: Request failed with status code 500\n  \n Contract ManagerSecure & TransparentDashboardDatasetsContractsNotifications1Enterprise DIDQuick ActionsCreate ContractBrowse DatasetsLogout\n\n\u001b[0m \u001b[90m 124 |\u001b[39m     \u001b[90m// Check if there's an error loading the dashboard\u001b[39m\n \u001b[90m 125 |\u001b[39m     \u001b[36mif\u001b[39m (pageContent\u001b[33m.\u001b[39mincludes(\u001b[32m'Error loading TDC dashboard'\u001b[39m)) {\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 126 |\u001b[39m       \u001b[36mthrow\u001b[39m \u001b[36mnew\u001b[39m \u001b[33mError\u001b[39m(\u001b[32m'Dashboard failed to load: '\u001b[39m \u001b[33m+\u001b[39m pageContent)\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m             \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 127 |\u001b[39m     }\n \u001b[90m 128 |\u001b[39m\n \u001b[90m 129 |\u001b[39m     \u001b[90m// Should show correct user info\u001b[39m\u001b[0m\n\u001b[2m    at /Users/mukeshjoshi/gitprojects/ContractManagement/frontend/tests/e2e/auth.spec.js:126:13\u001b[22m"
+                        }
+                      ],
+                      "stdout": [
+                        {
+                          "text": "🔍 Page content after login: \n    You need to enable JavaScript to run this app.\n    Dashboard1TTDCContract ManagerSecure & TransparentDashboardDatasetsContractsNotifications1Enterprise DIDQuick ActionsCreate ContractBrowse DatasetsLogoutError loading TDC dashboard: Request failed with status code 500\n  \n Contract ManagerSecure & TransparentDashboardDatasetsContractsNotifications1Enterprise DIDQuick ActionsCreate ContractBrowse DatasetsLogout\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-07-17T22:43:16.083Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "/Users/mukeshjoshi/gitprojects/ContractManagement/frontend/test-results/auth-Authentication-E2E-Te-001e4-rrect-dashboard-regression--firefox/test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "/Users/mukeshjoshi/gitprojects/ContractManagement/frontend/test-results/auth-Authentication-E2E-Te-001e4-rrect-dashboard-regression--firefox/video.webm"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "/Users/mukeshjoshi/gitprojects/ContractManagement/frontend/test-results/auth-Authentication-E2E-Te-001e4-rrect-dashboard-regression--firefox/error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "/Users/mukeshjoshi/gitprojects/ContractManagement/frontend/tests/e2e/auth.spec.js",
+                        "column": 13,
+                        "line": 126
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "d5ed79a6b333c2ba7209-5fa11531c738dadb8bc6",
+              "file": "auth.spec.js",
+              "line": 101,
+              "column": 3
+            },
+            {
+              "title": "should login as TDC and load correct dashboard (regression)",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "webkit",
+                  "projectName": "webkit",
+                  "results": [
+                    {
+                      "workerIndex": 2,
+                      "parallelIndex": 2,
+                      "status": "failed",
+                      "duration": 4934,
+                      "error": {
+                        "message": "Error: Dashboard failed to load: \n    You need to enable JavaScript to run this app.\n    Dashboard1TTDCContract ManagerSecure & TransparentDashboardDatasetsContractsNotifications1Enterprise DIDQuick ActionsCreate ContractBrowse DatasetsLogoutError loading TDC dashboard: Request failed with status code 500\n  \n Contract ManagerSecure & TransparentDashboardDatasetsContractsNotifications1Enterprise DIDQuick ActionsCreate ContractBrowse DatasetsLogout",
+                        "stack": "Error: Dashboard failed to load: \n    You need to enable JavaScript to run this app.\n    Dashboard1TTDCContract ManagerSecure & TransparentDashboardDatasetsContractsNotifications1Enterprise DIDQuick ActionsCreate ContractBrowse DatasetsLogoutError loading TDC dashboard: Request failed with status code 500\n  \n Contract ManagerSecure & TransparentDashboardDatasetsContractsNotifications1Enterprise DIDQuick ActionsCreate ContractBrowse DatasetsLogout\n    at /Users/mukeshjoshi/gitprojects/ContractManagement/frontend/tests/e2e/auth.spec.js:126:13",
+                        "location": {
+                          "file": "/Users/mukeshjoshi/gitprojects/ContractManagement/frontend/tests/e2e/auth.spec.js",
+                          "column": 13,
+                          "line": 126
+                        },
+                        "snippet": "\u001b[0m \u001b[90m 124 |\u001b[39m     \u001b[90m// Check if there's an error loading the dashboard\u001b[39m\n \u001b[90m 125 |\u001b[39m     \u001b[36mif\u001b[39m (pageContent\u001b[33m.\u001b[39mincludes(\u001b[32m'Error loading TDC dashboard'\u001b[39m)) {\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 126 |\u001b[39m       \u001b[36mthrow\u001b[39m \u001b[36mnew\u001b[39m \u001b[33mError\u001b[39m(\u001b[32m'Dashboard failed to load: '\u001b[39m \u001b[33m+\u001b[39m pageContent)\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m             \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 127 |\u001b[39m     }\n \u001b[90m 128 |\u001b[39m\n \u001b[90m 129 |\u001b[39m     \u001b[90m// Should show correct user info\u001b[39m\u001b[0m"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "/Users/mukeshjoshi/gitprojects/ContractManagement/frontend/tests/e2e/auth.spec.js",
+                            "column": 13,
+                            "line": 126
+                          },
+                          "message": "Error: Dashboard failed to load: \n    You need to enable JavaScript to run this app.\n    Dashboard1TTDCContract ManagerSecure & TransparentDashboardDatasetsContractsNotifications1Enterprise DIDQuick ActionsCreate ContractBrowse DatasetsLogoutError loading TDC dashboard: Request failed with status code 500\n  \n Contract ManagerSecure & TransparentDashboardDatasetsContractsNotifications1Enterprise DIDQuick ActionsCreate ContractBrowse DatasetsLogout\n\n\u001b[0m \u001b[90m 124 |\u001b[39m     \u001b[90m// Check if there's an error loading the dashboard\u001b[39m\n \u001b[90m 125 |\u001b[39m     \u001b[36mif\u001b[39m (pageContent\u001b[33m.\u001b[39mincludes(\u001b[32m'Error loading TDC dashboard'\u001b[39m)) {\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 126 |\u001b[39m       \u001b[36mthrow\u001b[39m \u001b[36mnew\u001b[39m \u001b[33mError\u001b[39m(\u001b[32m'Dashboard failed to load: '\u001b[39m \u001b[33m+\u001b[39m pageContent)\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m             \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 127 |\u001b[39m     }\n \u001b[90m 128 |\u001b[39m\n \u001b[90m 129 |\u001b[39m     \u001b[90m// Should show correct user info\u001b[39m\u001b[0m\n\u001b[2m    at /Users/mukeshjoshi/gitprojects/ContractManagement/frontend/tests/e2e/auth.spec.js:126:13\u001b[22m"
+                        }
+                      ],
+                      "stdout": [
+                        {
+                          "text": "🔍 Page content after login: \n    You need to enable JavaScript to run this app.\n    Dashboard1TTDCContract ManagerSecure & TransparentDashboardDatasetsContractsNotifications1Enterprise DIDQuick ActionsCreate ContractBrowse DatasetsLogoutError loading TDC dashboard: Request failed with status code 500\n  \n Contract ManagerSecure & TransparentDashboardDatasetsContractsNotifications1Enterprise DIDQuick ActionsCreate ContractBrowse DatasetsLogout\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-07-17T22:43:16.096Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "/Users/mukeshjoshi/gitprojects/ContractManagement/frontend/test-results/auth-Authentication-E2E-Te-001e4-rrect-dashboard-regression--webkit/test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "/Users/mukeshjoshi/gitprojects/ContractManagement/frontend/test-results/auth-Authentication-E2E-Te-001e4-rrect-dashboard-regression--webkit/video.webm"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "/Users/mukeshjoshi/gitprojects/ContractManagement/frontend/test-results/auth-Authentication-E2E-Te-001e4-rrect-dashboard-regression--webkit/error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "/Users/mukeshjoshi/gitprojects/ContractManagement/frontend/tests/e2e/auth.spec.js",
+                        "column": 13,
+                        "line": 126
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "d5ed79a6b333c2ba7209-2c884b722a9b4b9f73c1",
+              "file": "auth.spec.js",
+              "line": 101,
+              "column": 3
+            },
+            {
+              "title": "should login as TDC and load correct dashboard (regression)",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Chrome",
+                  "projectName": "Mobile Chrome",
+                  "results": [
+                    {
+                      "workerIndex": 3,
+                      "parallelIndex": 3,
+                      "status": "failed",
+                      "duration": 4359,
+                      "error": {
+                        "message": "Error: Dashboard failed to load: \n    You need to enable JavaScript to run this app.\n    Dashboard1TTDCContract ManagerSecure & TransparentDashboardDatasetsContractsNotifications1Enterprise DIDQuick ActionsCreate ContractBrowse DatasetsLogoutError loading TDC dashboard: Request failed with status code 500\n  \n Contract ManagerSecure & TransparentDashboardDatasetsContractsNotifications1Enterprise DIDQuick ActionsCreate ContractBrowse DatasetsLogout",
+                        "stack": "Error: Dashboard failed to load: \n    You need to enable JavaScript to run this app.\n    Dashboard1TTDCContract ManagerSecure & TransparentDashboardDatasetsContractsNotifications1Enterprise DIDQuick ActionsCreate ContractBrowse DatasetsLogoutError loading TDC dashboard: Request failed with status code 500\n  \n Contract ManagerSecure & TransparentDashboardDatasetsContractsNotifications1Enterprise DIDQuick ActionsCreate ContractBrowse DatasetsLogout\n    at /Users/mukeshjoshi/gitprojects/ContractManagement/frontend/tests/e2e/auth.spec.js:126:13",
+                        "location": {
+                          "file": "/Users/mukeshjoshi/gitprojects/ContractManagement/frontend/tests/e2e/auth.spec.js",
+                          "column": 13,
+                          "line": 126
+                        },
+                        "snippet": "\u001b[0m \u001b[90m 124 |\u001b[39m     \u001b[90m// Check if there's an error loading the dashboard\u001b[39m\n \u001b[90m 125 |\u001b[39m     \u001b[36mif\u001b[39m (pageContent\u001b[33m.\u001b[39mincludes(\u001b[32m'Error loading TDC dashboard'\u001b[39m)) {\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 126 |\u001b[39m       \u001b[36mthrow\u001b[39m \u001b[36mnew\u001b[39m \u001b[33mError\u001b[39m(\u001b[32m'Dashboard failed to load: '\u001b[39m \u001b[33m+\u001b[39m pageContent)\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m             \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 127 |\u001b[39m     }\n \u001b[90m 128 |\u001b[39m\n \u001b[90m 129 |\u001b[39m     \u001b[90m// Should show correct user info\u001b[39m\u001b[0m"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "/Users/mukeshjoshi/gitprojects/ContractManagement/frontend/tests/e2e/auth.spec.js",
+                            "column": 13,
+                            "line": 126
+                          },
+                          "message": "Error: Dashboard failed to load: \n    You need to enable JavaScript to run this app.\n    Dashboard1TTDCContract ManagerSecure & TransparentDashboardDatasetsContractsNotifications1Enterprise DIDQuick ActionsCreate ContractBrowse DatasetsLogoutError loading TDC dashboard: Request failed with status code 500\n  \n Contract ManagerSecure & TransparentDashboardDatasetsContractsNotifications1Enterprise DIDQuick ActionsCreate ContractBrowse DatasetsLogout\n\n\u001b[0m \u001b[90m 124 |\u001b[39m     \u001b[90m// Check if there's an error loading the dashboard\u001b[39m\n \u001b[90m 125 |\u001b[39m     \u001b[36mif\u001b[39m (pageContent\u001b[33m.\u001b[39mincludes(\u001b[32m'Error loading TDC dashboard'\u001b[39m)) {\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 126 |\u001b[39m       \u001b[36mthrow\u001b[39m \u001b[36mnew\u001b[39m \u001b[33mError\u001b[39m(\u001b[32m'Dashboard failed to load: '\u001b[39m \u001b[33m+\u001b[39m pageContent)\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m             \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 127 |\u001b[39m     }\n \u001b[90m 128 |\u001b[39m\n \u001b[90m 129 |\u001b[39m     \u001b[90m// Should show correct user info\u001b[39m\u001b[0m\n\u001b[2m    at /Users/mukeshjoshi/gitprojects/ContractManagement/frontend/tests/e2e/auth.spec.js:126:13\u001b[22m"
+                        }
+                      ],
+                      "stdout": [
+                        {
+                          "text": "🔍 Page content after login: \n    You need to enable JavaScript to run this app.\n    Dashboard1TTDCContract ManagerSecure & TransparentDashboardDatasetsContractsNotifications1Enterprise DIDQuick ActionsCreate ContractBrowse DatasetsLogoutError loading TDC dashboard: Request failed with status code 500\n  \n Contract ManagerSecure & TransparentDashboardDatasetsContractsNotifications1Enterprise DIDQuick ActionsCreate ContractBrowse DatasetsLogout\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-07-17T22:43:16.087Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "/Users/mukeshjoshi/gitprojects/ContractManagement/frontend/test-results/auth-Authentication-E2E-Te-001e4-rrect-dashboard-regression--Mobile-Chrome/test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "/Users/mukeshjoshi/gitprojects/ContractManagement/frontend/test-results/auth-Authentication-E2E-Te-001e4-rrect-dashboard-regression--Mobile-Chrome/video.webm"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "/Users/mukeshjoshi/gitprojects/ContractManagement/frontend/test-results/auth-Authentication-E2E-Te-001e4-rrect-dashboard-regression--Mobile-Chrome/error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "/Users/mukeshjoshi/gitprojects/ContractManagement/frontend/tests/e2e/auth.spec.js",
+                        "column": 13,
+                        "line": 126
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "d5ed79a6b333c2ba7209-2e3d1332f12f6e567ae0",
+              "file": "auth.spec.js",
+              "line": 101,
+              "column": 3
+            },
+            {
+              "title": "should login as TDC and load correct dashboard (regression)",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "Mobile Safari",
+                  "projectName": "Mobile Safari",
+                  "results": [
+                    {
+                      "workerIndex": 4,
+                      "parallelIndex": 4,
+                      "status": "failed",
+                      "duration": 4912,
+                      "error": {
+                        "message": "Error: Dashboard failed to load: \n    You need to enable JavaScript to run this app.\n    Dashboard1TTDCContract ManagerSecure & TransparentDashboardDatasetsContractsNotifications1Enterprise DIDQuick ActionsCreate ContractBrowse DatasetsLogoutError loading TDC dashboard: Request failed with status code 500\n  \n Contract ManagerSecure & TransparentDashboardDatasetsContractsNotifications1Enterprise DIDQuick ActionsCreate ContractBrowse DatasetsLogout",
+                        "stack": "Error: Dashboard failed to load: \n    You need to enable JavaScript to run this app.\n    Dashboard1TTDCContract ManagerSecure & TransparentDashboardDatasetsContractsNotifications1Enterprise DIDQuick ActionsCreate ContractBrowse DatasetsLogoutError loading TDC dashboard: Request failed with status code 500\n  \n Contract ManagerSecure & TransparentDashboardDatasetsContractsNotifications1Enterprise DIDQuick ActionsCreate ContractBrowse DatasetsLogout\n    at /Users/mukeshjoshi/gitprojects/ContractManagement/frontend/tests/e2e/auth.spec.js:126:13",
+                        "location": {
+                          "file": "/Users/mukeshjoshi/gitprojects/ContractManagement/frontend/tests/e2e/auth.spec.js",
+                          "column": 13,
+                          "line": 126
+                        },
+                        "snippet": "\u001b[0m \u001b[90m 124 |\u001b[39m     \u001b[90m// Check if there's an error loading the dashboard\u001b[39m\n \u001b[90m 125 |\u001b[39m     \u001b[36mif\u001b[39m (pageContent\u001b[33m.\u001b[39mincludes(\u001b[32m'Error loading TDC dashboard'\u001b[39m)) {\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 126 |\u001b[39m       \u001b[36mthrow\u001b[39m \u001b[36mnew\u001b[39m \u001b[33mError\u001b[39m(\u001b[32m'Dashboard failed to load: '\u001b[39m \u001b[33m+\u001b[39m pageContent)\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m             \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 127 |\u001b[39m     }\n \u001b[90m 128 |\u001b[39m\n \u001b[90m 129 |\u001b[39m     \u001b[90m// Should show correct user info\u001b[39m\u001b[0m"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "/Users/mukeshjoshi/gitprojects/ContractManagement/frontend/tests/e2e/auth.spec.js",
+                            "column": 13,
+                            "line": 126
+                          },
+                          "message": "Error: Dashboard failed to load: \n    You need to enable JavaScript to run this app.\n    Dashboard1TTDCContract ManagerSecure & TransparentDashboardDatasetsContractsNotifications1Enterprise DIDQuick ActionsCreate ContractBrowse DatasetsLogoutError loading TDC dashboard: Request failed with status code 500\n  \n Contract ManagerSecure & TransparentDashboardDatasetsContractsNotifications1Enterprise DIDQuick ActionsCreate ContractBrowse DatasetsLogout\n\n\u001b[0m \u001b[90m 124 |\u001b[39m     \u001b[90m// Check if there's an error loading the dashboard\u001b[39m\n \u001b[90m 125 |\u001b[39m     \u001b[36mif\u001b[39m (pageContent\u001b[33m.\u001b[39mincludes(\u001b[32m'Error loading TDC dashboard'\u001b[39m)) {\n\u001b[31m\u001b[1m>\u001b[22m\u001b[39m\u001b[90m 126 |\u001b[39m       \u001b[36mthrow\u001b[39m \u001b[36mnew\u001b[39m \u001b[33mError\u001b[39m(\u001b[32m'Dashboard failed to load: '\u001b[39m \u001b[33m+\u001b[39m pageContent)\u001b[33m;\u001b[39m\n \u001b[90m     |\u001b[39m             \u001b[31m\u001b[1m^\u001b[22m\u001b[39m\n \u001b[90m 127 |\u001b[39m     }\n \u001b[90m 128 |\u001b[39m\n \u001b[90m 129 |\u001b[39m     \u001b[90m// Should show correct user info\u001b[39m\u001b[0m\n\u001b[2m    at /Users/mukeshjoshi/gitprojects/ContractManagement/frontend/tests/e2e/auth.spec.js:126:13\u001b[22m"
+                        }
+                      ],
+                      "stdout": [
+                        {
+                          "text": "🔍 Page content after login: \n    You need to enable JavaScript to run this app.\n    Dashboard1TTDCContract ManagerSecure & TransparentDashboardDatasetsContractsNotifications1Enterprise DIDQuick ActionsCreate ContractBrowse DatasetsLogoutError loading TDC dashboard: Request failed with status code 500\n  \n Contract ManagerSecure & TransparentDashboardDatasetsContractsNotifications1Enterprise DIDQuick ActionsCreate ContractBrowse DatasetsLogout\n"
+                        }
+                      ],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-07-17T22:43:16.056Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "/Users/mukeshjoshi/gitprojects/ContractManagement/frontend/test-results/auth-Authentication-E2E-Te-001e4-rrect-dashboard-regression--Mobile-Safari/test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "/Users/mukeshjoshi/gitprojects/ContractManagement/frontend/test-results/auth-Authentication-E2E-Te-001e4-rrect-dashboard-regression--Mobile-Safari/video.webm"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "/Users/mukeshjoshi/gitprojects/ContractManagement/frontend/test-results/auth-Authentication-E2E-Te-001e4-rrect-dashboard-regression--Mobile-Safari/error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "/Users/mukeshjoshi/gitprojects/ContractManagement/frontend/tests/e2e/auth.spec.js",
+                        "column": 13,
+                        "line": 126
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "d5ed79a6b333c2ba7209-3027234c4002b74a18fc",
+              "file": "auth.spec.js",
+              "line": 101,
+              "column": 3
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2025-07-17T22:43:12.310Z",
+    "duration": 10945.384,
+    "expected": 0,
+    "skipped": 0,
+    "unexpected": 5,
+    "flaky": 0
+  }
+}

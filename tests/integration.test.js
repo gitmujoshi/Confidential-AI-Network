@@ -237,7 +237,7 @@ describe('Integration Tests with Real Services', () => {
         name: 'Test Dataset',
         description: 'Test dataset for integration testing',
         ownerId: tdpUser.id,
-        status: 'ACTIVE',
+        status: 'SIGNED',
         recordCount: 1000,
         license: 'MIT',
         size: '1GB',
@@ -279,7 +279,18 @@ describe('Integration Tests with Real Services', () => {
         modelId: testModelId,
         price: '0.1',
         duration: 30,
-        termsAndConditions: 'Test contract terms and conditions'
+        termsAndConditions: 'Test contract terms and conditions',
+        contractDatasets: [{
+          datasetId: 'test-dataset-001',
+          tdpId: tdpUser.id,
+          datasetName: 'Test Dataset',
+          tdpName: tdpUser.name,
+          individualPrice: 0.1,
+          paymentStatus: 'PENDING'
+        }],
+        datasetCount: 1,
+        tdpCount: 1,
+        totalPrice: 0.1
       });
 
       expect(contract.id).toBeDefined();
@@ -328,18 +339,29 @@ describe('Integration Tests with Real Services', () => {
         modelId: testModelId,
         price: '0.1',
         duration: 30,
-        termsAndConditions: 'E2E test terms'
+        termsAndConditions: 'E2E test terms',
+        contractDatasets: [{
+          datasetId: 'test-dataset-001',
+          tdpId: (await User.findOne({ where: { role: 'TDP' } })).id,
+          datasetName: 'Test Dataset',
+          tdpName: (await User.findOne({ where: { role: 'TDP' } })).name,
+          individualPrice: 0.1,
+          paymentStatus: 'PENDING'
+        }],
+        datasetCount: 1,
+        tdpCount: 1,
+        totalPrice: 0.1
       };
 
       const contract = await Contract.create(contractData);
       expect(contract.id).toBeDefined();
 
-      // 2. Update contract status to ACTIVE
-      await contract.update({ status: 'ACTIVE' });
+      // 2. Update contract status to SIGNED
+      await contract.update({ status: 'SIGNED' });
       
-      // 3. Verify contract is active
+      // 3. Verify contract is signed
       const updatedContract = await Contract.findByPk(contract.id);
-      expect(updatedContract.status).toBe('ACTIVE');
+      expect(updatedContract.status).toBe('SIGNED');
     });
   });
 }); 
