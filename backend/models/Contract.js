@@ -298,6 +298,14 @@ module.exports = (sequelize, DataTypes) => {
       ),
       defaultValue: 'DRAFT',
       comment: 'Multi-TDP status following UML state diagram workflow'
+    },
+    
+    // DEPA ID (Decentralized Entity Provider Architecture ID) - immutable identifier
+    depaId: {
+      type: DataTypes.STRING,
+      allowNull: true, // Will be set to false after migration
+      unique: true,
+      comment: 'System-generated DEPA ID (CONTRACT-<GUID>)'
     }
   }, {
     tableName: 'contracts',
@@ -329,6 +337,10 @@ module.exports = (sequelize, DataTypes) => {
       },
       {
         fields: ['attestationverified']   // Fast attestation verification queries
+      },
+      {
+        unique: true,
+        fields: ['depaId']               // Fast DEPA ID lookups
       }
     ]
   });
