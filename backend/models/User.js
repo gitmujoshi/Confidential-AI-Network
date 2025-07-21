@@ -232,6 +232,14 @@ module.exports = (sequelize, Sequelize) => {
       type: Sequelize.DataTypes.JSON,
       allowNull: true,
       comment: 'Array of cloud providers supported by CCRP users (AWS, Azure, GCP, OCI)'
+    },
+    
+    // DEPA ID (Decentralized Entity Provider Architecture ID) - immutable identifier
+    depaId: {
+      type: Sequelize.DataTypes.STRING,
+      allowNull: true, // Will be set to false after migration
+      unique: true,
+      comment: 'System-generated DEPA ID (TDP-<GUID>, TDC-<GUID>, CCRP-<GUID>)'
     }
   }, {
     tableName: 'users',
@@ -278,6 +286,10 @@ module.exports = (sequelize, Sequelize) => {
       },
       {
         fields: ['lastLoginAt']    // Fast login history queries
+      },
+      {
+        unique: true,
+        fields: ['depaId']         // Fast DEPA ID lookups
       }
     ]
   });
