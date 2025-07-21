@@ -228,6 +228,12 @@ class RicardianContractService {
       
       // Create contract record
       console.log('🔍 Creating contract record in database...');
+      
+      // Generate DEPA ID for the contract
+      const DEPAIdService = require('./depaIdService');
+      const depaIdService = new DEPAIdService();
+      const depaId = depaIdService.generateContractDEPAId();
+      
       const contractRecord = {
         contractId: contractData.contractId,
         tdpId: contractData.tdpId,
@@ -246,6 +252,7 @@ class RicardianContractService {
         smartContractAddress: smartContractData.address,
         smartContractNetwork: smartContractData.network,
         blockchainContractId: smartContractData.contractId,
+        depaId, // Add DEPA ID
         status: 'PENDING_TDP_APPROVAL',
         multiTdpStatus: 'PENDING_ALL_TDP_APPROVAL',
         tdpSigned: false,

@@ -270,6 +270,11 @@ router.post('/register', logAuthEvent('REGISTER'), async (req, res) => {
 
       // Step 2: Create user in database (only if Keycloak succeeded)
       try {
+        // Generate DEPA ID for the user
+        const DEPAIdService = require('../services/depaIdService');
+        const depaIdService = new DEPAIdService();
+        const depaId = depaIdService.generateUserDEPAId(partyType);
+        
         dbUser = await db.User.create({
           walletAddress: isEnterprise ? null : walletAddress?.toLowerCase(),
           publicKey: resolvedPublicKey || publicKey || null, // Use resolved public key from DID, fallback to provided
@@ -285,6 +290,7 @@ router.post('/register', logAuthEvent('REGISTER'), async (req, res) => {
           didSource,
           didVerified,
           didVerificationMethod,
+          depaId, // Add DEPA ID
           isRegistered: true,
           registrationDate: new Date(),
           isActive: true,
@@ -406,6 +412,7 @@ router.post('/register', logAuthEvent('REGISTER'), async (req, res) => {
         did: dbUser.did,
         didVerified: dbUser.didVerified,
         didSource: dbUser.didSource,
+        depaId: dbUser.depaId, // Include DEPA ID in response
         isRegistered: dbUser.isRegistered,
         onboardingStatus: dbUser.onboardingStatus,
         profileCompleted: dbUser.profileCompleted,

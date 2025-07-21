@@ -643,7 +643,10 @@ router.post('/ricardian', authenticateToken, async (req, res) => {
     res.status(201).json({
       success: true,
       message: 'Ricardian contract created successfully with comprehensive specifications',
-      contract: ricardianResult.contract,
+      contract: {
+        ...ricardianResult.contract.toJSON(),
+        depaId: ricardianResult.contract.depaId // Ensure DEPA ID is included in response
+      },
       legalDocument: ricardianResult.legalDocument,
       smartContractData: ricardianResult.smartContractData
     });
