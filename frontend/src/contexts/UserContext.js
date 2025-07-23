@@ -107,8 +107,8 @@ export const UserProvider = ({ children }) => {
         }
       } catch (error) {
         console.log('❌ [UserContext] Token authentication failed:', error.response?.status, error.message);
-        // If token is invalid (401) or expired, clear it
-        if (error.response?.status === 401 || error.response?.status === 403) {
+        // If token is invalid (401, 403, or 404), clear it
+        if (error.response?.status === 401 || error.response?.status === 403 || error.response?.status === 404) {
           localStorage.removeItem('authToken');
           localStorage.removeItem('user');
           localStorage.removeItem('currentUser');
@@ -421,10 +421,18 @@ export const UserProvider = ({ children }) => {
   const setUser = (user) => {
     // Clear any cached data when setting a new user
     console.log('🧹 [UserContext] Clearing cached data for new user login...');
+    
+    // Clear all cached data
     queryClient.removeQueries(['user']);
-    setCurrentUser(user);
-    // Clear wallet address when user logs in via email/password
+    queryClient.clear(); // Clear all queries
+    
+    // Clear wallet-related state
     setWalletAddress('');
+    
+    // Set the new user
+    setCurrentUser(user);
+    
+    console.log('✅ [UserContext] New user set:', user);
   };
 
   // Function to refresh authentication (clear invalid tokens and re-check)
@@ -456,19 +464,31 @@ export const UserProvider = ({ children }) => {
       }
     }
     
+    // Clear all storage
     localStorage.removeItem('authToken');
     localStorage.removeItem('refreshToken');
     localStorage.removeItem('user');
     localStorage.removeItem('currentUser');
     sessionStorage.clear();
+    
+    // Clear all state
     setCurrentUser(null);
     setWalletAddress('');
     queryClient.removeQueries(['user']);
+    queryClient.clear(); // Clear all queries
+    
+    console.log('✅ [UserContext] All authentication data cleared');
     
     // After clearing token auth, re-enable wallet detection
     setTimeout(() => {
       detectAndSetCurrentAccount();
     }, 100);
+  };
+
+  // Function to force a complete auth reset (for debugging)
+  const forceAuthReset = () => {
+    console.log('🔄 [UserContext] Force auth reset...');
+    clearAuthData();
   };
 
   const value = {
@@ -491,6 +511,7 @@ export const UserProvider = ({ children }) => {
     isAuthenticated: !!currentUser,
     refreshAuth, // Add refreshAuth function
     clearAuthData, // Add clearAuthData function
+    forceAuthReset, // Add force auth reset function
   };
 
   return (

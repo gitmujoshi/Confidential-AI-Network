@@ -1,0 +1,90 @@
+# CRITICAL CURSOR RULES FOR CONTRACT MANAGEMENT SYSTEM
+
+## 🔒 AUTHENTICATION RULES - NEVER BYPASS
+
+### ALWAYS USE KEYCLOAK AUTHENTICATION
+- **NEVER** bypass Keycloak for authentication
+- **NEVER** use direct database authentication
+- **ALWAYS** use service APIs to maintain data integrity
+- **ALWAYS** ensure users exist in Keycloak before testing
+- **NEVER** create users only in database without Keycloak sync
+
+### CORRECT WORKFLOW:
+1. Create users in database
+2. **ALWAYS** sync users to Keycloak
+3. **ALWAYS** authenticate through Keycloak
+4. **ALWAYS** use service APIs for data operations
+5. **NEVER** bypass authentication layers
+
+### SERVICE API USAGE:
+- Use `/api/auth/login` (Keycloak-based)
+- Use `/api/auth/profile` (Keycloak-verified)
+- Use role-specific APIs (`/api/tdp/*`, `/api/tdc/*`, etc.)
+- **NEVER** direct database calls for user operations
+
+### TESTING APPROACH:
+- **ALWAYS** sync test users to Keycloak first
+- **ALWAYS** authenticate through Keycloak
+- **ALWAYS** verify user partyType comes from Keycloak
+- **NEVER** test with database-only users
+
+## 🏗️ DEVELOPMENT RULES
+
+### BEFORE MAKING ANY CHANGES:
+1. **Check current authentication flow** - how is user data being loaded?
+2. **Verify Keycloak integration** - is it working properly?
+3. **Use service APIs only** - never direct database calls
+4. **Test with proper authentication** - no bypassing
+
+### COMMON MISTAKES TO AVOID:
+- ❌ Direct database authentication
+- ❌ Bypassing Keycloak for "quick testing"
+- ❌ Creating users only in database
+- ❌ Using database passwords for authentication
+- ❌ Testing without Keycloak sync
+
+### CORRECT PATTERN:
+```javascript
+// ✅ CORRECT - Use Keycloak authentication
+const response = await apiService.post('/api/auth/login', {
+  email: 'user@example.com',
+  password: 'password123'
+});
+
+// ❌ WRONG - Direct database authentication
+const user = await User.findOne({ where: { email } });
+```
+
+## 🎯 PROJECT TERMINOLOGY
+
+- **TDP**: Training Data Provider
+- **TDC**: Training Data Consumer  
+- **CCRP**: Confidential Clean Room Provider
+- **AppAdmin**: System Administrator
+
+## 📋 DEVELOPMENT WORKFLOW
+
+1. **Always check authentication first** before making changes
+2. **Use service APIs** for all user operations
+3. **Sync users to Keycloak** before testing
+4. **Verify user partyType** comes from Keycloak
+5. **Test with proper authentication flow**
+
+## ⚠️ CRITICAL REMINDERS
+
+- **Keycloak is mandatory** - no exceptions
+- **Service APIs only** - no direct database calls
+- **Authentication first** - check flow before changes
+- **Data integrity** - maintain through proper APIs
+- **Test properly** - with Keycloak authentication
+
+## 🔍 DEBUGGING APPROACH
+
+When dashboard shows "User" role or authentication issues:
+1. **Check if user exists in Keycloak**
+2. **Verify authentication flow** in UserContext
+3. **Check service API responses**
+4. **Verify user partyType** from Keycloak
+5. **Use proper authentication** - no bypassing
+
+**Remember: These rules are CRITICAL and should be followed in ALL code changes.** 

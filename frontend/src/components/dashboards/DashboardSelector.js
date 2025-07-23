@@ -6,22 +6,46 @@ import TDCDashboard from '../../pages/dashboards/TDCDashboard';
 import CCRPDashboard from '../../pages/dashboards/CCRPDashboard';
 
 const DashboardSelector = () => {
-  const { currentUser: user } = useUser();
+  const { currentUser } = useUser();
 
-  // Add minimal debugging to see what's happening
+  // Enhanced debugging and fallback logic
   console.log('🔍 DashboardSelector - User data:', {
-    user: user,
-    partyType: user?.partyType,
-    name: user?.name,
-    id: user?.id
+    user: currentUser,
+    partyType: currentUser?.partyType,
+    name: currentUser?.name,
+    id: currentUser?.id
   });
 
-  if (!user) {
-    return null;
+  // If no user, show loading
+  if (!currentUser) {
+    return (
+      <div style={{ padding: '20px', textAlign: 'center' }}>
+        <h2>Loading...</h2>
+        <p>Please wait while we load your dashboard.</p>
+      </div>
+    );
+  }
+
+  // Get partyType with fallback logic
+  let partyType = currentUser.partyType;
+  
+  // If partyType is missing or generic, try to determine from other data
+  if (!partyType || partyType === 'User') {
+    if (currentUser.email?.includes('tdp')) {
+      partyType = 'TDP';
+    } else if (currentUser.email?.includes('tdc')) {
+      partyType = 'TDC';
+    } else if (currentUser.email?.includes('ccrp')) {
+      partyType = 'CCRP';
+    } else if (currentUser.email?.includes('admin')) {
+      partyType = 'AppAdmin';
+    }
+    
+    console.log('🔄 DashboardSelector - Determined partyType from email:', partyType);
   }
 
   // Route to role-specific dashboard
-  switch (user.partyType) {
+  switch (partyType) {
     case 'AppAdmin':
       return <AdminDashboard />;
     case 'TDP':
@@ -31,13 +55,21 @@ const DashboardSelector = () => {
     case 'CCRP':
       return <CCRPDashboard />;
     default:
-      // Fallback to a generic dashboard or error page
+      // Fallback to a generic dashboard with debugging info
       return (
         <div style={{ padding: '20px', textAlign: 'center' }}>
           <h2>Dashboard</h2>
-          <p>Welcome, {user.name || 'User'}!</p>
-          <p>Role: {user.partyType}</p>
+          <p>Welcome, {currentUser.name || 'User'}!</p>
+          <p>Role: {partyType || 'Unknown'}</p>
+          <p>Email: {currentUser.email}</p>
+          <p>User ID: {currentUser.id}</p>
           <p>Role-specific dashboard is not available for your user type.</p>
+          <details style={{ marginTop: '20px', textAlign: 'left' }}>
+            <summary>Debug Information</summary>
+            <pre style={{ background: '#f5f5f5', padding: '10px', borderRadius: '4px' }}>
+              {JSON.stringify(currentUser, null, 2)}
+            </pre>
+          </details>
         </div>
       );
   }

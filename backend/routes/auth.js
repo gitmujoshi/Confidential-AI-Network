@@ -505,7 +505,8 @@ router.post('/login', logAuthEvent('LOGIN'), async (req, res) => {
         user: {
           email: email,
           name: user?.name || 'User',
-          partyType: user?.partyType || 'User'
+          partyType: user?.partyType || 'User',
+          depaId: user?.depaId || null
         }
       });
       
@@ -705,7 +706,8 @@ router.get('/profile', authenticateToken, logAuthEvent('GET_PROFILE'), async (re
         isRegistered: localUser.isRegistered,
         onboardingStatus: localUser.onboardingStatus,
         profileCompleted: localUser.profileCompleted,
-        emailVerified: localUser.emailVerified
+        emailVerified: localUser.emailVerified,
+        depaId: localUser.depaId
       }
     });
 

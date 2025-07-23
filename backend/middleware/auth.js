@@ -113,7 +113,8 @@ const authenticateToken = async (req, res, next) => {
               isRegistered: user.isRegistered,
               onboardingStatus: user.onboardingStatus,
               profileCompleted: user.profileCompleted,
-              emailVerified: user.emailVerified
+              emailVerified: user.emailVerified,
+              depaId: user.depaId
             },
             token: token,
             authType: 'keycloak'
