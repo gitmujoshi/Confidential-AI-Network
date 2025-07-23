@@ -1,59 +1,162 @@
 # Contract Management System Backend Test Suite
 
-## User Guide for Testing
+## ⚠️ CRITICAL: Authentication Rules
+**ALWAYS use Keycloak authentication in tests. NEVER bypass authentication layers.**
+- All test users must be synced to Keycloak
+- Use service APIs, never direct database calls
+- See [AUTHENTICATION_RULES.md](../../AUTHENTICATION_RULES.md) for complete guidelines
 
-### Test Structure
-- **All test specs** are now located in `backend/tests/specs/`.
-- **Test utilities** (e.g., `test-server.js`, `setup.js`) remain in `backend/tests/`.
-- **Test runner scripts** (e.g., `run-tests.js`, `run-all-tests.js`) remain in `backend/tests/`.
+## Overview
 
-### How to Run Tests
+This test suite supports both **mock** and **integration** modes for comprehensive testing of the Contract Management System backend.
 
-#### Run All Tests
-```sh
+## Test Modes
+
+### Mock Mode (Fast Unit Tests)
+- Uses mocked external services (Keycloak, Blockchain, etc.)
+- No external dependencies required
+- Fast execution for CI/CD and development
+- Run with: `npm run test:mock`
+
+### Integration Mode (Real Service Tests)
+- Uses real external services (Keycloak, Blockchain, Database)
+- Requires running services (see Prerequisites)
+- End-to-end testing with real data
+- Run with: `npm run test:integration`
+
+## Quick Start
+
+### Prerequisites
+- Node.js 16+
+- PostgreSQL database
+- For integration tests: Keycloak server, Blockchain node
+
+### Running Tests
+
+```bash
+# Run all tests
 npm test
-```
-Or, from the backend directory:
-```sh
-npm run test
-```
 
-#### Run a Specific Test File
-```sh
-npx jest tests/specs/<test-file-name>.js
+# Run only mock tests (fast)
+npm run test:mock
+
+# Run only integration tests
+npm run test:integration
 ```
 
-#### Run Tests by Name Pattern
-```sh
-npm test -- --testNamePattern="integration|models|blockchainService"
+## Test Structure
+
+### Centralized Configuration
+- `tests/test-env.js` - Environment variables for both modes
+- `tests/mocks/index.js` - Jest mock definitions for mock mode
+- `tests/utils/` - Test data utilities and helpers
+
+### Test Files
+- `tests/specs/` - Individual test suites
+- `tests/setup.js` - Global test setup and utilities
+- `tests/test-server.js` - Test Express server
+
+## Usage Examples
+
+### Using Test Utilities
+
+```javascript
+const { createTestUser, createTestContract, generateAuthToken } = require('../utils');
+
+describe('My Test Suite', () => {
+  let testUser, testContract, authToken;
+
+  beforeAll(async () => {
+    // Create test data
+    testUser = await createTestUser({
+      email: 'test@example.com',
+      partyType: 'TDP'
+    });
+    
+    testContract = await createTestContract({
+      status: 'PENDING_TDP',
+      price: 150.00
+    });
+    
+    authToken = generateAuthToken(testUser);
+  });
+
+  afterAll(async () => {
+    // Clean up test data
+    await cleanupAllTestData();
+  });
+});
 ```
 
-### Test Types
-- **Unit tests**: Test individual services and models.
-- **Integration tests**: Test API endpoints and service interactions (using a mock test server).
-- **Comprehensive tests**: Cover end-to-end flows.
+### Environment Configuration
 
-### Adding New Tests
-1. Add new test files to `backend/tests/specs/`.
-2. Use relative imports for shared utilities, e.g.:
-   ```js
-   const app = require('../test-server');
-   ```
-3. Follow existing test patterns for structure and assertions.
+```javascript
+const { setTestEnv } = require('./test-env');
 
-### Troubleshooting
-- **Test not found**: Ensure your test file is in `specs/` and named `*.test.js`.
-- **Import errors**: Use correct relative paths (e.g., `../test-server`).
-- **Database errors**: Make sure the test database is running and configured.
-- **Keycloak errors**: Ensure Keycloak is running if integration tests require it.
-- **Port conflicts**: Stop any running servers before running tests.
+// Set environment for mock mode
+setTestEnv('mock');
 
-### Coverage
-To generate a coverage report:
-```sh
-npm test -- --coverage
+// Set environment for integration mode
+setTestEnv('integration');
 ```
 
----
+## Troubleshooting
 
-For more details, see the comments in each test file or ask the development team. 
+### Common Issues
+
+1. **Port conflicts**: Ensure no other services are running on test ports
+2. **Database connection**: Check PostgreSQL is running and accessible
+3. **Mock mode failures**: Verify Jest mocks are properly configured
+4. **Integration mode failures**: Ensure all external services are running
+
+### Debug Mode
+
+```bash
+# Run with verbose output
+npm run test:mock -- --verbose
+
+# Run specific test file
+npm run test:mock -- --testPathPattern=api.test.js
+```
+
+## Adding New Tests
+
+1. Create test file in `tests/specs/`
+2. Use centralized utilities for test data creation
+3. Follow existing patterns for setup/teardown
+4. Use appropriate test mode (mock vs integration)
+
+## Coverage and Reporting
+
+- Coverage reports generated in `coverage/` directory
+- Test results in `test-results/` directory
+- HTML coverage reports available for detailed analysis
+
+## Best Practices
+
+1. **Use centralized utilities** for test data creation and cleanup
+2. **Choose appropriate test mode** based on what you're testing
+3. **Clean up test data** in `afterAll` hooks
+4. **Use descriptive test names** and organize tests logically
+5. **Mock external dependencies** in unit tests
+6. **Test both success and error scenarios**
+
+## Configuration
+
+### Environment Variables
+
+The test environment is configured in `tests/test-env.js`:
+
+- `TEST_MODE`: 'mock' or 'integration'
+- `DATABASE_URL`: PostgreSQL connection string
+- `BLOCKCHAIN_ENABLED`: Enable/disable blockchain integration
+- `KEYCLOAK_ENABLED`: Enable/disable Keycloak integration
+- `JWT_SECRET`: Secret for JWT token generation
+
+### Jest Configuration
+
+See `jest.config.js` for Jest-specific configuration including:
+- Test timeout settings
+- Coverage thresholds
+- Test file patterns
+- Setup files 

@@ -128,7 +128,6 @@ if check_port 8545; then
 else
     print_status "Starting Hardhat blockchain on port 8545..."
     cd ../../blockchain
-    print_warning "Blockchain disabled for development"
     npx hardhat node > ../../logs/hardhat.log 2>&1 &
     echo $! > ../../.hardhat.pid
     cd ../..
@@ -148,8 +147,8 @@ else
     print_status "Starting backend on port 5001..."
     cd "$PROJECT_ROOT/backend"
     
-    # Disable blockchain in config
-    sed -i '' 's/BLOCKCHAIN_ENABLED=true/BLOCKCHAIN_ENABLED=false/' config.env
+    # Enable blockchain in config
+    sed -i '' 's/BLOCKCHAIN_ENABLED=false/BLOCKCHAIN_ENABLED=true/' config.env
     
     node server.js > "$PROJECT_ROOT/logs/backend.log" 2>&1 &
     echo $! > "$PROJECT_ROOT/.backend.pid"

@@ -1,5 +1,9 @@
 #!/bin/bash
 
+# ⚠️ CRITICAL: ALWAYS use Keycloak authentication
+# NEVER bypass authentication layers or use direct database calls
+# See AUTHENTICATION_RULES.md for complete guidelines
+
 # Backend Development Setup Script
 # Installs backend node_modules and starts development server
 
