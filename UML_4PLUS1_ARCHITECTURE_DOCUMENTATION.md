@@ -156,13 +156,13 @@ graph LR
 
 ## 3. Logical View
 
-### 3.1 System Components
+### 3.1 System Overview
 
-**Description:** This diagram shows the high-level system architecture organized by layers and subsystems. It illustrates how the frontend, backend services, and external systems interact, with clear separation between different functional areas and their dependencies.
+**Description:** This high-level overview shows the main subsystems and their relationships. Each subsystem is detailed in separate diagrams below for better clarity and organization.
 
 ```mermaid
 graph LR
-    %% Frontend Layer on the left
+    %% Frontend Layer
     subgraph Frontend["Frontend Layer"]
         ReactApp[React Application]
         UserDashboard[User Dashboard]
@@ -173,35 +173,33 @@ graph LR
         ES256Signer[ES256 Signer]
     end
     
-    %% Backend Services organized by subsystems
-    subgraph Backend["Backend Services"]
-        subgraph Core["Core Services"]
-            ContractService[Contract Service]
-            DatasetService[Dataset Service]
-            ModelService[Model Service]
-            SigningService[Signing Service]
-        end
-        
-        subgraph IAM["Identity & Security"]
-            AuthService[Auth Service]
-            UserService[User Service]
-            DIDService[DID Service]
-            AdminService[Admin Service]
-        end
-        
-        subgraph Training["Training & Infrastructure"]
-            InfrastructureService[Infrastructure Service]
-            TrainingService[Training Service]
-            CCRPAzureCredentialsService[CCRP Azure Credentials Service]
-        end
-        
-        subgraph Support["Support Services"]
-            NotificationService[Notification Service]
-            AuditService[Audit Service]
-        end
+    %% Backend Subsystems
+    subgraph Core["Core Contract Management"]
+        ContractService[Contract Service]
+        DatasetService[Dataset Service]
+        ModelService[Model Service]
+        SigningService[Signing Service]
     end
     
-    %% External Services on the right
+    subgraph IAM["Identity & Security"]
+        AuthService[Auth Service]
+        UserService[User Service]
+        DIDService[DID Service]
+        AdminService[Admin Service]
+    end
+    
+    subgraph Training["Training & Infrastructure"]
+        InfrastructureService[Infrastructure Service]
+        TrainingService[Training Service]
+        CCRPAzureCredentialsService[CCRP Azure Credentials Service]
+    end
+    
+    subgraph Support["Support Services"]
+        NotificationService[Notification Service]
+        AuditService[Audit Service]
+    end
+    
+    %% External Services
     subgraph External["External Services"]
         KeycloakIAM[Keycloak IAM]
         BlockchainService[Blockchain Service]
@@ -210,13 +208,12 @@ graph LR
         AzureCloud[Azure Cloud Services]
     end
     
-    %% Frontend connections to backend services
+    %% Main connections
     Frontend --> Core
     Frontend --> IAM
     Frontend --> Training
     Frontend --> Support
-
-    %% Backend service dependencies
+    
     Core --> Database
     Core --> BlockchainService
     IAM --> KeycloakIAM
@@ -224,14 +221,151 @@ graph LR
     Training --> Database
     Training --> AzureCloud
     Support --> Database
+```
+
+### 3.1.1 Core Contract Management Subsystem
+
+**Description:** This subsystem handles the core business logic for contract creation, dataset and model management, and contract signing operations.
+
+```mermaid
+graph LR
+    subgraph Frontend["Frontend Components"]
+        ContractForm[Contract Form]
+        SigningModal[Signing Modal]
+        UserDashboard[User Dashboard]
+    end
     
-    %% Specific service connections
+    subgraph CoreServices["Core Services"]
+        ContractService[Contract Service]
+        DatasetService[Dataset Service]
+        ModelService[Model Service]
+        SigningService[Signing Service]
+    end
+    
+    subgraph External["External Dependencies"]
+        Database[(Database)]
+        BlockchainService[Blockchain Service]
+        DIDService[DID Service]
+    end
+    
+    %% Frontend connections
+    ContractForm --> ContractService
+    SigningModal --> SigningService
+    UserDashboard --> DatasetService
+    UserDashboard --> ModelService
+    
+    %% Service connections
+    ContractService --> Database
     ContractService --> BlockchainService
+    DatasetService --> Database
+    ModelService --> Database
     SigningService --> DIDService
     SigningService --> BlockchainService
+```
+
+### 3.1.2 Identity & Security Subsystem
+
+**Description:** This subsystem manages user authentication, authorization, DID management, and administrative functions.
+
+```mermaid
+graph LR
+    subgraph Frontend["Frontend Components"]
+        ReactApp[React Application]
+        UserDashboard[User Dashboard]
+        APIService[API Service]
+        TokenManager[Token Manager]
+    end
+    
+    subgraph IAMServices["Identity & Security Services"]
+        AuthService[Auth Service]
+        UserService[User Service]
+        DIDService[DID Service]
+        AdminService[Admin Service]
+    end
+    
+    subgraph External["External Dependencies"]
+        KeycloakIAM[Keycloak IAM]
+        Database[(Database)]
+    end
+    
+    %% Frontend connections
+    ReactApp --> AuthService
+    UserDashboard --> UserService
+    APIService --> DIDService
+    TokenManager --> AuthService
+    
+    %% Service connections
+    AuthService --> KeycloakIAM
+    UserService --> Database
+    DIDService --> Database
+    AdminService --> Database
+```
+
+### 3.1.3 Training & Infrastructure Subsystem
+
+**Description:** This subsystem handles real Azure infrastructure provisioning, training environment management, and CCRP credential management.
+
+```mermaid
+graph LR
+    subgraph Frontend["Frontend Components"]
+        UserDashboard[User Dashboard]
+        APIService[API Service]
+    end
+    
+    subgraph TrainingServices["Training & Infrastructure Services"]
+        InfrastructureService[Infrastructure Service]
+        TrainingService[Training Service]
+        CCRPAzureCredentialsService[CCRP Azure Credentials Service]
+    end
+    
+    subgraph External["External Dependencies"]
+        Database[(Database)]
+        AzureCloud[Azure Cloud Services]
+    end
+    
+    %% Frontend connections
+    UserDashboard --> InfrastructureService
+    UserDashboard --> TrainingService
+    APIService --> CCRPAzureCredentialsService
+    
+    %% Service connections
+    InfrastructureService --> Database
     InfrastructureService --> AzureCloud
+    TrainingService --> Database
     TrainingService --> AzureCloud
+    CCRPAzureCredentialsService --> Database
     CCRPAzureCredentialsService --> AzureCloud
+```
+
+### 3.1.4 Support Services Subsystem
+
+**Description:** This subsystem provides notification management, audit logging, and monitoring capabilities.
+
+```mermaid
+graph LR
+    subgraph Frontend["Frontend Components"]
+        UserDashboard[User Dashboard]
+        APIService[API Service]
+    end
+    
+    subgraph SupportServices["Support Services"]
+        NotificationService[Notification Service]
+        AuditService[Audit Service]
+    end
+    
+    subgraph External["External Dependencies"]
+        Database[(Database)]
+        MonitoringService[Monitoring Service]
+    end
+    
+    %% Frontend connections
+    UserDashboard --> NotificationService
+    APIService --> AuditService
+    
+    %% Service connections
+    NotificationService --> Database
+    AuditService --> Database
+    AuditService --> MonitoringService
 ```
 
 ### 3.2 **New Azure Integration Components**
