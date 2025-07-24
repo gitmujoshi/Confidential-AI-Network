@@ -103,7 +103,158 @@ deployment/azure/terraform/
 
 ## 🚀 **Usage**
 
-### **1. Basic Terraform Infrastructure Provisioning**
+### **1. Azure Resource Provisioning Triggers and Actors**
+
+The Azure resource provisioning in the Terraform integration can be triggered through **multiple pathways** by **different actors** depending on the context and workflow.
+
+#### **🎯 Who Can Trigger Azure Provisioning**
+
+| Actor | Direct Provisioning | Training Trigger | Terraform Provisioning | Environment Management |
+|-------|-------------------|------------------|----------------------|----------------------|
+| **CCRP** | ✅ Full Access | ✅ Can Trigger | ✅ Full Access | ✅ Full Access |
+| **TDC** | ❌ No Access | ✅ Can Trigger | ❌ No Access | 🔍 View Only |
+| **TDP** | ❌ No Access | ❌ No Access | ❌ No Access | 🔍 View Only |
+| **AppAdmin** | ✅ Full Access | ✅ Can Trigger | ✅ Full Access | ✅ Full Access |
+
+#### **🔄 Provisioning Pathways**
+
+##### **Pathway 1: Direct Infrastructure Provisioning (CCRP)**
+```javascript
+// API Endpoint: POST /api/infrastructure/environments
+// Actor: CCRP only
+
+// Only CCRP can create environments for their contracts
+if (req.user.localUser.partyType !== 'CCRP' || contract.ccrpId !== req.user.localUser.id) {
+  return res.status(403).json({ error: 'Only CCRP can create training environments for their contracts' });
+}
+
+// Create training environment
+const environment = await infrastructureService.createTrainingEnvironment(contractId, config);
+```
+
+##### **Pathway 2: Training-Triggered Provisioning (TDC/CCRP)**
+```javascript
+// API Endpoint: POST /api/training/:contractId/trigger
+// Actor: TDC, CCRP, or AppAdmin
+
+const canTrigger = 
+  userPartyType === 'AppAdmin' ||
+  (userPartyType === 'TDC' && contract.tdcId === currentUserId) ||
+  (userPartyType === 'CCRP' && contract.ccrpId === currentUserId);
+
+if (!canTrigger) {
+  return res.status(403).json({ 
+    error: 'Access denied. Only TDC, CCRP, or AppAdmin can trigger training.'
+  });
+}
+
+// Trigger training (which includes environment provisioning)
+const trainingJob = await trainingService.triggerTrainingRun(contractId);
+```
+
+##### **Pathway 3: Terraform-Specific Provisioning (CCRP)**
+```javascript
+// API Endpoint: POST /api/ccrp/infrastructure/terraform/provision/:userId
+// Actor: CCRP only
+
+// Verify user is CCRP
+const user = await User.findByPk(userId);
+if (!user || user.partyType !== 'CCRP') {
+  return res.status(403).json({ error: 'Access denied. CCRP role required.' });
+}
+
+const result = await infrastructureService.createTrainingEnvironmentWithTerraform(contractId, config);
+```
+
+#### **📊 Provisioning Flow Diagrams**
+
+##### **CCRP Manual Provisioning**
+```mermaid
+sequenceDiagram
+    participant CCRP as CCRP User
+    participant UI as Frontend UI
+    participant API as Backend API
+    participant Auth as Authentication
+    participant DB as Database
+    participant Azure as Azure Cloud
+
+    CCRP->>UI: Login & Navigate to Infrastructure
+    UI->>API: GET /api/auth/profile
+    API->>Auth: Verify JWT Token
+    Auth-->>API: User Info (CCRP)
+    API-->>UI: CCRP Profile
+    UI-->>CCRP: Show Infrastructure Dashboard
+    
+    CCRP->>UI: Select Contract & Configure Environment
+    CCRP->>UI: Click "Provision Environment"
+    UI->>API: POST /api/infrastructure/environments
+    API->>DB: Verify CCRP Access to Contract
+    DB-->>API: Contract Details
+    API->>DB: Get CCRP Azure Credentials
+    DB-->>API: Encrypted Credentials
+    API->>Azure: Provision Infrastructure
+    Azure-->>API: Resources Created
+    API->>DB: Store Environment Record
+    API-->>UI: Environment Created
+    UI-->>CCRP: Show Success Message
+```
+
+##### **TDC Training Trigger**
+```mermaid
+sequenceDiagram
+    participant TDC as TDC User
+    participant UI as Frontend UI
+    participant API as Backend API
+    participant Training as Training Service
+    participant Infra as Infrastructure Service
+    participant Azure as Azure Cloud
+
+    TDC->>UI: Login & Navigate to Training
+    TDC->>UI: Select Signed Contract
+    TDC->>UI: Click "Start Training"
+    UI->>API: POST /api/training/:contractId/trigger
+    API->>Training: triggerTrainingRun(contractId)
+    Training->>Training: validateContract(contractId)
+    Training->>Training: createTrainingJob(contract)
+    Training->>Infra: provisionEnvironment(contract)
+    Infra->>Azure: Provision Infrastructure
+    Azure-->>Infra: Environment Ready
+    Training->>Training: setupDataAccess(environment, contract)
+    Training->>Training: startTraining(environment, contract, trainingJob)
+    Training-->>API: Training Job Created
+    API-->>UI: Training Started
+    UI-->>TDC: Show Training Status
+```
+
+##### **Terraform Provisioning**
+```mermaid
+sequenceDiagram
+    participant CCRP as CCRP User
+    participant UI as Frontend UI
+    participant API as Backend API
+    participant Terraform as Terraform Service
+    participant Azure as Azure Cloud
+
+    CCRP->>UI: Login & Navigate to Terraform Infrastructure
+    CCRP->>UI: Select Contract & Terraform Config
+    CCRP->>UI: Click "Provision with Terraform"
+    UI->>API: POST /api/ccrp/infrastructure/terraform/provision/:userId
+    API->>Terraform: createTrainingEnvironmentWithTerraform()
+    Terraform->>Terraform: generateTerraformConfig()
+    Terraform->>Terraform: initialize()
+    Terraform->>Terraform: validate()
+    Terraform->>Terraform: plan()
+    Terraform->>Terraform: apply()
+    Terraform->>Azure: Create Azure Resources
+    Azure-->>Terraform: Resources Created
+    Terraform->>Terraform: getOutputs()
+    Terraform->>Terraform: getState()
+    Terraform-->>API: Environment Provisioned
+    API-->>UI: Terraform Success
+    UI-->>CCRP: Show Infrastructure Status
+```
+
+### **2. Basic Terraform Infrastructure Provisioning**
 
 ```javascript
 const InfrastructureService = require('./services/infrastructureService');
@@ -152,6 +303,142 @@ const result = await infrastructureService.destroyTrainingEnvironmentWithTerrafo
 );
 ```
 
+### **3. Provisioning Flow Details**
+
+#### **Step 1: Authentication & Authorization**
+```javascript
+// Verify user authentication
+const currentUserId = req.user.localUser?.id;
+const userPartyType = req.user.localUser?.partyType;
+
+// Check contract access
+const contract = await db.Contract.findOne({
+  where: { contractId },
+  include: [
+    { model: db.User, as: 'tdc' },
+    { model: db.User, as: 'ccrp' }
+  ]
+});
+```
+
+#### **Step 2: CCRP Credentials Retrieval**
+```javascript
+// Get CCRP-specific Azure configuration
+if (contract.ccrpCloudProvider === 'Azure') {
+  const CCRPAzureCredentialsService = require('./ccrpAzureCredentialsService');
+  const ccrpCredentialsService = new CCRPAzureCredentialsService();
+  
+  azureConfig = await ccrpCredentialsService.getContractAzureConfig(contractId);
+}
+```
+
+#### **Step 3: Infrastructure Provisioning**
+```javascript
+// For SDK-based provisioning
+const provider = new AzureProvider(azureConfig);
+const provisionResult = await provider.provisionInfrastructure(
+  environmentId,
+  infrastructureConfig,
+  securityConfig,
+  monitoringConfig
+);
+
+// For Terraform-based provisioning
+const terraformService = new TerraformService();
+const terraformDir = await terraformService.generateTerraformConfig(
+  contractId,
+  environmentId,
+  infrastructureConfig,
+  azureConfig
+);
+await terraformService.apply(terraformDir);
+```
+
+### **4. Access Control and Security**
+
+#### **Role-Based Access Control (RBAC)**
+The system implements comprehensive role-based access control for Azure resource provisioning:
+
+- **CCRP**: Primary infrastructure manager with full control over their contracts
+- **TDC**: Can trigger training which includes automatic environment provisioning
+- **TDP**: Read-only access to environment status and monitoring
+- **AppAdmin**: Administrative override capabilities for system management
+
+#### **Multi-Tenant Isolation**
+- Each CCRP has their own Azure subscription and credentials
+- Contract-specific infrastructure configurations
+- Isolated resource management per CCRP
+- Encrypted credential storage with AES-256-CBC
+
+#### **Audit Trail**
+- All provisioning actions are logged with user context
+- Complete audit trail for compliance and security
+- Infrastructure changes tracked with timestamps and user IDs
+- Terraform state history maintained for rollback capabilities
+
+### **5. Key Benefits of Multi-Actor Approach**
+
+#### **✅ Role-Based Security**
+- **CCRP**: Full infrastructure control for their contracts
+- **TDC**: Can trigger training but not manage infrastructure directly
+- **TDP**: Read-only access to environment status
+- **AppAdmin**: Override capabilities for system management
+
+#### **✅ Flexible Workflows**
+- **Manual Provisioning**: CCRP can provision environments independently
+- **Training-Triggered**: Automatic provisioning when training starts
+- **Terraform Integration**: Infrastructure as Code capabilities
+
+#### **✅ Multi-Tenant Isolation**
+- Each CCRP has their own Azure credentials
+- Contract-specific infrastructure configurations
+- Isolated resource management per CCRP
+
+#### **✅ Audit Trail**
+- All provisioning actions are logged
+- User authentication and authorization tracked
+- Complete audit trail for compliance
+
+### **6. Common Provisioning Scenarios**
+
+#### **Scenario 1: CCRP Manual Environment Setup**
+1. **CCRP** logs into the system
+2. **CCRP** navigates to Infrastructure Management
+3. **CCRP** selects a contract and configures environment specs
+4. **CCRP** clicks "Provision Environment"
+5. **System** validates CCRP permissions and contract access
+6. **System** retrieves CCRP-specific Azure credentials
+7. **System** provisions Azure resources using Terraform
+8. **System** stores environment state and provides access URL
+
+#### **Scenario 2: TDC Training Initiation**
+1. **TDC** logs into the system
+2. **TDC** navigates to Training Management
+3. **TDC** selects a signed contract
+4. **TDC** clicks "Start Training"
+5. **System** validates TDC permissions for the contract
+6. **System** automatically provisions environment if not exists
+7. **System** sets up data access and training containers
+8. **System** starts training execution
+
+#### **Scenario 3: AppAdmin System Management**
+1. **AppAdmin** logs into the system
+2. **AppAdmin** navigates to Admin Dashboard
+3. **AppAdmin** selects a contract for management
+4. **AppAdmin** can trigger provisioning, training, or management actions
+5. **System** bypasses normal role restrictions for AppAdmin
+6. **System** executes requested actions with full privileges
+
+#### **Scenario 4: Terraform Infrastructure as Code**
+1. **CCRP** logs into the system
+2. **CCRP** navigates to Terraform Infrastructure Management
+3. **CCRP** selects a contract and Terraform configuration
+4. **CCRP** clicks "Provision with Terraform"
+5. **System** validates CCRP permissions
+6. **System** generates Terraform configuration files
+7. **System** initializes, validates, and applies Terraform
+8. **System** stores Terraform state and outputs
+
 ### **3. Get Terraform State and Outputs**
 
 ```javascript
@@ -164,12 +451,63 @@ const outputs = await terraformService.getOutputs(terraformDir);
 
 ## 📋 **API Endpoints**
 
-### **Terraform Infrastructure Routes**
+### **Azure Resource Provisioning Routes**
 
-#### **Provision Infrastructure with Terraform**
+#### **1. Direct Infrastructure Provisioning (CCRP Only)**
+```http
+POST /api/infrastructure/environments
+Content-Type: application/json
+Authorization: Bearer <jwt-token>
+
+{
+  "contractId": "contract-123",
+  "config": {
+    "location": "eastus",
+    "compute": {
+      "instanceCount": 2,
+      "instanceType": "Standard_D2s_v3"
+    },
+    "storage": {
+      "enabled": true,
+      "type": "StorageV2",
+      "replication": "LRS"
+    },
+    "database": {
+      "enabled": true,
+      "sku": "Basic"
+    }
+  }
+}
+```
+
+**Access Control**: Only CCRP can create environments for their contracts
+**Authentication**: JWT token required with CCRP role
+
+#### **2. Training-Triggered Provisioning (TDC/CCRP/AppAdmin)**
+```http
+POST /api/training/:contractId/trigger
+Content-Type: application/json
+Authorization: Bearer <jwt-token>
+
+{
+  "trainingParams": {
+    "containerImage": "mcr.microsoft.com/azureml/openmpi4.1.0-ubuntu20.04",
+    "cpuCores": 2,
+    "memoryGB": 4,
+    "gpuCount": 0
+  }
+}
+```
+
+**Access Control**: TDC, CCRP, or AppAdmin can trigger training
+**Authentication**: JWT token required with appropriate role
+**Note**: Automatically provisions environment if not exists
+
+#### **3. Terraform Infrastructure Provisioning (CCRP Only)**
 ```http
 POST /api/ccrp/infrastructure/terraform/provision/:userId
 Content-Type: application/json
+Authorization: Bearer <jwt-token>
 
 {
   "contractId": "contract-123",
@@ -190,19 +528,28 @@ Content-Type: application/json
 }
 ```
 
+**Access Control**: Only CCRP can use Terraform provisioning
+**Authentication**: JWT token required with CCRP role
+**Infrastructure as Code**: Uses Terraform for provisioning
+
+### **Terraform Infrastructure Management Routes**
+
 #### **Destroy Infrastructure with Terraform**
 ```http
 DELETE /api/ccrp/infrastructure/terraform/environments/:environmentId
+Authorization: Bearer <jwt-token>
 ```
 
 #### **Get Terraform State**
 ```http
 GET /api/ccrp/infrastructure/terraform/environments/:environmentId/state
+Authorization: Bearer <jwt-token>
 ```
 
 #### **Get Terraform Outputs**
 ```http
 GET /api/ccrp/infrastructure/terraform/environments/:environmentId/outputs
+Authorization: Bearer <jwt-token>
 ```
 
 ## 🏗️ **Terraform Resources**
