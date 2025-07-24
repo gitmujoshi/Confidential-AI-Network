@@ -84,73 +84,68 @@ This document provides a comprehensive UML 4+1 View Architecture for the Contrac
 
 ### 2.3 Use Case Diagram
 
-**Description:** This diagram shows the main actors (users and external systems) and their interactions with the system's core use cases. It illustrates how different user roles (TDP, TDC, CCRP, AppAdmin) interact with the system to perform various business functions, including the new Azure cloud integration features.
+**Description:** This diagram shows the main actors (users and external systems) and their interactions with the system's core use cases, organized by subsystems. It illustrates how different user roles (TDP, TDC, CCRP, AppAdmin) interact with the system to perform various business functions, including the new Azure cloud integration features.
 
 ```mermaid
-graph TD
-    %% Actors (stick figures in UML)
+graph LR
+    %% Actors on the left
     TDP((TDP))
     TDC((TDC))
     CCRP((CCRP))
     AppAdmin((AppAdmin))
     Azure((Azure Cloud))
     
-    %% Use Cases (ovals in UML)
-    UC1[Register/Onboard]
-    UC2[Manage Datasets]
-    UC3[Manage Models]
-    UC4[Create Contract]
-    UC5[Sign Contract]
-    UC6[Verify Contract]
-    UC7[Authenticate]
-    UC8[Administer System]
-    UC9[Monitor Usage]
-    UC10[Generate Notifications]
-    UC11[Create Audit Trail]
-    UC12[Record on Blockchain]
-    UC13[Manage CCRP Credentials]
-    UC14[Provision Infrastructure]
-    UC15[Deploy Training Containers]
-    UC16[Track Real Costs]
-    
-    %% System Boundary
+    %% System Boundary with organized subsystems
     subgraph System["Contract Management System"]
-        UC1
-        UC2
-        UC3
-        UC4
-        UC5
-        UC6
-        UC7
-        UC8
-        UC9
-        UC10
-        UC11
-        UC12
-        UC13
-        UC14
-        UC15
-        UC16
+        subgraph Core["Core Contract Management"]
+            UC1[Register/Onboard]
+            UC2[Manage Datasets]
+            UC3[Manage Models]
+            UC4[Create Contract]
+            UC5[Sign Contract]
+            UC6[Verify Contract]
+            UC12[Record on Blockchain]
+        end
+        
+        subgraph IAM["Identity & Access Management"]
+            UC7[Authenticate]
+            UC8[Administer System]
+            UC10[Generate Notifications]
+            UC11[Create Audit Trail]
+        end
+        
+        subgraph Training["Training & Provisioning"]
+            UC13[Manage CCRP Credentials]
+            UC14[Provision Infrastructure]
+            UC15[Deploy Training Containers]
+            UC16[Track Real Costs]
+            UC9[Monitor Usage]
+        end
     end
     
     %% Actor connections to use cases
+    TDP --> UC1
     TDP --> UC2
     TDP --> UC5
     TDP --> UC7
     
+    TDC --> UC1
+    TDC --> UC3
     TDC --> UC4
     TDC --> UC5
     TDC --> UC7
     
+    CCRP --> UC7
     CCRP --> UC9
     CCRP --> UC13
     CCRP --> UC14
     CCRP --> UC15
     CCRP --> UC16
-    CCRP --> UC7
     
-    AppAdmin --> UC8
     AppAdmin --> UC7
+    AppAdmin --> UC8
+    AppAdmin --> UC10
+    AppAdmin --> UC11
     
     Azure --> UC14
     Azure --> UC15
