@@ -448,7 +448,7 @@ function Users() {
                       </TableSortLabel>
                     </TableCell>
                     <TableCell>Description</TableCell>
-                    <TableCell>Wallet Address</TableCell>
+                    <TableCell>DEPA ID</TableCell>
                     <TableCell>
                       <TableSortLabel
                         active={sortBy === 'registrationDate'}
@@ -505,7 +505,7 @@ function Users() {
                       </TableCell>
                       <TableCell>
                         <Typography variant="body2" fontFamily="monospace" fontSize="0.75rem">
-                          {user.walletAddress || 'No wallet'}
+                          {user.depaId || 'Not assigned'}
                         </Typography>
                       </TableCell>
                       <TableCell>

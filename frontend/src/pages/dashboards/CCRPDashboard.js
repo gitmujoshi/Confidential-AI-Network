@@ -117,16 +117,23 @@ const CCRPDashboard = () => {
           <Button
             variant="contained"
             startIcon={<Settings />}
-            onClick={() => navigate('/ccrp/environments/create')}
+            onClick={() => navigate('/ccrp/infrastructure')}
           >
-            Create Environment
+            Infrastructure
           </Button>
           <Button
             variant="outlined"
-            startIcon={<Assessment />}
-            onClick={() => navigate('/ccrp/analytics')}
+            startIcon={<Security />}
+            onClick={() => navigate('/ccrp/azure-credentials')}
           >
-            View Analytics
+            Azure Credentials
+          </Button>
+          <Button
+            variant="outlined"
+            startIcon={<PlayArrow />}
+            onClick={() => navigate('/ccrp/training-environment')}
+          >
+            Training Environment
           </Button>
         </div>
       </div>

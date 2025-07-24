@@ -31,7 +31,7 @@ const Login = () => {
   const [devResetLink, setDevResetLink] = useState('');
   const [devLoading, setDevLoading] = useState(false);
 
-  // Check if user is already logged in
+  // Clear stale authentication data on mount
   useEffect(() => {
     // Clear any stale authentication data immediately when Login component mounts
     console.log('🧹 [Login] Clearing stale authentication data on mount...');
@@ -41,9 +41,9 @@ const Login = () => {
     localStorage.removeItem('currentUser');
     sessionStorage.clear();
     
-    // Then check for valid token authentication
-    checkTokenAuth();
-  }, [checkTokenAuth]);
+    // Don't check for token auth on login page - let user login fresh
+    console.log('🔄 [Login] Ready for fresh login');
+  }, []);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -111,18 +111,9 @@ const Login = () => {
           localStorage.setItem('refreshToken', refreshToken);
         }
         
-        // Get complete user profile with partyType and other fields
-        try {
-          // Add cache-busting parameter to ensure fresh data
-          const profileResponse = await apiService.get('/api/auth/profile?_t=' + Date.now());
-          const completeUser = profileResponse.data.user;
-          setUser(completeUser);
-          console.log('✅ Login successful with complete user data:', completeUser);
-        } catch (profileError) {
-          console.warn('⚠️ Failed to get complete user profile, using login response:', profileError);
-          // Fallback to login response user data
-          setUser(user);
-        }
+        // Set user from login response and let UserContext handle profile fetching
+        setUser(user);
+        console.log('✅ Login successful, user set from login response:', user);
         
         setSuccess('Login successful! Redirecting to dashboard...');
         setTimeout(() => navigate('/dashboard'), 2000);

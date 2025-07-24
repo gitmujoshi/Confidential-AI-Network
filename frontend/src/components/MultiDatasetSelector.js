@@ -29,7 +29,7 @@ import {
  * MultiDatasetSelector Component
  * 
  * A reusable component for selecting multiple datasets from different TDPs.
- * Supports up to 3 datasets with individual pricing and TDP validation.
+ * Supports up to 3 datasets with individual pricing.
  * 
  * Props:
  * - datasets: Array of available datasets
@@ -42,7 +42,6 @@ import {
  * Features:
  * - Visual dataset cards with selection state
  * - Individual pricing per dataset
- * - TDP validation (one dataset per TDP)
  * - Selection limits and validation
  * - Clear visual feedback for disabled options
  */
@@ -66,10 +65,6 @@ const MultiDatasetSelector = ({
     // Check if max datasets reached
     if (selectedDatasets.length >= maxDatasets) return false;
     
-    // Check if TDP already selected
-    const tdpAlreadySelected = selectedDatasets.some(d => d.owner?.id === dataset.owner?.id);
-    if (tdpAlreadySelected) return false;
-    
     return true;
   };
 
@@ -92,7 +87,7 @@ const MultiDatasetSelector = ({
       if (selectedDatasets.length >= maxDatasets) {
         return { status: 'disabled', message: 'Max datasets reached' };
       } else {
-        return { status: 'disabled', message: 'TDP already selected' };
+        return { status: 'disabled', message: 'Not available' };
       }
     } else {
       return { status: 'available', message: 'Available' };

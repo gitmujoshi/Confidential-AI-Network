@@ -12,7 +12,10 @@
     "install-all": "npm install && cd backend && npm install && cd ../frontend && npm install && cd ../blockchain && npm install",
     "setup-db": "cd backend && npm run setup-db",
     "create-wallets": "cd backend && npm run create-wallets",
-    "register-hardhat": "cd backend && npm run register-hardhat"
+    "register-hardhat": "cd backend && npm run register-hardhat",
+    "test:mock": "NODE_ENV=test node -r ./tests/test-env.js ./node_modules/.bin/jest --testPathPattern=mock|models|api|core|security|performance --runInBand --setupFilesAfterEnv=./tests/setup.js",
+    "test:integration": "NODE_ENV=test node -r ./tests/test-env.js ./node_modules/.bin/jest --testPathPattern=integration|blockchainService|registration-integration|simple-ai-model --runInBand --setupFilesAfterEnv=./tests/setup.js",
+    "test": "NODE_ENV=test node -r ./tests/test-env.js ./node_modules/.bin/jest --runInBand --setupFilesAfterEnv=./tests/setup.js"
   },
   "keywords": [
     "blockchain",

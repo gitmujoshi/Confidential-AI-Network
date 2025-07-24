@@ -567,13 +567,6 @@ function CreateRicardianContract() {
         return;
       }
       
-      // Check if TDP is already selected
-      const tdpAlreadySelected = selectedDatasets.some(d => d.owner.id === dataset.owner.id);
-      if (tdpAlreadySelected) {
-        toast.error('You can only select one dataset per TDP');
-        return;
-      }
-      
       setSelectedDatasets(prev => [...prev, dataset]);
       // Set default price to dataset's base price
       setDatasetPrices(prev => ({
@@ -737,11 +730,12 @@ function CreateRicardianContract() {
                 <Card>
                   <CardContent>
                     <Typography variant="h6" gutterBottom>
-                      Select Datasets (1-3 from Different TDPs)
+                      Select Datasets (1-3 from Any TDPs)
                     </Typography>
                     <Typography variant="body2" color="textSecondary" paragraph>
-                      Choose 1 to 3 AI training datasets from different Training Data Providers (TDPs).
-                      Use the checkboxes to select datasets. Each dataset will have its own pricing and TDP.
+                      Choose 1 to 3 AI training datasets from any Training Data Providers (TDPs).
+                      You can select multiple datasets from the same TDP if needed.
+                      Use the checkboxes to select datasets. Each dataset will have its own pricing.
                     </Typography>
                     
                     <MultiDatasetSelector
