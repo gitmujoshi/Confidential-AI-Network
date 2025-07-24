@@ -226,7 +226,7 @@ describe('Contract Management System - Core Test Suite', () => {
           type: 'CONTRACT_SIGNED',
           title: 'Contract Signed',
           message: 'Your contract has been signed',
-          read: false
+          isRead: false
         };
 
         const notification = await Notification.create(notificationData);
@@ -235,7 +235,7 @@ describe('Contract Management System - Core Test Suite', () => {
         expect(notification.type).toBe(notificationData.type);
         expect(notification.title).toBe(notificationData.title);
         expect(notification.message).toBe(notificationData.message);
-        expect(notification.read).toBe(notificationData.read);
+        expect(notification.isRead).toBe(notificationData.isRead);
         expect(notification.id).toBeDefined();
         expect(notification.createdAt).toBeDefined();
         expect(notification.updatedAt).toBeDefined();

@@ -546,15 +546,53 @@ class ContractService {
       const contract = await Contract.findOne({
         where: { contractId },
         include: [
-          { model: User, as: 'tdp', attributes: ['id', 'name', 'email', 'walletAddress'] },
-          { model: User, as: 'tdc', attributes: ['id', 'name', 'email', 'walletAddress'] },
-          { model: User, as: 'ccrp', attributes: ['id', 'name', 'email', 'walletAddress'] },
+          { model: User, as: 'tdp', attributes: ['id', 'name', 'email', 'walletAddress', 'depaId'] },
+          { model: User, as: 'tdc', attributes: ['id', 'name', 'email', 'walletAddress', 'depaId'] },
+          { model: User, as: 'ccrp', attributes: ['id', 'name', 'email', 'walletAddress', 'depaId'] },
           { model: Dataset, as: 'dataset', attributes: ['id', 'name', 'description', 'category'] }
         ]
       });
 
       if (!contract) {
         throw new Error('Contract not found');
+      }
+
+      // Populate datasets array from contractDatasets JSON field
+      if (contract.contractDatasets && Array.isArray(contract.contractDatasets)) {
+        const datasets = [];
+        
+        for (const contractDataset of contract.contractDatasets) {
+          try {
+            // Fetch the full dataset information using datasetId (not id)
+            const dataset = await Dataset.findOne({
+              where: { datasetId: contractDataset.datasetId },
+              include: [
+                { model: User, as: 'owner', attributes: ['id', 'name', 'email', 'walletAddress', 'depaId'] }
+              ]
+            });
+            
+            if (dataset) {
+              // Merge contract dataset info with full dataset info
+              datasets.push({
+                ...dataset.toJSON(),
+                tdpId: contractDataset.tdpId,
+                tdp: dataset.owner,
+                price: contractDataset.individualPrice || dataset.price,
+                tdpSigned: contractDataset.tdpSigned || false,
+                tdpSignedAt: contractDataset.tdpSignedAt,
+                paymentPaid: contractDataset.paymentPaid || false,
+                paymentPaidAt: contractDataset.paymentPaidAt,
+                paymentAmount: contractDataset.paymentAmount
+              });
+            }
+          } catch (error) {
+            console.error(`Error fetching dataset ${contractDataset.datasetId}:`, error);
+          }
+        }
+        
+        // Add the datasets array to the contract
+        contract.dataValues.datasets = datasets;
+        contract.datasets = datasets;
       }
 
       return contract;
@@ -574,9 +612,9 @@ class ContractService {
       const contracts = await Contract.findAll({
         where: { status },
         include: [
-          { model: User, as: 'tdp', attributes: ['id', 'name', 'email'] },
-          { model: User, as: 'tdc', attributes: ['id', 'name', 'email'] },
-          { model: User, as: 'ccrp', attributes: ['id', 'name', 'email'] }
+          { model: User, as: 'tdp', attributes: ['id', 'name', 'email', 'depaId'] },
+          { model: User, as: 'tdc', attributes: ['id', 'name', 'email', 'depaId'] },
+          { model: User, as: 'ccrp', attributes: ['id', 'name', 'email', 'depaId'] }
         ],
         order: [['createdAt', 'DESC']]
       });

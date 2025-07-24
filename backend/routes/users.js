@@ -32,7 +32,8 @@ router.get('/', authenticateToken, logAuthEvent('GET_ALL_USERS'), async (req, re
         'id', 'name', 'email', 'partyType', 'walletAddress', 'publicKey',
         'description', 'isRegistered', 'registrationDate', 'createdAt',
         'did', 'didSource', 'didVerified', 'didVerificationMethod',
-        'onboardingStatus', 'profileCompleted', 'emailVerified', 'isActive'
+        'onboardingStatus', 'profileCompleted', 'emailVerified', 'isActive',
+        'depaId'
       ],
       order: [['createdAt', 'DESC']]
     });

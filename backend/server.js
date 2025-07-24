@@ -27,19 +27,46 @@ const ccrpRouter = require('./routes/ccrp');
 // Import infrastructure routes
 const infrastructureRouter = require('./routes/infrastructure');
 
+// Import training routes
+const trainingRouter = require('./routes/training');
+
 const app = express();
 const PORT = process.env.PORT || 8000;
+
+// Winston logger setup
+const winston = require('winston');
+const path = require('path');
+
+const logDir = path.join(__dirname, '../logs');
+const logLevel = process.env.LOG_LEVEL || 'info';
+
+const logger = winston.createLogger({
+  level: logLevel,
+  format: winston.format.combine(
+    winston.format.timestamp(),
+    winston.format.printf(({ timestamp, level, message }) => {
+      return `${timestamp} [${level.toUpperCase()}]: ${message}`;
+    })
+  ),
+  transports: [
+    new winston.transports.File({ filename: path.join(logDir, 'backend.log') }),
+    new winston.transports.Console()
+  ]
+});
+
+// Make logger available globally in backend
+module.exports.logger = logger;
 
 // Memory monitoring
 setInterval(() => {
   const used = process.memoryUsage();
   const heapUsedMB = Math.round(used.heapUsed / 1024 / 1024);
   const heapTotalMB = Math.round(used.heapTotal / 1024 / 1024);
-  console.log(`🧠 [Memory] Heap used: ${heapUsedMB}MB, Total: ${heapTotalMB}MB`);
+  logger.info(`🧠 [Memory] Heap used: ${heapUsedMB}MB, Total: ${heapTotalMB}MB`);
   
   // Warning if memory usage is high
   if (heapUsedMB > 400) {
-    console.warn(`⚠️ [Memory] High memory usage: ${heapUsedMB}MB`);
+    logger.warn(`⚠️ [Memory] High memory usage: ${heapUsedMB}MB`);
   }
 }, 30000); // Check every 30 seconds
 
@@ -47,7 +74,7 @@ setInterval(() => {
 setInterval(() => {
   if (global.gc) {
     global.gc();
-    console.log('🗑️ [Memory] Garbage collection triggered');
+    logger.info('🗑️ [Memory] Garbage collection triggered');
   }
 }, 60000); // Every minute
 
@@ -78,7 +105,7 @@ const corsOptions = {
     if (allowedOrigins.indexOf(origin) !== -1 || process.env.NODE_ENV === 'development') {
       callback(null, true);
     } else {
-      console.log('🚫 [CORS] Blocked origin:', origin);
+      logger.warn('🚫 [CORS] Blocked origin:', origin);
       callback(new Error('Not allowed by CORS'));
     }
   },
@@ -113,7 +140,7 @@ app.get('/api/blockchain/status', async (req, res) => {
       timestamp: new Date().toISOString()
     });
   } catch (error) {
-    console.error('Error checking blockchain status:', error);
+    logger.error('Error checking blockchain status:', error);
     res.json({
       connected: false,
       enabled: process.env.BLOCKCHAIN_ENABLED !== 'false',
@@ -140,6 +167,9 @@ app.use('/api/ccrp', ccrpRouter);
 
 // Infrastructure API routes
 app.use('/api/infrastructure', infrastructureRouter);
+
+// Training API routes
+app.use('/api/training', trainingRouter);
 
 // Import users router
 const usersRouter = require('./routes/users');
@@ -169,7 +199,7 @@ app.get('/api/blockchain/health', async (req, res) => {
     const health = await blockchainService.healthCheck();
     res.json(health);
   } catch (error) {
-    console.error('Error checking blockchain health:', error);
+    logger.error('Error checking blockchain health:', error);
     res.status(500).json({ 
       error: 'Failed to check blockchain health',
       details: error.message 
@@ -181,11 +211,11 @@ app.get('/api/blockchain/health', async (req, res) => {
 app.get('/api/users/wallet/:walletAddress', async (req, res) => {
   try {
     const { walletAddress } = req.params;
-    console.log('🔍 [Backend] getUserByWallet called for address:', walletAddress);
+    logger.info('🔍 [Backend] getUserByWallet called for address:', walletAddress);
     
     // Convert to lowercase for case-insensitive matching
     const normalizedWalletAddress = walletAddress.toLowerCase();
-    console.log('🔍 [Backend] Normalized wallet address:', normalizedWalletAddress);
+    logger.info('🔍 [Backend] Normalized wallet address:', normalizedWalletAddress);
     
     const user = await db.User.findOne({
       where: { 
@@ -199,11 +229,11 @@ app.get('/api/users/wallet/:walletAddress', async (req, res) => {
     });
     
     if (!user) {
-      console.log('❌ [Backend] User not found for wallet:', walletAddress);
+      logger.info('❌ [Backend] User not found for wallet:', walletAddress);
       return res.status(404).json({ error: 'User not found' });
     }
     
-    console.log('✅ [Backend] User found:', {
+    logger.info('✅ [Backend] User found:', {
       id: user.id,
       name: user.name,
       partyType: user.partyType,
@@ -212,7 +242,7 @@ app.get('/api/users/wallet/:walletAddress', async (req, res) => {
     
     res.json(user);
   } catch (error) {
-    console.error('❌ [Backend] Error getting user by wallet:', error);
+    logger.error('❌ [Backend] Error getting user by wallet:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
@@ -315,7 +345,7 @@ app.post('/api/users/register', async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Error registering user:', error);
+    logger.error('Error registering user:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
@@ -392,7 +422,7 @@ app.put('/api/users/:id/register', async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Error updating user registration:', error);
+    logger.error('Error updating user registration:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
@@ -417,7 +447,7 @@ app.get('/api/notifications/:userId', async (req, res) => {
       offset: parseInt(offset)
     });
   } catch (error) {
-    console.error('Error getting notifications:', error);
+    logger.error('Error getting notifications:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
@@ -440,7 +470,7 @@ app.put('/api/notifications/:id/read', async (req, res) => {
 
     res.json({ success: true, notification });
   } catch (error) {
-    console.error('Error marking notification as read:', error);
+    logger.error('Error marking notification as read:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
@@ -464,13 +494,13 @@ app.get('/api/blockchain/status', async (req, res) => {
         const blockNumber = await blockchainService.provider.getBlockNumber();
         status.lastBlock = blockNumber;
       } catch (error) {
-        console.error('Error getting block number:', error);
+        logger.error('Error getting block number:', error);
       }
     }
 
     res.json(status);
   } catch (error) {
-    console.error('Error getting blockchain status:', error);
+    logger.error('Error getting blockchain status:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
@@ -500,7 +530,7 @@ app.post('/api/blockchain/register-party', async (req, res) => {
       transactionHash: result.transactionHash
     });
   } catch (error) {
-    console.error('Error registering party on blockchain:', error);
+    logger.error('Error registering party on blockchain:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
@@ -613,14 +643,14 @@ app.put('/api/users/:id', authenticateToken, async (req, res) => {
     });
 
   } catch (error) {
-    console.error('Error updating user profile:', error);
+    logger.error('Error updating user profile:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
 
 // Error handling middleware
 app.use((err, req, res, next) => {
-  console.error(err.stack);
+  logger.error(err.stack);
   res.status(500).json({ error: 'Something went wrong!' });
 });
 
@@ -634,38 +664,38 @@ async function initializeServices() {
   try {
     // Test database connection
     await db.sequelize.authenticate();
-    console.log('Database connection established successfully.');
+    logger.info('Database connection established successfully.');
 
     // Initialize blockchain service (optional for development)
     try {
       await blockchainService.initialize();
-      console.log('Blockchain service initialized successfully.');
+      logger.info('Blockchain service initialized successfully.');
     } catch (blockchainError) {
-      console.warn('⚠️  Blockchain service initialization failed (optional for development):', blockchainError.message);
-      console.log('ℹ️  The application will continue without blockchain functionality.');
+      logger.warn('⚠️  Blockchain service initialization failed (optional for development):', blockchainError.message);
+      logger.info('ℹ️  The application will continue without blockchain functionality.');
     }
 
     // Start server
     app.listen(PORT, () => {
-      console.log(`Server is running on port ${PORT}`);
-      console.log(`Health check: http://localhost:${PORT}/health`);
-      console.log(`API base URL: http://localhost:${PORT}/api`);
+      logger.info(`Server is running on port ${PORT}`);
+      logger.info(`Health check: http://localhost:${PORT}/health`);
+      logger.info(`API base URL: http://localhost:${PORT}/api`);
     });
   } catch (error) {
-    console.error('Error initializing services:', error);
+    logger.error('Error initializing services:', error);
     process.exit(1);
   }
 }
 
 // Handle graceful shutdown
 process.on('SIGTERM', async () => {
-  console.log('SIGTERM received, shutting down gracefully');
+  logger.info('SIGTERM received, shutting down gracefully');
   await db.sequelize.close();
   process.exit(0);
 });
 
 process.on('SIGINT', async () => {
-  console.log('SIGINT received, shutting down gracefully');
+  logger.info('SIGINT received, shutting down gracefully');
   await db.sequelize.close();
   process.exit(0);
 });

@@ -35,6 +35,18 @@
     "validate-auth": "node scripts/validate-auth-frozen.js"
   },
   "dependencies": {
+    "@azure/arm-compute": "^22.4.0",
+    "@azure/arm-containerinstance": "^9.1.0",
+    "@azure/arm-keyvault": "^3.2.0",
+    "@azure/arm-machinelearning": "^3.0.0",
+    "@azure/arm-machinelearningservices": "^5.0.1",
+    "@azure/arm-monitor": "^7.0.0",
+    "@azure/arm-network": "^34.0.0",
+    "@azure/arm-sql": "^10.0.0",
+    "@azure/arm-storage": "^18.6.0",
+    "@azure/identity": "^4.10.2",
+    "@azure/storage-blob": "^12.27.0",
+    "@azure/storage-file-share": "^12.27.0",
     "axios": "^1.6.0",
     "bcryptjs": "^2.4.3",
     "cors": "^2.8.5",
@@ -51,7 +63,8 @@
     "nodemailer": "^6.9.7",
     "pg": "^8.16.3",
     "pg-hstore": "^2.3.4",
-    "sequelize": "^6.35.0"
+    "sequelize": "^6.35.0",
+    "winston": "^3.17.0"
   },
   "devDependencies": {
     "axios": "^1.10.0",

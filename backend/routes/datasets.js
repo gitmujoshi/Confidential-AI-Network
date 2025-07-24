@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const db = require('../models');
+const { v4: uuidv4 } = require('uuid');
 
 // Get all public datasets
 router.get('/public', async (req, res) => {
@@ -250,7 +251,8 @@ router.post('/', async (req, res) => {
       tags: tags || [],
       metadata: metadata || {},
       isPublic: isPublic !== undefined ? isPublic : true,
-      ownerId
+      ownerId,
+      depaId: `DATASET-${uuidv4()}`
     });
 
     // Get dataset with owner info
