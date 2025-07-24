@@ -84,6 +84,8 @@ This document provides a comprehensive UML 4+1 View Architecture for the Contrac
 
 ### 2.3 Use Case Diagram
 
+**Description:** This diagram shows the main actors (users and external systems) and their interactions with the system's core use cases. It illustrates how different user roles (TDP, TDC, CCRP, AppAdmin) interact with the system to perform various business functions, including the new Azure cloud integration features.
+
 ```mermaid
 graph TD
     %% Actors (stick figures in UML)
@@ -234,6 +236,8 @@ graph TB
 
 ### 3.2 **New Azure Integration Components**
 
+**Description:** This diagram illustrates the new Azure integration architecture, showing how the system connects to Azure services for real infrastructure provisioning. It demonstrates the relationship between CCRP credentials, contract configuration, and Azure services like Resource Manager, Container Instances, Storage, Key Vault, and ML Workspace.
+
 ```mermaid
 graph TB
     subgraph "Azure Infrastructure Layer"
@@ -355,6 +359,8 @@ backend/
 
 ### 4.2 Module Structure Diagram
 
+**Description:** This diagram shows the high-level module structure of the application, illustrating how the frontend, backend, and Azure components are organized. It demonstrates the separation of concerns between different layers and how they interact through APIs and services.
+
 ```mermaid
 graph TD
     subgraph Frontend
@@ -430,6 +436,8 @@ graph TD
 - `backend/routes/training.js`
 
 ### 5.2 **New Azure Infrastructure Provisioning Process**
+
+**Description:** This sequence diagram illustrates the complete process of provisioning real Azure infrastructure for training environments. It shows the interaction between CCRP users, the frontend, backend services, Keycloak authentication, database operations, and Azure cloud services including monitoring.
 
 ```mermaid
 sequenceDiagram
@@ -525,6 +533,8 @@ sequenceDiagram
 
 #### 6.1.1 **Multi-Cloud Deployment Architecture**
 
+**Description:** This diagram shows the multi-cloud deployment architecture with load balancers distributing traffic across multiple backend services. Each backend service connects to different Azure resource groups managed by different CCRPs, demonstrating the multi-tenant isolation and scalability of the system.
+
 ```mermaid
 graph TB
     subgraph "Load Balancer Layer"
@@ -581,6 +591,8 @@ graph TB
 
 #### 6.1.2 **CCRP Credential Management Architecture**
 
+**Description:** This diagram illustrates how CCRP credentials are managed across multiple users and Azure subscriptions. It shows the separation of credentials per CCRP user, the database storage of encrypted credentials, and the connection to different Azure subscriptions for multi-tenant isolation.
+
 ```mermaid
 graph TB
     subgraph "CCRP Users"
@@ -621,6 +633,8 @@ graph TB
 ```
 
 #### 6.1.3 **Real Training Environment Architecture**
+
+**Description:** This diagram shows the real training environment architecture using Azure Container Instances for running training jobs. It illustrates how training jobs are deployed to containers, how they access training data from Azure Storage blobs, how results are stored, and how monitoring and logging are handled through Azure Monitor and Log Analytics.
 
 ```mermaid
 graph TB
@@ -676,6 +690,8 @@ graph TB
 ```
 
 #### 6.1.4 **Security & Identity Layer**
+
+**Description:** This diagram illustrates the comprehensive security and identity management architecture. It shows how backend services integrate with Keycloak for authentication, how security services like WAF, VPN, HSM, and KMS protect the system, and how Azure security features like Key Vault, Active Directory, and RBAC provide additional layers of security.
 
 ```mermaid
 graph TB
@@ -743,6 +759,8 @@ graph TB
 ```
 
 #### 6.1.5 **Monitoring & External Services**
+
+**Description:** This diagram shows the comprehensive monitoring and external services architecture. It illustrates how backend services connect to various monitoring systems (Prometheus, Grafana, ELK Stack), Azure monitoring services (Monitor, Log Analytics, Metrics, Alerts), blockchain services (Ethereum Node, Blockchain Monitor), and external services (Email, SMS, Audit) for complete system observability and integration.
 
 ```mermaid
 graph TB
@@ -905,6 +923,8 @@ spec:
 ---
 
 ## 7. **Updated Logical Class Diagram**
+
+**Description:** This comprehensive class diagram shows the complete object-oriented structure of the system, including frontend components, backend models, and services. It illustrates the relationships between different classes, showing how data flows through the system and how different services interact with each other and the data models. The diagram includes the new Azure integration classes and their relationships.
 
 ```mermaid
 classDiagram
