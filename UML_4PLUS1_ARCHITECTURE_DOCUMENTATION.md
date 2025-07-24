@@ -1370,18 +1370,18 @@ classDiagram
     SigningModal --> APIService
     
     %% Backend Relationships
-    User ||--o| Contract
-    User ||--o| Dataset
-    User ||--o| AIModel
-    User ||--o| Notification
-    User ||--o| AuditLog
-    User ||--o| CCRPAzureCredentials
-    User ||--o| TrainingJob
+    User ||--o| Contract : contains
+    User ||--o| Dataset : contains
+    User ||--o| AIModel : contains
+    User ||--o| Notification : contains
+    User ||--o| AuditLog : contains
+    User ||--o| CCRPAzureCredentials : contains
+    User ||--o| TrainingJob : contains
     
-    Contract ||--o| Dataset
-    Contract ||--o| AIModel
-    Contract ||--o| Notification
-    Contract ||--o| TrainingJob
+    Contract ||--o| Dataset : contains
+    Contract ||--o| AIModel : contains
+    Contract ||--o| Notification : contains
+    Contract ||--o| TrainingJob : contains
     
     %% Service Relationships
     AuthService --> User
