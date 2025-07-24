@@ -6,6 +6,7 @@ const db = require('../models');
  * 
  * Handles creation, management, and destruction of training environments
  * across different cloud providers (AWS, GCP, Azure, OCI)
+ * Now includes Terraform integration for Infrastructure as Code
  */
 class InfrastructureService {
   constructor() {
@@ -15,6 +16,9 @@ class InfrastructureService {
       Azure: require('./providers/azureProvider'),
       OCI: require('./providers/ociProvider')
     };
+    
+    // Add Terraform service for Infrastructure as Code
+    this.terraformService = require('./terraformService');
   }
 
   /**
@@ -127,6 +131,291 @@ class InfrastructureService {
 
     } catch (error) {
       console.error('❌ Error creating training environment:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Create training environment using Terraform (Infrastructure as Code)
+   */
+  async createTrainingEnvironmentWithTerraform(contractId, config) {
+    try {
+      console.log(`🏗️ Creating training environment with Terraform for contract: ${contractId}`);
+      
+      const contract = await db.Contract.findOne({
+        where: { contractId },
+        include: [
+          { model: db.User, as: 'tdp' },
+          { model: db.User, as: 'tdc' },
+          { model: db.User, as: 'ccrp' },
+          { model: db.Dataset, as: 'dataset' }
+        ]
+      });
+
+      if (!contract) {
+        throw new Error('Contract not found');
+      }
+
+      if (!contract.ccrpCloudProvider) {
+        throw new Error('No cloud provider selected for this contract');
+      }
+
+      // Get CCRP-specific Azure configuration if using Azure
+      let azureConfig = null;
+      if (contract.ccrpCloudProvider === 'Azure') {
+        const CCRPAzureCredentialsService = require('./ccrpAzureCredentialsService');
+        const ccrpCredentialsService = new CCRPAzureCredentialsService();
+        
+        try {
+          azureConfig = await ccrpCredentialsService.getContractAzureConfig(contractId);
+          console.log(`✅ Retrieved CCRP Azure configuration for contract: ${contractId}`);
+        } catch (error) {
+          console.error(`❌ Error getting CCRP Azure config: ${error.message}`);
+          throw new Error(`Azure configuration not available: ${error.message}`);
+        }
+      }
+
+      // Generate unique environment ID
+      const environmentId = `env-${contractId}-${Date.now()}`;
+      
+      // Create training environment record
+      const trainingEnvironment = await db.TrainingEnvironment.create({
+        contractId,
+        environmentId,
+        cloudProvider: contract.ccrpCloudProvider,
+        region: config.region || this.getDefaultRegion(contract.ccrpCloudProvider),
+        status: 'PENDING',
+        infrastructureConfig: this.buildInfrastructureConfig(contract, config),
+        securityConfig: this.buildSecurityConfig(contract, config),
+        monitoringConfig: this.buildMonitoringConfig(contract, config),
+        costEstimate: this.estimateCost(contract, config),
+        createdBy: contract.tdcId,
+        provisioningMethod: 'TERRAFORM' // Mark as Terraform-provisioned
+      });
+
+      // Update status to provisioning
+      await trainingEnvironment.update({ status: 'PROVISIONING' });
+
+      // Initialize Terraform service
+      const terraformService = new this.terraformService();
+
+      // Generate Terraform configuration
+      const terraformDir = await terraformService.generateTerraformConfig(
+        contractId,
+        environmentId,
+        trainingEnvironment.infrastructureConfig,
+        azureConfig
+      );
+
+      // Initialize Terraform
+      await terraformService.initialize(terraformDir);
+
+      // Validate Terraform configuration
+      await terraformService.validate(terraformDir);
+
+      // Plan Terraform deployment
+      const planOutput = await terraformService.plan(terraformDir);
+
+      // Apply Terraform deployment
+      const applyOutput = await terraformService.apply(terraformDir);
+
+      // Get Terraform outputs
+      const outputs = await terraformService.getOutputs(terraformDir);
+
+      // Get Terraform state
+      const state = await terraformService.getState(terraformDir);
+
+      // Calculate actual cost
+      const actualCost = terraformService.calculateEstimatedCost(outputs);
+
+      // Update environment with provisioned resources
+      await trainingEnvironment.update({
+        status: 'ACTIVE',
+        environmentUrl: outputs.environment_url?.value,
+        provisioningLogs: `Terraform Plan Output:\n${planOutput}\n\nTerraform Apply Output:\n${applyOutput}`,
+        actualCost: actualCost,
+        terraformState: {
+          terraformDir,
+          outputs: outputs,
+          state: state
+        }
+      });
+
+      // Create resource records from Terraform outputs
+      await this.createResourceRecordsFromTerraform(environmentId, outputs);
+
+      console.log(`✅ Training environment created successfully with Terraform: ${environmentId}`);
+      return trainingEnvironment;
+
+    } catch (error) {
+      console.error('❌ Error creating training environment with Terraform:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Destroy training environment using Terraform
+   */
+  async destroyTrainingEnvironmentWithTerraform(environmentId) {
+    try {
+      console.log(`🗑️ Destroying training environment with Terraform: ${environmentId}`);
+      
+      const trainingEnvironment = await db.TrainingEnvironment.findOne({
+        where: { environmentId }
+      });
+
+      if (!trainingEnvironment) {
+        throw new Error('Training environment not found');
+      }
+
+      if (trainingEnvironment.provisioningMethod !== 'TERRAFORM') {
+        throw new Error('Environment was not provisioned with Terraform');
+      }
+
+      // Update status to destroying
+      await trainingEnvironment.update({ status: 'DESTROYING' });
+
+      // Get Terraform directory from state
+      const terraformDir = trainingEnvironment.terraformState?.terraformDir;
+      
+      if (!terraformDir) {
+        throw new Error('Terraform state not found');
+      }
+
+      // Initialize Terraform service
+      const terraformService = new this.terraformService();
+
+      // Destroy Terraform resources
+      const destroyOutput = await terraformService.destroy(terraformDir);
+
+      // Clean up Terraform files
+      await terraformService.cleanup(terraformDir);
+
+      // Update environment status
+      await trainingEnvironment.update({
+        status: 'DESTROYED',
+        provisioningLogs: `Terraform Destroy Output:\n${destroyOutput}`,
+        terraformState: null
+      });
+
+      console.log(`✅ Training environment destroyed successfully with Terraform: ${environmentId}`);
+      return trainingEnvironment;
+
+    } catch (error) {
+      console.error('❌ Error destroying training environment with Terraform:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Create resource records from Terraform outputs
+   */
+  async createResourceRecordsFromTerraform(environmentId, outputs) {
+    try {
+      const resources = [];
+
+      // Add VMs
+      if (outputs.virtual_machine_names?.value) {
+        outputs.virtual_machine_names.value.forEach((vmName, index) => {
+          resources.push({
+            environmentId,
+            resourceType: 'COMPUTE',
+            resourceName: vmName,
+            resourceId: outputs.virtual_machine_names?.value?.[index] || '',
+            status: 'ACTIVE',
+            metadata: {
+              privateIp: outputs.virtual_machine_private_ips?.value?.[index] || '',
+              publicIp: outputs.virtual_machine_public_ips?.value?.[index] || '',
+              vmSize: outputs.vm_size?.value || '',
+              location: outputs.resource_group_location?.value || ''
+            }
+          });
+        });
+      }
+
+      // Add Storage Account
+      if (outputs.storage_account_name?.value) {
+        resources.push({
+          environmentId,
+          resourceType: 'STORAGE',
+          resourceName: outputs.storage_account_name.value,
+          resourceId: outputs.storage_account_name.value,
+          status: 'ACTIVE',
+          metadata: {
+            accountType: 'StorageV2',
+            replicationType: 'LRS',
+            location: outputs.resource_group_location?.value || ''
+          }
+        });
+      }
+
+      // Add Key Vault
+      if (outputs.key_vault_name?.value) {
+        resources.push({
+          environmentId,
+          resourceType: 'SECURITY',
+          resourceName: outputs.key_vault_name.value,
+          resourceId: outputs.key_vault_uri?.value || '',
+          status: 'ACTIVE',
+          metadata: {
+            vaultUri: outputs.key_vault_uri?.value || '',
+            sku: 'standard',
+            location: outputs.resource_group_location?.value || ''
+          }
+        });
+      }
+
+      // Add SQL Database
+      if (outputs.sql_database_name?.value) {
+        resources.push({
+          environmentId,
+          resourceType: 'DATABASE',
+          resourceName: outputs.sql_database_name.value,
+          resourceId: outputs.sql_server_name?.value || '',
+          status: 'ACTIVE',
+          metadata: {
+            serverName: outputs.sql_server_name?.value || '',
+            databaseName: outputs.sql_database_name.value,
+            location: outputs.resource_group_location?.value || ''
+          }
+        });
+      }
+
+      // Add Container Group
+      if (outputs.container_group_name?.value) {
+        resources.push({
+          environmentId,
+          resourceType: 'CONTAINER',
+          resourceName: outputs.container_group_name.value,
+          resourceId: outputs.container_group_name.value,
+          status: 'ACTIVE',
+          metadata: {
+            containerType: 'Azure Container Instances',
+            location: outputs.resource_group_location?.value || ''
+          }
+        });
+      }
+
+      // Add Log Analytics
+      if (outputs.log_analytics_workspace_name?.value) {
+        resources.push({
+          environmentId,
+          resourceType: 'MONITORING',
+          resourceName: outputs.log_analytics_workspace_name.value,
+          resourceId: outputs.log_analytics_workspace_name.value,
+          status: 'ACTIVE',
+          metadata: {
+            workspaceType: 'Log Analytics',
+            location: outputs.resource_group_location?.value || ''
+          }
+        });
+      }
+
+      // Create resource records
+      await this.createResourceRecords(environmentId, resources);
+
+    } catch (error) {
+      console.error('❌ Error creating resource records from Terraform outputs:', error);
       throw error;
     }
   }
