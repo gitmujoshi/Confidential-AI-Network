@@ -39,6 +39,8 @@ This system implements a **Ricardian Contract** pattern that combines human-read
 - **Audit Trails**: Comprehensive logging and monitoring
 
 ### **Training Environment Management**
+- **Real Infrastructure Provisioning**: Actual Azure/GCP/AWS infrastructure deployment
+- **CCRP-Specific Credentials**: Multi-tenant Azure credential management
 - **Automated Provisioning**: CCRP-driven secure environment setup
 - **Multi-Cloud Orchestration**: Training across different cloud providers
 - **Resource Management**: Dynamic allocation and scaling
@@ -52,6 +54,14 @@ This system implements a **Ricardian Contract** pattern that combines human-read
 - PostgreSQL 13+
 - Docker & Docker Compose
 - Keycloak (for authentication)
+- Azure CLI (for Azure integration)
+- Azure subscription (for real infrastructure provisioning)
+
+### ⚠️ CRITICAL: Authentication Rules
+**ALWAYS use Keycloak authentication. NEVER bypass authentication layers or use direct database calls.**
+- See [AUTHENTICATION_RULES.md](./AUTHENTICATION_RULES.md) for complete guidelines
+- All user operations must go through service APIs
+- Test users must be synced to Keycloak before testing
 
 ### Installation
 
@@ -82,6 +92,23 @@ npm run dev:blockchain
 - Frontend: http://localhost:3000
 - Backend API: http://localhost:5000
 - Keycloak: http://localhost:8080
+
+5. **Set up Azure integration (optional)**
+```bash
+# Set Azure credentials
+export AZURE_SUBSCRIPTION_ID="your-subscription-id"
+export AZURE_TENANT_ID="your-tenant-id"
+export AZURE_CLIENT_ID="your-client-id"
+export AZURE_CLIENT_SECRET="your-client-secret"
+export ENCRYPTION_KEY="your-encryption-key"
+
+# Run database migration for CCRP Azure fields
+node backend/scripts/migration/addCcrpAzureFields.js
+
+# Test Azure integration
+node backend/test-azure-integration.js
+node backend/test-ccrp-azure-integration.js
+```
 
 ## 📋 Contract Creation Workflow
 
