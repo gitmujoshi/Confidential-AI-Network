@@ -1,8 +1,11 @@
 const express = require('express');
 const router = express.Router();
-const { User, Contract, Notification } = require('../models');
+const { User, Contract, Notification, CCRPAzureCredentials } = require('../models');
 const { authenticateToken } = require('../middleware/auth');
 const { Op } = require('sequelize');
+const CCRPAzureCredentialsService = require('../services/ccrpAzureCredentialsService');
+const InfrastructureService = require('../services/infrastructureService');
+const TrainingService = require('../services/trainingService');
 
 // CCRP dashboard data
 router.get('/dashboard/:userId', authenticateToken, async (req, res) => {
@@ -375,6 +378,346 @@ router.get('/all', authenticateToken, async (req, res) => {
   } catch (error) {
     console.error('Get all CCRP users error:', error);
     res.status(500).json({ error: 'Failed to load CCRP users' });
+  }
+});
+
+// Azure Credentials Management Routes
+router.get('/azure-credentials/:userId', authenticateToken, async (req, res) => {
+  try {
+    const { userId } = req.params;
+    
+    // Verify user is accessing their own data or is admin
+    const currentUserId = req.user.localUser?.id;
+    const userPartyType = req.user.localUser?.partyType;
+    
+    if (currentUserId !== parseInt(userId) && userPartyType !== 'AppAdmin') {
+      return res.status(403).json({ error: 'Access denied' });
+    }
+
+    const ccrpService = new CCRPAzureCredentialsService();
+    const credentials = await ccrpService.getCredentials(userId);
+    
+    res.json({
+      success: true,
+      credentials: {
+        id: credentials.id,
+        subscriptionId: credentials.subscriptionId,
+        tenantId: credentials.tenantId,
+        clientId: credentials.clientId,
+        clientSecret: credentials.clientSecret,
+        authMethod: credentials.authMethod,
+        defaultLocation: credentials.defaultLocation,
+        defaultResourceGroupPrefix: credentials.defaultResourceGroupPrefix,
+        defaultVMSize: credentials.defaultVMSize,
+        defaultStorageSku: credentials.defaultStorageSku,
+        defaultDatabaseSku: credentials.defaultDatabaseSku,
+        vnetAddressSpace: credentials.vnetAddressSpace,
+        privateSubnetPrefix: credentials.privateSubnetPrefix,
+        publicSubnetPrefix: credentials.publicSubnetPrefix,
+        enableEncryption: credentials.enableEncryption,
+        enableMonitoring: credentials.enableMonitoring,
+        enableKeyVault: credentials.enableKeyVault,
+        budgetLimit: credentials.budgetLimit,
+        alertThreshold: credentials.alertThreshold,
+        validationStatus: credentials.validationStatus,
+        lastValidated: credentials.lastValidated,
+        isActive: credentials.isActive
+      }
+    });
+  } catch (error) {
+    console.error('Get Azure credentials error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+router.post('/azure-credentials/:userId', authenticateToken, async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const { credentials, config } = req.body;
+    
+    // Verify user is accessing their own data or is admin
+    const currentUserId = req.user.localUser?.id;
+    const userPartyType = req.user.localUser?.partyType;
+    
+    if (currentUserId !== parseInt(userId) && userPartyType !== 'AppAdmin') {
+      return res.status(403).json({ error: 'Access denied' });
+    }
+
+    const ccrpService = new CCRPAzureCredentialsService();
+    const result = await ccrpService.createOrUpdateCredentials(userId, credentials, config);
+    
+    res.json({
+      success: true,
+      credentials: result
+    });
+  } catch (error) {
+    console.error('Create/update Azure credentials error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+router.post('/azure-credentials/:userId/validate', authenticateToken, async (req, res) => {
+  try {
+    const { userId } = req.params;
+    
+    // Verify user is accessing their own data or is admin
+    const currentUserId = req.user.localUser?.id;
+    const userPartyType = req.user.localUser?.partyType;
+    
+    if (currentUserId !== parseInt(userId) && userPartyType !== 'AppAdmin') {
+      return res.status(403).json({ error: 'Access denied' });
+    }
+
+    const ccrpService = new CCRPAzureCredentialsService();
+    const credentials = await ccrpService.getCredentials(userId);
+    await ccrpService.validateCredentials(credentials.id);
+    
+    res.json({
+      success: true,
+      message: 'Azure credentials validated successfully'
+    });
+  } catch (error) {
+    console.error('Validate Azure credentials error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+router.post('/azure-credentials/:userId/test', authenticateToken, async (req, res) => {
+  try {
+    const { userId } = req.params;
+    
+    // Verify user is accessing their own data or is admin
+    const currentUserId = req.user.localUser?.id;
+    const userPartyType = req.user.localUser?.partyType;
+    
+    if (currentUserId !== parseInt(userId) && userPartyType !== 'AppAdmin') {
+      return res.status(403).json({ error: 'Access denied' });
+    }
+
+    const ccrpService = new CCRPAzureCredentialsService();
+    const results = await ccrpService.testAzureConnectivity(userId);
+    
+    res.json({
+      success: true,
+      results
+    });
+  } catch (error) {
+    console.error('Test Azure connectivity error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Infrastructure Management Routes
+router.get('/infrastructure/environments/:userId', authenticateToken, async (req, res) => {
+  try {
+    const { userId } = req.params;
+    
+    // Verify user is accessing their own data or is admin
+    const currentUserId = req.user.localUser?.id;
+    const userPartyType = req.user.localUser?.partyType;
+    
+    if (currentUserId !== parseInt(userId) && userPartyType !== 'AppAdmin') {
+      return res.status(403).json({ error: 'Access denied' });
+    }
+
+    const infrastructureService = new InfrastructureService();
+    const environments = await infrastructureService.getEnvironments(userId);
+    
+    res.json({
+      success: true,
+      environments
+    });
+  } catch (error) {
+    console.error('Get environments error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+router.post('/infrastructure/provision/:userId', authenticateToken, async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const { config } = req.body;
+    
+    // Verify user is accessing their own data or is admin
+    const currentUserId = req.user.localUser?.id;
+    const userPartyType = req.user.localUser?.partyType;
+    
+    if (currentUserId !== parseInt(userId) && userPartyType !== 'AppAdmin') {
+      return res.status(403).json({ error: 'Access denied' });
+    }
+
+    const infrastructureService = new InfrastructureService();
+    const result = await infrastructureService.provisionEnvironment(userId, config);
+    
+    res.json({
+      success: true,
+      environment: result
+    });
+  } catch (error) {
+    console.error('Provision environment error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+router.delete('/infrastructure/environments/:environmentId', authenticateToken, async (req, res) => {
+  try {
+    const { environmentId } = req.params;
+    
+    const infrastructureService = new InfrastructureService();
+    await infrastructureService.destroyEnvironment(environmentId);
+    
+    res.json({
+      success: true,
+      message: 'Environment destroyed successfully'
+    });
+  } catch (error) {
+    console.error('Destroy environment error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+router.get('/infrastructure/environments/:environmentId/logs', authenticateToken, async (req, res) => {
+  try {
+    const { environmentId } = req.params;
+    
+    const infrastructureService = new InfrastructureService();
+    const logs = await infrastructureService.getEnvironmentLogs(environmentId);
+    
+    res.json({
+      success: true,
+      logs
+    });
+  } catch (error) {
+    console.error('Get environment logs error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Training Environment Routes
+router.get('/training/jobs/:userId', authenticateToken, async (req, res) => {
+  try {
+    const { userId } = req.params;
+    
+    // Verify user is accessing their own data or is admin
+    const currentUserId = req.user.localUser?.id;
+    const userPartyType = req.user.localUser?.partyType;
+    
+    if (currentUserId !== parseInt(userId) && userPartyType !== 'AppAdmin') {
+      return res.status(403).json({ error: 'Access denied' });
+    }
+
+    const trainingService = new TrainingService();
+    const jobs = await trainingService.getTrainingJobs(userId);
+    
+    res.json({
+      success: true,
+      jobs
+    });
+  } catch (error) {
+    console.error('Get training jobs error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+router.get('/training/containers/:userId', authenticateToken, async (req, res) => {
+  try {
+    const { userId } = req.params;
+    
+    // Verify user is accessing their own data or is admin
+    const currentUserId = req.user.localUser?.id;
+    const userPartyType = req.user.localUser?.partyType;
+    
+    if (currentUserId !== parseInt(userId) && userPartyType !== 'AppAdmin') {
+      return res.status(403).json({ error: 'Access denied' });
+    }
+
+    const trainingService = new TrainingService();
+    const containers = await trainingService.getTrainingContainers(userId);
+    
+    res.json({
+      success: true,
+      containers
+    });
+  } catch (error) {
+    console.error('Get training containers error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+router.post('/training/deploy/:userId', authenticateToken, async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const { config } = req.body;
+    
+    // Verify user is accessing their own data or is admin
+    const currentUserId = req.user.localUser?.id;
+    const userPartyType = req.user.localUser?.partyType;
+    
+    if (currentUserId !== parseInt(userId) && userPartyType !== 'AppAdmin') {
+      return res.status(403).json({ error: 'Access denied' });
+    }
+
+    const trainingService = new TrainingService();
+    const result = await trainingService.deployTrainingJob(userId, config);
+    
+    res.json({
+      success: true,
+      job: result
+    });
+  } catch (error) {
+    console.error('Deploy training job error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+router.post('/training/jobs/:jobId/stop', authenticateToken, async (req, res) => {
+  try {
+    const { jobId } = req.params;
+    
+    const trainingService = new TrainingService();
+    await trainingService.stopTrainingJob(jobId);
+    
+    res.json({
+      success: true,
+      message: 'Training job stopped successfully'
+    });
+  } catch (error) {
+    console.error('Stop training job error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+router.delete('/training/jobs/:jobId', authenticateToken, async (req, res) => {
+  try {
+    const { jobId } = req.params;
+    
+    const trainingService = new TrainingService();
+    await trainingService.deleteTrainingJob(jobId);
+    
+    res.json({
+      success: true,
+      message: 'Training job deleted successfully'
+    });
+  } catch (error) {
+    console.error('Delete training job error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+router.get('/training/jobs/:jobId/logs', authenticateToken, async (req, res) => {
+  try {
+    const { jobId } = req.params;
+    
+    const trainingService = new TrainingService();
+    const logs = await trainingService.getTrainingJobLogs(jobId);
+    
+    res.json({
+      success: true,
+      logs
+    });
+  } catch (error) {
+    console.error('Get training job logs error:', error);
+    res.status(500).json({ error: error.message });
   }
 });
 

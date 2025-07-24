@@ -42,7 +42,7 @@ const drawerWidth = 240;
 const Layout = ({ children }) => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { currentUser: user, setUser } = useUser();
+  const { currentUser: user, setUser, clearAuthData } = useUser();
   const [mobileOpen, setMobileOpen] = useState(false);
 
   // Fetch notifications
@@ -61,9 +61,13 @@ const Layout = ({ children }) => {
     setMobileOpen(!mobileOpen);
   };
 
-  const handleLogout = () => {
-    localStorage.removeItem('authToken');
-    setUser(null);
+  const handleLogout = async () => {
+    console.log('🚪 [Layout] Logging out...');
+    
+    // Use the proper UserContext method to clear all auth data
+    await clearAuthData();
+    
+    // Navigate to login page
     navigate('/login');
   };
 
@@ -72,7 +76,7 @@ const Layout = ({ children }) => {
     { text: 'Datasets', icon: <Storage />, path: '/datasets' },
     { text: 'Contracts', icon: <Description />, path: '/contracts' },
     // Only show Users menu for AppAdmin
-    ...(user?.partyType === 'AppAdmin' ? [{ text: 'Users', icon: <People />, path: '/users' }] : []),
+    ...(user?.partyType === 'AppAdmin' ? [{ text: 'Users', icon: <People />, path: '/admin/users' }] : []),
     { text: 'Notifications', icon: <Notifications />, path: '/notifications' },
     { text: 'Enterprise DID', icon: <Business />, path: '/enterprise-did' },
   ];

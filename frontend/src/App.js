@@ -30,6 +30,9 @@ import Profile from './pages/Profile';
 import TestContracts from './pages/TestContracts';
 import DirectTest from './pages/DirectTest';
 import RoleProtectedRoute from './components/RoleProtectedRoute';
+import CCRPAzureCredentials from './pages/CCRPAzureCredentials';
+import InfrastructureProvisioning from './pages/InfrastructureProvisioning';
+import TrainingEnvironment from './pages/TrainingEnvironment';
 
 // Protected Route Component
 const ProtectedRoute = ({ children }) => {
@@ -216,6 +219,9 @@ function AppRoutes() {
               <Route path="/dashboard" element={<DashboardSelector />} />
               <Route path="/environments" element={<div>CCRP Environments</div>} />
               <Route path="/environments/:envId" element={<div>CCRP Environment Details</div>} />
+              <Route path="/azure-credentials" element={<CCRPAzureCredentials />} />
+              <Route path="/infrastructure" element={<InfrastructureProvisioning />} />
+              <Route path="/training-environment" element={<TrainingEnvironment />} />
               <Route path="/contracts" element={<Contracts />} />
               <Route path="/contracts/:contractId" element={<ContractDetail />} />
               <Route path="/attestation" element={<div>CCRP Attestation</div>} />

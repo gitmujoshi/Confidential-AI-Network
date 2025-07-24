@@ -73,6 +73,9 @@ const DatasetCard = ({ dataset, onView, onEdit, onDelete }) => (
       <Typography variant="body2" color="textSecondary">
         <strong>Provider:</strong> {dataset.owner?.name}
       </Typography>
+      <Typography variant="caption" fontFamily="monospace" fontSize="0.7rem" color="textSecondary">
+        <strong>DEPA ID:</strong> {dataset.depaId || 'Not assigned'}
+      </Typography>
     </CardContent>
     
     <CardActions>
@@ -116,6 +119,11 @@ const DatasetRow = ({ dataset, onView, onEdit, onDelete }) => (
     </TableCell>
     <TableCell>
       <Typography variant="body2">{dataset.owner?.name}</Typography>
+    </TableCell>
+    <TableCell>
+      <Typography variant="caption" fontFamily="monospace" fontSize="0.7rem">
+        {dataset.depaId || 'Not assigned'}
+      </Typography>
     </TableCell>
     <TableCell>
       <Typography variant="body2">${dataset.price}</Typography>
@@ -187,7 +195,7 @@ function Datasets() {
           queryKey: ['datasets', 'tdp', user.id, searchTerm, selectedCategory],
           queryFn: async () => {
             const response = await apiService.get(`/api/tdp/datasets/${user.id}`);
-            return response.data; // Extract the data from the response
+            return response.data.datasets; // Extract the datasets array from the response
           },
           enabled: !!user.id
         };
@@ -233,7 +241,10 @@ function Datasets() {
   
   const { data: categories, isLoading: categoriesLoading, error: categoriesError } = useQuery('categories', apiService.getDatasetCategories);
 
-  const datasets = datasetsResponse?.datasets || [];
+  // Handle different response formats based on user role
+  const datasets = user?.partyType === 'TDP' 
+    ? (datasetsResponse || []) // TDP endpoint returns datasets array directly
+    : (datasetsResponse?.datasets || []); // Other endpoints return { datasets: [...] }
   
 
 
@@ -445,6 +456,7 @@ function Datasets() {
                         </TableSortLabel>
                       </TableCell>
                       <TableCell>Provider</TableCell>
+                      <TableCell>DEPA ID</TableCell>
                       <TableCell>
                         <TableSortLabel
                           active={sortBy === 'price'}

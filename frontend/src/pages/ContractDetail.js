@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Box,
   Grid,
@@ -7,21 +7,17 @@ import {
   Typography,
   Button,
   Chip,
-  Divider,
-  Stepper,
-  Step,
-  StepLabel,
-  StepContent,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
   TextField,
   FormControl,
   InputLabel,
   Select,
   MenuItem,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
   Alert,
+  CircularProgress,
   Accordion,
   AccordionSummary,
   AccordionDetails,
@@ -36,24 +32,33 @@ import {
   TableHead,
   TableRow,
   Paper,
-  CircularProgress,
+  IconButton,
+  Tooltip,
   FormControlLabel,
   Switch,
 } from '@mui/material';
 import {
-  CheckCircle,
-  Pending,
-  Error,
+  ExpandMore,
+  ChevronRight,
   Person,
   Storage,
-  Description,
-  Security,
-  Download,
-  Visibility,
-  ExpandMore,
-  Payment,
-  AttachMoney,
   Edit,
+  Save,
+  Cancel,
+  Visibility,
+  Security,
+  Payment,
+  CheckCircle,
+  Warning,
+  Error,
+  Info,
+  ExpandLess,
+  KeyboardArrowDown,
+  KeyboardArrowRight,
+  Pending,
+  AttachMoney,
+  Download,
+  Description,
 } from '@mui/icons-material';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from 'react-query';
@@ -146,6 +151,156 @@ const PaymentStatusChip = ({ paid, paidAt, amount }) => {
       size="small"
       icon={<Payment fontSize="small" />}
     />
+  );
+};
+
+// Custom JSON Tree Viewer Component
+const JsonTreeView = ({ data, label = 'root', level = 0 }) => {
+  const [expanded, setExpanded] = useState(level < 2); // Auto-expand first 2 levels
+  
+  const handleToggle = () => {
+    setExpanded(!expanded);
+  };
+
+  const getTypeIcon = (data) => {
+    if (data === null || data === undefined) return <Error fontSize="small" color="error" />;
+    if (typeof data === 'string') return <Typography fontSize="small" color="primary">"</Typography>;
+    if (typeof data === 'number') return <Typography fontSize="small" color="success.main">#</Typography>;
+    if (typeof data === 'boolean') return <Typography fontSize="small" color={data ? 'success.main' : 'error'}>⚡</Typography>;
+    if (Array.isArray(data)) return <Typography fontSize="small" color="info.main">[]</Typography>;
+    if (typeof data === 'object') return <Typography fontSize="small" color="warning.main">{}</Typography>;
+    return <Info fontSize="small" color="text.secondary" />;
+  };
+
+  const renderValue = (data) => {
+    if (data === null || data === undefined) {
+      return (
+        <Typography variant="body2" color="error" fontFamily="monospace">
+          {data === null ? 'null' : 'undefined'}
+        </Typography>
+      );
+    }
+
+    if (typeof data === 'string') {
+      return (
+        <Typography variant="body2" color="primary" fontFamily="monospace">
+          "{data.length > 50 ? data.substring(0, 50) + '...' : data}"
+        </Typography>
+      );
+    }
+
+    if (typeof data === 'number') {
+      return (
+        <Typography variant="body2" color="success.main" fontFamily="monospace">
+          {data}
+        </Typography>
+      );
+    }
+
+    if (typeof data === 'boolean') {
+      return (
+        <Typography variant="body2" color={data ? 'success.main' : 'error'} fontFamily="monospace">
+          {data.toString()}
+        </Typography>
+      );
+    }
+
+    if (Array.isArray(data)) {
+      return (
+        <Box display="flex" alignItems="center" gap={1}>
+          <Typography variant="body2" color="info.main" fontFamily="monospace">
+            Array({data.length})
+          </Typography>
+          {data.length > 0 && (
+            <Chip 
+              label={`${data.length} items`} 
+              size="small" 
+              color="info" 
+              variant="outlined"
+            />
+          )}
+        </Box>
+      );
+    }
+
+    if (typeof data === 'object') {
+      const keys = Object.keys(data);
+      return (
+        <Box display="flex" alignItems="center" gap={1}>
+          <Typography variant="body2" color="warning.main" fontFamily="monospace">
+            Object({keys.length})
+          </Typography>
+          {keys.length > 0 && (
+            <Chip 
+              label={`${keys.length} keys`} 
+              size="small" 
+              color="warning" 
+              variant="outlined"
+            />
+          )}
+        </Box>
+      );
+    }
+
+    return null;
+  };
+
+  const renderChildren = (data) => {
+    if (Array.isArray(data)) {
+      return data.map((item, index) => (
+        <Box key={`${label}-${index}`} sx={{ ml: 3, borderLeft: '1px solid #e0e0e0', pl: 2 }}>
+          <JsonTreeView data={item} label={`[${index}]`} level={level + 1} />
+        </Box>
+      ));
+    }
+
+    if (typeof data === 'object' && data !== null) {
+      const keys = Object.keys(data);
+      return keys.map((key) => (
+        <Box key={`${label}-${key}`} sx={{ ml: 3, borderLeft: '1px solid #e0e0e0', pl: 2 }}>
+          <JsonTreeView data={data[key]} label={key} level={level + 1} />
+        </Box>
+      ));
+    }
+
+    return null;
+  };
+
+  const hasChildren = (data) => {
+    return (Array.isArray(data) && data.length > 0) || 
+           (typeof data === 'object' && data !== null && Object.keys(data).length > 0);
+  };
+
+  return (
+    <Box>
+      <Box 
+        display="flex" 
+        alignItems="center" 
+        gap={1} 
+        sx={{ 
+          cursor: hasChildren(data) ? 'pointer' : 'default',
+          '&:hover': hasChildren(data) ? { backgroundColor: '#f5f5f5' } : {}
+        }}
+        onClick={hasChildren(data) ? handleToggle : undefined}
+      >
+        {hasChildren(data) && (
+          <IconButton size="small" onClick={handleToggle}>
+            {expanded ? <KeyboardArrowDown /> : <KeyboardArrowRight />}
+          </IconButton>
+        )}
+        {getTypeIcon(data)}
+        <Typography variant="body2" color="textSecondary" fontWeight="medium">
+          {label}:
+        </Typography>
+        {renderValue(data)}
+      </Box>
+      
+      {expanded && hasChildren(data) && (
+        <Box sx={{ mt: 1 }}>
+          {renderChildren(data)}
+        </Box>
+      )}
+    </Box>
   );
 };
 
@@ -694,6 +849,9 @@ function ContractDetail() {
                   <Typography variant="h5" gutterBottom>
                     {contract.contractId}
                   </Typography>
+                  <Typography variant="body2" sx={{ fontFamily: 'monospace', wordBreak: 'break-all', fontSize: '0.95rem', mb: 1 }}>
+                    DEPA ID: {contract.depaId || 'Not assigned'}
+                  </Typography>
                   <Typography variant="body2" color="textSecondary">
                     Created: {format(new Date(contract.createdAt), 'MMM dd, yyyy HH:mm')}
                   </Typography>
@@ -712,21 +870,22 @@ function ContractDetail() {
           </Card>
         </Grid>
 
-        {/* Multi-TDP Contract Information */}
-        {isMultiTDPContract && (
-          <Grid item xs={12}>
-            <Card>
-              <CardContent>
-                <Typography variant="h6" gutterBottom>
-                  Multi-TDP Contract Details
-                </Typography>
-                
+        {/* Contract Datasets & TDPs Information */}
+        <Grid item xs={12}>
+          <Card>
+            <CardContent>
+              <Typography variant="h6" gutterBottom>
+                Contract Datasets & TDPs
+              </Typography>
+              
+              {isMultiTDPContract ? (
                 <TableContainer component={Paper} variant="outlined">
                   <Table>
                     <TableHead>
                       <TableRow>
                         <TableCell>Dataset</TableCell>
                         <TableCell>TDP</TableCell>
+                        <TableCell>DEPA IDs</TableCell>
                         <TableCell>Price</TableCell>
                         <TableCell>Status</TableCell>
                         <TableCell>Payment</TableCell>
@@ -743,6 +902,9 @@ function ContractDetail() {
                             <Typography variant="caption" color="textSecondary">
                               {dataset.description}
                             </Typography>
+                            <Typography variant="caption" color="textSecondary" display="block">
+                              Category: {dataset.category} | Size: {dataset.size} MB
+                            </Typography>
                           </TableCell>
                           <TableCell>
                             <Typography variant="body2">
@@ -751,6 +913,16 @@ function ContractDetail() {
                             <Typography variant="caption" color="textSecondary">
                               {dataset.tdp?.email}
                             </Typography>
+                          </TableCell>
+                          <TableCell>
+                            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+                              <Typography variant="caption" fontFamily="monospace" fontSize="0.7rem">
+                                Dataset: {dataset.depaId || 'Not assigned'}
+                              </Typography>
+                              <Typography variant="caption" fontFamily="monospace" fontSize="0.7rem">
+                                TDP: {dataset.tdp?.depaId || 'Not assigned'}
+                              </Typography>
+                            </Box>
                           </TableCell>
                           <TableCell>
                             <Typography variant="body2" fontWeight="medium">
@@ -807,316 +979,6 @@ function ContractDetail() {
                     </TableBody>
                   </Table>
                 </TableContainer>
-              </CardContent>
-            </Card>
-          </Grid>
-        )}
-
-        {/* Single TDP Contract Information (Legacy Support) */}
-        {!isMultiTDPContract && (
-          <Grid item xs={12}>
-            <Card>
-              <CardContent>
-                <Typography variant="h6" gutterBottom>
-                  Contract Parties
-                </Typography>
-                <Grid container spacing={3}>
-                  <Grid item xs={12} md={4}>
-                    <Box display="flex" alignItems="center" gap={2}>
-                      <Person color="primary" />
-                      <Box>
-                        <Typography variant="body1" fontWeight="medium">
-                          Training Data Provider (TDP)
-                        </Typography>
-                        <Typography variant="body2" color="textSecondary">
-                          {contract.tdp?.name}
-                        </Typography>
-                        <Typography variant="body2" fontSize="0.75rem" fontFamily="monospace">
-                          {contract.tdp?.walletAddress}
-                        </Typography>
-                        <Chip 
-                          label={contract.tdpSigned ? 'Signed' : 'Pending'} 
-                          color={contract.tdpSigned ? 'success' : 'warning'}
-                          size="small"
-                          sx={{ mt: 1 }}
-                        />
-                      </Box>
-                    </Box>
-                  </Grid>
-                  
-                  <Grid item xs={12} md={4}>
-                    <Box display="flex" alignItems="center" gap={2}>
-                      <Person color="secondary" />
-                      <Box>
-                        <Typography variant="body1" fontWeight="medium">
-                          Training Data Consumer (TDC)
-                        </Typography>
-                        <Typography variant="body2" color="textSecondary">
-                          {contract.tdc?.name}
-                        </Typography>
-                        <Typography variant="body2" fontSize="0.75rem" fontFamily="monospace">
-                          {contract.tdc?.walletAddress}
-                        </Typography>
-                      </Box>
-                    </Box>
-                  </Grid>
-                  
-                  {contract.ccrp && (
-                    <Grid item xs={12} md={4}>
-                      <Box display="flex" alignItems="center" gap={2}>
-                        <Person color="success" />
-                        <Box>
-                          <Typography variant="body1" fontWeight="medium">
-                            CCRP
-                          </Typography>
-                          <Typography variant="body2" color="textSecondary">
-                            {contract.ccrp?.name}
-                          </Typography>
-                          <Typography variant="body2" fontSize="0.75rem" fontFamily="monospace">
-                            {contract.ccrp?.walletAddress}
-                          </Typography>
-                          {contract.ccrp?.description && (
-                            <Typography variant="body2" color="textSecondary" sx={{ mt: 0.5 }}>
-                              {contract.ccrp.description}
-                            </Typography>
-                          )}
-                          {contract.ccrp?.cloudProviders && contract.ccrp.cloudProviders.length > 0 && (
-                            <Box sx={{ mt: 1, display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-                              {contract.ccrp.cloudProviders.map((provider) => (
-                                <Chip
-                                  key={provider}
-                                  label={provider}
-                                  color="primary"
-                                  size="small"
-                                  variant="outlined"
-                                />
-                              ))}
-                            </Box>
-                          )}
-                          <Chip 
-                            label={contract.ccrpSigned ? 'Signed' : 'Pending'} 
-                            color={contract.ccrpSigned ? 'success' : 'warning'}
-                            size="small"
-                            sx={{ mt: 1 }}
-                          />
-                        </Box>
-                      </Box>
-                    </Grid>
-                  )}
-                </Grid>
-              </CardContent>
-            </Card>
-          </Grid>
-        )}
-
-        {/* Contract Details */}
-        <Grid item xs={12} md={6}>
-          <Card>
-            <CardContent>
-              <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-                <Typography variant="h6">
-                  Contract Details
-                </Typography>
-                {canEditContract() && (
-                  <Button
-                    size="small"
-                    startIcon={<Edit />}
-                    onClick={isEditMode ? handleCancelEdit : handleEditMode}
-                    variant={isEditMode ? "contained" : "outlined"}
-                    color={isEditMode ? "secondary" : "primary"}
-                  >
-                    {isEditMode ? "Cancel Edit" : "Edit"}
-                  </Button>
-                )}
-              </Box>
-              
-              <Box display="flex" flexDirection="column" gap={2}>
-                <Box>
-                  <Typography variant="body2" color="textSecondary">
-                    Status
-                  </Typography>
-                  <StatusChip status={contract.status} />
-                </Box>
-                
-                <Box>
-                  <Typography variant="body2" color="textSecondary">
-                    Duration
-                  </Typography>
-                  <Typography variant="body1">
-                    {contract.duration} days
-                  </Typography>
-                </Box>
-                
-                {!isMultiTDPContract && (
-                  <Box>
-                    <Typography variant="body2" color="textSecondary">
-                      Price
-                    </Typography>
-                    <Typography variant="body1">
-                      ${contract.price}
-                    </Typography>
-                  </Box>
-                )}
-                
-                {isMultiTDPContract && paymentSummary && (
-                  <Box>
-                    <Typography variant="body2" color="textSecondary">
-                      Total Price
-                    </Typography>
-                    <Typography variant="body1">
-                      ${paymentSummary.totalAmount}
-                    </Typography>
-                    <Typography variant="caption" color="textSecondary">
-                      Paid: ${paymentSummary.paidAmount} | Pending: ${paymentSummary.pendingAmount}
-                    </Typography>
-                  </Box>
-                )}
-                
-                <Box>
-                  <Typography variant="body2" color="textSecondary">
-                    Created
-                  </Typography>
-                  <Typography variant="body1">
-                    {format(new Date(contract.createdAt), 'MMM dd, yyyy HH:mm')}
-                  </Typography>
-                </Box>
-              </Box>
-            </CardContent>
-          </Card>
-        </Grid>
-
-        {/* Edit Contract Form */}
-        {isEditMode && (
-          <Grid item xs={12}>
-            <Card sx={{ border: '2px solid #1976d2' }}>
-              <CardContent>
-                <Box display="flex" alignItems="center" gap={1} mb={2}>
-                  <Edit color="primary" />
-                  <Typography variant="h6">
-                    Edit Contract
-                  </Typography>
-                </Box>
-                
-                {editError && (
-                  <Alert severity="error" sx={{ mb: 2 }}>
-                    {editError}
-                  </Alert>
-                )}
-                
-                <Grid container spacing={3}>
-                  <Grid item xs={12} md={6}>
-                    <TextField
-                      fullWidth
-                      label="Duration (days)"
-                      type="number"
-                      value={editFormData.duration}
-                      onChange={(e) => setEditFormData({ ...editFormData, duration: e.target.value })}
-                      helperText="Contract duration in days"
-                      disabled={editLoading}
-                    />
-                  </Grid>
-                  
-                  <Grid item xs={12}>
-                    <TextField
-                      fullWidth
-                      multiline
-                      rows={4}
-                      label="Terms and Conditions"
-                      value={editFormData.termsAndConditions}
-                      onChange={(e) => setEditFormData({ ...editFormData, termsAndConditions: e.target.value })}
-                      helperText="Detailed terms and conditions for the contract"
-                      disabled={editLoading}
-                    />
-                  </Grid>
-                  
-                  <Grid item xs={12} md={6}>
-                    <FormControl fullWidth>
-                      <InputLabel>CCRP Provider (Optional)</InputLabel>
-                      <Select
-                        value={editFormData.ccrpId}
-                        onChange={(e) => setEditFormData({ ...editFormData, ccrpId: e.target.value })}
-                        label="CCRP Provider (Optional)"
-                        disabled={editLoading}
-                      >
-                        <MenuItem value="">
-                          <em>No CCRP</em>
-                        </MenuItem>
-                        {ccrpUsers?.map((ccrp) => (
-                          <MenuItem key={ccrp.id} value={ccrp.id.toString()}>
-                            {ccrp.name} ({ccrp.email})
-                          </MenuItem>
-                        ))}
-                      </Select>
-                    </FormControl>
-                  </Grid>
-                  
-                  {editFormData.ccrpId && (
-                    <Grid item xs={12} md={6}>
-                      <FormControl fullWidth>
-                        <InputLabel>Cloud Provider</InputLabel>
-                        <Select
-                          value={editFormData.ccrpCloudProvider}
-                          onChange={(e) => setEditFormData({ ...editFormData, ccrpCloudProvider: e.target.value })}
-                          label="Cloud Provider"
-                          disabled={editLoading}
-                        >
-                          <MenuItem value="">
-                            <em>Select cloud provider</em>
-                          </MenuItem>
-                          <MenuItem value="AWS">AWS</MenuItem>
-                          <MenuItem value="GCP">GCP</MenuItem>
-                          <MenuItem value="Azure">Azure</MenuItem>
-                          <MenuItem value="OCI">OCI</MenuItem>
-                        </Select>
-                      </FormControl>
-                    </Grid>
-                  )}
-                </Grid>
-                
-                <Box display="flex" gap={2} sx={{ mt: 3 }}>
-                  <Button
-                    variant="contained"
-                    onClick={handleSaveEdit}
-                    disabled={editLoading}
-                    startIcon={editLoading ? <CircularProgress size={20} /> : null}
-                  >
-                    {editLoading ? 'Saving...' : 'Save Changes'}
-                  </Button>
-                  <Button
-                    variant="outlined"
-                    onClick={handleCancelEdit}
-                    disabled={editLoading}
-                  >
-                    Cancel
-                  </Button>
-                </Box>
-              </CardContent>
-            </Card>
-          </Grid>
-        )}
-
-        {/* Dataset Information */}
-        <Grid item xs={12} md={6}>
-          <Card>
-            <CardContent>
-              <Typography variant="h6" gutterBottom>
-                Dataset Information
-              </Typography>
-              
-              {isMultiTDPContract ? (
-                <List>
-                  {contract.datasets.map((dataset) => (
-                    <ListItem key={dataset.id}>
-                      <ListItemIcon>
-                        <Storage />
-                      </ListItemIcon>
-                      <ListItemText
-                        primary={dataset.name}
-                        secondary={`${dataset.description} | $${dataset.price}`}
-                      />
-                    </ListItem>
-                  ))}
-                </List>
               ) : (
                 <Box display="flex" alignItems="center" gap={2}>
                   <Storage color="primary" />
@@ -1129,6 +991,12 @@ function ContractDetail() {
                     </Typography>
                     <Typography variant="body2" fontSize="0.75rem" color="textSecondary">
                       Category: {contract.dataset?.category} | Size: {contract.dataset?.size} MB
+                    </Typography>
+                    <Typography variant="caption" fontFamily="monospace" fontSize="0.7rem">
+                      Dataset DEPA ID: {contract.dataset?.depaId || 'Not assigned'}
+                    </Typography>
+                    <Typography variant="caption" fontFamily="monospace" fontSize="0.7rem">
+                      TDP DEPA ID: {contract.dataset?.owner?.depaId || 'Not assigned'}
                     </Typography>
                   </Box>
                 </Box>
@@ -2618,17 +2486,41 @@ function ContractDetail() {
                 <Typography variant="h6" gutterBottom>
                   Contract Debug Information
                 </Typography>
-                <Typography variant="body2" color="textSecondary">
+                <Typography variant="body2" color="textSecondary" gutterBottom>
                   This section shows all available contract fields for debugging purposes.
                 </Typography>
+                
+                {/* Search Box */}
+                <TextField
+                  fullWidth
+                  size="small"
+                  placeholder="Search contract data..."
+                  variant="outlined"
+                  sx={{ mb: 2 }}
+                  InputProps={{
+                    startAdornment: <Visibility sx={{ mr: 1, color: 'text.secondary' }} />,
+                  }}
+                />
+                
                 <Accordion>
                   <AccordionSummary expandIcon={<ExpandMore />}>
-                    <Typography variant="body2">View All Contract Data</Typography>
+                    <Box display="flex" alignItems="center" gap={1}>
+                      <Info color="primary" />
+                      <Typography variant="body2">View All Contract Data</Typography>
+                      <Chip 
+                        label={`${Object.keys(contract).length} fields`} 
+                        size="small" 
+                        color="primary" 
+                        variant="outlined"
+                      />
+                    </Box>
                   </AccordionSummary>
                   <AccordionDetails>
-                    <Typography variant="body2" fontFamily="monospace" fontSize="0.8rem" sx={{ whiteSpace: 'pre-wrap' }}>
-                      {JSON.stringify(contract, null, 2)}
-                    </Typography>
+                    <Box sx={{ maxHeight: '600px', overflow: 'auto' }}>
+                      <Box sx={{ p: 1 }}>
+                        <JsonTreeView data={contract} label="contract" />
+                      </Box>
+                    </Box>
                   </AccordionDetails>
                 </Accordion>
               </CardContent>

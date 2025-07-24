@@ -39,19 +39,37 @@ const TDCDashboard = () => {
 
   // Fetch TDC dashboard data
   const { data: dashboardData, isLoading, error } = useQuery('tdcDashboard', async () => {
-    const [datasetsRes, contractsRes, trainingRes, paymentsRes] = await Promise.all([
-      apiService.get('/api/datasets/public'),
-      apiService.get(`/api/tdc/contracts/${user.id}`),
-      apiService.get(`/api/tdc/training/${user.id}`),
-      apiService.get(`/api/tdc/payments/${user.id}`)
-    ]);
+    // Ensure we have a valid user
+    if (!user || !user.id) {
+      throw new Error('User not available');
+    }
 
-    return {
-      datasets: datasetsRes.data.datasets || [],
-      contracts: contractsRes.data.contracts || [],
-      training: trainingRes.data.training || [],
-      payments: paymentsRes.data.payments || {}
-    };
+    console.log('🔍 TDC Dashboard - User:', user);
+
+    try {
+      const [datasetsRes, contractsRes, trainingRes, paymentsRes] = await Promise.all([
+        apiService.get('/api/datasets/public'),
+        apiService.get(`/api/tdc/contracts/${user.id}`),
+        apiService.get(`/api/tdc/training/${user.id}`),
+        apiService.get(`/api/tdc/payments/${user.id}`)
+      ]);
+
+      return {
+        datasets: datasetsRes.data.datasets || [],
+        contracts: contractsRes.data.contracts || [],
+        training: trainingRes.data.training || [],
+        payments: paymentsRes.data.payments || {}
+      };
+    } catch (error) {
+      console.error('❌ TDC Dashboard API Error:', error);
+      throw error;
+    }
+  }, {
+    enabled: !!user && !!user.id,
+    retry: 1,
+    onError: (error) => {
+      console.error('❌ TDC Dashboard Error:', error);
+    }
   });
 
   const datasets = dashboardData?.datasets || [];

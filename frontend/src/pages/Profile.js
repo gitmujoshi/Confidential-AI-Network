@@ -694,6 +694,15 @@ const Profile = () => {
 
                   <Box sx={{ mb: 2 }}>
                     <Typography variant="body2" color="text.secondary">
+                      <strong>DEPA ID:</strong>
+                    </Typography>
+                    <Typography variant="body1" sx={{ wordBreak: 'break-all', fontFamily: 'monospace', fontSize: '0.95rem' }}>
+                      {profileUser.depaId || 'Not assigned'}
+                    </Typography>
+                  </Box>
+
+                  <Box sx={{ mb: 2 }}>
+                    <Typography variant="body2" color="text.secondary">
                       <strong>Registration Date:</strong>
                     </Typography>
                     <Typography variant="body1">
