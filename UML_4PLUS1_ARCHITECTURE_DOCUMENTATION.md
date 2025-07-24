@@ -1,7 +1,7 @@
 # UML 4+1 View Architecture Documentation
 ## Contract Management System
 
-**Document Version:** 1.0  
+**Document Version:** 2.0  
 **Date:** December 2024  
 **Author:** Contract Management System Team
 
@@ -23,7 +23,7 @@
 ## 1. Executive Summary
 
 ### 1.1 Overview
-This document provides a comprehensive UML 4+1 View Architecture for the Contract Management System, covering all aspects from user interactions to deployment infrastructure. The system supports enterprise registration, DID-based identity management, cryptographic contract signing, and multi-party contract execution.
+This document provides a comprehensive UML 4+1 View Architecture for the Contract Management System, covering all aspects from user interactions to deployment infrastructure. The system supports enterprise registration, DID-based identity management, cryptographic contract signing, multi-party contract execution, and **real cloud infrastructure provisioning with CCRP-specific credentials**.
 
 ### 1.2 Key Components
 - **Frontend**: React-based user interface with role-based dashboards
@@ -32,12 +32,23 @@ This document provides a comprehensive UML 4+1 View Architecture for the Contrac
 - **Blockchain**: Ethereum-based contract recording
 - **Database**: PostgreSQL with Redis caching
 - **Security**: HSM/KMS integration for cryptographic operations
+- **Cloud Infrastructure**: **Real Azure SDK integration with multi-tenant CCRP credential management**
+- **Training Environment**: **Real container deployment with Azure Container Instances**
 
 ### 1.3 Target Users
 - **TDP (Training Data Provider)**: Dataset and model management
 - **TDC (Training Data Consumer)**: Contract creation and management
-- **CCRP (Confidential Clean Room Provider)**: Compliance and resource monitoring
+- **CCRP (Confidential Clean Room Provider)**: **Compliance, resource monitoring, and real infrastructure provisioning**
 - **AppAdmin**: System administration and oversight
+
+### 1.4 **New Features (v2.0)**
+- **Real Azure Infrastructure**: Actual Azure SDK integration replacing mock services
+- **CCRP-Specific Credentials**: Multi-tenant Azure credential management per CCRP
+- **Encrypted Credential Storage**: AES-256-CBC encrypted client secrets
+- **Contract-Specific Configuration**: Contract overrides for CCRP Azure defaults
+- **Real Training Execution**: Actual container deployment with Azure Container Instances
+- **Cost Management**: Per-CCRP and per-contract budget tracking
+- **Multi-Tenant Security**: CCRP isolation with independent Azure subscriptions
 
 ---
 
@@ -51,6 +62,8 @@ This document provides a comprehensive UML 4+1 View Architecture for the Contrac
 - **Keycloak IAM**
 - **Blockchain**
 - **External Auditors**
+- **Azure Cloud Services** (New)
+- **Azure Container Instances** (New)
 
 ### 2.2 Major Use Cases
 - Register/Onboard as Enterprise
@@ -61,7 +74,11 @@ This document provides a comprehensive UML 4+1 View Architecture for the Contrac
 - Create Contract
 - Sign Contract (multi-party)
 - Verify Contract
-- Monitor Resource Usage (CCRP)
+- **Manage CCRP Azure Credentials** (New)
+- **Provision Real Infrastructure** (New)
+- **Deploy Training Containers** (New)
+- **Monitor Real Resource Usage** (New)
+- **Track Real Costs** (New)
 - Notification & Audit Trail
 - Administer System
 
@@ -74,6 +91,7 @@ graph TD
     TDC((TDC))
     CCRP((CCRP))
     AppAdmin((AppAdmin))
+    Azure((Azure Cloud))
     
     %% Use Cases (ovals in UML)
     UC1[Register/Onboard]
@@ -88,6 +106,10 @@ graph TD
     UC10[Generate Notifications]
     UC11[Create Audit Trail]
     UC12[Record on Blockchain]
+    UC13[Manage CCRP Credentials]
+    UC14[Provision Infrastructure]
+    UC15[Deploy Training Containers]
+    UC16[Track Real Costs]
     
     %% System Boundary
     subgraph System["Contract Management System"]
@@ -103,107 +125,79 @@ graph TD
         UC10
         UC11
         UC12
+        UC13
+        UC14
+        UC15
+        UC16
     end
     
-    %% Actor to Use Case Associations
-    TDP --> UC1
-    TDC --> UC1
-    CCRP --> UC1
+    %% Actor connections to use cases
     TDP --> UC2
-    TDP --> UC3
-    TDC --> UC4
     TDP --> UC5
-    TDC --> UC5
-    CCRP --> UC5
-    TDP --> UC6
-    TDC --> UC6
-    CCRP --> UC6
     TDP --> UC7
-    TDC --> UC7
-    CCRP --> UC7
-    AppAdmin --> UC7
-    AppAdmin --> UC8
-    CCRP --> UC9
     
-    %% Include/Extend Relationships
-    UC4 -.->|include| UC7
-    UC5 -.->|include| UC7
-    UC5 -.->|extend| UC10
-    UC5 -.->|extend| UC11
-    UC5 -.->|extend| UC12
-    UC9 -.->|extend| UC11
+    TDC --> UC4
+    TDC --> UC5
+    TDC --> UC7
+    
+    CCRP --> UC9
+    CCRP --> UC13
+    CCRP --> UC14
+    CCRP --> UC15
+    CCRP --> UC16
+    CCRP --> UC7
+    
+    AppAdmin --> UC8
+    AppAdmin --> UC7
+    
+    Azure --> UC14
+    Azure --> UC15
+    Azure --> UC16
 ```
-
-### 2.4 Key Scenarios
-
-#### Scenario 1: Enterprise Registration
-1. User accesses registration portal
-2. Selects enterprise type (TDP/TDC/CCRP)
-3. Provides organization details and domain
-4. System generates DID:web identifier
-5. Creates Keycloak user account
-6. Sends verification email
-7. User completes profile setup
-
-#### Scenario 2: Contract Creation and Signing
-1. TDC creates contract with dataset and AI model requirements
-2. System notifies TDP and CCRP
-3. TDP reviews and signs contract (DID-based)
-4. TDC signs contract (wallet-based)
-5. CCRP reviews compliance and signs contract (DID-based)
-6. Contract is recorded on blockchain
-7. All parties receive notifications
 
 ---
 
 ## 3. Logical View
 
-### 3.1 Main Components
-- **Frontend (React)**
-- **Backend (Node.js/Express)**
-  - Auth Service
-  - User Service
-  - DID Service
-  - Dataset Service
-  - Model Service
-  - Contract Service
-  - Signing Service
-  - Notification Service
-  - Audit Service
-  - Admin Service
-- **Keycloak IAM**
-- **Blockchain Service**
-- **Database (PostgreSQL)**
-- **Monitoring/Logging**
-
-### 3.2 Component Diagram
+### 3.1 System Components
 
 ```mermaid
-classDiagram
-    class Frontend {
-      +User Interface
-      +API Calls
-      +Dashboards
-    }
+graph TB
+    %% Frontend Layer
+    subgraph Frontend
+        ReactApp[React Application]
+        UserDashboard[User Dashboard]
+        ContractForm[Contract Form]
+        SigningModal[Signing Modal]
+        APIService[API Service]
+        TokenManager[Token Manager]
+        ES256Signer[ES256 Signer]
+    end
     
-    %% Backend Services arranged vertically
-    class AuthService
-    class UserService
-    class DIDService
-    class DatasetService
-    class ModelService
-    class ContractService
-    class SigningService
-    class NotificationService
-    class AuditService
-    class AdminService
+    %% Backend Services
+    subgraph Backend
+        AuthService[Auth Service]
+        UserService[User Service]
+        DIDService[DID Service]
+        DatasetService[Dataset Service]
+        ModelService[Model Service]
+        ContractService[Contract Service]
+        SigningService[Signing Service]
+        NotificationService[Notification Service]
+        AuditService[Audit Service]
+        AdminService[Admin Service]
+        InfrastructureService[Infrastructure Service]
+        TrainingService[Training Service]
+        CCRPAzureCredentialsService[CCRP Azure Credentials Service]
+    end
     
     %% External Services
     class KeycloakIAM
     class BlockchainService
     class Database
     class MonitoringService
-
+    class AzureCloud[Azure Cloud Services]
+    
     %% Frontend connections to services
     Frontend --> AuthService
     Frontend --> UserService
@@ -214,6 +208,9 @@ classDiagram
     Frontend --> NotificationService
     Frontend --> AuditService
     Frontend --> AdminService
+    Frontend --> InfrastructureService
+    Frontend --> TrainingService
+    Frontend --> CCRPAzureCredentialsService
 
     %% Service dependencies arranged vertically
     AuthService --> KeycloakIAM
@@ -229,6 +226,58 @@ classDiagram
     AuditService --> Database
     AdminService --> Database
     MonitoringService --> Database
+    InfrastructureService --> AzureCloud
+    TrainingService --> AzureCloud
+    CCRPAzureCredentialsService --> Database
+    CCRPAzureCredentialsService --> AzureCloud
+```
+
+### 3.2 **New Azure Integration Components**
+
+```mermaid
+graph TB
+    subgraph "Azure Infrastructure Layer"
+        AzureProvider[Azure Provider]
+        CCRPCredentials[CCRP Credentials]
+        ContractConfig[Contract Configuration]
+    end
+    
+    subgraph "Azure Services"
+        ResourceManager[Azure Resource Manager]
+        ContainerInstances[Azure Container Instances]
+        StorageBlob[Azure Storage Blob]
+        KeyVault[Azure Key Vault]
+        MLWorkspace[Azure ML Workspace]
+        Monitor[Azure Monitor]
+    end
+    
+    subgraph "Infrastructure Components"
+        VNet[Virtual Network]
+        VM[Virtual Machines]
+        Storage[Storage Accounts]
+        Database[SQL Database]
+        Security[Network Security Groups]
+    end
+    
+    InfrastructureService --> AzureProvider
+    TrainingService --> AzureProvider
+    CCRPAzureCredentialsService --> CCRPCredentials
+    
+    AzureProvider --> ResourceManager
+    AzureProvider --> ContainerInstances
+    AzureProvider --> StorageBlob
+    AzureProvider --> KeyVault
+    AzureProvider --> MLWorkspace
+    AzureProvider --> Monitor
+    
+    ResourceManager --> VNet
+    ResourceManager --> VM
+    ResourceManager --> Storage
+    ResourceManager --> Database
+    ResourceManager --> Security
+    
+    CCRPCredentials --> ContractConfig
+    ContractConfig --> AzureProvider
 ```
 
 ---
@@ -271,21 +320,31 @@ backend/
 │   ├── ccrp.js
 │   ├── tdp.js
 │   ├── tdc.js
-│   └── admin.js
+│   ├── admin.js
+│   └── training.js
 ├── models/
 │   ├── User.js
 │   ├── Contract.js
 │   ├── Dataset.js
 │   ├── AIModel.js
 │   ├── Notification.js
-│   └── AuditLog.js
+│   ├── AuditLog.js
+│   ├── CCRPAzureCredentials.js
+│   └── TrainingJob.js
 ├── services/
 │   ├── authService.js
 │   ├── didService.js
 │   ├── blockchainService.js
 │   ├── auditService.js
 │   ├── notificationService.js
-│   └── signingService.js
+│   ├── signingService.js
+│   ├── infrastructureService.js
+│   ├── trainingService.js
+│   └── ccrpAzureCredentialsService.js
+├── providers/
+│   ├── azureProvider.js
+│   ├── awsProvider.js
+│   └── gcpProvider.js
 ├── middleware/
 │   ├── auth.js
 │   └── errorHandler.js
@@ -308,8 +367,14 @@ graph TD
       B1[routes]
       B2[models]
       B3[services]
-      B4[middleware]
-      B5[scripts]
+      B4[providers]
+      B5[middleware]
+      B6[scripts]
+    end
+    subgraph Azure
+      A1[Azure SDK]
+      A2[Azure Provider]
+      A3[CCRP Credentials]
     end
     F1 --> F2
     F2 --> F3
@@ -318,7 +383,11 @@ graph TD
     B2 --> B3
     B3 --> B4
     B4 --> B5
+    B5 --> B6
     F3 -- API --> B1
+    B3 --> A1
+    A1 --> A2
+    A2 --> A3
 ```
 
 ---
@@ -356,133 +425,11 @@ graph TD
 - `frontend/src/pages/dashboards/CCRPDashboard.js`
 - `backend/routes/ccrp.js`
 
-### 5.2 Contract Signing Process - Phased Sequence Diagrams
+#### **Real Infrastructure Provisioning** (New)
+- `backend/services/infrastructureService.js`
+- `backend/routes/training.js`
 
-#### 5.2.1 Phase 1: Contract Creation by TDC
-
-```mermaid
-sequenceDiagram
-    participant TDC as TDC User
-    participant FE as Frontend
-    participant BE as Backend
-    participant KC as Keycloak
-    participant DB as Database
-    participant NS as Notification Service
-    participant AUD as Audit Service
-
-    TDC->>FE: Login & Navigate to Contract Creation
-    FE->>BE: GET /api/auth/profile
-    BE->>KC: Verify JWT Token
-    KC-->>BE: User Info
-    BE-->>FE: User Profile
-    FE-->>TDC: Show Contract Creation Form
-    
-    TDC->>FE: Fill Contract Details (TDP, Dataset, AI Models, Security)
-    FE->>BE: POST /api/contracts
-    BE->>DB: Validate & Store Contract
-    DB-->>BE: Contract Created
-    BE->>NS: Create Notification for TDP
-    BE->>NS: Create Notification for CCRP
-    BE->>AUD: Log Contract Creation
-    BE-->>FE: Contract Created Successfully
-    FE-->>TDC: Show Contract Details
-```
-
-#### 5.2.2 Phase 2: TDP Signs Contract (DID-based)
-
-```mermaid
-sequenceDiagram
-    participant TDP as TDP User
-    participant FE as Frontend
-    participant BE as Backend
-    participant KC as Keycloak
-    participant DB as Database
-    participant BC as Blockchain
-    participant DID as DID Service
-    participant NS as Notification Service
-    participant AUD as Audit Service
-
-    TDP->>FE: Login & View Notifications
-    FE->>BE: GET /api/notifications
-    BE->>DB: Fetch User Notifications
-    DB-->>BE: New Contract Notification
-    BE-->>FE: Notification List
-    FE-->>TDP: Show New Contract Notification
-    
-    TDP->>FE: Navigate to Contract Details
-    FE->>BE: GET /api/contracts/:contractId
-    BE->>DB: Fetch Contract with Associations
-    DB-->>BE: Contract Data
-    BE-->>FE: Contract Details
-    FE-->>TDP: Show Contract & Signing Options
-    
-    TDP->>FE: Choose DID-based Signing
-    FE->>FE: Generate Signing Message
-    Note over FE: "Sign contract CONTRACT-123 as TDP at 2024-01-01T00:00:00.000Z"
-    FE->>FE: ES256Signer.signMessage(message, privateJwk)
-    FE->>FE: Create Signature (base64url)
-    FE->>BE: POST /api/contracts/:contractId/sign
-    Note over FE,BE: {signature: "base64url", message: "Sign contract...", did: "did:web:company.com:user:tdp", signatureType: "ES256"}
-    
-    BE->>KC: Verify JWT Token
-    KC-->>BE: User Valid
-    BE->>DID: Verify DID Signature
-    DID->>DID: Resolve DID Document
-    DID->>DID: Extract Public Key
-    DID->>DID: Verify ES256 Signature
-    DID-->>BE: Signature Valid
-    
-    BE->>DB: Record Signature
-    BE->>BC: Record on Blockchain
-    BC-->>BE: Transaction Hash
-    BE->>DB: Update Contract Status
-    BE->>NS: Create Notification for TDC
-    BE->>NS: Create Notification for CCRP
-    BE->>AUD: Log TDP Signature
-    BE-->>FE: Signature Recorded Successfully
-    FE-->>TDP: Show Success Message
-```
-
-#### 5.2.3 Phase 3: TDC Signs Contract (Wallet-based)
-
-```mermaid
-sequenceDiagram
-    participant TDC as TDC User
-    participant FE as Frontend
-    participant BE as Backend
-    participant KC as Keycloak
-    participant DB as Database
-    participant BC as Blockchain
-    participant NS as Notification Service
-    participant AUD as Audit Service
-
-    TDC->>FE: Login & View Updated Contract
-    FE->>BE: GET /api/contracts/:contractId
-    BE->>DB: Fetch Updated Contract
-    DB-->>BE: Contract with TDP Signature
-    BE-->>FE: Contract with Signing Progress
-    FE-->>TDC: Show Contract (TDP Signed)
-    
-    TDC->>FE: Choose Wallet-based Signing
-    FE->>FE: MetaMask Integration
-    FE->>FE: Sign Transaction with Wallet
-    FE->>BE: POST /api/contracts/:contractId/sign
-    Note over FE,BE: {signedTransaction: "0x...", userWalletAddress: "0x...", signatureType: "WALLET"}
-    
-    BE->>KC: Verify JWT Token
-    KC-->>BE: User Valid
-    BE->>BC: Broadcast Signed Transaction
-    BC-->>BE: Transaction Confirmed
-    BE->>DB: Record TDC Signature
-    BE->>DB: Update Contract Status
-    BE->>NS: Create Notification for TDP
-    BE->>NS: Create Notification for CCRP
-    BE->>AUD: Log TDC Signature
-    BE-->>FE: Signature Recorded Successfully
-    FE-->>TDC: Show Success Message
-```
-
-#### 5.2.4 Phase 4: CCRP Signs Contract (DID-based)
+### 5.2 **New Azure Infrastructure Provisioning Process**
 
 ```mermaid
 sequenceDiagram
@@ -491,346 +438,244 @@ sequenceDiagram
     participant BE as Backend
     participant KC as Keycloak
     participant DB as Database
-    participant BC as Blockchain
-    participant DID as DID Service
-    participant NS as Notification Service
-    participant AUD as Audit Service
+    participant Azure as Azure Cloud
+    participant Monitor as Azure Monitor
 
-    CCRP->>FE: Login & View Contract
-    FE->>BE: GET /api/contracts/:contractId
-    BE->>DB: Fetch Contract with All Signatures
-    DB-->>BE: Contract (TDP & TDC Signed)
-    BE-->>FE: Contract Ready for CCRP
-    FE-->>CCRP: Show Contract (Ready for CCRP)
-    
-    CCRP->>FE: Choose DID-based Signing
-    FE->>FE: Generate Signing Message
-    FE->>FE: ES256Signer.signMessage(message, privateJwk)
-    FE->>BE: POST /api/contracts/:contractId/sign
-    Note over FE,BE: {signature: "base64url", message: "Sign contract...", did: "did:web:ccrp.com:user:ccrp", signatureType: "ES256"}
-    
+    CCRP->>FE: Login & Navigate to Infrastructure
+    FE->>BE: GET /api/auth/profile
     BE->>KC: Verify JWT Token
-    KC-->>BE: User Valid
-    BE->>DID: Verify DID Signature
-    DID-->>BE: Signature Valid
+    KC-->>BE: User Info
+    BE-->>FE: User Profile
+    FE-->>CCRP: Show Infrastructure Dashboard
     
-    BE->>DB: Record CCRP Signature
-    BE->>BC: Record Final Signature
-    BC-->>BE: Transaction Hash
-    BE->>DB: Update Contract Status to "SIGNED"
-    BE->>NS: Create Final Notifications
-    BE->>AUD: Log CCRP Signature
-    BE->>AUD: Log Contract Completion
-    BE-->>FE: Contract Fully Signed
-    FE-->>CCRP: Show Success Message
+    CCRP->>FE: Configure Azure Credentials
+    FE->>BE: POST /api/ccrp/azure-credentials
+    BE->>DB: Store Encrypted Credentials
+    DB-->>BE: Credentials Stored
+    BE->>Azure: Validate Credentials
+    Azure-->>BE: Validation Result
+    BE-->>FE: Credentials Validated
+    FE-->>CCRP: Show Validation Status
+    
+    CCRP->>FE: Create Training Environment
+    FE->>BE: POST /api/infrastructure/provision
+    BE->>DB: Get CCRP Credentials
+    DB-->>BE: Encrypted Credentials
+    BE->>Azure: Create Resource Group
+    Azure-->>BE: Resource Group Created
+    BE->>Azure: Create Virtual Network
+    Azure-->>BE: VNet Created
+    BE->>Azure: Create Virtual Machines
+    Azure-->>BE: VMs Created
+    BE->>Azure: Create Storage Account
+    Azure-->>BE: Storage Created
+    BE->>Azure: Create Key Vault
+    Azure-->>BE: Key Vault Created
+    BE->>Azure: Create ML Workspace
+    Azure-->>BE: ML Workspace Created
+    BE->>Monitor: Setup Monitoring
+    Monitor-->>BE: Monitoring Configured
+    BE-->>FE: Infrastructure Provisioned
+    FE-->>CCRP: Show Infrastructure Status
 ```
 
-#### 5.2.5 Phase 5: Contract Execution
+### 5.3 **Real Training Container Deployment Process**
 
 ```mermaid
 sequenceDiagram
+    participant TDC as TDC User
+    participant FE as Frontend
     participant BE as Backend
-    participant BC as Blockchain
-    participant NS as Notification Service
-    participant AUD as Audit Service
-    participant DB as Database
+    participant Azure as Azure Container Instances
+    participant Storage as Azure Storage
+    participant Monitor as Azure Monitor
 
-    BE->>BC: Trigger Contract Execution
-    BC-->>BE: Execution Started
-    BE->>NS: Notify All Parties of Execution
-    BE->>AUD: Log Contract Execution
-    BE->>DB: Update Contract Status to "EXECUTING"
-```
-
-### 5.3 Contract Signing Activity Diagram (Swim Lanes)
-
-```mermaid
-graph TB
-    subgraph TDC_Lane["TDC Lane"]
-        TDC_Start([Start])
-        TDC_Login[Login to System]
-        TDC_Create[Create Contract]
-        TDC_Fill[Fill Contract Details]
-        TDC_Submit[Submit Contract]
-        TDC_Wait[Wait for Signatures]
-        TDC_Sign[Sign with Wallet]
-        TDC_Complete[Contract Complete]
-    end
+    TDC->>FE: Start Training Job
+    FE->>BE: POST /api/training/start
+    BE->>Azure: Create Container Group
+    Azure-->>BE: Container Group Created
+    BE->>Storage: Mount Training Data
+    Storage-->>BE: Data Mounted
+    BE->>Azure: Start Container
+    Azure-->>BE: Container Started
+    BE->>Monitor: Setup Logging
+    Monitor-->>BE: Logging Configured
+    BE-->>FE: Training Started
+    FE-->>TDC: Show Training Status
     
-    subgraph TDP_Lane["TDP Lane"]
-        TDP_Start([Start])
-        TDP_Login[Login to System]
-        TDP_Notify[Receive Notification]
-        TDP_Review[Review Contract]
-        TDP_Sign[Sign with DID]
-        TDP_Complete[Signature Complete]
-    end
+    Azure->>Monitor: Send Container Logs
+    Monitor->>BE: Forward Logs
+    BE->>FE: Update Training Progress
+    FE-->>TDC: Show Real-time Progress
     
-    subgraph CCRP_Lane["CCRP Lane"]
-        CCRP_Start([Start])
-        CCRP_Login[Login to System]
-        CCRP_Notify[Receive Notification]
-        CCRP_Review[Review Contract]
-        CCRP_Compliance[Check Compliance]
-        CCRP_Sign[Sign with DID]
-        CCRP_Complete[Signature Complete]
-    end
-    
-    subgraph System_Lane["System Lane"]
-        SYS_Validate[Validate Contract]
-        SYS_Notify[Send Notifications]
-        SYS_Record[Record Signatures]
-        SYS_Blockchain[Update Blockchain]
-        SYS_Execute[Execute Contract]
-        SYS_Audit[Log All Actions]
-    end
-    
-    %% Flow connections
-    TDC_Start --> TDC_Login
-    TDC_Login --> TDC_Create
-    TDC_Create --> TDC_Fill
-    TDC_Fill --> TDC_Submit
-    TDC_Submit --> SYS_Validate
-    SYS_Validate --> SYS_Notify
-    SYS_Notify --> TDP_Notify
-    SYS_Notify --> CCRP_Notify
-    
-    TDP_Start --> TDP_Login
-    TDP_Login --> TDP_Notify
-    TDP_Notify --> TDP_Review
-    TDP_Review --> TDP_Sign
-    TDP_Sign --> SYS_Record
-    SYS_Record --> SYS_Blockchain
-    SYS_Record --> SYS_Audit
-    SYS_Record --> TDP_Complete
-    
-    CCRP_Start --> CCRP_Login
-    CCRP_Login --> CCRP_Notify
-    CCRP_Notify --> CCRP_Review
-    CCRP_Review --> CCRP_Compliance
-    CCRP_Compliance --> CCRP_Sign
-    CCRP_Sign --> SYS_Record
-    SYS_Record --> CCRP_Complete
-    
-    TDP_Complete --> TDC_Wait
-    CCRP_Complete --> TDC_Wait
-    TDC_Wait --> TDC_Sign
-    TDC_Sign --> SYS_Record
-    SYS_Record --> TDC_Complete
-    TDC_Complete --> SYS_Execute
-    SYS_Execute --> SYS_Audit
-```
-
-### 5.4 Contract State Diagram
-
-```mermaid
-stateDiagram-v2
-    [*] --> Draft : TDC Creates Contract
-    
-    Draft --> PendingTDP : Contract Submitted
-    Draft --> Draft : Edit Contract
-    
-    PendingTDP --> PendingTDC : TDP Signs
-    PendingTDP --> PendingTDP : TDP Reviews
-    PendingTDP --> Rejected : TDP Rejects
-    
-    PendingTDC --> PendingCCRP : TDC Signs
-    PendingTDC --> PendingTDC : TDC Reviews
-    PendingTDC --> Rejected : TDC Rejects
-    
-    PendingCCRP --> Signed : CCRP Signs
-    PendingCCRP --> PendingCCRP : CCRP Reviews
-    PendingCCRP --> Rejected : CCRP Rejects
-    
-    Signed --> Executing : System Triggers Execution
-    Signed --> Completed : Manual Completion
-    
-    Executing --> Completed : Execution Finished
-    Executing --> Failed : Execution Failed
-    
-    Rejected --> Draft : TDC Resubmits
-    Failed --> Draft : TDC Resubmits
-    
-    Completed --> [*]
-    Rejected --> [*]
-    
-    note right of Draft
-        Contract created by TDC
-        Awaiting TDP signature
-    end note
-    
-    note right of PendingTDP
-        TDP reviewing contract
-        Can sign or reject
-    end note
-    
-    note right of PendingTDC
-        TDC reviewing contract
-        Can sign or reject
-    end note
-    
-    note right of PendingCCRP
-        CCRP reviewing contract
-        Can sign or reject
-    end note
-    
-    note right of Signed
-        All parties signed
-        Ready for execution
-    end note
-    
-    note right of Executing
-        Contract being executed
-        Training environment active
-    end note
-    
-    note right of Completed
-        Contract fulfilled
-        All obligations met
-    end note
+    Azure->>BE: Training Complete
+    BE->>Storage: Save Results
+    Storage-->>BE: Results Saved
+    BE->>Azure: Stop Container
+    Azure-->>BE: Container Stopped
+    BE-->>FE: Training Complete
+    FE-->>TDC: Show Results
 ```
 
 ---
 
 ## 6. Physical View
 
-### 6.1 Deployment/Infrastructure
+### 6.1 **Updated Infrastructure Architecture**
 
-#### 6.1.1 High-Level Architecture Overview
-
-```mermaid
-graph TB
-    subgraph "Internet"
-        Users[End Users]
-        CDN[Cloud CDN]
-    end
-    
-    subgraph "Cloud Infrastructure"
-        subgraph "Application Layer"
-            Frontend[Frontend Containers]
-            Backend[Backend Containers]
-            API_GW[API Gateway]
-        end
-        
-        subgraph "Data Layer"
-            Database[(PostgreSQL)]
-            Cache[(Redis)]
-            Storage[Object Storage]
-        end
-        
-        subgraph "Security Layer"
-            IAM[Keycloak IAM]
-            Security[WAF + VPN]
-        end
-        
-        subgraph "External Services"
-            Blockchain[Ethereum Node]
-            Monitoring[Monitoring Stack]
-        end
-    end
-    
-    Users --> CDN
-    CDN --> Frontend
-    Frontend --> API_GW
-    API_GW --> Backend
-    Backend --> Database
-    Backend --> Cache
-    Backend --> IAM
-    Backend --> Blockchain
-    Backend --> Monitoring
-```
-
-#### 6.1.2 Application Layer Detail
+#### 6.1.1 **Multi-Cloud Deployment Architecture**
 
 ```mermaid
 graph TB
-    subgraph "Load Balancer"
-        LB[NGINX Load Balancer]
+    subgraph "Load Balancer Layer"
+        LB1[Load Balancer 1]
+        LB2[Load Balancer 2]
     end
     
-    subgraph "Frontend Tier"
-        FE1[Frontend Container 1]
-        FE2[Frontend Container 2]
-        FE3[Frontend Container 3]
-    end
-    
-    subgraph "Backend Tier"
-        BE1[Backend Container 1]
-        BE2[Backend Container 2]
-        BE3[Backend Container 3]
-        BE4[Backend Container 4]
-    end
-    
-    subgraph "API Gateway"
-        API_GW[API Gateway]
-    end
-    
-    LB --> FE1
-    LB --> FE2
-    LB --> FE3
-    
-    FE1 --> API_GW
-    FE2 --> API_GW
-    FE3 --> API_GW
-    
-    API_GW --> BE1
-    API_GW --> BE2
-    API_GW --> BE3
-    API_GW --> BE4
-```
-
-#### 6.1.3 Data Layer Architecture
-
-```mermaid
-graph TB
-    subgraph "Backend Containers"
+    subgraph "Application Layer"
         BE1[Backend 1]
         BE2[Backend 2]
         BE3[Backend 3]
         BE4[Backend 4]
+        FE1[Frontend 1]
+        FE2[Frontend 2]
     end
     
-    subgraph "Database Cluster"
-        DB_MASTER[(PostgreSQL Master)]
-        DB_REPLICA1[(PostgreSQL Replica 1)]
-        DB_REPLICA2[(PostgreSQL Replica 2)]
+    subgraph "Azure Cloud Infrastructure"
+        AzureRG1[Resource Group 1 - CCRP1]
+        AzureRG2[Resource Group 2 - CCRP2]
+        AzureRG3[Resource Group 3 - CCRP3]
     end
     
-    subgraph "Cache Layer"
-        Redis1[(Redis Primary)]
-        Redis2[(Redis Replica)]
+    subgraph "Azure Services"
+        ACI1[Container Instances 1]
+        ACI2[Container Instances 2]
+        Storage1[Storage Account 1]
+        Storage2[Storage Account 2]
+        KV1[Key Vault 1]
+        KV2[Key Vault 2]
+        ML1[ML Workspace 1]
+        ML2[ML Workspace 2]
     end
     
-    subgraph "Storage Layer"
-        S3[Object Storage]
-        Backup[Backup Storage]
-    end
+    LB1 --> BE1
+    LB1 --> BE2
+    LB2 --> BE3
+    LB2 --> BE4
     
-    BE1 --> DB_MASTER
-    BE2 --> DB_MASTER
-    BE3 --> DB_MASTER
-    BE4 --> DB_MASTER
+    BE1 --> AzureRG1
+    BE2 --> AzureRG2
+    BE3 --> AzureRG3
+    BE4 --> AzureRG1
     
-    DB_MASTER --> DB_REPLICA1
-    DB_MASTER --> DB_REPLICA2
+    AzureRG1 --> ACI1
+    AzureRG1 --> Storage1
+    AzureRG1 --> KV1
+    AzureRG1 --> ML1
     
-    BE1 --> Redis1
-    BE2 --> Redis1
-    BE3 --> Redis1
-    BE4 --> Redis1
-    
-    Redis1 --> Redis2
-    
-    BE1 --> S3
-    BE2 --> S3
-    BE3 --> S3
-    BE4 --> S3
-    
-    DB_MASTER --> Backup
-    S3 --> Backup
+    AzureRG2 --> ACI2
+    AzureRG2 --> Storage2
+    AzureRG2 --> KV2
+    AzureRG2 --> ML2
 ```
 
-#### 6.1.4 Security & Identity Layer
+#### 6.1.2 **CCRP Credential Management Architecture**
+
+```mermaid
+graph TB
+    subgraph "CCRP Users"
+        CCRP1[CCRP User 1]
+        CCRP2[CCRP User 2]
+        CCRP3[CCRP User 3]
+    end
+    
+    subgraph "Application Layer"
+        BE[Backend Service]
+        Auth[Authentication Service]
+    end
+    
+    subgraph "Database Layer"
+        DB[(PostgreSQL Database)]
+        Credentials[(CCRP Credentials Table)]
+        Contracts[(Contracts Table)]
+    end
+    
+    subgraph "Azure Subscriptions"
+        Sub1[Azure Subscription 1]
+        Sub2[Azure Subscription 2]
+        Sub3[Azure Subscription 3]
+    end
+    
+    CCRP1 --> BE
+    CCRP2 --> BE
+    CCRP3 --> BE
+    
+    BE --> Auth
+    Auth --> DB
+    BE --> Credentials
+    BE --> Contracts
+    
+    BE --> Sub1
+    BE --> Sub2
+    BE --> Sub3
+```
+
+#### 6.1.3 **Real Training Environment Architecture**
+
+```mermaid
+graph TB
+    subgraph "Training Jobs"
+        Job1[Training Job 1]
+        Job2[Training Job 2]
+        Job3[Training Job 3]
+    end
+    
+    subgraph "Azure Container Instances"
+        Container1[Training Container 1]
+        Container2[Training Container 2]
+        Container3[Training Container 3]
+    end
+    
+    subgraph "Azure Storage"
+        Blob1[Training Data Blob 1]
+        Blob2[Training Data Blob 2]
+        Blob3[Training Data Blob 3]
+        Results1[Results Blob 1]
+        Results2[Results Blob 2]
+        Results3[Results Blob 3]
+    end
+    
+    subgraph "Azure Monitoring"
+        Monitor1[Azure Monitor 1]
+        Monitor2[Azure Monitor 2]
+        Monitor3[Azure Monitor 3]
+        Logs1[Log Analytics 1]
+        Logs2[Log Analytics 2]
+        Logs3[Log Analytics 3]
+    end
+    
+    Job1 --> Container1
+    Job2 --> Container2
+    Job3 --> Container3
+    
+    Container1 --> Blob1
+    Container2 --> Blob2
+    Container3 --> Blob3
+    
+    Container1 --> Results1
+    Container2 --> Results2
+    Container3 --> Results3
+    
+    Container1 --> Monitor1
+    Container2 --> Monitor2
+    Container3 --> Monitor3
+    
+    Monitor1 --> Logs1
+    Monitor2 --> Logs2
+    Monitor3 --> Logs3
+```
+
+#### 6.1.4 **Security & Identity Layer**
 
 ```mermaid
 graph TB
@@ -852,6 +697,13 @@ graph TB
         VPN[VPN Gateway]
         HSM[Hardware Security Module]
         KMS[Key Management Service]
+        AzureKV[Azure Key Vault]
+    end
+    
+    subgraph "Azure Security"
+        AzureAD[Azure Active Directory]
+        AzureRBAC[Azure RBAC]
+        AzureEncryption[Azure Encryption]
     end
     
     BE1 --> KC1
@@ -872,6 +724,11 @@ graph TB
     BE3 --> KMS
     BE4 --> KMS
     
+    BE1 --> AzureKV
+    BE2 --> AzureKV
+    BE3 --> AzureKV
+    BE4 --> AzureKV
+    
     WAF --> BE1
     WAF --> BE2
     WAF --> BE3
@@ -879,9 +736,13 @@ graph TB
     
     VPN --> HSM
     VPN --> KMS
+    VPN --> AzureKV
+    
+    AzureAD --> AzureRBAC
+    AzureRBAC --> AzureEncryption
 ```
 
-#### 6.1.5 Monitoring & External Services
+#### 6.1.5 **Monitoring & External Services**
 
 ```mermaid
 graph TB
@@ -897,6 +758,13 @@ graph TB
         Grafana[Grafana]
         AlertManager[Alert Manager]
         ELK[ELK Stack]
+    end
+    
+    subgraph "Azure Monitoring"
+        AzureMonitor[Azure Monitor]
+        AzureLogs[Azure Log Analytics]
+        AzureMetrics[Azure Metrics]
+        AzureAlerts[Azure Alerts]
     end
     
     subgraph "Blockchain Services"
@@ -923,6 +791,15 @@ graph TB
     BE3 --> ELK
     BE4 --> ELK
     
+    BE1 --> AzureMonitor
+    BE2 --> AzureMonitor
+    BE3 --> AzureMonitor
+    BE4 --> AzureMonitor
+    
+    AzureMonitor --> AzureLogs
+    AzureMonitor --> AzureMetrics
+    AzureMonitor --> AzureAlerts
+    
     BE1 --> ETH_NODE
     BE2 --> ETH_NODE
     BE3 --> ETH_NODE
@@ -946,7 +823,7 @@ graph TB
     BE4 --> Audit
 ```
 
-### 6.2 Deployment Configuration
+### 6.2 **Updated Deployment Configuration**
 
 #### Container Orchestration (Kubernetes)
 ```yaml
@@ -991,6 +868,31 @@ spec:
             secretKeyRef:
               name: hsm-secret
               key: url
+        - name: AZURE_SUBSCRIPTION_ID
+          valueFrom:
+            secretKeyRef:
+              name: azure-secret
+              key: subscription-id
+        - name: AZURE_TENANT_ID
+          valueFrom:
+            secretKeyRef:
+              name: azure-secret
+              key: tenant-id
+        - name: AZURE_CLIENT_ID
+          valueFrom:
+            secretKeyRef:
+              name: azure-secret
+              key: client-id
+        - name: AZURE_CLIENT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: azure-secret
+              key: client-secret
+        - name: ENCRYPTION_KEY
+          valueFrom:
+            secretKeyRef:
+              name: encryption-secret
+              key: key
         resources:
           requests:
             memory: "512Mi"
@@ -998,84 +900,26 @@ spec:
           limits:
             memory: "1Gi"
             cpu: "1000m"
-        livenessProbe:
-          httpGet:
-            path: /health
-            port: 3000
-          initialDelaySeconds: 30
-          periodSeconds: 10
-        readinessProbe:
-          httpGet:
-            path: /ready
-            port: 3000
-          initialDelaySeconds: 5
-          periodSeconds: 5
-```
-
-#### Service Configuration
-```yaml
-# k8s/service.yaml
-apiVersion: v1
-kind: Service
-metadata:
-  name: contract-management-backend-service
-spec:
-  selector:
-    app: contract-management-backend
-  ports:
-  - protocol: TCP
-    port: 80
-    targetPort: 3000
-  type: LoadBalancer
-```
-
-#### Ingress Configuration
-```yaml
-# k8s/ingress.yaml
-apiVersion: networking.k8s.io/v1
-kind: Ingress
-metadata:
-  name: contract-management-ingress
-  annotations:
-    nginx.ingress.kubernetes.io/ssl-redirect: "true"
-    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
-spec:
-  tls:
-  - hosts:
-    - api.contractmanagement.com
-    secretName: tls-secret
-  rules:
-  - host: api.contractmanagement.com
-    http:
-      paths:
-      - path: /
-        pathType: Prefix
-        backend:
-          service:
-            name: contract-management-backend-service
-            port:
-              number: 80
 ```
 
 ---
 
-## 7. Full Class Diagram
-
-### 7.1 Complete Class Structure with Relationships
+## 7. **Updated Logical Class Diagram**
 
 ```mermaid
 classDiagram
-    %% Frontend Classes
+    %% Frontend Components
     class ReactApp {
         +render()
-        +handleNavigation()
-        +manageState()
+        +handleState()
+        +routeToPage()
     }
     
     class UserDashboard {
         +displayUserInfo()
+        +showContracts()
+        +showDatasets()
         +showNotifications()
-        +navigateToFeatures()
     }
     
     class ContractForm {
@@ -1085,51 +929,38 @@ classDiagram
     }
     
     class SigningModal {
-        +showSigningOptions()
-        +handleDIDSigning()
-        +handleWalletSigning()
+        +signContract()
         +verifySignature()
+        +submitSignature()
     }
     
     class APIService {
-        +get(endpoint)
-        +post(endpoint, data)
-        +put(endpoint, data)
-        +delete(endpoint)
-        +setAuthToken(token)
+        +get(url)
+        +post(url, data)
+        +put(url, data)
+        +delete(url)
     }
     
     class TokenManager {
-        +storeToken(token)
         +getToken()
         +refreshToken()
         +clearToken()
     }
     
     class ES256Signer {
-        +signMessage(message, privateJwk)
-        +verifySignature(message, signature, publicJwk)
-        +importPrivateKey(jwk)
+        +signMessage(message, privateKey)
+        +verifySignature(message, signature, publicKey)
     }
     
     %% Backend Models
     class User {
         +id: UUID
-        +name: String
         +email: String
         +partyType: String
         +did: String
         +walletAddress: String
-        +publicKey: String
-        +organization: String
         +isActive: Boolean
-        +registrationDate: Date
-        +onboardingStatus: String
-        +profileCompleted: Boolean
-        +emailVerified: Boolean
-        +iamUserId: String
-        +cloudProviders: Array
-        +description: String
+        +createdAt: Date
         +create()
         +update()
         +delete()
@@ -1138,62 +969,101 @@ classDiagram
     }
     
     class Contract {
+        +id: UUID
         +contractId: String
         +tdpId: UUID
         +tdcId: UUID
         +ccrpId: UUID
-        +datasetId: UUID
         +status: String
-        +trainingParams: JSON
-        +securityRequirements: JSON
-        +aiModelIds: Array
-        +ccrpCloudProvider: String
+        +terms: JSON
+        +signatures: JSON
         +createdAt: Date
-        +updatedAt: Date
+        +ccrpAzureSubscriptionId: String
+        +ccrpAzureTenantId: String
+        +ccrpAzureLocation: String
+        +ccrpAzureVMSize: String
+        +ccrpAzureStorageSku: String
+        +ccrpAzureDatabaseSku: String
+        +ccrpAzureEnableEncryption: Boolean
+        +ccrpAzureEnableMonitoring: Boolean
+        +ccrpAzureBudgetLimit: Decimal
         +create()
         +update()
         +delete()
-        +findByContractId()
         +findByUser()
-        +updateStatus()
+        +findByStatus()
     }
     
     class Dataset {
         +id: UUID
         +name: String
         +description: String
-        +category: String
-        +price: Decimal
         +ownerId: UUID
-        +isActive: Boolean
+        +depaId: String
         +metadata: JSON
+        +accessControl: JSON
+        +createdAt: Date
         +create()
         +update()
         +delete()
         +findByOwner()
-        +findByCategory()
+        +findByDEPA()
     }
     
     class AIModel {
         +id: UUID
-        +modelId: String
         +name: String
         +description: String
-        +type: String
-        +architecture: String
-        +framework: String
-        +parameters: JSON
-        +privacyTechnique: String
-        +validationMetrics: JSON
-        +maxEpochs: Integer
-        +batchSize: Integer
-        +learningRate: Decimal
-        +isActive: Boolean
+        +ownerId: UUID
+        +depaId: String
+        +modelType: String
+        +metadata: JSON
+        +createdAt: Date
         +create()
         +update()
         +delete()
+        +findByOwner()
         +findByType()
-        +findByFramework()
+    }
+    
+    class CCRPAzureCredentials {
+        +id: UUID
+        +ccrpUserId: UUID
+        +subscriptionId: String
+        +tenantId: String
+        +clientId: String
+        +clientSecret: String
+        +authMethod: String
+        +defaultLocation: String
+        +defaultVMSize: String
+        +enableEncryption: Boolean
+        +budgetLimit: Decimal
+        +validationStatus: String
+        +isActive: Boolean
+        +createdAt: Date
+        +create()
+        +update()
+        +delete()
+        +validateCredentials()
+        +getAzureConfig()
+    }
+    
+    class TrainingJob {
+        +id: UUID
+        +contractId: UUID
+        +jobId: String
+        +status: String
+        +containerId: String
+        +startTime: Date
+        +endTime: Date
+        +logs: JSON
+        +results: JSON
+        +createdAt: Date
+        +create()
+        +update()
+        +delete()
+        +findByContract()
+        +findByStatus()
     }
     
     class Notification {
@@ -1302,6 +1172,36 @@ classDiagram
         +assignRole(userId, role)
     }
     
+    class InfrastructureService {
+        +createTrainingEnvironment(contractId, config)
+        +getEnvironment(environmentId)
+        +updateEnvironment(environmentId, updates)
+        +deleteEnvironment(environmentId)
+        +listEnvironments(filters)
+        +getEnvironmentStatus(environmentId)
+    }
+    
+    class TrainingService {
+        +startTraining(contractId, config)
+        +getTrainingJob(jobId)
+        +updateTrainingJob(jobId, updates)
+        +stopTraining(jobId)
+        +listTrainingJobs(filters)
+        +getTrainingLogs(jobId)
+        +getTrainingResults(jobId)
+    }
+    
+    class CCRPAzureCredentialsService {
+        +createOrUpdateCredentials(ccrpUserId, credentials, config)
+        +getCredentials(ccrpUserId)
+        +validateCredentials(ccrpUserId)
+        +getContractAzureConfig(contractId)
+        +updateContractAzureConfig(contractId, config)
+        +listCCRPsWithCredentials()
+        +deleteCredentials(ccrpUserId)
+        +testAzureConnectivity(ccrpUserId)
+    }
+    
     %% Relationships
     ReactApp --> UserDashboard
     ReactApp --> ContractForm
@@ -1321,10 +1221,13 @@ classDiagram
     User ||--o{ AIModel : "owns"
     User ||--o{ Notification : "receives"
     User ||--o{ AuditLog : "generates"
+    User ||--o{ CCRPAzureCredentials : "has"
+    User ||--o{ TrainingJob : "initiates"
     
     Contract ||--o{ Dataset : "references"
     Contract ||--o{ AIModel : "references"
     Contract ||--o{ Notification : "triggers"
+    Contract ||--o{ TrainingJob : "generates"
     
     %% Service Relationships
     AuthService --> User
@@ -1349,6 +1252,13 @@ classDiagram
     
     DIDService --> User
     BlockchainService --> Contract
+    
+    InfrastructureService --> CCRPAzureCredentials
+    InfrastructureService --> Contract
+    TrainingService --> TrainingJob
+    TrainingService --> Contract
+    CCRPAzureCredentialsService --> CCRPAzureCredentials
+    CCRPAzureCredentialsService --> User
 ```
 
 ---
@@ -1379,6 +1289,7 @@ classDiagram
 - **Database**: Sequelize ORM with migrations
 - **Security**: JWT + Keycloak integration
 - **Blockchain**: Ethereum integration with fallback
+- **Azure Integration**: Real Azure SDK with CCRP-specific credentials
 
 ### 9.3 Security Considerations
 - **Authentication**: Multi-factor authentication via Keycloak
@@ -1386,6 +1297,7 @@ classDiagram
 - **Cryptography**: ES256 signing with HSM/KMS
 - **Audit**: Comprehensive logging and monitoring
 - **Compliance**: DPDP, GDPR, enterprise security standards
+- **Azure Security**: Encrypted credential storage, CCRP isolation
 
 ### 9.4 Scalability Strategy
 - **Horizontal Scaling**: Multiple backend containers
@@ -1393,6 +1305,28 @@ classDiagram
 - **Caching**: Redis for session and data caching
 - **CDN**: Static asset delivery
 - **Load Balancing**: Kubernetes ingress controller
+- **Multi-Tenant**: CCRP isolation with independent Azure subscriptions
+- **Real Infrastructure**: Actual Azure resource provisioning
+
+### 9.5 **New Azure Integration Guidelines**
+
+#### **CCRP Credential Management**
+- **Encrypted Storage**: AES-256-CBC encryption for client secrets
+- **Multi-Tenant**: Each CCRP has independent Azure subscription
+- **Validation**: Automatic credential validation before use
+- **Audit Trail**: Complete tracking of credential changes
+
+#### **Infrastructure Provisioning**
+- **Real Resources**: Actual Azure VMs, storage, networking
+- **Container Deployment**: Real Azure Container Instances
+- **Cost Management**: Per-CCRP and per-contract budget tracking
+- **Monitoring**: Real Azure Monitor integration
+
+#### **Training Environment**
+- **Real Execution**: Actual container deployment for training
+- **Data Access**: Real Azure Storage blob access
+- **Model Registration**: Real Azure ML model registration
+- **Security**: Real Azure Key Vault integration
 
 ---
 
@@ -1406,10 +1340,10 @@ This UML 4+1 View Architecture provides a comprehensive framework for understand
 - **Process View**: Ensures proper integration and workflows
 - **Physical View**: Plans deployment and infrastructure
 
-The architecture supports enterprise-grade security, scalability, and compliance while maintaining clear separation of concerns and modular design principles.
+The architecture supports enterprise-grade security, scalability, and compliance while maintaining clear separation of concerns and modular design principles. **The latest v2.0 update adds real Azure infrastructure provisioning with multi-tenant CCRP credential management, making the system truly production-ready for enterprise deployments.**
 
 ---
 
-**Document Version:** 1.0  
+**Document Version:** 2.0  
 **Last Updated:** December 2024  
 **Next Review:** March 2025 
