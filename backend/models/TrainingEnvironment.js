@@ -109,6 +109,20 @@ module.exports = (sequelize, DataTypes) => {
       comment: 'Actual cost incurred'
     },
     
+    // Provisioning method
+    provisioningMethod: {
+      type: DataTypes.ENUM('SDK', 'TERRAFORM'),
+      defaultValue: 'SDK',
+      comment: 'Infrastructure provisioning method'
+    },
+    
+    // Terraform state (for Terraform-provisioned environments)
+    terraformState: {
+      type: DataTypes.JSON,
+      allowNull: true,
+      comment: 'Terraform state and outputs for Infrastructure as Code'
+    },
+    
     // Error details if provisioning failed
     errorDetails: {
       type: DataTypes.TEXT,

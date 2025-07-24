@@ -721,4 +721,93 @@ router.get('/training/jobs/:jobId/logs', authenticateToken, async (req, res) => 
   }
 });
 
+// Terraform Infrastructure Routes
+router.post('/infrastructure/terraform/provision/:userId', authenticateToken, async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const { contractId, config } = req.body;
+    
+    // Verify user is CCRP
+    const user = await User.findByPk(userId);
+    if (!user || user.partyType !== 'CCRP') {
+      return res.status(403).json({ error: 'Access denied. CCRP role required.' });
+    }
+
+    const InfrastructureService = require('../services/infrastructureService');
+    const infrastructureService = new InfrastructureService();
+    
+    const result = await infrastructureService.createTrainingEnvironmentWithTerraform(contractId, config);
+    res.json(result);
+  } catch (error) {
+    console.error('Error provisioning infrastructure with Terraform:', error);
+    res.status(500).json({ error: 'Failed to provision infrastructure with Terraform' });
+  }
+});
+
+router.delete('/infrastructure/terraform/environments/:environmentId', authenticateToken, async (req, res) => {
+  try {
+    const { environmentId } = req.params;
+    
+    const InfrastructureService = require('../services/infrastructureService');
+    const infrastructureService = new InfrastructureService();
+    
+    const result = await infrastructureService.destroyTrainingEnvironmentWithTerraform(environmentId);
+    res.json(result);
+  } catch (error) {
+    console.error('Error destroying infrastructure with Terraform:', error);
+    res.status(500).json({ error: 'Failed to destroy infrastructure with Terraform' });
+  }
+});
+
+router.get('/infrastructure/terraform/environments/:environmentId/state', authenticateToken, async (req, res) => {
+  try {
+    const { environmentId } = req.params;
+    
+    const environment = await db.TrainingEnvironment.findOne({
+      where: { environmentId }
+    });
+
+    if (!environment) {
+      return res.status(404).json({ error: 'Environment not found' });
+    }
+
+    if (environment.provisioningMethod !== 'TERRAFORM') {
+      return res.status(400).json({ error: 'Environment was not provisioned with Terraform' });
+    }
+
+    res.json({
+      environmentId: environment.environmentId,
+      status: environment.status,
+      terraformState: environment.terraformState
+    });
+  } catch (error) {
+    console.error('Error getting Terraform state:', error);
+    res.status(500).json({ error: 'Failed to get Terraform state' });
+  }
+});
+
+router.get('/infrastructure/terraform/environments/:environmentId/outputs', authenticateToken, async (req, res) => {
+  try {
+    const { environmentId } = req.params;
+    
+    const environment = await db.TrainingEnvironment.findOne({
+      where: { environmentId }
+    });
+
+    if (!environment) {
+      return res.status(404).json({ error: 'Environment not found' });
+    }
+
+    if (environment.provisioningMethod !== 'TERRAFORM') {
+      return res.status(400).json({ error: 'Environment was not provisioned with Terraform' });
+    }
+
+    const outputs = environment.terraformState?.outputs || {};
+    res.json({ outputs });
+  } catch (error) {
+    console.error('Error getting Terraform outputs:', error);
+    res.status(500).json({ error: 'Failed to get Terraform outputs' });
+  }
+});
+
 module.exports = router; 
