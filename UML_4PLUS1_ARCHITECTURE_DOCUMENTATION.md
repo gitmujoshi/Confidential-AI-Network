@@ -1216,18 +1216,18 @@ classDiagram
     SigningModal --> APIService
     
     %% Backend Relationships
-    User ||--o{ Contract : "creates"
-    User ||--o{ Dataset : "owns"
-    User ||--o{ AIModel : "owns"
-    User ||--o{ Notification : "receives"
-    User ||--o{ AuditLog : "generates"
-    User ||--o{ CCRPAzureCredentials : "has"
-    User ||--o{ TrainingJob : "initiates"
+    User ||--o{ Contract : creates
+    User ||--o{ Dataset : owns
+    User ||--o{ AIModel : owns
+    User ||--o{ Notification : receives
+    User ||--o{ AuditLog : generates
+    User ||--o{ CCRPAzureCredentials : has
+    User ||--o{ TrainingJob : initiates
     
-    Contract ||--o{ Dataset : "references"
-    Contract ||--o{ AIModel : "references"
-    Contract ||--o{ Notification : "triggers"
-    Contract ||--o{ TrainingJob : "generates"
+    Contract ||--o{ Dataset : references
+    Contract ||--o{ AIModel : references
+    Contract ||--o{ Notification : triggers
+    Contract ||--o{ TrainingJob : generates
     
     %% Service Relationships
     AuthService --> User
