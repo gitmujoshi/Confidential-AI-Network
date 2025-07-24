@@ -192,11 +192,11 @@ graph TB
     end
     
     %% External Services
-    class KeycloakIAM
-    class BlockchainService
-    class Database
-    class MonitoringService
-    class AzureCloud[Azure Cloud Services]
+    KeycloakIAM[Keycloak IAM]
+    BlockchainService[Blockchain Service]
+    Database[(Database)]
+    MonitoringService[Monitoring Service]
+    AzureCloud[Azure Cloud Services]
     
     %% Frontend connections to services
     Frontend --> AuthService
