@@ -158,10 +158,12 @@ graph LR
 
 ### 3.1 System Components
 
+**Description:** This diagram shows the high-level system architecture organized by layers and subsystems. It illustrates how the frontend, backend services, and external systems interact, with clear separation between different functional areas and their dependencies.
+
 ```mermaid
-graph TB
-    %% Frontend Layer
-    subgraph Frontend
+graph LR
+    %% Frontend Layer on the left
+    subgraph Frontend["Frontend Layer"]
         ReactApp[React Application]
         UserDashboard[User Dashboard]
         ContractForm[Contract Form]
@@ -171,61 +173,64 @@ graph TB
         ES256Signer[ES256 Signer]
     end
     
-    %% Backend Services
-    subgraph Backend
-        AuthService[Auth Service]
-        UserService[User Service]
-        DIDService[DID Service]
-        DatasetService[Dataset Service]
-        ModelService[Model Service]
-        ContractService[Contract Service]
-        SigningService[Signing Service]
-        NotificationService[Notification Service]
-        AuditService[Audit Service]
-        AdminService[Admin Service]
-        InfrastructureService[Infrastructure Service]
-        TrainingService[Training Service]
-        CCRPAzureCredentialsService[CCRP Azure Credentials Service]
+    %% Backend Services organized by subsystems
+    subgraph Backend["Backend Services"]
+        subgraph Core["Core Services"]
+            ContractService[Contract Service]
+            DatasetService[Dataset Service]
+            ModelService[Model Service]
+            SigningService[Signing Service]
+        end
+        
+        subgraph IAM["Identity & Security"]
+            AuthService[Auth Service]
+            UserService[User Service]
+            DIDService[DID Service]
+            AdminService[Admin Service]
+        end
+        
+        subgraph Training["Training & Infrastructure"]
+            InfrastructureService[Infrastructure Service]
+            TrainingService[Training Service]
+            CCRPAzureCredentialsService[CCRP Azure Credentials Service]
+        end
+        
+        subgraph Support["Support Services"]
+            NotificationService[Notification Service]
+            AuditService[Audit Service]
+        end
     end
     
-    %% External Services
-    KeycloakIAM[Keycloak IAM]
-    BlockchainService[Blockchain Service]
-    Database[(Database)]
-    MonitoringService[Monitoring Service]
-    AzureCloud[Azure Cloud Services]
+    %% External Services on the right
+    subgraph External["External Services"]
+        KeycloakIAM[Keycloak IAM]
+        BlockchainService[Blockchain Service]
+        Database[(Database)]
+        MonitoringService[Monitoring Service]
+        AzureCloud[Azure Cloud Services]
+    end
     
-    %% Frontend connections to services
-    Frontend --> AuthService
-    Frontend --> UserService
-    Frontend --> DIDService
-    Frontend --> DatasetService
-    Frontend --> ModelService
-    Frontend --> ContractService
-    Frontend --> NotificationService
-    Frontend --> AuditService
-    Frontend --> AdminService
-    Frontend --> InfrastructureService
-    Frontend --> TrainingService
-    Frontend --> CCRPAzureCredentialsService
+    %% Frontend connections to backend services
+    Frontend --> Core
+    Frontend --> IAM
+    Frontend --> Training
+    Frontend --> Support
 
-    %% Service dependencies arranged vertically
-    AuthService --> KeycloakIAM
-    UserService --> Database
-    DIDService --> Database
-    DatasetService --> Database
-    ModelService --> Database
-    ContractService --> Database
+    %% Backend service dependencies
+    Core --> Database
+    Core --> BlockchainService
+    IAM --> KeycloakIAM
+    IAM --> Database
+    Training --> Database
+    Training --> AzureCloud
+    Support --> Database
+    
+    %% Specific service connections
     ContractService --> BlockchainService
     SigningService --> DIDService
     SigningService --> BlockchainService
-    NotificationService --> Database
-    AuditService --> Database
-    AdminService --> Database
-    MonitoringService --> Database
     InfrastructureService --> AzureCloud
     TrainingService --> AzureCloud
-    CCRPAzureCredentialsService --> Database
     CCRPAzureCredentialsService --> AzureCloud
 ```
 
