@@ -33,6 +33,7 @@ db.AIModel = require('./AIModel')(sequelize, Sequelize);
 
 // Import training environment models
 db.TrainingEnvironment = require('./TrainingEnvironment')(sequelize, Sequelize);
+db.TrainingJob = require('./TrainingJob')(sequelize, Sequelize);
 db.EnvironmentResource = require('./EnvironmentResource')(sequelize, Sequelize);
 db.EnvironmentCost = require('./EnvironmentCost')(sequelize, Sequelize);
 
@@ -42,6 +43,9 @@ db.DataProcessingRecord = require('./DataProcessingRecord')(sequelize, Sequelize
 db.Grievance = require('./Grievance')(sequelize, Sequelize);
 db.DataBreach = require('./DataBreach')(sequelize, Sequelize);
 db.AuditLog = require('./AuditLog')(sequelize, Sequelize);
+
+// Import CCRP Azure credentials model
+db.CCRPAzureCredentials = require('./CCRPAzureCredentials')(sequelize, Sequelize);
 
 // Define associations
 db.User.hasMany(db.Dataset, { foreignKey: 'ownerId', as: 'datasets' });
@@ -54,6 +58,10 @@ db.User.hasMany(db.Contract, { foreignKey: 'ccrpId', as: 'ccrpContracts' });
 db.Contract.belongsTo(db.User, { foreignKey: 'tdpId', as: 'tdp' });
 db.Contract.belongsTo(db.User, { foreignKey: 'tdcId', as: 'tdc' });
 db.Contract.belongsTo(db.User, { foreignKey: 'ccrpId', as: 'ccrp' });
+
+// CCRP Azure credentials associations
+db.User.hasOne(db.CCRPAzureCredentials, { foreignKey: 'ccrpUserId', as: 'azureCredentials' });
+db.CCRPAzureCredentials.belongsTo(db.User, { foreignKey: 'ccrpUserId', as: 'ccrp' });
 
 db.Contract.belongsTo(db.Dataset, { foreignKey: 'datasetId', as: 'dataset' });
 db.Dataset.hasMany(db.Contract, { foreignKey: 'datasetId', as: 'contracts' });
@@ -87,6 +95,13 @@ db.DataProcessingRecord.belongsTo(db.Consent, { foreignKey: 'consentId', as: 'co
 // Training environment associations
 db.Contract.hasMany(db.TrainingEnvironment, { foreignKey: 'contractId', sourceKey: 'contractId', as: 'trainingEnvironments' });
 db.TrainingEnvironment.belongsTo(db.Contract, { foreignKey: 'contractId', targetKey: 'contractId', as: 'contract' });
+
+// Training job associations
+db.Contract.hasMany(db.TrainingJob, { foreignKey: 'contractId', sourceKey: 'contractId', as: 'trainingJobs' });
+db.TrainingJob.belongsTo(db.Contract, { foreignKey: 'contractId', targetKey: 'contractId', as: 'contract' });
+
+db.User.hasMany(db.TrainingJob, { foreignKey: 'createdBy', as: 'createdTrainingJobs' });
+db.TrainingJob.belongsTo(db.User, { foreignKey: 'createdBy', as: 'creator' });
 
 db.TrainingEnvironment.hasMany(db.EnvironmentResource, { foreignKey: 'environmentId', sourceKey: 'environmentId', as: 'resources' });
 db.EnvironmentResource.belongsTo(db.TrainingEnvironment, { foreignKey: 'environmentId', targetKey: 'environmentId', as: 'environment' });

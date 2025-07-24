@@ -1,142 +1,193 @@
-const { DataTypes } = require('sequelize');
+/**
+ * Training Environment Model
+ * 
+ * Tracks training environment provisioning, configuration, and lifecycle
+ * for contracts. Each environment is associated with a contract and
+ * manages the infrastructure resources needed for training.
+ */
 
-module.exports = (sequelize) => {
+module.exports = (sequelize, DataTypes) => {
   const TrainingEnvironment = sequelize.define('TrainingEnvironment', {
+    // Primary key
     id: {
       type: DataTypes.INTEGER,
       primaryKey: true,
       autoIncrement: true
     },
-    contractId: {
-      type: DataTypes.STRING,
-      allowNull: false,
-      references: {
-        model: 'contracts',
-        key: 'contractId'
-      }
-    },
+    
+    // Unique environment identifier
     environmentId: {
       type: DataTypes.STRING,
       allowNull: false,
-      unique: true
+      unique: true,
+      comment: 'Unique training environment identifier'
     },
-    cloudProvider: {
-      type: DataTypes.ENUM('AWS', 'GCP', 'Azure', 'OCI'),
-      allowNull: false
-    },
-    region: {
+    
+    // Associated contract ID
+    contractId: {
       type: DataTypes.STRING,
-      allowNull: false
+      allowNull: false,
+      comment: 'Associated contract ID'
     },
+    
+    // Environment status
     status: {
       type: DataTypes.ENUM(
-        'PENDING',
-        'PROVISIONING',
-        'ACTIVE',
-        'PAUSED',
-        'ERROR',
-        'DESTROYING',
-        'DESTROYED'
+        'PENDING',      // Environment creation requested
+        'PROVISIONING', // Infrastructure being provisioned
+        'ACTIVE',       // Environment ready for training
+        'RUNNING',      // Training in progress
+        'COMPLETED',    // Training completed
+        'FAILED',       // Environment creation failed
+        'DESTROYING',   // Environment being destroyed
+        'DESTROYED'     // Environment destroyed
       ),
-      defaultValue: 'PENDING'
+      defaultValue: 'PENDING',
+      comment: 'Environment status'
     },
-    infrastructureConfig: {
-      type: DataTypes.JSONB,
+    
+    // Cloud provider
+    cloudProvider: {
+      type: DataTypes.STRING,
       allowNull: false,
-      comment: 'Infrastructure configuration including compute, storage, networking'
+      comment: 'Cloud provider (AWS, GCP, Azure, OCI)'
     },
+    
+    // Region
+    region: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      comment: 'Cloud region'
+    },
+    
+    // Infrastructure configuration
+    infrastructureConfig: {
+      type: DataTypes.JSON,
+      allowNull: true,
+      comment: 'Infrastructure configuration (compute, storage, network)'
+    },
+    
+    // Security configuration
     securityConfig: {
-      type: DataTypes.JSONB,
-      comment: 'Security configurations including IAM, encryption, VPC settings'
+      type: DataTypes.JSON,
+      allowNull: true,
+      comment: 'Security configuration (encryption, access control, monitoring)'
     },
+    
+    // Monitoring configuration
     monitoringConfig: {
-      type: DataTypes.JSONB,
-      comment: 'Monitoring and logging configurations'
+      type: DataTypes.JSON,
+      allowNull: true,
+      comment: 'Monitoring and logging configuration'
     },
+    
+    // Environment URL (if applicable)
+    environmentUrl: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      comment: 'Environment access URL'
+    },
+    
+    // Provisioning logs
+    provisioningLogs: {
+      type: DataTypes.JSON,
+      allowNull: true,
+      comment: 'Infrastructure provisioning logs'
+    },
+    
+    // Cost estimate
     costEstimate: {
       type: DataTypes.DECIMAL(10, 2),
-      comment: 'Estimated monthly cost in USD'
+      allowNull: true,
+      comment: 'Estimated cost for environment'
     },
+    
+    // Actual cost
     actualCost: {
       type: DataTypes.DECIMAL(10, 2),
+      allowNull: true,
       comment: 'Actual cost incurred'
     },
-    provisioningLogs: {
+    
+    // Error details if provisioning failed
+    errorDetails: {
       type: DataTypes.TEXT,
-      comment: 'Detailed logs from infrastructure provisioning'
+      allowNull: true,
+      comment: 'Error details if environment creation failed'
     },
-    createdAt: {
-      type: DataTypes.DATE,
-      defaultValue: DataTypes.NOW
-    },
-    updatedAt: {
-      type: DataTypes.DATE,
-      defaultValue: DataTypes.NOW
-    },
-    destroyedAt: {
-      type: DataTypes.DATE,
-      comment: 'Timestamp when environment was destroyed'
-    },
+    
+    // User who created the environment
     createdBy: {
       type: DataTypes.INTEGER,
+      allowNull: false,
       references: {
         model: 'users',
         key: 'id'
-      }
+      },
+      comment: 'User who created the environment'
     },
-    updatedBy: {
-      type: DataTypes.INTEGER,
-      references: {
-        model: 'users',
-        key: 'id'
-      }
+    
+    // Timestamps
+    provisionedAt: {
+      type: DataTypes.DATE,
+      allowNull: true,
+      comment: 'When environment was provisioned'
+    },
+    
+    destroyedAt: {
+      type: DataTypes.DATE,
+      allowNull: true,
+      comment: 'When environment was destroyed'
     }
   }, {
     tableName: 'training_environments',
     timestamps: true,
+    
+    // Database indexes for performance optimization
     indexes: [
       {
-        fields: ['contractId']
+        unique: true,
+        fields: ['environmentId']   // Fast environment ID lookups
       },
       {
-        fields: ['environmentId']
+        fields: ['contractId']      // Fast contract-based queries
       },
       {
-        fields: ['status']
+        fields: ['status']          // Fast status-based queries
       },
       {
-        fields: ['cloudProvider']
-      }
+        fields: ['cloudProvider']   // Fast provider-based queries
+      },
+      {
+        fields: ['createdBy']       // Fast user-based queries
+      },
+      // Removed problematic index - column doesn't exist yet
     ]
   });
 
+  /**
+   * Define associations with other models
+   * @param {Object} models - All Sequelize models
+   */
   TrainingEnvironment.associate = (models) => {
-    TrainingEnvironment.belongsTo(models.Contract, {
-      foreignKey: 'contractId',
+    // Training environment belongs to a contract
+    TrainingEnvironment.belongsTo(models.Contract, { 
+      foreignKey: 'contractId', 
       targetKey: 'contractId',
       as: 'contract'
     });
     
-    TrainingEnvironment.belongsTo(models.User, {
-      foreignKey: 'createdBy',
+    // Training environment belongs to a user (creator)
+    TrainingEnvironment.belongsTo(models.User, { 
+      foreignKey: 'createdBy', 
       as: 'creator'
     });
     
-    TrainingEnvironment.belongsTo(models.User, {
-      foreignKey: 'updatedBy',
-      as: 'updater'
-    });
-    
-    TrainingEnvironment.hasMany(models.EnvironmentResource, {
-      foreignKey: 'environmentId',
-      sourceKey: 'environmentId',
-      as: 'resources'
-    });
-    
-    TrainingEnvironment.hasMany(models.EnvironmentCost, {
-      foreignKey: 'environmentId',
-      sourceKey: 'environmentId',
-      as: 'costs'
+    // Training environment has one training job
+    TrainingEnvironment.hasOne(models.TrainingJob, { 
+      foreignKey: 'contractId', 
+      sourceKey: 'contractId',
+      as: 'trainingJob'
     });
   };
 

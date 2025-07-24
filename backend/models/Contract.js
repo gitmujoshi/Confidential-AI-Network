@@ -230,6 +230,74 @@ module.exports = (sequelize, DataTypes) => {
       comment: 'Selected cloud provider for this contract (AWS, GCP, Azure, OCI)'
     },
     
+    // CCRP Azure Configuration (for Azure contracts)
+    ccrpAzureSubscriptionId: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      comment: 'Azure subscription ID for this contract (from CCRP credentials)'
+    },
+    
+    ccrpAzureTenantId: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      comment: 'Azure tenant ID for this contract (from CCRP credentials)'
+    },
+    
+    ccrpAzureLocation: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      defaultValue: 'eastus',
+      comment: 'Azure region for this contract deployment'
+    },
+    
+    ccrpAzureResourceGroupPrefix: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      defaultValue: 'training',
+      comment: 'Resource group prefix for this contract'
+    },
+    
+    ccrpAzureVMSize: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      defaultValue: 'Standard_D2s_v3',
+      comment: 'VM size for compute instances'
+    },
+    
+    ccrpAzureStorageSku: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      defaultValue: 'Standard_LRS',
+      comment: 'Storage account SKU'
+    },
+    
+    ccrpAzureDatabaseSku: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      defaultValue: 'Basic',
+      comment: 'Database SKU'
+    },
+    
+    ccrpAzureEnableEncryption: {
+      type: DataTypes.BOOLEAN,
+      allowNull: true,
+      defaultValue: true,
+      comment: 'Enable encryption for this contract'
+    },
+    
+    ccrpAzureEnableMonitoring: {
+      type: DataTypes.BOOLEAN,
+      allowNull: true,
+      defaultValue: true,
+      comment: 'Enable monitoring for this contract'
+    },
+    
+    ccrpAzureBudgetLimit: {
+      type: DataTypes.DECIMAL(10, 2),
+      allowNull: true,
+      comment: 'Monthly budget limit for this contract'
+    },
+    
     // All datasets and TDPs with individual payments
     contractDatasets: {
       type: DataTypes.JSON,
@@ -306,6 +374,25 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: true, // Will be set to false after migration
       unique: true,
       comment: 'System-generated DEPA ID (CONTRACT-<GUID>)'
+    },
+    
+    // Service account/role for cloud execution
+    serviceAccount: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      comment: 'Cloud service account or IAM role for training job execution'
+    },
+    // Container image for training job
+    containerImage: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      comment: 'Custom Docker container image for training environment'
+    },
+    // Log/monitoring destination (e.g., CloudWatch, Stackdriver, Azure Monitor)
+    logDestination: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      comment: 'Log/monitoring destination for training job logs and metrics'
     }
   }, {
     tableName: 'contracts',

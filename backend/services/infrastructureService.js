@@ -42,6 +42,21 @@ class InfrastructureService {
         throw new Error('No cloud provider selected for this contract');
       }
 
+      // Get CCRP-specific Azure configuration if using Azure
+      let azureConfig = null;
+      if (contract.ccrpCloudProvider === 'Azure') {
+        const CCRPAzureCredentialsService = require('./ccrpAzureCredentialsService');
+        const ccrpCredentialsService = new CCRPAzureCredentialsService();
+        
+        try {
+          azureConfig = await ccrpCredentialsService.getContractAzureConfig(contractId);
+          console.log(`✅ Retrieved CCRP Azure configuration for contract: ${contractId}`);
+        } catch (error) {
+          console.error(`❌ Error getting CCRP Azure config: ${error.message}`);
+          throw new Error(`Azure configuration not available: ${error.message}`);
+        }
+      }
+
       // Generate unique environment ID
       const environmentId = `env-${contractId}-${Date.now()}`;
       
@@ -60,7 +75,15 @@ class InfrastructureService {
       });
 
       // Get the appropriate cloud provider
-      const provider = this.providers[contract.ccrpCloudProvider];
+      let provider;
+      if (contract.ccrpCloudProvider === 'Azure' && azureConfig) {
+        // Create Azure provider with CCRP-specific configuration
+        const AzureProvider = require('./providers/azureProvider');
+        provider = new AzureProvider(azureConfig);
+      } else {
+        provider = this.providers[contract.ccrpCloudProvider];
+      }
+      
       if (!provider) {
         throw new Error(`Unsupported cloud provider: ${contract.ccrpCloudProvider}`);
       }

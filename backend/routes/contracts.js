@@ -257,15 +257,10 @@ router.get('/:contractId', async (req, res) => {
   try {
     const { contractId } = req.params;
 
-    const contract = await db.Contract.findOne({
-      where: { contractId },
-      include: [
-        { model: db.User, as: 'tdp', attributes: ['id', 'name', 'email', 'walletAddress', 'did'] },
-        { model: db.User, as: 'tdc', attributes: ['id', 'name', 'email', 'walletAddress', 'did'] },
-        { model: db.User, as: 'ccrp', attributes: ['id', 'name', 'email', 'walletAddress', 'did', 'cloudProviders', 'description'] },
-        { model: db.Dataset, as: 'dataset', attributes: ['id', 'name', 'description', 'category', 'datasetId'] }
-      ]
-    });
+    // Use contract service to get contract with datasets
+    const ContractService = require('../services/contractService');
+    const contractService = new ContractService();
+    const contract = await contractService.getContract(contractId);
 
     if (!contract) {
       return res.status(404).json({ error: 'Contract not found' });
