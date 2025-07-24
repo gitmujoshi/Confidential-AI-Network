@@ -1370,49 +1370,49 @@ classDiagram
     SigningModal --> APIService
     
     %% Backend Relationships
-    User ||--o{ Contract : creates
-    User ||--o{ Dataset : owns
-    User ||--o{ AIModel : owns
-    User ||--o{ Notification : receives
-    User ||--o{ AuditLog : generates
-    User ||--o{ CCRPAzureCredentials : has
-    User ||--o{ TrainingJob : manages
+    User ||--o{ Contract
+    User ||--o{ Dataset
+    User ||--o{ AIModel
+    User ||--o{ Notification
+    User ||--o{ AuditLog
+    User ||--o{ CCRPAzureCredentials
+    User ||--o{ TrainingJob
     
-    Contract ||--o{ Dataset : includes
-    Contract ||--o{ AIModel : includes
-    Contract ||--o{ Notification : triggers
-    Contract ||--o{ TrainingJob : creates
+    Contract ||--o{ Dataset
+    Contract ||--o{ AIModel
+    Contract ||--o{ Notification
+    Contract ||--o{ TrainingJob
     
     %% Service Relationships
-    AuthService --> User : authenticates
-    AuthService --> KeycloakService : uses
-    ContractService --> Contract : manages
-    ContractService --> User : serves
-    ContractService --> Dataset : accesses
-    ContractService --> AIModel : accesses
-    ContractService --> SigningService : uses
-    ContractService --> BlockchainService : uses
-    ContractService --> NotificationService : uses
+    AuthService --> User
+    AuthService --> KeycloakService
+    ContractService --> Contract
+    ContractService --> User
+    ContractService --> Dataset
+    ContractService --> AIModel
+    ContractService --> SigningService
+    ContractService --> BlockchainService
+    ContractService --> NotificationService
     
-    SigningService --> DIDService : uses
-    SigningService --> BlockchainService : uses
-    SigningService --> AuditService : logs
+    SigningService --> DIDService
+    SigningService --> BlockchainService
+    SigningService --> AuditService
     
-    NotificationService --> Notification : creates
-    NotificationService --> User : notifies
+    NotificationService --> Notification
+    NotificationService --> User
     
-    AuditService --> AuditLog : creates
-    AuditService --> User : tracks
+    AuditService --> AuditLog
+    AuditService --> User
     
-    DIDService --> User : manages
-    BlockchainService --> Contract : stores
+    DIDService --> User
+    BlockchainService --> Contract
     
-    InfrastructureService --> CCRPAzureCredentials : uses
-    InfrastructureService --> Contract : provisions
-    TrainingService --> TrainingJob : manages
-    TrainingService --> Contract : executes
-    CCRPAzureCredentialsService --> CCRPAzureCredentials : manages
-    CCRPAzureCredentialsService --> User : serves
+    InfrastructureService --> CCRPAzureCredentials
+    InfrastructureService --> Contract
+    TrainingService --> TrainingJob
+    TrainingService --> Contract
+    CCRPAzureCredentialsService --> CCRPAzureCredentials
+    CCRPAzureCredentialsService --> User
 ```
 
 ---
