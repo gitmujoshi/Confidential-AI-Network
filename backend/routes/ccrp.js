@@ -12,23 +12,55 @@ router.get('/dashboard/:userId', authenticateToken, async (req, res) => {
   try {
     const { userId } = req.params;
     
+    // Debug logging
+    console.log('🔍 [CCRP Dashboard] Request details:', {
+      requestedUserId: userId,
+      currentUserId: req.user.localUser?.id,
+      userPartyType: req.user.localUser?.partyType,
+      authType: req.user.authType,
+      hasLocalUser: !!req.user.localUser
+    });
+    
     // Verify user is accessing their own data or is admin
     const currentUserId = req.user.localUser?.id;
     const userPartyType = req.user.localUser?.partyType;
     
     if (currentUserId !== parseInt(userId) && userPartyType !== 'AppAdmin') {
+      console.log('❌ [CCRP Dashboard] Access denied:', {
+        currentUserId,
+        requestedUserId: parseInt(userId),
+        userPartyType,
+        isAdmin: userPartyType === 'AppAdmin'
+      });
       return res.status(403).json({ error: 'Access denied' });
     }
 
+    console.log('✅ [CCRP Dashboard] Access granted for user:', userId);
+
+    // Check if user is a CCRP
+    if (userPartyType !== 'CCRP' && userPartyType !== 'AppAdmin') {
+      console.log('❌ [CCRP Dashboard] User is not CCRP:', userPartyType);
+      return res.status(403).json({ 
+        error: 'Access denied. Only CCRP users can access this dashboard.',
+        code: 'INSUFFICIENT_PERMISSIONS'
+      });
+    }
+
     // Get contracts where this user is CCRP
-    const contracts = await Contract.findAll({
-      where: { ccrpId: userId },
-      include: [
-        { model: User, as: 'tdp', attributes: ['name', 'email'] },
-        { model: User, as: 'tdc', attributes: ['name', 'email'] }
-      ],
-      order: [['createdAt', 'DESC']]
-    });
+    let contracts;
+    try {
+      contracts = await Contract.findAll({
+        where: { ccrpId: userId },
+        order: [['createdAt', 'DESC']]
+      });
+      console.log('📊 [CCRP Dashboard] Contracts found:', contracts.length);
+    } catch (dbError) {
+      console.error('❌ [CCRP Dashboard] Database error:', dbError);
+      return res.status(500).json({ 
+        error: 'Database error while fetching contracts',
+        details: dbError.message
+      });
+    }
 
     // Mock environment data (in real implementation, this would come from environment service)
     const environments = contracts
@@ -41,6 +73,8 @@ router.get('/dashboard/:userId', authenticateToken, async (req, res) => {
         contractId: contract.contractId,
         createdAt: contract.createdAt
       }));
+
+    console.log('📊 [CCRP Dashboard] Environments created:', environments.length);
 
     // Mock resource utilization (in real implementation, this would come from monitoring service)
     const resources = {
@@ -122,6 +156,11 @@ router.get('/dashboard/:userId', authenticateToken, async (req, res) => {
       }))
     });
   } catch (error) {
+    console.error('❌ [CCRP Dashboard] Error details:', {
+      message: error.message,
+      stack: error.stack,
+      name: error.name
+    });
     console.error('CCRP dashboard error:', error);
     res.status(500).json({ error: 'Failed to load CCRP dashboard data' });
   }
