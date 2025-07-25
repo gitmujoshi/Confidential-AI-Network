@@ -69,7 +69,7 @@ import {
   Code,
   DataUsage,
   Assessment,
-  Logs,
+  Description,
   Terminal,
   CloudDownload,
   CloudUpload
@@ -447,14 +447,14 @@ const TrainingEnvironment = () => {
                                 </IconButton>
                               </Tooltip>
                               
-                              <Tooltip title="View Logs">
-                                <IconButton
-                                  size="small"
-                                  onClick={() => handleViewLogs(job.id)}
-                                >
-                                  <Logs />
-                                </IconButton>
-                              </Tooltip>
+                                            <Tooltip title="View Logs">
+                <IconButton
+                  size="small"
+                  onClick={() => handleViewLogs(job.id)}
+                >
+                  <Description />
+                </IconButton>
+              </Tooltip>
                               
                               {job.status === 'RUNNING' && (
                                 <Tooltip title="Stop Job">
@@ -574,7 +574,7 @@ const TrainingEnvironment = () => {
                                   size="small"
                                   onClick={() => handleViewLogs(container.id)}
                                 >
-                                  <Logs />
+                                  <Description />
                                 </IconButton>
                               </Tooltip>
                             </Box>
@@ -935,7 +935,7 @@ const TrainingEnvironment = () => {
       <Dialog open={logsDialogOpen} onClose={() => setLogsDialogOpen(false)} maxWidth="md" fullWidth>
         <DialogTitle>
           <Box display="flex" alignItems="center" gap={1}>
-            <Logs />
+            <Description />
             Training Logs
           </Box>
         </DialogTitle>
