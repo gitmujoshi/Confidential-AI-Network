@@ -39,10 +39,17 @@ const CCRPDashboard = () => {
   const navigate = useNavigate();
   const { currentUser: user } = useUser();
 
+  // Debug logging
+  console.log('🔍 [CCRPDashboard] Current user:', user);
+
   // Fetch CCRP dashboard data
   const { data: dashboardData, isLoading, error } = useQuery('ccrpDashboard', async () => {
+    console.log('🔍 [CCRPDashboard] Fetching dashboard for user ID:', user?.id);
     const dashboardRes = await apiService.get(`/api/ccrp/dashboard/${user.id}`);
     return dashboardRes.data;
+  }, {
+    enabled: !!user?.id, // Only run query if user ID is available
+    retry: false // Don't retry on error to avoid infinite loops
   });
 
   const ccrpUser = dashboardData?.user || {};
