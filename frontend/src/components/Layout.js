@@ -42,8 +42,9 @@ const drawerWidth = 240;
 const Layout = ({ children }) => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { currentUser: user, setUser, clearAuthData } = useUser();
+  const { currentUser, isAuthenticated, isTDC, isTDP, isCCRP, deploymentStatus, isGlobalDEPAId, deploymentInfo } = useUser();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [anchorEl, setAnchorEl] = useState(null);
 
   // Fetch notifications
   const { data: notifications = [] } = useQuery(
@@ -172,6 +173,42 @@ const Layout = ({ children }) => {
       </div>
     </div>
   );
+
+  const renderUserInfo = () => {
+    if (!currentUser) return null;
+
+    return (
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+        <Avatar sx={{ width: 32, height: 32, bgcolor: 'primary.main' }}>
+          {currentUser.name ? currentUser.name.charAt(0).toUpperCase() : 'U'}
+        </Avatar>
+        <Box sx={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+          <Typography variant="body2" noWrap>
+            {currentUser.name || 'User'}
+          </Typography>
+          <Typography variant="caption" color="text.secondary" noWrap>
+            {currentUser.partyType || 'User'}
+          </Typography>
+          {/* Global DEPA ID Information */}
+          {currentUser.depaId && (
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+              <Typography variant="caption" color="text.secondary" noWrap>
+                {isGlobalDEPAId ? '🌍' : '🆔'} {currentUser.depaId}
+              </Typography>
+              {isGlobalDEPAId && deploymentInfo && (
+                <Chip
+                  label={deploymentInfo.deploymentPrefix}
+                  size="small"
+                  variant="outlined"
+                  sx={{ height: 16, fontSize: '0.6rem' }}
+                />
+              )}
+            </Box>
+          )}
+        </Box>
+      </Box>
+    );
+  };
 
   return (
     <Box sx={{ display: 'flex' }}>

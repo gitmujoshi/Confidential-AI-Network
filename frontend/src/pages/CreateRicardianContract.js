@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Box,
   Grid,
@@ -128,6 +128,39 @@ function CreateRicardianContract() {
       region: 'eastus'
     }
   });
+
+  // Multi-deployment support
+  const [enableGlobalDEPAId, setEnableGlobalDEPAId] = useState(false);
+  const [deploymentPrefix, setDeploymentPrefix] = useState('');
+  const [selectedJurisdiction, setSelectedJurisdiction] = useState('');
+  const [availableJurisdictions, setAvailableJurisdictions] = useState([]);
+  const [deploymentStatus, setDeploymentStatus] = useState(null);
+
+  // Load deployment data on mount
+  useEffect(() => {
+    const loadDeploymentData = async () => {
+      try {
+        // Load jurisdictions
+        const jurisdictionsResponse = await apiService.get('/api/global-deployment/jurisdictions');
+        if (jurisdictionsResponse.data.success) {
+          setAvailableJurisdictions(jurisdictionsResponse.data.data.jurisdictions);
+        }
+        
+        // Load deployment status
+        const statusResponse = await apiService.get('/api/global-deployment/status');
+        if (statusResponse.data.success) {
+          setDeploymentStatus(statusResponse.data.data);
+          // Set default deployment prefix
+          setDeploymentPrefix(statusResponse.data.data.currentDeployment.prefix);
+        }
+      } catch (error) {
+        console.warn('Failed to load deployment data:', error);
+        // Continue without global features
+      }
+    };
+
+    loadDeploymentData();
+  }, []);
 
   // Add comprehensive training environment specifications
   const [trainingEnvironment, setTrainingEnvironment] = useState({
@@ -635,7 +668,13 @@ function CreateRicardianContract() {
       // Add environment specifications
       environmentSpecs,
       // Add training parameters
-      trainingParams
+      trainingParams,
+      // Add global DEPA ID options
+      ...(enableGlobalDEPAId && {
+        globalDEPAId: true,
+        deploymentPrefix: deploymentPrefix || undefined,
+        jurisdiction: selectedJurisdiction || undefined
+      })
     };
 
     console.log('📝 Creating multi-TDP contract with payload:', contractPayload);
@@ -722,6 +761,71 @@ function CreateRicardianContract() {
                         Contracts combine human-readable legal documents with machine-executable smart contracts.
                       </Typography>
                     </Box>
+                  </CardContent>
+                </Card>
+              </Grid>
+              
+              <Grid item xs={12} md={6}>
+                <Card>
+                  <CardContent>
+                    <Typography variant="h6" gutterBottom>
+                      Global DEPA ID Configuration
+                    </Typography>
+                    
+                    <FormControlLabel
+                      control={
+                        <Switch
+                          checked={enableGlobalDEPAId}
+                          onChange={(e) => setEnableGlobalDEPAId(e.target.checked)}
+                        />
+                      }
+                      label="Enable Global DEPA ID"
+                    />
+                    
+                    {enableGlobalDEPAId && (
+                      <Box sx={{ mt: 2 }}>
+                        <Grid container spacing={2}>
+                          <Grid item xs={12} md={6}>
+                            <TextField
+                              fullWidth
+                              label="Deployment Prefix"
+                              value={deploymentPrefix}
+                              onChange={(e) => setDeploymentPrefix(e.target.value)}
+                              helperText="Leave empty to use current deployment prefix"
+                              placeholder={deploymentStatus?.currentDeployment?.prefix || 'LOCAL'}
+                            />
+                          </Grid>
+                          <Grid item xs={12} md={6}>
+                            <FormControl fullWidth>
+                              <InputLabel>Jurisdiction (Optional)</InputLabel>
+                              <Select
+                                value={selectedJurisdiction}
+                                onChange={(e) => setSelectedJurisdiction(e.target.value)}
+                                label="Jurisdiction (Optional)"
+                              >
+                                <MenuItem value="">None (Standard)</MenuItem>
+                                {availableJurisdictions.map((jurisdiction) => (
+                                  <MenuItem key={jurisdiction.code} value={jurisdiction.code}>
+                                    {jurisdiction.name}
+                                  </MenuItem>
+                                ))}
+                              </Select>
+                            </FormControl>
+                          </Grid>
+                        </Grid>
+                        
+                        {selectedJurisdiction && (
+                          <Box sx={{ mt: 2 }}>
+                            <Typography variant="body2" color="text.secondary">
+                              <strong>Compliance:</strong> {availableJurisdictions.find(j => j.code === selectedJurisdiction)?.name}
+                            </Typography>
+                            <Typography variant="caption" color="text.secondary">
+                              Data residency: {availableJurisdictions.find(j => j.code === selectedJurisdiction)?.dataResidency}
+                            </Typography>
+                          </Box>
+                        )}
+                      </Box>
+                    )}
                   </CardContent>
                 </Card>
               </Grid>

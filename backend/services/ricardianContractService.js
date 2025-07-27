@@ -230,9 +230,30 @@ class RicardianContractService {
       console.log('🔍 Creating contract record in database...');
       
       // Generate DEPA ID for the contract
-      const DEPAIdService = require('./depaIdService');
-      const depaIdService = new DEPAIdService();
-      const depaId = depaIdService.generateContractDEPAId();
+      let depaId;
+      
+        if (contractData.globalDEPAId) {
+          // Use global DEPA ID service for multi-deployment support
+          const GlobalDEPAIdService = require('./globalDEPAIdService');
+          const globalDEPAIdService = new GlobalDEPAIdService();
+          
+          if (contractData.jurisdiction) {
+            // Generate jurisdiction-compliant DEPA ID
+            depaId = globalDEPAIdService.generateJurisdictionCompliantDEPAId('CONTRACT', contractData.jurisdiction);
+          } else {
+            // Generate standard global DEPA ID
+            depaId = globalDEPAIdService.generateGlobalDEPAId('CONTRACT', contractData.deploymentPrefix);
+          }
+          
+          console.log(`✅ Generated Global Contract DEPA ID: ${depaId}`);
+        } else {
+          // Use standard DEPA ID service for backward compatibility
+          const DEPAIdService = require('./depaIdService');
+          const depaIdService = new DEPAIdService();
+          depaId = depaIdService.generateContractDEPAId();
+          
+          console.log(`✅ Generated Standard Contract DEPA ID: ${depaId}`);
+        }
       
       const contractRecord = {
         contractId: contractData.contractId,

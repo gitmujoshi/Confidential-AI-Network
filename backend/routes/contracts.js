@@ -475,7 +475,11 @@ router.post('/ricardian', authenticateToken, async (req, res) => {
       privacyRequirements, // New privacy requirements object
       trainingEnvironment, // New comprehensive training environment
       complianceSpecs, // New compliance specifications
-      kmsConfigs
+      kmsConfigs,
+      // Global DEPA ID options
+      globalDEPAId,
+      deploymentPrefix,
+      jurisdiction
     } = req.body;
 
     // Validate required fields for new format
@@ -614,7 +618,11 @@ router.post('/ricardian', authenticateToken, async (req, res) => {
         did: ccrpUser.did
       } : null,
       environmentSpecs,
-      trainingParams
+      trainingParams,
+      // Add global DEPA ID options
+      globalDEPAId,
+      deploymentPrefix,
+      jurisdiction
     };
 
     // Create Ricardian contract
