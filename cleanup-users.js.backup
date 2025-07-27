@@ -1,0 +1,150 @@
+const { Pool } = require('pg');
+const axios = require('axios');
+
+async function getKeycloakToken() {
+    try {
+        const response = await axios.post('http://localhost:8080/realms/master/protocol/openid-connect/token', 
+            'grant_type=password&client_id=admin-cli&username=admin&password=***REMOVED-KEYCLOAK_ADMIN_PASSWORD***',
+            {
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+            }
+        );
+        return response.data.access_token;
+    } catch (error) {
+        console.error('Error getting Keycloak token:', error.message);
+        return null;
+    }
+}
+
+async function getKeycloakUsers(token) {
+    try {
+        const response = await axios.get('http://localhost:8080/admin/realms/contract-management/users', {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
+        return response.data;
+    } catch (error) {
+        console.error('Error getting Keycloak users:', error.message);
+        return [];
+    }
+}
+
+async function deleteKeycloakUser(token, userId) {
+    try {
+        await axios.delete(`http://localhost:8080/admin/realms/contract-management/users/${userId}`, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
+        return true;
+    } catch (error) {
+        console.error(`Error deleting Keycloak user ${userId}:`, error.message);
+        return false;
+    }
+}
+
+async function getDatabaseUsers() {
+    const pool = new Pool({
+        host: 'localhost',
+        port: 5432,
+        database: 'contract_management',
+        user: 'mukeshjoshi',
+        password: ''
+    });
+
+    try {
+        const result = await pool.query('SELECT id, email, name, "partyType", "iamUserId", "iamUsername" FROM users ORDER BY id');
+        return result.rows;
+    } catch (error) {
+        console.error('Error getting database users:', error.message);
+        return [];
+    } finally {
+        await pool.end();
+    }
+}
+
+async function deleteDatabaseUser(userId) {
+    const pool = new Pool({
+        host: 'localhost',
+        port: 5432,
+        database: 'contract_management',
+        user: 'mukeshjoshi',
+        password: ''
+    });
+
+    try {
+        await pool.query('DELETE FROM users WHERE id = $1', [userId]);
+        return true;
+    } catch (error) {
+        console.error(`Error deleting database user ${userId}:`, error.message);
+        return false;
+    } finally {
+        await pool.end();
+    }
+}
+
+async function cleanupUsers() {
+    console.log('=== Cleaning up users ===\n');
+
+    // Get admin token
+    const token = await getKeycloakToken();
+    if (!token) {
+        console.log('❌ Could not get Keycloak token');
+        return;
+    }
+
+    // Get all users
+    const ***REMOVED-KEYCLOAK_DB_PASSWORD***Users = await getKeycloakUsers(token);
+    const databaseUsers = await getDatabaseUsers();
+
+    console.log(`📊 Found ${***REMOVED-KEYCLOAK_DB_PASSWORD***Users.length} Keycloak users`);
+    console.log(`📊 Found ${databaseUsers.length} database users\n`);
+
+    // Users to keep
+    const keepEmails = ['admin@contractmanagement.com', 'appadmin@example.com'];
+    const keepUsernames = ['admin', 'appadmin@example.com'];
+
+    // Delete Keycloak users
+    console.log('🗑️  Deleting Keycloak users...');
+    let ***REMOVED-KEYCLOAK_DB_PASSWORD***Deleted = 0;
+    for (const user of ***REMOVED-KEYCLOAK_DB_PASSWORD***Users) {
+        if (!keepEmails.includes(user.email) && !keepUsernames.includes(user.username)) {
+            const success = await deleteKeycloakUser(token, user.id);
+            if (success) {
+                console.log(`   ✅ Deleted Keycloak user: ${user.email} (${user.username})`);
+                ***REMOVED-KEYCLOAK_DB_PASSWORD***Deleted++;
+            } else {
+                console.log(`   ❌ Failed to delete Keycloak user: ${user.email} (${user.username})`);
+            }
+        } else {
+            console.log(`   🔒 Keeping Keycloak user: ${user.email} (${user.username})`);
+        }
+    }
+
+    // Delete database users
+    console.log('\n🗑️  Deleting database users...');
+    let dbDeleted = 0;
+    for (const user of databaseUsers) {
+        if (!keepEmails.includes(user.email)) {
+            const success = await deleteDatabaseUser(user.id);
+            if (success) {
+                console.log(`   ✅ Deleted database user: ${user.email} (${user.name})`);
+                dbDeleted++;
+            } else {
+                console.log(`   ❌ Failed to delete database user: ${user.email} (${user.name})`);
+            }
+        } else {
+            console.log(`   🔒 Keeping database user: ${user.email} (${user.name})`);
+        }
+    }
+
+    console.log('\n📈 Cleanup Summary:');
+    console.log(`   Keycloak users deleted: ${***REMOVED-KEYCLOAK_DB_PASSWORD***Deleted}`);
+    console.log(`   Database users deleted: ${dbDeleted}`);
+    console.log(`   Users kept: ${keepEmails.join(', ')}`);
+}
+
+cleanupUsers().catch(console.error); 
