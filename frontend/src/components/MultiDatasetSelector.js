@@ -23,6 +23,8 @@ import {
   Person,
   Storage,
   Add,
+  Security,
+  Lock,
 } from '@mui/icons-material';
 
 /**
@@ -44,6 +46,7 @@ import {
  * - Individual pricing per dataset
  * - Selection limits and validation
  * - Clear visual feedback for disabled options
+ * - Confidential computing requirement indicators
  */
 
 const MultiDatasetSelector = ({
@@ -55,175 +58,145 @@ const MultiDatasetSelector = ({
   maxDatasets = 3,
   disabled = false
 }) => {
-  // Check if a dataset can be selected
-  const canSelectDataset = (dataset) => {
-    if (disabled) return false;
-    
-    const isSelected = selectedDatasets.some(d => d.id === dataset.id);
-    if (isSelected) return true; // Can always deselect
-    
-    // Check if max datasets reached
-    if (selectedDatasets.length >= maxDatasets) return false;
-    
-    return true;
+  const isSelected = (dataset) => selectedDatasets.some(d => d.id === dataset.id);
+  const isDisabled = (dataset) => disabled || (!isSelected(dataset) && selectedDatasets.length >= maxDatasets);
+
+  const handleDatasetToggle = (dataset) => {
+    if (!isDisabled(dataset)) {
+      onDatasetToggle(dataset);
+    }
   };
 
-  // Debug logging
-  console.log('🔍 MultiDatasetSelector Debug:', {
-    totalDatasets: datasets.length,
-    selectedCount: selectedDatasets.length,
-    maxDatasets,
-    selectedDatasets: selectedDatasets.map(d => ({ id: d.id, name: d.name, tdp: d.owner?.name }))
-  });
-
-  // Get selection status for a dataset
-  const getDatasetStatus = (dataset) => {
-    const isSelected = selectedDatasets.some(d => d.id === dataset.id);
-    const canSelect = canSelectDataset(dataset);
-    
-    if (isSelected) {
-      return { status: 'selected', message: 'Selected' };
-    } else if (!canSelect) {
-      if (selectedDatasets.length >= maxDatasets) {
-        return { status: 'disabled', message: 'Max datasets reached' };
-      } else {
-        return { status: 'disabled', message: 'Not available' };
-      }
-    } else {
-      return { status: 'available', message: 'Available' };
-    }
+  const handlePriceChange = (datasetId, price) => {
+    onPriceChange(datasetId, price);
   };
 
   return (
     <Box>
-      {/* Selected Datasets Summary */}
+      {/* Selection Summary */}
       {selectedDatasets.length > 0 && (
-        <Card sx={{ mb: 3, bgcolor: 'primary.light', color: 'white' }}>
-          <CardContent>
-            <Typography variant="h6" gutterBottom>
-              Selected Datasets ({selectedDatasets.length}/{maxDatasets})
-            </Typography>
-            <Typography variant="body2" sx={{ mb: 2, opacity: 0.9 }}>
-              {selectedDatasets.length === 1 
-                ? '1 dataset selected' 
-                : `${selectedDatasets.length} datasets selected`
-              } - You can add more or proceed with current selection
-            </Typography>
-            <List dense>
-              {selectedDatasets.map((dataset) => (
-                <ListItem key={dataset.id}>
-                  <ListItemIcon>
-                    <Storage />
-                  </ListItemIcon>
-                  <Box sx={{ flexGrow: 1 }}>
-                    <Typography variant="body2" fontWeight="medium">
-                      {dataset.name}
-                    </Typography>
-                    <Typography variant="caption" display="block">
-                      TDP: {dataset.owner?.name} | Price: ${datasetPrices[dataset.id] || dataset.price}
-                    </Typography>
-                  </Box>
-                  <ListItemSecondaryAction>
-                    <IconButton 
-                      edge="end" 
-                      onClick={() => onDatasetToggle(dataset)}
-                      sx={{ color: 'white' }}
-                      disabled={disabled}
-                    >
-                      <Remove />
-                    </IconButton>
-                  </ListItemSecondaryAction>
-                </ListItem>
-              ))}
-            </List>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Available Datasets */}
-      {selectedDatasets.length === 0 && (
-        <Alert severity="info" sx={{ mb: 3 }}>
-          <AlertTitle>No Datasets Selected</AlertTitle>
-          Use the checkboxes to select datasets. You can select 1 to 3 datasets from different TDPs.
+        <Alert severity="info" sx={{ mb: 2 }}>
+          <AlertTitle>Selected Datasets ({selectedDatasets.length}/{maxDatasets})</AlertTitle>
+          {selectedDatasets.map((dataset, index) => (
+            <Box key={dataset.id} sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+              <Typography variant="body2" sx={{ flex: 1 }}>
+                {dataset.name} - ${datasetPrices[dataset.id] || dataset.price}
+              </Typography>
+              <IconButton
+                size="small"
+                onClick={() => handleDatasetToggle(dataset)}
+                disabled={disabled}
+              >
+                <Remove />
+              </IconButton>
+            </Box>
+          ))}
         </Alert>
       )}
-      
+
+      {/* Dataset Grid */}
       <Grid container spacing={2}>
         {datasets.map((dataset) => {
-          const { status, message } = getDatasetStatus(dataset);
-          const isSelected = selectedDatasets.some(d => d.id === dataset.id);
-          const isDisabled = status === 'disabled';
+          const selected = isSelected(dataset);
+          const disabled = isDisabled(dataset);
           
           return (
-            <Grid item xs={12} sm={6} md={4} key={dataset.id}>
+            <Grid item xs={12} md={6} lg={4} key={dataset.id}>
               <Card 
                 sx={{ 
-                  border: isSelected ? 2 : 1,
-                  borderColor: isSelected ? 'primary.main' : 'divider',
-                  opacity: isDisabled ? 0.6 : 1,
-                  position: 'relative',
+                  cursor: disabled && !selected ? 'not-allowed' : 'pointer',
+                  opacity: disabled && !selected ? 0.6 : 1,
+                  border: selected ? 2 : 1,
+                  borderColor: selected ? 'primary.main' : 'divider',
+                  '&:hover': {
+                    borderColor: disabled && !selected ? 'divider' : 'primary.main',
+                    boxShadow: disabled && !selected ? 'none' : 2
+                  }
                 }}
+                onClick={() => handleDatasetToggle(dataset)}
               >
                 <CardContent>
-                  <Box display="flex" alignItems="flex-start" gap={2}>
-                    {/* Checkbox for selection */}
+                  <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1, mb: 1 }}>
                     <Checkbox
-                      checked={isSelected}
-                      disabled={isDisabled}
-                      onChange={() => !isDisabled && onDatasetToggle(dataset)}
-                      color="primary"
-                      sx={{ mt: 0 }}
+                      checked={selected}
+                      disabled={disabled}
+                      size="small"
+                      sx={{ mt: -0.5 }}
                     />
-                    
-                    {/* Dataset content */}
-                    <Box sx={{ flexGrow: 1 }}>
-                      <Box display="flex" justifyContent="space-between" alignItems="flex-start" mb={1}>
-                        <Typography variant="h6" gutterBottom>
-                          {dataset.name}
-                        </Typography>
-                        {isSelected && (
-                          <Chip label="Selected" color="primary" size="small" />
-                        )}
-                      </Box>
-                      
-                      <Typography variant="body2" color="textSecondary" paragraph>
-                        {dataset.description}
+                    <Box sx={{ flex: 1 }}>
+                      <Typography variant="h6" component="div" sx={{ mb: 0.5 }}>
+                        {dataset.name}
                       </Typography>
                       
-                      <Box display="flex" justifyContent="space-between" alignItems="center" mb={1}>
-                        <Typography variant="body2" fontWeight="medium">
-                          ${dataset.price}
-                        </Typography>
-                        <Typography variant="caption" color="textSecondary">
-                          {dataset.category}
-                        </Typography>
-                      </Box>
-                      
-                      <Box display="flex" alignItems="center" gap={1}>
-                        <Person fontSize="small" color="action" />
-                        <Typography variant="caption" color="textSecondary">
-                          {dataset.owner?.name}
-                        </Typography>
-                      </Box>
-                      
-                      {isSelected && (
-                        <TextField
-                          fullWidth
+                      {/* Confidential Computing Indicator */}
+                      {dataset.confidentialComputingRequired && (
+                        <Chip
+                          icon={<Security />}
+                          label="Confidential Computing Required"
+                          color="warning"
                           size="small"
-                          label="Custom Price (USD)"
-                          type="number"
-                          value={datasetPrices[dataset.id] || dataset.price}
-                          onChange={(e) => onPriceChange(dataset.id, e.target.value)}
-                          sx={{ mt: 2 }}
-                          helperText="Adjust price for this dataset"
-                          disabled={disabled}
+                          sx={{ mb: 1 }}
                         />
                       )}
                       
-                      {isDisabled && !isSelected && (
-                        <Alert severity="info" sx={{ mt: 1 }}>
-                          {message}
-                        </Alert>
+                      <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                        {dataset.description}
+                      </Typography>
+                      
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+                        <Storage fontSize="small" color="action" />
+                        <Typography variant="caption" color="text.secondary">
+                          {dataset.category} • {dataset.size}MB • {dataset.recordCount.toLocaleString()} records
+                        </Typography>
+                      </Box>
+                      
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+                        <Person fontSize="small" color="action" />
+                        <Typography variant="caption" color="text.secondary">
+                          {dataset.owner?.name || 'Unknown Owner'}
+                        </Typography>
+                      </Box>
+                      
+                      <Typography variant="h6" color="primary" sx={{ mb: 1 }}>
+                        ${dataset.price}
+                      </Typography>
+                      
+                      {/* Price Input for Selected Datasets */}
+                      {selected && (
+                        <TextField
+                          fullWidth
+                          label="Custom Price"
+                          type="number"
+                          value={datasetPrices[dataset.id] || dataset.price}
+                          onChange={(e) => handlePriceChange(dataset.id, e.target.value)}
+                          disabled={disabled}
+                          size="small"
+                          sx={{ mb: 1 }}
+                          InputProps={{
+                            startAdornment: '$',
+                          }}
+                        />
+                      )}
+                      
+                      {/* Tags */}
+                      {dataset.tags && dataset.tags.length > 0 && (
+                        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, mb: 1 }}>
+                          {dataset.tags.slice(0, 3).map((tag, index) => (
+                            <Chip
+                              key={index}
+                              label={tag}
+                              size="small"
+                              variant="outlined"
+                            />
+                          ))}
+                          {dataset.tags.length > 3 && (
+                            <Chip
+                              label={`+${dataset.tags.length - 3} more`}
+                              size="small"
+                              variant="outlined"
+                            />
+                          )}
+                        </Box>
                       )}
                     </Box>
                   </Box>
@@ -234,29 +207,21 @@ const MultiDatasetSelector = ({
         })}
       </Grid>
 
-      {/* Selection Summary */}
-      {selectedDatasets.length > 0 && (
-        <Box sx={{ mt: 3 }}>
-          <Card variant="outlined">
-            <CardContent>
-              <Typography variant="h6" gutterBottom>
-                Selection Summary
-              </Typography>
-              <Box display="flex" flexDirection="column" gap={1}>
-                <Typography variant="body2">
-                  <strong>Total Datasets:</strong> {selectedDatasets.length}/{maxDatasets}
-                </Typography>
-                <Typography variant="body2">
-                  <strong>Total Price:</strong> ${selectedDatasets.reduce((sum, dataset) => 
-                    sum + parseFloat(datasetPrices[dataset.id] || dataset.price || 0), 0).toFixed(2)}
-                </Typography>
-                <Typography variant="body2">
-                  <strong>Unique TDPs:</strong> {new Set(selectedDatasets.map(d => d.owner?.id)).size}
-                </Typography>
-              </Box>
-            </CardContent>
-          </Card>
-        </Box>
+      {/* No Datasets Message */}
+      {datasets.length === 0 && (
+        <Alert severity="info">
+          <AlertTitle>No Datasets Available</AlertTitle>
+          There are no datasets available for selection at this time.
+        </Alert>
+      )}
+
+      {/* Selection Limit Warning */}
+      {selectedDatasets.length >= maxDatasets && (
+        <Alert severity="warning" sx={{ mt: 2 }}>
+          <AlertTitle>Selection Limit Reached</AlertTitle>
+          You have selected the maximum number of datasets ({maxDatasets}). 
+          Remove a dataset to select a different one.
+        </Alert>
       )}
     </Box>
   );
