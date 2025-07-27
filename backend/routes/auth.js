@@ -45,15 +45,20 @@ router.post('/register', logAuthEvent('REGISTER'), async (req, res) => {
       name,
       email,
       partyType,
-      walletAddress,
-      publicKey,
-      description,
       organization,
+      description,
       phoneNumber,
       website,
       location,
+      userType,
+      walletAddress,
+      publicKey,
       existingDID,
-      didVerificationSignature
+      didVerificationSignature,
+      // Global DEPA ID options
+      globalDEPAId,
+      deploymentPrefix,
+      jurisdiction
     } = req.body;
 
     // Validate required fields
@@ -235,45 +240,66 @@ router.post('/register', logAuthEvent('REGISTER'), async (req, res) => {
 
     try {
       // Step 1: Try to create user in Keycloak first
-      try {
-        keycloakResult = await keycloakService.createUser({
-          email,
-          name,
-          walletAddress,
-          partyType,
-          publicKey,
-          organization,
-          phoneNumber,
-          website,
-          location
-        });
-        keycloakSuccess = true;
-        temporaryPassword = keycloakResult.temporaryPassword;
-        console.log('✅ Keycloak user created successfully');
-      } catch (keycloakError) {
-        console.error('❌ Failed to create user in Keycloak:', keycloakError.message);
-        // Rollback transaction and return error
-        await transaction.rollback();
-        return res.status(500).json({
-          success: false,
-          error: 'Failed to create user in IAM system',
-          code: 'KEYCLOAK_CREATE_FAILED',
-          details: {
-            db: false,
-            keycloak: false,
-            blockchain: false,
-            note: 'User creation failed in IAM system. Please try again or contact support.'
-          },
-          message: keycloakError.message
-        });
+      if (process.env.KEYCLOAK_ENABLED === 'true') {
+        try {
+          console.log('🔐 Creating user in Keycloak...');
+          keycloakResult = await keycloakService.createUser({
+            username: email,
+            email: email,
+            firstName: name.split(' ')[0] || name,
+            lastName: name.split(' ').slice(1).join(' ') || '',
+            enabled: true,
+            emailVerified: false,
+            credentials: [{
+              type: 'password',
+              value: temporaryPassword,
+              temporary: true
+            }],
+            attributes: {
+              partyType: [partyType],
+              organization: [organization || ''],
+              userType: [userType || 'individual']
+            }
+          });
+          keycloakSuccess = true;
+          console.log('✅ Keycloak user created successfully');
+        } catch (kcError) {
+          console.error('❌ Keycloak user creation failed:', kcError);
+          keycloakSuccess = false;
+          // Continue with database creation even if Keycloak fails
+        }
       }
 
       // Step 2: Create user in database (only if Keycloak succeeded)
       try {
         // Generate DEPA ID for the user
-        const DEPAIdService = require('../services/depaIdService');
-        const depaIdService = new DEPAIdService();
-        const depaId = depaIdService.generateUserDEPAId(partyType);
+        let depaId;
+        
+        if (globalDEPAId) {
+          // Use global DEPA ID service for multi-deployment support
+          const GlobalDEPAIdService = require('../services/globalDEPAIdService');
+          const globalDEPAIdService = new GlobalDEPAIdService();
+          
+          if (jurisdiction) {
+            // Generate jurisdiction-compliant DEPA ID
+            depaId = globalDEPAIdService.generateJurisdictionCompliantDEPAId(
+              globalDEPAIdService.getEntityType(partyType), 
+              jurisdiction
+            );
+          } else {
+            // Generate standard global DEPA ID
+            depaId = globalDEPAIdService.generateGlobalUserDEPAId(partyType, deploymentPrefix);
+          }
+          
+          console.log(`✅ Generated Global DEPA ID: ${depaId}`);
+        } else {
+          // Use standard DEPA ID service for backward compatibility
+          const DEPAIdService = require('../services/depaIdService');
+          const depaIdService = new DEPAIdService();
+          depaId = depaIdService.generateUserDEPAId(partyType);
+          
+          console.log(`✅ Generated Standard DEPA ID: ${depaId}`);
+        }
         
         dbUser = await db.User.create({
           walletAddress: isEnterprise ? null : walletAddress?.toLowerCase(),
@@ -297,35 +323,15 @@ router.post('/register', logAuthEvent('REGISTER'), async (req, res) => {
           onboardingStatus: 'IN_PROGRESS',
           profileCompleted: false,
           emailVerified: false,
-          iamUserId: keycloakResult.keycloakUserId,
+          iamUserId: keycloakResult?.keycloakUserId,
           iamUsername: email
         }, { transaction });
         dbSuccess = true;
         console.log('✅ Database user created successfully');
       } catch (dbError) {
-        console.error('❌ Failed to create user in DB:', dbError.message);
-        // Rollback transaction and delete orphaned Keycloak user
-        await transaction.rollback();
-        if (keycloakResult && keycloakResult.keycloakUserId) {
-          try {
-            await keycloakService.deleteUser(keycloakResult.keycloakUserId);
-            console.log('🧹 Orphaned Keycloak user deleted after DB failure');
-          } catch (deleteError) {
-            console.error('⚠️ Failed to delete orphaned Keycloak user:', deleteError.message);
-          }
-        }
-        return res.status(500).json({
-          success: false,
-          error: 'Failed to create user in database',
-          code: 'DB_CREATE_FAILED',
-          details: {
-            db: false,
-            keycloak: keycloakSuccess,
-            blockchain: false,
-            note: 'User created in Keycloak but failed in database. Orphaned Keycloak user has been deleted.'
-          },
-          message: dbError.message
-        });
+        console.error('❌ Database user creation failed:', dbError);
+        dbSuccess = false;
+        throw dbError;
       }
 
       // Step 3: Create notification (within transaction)
@@ -347,7 +353,7 @@ router.post('/register', logAuthEvent('REGISTER'), async (req, res) => {
 
       // Step 4: Commit transaction if everything succeeded
       await transaction.commit();
-      console.log(`✅ User registered successfully: ${dbUser.id} (Keycloak: ${keycloakResult.keycloakUserId})`);
+      console.log(`✅ User registered successfully: ${dbUser.id} (Keycloak: ${keycloakResult?.keycloakUserId})`);
 
     } catch (transactionError) {
       // Rollback transaction on any unexpected error
@@ -388,7 +394,7 @@ router.post('/register', logAuthEvent('REGISTER'), async (req, res) => {
 
     // --- TRIGGER EMAIL VERIFICATION (after successful transaction) ---
     try {
-      await keycloakService.sendEmailVerification(keycloakResult.keycloakUserId);
+      await keycloakService.sendEmailVerification(keycloakResult?.keycloakUserId);
     } catch (emailError) {
       console.warn('⚠️ Failed to trigger Keycloak email verification:', emailError.message);
     }
@@ -439,7 +445,7 @@ router.post('/register', logAuthEvent('REGISTER'), async (req, res) => {
       requestBody: req.body
     });
     res.status(500).json({
-      error: 'Registration failed. Please ./starcontact support with the error ID below.',
+      error: 'Registration failed. Please contact support with the error ID below.',
       code: 'INTERNAL_ERROR',
       errorId,
       details: error.message

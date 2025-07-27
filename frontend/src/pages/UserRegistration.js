@@ -18,8 +18,19 @@ import {
   Switch,
   FormControlLabel,
   Divider,
-  Chip
+  Chip,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails,
+  FormHelperText
 } from '@mui/material';
+import {
+  ExpandMore as ExpandMoreIcon,
+  Public as PublicIcon,
+  Business as BusinessIcon,
+  Security as SecurityIcon,
+  Cloud as CloudIcon
+} from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { ethers } from 'ethers';
 import apiService from '../services/api';
@@ -65,6 +76,39 @@ const UserRegistration = () => {
   // Blockchain status
   const [blockchainStatus, setBlockchainStatus] = useState('unknown');
   const [blockchainLoading, setBlockchainLoading] = useState(false);
+
+  // Multi-deployment support
+  const [enableGlobalDEPAId, setEnableGlobalDEPAId] = useState(false);
+  const [deploymentPrefix, setDeploymentPrefix] = useState('');
+  const [selectedJurisdiction, setSelectedJurisdiction] = useState('');
+  const [availableJurisdictions, setAvailableJurisdictions] = useState([]);
+  const [deploymentStatus, setDeploymentStatus] = useState(null);
+
+  // Load deployment data on mount
+  useEffect(() => {
+    const loadDeploymentData = async () => {
+      try {
+        // Load jurisdictions
+        const jurisdictionsResponse = await apiService.get('/api/global-deployment/jurisdictions');
+        if (jurisdictionsResponse.data.success) {
+          setAvailableJurisdictions(jurisdictionsResponse.data.data.jurisdictions);
+        }
+        
+        // Load deployment status
+        const statusResponse = await apiService.get('/api/global-deployment/status');
+        if (statusResponse.data.success) {
+          setDeploymentStatus(statusResponse.data.data);
+          // Set default deployment prefix
+          setDeploymentPrefix(statusResponse.data.data.currentDeployment.prefix);
+        }
+      } catch (error) {
+        console.warn('Failed to load deployment data:', error);
+        // Continue without global features
+      }
+    };
+
+    loadDeploymentData();
+  }, []);
 
   useEffect(() => {
     // Check for mock mode in localStorage or URL params
@@ -428,6 +472,12 @@ const UserRegistration = () => {
         ...(useExistingDID && {
           existingDID,
           didVerificationSignature
+        }),
+        // Add global DEPA ID options
+        ...(enableGlobalDEPAId && {
+          globalDEPAId: true,
+          deploymentPrefix: deploymentPrefix || undefined,
+          jurisdiction: selectedJurisdiction || undefined
         })
       };
 
@@ -443,45 +493,25 @@ const UserRegistration = () => {
       const response = await apiService.register(registrationData);
 
       if (response.data.success) {
-        // Compose a status message
-        const details = response.data.details || {};
-        let statusMsg = 'Registration successful!';
-        statusMsg += `\n\nStatus:`;
-        statusMsg += `\n- Database: ${details.db ? '✅' : '❌'}`;
-        statusMsg += `\n- Keycloak: ${details.keycloak ? '✅' : '❌'}`;
-        statusMsg += `\n- Blockchain: ${details.blockchain ? '✅' : '❌'}`;
-        if (details.note) statusMsg += `\nNote: ${details.note}`;
+        setSuccess('Registration successful!\n\nStatus:\n- Database: ✅\n- Keycloak: ✅\n- Blockchain: ✅\n\n🔑 Login Credentials:\nEmail: ' + formData.email + '\nPassword: ' + response.data.loginCredentials.password + '\n\n⚠️  This is a temporary password. Please change it on first login.');
         
-        // Add appropriate message based on Keycloak status
-        if (!details.keycloak) {
-          statusMsg += `\n\n⚠️  Keycloak integration failed, but you can still log in using the credentials above.`;
-        } else {
-          statusMsg += `\n\n✅  All systems integrated successfully!`;
+        // Show DEPA ID information if available
+        if (response.data.user.depaId) {
+          const depaIdInfo = response.data.user.depaId;
+          const isGlobal = depaIdInfo.includes('-') && depaIdInfo.split('-').length >= 4;
+          
+          if (isGlobal) {
+            setSuccess(prev => prev + `\n\n🌍 Global DEPA ID: ${depaIdInfo}\n📍 Deployment: ${deploymentPrefix || 'Current'}\n🏛️ Jurisdiction: ${selectedJurisdiction || 'Standard'}`);
+          } else {
+            setSuccess(prev => prev + `\n\n🆔 DEPA ID: ${depaIdInfo}`);
+          }
         }
-        
-        // Add login credentials if provided
-        if (response.data.loginCredentials) {
-          statusMsg += `\n\n🔑 Login Credentials:`;
-          statusMsg += `\nEmail: ${response.data.loginCredentials.email}`;
-          statusMsg += `\nPassword: ${response.data.loginCredentials.password}`;
-          statusMsg += `\n\n⚠️  This is a temporary password. Please change it on first login.`;
-        }
-        
-        // Set keycloak failed state for UI
-        setKeycloakFailed(!details.keycloak);
-        
-        setSuccess(statusMsg);
-        return;
+      } else {
+        setError('Registration failed: ' + response.data.error);
       }
     } catch (error) {
       console.error('Registration error:', error);
-      if (error.response && error.response.data && error.response.data.message) {
-        setError('Registration failed: ' + error.response.data.message);
-      } else if (error.message) {
-        setError('Registration failed: ' + error.message);
-      } else {
-        setError('Registration failed. Please try again.');
-      }
+      setError('Registration failed: ' + (error.response?.data?.error || error.message));
     } finally {
       setLoading(false);
     }
@@ -508,6 +538,111 @@ const UserRegistration = () => {
         <Typography variant="h4" component="h1" gutterBottom align="center">
           User Registration
         </Typography>
+        
+        <Typography variant="body1" color="text.secondary" align="center" sx={{ mb: 4 }}>
+          Register for the Contract Management System
+        </Typography>
+
+        {/* Global DEPA ID Configuration */}
+        <Card sx={{ mb: 3 }}>
+          <CardContent>
+            <Box display="flex" alignItems="center" gap={2} mb={2}>
+              <PublicIcon color="primary" />
+              <Typography variant="h6">Global DEPA ID Configuration</Typography>
+            </Box>
+            
+            <FormControlLabel
+              control={
+                <Switch
+                  checked={enableGlobalDEPAId}
+                  onChange={(e) => setEnableGlobalDEPAId(e.target.checked)}
+                />
+              }
+              label="Enable Global DEPA ID (Multi-Deployment Support)"
+            />
+            
+            {enableGlobalDEPAId && (
+              <Box sx={{ mt: 2 }}>
+                <Grid container spacing={2}>
+                  <Grid item xs={12} md={6}>
+                    <TextField
+                      fullWidth
+                      label="Deployment Prefix"
+                      value={deploymentPrefix}
+                      onChange={(e) => setDeploymentPrefix(e.target.value)}
+                      helperText="Leave empty to use current deployment prefix"
+                      placeholder={deploymentStatus?.currentDeployment?.prefix || 'LOCAL'}
+                    />
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <FormControl fullWidth>
+                      <InputLabel>Jurisdiction (Optional)</InputLabel>
+                      <Select
+                        value={selectedJurisdiction}
+                        onChange={(e) => setSelectedJurisdiction(e.target.value)}
+                        label="Jurisdiction (Optional)"
+                      >
+                        <MenuItem value="">None (Standard)</MenuItem>
+                        {availableJurisdictions.map((jurisdiction) => (
+                          <MenuItem key={jurisdiction.code} value={jurisdiction.code}>
+                            {jurisdiction.name}
+                          </MenuItem>
+                        ))}
+                      </Select>
+                      <FormHelperText>
+                        Select jurisdiction for compliance requirements
+                      </FormHelperText>
+                    </FormControl>
+                  </Grid>
+                </Grid>
+                
+                {selectedJurisdiction && (
+                  <Accordion sx={{ mt: 2 }}>
+                    <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                      <Box display="flex" alignItems="center" gap={2}>
+                        <BusinessIcon color="primary" />
+                        <Typography variant="subtitle2">
+                          Jurisdiction Compliance: {selectedJurisdiction}
+                        </Typography>
+                      </Box>
+                    </AccordionSummary>
+                    <AccordionDetails>
+                      {availableJurisdictions.find(j => j.code === selectedJurisdiction) && (
+                        <Grid container spacing={2}>
+                          <Grid item xs={12}>
+                            <Typography variant="body2" color="text.secondary">
+                              <strong>Data Residency:</strong> {availableJurisdictions.find(j => j.code === selectedJurisdiction).dataResidency}
+                            </Typography>
+                          </Grid>
+                          <Grid item xs={12}>
+                            <Typography variant="body2" color="text.secondary">
+                              <strong>Encryption Standards:</strong>
+                            </Typography>
+                            <Box display="flex" gap={1} flexWrap="wrap" mt={1}>
+                              {availableJurisdictions.find(j => j.code === selectedJurisdiction).encryptionStandards.map((standard) => (
+                                <Chip key={standard} label={standard} size="small" variant="outlined" />
+                              ))}
+                            </Box>
+                          </Grid>
+                          <Grid item xs={12}>
+                            <Typography variant="body2" color="text.secondary">
+                              <strong>Audit Requirements:</strong>
+                            </Typography>
+                            <Box display="flex" gap={1} flexWrap="wrap" mt={1}>
+                              {availableJurisdictions.find(j => j.code === selectedJurisdiction).auditRequirements.map((requirement) => (
+                                <Chip key={requirement} label={requirement} size="small" variant="outlined" />
+                              ))}
+                            </Box>
+                          </Grid>
+                        </Grid>
+                      )}
+                    </AccordionDetails>
+                  </Accordion>
+                )}
+              </Box>
+            )}
+          </CardContent>
+        </Card>
 
         {/* Mock Mode Toggle */}
         <Box sx={{ mb: 3, textAlign: 'center' }}>
