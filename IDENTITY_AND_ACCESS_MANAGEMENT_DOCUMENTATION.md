@@ -376,6 +376,528 @@ async isDIDAvailable(did) {
 
 ---
 
+## Dataset and CCRP Infrastructure Management with DEPA IDs
+
+### 1. Dataset Identity Management
+
+#### 1.1 Dataset DEPA ID Generation
+```javascript
+// Dataset creation with DEPA ID
+const createDataset = async (datasetData) => {
+  const transaction = await db.sequelize.transaction();
+  
+  try {
+    // Generate unique DEPA ID for dataset
+    const DEPAIdService = require('../services/depaIdService');
+    const depaIdService = new DEPAIdService();
+    const depaId = depaIdService.generateDEPAId('DATASET');
+    
+    // Create dataset with DEPA ID
+    const dataset = await db.Dataset.create({
+      datasetId: datasetData.datasetId,
+      name: datasetData.name,
+      description: datasetData.description,
+      category: datasetData.category,
+      size: datasetData.size,
+      recordCount: datasetData.recordCount,
+      price: datasetData.price,
+      license: datasetData.license,
+      tags: datasetData.tags || [],
+      metadata: datasetData.metadata || {},
+      isPublic: datasetData.isPublic !== undefined ? datasetData.isPublic : true,
+      ownerId: datasetData.ownerId,
+      depaId: depaId // Global unique DEPA ID
+    }, { transaction });
+    
+    await transaction.commit();
+    return dataset;
+  } catch (error) {
+    await transaction.rollback();
+    throw error;
+  }
+};
+```
+
+#### 1.2 Dataset DEPA ID Format
+```
+DATASET-[GUID]
+Examples:
+- DATASET-8f4e2a1b-3c4d-5e6f-7a8b-9c0d1e2f3a4b
+- DATASET-9a1b2c3d-4e5f-6a7b-8c9d-0e1f2a3b4c5d
+```
+
+#### 1.3 Dataset Uniqueness Guarantee
+```javascript
+// Database constraints for dataset uniqueness
+const datasetConstraints = {
+  // Primary dataset identifier
+  datasetId: {
+    type: DataTypes.STRING,
+    allowNull: false,
+    unique: true
+  },
+  
+  // Global unique DEPA ID
+  depaId: {
+    type: DataTypes.STRING,
+    allowNull: true,
+    unique: true
+  }
+};
+
+// Indexes for performance
+indexes: [
+  {
+    unique: true,
+    fields: ['datasetId']
+  },
+  {
+    unique: true,
+    fields: ['depaId']
+  },
+  {
+    fields: ['category']
+  },
+  {
+    fields: ['ownerId']
+  }
+]
+```
+
+### 2. CCRP Infrastructure and Environment Management
+
+#### 2.1 Training Environment DEPA ID Generation
+```javascript
+// Training environment creation with DEPA ID
+const createTrainingEnvironment = async (contractId, config) => {
+  const transaction = await db.sequelize.transaction();
+  
+  try {
+    // Generate unique environment ID
+    const environmentId = `env-${contractId}-${Date.now()}`;
+    
+    // Generate DEPA ID for environment
+    const DEPAIdService = require('../services/depaIdService');
+    const depaIdService = new DEPAIdService();
+    const depaId = depaIdService.generateDEPAId('ENVIRONMENT');
+    
+    // Create training environment with DEPA ID
+    const trainingEnvironment = await db.TrainingEnvironment.create({
+      contractId,
+      environmentId,
+      depaId: depaId, // Global unique DEPA ID
+      cloudProvider: config.cloudProvider,
+      region: config.region,
+      status: 'PENDING',
+      infrastructureConfig: config.infrastructure,
+      securityConfig: config.security,
+      monitoringConfig: config.monitoring,
+      costEstimate: config.costEstimate,
+      createdBy: config.createdBy
+    }, { transaction });
+    
+    await transaction.commit();
+    return trainingEnvironment;
+  } catch (error) {
+    await transaction.rollback();
+    throw error;
+  }
+};
+```
+
+#### 2.2 Environment DEPA ID Format
+```
+ENVIRONMENT-[GUID]
+Examples:
+- ENVIRONMENT-1b2c3d4e-5f6a-7b8c-9d0e-1f2a3b4c5d6e
+- ENVIRONMENT-2c3d4e5f-6a7b-8c9d-0e1f-2a3b4c5d6e7f
+```
+
+#### 2.3 CCRP Infrastructure Resources
+```javascript
+// Environment resource management with DEPA IDs
+const createEnvironmentResource = async (environmentId, resourceData) => {
+  const transaction = await db.sequelize.transaction();
+  
+  try {
+    // Generate DEPA ID for resource
+    const DEPAIdService = require('../services/depaIdService');
+    const depaIdService = new DEPAIdService();
+    const depaId = depaIdService.generateDEPAId('RESOURCE');
+    
+    // Create resource with DEPA ID
+    const resource = await db.EnvironmentResource.create({
+      environmentId,
+      depaId: depaId, // Global unique DEPA ID
+      resourceType: resourceData.type,
+      resourceId: resourceData.cloudResourceId,
+      resourceName: resourceData.name,
+      resourceConfig: resourceData.config,
+      status: 'PENDING'
+    }, { transaction });
+    
+    await transaction.commit();
+    return resource;
+  } catch (error) {
+    await transaction.rollback();
+    throw error;
+  }
+};
+```
+
+#### 2.4 Resource DEPA ID Format
+```
+RESOURCE-[GUID]
+Examples:
+- RESOURCE-3c4d5e6f-7a8b-9c0d-0e1f-2a3b4c5d6e7f
+- RESOURCE-4d5e6f7a-8b9c-0d1e-2f3a-4b5c6d7e8f9a
+```
+
+### 3. Global Uniqueness Guarantee During Onboarding
+
+#### 3.1 Transaction-Based DEPA ID Assignment
+```javascript
+// Onboarding process with guaranteed uniqueness
+const onboardUser = async (userData) => {
+  const transaction = await db.sequelize.transaction();
+  
+  try {
+    // Step 1: Generate DEPA ID
+    const DEPAIdService = require('../services/depaIdService');
+    const depaIdService = new DEPAIdService();
+    const depaId = depaIdService.generateUserDEPAId(userData.partyType);
+    
+    // Step 2: Verify DEPA ID uniqueness in transaction
+    const existingUser = await db.User.findOne({
+      where: { depaId },
+      transaction
+    });
+    
+    if (existingUser) {
+      throw new Error('DEPA ID collision detected - retry required');
+    }
+    
+    // Step 3: Create user with DEPA ID
+    const user = await db.User.create({
+      ...userData,
+      depaId: depaId
+    }, { transaction });
+    
+    // Step 4: Create associated entities with DEPA IDs
+    if (userData.partyType === 'TDP') {
+      // Create default dataset with DEPA ID
+      const datasetDEPAId = depaIdService.generateDEPAId('DATASET');
+      await db.Dataset.create({
+        datasetId: `dataset-${user.id}`,
+        name: 'Default Dataset',
+        description: 'Default dataset created during onboarding',
+        category: 'Tabular',
+        size: 0,
+        recordCount: 0,
+        price: 0.00,
+        license: 'MIT',
+        ownerId: user.id,
+        depaId: datasetDEPAId
+      }, { transaction });
+    }
+    
+    if (userData.partyType === 'CCRP') {
+      // Create default infrastructure configuration
+      const infrastructureDEPAId = depaIdService.generateDEPAId('INFRASTRUCTURE');
+      await db.CCRPInfrastructure.create({
+        ccrpUserId: user.id,
+        depaId: infrastructureDEPAId,
+        cloudProviders: ['AWS', 'Azure', 'GCP'],
+        defaultRegion: 'us-east-1',
+        isActive: true
+      }, { transaction });
+    }
+    
+    await transaction.commit();
+    return user;
+  } catch (error) {
+    await transaction.rollback();
+    throw error;
+  }
+};
+```
+
+#### 3.2 DEPA ID Collision Prevention
+```javascript
+// DEPA ID service with collision detection
+class DEPAIdService {
+  async generateUniqueDEPAId(entityType, maxRetries = 5) {
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      const depaId = this.generateDEPAId(entityType);
+      
+      // Check uniqueness in database
+      const existing = await db.sequelize.query(
+        `SELECT id FROM ${this.getTableName(entityType)} WHERE "depaId" = :depaId`,
+        {
+          replacements: { depaId },
+          type: db.sequelize.QueryTypes.SELECT
+        }
+      );
+      
+      if (existing.length === 0) {
+        return depaId;
+      }
+      
+      console.log(`⚠️ DEPA ID collision detected on attempt ${attempt}, retrying...`);
+    }
+    
+    throw new Error(`Failed to generate unique DEPA ID after ${maxRetries} attempts`);
+  }
+  
+  getTableName(entityType) {
+    const tableMap = {
+      'TDC': 'users',
+      'TDP': 'users',
+      'CCRP': 'users',
+      'CONTRACT': 'contracts',
+      'DATASET': 'datasets',
+      'ENVIRONMENT': 'training_environments',
+      'RESOURCE': 'environment_resources'
+    };
+    return tableMap[entityType];
+  }
+}
+```
+
+#### 3.3 Database-Level Uniqueness Constraints
+```sql
+-- Users table
+ALTER TABLE users ADD CONSTRAINT unique_user_depa_id UNIQUE ("depaId");
+
+-- Datasets table
+ALTER TABLE datasets ADD CONSTRAINT unique_dataset_depa_id UNIQUE ("depaId");
+
+-- Contracts table
+ALTER TABLE contracts ADD CONSTRAINT unique_contract_depa_id UNIQUE ("depaId");
+
+-- Training environments table
+ALTER TABLE training_environments ADD CONSTRAINT unique_environment_depa_id UNIQUE ("depaId");
+
+-- Environment resources table
+ALTER TABLE environment_resources ADD CONSTRAINT unique_resource_depa_id UNIQUE ("depaId");
+```
+
+### 4. CCRP Infrastructure and Environment Functions
+
+#### 4.1 Infrastructure Provisioning
+```javascript
+// CCRP infrastructure provisioning with DEPA IDs
+const provisionCCRPInfrastructure = async (ccrpUserId, config) => {
+  const transaction = await db.sequelize.transaction();
+  
+  try {
+    // Generate infrastructure DEPA ID
+    const DEPAIdService = require('../services/depaIdService');
+    const depaIdService = new DEPAIdService();
+    const infrastructureDEPAId = depaIdService.generateDEPAId('INFRASTRUCTURE');
+    
+    // Create infrastructure configuration
+    const infrastructure = await db.CCRPInfrastructure.create({
+      ccrpUserId,
+      depaId: infrastructureDEPAId,
+      cloudProviders: config.cloudProviders,
+      defaultRegion: config.defaultRegion,
+      securityConfig: config.security,
+      monitoringConfig: config.monitoring,
+      costEstimate: config.costEstimate,
+      isActive: true
+    }, { transaction });
+    
+    // Provision cloud resources
+    const cloudProvider = config.cloudProviders[0];
+    const provider = getCloudProvider(cloudProvider);
+    
+    const provisionResult = await provider.provisionInfrastructure(
+      infrastructureDEPAId,
+      config.resources,
+      config.security,
+      config.monitoring
+    );
+    
+    // Update infrastructure with provisioned resources
+    await infrastructure.update({
+      status: 'ACTIVE',
+      provisionedResources: provisionResult.resources,
+      actualCost: provisionResult.cost
+    }, { transaction });
+    
+    await transaction.commit();
+    return infrastructure;
+  } catch (error) {
+    await transaction.rollback();
+    throw error;
+  }
+};
+```
+
+#### 4.2 Environment Management
+```javascript
+// Training environment lifecycle with DEPA IDs
+const manageTrainingEnvironment = async (environmentDEPAId, action) => {
+  const transaction = await db.sequelize.transaction();
+  
+  try {
+    const environment = await db.TrainingEnvironment.findOne({
+      where: { depaId: environmentDEPAId }
+    });
+    
+    if (!environment) {
+      throw new Error('Environment not found');
+    }
+    
+    switch (action) {
+      case 'START':
+        await environment.update({ status: 'RUNNING' }, { transaction });
+        break;
+        
+      case 'STOP':
+        await environment.update({ status: 'ACTIVE' }, { transaction });
+        break;
+        
+      case 'DESTROY':
+        await environment.update({ status: 'DESTROYING' }, { transaction });
+        
+        // Destroy cloud resources
+        const provider = getCloudProvider(environment.cloudProvider);
+        await provider.destroyInfrastructure(environmentDEPAId);
+        
+        await environment.update({ status: 'DESTROYED' }, { transaction });
+        break;
+    }
+    
+    await transaction.commit();
+    return environment;
+  } catch (error) {
+    await transaction.rollback();
+    throw error;
+  }
+};
+```
+
+### 5. Onboarding Uniqueness Guarantee Process
+
+#### 5.1 Multi-Step Onboarding with DEPA IDs
+```javascript
+// Complete onboarding process with uniqueness guarantee
+const completeOnboarding = async (userData) => {
+  const transaction = await db.sequelize.transaction();
+  
+  try {
+    // Step 1: Generate user DEPA ID
+    const depaIdService = new DEPAIdService();
+    const userDEPAId = await depaIdService.generateUniqueDEPAId(
+      userData.partyType, 
+      5 // max retries
+    );
+    
+    // Step 2: Create user with DEPA ID
+    const user = await db.User.create({
+      ...userData,
+      depaId: userDEPAId,
+      onboardingStatus: 'IN_PROGRESS'
+    }, { transaction });
+    
+    // Step 3: Create party-specific entities with DEPA IDs
+    if (userData.partyType === 'TDP') {
+      // Create default dataset
+      const datasetDEPAId = await depaIdService.generateUniqueDEPAId('DATASET');
+      await db.Dataset.create({
+        datasetId: `dataset-${user.id}`,
+        name: 'Default Dataset',
+        description: 'Default dataset for TDP onboarding',
+        category: 'Tabular',
+        size: 0,
+        recordCount: 0,
+        price: 0.00,
+        license: 'MIT',
+        ownerId: user.id,
+        depaId: datasetDEPAId
+      }, { transaction });
+    }
+    
+    if (userData.partyType === 'CCRP') {
+      // Create infrastructure configuration
+      const infrastructureDEPAId = await depaIdService.generateUniqueDEPAId('INFRASTRUCTURE');
+      await db.CCRPInfrastructure.create({
+        ccrpUserId: user.id,
+        depaId: infrastructureDEPAId,
+        cloudProviders: ['AWS', 'Azure', 'GCP'],
+        defaultRegion: 'us-east-1',
+        isActive: true
+      }, { transaction });
+    }
+    
+    // Step 4: Update onboarding status
+    await user.update({
+      onboardingStatus: 'COMPLETED',
+      profileCompleted: true
+    }, { transaction });
+    
+    await transaction.commit();
+    
+    return {
+      user,
+      depaId: userDEPAId,
+      onboardingComplete: true
+    };
+  } catch (error) {
+    await transaction.rollback();
+    throw error;
+  }
+};
+```
+
+#### 5.2 Onboarding Verification
+```javascript
+// Verify onboarding completion with DEPA IDs
+const verifyOnboarding = async (userId) => {
+  const user = await db.User.findByPk(userId, {
+    include: [
+      { model: db.Dataset, as: 'datasets' },
+      { model: db.CCRPInfrastructure, as: 'infrastructure' }
+    ]
+  });
+  
+  if (!user) {
+    throw new Error('User not found');
+  }
+  
+  const verification = {
+    userDEPAId: user.depaId,
+    onboardingStatus: user.onboardingStatus,
+    profileCompleted: user.profileCompleted,
+    entities: []
+  };
+  
+  // Verify TDP entities
+  if (user.partyType === 'TDP' && user.datasets) {
+    verification.entities.push({
+      type: 'DATASET',
+      count: user.datasets.length,
+      depaIds: user.datasets.map(d => d.depaId)
+    });
+  }
+  
+  // Verify CCRP entities
+  if (user.partyType === 'CCRP' && user.infrastructure) {
+    verification.entities.push({
+      type: 'INFRASTRUCTURE',
+      count: user.infrastructure.length,
+      depaIds: user.infrastructure.map(i => i.depaId)
+    });
+  }
+  
+  return verification;
+};
+```
+
+---
+
 ## Authentication Methods
 
 ### 1. JWT Token Authentication
