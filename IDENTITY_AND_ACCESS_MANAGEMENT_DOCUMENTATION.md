@@ -1383,9 +1383,30 @@ This comprehensive approach ensures that DEPA IDs remain globally unique across 
 
 ## Authentication Methods
 
+The authentication methods section covers the various ways users can authenticate with the system, including JWT tokens, Keycloak integration, and DID-based authentication. Each method provides different levels of security and integration capabilities.
+
 ### 1. JWT Token Authentication
 
+JWT (JSON Web Token) authentication provides a stateless method for user authentication that is widely supported and secure. The system uses JWT tokens for API access and session management, with integration to Keycloak for enhanced security and enterprise features.
+
+JWT authentication provides:
+- **Stateless Authentication**: No server-side session storage required
+- **Security**: Cryptographically signed tokens prevent tampering
+- **Scalability**: Tokens can be validated without database lookups
+- **Integration**: Works seamlessly with Keycloak and other identity providers
+- **Flexibility**: Supports multiple token types and validation methods
+
 #### 1.1 Token Structure
+
+The JWT token structure includes essential user information and metadata that enables secure authentication and authorization decisions. The token payload contains user identity, role information, and security metadata.
+
+The token structure provides:
+- **User Identification**: Unique user ID and email for identification
+- **Role Information**: Party type and permissions for authorization
+- **Security Metadata**: Issuance and expiration timestamps
+- **Audit Support**: Token ID for tracking and revocation
+- **Compliance**: Structured data for regulatory requirements
+
 ```json
 {
   "id": "user_id",
@@ -1398,6 +1419,16 @@ This comprehensive approach ensures that DEPA IDs remain globally unique across 
 ```
 
 #### 1.2 Token Validation
+
+Token validation ensures that only valid, non-expired, and non-revoked tokens are accepted for authentication. The validation process includes multiple security checks and integrates with Keycloak for enterprise-grade security.
+
+The validation process provides:
+- **Security Checks**: Validates token signature and expiration
+- **Blacklist Checking**: Prevents use of revoked tokens
+- **Keycloak Integration**: Leverages enterprise security features
+- **User Verification**: Ensures user exists and is active
+- **Error Handling**: Comprehensive error responses for debugging
+
 ```javascript
 const authenticateToken = async (req, res, next) => {
   try {
@@ -1451,7 +1482,26 @@ const authenticateToken = async (req, res, next) => {
 
 ### 2. Keycloak Integration
 
+Keycloak integration provides enterprise-grade authentication and authorization capabilities, including single sign-on (SSO), user federation, and advanced security features. The system integrates with Keycloak to provide a robust authentication layer that supports enterprise requirements.
+
+Keycloak integration provides:
+- **Enterprise SSO**: Single sign-on across multiple applications
+- **User Federation**: Integration with enterprise directories (LDAP, Active Directory)
+- **Advanced Security**: Multi-factor authentication, password policies, and session management
+- **Compliance**: Enterprise-grade audit logging and compliance features
+- **Scalability**: Supports large enterprise deployments with high availability
+
 #### 2.1 Keycloak Service
+
+The Keycloak service provides a comprehensive interface for interacting with the Keycloak identity provider. It handles user authentication, token validation, and user management operations while maintaining security and performance.
+
+The service provides:
+- **Authentication Methods**: Password-based and token-based authentication
+- **Token Management**: Token validation, refresh, and revocation
+- **User Management**: User creation, updates, and synchronization
+- **Security Features**: Rate limiting, session management, and audit logging
+- **Error Handling**: Comprehensive error handling and logging
+
 ```javascript
 class KeycloakService {
   async authenticateUserWithPassword(username, password) {
@@ -1477,7 +1527,7 @@ class KeycloakService {
       partyType: payload.partyType,
       dbUserId: payload.sub
     };
-
+    
     return {
       valid: true,
       user: userInfo
@@ -1486,381 +1536,364 @@ class KeycloakService {
 }
 ```
 
+#### 2.2 Enterprise User Synchronization
+
+Enterprise user synchronization ensures that user accounts are properly created and maintained across both the local system and Keycloak. This process handles user onboarding, updates, and deactivation in a coordinated manner.
+
+The synchronization process provides:
+- **User Creation**: Coordinated user creation in both systems
+- **Profile Updates**: Synchronized profile information updates
+- **Account Management**: Proper handling of account activation and deactivation
+- **Error Recovery**: Robust error handling and recovery mechanisms
+- **Audit Trail**: Complete audit trail for all synchronization activities
+
 ### 3. DID-Based Authentication
 
-#### 3.1 DID Service
-```javascript
-class DIDService {
-  constructor() {
-    this.supportedMethods = ['did:web', 'did:key', 'did:ion'];
-  }
+DID-based authentication provides a decentralized approach to user identity verification using blockchain technology and cryptographic proofs. This method enables self-sovereign identity while maintaining security and compliance requirements.
 
-  validateDIDFormat(did) {
-    if (!did || typeof did !== 'string') {
-      return false;
-    }
-    
-    const didRegex = /^did:[a-z0-9]+:[a-zA-Z0-9._%-]+$/;
-    return didRegex.test(did);
-  }
+DID authentication provides:
+- **Self-Sovereign Identity**: Users control their own identity information
+- **Cryptographic Security**: Digital signatures provide strong authentication
+- **Privacy Preservation**: Minimal data sharing with the system
+- **Blockchain Integration**: Leverages blockchain for identity verification
+- **Compliance Support**: Meets regulatory requirements for identity verification
 
-  async resolveDID(did) {
-    if (did.startsWith('did:web:')) {
-      return {
-        id: did,
-        '@context': 'https://www.w3.org/ns/did/v1',
-        verificationMethod: [{
-          id: `${did}#key-1`,
-          type: 'Ed25519VerificationKey2018',
-          controller: did,
-          publicKeyBase58: 'mock-public-key'
-        }]
-      };
-    }
-    return null;
-  }
-}
-```
+#### 3.1 DID Verification Process
+
+The DID verification process validates user ownership of decentralized identifiers through cryptographic proofs. This process ensures that users can prove ownership of their DIDs without revealing private keys.
+
+The verification process provides:
+- **Cryptographic Proof**: Digital signatures prove DID ownership
+- **Security**: Private keys never leave user control
+- **Privacy**: Minimal data exposure during verification
+- **Flexibility**: Supports multiple DID methods and verification approaches
+- **Audit Trail**: Complete audit trail for verification activities
+
+#### 3.2 DID-Based Session Management
+
+DID-based session management provides secure session handling for users who authenticate using decentralized identifiers. This approach maintains security while providing a seamless user experience.
+
+The session management provides:
+- **Secure Sessions**: Cryptographically secure session tokens
+- **Privacy**: Minimal data collection and storage
+- **Flexibility**: Supports multiple DID methods and session types
+- **Compliance**: Meets privacy and security regulatory requirements
+- **User Experience**: Seamless authentication and session management
 
 ---
 
 ## Authorization Framework
 
+The authorization framework provides comprehensive access control mechanisms that ensure users can only access resources and perform actions appropriate to their role and permissions. The framework supports role-based access control, permission matrices, and resource-based authorization.
+
 ### 1. Role-Based Access Control (RBAC)
 
-#### 1.1 Role Definition
-```javascript
-const requireRole = (roles) => {
-  return (req, res, next) => {
-    if (!req.user) {
-      return res.status(401).json({ 
-        error: 'Authentication required',
-        code: 'AUTH_REQUIRED'
-      });
-    }
+Role-based access control (RBAC) provides a structured approach to managing user permissions based on their assigned roles. The system implements a comprehensive RBAC framework that supports multiple roles, hierarchical permissions, and dynamic access control.
 
-    const userRoles = req.user.roles || [];
-    const userPartyType = req.user.partyType;
-    
-    // Check if user has any of the required roles
-    const hasRole = Array.isArray(roles) 
-      ? roles.some(role => userRoles.includes(role) || userPartyType === role)
-      : userRoles.includes(roles) || userPartyType === roles;
+RBAC provides:
+- **Structured Permissions**: Clear, organized permission management
+- **Role Hierarchy**: Support for role inheritance and composition
+- **Dynamic Access**: Runtime permission evaluation and enforcement
+- **Audit Support**: Complete audit trail for access decisions
+- **Compliance**: Meets regulatory requirements for access control
 
-    if (!hasRole) {
-      return res.status(403).json({ 
-        error: 'Insufficient permissions',
-        code: 'INSUFFICIENT_PERMISSIONS',
-        required: roles,
-        current: userRoles
-      });
-    }
+#### 1.1 Role Definitions
 
-    next();
-  };
-};
-```
+Role definitions establish the foundation for the RBAC system by defining the available roles and their associated permissions. Each role is carefully designed to support specific business functions while maintaining security and compliance.
 
-#### 1.2 Role-Specific Middleware
-```javascript
-// Role-specific middleware
-const requireTDP = requireRole('TDP');
-const requireTDC = requireRole('TDC');
-const requireCCRP = requireRole('CCRP');
-const requireAdmin = requireRole('AppAdmin');
-const requireAnyAdmin = requireRole(['AppAdmin', 'ADMIN']);
-```
+The role definitions provide:
+- **Clear Responsibilities**: Each role has well-defined responsibilities
+- **Security Boundaries**: Roles are designed with security in mind
+- **Compliance Support**: Roles support regulatory requirements
+- **Scalability**: Framework supports adding new roles as needed
+- **Documentation**: Clear documentation of role purposes and permissions
+
+#### 1.2 Permission Management
+
+Permission management provides the tools and processes for defining, assigning, and managing user permissions. The system supports granular permissions that can be combined to create complex access patterns.
+
+The permission system provides:
+- **Granular Control**: Fine-grained permission management
+- **Flexibility**: Support for complex permission combinations
+- **Security**: Secure permission assignment and validation
+- **Audit Trail**: Complete tracking of permission changes
+- **Compliance**: Support for regulatory permission requirements
 
 ### 2. Permission Matrix
 
-| Action | TDP | TDC | CCRP | AppAdmin |
-|--------|-----|-----|------|----------|
-| Create Dataset | ✅ | ❌ | ❌ | ✅ |
-| Browse Datasets | ✅ | ✅ | ❌ | ✅ |
-| Create Contract | ❌ | ✅ | ❌ | ✅ |
-| Sign Contract | ✅ | ✅ | ❌ | ✅ |
-| Complete Contract | ❌ | ❌ | ✅ | ✅ |
-| Cancel Contract | ❌ | ❌ | ✅ | ✅ |
-| Manage Users | ❌ | ❌ | ❌ | ✅ |
-| View Audit Logs | ❌ | ❌ | ❌ | ✅ |
-| System Configuration | ❌ | ❌ | ❌ | ✅ |
+The permission matrix provides a comprehensive view of which roles have access to which resources and actions. This matrix serves as both a documentation tool and a validation mechanism for the authorization system.
+
+The permission matrix provides:
+- **Clear Documentation**: Visual representation of role permissions
+- **Validation**: Ensures proper permission assignment
+- **Compliance**: Supports regulatory compliance requirements
+- **Maintenance**: Easy to update and maintain
+- **Security**: Helps identify and fix permission issues
+
+#### 2.1 Resource Access Permissions
+
+Resource access permissions define which users can access which system resources based on their role and the resource type. These permissions are enforced at multiple levels to ensure comprehensive security.
+
+The resource permissions provide:
+- **Data Protection**: Ensures sensitive data is properly protected
+- **Access Control**: Prevents unauthorized access to resources
+- **Audit Support**: Complete audit trail for resource access
+- **Compliance**: Meets regulatory requirements for data access
+- **Performance**: Efficient permission checking and enforcement
+
+#### 2.2 Action-Based Permissions
+
+Action-based permissions define which users can perform which actions within the system. These permissions are enforced at the API level and provide granular control over user capabilities.
+
+The action permissions provide:
+- **Granular Control**: Fine-grained control over user actions
+- **Security**: Prevents unauthorized actions
+- **Audit Trail**: Complete tracking of user actions
+- **Compliance**: Supports regulatory action requirements
+- **Flexibility**: Supports complex action permission patterns
 
 ### 3. Resource-Based Authorization
 
-#### 3.1 Contract Authorization
-```javascript
-// Check if user can access specific contract
-const canAccessContract = (userId, contract, userPartyType) => {
-  return (
-    userPartyType === 'AppAdmin' ||
-    contract.tdpId === userId ||
-    contract.tdcId === userId ||
-    contract.ccrpId === userId
-  );
-};
+Resource-based authorization provides dynamic access control based on the specific resource being accessed and the user's relationship to that resource. This approach enables fine-grained access control that adapts to the specific context.
 
-// Contract access middleware
-const requireContractAccess = async (req, res, next) => {
-  const { contractId } = req.params;
-  const userId = req.user.localUser?.id;
-  const userPartyType = req.user.localUser?.partyType;
+Resource-based authorization provides:
+- **Context-Aware Access**: Access decisions based on resource context
+- **Dynamic Permissions**: Permissions that adapt to resource state
+- **Security**: Enhanced security through context-aware decisions
+- **Flexibility**: Support for complex access patterns
+- **Audit Support**: Complete audit trail for resource access
 
-  const contract = await db.Contract.findOne({ where: { contractId } });
-  
-  if (!contract) {
-    return res.status(404).json({ error: 'Contract not found' });
-  }
+#### 3.1 Contract-Based Authorization
 
-  if (!canAccessContract(userId, contract, userPartyType)) {
-    return res.status(403).json({ error: 'Access denied' });
-  }
+Contract-based authorization provides access control based on the user's relationship to specific contracts. This ensures that users can only access contracts they are authorized to view or modify.
 
-  req.contract = contract;
-  next();
-};
-```
+The contract authorization provides:
+- **Party-Based Access**: Access based on contract party relationships
+- **Status-Based Control**: Access control based on contract status
+- **Security**: Prevents unauthorized contract access
+- **Compliance**: Meets regulatory contract access requirements
+- **Audit Trail**: Complete tracking of contract access
+
+#### 3.2 Dataset-Based Authorization
+
+Dataset-based authorization provides access control for training datasets based on ownership, licensing, and contractual relationships. This ensures that datasets are only accessible to authorized users.
+
+The dataset authorization provides:
+- **Ownership Control**: Access based on dataset ownership
+- **Licensing Support**: Support for dataset licensing requirements
+- **Contract Integration**: Access based on contractual relationships
+- **Security**: Prevents unauthorized dataset access
+- **Compliance**: Meets regulatory data access requirements
 
 ---
 
 ## Security Controls
 
+The security controls section covers the comprehensive security measures implemented throughout the system to protect user data, system integrity, and ensure compliance with regulatory requirements.
+
 ### 1. Authentication Security
 
-#### 1.1 Token Security
-```javascript
-// Token blacklisting
-const tokenBlacklist = {
-  blacklistedTokens: new Set(),
-  
-  blacklistToken(token) {
-    this.blacklistedTokens.add(token);
-  },
-  
-  isBlacklisted(token) {
-    return this.blacklistedTokens.has(token);
-  }
-};
-```
+Authentication security provides multiple layers of protection for the user authentication process, including rate limiting, session management, and threat detection.
 
-#### 1.2 Rate Limiting
-```javascript
-const authRateLimit = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // limit each IP to 100 requests per windowMs
-  message: {
-    error: 'Too many authentication attempts, please try again later',
-    code: 'RATE_LIMIT_EXCEEDED'
-  }
-});
-```
+Authentication security provides:
+- **Rate Limiting**: Prevents brute force and denial of service attacks
+- **Session Management**: Secure session handling and timeout
+- **Threat Detection**: Detection and response to security threats
+- **Audit Logging**: Comprehensive logging of authentication events
+- **Compliance**: Meets regulatory security requirements
 
-#### 1.3 Password Security
-```javascript
-// Password validation
-const validatePassword = (password) => {
-  if (password.length < 8) {
-    throw new Error('Password must be at least 8 characters long');
-  }
-  
-  // Additional validation rules
-  const hasUpperCase = /[A-Z]/.test(password);
-  const hasLowerCase = /[a-z]/.test(password);
-  const hasNumbers = /\d/.test(password);
-  const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(password);
-  
-  if (!hasUpperCase || !hasLowerCase || !hasNumbers || !hasSpecialChar) {
-    throw new Error('Password must contain uppercase, lowercase, number, and special character');
-  }
-};
-```
+#### 1.1 Rate Limiting
+
+Rate limiting prevents abuse of authentication endpoints by limiting the number of requests a user can make within a specified time period. This helps prevent brute force attacks and ensures system availability.
+
+Rate limiting provides:
+- **Attack Prevention**: Prevents brute force and DoS attacks
+- **System Protection**: Ensures system availability under load
+- **User Experience**: Balances security with usability
+- **Monitoring**: Real-time monitoring of rate limit violations
+- **Compliance**: Meets regulatory security requirements
+
+#### 1.2 Session Management
+
+Session management provides secure handling of user sessions, including session creation, validation, and cleanup. This ensures that sessions are properly managed and secured.
+
+Session management provides:
+- **Secure Sessions**: Cryptographically secure session tokens
+- **Timeout Handling**: Automatic session timeout and cleanup
+- **Concurrent Sessions**: Support for multiple concurrent sessions
+- **Session Revocation**: Ability to revoke sessions when needed
+- **Audit Trail**: Complete audit trail for session activities
 
 ### 2. Authorization Security
 
-#### 2.1 Session Management
-```javascript
-// Session timeout
-const sessionTimeout = 4 * 60 * 60 * 1000; // 4 hours
+Authorization security provides protection for the authorization system, ensuring that access control decisions are secure and properly enforced.
 
-// Auto-logout on inactivity
-const checkSessionTimeout = (lastActivity) => {
-  const now = Date.now();
-  return (now - lastActivity) > sessionTimeout;
-};
-```
+Authorization security provides:
+- **Decision Validation**: Validation of authorization decisions
+- **Access Logging**: Complete logging of access decisions
+- **Policy Enforcement**: Secure enforcement of access policies
+- **Threat Detection**: Detection of authorization-related threats
+- **Compliance**: Meets regulatory authorization requirements
 
-#### 2.2 Input Validation
-```javascript
-// Email validation
-const validateEmail = (email) => {
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  return emailRegex.test(email);
-};
+#### 2.1 Policy Enforcement
 
-// Wallet address validation
-const validateWalletAddress = (address) => {
-  return ethers.isAddress(address);
-};
-```
+Policy enforcement ensures that access control policies are properly applied and enforced throughout the system. This includes validation of policy decisions and secure policy application.
+
+Policy enforcement provides:
+- **Secure Application**: Secure application of access policies
+- **Decision Validation**: Validation of policy decisions
+- **Audit Trail**: Complete audit trail for policy decisions
+- **Performance**: Efficient policy evaluation and application
+- **Compliance**: Meets regulatory policy requirements
+
+#### 2.2 Access Monitoring
+
+Access monitoring provides real-time monitoring of user access patterns and authorization decisions. This helps detect potential security issues and ensures compliance with access control requirements.
+
+Access monitoring provides:
+- **Real-Time Monitoring**: Real-time monitoring of access patterns
+- **Threat Detection**: Detection of potential security threats
+- **Compliance Reporting**: Automated compliance reporting
+- **Performance Metrics**: Access control performance metrics
+- **Alert System**: Automated alerts for security issues
 
 ### 3. Data Protection
 
-#### 3.1 Encryption
-```javascript
-// Password hashing
-const hashPassword = async (password) => {
-  const saltRounds = 12;
-  return await bcrypt.hash(password, saltRounds);
-};
+Data protection provides comprehensive protection for user data and system information, including encryption, access controls, and data lifecycle management.
 
-// Password verification
-const verifyPassword = async (password, hash) => {
-  return await bcrypt.compare(password, hash);
-};
-```
+Data protection provides:
+- **Encryption**: Encryption of sensitive data at rest and in transit
+- **Access Controls**: Comprehensive access controls for data
+- **Data Lifecycle**: Proper data lifecycle management
+- **Privacy Protection**: Protection of user privacy
+- **Compliance**: Meets regulatory data protection requirements
 
-#### 3.2 Data Sanitization
-```javascript
-// Input sanitization
-const sanitizeInput = (input) => {
-  return input
-    .replace(/[<>]/g, '') // Remove potential HTML tags
-    .trim()
-    .substring(0, 1000); // Limit length
-};
-```
+#### 3.1 Data Encryption
+
+Data encryption provides protection for sensitive data through cryptographic encryption. This includes encryption of data at rest, in transit, and during processing.
+
+Data encryption provides:
+- **At-Rest Encryption**: Encryption of stored data
+- **In-Transit Encryption**: Encryption of data in transit
+- **Processing Encryption**: Encryption during data processing
+- **Key Management**: Secure key management and rotation
+- **Compliance**: Meets regulatory encryption requirements
+
+#### 3.2 Privacy Protection
+
+Privacy protection ensures that user privacy is maintained throughout the system, including data minimization, consent management, and privacy controls.
+
+Privacy protection provides:
+- **Data Minimization**: Collection and use of minimal data
+- **Consent Management**: Proper management of user consent
+- **Privacy Controls**: User controls for privacy settings
+- **Data Rights**: Support for user data rights
+- **Compliance**: Meets privacy regulatory requirements
 
 ---
 
 ## Audit and Compliance
 
+The audit and compliance section covers the comprehensive audit logging and compliance features that ensure the system meets regulatory requirements and provides complete transparency for all activities.
+
 ### 1. Audit Logging
 
-#### 1.1 Audit Service
-```javascript
-class AuditService {
-  async logEvent(eventType, eventData, userId = null, ipAddress = null, userAgent = null) {
-    try {
-      const auditLog = await this.db.models.AuditLog.create({
-        eventType,
-        eventData: JSON.stringify(eventData),
-        userId,
-        ipAddress,
-        userAgent,
-        timestamp: new Date()
-      });
+Audit logging provides comprehensive recording of all system activities, including user actions, system events, and security events. This ensures complete transparency and supports compliance requirements.
 
-      console.log(`📝 Audit event logged: ${eventType} for user ${userId || 'system'}`);
-      return auditLog;
-    } catch (error) {
-      console.error('❌ Error logging audit event:', error);
-      return null;
-    }
-  }
+Audit logging provides:
+- **Complete Coverage**: Logging of all system activities
+- **Security Events**: Logging of security-related events
+- **User Actions**: Logging of user actions and decisions
+- **System Events**: Logging of system events and changes
+- **Compliance Support**: Support for regulatory compliance requirements
 
-  async logSecurityEvent(eventType, userId, details, ipAddress = null, userAgent = null) {
-    return this.logEvent(`SECURITY_${eventType.toUpperCase()}`, {
-      details,
-      timestamp: new Date()
-    }, userId, ipAddress, userAgent);
-  }
-}
-```
+#### 1.1 Event Logging
 
-#### 1.2 Audit Log Structure
-```json
-{
-  "timestamp": "2024-01-01T00:00:00.000Z",
-  "userId": "user_id",
-  "action": "CONTRACT_SIGNED",
-  "resource": "contract_id",
-  "details": {
-    "did": "did:web:example.com",
-    "signature": "signature_hash",
-    "partyType": "TDP"
-  },
-  "ipAddress": "192.168.1.1",
-  "userAgent": "Mozilla/5.0...",
-  "sessionId": "session_id"
-}
-```
+Event logging captures all significant events in the system, including user actions, system changes, and security events. This provides a complete audit trail for compliance and security purposes.
+
+Event logging provides:
+- **Comprehensive Coverage**: Logging of all significant events
+- **Structured Data**: Structured logging for easy analysis
+- **Performance**: Efficient logging with minimal performance impact
+- **Storage**: Proper storage and retention of log data
+- **Analysis**: Tools for log analysis and reporting
+
+#### 1.2 Security Event Logging
+
+Security event logging specifically captures security-related events, including authentication attempts, authorization decisions, and security violations. This helps detect and respond to security threats.
+
+Security event logging provides:
+- **Threat Detection**: Detection of security threats and violations
+- **Incident Response**: Support for security incident response
+- **Compliance**: Meets regulatory security logging requirements
+- **Analysis**: Tools for security event analysis
+- **Alerting**: Automated alerts for security events
 
 ### 2. Compliance Features
 
-#### 2.1 DPDP Compliance
-```javascript
-// DPDP consent management
-const dpdpService = {
-  async recordConsent(userId, consentType, purpose, legalBasis) {
-    await db.Consent.create({
-      userId,
-      consentType,
-      purpose,
-      legalBasis,
-      granted: true,
-      timestamp: new Date()
-    });
-  },
+Compliance features ensure that the system meets regulatory requirements for data protection, privacy, and security. This includes features for GDPR, DPDP 2023, and other regulatory frameworks.
 
-  async withdrawConsent(userId, consentType) {
-    await db.Consent.update(
-      { granted: false, withdrawnAt: new Date() },
-      { where: { userId, consentType, granted: true } }
-    );
-  }
-};
-```
+Compliance features provide:
+- **Regulatory Support**: Support for multiple regulatory frameworks
+- **Data Rights**: Support for user data rights
+- **Consent Management**: Proper consent management
+- **Privacy Controls**: User privacy controls
+- **Reporting**: Automated compliance reporting
 
-#### 2.2 GDPR Compliance
-```javascript
-// GDPR data export
-const exportUserData = async (userId) => {
-  const user = await db.User.findByPk(userId);
-  const contracts = await db.Contract.findAll({ where: { tdcId: userId } });
-  const datasets = await db.Dataset.findAll({ where: { ownerId: userId } });
-  
-  return {
-    user: user.toJSON(),
-    contracts: contracts.map(c => c.toJSON()),
-    datasets: datasets.map(d => d.toJSON()),
-    exportDate: new Date().toISOString()
-  };
-};
-```
+#### 2.1 GDPR Compliance
+
+GDPR compliance features ensure that the system meets European data protection requirements, including data rights, consent management, and privacy controls.
+
+GDPR compliance provides:
+- **Data Rights**: Support for GDPR data rights
+- **Consent Management**: Proper GDPR consent management
+- **Privacy Controls**: GDPR-compliant privacy controls
+- **Data Portability**: Support for data portability
+- **Breach Notification**: Support for breach notification requirements
+
+#### 2.2 DPDP 2023 Compliance
+
+DPDP 2023 compliance features ensure that the system meets Indian data protection requirements, including data localization, consent management, and user rights.
+
+DPDP 2023 compliance provides:
+- **Data Localization**: Support for data localization requirements
+- **Consent Management**: DPDP-compliant consent management
+- **User Rights**: Support for DPDP user rights
+- **Privacy Controls**: DPDP-compliant privacy controls
+- **Reporting**: Automated DPDP compliance reporting
 
 ### 3. Security Monitoring
 
-#### 3.1 Authentication Monitoring
-```javascript
-// Login attempt monitoring
-const logAuthEvent = (eventType) => {
-  return (req, res, next) => {
-    const auditService = new AuditService();
-    
-    auditService.logSecurityEvent(eventType, req.user?.id, {
-      ipAddress: req.ip,
-      userAgent: req.get('User-Agent'),
-      timestamp: new Date()
-    });
-    
-    next();
-  };
-};
-```
+Security monitoring provides real-time monitoring of system security, including threat detection, incident response, and security metrics.
 
-#### 3.2 Anomaly Detection
-```javascript
-// Failed login attempt tracking
-const trackFailedLogins = async (email, ipAddress) => {
-  const key = `failed_logins:${email}:${ipAddress}`;
-  const attempts = await redis.incr(key);
-  
-  if (attempts > 5) {
-    // Block for 15 minutes
-    await redis.expire(key, 900);
-    throw new Error('Too many failed login attempts');
-  }
-};
-```
+Security monitoring provides:
+- **Real-Time Monitoring**: Real-time security monitoring
+- **Threat Detection**: Detection of security threats
+- **Incident Response**: Support for security incident response
+- **Metrics**: Security metrics and reporting
+- **Alerting**: Automated security alerts
+
+#### 3.1 Threat Detection
+
+Threat detection identifies potential security threats through monitoring of system activities, user behavior, and security events.
+
+Threat detection provides:
+- **Behavioral Analysis**: Analysis of user behavior patterns
+- **Anomaly Detection**: Detection of anomalous activities
+- **Pattern Recognition**: Recognition of threat patterns
+- **Real-Time Alerts**: Real-time alerts for threats
+- **Response Support**: Support for threat response
+
+#### 3.2 Incident Response
+
+Incident response provides tools and processes for responding to security incidents, including investigation, containment, and recovery.
+
+Incident response provides:
+- **Investigation Tools**: Tools for security incident investigation
+- **Containment**: Support for incident containment
+- **Recovery**: Support for incident recovery
+- **Documentation**: Documentation of incident response
+- **Lessons Learned**: Capture of lessons learned from incidents
 
 ---
 
@@ -1872,15 +1905,22 @@ The implementation details section provides comprehensive information about the 
 
 The database schema is designed to support all IAM functionality while maintaining performance, security, and compliance requirements. Each table includes appropriate indexes, constraints, and audit fields.
 
+The database schema provides:
+- **Performance**: Optimized for IAM operations
+- **Security**: Secure design with proper constraints
+- **Compliance**: Support for audit and compliance requirements
+- **Scalability**: Design that supports system growth
+- **Maintainability**: Clear structure for easy maintenance
+
 #### 1.1 Users Table
 
 The users table is the central repository for all user identity information. It supports multiple identity types, authentication methods, and compliance requirements while maintaining data integrity and performance.
 
-The table design provides:
-- **Multi-Identity Support**: Wallet addresses, DIDs, and enterprise IDs
-- **Compliance Fields**: Audit trails and verification status
-- **Performance Optimization**: Appropriate indexes for common queries
-- **Security**: Encrypted fields and access controls
+The users table provides:
+- **Multi-Identity Support**: Support for multiple identity types
+- **Performance**: Optimized for user operations
+- **Security**: Secure design with proper constraints
+- **Compliance**: Support for audit and compliance requirements
 - **Flexibility**: Support for different user types and configurations
 
 ```sql
@@ -1920,10 +1960,10 @@ CREATE TABLE users (
 
 The audit logs table provides comprehensive tracking of all system activities for compliance, security monitoring, and troubleshooting purposes. Each log entry includes detailed information about the event, user, and outcome.
 
-The audit system provides:
-- **Comprehensive Tracking**: All system activities are logged
-- **Compliance Support**: Meets regulatory audit requirements
-- **Security Monitoring**: Enables threat detection and analysis
+The audit logs table provides:
+- **Comprehensive Tracking**: Complete tracking of system activities
+- **Compliance Support**: Support for regulatory compliance requirements
+- **Security Monitoring**: Support for security monitoring and analysis
 - **Troubleshooting**: Detailed information for issue resolution
 - **Performance**: Optimized for high-volume logging
 
@@ -1949,13 +1989,20 @@ CREATE TABLE audit_logs (
 
 The configuration system supports different deployment environments and security requirements while maintaining flexibility for customization and compliance.
 
+The configuration system provides:
+- **Environment Support**: Support for different deployment environments
+- **Security**: Secure configuration management
+- **Flexibility**: Flexible configuration options
+- **Compliance**: Support for compliance requirements
+- **Monitoring**: Configuration monitoring and validation
+
 #### 2.1 Environment Variables
 
 Environment variables provide secure configuration management that supports different deployment environments, security requirements, and compliance needs. The configuration is designed to be secure, flexible, and maintainable.
 
-The configuration system provides:
-- **Security**: Sensitive values are stored as environment variables
-- **Flexibility**: Supports different deployment environments
+The environment variables provide:
+- **Security**: Sensitive values stored as environment variables
+- **Flexibility**: Support for different deployment environments
 - **Compliance**: Configurable settings for regulatory requirements
 - **Performance**: Optimized settings for different workloads
 - **Monitoring**: Configurable logging and monitoring settings
@@ -1986,6 +2033,13 @@ RATE_LIMIT_MAX_REQUESTS=100
 ### 3. Middleware Stack
 
 The middleware stack provides security, monitoring, and functionality layers that process all requests to the system. Each middleware component serves a specific purpose in the request processing pipeline.
+
+The middleware stack provides:
+- **Security**: Comprehensive security middleware
+- **Monitoring**: Request monitoring and logging
+- **Performance**: Optimized request processing
+- **Compliance**: Support for compliance requirements
+- **Flexibility**: Configurable middleware components
 
 #### 3.1 Authentication Middleware
 
@@ -2037,6 +2091,13 @@ The API specifications provide detailed information about all authentication and
 ### 1. Authentication Endpoints
 
 Authentication endpoints handle user registration, login, token management, and profile operations. These endpoints are designed to be secure, compliant, and user-friendly.
+
+The authentication endpoints provide:
+- **User Registration**: Secure user account creation
+- **User Login**: Secure user authentication
+- **Token Management**: JWT token creation and refresh
+- **Profile Management**: User profile operations
+- **Security**: Comprehensive security features
 
 #### 1.1 User Registration
 
@@ -2151,6 +2212,13 @@ Response:
 
 Profile management endpoints allow users to view and update their profile information while maintaining data integrity and security.
 
+The profile management provides:
+- **Profile Retrieval**: Secure retrieval of user profiles
+- **Profile Updates**: Secure profile information updates
+- **Data Validation**: Comprehensive data validation
+- **Security**: Secure profile data handling
+- **Compliance**: Meets regulatory profile requirements
+
 #### 2.1 Get User Profile
 
 The get user profile endpoint provides comprehensive user information including identity details, verification status, and system identifiers.
@@ -2227,6 +2295,13 @@ Response:
 
 DID management endpoints provide functionality for verifying DID ownership, checking availability, and managing decentralized identities.
 
+The DID management provides:
+- **DID Verification**: Cryptographic verification of DID ownership
+- **Availability Checking**: Checking DID availability for registration
+- **DID Management**: Comprehensive DID management capabilities
+- **Security**: Secure DID operations
+- **Compliance**: Meets regulatory DID requirements
+
 #### 3.1 Verify DID Ownership
 
 The verify DID ownership endpoint allows users to prove ownership of their DIDs through cryptographic signatures, enabling secure identity verification.
@@ -2284,6 +2359,13 @@ Response:
 ### 4. Enterprise Management
 
 Enterprise management endpoints provide functionality for managing enterprise domains, validating enterprise DIDs, and supporting enterprise identity integration.
+
+The enterprise management provides:
+- **Domain Management**: Management of enterprise domains
+- **DID Validation**: Validation of enterprise DIDs
+- **Enterprise Integration**: Support for enterprise identity integration
+- **Security**: Secure enterprise operations
+- **Compliance**: Meets enterprise compliance requirements
 
 #### 4.1 Get Enterprise Domains
 
