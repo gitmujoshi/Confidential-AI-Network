@@ -6,7 +6,7 @@ const { v4: uuidv4 } = require('uuid');
 // Get all public datasets
 router.get('/public', async (req, res) => {
   try {
-    const { category, limit = 10, offset = 0 } = req.query;
+    const { category, confidentialComputingRequired, limit = 10, offset = 0 } = req.query;
 
     const whereClause = {
       isPublic: true,
@@ -15,6 +15,10 @@ router.get('/public', async (req, res) => {
 
     if (category) {
       whereClause.category = category;
+    }
+
+    if (confidentialComputingRequired !== undefined) {
+      whereClause.confidentialComputingRequired = confidentialComputingRequired === 'true';
     }
 
     const datasets = await db.Dataset.findAndCountAll({
@@ -70,7 +74,7 @@ router.get('/owner/:ownerId', async (req, res) => {
 // Search datasets (must come before /:datasetId route)
 router.get('/search', async (req, res) => {
   try {
-    const { q, category, minPrice, maxPrice, limit = 10, offset = 0 } = req.query;
+    const { q, category, minPrice, maxPrice, confidentialComputingRequired, limit = 10, offset = 0 } = req.query;
 
     const whereClause = {
       isPublic: true,
@@ -85,6 +89,10 @@ router.get('/search', async (req, res) => {
       whereClause.price = {};
       if (minPrice) whereClause.price[db.Sequelize.Op.gte] = parseFloat(minPrice);
       if (maxPrice) whereClause.price[db.Sequelize.Op.lte] = parseFloat(maxPrice);
+    }
+
+    if (confidentialComputingRequired !== undefined) {
+      whereClause.confidentialComputingRequired = confidentialComputingRequired === 'true';
     }
 
     if (q) {
@@ -146,6 +154,14 @@ router.get('/stats/overview', async (req, res) => {
       where: { isActive: true, isPublic: true }
     });
 
+    const confidentialComputingDatasets = await db.Dataset.count({
+      where: { isActive: true, confidentialComputingRequired: true }
+    });
+
+    const standardProcessingDatasets = await db.Dataset.count({
+      where: { isActive: true, confidentialComputingRequired: false }
+    });
+
     const categoryStats = await db.Dataset.findAll({
       attributes: [
         'category',
@@ -165,6 +181,8 @@ router.get('/stats/overview', async (req, res) => {
     res.json({
       totalDatasets,
       publicDatasets,
+      confidentialComputingDatasets,
+      standardProcessingDatasets,
       categoryStats,
       averagePrice: parseFloat(avgPrice.dataValues.averagePrice || 0).toFixed(2)
     });
@@ -212,6 +230,7 @@ router.post('/', async (req, res) => {
       tags,
       metadata,
       isPublic,
+      confidentialComputingRequired,
       ownerId
     } = req.body;
 
@@ -251,6 +270,7 @@ router.post('/', async (req, res) => {
       tags: tags || [],
       metadata: metadata || {},
       isPublic: isPublic !== undefined ? isPublic : true,
+      confidentialComputingRequired: confidentialComputingRequired !== undefined ? confidentialComputingRequired : false,
       ownerId,
       depaId: `DATASET-${uuidv4()}`
     });

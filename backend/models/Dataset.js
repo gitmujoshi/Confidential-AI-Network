@@ -54,6 +54,11 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.BOOLEAN,
       defaultValue: true
     },
+    confidentialComputingRequired: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: false,
+      comment: 'Indicates if this dataset requires confidential computing for processing'
+    },
     ownerId: {
       type: DataTypes.INTEGER,
       allowNull: false,
@@ -83,6 +88,9 @@ module.exports = (sequelize, DataTypes) => {
       },
       {
         fields: ['isPublic']
+      },
+      {
+        fields: ['confidentialComputingRequired']
       }
     ]
   });
