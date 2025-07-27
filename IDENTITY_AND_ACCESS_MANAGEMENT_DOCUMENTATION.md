@@ -17,12 +17,14 @@
 2. [Identity Types](#identity-types)
 3. [Identity Creation and Management](#identity-creation-and-management)
 4. [Global Uniqueness Mechanisms](#global-uniqueness-mechanisms)
-5. [Authentication Methods](#authentication-methods)
-6. [Authorization Framework](#authorization-framework)
-7. [Security Controls](#security-controls)
-8. [Audit and Compliance](#audit-and-compliance)
-9. [Implementation Details](#implementation-details)
-10. [API Specifications](#api-specifications)
+5. [Dataset and CCRP Infrastructure Management with DEPA IDs](#dataset-and-ccrp-infrastructure-management-with-depa-ids)
+6. [Global DEPA ID Uniqueness Across Multiple Deployments](#global-depa-id-uniqueness-across-multiple-deployments)
+7. [Authentication Methods](#authentication-methods)
+8. [Authorization Framework](#authorization-framework)
+9. [Security Controls](#security-controls)
+10. [Audit and Compliance](#audit-and-compliance)
+11. [Implementation Details](#implementation-details)
+12. [API Specifications](#api-specifications)
 
 ---
 
@@ -1098,11 +1100,11 @@ const verifyOnboarding = async (userId) => {
 
 ## Global DEPA ID Uniqueness Across Multiple Deployments
 
-### 6. Multi-Deployment Uniqueness Strategy
+### 1. Multi-Deployment Uniqueness Strategy
 
 The contract management system is designed to be deployed across multiple countries and jurisdictions worldwide. Ensuring DEPA ID uniqueness across all deployments is critical for maintaining system integrity, supporting cross-border operations, and meeting regulatory requirements.
 
-#### 6.1 Deployment-Specific DEPA ID Prefixes
+#### 1.1 Deployment-Specific DEPA ID Prefixes
 
 To guarantee global uniqueness across multiple deployments, the system implements deployment-specific prefixes that are combined with the standard DEPA ID format:
 
@@ -1121,7 +1123,7 @@ This approach provides:
 - **Regulatory Compliance**: Supports jurisdiction-specific requirements
 - **Audit Trail**: Complete traceability across all deployments
 
-#### 6.2 Deployment Configuration Management
+#### 1.2 Deployment Configuration Management
 
 Each deployment has a unique configuration that includes its geographic identifier, regulatory requirements, and operational parameters:
 
@@ -1168,7 +1170,7 @@ class GlobalDEPAIdService {
 }
 ```
 
-#### 6.3 Cross-Deployment Registry
+#### 1.3 Cross-Deployment Registry
 
 A global registry maintains information about all deployments and their DEPA ID prefixes to prevent conflicts and enable cross-deployment operations:
 
@@ -1220,7 +1222,7 @@ const globalDeploymentRegistry = {
 };
 ```
 
-#### 6.4 Jurisdiction-Specific Compliance
+#### 1.4 Jurisdiction-Specific Compliance
 
 Different jurisdictions have varying regulatory requirements for data handling, privacy, and cross-border operations. The system supports jurisdiction-specific configurations:
 
@@ -1263,7 +1265,7 @@ const generateJurisdictionCompliantDEPAId = (entityType, jurisdiction) => {
 };
 ```
 
-#### 6.5 Cross-Deployment Data Exchange
+#### 1.5 Cross-Deployment Data Exchange
 
 When entities need to be referenced across deployments (e.g., for cross-border contracts), the system uses the full global DEPA ID to ensure uniqueness:
 
@@ -1310,7 +1312,7 @@ const validateCrossDeploymentReference = (reference) => {
 };
 ```
 
-#### 6.6 Global Uniqueness Verification
+#### 1.6 Global Uniqueness Verification
 
 The system implements verification mechanisms to ensure DEPA ID uniqueness across all deployments:
 
