@@ -424,75 +424,289 @@ class InfrastructureService {
    * Build infrastructure configuration based on contract requirements
    */
   buildInfrastructureConfig(contract, config) {
+    console.log('🏗️ Building infrastructure configuration for contract:', contract.contractId);
+    
+    // Get dataset information to check for confidential computing requirements
+    const contractDatasets = contract.contractDatasets || [];
+    const hasConfidentialComputingDatasets = contractDatasets.some(dataset => 
+      dataset.confidentialComputingRequired === true
+    );
+    
+    console.log('🔍 Infrastructure analysis:', {
+      totalDatasets: contractDatasets.length,
+      confidentialComputingDatasets: contractDatasets.filter(d => d.confidentialComputingRequired === true).length,
+      hasConfidentialComputingDatasets,
+      cloudProvider: contract.ccrpCloudProvider
+    });
+
     const baseConfig = {
       compute: {
         instanceType: config.compute?.instanceType || this.getDefaultInstanceType(contract.ccrpCloudProvider),
-        instanceCount: config.compute?.instanceCount || 1,
-        maxInstances: config.compute?.maxInstances || 3,
-        autoScaling: config.compute?.autoScaling || true
+        cpuCores: config.compute?.cpuCores || 4,
+        memoryGB: config.compute?.memoryGB || 16,
+        gpuEnabled: config.compute?.gpuEnabled || false,
+        gpuType: config.compute?.gpuType || 'V100',
+        gpuCount: config.compute?.gpuCount || 1,
+        autoScaling: config.compute?.autoScaling || false,
+        minInstances: config.compute?.minInstances || 1,
+        maxInstances: config.compute?.maxInstances || 3
       },
+      
       storage: {
         type: config.storage?.type || 'SSD',
         sizeGB: config.storage?.sizeGB || 100,
-        encrypted: config.storage?.encrypted !== false,
-        backupEnabled: config.storage?.backupEnabled || true
+        backupEnabled: config.storage?.backupEnabled || true,
+        encryptionEnabled: config.storage?.encryptionEnabled || true,
+        dataRetention: config.storage?.dataRetention || 90 // days
       },
-      networking: {
-        vpcEnabled: config.networking?.vpcEnabled !== false,
-        publicSubnet: config.networking?.publicSubnet || false,
-        privateSubnet: config.networking?.privateSubnet || true,
-        loadBalancer: config.networking?.loadBalancer || false
+      
+      network: {
+        vpcEnabled: config.network?.vpcEnabled || true,
+        privateSubnet: config.network?.privateSubnet || true,
+        loadBalancer: config.network?.loadBalancer || false,
+        cdnEnabled: config.network?.cdnEnabled || false,
+        bandwidth: config.network?.bandwidth || '1Gbps'
       },
+      
       database: {
-        enabled: config.database?.enabled || false,
         type: config.database?.type || 'PostgreSQL',
-        sizeGB: config.database?.sizeGB || 20
+        version: config.database?.version || '13',
+        sizeGB: config.database?.sizeGB || 20,
+        backupEnabled: config.database?.backupEnabled || true,
+        encryptionEnabled: config.database?.encryptionEnabled || true,
+        highAvailability: config.database?.highAvailability || false
       },
-      mlServices: {
-        gpuEnabled: config.mlServices?.gpuEnabled || false,
-        gpuType: config.mlServices?.gpuType || 'T4',
-        gpuCount: config.mlServices?.gpuCount || 1,
-        mlFramework: config.mlServices?.mlFramework || 'TensorFlow'
+      
+      monitoring: {
+        enabled: config.monitoring?.enabled || true,
+        metrics: config.monitoring?.metrics || ['CPU', 'Memory', 'Network', 'Storage'],
+        alerts: config.monitoring?.alerts || true,
+        logRetention: config.monitoring?.logRetention || 30 // days
       }
     };
 
-    // Add contract-specific configurations
-    if (contract.environmentSpecs) {
-      const specs = JSON.parse(contract.environmentSpecs);
-      baseConfig.compute = { ...baseConfig.compute, ...specs.compute };
-      baseConfig.storage = { ...baseConfig.storage, ...specs.storage };
-      baseConfig.networking = { ...baseConfig.networking, ...specs.networking };
+    // Enhanced infrastructure for confidential computing datasets
+    if (hasConfidentialComputingDatasets) {
+      console.log('🛡️ Applying enhanced infrastructure for confidential computing datasets');
+      
+      return {
+        ...baseConfig,
+        
+        compute: {
+          ...baseConfig.compute,
+          // Enhanced compute for confidential computing
+          instanceType: this.getConfidentialComputingInstanceType(contract.ccrpCloudProvider),
+          cpuCores: Math.max(baseConfig.compute.cpuCores, 8),
+          memoryGB: Math.max(baseConfig.compute.memoryGB, 32),
+          gpuEnabled: true, // Often needed for ML workloads
+          gpuType: 'V100', // High-end GPU for ML
+          gpuCount: Math.max(baseConfig.compute.gpuCount, 2),
+          autoScaling: true,
+          minInstances: 2,
+          maxInstances: 5,
+          // Confidential computing specific
+          confidentialComputing: true,
+          secureEnclave: true,
+          trustedExecutionEnvironment: true
+        },
+        
+        storage: {
+          ...baseConfig.storage,
+          // Enhanced storage for confidential computing
+          type: 'Premium SSD',
+          sizeGB: Math.max(baseConfig.storage.sizeGB, 500),
+          backupEnabled: true,
+          encryptionEnabled: true,
+          encryptionAlgorithm: 'AES-256-GCM',
+          dataRetention: 365, // 1 year for compliance
+          // Additional security
+          accessLogging: true,
+          versioning: true,
+          replication: true
+        },
+        
+        network: {
+          ...baseConfig.network,
+          // Enhanced network for confidential computing
+          vpcEnabled: true,
+          privateSubnet: true,
+          loadBalancer: true,
+          cdnEnabled: false, // Keep data private
+          bandwidth: '10Gbps',
+          // Additional security
+          firewall: true,
+          networkSecurityGroup: true,
+          vpnRequired: true,
+          privateLink: true
+        },
+        
+        database: {
+          ...baseConfig.database,
+          // Enhanced database for confidential computing
+          type: 'PostgreSQL',
+          version: '13',
+          sizeGB: Math.max(baseConfig.database.sizeGB, 100),
+          backupEnabled: true,
+          encryptionEnabled: true,
+          highAvailability: true,
+          // Additional security
+          sslRequired: true,
+          auditLogging: true,
+          connectionPooling: true
+        },
+        
+        monitoring: {
+          ...baseConfig.monitoring,
+          // Enhanced monitoring for confidential computing
+          enabled: true,
+          metrics: [
+            'CPU', 'Memory', 'Network', 'Storage',
+            'Security', 'Compliance', 'Attestation'
+          ],
+          alerts: true,
+          logRetention: 365, // 1 year for compliance
+          // Additional monitoring
+          securityMonitoring: true,
+          complianceMonitoring: true,
+          realTimeAlerts: true,
+          anomalyDetection: true
+        },
+        
+        // Additional infrastructure for confidential computing
+        security: {
+          keyManagement: true,
+          certificateManagement: true,
+          identityProvider: true,
+          accessControl: true
+        },
+        
+        compliance: {
+          auditTrail: true,
+          complianceReporting: true,
+          regularAudits: true,
+          breachNotification: true
+        }
+      };
     }
 
+    // Standard infrastructure for non-confidential datasets
+    console.log('🏗️ Applying standard infrastructure configuration');
     return baseConfig;
   }
 
   /**
-   * Build security configuration
+   * Build security configuration based on contract requirements
    */
   buildSecurityConfig(contract, config) {
-    return {
-      encryption: {
-        atRest: config.security?.encryption?.atRest !== false,
-        inTransit: config.security?.encryption?.inTransit !== false,
-        algorithm: config.security?.encryption?.algorithm || 'AES-256'
-      },
-      accessControl: {
-        iamEnabled: config.security?.accessControl?.iamEnabled !== false,
-        roleBasedAccess: config.security?.accessControl?.roleBasedAccess || true,
-        mfaEnabled: config.security?.accessControl?.mfaEnabled || false
-      },
-      networkSecurity: {
-        firewallEnabled: config.security?.networkSecurity?.firewallEnabled !== false,
-        vpcEnabled: config.security?.networkSecurity?.vpcEnabled !== false,
-        privateSubnet: config.security?.networkSecurity?.privateSubnet || true
-      },
-      compliance: {
-        dataResidency: config.security?.compliance?.dataResidency || 'US',
-        auditLogging: config.security?.compliance?.auditLogging !== false,
-        encryptionStandards: config.security?.compliance?.encryptionStandards || ['AES-256', 'TLS-1.3']
-      }
+    console.log('🔒 Building security configuration for contract:', contract.contractId);
+    
+    // Get dataset information to check for confidential computing requirements
+    const contractDatasets = contract.contractDatasets || [];
+    const hasConfidentialComputingDatasets = contractDatasets.some(dataset => 
+      dataset.confidentialComputingRequired === true
+    );
+    
+    console.log('🔍 Dataset analysis:', {
+      totalDatasets: contractDatasets.length,
+      confidentialComputingDatasets: contractDatasets.filter(d => d.confidentialComputingRequired === true).length,
+      hasConfidentialComputingDatasets
+    });
+
+    const baseSecurityConfig = {
+      // Encryption settings
+      encryptionAtRest: true,
+      encryptionInTransit: true,
+      encryptionAlgorithm: 'AES-256-GCM',
+      
+      // Network security
+      networkIsolation: true,
+      privateSubnet: true,
+      vpnRequired: false,
+      
+      // Access control
+      roleBasedAccess: true,
+      multiFactorAuth: false,
+      sessionTimeout: 3600, // 1 hour
+      
+      // Monitoring and logging
+      auditLogging: true,
+      securityMonitoring: true,
+      threatDetection: true,
+      
+      // Compliance
+      dataResidency: config.dataResidency || 'US',
+      regulatoryCompliance: config.regulatoryCompliance || ['GDPR', 'HIPAA'],
+      
+      // Attestation and verification
+      attestationRequired: false,
+      hardwareSecurityModule: false,
+      secureEnclave: false
     };
+
+    // Enhanced security for confidential computing datasets
+    if (hasConfidentialComputingDatasets) {
+      console.log('🛡️ Applying enhanced security for confidential computing datasets');
+      
+      return {
+        ...baseSecurityConfig,
+        
+        // Enhanced encryption
+        encryptionAlgorithm: 'AES-256-GCM',
+        keyRotation: true,
+        keyRotationInterval: 30, // days
+        
+        // Enhanced network security
+        networkIsolation: true,
+        privateSubnet: true,
+        vpnRequired: true,
+        networkSecurityGroup: true,
+        
+        // Enhanced access control
+        roleBasedAccess: true,
+        multiFactorAuth: true,
+        sessionTimeout: 1800, // 30 minutes
+        privilegedAccess: false,
+        
+        // Enhanced monitoring
+        auditLogging: true,
+        securityMonitoring: true,
+        threatDetection: true,
+        realTimeAlerts: true,
+        anomalyDetection: true,
+        
+        // Enhanced compliance
+        dataResidency: config.dataResidency || 'US',
+        regulatoryCompliance: [
+          'GDPR', 
+          'HIPAA', 
+          'SOX', 
+          'FedRAMP',
+          'ISO-27001'
+        ],
+        
+        // Confidential computing features
+        attestationRequired: true,
+        hardwareSecurityModule: true,
+        secureEnclave: true,
+        confidentialComputing: true,
+        trustedExecutionEnvironment: true,
+        
+        // Additional security measures
+        dataLossPrevention: true,
+        endpointProtection: true,
+        intrusionDetection: true,
+        vulnerabilityScanning: true,
+        
+        // Compliance monitoring
+        complianceMonitoring: true,
+        regularAudits: true,
+        breachNotification: true
+      };
+    }
+
+    // Standard security for non-confidential datasets
+    console.log('🔒 Applying standard security configuration');
+    return baseSecurityConfig;
   }
 
   /**
@@ -537,7 +751,7 @@ class InfrastructureService {
     const storageCost = this.getStorageCost(contract.ccrpCloudProvider, infrastructureConfig.storage);
     
     // Network costs
-    const networkCost = this.getNetworkCost(contract.ccrpCloudProvider, infrastructureConfig.networking);
+    const networkCost = this.getNetworkCost(contract.ccrpCloudProvider, infrastructureConfig.network);
     
     // Database costs
     const databaseCost = infrastructureConfig.database.enabled ? 
@@ -569,13 +783,26 @@ class InfrastructureService {
    * Get default instance type for cloud provider
    */
   getDefaultInstanceType(cloudProvider) {
-    const defaultInstances = {
-      AWS: 't3.medium',
-      GCP: 'n1-standard-2',
-      Azure: 'Standard_D2s_v3',
-      OCI: 'VM.Standard2.2'
+    const defaultTypes = {
+      'AWS': 't3.medium',
+      'GCP': 'n1-standard-2',
+      'Azure': 'Standard_D2s_v3',
+      'OCI': 'VM.Standard2.2'
     };
-    return defaultInstances[cloudProvider] || 't3.medium';
+    return defaultTypes[cloudProvider] || 't3.medium';
+  }
+
+  /**
+   * Get confidential computing instance type for cloud provider
+   */
+  getConfidentialComputingInstanceType(cloudProvider) {
+    const confidentialTypes = {
+      'AWS': 'c6i.2xlarge', // Nitro Enclaves support
+      'GCP': 'n2d-standard-8', // Confidential Computing
+      'Azure': 'Standard_DC8s_v3', // DC-series for confidential computing
+      'OCI': 'VM.Standard3.Flex' // Flexible with confidential computing
+    };
+    return confidentialTypes[cloudProvider] || this.getDefaultInstanceType(cloudProvider);
   }
 
   /**

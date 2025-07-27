@@ -98,8 +98,15 @@ const InfrastructureProvisioning = () => {
     databaseSku: 'Basic',
     enableMonitoring: true,
     enableEncryption: true,
-    budgetLimit: '',
-    tags: {}
+    enableConfidentialComputing: false,
+    enableAttestation: false,
+    enableSecureEnclave: false,
+    enableHardwareSecurityModule: false,
+    complianceFramework: 'GDPR',
+    dataRetentionDays: 90,
+    auditLogging: true,
+    threatDetection: true,
+    realTimeAlerts: true
   });
 
   // Load environments
@@ -545,40 +552,134 @@ const InfrastructureProvisioning = () => {
               )}
             </Grid>
 
-            {/* Security & Monitoring */}
-            <Grid item xs={12} md={6}>
-              <Typography variant="h6" gutterBottom>Security & Monitoring</Typography>
+            {/* Security Configuration */}
+            <Grid item xs={12}>
+              <Typography variant="h6" gutterBottom>
+                <Security sx={{ mr: 1, verticalAlign: 'middle' }} />
+                Security & Confidential Computing Configuration
+              </Typography>
               
-              <FormControlLabel
-                control={
-                  <Switch
-                    checked={provisionConfig.enableMonitoring}
-                    onChange={(e) => setProvisionConfig(prev => ({ ...prev, enableMonitoring: e.target.checked }))}
+              <Grid container spacing={2}>
+                <Grid item xs={12} md={6}>
+                  <FormControlLabel
+                    control={
+                      <Switch
+                        checked={provisionConfig.enableEncryption}
+                        onChange={(e) => setProvisionConfig(prev => ({ ...prev, enableEncryption: e.target.checked }))}
+                      />
+                    }
+                    label="Enable Encryption"
                   />
-                }
-                label="Enable Monitoring"
-                sx={{ mb: 2 }}
-              />
-              
-              <FormControlLabel
-                control={
-                  <Switch
-                    checked={provisionConfig.enableEncryption}
-                    onChange={(e) => setProvisionConfig(prev => ({ ...prev, enableEncryption: e.target.checked }))}
+                  
+                  <FormControlLabel
+                    control={
+                      <Switch
+                        checked={provisionConfig.enableConfidentialComputing}
+                        onChange={(e) => setProvisionConfig(prev => ({ ...prev, enableConfidentialComputing: e.target.checked }))}
+                      />
+                    }
+                    label="Enable Confidential Computing"
                   />
-                }
-                label="Enable Encryption"
-                sx={{ mb: 2 }}
-              />
+                  
+                  <FormControlLabel
+                    control={
+                      <Switch
+                        checked={provisionConfig.enableAttestation}
+                        onChange={(e) => setProvisionConfig(prev => ({ ...prev, enableAttestation: e.target.checked }))}
+                        disabled={!provisionConfig.enableConfidentialComputing}
+                      />
+                    }
+                    label="Enable Attestation"
+                  />
+                  
+                  <FormControlLabel
+                    control={
+                      <Switch
+                        checked={provisionConfig.enableSecureEnclave}
+                        onChange={(e) => setProvisionConfig(prev => ({ ...prev, enableSecureEnclave: e.target.checked }))}
+                        disabled={!provisionConfig.enableConfidentialComputing}
+                      />
+                    }
+                    label="Enable Secure Enclave"
+                  />
+                  
+                  <FormControlLabel
+                    control={
+                      <Switch
+                        checked={provisionConfig.enableHardwareSecurityModule}
+                        onChange={(e) => setProvisionConfig(prev => ({ ...prev, enableHardwareSecurityModule: e.target.checked }))}
+                        disabled={!provisionConfig.enableConfidentialComputing}
+                      />
+                    }
+                    label="Enable Hardware Security Module"
+                  />
+                </Grid>
+                
+                <Grid item xs={12} md={6}>
+                  <FormControl fullWidth sx={{ mb: 2 }}>
+                    <InputLabel>Compliance Framework</InputLabel>
+                    <Select
+                      value={provisionConfig.complianceFramework}
+                      onChange={(e) => setProvisionConfig(prev => ({ ...prev, complianceFramework: e.target.value }))}
+                      label="Compliance Framework"
+                    >
+                      <MenuItem value="GDPR">GDPR</MenuItem>
+                      <MenuItem value="HIPAA">HIPAA</MenuItem>
+                      <MenuItem value="SOX">SOX</MenuItem>
+                      <MenuItem value="FedRAMP">FedRAMP</MenuItem>
+                      <MenuItem value="ISO-27001">ISO-27001</MenuItem>
+                    </Select>
+                  </FormControl>
+                  
+                  <TextField
+                    fullWidth
+                    label="Data Retention (Days)"
+                    type="number"
+                    value={provisionConfig.dataRetentionDays}
+                    onChange={(e) => setProvisionConfig(prev => ({ ...prev, dataRetentionDays: parseInt(e.target.value) }))}
+                    sx={{ mb: 2 }}
+                    inputProps={{ min: 30, max: 3650 }}
+                  />
+                  
+                  <FormControlLabel
+                    control={
+                      <Switch
+                        checked={provisionConfig.auditLogging}
+                        onChange={(e) => setProvisionConfig(prev => ({ ...prev, auditLogging: e.target.checked }))}
+                      />
+                    }
+                    label="Audit Logging"
+                  />
+                  
+                  <FormControlLabel
+                    control={
+                      <Switch
+                        checked={provisionConfig.threatDetection}
+                        onChange={(e) => setProvisionConfig(prev => ({ ...prev, threatDetection: e.target.checked }))}
+                      />
+                    }
+                    label="Threat Detection"
+                  />
+                  
+                  <FormControlLabel
+                    control={
+                      <Switch
+                        checked={provisionConfig.realTimeAlerts}
+                        onChange={(e) => setProvisionConfig(prev => ({ ...prev, realTimeAlerts: e.target.checked }))}
+                      />
+                    }
+                    label="Real-time Alerts"
+                  />
+                </Grid>
+              </Grid>
               
-              <TextField
-                fullWidth
-                label="Monthly Budget Limit (USD)"
-                type="number"
-                value={provisionConfig.budgetLimit}
-                onChange={(e) => setProvisionConfig(prev => ({ ...prev, budgetLimit: e.target.value }))}
-                sx={{ mb: 2 }}
-              />
+              {provisionConfig.enableConfidentialComputing && (
+                <Alert severity="info" sx={{ mt: 2 }}>
+                  <Typography variant="body2">
+                    <strong>Confidential Computing Enabled:</strong> This environment will be provisioned with enhanced security features including hardware-based security, attestation, and secure enclaves for processing sensitive data.
+                  </Typography>
+                </Alert>
+              )}
             </Grid>
           </Grid>
         </DialogContent>
@@ -686,30 +787,78 @@ const InfrastructureProvisioning = () => {
               </Grid>
               
               <Grid item xs={12}>
-                <Typography variant="h6" gutterBottom>Network & Security</Typography>
+                <Typography variant="h6" gutterBottom>Security & Compliance</Typography>
                 <List>
                   <ListItem>
-                    <ListItemIcon><Router /></ListItemIcon>
+                    <ListItemIcon><Security /></ListItemIcon>
                     <ListItemText 
-                      primary="Virtual Network" 
-                      secondary={selectedEnvironment.vnetName || 'Not configured'} 
+                      primary="Encryption" 
+                      secondary={selectedEnvironment.enableEncryption ? "Enabled" : "Disabled"} 
                     />
                   </ListItem>
                   <ListItem>
                     <ListItemIcon><Security /></ListItemIcon>
                     <ListItemText 
-                      primary="Encryption" 
-                      secondary={selectedEnvironment.enableEncryption ? 'Enabled' : 'Disabled'} 
+                      primary="Confidential Computing" 
+                      secondary={selectedEnvironment.enableConfidentialComputing ? "Enabled" : "Disabled"} 
                     />
                   </ListItem>
+                  {selectedEnvironment.enableConfidentialComputing && (
+                    <>
+                      <ListItem>
+                        <ListItemIcon><Security /></ListItemIcon>
+                        <ListItemText 
+                          primary="Attestation" 
+                          secondary={selectedEnvironment.enableAttestation ? "Required" : "Not Required"} 
+                        />
+                      </ListItem>
+                      <ListItem>
+                        <ListItemIcon><Security /></ListItemIcon>
+                        <ListItemText 
+                          primary="Secure Enclave" 
+                          secondary={selectedEnvironment.enableSecureEnclave ? "Enabled" : "Disabled"} 
+                        />
+                      </ListItem>
+                      <ListItem>
+                        <ListItemIcon><Security /></ListItemIcon>
+                        <ListItemText 
+                          primary="Hardware Security Module" 
+                          secondary={selectedEnvironment.enableHardwareSecurityModule ? "Enabled" : "Disabled"} 
+                        />
+                      </ListItem>
+                    </>
+                  )}
                   <ListItem>
                     <ListItemIcon><Monitor /></ListItemIcon>
                     <ListItemText 
                       primary="Monitoring" 
-                      secondary={selectedEnvironment.enableMonitoring ? 'Enabled' : 'Disabled'} 
+                      secondary={selectedEnvironment.enableMonitoring ? "Enabled" : "Disabled"} 
+                    />
+                  </ListItem>
+                  <ListItem>
+                    <ListItemIcon><Security /></ListItemIcon>
+                    <ListItemText 
+                      primary="Compliance Framework" 
+                      secondary={selectedEnvironment.complianceFramework || "Not Specified"} 
+                    />
+                  </ListItem>
+                  <ListItem>
+                    <ListItemIcon><Timeline /></ListItemIcon>
+                    <ListItemText 
+                      primary="Data Retention" 
+                      secondary={`${selectedEnvironment.dataRetentionDays || 90} days`} 
                     />
                   </ListItem>
                 </List>
+                
+                {/* Confidential Computing Alert */}
+                {selectedEnvironment.enableConfidentialComputing && (
+                  <Alert severity="warning" sx={{ mt: 2 }}>
+                    <Typography variant="body2">
+                      <strong>Confidential Computing Environment:</strong> This environment is configured with enhanced security features for processing sensitive data, including hardware-based security, attestation, and secure enclaves.
+                    </Typography>
+                  </Alert>
+                )}
               </Grid>
             </Grid>
           )}

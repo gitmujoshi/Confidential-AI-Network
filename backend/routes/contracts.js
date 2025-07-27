@@ -591,7 +591,13 @@ router.post('/ricardian', authenticateToken, async (req, res) => {
         individualPrice: price,
         tdpId: dataset.owner.id,
         tdpName: dataset.owner.name,
-        datasetName: dataset.name
+        datasetName: dataset.name,
+        confidentialComputingRequired: dataset.confidentialComputingRequired || false,
+        category: dataset.category,
+        size: dataset.size,
+        recordCount: dataset.recordCount,
+        license: dataset.license,
+        tags: dataset.tags || []
       })),
       // Store privacy requirements
       privacyRequirements: privacyRequirements || {},
