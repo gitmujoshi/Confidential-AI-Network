@@ -378,9 +378,22 @@ async isDIDAvailable(did) {
 
 ## Dataset and CCRP Infrastructure Management with DEPA IDs
 
+This section covers how datasets and CCRP (Confidential Clean Room Provider) infrastructure are managed with globally unique DEPA IDs. Each dataset and infrastructure component receives a unique identifier that ensures traceability, ownership verification, and compliance across the entire system.
+
 ### 1. Dataset Identity Management
 
+Datasets are critical assets in the contract management system that represent training data provided by TDPs (Training Data Providers). Each dataset must have a globally unique identifier to ensure proper ownership tracking, licensing compliance, and audit trails.
+
 #### 1.1 Dataset DEPA ID Generation
+
+When a TDP creates a dataset, the system automatically generates a unique DEPA ID that follows the format `DATASET-[GUID]`. This identifier is immutable and serves as the primary reference for all dataset-related operations including licensing, access control, and audit logging.
+
+The generation process ensures:
+- **Uniqueness**: Each dataset receives a globally unique identifier
+- **Immutability**: Once assigned, the DEPA ID cannot be changed
+- **Traceability**: All dataset operations are linked to this identifier
+- **Compliance**: Supports regulatory requirements for data tracking
+
 ```javascript
 // Dataset creation with DEPA ID
 const createDataset = async (datasetData) => {
@@ -419,6 +432,9 @@ const createDataset = async (datasetData) => {
 ```
 
 #### 1.2 Dataset DEPA ID Format
+
+The dataset DEPA ID follows a standardized format that includes the entity type prefix and a globally unique identifier:
+
 ```
 DATASET-[GUID]
 Examples:
@@ -426,7 +442,21 @@ Examples:
 - DATASET-9a1b2c3d-4e5f-6a7b-8c9d-0e1f2a3b4c5d
 ```
 
+This format ensures that:
+- All dataset identifiers are clearly distinguishable from other entity types
+- The GUID component provides global uniqueness
+- The format is consistent across all system deployments
+
 #### 1.3 Dataset Uniqueness Guarantee
+
+The system implements multiple layers of uniqueness guarantees to ensure that no two datasets can have the same DEPA ID. This is critical for maintaining data integrity, preventing conflicts, and ensuring proper audit trails.
+
+The uniqueness is enforced through:
+- **Database Constraints**: Unique constraints at the database level
+- **Application Logic**: Validation during dataset creation
+- **Transaction Isolation**: Atomic operations prevent race conditions
+- **Collision Detection**: Retry mechanisms for rare collision scenarios
+
 ```javascript
 // Database constraints for dataset uniqueness
 const datasetConstraints = {
@@ -466,7 +496,18 @@ indexes: [
 
 ### 2. CCRP Infrastructure and Environment Management
 
+CCRP (Confidential Clean Room Provider) infrastructure represents the cloud-based computing environments where AI training occurs. Each environment must be uniquely identified to ensure proper resource management, security controls, and cost tracking across multiple cloud providers.
+
 #### 2.1 Training Environment DEPA ID Generation
+
+Training environments are complex infrastructure deployments that include compute resources, storage systems, networking components, and security controls. Each environment receives a unique DEPA ID that tracks its entire lifecycle from creation to destruction.
+
+The environment DEPA ID serves multiple purposes:
+- **Resource Tracking**: Links all cloud resources to a specific environment
+- **Cost Management**: Enables detailed cost analysis per environment
+- **Security Auditing**: Provides audit trail for all environment activities
+- **Compliance**: Supports regulatory requirements for infrastructure management
+
 ```javascript
 // Training environment creation with DEPA ID
 const createTrainingEnvironment = async (contractId, config) => {
@@ -506,6 +547,9 @@ const createTrainingEnvironment = async (contractId, config) => {
 ```
 
 #### 2.2 Environment DEPA ID Format
+
+Training environment DEPA IDs follow a specific format that distinguishes them from other entity types:
+
 ```
 ENVIRONMENT-[GUID]
 Examples:
@@ -513,7 +557,21 @@ Examples:
 - ENVIRONMENT-2c3d4e5f-6a7b-8c9d-0e1f-2a3b4c5d6e7f
 ```
 
+This format provides:
+- **Clear Identification**: Immediately recognizable as environment entities
+- **Global Uniqueness**: GUID ensures no collisions across deployments
+- **Consistency**: Same format across all cloud providers and regions
+
 #### 2.3 CCRP Infrastructure Resources
+
+Individual cloud resources within an environment (compute instances, storage buckets, databases, etc.) also receive unique DEPA IDs. This enables granular tracking of resource usage, cost allocation, and security monitoring.
+
+Resource DEPA IDs support:
+- **Resource Lifecycle Management**: Track creation, modification, and destruction
+- **Cost Attribution**: Link costs to specific resources
+- **Security Monitoring**: Monitor access patterns and security events
+- **Compliance Reporting**: Generate detailed compliance reports
+
 ```javascript
 // Environment resource management with DEPA IDs
 const createEnvironmentResource = async (environmentId, resourceData) => {
@@ -546,6 +604,9 @@ const createEnvironmentResource = async (environmentId, resourceData) => {
 ```
 
 #### 2.4 Resource DEPA ID Format
+
+Individual resource DEPA IDs follow this format:
+
 ```
 RESOURCE-[GUID]
 Examples:
@@ -553,9 +614,25 @@ Examples:
 - RESOURCE-4d5e6f7a-8b9c-0d1e-2f3a-4b5c6d7e8f9a
 ```
 
+This enables:
+- **Granular Tracking**: Each resource has its own unique identifier
+- **Hierarchical Organization**: Resources are linked to environments
+- **Detailed Auditing**: Complete audit trail for each resource
+
 ### 3. Global Uniqueness Guarantee During Onboarding
 
+The onboarding process is critical for establishing user identities and associated entities with guaranteed global uniqueness. This process ensures that all entities created during onboarding have unique DEPA IDs that can be trusted across the entire system.
+
 #### 3.1 Transaction-Based DEPA ID Assignment
+
+Onboarding uses database transactions to ensure atomic operations that guarantee uniqueness. If any step fails, the entire process is rolled back, preventing partial states that could lead to conflicts.
+
+The transaction-based approach provides:
+- **Atomicity**: All operations succeed or fail together
+- **Consistency**: Database remains in a valid state
+- **Isolation**: Concurrent onboarding processes don't interfere
+- **Durability**: Changes are permanent once committed
+
 ```javascript
 // Onboarding process with guaranteed uniqueness
 const onboardUser = async (userData) => {
@@ -623,6 +700,15 @@ const onboardUser = async (userData) => {
 ```
 
 #### 3.2 DEPA ID Collision Prevention
+
+Despite the extremely low probability of UUID collisions, the system implements robust collision detection and retry mechanisms to handle any potential conflicts.
+
+The collision prevention system includes:
+- **Retry Logic**: Multiple attempts with different UUIDs
+- **Database Verification**: Check for existing DEPA IDs before assignment
+- **Logging**: Detailed logs for collision detection and resolution
+- **Alerting**: Notifications for unusual collision patterns
+
 ```javascript
 // DEPA ID service with collision detection
 class DEPAIdService {
@@ -665,6 +751,9 @@ class DEPAIdService {
 ```
 
 #### 3.3 Database-Level Uniqueness Constraints
+
+The database schema enforces uniqueness at multiple levels to prevent any possibility of duplicate DEPA IDs:
+
 ```sql
 -- Users table
 ALTER TABLE users ADD CONSTRAINT unique_user_depa_id UNIQUE ("depaId");
@@ -682,9 +771,26 @@ ALTER TABLE training_environments ADD CONSTRAINT unique_environment_depa_id UNIQ
 ALTER TABLE environment_resources ADD CONSTRAINT unique_resource_depa_id UNIQUE ("depaId");
 ```
 
+These constraints provide:
+- **Database-Level Enforcement**: Prevents duplicate DEPA IDs at the database level
+- **Application Independence**: Works regardless of application logic
+- **Performance**: Indexed for fast uniqueness checks
+- **Reliability**: Database guarantees uniqueness even during concurrent operations
+
 ### 4. CCRP Infrastructure and Environment Functions
 
+CCRP infrastructure management involves complex operations for provisioning, monitoring, and managing cloud-based training environments. Each operation is tracked with DEPA IDs to ensure proper audit trails and compliance.
+
 #### 4.1 Infrastructure Provisioning
+
+Infrastructure provisioning creates the cloud resources needed for AI training. This process involves multiple cloud providers, complex resource configurations, and security controls.
+
+The provisioning process includes:
+- **Resource Planning**: Determine required compute, storage, and networking resources
+- **Security Configuration**: Set up encryption, access controls, and monitoring
+- **Cost Estimation**: Calculate expected costs for the infrastructure
+- **Compliance Verification**: Ensure infrastructure meets regulatory requirements
+
 ```javascript
 // CCRP infrastructure provisioning with DEPA IDs
 const provisionCCRPInfrastructure = async (ccrpUserId, config) => {
@@ -736,6 +842,15 @@ const provisionCCRPInfrastructure = async (ccrpUserId, config) => {
 ```
 
 #### 4.2 Environment Management
+
+Training environment management involves the complete lifecycle of environments from creation to destruction. Each operation is tracked with DEPA IDs for audit and compliance purposes.
+
+Environment management includes:
+- **Lifecycle Operations**: Start, stop, pause, and destroy environments
+- **Resource Monitoring**: Track resource usage and performance
+- **Cost Management**: Monitor and optimize costs
+- **Security Auditing**: Track all access and modifications
+
 ```javascript
 // Training environment lifecycle with DEPA IDs
 const manageTrainingEnvironment = async (environmentDEPAId, action) => {
@@ -781,7 +896,18 @@ const manageTrainingEnvironment = async (environmentDEPAId, action) => {
 
 ### 5. Onboarding Uniqueness Guarantee Process
 
+The onboarding process ensures that all users and their associated entities receive globally unique DEPA IDs. This process is critical for maintaining system integrity and supporting compliance requirements.
+
 #### 5.1 Multi-Step Onboarding with DEPA IDs
+
+Onboarding follows a structured process that creates users and their associated entities with guaranteed uniqueness. Each step is validated and can be rolled back if any issues occur.
+
+The onboarding process includes:
+- **User Creation**: Create user account with unique DEPA ID
+- **Entity Creation**: Create party-specific entities (datasets for TDPs, infrastructure for CCRPs)
+- **Verification**: Verify all entities were created successfully
+- **Completion**: Mark onboarding as complete
+
 ```javascript
 // Complete onboarding process with uniqueness guarantee
 const completeOnboarding = async (userData) => {
@@ -853,6 +979,15 @@ const completeOnboarding = async (userData) => {
 ```
 
 #### 5.2 Onboarding Verification
+
+After onboarding completion, the system verifies that all entities were created successfully and have unique DEPA IDs. This verification ensures data integrity and supports compliance requirements.
+
+The verification process includes:
+- **Entity Count Verification**: Ensure all expected entities were created
+- **DEPA ID Validation**: Verify all DEPA IDs are unique and properly formatted
+- **Relationship Verification**: Confirm all relationships between entities are correct
+- **Status Verification**: Ensure all entities are in the correct state
+
 ```javascript
 // Verify onboarding completion with DEPA IDs
 const verifyOnboarding = async (userId) => {
@@ -895,6 +1030,289 @@ const verifyOnboarding = async (userId) => {
   return verification;
 };
 ```
+
+---
+
+## Global DEPA ID Uniqueness Across Multiple Deployments
+
+### 6. Multi-Deployment Uniqueness Strategy
+
+The contract management system is designed to be deployed across multiple countries and jurisdictions worldwide. Ensuring DEPA ID uniqueness across all deployments is critical for maintaining system integrity, supporting cross-border operations, and meeting regulatory requirements.
+
+#### 6.1 Deployment-Specific DEPA ID Prefixes
+
+To guarantee global uniqueness across multiple deployments, the system implements deployment-specific prefixes that are combined with the standard DEPA ID format:
+
+```
+[DEPLOYMENT_PREFIX]-[ENTITY_TYPE]-[GUID]
+Examples:
+- US-EAST-TDC-8f4e2a1b-3c4d-5e6f-7a8b-9c0d1e2f3a4b
+- EU-WEST-TDP-9a1b2c3d-4e5f-6a7b-8c9d-0e1f2a3b4c5d
+- AP-SOUTH-CCRP-1b2c3d4e-5f6a-7b8c-9d0e-1f2a3b4c5d6e
+- CA-CENTRAL-CONTRACT-2c3d4e5f-6a7b-8c9d-0e1f-2a3b4c5d6e7f
+```
+
+This approach provides:
+- **Global Uniqueness**: Deployment prefixes prevent collisions across regions
+- **Geographic Identification**: Easy identification of deployment location
+- **Regulatory Compliance**: Supports jurisdiction-specific requirements
+- **Audit Trail**: Complete traceability across all deployments
+
+#### 6.2 Deployment Configuration Management
+
+Each deployment has a unique configuration that includes its geographic identifier, regulatory requirements, and operational parameters:
+
+```javascript
+// Deployment configuration with geographic and regulatory settings
+const deploymentConfig = {
+  deploymentId: 'US-EAST',
+  region: 'us-east-1',
+  country: 'United States',
+  jurisdiction: 'US-Federal',
+  dataResidency: 'US',
+  regulatoryFramework: ['GDPR', 'CCPA', 'HIPAA'],
+  depaIdPrefix: 'US-EAST',
+  timezone: 'America/New_York',
+  currency: 'USD',
+  language: 'en-US'
+};
+
+// Enhanced DEPA ID service with deployment awareness
+class GlobalDEPAIdService {
+  constructor(deploymentConfig) {
+    this.deploymentConfig = deploymentConfig;
+    this.deploymentPrefix = deploymentConfig.depaIdPrefix;
+  }
+  
+  generateGlobalDEPAId(entityType) {
+    const guid = uuidv4();
+    return `${this.deploymentPrefix}-${entityType}-${guid}`;
+  }
+  
+  validateGlobalDEPAId(depaId) {
+    const pattern = /^[A-Z-]+-[A-Z]+-[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    return pattern.test(depaId);
+  }
+  
+  extractDeploymentInfo(depaId) {
+    const parts = depaId.split('-');
+    return {
+      deploymentPrefix: parts[0],
+      entityType: parts[1],
+      guid: parts.slice(2).join('-')
+    };
+  }
+}
+```
+
+#### 6.3 Cross-Deployment Registry
+
+A global registry maintains information about all deployments and their DEPA ID prefixes to prevent conflicts and enable cross-deployment operations:
+
+```javascript
+// Global deployment registry
+const globalDeploymentRegistry = {
+  deployments: [
+    {
+      deploymentId: 'US-EAST',
+      prefix: 'US-EAST',
+      region: 'us-east-1',
+      country: 'United States',
+      status: 'ACTIVE',
+      registeredAt: '2024-01-15T10:00:00Z'
+    },
+    {
+      deploymentId: 'EU-WEST',
+      prefix: 'EU-WEST',
+      region: 'eu-west-1',
+      country: 'Germany',
+      status: 'ACTIVE',
+      registeredAt: '2024-01-20T14:30:00Z'
+    },
+    {
+      deploymentId: 'AP-SOUTH',
+      prefix: 'AP-SOUTH',
+      region: 'ap-south-1',
+      country: 'Singapore',
+      status: 'ACTIVE',
+      registeredAt: '2024-02-01T09:15:00Z'
+    }
+  ],
+  
+  validateDeploymentPrefix(prefix) {
+    const existing = this.deployments.find(d => d.prefix === prefix);
+    return !existing;
+  },
+  
+  registerDeployment(deploymentInfo) {
+    if (!this.validateDeploymentPrefix(deploymentInfo.prefix)) {
+      throw new Error(`Deployment prefix ${deploymentInfo.prefix} already exists`);
+    }
+    
+    this.deployments.push({
+      ...deploymentInfo,
+      registeredAt: new Date().toISOString()
+    });
+  }
+};
+```
+
+#### 6.4 Jurisdiction-Specific Compliance
+
+Different jurisdictions have varying regulatory requirements for data handling, privacy, and cross-border operations. The system supports jurisdiction-specific configurations:
+
+```javascript
+// Jurisdiction-specific DEPA ID handling
+const jurisdictionConfigs = {
+  'US-Federal': {
+    dataResidency: 'US',
+    encryptionStandards: ['AES-256', 'FIPS-140-2'],
+    auditRequirements: ['SOX', 'FedRAMP'],
+    depaIdFormat: 'US-[REGION]-[ENTITY_TYPE]-[GUID]'
+  },
+  'EU-GDPR': {
+    dataResidency: 'EU',
+    encryptionStandards: ['AES-256', 'GDPR-Article-32'],
+    auditRequirements: ['GDPR', 'ISO-27001'],
+    depaIdFormat: 'EU-[REGION]-[ENTITY_TYPE]-[GUID]'
+  },
+  'AP-Singapore': {
+    dataResidency: 'Singapore',
+    encryptionStandards: ['AES-256', 'MAS-TRM'],
+    auditRequirements: ['PDPA', 'ISO-27001'],
+    depaIdFormat: 'AP-[REGION]-[ENTITY_TYPE]-[GUID]'
+  }
+};
+
+// Jurisdiction-aware DEPA ID generation
+const generateJurisdictionCompliantDEPAId = (entityType, jurisdiction) => {
+  const config = jurisdictionConfigs[jurisdiction];
+  if (!config) {
+    throw new Error(`Unsupported jurisdiction: ${jurisdiction}`);
+  }
+  
+  const guid = uuidv4();
+  const region = getCurrentRegion();
+  return config.depaIdFormat
+    .replace('[REGION]', region)
+    .replace('[ENTITY_TYPE]', entityType)
+    .replace('[GUID]', guid);
+};
+```
+
+#### 6.5 Cross-Deployment Data Exchange
+
+When entities need to be referenced across deployments (e.g., for cross-border contracts), the system uses the full global DEPA ID to ensure uniqueness:
+
+```javascript
+// Cross-deployment entity reference
+const crossDeploymentReference = {
+  sourceDeployment: 'US-EAST',
+  targetDeployment: 'EU-WEST',
+  entityType: 'CONTRACT',
+  globalDEPAId: 'US-EAST-CONTRACT-8f4e2a1b-3c4d-5e6f-7a8b-9c0d1e2f3a4b',
+  referenceType: 'CROSS_BORDER_CONTRACT',
+  complianceStatus: 'APPROVED',
+  dataTransferAgreement: 'DTA-2024-001'
+};
+
+// Cross-deployment validation
+const validateCrossDeploymentReference = (reference) => {
+  const sourceConfig = getDeploymentConfig(reference.sourceDeployment);
+  const targetConfig = getDeploymentConfig(reference.targetDeployment);
+  
+  // Check data residency compliance
+  const dataResidencyCompliant = checkDataResidencyCompliance(
+    sourceConfig.dataResidency,
+    targetConfig.dataResidency,
+    reference.entityType
+  );
+  
+  // Check regulatory compliance
+  const regulatoryCompliant = checkRegulatoryCompliance(
+    sourceConfig.regulatoryFramework,
+    targetConfig.regulatoryFramework,
+    reference.referenceType
+  );
+  
+  return {
+    isValid: dataResidencyCompliant && regulatoryCompliant,
+    dataResidencyCompliant,
+    regulatoryCompliant,
+    complianceDetails: {
+      dataResidency: dataResidencyCompliant,
+      regulatory: regulatoryCompliant
+    }
+  };
+};
+```
+
+#### 6.6 Global Uniqueness Verification
+
+The system implements verification mechanisms to ensure DEPA ID uniqueness across all deployments:
+
+```javascript
+// Global uniqueness verification service
+class GlobalUniquenessVerificationService {
+  async verifyGlobalUniqueness(depaId, entityType) {
+    // Check local deployment
+    const localExists = await this.checkLocalDeployment(depaId);
+    if (localExists) {
+      return { unique: false, reason: 'Exists in local deployment' };
+    }
+    
+    // Check global registry
+    const globalExists = await this.checkGlobalRegistry(depaId);
+    if (globalExists) {
+      return { unique: false, reason: 'Exists in global registry' };
+    }
+    
+    // Check cross-deployment references
+    const crossDeploymentExists = await this.checkCrossDeploymentReferences(depaId);
+    if (crossDeploymentExists) {
+      return { unique: false, reason: 'Exists in cross-deployment reference' };
+    }
+    
+    return { unique: true, reason: 'Verified globally unique' };
+  }
+  
+  async checkLocalDeployment(depaId) {
+    // Check local database for existing DEPA ID
+    const existing = await db.sequelize.query(
+      'SELECT id FROM users WHERE "depaId" = :depaId UNION SELECT id FROM contracts WHERE "depaId" = :depaId UNION SELECT id FROM datasets WHERE "depaId" = :depaId',
+      {
+        replacements: { depaId },
+        type: db.sequelize.QueryTypes.SELECT
+      }
+    );
+    
+    return existing.length > 0;
+  }
+  
+  async checkGlobalRegistry(depaId) {
+    // Check global deployment registry
+    const registryResponse = await fetch(`${GLOBAL_REGISTRY_URL}/verify`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ depaId })
+    });
+    
+    const result = await registryResponse.json();
+    return result.exists;
+  }
+  
+  async checkCrossDeploymentReferences(depaId) {
+    // Check cross-deployment reference table
+    const existing = await db.CrossDeploymentReference.findOne({
+      where: { globalDEPAId: depaId }
+    });
+    
+    return !!existing;
+  }
+}
+```
+
+This comprehensive approach ensures that DEPA IDs remain globally unique across all deployments worldwide, supporting cross-border operations while maintaining compliance with jurisdiction-specific regulatory requirements.
 
 ---
 
