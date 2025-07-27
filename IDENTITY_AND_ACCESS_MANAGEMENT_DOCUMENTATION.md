@@ -238,9 +238,16 @@ const validateEnterpriseDID = async (did) => {
 
 ## Global Uniqueness Mechanisms
 
+The global uniqueness mechanisms ensure that all entities in the system have unique identifiers that can be trusted across all deployments and jurisdictions. This is critical for maintaining data integrity, preventing conflicts, and supporting cross-border operations.
+
 ### 1. DEPA ID System
 
+The DEPA ID (Decentralized Entity Provider Architecture ID) system provides globally unique identifiers for all entities in the contract management system. Each DEPA ID consists of an entity type prefix followed by a globally unique identifier, ensuring no two entities can have the same identifier.
+
 #### 1.1 DEPA ID Format
+
+The DEPA ID format is designed to be human-readable while ensuring global uniqueness. The format includes an entity type prefix that immediately identifies the type of entity, followed by a UUID that guarantees uniqueness.
+
 ```
 [ENTITY_TYPE]-[GUID]
 Examples:
@@ -250,7 +257,22 @@ Examples:
 - CONTRACT-2c3d4e5f-6a7b-8c9d-0e1f-2a3b4c5d6e7f
 ```
 
+This format provides:
+- **Immediate Recognition**: Entity type is clearly identifiable
+- **Global Uniqueness**: UUID component ensures no collisions
+- **Consistency**: Same format across all system deployments
+- **Scalability**: Supports unlimited number of entities
+
 #### 1.2 DEPA ID Generation
+
+The DEPA ID generation process ensures that each entity receives a unique identifier that follows the established format. The generation process includes validation to ensure the entity type is valid and the resulting DEPA ID is properly formatted.
+
+The generation process provides:
+- **Validation**: Ensures entity type is supported
+- **Uniqueness**: Uses cryptographically secure UUID generation
+- **Format Compliance**: Ensures proper DEPA ID format
+- **Error Handling**: Graceful handling of generation failures
+
 ```javascript
 class DEPAIdService {
   generateDEPAId(entityType) {
@@ -275,6 +297,15 @@ class DEPAIdService {
 ```
 
 #### 1.3 DEPA ID Validation
+
+DEPA ID validation ensures that all identifiers in the system follow the correct format and can be trusted for system operations. The validation process uses regular expressions to verify the format and includes additional checks for entity type validity.
+
+The validation process includes:
+- **Format Validation**: Ensures proper DEPA ID structure
+- **Entity Type Validation**: Verifies entity type is supported
+- **GUID Validation**: Confirms UUID format is correct
+- **Case Insensitivity**: Handles both uppercase and lowercase formats
+
 ```javascript
 // Regex pattern for validation
 const depaIdPattern = /^(TDC|TDP|CCRP|CONTRACT)-[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -290,7 +321,19 @@ validateDEPAId(depaId) {
 
 ### 2. Database Uniqueness Constraints
 
+Database-level uniqueness constraints provide the foundation for ensuring that no duplicate identifiers can exist in the system. These constraints are enforced at the database level, providing reliability even if application-level validation fails.
+
 #### 2.1 User Table Constraints
+
+The users table implements multiple uniqueness constraints to ensure that each user has unique identifiers across all identity types. This prevents conflicts and ensures proper user identification.
+
+The constraints provide:
+- **Email Uniqueness**: Ensures no duplicate email addresses
+- **Wallet Address Uniqueness**: Prevents duplicate blockchain addresses
+- **DID Uniqueness**: Ensures unique decentralized identifiers
+- **DEPA ID Uniqueness**: Guarantees unique system identifiers
+- **IAM User ID Uniqueness**: Prevents conflicts with enterprise systems
+
 ```sql
 -- Email uniqueness
 email VARCHAR(255) UNIQUE NOT NULL
@@ -312,6 +355,15 @@ iamUserId VARCHAR(255) UNIQUE
 ```
 
 #### 2.2 Composite Uniqueness
+
+Composite uniqueness ensures that combinations of fields maintain uniqueness while allowing individual fields to have some flexibility. This is particularly important for fields that may be null or optional.
+
+The composite approach provides:
+- **Flexibility**: Handles optional fields gracefully
+- **Performance**: Optimized indexes for fast lookups
+- **Reliability**: Database-level enforcement
+- **Scalability**: Efficient for large datasets
+
 ```javascript
 // User model indexes for performance and uniqueness
 indexes: [
@@ -337,7 +389,18 @@ indexes: [
 
 ### 3. DID-Based Uniqueness
 
+Decentralized Identifiers (DIDs) provide an additional layer of uniqueness through their inherent global uniqueness properties. The system validates DID availability and ensures no conflicts exist.
+
 #### 3.1 DID Resolution and Validation
+
+DID resolution and validation ensures that DIDs are properly formatted, resolvable, and available for use in the system. This process includes checking both local system state and external DID document availability.
+
+The validation process includes:
+- **Local Availability Check**: Verifies DID isn't already registered
+- **DID Document Resolution**: Checks external DID document availability
+- **Format Validation**: Ensures proper DID format
+- **Error Handling**: Graceful handling of resolution failures
+
 ```javascript
 // DID availability check
 async isDIDAvailable(did) {
@@ -1801,9 +1864,23 @@ const trackFailedLogins = async (email, ipAddress) => {
 
 ## Implementation Details
 
+The implementation details section provides comprehensive information about the technical implementation of the IAM system, including database schemas, configuration settings, and middleware components.
+
 ### 1. Database Schema
 
+The database schema is designed to support all IAM functionality while maintaining performance, security, and compliance requirements. Each table includes appropriate indexes, constraints, and audit fields.
+
 #### 1.1 Users Table
+
+The users table is the central repository for all user identity information. It supports multiple identity types, authentication methods, and compliance requirements while maintaining data integrity and performance.
+
+The table design provides:
+- **Multi-Identity Support**: Wallet addresses, DIDs, and enterprise IDs
+- **Compliance Fields**: Audit trails and verification status
+- **Performance Optimization**: Appropriate indexes for common queries
+- **Security**: Encrypted fields and access controls
+- **Flexibility**: Support for different user types and configurations
+
 ```sql
 CREATE TABLE users (
   id SERIAL PRIMARY KEY,
@@ -1838,6 +1915,16 @@ CREATE TABLE users (
 ```
 
 #### 1.2 Audit Logs Table
+
+The audit logs table provides comprehensive tracking of all system activities for compliance, security monitoring, and troubleshooting purposes. Each log entry includes detailed information about the event, user, and outcome.
+
+The audit system provides:
+- **Comprehensive Tracking**: All system activities are logged
+- **Compliance Support**: Meets regulatory audit requirements
+- **Security Monitoring**: Enables threat detection and analysis
+- **Troubleshooting**: Detailed information for issue resolution
+- **Performance**: Optimized for high-volume logging
+
 ```sql
 CREATE TABLE audit_logs (
   id SERIAL PRIMARY KEY,
@@ -1858,7 +1945,19 @@ CREATE TABLE audit_logs (
 
 ### 2. Configuration
 
+The configuration system supports different deployment environments and security requirements while maintaining flexibility for customization and compliance.
+
 #### 2.1 Environment Variables
+
+Environment variables provide secure configuration management that supports different deployment environments, security requirements, and compliance needs. The configuration is designed to be secure, flexible, and maintainable.
+
+The configuration system provides:
+- **Security**: Sensitive values are stored as environment variables
+- **Flexibility**: Supports different deployment environments
+- **Compliance**: Configurable settings for regulatory requirements
+- **Performance**: Optimized settings for different workloads
+- **Monitoring**: Configurable logging and monitoring settings
+
 ```env
 # Authentication
 JWT_SECRET=your-super-secret-jwt-key-here
@@ -1884,7 +1983,19 @@ RATE_LIMIT_MAX_REQUESTS=100
 
 ### 3. Middleware Stack
 
+The middleware stack provides security, monitoring, and functionality layers that process all requests to the system. Each middleware component serves a specific purpose in the request processing pipeline.
+
 #### 3.1 Authentication Middleware
+
+Authentication middleware ensures that all protected routes require valid authentication and provides comprehensive logging of authentication attempts for security monitoring and compliance.
+
+The authentication middleware provides:
+- **Security**: Ensures all protected routes require authentication
+- **Monitoring**: Comprehensive logging of authentication attempts
+- **Rate Limiting**: Prevents brute force attacks
+- **Session Management**: Proper session handling and cleanup
+- **Error Handling**: Graceful handling of authentication failures
+
 ```javascript
 // Authentication middleware stack
 app.use('/api/auth', authRateLimit);
@@ -1897,6 +2008,16 @@ app.use('/api/users', authenticateToken);
 ```
 
 #### 3.2 Authorization Middleware
+
+Authorization middleware enforces role-based access control by ensuring that users can only access resources and perform actions appropriate to their role and permissions.
+
+The authorization middleware provides:
+- **Role-Based Access**: Enforces role-specific permissions
+- **Resource Protection**: Prevents unauthorized access to resources
+- **Granular Control**: Fine-grained permission management
+- **Audit Trail**: Logs all authorization decisions
+- **Error Handling**: Proper error responses for unauthorized access
+
 ```javascript
 // Role-based route protection
 app.get('/api/tdp/*', requireTDP);
@@ -1909,9 +2030,23 @@ app.get('/api/admin/*', requireAnyAdmin);
 
 ## API Specifications
 
+The API specifications provide detailed information about all authentication and identity management endpoints, including request formats, response structures, and error handling.
+
 ### 1. Authentication Endpoints
 
+Authentication endpoints handle user registration, login, token management, and profile operations. These endpoints are designed to be secure, compliant, and user-friendly.
+
 #### 1.1 User Registration
+
+The user registration endpoint creates new user accounts with comprehensive validation and setup. The process includes DID verification, DEPA ID generation, and enterprise integration.
+
+The registration process provides:
+- **Comprehensive Validation**: Validates all user input data
+- **DID Integration**: Supports DID-based identity verification
+- **Enterprise Setup**: Integrates with enterprise identity systems
+- **Security**: Secure password handling and temporary credentials
+- **Compliance**: Meets regulatory requirements for user registration
+
 ```http
 POST /api/auth/register
 Content-Type: application/json
@@ -1948,6 +2083,16 @@ Response:
 ```
 
 #### 1.2 User Login
+
+The user login endpoint authenticates users and provides secure access tokens for subsequent API calls. The process includes validation, session management, and security monitoring.
+
+The login process provides:
+- **Secure Authentication**: Validates user credentials securely
+- **Token Management**: Provides JWT tokens for API access
+- **Session Tracking**: Monitors user sessions for security
+- **Rate Limiting**: Prevents brute force attacks
+- **Audit Logging**: Comprehensive logging of login attempts
+
 ```http
 POST /api/auth/login
 Content-Type: application/json
@@ -1973,6 +2118,16 @@ Response:
 ```
 
 #### 1.3 Token Refresh
+
+The token refresh endpoint allows users to obtain new access tokens without re-authentication, improving user experience while maintaining security.
+
+The refresh process provides:
+- **User Experience**: Seamless token renewal
+- **Security**: Validates refresh tokens securely
+- **Session Continuity**: Maintains user sessions
+- **Audit Trail**: Logs token refresh activities
+- **Error Handling**: Proper handling of invalid tokens
+
 ```http
 POST /api/auth/refresh
 Content-Type: application/json
@@ -1992,7 +2147,19 @@ Response:
 
 ### 2. Profile Management
 
+Profile management endpoints allow users to view and update their profile information while maintaining data integrity and security.
+
 #### 2.1 Get User Profile
+
+The get user profile endpoint provides comprehensive user information including identity details, verification status, and system identifiers.
+
+The profile retrieval provides:
+- **Complete Information**: All user data in a single response
+- **Security**: Only returns data for authenticated users
+- **Verification Status**: Shows DID and email verification status
+- **System Identifiers**: Includes DEPA ID and other system IDs
+- **Privacy**: Respects user privacy preferences
+
 ```http
 GET /api/auth/profile
 Authorization: Bearer jwt_token
@@ -2017,6 +2184,16 @@ Response:
 ```
 
 #### 2.2 Update User Profile
+
+The update user profile endpoint allows users to modify their profile information while maintaining data integrity and validation.
+
+The profile update provides:
+- **Validation**: Ensures data integrity and format
+- **Security**: Only allows users to update their own profiles
+- **Audit Trail**: Logs all profile changes
+- **Flexibility**: Supports partial updates
+- **Error Handling**: Proper validation error responses
+
 ```http
 PUT /api/auth/profile
 Authorization: Bearer jwt_token
@@ -2046,7 +2223,19 @@ Response:
 
 ### 3. DID Management
 
+DID management endpoints provide functionality for verifying DID ownership, checking availability, and managing decentralized identities.
+
 #### 3.1 Verify DID Ownership
+
+The verify DID ownership endpoint allows users to prove ownership of their DIDs through cryptographic signatures, enabling secure identity verification.
+
+The verification process provides:
+- **Cryptographic Proof**: Uses digital signatures for verification
+- **Security**: Prevents unauthorized DID claims
+- **Flexibility**: Supports multiple DID methods
+- **Audit Trail**: Logs all verification attempts
+- **Error Handling**: Proper handling of verification failures
+
 ```http
 POST /api/did/verify
 Authorization: Bearer jwt_token
@@ -2069,6 +2258,16 @@ Response:
 ```
 
 #### 3.2 Check DID Availability
+
+The check DID availability endpoint allows users to verify whether a DID is available for registration, preventing conflicts and ensuring proper DID management.
+
+The availability check provides:
+- **Conflict Prevention**: Prevents duplicate DID registrations
+- **Real-time Validation**: Checks current system state
+- **External Verification**: Validates against external DID documents
+- **User Experience**: Helps users choose available DIDs
+- **Error Handling**: Proper handling of resolution failures
+
 ```http
 GET /api/did/check/did:web:company.com:user:john.doe
 
@@ -2082,7 +2281,19 @@ Response:
 
 ### 4. Enterprise Management
 
+Enterprise management endpoints provide functionality for managing enterprise domains, validating enterprise DIDs, and supporting enterprise identity integration.
+
 #### 4.1 Get Enterprise Domains
+
+The get enterprise domains endpoint provides information about allowed enterprise domains for DID registration and validation.
+
+The domain management provides:
+- **Domain Control**: Manages allowed enterprise domains
+- **Security**: Prevents unauthorized domain usage
+- **Flexibility**: Supports multiple enterprise domains
+- **Compliance**: Meets enterprise security requirements
+- **Audit Trail**: Logs domain access and changes
+
 ```http
 GET /api/did/enterprise/domains
 Authorization: Bearer jwt_token
@@ -2098,6 +2309,16 @@ Response:
 ```
 
 #### 4.2 Validate Enterprise DID
+
+The validate enterprise DID endpoint verifies that a DID belongs to an allowed enterprise domain and meets enterprise security requirements.
+
+The validation process provides:
+- **Domain Validation**: Ensures DID belongs to allowed domain
+- **Security Compliance**: Meets enterprise security requirements
+- **Real-time Verification**: Validates against current domain list
+- **Error Handling**: Proper handling of validation failures
+- **Audit Trail**: Logs all validation attempts
+
 ```http
 GET /api/did/enterprise/validate/did:web:company.com:user:john.doe
 Authorization: Bearer jwt_token
