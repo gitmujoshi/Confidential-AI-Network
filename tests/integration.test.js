@@ -241,11 +241,38 @@ describe('Integration Tests with Real Services', () => {
         recordCount: 1000,
         license: 'MIT',
         size: '1GB',
-        price: '0.1'
+        price: '0.1',
+        confidentialComputingRequired: false
       });
 
       expect(dataset.id).toBeDefined();
+      expect(dataset.confidentialComputingRequired).toBe(false);
       testDatasetId = dataset.id;
+    });
+
+    test('should create test confidential computing dataset', async () => {
+      const tdpUser = await User.findOne({ where: { role: 'TDP' } });
+      
+      const confidentialDataset = await Dataset.create({
+        datasetId: 'CONFIDENTIAL-TEST-001',
+        name: 'Confidential Test Dataset',
+        description: 'Test dataset requiring confidential computing',
+        category: 'Natural Language Processing',
+        size: 300,
+        recordCount: 8000,
+        price: 120.00,
+        license: 'Restricted',
+        tags: ['nlp', 'confidential', 'test'],
+        isPublic: true,
+        isActive: true,
+        confidentialComputingRequired: true,
+        ownerId: tdpUser.id,
+        depaId: 'DATASET-CONFIDENTIAL-TEST-123456789012'
+      });
+
+      expect(confidentialDataset.id).toBeDefined();
+      expect(confidentialDataset.confidentialComputingRequired).toBe(true);
+      expect(confidentialDataset.category).toBe('Natural Language Processing');
     });
 
     test('should create test AI model', async () => {
@@ -286,7 +313,13 @@ describe('Integration Tests with Real Services', () => {
           datasetName: 'Test Dataset',
           tdpName: tdpUser.name,
           individualPrice: 0.1,
-          paymentStatus: 'PENDING'
+          paymentStatus: 'PENDING',
+          confidentialComputingRequired: false,
+          category: 'Computer Vision',
+          size: 100,
+          recordCount: 1000,
+          license: 'MIT',
+          tags: ['test', 'integration']
         }],
         datasetCount: 1,
         tdpCount: 1,
@@ -294,6 +327,49 @@ describe('Integration Tests with Real Services', () => {
       });
 
       expect(contract.id).toBeDefined();
+      expect(contract.contractDatasets[0].confidentialComputingRequired).toBe(false);
+    });
+
+    test('should create test contract with confidential computing dataset', async () => {
+      const tdpUser = await User.findOne({ where: { role: 'TDP' } });
+      const tdcUser = await User.findOne({ where: { role: 'TDC' } });
+      const ccrpUser = await User.findOne({ where: { role: 'CCRP' } });
+
+      const confidentialContract = await Contract.create({
+        contractId: 'CONFIDENTIAL-CONTRACT-001',
+        title: 'Confidential Computing Test Contract',
+        description: 'Test contract with confidential computing dataset',
+        status: 'DRAFT',
+        tdpId: tdpUser.id,
+        tdcId: tdcUser.id,
+        ccrpId: ccrpUser.id,
+        datasetId: testDatasetId,
+        modelId: testModelId,
+        price: '120.00',
+        duration: 30,
+        termsAndConditions: 'Confidential computing test terms',
+        contractDatasets: [{
+          datasetId: 'CONFIDENTIAL-TEST-001',
+          tdpId: tdpUser.id,
+          datasetName: 'Confidential Test Dataset',
+          tdpName: tdpUser.name,
+          individualPrice: 120.00,
+          paymentStatus: 'PENDING',
+          confidentialComputingRequired: true,
+          category: 'Natural Language Processing',
+          size: 300,
+          recordCount: 8000,
+          license: 'Restricted',
+          tags: ['nlp', 'confidential', 'test']
+        }],
+        datasetCount: 1,
+        tdpCount: 1,
+        totalPrice: 120.00
+      });
+
+      expect(confidentialContract.id).toBeDefined();
+      expect(confidentialContract.contractDatasets[0].confidentialComputingRequired).toBe(true);
+      expect(confidentialContract.contractDatasets[0].category).toBe('Natural Language Processing');
     });
   });
 
@@ -314,6 +390,52 @@ describe('Integration Tests with Real Services', () => {
 
       expect(response.body).toBeDefined();
       expect(Array.isArray(response.body)).toBe(true);
+    });
+
+    test('should get datasets with confidential computing filter', async () => {
+      const response = await request(app)
+        .get('/api/datasets/search')
+        .query({ confidentialComputingRequired: 'true' })
+        .expect(200);
+
+      expect(response.body).toBeDefined();
+      expect(response.body.datasets).toBeDefined();
+      
+      // All returned datasets should have confidential computing required
+      if (response.body.datasets.length > 0) {
+        response.body.datasets.forEach(dataset => {
+          expect(dataset.confidentialComputingRequired).toBe(true);
+        });
+      }
+    });
+
+    test('should get datasets without confidential computing filter', async () => {
+      const response = await request(app)
+        .get('/api/datasets/search')
+        .query({ confidentialComputingRequired: 'false' })
+        .expect(200);
+
+      expect(response.body).toBeDefined();
+      expect(response.body.datasets).toBeDefined();
+      
+      // All returned datasets should not have confidential computing required
+      if (response.body.datasets.length > 0) {
+        response.body.datasets.forEach(dataset => {
+          expect(dataset.confidentialComputingRequired).toBe(false);
+        });
+      }
+    });
+
+    test('should get dataset statistics including confidential computing', async () => {
+      const response = await request(app)
+        .get('/api/datasets/stats/overview')
+        .expect(200);
+
+      expect(response.body).toBeDefined();
+      expect(response.body.confidentialComputingDatasets).toBeDefined();
+      expect(response.body.standardProcessingDatasets).toBeDefined();
+      expect(typeof response.body.confidentialComputingDatasets).toBe('number');
+      expect(typeof response.body.standardProcessingDatasets).toBe('number');
     });
 
     test('should get contracts endpoint', async () => {
