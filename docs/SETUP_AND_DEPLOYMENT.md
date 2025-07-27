@@ -42,6 +42,254 @@ Essential development tools for working with the system:
 
 **Version Control**: Git with proper configuration for secure repository access and collaboration.
 
+## 🌍 Multi-Deployment Configuration
+
+### Overview
+
+The Contract Management System supports multi-deployment global uniqueness across different countries and jurisdictions. This enables cross-border operations while maintaining regulatory compliance and data residency requirements.
+
+### Supported Deployments
+
+| Deployment | Region | Country | Jurisdiction | Compliance | Data Residency |
+|------------|--------|---------|--------------|------------|----------------|
+| **LOCAL** | `local` | `Unknown` | `LOCAL` | None | Local |
+| **US-EAST** | `us-east-1` | `United States` | `US-Federal` | GDPR, CCPA, HIPAA, SOX, FedRAMP | US |
+| **US-WEST** | `us-west-2` | `United States` | `US-Federal` | GDPR, CCPA, HIPAA, SOX, FedRAMP | US |
+| **EU-WEST** | `eu-west-1` | `Germany` | `EU-GDPR` | GDPR, ISO-27001 | EU |
+| **EU-NORTH** | `eu-north-1` | `Sweden` | `EU-GDPR` | GDPR, ISO-27001 | EU |
+| **AP-SOUTH** | `ap-southeast-1` | `Singapore` | `AP-Singapore` | PDPA, ISO-27001 | Singapore |
+| **CA-CENTRAL** | `ca-central-1` | `Canada` | `CA-Federal` | PIPEDA, ISO-27001 | Canada |
+| **AU-SOUTH** | `ap-southeast-2` | `Australia` | `AU-Federal` | APP, ISO-27001 | Australia |
+
+### Global DEPA ID System
+
+The system implements a global DEPA ID (Decentralized Entity Provider Architecture ID) system for ensuring uniqueness across all deployments:
+
+```
+[DEPLOYMENT_PREFIX]-[ENTITY_TYPE]-[GUID]
+Examples:
+- US-EAST-TDC-8f4e2a1b-3c4d-5e6f-7a8b-9c0d1e2f3a4b
+- EU-WEST-TDP-9a1b2c3d-4e5f-6a7b-8c9d-0e1f2a3b4c5d
+- AP-SOUTH-CCRP-1b2c3d4e-5f6a-7b8c-9d0e-1f2a3b4c5d6e
+```
+
+### Deployment Configuration
+
+#### Environment Variables
+
+Configure deployment-specific settings using environment variables:
+
+**Backend Configuration** (`backend/config.env`):
+```env
+# Multi-Deployment Configuration
+DEPLOYMENT_ID=LOCAL                    # Current deployment ID
+DEPLOYMENT_PREFIX=LOCAL                # Deployment prefix for DEPA IDs
+DEPLOYMENT_REGION=local                # Geographic region
+DEPLOYMENT_COUNTRY=Unknown             # Country
+DEPLOYMENT_JURISDICTION=LOCAL          # Jurisdiction code
+DEPLOYMENT_DATA_RESIDENCY=LOCAL        # Data residency requirements
+DEPLOYMENT_REGULATORY_FRAMEWORK=       # Comma-separated regulatory frameworks
+DEPLOYMENT_TIMEZONE=UTC                # Timezone
+DEPLOYMENT_CURRENCY=USD                # Currency
+DEPLOYMENT_LANGUAGE=en-US              # Language
+```
+
+**Frontend Configuration** (`.env`):
+```env
+# Multi-Deployment Configuration
+REACT_APP_DEPLOYMENT_ID=LOCAL          # Same as backend
+REACT_APP_DEPLOYMENT_PREFIX=LOCAL      # Same as backend
+REACT_APP_DEPLOYMENT_REGION=local      # Same as backend
+REACT_APP_DEPLOYMENT_COUNTRY=Unknown   # Same as backend
+REACT_APP_DEPLOYMENT_JURISDICTION=LOCAL # Same as backend
+REACT_APP_DEPLOYMENT_DATA_RESIDENCY=LOCAL # Same as backend
+REACT_APP_DEPLOYMENT_REGULATORY_FRAMEWORK= # Same as backend
+REACT_APP_DEPLOYMENT_TIMEZONE=UTC      # Same as backend
+REACT_APP_DEPLOYMENT_CURRENCY=USD      # Same as backend
+REACT_APP_DEPLOYMENT_LANGUAGE=en-US    # Same as backend
+```
+
+#### Example Configurations
+
+**US East Coast Deployment**:
+```env
+# Backend
+DEPLOYMENT_ID=US-EAST
+DEPLOYMENT_PREFIX=US-EAST
+DEPLOYMENT_REGION=us-east-1
+DEPLOYMENT_COUNTRY=United States
+DEPLOYMENT_JURISDICTION=US-Federal
+DEPLOYMENT_DATA_RESIDENCY=US
+DEPLOYMENT_REGULATORY_FRAMEWORK=GDPR,CCPA,HIPAA,SOX,FedRAMP
+DEPLOYMENT_TIMEZONE=America/New_York
+DEPLOYMENT_CURRENCY=USD
+DEPLOYMENT_LANGUAGE=en-US
+
+# Frontend
+REACT_APP_DEPLOYMENT_ID=US-EAST
+REACT_APP_DEPLOYMENT_PREFIX=US-EAST
+REACT_APP_DEPLOYMENT_REGION=us-east-1
+REACT_APP_DEPLOYMENT_COUNTRY=United States
+REACT_APP_DEPLOYMENT_JURISDICTION=US-Federal
+REACT_APP_DEPLOYMENT_DATA_RESIDENCY=US
+REACT_APP_DEPLOYMENT_REGULATORY_FRAMEWORK=GDPR,CCPA,HIPAA,SOX,FedRAMP
+REACT_APP_DEPLOYMENT_TIMEZONE=America/New_York
+REACT_APP_DEPLOYMENT_CURRENCY=USD
+REACT_APP_DEPLOYMENT_LANGUAGE=en-US
+```
+
+**EU GDPR Deployment**:
+```env
+# Backend
+DEPLOYMENT_ID=EU-WEST
+DEPLOYMENT_PREFIX=EU-WEST
+DEPLOYMENT_REGION=eu-west-1
+DEPLOYMENT_COUNTRY=Germany
+DEPLOYMENT_JURISDICTION=EU-GDPR
+DEPLOYMENT_DATA_RESIDENCY=EU
+DEPLOYMENT_REGULATORY_FRAMEWORK=GDPR,ISO-27001
+DEPLOYMENT_TIMEZONE=Europe/Berlin
+DEPLOYMENT_CURRENCY=EUR
+DEPLOYMENT_LANGUAGE=de-DE
+
+# Frontend
+REACT_APP_DEPLOYMENT_ID=EU-WEST
+REACT_APP_DEPLOYMENT_PREFIX=EU-WEST
+REACT_APP_DEPLOYMENT_REGION=eu-west-1
+REACT_APP_DEPLOYMENT_COUNTRY=Germany
+REACT_APP_DEPLOYMENT_JURISDICTION=EU-GDPR
+REACT_APP_DEPLOYMENT_DATA_RESIDENCY=EU
+REACT_APP_DEPLOYMENT_REGULATORY_FRAMEWORK=GDPR,ISO-27001
+REACT_APP_DEPLOYMENT_TIMEZONE=Europe/Berlin
+REACT_APP_DEPLOYMENT_CURRENCY=EUR
+REACT_APP_DEPLOYMENT_LANGUAGE=de-DE
+```
+
+### Deployment Management
+
+#### Global Deployment Management UI
+
+Access the Global Deployment Management interface at:
+```
+http://localhost:3000/admin/global-deployment
+```
+
+**Features**:
+- View current deployment status
+- Register new deployments
+- Generate global DEPA IDs
+- Verify global uniqueness
+- Test jurisdiction compliance
+- Manage deployment registry
+
+#### API Endpoints
+
+**Global Deployment Management**:
+- `GET /api/global-deployment/status` - Get current deployment status
+- `POST /api/global-deployment/register` - Register new deployment (admin)
+- `POST /api/global-deployment/generate` - Generate global DEPA ID
+- `POST /api/global-deployment/verify` - Verify global uniqueness
+- `GET /api/global-deployment/jurisdictions` - Get available jurisdictions
+- `POST /api/global-deployment/convert` - Convert standard to global DEPA ID
+- `GET /api/global-deployment/test` - Test generation (admin)
+- `GET /api/global-deployment/deployments` - Get all deployments (admin)
+
+#### Runtime Deployment Registration
+
+Register new deployments at runtime using the API:
+
+```bash
+# Register US East deployment
+curl -X POST http://localhost:5001/api/global-deployment/register \
+  -H "Authorization: Bearer YOUR_ADMIN_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "deploymentId": "US-EAST",
+    "prefix": "US-EAST",
+    "region": "us-east-1",
+    "country": "United States",
+    "jurisdiction": "US-Federal",
+    "dataResidency": "US",
+    "regulatoryFramework": ["GDPR", "CCPA", "HIPAA"],
+    "timezone": "America/New_York",
+    "currency": "USD",
+    "language": "en-US"
+  }'
+
+# Register EU West deployment
+curl -X POST http://localhost:5001/api/global-deployment/register \
+  -H "Authorization: Bearer YOUR_ADMIN_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "deploymentId": "EU-WEST",
+    "prefix": "EU-WEST",
+    "region": "eu-west-1",
+    "country": "Germany",
+    "jurisdiction": "EU-GDPR",
+    "dataResidency": "EU",
+    "regulatoryFramework": ["GDPR", "ISO-27001"],
+    "timezone": "Europe/Berlin",
+    "currency": "EUR",
+    "language": "de-DE"
+  }'
+```
+
+### Jurisdiction Compliance
+
+Each jurisdiction has specific compliance requirements:
+
+#### US Federal Compliance
+- **Data Residency**: Data must be stored in United States
+- **Encryption Standards**: AES-256, FIPS-140-2
+- **Audit Requirements**: SOX, FedRAMP
+- **Privacy Laws**: CCPA, HIPAA
+
+#### EU GDPR Compliance
+- **Data Residency**: Data must be stored in European Union
+- **Encryption Standards**: AES-256, GDPR-Article-32
+- **Audit Requirements**: GDPR, ISO-27001
+- **Privacy Laws**: GDPR
+
+#### AP Singapore Compliance
+- **Data Residency**: Data must be stored in Singapore
+- **Encryption Standards**: AES-256, MAS-TRM
+- **Audit Requirements**: PDPA, ISO-27001
+- **Privacy Laws**: PDPA
+
+#### CA Federal Compliance
+- **Data Residency**: Data must be stored in Canada
+- **Encryption Standards**: AES-256, FIPS-140-2
+- **Audit Requirements**: PIPEDA, ISO-27001
+- **Privacy Laws**: PIPEDA
+
+#### AU Federal Compliance
+- **Data Residency**: Data must be stored in Australia
+- **Encryption Standards**: AES-256, ISO-27001
+- **Audit Requirements**: APP, ISO-27001
+- **Privacy Laws**: Australian Privacy Principles
+
+### Cross-Border Operations
+
+The system supports cross-border operations through:
+
+#### Global DEPA ID Registry
+- Centralized registry of all deployments
+- Global uniqueness verification
+- Cross-deployment entity references
+- Compliance validation
+
+#### Cross-Border Contracts
+- Contracts can reference entities across deployments
+- Global DEPA IDs ensure uniqueness
+- Jurisdiction-specific compliance validation
+- Data transfer agreement support
+
+#### Security and Compliance
+- Secure communication between deployments
+- Jurisdiction-specific security requirements
+- Audit trail across all deployments
+- Regulatory compliance monitoring
+
 ## Local Development Setup
 
 ### Environment Preparation
