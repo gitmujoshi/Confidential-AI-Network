@@ -436,7 +436,5 @@ class GlobalDEPAIdService extends DEPAIdService {
   }
 }
 
-// Create singleton instance
-const globalDEPAIdService = new GlobalDEPAIdService();
-
-module.exports = globalDEPAIdService; 
+// Export the class for instantiation
+module.exports = GlobalDEPAIdService; 

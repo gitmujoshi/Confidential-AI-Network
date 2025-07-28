@@ -111,12 +111,24 @@ const Login = () => {
           localStorage.setItem('refreshToken', refreshToken);
         }
         
-        // Set user from login response and let UserContext handle profile fetching
+        // Set user from login response
         setUser(user);
         console.log('✅ Login successful, user set from login response:', user);
         
         setSuccess('Login successful! Redirecting to dashboard...');
-        setTimeout(() => navigate('/dashboard'), 2000);
+        
+        // Wait for user state to be properly set before navigation
+        setTimeout(() => {
+          // Double-check that user is set in context
+          const currentUser = JSON.parse(localStorage.getItem('currentUser') || 'null');
+          if (currentUser) {
+            console.log('✅ User confirmed in localStorage, navigating to dashboard');
+            navigate('/dashboard');
+          } else {
+            console.log('⚠️ User not in localStorage, navigating anyway');
+            navigate('/dashboard');
+          }
+        }, 1000); // Reduced timeout to 1 second
       } else {
         setError('Login failed: Invalid response from server.');
       }

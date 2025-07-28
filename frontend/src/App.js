@@ -36,11 +36,30 @@ import TrainingEnvironment from './pages/TrainingEnvironment';
 
 // Protected Route Component
 const ProtectedRoute = ({ children }) => {
-  const { currentUser: user } = useUser();
+  const { currentUser: user, isInitializing } = useUser();
   const token = localStorage.getItem('authToken');
   
-  if (!user && !token) {
+  // Show loading while initializing
+  if (isInitializing) {
+    return (
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+        <div>Loading...</div>
+      </div>
+    );
+  }
+  
+  // If no token, redirect to login
+  if (!token) {
     return <Navigate to="/login" replace />;
+  }
+  
+  // If token exists but no user yet, show loading
+  if (token && !user) {
+    return (
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+        <div>Authenticating...</div>
+      </div>
+    );
   }
   
   return children;
@@ -48,9 +67,19 @@ const ProtectedRoute = ({ children }) => {
 
 // Public Route Component (redirects to dashboard if already authenticated)
 const PublicRoute = ({ children }) => {
-  const { currentUser: user } = useUser();
+  const { currentUser: user, isInitializing } = useUser();
   const token = localStorage.getItem('authToken');
   
+  // Show loading while initializing
+  if (isInitializing) {
+    return (
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+        <div>Loading...</div>
+      </div>
+    );
+  }
+  
+  // If user is authenticated, redirect to dashboard
   if (user || token) {
     return <Navigate to="/dashboard" replace />;
   }

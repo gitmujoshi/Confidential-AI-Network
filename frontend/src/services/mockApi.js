@@ -417,7 +417,7 @@ export const mockApiService = {
 
   createContract: async (contractData) => {
     await delay();
-    console.log('🔧 [Mock API] Create Ricardian Contract (redirected from plain contract):', contractData);
+          console.log('🔧 [Mock API] Create Contract (redirected from plain contract):', contractData);
     const newContract = {
       id: mockStorage.contracts.length + 1,
       ...contractData,
@@ -429,7 +429,7 @@ export const mockApiService = {
       contractType: 'AI_TRAINING'
     };
     mockStorage.contracts.push(newContract);
-    return { data: { success: true, contract: newContract, message: 'Ricardian contract created successfully' } };
+          return { data: { success: true, contract: newContract, message: 'Contract created successfully' } };
   },
 
   getContractSigningData: async (contractId) => {

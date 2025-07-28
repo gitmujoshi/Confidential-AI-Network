@@ -6,30 +6,26 @@ This document provides a summary of all test users, datasets, AI models, and con
 
 ## Test Users
 
-### Application Admin
-- **Email:** appadmin@example.com  
-- **Role:** AppAdmin
-- **User ID:** 46
-- **DEPA ID:** APPADMIN-16f7419e-7e9c-46c6-9d9f-7b3219885cb0
-- **Description:** System administrator for the contract management application
-- **Status:** ✅ Working - Full system access
-
 ### TDP (Training Data Providers)
-| Name                    | Email                        | User ID | DEPA ID | Description                                    | Status |
-|-------------------------|------------------------------|---------|---------|------------------------------------------------|--------|
-| Test TDP                | tdpuser@example.com          | 43      | TDP-9be865bd-7355-4b1c-bad5-efe0a65d07d7 | Basic TDP user with 10 datasets | ✅ Working |
-| Healthcare TDP          | tdp.healthcare@example.com   | 53      | TDP-7c5c4d26-a8e4-4665-9a0d-f62064ad4c77 | Healthcare-focused TDP | ✅ Working |
+| Name                    | Email                        | User ID | DEPA ID | Password | Description                                    | Status |
+|-------------------------|------------------------------|---------|---------|----------|------------------------------------------------|--------|
+| MedData Solutions Inc.  | tdp.medical@example.com      | 10      | TDP-78af39d1-4edb-471c-8cc8-471614abd7b3 | password123 | Healthcare-focused TDP | ✅ Working |
+| NLP Research Foundation | tdp.nlp@example.com          | 11      | TDP-8b2347bb-8028-4f7a-a7ab-50acc8bcf2e3 | password123 | NLP-focused TDP | ✅ Working |
+| AutoDrive Technologies  | tdp.autodrive@example.com    | 12      | TDP-2180ff9f-7c05-48d2-9b74-e1eea12d8fd6 | password123 | Autonomous driving TDP | ✅ Working |
 
 ### TDC (Training Data Consumers)
-| Name                    | Email                        | User ID | DEPA ID | Description                                    | Status |
-|-------------------------|------------------------------|---------|---------|------------------------------------------------|--------|
-| Test TDC                | tdcuser@example.com          | 44      | TDC-c1b96af9-2c9e-4420-86d8-d1fc38fb4b57 | Basic TDC user | ✅ Working |
-| TDC Healthcare          | tdc.healthcare@example.com   | 47      | TDC-32f07570-cbbc-4d95-b3bc-c71e2b29bf32 | Healthcare-focused TDC | ✅ Working |
+| Name                    | Email                        | User ID | DEPA ID | Password | Description                                    | Status |
+|-------------------------|------------------------------|---------|---------|----------|------------------------------------------------|--------|
+| AI Healthcare Innovations | tdc.healthcare@example.com  | 13      | TDC-76939058-1c61-4ee1-b772-550973f8589c | password123 | Healthcare-focused TDC | ✅ Working |
+| FinTech Analytics Corp   | tdc.fintech@example.com     | 14      | TDC-1f8f916a-aa9f-4a67-83d7-1c54f428d1a0 | password123 | Financial analytics TDC | ✅ Working |
+| Language AI Labs         | tdc.language@example.com    | 15      | TDC-f7bd1447-aeb4-4379-a118-34bb36ad2091 | password123 | Language processing TDC | ✅ Working |
 
 ### CCRP (Confidential Clean Room Providers)
-| Name                    | Email                        | User ID | DEPA ID | Description                                    | Status |
-|-------------------------|------------------------------|---------|---------|------------------------------------------------|--------|
-| Test CCRP               | ccrpuser@example.com         | 45      | CCRP-fb448f7a-be09-4273-9dda-8dbf37f4fa40 | Basic CCRP user | ✅ Working |
+| Name                    | Email                        | User ID | DEPA ID | Password | Description                                    | Status |
+|-------------------------|------------------------------|---------|---------|----------|------------------------------------------------|--------|
+| SecureCloud Confidential Computing | ccrp.securecloud@example.com | 16 | CCRP-e1758b6f-db68-4e37-8753-85d8a14ef678 | password123 | Cloud computing CCRP | ✅ Working |
+| TrustedAI Environment Provider | ccrp.trustedai@example.com | 17 | CCRP-0db0477c-f997-4dc0-a1b7-64c91c058a34 | password123 | Trusted AI environment CCRP | ✅ Working |
+| PrivacyFirst Computing Solutions | ccrp.privacyfirst@example.com | 18 | CCRP-32683cd6-0023-4471-bfe8-20a6ed14595c | password123 | Privacy-focused CCRP | ✅ Working |
 
 ---
 
@@ -38,65 +34,53 @@ This document provides a summary of all test users, datasets, AI models, and con
 ### ✅ Users in Sync (100% Sync Rate)
 All database users are properly synced with Keycloak:
 
-| Email                        | Database ID | Party Type | DEPA ID | Status |
-|------------------------------|-------------|------------|---------|--------|
-| appadmin@example.com         | 46          | AppAdmin   | APPADMIN-16f7419e-7e9c-46c6-9d9f-7b3219885cb0 | ✅ Working |
-| tdpuser@example.com          | 43          | TDP        | TDP-9be865bd-7355-4b1c-bad5-efe0a65d07d7 | ✅ Working |
-| tdp.healthcare@example.com   | 53          | TDP        | TDP-7c5c4d26-a8e4-4665-9a0d-f62064ad4c77 | ✅ Working |
-| tdcuser@example.com          | 44          | TDC        | TDC-c1b96af9-2c9e-4420-86d8-d1fc38fb4b57 | ✅ Working |
-| tdc.healthcare@example.com   | 47          | TDC        | TDC-32f07570-cbbc-4d95-b3bc-c71e2b29bf32 | ✅ Working |
-| ccrpuser@example.com         | 45          | CCRP       | CCRP-fb448f7a-be09-4273-9dda-8dbf37f4fa40 | ✅ Working |
+| Email                        | Database ID | Party Type | DEPA ID | Keycloak User ID | Status |
+|------------------------------|-------------|------------|---------|------------------|--------|
+| tdp.medical@example.com      | 10          | TDP        | TDP-78af39d1-4edb-471c-8cc8-471614abd7b3 | 6ab40e16-9942-4e6e-b4f5-b4015bab159d | ✅ Working |
+| tdp.nlp@example.com          | 11          | TDP        | TDP-8b2347bb-8028-4f7a-a7ab-50acc8bcf2e3 | 8607ea86-2c82-469c-9ad2-61b2f0803c6c | ✅ Working |
+| tdp.autodrive@example.com    | 12          | TDP        | TDP-2180ff9f-7c05-48d2-9b74-e1eea12d8fd6 | 0a3a9770-bea1-4ef4-b0eb-85d9a4efeee5 | ✅ Working |
+| tdc.healthcare@example.com   | 13          | TDC        | TDC-76939058-1c61-4ee1-b772-550973f8589c | 228f674d-c3a9-40e7-bb8f-96b763ffeae6 | ✅ Working |
+| tdc.fintech@example.com      | 14          | TDC        | TDC-1f8f916a-aa9f-4a67-83d7-1c54f428d1a0 | 8b3407e7-eb35-47b0-971e-e5646accb437 | ✅ Working |
+| tdc.language@example.com     | 15          | TDC        | TDC-f7bd1447-aeb4-4379-a118-34bb36ad2091 | 426b95b7-326c-48d5-b92b-da32eabd42cc | ✅ Working |
+| ccrp.securecloud@example.com | 16          | CCRP       | CCRP-e1758b6f-db68-4e37-8753-85d8a14ef678 | d6fe5653-97f0-46b9-8a5b-d8b1a3650411 | ✅ Working |
+| ccrp.trustedai@example.com   | 17          | CCRP       | CCRP-0db0477c-f997-4dc0-a1b7-64c91c058a34 | b768c5c3-3786-433d-a717-db32f97e135f | ✅ Working |
+| ccrp.privacyfirst@example.com | 18         | CCRP       | CCRP-32683cd6-0023-4471-bfe8-20a6ed14595c | 20538e25-ed00-4b08-a8cc-c66a3979eaee | ✅ Working |
 
 ---
 
-## Datasets (TDP User: tdpuser@example.com)
+## 📊 Test Datasets
 
-| Dataset ID                                   | Name                    | Category                    | Price   | Size (MB) | Records | Status |
-|-----------------------------------------------|-------------------------|-----------------------------|---------|-----------|---------|--------|
-| DATASET-905028b4-f721-4872-9025-839d2ec232c8 | Product Reviews         | Natural Language Processing | $1.75   | 250       | 50,000  | ✅ Public |
-| DATASET-5410d95f-6d64-493e-8ca3-29ad745d4de8 | Customer Purchase History| Tabular                    | $3.00   | 600       | 100,000 | ✅ Private |
-| DATASET-ac752d95-f9a2-4d43-96c3-849213082c1b | Climate Data            | Tabular                    | $2.00   | 400       | 30,000  | ✅ Public |
-| DATASET-f3b9563b-87c8-4542-998a-01482ad95caf | Academic Papers         | Natural Language Processing | $1.50   | 500       | 75,000  | ✅ Public |
-| DATASET-cad222ca-855f-4fc5-b654-3bea3720b0af | Credit Card Transactions| Tabular                    | $4.25   | 1200      | 500,000 | ✅ Private |
-| DATASET-3f501c81-cfb6-4de2-9e73-a88827f1e0d7 | Stock Market Data       | Tabular                    | $3.75   | 800       | 100,000 | ✅ Public |
-| DATASET-95d11524-cf51-4844-b7e0-6c580ebafc1f | Patient Vital Signs     | Tabular                    | $2.50   | 150       | 25,000  | ✅ Public |
-| DATASET-a0516401-0901-44d8-a0cb-3158dac84bb8 | Medical Images Dataset  | Computer Vision            | $1.50   | 5000      | 10,000  | ✅ Public |
-| DATASET-96d6b972-1a08-417e-923d-c1e93d25c414 | Financial Transactions  | Tabular                    | $0.30   | 100       | 20,000  | ✅ Private |
-| DATASET-7672d0f9-91a7-4b5f-b744-9d7d7c6ec1ce | Clinical Notes Dataset  | Natural Language Processing | $0.80   | 200       | 50,000  | ✅ Public |
+The following datasets are available for testing:
+
+| ID | Name | Category | Size | Owner | DEPA ID |
+|----|------|----------|------|-------|---------|
+| 7 | Medical Images Dataset | Healthcare | 2.5GB | tdp.medical@example.com | LOCAL-CONTRACT-426da7bf-a055-4cdb-ac60-79432d05c6ba |
+| 8 | Clinical Notes Dataset | Healthcare | 1.8GB | tdp.medical@example.com | LOCAL-CONTRACT-e162f4d7-ebb4-4c2c-a9f9-fc0ec5a3b670 |
+| 9 | Financial Transactions | Finance | 3.2GB | tdp.finance@example.com | LOCAL-CONTRACT-47daf9e8-6596-4b80-9f23-2864d7735a26 |
 
 ---
 
-## Contracts
+## Current Database State
 
-| Contract ID                                   | TDP | TDC | CCRP | Price   | Status  | DEPA ID |
-|-----------------------------------------------|-----|-----|------|---------|---------|---------|
-| RICARDIAN-1753221640395-yjn2w0h1q | 43 | 47 | 45 | $2.30 | PENDING_TDP_APPROVAL | CONTRACT-437b2a0e-d406-4e08-bfa9-6adf220bf298 |
-| RICARDIAN-1753232122400-nswrjzlrd | 43 | 47 | 45 | $3.75 | PENDING_TDP_APPROVAL | CONTRACT-* |
+### 📊 Database Summary
+- **Total Users:** 13 (4 TDPs, 4 TDCs, 4 CCRPs, 1 AppAdmin)
+- **Total Datasets:** 3 (Healthcare and Finance datasets)
+- **Total Contracts:** 1 (Ricardian contract)
+- **Total AI Models:** 8 (Various AI models)
 
----
-
-## Working Features
-
-### ✅ TDP Flow (FROZEN - Working)
-- **TDP Dashboard**: Shows 10 datasets, 2 contracts, revenue metrics
-- **Datasets Page**: Displays all 10 datasets in grid/table view
-- **API Endpoints**: `/api/tdp/dashboard/:userId`, `/api/tdp/datasets/:userId`
-- **Data Display**: Metrics cards, tables, grid views all working
-
-### ✅ TDC Flow (FROZEN - Working)
-- **TDC Dashboard**: Shows available datasets, contracts, training progress
-- **API Endpoints**: `/api/tdc/dashboard/:userId`, `/api/tdc/contracts/:userId`
-- **Data Display**: Contract status, training progress, payments working
-
-### ✅ Authentication (Working)
-- **Keycloak Integration**: All users properly synced
-- **JWT Tokens**: Working for all user types
-- **Role-based Access**: TDP, TDC, CCRP, AppAdmin working
-- **DEPA IDs**: All users have unique DEPA IDs
+### ✅ Available Data
+The following test data is available:
+- **Datasets:** 3 datasets (Healthcare and Finance categories)
+- **AI Models:** 8 AI models (Various types and frameworks)
+- **Contracts:** 1 Ricardian contract
+- **AppAdmin:** AppAdmin user exists and is functional
 
 ---
 
-## Authentication Notes
+## Authentication Information
+
+### Login Credentials
+All test users use the same password: **`password123`**
 
 ### Login Process
 1. **Use the test user emails** provided above for login
@@ -108,18 +92,60 @@ All database users are properly synced with Keycloak:
 - **TDP (Training Data Provider):** Can create and manage datasets
 - **TDC (Training Data Consumer):** Can browse and purchase datasets
 - **CCRP (Confidential Clean Room Provider):** Provides secure computing environments
-- **AppAdmin:** System administrator with full access
+
+---
+
+## Test Scenarios
+
+### ✅ Working Features
+- **User Authentication:** All users can log in via Keycloak
+- **Role-based Access:** TDP, TDC, CCRP dashboards load correctly
+- **DEPA ID Integration:** All users have unique DEPA IDs
+- **Keycloak Sync:** All users properly synced between database and Keycloak
+
+### 🔄 Pending Features (Need Test Data)
+- **Dataset Management:** No datasets available for testing
+- **Contract Creation:** No contracts available for testing
+- **AI Model Integration:** No AI models available for testing
+- **Multi-party Contract Workflows:** No contracts to test workflows
+
+---
+
+## Next Steps for Testing
+
+### 1. Create Test Datasets
+```bash
+# Run dataset creation script
+node scripts/source/create-tdp-datasets.js
+```
+
+### 2. Create Test AI Models
+```bash
+# Run AI model creation script
+node scripts/source/create-ai-models.js
+```
+
+### 3. Create Test Contracts
+```bash
+# Run contract creation script
+node scripts/source/create-test-contracts.js
+```
+
+### 4. Create AppAdmin User
+```bash
+# Run AppAdmin creation script
+node scripts/source/add-appadmin-role.js
+```
 
 ---
 
 ## Usage Notes
-- **TDP and TDC flows are FROZEN** - no further changes to these components
 - **All users have DEPA IDs** for unique identification
-- **Datasets are linked to TDP users** (tdpuser@example.com has 10 datasets)
-- **Contracts link TDPs, TDCs, CCRPs, and datasets**
-- **Dashboard and Datasets pages working correctly** for all user types
-- **API endpoints responding correctly** for all user roles
+- **All users are synced with Keycloak** for authentication
+- **Role-based dashboards** are functional for all user types
+- **API endpoints** are responding correctly for all user roles
+- **Test data creation scripts** are available for populating datasets, AI models, and contracts
 
 ---
 
-_Last updated: July 23, 2025 - TDP and TDC flows frozen, all test users working correctly_ 
+_Last updated: July 28, 2025 - Updated with latest user information and current database state_ 

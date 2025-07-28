@@ -205,7 +205,7 @@ const realApiService = {
     return response.data;
   },
   createContract: async (contractData) => {
-    // Redirect to Ricardian contract creation since plain contracts are deprecated
+    // Redirect to contract creation since plain contracts are deprecated
     const response = await api.post('/api/contracts/ricardian', contractData);
     return response.data;
   },
@@ -256,7 +256,7 @@ const realApiService = {
     return response.data;
   },
 
-  // Ricardian Contracts
+  // Contracts
   createRicardianContract: async (contractData) => {
     const response = await api.post('/api/contracts/ricardian', contractData);
     return response.data;

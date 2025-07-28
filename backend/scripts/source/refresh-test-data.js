@@ -11,7 +11,7 @@
  * Usage: node scripts/refresh-test-data.js
  */
 
-const { User, Dataset, Contract, Notification } = require('../models');
+const { User, Dataset, Contract, Notification } = require('../../models');
 const bcrypt = require('bcryptjs');
 const crypto = require('crypto');
 

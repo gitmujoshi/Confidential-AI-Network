@@ -29,48 +29,54 @@ import {
   CheckCircle,
   Pending,
   Assessment,
+  Security,
 } from '@mui/icons-material';
 import { useUser } from '../../contexts/UserContext';
 import { apiService } from '../../services/api';
 
 const TDCDashboard = () => {
   const navigate = useNavigate();
-  const { currentUser: user } = useUser();
+  const { currentUser: user, isInitializing } = useUser();
 
   // Fetch TDC dashboard data
-  const { data: dashboardData, isLoading, error } = useQuery('tdcDashboard', async () => {
-    // Ensure we have a valid user
-    if (!user || !user.id) {
-      throw new Error('User not available');
-    }
+  const { data: dashboardData, isLoading, error } = useQuery(
+    ['tdcDashboard', user?.id],
+    async () => {
+      // Ensure we have a valid user
+      if (!user || !user.id) {
+        throw new Error('User not available');
+      }
 
-    console.log('🔍 TDC Dashboard - User:', user);
+      console.log('🔍 TDC Dashboard - User:', user);
 
-    try {
-      const [datasetsRes, contractsRes, trainingRes, paymentsRes] = await Promise.all([
-        apiService.get('/api/datasets/public'),
-        apiService.get(`/api/tdc/contracts/${user.id}`),
-        apiService.get(`/api/tdc/training/${user.id}`),
-        apiService.get(`/api/tdc/payments/${user.id}`)
-      ]);
+      try {
+        const [datasetsRes, contractsRes, trainingRes, paymentsRes] = await Promise.all([
+          apiService.get('/api/datasets/public'),
+          apiService.get(`/api/tdc/contracts/${user.id}`),
+          apiService.get(`/api/tdc/training/${user.id}`),
+          apiService.get(`/api/tdc/payments/${user.id}`)
+        ]);
 
-      return {
-        datasets: datasetsRes.data.datasets || [],
-        contracts: contractsRes.data.contracts || [],
-        training: trainingRes.data.training || [],
-        payments: paymentsRes.data.payments || {}
-      };
-    } catch (error) {
-      console.error('❌ TDC Dashboard API Error:', error);
-      throw error;
+        return {
+          datasets: datasetsRes.data.datasets || [],
+          contracts: contractsRes.data.contracts || [],
+          training: trainingRes.data.training || [],
+          payments: paymentsRes.data.payments || {}
+        };
+      } catch (error) {
+        console.error('❌ TDC Dashboard API Error:', error);
+        throw error;
+      }
+    },
+    {
+      enabled: !!user?.id && !isInitializing, // Only run when user is authenticated and not initializing
+      retry: 3,
+      staleTime: 30000, // Consider data fresh for 30 seconds
+      onError: (error) => {
+        console.error('❌ TDC Dashboard Error:', error);
+      }
     }
-  }, {
-    enabled: !!user && !!user.id,
-    retry: 1,
-    onError: (error) => {
-      console.error('❌ TDC Dashboard Error:', error);
-    }
-  });
+  );
 
   const datasets = dashboardData?.datasets || [];
   const contracts = dashboardData?.contracts || [];
@@ -107,11 +113,14 @@ const TDCDashboard = () => {
     }).format(amount);
   };
 
-  if (isLoading) {
+  // Show loading state when user is initializing or data is loading
+  if (isInitializing || isLoading) {
     return (
       <Box sx={{ width: '100%' }}>
         <LinearProgress />
-        <Typography sx={{ mt: 2 }}>Loading TDC dashboard...</Typography>
+        <Typography sx={{ mt: 2 }}>
+          {isInitializing ? 'Initializing user session...' : 'Loading TDC dashboard...'}
+        </Typography>
       </Box>
     );
   }
@@ -124,16 +133,28 @@ const TDCDashboard = () => {
     );
   }
 
+  // Show message if user is not authenticated
+  if (!user?.id) {
+    return (
+      <Box sx={{ textAlign: 'center', py: 4 }}>
+        <Typography variant="h6" color="text.secondary">
+          Please log in to view your dashboard
+        </Typography>
+      </Box>
+    );
+  }
+
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
           <Typography variant="h4" className="font-bold text-gray-900 mb-2">
-            TDC Dashboard
+            Welcome to Your TDC Dashboard
           </Typography>
-          <Typography variant="body1" className="text-gray-600">
-            Discover datasets and manage your training contracts
+          <Typography variant="body1" className="text-gray-600 mb-2">
+            Browse available datasets, create training contracts, and monitor your AI training progress. 
+            All contracts ensure DPDP compliance with privacy-preserving techniques.
           </Typography>
         </div>
         <div className="flex space-x-3">
@@ -142,7 +163,7 @@ const TDCDashboard = () => {
             startIcon={<Add />}
             onClick={() => navigate('/tdc/contracts/create')}
           >
-            Create Ricardian Contract
+            Create Contract
           </Button>
           <Button
             variant="outlined"
@@ -223,6 +244,30 @@ const TDCDashboard = () => {
                   </Typography>
                 </div>
                 <Payment className="text-orange-600 text-3xl" />
+              </div>
+            </CardContent>
+          </Card>
+        </Grid>
+      </Grid>
+
+      {/* DEPA ID Card */}
+      <Grid container spacing={3}>
+        <Grid item xs={12}>
+          <Card>
+            <CardContent>
+              <div className="flex items-center justify-between">
+                <div>
+                  <Typography color="textSecondary" gutterBottom>
+                    Your DEPA ID
+                  </Typography>
+                  <Typography variant="h6" className="font-mono bg-gray-100 px-2 py-1 rounded">
+                    {user?.depaId || 'Not assigned'}
+                  </Typography>
+                  <Typography variant="body2" color="textSecondary" sx={{ mt: 1 }}>
+                    Digital Personal Data Protection ID for privacy compliance
+                  </Typography>
+                </div>
+                <Security className="text-indigo-600 text-3xl" />
               </div>
             </CardContent>
           </Card>
@@ -345,7 +390,7 @@ const TDCDashboard = () => {
                   <TableBody>
                     {recentContracts.map((contract) => (
                       <TableRow key={contract.id}>
-                        <TableCell>{contract.contractId}</TableCell>
+                        <TableCell fontFamily="monospace">{contract.depaId || 'NULL'}</TableCell>
                         <TableCell>
                           <Chip 
                             label={contract.status} 

@@ -15,7 +15,8 @@
 const express = require('express');
 const router = express.Router();
 const { authenticateToken, requireAnyAdmin } = require('../middleware/auth');
-const globalDEPAIdService = require('../services/globalDEPAIdService');
+const GlobalDEPAIdService = require('../services/globalDEPAIdService');
+const globalDEPAIdService = new GlobalDEPAIdService();
 
 /**
  * GET /api/global-deployment/status

@@ -37,26 +37,34 @@ import { apiService } from '../../services/api';
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
-  const { currentUser: user } = useUser();
+  const { currentUser: user, isInitializing } = useUser();
 
   // Fetch admin dashboard data
-  const { data: dashboardData, isLoading, error } = useQuery('adminDashboard', async () => {
-    const [usersRes, contractsRes, datasetsRes, breachesRes, complianceRes] = await Promise.all([
-      apiService.get('/api/admin/users'),
-      apiService.get('/api/admin/contracts'),
-      apiService.get('/api/admin/datasets'),
-      apiService.get('/api/admin/data-breaches'),
-      apiService.get('/api/admin/compliance')
-    ]);
+  const { data: dashboardData, isLoading, error } = useQuery(
+    ['adminDashboard', user?.id],
+    async () => {
+      const [usersRes, contractsRes, datasetsRes, breachesRes, complianceRes] = await Promise.all([
+        apiService.get('/api/admin/users'),
+        apiService.get('/api/admin/contracts'),
+        apiService.get('/api/admin/datasets'),
+        apiService.get('/api/admin/data-breaches'),
+        apiService.get('/api/admin/compliance')
+      ]);
 
-    return {
-      users: usersRes.data.users || [],
-      contracts: contractsRes.data.contracts || [],
-      datasets: datasetsRes.data.datasets || [],
-      breaches: breachesRes.data.breaches || [],
-      compliance: complianceRes.data.compliance || {}
-    };
-  });
+      return {
+        users: usersRes.data.users || [],
+        contracts: contractsRes.data.contracts || [],
+        datasets: datasetsRes.data.datasets || [],
+        breaches: breachesRes.data.breaches || [],
+        compliance: complianceRes.data.compliance || {}
+      };
+    },
+    {
+      enabled: !!user?.id && !isInitializing, // Only run when user is authenticated and not initializing
+      retry: 3,
+      staleTime: 30000, // Consider data fresh for 30 seconds
+    }
+  );
 
   const users = dashboardData?.users || [];
   const contracts = dashboardData?.contracts || [];
@@ -98,11 +106,14 @@ const AdminDashboard = () => {
     }
   };
 
-  if (isLoading) {
+  // Show loading state when user is initializing or data is loading
+  if (isInitializing || isLoading) {
     return (
       <Box sx={{ width: '100%' }}>
         <LinearProgress />
-        <Typography sx={{ mt: 2 }}>Loading admin dashboard...</Typography>
+        <Typography sx={{ mt: 2 }}>
+          {isInitializing ? 'Initializing user session...' : 'Loading admin dashboard...'}
+        </Typography>
       </Box>
     );
   }
@@ -115,16 +126,28 @@ const AdminDashboard = () => {
     );
   }
 
+  // Show message if user is not authenticated
+  if (!user?.id) {
+    return (
+      <Box sx={{ textAlign: 'center', py: 4 }}>
+        <Typography variant="h6" color="text.secondary">
+          Please log in to view your dashboard
+        </Typography>
+      </Box>
+    );
+  }
+
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
           <Typography variant="h4" className="font-bold text-gray-900 mb-2">
-            Admin Dashboard
+            System Administration Dashboard
           </Typography>
-          <Typography variant="body1" className="text-gray-600">
-            System overview and management for {user?.name || 'Administrator'}
+          <Typography variant="body1" className="text-gray-600 mb-2">
+            Monitor system health, manage users, and ensure overall system security and compliance. 
+            Complete audit trails and system analytics available.
           </Typography>
         </div>
         <div className="flex space-x-3">
@@ -224,6 +247,30 @@ const AdminDashboard = () => {
                   </Typography>
                 </div>
                 <Storage className="text-orange-600 text-3xl" />
+              </div>
+            </CardContent>
+          </Card>
+        </Grid>
+      </Grid>
+
+      {/* DEPA ID Card */}
+      <Grid container spacing={3}>
+        <Grid item xs={12}>
+          <Card>
+            <CardContent>
+              <div className="flex items-center justify-between">
+                <div>
+                  <Typography color="textSecondary" gutterBottom>
+                    Your DEPA ID
+                  </Typography>
+                  <Typography variant="h6" className="font-mono bg-gray-100 px-2 py-1 rounded">
+                    {user?.depaId || 'Not assigned'}
+                  </Typography>
+                  <Typography variant="body2" color="textSecondary" sx={{ mt: 1 }}>
+                    Digital Personal Data Protection ID for privacy compliance
+                  </Typography>
+                </div>
+                <Security className="text-indigo-600 text-3xl" />
               </div>
             </CardContent>
           </Card>

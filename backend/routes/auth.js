@@ -493,13 +493,35 @@ router.post('/login', logAuthEvent('LOGIN'), async (req, res) => {
     try {
       console.log('🔐 Attempting Keycloak authentication for:', email);
       
-      const tokenResponse = await ***REMOVED-KEYCLOAK_DB_PASSWORD***Service.authenticateUserWithPassword(email, password);
+      // Find user in database first to get iamUsername
+      const user = await db.User.findOne({ 
+        where: { 
+          email: email.toLowerCase(), 
+          isActive: true 
+        } 
+      });
+      
+      if (!user) {
+        return res.status(401).json({
+          error: 'User not found',
+          code: 'USER_NOT_FOUND',
+          details: 'User not found in database'
+        });
+      }
+      
+      if (!user.iamUsername) {
+        return res.status(401).json({
+          error: 'User not synced with Keycloak',
+          code: 'USER_NOT_SYNCED',
+          details: 'User not properly synced with Keycloak'
+        });
+      }
+      
+      // Use iamUsername for Keycloak authentication
+      const tokenResponse = await ***REMOVED-KEYCLOAK_DB_PASSWORD***Service.authenticateUserWithPassword(user.iamUsername, password);
       
       // Update last login timestamp in local DB
-      const user = await db.User.findOne({ where: { email: email.toLowerCase(), isActive: true } });
-      if (user) {
-        await user.update({ lastLoginAt: new Date() });
-      }
+      await user.update({ lastLoginAt: new Date() });
       
       console.log('✅ Keycloak authentication successful for:', email);
       
@@ -509,6 +531,7 @@ router.post('/login', logAuthEvent('LOGIN'), async (req, res) => {
         refreshToken: tokenResponse.refresh_token,
         expiresIn: tokenResponse.expires_in,
         user: {
+          id: user.id, // Add the user ID
           email: email,
           name: user?.name || 'User',
           partyType: user?.partyType || 'User',

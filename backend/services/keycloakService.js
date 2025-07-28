@@ -8,8 +8,8 @@ class KeycloakService {
     this.baseUrl = process.env.KEYCLOAK_URL || 'http://localhost:8080';
     this.realm = process.env.KEYCLOAK_REALM || 'contract-management';
     this.adminRealm = 'master';
-    this.clientId = process.env.KEYCLOAK_CLIENT_ID || 'contract-management-backend';
-    this.clientSecret = process.env.KEYCLOAK_CLIENT_SECRET || 'sncRBEV5Et3E3XxpGoWA0DflTW4dIezX';
+    this.clientId = process.env.KEYCLOAK_CLIENT_ID || 'contract-management-client';
+    this.clientSecret = process.env.KEYCLOAK_CLIENT_SECRET || '';
     this.adminUsername = process.env.KEYCLOAK_ADMIN_USERNAME || 'admin';
     this.adminPassword = process.env.KEYCLOAK_ADMIN_PASSWORD || '***REMOVED-KEYCLOAK_ADMIN_PASSWORD***';
   }
@@ -42,7 +42,7 @@ class KeycloakService {
   async authenticateUserWithPassword(username, password) {
     try {
       const response = await axios.post(`${this.baseUrl}/realms/${this.realm}/protocol/openid-connect/token`,
-        `grant_type=password&client_id=${this.clientId}&client_secret=${this.clientSecret}&username=${username}&password=${password}`,
+        `grant_type=password&client_id=${this.clientId}&username=${username}&password=${password}`,
         {
           headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
         }
@@ -82,7 +82,7 @@ class KeycloakService {
   async refreshToken(refreshToken) {
     try {
       const response = await axios.post(`${this.baseUrl}/realms/${this.realm}/protocol/openid-connect/token`,
-        `grant_type=refresh_token&client_id=${this.clientId}&client_secret=${this.clientSecret}&refresh_token=${refreshToken}`,
+        `grant_type=refresh_token&client_id=${this.clientId}&refresh_token=${refreshToken}`,
         {
           headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
         }
