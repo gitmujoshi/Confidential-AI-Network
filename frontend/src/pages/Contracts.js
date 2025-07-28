@@ -104,9 +104,9 @@ const ContractCard = ({ contract, onView, onEdit, onDelete, onDownloadContract, 
     <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
       <CardContent sx={{ flexGrow: 1 }}>
         <Box display="flex" justifyContent="space-between" alignItems="flex-start" mb={2}>
-          <Typography variant="h6" component="h2" gutterBottom>
-            {contract.contractId}
-          </Typography>
+                          <Typography variant="h6" component="h2" gutterBottom fontFamily="monospace">
+                  {contract.depaId || 'NULL'}
+                </Typography>
           <Box display="flex" gap={1}>
             <StatusChip status={contract.status} />
             {isMultiTDPContract && (
@@ -220,9 +220,9 @@ const ContractRow = ({ contract, onView, onEdit, onDelete, onDownloadContract, o
     <TableRow hover>
       <TableCell>
         <Box display="flex" alignItems="center" gap={1}>
-          <Typography variant="body2" fontWeight="medium">
-            {contract.contractId}
-          </Typography>
+                            <Typography variant="body2" fontWeight="medium" fontFamily="monospace">
+                    {contract.depaId || 'NULL'}
+                  </Typography>
           {isMultiTDPContract && (
             <Chip label="Multi-TDP" color="primary" size="small" />
           )}
@@ -483,7 +483,7 @@ function Contracts() {
         tdpPayments: completeContract.tdpPayments,
         multiTdpStatus: completeContract.multiTdpStatus,
         
-        // Ricardian contract fields
+        // Contract fields
         legalDocumentHash: completeContract.legalDocumentHash,
         ricardianSignature: completeContract.ricardianSignature,
         smartContractAddress: completeContract.smartContractAddress,
@@ -687,7 +687,7 @@ function Contracts() {
                         direction={sortBy === 'contractId' ? sortOrder : 'asc'}
                         onClick={() => handleSort('contractId')}
                       >
-                        Contract ID
+                        Contract ID (DEPA)
                       </TableSortLabel>
                     </TableCell>
                     <TableCell>
@@ -782,8 +782,8 @@ function Contracts() {
             <DialogContent>
               <Grid container spacing={3}>
                 <Grid item xs={12}>
-                  <Typography variant="h6" gutterBottom>
-                    {selectedContract.contractId}
+                  <Typography variant="h6" gutterBottom fontFamily="monospace">
+                    {selectedContract.depaId || 'NULL'}
                   </Typography>
                 </Grid>
                 

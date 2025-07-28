@@ -31,6 +31,7 @@ import {
   Paper,
   Tabs,
   Tab,
+  FormHelperText,
 } from '@mui/material';
 import {
   ExpandMore as ExpandMoreIcon,
@@ -916,6 +917,7 @@ function CreateRicardianContract() {
                       value={contractData.price}
                       onChange={(e) => setContractData({ ...contractData, price: e.target.value })}
                       margin="normal"
+                      helperText="Total contract cost in USD"
                     />
                     
                     <TextField
@@ -925,6 +927,7 @@ function CreateRicardianContract() {
                       value={contractData.duration}
                       onChange={(e) => setContractData({ ...contractData, duration: e.target.value })}
                       margin="normal"
+                      helperText="Contract execution timeline in days"
                     />
                     
                     <TextField
@@ -935,6 +938,7 @@ function CreateRicardianContract() {
                       value={contractData.termsAndConditions}
                       onChange={(e) => setContractData({ ...contractData, termsAndConditions: e.target.value })}
                       margin="normal"
+                      helperText="Legal terms and conditions for the contract"
                     />
                   </CardContent>
                 </Card>
@@ -1195,6 +1199,10 @@ function CreateRicardianContract() {
                     <Typography variant="h6" gutterBottom>
                       Environment Specifications
                     </Typography>
+                    <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                      Define the computing infrastructure where this contract will be executed. 
+                      This includes the general hosting environment, security configurations, and platform requirements.
+                    </Typography>
                     
                     <Accordion>
                       <AccordionSummary expandIcon={<ExpandMoreIcon />}>
@@ -1203,6 +1211,10 @@ function CreateRicardianContract() {
                           Infrastructure
                         </Typography>
                       </AccordionSummary>
+                      <Typography variant="body2" color="text.secondary" sx={{ mt: 1, mb: 2 }}>
+                        Configure the general computing infrastructure including compute resources, 
+                        storage, and network requirements for contract execution.
+                      </Typography>
                       <AccordionDetails>
                         <Grid container spacing={2}>
                           <Grid item xs={12}>
@@ -1219,10 +1231,13 @@ function CreateRicardianContract() {
                                 })}
                                 label="Compute Type"
                               >
-                                <MenuItem value="confidential-vm">Confidential VM</MenuItem>
-                                <MenuItem value="sgx-enclave">SGX Enclave</MenuItem>
-                                <MenuItem value="sev-snp">SEV-SNP</MenuItem>
+                                <MenuItem value="confidential-vm">Confidential VM - Secure virtual machine with encryption</MenuItem>
+                                <MenuItem value="sgx-enclave">SGX Enclave - Intel SGX secure enclave for confidential computing</MenuItem>
+                                <MenuItem value="sev-snp">SEV-SNP - AMD Secure Encrypted Virtualization with Secure Nested Paging</MenuItem>
                               </Select>
+                              <FormHelperText>
+                                Choose the type of secure computing environment for your contract
+                              </FormHelperText>
                             </FormControl>
                           </Grid>
                           <Grid item xs={6}>
@@ -1266,6 +1281,10 @@ function CreateRicardianContract() {
                           Security
                         </Typography>
                       </AccordionSummary>
+                      <Typography variant="body2" color="text.secondary" sx={{ mt: 1, mb: 2 }}>
+                        Set up security controls including encryption, access controls, 
+                        and compliance requirements for data protection.
+                      </Typography>
                       <AccordionDetails>
                         <FormControlLabel
                           control={
@@ -1322,6 +1341,9 @@ function CreateRicardianContract() {
                           KMS Configuration
                         </Typography>
                       </AccordionSummary>
+                      <Typography variant="body2" color="text.secondary" sx={{ mt: 1, mb: 2 }}>
+                        Configure key management services for encryption and secure key storage.
+                      </Typography>
                       <AccordionDetails>
                         <FormControl fullWidth>
                           <InputLabel>KMS Provider</InputLabel>
@@ -1368,6 +1390,10 @@ function CreateRicardianContract() {
                     <Typography variant="h6" gutterBottom>
                       Training Environment Specifications
                     </Typography>
+                    <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                      Configure AI training parameters and privacy-preserving techniques. 
+                      This section defines how the AI models will be trained while protecting data privacy.
+                    </Typography>
                     
                     <Accordion>
                       <AccordionSummary expandIcon={<ExpandMoreIcon />}>
@@ -1376,6 +1402,10 @@ function CreateRicardianContract() {
                           Infrastructure Specifications
                         </Typography>
                       </AccordionSummary>
+                      <Typography variant="body2" color="text.secondary" sx={{ mt: 1, mb: 2 }}>
+                        Configure specialized computing resources for AI model training, 
+                        including GPU/TPU requirements and privacy-preserving compute resources.
+                      </Typography>
                       <AccordionDetails>
                         <Grid container spacing={2}>
                           <Grid item xs={12} md={6}>
@@ -1485,6 +1515,10 @@ function CreateRicardianContract() {
                           Training Specifications
                         </Typography>
                       </AccordionSummary>
+                      <Typography variant="body2" color="text.secondary" sx={{ mt: 1, mb: 2 }}>
+                        Define AI model architecture, training parameters, and privacy-preserving 
+                        techniques for secure model training.
+                      </Typography>
                       <AccordionDetails>
                         <Grid container spacing={2}>
                           <Grid item xs={12} md={6}>
@@ -1968,7 +2002,7 @@ function CreateRicardianContract() {
         return (
           <Box>
             <Typography variant="h6" gutterBottom>
-              Create Ricardian Contract
+              Create Contract
             </Typography>
             {contractCreationError && (
               <Alert severity="error" sx={{ mb: 2, whiteSpace: 'pre-line' }}>
@@ -2010,7 +2044,7 @@ function CreateRicardianContract() {
                         <Typography variant="body2" gutterBottom sx={{ fontFamily: 'monospace', fontSize: '0.8rem' }}>
                           {createdContract.contract.legalDocumentHash}
                         </Typography>
-                        <Typography variant="subtitle2">Ricardian Signature:</Typography>
+                        <Typography variant="subtitle2">Contract Signature:</Typography>
                         <Typography variant="body2" gutterBottom sx={{ fontFamily: 'monospace', fontSize: '0.8rem' }}>
                           {createdContract.contract.ricardianSignature}
                         </Typography>
@@ -2294,7 +2328,7 @@ function CreateRicardianContract() {
             </Typography>
       
       <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
-        Create a Ricardian contract that combines human-readable legal documents with machine-executable smart contracts.
+        Create a contract that combines human-readable legal documents with machine-executable smart contracts.
       </Typography>
 
       <Stepper activeStep={activeStep} sx={{ mb: 4 }}>
@@ -2324,7 +2358,7 @@ function CreateRicardianContract() {
               onClick={handleCreateRicardianContract}
               disabled={createRicardianContractMutation.isLoading}
             >
-              {createRicardianContractMutation.isLoading ? 'Creating Contract...' : 'Create Ricardian Contract'}
+              {createRicardianContractMutation.isLoading ? 'Creating Contract...' : 'Create Contract'}
             </Button>
           ) : activeStep < steps.length - 1 ? (
             <Button

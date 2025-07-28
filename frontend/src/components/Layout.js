@@ -42,17 +42,17 @@ const drawerWidth = 240;
 const Layout = ({ children }) => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { currentUser, isAuthenticated, isTDC, isTDP, isCCRP, deploymentStatus, isGlobalDEPAId, deploymentInfo } = useUser();
+  const { currentUser, isAuthenticated, isTDC, isTDP, isCCRP, deploymentStatus, isGlobalDEPAId, deploymentInfo, clearAuthData } = useUser();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [anchorEl, setAnchorEl] = useState(null);
 
   // Fetch notifications
   const { data: notifications = [] } = useQuery(
-    ['notifications', user?.id],
-    () => user?.id ? api.get(`/api/notifications/${user.id}`).then(res => res.data.notifications) : Promise.resolve([]),
+    ['notifications', currentUser?.id],
+    () => currentUser?.id ? api.get(`/api/notifications/${currentUser.id}`).then(res => res.data.notifications) : Promise.resolve([]),
     { 
       refetchInterval: 30000,
-      enabled: !!user?.id
+      enabled: !!currentUser?.id
     }
   );
 
@@ -77,7 +77,7 @@ const Layout = ({ children }) => {
     { text: 'Datasets', icon: <Storage />, path: '/datasets' },
     { text: 'Contracts', icon: <Description />, path: '/contracts' },
     // Only show Users menu for AppAdmin
-    ...(user?.partyType === 'AppAdmin' ? [{ text: 'Users', icon: <People />, path: '/admin/users' }] : []),
+    ...(currentUser?.partyType === 'AppAdmin' ? [{ text: 'Users', icon: <People />, path: '/admin/users' }] : []),
     { text: 'Notifications', icon: <Notifications />, path: '/notifications' },
     { text: 'Enterprise DID', icon: <Business />, path: '/enterprise-did' },
   ];
@@ -102,8 +102,6 @@ const Layout = ({ children }) => {
           Secure & Transparent
         </Typography>
       </div>
-
-
 
       {/* Navigation */}
       <div className="flex-1 overflow-y-auto">
@@ -239,7 +237,7 @@ const Layout = ({ children }) => {
           </Typography>
 
           {/* User Menu */}
-          {user && (
+          {currentUser && (
             <div className="flex items-center space-x-3">
               {/* Notifications */}
               <IconButton
@@ -258,16 +256,37 @@ const Layout = ({ children }) => {
                 className="hover:bg-gray-100 rounded-full p-1"
               >
                 <Avatar className="w-8 h-8 bg-blue-600">
-                  {user.name?.charAt(0) || 'U'}
+                  {currentUser.name?.charAt(0) || 'U'}
                 </Avatar>
               </IconButton>
 
               {/* User Role */}
               <Chip
-                label={user.partyType}
+                label={currentUser.partyType}
                 size="small"
-                className={`${getRoleColor(user.partyType)} text-xs`}
+                className={`${getRoleColor(currentUser.partyType)} text-xs`}
               />
+
+              {/* DEPA ID */}
+              {currentUser.depaId && (
+                <Chip
+                  label={`DEPA: ${currentUser.depaId.split('-')[0]}-${currentUser.depaId.split('-')[1]}`}
+                  size="small"
+                  variant="outlined"
+                  className="text-xs border-gray-300 text-gray-600"
+                  sx={{ maxWidth: 150, '& .MuiChip-label': { fontSize: '0.7rem' } }}
+                  title={currentUser.depaId}
+                />
+              )}
+
+              {/* Username */}
+              <Typography
+                variant="body2"
+                className="text-gray-600 text-sm font-medium"
+                sx={{ maxWidth: 150, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+              >
+                {currentUser.name || currentUser.email}
+              </Typography>
 
               {/* Logout Button */}
               <IconButton

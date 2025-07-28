@@ -187,6 +187,8 @@ export const UserProvider = ({ children }) => {
     initializeAccount();
   }, []);
 
+
+
   // Listen for MetaMask account changes (only when not using token auth)
   useEffect(() => {
     // Skip wallet listeners if user is authenticated via token
@@ -472,8 +474,27 @@ export const UserProvider = ({ children }) => {
     // Clear wallet-related state
     setWalletAddress('');
     
-    // Set the new user
+    // Set the new user and ensure initialization is complete
     setCurrentUser(user);
+    setIsInitializing(false); // Ensure initialization is marked as complete
+    
+    // Force re-fetch of dashboard data by invalidating specific queries
+    if (user) {
+      console.log('🔄 [UserContext] Invalidating dashboard queries for user:', user.id);
+      // Use setTimeout to ensure user state is fully set before invalidating
+      setTimeout(() => {
+        queryClient.invalidateQueries(['tdpDashboard']);
+        queryClient.invalidateQueries(['tdcDashboard']);
+        queryClient.invalidateQueries(['ccrpDashboard']);
+        queryClient.invalidateQueries(['adminDashboard']);
+        queryClient.invalidateQueries(['contracts']); // Also invalidate contracts
+        queryClient.invalidateQueries(['notifications']); // Invalidate notifications
+        queryClient.invalidateQueries(['users']); // Invalidate users list
+        queryClient.invalidateQueries(['datasets']); // Invalidate datasets
+        queryClient.invalidateQueries(['ai-models']); // Invalidate AI models
+        queryClient.invalidateQueries(['contract-types']); // Invalidate contract types
+      }, 100);
+    }
     
     console.log('✅ [UserContext] New user set:', user);
   };

@@ -37,20 +37,25 @@ import CloudProviderManager from '../../components/CloudProviderManager';
 
 const CCRPDashboard = () => {
   const navigate = useNavigate();
-  const { currentUser: user } = useUser();
+  const { currentUser: user, isInitializing } = useUser();
 
   // Debug logging
   console.log('🔍 [CCRPDashboard] Current user:', user);
 
   // Fetch CCRP dashboard data
-  const { data: dashboardData, isLoading, error } = useQuery('ccrpDashboard', async () => {
-    console.log('🔍 [CCRPDashboard] Fetching dashboard for user ID:', user?.id);
-    const dashboardRes = await apiService.get(`/api/ccrp/dashboard/${user.id}`);
-    return dashboardRes.data;
-  }, {
-    enabled: !!user?.id, // Only run query if user ID is available
-    retry: false // Don't retry on error to avoid infinite loops
-  });
+  const { data: dashboardData, isLoading, error } = useQuery(
+    ['ccrpDashboard', user?.id],
+    async () => {
+      console.log('🔍 [CCRPDashboard] Fetching dashboard for user ID:', user?.id);
+      const dashboardRes = await apiService.get(`/api/ccrp/dashboard/${user.id}`);
+      return dashboardRes.data;
+    },
+    {
+      enabled: !!user?.id && !isInitializing, // Only run when user is authenticated and not initializing
+      retry: 3,
+      staleTime: 30000, // Consider data fresh for 30 seconds
+    }
+  );
 
   const ccrpUser = dashboardData?.user || {};
   const environments = dashboardData?.environments || [];
@@ -91,11 +96,14 @@ const CCRPDashboard = () => {
     }
   };
 
-  if (isLoading) {
+  // Show loading state when user is initializing or data is loading
+  if (isInitializing || isLoading) {
     return (
       <Box sx={{ width: '100%' }}>
         <LinearProgress />
-        <Typography sx={{ mt: 2 }}>Loading CCRP dashboard...</Typography>
+        <Typography sx={{ mt: 2 }}>
+          {isInitializing ? 'Initializing user session...' : 'Loading CCRP dashboard...'}
+        </Typography>
       </Box>
     );
   }
@@ -108,16 +116,28 @@ const CCRPDashboard = () => {
     );
   }
 
+  // Show message if user is not authenticated
+  if (!user?.id) {
+    return (
+      <Box sx={{ textAlign: 'center', py: 4 }}>
+        <Typography variant="h6" color="text.secondary">
+          Please log in to view your dashboard
+        </Typography>
+      </Box>
+    );
+  }
+
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
           <Typography variant="h4" className="font-bold text-gray-900 mb-2">
-            CCRP Dashboard
+            Welcome to Your CCRP Dashboard
           </Typography>
-          <Typography variant="body1" className="text-gray-600">
-            Manage secure environments and monitor contract execution
+          <Typography variant="body1" className="text-gray-600 mb-2">
+            Provide secure computing environments for AI training. Monitor secure data processing 
+            and ensure privacy and security compliance standards.
           </Typography>
         </div>
         <div className="flex space-x-3">
@@ -224,6 +244,30 @@ const CCRPDashboard = () => {
                   </Typography>
                 </div>
                 <Memory className="text-orange-600 text-3xl" />
+              </div>
+            </CardContent>
+          </Card>
+        </Grid>
+      </Grid>
+
+      {/* DEPA ID Card */}
+      <Grid container spacing={3}>
+        <Grid item xs={12}>
+          <Card>
+            <CardContent>
+              <div className="flex items-center justify-between">
+                <div>
+                  <Typography color="textSecondary" gutterBottom>
+                    Your DEPA ID
+                  </Typography>
+                  <Typography variant="h6" className="font-mono bg-gray-100 px-2 py-1 rounded">
+                    {user?.depaId || 'Not assigned'}
+                  </Typography>
+                  <Typography variant="body2" color="textSecondary" sx={{ mt: 1 }}>
+                    Digital Personal Data Protection ID for privacy compliance
+                  </Typography>
+                </div>
+                <Security className="text-indigo-600 text-3xl" />
               </div>
             </CardContent>
           </Card>
@@ -411,7 +455,7 @@ const CCRPDashboard = () => {
                   <TableBody>
                     {recentContracts.map((contract) => (
                       <TableRow key={contract.id}>
-                        <TableCell>{contract.contractId}</TableCell>
+                        <TableCell fontFamily="monospace">{contract.depaId || 'NULL'}</TableCell>
                         <TableCell>
                           <Chip 
                             label={contract.status} 

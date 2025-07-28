@@ -773,7 +773,7 @@ function ContractDetail() {
       tdpPayments: contract.tdpPayments,
       multiTdpStatus: contract.multiTdpStatus,
       
-      // Ricardian contract fields
+      // Contract fields
       legalDocumentHash: contract.legalDocumentHash,
       ricardianSignature: contract.ricardianSignature,
       smartContractAddress: contract.smartContractAddress,
@@ -846,11 +846,8 @@ function ContractDetail() {
             <CardContent>
               <Box display="flex" justifyContent="space-between" alignItems="flex-start">
                 <Box>
-                  <Typography variant="h5" gutterBottom>
-                    {contract.contractId}
-                  </Typography>
-                  <Typography variant="body2" sx={{ fontFamily: 'monospace', wordBreak: 'break-all', fontSize: '0.95rem', mb: 1 }}>
-                    DEPA ID: {contract.depaId || 'Not assigned'}
+                  <Typography variant="h5" gutterBottom fontFamily="monospace">
+                    {contract.depaId || 'NULL'}
                   </Typography>
                   <Typography variant="body2" color="textSecondary">
                     Created: {format(new Date(contract.createdAt), 'MMM dd, yyyy HH:mm')}
@@ -1424,7 +1421,7 @@ function ContractDetail() {
                       {contract.ricardianSignature && (
                         <Box>
                           <Typography variant="body2" color="textSecondary">
-                            Ricardian Signature
+                            Contract Signature
                           </Typography>
                           <Typography variant="body2" fontFamily="monospace" fontSize="0.8rem">
                             {contract.ricardianSignature}

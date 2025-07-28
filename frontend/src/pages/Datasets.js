@@ -13,6 +13,7 @@ import {
   Button,
   Chip,
   Alert,
+  AlertTitle,
   CircularProgress,
   Pagination,
   IconButton,
@@ -234,9 +235,14 @@ function Datasets() {
                   <CardContent sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
                     {/* Dataset Header */}
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1 }}>
-                      <Typography variant="h6" component="div" sx={{ flex: 1, mr: 1 }}>
-                        {dataset.name}
-                      </Typography>
+                      <Box sx={{ flex: 1, mr: 1 }}>
+                        <Typography variant="h6" component="div">
+                          {dataset.name}
+                        </Typography>
+                        <Typography variant="caption" color="text.secondary" fontFamily="monospace">
+                          {dataset.depaId || 'NULL'}
+                        </Typography>
+                      </Box>
                       
                       {/* Confidential Computing Badge */}
                       <Tooltip title={getConfidentialComputingLabel(dataset.confidentialComputingRequired)}>
