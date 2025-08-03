@@ -12,6 +12,7 @@ This document provides a summary of all test users, datasets, AI models, and con
 | MedData Solutions Inc.  | tdp.medical@example.com      | 10      | TDP-78af39d1-4edb-471c-8cc8-471614abd7b3 | password123 | Healthcare-focused TDP | ✅ Working |
 | NLP Research Foundation | tdp.nlp@example.com          | 11      | TDP-8b2347bb-8028-4f7a-a7ab-50acc8bcf2e3 | password123 | NLP-focused TDP | ✅ Working |
 | AutoDrive Technologies  | tdp.autodrive@example.com    | 12      | TDP-2180ff9f-7c05-48d2-9b74-e1eea12d8fd6 | password123 | Autonomous driving TDP | ✅ Working |
+| Mukesh Joshi            | abc1234@abc1234.com          | 42      | US-EAST-TDP-abfbb687-97bf-4533-8b5f-4b74f4fe0e33 | password123 | Test TDP User | ✅ Working |
 
 ### TDC (Training Data Consumers)
 | Name                    | Email                        | User ID | DEPA ID | Password | Description                                    | Status |
@@ -45,6 +46,7 @@ All database users are properly synced with Keycloak:
 | ccrp.securecloud@example.com | 16          | CCRP       | CCRP-e1758b6f-db68-4e37-8753-85d8a14ef678 | d6fe5653-97f0-46b9-8a5b-d8b1a3650411 | ✅ Working |
 | ccrp.trustedai@example.com   | 17          | CCRP       | CCRP-0db0477c-f997-4dc0-a1b7-64c91c058a34 | b768c5c3-3786-433d-a717-db32f97e135f | ✅ Working |
 | ccrp.privacyfirst@example.com | 18         | CCRP       | CCRP-32683cd6-0023-4471-bfe8-20a6ed14595c | 20538e25-ed00-4b08-a8cc-c66a3979eaee | ✅ Working |
+| abc1234@abc1234.com          | 42          | TDP        | US-EAST-TDP-abfbb687-97bf-4533-8b5f-4b74f4fe0e33 | e48e20f3-5196-42cf-a75a-ab870de5c78d | ✅ Working |
 
 ---
 

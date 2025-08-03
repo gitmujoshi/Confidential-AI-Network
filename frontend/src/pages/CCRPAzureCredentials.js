@@ -1,70 +1,30 @@
-import React, { useState, useEffect } from 'react';
-import {
-  Container,
-  Paper,
-  Typography,
-  Box,
-  Grid,
-  Card,
-  CardContent,
-  TextField,
-  Button,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-  Switch,
-  FormControlLabel,
-  Alert,
-  CircularProgress,
-  Chip,
-  Divider,
-  Accordion,
-  AccordionSummary,
-  AccordionDetails,
-  List,
-  ListItem,
-  ListItemText,
-  ListItemIcon,
-  IconButton,
-  Tooltip,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  LinearProgress,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow
-} from '@mui/material';
-import {
-  Security,
-  Cloud,
-  CheckCircle,
-  Error,
-  Warning,
-  Info,
-  ExpandMore,
-  Refresh,
-  Settings,
-  VerifiedUser,
-  Lock,
-  Speed,
-  Storage,
-  Memory,
-  NetworkCheck,
-  MonetizationOn,
-  Visibility,
-  VisibilityOff
-} from '@mui/icons-material';
-import { useUser } from '../contexts/UserContext';
-import { apiService } from '../services/api';
-import toast from 'react-hot-toast';
+import React, { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Container, Typography, Box, Alert, AlertTitle } from '@mui/material';
+import { Security, Cloud } from '@mui/icons-material';
 
 const CCRPAzureCredentials = () => {
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    // Redirect to the new multi-cloud credentials page
+    navigate('/ccrp-cloud-credentials');
+  }, [navigate]);
+
+  return (
+    <Container maxWidth="lg">
+      <Box sx={{ mb: 4 }}>
+        <Typography variant="h4" component="h1" gutterBottom>
+          <Security sx={{ mr: 1, verticalAlign: 'middle' }} />
+          Cloud Credentials Management
+        </Typography>
+        <Alert severity="info">
+          <AlertTitle>Page Moved</AlertTitle>
+          This page has been moved to support multi-cloud credentials. You will be redirected automatically.
+        </Alert>
+      </Box>
+    </Container>
+  );
   const { currentUser } = useUser();
   const [loading, setLoading] = useState(false);
   const [validating, setValidating] = useState(false);

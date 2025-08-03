@@ -100,16 +100,26 @@ else
     
     # Check if Docker is available
     if command -v docker &> /dev/null; then
+        # Create persistent directories for Keycloak
+        mkdir -p "$PROJECT_ROOT/***REMOVED-KEYCLOAK_DB_PASSWORD***-data"
+        
+        # Stop and remove existing container if it exists
+        docker stop ***REMOVED-KEYCLOAK_DB_PASSWORD***-cms 2>/dev/null || true
+        docker rm ***REMOVED-KEYCLOAK_DB_PASSWORD***-cms 2>/dev/null || true
+        
         docker run -d \
             --name ***REMOVED-KEYCLOAK_DB_PASSWORD***-cms \
             -p 8080:8080 \
             -e KEYCLOAK_ADMIN=admin \
             -e KEYCLOAK_ADMIN_PASSWORD=***REMOVED-KEYCLOAK_ADMIN_PASSWORD*** \
             -e KC_HEALTH_ENABLED=true \
+            -v "$PROJECT_ROOT/***REMOVED-KEYCLOAK_DB_PASSWORD***-data:/opt/***REMOVED-KEYCLOAK_DB_PASSWORD***/data" \
+            -v "$PROJECT_ROOT/***REMOVED-KEYCLOAK_DB_PASSWORD***-data/logs:/opt/***REMOVED-KEYCLOAK_DB_PASSWORD***/logs" \
             quay.io/***REMOVED-KEYCLOAK_DB_PASSWORD***/***REMOVED-KEYCLOAK_DB_PASSWORD***:latest start-dev > "$PROJECT_ROOT/logs/***REMOVED-KEYCLOAK_DB_PASSWORD***.log" 2>&1 &
         
         echo $! > "$PROJECT_ROOT/.***REMOVED-KEYCLOAK_DB_PASSWORD***.pid"
         print_success "Keycloak started with Docker (PID: $(cat "$PROJECT_ROOT/.***REMOVED-KEYCLOAK_DB_PASSWORD***.pid"))"
+        print_status "Keycloak data will be persisted in: $PROJECT_ROOT/***REMOVED-KEYCLOAK_DB_PASSWORD***-data"
     else
         print_error "Docker not found. Please install Docker to run Keycloak."
         print_warning "Continuing without Keycloak..."
@@ -119,6 +129,10 @@ fi
 # Wait for Keycloak to be ready
 if [ -f "$PROJECT_ROOT/.***REMOVED-KEYCLOAK_DB_PASSWORD***.pid" ]; then
     wait_for_service "http://localhost:8080/health" "Keycloak"
+    
+    # Setup Keycloak configuration if it doesn't exist
+    print_status "Setting up Keycloak configuration..."
+    ./setup-***REMOVED-KEYCLOAK_DB_PASSWORD***-persistent.sh
 fi
 
 # Step 2: Start Blockchain (Hardhat)

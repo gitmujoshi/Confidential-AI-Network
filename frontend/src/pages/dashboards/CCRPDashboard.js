@@ -151,7 +151,7 @@ const CCRPDashboard = () => {
           <Button
             variant="outlined"
             startIcon={<Security />}
-            onClick={() => navigate('/ccrp/azure-credentials')}
+                          onClick={() => navigate('/ccrp/cloud-credentials')}
           >
             Azure Credentials
           </Button>

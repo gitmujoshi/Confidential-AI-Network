@@ -231,7 +231,7 @@ router.post('/register', logAuthEvent('REGISTER'), async (req, res) => {
     // --- TRANSACTION-BASED USER CREATION ---
     let ***REMOVED-KEYCLOAK_DB_PASSWORD***Result = null;
     let ***REMOVED-KEYCLOAK_DB_PASSWORD***Success = false;
-    let temporaryPassword = null;
+
     let dbUser = null;
     let dbSuccess = false;
 
@@ -246,20 +246,13 @@ router.post('/register', logAuthEvent('REGISTER'), async (req, res) => {
           ***REMOVED-KEYCLOAK_DB_PASSWORD***Result = await ***REMOVED-KEYCLOAK_DB_PASSWORD***Service.createUser({
             username: email,
             email: email,
-            firstName: name.split(' ')[0] || name,
-            lastName: name.split(' ').slice(1).join(' ') || '',
-            enabled: true,
-            emailVerified: false,
-            credentials: [{
-              type: 'password',
-              value: temporaryPassword,
-              temporary: true
-            }],
-            attributes: {
-              partyType: [partyType],
-              organization: [organization || ''],
-              userType: [userType || 'individual']
-            }
+            name: name,
+            partyType: partyType,
+            organization: organization || '',
+            phoneNumber: phoneNumber || '',
+            website: website || '',
+            location: location || '',
+            walletAddress: walletAddress || null
           });
           ***REMOVED-KEYCLOAK_DB_PASSWORD***Success = true;
           console.log('✅ Keycloak user created successfully');
@@ -424,9 +417,9 @@ router.post('/register', logAuthEvent('REGISTER'), async (req, res) => {
         profileCompleted: dbUser.profileCompleted,
         emailVerified: dbUser.emailVerified
       },
-      loginCredentials: temporaryPassword ? {
+      loginCredentials: ***REMOVED-KEYCLOAK_DB_PASSWORD***Result?.temporaryPassword ? {
         email: dbUser.email,
-        password: temporaryPassword,
+        password: ***REMOVED-KEYCLOAK_DB_PASSWORD***Result.temporaryPassword,
         note: 'Use these credentials to log in. This is a temporary password that should be changed on first login.'
       } : null,
       nextSteps: [

@@ -1,21 +1,19 @@
 /**
- * CCRP Azure Credentials Model
+ * Multi-Cloud Credentials Model
  * 
- * This model stores Azure credentials and configurations specific to each CCRP (Confidential Clean Room Provider).
- * Each CCRP can have their own Azure subscription, credentials, and infrastructure preferences.
+ * This model stores cloud provider credentials and configurations for CCRPs.
+ * Sensitive credentials are stored in external secret management systems.
  * 
  * Security Features:
- * - Encrypted credential storage
- * - Environment-specific configurations
+ * - No sensitive data in database
+ * - Cloud-agnostic secret management
  * - Audit trail for credential changes
- * - Multi-subscription support
+ * - Multi-cloud support (AWS, Azure, GCP, OCI)
  * 
  * Relationships:
  * - Belongs to User (CCRP)
  * - Referenced by Contracts for infrastructure provisioning
  */
-
-const crypto = require('crypto');
 
 module.exports = (sequelize, DataTypes) => {
   const CCRPAzureCredentials = sequelize.define('CCRPAzureCredentials', {
@@ -37,75 +35,58 @@ module.exports = (sequelize, DataTypes) => {
       comment: 'Reference to CCRP user'
     },
     
-    // Azure Subscription Configuration
+    // Cloud Provider Configuration
+    cloudProvider: {
+      type: DataTypes.ENUM('AWS', 'AZURE', 'GCP', 'OCI'),
+      allowNull: false,
+      comment: 'Cloud service provider'
+    },
+    
+    // Cloud-specific identifiers (non-sensitive)
     subscriptionId: {
       type: DataTypes.STRING,
-      allowNull: false,
-      validate: {
-        notEmpty: true
-      },
-      comment: 'Azure subscription ID'
+      allowNull: true,
+      comment: 'Azure subscription ID or AWS account ID'
     },
     
     tenantId: {
       type: DataTypes.STRING,
-      allowNull: false,
-      validate: {
-        notEmpty: true
-      },
+      allowNull: true,
       comment: 'Azure tenant ID'
     },
     
-    // Service Principal Credentials (encrypted)
-    clientId: {
+    projectId: {
       type: DataTypes.STRING,
-      allowNull: false,
-      validate: {
-        notEmpty: true
-      },
-      comment: 'Azure service principal client ID'
+      allowNull: true,
+      comment: 'GCP project ID'
     },
     
-    clientSecret: {
-      type: DataTypes.TEXT,
+    compartmentId: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      comment: 'OCI compartment ID'
+    },
+    
+    // Secret Management Configuration
+    secretName: {
+      type: DataTypes.STRING,
       allowNull: false,
-      validate: {
-        notEmpty: true
-      },
-      comment: 'Azure service principal client secret (encrypted)',
-      set(value) {
-        // Encrypt the client secret before storing
-        const algorithm = 'aes-256-cbc';
-        const key = crypto.scryptSync(process.env.ENCRYPTION_KEY || 'default-key', 'salt', 32);
-        const iv = crypto.randomBytes(16);
-        const cipher = crypto.createCipher(algorithm, key);
-        let encrypted = cipher.update(value, 'utf8', 'hex');
-        encrypted += cipher.final('hex');
-        this.setDataValue('clientSecret', iv.toString('hex') + ':' + encrypted);
-      },
-      get() {
-        // Decrypt the client secret when retrieving
-        const value = this.getDataValue('clientSecret');
-        if (!value) return null;
-        
-        const algorithm = 'aes-256-cbc';
-        const key = crypto.scryptSync(process.env.ENCRYPTION_KEY || 'default-key', 'salt', 32);
-        const parts = value.split(':');
-        const iv = Buffer.from(parts[0], 'hex');
-        const encrypted = parts[1];
-        const decipher = crypto.createDecipher(algorithm, key);
-        let decrypted = decipher.update(encrypted, 'hex', 'utf8');
-        decrypted += decipher.final('utf8');
-        return decrypted;
-      }
+      comment: 'Reference to secret in external secret manager'
+    },
+    
+    secretManager: {
+      type: DataTypes.ENUM('VAULT', 'AWS_SECRETS', 'AZURE_KEYVAULT', 'GCP_SECRETS', 'OCI_VAULT'),
+      allowNull: false,
+      defaultValue: 'VAULT',
+      comment: 'External secret management system'
     },
     
     // Authentication Method
     authMethod: {
-      type: DataTypes.ENUM('SERVICE_PRINCIPAL', 'MANAGED_IDENTITY', 'AZURE_CLI'),
+      type: DataTypes.ENUM('SERVICE_PRINCIPAL', 'MANAGED_IDENTITY', 'IAM_ROLE', 'API_KEY'),
       allowNull: false,
       defaultValue: 'SERVICE_PRINCIPAL',
-      comment: 'Authentication method for Azure'
+      comment: 'Authentication method for cloud provider'
     },
     
     // Default Infrastructure Configuration
@@ -113,7 +94,7 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.STRING,
       allowNull: false,
       defaultValue: 'eastus',
-      comment: 'Default Azure region for resource deployment'
+      comment: 'Default cloud region for resource deployment'
     },
     
     defaultResourceGroupPrefix: {
@@ -178,14 +159,14 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.BOOLEAN,
       allowNull: false,
       defaultValue: true,
-      comment: 'Enable Azure Monitor and Log Analytics'
+      comment: 'Enable cloud monitoring and logging'
     },
     
     enableKeyVault: {
       type: DataTypes.BOOLEAN,
       allowNull: false,
       defaultValue: true,
-      comment: 'Enable Azure Key Vault for encryption'
+      comment: 'Enable cloud key management service'
     },
     
     // Cost Management
@@ -246,15 +227,15 @@ module.exports = (sequelize, DataTypes) => {
       defaultValue: DataTypes.NOW
     }
   }, {
-    tableName: 'ccrp_azure_credentials',
+    tableName: 'ccrp_cloud_credentials', // Updated table name
     timestamps: true,
     indexes: [
       {
         unique: true,
-        fields: ['ccrpUserId']
+        fields: ['ccrpUserId', 'cloudProvider']
       },
       {
-        fields: ['subscriptionId']
+        fields: ['cloudProvider']
       },
       {
         fields: ['isActive']
@@ -268,22 +249,14 @@ module.exports = (sequelize, DataTypes) => {
   // Instance methods
   CCRPAzureCredentials.prototype.validateCredentials = async function() {
     try {
-      const { DefaultAzureCredential } = require('@azure/identity');
-      const { ComputeManagementClient } = require('@azure/arm-compute');
+      // This would now call the appropriate cloud provider's validation
+      const secretManager = require('../services/secretManager');
+      const credentials = await secretManager.getCredentials(this.secretName, this.secretManager);
       
-      // Create credential based on auth method
-      let credential;
-      if (this.authMethod === 'SERVICE_PRINCIPAL') {
-        credential = new DefaultAzureCredential();
-      } else if (this.authMethod === 'MANAGED_IDENTITY') {
-        credential = new DefaultAzureCredential();
-      } else {
-        credential = new DefaultAzureCredential();
-      }
-      
-      // Test credential by listing resource groups
-      const computeClient = new ComputeManagementClient(credential, this.subscriptionId);
-      await computeClient.resourceGroups.list();
+      // Validate with cloud provider
+      const provider = require(`../services/providers/${this.cloudProvider.toLowerCase()}Provider`);
+      const providerInstance = new provider();
+      await providerInstance.validateCredentials(credentials);
       
       // Update validation status
       await this.update({
@@ -301,15 +274,18 @@ module.exports = (sequelize, DataTypes) => {
     }
   };
 
-  CCRPAzureCredentials.prototype.getAzureConfig = function() {
+  CCRPAzureCredentials.prototype.getCloudConfig = function() {
     return {
+      cloudProvider: this.cloudProvider,
       subscription: {
         id: this.subscriptionId,
-        tenantId: this.tenantId
+        tenantId: this.tenantId,
+        projectId: this.projectId,
+        compartmentId: this.compartmentId
       },
-      auth: {
-        clientId: this.clientId,
-        clientSecret: this.clientSecret,
+      secretManagement: {
+        secretName: this.secretName,
+        secretManager: this.secretManager,
         authMethod: this.authMethod
       },
       defaults: {
@@ -340,9 +316,19 @@ module.exports = (sequelize, DataTypes) => {
 
   // Class methods
   CCRPAzureCredentials.findByCCRP = async function(ccrpUserId) {
+    return await this.findAll({
+      where: {
+        ccrpUserId,
+        isActive: true
+      }
+    });
+  };
+
+  CCRPAzureCredentials.findByCCRPAndProvider = async function(ccrpUserId, cloudProvider) {
     return await this.findOne({
       where: {
         ccrpUserId,
+        cloudProvider,
         isActive: true
       }
     });

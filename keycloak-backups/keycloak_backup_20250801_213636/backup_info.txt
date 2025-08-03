@@ -1,0 +1,15 @@
+Keycloak Backup Information
+==========================
+Backup Date: Fri Aug  1 21:36:36 EDT 2025
+Backup Name: ***REMOVED-KEYCLOAK_DB_PASSWORD***_backup_20250801_213636
+Realm: contract-management
+Files:
+- realm.json: Realm configuration
+- users.json: User data
+- data/: Persistent data directory
+
+To restore this backup:
+1. Stop Keycloak
+2. Copy data/ to ***REMOVED-KEYCLOAK_DB_PASSWORD***-data/
+3. Restart Keycloak
+4. Run: ./restore-***REMOVED-KEYCLOAK_DB_PASSWORD***.sh ***REMOVED-KEYCLOAK_DB_PASSWORD***_backup_20250801_213636

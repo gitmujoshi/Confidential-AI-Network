@@ -1,400 +1,305 @@
 # Contract Management System
 
-A comprehensive contract management system for AI training data providers, consumers, and confidential clean room providers with **Ricardian Contract** support and **multi-deployment global uniqueness**.
-
-## 🏗️ Architecture Overview
-
-This system implements a **Ricardian Contract** pattern that combines human-readable legal documents with machine-executable smart contracts, providing:
-
-- **Legal Enforceability**: Human-readable terms that courts can interpret
-- **Automated Execution**: Smart contracts for automated enforcement
-- **Cryptographic Binding**: Digital signatures linking legal documents to smart contracts
-- **Multi-Tenant Support**: Each TDP and TDC can have their own private/public cloud infrastructure
-- **Multi-Cloud Support**: Support for multiple cloud providers per CCRP
-- **KMS Integration**: Decentralized Key Management System for data encryption
-- **Training Environment Provisioning**: Automated secure environment setup
-- **Merkle Tree Provenance**: Audit trail for training data integrity
-- **🌍 Multi-Deployment Global Uniqueness**: Global DEPA ID system for cross-border operations
-
-## 🎯 Key Features
-
-### **Ricardian Contract System**
-- **Legal Document Generation**: Automated creation of human-readable legal documents
-- **Smart Contract Deployment**: Blockchain-based contract execution
-- **Cryptographic Binding**: Digital signatures ensuring legal-to-code integrity
-- **Multi-Party Signing**: TDP, TDC, and CCRP signature workflows
-- **Contract State Management**: Comprehensive state machine for contract lifecycle
-
-### **🌍 Multi-Deployment Global Uniqueness**
-- **Global DEPA ID System**: Deployment-specific prefixes for global uniqueness
-- **Cross-Border Operations**: Support for multiple countries and jurisdictions
-- **Jurisdiction Compliance**: Built-in support for major regulatory frameworks
-- **Data Residency**: Proper data residency requirements for each region
-- **Deployment Registry**: Global registry for deployment management
-- **Regulatory Compliance**: US-Federal, EU-GDPR, AP-Singapore, CA-Federal, AU-Federal
-
-### **Multi-Tenant Infrastructure**
-- **Private Cloud Support**: Each TDP/TDC can have dedicated private cloud infrastructure
-- **Public Cloud Integration**: Hybrid cloud support for scalability
-- **Storage Gateway**: Unified access to different storage solutions
-- **KMS Adapters**: Support for multiple Key Management Systems
-- **Cross-Cloud Training**: Orchestration across multiple cloud providers
-
-### **Security & Compliance**
-- **DPDP 2023 Compliance**: Full compliance with Indian data protection regulations
-- **DID:web Support**: Decentralized identity management
-- **Attestation Verification**: Hardware security module verification
-- **Privacy-Preserving Training**: Differential privacy, federated learning, secure MPC
-- **Audit Trails**: Comprehensive logging and monitoring
-
-### **Training Environment Management**
-- **Real Infrastructure Provisioning**: Actual Azure/GCP/AWS infrastructure deployment
-- **CCRP-Specific Credentials**: Multi-tenant Azure credential management
-- **Automated Provisioning**: CCRP-driven secure environment setup
-- **Multi-Cloud Orchestration**: Training across different cloud providers
-- **Resource Management**: Dynamic allocation and scaling
-- **Security Isolation**: Tenant and data isolation
-- **Monitoring & Logging**: Real-time training progress tracking
+A comprehensive contract management system with multi-party authentication, blockchain integration, and confidential computing capabilities.
 
 ## 🚀 Quick Start
 
-### Prerequisites
-- Node.js 18+
-- PostgreSQL 13+
-- Docker & Docker Compose
-- Keycloak (for authentication)
-- Azure CLI (for Azure integration)
-- Azure subscription (for real infrastructure provisioning)
-
-### ⚠️ CRITICAL: Authentication Rules
-**ALWAYS use Keycloak authentication. NEVER bypass authentication layers or use direct database calls.**
-- See [AUTHENTICATION_RULES.md](./AUTHENTICATION_RULES.md) for complete guidelines
-- All user operations must go through service APIs
-- Test users must be synced to Keycloak before testing
-
-### Installation
-
-1. **Clone the repository**
+### **One-Command Setup**
 ```bash
-git clone <repository-url>
-cd ContractManagement
+# Start everything properly
+./start-system.sh
+
+# Or fix authentication issues
+./fix-auth.sh
 ```
 
-2. **Set up environment variables**
+### **Available Test Users**
+- **TDC**: `tdc-test@example.com` / `password123`
+- **TDP**: `tdp-test@example.com` / `password123`
+- **CCRP**: `ccrp-test@example.com` / `password123`
+- **AppAdmin**: `appadmin-test@example.com` / `password123`
+
+## 📋 Table of Contents
+
+- [Quick Start](#-quick-start)
+- [Architecture](#-architecture)
+- [Development Workflow](#-development-workflow)
+- [Authentication](#-authentication)
+- [API Documentation](#-api-documentation)
+- [Testing](#-testing)
+- [Troubleshooting](#-troubleshooting)
+- [Cursor Best Practices](#-cursor-best-practices)
+
+## 🏗️ Architecture
+
+### **Components**
+- **Frontend**: React.js with Material-UI
+- **Backend**: Node.js with Express
+- **Database**: PostgreSQL with Sequelize ORM
+- **Authentication**: Keycloak IAM
+- **Blockchain**: Ethereum with Hardhat
+- **Secret Management**: HashiCorp Vault
+- **Cloud Providers**: AWS, Azure, GCP, OCI
+
+### **User Roles**
+- **TDP (Training Data Provider)**: Create and manage datasets
+- **TDC (Training Data Consumer)**: Browse and purchase datasets
+- **CCRP (Confidential Clean Room Provider)**: Provide secure computing environments
+- **AppAdmin**: System administration
+
+## 🔄 Development Workflow
+
+### **Before Making Changes**
 ```bash
-# Copy example configuration
-cp deployment-examples.env .env
+# Check current state
+npm run status
 
-# Choose your deployment scenario:
-# - LOCAL: For local development
-# - US-EAST: US East Coast with US Federal compliance
-# - EU-WEST: European deployment with GDPR compliance
-# - AP-SOUTH: Singapore deployment with PDPA compliance
-# - CA-CENTRAL: Canada deployment with PIPEDA compliance
-# - AU-SOUTH: Australia deployment with APP compliance
-
-# Edit .env with your deployment configuration
+# Test current functionality
+npm run test:login
 ```
 
-3. **Configure multi-deployment settings**
+### **During Development**
 ```bash
-# Backend configuration (backend/config.env)
-DEPLOYMENT_ID=LOCAL                    # Your deployment ID
-DEPLOYMENT_PREFIX=LOCAL                # Deployment prefix for DEPA IDs
-DEPLOYMENT_REGION=local                # Geographic region
-DEPLOYMENT_COUNTRY=Unknown             # Country
-DEPLOYMENT_JURISDICTION=LOCAL          # Jurisdiction code
-DEPLOYMENT_DATA_RESIDENCY=LOCAL        # Data residency requirements
-DEPLOYMENT_REGULATORY_FRAMEWORK=       # Comma-separated regulatory frameworks
-DEPLOYMENT_TIMEZONE=UTC                # Timezone
-DEPLOYMENT_CURRENCY=USD                # Currency
-DEPLOYMENT_LANGUAGE=en-US              # Language
+# Make small, focused changes
+# Test immediately after each change
+npm run test:login
 
-# Frontend configuration (.env)
-REACT_APP_DEPLOYMENT_ID=LOCAL          # Same as backend
-REACT_APP_DEPLOYMENT_PREFIX=LOCAL      # Same as backend
-REACT_APP_DEPLOYMENT_REGION=local      # Same as backend
-REACT_APP_DEPLOYMENT_COUNTRY=Unknown   # Same as backend
-REACT_APP_DEPLOYMENT_JURISDICTION=LOCAL # Same as backend
-REACT_APP_DEPLOYMENT_DATA_RESIDENCY=LOCAL # Same as backend
-REACT_APP_DEPLOYMENT_REGULATORY_FRAMEWORK= # Same as backend
-REACT_APP_DEPLOYMENT_TIMEZONE=UTC      # Same as backend
-REACT_APP_DEPLOYMENT_CURRENCY=USD      # Same as backend
-REACT_APP_DEPLOYMENT_LANGUAGE=en-US    # Same as backend
+# If something breaks, fix it immediately
+./fix-auth.sh
 ```
 
-4. **Start the development environment**
+### **After Making Changes**
 ```bash
-# Start all services
-docker-compose up -d
+# Test the specific change
+npm run test:login
 
-# Or start individual services
-npm run dev:backend
-npm run dev:frontend
-npm run dev:blockchain
+# Test related functionality
+npm run status
+
+# Update documentation if needed
 ```
 
-5. **Access the application**
-- Frontend: http://localhost:3000
-- Backend API: http://localhost:5000
-- Keycloak: http://localhost:8080
-- Global Deployment Management: http://localhost:3000/admin/global-deployment
+## 🔐 Authentication
 
-6. **Set up Azure integration (optional)**
+### **Keycloak Integration**
+- **Realm**: `contract-management`
+- **Frontend Client**: `contract-management-frontend` (public)
+- **Backend Client**: `contract-management-backend` (confidential)
+- **Roles**: TDP, TDC, CCRP, ADMIN
+
+### **Authentication Flow**
+1. User logs in via frontend
+2. Frontend authenticates with Keycloak
+3. Backend validates tokens
+4. Role-based access control applied
+
+### **Common Authentication Issues**
 ```bash
-# Set Azure credentials
-export AZURE_SUBSCRIPTION_ID="your-subscription-id"
-export AZURE_TENANT_ID="your-tenant-id"
-export AZURE_CLIENT_ID="your-client-id"
-export AZURE_CLIENT_SECRET="your-client-secret"
-export ENCRYPTION_KEY="your-encryption-key"
+# Quick fix for authentication problems
+./fix-auth.sh
 
-# Run database migration for CCRP Azure fields
-node backend/scripts/migration/addCcrpAzureFields.js
+# Manual Keycloak fix
+cd backend && node auto-fix-***REMOVED-KEYCLOAK_DB_PASSWORD***.js
 
-# Test Azure integration
-node backend/test-azure-integration.js
-node backend/test-ccrp-azure-integration.js
+# Reset everything
+npm run reset:***REMOVED-KEYCLOAK_DB_PASSWORD***
 ```
 
-## 🌍 Multi-Deployment Configuration
+## 📚 API Documentation
 
-### **Supported Deployments**
+### **Authentication Endpoints**
+- `POST /api/auth/login` - User login
+- `POST /api/auth/register` - User registration
+- `GET /api/auth/profile` - Get user profile
+- `POST /api/auth/logout` - User logout
 
-| Deployment | Region | Country | Jurisdiction | Compliance |
-|------------|--------|---------|--------------|------------|
-| **LOCAL** | `local` | `Unknown` | `LOCAL` | None |
-| **US-EAST** | `us-east-1` | `United States` | `US-Federal` | GDPR, CCPA, HIPAA, SOX, FedRAMP |
-| **US-WEST** | `us-west-2` | `United States` | `US-Federal` | GDPR, CCPA, HIPAA, SOX, FedRAMP |
-| **EU-WEST** | `eu-west-1` | `Germany` | `EU-GDPR` | GDPR, ISO-27001 |
-| **EU-NORTH** | `eu-north-1` | `Sweden` | `EU-GDPR` | GDPR, ISO-27001 |
-| **AP-SOUTH** | `ap-southeast-1` | `Singapore` | `AP-Singapore` | PDPA, ISO-27001 |
-| **CA-CENTRAL** | `ca-central-1` | `Canada` | `CA-Federal` | PIPEDA, ISO-27001 |
-| **AU-SOUTH** | `ap-southeast-2` | `Australia` | `AU-Federal` | APP, ISO-27001 |
+### **Contract Management**
+- `GET /api/contracts` - List contracts
+- `POST /api/contracts` - Create contract
+- `GET /api/contracts/:id` - Get contract details
+- `PUT /api/contracts/:id` - Update contract
 
-### **Global DEPA ID Format**
+### **Dataset Management**
+- `GET /api/datasets` - List datasets
+- `POST /api/datasets` - Create dataset
+- `GET /api/datasets/:id` - Get dataset details
 
-```
-[DEPLOYMENT_PREFIX]-[ENTITY_TYPE]-[GUID]
-Examples:
-- US-EAST-TDC-8f4e2a1b-3c4d-5e6f-7a8b-9c0d1e2f3a4b
-- EU-WEST-TDP-9a1b2c3d-4e5f-6a7b-8c9d-0e1f2a3b4c5d
-- AP-SOUTH-CCRP-1b2c3d4e-5f6a-7b8c-9d0e-1f2a3b4c5d6e
-```
-
-### **Jurisdiction Compliance**
-
-Each jurisdiction has specific configurations:
-- **Data Residency**: Where data must be stored
-- **Encryption Standards**: Required encryption methods
-- **Audit Requirements**: Compliance frameworks
-- **DEPA ID Format**: Jurisdiction-specific format
-
-### **Deployment Management**
-
-Use the Global Deployment Management UI to:
-- View current deployment status
-- Register new deployments
-- Generate global DEPA IDs
-- Verify global uniqueness
-- Test jurisdiction compliance
-
-## 📋 Contract Creation Workflow
-
-### **Ricardian Contract Creation (TDC Only)**
-
-1. **Select Contract Type & Datasets**
-   - Choose from AI Training, Basic, or Custom contract types
-   - Select 1-3 datasets from different TDPs
-   - Configure individual pricing per dataset
-
-2. **Configure Contract & Environment**
-   - Set contract duration and terms
-   - Configure privacy requirements (differential privacy, federated learning)
-   - Select CCRP and cloud providers
-   - Define training environment specifications
-   - **🌍 Enable Global DEPA ID** (optional for multi-deployment)
-
-3. **Review Legal Document & Smart Contract**
-   - Preview generated legal document
-   - Review smart contract details
-   - Verify cryptographic binding
-   - **🌍 Verify Global DEPA ID** (if enabled)
-
-4. **Create Ricardian Contract**
-   - Deploy smart contract to blockchain
-   - Generate cryptographic signatures
-   - TDP auto-signs (backend handles)
-   - Contract becomes legally binding
-   - **🌍 Global DEPA ID assigned** (if enabled)
-
-### **Contract States**
-- `PENDING_TDP_APPROVAL`: Waiting for TDP signature
-- `PENDING_CCRP_APPROVAL`: Waiting for CCRP signature (if selected)
-- `ACTIVE`: All parties signed, contract is legally binding
-- `COMPLETED`: Contract execution finished
-- `CANCELLED`: Contract cancelled by any party
-
-## 🔧 API Endpoints
-
-### **Ricardian Contract Endpoints**
-- `POST /api/contracts/ricardian` - Create Ricardian contract
-- `POST /api/contracts/ricardian/preview` - Preview contract before creation
-- `GET /api/contracts/:id/verify` - Verify Ricardian contract integrity
-- `POST /api/contracts/:id/sign` - Sign contract as party
-
-### **🌍 Global Deployment Endpoints**
-- `GET /api/global-deployment/status` - Get current deployment status
-- `POST /api/global-deployment/register` - Register new deployment (admin)
-- `POST /api/global-deployment/generate` - Generate global DEPA ID
-- `POST /api/global-deployment/verify` - Verify global uniqueness
-- `GET /api/global-deployment/jurisdictions` - Get available jurisdictions
-- `POST /api/global-deployment/convert` - Convert standard to global DEPA ID
-- `GET /api/global-deployment/test` - Test generation (admin)
-- `GET /api/global-deployment/deployments` - Get all deployments (admin)
-
-### **Multi-Tenant Infrastructure**
-- `GET /api/ccrp/all` - Get all CCRP providers with cloud support
-- `POST /api/contracts/:id/environment` - Update training environment
-- `GET /api/kms/providers` - Get available KMS providers
-- `POST /api/training/provision` - Provision training environment
-
-## 🏛️ Legal Framework
-
-### **DPDP 2023 Compliance**
-- **Data Principal Rights**: Full support for data subject rights
-- **Consent Management**: Granular consent tracking and management
-- **Data Processing Records**: Comprehensive audit trails
-- **Breach Notification**: Automated breach detection and reporting
-- **Cross-Border Transfers**: Secure international data transfers
-
-### **🌍 Multi-Jurisdiction Compliance**
-- **US Federal**: SOX, FedRAMP, HIPAA, CCPA compliance
-- **EU GDPR**: GDPR Article 32, ISO-27001 compliance
-- **AP Singapore**: PDPA, MAS-TRM compliance
-- **CA Federal**: PIPEDA, ISO-27001 compliance
-- **AU Federal**: Australian Privacy Principles compliance
-
-### **Ricardian Contract Legal Structure**
-```json
-{
-  "legalDocument": {
-    "title": "AI Training Data Agreement",
-    "parties": {
-      "dataProvider": { "name": "TDP", "did": "did:web:...", "depaId": "US-EAST-TDP-..." },
-      "dataConsumer": { "name": "TDC", "did": "did:web:...", "depaId": "US-EAST-TDC-..." },
-      "cleanRoomProvider": { "name": "CCRP", "did": "did:web:...", "depaId": "US-EAST-CCRP-..." }
-    },
-    "terms": [
-      "Data usage for AI training only",
-      "Privacy-preserving techniques required",
-      "Automated data deletion after training",
-      "Compliance with DPDP 2023",
-      "🌍 Global DEPA ID for cross-border operations"
-    ]
-  },
-  "smartContract": {
-    "address": "0x...",
-    "functions": ["createContract", "executePayment", "transferData"],
-    "globalDEPAId": "US-EAST-CONTRACT-..."
-  }
-}
-```
-
-## 🔐 Security Features
-
-### **DID:web Integration**
-- **Decentralized Identity**: Self-sovereign identity management
-- **Cryptographic Signatures**: ES256 signing for contract verification
-- **Public Key Infrastructure**: Secure key management
-- **Identity Verification**: Real-time DID resolution and verification
-
-### **🌍 Global Security**
-- **Deployment-Specific Security**: Each deployment has jurisdiction-specific security requirements
-- **Cross-Border Security**: Secure communication between deployments
-- **Regulatory Compliance**: Built-in compliance with major regulatory frameworks
-- **Audit Trail**: Complete audit trail across all deployments
-
-### **Multi-KMS Support**
-- **Azure Key Vault**: Enterprise-grade key management
-- **AWS KMS**: Cloud-native key management
-- **Google Cloud KMS**: GCP key management
-- **Hashicorp Vault**: Self-hosted key management
-
-### **Training Environment Security**
-- **Confidential Computing**: Hardware-based security
-- **Network Isolation**: Private network segmentation
-- **Data Encryption**: At-rest and in-transit encryption
-- **Access Control**: Role-based access management
-
-## 📊 Monitoring & Analytics
-
-### **Contract Analytics**
-- Contract creation and completion rates
-- Party signature timelines
-- Payment processing metrics
-- Training environment utilization
-- **🌍 Global DEPA ID analytics**
-
-### **Security Monitoring**
-- DID signature verification logs
-- KMS access patterns
-- Training environment security events
-- Compliance audit trails
-- **🌍 Cross-deployment security monitoring**
+### **Cloud Credentials**
+- `GET /api/ccrp/cloud-credentials` - List cloud credentials
+- `POST /api/ccrp/cloud-credentials` - Add cloud credentials
+- `PUT /api/ccrp/cloud-credentials/:id` - Update credentials
 
 ## 🧪 Testing
 
-### **Run Test Suite**
+### **Test Commands**
 ```bash
-# Backend tests
-npm run test:backend
+# Run all tests
+npm test
 
-# Frontend tests
-npm run test:frontend
+# Test authentication
+npm run test:login
 
-# Integration tests
-npm run test:integration
+# Check system status
+npm run status
 
-# Contract state machine tests
-npm run test:contracts
-
-# 🌍 Global deployment tests
-npm run test:global-deployment
+# Health check
+npm run health
 ```
 
-### **Test Ricardian Contracts**
+### **Test Users**
+All test users use password: `password123`
+
+| Role | Email | User ID | Status |
+|------|-------|---------|--------|
+| TDC | `tdc-test@example.com` | 50 | ✅ Working |
+| TDP | `tdp-test@example.com` | 51 | ✅ Working |
+| CCRP | `ccrp-test@example.com` | 52 | ✅ Working |
+| AppAdmin | `appadmin-test@example.com` | 53 | ✅ Working |
+
+## 🚨 Troubleshooting
+
+### **Common Issues**
+
+#### **Authentication Issues**
 ```bash
-# Test contract creation
-npm run test:ricardian
+# Quick fix
+./fix-auth.sh
 
-# Test signature verification
-npm run test:signing
+# Manual Keycloak fix
+cd backend && node auto-fix-***REMOVED-KEYCLOAK_DB_PASSWORD***.js
 
-# Test multi-tenant scenarios
-npm run test:multi-tenant
-
-# 🌍 Test global DEPA ID generation
-npm run test:global-depa-id
+# Check Keycloak status
+curl -s http://localhost:8080/health
 ```
 
-## 📚 Documentation
+#### **Backend Won't Start**
+```bash
+# Check if port is in use
+lsof -i :5001
 
-- [API Documentation](./API_DOCUMENTATION.md)
-- [Ricardian Contract Guide](./docs/contracts/RICARDIAN_CONTRACT_GUIDE.md)
-- [Multi-Tenant Architecture](./MULTI_TENANT_KMS_ARCHITECTURE.md)
-- [UML 4+1 Architecture](./UML_4PLUS1_ARCHITECTURE_DOCUMENTATION.md)
-- [DPDP Implementation](./DPDP_COMPLIANCE_IMPLEMENTATION.md)
-- **🌍 [Multi-Deployment Integration Guide](./MULTI_DEPLOYMENT_INTEGRATION_GUIDE.md)**
-- **🌍 [Identity and Access Management Documentation](./IDENTITY_AND_ACCESS_MANAGEMENT_DOCUMENTATION.md)**
+# Kill existing process
+pkill -f "node server.js"
+
+# Start fresh
+cd backend && node server.js
+```
+
+#### **Environment Issues**
+```bash
+# Check environment files
+diff backend/.env backend/config.env
+
+# Sync environment files
+cd backend && node auto-fix-***REMOVED-KEYCLOAK_DB_PASSWORD***.js
+```
+
+### **Debugging Commands**
+```bash
+# Check system status
+npm run status
+
+# Test authentication
+npm run test:login
+
+# Check health
+npm run health
+
+# View logs
+tail -f logs/backend.log
+```
+
+## 🎯 Cursor Best Practices
+
+### **Development Workflow**
+1. **Check current state** before making changes
+2. **Make small, focused changes**
+3. **Test immediately** after each change
+4. **Fix issues** before moving on
+5. **Document changes** with clear commit messages
+
+### **Automation Scripts**
+- `./fix-auth.sh` - Fix authentication issues
+- `./start-system.sh` - Start everything properly
+- `npm run status` - Check system health
+- `npm run test:login` - Test authentication
+
+### **Prevention Strategies**
+- Use automated health checks
+- Test authentication after every change
+- Keep environment files in sync
+- Use persistent Keycloak configuration
+- Monitor system health regularly
+
+For detailed Cursor best practices, see [CURSOR_BEST_PRACTICES.md](CURSOR_BEST_PRACTICES.md).
+
+## 📁 Project Structure
+
+```
+ContractManagement/
+├── backend/                 # Backend server
+│   ├── routes/             # API routes
+│   ├── services/           # Business logic
+│   ├── models/             # Database models
+│   ├── scripts/            # Utility scripts
+│   └── tests/              # Test files
+├── frontend/               # React frontend
+│   ├── src/                # Source code
+│   ├── components/         # React components
+│   └── pages/              # Page components
+├── blockchain/             # Smart contracts
+├── docs/                   # Documentation
+├── scripts/                # Project scripts
+└── config/                 # Configuration files
+```
+
+## 🔧 Configuration
+
+### **Environment Variables**
+```bash
+# Database
+DB_HOST=localhost
+DB_PORT=5432
+DB_NAME=contract_management
+DB_USER=***REMOVED-DB_PASSWORD***
+DB_PASSWORD=***REMOVED-DB_PASSWORD***
+
+# Keycloak
+KEYCLOAK_URL=http://localhost:8080
+KEYCLOAK_REALM=contract-management
+KEYCLOAK_CLIENT_ID=contract-management-frontend
+KEYCLOAK_ENABLED=true
+
+# Server
+PORT=5001
+NODE_ENV=development
+```
+
+### **Docker Services**
+- **Keycloak**: Port 8080
+- **PostgreSQL**: Port 5432
+- **Backend**: Port 5001
+- **Frontend**: Port 3000
+
+## 📈 Monitoring
+
+### **Health Checks**
+- Backend: `http://localhost:5001/health`
+- Keycloak: `http://localhost:8080/health`
+- Frontend: `http://localhost:3000`
+
+### **Logs**
+- Backend logs: `logs/backend.log`
+- Keycloak logs: Docker container logs
+- Frontend logs: Browser console
 
 ## 🤝 Contributing
 
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests for new functionality
-5. Submit a pull request
+1. **Check current state** before making changes
+2. **Make small, focused changes**
+3. **Test immediately** after each change
+4. **Use automation scripts** when available
+5. **Document changes** with clear commit messages
+6. **Follow the development workflow** outlined above
 
 ## 📄 License
 
@@ -402,11 +307,13 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 🆘 Support
 
-For support and questions:
-- Create an issue in the repository
-- Check the [documentation](./docs/)
-- Review the [FAQ](./FAQ.md)
+For issues and questions:
+1. Check the [Troubleshooting](#-troubleshooting) section
+2. Review the [Cursor Best Practices](CURSOR_BEST_PRACTICES.md)
+3. Check the [API Documentation](#-api-documentation)
+4. Run `./fix-auth.sh` for authentication issues
 
 ---
 
-**Note**: This system now exclusively supports **Ricardian contracts** for all contract creation with **multi-deployment global uniqueness** for cross-border operations. Plain contracts have been deprecated and removed from the system. 
+*Last updated: 2025-08-03*
+*Version: 1.0.0* 
