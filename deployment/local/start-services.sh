@@ -100,16 +100,26 @@ else
     
     # Check if Docker is available
     if command -v docker &> /dev/null; then
+        # Create persistent directories for Keycloak
+        mkdir -p "$PROJECT_ROOT/keycloak-data"
+        
+        # Stop and remove existing container if it exists
+        docker stop keycloak-cms 2>/dev/null || true
+        docker rm keycloak-cms 2>/dev/null || true
+        
         docker run -d \
             --name keycloak-cms \
             -p 8080:8080 \
             -e KEYCLOAK_ADMIN=admin \
             -e KEYCLOAK_ADMIN_PASSWORD=admin123 \
             -e KC_HEALTH_ENABLED=true \
+            -v "$PROJECT_ROOT/keycloak-data:/opt/keycloak/data" \
+            -v "$PROJECT_ROOT/keycloak-data/logs:/opt/keycloak/logs" \
             quay.io/keycloak/keycloak:latest start-dev > "$PROJECT_ROOT/logs/keycloak.log" 2>&1 &
         
         echo $! > "$PROJECT_ROOT/.keycloak.pid"
         print_success "Keycloak started with Docker (PID: $(cat "$PROJECT_ROOT/.keycloak.pid"))"
+        print_status "Keycloak data will be persisted in: $PROJECT_ROOT/keycloak-data"
     else
         print_error "Docker not found. Please install Docker to run Keycloak."
         print_warning "Continuing without Keycloak..."
@@ -119,6 +129,10 @@ fi
 # Wait for Keycloak to be ready
 if [ -f "$PROJECT_ROOT/.keycloak.pid" ]; then
     wait_for_service "http://localhost:8080/health" "Keycloak"
+    
+    # Setup Keycloak configuration if it doesn't exist
+    print_status "Setting up Keycloak configuration..."
+    ./setup-keycloak-persistent.sh
 fi
 
 # Step 2: Start Blockchain (Hardhat)

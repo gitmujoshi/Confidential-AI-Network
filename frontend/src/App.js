@@ -31,6 +31,7 @@ import TestContracts from './pages/TestContracts';
 import DirectTest from './pages/DirectTest';
 import RoleProtectedRoute from './components/RoleProtectedRoute';
 import CCRPAzureCredentials from './pages/CCRPAzureCredentials';
+import CCRPCloudCredentials from './pages/CCRPCloudCredentials';
 import InfrastructureProvisioning from './pages/InfrastructureProvisioning';
 import TrainingEnvironment from './pages/TrainingEnvironment';
 
@@ -249,6 +250,7 @@ function AppRoutes() {
               <Route path="/environments" element={<div>CCRP Environments</div>} />
               <Route path="/environments/:envId" element={<div>CCRP Environment Details</div>} />
               <Route path="/azure-credentials" element={<CCRPAzureCredentials />} />
+              <Route path="/cloud-credentials" element={<CCRPCloudCredentials />} />
               <Route path="/infrastructure" element={<InfrastructureProvisioning />} />
               <Route path="/training-environment" element={<TrainingEnvironment />} />
               <Route path="/contracts" element={<Contracts />} />

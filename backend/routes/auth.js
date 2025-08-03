@@ -231,7 +231,7 @@ router.post('/register', logAuthEvent('REGISTER'), async (req, res) => {
     // --- TRANSACTION-BASED USER CREATION ---
     let keycloakResult = null;
     let keycloakSuccess = false;
-    let temporaryPassword = null;
+
     let dbUser = null;
     let dbSuccess = false;
 
@@ -246,20 +246,13 @@ router.post('/register', logAuthEvent('REGISTER'), async (req, res) => {
           keycloakResult = await keycloakService.createUser({
             username: email,
             email: email,
-            firstName: name.split(' ')[0] || name,
-            lastName: name.split(' ').slice(1).join(' ') || '',
-            enabled: true,
-            emailVerified: false,
-            credentials: [{
-              type: 'password',
-              value: temporaryPassword,
-              temporary: true
-            }],
-            attributes: {
-              partyType: [partyType],
-              organization: [organization || ''],
-              userType: [userType || 'individual']
-            }
+            name: name,
+            partyType: partyType,
+            organization: organization || '',
+            phoneNumber: phoneNumber || '',
+            website: website || '',
+            location: location || '',
+            walletAddress: walletAddress || null
           });
           keycloakSuccess = true;
           console.log('✅ Keycloak user created successfully');
@@ -424,9 +417,9 @@ router.post('/register', logAuthEvent('REGISTER'), async (req, res) => {
         profileCompleted: dbUser.profileCompleted,
         emailVerified: dbUser.emailVerified
       },
-      loginCredentials: temporaryPassword ? {
+      loginCredentials: keycloakResult?.temporaryPassword ? {
         email: dbUser.email,
-        password: temporaryPassword,
+        password: keycloakResult.temporaryPassword,
         note: 'Use these credentials to log in. This is a temporary password that should be changed on first login.'
       } : null,
       nextSteps: [

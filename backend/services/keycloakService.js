@@ -41,8 +41,20 @@ class KeycloakService {
    */
   async authenticateUserWithPassword(username, password) {
     try {
+      // URL encode the password to handle special characters
+      const encodedPassword = encodeURIComponent(password);
+      const encodedUsername = encodeURIComponent(username);
+      
+      // Build the request body
+      let requestBody = `grant_type=password&client_id=${this.clientId}&username=${encodedUsername}&password=${encodedPassword}`;
+      
+      // Add client secret only if it's configured (for confidential clients)
+      if (this.clientSecret) {
+        requestBody += `&client_secret=${this.clientSecret}`;
+      }
+      
       const response = await axios.post(`${this.baseUrl}/realms/${this.realm}/protocol/openid-connect/token`,
-        `grant_type=password&client_id=${this.clientId}&username=${username}&password=${password}`,
+        requestBody,
         {
           headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
         }
@@ -149,7 +161,7 @@ class KeycloakService {
         credentials: [{
           type: 'password',
           value: temporaryPassword,
-          temporary: true
+          temporary: false
         }],
         attributes: {
           partyType: [userData.partyType],
@@ -177,6 +189,19 @@ class KeycloakService {
       const userId = locationHeader.split('/').pop();
 
       console.log(`✅ Keycloak user created: ${userId} (${userData.email})`);
+
+      // Remove the UPDATE_PASSWORD required action so user can login immediately
+      try {
+        console.log(`🔧 Attempting to remove UPDATE_PASSWORD requirement for user: ${userData.email} (${userId})`);
+        const removed = await this.removeRequiredAction(userId, 'UPDATE_PASSWORD');
+        if (removed) {
+          console.log(`✅ Removed UPDATE_PASSWORD requirement for user: ${userData.email}`);
+        } else {
+          console.log(`⚠️ UPDATE_PASSWORD requirement not found for user: ${userData.email}`);
+        }
+      } catch (error) {
+        console.warn(`⚠️ Failed to remove UPDATE_PASSWORD requirement: ${error.message}`);
+      }
 
       return {
         keycloakUserId: userId,
@@ -513,11 +538,64 @@ class KeycloakService {
   }
 
   /**
+   * Remove a required action from a user
+   * @param {string} userId - User ID
+   * @param {string} action - Required action to remove
+   * @returns {Promise<boolean>} - Success status
+   */
+  async removeRequiredAction(userId, action) {
+    try {
+      const adminToken = await this.getAdminToken();
+      
+      // Get current user data
+      const userResponse = await axios.get(
+        `${this.baseUrl}/admin/realms/${this.realm}/users/${userId}`,
+        {
+          headers: {
+            'Authorization': `Bearer ${adminToken}`,
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+      
+      const userData = userResponse.data;
+      
+      // Remove the specified required action
+      if (userData.requiredActions && userData.requiredActions.includes(action)) {
+        userData.requiredActions = userData.requiredActions.filter(a => a !== action);
+        
+        // Update the user with only the requiredActions field to avoid conflicts
+        await axios.put(
+          `${this.baseUrl}/admin/realms/${this.realm}/users/${userId}`,
+          {
+            id: userId,
+            requiredActions: userData.requiredActions
+          },
+          {
+            headers: {
+              'Authorization': `Bearer ${adminToken}`,
+              'Content-Type': 'application/json'
+            }
+          }
+        );
+        
+        return true;
+      }
+      
+      return true; // Action not present, consider it removed
+    } catch (error) {
+      console.error('Error removing required action:', error.response?.data || error.message);
+      throw new Error(`Failed to remove required action: ${error.response?.data?.errorMessage || error.message}`);
+    }
+  }
+
+  /**
    * Generate a temporary password for new users
    * @returns {string} - Temporary password
    */
   generateTemporaryPassword() {
-    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*';
+    // Include special characters for better security in production
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()_+-=[]{}|;:,.<>?';
     let password = '';
     for (let i = 0; i < 12; i++) {
       password += chars.charAt(Math.floor(Math.random() * chars.length));
