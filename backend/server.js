@@ -191,13 +191,8 @@ async function initializeServices() {
   try {
     // Initialize email service
     const emailService = require('./services/emailService');
-    await emailService.initialize();
+    // Email service is auto-initialized in constructor
     console.log('✅ Email service initialized');
-
-    // Initialize enterprise signing service
-    const enterpriseSigningService = require('./services/enterpriseSigningService');
-    await enterpriseSigningService.initialize();
-    console.log('✅ Enterprise Signing Service initialized');
 
     // Test database connection
     await db.sequelize.authenticate();

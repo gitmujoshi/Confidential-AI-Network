@@ -22,13 +22,51 @@ A comprehensive contract management system with multi-party authentication, bloc
 ## 📋 Table of Contents
 
 - [Quick Start](#-quick-start)
-- [Architecture](#-architecture)
-- [Development Workflow](#-development-workflow)
-- [Authentication](#-authentication)
-- [API Documentation](#-api-documentation)
-- [Testing](#-testing)
-- [Troubleshooting](#-troubleshooting)
-- [Cursor Best Practices](#-cursor-best-practices)
+- [Documentation](#documentation)
+- [Architecture](#architecture)
+- [Development Workflow](#development-workflow)
+- [Authentication](#authentication)
+- [API Documentation](#api-documentation)
+- [Testing](#testing)
+- [Troubleshooting](#troubleshooting)
+
+## 📚 Documentation
+
+### **Streamlined Documentation Structure**
+
+We've consolidated 80+ documentation files into a clear, organized structure:
+
+```
+docs/
+├── README.md                    # Main entry point
+├── QUICK_START.md              # Get started in 5 minutes
+├── SETUP.md                    # Complete setup guide
+├── USER_GUIDE.md               # End-user documentation
+├── DEVELOPER_GUIDE.md          # Developer documentation
+├── API_REFERENCE.md            # Complete API documentation
+├── ARCHITECTURE.md             # System architecture
+├── TROUBLESHOOTING.md          # Common issues and solutions
+└── archive/                    # Old documentation (read-only)
+```
+
+### **What Was Consolidated**
+
+- **Authentication**: 8+ files → `SETUP.md`
+- **API Documentation**: 4+ files → `API_REFERENCE.md`
+- **Secret Management**: 4+ files → `ARCHITECTURE.md`
+- **User Guides**: 6+ files → `USER_GUIDE.md`
+- **Developer Guides**: 5+ files → `DEVELOPER_GUIDE.md`
+- **Troubleshooting**: 10+ files → `TROUBLESHOOTING.md`
+
+### **Quick Navigation**
+
+- **[Quick Start](docs/QUICK_START.md)** - Get up and running in 5 minutes
+- **[Setup Guide](docs/SETUP.md)** - Complete installation and configuration
+- **[User Guide](docs/USER_GUIDE.md)** - How to use the system
+- **[Developer Guide](docs/DEVELOPER_GUIDE.md)** - Development workflows
+- **[API Reference](docs/API_REFERENCE.md)** - Technical API documentation
+- **[Architecture](docs/ARCHITECTURE.md)** - System design and technical details
+- **[Troubleshooting](docs/TROUBLESHOOTING.md)** - Common issues and solutions
 
 ## 🏗️ Architecture
 
@@ -129,6 +167,8 @@ npm run reset:keycloak
 - `POST /api/ccrp/cloud-credentials` - Add cloud credentials
 - `PUT /api/ccrp/cloud-credentials/:id` - Update credentials
 
+**For complete API documentation, see [API Reference](docs/API_REFERENCE.md)**
+
 ## 🧪 Testing
 
 ### **Test Commands**
@@ -208,48 +248,27 @@ npm run health
 tail -f logs/backend.log
 ```
 
-## 🎯 Cursor Best Practices
-
-### **Development Workflow**
-1. **Check current state** before making changes
-2. **Make small, focused changes**
-3. **Test immediately** after each change
-4. **Fix issues** before moving on
-5. **Document changes** with clear commit messages
-
-### **Automation Scripts**
-- `./fix-auth.sh` - Fix authentication issues
-- `./start-system.sh` - Start everything properly
-- `npm run status` - Check system health
-- `npm run test:login` - Test authentication
-
-### **Prevention Strategies**
-- Use automated health checks
-- Test authentication after every change
-- Keep environment files in sync
-- Use persistent Keycloak configuration
-- Monitor system health regularly
-
-For detailed Cursor best practices, see [CURSOR_BEST_PRACTICES.md](CURSOR_BEST_PRACTICES.md).
+**For comprehensive troubleshooting, see [Troubleshooting Guide](docs/TROUBLESHOOTING.md)**
 
 ## 📁 Project Structure
 
 ```
 ContractManagement/
-├── backend/                 # Backend server
-│   ├── routes/             # API routes
-│   ├── services/           # Business logic
-│   ├── models/             # Database models
-│   ├── scripts/            # Utility scripts
-│   └── tests/              # Test files
-├── frontend/               # React frontend
-│   ├── src/                # Source code
-│   ├── components/         # React components
-│   └── pages/              # Page components
-├── blockchain/             # Smart contracts
-├── docs/                   # Documentation
-├── scripts/                # Project scripts
-└── config/                 # Configuration files
+├── docs/                      # Streamlined documentation
+│   ├── README.md             # Main entry point
+│   ├── QUICK_START.md        # Quick start guide
+│   ├── SETUP.md              # Complete setup
+│   ├── USER_GUIDE.md         # User documentation
+│   ├── DEVELOPER_GUIDE.md    # Developer workflows
+│   ├── API_REFERENCE.md      # API documentation
+│   ├── ARCHITECTURE.md       # System architecture
+│   ├── TROUBLESHOOTING.md    # Issue resolution
+│   └── archive/              # Old documentation
+├── backend/                   # Backend server
+├── frontend/                  # React frontend
+├── blockchain/                # Smart contracts
+├── scripts/                   # Project scripts
+└── config/                    # Configuration files
 ```
 
 ## 🔧 Configuration
@@ -308,12 +327,12 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## 🆘 Support
 
 For issues and questions:
-1. Check the [Troubleshooting](#-troubleshooting) section
-2. Review the [Cursor Best Practices](CURSOR_BEST_PRACTICES.md)
-3. Check the [API Documentation](#-api-documentation)
+1. Check the [Troubleshooting Guide](docs/TROUBLESHOOTING.md)
+2. Review the [Developer Guide](docs/DEVELOPER_GUIDE.md)
+3. Check the [API Reference](docs/API_REFERENCE.md)
 4. Run `./fix-auth.sh` for authentication issues
 
 ---
 
 *Last updated: 2025-08-03*
-*Version: 1.0.0* 
+*Version: 2.0.0 (Streamlined Documentation)* 
