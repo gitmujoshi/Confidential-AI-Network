@@ -1,621 +1,577 @@
-# Developer Guide
+# 👨‍💻 Developer Guide
 
-## Table of Contents
-1. [Getting Started](#getting-started)
-2. [Development Environment Setup](#development-environment-setup)
-3. [API Development](#api-development)
-4. [Frontend Development](#frontend-development)
-5. [Database Development](#database-development)
-6. [Testing](#testing)
-7. [Deployment](#deployment)
-8. [Troubleshooting](#troubleshooting)
-9. [Best Practices](#best-practices)
+Complete guide for developers working on the Contract Management System. This guide consolidates all developer-related documentation.
 
-## Getting Started
+## 📋 Table of Contents
 
-### Prerequisites
-- **Node.js**: Version 18 or higher
-- **PostgreSQL**: Version 14 or higher
-- **Docker**: For containerized development
-- **Git**: Version control
-- **Keycloak**: For IAM integration
+1. [Development Setup](#development-setup)
+2. [Project Structure](#project-structure)
+3. [Development Workflow](#development-workflow)
+4. [Testing](#testing)
+5. [Debugging](#debugging)
+6. [Deployment](#deployment)
+7. [Best Practices](#best-practices)
 
-### Quick Start
+## 🚀 Development Setup
+
+### **Prerequisites**
+- **Node.js** (v16+) and **npm** (v8+)
+- **Docker** and **Docker Compose**
+- **Git** for version control
+- **PostgreSQL** (optional - Docker will provide)
+
+### **Initial Setup**
 ```bash
-# Clone the repository
-git clone https://github.com/gitmujoshi/ContractManagement.git
+# Clone repository
+git clone <repository-url>
 cd ContractManagement
 
 # Install dependencies
 npm install
 cd backend && npm install
 cd ../frontend && npm install
+cd ..
 
-# Set up environment variables
+# Start development environment
+./start-system.sh
+```
+
+### **Environment Configuration**
+```bash
+# Copy environment files
 cp env.example .env
 cp backend/config.env.example backend/config.env
 
-# Start development environment
-npm run dev
+# Update configuration
+# See SETUP.md for detailed configuration
 ```
 
-## Development Environment Setup
+## 🏗️ Project Structure
 
-### Backend Setup
-```bash
-cd backend
-
-# Install dependencies
-npm install
-
-# Set up database
-npm run db:migrate
-npm run db:seed
-
-# Start development server
-npm run dev
+### **Root Directory**
+```
+ContractManagement/
+├── docs/                    # Consolidated documentation
+├── backend/                 # Backend server (Node.js/Express)
+├── frontend/                # Frontend (React)
+├── blockchain/              # Smart contracts
+├── scripts/                 # Utility scripts
+├── deployment/              # Deployment configurations
+└── tests/                   # End-to-end tests
 ```
 
-### Frontend Setup
-```bash
-cd frontend
-
-# Install dependencies
-npm install
-
-# Start development server
-npm start
-```
-
-### Keycloak Setup
-```bash
-# Start Keycloak with Docker
-docker-compose -f deployment/utilities/docker-compose.iam.yml up -d
-
-# Set up realm and users
-node deployment/utilities/setupKeycloak.js
-```
-
-### Database Setup
-```bash
-# Create database
-createdb contract_management
-
-# Run migrations
-npm run db:migrate
-
-# Seed data
-npm run db:seed
-```
-
-## API Development
-
-### Project Structure
+### **Backend Structure**
 ```
 backend/
-├── models/           # Database models
-├── routes/           # API routes
-├── services/         # Business logic
-├── middleware/       # Custom middleware
-├── scripts/          # Utility scripts
-└── tests/            # Test files
+├── routes/                  # API routes
+├── services/                # Business logic
+├── models/                  # Database models
+├── middleware/              # Express middleware
+├── scripts/                 # Utility scripts
+├── tests/                   # Unit and integration tests
+└── config/                  # Configuration files
 ```
 
-### Creating New API Endpoints
-
-#### 1. Define Route
-```javascript
-// routes/example.js
-const express = require('express');
-const router = express.Router();
-const { authenticateToken } = require('../middleware/auth');
-
-router.get('/example', authenticateToken, async (req, res) => {
-  try {
-    // Your logic here
-    res.json({ success: true, data: result });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
-
-module.exports = router;
-```
-
-#### 2. Add to Server
-```javascript
-// server.js
-const exampleRoutes = require('./routes/example');
-app.use('/api/example', exampleRoutes);
-```
-
-#### 3. Create Tests
-```javascript
-// tests/specs/example.test.js
-describe('Example API', () => {
-  test('GET /api/example should return data', async () => {
-    const response = await request(app)
-      .get('/api/example')
-      .set('Authorization', `Bearer ${token}`);
-    
-    expect(response.status).toBe(200);
-    expect(response.body.success).toBe(true);
-  });
-});
-```
-
-### Authentication Middleware
-```javascript
-// middleware/auth.js
-const authenticateToken = async (req, res, next) => {
-  const authHeader = req.headers['authorization'];
-  const token = authHeader && authHeader.split(' ')[1];
-
-  if (!token) {
-    return res.status(401).json({ error: 'Access token required' });
-  }
-
-  try {
-    // Verify token with Keycloak
-    const user = await ***REMOVED-KEYCLOAK_DB_PASSWORD***Service.verifyToken(token);
-    req.user = user;
-    next();
-  } catch (error) {
-    return res.status(403).json({ error: 'Invalid token' });
-  }
-};
-```
-
-### Error Handling
-```javascript
-// Global error handler
-app.use((error, req, res, next) => {
-  console.error(error.stack);
-  res.status(500).json({
-    error: 'Internal server error',
-    message: error.message
-  });
-});
-```
-
-## Frontend Development
-
-### Project Structure
+### **Frontend Structure**
 ```
 frontend/
 ├── src/
-│   ├── components/   # Reusable components
-│   ├── pages/        # Page components
-│   ├── services/     # API services
-│   ├── contexts/     # React contexts
-│   └── utils/        # Utility functions
-├── public/           # Static assets
-└── package.json
+│   ├── components/          # React components
+│   ├── pages/               # Page components
+│   ├── services/            # API services
+│   ├── contexts/            # React contexts
+│   └── utils/               # Utility functions
+├── public/                  # Static assets
+└── tests/                   # Frontend tests
 ```
 
-### Creating New Components
-```javascript
-// components/ExampleComponent.js
-import React, { useState, useEffect } from 'react';
-import { useAuth } from '../contexts/UserContext';
+## 🔄 Development Workflow
 
-const ExampleComponent = () => {
-  const [data, setData] = useState(null);
-  const { user } = useAuth();
+### **Daily Development Process**
 
-  useEffect(() => {
-    // Fetch data
-    fetchData();
-  }, []);
-
-  const fetchData = async () => {
-    try {
-      const response = await api.get('/api/example');
-      setData(response.data);
-    } catch (error) {
-      console.error('Error fetching data:', error);
-    }
-  };
-
-  return (
-    <div>
-      <h2>Example Component</h2>
-      {data && <pre>{JSON.stringify(data, null, 2)}</pre>}
-    </div>
-  );
-};
-
-export default ExampleComponent;
-```
-
-### API Service Layer
-```javascript
-// services/api.js
-import axios from 'axios';
-
-const api = axios.create({
-  baseURL: process.env.REACT_APP_API_URL || 'http://localhost:5001/api',
-});
-
-// Request interceptor for authentication
-api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('authToken');
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-  return config;
-});
-
-// Response interceptor for error handling
-api.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    if (error.response?.status === 401) {
-      // Handle token expiration
-      localStorage.removeItem('authToken');
-      window.location.href = '/login';
-    }
-    return Promise.reject(error);
-  }
-);
-
-export default api;
-```
-
-### State Management
-```javascript
-// contexts/UserContext.js
-import React, { createContext, useContext, useState } from 'react';
-
-const UserContext = createContext();
-
-export const UserProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(false);
-
-  const login = async (credentials) => {
-    setLoading(true);
-    try {
-      const response = await api.post('/auth/login', credentials);
-      setUser(response.data.user);
-      localStorage.setItem('authToken', response.data.accessToken);
-    } catch (error) {
-      throw error;
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const logout = () => {
-    setUser(null);
-    localStorage.removeItem('authToken');
-  };
-
-  return (
-    <UserContext.Provider value={{ user, login, logout, loading }}>
-      {children}
-    </UserContext.Provider>
-  );
-};
-
-export const useAuth = () => useContext(UserContext);
-```
-
-## Database Development
-
-### Model Definition
-```javascript
-// models/Example.js
-const { DataTypes } = require('sequelize');
-const sequelize = require('../config/database');
-
-const Example = sequelize.define('Example', {
-  id: {
-    type: DataTypes.UUID,
-    defaultValue: DataTypes.UUIDV4,
-    primaryKey: true
-  },
-  name: {
-    type: DataTypes.STRING,
-    allowNull: false
-  },
-  description: {
-    type: DataTypes.TEXT,
-    allowNull: true
-  },
-  isActive: {
-    type: DataTypes.BOOLEAN,
-    defaultValue: true
-  }
-}, {
-  timestamps: true,
-  tableName: 'examples'
-});
-
-module.exports = Example;
-```
-
-### Database Migrations
-```javascript
-// scripts/createExampleTable.js
-const { DataTypes } = require('sequelize');
-
-module.exports = {
-  up: async (queryInterface, Sequelize) => {
-    await queryInterface.createTable('examples', {
-      id: {
-        type: DataTypes.UUID,
-        defaultValue: DataTypes.UUIDV4,
-        primaryKey: true
-      },
-      name: {
-        type: DataTypes.STRING,
-        allowNull: false
-      },
-      description: {
-        type: DataTypes.TEXT,
-        allowNull: true
-      },
-      isActive: {
-        type: DataTypes.BOOLEAN,
-        defaultValue: true
-      },
-      createdAt: {
-        type: DataTypes.DATE,
-        allowNull: false
-      },
-      updatedAt: {
-        type: DataTypes.DATE,
-        allowNull: false
-      }
-    });
-  },
-
-  down: async (queryInterface, Sequelize) => {
-    await queryInterface.dropTable('examples');
-  }
-};
-```
-
-### Database Seeding
-```javascript
-// scripts/seedExampleData.js
-const Example = require('../models/Example');
-
-const seedExampleData = async () => {
-  try {
-    await Example.bulkCreate([
-      {
-        name: 'Example 1',
-        description: 'First example'
-      },
-      {
-        name: 'Example 2',
-        description: 'Second example'
-      }
-    ]);
-    console.log('Example data seeded successfully');
-  } catch (error) {
-    console.error('Error seeding example data:', error);
-  }
-};
-
-module.exports = seedExampleData;
-```
-
-## Testing
-
-### Backend Testing
-```javascript
-// tests/specs/example.test.js
-const request = require('supertest');
-const app = require('../../server');
-const { User } = require('../../models');
-
-describe('Example API', () => {
-  let token;
-  let testUser;
-
-  beforeAll(async () => {
-    // Create test user
-    testUser = await User.create({
-      name: 'Test User',
-      email: 'test@example.com',
-      partyType: 'TDC'
-    });
-
-    // Get authentication token
-    const loginResponse = await request(app)
-      .post('/api/auth/login')
-      .send({
-        email: 'test@example.com',
-        password: 'Test123!'
-      });
-    
-    token = loginResponse.body.accessToken;
-  });
-
-  afterAll(async () => {
-    // Clean up test data
-    await testUser.destroy();
-  });
-
-  test('GET /api/example should return data', async () => {
-    const response = await request(app)
-      .get('/api/example')
-      .set('Authorization', `Bearer ${token}`);
-    
-    expect(response.status).toBe(200);
-    expect(response.body.success).toBe(true);
-  });
-});
-```
-
-### Frontend Testing
-```javascript
-// ExampleComponent.test.js
-import React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react';
-import ExampleComponent from './ExampleComponent';
-
-describe('ExampleComponent', () => {
-  test('renders component', () => {
-    render(<ExampleComponent />);
-    expect(screen.getByText('Example Component')).toBeInTheDocument();
-  });
-
-  test('handles user interaction', () => {
-    render(<ExampleComponent />);
-    const button = screen.getByRole('button');
-    fireEvent.click(button);
-    expect(screen.getByText('Clicked!')).toBeInTheDocument();
-  });
-});
-```
-
-### Running Tests
-```bash
-# Backend tests
-cd backend
-npm test
-
-# Frontend tests
-cd frontend
-npm test
-
-# Run all tests
-npm run test:all
-```
-
-## Deployment
-
-### Local Deployment
+#### **1. Start Development Environment**
 ```bash
 # Start all services
-npm run dev
+./start-system.sh
 
 # Or start individually
-cd backend && npm start
-cd frontend && npm start
+docker-compose -f docker-compose.***REMOVED-KEYCLOAK_DB_PASSWORD***-persistent.yml up -d
+cd backend && npm run dev
+cd ../frontend && npm start
 ```
 
-### Docker Deployment
+#### **2. Check System Status**
 ```bash
-# Build and run with Docker Compose
-docker-compose up -d
+# Check all services
+npm run status
 
-# Build images
-docker build -t contract-management-backend ./backend
-docker build -t contract-management-frontend ./frontend
+# Test authentication
+npm run test:login
+
+# Check health
+curl -s http://localhost:5001/health
 ```
 
-### Kubernetes Deployment
-```bash
-# Apply Kubernetes manifests
-kubectl apply -f k8s/
+#### **3. Make Changes**
+- **Backend**: Edit files in `backend/` directory
+- **Frontend**: Edit files in `frontend/src/` directory
+- **Database**: Use migrations in `backend/migrations/`
 
-# Check deployment status
-kubectl get pods
-kubectl get services
+#### **4. Test Changes**
+```bash
+# Test authentication after changes
+npm run test:login
+
+# Run backend tests
+cd backend && npm test
+
+# Run frontend tests
+cd frontend && npm test
+
+# Run end-to-end tests
+npm run test:e2e
 ```
 
-### Production Deployment
+#### **5. Fix Issues**
 ```bash
-# Set production environment
-export NODE_ENV=production
+# Fix authentication issues
+./fix-auth.sh
 
-# Run database migrations
-npm run db:migrate
+# Auto-fix Keycloak issues
+cd backend && node auto-fix-***REMOVED-KEYCLOAK_DB_PASSWORD***.js
 
-# Start production server
-npm start
+# Reset Keycloak completely
+npm run reset:***REMOVED-KEYCLOAK_DB_PASSWORD***
 ```
 
-## Troubleshooting
+### **Git Workflow**
 
-### Common Issues
-
-#### 1. Database Connection Issues
+#### **Before Making Changes**
 ```bash
-# Check database status
+# Check current state
+npm run status
+
+# Test current functionality
+npm run test:login
+
+# Create feature branch
+git checkout -b feature/your-feature-name
+```
+
+#### **During Development**
+```bash
+# Make small, focused changes
+# Test immediately after each change
+npm run test:login
+
+# Commit frequently with clear messages
+git add .
+git commit -m "feat: Add user profile update functionality
+
+- Added profile update API endpoint
+- Updated frontend profile form
+- Added validation and error handling
+- Tested with all user roles"
+```
+
+#### **After Making Changes**
+```bash
+# Test the specific change
+npm run test:login
+
+# Test related functionality
+npm run status
+
+# Update documentation if needed
+# Push changes
+git push origin feature/your-feature-name
+```
+
+## 🧪 Testing
+
+### **Test Categories**
+
+#### **Unit Tests**
+```bash
+# Backend unit tests
+cd backend && npm test
+
+# Frontend unit tests
+cd frontend && npm test
+
+# Specific test files
+npm test -- auth.test.js
+npm test -- UserService.test.js
+```
+
+#### **Integration Tests**
+```bash
+# API integration tests
+cd backend && npm run test:integration
+
+# Database integration tests
+npm test -- database.test.js
+
+# Authentication integration tests
+npm test -- auth.integration.test.js
+```
+
+#### **End-to-End Tests**
+```bash
+# Run all E2E tests
+npm run test:e2e
+
+# Run specific E2E test
+npm run test:e2e -- auth.spec.js
+
+# Run with specific browser
+npm run test:e2e -- --browser chrome
+```
+
+#### **Performance Tests**
+```bash
+# Load testing
+npm run test:load
+
+# Memory testing
+npm run test:memory
+
+# API performance testing
+npm run test:performance
+```
+
+### **Test Data Management**
+
+#### **Create Test Data**
+```bash
+# Create test users
+cd backend && node scripts/source/create-e2e-users-direct.js
+
+# Create test datasets
+node scripts/source/create-tdp-datasets.js
+
+# Create test contracts
+node scripts/source/create-contract-for-user-13.js
+```
+
+#### **Reset Test Data**
+```bash
+# Reset database
+cd backend && npm run db:reset
+
+# Reset Keycloak
+npm run reset:***REMOVED-KEYCLOAK_DB_PASSWORD***
+
+# Sync users to Keycloak
+node scripts/source/sync-users-to-***REMOVED-KEYCLOAK_DB_PASSWORD***.js
+```
+
+### **Test Commands Reference**
+
+| Command | Purpose | Location |
+|---------|---------|----------|
+| `npm test` | Run all tests | Backend/Frontend |
+| `npm run test:login` | Test authentication | Root |
+| `npm run test:integration` | API integration tests | Backend |
+| `npm run test:e2e` | End-to-end tests | Root |
+| `npm run test:coverage` | Generate coverage report | Backend |
+| `npm run test:watch` | Watch mode for tests | Backend/Frontend |
+
+## 🐛 Debugging
+
+### **Backend Debugging**
+
+#### **Enable Debug Logging**
+```bash
+# Set debug environment
+export DEBUG=app:*
+export NODE_ENV=development
+
+# Start with debug logging
+cd backend && DEBUG=* node server.js
+```
+
+#### **Database Debugging**
+```bash
+# Connect to database
 psql -h localhost -U ***REMOVED-DB_PASSWORD*** -d contract_management
+
+# Check database tables
+\dt
+
+# Check user data
+SELECT * FROM users WHERE email = 'tdc-test@example.com';
+```
+
+#### **Keycloak Debugging**
+```bash
+# Check Keycloak status
+curl -s http://localhost:8080/health
+
+# Check Keycloak logs
+docker logs ***REMOVED-KEYCLOAK_DB_PASSWORD***-cms
+
+# Test Keycloak authentication directly
+curl -X POST http://localhost:8080/realms/contract-management/protocol/openid-connect/token \
+  -d "grant_type=password&client_id=contract-management-frontend&username=tdc-test@example.com&password=password123"
+```
+
+### **Frontend Debugging**
+
+#### **React Developer Tools**
+- Install React Developer Tools browser extension
+- Use browser dev tools for component inspection
+- Check network tab for API calls
+
+#### **Console Debugging**
+```javascript
+// Add debug logs
+console.log('🔍 Debug:', data);
+
+// Check authentication state
+console.log('🔐 Auth State:', authState);
+
+// Check API responses
+console.log('📡 API Response:', response);
+```
+
+### **Common Debugging Scenarios**
+
+#### **Authentication Issues**
+```bash
+# Check Keycloak configuration
+cd backend && node auto-fix-***REMOVED-KEYCLOAK_DB_PASSWORD***.js
+
+# Reset authentication
+./fix-auth.sh
+
+# Check user sync
+node scripts/source/sync-users-to-***REMOVED-KEYCLOAK_DB_PASSWORD***.js
+```
+
+#### **Database Issues**
+```bash
+# Check database connection
+cd backend && node -e "require('./models').sequelize.authenticate().then(() => console.log('DB OK')).catch(console.error)"
 
 # Reset database
 npm run db:reset
+
+# Check migrations
+npx sequelize-cli db:migrate:status
 ```
 
-#### 2. Keycloak Connection Issues
+#### **API Issues**
 ```bash
-# Check Keycloak status
-curl http://localhost:8080/health
+# Test API endpoints
+curl -X GET http://localhost:5001/health
+curl -X POST http://localhost:5001/api/auth/login -H "Content-Type: application/json" -d '{"email":"tdc-test@example.com","password":"password123"}'
 
-# Reset Keycloak realm
-node deployment/utilities/setupKeycloak.js
+# Check API logs
+tail -f logs/backend.log
 ```
 
-#### 3. Frontend Build Issues
+## 🚀 Deployment
+
+### **Development Deployment**
 ```bash
-# Clear cache
-rm -rf node_modules package-lock.json
-npm install
+# Start development environment
+./start-system.sh
 
-# Rebuild
-npm run build
+# Check all services are running
+npm run status
+
+# Test functionality
+npm run test:login
 ```
 
-#### 4. Port Conflicts
+### **Production Deployment**
+
+#### **Environment Setup**
 ```bash
-# Check port usage
-lsof -i :3000
-lsof -i :5001
+# Set production environment
+export NODE_ENV=production
+export PORT=5001
 
-# Kill processes
-pkill -f "node server.js"
+# Update environment variables
+cp .env.production .env
+cp backend/config.production.env backend/config.env
 ```
 
-### Debug Tools
-```javascript
-// Enable debug logging
-DEBUG=* npm start
+#### **Database Migration**
+```bash
+# Run database migrations
+cd backend && npx sequelize-cli db:migrate
 
-// Enable Sequelize logging
-const sequelize = new Sequelize(process.env.DATABASE_URL, {
-  logging: console.log
-});
+# Seed production data
+npx sequelize-cli db:seed:all
 ```
 
-## Best Practices
+#### **Service Deployment**
+```bash
+# Deploy with Docker Compose
+docker-compose -f docker-compose.production.yml up -d
 
-### Code Organization
-- **Separation of Concerns**: Keep business logic in services
-- **Error Handling**: Use try-catch blocks consistently
-- **Input Validation**: Validate all user inputs
-- **Security**: Never expose sensitive data in logs
+# Or deploy individually
+cd backend && npm start
+cd ../frontend && npm run build && serve -s build
+```
 
-### API Design
-- **RESTful Principles**: Follow REST conventions
-- **Versioning**: Use API versioning for backward compatibility
-- **Documentation**: Document all endpoints
-- **Rate Limiting**: Implement rate limiting for public APIs
+### **Monitoring and Logging**
 
-### Database
-- **Indexing**: Create indexes for frequently queried fields
-- **Migrations**: Use migrations for schema changes
-- **Backups**: Regular database backups
-- **Connection Pooling**: Use connection pooling for performance
+#### **Health Checks**
+```bash
+# Check system health
+curl -s http://localhost:5001/health
 
-### Security
-- **Authentication**: Always validate user authentication
-- **Authorization**: Check user permissions
-- **Input Sanitization**: Sanitize all user inputs
-- **HTTPS**: Use HTTPS in production
+# Check Keycloak health
+curl -s http://localhost:8080/health
 
-### Testing
-- **Unit Tests**: Test individual functions
-- **Integration Tests**: Test API endpoints
-- **E2E Tests**: Test complete user flows
-- **Coverage**: Maintain high test coverage
+# Check database health
+psql -h localhost -U ***REMOVED-DB_PASSWORD*** -d contract_management -c "SELECT 1;"
+```
+
+#### **Log Monitoring**
+```bash
+# Backend logs
+tail -f logs/backend.log
+
+# Keycloak logs
+docker logs -f ***REMOVED-KEYCLOAK_DB_PASSWORD***-cms
+
+# Database logs
+docker logs -f ***REMOVED-DB_PASSWORD***-***REMOVED-KEYCLOAK_DB_PASSWORD***
+```
+
+## 📚 Best Practices
+
+### **Code Organization**
+
+#### **Backend Best Practices**
+- **Service Layer**: Business logic in `services/` directory
+- **Route Layer**: API endpoints in `routes/` directory
+- **Model Layer**: Database models in `models/` directory
+- **Middleware**: Authentication and validation in `middleware/` directory
+
+#### **Frontend Best Practices**
+- **Component Structure**: Reusable components in `components/`
+- **Page Structure**: Page components in `pages/`
+- **Service Layer**: API calls in `services/`
+- **State Management**: Use React Context for global state
+
+### **Security Best Practices**
+
+#### **Authentication**
+- Always validate tokens on protected routes
+- Use HTTPS in production
+- Implement proper session management
+- Regular security audits
+
+#### **Data Validation**
+- Validate all input data
+- Sanitize user inputs
+- Use parameterized queries
+- Implement rate limiting
+
+### **Performance Best Practices**
+
+#### **Database Optimization**
+- Use database indexes
+- Optimize queries
+- Implement connection pooling
+- Regular database maintenance
+
+#### **API Optimization**
+- Implement caching
+- Use pagination for large datasets
+- Optimize response payloads
+- Monitor API performance
+
+### **Testing Best Practices**
+
+#### **Test Structure**
+- Unit tests for individual functions
+- Integration tests for API endpoints
+- End-to-end tests for user workflows
+- Performance tests for critical paths
+
+#### **Test Data Management**
+- Use isolated test databases
+- Create realistic test data
+- Clean up test data after tests
+- Use test fixtures for consistency
+
+### **Documentation Best Practices**
+
+#### **Code Documentation**
+- Document all public APIs
+- Use JSDoc for JavaScript functions
+- Keep README files updated
+- Document configuration options
+
+#### **Commit Messages**
+- Use conventional commit format
+- Write descriptive commit messages
+- Reference issues in commits
+- Keep commits focused and small
+
+## 🛠️ Development Tools
+
+### **Essential Tools**
+- **VS Code** with extensions for Node.js and React
+- **Postman** for API testing
+- **pgAdmin** for database management
+- **Docker Desktop** for containerization
+
+### **Recommended Extensions**
+- **ESLint** for code linting
+- **Prettier** for code formatting
+- **GitLens** for Git integration
+- **Thunder Client** for API testing
+
+### **Development Scripts**
+
+#### **Quick Commands**
+```bash
+# Start development
+./start-system.sh
+
+# Fix authentication
+./fix-auth.sh
+
+# Check status
+npm run status
+
+# Test login
+npm run test:login
+
+# Reset everything
+npm run reset:all
+```
+
+#### **Database Commands**
+```bash
+# Run migrations
+cd backend && npx sequelize-cli db:migrate
+
+# Rollback migrations
+npx sequelize-cli db:migrate:undo
+
+# Seed database
+npx sequelize-cli db:seed:all
+
+# Reset database
+npx sequelize-cli db:drop && npx sequelize-cli db:create && npx sequelize-cli db:migrate
+```
+
+## 📚 Related Documentation
+
+- **[Quick Start](QUICK_START.md)** - Get started in 5 minutes
+- **[Setup Guide](SETUP.md)** - Complete installation and configuration
+- **[User Guide](USER_GUIDE.md)** - How to use the system
+- **[API Reference](API_REFERENCE.md)** - Technical API documentation
+- **[Troubleshooting](TROUBLESHOOTING.md)** - Common issues and solutions
 
 ---
 
-*This guide provides comprehensive information for developers working on the Contract Management System.* 
+*This developer guide consolidates information from multiple developer-related documents and workflow guides.* 
