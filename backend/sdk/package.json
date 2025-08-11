@@ -1,0 +1,45 @@
+{
+  "name": "contractflow-pro-sdk",
+  "version": "1.0.0",
+  "description": "Official SDKs for ContractFlow Pro API - Node.js and Python clients",
+  "main": "contractflow-pro-sdk.js",
+  "scripts": {
+    "test": "node test-api-comprehensive.js",
+    "test:quick": "node api-test-suite.js",
+    "test:auth": "node -e \"const { AuthenticationTests } = require('./contractflow-pro-sdk'); console.log('SDK loaded successfully');\"",
+    "install:node": "npm install",
+    "install:python": "pip install -r requirements.txt",
+    "example": "node examples/basic-usage.js",
+    "docs": "echo 'SDK Documentation:' && echo '- Node.js: contractflow-pro-sdk.js' && echo '- Python: contractflow_pro_sdk.py' && echo '- Postman: ContractFlow_Pro_API_Collection.json'"
+  },
+  "keywords": [
+    "contractflow",
+    "api",
+    "sdk",
+    "contracts",
+    "ricardian",
+    "confidential-computing",
+    "multi-cloud",
+    "ai-training"
+  ],
+  "author": "ContractFlow Pro Team",
+  "license": "MIT",
+  "dependencies": {
+    "axios": "^1.6.0",
+    "colors": "^1.4.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.0"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/gitmujoshi/ContractManagement.git"
+  },
+  "bugs": {
+    "url": "https://github.com/gitmujoshi/ContractManagement/issues"
+  },
+  "homepage": "https://github.com/gitmujoshi/ContractManagement#readme"
+} 
