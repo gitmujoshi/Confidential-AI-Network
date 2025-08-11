@@ -125,3 +125,7 @@ private-keys.json
 # Backup files
 *.bak
 *.backup RESUME_EXPERIENCE_CONTRACT_MANAGEMENT.md
+
+# Vault binaries (too large for GitHub)
+backend/vault
+backend/vault_*.zip
