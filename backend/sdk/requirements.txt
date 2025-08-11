@@ -1,0 +1,35 @@
+# ContractFlow Pro Python SDK Dependencies
+# Core HTTP client
+requests>=2.31.0
+
+# Optional: Enhanced HTTP client with async support
+# httpx>=0.25.0
+
+# Optional: JSON schema validation
+# jsonschema>=4.19.0
+
+# Optional: Type hints support
+# typing-extensions>=4.8.0
+
+# Optional: Async support
+# aiohttp>=3.9.0
+# asyncio-mqtt>=0.16.0
+
+# Optional: Data validation
+# pydantic>=2.5.0
+
+# Optional: Configuration management
+# python-dotenv>=1.0.0
+
+# Optional: Logging
+# structlog>=23.2.0
+
+# Optional: Testing
+# pytest>=7.4.0
+# pytest-asyncio>=0.21.0
+# pytest-cov>=4.1.0
+
+# Optional: Development tools
+# black>=23.0.0
+# flake8>=6.0.0
+# mypy>=1.7.0 
