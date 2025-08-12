@@ -1,0 +1,120 @@
+version: '3.8'
+
+services:
+  scitt-ccf-node:
+    image: scitt-ccf-ledger:latest
+    container_name: scitt-ccf-node-dev
+    environment:
+      PLATFORM: virtual
+      CCF_NETWORK: development
+      CCF_NODE_PORT: 8000
+      CCF_GOVERNANCE_PORT: 8001
+      CCF_NODE_ID: 1
+      CCF_LOG_LEVEL: INFO
+      CCF_HTTP_TIMEOUT: 30
+      CCF_MAX_REQUEST_SIZE: 10485760  # 10MB
+    ports:
+      - "8000:8000"
+      - "8001:8001"
+    volumes:
+      - scitt_ccf_dev_data:/opt/ccf/data
+      - ./deployment/scitt-ccf-config:/opt/ccf/conf
+      - ./logs:/opt/ccf/logs
+    networks:
+      - cms-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/app/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  scitt-ccf-monitor:
+    image: scitt-ccf-monitor:latest
+    container_name: scitt-ccf-monitor-dev
+    environment:
+      CCF_NODE_URL: http://scitt-ccf-node-dev:8000
+      CCF_GOVERNANCE_URL: http://scitt-ccf-node-dev:8001
+      MONITORING_INTERVAL: 30000
+      ALERT_EMAIL: admin@contractflow.pro
+      LOG_LEVEL: INFO
+    depends_on:
+      scitt-ccf-node-dev:
+        condition: service_healthy
+    networks:
+      - cms-network
+    restart: unless-stopped
+    volumes:
+      - ./logs:/app/logs
+
+  scitt-ccf-dashboard:
+    image: scitt-ccf-dashboard:latest
+    container_name: scitt-ccf-dashboard-dev
+    environment:
+      CCF_NODE_URL: http://scitt-ccf-node-dev:8000
+      CCF_GOVERNANCE_URL: http://scitt-ccf-node-dev:8001
+      DASHBOARD_PORT: 8080
+      ENABLE_METRICS: true
+      ENABLE_ALERTS: true
+    ports:
+      - "8080:8080"
+    depends_on:
+      - scitt-ccf-node-dev
+    networks:
+      - cms-network
+    restart: unless-stopped
+
+  # Optional: Redis for caching and session management
+  redis:
+    image: redis:7-alpine
+    container_name: scitt-ccf-redis-dev
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - cms-network
+    restart: unless-stopped
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+
+  # Optional: PostgreSQL for SCITT CCF metadata (if needed)
+  scitt-ccf-***REMOVED-DB_PASSWORD***:
+    image: ***REMOVED-DB_PASSWORD***:15
+    container_name: scitt-ccf-***REMOVED-DB_PASSWORD***-dev
+    environment:
+      POSTGRES_DB: scitt_ccf_dev
+      POSTGRES_USER: scitt_ccf
+      POSTGRES_PASSWORD: scitt_ccf_dev_pass
+      POSTGRES_INITDB_ARGS: "--encoding=UTF-8 --lc-collate=C --lc-ctype=C"
+    ports:
+      - "5434:5432"
+    volumes:
+      - scitt_ccf_***REMOVED-DB_PASSWORD***_data:/var/lib/***REMOVED-DB_PASSWORD***ql/data
+      - ./deployment/scitt-ccf-config/init-scripts:/docker-entrypoint-initdb.d
+    networks:
+      - cms-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U scitt_ccf -d scitt_ccf_dev"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+volumes:
+  scitt_ccf_dev_data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ./deployment/scitt-ccf-data
+  redis_data:
+    driver: local
+  scitt_ccf_***REMOVED-DB_PASSWORD***_data:
+    driver: local
+
+networks:
+  cms-network:
+    external: true
+    name: cms-network
