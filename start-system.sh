@@ -53,8 +53,18 @@ check_scitt_ccf_mode() {
         echo "🔗 SCITT CCF Mode: $MIGRATION_MODE"
         return 0
     else
-        echo "🔗 SCITT CCF Mode: Not configured (using blockchain only)"
-        return 1
+        echo "🔗 SCITT CCF Mode: Not configured - Auto-creating SCITT CCF config..."
+        # Auto-create SCITT CCF configuration
+        if [ -f "env.scitt-ccf.example" ]; then
+            cp env.scitt-ccf.example .env.scitt-ccf
+            echo "✅ Created .env.scitt-ccf from template"
+            source .env.scitt-ccf
+            echo "🔗 SCITT CCF Mode: $MIGRATION_MODE (auto-configured)"
+            return 0
+        else
+            echo "❌ env.scitt-ccf.example not found - please run ./manage-scitt-ccf.sh setup first"
+            return 1
+        fi
     fi
 }
 
@@ -185,6 +195,8 @@ echo "🔍 Checking system configuration..."
 SCITT_CCF_ENABLED=false
 if check_scitt_ccf_mode; then
     SCITT_CCF_ENABLED=true
+else
+    echo "⚠️  Failed to configure SCITT CCF, will use blockchain mode only"
 fi
 
 # Step 1: Start Keycloak with persistent storage
@@ -212,8 +224,26 @@ if [ "$SCITT_CCF_ENABLED" = true ]; then
     if start_scitt_ccf_services; then
         echo "✅ SCITT CCF services are running"
     else
-        echo "⚠️  SCITT CCF services failed to start, continuing with blockchain mode"
-        SCITT_CCF_ENABLED=false
+        echo "⚠️  SCITT CCF services failed to start, attempting to fix..."
+        echo "   Running SCITT CCF setup..."
+        if [ -f "manage-scitt-ccf.sh" ]; then
+            chmod +x manage-scitt-ccf.sh
+            if ./manage-scitt-ccf.sh setup; then
+                echo "   Retrying SCITT CCF startup..."
+                if start_scitt_ccf_services; then
+                    echo "✅ SCITT CCF services started after setup"
+                else
+                    echo "⚠️  SCITT CCF services still failed, continuing with blockchain mode"
+                    SCITT_CCF_ENABLED=false
+                fi
+            else
+                echo "⚠️  SCITT CCF setup failed, continuing with blockchain mode"
+                SCITT_CCF_ENABLED=false
+            fi
+        else
+            echo "⚠️  manage-scitt-ccf.sh not found, continuing with blockchain mode"
+            SCITT_CCF_ENABLED=false
+        fi
     fi
 fi
 
@@ -230,11 +260,11 @@ if ! check_service "Backend" "5001" "http://localhost:5001/health"; then
     if [ "$SCITT_CCF_ENABLED" = true ]; then
         export SCITT_CCF_ENABLED=true
         export MIGRATION_MODE=HYBRID
-        echo "   Starting with SCITT CCF integration enabled"
+        echo "   Starting with SCITT CCF integration enabled (HYBRID mode)"
     else
         export SCITT_CCF_ENABLED=false
         export MIGRATION_MODE=ETHEREUM_ONLY
-        echo "   Starting with blockchain mode only"
+        echo "   Starting with blockchain mode only (fallback)"
     fi
     
     node server.js &

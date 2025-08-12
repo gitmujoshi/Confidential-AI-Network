@@ -278,8 +278,14 @@ setup_scitt_ccf() {
     if [ -f "env.scitt-ccf.example" ]; then
         print_status "Creating SCITT CCF configuration..."
         cp env.scitt-ccf.example .env.scitt-ccf
-        print_success "Configuration file created: .env.scitt-ccf"
-        print_warning "Please edit .env.scitt-ccf with your specific configuration"
+        
+        # Set default migration mode to HYBRID
+        print_status "Setting default migration mode to HYBRID..."
+        sed -i.bak 's/MIGRATION_MODE=.*/MIGRATION_MODE=HYBRID/' .env.scitt-ccf
+        sed -i.bak 's/SCITT_CCF_ENABLED=.*/SCITT_CCF_ENABLED=true/' .env.scitt-ccf
+        
+        print_success "Configuration file created: .env.scitt-ccf (HYBRID mode enabled)"
+        print_status "Configuration is ready to use with HYBRID mode (both blockchain and SCITT CCF)"
     else
         print_error "Example configuration file not found"
         return 1
