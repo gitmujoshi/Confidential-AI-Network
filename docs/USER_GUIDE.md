@@ -11,7 +11,8 @@ Complete guide for using the Contract Management System. This guide consolidates
 5. [Contract Management](#contract-management)
 6. [Dataset Management](#dataset-management)
 7. [Cloud Credentials](#cloud-credentials)
-8. [Troubleshooting](#troubleshooting)
+8. [Differential Privacy](#differential-privacy)
+9. [Troubleshooting](#troubleshooting)
 
 ## 👤 User Roles
 
@@ -317,6 +318,249 @@ Once logged in, you'll see:
 2. **Define Specs**: Specify environment requirements
 3. **Provision**: System creates secure environment
 4. **Monitor**: Track environment usage and costs
+
+## 🔐 Differential Privacy
+
+### **Overview**
+The differential privacy system provides privacy-preserving data analysis capabilities. It allows you to analyze sensitive data while maintaining mathematical guarantees of privacy protection.
+
+### **Key Concepts**
+
+#### **What is Differential Privacy?**
+Differential privacy is a mathematical framework that provides strong privacy guarantees. It works by adding carefully calibrated noise to data analysis results, ensuring that individual records cannot be identified while maintaining useful statistical information.
+
+#### **Privacy Parameters**
+- **Epsilon (ε)**: Controls the privacy level
+  - Lower values = higher privacy, lower utility
+  - Higher values = lower privacy, higher utility
+  - Typical range: 0.1 to 10.0
+- **Delta (δ)**: Probability of privacy failure
+  - Lower values = higher privacy
+  - Typical range: 1e-6 to 1e-3
+
+#### **Available Mechanisms**
+- **Laplace**: Best for general-purpose queries
+- **Gaussian**: Better utility for averages
+- **Exponential**: For discrete choice problems
+- **Geometric**: For count queries
+
+### **Using Differential Privacy**
+
+#### **1. Accessing DP Features**
+1. **Navigate to DP Manager**
+   - From your dashboard, look for "Differential Privacy" or "Privacy Tools"
+   - Click to open the DP management interface
+
+2. **Select Your Data**
+   - Choose the dataset you want to analyze
+   - Specify the type of analysis (COUNT, AVERAGE, etc.)
+
+3. **Configure Privacy Parameters**
+   - Set epsilon value (recommended: start with 1.0)
+   - Set delta value (recommended: 1e-5)
+   - Choose appropriate mechanism
+
+#### **2. Running Privacy-Preserving Queries**
+
+**Example: Analyzing Average Values**
+```
+1. Select data: [1, 2, 3, 4, 5]
+2. Query type: AVERAGE
+3. Privacy parameters:
+   - Epsilon: 0.5
+   - Delta: 1e-5
+   - Mechanism: Gaussian
+4. Click "Apply Differential Privacy"
+5. View results with privacy metrics
+```
+
+**Example: Counting Records**
+```
+1. Select data: Dataset with 1000 records
+2. Query type: COUNT
+3. Privacy parameters:
+   - Epsilon: 1.0
+   - Delta: 1e-5
+   - Mechanism: Geometric
+4. Click "Apply Differential Privacy"
+5. Get noisy count (e.g., 1003 instead of 1000)
+```
+
+#### **3. Understanding Results**
+
+**Privacy Metrics Display**
+```
+Result: [1.023, 1.987, 3.012, 4.001, 5.034]
+Privacy Metrics:
+- Mechanism: Laplace
+- Epsilon used: 0.5
+- Delta used: 1e-5
+- Sensitivity: 1.0
+- Noise added: ±0.034
+```
+
+**Budget Information**
+```
+Privacy Budget Status:
+- Remaining Epsilon: 0.5
+- Remaining Delta: 9e-5
+- Status: ACTIVE
+- Last reset: 2025-08-12
+```
+
+### **Privacy Budget Management**
+
+#### **Understanding Your Budget**
+- **Initial Budget**: Each contract gets a privacy budget
+- **Budget Consumption**: Each DP operation uses part of your budget
+- **Budget Status**: Monitor your remaining privacy budget
+- **Budget Reset**: Budgets can be reset periodically
+
+#### **Budget Status Indicators**
+- 🟢 **ACTIVE**: Budget available for operations
+- 🟡 **WARNING**: Budget running low (< 20% remaining)
+- 🔴 **EXHAUSTED**: Budget fully consumed
+- 🔄 **RESET**: Budget has been reset
+
+#### **Optimizing Budget Usage**
+1. **Start Conservative**: Begin with higher epsilon values
+2. **Batch Operations**: Combine multiple queries when possible
+3. **Choose Mechanisms Wisely**: Use appropriate mechanisms for query types
+4. **Monitor Usage**: Check budget status regularly
+
+### **Query Types and Use Cases**
+
+#### **COUNT Queries**
+- **Use Case**: Counting records, users, or events
+- **Recommended Mechanism**: Geometric
+- **Example**: "How many users are in each age group?"
+- **Privacy Impact**: Low - only reveals aggregate counts
+
+#### **AVERAGE Queries**
+- **Use Case**: Calculating mean values, scores, or ratings
+- **Recommended Mechanism**: Gaussian
+- **Example**: "What's the average satisfaction score?"
+- **Privacy Impact**: Medium - reveals distribution information
+
+#### **SUM Queries**
+- **Use Case**: Total values, revenue, or quantities
+- **Recommended Mechanism**: Laplace
+- **Example**: "What's the total revenue by region?"
+- **Privacy Impact**: Medium - reveals aggregate values
+
+#### **GRADIENT Queries**
+- **Use Case**: Machine learning training, optimization
+- **Recommended Mechanism**: Laplace
+- **Example**: "What are the gradients for model training?"
+- **Privacy Impact**: High - reveals model behavior
+
+#### **HISTOGRAM Queries**
+- **Use Case**: Data distribution analysis
+- **Recommended Mechanism**: Laplace
+- **Example**: "What's the distribution of user ages?"
+- **Privacy Impact**: Medium - reveals data patterns
+
+### **Best Practices for Users**
+
+#### **1. Start Simple**
+- Begin with basic queries (COUNT, AVERAGE)
+- Use default privacy parameters initially
+- Test with small datasets first
+
+#### **2. Understand Trade-offs**
+- Higher privacy (lower epsilon) = less accurate results
+- Lower privacy (higher epsilon) = more accurate results
+- Balance privacy needs with utility requirements
+
+#### **3. Monitor Your Budget**
+- Check budget status before operations
+- Plan your analysis to fit within budget
+- Consider budget resets for long-term projects
+
+#### **4. Choose Appropriate Mechanisms**
+- Use Laplace for general-purpose queries
+- Use Gaussian for averages when better accuracy is needed
+- Use Geometric for count queries
+- Use Exponential for selection problems
+
+### **Troubleshooting DP Issues**
+
+#### **Common Problems and Solutions**
+
+**Problem: "Insufficient Privacy Budget"**
+```
+Solution:
+1. Check your current budget status
+2. Reduce epsilon/delta values
+3. Combine multiple queries into one
+4. Wait for budget reset
+5. Contact administrator for budget increase
+```
+
+**Problem: "Results Too Noisy"**
+```
+Solution:
+1. Increase epsilon value (reduces privacy)
+2. Use more data (reduces noise impact)
+3. Choose appropriate mechanism
+4. Consider query type alternatives
+```
+
+**Problem: "Mechanism Not Available"**
+```
+Solution:
+1. Check available mechanisms for your query type
+2. Verify your data format
+3. Choose alternative query type
+4. Contact support for custom mechanisms
+```
+
+#### **Getting Help**
+1. **Check Documentation**: Review this guide and API documentation
+2. **Test Endpoints**: Use the test endpoint to verify functionality
+3. **Monitor Logs**: Check operation history for errors
+4. **Contact Support**: Reach out to system administrators
+
+### **Advanced Features**
+
+#### **Custom Query Types**
+- Define your own analysis types
+- Specify custom sensitivity calculations
+- Implement domain-specific privacy mechanisms
+
+#### **Batch Processing**
+- Process multiple datasets simultaneously
+- Optimize budget usage across operations
+- Generate comprehensive privacy reports
+
+#### **Privacy Analytics**
+- Monitor your privacy budget usage
+- Analyze query performance and accuracy
+- Generate compliance reports
+
+#### **Integration with Training**
+- Apply DP to machine learning workflows
+- Protect model gradients during training
+- Ensure training data privacy
+
+### **Privacy Compliance**
+
+#### **Data Protection**
+- All operations are logged for audit purposes
+- Privacy budgets are enforced automatically
+- Mathematical guarantees are provided
+
+#### **Audit Trail**
+- Complete operation history
+- Budget consumption tracking
+- Privacy parameter logging
+- User activity monitoring
+
+#### **Compliance Reporting**
+- Automated privacy reports
+- Budget utilization analytics
+- Risk assessment tools
+- Regulatory compliance checks
 
 ## 🚨 Troubleshooting
 

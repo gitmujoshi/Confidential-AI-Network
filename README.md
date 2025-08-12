@@ -1,6 +1,6 @@
 # Contract Management System
 
-A comprehensive contract management system with multi-party authentication, blockchain integration, and confidential computing capabilities.
+A comprehensive contract management system with multi-party authentication, blockchain integration, confidential computing capabilities, and **differential privacy implementation**.
 
 ## 🚀 Quick Start
 
@@ -24,6 +24,7 @@ A comprehensive contract management system with multi-party authentication, bloc
 - [Quick Start](#-quick-start)
 - [Documentation](#documentation)
 - [Architecture](#architecture)
+- [Differential Privacy](#differential-privacy)
 - [Development Workflow](#development-workflow)
 - [Authentication](#authentication)
 - [API Documentation](#api-documentation)
@@ -78,12 +79,55 @@ docs/
 - **Blockchain**: Ethereum with Hardhat
 - **Secret Management**: HashiCorp Vault
 - **Cloud Providers**: AWS, Azure, GCP, OCI
+- **Differential Privacy**: Complete implementation with budget tracking
 
 ### **User Roles**
 - **TDP (Training Data Provider)**: Create and manage datasets
 - **TDC (Training Data Consumer)**: Browse and purchase datasets
 - **CCRP (Confidential Clean Room Provider)**: Provide secure computing environments
 - **AppAdmin**: System administration
+
+## 🔐 Differential Privacy
+
+### **✅ Fully Implemented Features**
+
+#### **Core DP Service**
+- **Multiple Mechanisms**: Laplace, Gaussian, Exponential, Geometric
+- **Privacy Budget Management**: Epsilon and Delta tracking
+- **Sensitivity Analysis**: Automatic calculation for different query types
+- **Audit Trail**: Complete logging of all DP operations
+
+#### **Database Infrastructure**
+- **PrivacyBudgets Table**: Tracks budget consumption per contract
+- **PrivacyBudgetLogs Table**: Detailed budget consumption history
+- **PrivacyOperationsLogs Table**: Complete audit trail
+
+#### **API Endpoints**
+- **`GET /api/dp/mechanisms`** - Available DP mechanisms
+- **`GET /api/dp/query-types`** - Supported query types
+- **`POST /api/dp/test`** - Test DP functionality
+- **`POST /api/dp/apply`** - Apply DP to real data
+- **`GET /api/dp/budget/:contractId`** - Check privacy budget
+- **`GET /api/dp/history/:contractId`** - Operation history
+
+#### **Enhanced Services**
+- **Training Service**: DP-SGD (Differentially Private Stochastic Gradient Descent)
+- **Contract Service**: DP application to contract data
+- **Privacy Analytics**: Comprehensive monitoring and reporting
+
+### **Privacy Mechanisms Available**
+- **Laplace**: For continuous data and gradients
+- **Gaussian**: For averages with better utility
+- **Exponential**: For discrete data
+- **Geometric**: For count queries
+
+### **Query Types Supported**
+- **COUNT**: Number of records
+- **SUM**: Total values
+- **AVERAGE**: Mean values
+- **GRADIENT**: Machine learning gradients
+- **HISTOGRAM**: Data distributions
+- **PERCENTILE**: Statistical measures
 
 ## 🔄 Development Workflow
 
@@ -167,6 +211,14 @@ npm run reset:keycloak
 - `POST /api/ccrp/cloud-credentials` - Add cloud credentials
 - `PUT /api/ccrp/cloud-credentials/:id` - Update credentials
 
+### **Differential Privacy**
+- `GET /api/dp/mechanisms` - Available DP mechanisms
+- `GET /api/dp/query-types` - Supported query types
+- `POST /api/dp/test` - Test DP functionality
+- `POST /api/dp/apply` - Apply DP to data
+- `GET /api/dp/budget/:contractId` - Privacy budget status
+- `GET /api/dp/history/:contractId` - DP operation history
+
 **For complete API documentation, see [API Reference](docs/API_REFERENCE.md)**
 
 ## 🧪 Testing
@@ -184,6 +236,9 @@ npm run status
 
 # Health check
 npm run health
+
+# Test differential privacy
+curl -s http://localhost:5001/api/dp/mechanisms
 ```
 
 ### **Test Users**
@@ -195,6 +250,20 @@ All test users use password: `password123`
 | TDP | `tdp-test@example.com` | 51 | ✅ Working |
 | CCRP | `ccrp-test@example.com` | 52 | ✅ Working |
 | AppAdmin | `appadmin-test@example.com` | 53 | ✅ Working |
+
+### **Differential Privacy Testing**
+```bash
+# Test DP mechanisms endpoint
+curl -s http://localhost:5001/api/dp/mechanisms
+
+# Test DP query types
+curl -s http://localhost:5001/api/dp/query-types
+
+# Test DP with sample data
+curl -s -X POST http://localhost:5001/api/dp/test \
+  -H "Content-Type: application/json" \
+  -d '{"data":[1,2,3,4,5],"query":{"type":"AVERAGE"},"privacyParams":{"epsilon":0.1,"delta":1e-5,"mechanism":"laplace"}}'
+```
 
 ## 🚨 Troubleshooting
 
@@ -233,6 +302,18 @@ diff backend/.env backend/config.env
 cd backend && node auto-fix-keycloak.js
 ```
 
+#### **Differential Privacy Issues**
+```bash
+# Check if DP tables exist
+psql -h localhost -U mukeshjoshi -d contract_management -c "\dt" | grep -i privacy
+
+# Run DP migration if needed
+cd backend && node run-privacy-migration.js
+
+# Test DP endpoints
+curl -s http://localhost:5001/api/dp/mechanisms
+```
+
 ### **Debugging Commands**
 ```bash
 # Check system status
@@ -243,6 +324,9 @@ npm run test:login
 
 # Check health
 npm run health
+
+# Test differential privacy
+curl -s http://localhost:5001/api/dp/mechanisms
 
 # View logs
 tail -f logs/backend.log
@@ -265,7 +349,23 @@ ContractManagement/
 │   ├── TROUBLESHOOTING.md    # Issue resolution
 │   └── archive/              # Old documentation
 ├── backend/                   # Backend server
+│   ├── services/             # Business logic services
+│   │   ├── differentialPrivacyService.js    # DP core service
+│   │   ├── mechanisms/       # DP mechanisms (Laplace, Gaussian)
+│   │   ├── privacyBudgetTracker.js          # Budget management
+│   │   └── sensitivityAnalyzer.js           # Sensitivity calculation
+│   ├── models/               # Database models
+│   │   ├── PrivacyBudget.js  # Privacy budget model
+│   │   ├── PrivacyBudgetLog.js # Budget log model
+│   │   └── PrivacyOperationsLog.js # Operations log
+│   ├── routes/               # API routes
+│   │   └── differential-privacy.js # DP API endpoints
+│   └── migrations/           # Database migrations
+│       └── add-privacy-budget-tables.js # DP tables
 ├── frontend/                  # React frontend
+│   └── src/
+│       └── components/
+│           └── DifferentialPrivacyManager.js # DP UI component
 ├── blockchain/                # Smart contracts
 ├── scripts/                   # Project scripts
 └── config/                    # Configuration files
@@ -279,8 +379,8 @@ ContractManagement/
 DB_HOST=localhost
 DB_PORT=5432
 DB_NAME=contract_management
-DB_USER=postgres
-DB_PASSWORD=postgres
+DB_USER=mukeshjoshi
+DB_PASSWORD=
 
 # Keycloak
 KEYCLOAK_URL=http://localhost:8080
@@ -291,6 +391,11 @@ KEYCLOAK_ENABLED=true
 # Server
 PORT=5001
 NODE_ENV=development
+
+# Differential Privacy
+DP_DEFAULT_EPSILON=1.0
+DP_DEFAULT_DELTA=1e-5
+DP_MAX_BUDGET=10.0
 ```
 
 ### **Docker Services**
@@ -305,11 +410,13 @@ NODE_ENV=development
 - Backend: `http://localhost:5001/health`
 - Keycloak: `http://localhost:8080/health`
 - Frontend: `http://localhost:3000`
+- Differential Privacy: `http://localhost:5001/api/dp/mechanisms`
 
 ### **Logs**
 - Backend logs: `logs/backend.log`
 - Keycloak logs: Docker container logs
 - Frontend logs: Browser console
+- DP operations: `PrivacyOperationsLogs` table
 
 ## 🤝 Contributing
 
@@ -319,6 +426,7 @@ NODE_ENV=development
 4. **Use automation scripts** when available
 5. **Document changes** with clear commit messages
 6. **Follow the development workflow** outlined above
+7. **Test differential privacy** endpoints after changes
 
 ## 📄 License
 
@@ -331,8 +439,9 @@ For issues and questions:
 2. Review the [Developer Guide](docs/DEVELOPER_GUIDE.md)
 3. Check the [API Reference](docs/API_REFERENCE.md)
 4. Run `./fix-auth.sh` for authentication issues
+5. Test DP endpoints: `curl -s http://localhost:5001/api/dp/mechanisms`
 
 ---
 
-*Last updated: 2025-08-03*
-*Version: 2.0.0 (Streamlined Documentation)* 
+*Last updated: 2025-08-12*
+*Version: 2.1.0 (Differential Privacy Implementation)* 

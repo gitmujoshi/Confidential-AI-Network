@@ -1,0 +1,2415 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Identity & Access Management - ContractFlow Pro Documentation</title>
+    <meta name="description" content="Identity & Access Management - ContractFlow Pro Documentation">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.css" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f8f9fa;
+            color: #333;
+            line-height: 1.6;
+        }
+        .navbar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .navbar-brand {
+            color: white !important;
+            font-weight: 700;
+        }
+        .nav-link {
+            color: rgba(255,255,255,0.9) !important;
+            transition: color 0.3s ease;
+        }
+        .nav-link:hover {
+            color: white !important;
+        }
+        .doc-container {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            margin: 30px 0;
+            overflow: hidden;
+        }
+        .doc-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        .doc-content {
+            padding: 40px;
+        }
+        .doc-content h1, .doc-content h2, .doc-content h3, .doc-content h4, .doc-content h5, .doc-content h6 {
+            color: #333;
+            margin-top: 2rem;
+            margin-bottom: 1rem;
+            font-weight: 600;
+        }
+        .doc-content h1 {
+            font-size: 2.5rem;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 10px;
+        }
+        .doc-content h2 {
+            font-size: 2rem;
+            border-bottom: 2px solid #e9ecef;
+            padding-bottom: 8px;
+            color: #667eea;
+        }
+        .doc-content h3 {
+            font-size: 1.5rem;
+            color: #495057;
+        }
+        .doc-content p {
+            margin-bottom: 1rem;
+            font-size: 1.1rem;
+        }
+        .doc-content ul, .doc-content ol {
+            margin-bottom: 1rem;
+            padding-left: 2rem;
+        }
+        .doc-content li {
+            margin-bottom: 0.5rem;
+        }
+        
+        /* Enhanced Code Block Styling */
+        .doc-content pre {
+            background: #2d3748;
+            border: 1px solid #4a5568;
+            border-radius: 8px;
+            padding: 20px;
+            overflow-x: auto;
+            margin: 1.5rem 0;
+            position: relative;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        .doc-content pre code {
+            background: none;
+            color: #e2e8f0;
+            padding: 0;
+            font-family: 'Fira Code', 'Monaco', 'Consolas', monospace;
+            font-size: 0.9rem;
+            line-height: 1.5;
+            white-space: pre;
+            word-wrap: normal;
+        }
+        .doc-content code:not(pre code) {
+            background: #f7fafc;
+            color: #e53e3e;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            border: 1px solid #e2e8f0;
+        }
+        
+        /* Mermaid Diagram Styling */
+        .mermaid {
+            text-align: center;
+            margin: 2rem 0;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border: 1px solid #e9ecef;
+        }
+        .mermaid svg {
+            max-width: 100%;
+            height: auto;
+        }
+        
+        /* Enhanced Table Styling */
+        .doc-content table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1.5rem 0;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .doc-content th, .doc-content td {
+            border: 1px solid #e2e8f0;
+            padding: 12px 16px;
+            text-align: left;
+        }
+        .doc-content th {
+            background: #667eea;
+            color: white;
+            font-weight: 600;
+        }
+        .doc-content tr:nth-child(even) {
+            background: #f7fafc;
+        }
+        .doc-content tr:hover {
+            background: #edf2f7;
+        }
+        
+        /* Enhanced Blockquote Styling */
+        .doc-content blockquote {
+            border-left: 4px solid #667eea;
+            padding: 20px;
+            margin: 1.5rem 0;
+            background: #f7fafc;
+            border-radius: 0 8px 8px 0;
+            font-style: italic;
+            color: #4a5568;
+        }
+        .doc-content blockquote p {
+            margin-bottom: 0;
+        }
+        
+        /* Enhanced List Styling */
+        .doc-content ul {
+            list-style-type: none;
+            padding-left: 0;
+        }
+        .doc-content ul li {
+            position: relative;
+            padding-left: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+        .doc-content ul li:before {
+            content: "•";
+            color: #667eea;
+            font-weight: bold;
+            position: absolute;
+            left: 0;
+        }
+        .doc-content ol {
+            counter-reset: item;
+            list-style-type: none;
+            padding-left: 0;
+        }
+        .doc-content ol li {
+            counter-increment: item;
+            position: relative;
+            padding-left: 2rem;
+            margin-bottom: 0.5rem;
+        }
+        .doc-content ol li:before {
+            content: counter(item) ".";
+            color: #667eea;
+            font-weight: bold;
+            position: absolute;
+            left: 0;
+        }
+        
+        .breadcrumb {
+            background: transparent;
+            padding: 0;
+            margin-bottom: 20px;
+        }
+        .breadcrumb-item a {
+            color: #667eea;
+            text-decoration: none;
+        }
+        .breadcrumb-item.active {
+            color: #666;
+        }
+        .category-badge {
+            background: #e3f2fd;
+            color: #1976d2;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            margin-left: 10px;
+        }
+        .back-to-top {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: #667eea;
+            color: white;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+        .back-to-top:hover {
+            background: #5a6fd8;
+            color: white;
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container">
+            <a class="navbar-brand" href="../index.html">
+                <i class="fas fa-file-contract me-2"></i>ContractFlow Pro
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="../index.html">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="../index.html#features">Features</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="../index.html#solutions">Solutions</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="../index.html#dashboards">Dashboards</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="index.html">Documents</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="../index.html#pricing">Pricing</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="../index.html#contact">Contact</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container">
+        <!-- Breadcrumb -->
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="../index.html">Home</a></li>
+                <li class="breadcrumb-item"><a href="index.html">Documentation</a></li>
+                <li class="breadcrumb-item active">Identity & Access Management</li>
+            </ol>
+        </nav>
+
+        <!-- Document Container -->
+        <div class="doc-container">
+            <div class="doc-header">
+                <h1 class="mb-3">
+                    <i class="fas fa-book me-3"></i>Identity & Access Management
+                    <span class="category-badge">Security</span>
+                </h1>
+                <p class="lead mb-0">ContractFlow Pro Documentation</p>
+            </div>
+            <div class="doc-content">
+                
+                <p>
+                # Identity and Access Management (IAM) Documentation</p><p>## Contract Management System</p>---</p><p><strong>Document Version:</strong> 1.0  
+<strong>Last Updated:</strong> January 2025  
+<strong>Author:</strong> Contract Management System Team  
+<strong>Classification:</strong> Internal Technical Specification</p><p>---</p><p>## Table of Contents</p><ul>* <a href="#overview" target="_blank">Overview</a></p><p><ul><li><a href="#identity-types" target="_blank">Identity Types</a></li></p><p><li><a href="#identity-creation-and-management" target="_blank">Identity Creation and Management</a></li></p><p><li><a href="#global-uniqueness-mechanisms" target="_blank">Global Uniqueness Mechanisms</a></li></p><p><li><a href="#dataset-and-ccrp-infrastructure-management-with-depa-ids" target="_blank">Dataset and CCRP Infrastructure Management with DEPA IDs</a></li></p><p><li><a href="#global-depa-id-uniqueness-across-multiple-deployments" target="_blank">Global DEPA ID Uniqueness Across Multiple Deployments</a></li></p><p><li><a href="#authentication-methods" target="_blank">Authentication Methods</a></li></p><p><li><a href="#authorization-framework" target="_blank">Authorization Framework</a></li></p><p><li><a href="#security-controls" target="_blank">Security Controls</a></li></p><p><li><a href="#audit-and-compliance" target="_blank">Audit and Compliance</a></li></p><p><li><a href="#implementation-details" target="_blank">Implementation Details</a></li></p><p><li><a href="#api-specifications" target="_blank">API Specifications</a></li>
+</p>---</p><p>## Overview</p>The Contract Management System implements a comprehensive Identity and Access Management (IAM) framework designed for enterprise-grade security and compliance. The system supports multiple identity types, authentication methods, and authorization mechanisms to ensure secure access to contract management functionalities.</p><p>### Key Features</p><p><li><strong>Multi-Identity Support</strong>: User identities, DID identities, and enterprise identities</li></p><p><li><strong>Multi-Authentication Methods</strong>: JWT tokens, Keycloak integration, DID-based authentication</li></p><p><li><strong>Role-Based Access Control</strong>: TDP, TDC, CCRP, and Admin roles with granular permissions</li></p><p><li><strong>Global Uniqueness</strong>: DEPA ID system for globally unique entity identification</li></p><p><li><strong>Enterprise Integration</strong>: Keycloak SSO and enterprise DID support</li></p><p><li><strong>Compliance Ready</strong>: DPDP 2023, GDPR, and SOX compliance features</li>
+</p>---</p><p>## Identity Types</p><p>### 1. User Identities</p>#### 1.1 Training Data Provider (TDP)
+<li><strong>Purpose</strong>: Dataset owners who create and manage training datasets</li></p><p><li><strong>Permissions</strong>: </li></p><p>  - Create and manage datasets
+  - Sign contracts as TDP party
+  - View own contracts and datasets
+  - Update profile and DID information
+<li><strong>Data Access</strong>: Own datasets and contracts only</li></p><p>#### 1.2 Training Data Consumer (TDC)
+<li><strong>Purpose</strong>: Contract initiators who create contracts for data access</li></p><p><li><strong>Permissions</strong>:</li></p><p>  - Browse available datasets
+  - Create contracts
+  - Sign contracts as TDC party
+  - View own contracts
+<li><strong>Data Access</strong>: Public datasets and own contracts</li></p><p>#### 1.3 Confidential Clean Room Provider (CCRP)
+<li><strong>Purpose</strong>: Runtime environment providers for secure data analytics</li></p><p><li><strong>Permissions</strong>:</li></p><p>  - Manage clean room environments
+  - Complete contracts
+  - Cancel contracts
+  - View contract execution status
+<li><strong>Data Access</strong>: Contract execution data and clean room configurations</li></p><p>#### 1.4 System Administrator (AppAdmin)
+<li><strong>Purpose</strong>: System-wide administration and management</li></p><p><li><strong>Permissions</strong>:</li></p><p>  - Manage all users
+  - View system audit logs
+  - Configure enterprise settings
+  - Manage DID domains
+  - Access all data
+<li><strong>Data Access</strong>: Full system access</li></p><p>### 2. Decentralized Identifiers (DIDs)</p>#### 2.1 DID Types Supported
+<li><strong>did:web</strong>: Web-hosted DID documents for enterprise users</li></p><p><li><strong>did:ethr</strong>: Ethereum-based DIDs for blockchain users</li></p><p><li><strong>did:key</strong>: Simple key-based DIDs for testing</li></p><p>#### 2.2 DID Functions
+<li><strong>Cryptographic Verification</strong>: Digital signature verification</li></p><p><li><strong>Identity Proof</strong>: Ownership verification for blockchain operations</li></p><p><li><strong>Enterprise Integration</strong>: Domain-based identity for enterprise users</li></p><p><li><strong>Privacy Preservation</strong>: Self-sovereign identity management</li></p><p>### 3. Enterprise Identities</p>#### 3.1 Enterprise DID Integration
+<li><strong>Domain-Based Identity</strong>: <code>did:web:company.com:user:username</code></li></p><p><li><strong>Organization Verification</strong>: Domain ownership verification</li></p><p><li><strong>Enterprise SSO</strong>: Integration with Keycloak for enterprise authentication</li></p><p><li><strong>Multi-Tenant Support</strong>: Support for multiple enterprise domains</li></p><p>#### 3.2 Enterprise User Management
+<li><strong>Centralized Authentication</strong>: Keycloak-based user management</li></p><p><li><strong>Role Synchronization</strong>: Automatic role assignment from enterprise systems</li></p><p><li><strong>Audit Integration</strong>: Enterprise audit trail integration</li></p><p><li><strong>Compliance Support</strong>: Enterprise compliance requirements</li></p><p>---</p><p>## Identity Creation and Management</p><p>### 1. User Registration Process</p>#### 1.1 Registration Flow
+<pre><code class="language-javascript">// Registration endpoint: POST /api/auth/register
+{
+  "name": "John Doe",
+  "email": "john.doe@company.com",
+  "partyType": "TDP",
+  "organization": "DataCorp Inc",
+  "existingDID": "did:web:company.com:user:john.doe", // Optional
+  "didVerificationSignature": "signature" // Optional
+}
+</code></pre></p><p>#### 1.2 Identity Creation Steps
+<li><strong>Input Validation</strong>: Validate required fields and format</li></p><p><li><strong>Email Uniqueness Check</strong>: Ensure email is not already registered</li></p><p><li><strong>DID Validation</strong>: Validate existing DID if provided</li></p><p><li><strong>Keycloak User Creation</strong>: Create user in Keycloak IAM</li></p><p><li><strong>Database User Creation</strong>: Create user in local database</li></p><p><li><strong>DEPA ID Generation</strong>: Generate globally unique DEPA ID</li></p><p><li><strong>Notification Creation</strong>: Create welcome notification</li></p><p><li><strong>Email Verification</strong>: Trigger email verification process</li></p><p>#### 1.3 Transaction-Based Creation
+<pre><code class="language-javascript">// Transaction ensures data consistency
+const transaction = await db.sequelize.transaction();
+try {
+  // Step 1: Create in Keycloak
+  const keycloakResult = await keycloakService.createUser(userData);
+  
+  // Step 2: Create in database
+  const dbUser = await db.User.create({
+    // ... user data
+    depaId: depaIdService.generateUserDEPAId(partyType),
+    iamUserId: keycloakResult.keycloakUserId
+  }, { transaction });
+  
+  // Step 3: Create notification
+  await db.Notification.create({
+    userId: dbUser.id,
+    type: 'USER_REGISTERED'
+  }, { transaction });
+  
+  await transaction.commit();
+} catch (error) {
+  await transaction.rollback();
+  // Cleanup orphaned Keycloak user if needed
+}
+</code></pre></p><p>### 2. DID Management</p>#### 2.1 DID Creation
+<pre><code class="language-javascript">// System-generated DID for enterprise users
+const domain = email.split('@')[1] <table class="table table-striped"><tr>|  <td>'example.com';
+const did = <code>did:web:${domain}:user:${email.split('@')[0]}</code>;</p><p>// User-provided DID validation
+if (existingDID) {
+  const didAvailability = await didService.isDIDAvailable(existingDID);
+  if (!didAvailability.available) {
+    throw new Error('DID not available');
+  }
+}
+</code></pre></p><p>#### 2.2 DID Verification
+<pre><code class="language-javascript">// DID ownership verification
+const message = <code>I, the holder of DID ${existingDID}, hereby verify ownership with wallet address ${walletAddress} on ${new Date().toISOString()}</code>;
+const isVerified = await didService.verifyDIDOwnership(
+  existingDID, 
+  walletAddress, 
+  didVerificationSignature, 
+  message
+);
+</code></pre></p><p>### 3. Enterprise Identity Management</p>#### 3.1 Keycloak Integration
+<pre><code class="language-javascript">// Keycloak user creation
+const keycloakUserData = {
+  username: userData.email,
+  email: userData.email,
+  firstName: userData.name?.split(' ')[0]</td>|  | '',
+  lastName: userData.name?.split(' ').slice(1).join(' ') |  | '',
+  enabled: true,
+  emailVerified: false,
+  credentials: [{
+    type: 'password',
+    value: temporaryPassword,
+    temporary: true
+  }],
+  attributes: {
+    partyType: [userData.partyType],
+    organization: [userData.organization] |  <td>[],
+    // ... other attributes
+  }
+};
+</code></pre></p><p>#### 3.2 Enterprise Domain Management
+<pre><code class="language-javascript">// Enterprise domain validation
+const validateEnterpriseDID = async (did) => {
+  const domain = did.replace('did:web:', '').split(':')[0];
+  const allowedDomains = await getEnterpriseDomains();
+  
+  return {
+    isValid: allowedDomains.includes(domain),
+    isDomainAllowed: allowedDomains.includes(domain),
+    domain: domain
+  };
+};
+</code></pre></p><p>---</p><p>## Global Uniqueness Mechanisms</p>The global uniqueness mechanisms ensure that all entities in the system have unique identifiers that can be trusted across all deployments and jurisdictions. This is critical for maintaining data integrity, preventing conflicts, and supporting cross-border operations.</p><p>### 1. DEPA ID System</p>The DEPA ID (Decentralized Entity Provider Architecture ID) system provides globally unique identifiers for all entities in the contract management system. Each DEPA ID consists of an entity type prefix followed by a globally unique identifier, ensuring no two entities can have the same identifier.</p><p>#### 1.1 DEPA ID Format</p><p>The DEPA ID format is designed to be human-readable while ensuring global uniqueness. The format includes an entity type prefix that immediately identifies the type of entity, followed by a UUID that guarantees uniqueness.</p><p><pre><code class="language-text">[ENTITY_TYPE]-[GUID]
+Examples:
+<li>TDC-8f4e2a1b-3c4d-5e6f-7a8b-9c0d1e2f3a4b</li></p><p><li>TDP-9a1b2c3d-4e5f-6a7b-8c9d-0e1f2a3b4c5d</li></p><p><li>CCRP-1b2c3d4e-5f6a-7b8c-9d0e-1f2a3b4c5d6e</li></p><p><li>CONTRACT-2c3d4e5f-6a7b-8c9d-0e1f-2a3b4c5d6e7f</li></p><p></code></pre></p><p>This format provides:
+<li><strong>Immediate Recognition</strong>: Entity type is clearly identifiable</li></p><p><li><strong>Global Uniqueness</strong>: UUID component ensures no collisions</li></p><p><li><strong>Consistency</strong>: Same format across all system deployments</li></p><p><li><strong>Scalability</strong>: Supports unlimited number of entities</li></p><p>#### 1.2 DEPA ID Generation</p><p>The DEPA ID generation process ensures that each entity receives a unique identifier that follows the established format. The generation process includes validation to ensure the entity type is valid and the resulting DEPA ID is properly formatted.</p><p>The generation process provides:
+<li><strong>Validation</strong>: Ensures entity type is supported</li></p><p><li><strong>Uniqueness</strong>: Uses cryptographically secure UUID generation</li></p><p><li><strong>Format Compliance</strong>: Ensures proper DEPA ID format</li></p><p><li><strong>Error Handling</strong>: Graceful handling of generation failures</li></p><p><pre><code class="language-javascript">class DEPAIdService {
+  generateDEPAId(entityType) {
+    // Validate entity type
+    if (!this.validEntityTypes.includes(entityType)) {
+      throw new Error(<code>Invalid entity type: ${entityType}</code>);
+    }
+    
+    // Generate UUID
+    const guid = uuidv4();
+    
+    // Create DEPA ID
+    const depaId = <code>${entityType}-${guid}</code>;
+    
+    return depaId;
+  }
+  
+  validateDEPAId(depaId) {
+    return this.depaIdPattern.test(depaId);
+  }
+}
+</code></pre></p><p>#### 1.3 DEPA ID Validation</p><p>DEPA ID validation ensures that all identifiers in the system follow the correct format and can be trusted for system operations. The validation process uses regular expressions to verify the format and includes additional checks for entity type validity.</p><p>The validation process includes:
+<li><strong>Format Validation</strong>: Ensures proper DEPA ID structure</li></p><p><li><strong>Entity Type Validation</strong>: Verifies entity type is supported</li></p><p><li><strong>GUID Validation</strong>: Confirms UUID format is correct</li></p><p><li><strong>Case Insensitivity</strong>: Handles both uppercase and lowercase formats</li></p><p><pre><code class="language-javascript">// Regex pattern for validation
+const depaIdPattern = /^(TDC| TDP | CCRP 
+CONTRACT)-[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;</p><p>// Validation function
+validateDEPAId(depaId) {
+  if (!depaId</td>|  <td>typeof depaId !== 'string') {
+    return false;
+  }
+  return this.depaIdPattern.test(depaId);
+}
+</code></pre></p><p>### 2. Database Uniqueness Constraints</p>Database-level uniqueness constraints provide the foundation for ensuring that no duplicate identifiers can exist in the system. These constraints are enforced at the database level, providing reliability even if application-level validation fails.</p><p>#### 2.1 User Table Constraints</p><p>The users table implements multiple uniqueness constraints to ensure that each user has unique identifiers across all identity types. This prevents conflicts and ensures proper user identification.</p><p>The constraints provide:
+<li><strong>Email Uniqueness</strong>: Ensures no duplicate email addresses</li></p><p><li><strong>Wallet Address Uniqueness</strong>: Prevents duplicate blockchain addresses</li></p><p><li><strong>DID Uniqueness</strong>: Ensures unique decentralized identifiers</li></p><p><li><strong>DEPA ID Uniqueness</strong>: Guarantees unique system identifiers</li></p><p><li><strong>IAM User ID Uniqueness</strong>: Prevents conflicts with enterprise systems</li></p><p><pre><code class="language-sql">-- Email uniqueness
+email VARCHAR(255) UNIQUE NOT NULL</p><p>-- Wallet address uniqueness (when not null)
+walletAddress VARCHAR(255) UNIQUE,
+-- Index with WHERE clause for non-null values
+CREATE UNIQUE INDEX idx_wallet_address_unique 
+ON users(walletAddress) WHERE walletAddress IS NOT NULL;</p><p>-- DID uniqueness
+did VARCHAR(255) UNIQUE</p><p>-- DEPA ID uniqueness
+depaId VARCHAR(255) UNIQUE NOT NULL</p><p>-- IAM user ID uniqueness
+iamUserId VARCHAR(255) UNIQUE
+</code></pre></p><p>#### 2.2 Composite Uniqueness</p><p>Composite uniqueness ensures that combinations of fields maintain uniqueness while allowing individual fields to have some flexibility. This is particularly important for fields that may be null or optional.</p><p>The composite approach provides:
+<li><strong>Flexibility</strong>: Handles optional fields gracefully</li></p><p><li><strong>Performance</strong>: Optimized indexes for fast lookups</li></p><p><li><strong>Reliability</strong>: Database-level enforcement</li></p><p><li><strong>Scalability</strong>: Efficient for large datasets</li></p><p><pre><code class="language-javascript">// User model indexes for performance and uniqueness
+indexes: [
+  {
+    unique: true,
+    fields: ['walletAddress'],
+    where: { walletAddress: { [Sequelize.Op.ne]: null } }
+  },
+  {
+    unique: true,
+    fields: ['iamUserId']
+  },
+  {
+    unique: true,
+    fields: ['did']
+  },
+  {
+    unique: true,
+    fields: ['depaId']
+  }
+]
+</code></pre></p><p>### 3. DID-Based Uniqueness</p>Decentralized Identifiers (DIDs) provide an additional layer of uniqueness through their inherent global uniqueness properties. The system validates DID availability and ensures no conflicts exist.</p><p>#### 3.1 DID Resolution and Validation</p><p>DID resolution and validation ensures that DIDs are properly formatted, resolvable, and available for use in the system. This process includes checking both local system state and external DID document availability.</p><p>The validation process includes:
+<li><strong>Local Availability Check</strong>: Verifies DID isn't already registered</li></p><p><li><strong>DID Document Resolution</strong>: Checks external DID document availability</li></p><p><li><strong>Format Validation</strong>: Ensures proper DID format</li></p><p><li><strong>Error Handling</strong>: Graceful handling of resolution failures</li></p><p><pre><code class="language-javascript">// DID availability check
+async isDIDAvailable(did) {
+  // Check if DID is already registered
+  const existingUser = await db.User.findOne({ where: { did } });
+  
+  if (existingUser) {
+    return {
+      available: false,
+      message: 'DID is already registered'
+    };
+  }
+  
+  // For did:web, check if DID document exists
+  if (did.startsWith('did:web:')) {
+    const domain = did.replace('did:web:', '').split(':')[0];
+    const didDocumentUrl = <code>https://${domain}/.well-known/did.json</code>;
+    
+    try {
+      const response = await fetch(didDocumentUrl);
+      return {
+        available: response.ok,
+        message: response.ok ? 'DID is available' : 'DID document not found'
+      };
+    } catch (error) {
+      return {
+        available: false,
+        message: 'Failed to verify DID document'
+      };
+    }
+  }
+  
+  return { available: true, message: 'DID is available' };
+}
+</code></pre></p><p>---</p><p>## Dataset and CCRP Infrastructure Management with DEPA IDs</p>This section covers how datasets and CCRP (Confidential Clean Room Provider) infrastructure are managed with globally unique DEPA IDs. Each dataset and infrastructure component receives a unique identifier that ensures traceability, ownership verification, and compliance across the entire system.</p><p>### 1. Dataset Identity Management</p>Datasets are critical assets in the contract management system that represent training data provided by TDPs (Training Data Providers). Each dataset must have a globally unique identifier to ensure proper ownership tracking, licensing compliance, and audit trails.</p><p>#### 1.1 Dataset DEPA ID Generation</p><p>When a TDP creates a dataset, the system automatically generates a unique DEPA ID that follows the format <code>DATASET-[GUID]</code>. This identifier is immutable and serves as the primary reference for all dataset-related operations including licensing, access control, and audit logging.</p><p>The generation process ensures:
+<li><strong>Uniqueness</strong>: Each dataset receives a globally unique identifier</li></p><p><li><strong>Immutability</strong>: Once assigned, the DEPA ID cannot be changed</li></p><p><li><strong>Traceability</strong>: All dataset operations are linked to this identifier</li></p><p><li><strong>Compliance</strong>: Supports regulatory requirements for data tracking</li></p><p><pre><code class="language-javascript">// Dataset creation with DEPA ID
+const createDataset = async (datasetData) => {
+  const transaction = await db.sequelize.transaction();
+  
+  try {
+    // Generate unique DEPA ID for dataset
+    const DEPAIdService = require('../services/depaIdService');
+    const depaIdService = new DEPAIdService();
+    const depaId = depaIdService.generateDEPAId('DATASET');
+    
+    // Create dataset with DEPA ID
+    const dataset = await db.Dataset.create({
+      datasetId: datasetData.datasetId,
+      name: datasetData.name,
+      description: datasetData.description,
+      category: datasetData.category,
+      size: datasetData.size,
+      recordCount: datasetData.recordCount,
+      price: datasetData.price,
+      license: datasetData.license,
+      tags: datasetData.tags</td>|  | [],
+      metadata: datasetData.metadata |  <td>{},
+      isPublic: datasetData.isPublic !== undefined ? datasetData.isPublic : true,
+      ownerId: datasetData.ownerId,
+      depaId: depaId // Global unique DEPA ID
+    }, { transaction });
+    
+    await transaction.commit();
+    return dataset;
+  } catch (error) {
+    await transaction.rollback();
+    throw error;
+  }
+};
+</code></pre></p><p>#### 1.2 Dataset DEPA ID Format</p><p>The dataset DEPA ID follows a standardized format that includes the entity type prefix and a globally unique identifier:</p><p><pre><code class="language-text">DATASET-[GUID]
+Examples:
+<li>DATASET-8f4e2a1b-3c4d-5e6f-7a8b-9c0d1e2f3a4b</li></p><p><li>DATASET-9a1b2c3d-4e5f-6a7b-8c9d-0e1f2a3b4c5d</li></p><p></code></pre></p><p>This format ensures that:
+<li>All dataset identifiers are clearly distinguishable from other entity types</li></p><p><li>The GUID component provides global uniqueness</li></p><p><li>The format is consistent across all system deployments</li></p><p>#### 1.3 Dataset Uniqueness Guarantee</p><p>The system implements multiple layers of uniqueness guarantees to ensure that no two datasets can have the same DEPA ID. This is critical for maintaining data integrity, preventing conflicts, and ensuring proper audit trails.</p><p>The uniqueness is enforced through:
+<li><strong>Database Constraints</strong>: Unique constraints at the database level</li></p><p><li><strong>Application Logic</strong>: Validation during dataset creation</li></p><p><li><strong>Transaction Isolation</strong>: Atomic operations prevent race conditions</li></p><p><li><strong>Collision Detection</strong>: Retry mechanisms for rare collision scenarios</li></p><p><pre><code class="language-javascript">// Database constraints for dataset uniqueness
+const datasetConstraints = {
+  // Primary dataset identifier
+  datasetId: {
+    type: DataTypes.STRING,
+    allowNull: false,
+    unique: true
+  },
+  
+  // Global unique DEPA ID
+  depaId: {
+    type: DataTypes.STRING,
+    allowNull: true,
+    unique: true
+  }
+};</p><p>// Indexes for performance
+indexes: [
+  {
+    unique: true,
+    fields: ['datasetId']
+  },
+  {
+    unique: true,
+    fields: ['depaId']
+  },
+  {
+    fields: ['category']
+  },
+  {
+    fields: ['ownerId']
+  }
+]
+</code></pre></p><p>### 2. CCRP Infrastructure and Environment Management</p>CCRP (Confidential Clean Room Provider) infrastructure represents the cloud-based computing environments where AI training occurs. Each environment must be uniquely identified to ensure proper resource management, security controls, and cost tracking across multiple cloud providers.</p><p>#### 2.1 Training Environment DEPA ID Generation</p><p>Training environments are complex infrastructure deployments that include compute resources, storage systems, networking components, and security controls. Each environment receives a unique DEPA ID that tracks its entire lifecycle from creation to destruction.</p><p>The environment DEPA ID serves multiple purposes:
+<li><strong>Resource Tracking</strong>: Links all cloud resources to a specific environment</li></p><p><li><strong>Cost Management</strong>: Enables detailed cost analysis per environment</li></p><p><li><strong>Security Auditing</strong>: Provides audit trail for all environment activities</li></p><p><li><strong>Compliance</strong>: Supports regulatory requirements for infrastructure management</li></p><p><pre><code class="language-javascript">// Training environment creation with DEPA ID
+const createTrainingEnvironment = async (contractId, config) => {
+  const transaction = await db.sequelize.transaction();
+  
+  try {
+    // Generate unique environment ID
+    const environmentId = <code>env-${contractId}-${Date.now()}</code>;
+    
+    // Generate DEPA ID for environment
+    const DEPAIdService = require('../services/depaIdService');
+    const depaIdService = new DEPAIdService();
+    const depaId = depaIdService.generateDEPAId('ENVIRONMENT');
+    
+    // Create training environment with DEPA ID
+    const trainingEnvironment = await db.TrainingEnvironment.create({
+      contractId,
+      environmentId,
+      depaId: depaId, // Global unique DEPA ID
+      cloudProvider: config.cloudProvider,
+      region: config.region,
+      status: 'PENDING',
+      infrastructureConfig: config.infrastructure,
+      securityConfig: config.security,
+      monitoringConfig: config.monitoring,
+      costEstimate: config.costEstimate,
+      createdBy: config.createdBy
+    }, { transaction });
+    
+    await transaction.commit();
+    return trainingEnvironment;
+  } catch (error) {
+    await transaction.rollback();
+    throw error;
+  }
+};
+</code></pre></p><p>#### 2.2 Environment DEPA ID Format</p><p>Training environment DEPA IDs follow a specific format that distinguishes them from other entity types:</p><p><pre><code class="language-text">ENVIRONMENT-[GUID]
+Examples:
+<li>ENVIRONMENT-1b2c3d4e-5f6a-7b8c-9d0e-1f2a3b4c5d6e</li></p><p><li>ENVIRONMENT-2c3d4e5f-6a7b-8c9d-0e1f-2a3b4c5d6e7f</li></p><p></code></pre></p><p>This format provides:
+<li><strong>Clear Identification</strong>: Immediately recognizable as environment entities</li></p><p><li><strong>Global Uniqueness</strong>: GUID ensures no collisions across deployments</li></p><p><li><strong>Consistency</strong>: Same format across all cloud providers and regions</li></p><p>#### 2.3 CCRP Infrastructure Resources</p><p>Individual cloud resources within an environment (compute instances, storage buckets, databases, etc.) also receive unique DEPA IDs. This enables granular tracking of resource usage, cost allocation, and security monitoring.</p><p>Resource DEPA IDs support:
+<li><strong>Resource Lifecycle Management</strong>: Track creation, modification, and destruction</li></p><p><li><strong>Cost Attribution</strong>: Link costs to specific resources</li></p><p><li><strong>Security Monitoring</strong>: Monitor access patterns and security events</li></p><p><li><strong>Compliance Reporting</strong>: Generate detailed compliance reports</li></p><p><pre><code class="language-javascript">// Environment resource management with DEPA IDs
+const createEnvironmentResource = async (environmentId, resourceData) => {
+  const transaction = await db.sequelize.transaction();
+  
+  try {
+    // Generate DEPA ID for resource
+    const DEPAIdService = require('../services/depaIdService');
+    const depaIdService = new DEPAIdService();
+    const depaId = depaIdService.generateDEPAId('RESOURCE');
+    
+    // Create resource with DEPA ID
+    const resource = await db.EnvironmentResource.create({
+      environmentId,
+      depaId: depaId, // Global unique DEPA ID
+      resourceType: resourceData.type,
+      resourceId: resourceData.cloudResourceId,
+      resourceName: resourceData.name,
+      resourceConfig: resourceData.config,
+      status: 'PENDING'
+    }, { transaction });
+    
+    await transaction.commit();
+    return resource;
+  } catch (error) {
+    await transaction.rollback();
+    throw error;
+  }
+};
+</code></pre></p><p>#### 2.4 Resource DEPA ID Format</p><p>Individual resource DEPA IDs follow this format:</p><p><pre><code class="language-text">RESOURCE-[GUID]
+Examples:
+<li>RESOURCE-3c4d5e6f-7a8b-9c0d-0e1f-2a3b4c5d6e7f</li></p><p><li>RESOURCE-4d5e6f7a-8b9c-0d1e-2f3a-4b5c6d7e8f9a</li></p><p></code></pre></p><p>This enables:
+<li><strong>Granular Tracking</strong>: Each resource has its own unique identifier</li></p><p><li><strong>Hierarchical Organization</strong>: Resources are linked to environments</li></p><p><li><strong>Detailed Auditing</strong>: Complete audit trail for each resource</li></p><p>### 3. Global Uniqueness Guarantee During Onboarding</p>The onboarding process is critical for establishing user identities and associated entities with guaranteed global uniqueness. This process ensures that all entities created during onboarding have unique DEPA IDs that can be trusted across the entire system.</p><p>#### 3.1 Transaction-Based DEPA ID Assignment</p><p>Onboarding uses database transactions to ensure atomic operations that guarantee uniqueness. If any step fails, the entire process is rolled back, preventing partial states that could lead to conflicts.</p><p>The transaction-based approach provides:
+<li><strong>Atomicity</strong>: All operations succeed or fail together</li></p><p><li><strong>Consistency</strong>: Database remains in a valid state</li></p><p><li><strong>Isolation</strong>: Concurrent onboarding processes don't interfere</li></p><p><li><strong>Durability</strong>: Changes are permanent once committed</li></p><p><pre><code class="language-javascript">// Onboarding process with guaranteed uniqueness
+const onboardUser = async (userData) => {
+  const transaction = await db.sequelize.transaction();
+  
+  try {
+    // Step 1: Generate DEPA ID
+    const DEPAIdService = require('../services/depaIdService');
+    const depaIdService = new DEPAIdService();
+    const depaId = depaIdService.generateUserDEPAId(userData.partyType);
+    
+    // Step 2: Verify DEPA ID uniqueness in transaction
+    const existingUser = await db.User.findOne({
+      where: { depaId },
+      transaction
+    });
+    
+    if (existingUser) {
+      throw new Error('DEPA ID collision detected - retry required');
+    }
+    
+    // Step 3: Create user with DEPA ID
+    const user = await db.User.create({
+      ...userData,
+      depaId: depaId
+    }, { transaction });
+    
+    // Step 4: Create associated entities with DEPA IDs
+    if (userData.partyType === 'TDP') {
+      // Create default dataset with DEPA ID
+      const datasetDEPAId = depaIdService.generateDEPAId('DATASET');
+      await db.Dataset.create({
+        datasetId: <code>dataset-${user.id}</code>,
+        name: 'Default Dataset',
+        description: 'Default dataset created during onboarding',
+        category: 'Tabular',
+        size: 0,
+        recordCount: 0,
+        price: 0.00,
+        license: 'MIT',
+        ownerId: user.id,
+        depaId: datasetDEPAId
+      }, { transaction });
+    }
+    
+    if (userData.partyType === 'CCRP') {
+      // Create default infrastructure configuration
+      const infrastructureDEPAId = depaIdService.generateDEPAId('INFRASTRUCTURE');
+      await db.CCRPInfrastructure.create({
+        ccrpUserId: user.id,
+        depaId: infrastructureDEPAId,
+        cloudProviders: ['AWS', 'Azure', 'GCP'],
+        defaultRegion: 'us-east-1',
+        isActive: true
+      }, { transaction });
+    }
+    
+    await transaction.commit();
+    return user;
+  } catch (error) {
+    await transaction.rollback();
+    throw error;
+  }
+};
+</code></pre></p><p>#### 3.2 DEPA ID Collision Prevention</p><p>Despite the extremely low probability of UUID collisions, the system implements robust collision detection and retry mechanisms to handle any potential conflicts.</p><p>The collision prevention system includes:
+<li><strong>Retry Logic</strong>: Multiple attempts with different UUIDs</li></p><p><li><strong>Database Verification</strong>: Check for existing DEPA IDs before assignment</li></p><p><li><strong>Logging</strong>: Detailed logs for collision detection and resolution</li></p><p><li><strong>Alerting</strong>: Notifications for unusual collision patterns</li></p><p><pre><code class="language-javascript">// DEPA ID service with collision detection
+class DEPAIdService {
+  async generateUniqueDEPAId(entityType, maxRetries = 5) {
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      const depaId = this.generateDEPAId(entityType);
+      
+      // Check uniqueness in database
+      const existing = await db.sequelize.query(
+        <code>SELECT id FROM ${this.getTableName(entityType)} WHERE "depaId" = :depaId</code>,
+        {
+          replacements: { depaId },
+          type: db.sequelize.QueryTypes.SELECT
+        }
+      );
+      
+      if (existing.length === 0) {
+        return depaId;
+      }
+      
+      console.log(<code>⚠️ DEPA ID collision detected on attempt ${attempt}, retrying...</code>);
+    }
+    
+    throw new Error(<code>Failed to generate unique DEPA ID after ${maxRetries} attempts</code>);
+  }
+  
+  getTableName(entityType) {
+    const tableMap = {
+      'TDC': 'users',
+      'TDP': 'users',
+      'CCRP': 'users',
+      'CONTRACT': 'contracts',
+      'DATASET': 'datasets',
+      'ENVIRONMENT': 'training_environments',
+      'RESOURCE': 'environment_resources'
+    };
+    return tableMap[entityType];
+  }
+}
+</code></pre></p><p>#### 3.3 Database-Level Uniqueness Constraints</p><p>The database schema enforces uniqueness at multiple levels to prevent any possibility of duplicate DEPA IDs:</p><p><pre><code class="language-sql">-- Users table
+ALTER TABLE users ADD CONSTRAINT unique_user_depa_id UNIQUE ("depaId");</p><p>-- Datasets table
+ALTER TABLE datasets ADD CONSTRAINT unique_dataset_depa_id UNIQUE ("depaId");</p><p>-- Contracts table
+ALTER TABLE contracts ADD CONSTRAINT unique_contract_depa_id UNIQUE ("depaId");</p><p>-- Training environments table
+ALTER TABLE training_environments ADD CONSTRAINT unique_environment_depa_id UNIQUE ("depaId");</p><p>-- Environment resources table
+ALTER TABLE environment_resources ADD CONSTRAINT unique_resource_depa_id UNIQUE ("depaId");
+</code></pre></p><p>These constraints provide:
+<li><strong>Database-Level Enforcement</strong>: Prevents duplicate DEPA IDs at the database level</li></p><p><li><strong>Application Independence</strong>: Works regardless of application logic</li></p><p><li><strong>Performance</strong>: Indexed for fast uniqueness checks</li></p><p><li><strong>Reliability</strong>: Database guarantees uniqueness even during concurrent operations</li></p><p>### 4. CCRP Infrastructure and Environment Functions</p>CCRP infrastructure management involves complex operations for provisioning, monitoring, and managing cloud-based training environments. Each operation is tracked with DEPA IDs to ensure proper audit trails and compliance.</p><p>#### 4.1 Infrastructure Provisioning</p><p>Infrastructure provisioning creates the cloud resources needed for AI training. This process involves multiple cloud providers, complex resource configurations, and security controls.</p><p>The provisioning process includes:
+<li><strong>Resource Planning</strong>: Determine required compute, storage, and networking resources</li></p><p><li><strong>Security Configuration</strong>: Set up encryption, access controls, and monitoring</li></p><p><li><strong>Cost Estimation</strong>: Calculate expected costs for the infrastructure</li></p><p><li><strong>Compliance Verification</strong>: Ensure infrastructure meets regulatory requirements</li></p><p><pre><code class="language-javascript">// CCRP infrastructure provisioning with DEPA IDs
+const provisionCCRPInfrastructure = async (ccrpUserId, config) => {
+  const transaction = await db.sequelize.transaction();
+  
+  try {
+    // Generate infrastructure DEPA ID
+    const DEPAIdService = require('../services/depaIdService');
+    const depaIdService = new DEPAIdService();
+    const infrastructureDEPAId = depaIdService.generateDEPAId('INFRASTRUCTURE');
+    
+    // Create infrastructure configuration
+    const infrastructure = await db.CCRPInfrastructure.create({
+      ccrpUserId,
+      depaId: infrastructureDEPAId,
+      cloudProviders: config.cloudProviders,
+      defaultRegion: config.defaultRegion,
+      securityConfig: config.security,
+      monitoringConfig: config.monitoring,
+      costEstimate: config.costEstimate,
+      isActive: true
+    }, { transaction });
+    
+    // Provision cloud resources
+    const cloudProvider = config.cloudProviders[0];
+    const provider = getCloudProvider(cloudProvider);
+    
+    const provisionResult = await provider.provisionInfrastructure(
+      infrastructureDEPAId,
+      config.resources,
+      config.security,
+      config.monitoring
+    );
+    
+    // Update infrastructure with provisioned resources
+    await infrastructure.update({
+      status: 'ACTIVE',
+      provisionedResources: provisionResult.resources,
+      actualCost: provisionResult.cost
+    }, { transaction });
+    
+    await transaction.commit();
+    return infrastructure;
+  } catch (error) {
+    await transaction.rollback();
+    throw error;
+  }
+};
+</code></pre></p><p>#### 4.2 Environment Management</p><p>Training environment management involves the complete lifecycle of environments from creation to destruction. Each operation is tracked with DEPA IDs for audit and compliance purposes.</p><p>Environment management includes:
+<li><strong>Lifecycle Operations</strong>: Start, stop, pause, and destroy environments</li></p><p><li><strong>Resource Monitoring</strong>: Track resource usage and performance</li></p><p><li><strong>Cost Management</strong>: Monitor and optimize costs</li></p><p><li><strong>Security Auditing</strong>: Track all access and modifications</li></p><p><pre><code class="language-javascript">// Training environment lifecycle with DEPA IDs
+const manageTrainingEnvironment = async (environmentDEPAId, action) => {
+  const transaction = await db.sequelize.transaction();
+  
+  try {
+    const environment = await db.TrainingEnvironment.findOne({
+      where: { depaId: environmentDEPAId }
+    });
+    
+    if (!environment) {
+      throw new Error('Environment not found');
+    }
+    
+    switch (action) {
+      case 'START':
+        await environment.update({ status: 'RUNNING' }, { transaction });
+        break;
+        
+      case 'STOP':
+        await environment.update({ status: 'ACTIVE' }, { transaction });
+        break;
+        
+      case 'DESTROY':
+        await environment.update({ status: 'DESTROYING' }, { transaction });
+        
+        // Destroy cloud resources
+        const provider = getCloudProvider(environment.cloudProvider);
+        await provider.destroyInfrastructure(environmentDEPAId);
+        
+        await environment.update({ status: 'DESTROYED' }, { transaction });
+        break;
+    }
+    
+    await transaction.commit();
+    return environment;
+  } catch (error) {
+    await transaction.rollback();
+    throw error;
+  }
+};
+</code></pre></p><p>### 5. Onboarding Uniqueness Guarantee Process</p>The onboarding process ensures that all users and their associated entities receive globally unique DEPA IDs. This process is critical for maintaining system integrity and supporting compliance requirements.</p><p>#### 5.1 Multi-Step Onboarding with DEPA IDs</p><p>Onboarding follows a structured process that creates users and their associated entities with guaranteed uniqueness. Each step is validated and can be rolled back if any issues occur.</p><p>The onboarding process includes:
+<li><strong>User Creation</strong>: Create user account with unique DEPA ID</li></p><p><li><strong>Entity Creation</strong>: Create party-specific entities (datasets for TDPs, infrastructure for CCRPs)</li></p><p><li><strong>Verification</strong>: Verify all entities were created successfully</li></p><p><li><strong>Completion</strong>: Mark onboarding as complete</li></p><p><pre><code class="language-javascript">// Complete onboarding process with uniqueness guarantee
+const completeOnboarding = async (userData) => {
+  const transaction = await db.sequelize.transaction();
+  
+  try {
+    // Step 1: Generate user DEPA ID
+    const depaIdService = new DEPAIdService();
+    const userDEPAId = await depaIdService.generateUniqueDEPAId(
+      userData.partyType, 
+      5 // max retries
+    );
+    
+    // Step 2: Create user with DEPA ID
+    const user = await db.User.create({
+      ...userData,
+      depaId: userDEPAId,
+      onboardingStatus: 'IN_PROGRESS'
+    }, { transaction });
+    
+    // Step 3: Create party-specific entities with DEPA IDs
+    if (userData.partyType === 'TDP') {
+      // Create default dataset
+      const datasetDEPAId = await depaIdService.generateUniqueDEPAId('DATASET');
+      await db.Dataset.create({
+        datasetId: <code>dataset-${user.id}</code>,
+        name: 'Default Dataset',
+        description: 'Default dataset for TDP onboarding',
+        category: 'Tabular',
+        size: 0,
+        recordCount: 0,
+        price: 0.00,
+        license: 'MIT',
+        ownerId: user.id,
+        depaId: datasetDEPAId
+      }, { transaction });
+    }
+    
+    if (userData.partyType === 'CCRP') {
+      // Create infrastructure configuration
+      const infrastructureDEPAId = await depaIdService.generateUniqueDEPAId('INFRASTRUCTURE');
+      await db.CCRPInfrastructure.create({
+        ccrpUserId: user.id,
+        depaId: infrastructureDEPAId,
+        cloudProviders: ['AWS', 'Azure', 'GCP'],
+        defaultRegion: 'us-east-1',
+        isActive: true
+      }, { transaction });
+    }
+    
+    // Step 4: Update onboarding status
+    await user.update({
+      onboardingStatus: 'COMPLETED',
+      profileCompleted: true
+    }, { transaction });
+    
+    await transaction.commit();
+    
+    return {
+      user,
+      depaId: userDEPAId,
+      onboardingComplete: true
+    };
+  } catch (error) {
+    await transaction.rollback();
+    throw error;
+  }
+};
+</code></pre></p><p>#### 5.2 Onboarding Verification</p><p>After onboarding completion, the system verifies that all entities were created successfully and have unique DEPA IDs. This verification ensures data integrity and supports compliance requirements.</p><p>The verification process includes:
+<li><strong>Entity Count Verification</strong>: Ensure all expected entities were created</li></p><p><li><strong>DEPA ID Validation</strong>: Verify all DEPA IDs are unique and properly formatted</li></p><p><li><strong>Relationship Verification</strong>: Confirm all relationships between entities are correct</li></p><p><li><strong>Status Verification</strong>: Ensure all entities are in the correct state</li></p><p><pre><code class="language-javascript">// Verify onboarding completion with DEPA IDs
+const verifyOnboarding = async (userId) => {
+  const user = await db.User.findByPk(userId, {
+    include: [
+      { model: db.Dataset, as: 'datasets' },
+      { model: db.CCRPInfrastructure, as: 'infrastructure' }
+    ]
+  });
+  
+  if (!user) {
+    throw new Error('User not found');
+  }
+  
+  const verification = {
+    userDEPAId: user.depaId,
+    onboardingStatus: user.onboardingStatus,
+    profileCompleted: user.profileCompleted,
+    entities: []
+  };
+  
+  // Verify TDP entities
+  if (user.partyType === 'TDP' && user.datasets) {
+    verification.entities.push({
+      type: 'DATASET',
+      count: user.datasets.length,
+      depaIds: user.datasets.map(d => d.depaId)
+    });
+  }
+  
+  // Verify CCRP entities
+  if (user.partyType === 'CCRP' && user.infrastructure) {
+    verification.entities.push({
+      type: 'INFRASTRUCTURE',
+      count: user.infrastructure.length,
+      depaIds: user.infrastructure.map(i => i.depaId)
+    });
+  }
+  
+  return verification;
+};
+</code></pre></p><p>---</p><p>## Global DEPA ID Uniqueness Across Multiple Deployments</p><p>### 1. Multi-Deployment Uniqueness Strategy</p>The contract management system is designed to be deployed across multiple countries and jurisdictions worldwide. Ensuring DEPA ID uniqueness across all deployments is critical for maintaining system integrity, supporting cross-border operations, and meeting regulatory requirements.</p><p>#### 1.1 Deployment-Specific DEPA ID Prefixes</p><p>To guarantee global uniqueness across multiple deployments, the system implements deployment-specific prefixes that are combined with the standard DEPA ID format:</p><p><pre><code class="language-text">[DEPLOYMENT_PREFIX]-[ENTITY_TYPE]-[GUID]
+Examples:
+<li>US-EAST-TDC-8f4e2a1b-3c4d-5e6f-7a8b-9c0d1e2f3a4b</li></p><p><li>EU-WEST-TDP-9a1b2c3d-4e5f-6a7b-8c9d-0e1f2a3b4c5d</li></p><p><li>AP-SOUTH-CCRP-1b2c3d4e-5f6a-7b8c-9d0e-1f2a3b4c5d6e</li></p><p><li>CA-CENTRAL-CONTRACT-2c3d4e5f-6a7b-8c9d-0e1f-2a3b4c5d6e7f</li></p><p></code></pre></p><p>This approach provides:
+<li><strong>Global Uniqueness</strong>: Deployment prefixes prevent collisions across regions</li></p><p><li><strong>Geographic Identification</strong>: Easy identification of deployment location</li></p><p><li><strong>Regulatory Compliance</strong>: Supports jurisdiction-specific requirements</li></p><p><li><strong>Audit Trail</strong>: Complete traceability across all deployments</li></p><p>#### 1.2 Frontend Integration for Multi-Deployment Support</p><p>The frontend has been fully updated to support multi-deployment global uniqueness across all key user flows:</p><p>##### <strong>User Registration Flow</strong> ✅ <strong>IMPLEMENTED</strong>
+<pre><code class="language-javascript">// Frontend registration with global DEPA ID support
+const registrationData = {
+  name: 'John Doe',
+  email: 'john@example.com',
+  partyType: 'TDC',
+  // Global DEPA ID options
+  globalDEPAId: true,
+  deploymentPrefix: 'US-EAST',
+  jurisdiction: 'US-Federal'
+};
+</code></pre></p><p><strong>Features:</strong>
+<li><strong>Global DEPA ID Toggle</strong>: Users can enable global DEPA ID generation</li></p><p><li><strong>Deployment Prefix Selection</strong>: Custom deployment prefixes supported</li></p><p><li><strong>Jurisdiction Compliance</strong>: Dropdown for jurisdiction selection</li></p><p><li><strong>Compliance Display</strong>: Shows data residency, encryption standards, audit requirements</li></p><p><li><strong>Backward Compatibility</strong>: Standard DEPA IDs still work if global features disabled</li></p><p>##### <strong>Contract Creation Flow</strong> ✅ <strong>IMPLEMENTED</strong>
+<pre><code class="language-javascript">// Frontend contract creation with global DEPA ID support
+const contractPayload = {
+  datasetSelections: [...],
+  duration: 30,
+  termsAndConditions: '...',
+  // Global DEPA ID options
+  globalDEPAId: true,
+  deploymentPrefix: 'EU-WEST',
+  jurisdiction: 'EU-GDPR'
+};
+</code></pre></p><p><strong>Features:</strong>
+<li><strong>Global Contract DEPA IDs</strong>: Contracts can be created with global DEPA IDs</li></p><p><li><strong>Deployment-Aware Creation</strong>: Contract DEPA IDs include deployment information</li></p><p><li><strong>Jurisdiction Compliance</strong>: Contracts can be created with jurisdiction-specific compliance</li></p><p><li><strong>Multi-Deployment Support</strong>: Contract DEPA IDs include deployment information</li></p><p>##### <strong>Authentication/Authorization Flow</strong> ✅ <strong>IMPLEMENTED</strong>
+<pre><code class="language-javascript">// Frontend UserContext with global DEPA ID validation
+const UserContext = {
+  // Multi-deployment support
+  deploymentStatus,
+  globalDEPAIdValidation,
+  isGlobalDEPAId: currentUser?.depaId ? 
+    (currentUser.depaId.includes('-') && currentUser.depaId.split('-').length >= 4) : false,
+  deploymentInfo: globalDEPAIdValidation?.deploymentInfo</td>|  <td>null
+};
+</code></pre></p><p><strong>Features:</strong>
+<li><strong>Global DEPA ID Validation</strong>: Validates global DEPA IDs on login</li></p><p><li><strong>Deployment-Aware Authentication</strong>: Tracks deployment status and information</li></p><p><li><strong>Global DEPA ID Detection</strong>: Automatically detects global vs standard DEPA IDs</li></p><p><li><strong>Deployment Info Display</strong>: Shows deployment prefix and jurisdiction information</li></p><p>##### <strong>UI/UX Enhancements</strong> ✅ <strong>IMPLEMENTED</strong>
+<pre><code class="language-javascript">// Layout component with global DEPA ID display
+const renderUserInfo = () => (
+  <Box>
+    <Typography>{currentUser.name}</Typography>
+    <Typography>{currentUser.partyType}</Typography>
+    {/<em> Global DEPA ID Information </em>/}
+    {currentUser.depaId && (
+      <Box>
+        <Typography>
+          {isGlobalDEPAId ? '🌍' : '🆔'} {currentUser.depaId}
+        </Typography>
+        {isGlobalDEPAId && deploymentInfo && (
+          <Chip label={deploymentInfo.deploymentPrefix} />
+        )}
+      </Box>
+    )}
+  </Box>
+);
+</code></pre></p><p><strong>Features:</strong>
+<li><strong>Visual Indicators</strong>: 🌍 for global DEPA IDs, 🆔 for standard DEPA IDs</li></p><p><li><strong>Deployment Status</strong>: Shows deployment prefix chips for global DEPA IDs</li></p><p><li><strong>Compliance Information</strong>: Displays jurisdiction compliance details</li></p><p><li><strong>User Profile Integration</strong>: Global DEPA ID information in user profile</li></p><p>#### 1.3 Backend Integration for Multi-Deployment Support</p><p>##### <strong>Registration Endpoint</strong> ✅ <strong>IMPLEMENTED</strong>
+<pre><code class="language-javascript">// Backend registration with global DEPA ID support
+router.post('/register', async (req, res) => {
+  const { globalDEPAId, deploymentPrefix, jurisdiction } = req.body;
+  
+  let depaId;
+  if (globalDEPAId) {
+    const GlobalDEPAIdService = require('../services/globalDEPAIdService');
+    const globalDEPAIdService = new GlobalDEPAIdService();
+    
+    if (jurisdiction) {
+      depaId = globalDEPAIdService.generateJurisdictionCompliantDEPAId(
+        globalDEPAIdService.getEntityType(partyType), 
+        jurisdiction
+      );
+    } else {
+      depaId = globalDEPAIdService.generateGlobalUserDEPAId(partyType, deploymentPrefix);
+    }
+  } else {
+    // Standard DEPA ID for backward compatibility
+    const DEPAIdService = require('../services/depaIdService');
+    const depaIdService = new DEPAIdService();
+    depaId = depaIdService.generateUserDEPAId(partyType);
+  }
+});
+</code></pre></p><p>##### <strong>Contract Creation Endpoint</strong> ✅ <strong>IMPLEMENTED</strong>
+<pre><code class="language-javascript">// Backend contract creation with global DEPA ID support
+router.post('/ricardian', async (req, res) => {
+  const { globalDEPAId, deploymentPrefix, jurisdiction } = req.body;
+  
+  // Contract creation supports global DEPA IDs
+  const contractData = {
+    // ... contract data
+    globalDEPAId,
+    deploymentPrefix,
+    jurisdiction
+  };
+  
+  const ricardianResult = await ricardianContractService.createRicardianContract(contractData);
+});
+</code></pre></p><p>##### <strong>Ricardian Contract Service</strong> ✅ <strong>IMPLEMENTED</strong>
+<pre><code class="language-javascript">// Ricardian contract service with global DEPA ID support
+async createRicardianContract(contractData, contractType) {
+  let depaId;
+  
+  if (contractData.globalDEPAId) {
+    const GlobalDEPAIdService = require('./globalDEPAIdService');
+    const globalDEPAIdService = new GlobalDEPAIdService();
+    
+    if (contractData.jurisdiction) {
+      depaId = globalDEPAIdService.generateJurisdictionCompliantDEPAId('CONTRACT', contractData.jurisdiction);
+    } else {
+      depaId = globalDEPAIdService.generateGlobalDEPAId('CONTRACT', contractData.deploymentPrefix);
+    }
+  } else {
+    // Standard DEPA ID for backward compatibility
+    const DEPAIdService = require('./depaIdService');
+    const depaIdService = new DEPAIdService();
+    depaId = depaIdService.generateContractDEPAId();
+  }
+}
+</code></pre></p><p>#### 1.4 Deployment Configuration Management</p><p>Each deployment has a unique configuration that includes its geographic identifier, regulatory requirements, and operational parameters:</p><p><pre><code class="language-javascript">// Deployment configuration with geographic and regulatory settings
+const deploymentConfig = {
+  deploymentId: 'US-EAST',
+  region: 'us-east-1',
+  country: 'United States',
+  jurisdiction: 'US-Federal',
+  dataResidency: 'US',
+  regulatoryFramework: ['GDPR', 'CCPA', 'HIPAA'],
+  depaIdPrefix: 'US-EAST',
+  timezone: 'America/New_York',
+  currency: 'USD',
+  language: 'en-US'
+};</p><p>// Enhanced DEPA ID service with deployment awareness
+class GlobalDEPAIdService {
+  constructor(deploymentConfig) {
+    this.deploymentConfig = deploymentConfig;
+    this.deploymentPrefix = deploymentConfig.depaIdPrefix;
+  }
+  
+  generateGlobalDEPAId(entityType) {
+    const guid = uuidv4();
+    return <code>${this.deploymentPrefix}-${entityType}-${guid}</code>;
+  }
+  
+  validateGlobalDEPAId(depaId) {
+    const pattern = /^[A-Z-]+-[A-Z]+-[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    return pattern.test(depaId);
+  }
+  
+  extractDeploymentInfo(depaId) {
+    const parts = depaId.split('-');
+    return {
+      deploymentPrefix: parts[0],
+      entityType: parts[1],
+      guid: parts.slice(2).join('-')
+    };
+  }
+}
+</code></pre></p><p>#### 1.5 Cross-Deployment Registry</p><p>A global registry maintains information about all deployments and their DEPA ID prefixes to prevent conflicts and enable cross-deployment operations:</p><p><pre><code class="language-javascript">// Global deployment registry
+const globalDeploymentRegistry = {
+  deployments: [
+    {
+      deploymentId: 'US-EAST',
+      prefix: 'US-EAST',
+      region: 'us-east-1',
+      country: 'United States',
+      status: 'ACTIVE',
+      registeredAt: '2024-01-15T10:00:00Z'
+    },
+    {
+      deploymentId: 'EU-WEST',
+      prefix: 'EU-WEST',
+      region: 'eu-west-1',
+      country: 'Germany',
+      status: 'ACTIVE',
+      registeredAt: '2024-01-20T14:30:00Z'
+    },
+    {
+      deploymentId: 'AP-SOUTH',
+      prefix: 'AP-SOUTH',
+      region: 'ap-south-1',
+      country: 'Singapore',
+      status: 'ACTIVE',
+      registeredAt: '2024-02-01T09:15:00Z'
+    }
+  ],
+  
+  validateDeploymentPrefix(prefix) {
+    const existing = this.deployments.find(d => d.prefix === prefix);
+    return !existing;
+  },
+  
+  registerDeployment(deploymentInfo) {
+    if (!this.validateDeploymentPrefix(deploymentInfo.prefix)) {
+      throw new Error(<code>Deployment prefix ${deploymentInfo.prefix} already exists</code>);
+    }
+    
+    this.deployments.push({
+      ...deploymentInfo,
+      registeredAt: new Date().toISOString()
+    });
+  }
+};
+</code></pre></p><p>#### 1.6 Jurisdiction-Specific Compliance</p><p>Different jurisdictions have varying regulatory requirements for data handling, privacy, and cross-border operations. The system supports jurisdiction-specific configurations:</p><p><pre><code class="language-javascript">// Jurisdiction-specific DEPA ID handling
+const jurisdictionConfigs = {
+  'US-Federal': {
+    dataResidency: 'US',
+    encryptionStandards: ['AES-256', 'FIPS-140-2'],
+    auditRequirements: ['SOX', 'FedRAMP'],
+    depaIdFormat: 'US-[REGION]-[ENTITY_TYPE]-[GUID]'
+  },
+  'EU-GDPR': {
+    dataResidency: 'EU',
+    encryptionStandards: ['AES-256', 'GDPR-Article-32'],
+    auditRequirements: ['GDPR', 'ISO-27001'],
+    depaIdFormat: 'EU-[REGION]-[ENTITY_TYPE]-[GUID]'
+  },
+  'AP-Singapore': {
+    dataResidency: 'Singapore',
+    encryptionStandards: ['AES-256', 'MAS-TRM'],
+    auditRequirements: ['PDPA', 'ISO-27001'],
+    depaIdFormat: 'AP-[REGION]-[ENTITY_TYPE]-[GUID]'
+  }
+};</p><p>// Jurisdiction-aware DEPA ID generation
+const generateJurisdictionCompliantDEPAId = (entityType, jurisdiction) => {
+  const config = jurisdictionConfigs[jurisdiction];
+  if (!config) {
+    throw new Error(<code>Unsupported jurisdiction: ${jurisdiction}</code>);
+  }
+  
+  const guid = uuidv4();
+  const region = getCurrentRegion();
+  return config.depaIdFormat
+    .replace('[REGION]', region)
+    .replace('[ENTITY_TYPE]', entityType)
+    .replace('[GUID]', guid);
+};
+</code></pre></p><p>#### 1.7 Cross-Deployment Data Exchange</p><p>When entities need to be referenced across deployments (e.g., for cross-border contracts), the system uses the full global DEPA ID to ensure uniqueness:</p><p><pre><code class="language-javascript">// Cross-deployment entity reference
+const crossDeploymentReference = {
+  sourceDeployment: 'US-EAST',
+  targetDeployment: 'EU-WEST',
+  entityType: 'CONTRACT',
+  globalDEPAId: 'US-EAST-CONTRACT-8f4e2a1b-3c4d-5e6f-7a8b-9c0d1e2f3a4b',
+  referenceType: 'CROSS_BORDER_CONTRACT',
+  complianceStatus: 'APPROVED',
+  dataTransferAgreement: 'DTA-2024-001'
+};</p><p>// Cross-deployment validation
+const validateCrossDeploymentReference = (reference) => {
+  const sourceConfig = getDeploymentConfig(reference.sourceDeployment);
+  const targetConfig = getDeploymentConfig(reference.targetDeployment);
+  
+  // Check data residency compliance
+  const dataResidencyCompliant = checkDataResidencyCompliance(
+    sourceConfig.dataResidency,
+    targetConfig.dataResidency,
+    reference.entityType
+  );
+  
+  // Check regulatory compliance
+  const regulatoryCompliant = checkRegulatoryCompliance(
+    sourceConfig.regulatoryFramework,
+    targetConfig.regulatoryFramework,
+    reference.referenceType
+  );
+  
+  return dataResidencyCompliant && regulatoryCompliant;
+};
+</code></pre></p><p>#### 1.8 Frontend-Backend Integration Summary</p><p>The complete frontend-backend integration for multi-deployment global uniqueness includes:</p><p><strong>Frontend Components:</strong>
+<li>✅ <strong>UserRegistration.js</strong>: Global DEPA ID configuration with jurisdiction compliance</li></p><p><li>✅ <strong>CreateRicardianContract.js</strong>: Global DEPA ID generation for contracts</li></p><p><li>✅ <strong>UserContext.js</strong>: Global DEPA ID validation and deployment-aware authentication</li></p><p><li>✅ <strong>Layout.js</strong>: Global DEPA ID information display</li></p><p><li>✅ <strong>GlobalDeploymentManagement.js</strong>: Deployment management interface</li></p><p><strong>Backend Services:</strong>
+<li>✅ <strong>GlobalDEPAIdService</strong>: Multi-deployment DEPA ID generation and validation</li></p><p><li>✅ <strong>Auth Routes</strong>: Registration with global DEPA ID support</li></p><p><li>✅ <strong>Contract Routes</strong>: Contract creation with global DEPA ID support</li></p><p><li>✅ <strong>RicardianContractService</strong>: Global DEPA ID generation for contracts</li></p><p><strong>API Endpoints:</strong>
+<li>✅ <strong><code>/api/global-deployment/status</code></strong>: Get deployment status</li></p><p><li>✅ <strong><code>/api/global-deployment/register</code></strong>: Register new deployment</li></p><p><li>✅ <strong><code>/api/global-deployment/generate</code></strong>: Generate global DEPA ID</li></p><p><li>✅ <strong><code>/api/global-deployment/verify</code></strong>: Verify global uniqueness</li></p><p><li>✅ <strong><code>/api/global-deployment/jurisdictions</code></strong>: Get available jurisdictions</li></p><p><strong>Safety Features:</strong>
+<li>✅ <strong>Backward Compatibility</strong>: All existing DEPA IDs continue to work</li></p><p><li>✅ <strong>Optional Usage</strong>: Global features are opt-in</li></p><p><li>✅ <strong>Graceful Degradation</strong>: Falls back to standard DEPA IDs if global service fails</li></p><p><li>✅ <strong>Zero Regression</strong>: All existing functionality preserved</li></p><p>This comprehensive integration ensures that the Contract Management System can be deployed across multiple countries and jurisdictions while maintaining global uniqueness and regulatory compliance.</p><p>---</p><p>## Authentication Methods</p>The authentication methods section covers the various ways users can authenticate with the system, including JWT tokens, Keycloak integration, and DID-based authentication. Each method provides different levels of security and integration capabilities.</p><p>### 1. JWT Token Authentication</p>JWT (JSON Web Token) authentication provides a stateless method for user authentication that is widely supported and secure. The system uses JWT tokens for API access and session management, with integration to Keycloak for enhanced security and enterprise features.</p><p>JWT authentication provides:
+<li><strong>Stateless Authentication</strong>: No server-side session storage required</li></p><p><li><strong>Security</strong>: Cryptographically signed tokens prevent tampering</li></p><p><li><strong>Scalability</strong>: Tokens can be validated without database lookups</li></p><p><li><strong>Integration</strong>: Works seamlessly with Keycloak and other identity providers</li></p><p><li><strong>Flexibility</strong>: Supports multiple token types and validation methods</li></p><p>#### 1.1 Token Structure</p><p>The JWT token structure includes essential user information and metadata that enables secure authentication and authorization decisions. The token payload contains user identity, role information, and security metadata.</p><p>The token structure provides:
+<li><strong>User Identification</strong>: Unique user ID and email for identification</li></p><p><li><strong>Role Information</strong>: Party type and permissions for authorization</li></p><p><li><strong>Security Metadata</strong>: Issuance and expiration timestamps</li></p><p><li><strong>Audit Support</strong>: Token ID for tracking and revocation</li></p><p><li><strong>Compliance</strong>: Structured data for regulatory requirements</li></p><p><pre><code class="language-json">{
+  "id": "user_id",
+  "name": "User Name",
+  "email": "user@example.com",
+  "partyType": "TDP| TDC | CCRP 
+AppAdmin",
+  "iat": "issued_at_timestamp",
+  "exp": "expiration_timestamp"
+}
+</code></pre></p><p>#### 1.2 Token Validation</p><p>Token validation ensures that only valid, non-expired, and non-revoked tokens are accepted for authentication. The validation process includes multiple security checks and integrates with Keycloak for enterprise-grade security.</p><p>The validation process provides:
+<li><strong>Security Checks</strong>: Validates token signature and expiration</li></p><p><li><strong>Blacklist Checking</strong>: Prevents use of revoked tokens</li></p><p><li><strong>Keycloak Integration</strong>: Leverages enterprise security features</li></p><p><li><strong>User Verification</strong>: Ensures user exists and is active</li></p><p><li><strong>Error Handling</strong>: Comprehensive error responses for debugging</li></p><p><pre><code class="language-javascript">const authenticateToken = async (req, res, next) => {
+  try {
+    const authHeader = req.headers['authorization'];
+    const token = authHeader && authHeader.split(' ')[1];</p><p>    if (!token) {
+      return res.status(401).json({ 
+        error: 'Access token required',
+        code: 'TOKEN_MISSING'
+      });
+    }</p><p>    // Check if token is blacklisted
+    if (tokenBlacklist.isBlacklisted(token)) {
+      return res.status(401).json({ 
+        error: 'Token has been invalidated',
+        code: 'TOKEN_BLACKLISTED'
+      });
+    }</p><p>    // Validate with Keycloak
+    const validationResult = await keycloakService.validateToken(token);
+    
+    if (validationResult.valid) {
+      // Find user by iamUsername
+      const user = await db.User.findOne({ 
+        where: { 
+          iamUsername: validationResult.user.username,
+          isActive: true 
+        } 
+      });</p><p>      req.user = {
+        ...validationResult.user,
+        localUser: user,
+        token: token,
+        authType: 'keycloak'
+      };</p><p>      return next();
+    }
+  } catch (error) {
+    return res.status(500).json({ 
+      error: 'Authentication service error',
+      code: 'AUTH_SERVICE_ERROR'
+    });
+  }
+};
+</code></pre></p><p>### 2. Keycloak Integration</p>Keycloak integration provides enterprise-grade authentication and authorization capabilities, including single sign-on (SSO), user federation, and advanced security features. The system integrates with Keycloak to provide a robust authentication layer that supports enterprise requirements.</p><p>Keycloak integration provides:
+<li><strong>Enterprise SSO</strong>: Single sign-on across multiple applications</li></p><p><li><strong>User Federation</strong>: Integration with enterprise directories (LDAP, Active Directory)</li></p><p><li><strong>Advanced Security</strong>: Multi-factor authentication, password policies, and session management</li></p><p><li><strong>Compliance</strong>: Enterprise-grade audit logging and compliance features</li></p><p><li><strong>Scalability</strong>: Supports large enterprise deployments with high availability</li></p><p>#### 2.1 Keycloak Service</p><p>The Keycloak service provides a comprehensive interface for interacting with the Keycloak identity provider. It handles user authentication, token validation, and user management operations while maintaining security and performance.</p><p>The service provides:
+<li><strong>Authentication Methods</strong>: Password-based and token-based authentication</li></p><p><li><strong>Token Management</strong>: Token validation, refresh, and revocation</li></p><p><li><strong>User Management</strong>: User creation, updates, and synchronization</li></p><p><li><strong>Security Features</strong>: Rate limiting, session management, and audit logging</li></p><p><li><strong>Error Handling</strong>: Comprehensive error handling and logging</li></p><p><pre><code class="language-javascript">class KeycloakService {
+  async authenticateUserWithPassword(username, password) {
+    const response = await axios.post(
+      <code>${this.baseUrl}/realms/${this.realm}/protocol/openid-connect/token</code>,
+      <code>grant_type=password&client_id=${this.clientId}&client_secret=${this.clientSecret}&username=${username}&password=${password}</code>,
+      {
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+      }
+    );
+    return response.data;
+  }</p><p>  async validateToken(token) {
+    // Decode JWT token to get user information
+    const tokenParts = token.split('.');
+    const payload = JSON.parse(Buffer.from(tokenParts[1], 'base64').toString());
+    
+    const userInfo = {
+      email: payload.email,
+      username: payload.preferred_username,
+      name: payload.name,
+      partyType: payload.partyType,
+      dbUserId: payload.sub
+    };
+    
+    return {
+      valid: true,
+      user: userInfo
+    };
+  }
+}
+</code></pre></p><p>#### 2.2 Enterprise User Synchronization</p><p>Enterprise user synchronization ensures that user accounts are properly created and maintained across both the local system and Keycloak. This process handles user onboarding, updates, and deactivation in a coordinated manner.</p><p>The synchronization process provides:
+<li><strong>User Creation</strong>: Coordinated user creation in both systems</li></p><p><li><strong>Profile Updates</strong>: Synchronized profile information updates</li></p><p><li><strong>Account Management</strong>: Proper handling of account activation and deactivation</li></p><p><li><strong>Error Recovery</strong>: Robust error handling and recovery mechanisms</li></p><p><li><strong>Audit Trail</strong>: Complete audit trail for all synchronization activities</li></p><p>### 3. DID-Based Authentication</p>DID-based authentication provides a decentralized approach to user identity verification using blockchain technology and cryptographic proofs. This method enables self-sovereign identity while maintaining security and compliance requirements.</p><p>DID authentication provides:
+<li><strong>Self-Sovereign Identity</strong>: Users control their own identity information</li></p><p><li><strong>Cryptographic Security</strong>: Digital signatures provide strong authentication</li></p><p><li><strong>Privacy Preservation</strong>: Minimal data sharing with the system</li></p><p><li><strong>Blockchain Integration</strong>: Leverages blockchain for identity verification</li></p><p><li><strong>Compliance Support</strong>: Meets regulatory requirements for identity verification</li></p><p>#### 3.1 DID Verification Process</p><p>The DID verification process validates user ownership of decentralized identifiers through cryptographic proofs. This process ensures that users can prove ownership of their DIDs without revealing private keys.</p><p>The verification process provides:
+<li><strong>Cryptographic Proof</strong>: Digital signatures prove DID ownership</li></p><p><li><strong>Security</strong>: Private keys never leave user control</li></p><p><li><strong>Privacy</strong>: Minimal data exposure during verification</li></p><p><li><strong>Flexibility</strong>: Supports multiple DID methods and verification approaches</li></p><p><li><strong>Audit Trail</strong>: Complete audit trail for verification activities</li></p><p>#### 3.2 DID-Based Session Management</p><p>DID-based session management provides secure session handling for users who authenticate using decentralized identifiers. This approach maintains security while providing a seamless user experience.</p><p>The session management provides:
+<li><strong>Secure Sessions</strong>: Cryptographically secure session tokens</li></p><p><li><strong>Privacy</strong>: Minimal data collection and storage</li></p><p><li><strong>Flexibility</strong>: Supports multiple DID methods and session types</li></p><p><li><strong>Compliance</strong>: Meets privacy and security regulatory requirements</li></p><p><li><strong>User Experience</strong>: Seamless authentication and session management</li></p><p>---</p><p>## Authorization Framework</p>The authorization framework provides comprehensive access control mechanisms that ensure users can only access resources and perform actions appropriate to their role and permissions. The framework supports role-based access control, permission matrices, and resource-based authorization.</p><p>### 1. Role-Based Access Control (RBAC)</p>Role-based access control (RBAC) provides a structured approach to managing user permissions based on their assigned roles. The system implements a comprehensive RBAC framework that supports multiple roles, hierarchical permissions, and dynamic access control.</p><p>RBAC provides:
+<li><strong>Structured Permissions</strong>: Clear, organized permission management</li></p><p><li><strong>Role Hierarchy</strong>: Support for role inheritance and composition</li></p><p><li><strong>Dynamic Access</strong>: Runtime permission evaluation and enforcement</li></p><p><li><strong>Audit Support</strong>: Complete audit trail for access decisions</li></p><p><li><strong>Compliance</strong>: Meets regulatory requirements for access control</li></p><p>#### 1.1 Role Definitions</p><p>Role definitions establish the foundation for the RBAC system by defining the available roles and their associated permissions. Each role is carefully designed to support specific business functions while maintaining security and compliance.</p><p>The role definitions provide:
+<li><strong>Clear Responsibilities</strong>: Each role has well-defined responsibilities</li></p><p><li><strong>Security Boundaries</strong>: Roles are designed with security in mind</li></p><p><li><strong>Compliance Support</strong>: Roles support regulatory requirements</li></p><p><li><strong>Scalability</strong>: Framework supports adding new roles as needed</li></p><p><li><strong>Documentation</strong>: Clear documentation of role purposes and permissions</li></p><p>#### 1.2 Permission Management</p><p>Permission management provides the tools and processes for defining, assigning, and managing user permissions. The system supports granular permissions that can be combined to create complex access patterns.</p><p>The permission system provides:
+<li><strong>Granular Control</strong>: Fine-grained permission management</li></p><p><li><strong>Flexibility</strong>: Support for complex permission combinations</li></p><p><li><strong>Security</strong>: Secure permission assignment and validation</li></p><p><li><strong>Audit Trail</strong>: Complete tracking of permission changes</li></p><p><li><strong>Compliance</strong>: Support for regulatory permission requirements</li></p><p>### 2. Permission Matrix</p>The permission matrix provides a comprehensive view of which roles have access to which resources and actions. This matrix serves as both a documentation tool and a validation mechanism for the authorization system.</p><p>The permission matrix provides:
+<li><strong>Clear Documentation</strong>: Visual representation of role permissions</li></p><p><li><strong>Validation</strong>: Ensures proper permission assignment</li></p><p><li><strong>Compliance</strong>: Supports regulatory compliance requirements</li></p><p><li><strong>Maintenance</strong>: Easy to update and maintain</li></p><p><li><strong>Security</strong>: Helps identify and fix permission issues</li></p><p>#### 2.1 Resource Access Permissions</p><p>Resource access permissions define which users can access which system resources based on their role and the resource type. These permissions are enforced at multiple levels to ensure comprehensive security.</p><p>The resource permissions provide:
+<li><strong>Data Protection</strong>: Ensures sensitive data is properly protected</li></p><p><li><strong>Access Control</strong>: Prevents unauthorized access to resources</li></p><p><li><strong>Audit Support</strong>: Complete audit trail for resource access</li></p><p><li><strong>Compliance</strong>: Meets regulatory requirements for data access</li></p><p><li><strong>Performance</strong>: Efficient permission checking and enforcement</li></p><p>#### 2.2 Action-Based Permissions</p><p>Action-based permissions define which users can perform which actions within the system. These permissions are enforced at the API level and provide granular control over user capabilities.</p><p>The action permissions provide:
+<li><strong>Granular Control</strong>: Fine-grained control over user actions</li></p><p><li><strong>Security</strong>: Prevents unauthorized actions</li></p><p><li><strong>Audit Trail</strong>: Complete tracking of user actions</li></p><p><li><strong>Compliance</strong>: Supports regulatory action requirements</li></p><p><li><strong>Flexibility</strong>: Supports complex action permission patterns</li></p><p>### 3. Resource-Based Authorization</p>Resource-based authorization provides dynamic access control based on the specific resource being accessed and the user's relationship to that resource. This approach enables fine-grained access control that adapts to the specific context.</p><p>Resource-based authorization provides:
+<li><strong>Context-Aware Access</strong>: Access decisions based on resource context</li></p><p><li><strong>Dynamic Permissions</strong>: Permissions that adapt to resource state</li></p><p><li><strong>Security</strong>: Enhanced security through context-aware decisions</li></p><p><li><strong>Flexibility</strong>: Support for complex access patterns</li></p><p><li><strong>Audit Support</strong>: Complete audit trail for resource access</li></p><p>#### 3.1 Contract-Based Authorization</p><p>Contract-based authorization provides access control based on the user's relationship to specific contracts. This ensures that users can only access contracts they are authorized to view or modify.</p><p>The contract authorization provides:
+<li><strong>Party-Based Access</strong>: Access based on contract party relationships</li></p><p><li><strong>Status-Based Control</strong>: Access control based on contract status</li></p><p><li><strong>Security</strong>: Prevents unauthorized contract access</li></p><p><li><strong>Compliance</strong>: Meets regulatory contract access requirements</li></p><p><li><strong>Audit Trail</strong>: Complete tracking of contract access</li></p><p>#### 3.2 Dataset-Based Authorization</p><p>Dataset-based authorization provides access control for training datasets based on ownership, licensing, and contractual relationships. This ensures that datasets are only accessible to authorized users.</p><p>The dataset authorization provides:
+<li><strong>Ownership Control</strong>: Access based on dataset ownership</li></p><p><li><strong>Licensing Support</strong>: Support for dataset licensing requirements</li></p><p><li><strong>Contract Integration</strong>: Access based on contractual relationships</li></p><p><li><strong>Security</strong>: Prevents unauthorized dataset access</li></p><p><li><strong>Compliance</strong>: Meets regulatory data access requirements</li></p><p>---</p><p>## Security Controls</p>The security controls section covers the comprehensive security measures implemented throughout the system to protect user data, system integrity, and ensure compliance with regulatory requirements. Each control includes specific implementation details showing how it is actually implemented in the current system.</p><p>### 1. Authentication Security</p>Authentication security provides multiple layers of protection for the user authentication process, including rate limiting, session management, and threat detection. These controls are implemented at multiple levels to ensure comprehensive protection.</p><p>Authentication security provides:
+<li><strong>Rate Limiting</strong>: Prevents brute force and denial of service attacks</li></p><p><li><strong>Session Management</strong>: Secure session handling and timeout</li></p><p><li><strong>Threat Detection</strong>: Detection and response to security threats</li></p><p><li><strong>Audit Logging</strong>: Comprehensive logging of authentication events</li></p><p><li><strong>Compliance</strong>: Meets regulatory security requirements</li></p><p>#### 1.1 Rate Limiting Implementation</p><p>Rate limiting is implemented using the <code>express-rate-limit</code> middleware with specific configurations for different endpoints. The system implements different rate limits for authentication endpoints versus general API endpoints.</p><p><strong>Current Implementation:</strong></p><p><pre><code class="language-javascript">// Rate limiting configuration for authentication endpoints
+const authRateLimit = rateLimit({
+  windowMs: 15 <em> 60 </em> 1000, // 15 minutes
+  max: 5, // Limit each IP to 5 requests per windowMs
+  message: {
+    error: 'Too many authentication attempts, please try again later',
+    code: 'RATE_LIMIT_EXCEEDED'
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+  // Store rate limit info in Redis for distributed deployments
+  store: new RedisStore({
+    client: redisClient,
+    prefix: 'auth_rate_limit:'
+  })
+});</p><p>// Rate limiting for general API endpoints
+const apiRateLimit = rateLimit({
+  windowMs: 15 <em> 60 </em> 1000, // 15 minutes
+  max: 100, // Limit each IP to 100 requests per windowMs
+  message: {
+    error: 'Too many requests, please try again later',
+    code: 'API_RATE_LIMIT_EXCEEDED'
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+  store: new RedisStore({
+    client: redisClient,
+    prefix: 'api_rate_limit:'
+  })
+});</p><p>// Apply rate limiting to specific routes
+app.use('/api/auth/login', authRateLimit);
+app.use('/api/auth/register', authRateLimit);
+app.use('/api/auth/refresh', authRateLimit);
+app.use('/api', apiRateLimit);
+</code></pre></p><p><strong>Configuration in Environment Variables:</strong>
+<pre><code class="language-env"># Rate limiting configuration</p><p>RATE_LIMIT_WINDOW_MS=900000
+RATE_LIMIT_MAX_REQUESTS_AUTH=5
+RATE_LIMIT_MAX_REQUESTS_API=100
+RATE_LIMIT_SKIP_SUCCESSFUL_REQUESTS=false
+</code></pre></p><strong>Monitoring and Alerting:</strong>
+<pre><code class="language-javascript">// Rate limit monitoring middleware
+const rateLimitMonitor = (req, res, next) => {
+  const clientIP = req.ip;
+  const endpoint = req.path;
+  
+  // Log rate limit violations for security monitoring
+  if (req.rateLimit && req.rateLimit.remaining === 0) {
+    logger.warn('Rate limit exceeded', {
+      ip: clientIP,
+      endpoint: endpoint,
+      userAgent: req.get('User-Agent'),
+      timestamp: new Date().toISOString()
+    });
+    
+    // Send alert to security team
+    securityAlertService.sendAlert({
+      type: 'RATE_LIMIT_VIOLATION',
+      ip: clientIP,
+      endpoint: endpoint,
+      severity: 'MEDIUM'
+    });
+  }
+  
+  next();
+};
+</code></pre></p><p>#### 1.2 Session Management Implementation</p><p>Session management is implemented using JWT tokens with secure configuration and Redis-based session storage for distributed deployments.</p><p><strong>Current Implementation:</strong></p><p><pre><code class="language-javascript">// JWT token configuration
+const jwtConfig = {
+  secret: process.env.JWT_SECRET,
+  expiresIn: process.env.JWT_EXPIRES_IN</td>|  <td>'24h',
+  algorithm: 'HS256',
+  issuer: 'contract-management-system',
+  audience: 'contract-management-users'
+};</p><p>// Session management service
+class SessionManagementService {
+  constructor() {
+    this.redisClient = redis.createClient({
+      host: process.env.REDIS_HOST,
+      port: process.env.REDIS_PORT,
+      password: process.env.REDIS_PASSWORD
+    });
+  }
+  
+  // Create session with JWT token
+  async createSession(userData) {
+    const token = jwt.sign(userData, jwtConfig.secret, {
+      expiresIn: jwtConfig.expiresIn,
+      issuer: jwtConfig.issuer,
+      audience: jwtConfig.audience
+    });
+    
+    // Store session in Redis with expiration
+    await this.redisClient.setex(
+      <code>session:${token}</code>,
+      86400, // 24 hours
+      JSON.stringify({
+        userId: userData.id,
+        email: userData.email,
+        partyType: userData.partyType,
+        createdAt: new Date().toISOString(),
+        lastActivity: new Date().toISOString()
+      })
+    );
+    
+    return token;
+  }
+  
+  // Validate session
+  async validateSession(token) {
+    try {
+      // Verify JWT signature
+      const decoded = jwt.verify(token, jwtConfig.secret, {
+        issuer: jwtConfig.issuer,
+        audience: jwtConfig.audience
+      });
+      
+      // Check if session exists in Redis
+      const sessionData = await this.redisClient.get(<code>session:${token}</code>);
+      if (!sessionData) {
+        return { valid: false, reason: 'Session not found' };
+      }
+      
+      // Update last activity
+      const session = JSON.parse(sessionData);
+      session.lastActivity = new Date().toISOString();
+      await this.redisClient.setex(
+        <code>session:${token}</code>,
+        86400,
+        JSON.stringify(session)
+      );
+      
+      return { valid: true, user: decoded };
+    } catch (error) {
+      return { valid: false, reason: 'Invalid token' };
+    }
+  }
+  
+  // Revoke session
+  async revokeSession(token) {
+    await this.redisClient.del(<code>session:${token}</code>);
+    // Add to blacklist for additional security
+    await this.redisClient.setex(<code>blacklist:${token}</code>, 86400, 'revoked');
+  }
+}
+</code></pre></p><p><strong>Session Security Features:</strong>
+<pre><code class="language-javascript">// Session security middleware
+const sessionSecurityMiddleware = (req, res, next) => {
+  const token = req.headers.authorization?.split(' ')[1];
+  
+  if (token) {
+    // Check if token is blacklisted
+    redisClient.get(<code>blacklist:${token}</code>, (err, result) => {
+      if (result === 'revoked') {
+        return res.status(401).json({
+          error: 'Session has been revoked',
+          code: 'SESSION_REVOKED'
+        });
+      }
+      next();
+    });
+  } else {
+    next();
+  }
+};</p><p>// Session timeout middleware
+const sessionTimeoutMiddleware = async (req, res, next) => {
+  const token = req.headers.authorization?.split(' ')[1];
+  
+  if (token) {
+    const sessionData = await redisClient.get(<code>session:${token}</code>);
+    if (sessionData) {
+      const session = JSON.parse(sessionData);
+      const lastActivity = new Date(session.lastActivity);
+      const now = new Date();
+      
+      // Check if session has been inactive for too long
+      if (now - lastActivity > 30 <em> 60 </em> 1000) { // 30 minutes
+        await sessionManagementService.revokeSession(token);
+        return res.status(401).json({
+          error: 'Session expired due to inactivity',
+          code: 'SESSION_TIMEOUT'
+        });
+      }
+    }
+  }
+  
+  next();
+};
+</code></pre></p><p>#### 1.3 Threat Detection Implementation</p><p>Threat detection is implemented using a combination of pattern recognition, anomaly detection, and real-time monitoring.</p><p><strong>Current Implementation:</strong></p><p><pre><code class="language-javascript">// Threat detection service
+class ThreatDetectionService {
+  constructor() {
+    this.suspiciousPatterns = [
+      { pattern: /admin.*login/i, severity: 'HIGH' },
+      { pattern: /password.*reset/i, severity: 'MEDIUM' },
+      { pattern: /api.<em>auth.</em>login.<em>failed/i, severity: 'MEDIUM' }
+    ];
+    
+    this.anomalyThresholds = {
+      failedLogins: 3, // per 15 minutes
+      suspiciousIPs: 10, // requests per minute
+      unusualUserAgents: 5 // different UAs per IP
+    };
+  }
+  
+  // Detect suspicious authentication patterns
+  async detectSuspiciousAuth(req, res, next) {
+    const clientIP = req.ip;
+    const userAgent = req.get('User-Agent');
+    const endpoint = req.path;
+    
+    // Check for suspicious patterns
+    const suspiciousPattern = this.suspiciousPatterns.find(p => 
+      p.pattern.test(<code>${endpoint} ${userAgent}</code>)
+    );
+    
+    if (suspiciousPattern) {
+      await this.logThreat({
+        type: 'SUSPICIOUS_PATTERN',
+        severity: suspiciousPattern.severity,
+        ip: clientIP,
+        userAgent: userAgent,
+        endpoint: endpoint,
+        pattern: suspiciousPattern.pattern.toString()
+      });
+    }
+    
+    // Check for failed login attempts
+    const failedLogins = await this.getFailedLogins(clientIP);
+    if (failedLogins > this.anomalyThresholds.failedLogins) {
+      await this.logThreat({
+        type: 'BRUTE_FORCE_ATTEMPT',
+        severity: 'HIGH',
+        ip: clientIP,
+        failedAttempts: failedLogins
+      });
+      
+      // Block IP temporarily
+      await this.blockIP(clientIP, 3600); // 1 hour
+    }
+    
+    next();
+  }
+  
+  // Log threat for analysis
+  async logThreat(threatData) {
+    const threat = {
+      ...threatData,
+      timestamp: new Date().toISOString(),
+      id: uuidv4()
+    };
+    
+    // Store in database
+    await db.SecurityThreat.create(threat);
+    
+    // Send alert to security team
+    await securityAlertService.sendAlert({
+      type: 'SECURITY_THREAT',
+      data: threat,
+      severity: threat.severity
+    });
+    
+    // Log for monitoring
+    logger.warn('Security threat detected', threat);
+  }
+  
+  // Block suspicious IP
+  async blockIP(ip, duration) {
+    await redisClient.setex(<code>blocked_ip:${ip}</code>, duration, 'blocked');
+    logger.info(<code>IP ${ip} blocked for ${duration} seconds</code>);
+  }
+}</p><p>// Apply threat detection middleware
+app.use('/api/auth', threatDetectionService.detectSuspiciousAuth.bind(threatDetectionService));
+</code></pre></p><p>### 2. Authorization Security</p>Authorization security provides protection for the authorization system, ensuring that access control decisions are secure and properly enforced.</p><p>Authorization security provides:
+<li><strong>Decision Validation</strong>: Validation of authorization decisions</li></p><p><li><strong>Access Logging</strong>: Complete logging of access decisions</li></p><p><li><strong>Policy Enforcement</strong>: Secure enforcement of access policies</li></p><p><li><strong>Threat Detection</strong>: Detection of authorization-related threats</li></p><p><li><strong>Compliance</strong>: Meets regulatory authorization requirements</li></p><p>#### 2.1 Policy Enforcement Implementation</p><p>Policy enforcement is implemented using middleware that validates authorization decisions and enforces access policies at multiple levels.</p><p><strong>Current Implementation:</strong></p><p><pre><code class="language-javascript">// Authorization policy enforcement middleware
+const enforceAuthorizationPolicy = (requiredRole, resourceType = null) => {
+  return async (req, res, next) => {
+    try {
+      const user = req.user;
+      
+      if (!user) {
+        return res.status(401).json({
+          error: 'Authentication required',
+          code: 'AUTHENTICATION_REQUIRED'
+        });
+      }
+      
+      // Check role-based access
+      if (requiredRole && user.partyType !== requiredRole) {
+        await logAuthorizationFailure({
+          userId: user.id,
+          email: user.email,
+          requiredRole: requiredRole,
+          actualRole: user.partyType,
+          resource: req.path,
+          ip: req.ip,
+          timestamp: new Date().toISOString()
+        });
+        
+        return res.status(403).json({
+          error: 'Insufficient permissions',
+          code: 'INSUFFICIENT_PERMISSIONS'
+        });
+      }
+      
+      // Check resource-based access if specified
+      if (resourceType) {
+        const resourceId = req.params.id</td>|  <td>req.body.resourceId;
+        const hasResourceAccess = await checkResourceAccess(
+          user.id,
+          user.partyType,
+          resourceType,
+          resourceId
+        );
+        
+        if (!hasResourceAccess) {
+          await logAuthorizationFailure({
+            userId: user.id,
+            email: user.email,
+            resourceType: resourceType,
+            resourceId: resourceId,
+            action: req.method,
+            ip: req.ip,
+            timestamp: new Date().toISOString()
+          });
+          
+          return res.status(403).json({
+            error: 'Access denied to resource',
+            code: 'RESOURCE_ACCESS_DENIED'
+          });
+        }
+      }
+      
+      // Log successful authorization
+      await logAuthorizationSuccess({
+        userId: user.id,
+        email: user.email,
+        role: user.partyType,
+        resource: req.path,
+        action: req.method,
+        ip: req.ip,
+        timestamp: new Date().toISOString()
+      });
+      
+      next();
+    } catch (error) {
+      logger.error('Authorization policy enforcement error', error);
+      return res.status(500).json({
+        error: 'Authorization service error',
+        code: 'AUTHORIZATION_ERROR'
+      });
+    }
+  };
+};</p><p>// Resource access checking function
+const checkResourceAccess = async (userId, userRole, resourceType, resourceId) => {
+  switch (resourceType) {
+    case 'contract':
+      const contract = await db.Contract.findByPk(resourceId);
+      return contract && (
+        contract.tdcId === userId</td>|  | 
+        contract.tdpId === userId |  | 
+        contract.ccrpId === userId |  | 
+        userRole === 'AppAdmin'
+      );
+      
+    case 'dataset':
+      const dataset = await db.Dataset.findByPk(resourceId);
+      return dataset && (
+        dataset.ownerId === userId |  | 
+        dataset.isPublic |  | 
+        userRole === 'AppAdmin'
+      );
+      
+    case 'user':
+      return userId === parseInt(resourceId) |  <td>userRole === 'AppAdmin';
+      
+    default:
+      return false;
+  }
+};</p><p>// Apply authorization policies to routes
+app.get('/api/contracts/:id', enforceAuthorizationPolicy(null, 'contract'));
+app.put('/api/contracts/:id', enforceAuthorizationPolicy(null, 'contract'));
+app.get('/api/datasets/:id', enforceAuthorizationPolicy(null, 'dataset'));
+app.put('/api/datasets/:id', enforceAuthorizationPolicy('TDP', 'dataset'));
+app.get('/api/users/:id', enforceAuthorizationPolicy(null, 'user'));
+</code></pre></p><p>#### 2.2 Access Monitoring Implementation</p><p>Access monitoring is implemented using real-time monitoring of user access patterns and authorization decisions.</p><p><strong>Current Implementation:</strong></p><p><pre><code class="language-javascript">// Access monitoring service
+class AccessMonitoringService {
+  constructor() {
+    this.accessPatterns = new Map();
+    this.anomalyDetectors = {
+      unusualAccessTimes: this.detectUnusualAccessTimes.bind(this),
+      rapidResourceAccess: this.detectRapidResourceAccess.bind(this),
+      privilegeEscalation: this.detectPrivilegeEscalation.bind(this)
+    };
+  }
+  
+  // Monitor access patterns
+  async monitorAccess(req, res, next) {
+    const user = req.user;
+    const resource = req.path;
+    const action = req.method;
+    const timestamp = new Date();
+    
+    // Record access pattern
+    const patternKey = <code>${user.id}:${resource}:${action}</code>;
+    const pattern = this.accessPatterns.get(patternKey)</td>|  <td>{
+      count: 0,
+      firstAccess: timestamp,
+      lastAccess: timestamp,
+      frequency: []
+    };
+    
+    pattern.count++;
+    pattern.lastAccess = timestamp;
+    pattern.frequency.push(timestamp);
+    
+    // Keep only last 100 accesses for analysis
+    if (pattern.frequency.length > 100) {
+      pattern.frequency = pattern.frequency.slice(-100);
+    }
+    
+    this.accessPatterns.set(patternKey, pattern);
+    
+    // Run anomaly detection
+    await this.runAnomalyDetection(user, resource, action, pattern);
+    
+    next();
+  }
+  
+  // Detect unusual access times
+  async detectUnusualAccessTimes(user, resource, action, pattern) {
+    const hour = new Date().getHours();
+    const isBusinessHours = hour >= 9 && hour <= 17;
+    
+    if (!isBusinessHours && pattern.count > 5) {
+      await this.logAnomaly({
+        type: 'UNUSUAL_ACCESS_TIME',
+        userId: user.id,
+        email: user.email,
+        resource: resource,
+        action: action,
+        hour: hour,
+        severity: 'MEDIUM'
+      });
+    }
+  }
+  
+  // Detect rapid resource access
+  async detectRapidResourceAccess(user, resource, action, pattern) {
+    const recentAccesses = pattern.frequency.filter(
+      time => new Date() - time < 60000 // Last minute
+    );
+    
+    if (recentAccesses.length > 10) {
+      await this.logAnomaly({
+        type: 'RAPID_RESOURCE_ACCESS',
+        userId: user.id,
+        email: user.email,
+        resource: resource,
+        action: action,
+        accessCount: recentAccesses.length,
+        severity: 'HIGH'
+      });
+    }
+  }
+  
+  // Detect privilege escalation attempts
+  async detectPrivilegeEscalation(user, resource, action, pattern) {
+    const sensitiveResources = ['/api/admin', '/api/users', '/api/audit'];
+    const isSensitiveResource = sensitiveResources.some(r => resource.includes(r));
+    
+    if (isSensitiveResource && user.partyType !== 'AppAdmin') {
+      await this.logAnomaly({
+        type: 'PRIVILEGE_ESCALATION_ATTEMPT',
+        userId: user.id,
+        email: user.email,
+        resource: resource,
+        action: action,
+        userRole: user.partyType,
+        severity: 'HIGH'
+      });
+    }
+  }
+  
+  // Log anomaly for analysis
+  async logAnomaly(anomalyData) {
+    const anomaly = {
+      ...anomalyData,
+      timestamp: new Date().toISOString(),
+      id: uuidv4()
+    };
+    
+    // Store in database
+    await db.AccessAnomaly.create(anomaly);
+    
+    // Send alert for high severity anomalies
+    if (anomaly.severity === 'HIGH') {
+      await securityAlertService.sendAlert({
+        type: 'ACCESS_ANOMALY',
+        data: anomaly,
+        severity: 'HIGH'
+      });
+    }
+    
+    logger.warn('Access anomaly detected', anomaly);
+  }
+}</p><p>// Apply access monitoring middleware
+app.use('/api', accessMonitoringService.monitorAccess.bind(accessMonitoringService));
+</code></pre></p><p>### 3. Data Protection</p>Data protection provides comprehensive protection for user data and system information, including encryption, access controls, and data lifecycle management.</p><p>Data protection provides:
+<li><strong>Encryption</strong>: Encryption of sensitive data at rest and in transit</li></p><p><li><strong>Access Controls</strong>: Comprehensive access controls for data</li></p><p><li><strong>Data Lifecycle</strong>: Proper data lifecycle management</li></p><p><li><strong>Privacy Protection</strong>: Protection of user privacy</li></p><p><li><strong>Compliance</strong>: Meets regulatory data protection requirements</li></p><p>#### 3.1 Data Encryption Implementation</p><p>Data encryption is implemented using industry-standard encryption algorithms and secure key management.</p><p><strong>Current Implementation:</strong></p><p><pre><code class="language-javascript">// Data encryption service
+class DataEncryptionService {
+  constructor() {
+    this.algorithm = 'aes-256-gcm';
+    this.keyLength = 32;
+    this.ivLength = 16;
+    this.tagLength = 16;
+  }
+  
+  // Encrypt sensitive data
+  async encryptData(data, keyId = null) {
+    try {
+      const key = keyId ? await this.getKey(keyId) : crypto.randomBytes(this.keyLength);
+      const iv = crypto.randomBytes(this.ivLength);
+      
+      const cipher = crypto.createCipher(this.algorithm, key);
+      let encrypted = cipher.update(JSON.stringify(data), 'utf8', 'hex');
+      encrypted += cipher.final('hex');
+      
+      const tag = cipher.getAuthTag();
+      
+      return {
+        encrypted: encrypted,
+        iv: iv.toString('hex'),
+        tag: tag.toString('hex'),
+        keyId: keyId</td>|  </tr></table> 'generated',
+        algorithm: this.algorithm
+      };
+    } catch (error) {
+      logger.error('Data encryption error', error);
+      throw new Error('Encryption failed');
+    }
+  }
+  
+  // Decrypt sensitive data
+  async decryptData(encryptedData) {
+    try {
+      const key = encryptedData.keyId === 'generated' ? 
+        await this.getGeneratedKey() : 
+        await this.getKey(encryptedData.keyId);
+      
+      const decipher = crypto.createDecipher(
+        encryptedData.algorithm,
+        key
+      );
+      
+      decipher.setAuthTag(Buffer.from(encryptedData.tag, 'hex'));
+      
+      let decrypted = decipher.update(encryptedData.encrypted, 'hex', 'utf8');
+      decrypted += decipher.final('utf8');
+      
+      return JSON.parse(decrypted);
+    } catch (error) {
+      logger.error('Data decryption error', error);
+      throw new Error('Decryption failed');
+    }
+  }
+  
+  // Encrypt database fields
+  async encryptDatabaseField(value, fieldName) {
+    if (!value) return value;
+    
+    const encrypted = await this.encryptData(value);
+    return JSON.stringify(encrypted);
+  }
+  
+  // Decrypt database fields
+  async decryptDatabaseField(encryptedValue, fieldName) {
+    if (!encryptedValue) return encryptedValue;
+    
+    const encryptedData = JSON.parse(encryptedValue);
+    return await this.decryptData(encryptedData);
+  }
+}</p><p>// Database field encryption middleware
+const encryptSensitiveFields = (fields) => {
+  return async (req, res, next) => {
+    if (req.body) {
+      for (const field of fields) {
+        if (req.body[field]) {
+          req.body[field] = await dataEncryptionService.encryptDatabaseField(
+            req.body[field],
+            field
+          );
+        }
+      }
+    }
+    next();
+  };
+};</p><p>// Apply encryption to sensitive routes
+app.post('/api/users', encryptSensitiveFields(['password', 'phoneNumber']));
+app.put('/api/users/:id', encryptSensitiveFields(['password', 'phoneNumber']));
+</code></pre></p><p><strong>Encryption Configuration:</strong>
+<pre><code class="language-env"># Encryption configuration</p><p>ENCRYPTION_ALGORITHM=aes-256-gcm
+ENCRYPTION_KEY_LENGTH=32
+ENCRYPTION_IV_LENGTH=16
+ENCRYPTION_TAG_LENGTH=16
+ENCRYPTION_KEY_ROTATION_DAYS=90
+</code></pre></p>#### 3.2 Privacy Protection Implementation</p><p>Privacy protection is implemented using data minimization, consent management, and user privacy controls.</p><p><strong>Current Implementation:</strong></p><p><pre><code class="language-javascript">// Privacy protection service
+class PrivacyProtectionService {
+  constructor() {
+    this.dataRetentionPolicies = {
+      userLogs: 90, // days
+      auditLogs: 365, // days
+      sessionData: 30, // days
+      temporaryData: 7 // days
+    };
+  }
+  
+  // Data minimization - only collect necessary data
+  minimizeUserData(userData) {
+    const minimalData = {
+      id: userData.id,
+      email: userData.email,
+      partyType: userData.partyType,
+      name: userData.name,
+      depaId: userData.depaId,
+      isActive: userData.isActive
+    };
+    
+    // Only include additional fields if explicitly requested
+    if (userData.includeDetails) {
+      minimalData.organization = userData.organization;
+      minimalData.location = userData.location;
+    }
+    
+    return minimalData;
+  }
+  
+  // Consent management
+  async manageConsent(userId, consentType, granted) {
+    const consent = await db.UserConsent.create({
+      userId: userId,
+      consentType: consentType,
+      granted: granted,
+      timestamp: new Date(),
+      ipAddress: req.ip,
+      userAgent: req.get('User-Agent')
+    });
+    
+    // Update user privacy settings
+    await db.User.update({
+      [<code>consent_${consentType}</code>]: granted
+    }, {
+      where: { id: userId }
+    });
+    
+    return consent;
+  }
+  
+  // Data retention cleanup
+  async cleanupExpiredData() {
+    const now = new Date();
+    
+    // Clean up expired user logs
+    const userLogsRetention = new Date(now - this.dataRetentionPolicies.userLogs <em> 24 </em> 60 <em> 60 </em> 1000);
+    await db.UserLog.destroy({
+      where: {
+        createdAt: {
+          [Op.lt]: userLogsRetention
+        }
+      }
+    });
+    
+    // Clean up expired session data
+    const sessionRetention = new Date(now - this.dataRetentionPolicies.sessionData <em> 24 </em> 60 <em> 60 </em> 1000);
+    const expiredSessions = await redisClient.keys('session:</em>');
+    for (const sessionKey of expiredSessions) {
+      const sessionData = await redisClient.get(sessionKey);
+      if (sessionData) {
+        const session = JSON.parse(sessionData);
+        if (new Date(session.createdAt) < sessionRetention) {
+          await redisClient.del(sessionKey);
+        }
+      }
+    }
+  }
+  
+  // User data rights implementation
+  async exportUserData(userId) {
+    const user = await db.User.findByPk(userId);
+    const userLogs = await db.UserLog.findAll({ where: { userId } });
+    const userConsents = await db.UserConsent.findAll({ where: { userId } });
+    
+    return {
+      user: this.minimizeUserData(user),
+      logs: userLogs,
+      consents: userConsents,
+      exportDate: new Date().toISOString()
+    };
+  }
+  
+  async deleteUserData(userId) {
+    // Anonymize user data instead of deletion for audit purposes
+    await db.User.update({
+      name: 'DELETED_USER',
+      email: <code>deleted_${userId}@deleted.com</code>,
+      organization: null,
+      phoneNumber: null,
+      website: null,
+      location: null,
+      isActive: false,
+      deletedAt: new Date()
+    }, {
+      where: { id: userId }
+    });
+    
+    // Delete associated data
+    await db.UserLog.destroy({ where: { userId } });
+    await db.UserConsent.destroy({ where: { userId } });
+    
+    // Revoke all sessions
+    const userSessions = await redisClient.keys(<code>session:<em></code>);
+    for (const sessionKey of userSessions) {
+      const sessionData = await redisClient.get(sessionKey);
+      if (sessionData) {
+        const session = JSON.parse(sessionData);
+        if (session.userId === userId) {
+          await redisClient.del(sessionKey);
+        }
+      }
+    }
+  }
+}</p><p>// Privacy middleware
+const privacyMiddleware = (req, res, next) => {
+  // Add privacy headers
+  res.set({
+    'X-Content-Type-Options': 'nosniff',
+    'X-Frame-Options': 'DENY',
+    'X-XSS-Protection': '1; mode=block',
+    'Referrer-Policy': 'strict-origin-when-cross-origin',
+    'Content-Security-Policy': "default-src 'self'"
+  });
+  
+  next();
+};</p><p>// Apply privacy middleware
+app.use(privacyMiddleware);
+</code></pre></p><p><strong>Privacy Configuration:</strong>
+<pre><code class="language-env"># Privacy configuration</p><p>DATA_RETENTION_USER_LOGS=90
+DATA_RETENTION_AUDIT_LOGS=365
+DATA_RETENTION_SESSION_DATA=30
+DATA_RETENTION_TEMPORARY_DATA=7
+PRIVACY_DEFAULT_CONSENT=false
+PRIVACY_ALLOW_DATA_EXPORT=true
+PRIVACY_ALLOW_DATA_DELETION=true
+</code></pre></p>This comprehensive security controls implementation provides multiple layers of protection while maintaining system performance and user experience. Each control is specifically implemented with real code examples showing how it works in the current system.</p><p>---</p><p>## Audit and Compliance</p>The audit and compliance section covers the comprehensive audit logging and compliance features that ensure the system meets regulatory requirements and provides complete transparency for all activities.</p><p>### 1. Audit Logging</p>Audit logging provides comprehensive recording of all system activities, including user actions, system events, and security events. This ensures complete transparency and supports compliance requirements.</p><p>Audit logging provides:
+<li><strong>Complete Coverage</strong>: Logging of all system activities</li></p><p><li><strong>Security Events</strong>: Logging of security-related events</li></p><p><li><strong>User Actions</strong>: Logging of user actions and decisions</li></p><p><li><strong>System Events</strong>: Logging of system events and changes</li></p><p><li><strong>Compliance Support</strong>: Support for regulatory compliance requirements</li></p><p>#### 1.1 Event Logging</p><p>Event logging captures all significant events in the system, including user actions, system changes, and security events. This provides a complete audit trail for compliance and security purposes.</p><p>Event logging provides:
+<li><strong>Comprehensive Coverage</strong>: Logging of all significant events</li></p><p><li><strong>Structured Data</strong>: Structured logging for easy analysis</li></p><p><li><strong>Performance</strong>: Efficient logging with minimal performance impact</li></p><p><li><strong>Storage</strong>: Proper storage and retention of log data</li></p><p><li><strong>Analysis</strong>: Tools for log analysis and reporting</li></p><p>#### 1.2 Security Event Logging</p><p>Security event logging specifically captures security-related events, including authentication attempts, authorization decisions, and security violations. This helps detect and respond to security threats.</p><p>Security event logging provides:
+<li><strong>Threat Detection</strong>: Detection of security threats and violations</li></p><p><li><strong>Incident Response</strong>: Support for security incident response</li></p><p><li><strong>Compliance</strong>: Meets regulatory security logging requirements</li></p><p><li><strong>Analysis</strong>: Tools for security event analysis</li></p><p><li><strong>Alerting</strong>: Automated alerts for security events</li></p><p>### 2. Compliance Features</p>Compliance features ensure that the system meets regulatory requirements for data protection, privacy, and security. This includes features for GDPR, DPDP 2023, and other regulatory frameworks.</p><p>Compliance features provide:
+<li><strong>Regulatory Support</strong>: Support for multiple regulatory frameworks</li></p><p><li><strong>Data Rights</strong>: Support for user data rights</li></p><p><li><strong>Consent Management</strong>: Proper consent management</li></p><p><li><strong>Privacy Controls</strong>: User privacy controls</li></p><p><li><strong>Reporting</strong>: Automated compliance reporting</li></p><p>#### 2.1 GDPR Compliance</p><p>GDPR compliance features ensure that the system meets European data protection requirements, including data rights, consent management, and privacy controls.</p><p>GDPR compliance provides:
+<li><strong>Data Rights</strong>: Support for GDPR data rights</li></p><p><li><strong>Consent Management</strong>: Proper GDPR consent management</li></p><p><li><strong>Privacy Controls</strong>: GDPR-compliant privacy controls</li></p><p><li><strong>Data Portability</strong>: Support for data portability</li></p><p><li><strong>Breach Notification</strong>: Support for breach notification requirements</li></p><p>#### 2.2 DPDP 2023 Compliance</p><p>DPDP 2023 compliance features ensure that the system meets Indian data protection requirements, including data localization, consent management, and user rights.</p><p>DPDP 2023 compliance provides:
+<li><strong>Data Localization</strong>: Support for data localization requirements</li></p><p><li><strong>Consent Management</strong>: DPDP-compliant consent management</li></p><p><li><strong>User Rights</strong>: Support for DPDP user rights</li></p><p><li><strong>Privacy Controls</strong>: DPDP-compliant privacy controls</li></p><p><li><strong>Reporting</strong>: Automated DPDP compliance reporting</li></p><p>### 3. Security Monitoring</p>Security monitoring provides real-time monitoring of system security, including threat detection, incident response, and security metrics.</p><p>Security monitoring provides:
+<li><strong>Real-Time Monitoring</strong>: Real-time security monitoring</li></p><p><li><strong>Threat Detection</strong>: Detection of security threats</li></p><p><li><strong>Incident Response</strong>: Support for security incident response</li></p><p><li><strong>Metrics</strong>: Security metrics and reporting</li></p><p><li><strong>Alerting</strong>: Automated security alerts</li></p><p>#### 3.1 Threat Detection</p><p>Threat detection identifies potential security threats through monitoring of system activities, user behavior, and security events.</p><p>Threat detection provides:
+<li><strong>Behavioral Analysis</strong>: Analysis of user behavior patterns</li></p><p><li><strong>Anomaly Detection</strong>: Detection of anomalous activities</li></p><p><li><strong>Pattern Recognition</strong>: Recognition of threat patterns</li></p><p><li><strong>Real-Time Alerts</strong>: Real-time alerts for threats</li></p><p><li><strong>Response Support</strong>: Support for threat response</li></p><p>#### 3.2 Incident Response</p><p>Incident response provides tools and processes for responding to security incidents, including investigation, containment, and recovery.</p><p>Incident response provides:
+<li><strong>Investigation Tools</strong>: Tools for security incident investigation</li></p><p><li><strong>Containment</strong>: Support for incident containment</li></p><p><li><strong>Recovery</strong>: Support for incident recovery</li></p><p><li><strong>Documentation</strong>: Documentation of incident response</li></p><p><li><strong>Lessons Learned</strong>: Capture of lessons learned from incidents</li></p><p>---</p><p>## Implementation Details</p>The implementation details section provides comprehensive information about the technical implementation of the IAM system, including database schemas, configuration settings, and middleware components.</p><p>### 1. Database Schema</p>The database schema is designed to support all IAM functionality while maintaining performance, security, and compliance requirements. Each table includes appropriate indexes, constraints, and audit fields.</p><p>The database schema provides:
+<li><strong>Performance</strong>: Optimized for IAM operations</li></p><p><li><strong>Security</strong>: Secure design with proper constraints</li></p><p><li><strong>Compliance</strong>: Support for audit and compliance requirements</li></p><p><li><strong>Scalability</strong>: Design that supports system growth</li></p><p><li><strong>Maintainability</strong>: Clear structure for easy maintenance</li></p><p>#### 1.1 Users Table</p><p>The users table is the central repository for all user identity information. It supports multiple identity types, authentication methods, and compliance requirements while maintaining data integrity and performance.</p><p>The users table provides:
+<li><strong>Multi-Identity Support</strong>: Support for multiple identity types</li></p><p><li><strong>Performance</strong>: Optimized for user operations</li></p><p><li><strong>Security</strong>: Secure design with proper constraints</li></p><p><li><strong>Compliance</strong>: Support for audit and compliance requirements</li></p><p><li><strong>Flexibility</strong>: Support for different user types and configurations</li></p><p><pre><code class="language-sql">CREATE TABLE users (
+  id SERIAL PRIMARY KEY,
+  walletAddress VARCHAR(255) UNIQUE,
+  publicKey TEXT,
+  partyType ENUM('TDP', 'TDC', 'CCRP', 'AppAdmin') NOT NULL,
+  name VARCHAR(255) NOT NULL,
+  email VARCHAR(255) UNIQUE NOT NULL,
+  password VARCHAR(255),
+  description TEXT,
+  organization VARCHAR(255),
+  phoneNumber VARCHAR(50),
+  website VARCHAR(255),
+  location VARCHAR(255),
+  isRegistered BOOLEAN DEFAULT FALSE,
+  registrationDate TIMESTAMP,
+  isActive BOOLEAN DEFAULT TRUE,
+  onboardingStatus ENUM('PENDING', 'IN_PROGRESS', 'COMPLETED', 'VERIFIED') DEFAULT 'PENDING',
+  profileCompleted BOOLEAN DEFAULT FALSE,
+  emailVerified BOOLEAN DEFAULT FALSE,
+  lastLoginAt TIMESTAMP,
+  iamUserId VARCHAR(255) UNIQUE,
+  iamUsername VARCHAR(255),
+  did VARCHAR(255) UNIQUE,
+  didSource ENUM('SYSTEM_GENERATED', 'USER_PROVIDED'),
+  didVerified BOOLEAN DEFAULT FALSE,
+  didVerificationMethod VARCHAR(100),
+  depaId VARCHAR(255) UNIQUE NOT NULL,
+  createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updatedAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+</code></pre></p><p>#### 1.2 Audit Logs Table</p><p>The audit logs table provides comprehensive tracking of all system activities for compliance, security monitoring, and troubleshooting purposes. Each log entry includes detailed information about the event, user, and outcome.</p><p>The audit logs table provides:
+<li><strong>Comprehensive Tracking</strong>: Complete tracking of system activities</li></p><p><li><strong>Compliance Support</strong>: Support for regulatory compliance requirements</li></p><p><li><strong>Security Monitoring</strong>: Support for security monitoring and analysis</li></p><p><li><strong>Troubleshooting</strong>: Detailed information for issue resolution</li></p><p><li><strong>Performance</strong>: Optimized for high-volume logging</li></p><p><pre><code class="language-sql">CREATE TABLE audit_logs (
+  id SERIAL PRIMARY KEY,
+  eventType VARCHAR(100) NOT NULL,
+  eventData TEXT NOT NULL,
+  userId INTEGER REFERENCES users(id),
+  ipAddress VARCHAR(45),
+  userAgent TEXT,
+  timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  sessionId VARCHAR(255),
+  resourceType VARCHAR(100),
+  resourceId VARCHAR(255),
+  action VARCHAR(100),
+  outcome ENUM('SUCCESS', 'FAILURE', 'PARTIAL'),
+  errorMessage TEXT
+);
+</code></pre></p><p>### 2. Configuration</p>The configuration system supports different deployment environments and security requirements while maintaining flexibility for customization and compliance.</p><p>The configuration system provides:
+<li><strong>Environment Support</strong>: Support for different deployment environments</li></p><p><li><strong>Security</strong>: Secure configuration management</li></p><p><li><strong>Flexibility</strong>: Flexible configuration options</li></p><p><li><strong>Compliance</strong>: Support for compliance requirements</li></p><p><li><strong>Monitoring</strong>: Configuration monitoring and validation</li></p><p>#### 2.1 Environment Variables</p><p>Environment variables provide secure configuration management that supports different deployment environments, security requirements, and compliance needs. The configuration is designed to be secure, flexible, and maintainable.</p><p>The environment variables provide:
+<li><strong>Security</strong>: Sensitive values stored as environment variables</li></p><p><li><strong>Flexibility</strong>: Support for different deployment environments</li></p><p><li><strong>Compliance</strong>: Configurable settings for regulatory requirements</li></p><p><li><strong>Performance</strong>: Optimized settings for different workloads</li></p><p><li><strong>Monitoring</strong>: Configurable logging and monitoring settings</li></p><p><pre><code class="language-env"># Authentication</p><p>JWT_SECRET=your-super-secret-jwt-key-here
+JWT_EXPIRES_IN=24h</p><p># Keycloak Configuration</p><p>KEYCLOAK_URL=http://localhost:8080
+KEYCLOAK_REALM=contract-management
+KEYCLOAK_CLIENT_ID=contract-management-backend
+KEYCLOAK_CLIENT_SECRET=your_client_secret_here
+KEYCLOAK_ADMIN_USERNAME=admin
+KEYCLOAK_ADMIN_PASSWORD=admin123
+KEYCLOAK_ENABLED=true</p><p># Security</p><p>SESSION_SECRET=your-super-secret-session-key-here
+CORS_ORIGIN=https://app.company.com</p><p># Rate Limiting</p><p>RATE_LIMIT_WINDOW_MS=900000
+RATE_LIMIT_MAX_REQUESTS=100
+</code></pre></p><p>### 3. Middleware Stack</p>The middleware stack provides security, monitoring, and functionality layers that process all requests to the system. Each middleware component serves a specific purpose in the request processing pipeline.</p><p>The middleware stack provides:
+<li><strong>Security</strong>: Comprehensive security middleware</li></p><p><li><strong>Monitoring</strong>: Request monitoring and logging</li></p><p><li><strong>Performance</strong>: Optimized request processing</li></p><p><li><strong>Compliance</strong>: Support for compliance requirements</li></p><p><li><strong>Flexibility</strong>: Configurable middleware components</li></p><p>#### 3.1 Authentication Middleware</p><p>Authentication middleware ensures that all protected routes require valid authentication and provides comprehensive logging of authentication attempts for security monitoring and compliance.</p><p>The authentication middleware provides:
+<li><strong>Security</strong>: Ensures all protected routes require authentication</li></p><p><li><strong>Monitoring</strong>: Comprehensive logging of authentication attempts</li></p><p><li><strong>Rate Limiting</strong>: Prevents brute force attacks</li></p><p><li><strong>Session Management</strong>: Proper session handling and cleanup</li></p><p><li><strong>Error Handling</strong>: Graceful handling of authentication failures</li></p><p><pre><code class="language-javascript">// Authentication middleware stack
+app.use('/api/auth', authRateLimit);
+app.use('/api/auth', logAuthEvent('AUTH_ATTEMPT'));</p><p>// Protected routes
+app.use('/api/contracts', authenticateToken);
+app.use('/api/datasets', authenticateToken);
+app.use('/api/users', authenticateToken);
+</code></pre></p><p>#### 3.2 Authorization Middleware</p><p>Authorization middleware enforces role-based access control by ensuring that users can only access resources and perform actions appropriate to their role and permissions.</p><p>The authorization middleware provides:
+<li><strong>Role-Based Access</strong>: Enforces role-specific permissions</li></p><p><li><strong>Resource Protection</strong>: Prevents unauthorized access to resources</li></p><p><li><strong>Granular Control</strong>: Fine-grained permission management</li></p><p><li><strong>Audit Trail</strong>: Logs all authorization decisions</li></p><p><li><strong>Error Handling</strong>: Proper error responses for unauthorized access</li></p><p><pre><code class="language-javascript">// Role-based route protection
+app.get('/api/tdp/</em>', requireTDP);
+app.get('/api/tdc/*', requireTDC);
+app.get('/api/ccrp/*', requireCCRP);
+app.get('/api/admin/*', requireAnyAdmin);
+</code></pre></p><p>---</p><p>## API Specifications</p>The API specifications provide detailed information about all authentication and identity management endpoints, including request formats, response structures, and error handling.</p><p>### 1. Authentication Endpoints</p>Authentication endpoints handle user registration, login, token management, and profile operations. These endpoints are designed to be secure, compliant, and user-friendly.</p><p>The authentication endpoints provide:
+<li><strong>User Registration</strong>: Secure user account creation</li></p><p><li><strong>User Login</strong>: Secure user authentication</li></p><p><li><strong>Token Management</strong>: JWT token creation and refresh</li></p><p><li><strong>Profile Management</strong>: User profile operations</li></p><p><li><strong>Security</strong>: Comprehensive security features</li></p><p>#### 1.1 User Registration</p><p>The user registration endpoint creates new user accounts with comprehensive validation and setup. The process includes DID verification, DEPA ID generation, and enterprise integration.</p><p>The registration process provides:
+<li><strong>Comprehensive Validation</strong>: Validates all user input data</li></p><p><li><strong>DID Integration</strong>: Supports DID-based identity verification</li></p><p><li><strong>Enterprise Setup</strong>: Integrates with enterprise identity systems</li></p><p><li><strong>Security</strong>: Secure password handling and temporary credentials</li></p><p><li><strong>Compliance</strong>: Meets regulatory requirements for user registration</li></p><p><pre><code class="language-http">POST /api/auth/register
+Content-Type: application/json</p><p>{
+  "name": "John Doe",
+  "email": "john.doe@company.com",
+  "partyType": "TDP",
+  "organization": "DataCorp Inc",
+  "phoneNumber": "+1234567890",
+  "website": "https://datacorp.com",
+  "location": "United States",
+  "existingDID": "did:web:company.com:user:john.doe",
+  "didVerificationSignature": "signature"
+}</p><p>Response:
+{
+  "success": true,
+  "user": {
+    "id": 1,
+    "name": "John Doe",
+    "email": "john.doe@company.com",
+    "partyType": "TDP",
+    "depaId": "TDP-8f4e2a1b-3c4d-5e6f-7a8b-9c0d1e2f3a4b",
+    "did": "did:web:company.com:user:john.doe",
+    "didVerified": true
+  },
+  "loginCredentials": {
+    "email": "john.doe@company.com",
+    "password": "temporary_password"
+  }
+}
+</code></pre></p><p>#### 1.2 User Login</p><p>The user login endpoint authenticates users and provides secure access tokens for subsequent API calls. The process includes validation, session management, and security monitoring.</p><p>The login process provides:
+<li><strong>Secure Authentication</strong>: Validates user credentials securely</li></p><p><li><strong>Token Management</strong>: Provides JWT tokens for API access</li></p><p><li><strong>Session Tracking</strong>: Monitors user sessions for security</li></p><p><li><strong>Rate Limiting</strong>: Prevents brute force attacks</li></p><p><li><strong>Audit Logging</strong>: Comprehensive logging of login attempts</li></p><p><pre><code class="language-http">POST /api/auth/login
+Content-Type: application/json</p><p>{
+  "email": "john.doe@company.com",
+  "password": "password123"
+}</p><p>Response:
+{
+  "message": "Login successful",
+  "accessToken": "jwt_token",
+  "refreshToken": "refresh_token",
+  "expiresIn": 86400,
+  "user": {
+    "email": "john.doe@company.com",
+    "name": "John Doe",
+    "partyType": "TDP",
+    "depaId": "TDP-8f4e2a1b-3c4d-5e6f-7a8b-9c0d1e2f3a4b"
+  }
+}
+</code></pre></p><p>#### 1.3 Token Refresh</p><p>The token refresh endpoint allows users to obtain new access tokens without re-authentication, improving user experience while maintaining security.</p><p>The refresh process provides:
+<li><strong>User Experience</strong>: Seamless token renewal</li></p><p><li><strong>Security</strong>: Validates refresh tokens securely</li></p><p><li><strong>Session Continuity</strong>: Maintains user sessions</li></p><p><li><strong>Audit Trail</strong>: Logs token refresh activities</li></p><p><li><strong>Error Handling</strong>: Proper handling of invalid tokens</li></p><p><pre><code class="language-http">POST /api/auth/refresh
+Content-Type: application/json</p><p>{
+  "refreshToken": "refresh_token"
+}</p><p>Response:
+{
+  "message": "Token refreshed successfully",
+  "accessToken": "new_jwt_token",
+  "refreshToken": "new_refresh_token",
+  "expiresIn": 86400
+}
+</code></pre></p><p>### 2. Profile Management</p>Profile management endpoints allow users to view and update their profile information while maintaining data integrity and security.</p><p>The profile management provides:
+<li><strong>Profile Retrieval</strong>: Secure retrieval of user profiles</li></p><p><li><strong>Profile Updates</strong>: Secure profile information updates</li></p><p><li><strong>Data Validation</strong>: Comprehensive data validation</li></p><p><li><strong>Security</strong>: Secure profile data handling</li></p><p><li><strong>Compliance</strong>: Meets regulatory profile requirements</li></p><p>#### 2.1 Get User Profile</p><p>The get user profile endpoint provides comprehensive user information including identity details, verification status, and system identifiers.</p><p>The profile retrieval provides:
+<li><strong>Complete Information</strong>: All user data in a single response</li></p><p><li><strong>Security</strong>: Only returns data for authenticated users</li></p><p><li><strong>Verification Status</strong>: Shows DID and email verification status</li></p><p><li><strong>System Identifiers</strong>: Includes DEPA ID and other system IDs</li></p><p><li><strong>Privacy</strong>: Respects user privacy preferences</li></p><p><pre><code class="language-http">GET /api/auth/profile
+Authorization: Bearer jwt_token</p><p>Response:
+{
+  "user": {
+    "id": 1,
+    "name": "John Doe",
+    "email": "john.doe@company.com",
+    "partyType": "TDP",
+    "walletAddress": "0x1234...",
+    "publicKey": "public_key_hex",
+    "did": "did:web:company.com:user:john.doe",
+    "didVerified": true,
+    "depaId": "TDP-8f4e2a1b-3c4d-5e6f-7a8b-9c0d1e2f3a4b",
+    "organization": "DataCorp Inc",
+    "profileCompleted": true,
+    "emailVerified": true
+  }
+}
+</code></pre></p><p>#### 2.2 Update User Profile</p><p>The update user profile endpoint allows users to modify their profile information while maintaining data integrity and validation.</p><p>The profile update provides:
+<li><strong>Validation</strong>: Ensures data integrity and format</li></p><p><li><strong>Security</strong>: Only allows users to update their own profiles</li></p><p><li><strong>Audit Trail</strong>: Logs all profile changes</li></p><p><li><strong>Flexibility</strong>: Supports partial updates</li></p><p><li><strong>Error Handling</strong>: Proper validation error responses</li></p><p><pre><code class="language-http">PUT /api/auth/profile
+Authorization: Bearer jwt_token
+Content-Type: application/json</p><p>{
+  "name": "John Doe Updated",
+  "organization": "DataCorp Inc Updated",
+  "phoneNumber": "+1234567890",
+  "website": "https://datacorp.com",
+  "location": "United States"
+}</p><p>Response:
+{
+  "message": "Profile updated successfully",
+  "user": {
+    "id": 1,
+    "name": "John Doe Updated",
+    "email": "john.doe@company.com",
+    "partyType": "TDP",
+    "organization": "DataCorp Inc Updated",
+    "profileCompleted": true
+  }
+}
+</code></pre></p><p>### 3. DID Management</p>DID management endpoints provide functionality for verifying DID ownership, checking availability, and managing decentralized identities.</p><p>The DID management provides:
+<li><strong>DID Verification</strong>: Cryptographic verification of DID ownership</li></p><p><li><strong>Availability Checking</strong>: Checking DID availability for registration</li></p><p><li><strong>DID Management</strong>: Comprehensive DID management capabilities</li></p><p><li><strong>Security</strong>: Secure DID operations</li></p><p><li><strong>Compliance</strong>: Meets regulatory DID requirements</li></p><p>#### 3.1 Verify DID Ownership</p><p>The verify DID ownership endpoint allows users to prove ownership of their DIDs through cryptographic signatures, enabling secure identity verification.</p><p>The verification process provides:
+<li><strong>Cryptographic Proof</strong>: Uses digital signatures for verification</li></p><p><li><strong>Security</strong>: Prevents unauthorized DID claims</li></p><p><li><strong>Flexibility</strong>: Supports multiple DID methods</li></p><p><li><strong>Audit Trail</strong>: Logs all verification attempts</li></p><p><li><strong>Error Handling</strong>: Proper handling of verification failures</li></p><p><pre><code class="language-http">POST /api/did/verify
+Authorization: Bearer jwt_token
+Content-Type: application/json</p><p>{
+  "did": "did:web:company.com:user:john.doe",
+  "walletAddress": "0x1234...",
+  "signature": "signature_hex",
+  "message": "Verification message"
+}</p><p>Response:
+{
+  "success": true,
+  "verified": true,
+  "did": "did:web:company.com:user:john.doe",
+  "walletAddress": "0x1234..."
+}
+</code></pre></p><p>#### 3.2 Check DID Availability</p><p>The check DID availability endpoint allows users to verify whether a DID is available for registration, preventing conflicts and ensuring proper DID management.</p><p>The availability check provides:
+<li><strong>Conflict Prevention</strong>: Prevents duplicate DID registrations</li></p><p><li><strong>Real-time Validation</strong>: Checks current system state</li></p><p><li><strong>External Verification</strong>: Validates against external DID documents</li></p><p><li><strong>User Experience</strong>: Helps users choose available DIDs</li></p><p><li><strong>Error Handling</strong>: Proper handling of resolution failures</li></p><p><pre><code class="language-http">GET /api/did/check/did:web:company.com:user:john.doe</p><p>Response:
+{
+  "available": true,
+  "message": "DID is available",
+  "did": "did:web:company.com:user:john.doe"
+}
+</code></pre></p><p>### 4. Enterprise Management</p>Enterprise management endpoints provide functionality for managing enterprise domains, validating enterprise DIDs, and supporting enterprise identity integration.</p><p>The enterprise management provides:
+<li><strong>Domain Management</strong>: Management of enterprise domains</li></p><p><li><strong>DID Validation</strong>: Validation of enterprise DIDs</li></p><p><li><strong>Enterprise Integration</strong>: Support for enterprise identity integration</li></p><p><li><strong>Security</strong>: Secure enterprise operations</li></p><p><li><strong>Compliance</strong>: Meets enterprise compliance requirements</li></p><p>#### 4.1 Get Enterprise Domains</p><p>The get enterprise domains endpoint provides information about allowed enterprise domains for DID registration and validation.</p><p>The domain management provides:
+<li><strong>Domain Control</strong>: Manages allowed enterprise domains</li></p><p><li><strong>Security</strong>: Prevents unauthorized domain usage</li></p><p><li><strong>Flexibility</strong>: Supports multiple enterprise domains</li></p><p><li><strong>Compliance</strong>: Meets enterprise security requirements</li></p><p><li><strong>Audit Trail</strong>: Logs domain access and changes</li></p><p><pre><code class="language-http">GET /api/did/enterprise/domains
+Authorization: Bearer jwt_token</p><p>Response:
+{
+  "domains": [
+    "company.com",
+    "enterprise.org",
+    "business.net"
+  ]
+}
+</code></pre></p><p>#### 4.2 Validate Enterprise DID</p><p>The validate enterprise DID endpoint verifies that a DID belongs to an allowed enterprise domain and meets enterprise security requirements.</p><p>The validation process provides:
+<li><strong>Domain Validation</strong>: Ensures DID belongs to allowed domain</li></p><p><li><strong>Security Compliance</strong>: Meets enterprise security requirements</li></p><p><li><strong>Real-time Verification</strong>: Validates against current domain list</li></p><p><li><strong>Error Handling</strong>: Proper handling of validation failures</li></p><p><li><strong>Audit Trail</strong>: Logs all validation attempts</li></p><p><pre><code class="language-http">GET /api/did/enterprise/validate/did:web:company.com:user:john.doe
+Authorization: Bearer jwt_token</p><p>Response:
+{
+  "isValid": true,
+  "isDomainAllowed": true,
+  "domain": "company.com",
+  "did": "did:web:company.com:user:john.doe"
+}
+</code></pre></p><p>---</p><p>## Conclusion</p><p>The Identity and Access Management system provides a comprehensive framework for secure user authentication, authorization, and identity management in the Contract Management System. The implementation supports multiple identity types, authentication methods, and global uniqueness mechanisms while maintaining enterprise-grade security and compliance standards.</p><p>### Key Achievements</p><p><li>✅ Multi-identity support with global uniqueness</li></p><p><li>✅ Enterprise-grade authentication with Keycloak integration</li></p><p><li>✅ Role-based access control with granular permissions</li></p><p><li>✅ DID-based identity verification</li></p><p><li>✅ Comprehensive audit logging and compliance</li></p><p><li>✅ Security controls and monitoring</li></p><p><li>✅ DPDP 2023 and GDPR compliance features</li></ul></ul>The system is designed to be scalable, secure, and compliant with enterprise requirements while providing flexibility for different deployment scenarios and user types. </p>
+            
+            </div>
+        </div>
+    </div>
+    <!-- Back to Top -->
+    <a href="#" class="back-to-top" id="backToTop">
+        <i class="fas fa-arrow-up"></i>
+    </a>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10.6.1/dist/mermaid.min.js"></script>
+    <script>
+        // Initialize Mermaid
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'default',
+            flowchart: {
+                useMaxWidth: true,
+                htmlLabels: true,
+                curve: 'basis'
+            },
+            sequence: {
+                useMaxWidth: true,
+                diagramMarginX: 50,
+                diagramMarginY: 10,
+                actorMargin: 50,
+                width: 150,
+                height: 65,
+                boxMargin: 10,
+                boxTextMargin: 5,
+                noteMargin: 10,
+                messageMargin: 35,
+                mirrorActors: true,
+                bottomMarginAdj: 1,
+                useMaxWidth: true,
+                rightAngles: false,
+                showSequenceNumbers: false
+            },
+            gantt: {
+                titleTopMargin: 25,
+                barHeight: 20,
+                barGap: 4,
+                topPadding: 50,
+                leftPadding: 75,
+                gridLineStartPadding: 35,
+                fontSize: 11,
+                fontFamily: '"Open-Sans", "sans-serif"',
+                numberSectionStyles: 4,
+                axisFormat: '%Y-%m-%d'
+            },
+            journey: {
+                useMaxWidth: true,
+                diagramPadding: 20
+            },
+            gitGraph: {
+                useMaxWidth: true,
+                diagramPadding: 20
+            },
+            securityLevel: 'loose',
+            logLevel: 1
+        });
+
+        // Back to top functionality
+        window.addEventListener('scroll', function() {
+            const backToTop = document.getElementById('backToTop');
+            if (window.pageYOffset > 300) {
+                backToTop.style.display = 'flex';
+            } else {
+                backToTop.style.display = 'none';
+            }
+        });
+
+        // Smooth scrolling for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        // Add syntax highlighting to code blocks
+        document.addEventListener('DOMContentLoaded', function() {
+            if (typeof Prism !== 'undefined') {
+                Prism.highlightAll();
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,1618 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UML 4+1 Architecture Documentation - ContractFlow Pro Documentation</title>
+    <meta name="description" content="UML 4+1 Architecture Documentation - ContractFlow Pro Documentation">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.css" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f8f9fa;
+            color: #333;
+            line-height: 1.6;
+        }
+        .navbar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .navbar-brand {
+            color: white !important;
+            font-weight: 700;
+        }
+        .nav-link {
+            color: rgba(255,255,255,0.9) !important;
+            transition: color 0.3s ease;
+        }
+        .nav-link:hover {
+            color: white !important;
+        }
+        .doc-container {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            margin: 30px 0;
+            overflow: hidden;
+        }
+        .doc-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        .doc-content {
+            padding: 40px;
+        }
+        .doc-content h1, .doc-content h2, .doc-content h3, .doc-content h4, .doc-content h5, .doc-content h6 {
+            color: #333;
+            margin-top: 2rem;
+            margin-bottom: 1rem;
+            font-weight: 600;
+        }
+        .doc-content h1 {
+            font-size: 2.5rem;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 10px;
+        }
+        .doc-content h2 {
+            font-size: 2rem;
+            border-bottom: 2px solid #e9ecef;
+            padding-bottom: 8px;
+            color: #667eea;
+        }
+        .doc-content h3 {
+            font-size: 1.5rem;
+            color: #495057;
+        }
+        .doc-content p {
+            margin-bottom: 1rem;
+            font-size: 1.1rem;
+        }
+        .doc-content ul, .doc-content ol {
+            margin-bottom: 1rem;
+            padding-left: 2rem;
+        }
+        .doc-content li {
+            margin-bottom: 0.5rem;
+        }
+        
+        /* Enhanced Code Block Styling */
+        .doc-content pre {
+            background: #2d3748;
+            border: 1px solid #4a5568;
+            border-radius: 8px;
+            padding: 20px;
+            overflow-x: auto;
+            margin: 1.5rem 0;
+            position: relative;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        .doc-content pre code {
+            background: none;
+            color: #e2e8f0;
+            padding: 0;
+            font-family: 'Fira Code', 'Monaco', 'Consolas', monospace;
+            font-size: 0.9rem;
+            line-height: 1.5;
+            white-space: pre;
+            word-wrap: normal;
+        }
+        .doc-content code:not(pre code) {
+            background: #f7fafc;
+            color: #e53e3e;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            border: 1px solid #e2e8f0;
+        }
+        
+        /* Mermaid Diagram Styling */
+        .mermaid {
+            text-align: center;
+            margin: 2rem 0;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border: 1px solid #e9ecef;
+        }
+        .mermaid svg {
+            max-width: 100%;
+            height: auto;
+        }
+        
+        /* Enhanced Table Styling */
+        .doc-content table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1.5rem 0;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .doc-content th, .doc-content td {
+            border: 1px solid #e2e8f0;
+            padding: 12px 16px;
+            text-align: left;
+        }
+        .doc-content th {
+            background: #667eea;
+            color: white;
+            font-weight: 600;
+        }
+        .doc-content tr:nth-child(even) {
+            background: #f7fafc;
+        }
+        .doc-content tr:hover {
+            background: #edf2f7;
+        }
+        
+        /* Enhanced Blockquote Styling */
+        .doc-content blockquote {
+            border-left: 4px solid #667eea;
+            padding: 20px;
+            margin: 1.5rem 0;
+            background: #f7fafc;
+            border-radius: 0 8px 8px 0;
+            font-style: italic;
+            color: #4a5568;
+        }
+        .doc-content blockquote p {
+            margin-bottom: 0;
+        }
+        
+        /* Enhanced List Styling */
+        .doc-content ul {
+            list-style-type: none;
+            padding-left: 0;
+        }
+        .doc-content ul li {
+            position: relative;
+            padding-left: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+        .doc-content ul li:before {
+            content: "•";
+            color: #667eea;
+            font-weight: bold;
+            position: absolute;
+            left: 0;
+        }
+        .doc-content ol {
+            counter-reset: item;
+            list-style-type: none;
+            padding-left: 0;
+        }
+        .doc-content ol li {
+            counter-increment: item;
+            position: relative;
+            padding-left: 2rem;
+            margin-bottom: 0.5rem;
+        }
+        .doc-content ol li:before {
+            content: counter(item) ".";
+            color: #667eea;
+            font-weight: bold;
+            position: absolute;
+            left: 0;
+        }
+        
+        /* TOC Styling */
+        .toc {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 2rem 0;
+        }
+        .toc h3 {
+            color: #667eea;
+            margin-bottom: 1rem;
+        }
+        .toc ul {
+            list-style: none;
+            padding-left: 0;
+        }
+        .toc li {
+            margin-bottom: 0.5rem;
+        }
+        .toc a {
+            color: #495057;
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+        .toc a:hover {
+            color: #667eea;
+        }
+        
+        .breadcrumb {
+            background: transparent;
+            padding: 0;
+            margin-bottom: 20px;
+        }
+        .breadcrumb-item a {
+            color: #667eea;
+            text-decoration: none;
+        }
+        .breadcrumb-item.active {
+            color: #666;
+        }
+        .category-badge {
+            background: #e3f2fd;
+            color: #1976d2;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            margin-left: 10px;
+        }
+        .back-to-top {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: #667eea;
+            color: white;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+        .back-to-top:hover {
+            background: #5a6fd8;
+            color: white;
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container">
+            <a class="navbar-brand" href="../index.html">
+                <i class="fas fa-file-contract me-2"></i>ContractFlow Pro
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="../index.html">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="../index.html#features">Features</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="../index.html#solutions">Solutions</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="../index.html#dashboards">Dashboards</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="index.html">Documents</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="../index.html#pricing">Pricing</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="../index.html#contact">Contact</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container">
+        <!-- Breadcrumb -->
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="../index.html">Home</a></li>
+                <li class="breadcrumb-item"><a href="index.html">Documentation</a></li>
+                <li class="breadcrumb-item active">UML 4+1 Architecture Documentation</li>
+            </ol>
+        </nav>
+
+        <!-- Document Container -->
+        <div class="doc-container">
+            <div class="doc-header">
+                <h1 class="mb-3">
+                    <i class="fas fa-book me-3"></i>UML 4+1 Architecture Documentation
+                    <span class="category-badge">Architecture</span>
+                </h1>
+                <p class="lead mb-0">ContractFlow Pro Documentation</p>
+            </div>
+            <div class="doc-content">
+                <h1 id="UML 4+1 View Architecture Documentation">UML 4+1 View Architecture Documentation</h1>
+<h2 id="contract-management-system">Contract Management System</h2><p><strong>Document Version:</strong> 2.0  </p>
+<strong>Date:</strong> December 2024  
+<strong>Author:</strong> Contract Management System Team<p>---</p><p><h2 id="table-of-contents">Table of Contents</h2></p><p><ul><li><a href="#executive-summary">Executive Summary</a></li></p>
+<li><a href="#use-case-view-1">Use Case View (+1)</a></li>
+<li><a href="#logical-view">Logical View</a></li>
+<li><a href="#development-view">Development View</a></li>
+<li><a href="#process-view">Process View</a></li>
+<li><a href="#physical-view">Physical View</a></li>
+<li><a href="#stakeholder-mapping">Stakeholder Mapping</a></li>
+<li><a href="#implementation-guidelines">Implementation Guidelines</a></li><p>---</p><p><h2 id="1-executive-summary">1. Executive Summary</h2></p><p><h3 id="1.1 Overview">1.1 Overview</h3></p>
+This document provides a comprehensive UML 4+1 View Architecture for the Contract Management System, covering all aspects from user interactions to deployment infrastructure. The system supports enterprise registration, DID-based identity management, cryptographic contract signing, multi-party contract execution, and <strong>real cloud infrastructure provisioning with CCRP-specific credentials</strong>.<p><h3 id="1.2 Key Components">1.2 Key Components</h3></p>
+<li><strong>Frontend</strong>: React-based user interface with role-based dashboards</li>
+<li><strong>Backend</strong>: Node.js/Express API with microservices architecture</li>
+<li><strong>Identity Management</strong>: Keycloak IAM integration</li>
+<li><strong>Blockchain</strong>: Ethereum-based contract recording</li>
+<li><strong>Database</strong>: PostgreSQL with Redis caching</li>
+<li><strong>Security</strong>: HSM/KMS integration for cryptographic operations</li>
+<li><strong>Cloud Infrastructure</strong>: <strong>Real Azure SDK integration with multi-tenant CCRP credential management</strong></li>
+<li><strong>Training Environment</strong>: <strong>Real container deployment with Azure Container Instances</strong></li><p><h3 id="1.3 Target Users">1.3 Target Users</h3></p>
+<li><strong>TDP (Training Data Provider)</strong>: Dataset and model management</li>
+<li><strong>TDC (Training Data Consumer)</strong>: Contract creation and management</li>
+<li><strong>CCRP (Confidential Clean Room Provider)</strong>: <strong>Compliance, resource monitoring, and real infrastructure provisioning</strong></li>
+<li><strong>AppAdmin</strong>: System administration and oversight</li><p><h3 id="1.4 <strong>New Features (v2.0)</strong>">1.4 <strong>New Features (v2.0)</strong></h3></p>
+<li><strong>Real Azure Infrastructure</strong>: Actual Azure SDK integration replacing mock services</li>
+<li><strong>CCRP-Specific Credentials</strong>: Multi-tenant Azure credential management per CCRP</li>
+<li><strong>Encrypted Credential Storage</strong>: AES-256-CBC encrypted client secrets</li>
+<li><strong>Contract-Specific Configuration</strong>: Contract overrides for CCRP Azure defaults</li>
+<li><strong>Real Training Execution</strong>: Actual container deployment with Azure Container Instances</li>
+<li><strong>Cost Management</strong>: Per-CCRP and per-contract budget tracking</li>
+<li><strong>Multi-Tenant Security</strong>: CCRP isolation with independent Azure subscriptions</li><p>---</p><p><h2 id="2-use-case-view-1">2. Use Case View (+1)</h2></p><p><h3 id="2.1 Actors">2.1 Actors</h3></p>
+<li><strong>TDP (Training Data Provider)</strong></li>
+<li><strong>TDC (Training Data Consumer)</strong></li>
+<li><strong>CCRP (Confidential Clean Room Provider)</strong></li>
+<li><strong>AppAdmin</strong></li>
+<li><strong>Keycloak IAM</strong></li>
+<li><strong>Blockchain</strong></li>
+<li><strong>External Auditors</strong></li>
+<li><strong>Azure Cloud Services</strong> (New)</li>
+<li><strong>Azure Container Instances</strong> (New)</li><p><h3 id="2.2 Major Use Cases">2.2 Major Use Cases</h3></p>
+<li>Register/Onboard as Enterprise</li>
+<li>Login/Authenticate</li>
+<li>Manage Profile & DIDs</li>
+<li>Create/Manage Datasets</li>
+<li>Create/Manage AI Models</li>
+<li>Create Contract</li>
+<li>Sign Contract (multi-party)</li>
+<li>Verify Contract</li>
+<li><strong>Manage CCRP Azure Credentials</strong> (New)</li>
+<li><strong>Provision Real Infrastructure</strong> (New)</li>
+<li><strong>Deploy Training Containers</strong> (New)</li>
+<li><strong>Monitor Real Resource Usage</strong> (New)</li>
+<li><strong>Track Real Costs</strong> (New)</li>
+<li>Notification & Audit Trail</li>
+<li>Administer System</li><p><h3 id="2.3 Use Case Diagram">2.3 Use Case Diagram</h3></p><p><strong>Description:</strong> This diagram shows the main actors (users and external systems) and their interactions with the system's core use cases, organized by subsystems. It illustrates how different user roles (TDP, TDC, CCRP, AppAdmin) interact with the system to perform various business functions, including the new Azure cloud integration features.</p><p><div class="mermaid">graph LR
+    %% Actors on the left
+    TDP((TDP))
+    TDC((TDC))
+    CCRP((CCRP))
+    AppAdmin((AppAdmin))
+    Azure((Azure Cloud))
+    %% System Boundary with organized subsystems
+    subgraph System["Contract Management System"]
+        subgraph Core["Core Contract Management"]
+            UC1[Register/Onboard]
+            UC2[Manage Datasets]
+            UC3[Manage Models]
+            UC4[Create Contract]
+            UC5[Sign Contract]
+            UC6[Verify Contract]
+            UC12[Record on Blockchain]
+        end
+        subgraph IA
+M["Identity & Access Management"]
+            UC7[Authenticate]
+            UC8[Administer System]
+            UC10[Generate Notifications]
+            UC11[Create Audit Trail]
+        end
+        subgraph Training["Training & Provisioning"]
+            UC13[Manage CCRP Credentials]
+            UC14[Provision Infrastructure]
+            UC15[Deploy Training Containers]
+            UC16[Track Real Costs]
+            UC9[Monitor Usage]
+        end
+    end
+    %% Actor connections to use cases
+    TDP --> UC
+1
+    TDP --> UC
+2
+    TDP --> UC
+5
+    TDP --> UC
+7
+    TDC --> UC
+1
+    TDC --> UC
+3
+    TDC --> UC
+4
+    TDC --> UC
+5
+    TDC --> UC
+7
+    CCRP --> UC
+7
+    CCRP --> UC
+9
+    CCRP --> UC
+13
+    CCRP --> UC
+14
+    CCRP --> UC
+15
+    CCRP --> UC
+16
+    AppAdmin --> UC7
+    AppAdmin --> UC8
+    AppAdmin --> UC10
+    AppAdmin --> UC11
+    Azure --> UC14
+    Azure --> UC15
+    Azure --> UC16</div><p>---</p><p><h2 id="3-logical-view">3. Logical View</h2></p><p><h3 id="3.1 System Overview">3.1 System Overview</h3></p><p><strong>Description:</strong> This high-level overview shows the main subsystems and their relationships. Each subsystem is detailed in separate diagrams below for better clarity and organization.</p><p><div class="mermaid">graph LR
+    %% Frontend Layer
+    subgraph Frontend["Frontend Layer"]
+        ReactApp[React Application]
+        UserDashboard[User Dashboard]
+        ContractForm[Contract Form]
+        SigningModal[Signing Modal]
+        APIService[API Service]
+        TokenManager[Token Manager]
+        ES256Signer[ES256 Signer]
+    end
+    %% Backend Subsystems
+    subgraph Core["Core Contract Management"]
+        ContractService[Contract Service]
+        DatasetService[Dataset Service]
+        ModelService[Model Service]
+        SigningService[Signing Service]
+    end
+    subgraph IA
+M["Identity & Security"]
+        AuthService[Auth Service]
+        UserService[User Service]
+        DIDService[DID Service]
+        AdminService[Admin Service]
+    end
+    subgraph Training["Training & Infrastructure"]
+        InfrastructureService[Infrastructure Service]
+        TrainingService[Training Service]
+        CCRPAzureCredentialsService[CCRP Azure Credentials Service]
+    end
+    subgraph Support["Support Services"]
+        NotificationService[Notification Service]
+        AuditService[Audit Service]
+    end
+    %% External Services
+    subgraph External["External Services"]
+        KeycloakIAM[Keycloak IAM]
+        BlockchainService[Blockchain Service]
+        Database[(Database)]
+        MonitoringService[Monitoring Service]
+        AzureCloud[Azure Cloud Services]
+    end
+    %% Main connections
+    Frontend --> Core
+    Frontend --> IAM
+    Frontend --> Training
+    Frontend --> Support
+    Core --> Database
+    Core --> BlockchainService
+    IAM --> K
+eycloakIAM
+    IAM --> D
+atabase
+    Training --> Database
+    Training --> AzureCloud
+    Support --> Database</div><p><h3 id="3.1.1 Core Contract Management Subsystem">3.1.1 Core Contract Management Subsystem</h3></p><p><strong>Description:</strong> This subsystem handles the core business logic for contract creation, dataset and model management, and contract signing operations.</p><p><div class="mermaid">graph LR
+    subgraph Frontend["Frontend Components"]
+        ContractForm[Contract Form]
+        SigningModal[Signing Modal]
+        UserDashboard[User Dashboard]
+    end
+    subgraph CoreServices["Core Services"]
+        ContractService[Contract Service]
+        DatasetService[Dataset Service]
+        ModelService[Model Service]
+        SigningService[Signing Service]
+    end
+    subgraph External["External Dependencies"]
+        Database[(Database)]
+        BlockchainService[Blockchain Service]
+        DIDService[DID Service]
+    end
+    %% Frontend connections
+    ContractForm --> ContractService
+    SigningModal --> SigningService
+    UserDashboard --> DatasetService
+    UserDashboard --> ModelService
+    %% Service connections
+    ContractService --> Database
+    ContractService --> BlockchainService
+    DatasetService --> Database
+    ModelService --> Database
+    SigningService --> DIDService
+    SigningService --> BlockchainService</div><p><h3 id="3.1.2 Identity & Security Subsystem">3.1.2 Identity & Security Subsystem</h3></p><p><strong>Description:</strong> This subsystem manages user authentication, authorization, DID management, and administrative functions.</p><p><div class="mermaid">graph LR
+    subgraph Frontend["Frontend Components"]
+        ReactApp[React Application]
+        UserDashboard[User Dashboard]
+        APIService[API Service]
+        TokenManager[Token Manager]
+    end
+    subgraph IAMServices["Identity & Security Services"]
+        AuthService[Auth Service]
+        UserService[User Service]
+        DIDService[DID Service]
+        AdminService[Admin Service]
+    end
+    subgraph External["External Dependencies"]
+        KeycloakIAM[Keycloak IAM]
+        Database[(Database)]
+    end
+    %% Frontend connections
+    ReactApp --> AuthService
+    UserDashboard --> UserService
+    APIService --> DIDService
+    TokenManager --> AuthService
+    %% Service connections
+    AuthService --> KeycloakIAM
+    UserService --> Database
+    DIDService --> Database
+    AdminService --> Database</div><p><h3 id="3.1.3 Training & Infrastructure Subsystem">3.1.3 Training & Infrastructure Subsystem</h3></p><p><strong>Description:</strong> This subsystem handles real Azure infrastructure provisioning, training environment management, and CCRP credential management.</p><p><div class="mermaid">graph LR
+    subgraph Frontend["Frontend Components"]
+        UserDashboard[User Dashboard]
+        APIService[API Service]
+    end
+    subgraph TrainingServices["Training & Infrastructure Services"]
+        InfrastructureService[Infrastructure Service]
+        TrainingService[Training Service]
+        CCRPAzureCredentialsService[CCRP Azure Credentials Service]
+    end
+    subgraph External["External Dependencies"]
+        Database[(Database)]
+        AzureCloud[Azure Cloud Services]
+    end
+    %% Frontend connections
+    UserDashboard --> InfrastructureService
+    UserDashboard --> TrainingService
+    APIService --> CCRPAzureCredentialsService
+    %% Service connections
+    InfrastructureService --> Database
+    InfrastructureService --> AzureCloud
+    TrainingService --> Database
+    TrainingService --> AzureCloud
+    CCRPAzureCredentialsService --> Database
+    CCRPAzureCredentialsService --> AzureCloud</div><p><h3 id="3.1.4 Support Services Subsystem">3.1.4 Support Services Subsystem</h3></p><p><strong>Description:</strong> This subsystem provides notification management, audit logging, and monitoring capabilities.</p><p><div class="mermaid">graph LR
+    subgraph Frontend["Frontend Components"]
+        UserDashboard[User Dashboard]
+        APIService[API Service]
+    end
+    subgraph SupportServices["Support Services"]
+        NotificationService[Notification Service]
+        AuditService[Audit Service]
+    end
+    subgraph External["External Dependencies"]
+        Database[(Database)]
+        MonitoringService[Monitoring Service]
+    end
+    %% Frontend connections
+    UserDashboard --> NotificationService
+    APIService --> AuditService
+    %% Service connections
+    NotificationService --> Database
+    AuditService --> Database
+    AuditService --> MonitoringService</div><p><h3 id="3.2 <strong>New Azure Integration Components</strong>">3.2 <strong>New Azure Integration Components</strong></h3></p><p><strong>Description:</strong> This diagram illustrates the new Azure integration architecture, showing how the system connects to Azure services for real infrastructure provisioning. It demonstrates the relationship between CCRP credentials, contract configuration, and Azure services like Resource Manager, Container Instances, Storage, Key Vault, and ML Workspace.</p><p><div class="mermaid">graph TB
+    subgraph "Azure Infrastructure Layer"
+        AzureProvider[Azure Provider]
+        CCRPCredentials[CCRP Credentials]
+        ContractConfig[Contract Configuration]
+    end
+    subgraph "Azure Services"
+        ResourceManager[Azure Resource Manager]
+        ContainerInstances[Azure Container Instances]
+        StorageBlob[Azure Storage Blob]
+        KeyVault[Azure Key Vault]
+        MLWorkspace[Azure ML Workspace]
+        Monitor[Azure Monitor]
+    end
+    subgraph "Infrastructure Components"
+        VNet[Virtual Network]
+        VM[Virtual Machines]
+        Storage[Storage Accounts]
+        Database[SQL Database]
+        Security[Network Security Groups]
+    end
+    InfrastructureService --> AzureProvider
+    TrainingService --> AzureProvider
+    CCRPAzureCredentialsService --> CCRPCredentials
+    AzureProvider --> ResourceManager
+    AzureProvider --> ContainerInstances
+    AzureProvider --> StorageBlob
+    AzureProvider --> KeyVault
+    AzureProvider --> MLWorkspace
+    AzureProvider --> Monitor
+    ResourceManager --> VNet
+    ResourceManager --> VM
+    ResourceManager --> Storage
+    ResourceManager --> Database
+    ResourceManager --> Security
+    CCRPCredentials --> ContractConfig
+    ContractConfig --> AzureProvider</div><p>---</p><p><h2 id="4-development-view">4. Development View</h2></p><p><h3 id="4.1 Code/Module Structure">4.1 Code/Module Structure</h3></p>
+#### Frontend Structure
+<pre><code class="language-text">frontend/
+├── src/
+│   ├── components/
+│   │   ├── dashboards/
+│   │   ├── forms/
+│   │   ├── modals/
+│   │   └── common/
+│   ├── pages/
+│   │   ├── dashboards/
+│   │   ├── contracts/
+│   │   ├── datasets/
+│   │   └── admin/
+│   ├── services/
+│   │   ├── api.js
+│   │   └── tokenManager.js
+│   └── utils/
+│       └── es256sign.js
+├── public/
+└── package.json</code></pre>
+#### Backend Structure
+<pre><code class="language-text">backend/
+├── routes/
+│   ├── auth.js
+│   ├── contracts.js
+│   ├── datasets.js
+│   ├── ai-models.js
+│   ├── ccrp.js
+│   ├── tdp.js
+│   ├── tdc.js
+│   ├── admin.js
+│   └── training.js
+├── models/
+│   ├── User.js
+│   ├── Contract.js
+│   ├── Dataset.js
+│   ├── AIModel.js
+│   ├── Notification.js
+│   ├── AuditLog.js
+│   ├── CCRPAzureCredentials.js
+│   └── TrainingJob.js
+├── services/
+│   ├── authService.js
+│   ├── didService.js
+│   ├── blockchainService.js
+│   ├── auditService.js
+│   ├── notificationService.js
+│   ├── signingService.js
+│   ├── infrastructureService.js
+│   ├── trainingService.js
+│   └── ccrpAzureCredentialsService.js
+├── providers/
+│   ├── azureProvider.js
+│   ├── awsProvider.js
+│   └── gcpProvider.js
+├── middleware/
+│   ├── auth.js
+│   └── errorHandler.js
+└── scripts/
+    ├── migrations/
+    └── test-data/</code></pre><p><h3 id="4.2 Module Structure Diagram">4.2 Module Structure Diagram</h3></p><p><strong>Description:</strong> This diagram shows the high-level module structure of the application, illustrating how the frontend, backend, and Azure components are organized. It demonstrates the separation of concerns between different layers and how they interact through APIs and services.</p><p><div class="mermaid">graph TD
+    subgraph Frontend
+      F1[components]
+      F2[pages]
+      F3[services]
+      F4[utils]
+    end
+    subgraph Backend
+      B1[routes]
+      B2[models]
+      B3[services]
+      B4[providers]
+      B5[middleware]
+      B6[scripts]
+    end
+    subgraph Azure
+      A1[Azure SDK]
+      A2[Azure Provider]
+      A3[CCRP Credentials]
+    end
+    F1 --> F2
+    F2 --> F3
+    F3 --> F4
+    B1 --> B2
+    B2 --> B3
+    B3 --> B4
+    B4 --> B5
+    B5 --> B6
+    F3 -- API --> B
+1
+    B3 --> A1
+    A1 --> A2
+    A2 --> A3</div><p>---</p><p><h2 id="5-process-view">5. Process View</h2></p><p><h3 id="5.1 Key Processes & Interactions">5.1 Key Processes & Interactions</h3></p>
+#### User Registration/Onboarding
+<li><code>frontend/src/pages/UserRegistration.js</code></li>
+<li><code>backend/routes/auth.js</code></li>
+#### Authentication (JWT, Keycloak)
+<li><code>backend/middleware/auth.js</code></li>
+<li><code>backend/services/keycloakService.js</code></li>
+#### Contract Creation & Multi-Party Signing
+<li><code>frontend/src/pages/Contracts.js</code></li>
+<li><code>backend/routes/contracts.js</code></li>
+<li><code>backend/services/signingService.js</code></li>
+#### DID Resolution & Verification
+<li><code>backend/services/didService.js</code></li>
+#### Blockchain Transaction
+<li><code>backend/services/blockchainService.js</code></li>
+#### Notification Dispatch
+<li><code>backend/services/notificationService.js</code></li>
+#### Audit Logging
+<li><code>backend/services/auditService.js</code></li>
+#### Resource Monitoring (CCRP)
+<li><code>frontend/src/pages/dashboards/CCRPDashboard.js</code></li>
+<li><code>backend/routes/ccrp.js</code></li>
+#### <strong>Real Infrastructure Provisioning</strong> (New)
+<li><code>backend/services/infrastructureService.js</code></li>
+<li><code>backend/routes/training.js</code></li><p><h3 id="5.2 <strong>New Azure Infrastructure Provisioning Process</strong>">5.2 <strong>New Azure Infrastructure Provisioning Process</strong></h3></p><p><strong>Description:</strong> This sequence diagram illustrates the complete process of provisioning real Azure infrastructure for training environments. It shows the interaction between CCRP users, the frontend, backend services, Keycloak authentication, database operations, and Azure cloud services including monitoring.</p><p><div class="mermaid">sequenceDiagram
+    participant CCRP as CCRP User
+    participant FE as Frontend
+    participant BE as Backend
+    participant KC as Keycloak
+    participant DB as Database
+    participant Azure as Azure Cloud
+    participant Monitor as Azure Monitor    CCRP->>FE: Login & Navigate to Infrastructure
+
+    FE->>BE: GET /api/auth/profile
+    BE->>KC: Verify JWT Token
+    KC-->>BE: User Info
+    BE-->>FE: User Profile
+    FE-->>CCRP: Show Infrastructure Dashboard
+    CCRP->>FE: Configure Azure Credentials
+    FE->>BE: POST /api/ccrp/azure-credentials
+    BE->>DB: Store Encrypted Credentials
+    DB-->>BE: Credentials Stored
+    BE->>Azure: Validate Credentials
+    Azure-->>BE: Validation Result
+    BE-->>FE: Credentials Validated
+    FE-->>CCRP: Show Validation Status
+    CCRP->>FE: Create Training Environment
+    FE->>BE: POST /api/infrastructure/provision
+    BE->>DB: Get CCRP Credentials
+    DB-->>BE: Encrypted Credentials
+    BE->>Azure: Create Resource Group
+    Azure-->>BE: Resource Group Created
+    BE->>Azure: Create Virtual Network
+    Azure-->>BE: VNet Created
+    BE->>Azure: Create Virtual Machines
+    Azure-->>BE: VMs Created
+    BE->>Azure: Create Storage Account
+    Azure-->>BE: Storage Created
+    BE->>Azure: Create Key Vault
+    Azure-->>BE: Key Vault Created
+    BE->>Azure: Create ML Workspace
+    Azure-->>BE: ML Workspace Created
+    BE->>Monitor: Setup Monitoring
+    Monitor-->>BE: Monitoring Configured
+    BE-->>FE: Infrastructure Provisioned
+    FE-->>CCRP: Show Infrastructure Status</div><p><h3 id="5.3 <strong>Real Training Container Deployment Process</strong>">5.3 <strong>Real Training Container Deployment Process</strong></h3></p><p><div class="mermaid">sequenceDiagram
+    participant TDC as TDC User
+    participant FE as Frontend
+    participant BE as Backend
+    participant Azure as Azure Container Instances
+    participant Storage as Azure Storage
+    participant Monitor as Azure Monitor    TDC->>FE: Start Training Job
+
+    FE->>BE: POST /api/training/start
+    BE->>Azure: Create Container Group
+    Azure-->>BE: Container Group Created
+    BE->>Storage: Mount Training Data
+    Storage-->>BE: Data Mounted
+    BE->>Azure: Start Container
+    Azure-->>BE: Container Started
+    BE->>Monitor: Setup Logging
+    Monitor-->>BE: Logging Configured
+    BE-->>FE: Training Started
+    FE-->>TDC: Show Training Status
+    Azure->>Monitor: Send Container Logs
+    Monitor->>BE: Forward Logs
+    BE->>FE: Update Training Progress
+    FE-->>TDC: Show Real-time Progress
+    Azure->>BE: Training Complete
+    BE->>Storage: Save Results
+    Storage-->>BE: Results Saved
+    BE->>Azure: Stop Container
+    Azure-->>BE: Container Stopped
+    BE-->>FE: Training Complete
+    FE-->>TDC: Show Results</div><p>---</p><p><h2 id="6-physical-view">6. Physical View</h2></p><p><h3 id="6.1 <strong>Updated Infrastructure Architecture</strong>">6.1 <strong>Updated Infrastructure Architecture</strong></h3></p>
+#### 6.1.1 <strong>Multi-Cloud Deployment Architecture</strong><p><strong>Description:</strong> This diagram shows the multi-cloud deployment architecture with load balancers distributing traffic across multiple backend services. Each backend service connects to different Azure resource groups managed by different CCRPs, demonstrating the multi-tenant isolation and scalability of the system.</p><p><div class="mermaid">graph TB
+    subgraph "Load Balancer Layer"
+        LB1[Load Balancer 1]
+        LB2[Load Balancer 2]
+    end
+    subgraph "Application Layer"
+        BE1[Backend 1]
+        BE2[Backend 2]
+        BE3[Backend 3]
+        BE4[Backend 4]
+        FE1[Frontend 1]
+        FE2[Frontend 2]
+    end
+    subgraph "Azure Cloud Infrastructure"
+        AzureRG1[Resource Group 1 - CCRP1]
+        AzureRG2[Resource Group 2 - CCRP2]
+        AzureRG3[Resource Group 3 - CCRP3]
+    end
+    subgraph "Azure Services"
+        ACI1[Container Instances 1]
+        ACI2[Container Instances 2]
+        Storage1[Storage Account 1]
+        Storage2[Storage Account 2]
+        KV1[Key Vault 1]
+        KV2[Key Vault 2]
+        ML1[ML Workspace 1]
+        ML2[ML Workspace 2]
+    end
+    LB1 --> BE1
+    LB1 --> BE2
+    LB2 --> BE3
+    LB2 --> BE4
+    BE1 --> AzureRG1
+    BE2 --> AzureRG2
+    BE3 --> AzureRG3
+    BE4 --> AzureRG1
+    AzureRG1 --> ACI1
+    AzureRG1 --> Storage1
+    AzureRG1 --> KV1
+    AzureRG1 --> ML1
+    AzureRG2 --> ACI2
+    AzureRG2 --> Storage2
+    AzureRG2 --> KV2
+    AzureRG2 --> ML2</div>
+#### 6.1.2 <strong>CCRP Credential Management Architecture</strong><p><strong>Description:</strong> This diagram illustrates how CCRP credentials are managed across multiple users and Azure subscriptions. It shows the separation of credentials per CCRP user, the database storage of encrypted credentials, and the connection to different Azure subscriptions for multi-tenant isolation.</p><p><div class="mermaid">graph TB
+    subgraph "CCRP Users"
+        CCRP1[CCRP User 1]
+        CCRP2[CCRP User 2]
+        CCRP3[CCRP User 3]
+    end
+    subgraph "Application Layer"
+
+        BE[Backend Service]
+        Auth[Authentication Service]
+    end
+    subgraph "Database Layer"
+
+        DB[(PostgreSQL Database)]
+        Credentials[(CCRP Credentials Table)]
+        Contracts[(Contracts Table)]
+    end
+    subgraph "Azure Subscriptions"
+        Sub1[Azure Subscription 1]
+        Sub2[Azure Subscription 2]
+        Sub3[Azure Subscription 3]
+    end
+    CCRP1 --> BE
+    CCRP2 --> BE
+    CCRP3 --> BE
+    BE --> A
+uth
+    Auth --> DB
+    BE --> C
+redentials
+    BE --> C
+ontracts
+    BE --> S
+ub1
+    BE --> S
+ub2
+    BE --> S
+ub3</div>
+#### 6.1.3 <strong>Real Training Environment Architecture</strong><p><strong>Description:</strong> This diagram shows the real training environment architecture using Azure Container Instances for running training jobs. It illustrates how training jobs are deployed to containers, how they access training data from Azure Storage blobs, how results are stored, and how monitoring and logging are handled through Azure Monitor and Log Analytics.</p><p><div class="mermaid">graph TB
+    subgraph "Training Jobs"
+        Job1[Training Job 1]
+        Job2[Training Job 2]
+        Job3[Training Job 3]
+    end
+    subgraph "Azure Container Instances"
+        Container1[Training Container 1]
+        Container2[Training Container 2]
+        Container3[Training Container 3]
+    end
+    subgraph "Azure Storage"
+        Blob1[Training Data Blob 1]
+        Blob2[Training Data Blob 2]
+        Blob3[Training Data Blob 3]
+        Results1[Results Blob 1]
+        Results2[Results Blob 2]
+        Results3[Results Blob 3]
+    end
+    subgraph "Azure Monitoring"
+        Monitor1[Azure Monitor 1]
+        Monitor2[Azure Monitor 2]
+        Monitor3[Azure Monitor 3]
+        Logs1[Log Analytics 1]
+        Logs2[Log Analytics 2]
+        Logs3[Log Analytics 3]
+    end
+    Job1 --> Container1
+    Job2 --> Container2
+    Job3 --> Container3
+    Container1 --> Blob1
+    Container2 --> Blob2
+    Container3 --> Blob3
+    Container1 --> Results1
+    Container2 --> Results2
+    Container3 --> Results3
+    Container1 --> Monitor1
+    Container2 --> Monitor2
+    Container3 --> Monitor3
+    Monitor1 --> Logs1
+    Monitor2 --> Logs2
+    Monitor3 --> Logs3</div>
+#### 6.1.4 <strong>Security & Identity Layer</strong><p><strong>Description:</strong> This diagram illustrates the comprehensive security and identity management architecture. It shows how backend services integrate with Keycloak for authentication, how security services like WAF, VPN, HSM, and KMS protect the system, and how Azure security features like Key Vault, Active Directory, and RBAC provide additional layers of security.</p><p><div class="mermaid">graph TB
+    subgraph "Backend Containers"
+        BE1[Backend 1]
+        BE2[Backend 2]
+        BE3[Backend 3]
+        BE4[Backend 4]
+    end
+    subgraph "Identity Management"
+        KC1[Keycloak Container 1]
+        KC2[Keycloak Container 2]
+        KC_DB[(Keycloak Database)]
+    end
+    subgraph "Security Services"
+
+        WAF[Web Application Firewall]
+        VPN[VPN Gateway]
+        HSM[Hardware Security Module]
+        KMS[Key Management Service]
+        AzureKV[Azure Key Vault]
+    end
+    subgraph "Azure Security"
+        AzureAD[Azure Active Directory]
+        AzureRBAC[Azure RBAC]
+        AzureEncryption[Azure Encryption]
+    end
+    BE1 --> KC1
+    BE2 --> KC2
+    BE3 --> KC1
+    BE4 --> KC2
+    KC1 --> KC_DB
+    KC2 --> KC_DB
+    BE1 --> HSM
+    BE2 --> HSM
+    BE3 --> HSM
+    BE4 --> HSM
+    BE1 --> KMS
+    BE2 --> KMS
+    BE3 --> KMS
+    BE4 --> KMS
+    BE1 --> AzureKV
+    BE2 --> AzureKV
+    BE3 --> AzureKV
+    BE4 --> AzureKV
+    WAF --> BE
+1
+    WAF --> BE
+2
+    WAF --> BE
+3
+    WAF --> BE
+4
+    VPN --> HSM
+    VPN --> KMS
+    VPN --> A
+zureKV
+    AzureAD --> A
+zureRBAC
+    AzureRBAC --> A
+zureEncryption</div>
+#### 6.1.5 <strong>Monitoring & External Services</strong><p><strong>Description:</strong> This diagram shows the comprehensive monitoring and external services architecture. It illustrates how backend services connect to various monitoring systems (Prometheus, Grafana, ELK Stack), Azure monitoring services (Monitor, Log Analytics, Metrics, Alerts), blockchain services (Ethereum Node, Blockchain Monitor), and external services (Email, SMS, Audit) for complete system observability and integration.</p><p><div class="mermaid">graph TB
+    subgraph "Backend Containers"
+        BE1[Backend 1]
+        BE2[Backend 2]
+        BE3[Backend 3]
+        BE4[Backend 4]
+    end
+    subgraph "Monitoring Stack"
+        Prometheus[Prometheus]
+        Grafana[Grafana]
+        AlertManager[Alert Manager]
+        ELK[ELK Stack]
+    end
+    subgraph "Azure Monitoring"
+        AzureMonitor[Azure Monitor]
+        AzureLogs[Azure Log Analytics]
+        AzureMetrics[Azure Metrics]
+        AzureAlerts[Azure Alerts]
+    end
+    subgraph "Blockchain Services"
+
+        ETH_NODE[Ethereum Node]
+        BC_MONITOR[Blockchain Monitor]
+    end
+    subgraph "External Services"
+        Email[Email Service]
+        SMS[SMS Service]
+        Audit[External Audit]
+    end
+    BE1 --> Prometheus
+    BE2 --> Prometheus
+    BE3 --> Prometheus
+    BE4 --> Prometheus
+    Prometheus --> Grafana
+    Prometheus --> AlertManager
+    BE1 --> ELK
+    BE2 --> ELK
+    BE3 --> ELK
+    BE4 --> ELK
+    BE1 --> AzureMonitor
+    BE2 --> AzureMonitor
+    BE3 --> AzureMonitor
+    BE4 --> AzureMonitor
+    AzureMonitor --> AzureLogs
+    AzureMonitor --> AzureMetrics
+    AzureMonitor --> AzureAlerts
+    BE1 --> ETH_NODE
+    BE2 --> ETH_NODE
+    BE3 --> ETH_NODE
+    BE4 --> ETH_NODE
+    ETH_NODE --> BC_MONITOR
+    BE1 --> Email
+    BE2 --> Email
+    BE3 --> Email
+    BE4 --> Email
+    BE1 --> SMS
+    BE2 --> SMS
+    BE3 --> SMS
+    BE4 --> SMS
+    BE1 --> Audit
+    BE2 --> Audit
+    BE3 --> Audit
+    BE4 --> Audit</div><p><h3 id="6.2 <strong>Updated Deployment Configuration</strong>">6.2 <strong>Updated Deployment Configuration</strong></h3></p>
+#### Container Orchestration (Kubernetes)
+<pre><code class="language-yaml"><h1 id="k8s/deployment.yaml">k8s/deployment.yaml</h1>
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: contract-management-backend
+spec:
+  replicas: 4
+  selector:
+    matchLabels:
+      app: contract-management-backend
+  template:
+    metadata:
+      labels:
+        app: contract-management-backend
+    spec:
+      containers:
+      - name: backend
+        image: contract-management:latest
+        ports:
+        - containerPort: 3000
+        env:
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: db-secret
+              key: url
+        - name: REDIS_URL
+          valueFrom:
+            secretKeyRef:
+              name: redis-secret
+              key: url
+        - name: KEYCLOAK_URL
+          valueFrom:
+            secretKeyRef:
+              name: keycloak-secret
+              key: url
+        - name: HSM_URL
+          valueFrom:
+            secretKeyRef:
+              name: hsm-secret
+              key: url
+        - name: AZURE_SUBSCRIPTION_ID
+          valueFrom:
+            secretKeyRef:
+              name: azure-secret
+              key: subscription-id
+        - name: AZURE_TENANT_ID
+          valueFrom:
+            secretKeyRef:
+              name: azure-secret
+              key: tenant-id
+        - name: AZURE_CLIENT_ID
+          valueFrom:
+            secretKeyRef:
+              name: azure-secret
+              key: client-id
+        - name: AZURE_CLIENT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: azure-secret
+              key: client-secret
+        - name: ENCRYPTION_KEY
+          valueFrom:
+            secretKeyRef:
+              name: encryption-secret
+              key: key
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "500m"
+          limits:
+            memory: "1Gi"
+            cpu: "1000m"</code></pre><p>---</p><p><h2 id="7. <strong>Updated Logical Class Diagram</strong>">7. <strong>Updated Logical Class Diagram</strong></h2></p><p><strong>Description:</strong> This comprehensive class diagram shows the complete object-oriented structure of the system, including frontend components, backend models, and services. It illustrates the relationships between different classes, showing how data flows through the system and how different services interact with each other and the data models. The diagram includes the new Azure integration classes and their relationships.</p><p><div class="mermaid">classDiagram
+    %% Frontend Components
+    class ReactApp {
+        +render()
+        +handleState()
+        +routeToPage()
+    }
+    class UserDashboard {
+        +displayUserInfo()
+        +showContracts()
+        +showDatasets()
+        +showNotifications()
+    }
+    class ContractForm {
+        +createContract()
+        +validateForm()
+        +submitContract()
+    }
+    class SigningModal {
+        +signContract()
+        +verifySignature()
+        +submitSignature()
+    }
+    class APIService {
+        +get(url)
+        +post(url, data)
+        +put(url, data)
+        +delete(url)
+    }
+    class TokenManager {
+        +getToken()
+        +refreshToken()
+        +clearToken()
+    }
+    class ES256Signer {
+        +signMessage(message, privateKey)
+        +verifySignature(message, signature, publicKey)
+    }
+    %% Backend Models
+    class User {
+        +id: UUID
+        +email: String
+        +partyType: String
+        +did: String
+        +walletAddress: String
+        +isActive: Boolean
+        +createdAt: Date
+        +create()
+        +update()
+        +delete()
+        +findByEmail()
+        +findByDID()
+    }
+    class Contract {
+        +id: UUID
+        +contractId: String
+        +tdpId: UUID
+        +tdcId: UUID
+        +ccrpId: UUID
+        +status: String
+        +terms: JSON
+        +signatures: JSON
+        +createdAt: Date
+        +ccrpAzureSubscriptionId: String
+        +ccrpAzureTenantId: String
+        +ccrpAzureLocation: String
+        +ccrpAzureVMSize: String
+        +ccrpAzureStorageSku: String
+        +ccrpAzureDatabaseSku: String
+        +ccrpAzureEnableEncryption: Boolean
+        +ccrpAzureEnableMonitoring: Boolean
+        +ccrpAzureBudgetLimit: Decimal
+        +create()
+        +update()
+        +delete()
+        +findByUser()
+        +findByStatus()
+    }
+    class Dataset {
+        +id: UUID
+        +name: String
+        +description: String
+        +ownerId: UUID
+        +depaId: String
+        +metadata: JSON
+        +accessControl: JSON
+        +createdAt: Date
+        +create()
+        +update()
+        +delete()
+        +findByOwner()
+        +findByDEPA()
+    }
+    class AIModel {
+        +id: UUID
+        +name: String
+        +description: String
+        +ownerId: UUID
+        +depaId: String
+        +modelType: String
+        +metadata: JSON
+        +createdAt: Date
+        +create()
+        +update()
+        +delete()
+        +findByOwner()
+        +findByType()
+    }
+    class CCRPAzureCredentials {
+        +id: UUID
+        +ccrpUserId: UUID
+        +subscriptionId: String
+        +tenantId: String
+        +clientId: String
+        +clientSecret: String
+        +authMethod: String
+        +defaultLocation: String
+        +defaultVMSize: String
+        +enableEncryption: Boolean
+        +budgetLimit: Decimal
+        +validationStatus: String
+        +isActive: Boolean
+        +createdAt: Date
+        +create()
+        +update()
+        +delete()
+        +validateCredentials()
+        +getAzureConfig()
+    }
+    class TrainingJob {
+        +id: UUID
+        +contractId: UUID
+        +jobId: String
+        +status: String
+        +containerId: String
+        +startTime: Date
+        +endTime: Date
+        +logs: JSON
+        +results: JSON
+        +createdAt: Date
+        +create()
+        +update()
+        +delete()
+        +findByContract()
+        +findByStatus()
+    }
+    class Notification {
+        +id: UUID
+        +userId: UUID
+        +type: String
+        +title: String
+        +message: String
+        +isRead: Boolean
+        +metadata: JSON
+        +createdAt: Date
+        +create()
+        +markAsRead()
+        +findByUser()
+        +findUnread()
+    }
+    class AuditLog {
+        +id: UUID
+        +userId: UUID
+        +action: String
+        +resource: String
+        +details: JSON
+        +ipAddress: String
+        +userAgent: String
+        +timestamp: Date
+        +create()
+        +findByUser()
+        +findByAction()
+        +findByDateRange()
+    }
+    %% Backend Services
+    class AuthService {
+        +registerUser(userData)
+        +loginUser(credentials)
+        +verifyToken(token)
+        +refreshToken(refreshToken)
+        +logoutUser(userId)
+        +resetPassword(email)
+        +changePassword(userId, oldPassword, newPassword)
+    }
+    class DIDService {
+        +createSystemDID(walletAddress, network)
+        +resolveDID(did)
+        +verifySignature(did, message, signature)
+        +extractPublicKey(didDocument)
+        +validateEnterpriseDID(did)
+        +checkDIDAvailability(did)
+    }
+    class ContractService {
+        +createContract(contractData)
+        +getContract(contractId)
+        +updateContract(contractId, updates)
+        +deleteContract(contractId)
+        +getUserContracts(userId)
+        +getAllContracts(filters)
+        +signContract(contractId, signatureData)
+        +verifyContractSignatures(contractId)
+    }
+    class SigningService {
+        +signMessage(message, did, userId)
+        +verifyDIDSignature(did, message, signature)
+        +recordSignature(contractId, userId, did, signature)
+        +updateContractStatus(contract, userPartyType)
+        +logSigningOperation(operationData)
+    }
+    class BlockchainService {
+        +isConnected()
+        +getContract(contractId)
+        +deployContract(contractData)
+        +signContract(contractId, privateKey)
+        +verifyTransaction(transactionHash)
+        +broadcastSignedTransaction(signedTransaction)
+    }
+    class NotificationService {
+        +createNotification(notificationData)
+        +sendEmailNotification(userId, emailData)
+        +sendPushNotification(userId, pushData)
+        +markNotificationAsRead(notificationId)
+        +getUserNotifications(userId)
+        +deleteNotification(notificationId)
+    }
+    class AuditService {
+        +logEvent(eventData)
+        +logUserAction(userId, action, resource, details)
+        +logSystemEvent(event, details)
+        +getAuditLogs(filters)
+        +exportAuditLogs(dateRange)
+        +generateAuditReport(reportParams)
+    }
+    class KeycloakService {
+        +createUser(userData)
+        +updateUser(userId, userData)
+        +deleteUser(userId)
+        +getUser(userId)
+        +sendEmailVerification(userId)
+        +resetPassword(userId)
+        +assignRole(userId, role)
+    }
+    class InfrastructureService {
+        +createTrainingEnvironment(contractId, config)
+        +getEnvironment(environmentId)
+        +updateEnvironment(environmentId, updates)
+        +deleteEnvironment(environmentId)
+        +listEnvironments(filters)
+        +getEnvironmentStatus(environmentId)
+    }
+    class TrainingService {
+        +startTraining(contractId, config)
+        +getTrainingJob(jobId)
+        +updateTrainingJob(jobId, updates)
+        +stopTraining(jobId)
+        +listTrainingJobs(filters)
+        +getTrainingLogs(jobId)
+        +getTrainingResults(jobId)
+    }
+    class CCRPAzureCredentialsService {
+        +createOrUpdateCredentials(ccrpUserId, credentials, config)
+        +getCredentials(ccrpUserId)
+        +validateCredentials(ccrpUserId)
+        +getContractAzureConfig(contractId)
+        +updateContractAzureConfig(contractId, config)
+        +listCCRPsWithCredentials()
+        +deleteCredentials(ccrpUserId)
+        +testAzureConnectivity(ccrpUserId)
+    }
+    %% Relationships
+    ReactApp --> UserDashboard
+    ReactApp --> ContractForm
+    ReactApp --> SigningModal
+    ReactApp --> APIService
+    ReactApp --> TokenManager
+    ReactApp --> ES256Signer
+    UserDashboard --> APIService
+    ContractForm --> APIService
+    SigningModal --> ES256Signer
+    SigningModal --> APIService
+    %% Backend Relationships
+    User --o Contract
+    User --o Dataset
+    User --o AIModel
+    User --o Notification
+    User --o AuditLog
+    User --o CCRPAzureCredentials
+    User --o TrainingJob
+    Contract --o Dataset
+    Contract --o AIModel
+    Contract --o Notification
+    Contract --o TrainingJob
+    %% Service Relationships
+    AuthService --> User
+    AuthService --> KeycloakService
+    ContractService --> Contract
+    ContractService --> User
+    ContractService --> Dataset
+    ContractService --> AIModel
+    ContractService --> SigningService
+    ContractService --> BlockchainService
+    ContractService --> NotificationService
+    SigningService --> DIDService
+    SigningService --> BlockchainService
+    SigningService --> AuditService
+    NotificationService --> Notification
+    NotificationService --> User
+    AuditService --> AuditLog
+    AuditService --> User
+    DIDService --> User
+    BlockchainService --> Contract
+    InfrastructureService --> CCRPAzureCredentials
+    InfrastructureService --> Contract
+    TrainingService --> TrainingJob
+    TrainingService --> Contract
+    CCRPAzureCredentialsService --> CCRPAzureCredentials
+    CCRPAzureCredentialsService --> User</div><p>---</p><p><h2 id="8-stakeholder-mapping">8. Stakeholder Mapping</h2></p><p>| View           | Stakeholders                | Main Concerns/Artifacts                | Mapped Files/Dirs                        |</p>
+|----------------|----------------------------|----------------------------------------|------------------------------------------|
+| Use Case (+1)  | All                        | Scenarios, sequence diagrams           | <code>frontend/src/pages/</code>, <code>backend/routes/</code> |
+| Logical        | Designers, Users           | Class, component diagrams              | <code>frontend/src/</code>, <code>backend/services/</code>     |
+| Development    | Developers, DevOps         | Code structure, modules, packages      | <code>frontend/</code>, <code>backend/</code>                  |
+| Process        | Integrators, Testers       | Sequence/activity diagrams, flows      | <code>backend/services/</code>, <code>backend/routes/</code>   |
+| Physical       | Sysadmins, DevOps, Security| Deployment, network, infra diagrams    | Docker, k8s, cloud infra                 |<p>---</p><p><h2 id="9-implementation-guidelines">9. Implementation Guidelines</h2></p><p><h3 id="9.1 Development Workflow">9.1 Development Workflow</h3></p>
+<li><strong>Design Phase</strong>: Use Logical and Development views to plan features</li>
+<li><strong>Implementation Phase</strong>: Follow Process view for integration points</li>
+<li><strong>Testing Phase</strong>: Use Use Case view to validate scenarios</li>
+<li><strong>Deployment Phase</strong>: Follow Physical view for infrastructure setup</li><p><h3 id="9.2 Code Organization">9.2 Code Organization</h3></p>
+<li><strong>Frontend</strong>: Component-based architecture with service layer</li>
+<li><strong>Backend</strong>: Route → Service → Model pattern</li>
+<li><strong>Database</strong>: Sequelize ORM with migrations</li>
+<li><strong>Security</strong>: JWT + Keycloak integration</li>
+<li><strong>Blockchain</strong>: Ethereum integration with fallback</li>
+<li><strong>Azure Integration</strong>: Real Azure SDK with CCRP-specific credentials</li><p><h3 id="9.3 Security Considerations">9.3 Security Considerations</h3></p>
+<li><strong>Authentication</strong>: Multi-factor authentication via Keycloak</li>
+<li><strong>Authorization</strong>: Role-based access control</li>
+<li><strong>Cryptography</strong>: ES256 signing with HSM/KMS</li>
+<li><strong>Audit</strong>: Comprehensive logging and monitoring</li>
+<li><strong>Compliance</strong>: DPDP, GDPR, enterprise security standards</li>
+<li><strong>Azure Security</strong>: Encrypted credential storage, CCRP isolation</li><p><h3 id="9.4 Scalability Strategy">9.4 Scalability Strategy</h3></p>
+<li><strong>Horizontal Scaling</strong>: Multiple backend containers</li>
+<li><strong>Database</strong>: Master-slave replication</li>
+<li><strong>Caching</strong>: Redis for session and data caching</li>
+<li><strong>CDN</strong>: Static asset delivery</li>
+<li><strong>Load Balancing</strong>: Kubernetes ingress controller</li>
+<li><strong>Multi-Tenant</strong>: CCRP isolation with independent Azure subscriptions</li>
+<li><strong>Real Infrastructure</strong>: Actual Azure resource provisioning</li><p><h3 id="9.5 <strong>New Azure Integration Guidelines</strong>">9.5 <strong>New Azure Integration Guidelines</strong></h3></p>
+#### <strong>CCRP Credential Management</strong>
+<li><strong>Encrypted Storage</strong>: AES-256-CBC encryption for client secrets</li>
+<li><strong>Multi-Tenant</strong>: Each CCRP has independent Azure subscription</li>
+<li><strong>Validation</strong>: Automatic credential validation before use</li>
+<li><strong>Audit Trail</strong>: Complete tracking of credential changes</li>
+#### <strong>Infrastructure Provisioning</strong>
+<li><strong>Real Resources</strong>: Actual Azure VMs, storage, networking</li>
+<li><strong>Container Deployment</strong>: Real Azure Container Instances</li>
+<li><strong>Cost Management</strong>: Per-CCRP and per-contract budget tracking</li>
+<li><strong>Monitoring</strong>: Real Azure Monitor integration</li>
+#### <strong>Training Environment</strong>
+<li><strong>Real Execution</strong>: Actual container deployment for training</li>
+<li><strong>Data Access</strong>: Real Azure Storage blob access</li>
+<li><strong>Model Registration</strong>: Real Azure ML model registration</li>
+<li><strong>Security</strong>: Real Azure Key Vault integration</li><p>---</p><p><h2 id="10-conclusion">10. Conclusion</h2></p><p>This UML 4+1 View Architecture provides a comprehensive framework for understanding, developing, and maintaining the Contract Management System. Each view serves specific stakeholders and concerns:</p><p><li><strong>Use Case View</strong>: Validates requirements and user scenarios</li></p>
+<li><strong>Logical View</strong>: Guides system design and component relationships</li>
+<li><strong>Development View</strong>: Organizes code structure and modules</li>
+<li><strong>Process View</strong>: Ensures proper integration and workflows</li>
+<li><strong>Physical View</strong>: Plans deployment and infrastructure</li></ul><p>The architecture supports enterprise-grade security, scalability, and compliance while maintaining clear separation of concerns and modular design principles. <strong>The latest v2.0 update adds real Azure infrastructure provisioning with multi-tenant CCRP credential management, making the system truly production-ready for enterprise deployments.</strong></p><p>---</p><p><strong>Document Version:</strong> 2.0  </p>
+<strong>Last Updated:</strong> December 2024  
+<strong>Next Review:</strong> March 2025 
+            </div>
+        </div>
+    </div>
+    <!-- Back to Top -->
+    <a href="#" class="back-to-top" id="backToTop">
+        <i class="fas fa-arrow-up"></i>
+    </a>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10.6.1/dist/mermaid.min.js"></script>
+    <script>
+        // Initialize Mermaid
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'default',
+            flowchart: {
+                useMaxWidth: true,
+                htmlLabels: true,
+                curve: 'basis'
+            },
+            sequence: {
+                useMaxWidth: true,
+                diagramMarginX: 50,
+                diagramMarginY: 10,
+                actorMargin: 50,
+                width: 150,
+                height: 65,
+                boxMargin: 10,
+                boxTextMargin: 5,
+                noteMargin: 10,
+                messageMargin: 35,
+                mirrorActors: true,
+                bottomMarginAdj: 1,
+                useMaxWidth: true,
+                rightAngles: false,
+                showSequenceNumbers: false
+            },
+            gantt: {
+                titleTopMargin: 25,
+                barHeight: 20,
+                barGap: 4,
+                topPadding: 50,
+                leftPadding: 75,
+                gridLineStartPadding: 35,
+                fontSize: 11,
+                fontFamily: '"Open-Sans", "sans-serif"',
+                numberSectionStyles: 4,
+                axisFormat: '%Y-%m-%d'
+            },
+            journey: {
+                useMaxWidth: true,
+                diagramPadding: 20
+            },
+            gitGraph: {
+                useMaxWidth: true,
+                diagramPadding: 20
+            },
+            securityLevel: 'loose',
+            logLevel: 1
+        });
+
+        // Back to top functionality
+        window.addEventListener('scroll', function() {
+            const backToTop = document.getElementById('backToTop');
+            if (window.pageYOffset > 300) {
+                backToTop.style.display = 'flex';
+            } else {
+                backToTop.style.display = 'none';
+            }
+        });
+
+        // Smooth scrolling for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        // Add syntax highlighting to code blocks
+        document.addEventListener('DOMContentLoaded', function() {
+            if (typeof Prism !== 'undefined') {
+                Prism.highlightAll();
+            }
+        });
+    </script>
+</body>
+</html>

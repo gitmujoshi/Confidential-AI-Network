@@ -10,8 +10,9 @@ Complete API documentation for the Contract Management System. This reference co
 4. [Dataset Management](#dataset-management)
 5. [Cloud Credentials](#cloud-credentials)
 6. [Blockchain Integration](#blockchain-integration)
-7. [Error Handling](#error-handling)
-8. [Rate Limiting](#rate-limiting)
+7. [Differential Privacy](#differential-privacy)
+8. [Error Handling](#error-handling)
+9. [Rate Limiting](#rate-limiting)
 
 ## 🔐 Authentication
 
@@ -773,6 +774,381 @@ Authorization: Bearer <access_token>
   }
 }
 ```
+
+## 🔐 Differential Privacy
+
+The differential privacy API provides comprehensive privacy-preserving data analysis capabilities with budget tracking and audit logging.
+
+### **Base URL**
+```
+http://localhost:5001/api/dp
+```
+
+### **Authentication**
+All endpoints require authentication via Bearer token:
+```http
+Authorization: Bearer <access_token>
+```
+
+### **Get Available Mechanisms**
+```http
+GET /dp/mechanisms
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "name": "laplace",
+      "description": "Laplace mechanism for continuous data",
+      "bestFor": ["GRADIENT", "CONTINUOUS_VALUES", "REAL_NUMBERS"],
+      "parameters": ["epsilon", "sensitivity"]
+    },
+    {
+      "name": "gaussian",
+      "description": "Gaussian mechanism for continuous data with better utility",
+      "bestFor": ["AVERAGE", "CONTINUOUS_VALUES", "REAL_NUMBERS"],
+      "parameters": ["epsilon", "delta", "sensitivity"]
+    }
+  ]
+}
+```
+
+### **Get Supported Query Types**
+```http
+GET /dp/query-types
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "name": "COUNT",
+      "description": "Count queries (e.g., number of records)",
+      "sensitivity": 1,
+      "mechanism": "geometric"
+    },
+    {
+      "name": "AVERAGE",
+      "description": "Average queries (e.g., mean value)",
+      "sensitivity": "data_dependent",
+      "mechanism": "gaussian"
+    }
+  ]
+}
+```
+
+### **Test Differential Privacy**
+```http
+POST /dp/test
+```
+
+**Request Body:**
+```json
+{
+  "data": [1, 2, 3, 4, 5],
+  "query": {
+    "type": "AVERAGE"
+  },
+  "privacyParams": {
+    "epsilon": 0.1,
+    "delta": 1e-5,
+    "mechanism": "laplace"
+  }
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Differential privacy test completed successfully",
+  "data": {
+    "success": true,
+    "result": [1.033, 1.976, 3.036, 3.988, 5.044],
+    "privacyMetrics": {
+      "mechanism": "laplace",
+      "epsilon": 0.1,
+      "delta": 0.00001,
+      "sensitivity": 1
+    }
+  },
+  "testInfo": {
+    "contractId": "test-contract-1754953614346",
+    "note": "This was a test operation - no actual budget was consumed"
+  }
+}
+```
+
+### **Apply Differential Privacy**
+```http
+POST /dp/apply
+```
+
+**Request Body:**
+```json
+{
+  "data": [1, 2, 3, 4, 5],
+  "query": {
+    "type": "AVERAGE",
+    "parameters": {
+      "aggregation": "mean",
+      "groupBy": "category"
+    }
+  },
+  "privacyParams": {
+    "contractId": "contract-123",
+    "epsilon": 0.1,
+    "delta": 1e-5,
+    "mechanism": "laplace",
+    "sensitivity": 1.0
+  }
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Differential privacy applied successfully",
+  "data": {
+    "result": [1.033, 1.976, 3.036, 3.988, 5.044],
+    "privacyMetrics": {
+      "mechanism": "laplace",
+      "epsilon": 0.1,
+      "delta": 0.00001,
+      "sensitivity": 1.0,
+      "noiseAdded": 0.033
+    },
+    "budgetConsumed": {
+      "epsilon": 0.1,
+      "delta": 1e-5,
+      "remainingEpsilon": 0.9,
+      "remainingDelta": 9e-5
+    }
+  }
+}
+```
+
+### **Get Privacy Budget**
+```http
+GET /dp/budget/:contractId
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": {
+    "budget": {
+      "id": 1,
+      "contractId": "contract-123",
+      "initialEpsilon": 1.0,
+      "initialDelta": 0.00001,
+      "remainingEpsilon": 0.9,
+      "remainingDelta": 9e-5,
+      "totalEpsilonConsumed": 0.1,
+      "totalDeltaConsumed": 1e-5,
+      "budgetStatus": "ACTIVE",
+      "lastResetAt": "2025-08-12T01:00:00.000Z"
+    },
+    "utilization": {
+      "epsilonUtilization": 0.1,
+      "deltaUtilization": 0.1,
+      "budgetHealth": "HEALTHY"
+    }
+  }
+}
+```
+
+### **Get Privacy Operation History**
+```http
+GET /dp/history/:contractId
+```
+
+**Query Parameters:**
+- `limit` (optional): Number of records to return (default: 50)
+- `offset` (optional): Number of records to skip (default: 0)
+- `operationType` (optional): Filter by operation type
+- `mechanism` (optional): Filter by mechanism
+- `startDate` (optional): Filter from date
+- `endDate` (optional): Filter to date
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": {
+    "operations": [
+      {
+        "id": 1,
+        "contractId": "contract-123",
+        "operationType": "AVERAGE_QUERY",
+        "epsilon": 0.1,
+        "delta": 1e-5,
+        "mechanism": "laplace",
+        "sensitivity": 1.0,
+        "dataSize": 5,
+        "queryType": "AVERAGE",
+        "timestamp": "2025-08-12T01:00:00.000Z",
+        "success": true,
+        "executionTime": 45
+      }
+    ],
+    "pagination": {
+      "total": 1,
+      "limit": 50,
+      "offset": 0,
+      "hasMore": false
+    }
+  }
+}
+```
+
+### **Get Privacy Analytics**
+```http
+GET /dp/analytics/:contractId
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": {
+    "overview": {
+      "totalOperations": 15,
+      "successfulOperations": 14,
+      "failedOperations": 1,
+      "totalEpsilonConsumed": 1.5,
+      "totalDeltaConsumed": 1.5e-4
+    },
+    "mechanismUsage": {
+      "laplace": 8,
+      "gaussian": 5,
+      "exponential": 2
+    },
+    "queryTypeDistribution": {
+      "COUNT": 5,
+      "AVERAGE": 6,
+      "GRADIENT": 4
+    },
+    "performance": {
+      "averageExecutionTime": 67,
+      "fastestOperation": 23,
+      "slowestOperation": 156
+    },
+    "budgetHealth": {
+      "status": "HEALTHY",
+      "recommendations": [
+        "Consider reducing epsilon for COUNT queries",
+        "Gaussian mechanism shows better utility for AVERAGE queries"
+      ]
+    }
+  }
+}
+```
+
+### **Privacy Budget Management**
+
+#### **Budget Status Values**
+- `ACTIVE`: Budget is available for operations
+- `WARNING`: Budget is running low (less than 20% remaining)
+- `EXHAUSTED`: Budget has been fully consumed
+- `RESET`: Budget has been reset and is available again
+
+#### **Privacy Parameters**
+
+**Epsilon (ε)**
+- Controls the privacy level
+- Lower values = higher privacy, lower utility
+- Typical range: 0.1 to 10.0
+- Default: 1.0
+
+**Delta (δ)**
+- Probability of privacy failure
+- Lower values = higher privacy
+- Typical range: 1e-6 to 1e-3
+- Default: 1e-5
+
+**Sensitivity**
+- Maximum change in output for any single record
+- Automatically calculated for most query types
+- Can be manually specified for custom queries
+
+#### **Mechanism Selection Guide**
+
+| Query Type | Recommended Mechanism | Reason |
+|------------|----------------------|---------|
+| COUNT | Geometric | Best for integer counts |
+| SUM | Laplace | Good balance of privacy/utility |
+| AVERAGE | Gaussian | Better utility for continuous data |
+| GRADIENT | Laplace | Robust for ML training |
+| HISTOGRAM | Laplace | Good for categorical data |
+| PERCENTILE | Laplace | Stable for statistical measures |
+
+### **Error Handling**
+
+**Insufficient Budget:**
+```json
+{
+  "success": false,
+  "error": "Insufficient privacy budget",
+  "details": {
+    "requiredEpsilon": 0.2,
+    "availableEpsilon": 0.1,
+    "requiredDelta": 2e-5,
+    "availableDelta": 1e-5
+  }
+}
+```
+
+**Invalid Parameters:**
+```json
+{
+  "success": false,
+  "error": "Invalid privacy parameters",
+  "details": {
+    "epsilon": "Must be between 0.1 and 10.0",
+    "delta": "Must be between 1e-6 and 1e-3"
+  }
+}
+```
+
+**Query Not Supported:**
+```json
+{
+  "success": false,
+  "error": "Query type not supported",
+  "supportedTypes": ["COUNT", "SUM", "AVERAGE", "GRADIENT", "HISTOGRAM", "PERCENTILE"]
+}
+```
+
+### **Best Practices**
+
+1. **Start with Conservative Parameters**
+   - Begin with epsilon = 1.0, delta = 1e-5
+   - Adjust based on utility requirements
+
+2. **Monitor Budget Consumption**
+   - Check budget status before operations
+   - Use analytics to optimize parameter selection
+
+3. **Choose Appropriate Mechanisms**
+   - Use Laplace for general-purpose queries
+   - Use Gaussian for averages when better utility is needed
+   - Use Geometric for count queries
+
+4. **Batch Operations**
+   - Combine multiple queries when possible
+   - Reduces overall privacy budget consumption
+
+5. **Regular Budget Resets**
+   - Plan for periodic budget resets
+   - Consider seasonal or project-based resets
 
 ## ❌ Error Handling
 

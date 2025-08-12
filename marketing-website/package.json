@@ -1,0 +1,28 @@
+{
+  "name": "contractflow-pro-marketing",
+  "version": "1.0.0",
+  "description": "Marketing website for ContractFlow Pro - Enterprise Contract Management System",
+  "main": "index.html",
+  "scripts": {
+    "dev": "serve .",
+    "build": "echo 'Static site - no build required'",
+    "start": "serve .",
+    "deploy": "vercel --prod"
+  },
+  "keywords": [
+    "contract-management",
+    "blockchain",
+    "ai-training",
+    "enterprise",
+    "security",
+    "marketing"
+  ],
+  "author": "ContractFlow Pro Team",
+  "license": "MIT",
+  "devDependencies": {
+    "serve": "^14.2.0"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  }
+} 

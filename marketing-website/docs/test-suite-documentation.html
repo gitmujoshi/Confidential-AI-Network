@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Suite Documentation - ContractFlow Pro Documentation</title>
+    <meta name="description" content="Test Suite Documentation - ContractFlow Pro Documentation">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.css" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f8f9fa;
+            color: #333;
+            line-height: 1.6;
+        }
+        .navbar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .navbar-brand {
+            color: white !important;
+            font-weight: 700;
+        }
+        .nav-link {
+            color: rgba(255,255,255,0.9) !important;
+            transition: color 0.3s ease;
+        }
+        .nav-link:hover {
+            color: white !important;
+        }
+        .doc-container {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            margin: 30px 0;
+            overflow: hidden;
+        }
+        .doc-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        .doc-content {
+            padding: 40px;
+        }
+        .doc-content h1, .doc-content h2, .doc-content h3, .doc-content h4, .doc-content h5, .doc-content h6 {
+            color: #333;
+            margin-top: 2rem;
+            margin-bottom: 1rem;
+            font-weight: 600;
+        }
+        .doc-content h1 {
+            font-size: 2.5rem;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 10px;
+        }
+        .doc-content h2 {
+            font-size: 2rem;
+            border-bottom: 2px solid #e9ecef;
+            padding-bottom: 8px;
+            color: #667eea;
+        }
+        .doc-content h3 {
+            font-size: 1.5rem;
+            color: #495057;
+        }
+        .doc-content p {
+            margin-bottom: 1rem;
+            font-size: 1.1rem;
+        }
+        .doc-content ul, .doc-content ol {
+            margin-bottom: 1rem;
+            padding-left: 2rem;
+        }
+        .doc-content li {
+            margin-bottom: 0.5rem;
+        }
+        
+        /* Enhanced Code Block Styling */
+        .doc-content pre {
+            background: #2d3748;
+            border: 1px solid #4a5568;
+            border-radius: 8px;
+            padding: 20px;
+            overflow-x: auto;
+            margin: 1.5rem 0;
+            position: relative;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        .doc-content pre code {
+            background: none;
+            color: #e2e8f0;
+            padding: 0;
+            font-family: 'Fira Code', 'Monaco', 'Consolas', monospace;
+            font-size: 0.9rem;
+            line-height: 1.5;
+            white-space: pre;
+            word-wrap: normal;
+        }
+        .doc-content code:not(pre code) {
+            background: #f7fafc;
+            color: #e53e3e;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            border: 1px solid #e2e8f0;
+        }
+        
+        /* Mermaid Diagram Styling */
+        .mermaid {
+            text-align: center;
+            margin: 2rem 0;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border: 1px solid #e9ecef;
+        }
+        .mermaid svg {
+            max-width: 100%;
+            height: auto;
+        }
+        
+        /* Enhanced Table Styling */
+        .doc-content table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1.5rem 0;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .doc-content th, .doc-content td {
+            border: 1px solid #e2e8f0;
+            padding: 12px 16px;
+            text-align: left;
+        }
+        .doc-content th {
+            background: #667eea;
+            color: white;
+            font-weight: 600;
+        }
+        .doc-content tr:nth-child(even) {
+            background: #f7fafc;
+        }
+        .doc-content tr:hover {
+            background: #edf2f7;
+        }
+        
+        /* Enhanced Blockquote Styling */
+        .doc-content blockquote {
+            border-left: 4px solid #667eea;
+            padding: 20px;
+            margin: 1.5rem 0;
+            background: #f7fafc;
+            border-radius: 0 8px 8px 0;
+            font-style: italic;
+            color: #4a5568;
+        }
+        .doc-content blockquote p {
+            margin-bottom: 0;
+        }
+        
+        /* Enhanced List Styling */
+        .doc-content ul {
+            list-style-type: none;
+            padding-left: 0;
+        }
+        .doc-content ul li {
+            position: relative;
+            padding-left: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+        .doc-content ul li:before {
+            content: "•";
+            color: #667eea;
+            font-weight: bold;
+            position: absolute;
+            left: 0;
+        }
+        .doc-content ol {
+            counter-reset: item;
+            list-style-type: none;
+            padding-left: 0;
+        }
+        .doc-content ol li {
+            counter-increment: item;
+            position: relative;
+            padding-left: 2rem;
+            margin-bottom: 0.5rem;
+        }
+        .doc-content ol li:before {
+            content: counter(item) ".";
+            color: #667eea;
+            font-weight: bold;
+            position: absolute;
+            left: 0;
+        }
+        
+        .breadcrumb {
+            background: transparent;
+            padding: 0;
+            margin-bottom: 20px;
+        }
+        .breadcrumb-item a {
+            color: #667eea;
+            text-decoration: none;
+        }
+        .breadcrumb-item.active {
+            color: #666;
+        }
+        .category-badge {
+            background: #e3f2fd;
+            color: #1976d2;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            margin-left: 10px;
+        }
+        .back-to-top {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: #667eea;
+            color: white;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+        .back-to-top:hover {
+            background: #5a6fd8;
+            color: white;
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container">
+            <a class="navbar-brand" href="../index.html">
+                <i class="fas fa-file-contract me-2"></i>ContractFlow Pro
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="../index.html">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="../index.html#features">Features</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="../index.html#solutions">Solutions</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="../index.html#dashboards">Dashboards</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="index.html">Documents</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="../index.html#pricing">Pricing</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="../index.html#contact">Contact</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container">
+        <!-- Breadcrumb -->
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="../index.html">Home</a></li>
+                <li class="breadcrumb-item"><a href="index.html">Documentation</a></li>
+                <li class="breadcrumb-item active">Test Suite Documentation</li>
+            </ol>
+        </nav>
+
+        <!-- Document Container -->
+        <div class="doc-container">
+            <div class="doc-header">
+                <h1 class="mb-3">
+                    <i class="fas fa-book me-3"></i>Test Suite Documentation
+                    <span class="category-badge">Development</span>
+                </h1>
+                <p class="lead mb-0">ContractFlow Pro Documentation</p>
+            </div>
+            <div class="doc-content">
+                
+                <p>
+                # Test Suite Update Summary</p><p>## 📋 <strong>Current Status</strong></p><strong>✅ Test Suite Updated for Multi-TDP Functionality</strong></p><p>The test suite has been <strong>completely updated</strong> to include comprehensive testing for the new multi-TDP contract features.</p><p>## 🧪 <strong>New Test Files Created</strong></p><p>### 1. <code>backend/tests/multi-tdp-contracts.test.js</code></p><p><ul>* <strong>Comprehensive test suite</strong> for multi-TDP functionality</p><p><ul><li><strong>Covers all new endpoints</strong> and features</li></p><p><li><strong>Tests complete workflow</strong> from creation to completion</li>
+</p><p>### 2. <code>backend/test-multi-tdp-runner.js</code></p><p><li><strong>Dedicated test runner</strong> for multi-TDP tests</li></p><p><li><strong>Isolated testing</strong> to avoid conflicts with existing tests</li></p><p><li><strong>Verbose output</strong> for detailed debugging</li>
+</p><p>## 📊 <strong>Test Coverage</strong></p><p>### Multi-TDP Contract Creation Tests</p><p><li>✅ Create contract with multiple datasets (1-3)</li></p><p><li>✅ Validate dataset count limits</li></p><p><li>✅ Reject contracts with >3 datasets</li></p><p><li>✅ Reject contracts with no datasets</li></p><p><li>✅ Validate privacy requirements</li></p><p><li>✅ Track individual prices per dataset</li>
+</p><p>### Multi-TDP Contract Status Tests</p><p><li>✅ Get detailed status for multi-TDP contracts</li></p><p><li>✅ Track signature status per TDP</li></p><p><li>✅ Track payment status per TDP</li></p><p><li>✅ Reject status requests for single-TDP contracts</li></p><p><li>✅ Calculate overall contract progress</li>
+</p><p>### TDP Signing Tests</p><p><li>✅ Allow individual TDP signing</li></p><p><li>✅ Reject signing by non-party TDPs</li></p><p><li>✅ Prevent duplicate signing</li></p><p><li>✅ Track signature type and transaction hash</li></p><p><li>✅ Update contract status when all TDPs sign</li>
+</p><p>### Payment Tracking Tests</p><p><li>✅ Record payments per TDP</li></p><p><li>✅ Validate payment amounts</li></p><p><li>✅ Reject incorrect payment amounts</li></p><p><li>✅ Get payment summaries</li></p><p><li>✅ Track payment methods and timestamps</li>
+</p><p>### Complete Workflow Tests</p><p><li>✅ End-to-end multi-TDP contract flow</li></p><p><li>✅ Multiple TDP signing sequence</li></p><p><li>✅ Payment recording for all TDPs</li></p><p><li>✅ Final status verification</li>
+</p><p>## 🚀 <strong>How to Run Tests</strong></p><p>### Run Multi-TDP Tests Only</p><p><pre><code class="language-bash">cd backend
+npm run test:multi-tdp
+</code></pre></p><p>### Run with Custom Runner</p><p><pre><code class="language-bash">cd backend
+npm run test:multi-tdp:runner
+</code></pre></p><p>### Run All Tests</p><p><pre><code class="language-bash">cd backend
+npm test
+</code></pre></p><p>## 📈 <strong>Test Statistics</strong></p>* <strong>Total Test Cases</strong>: 15+</p><p><li><strong>Coverage Areas</strong>: 5 major categories</li></p><p><li><strong>Endpoints Tested</strong>: 6 new endpoints</li></p><p><li><strong>Workflow Coverage</strong>: Complete end-to-end flow</li></p><p><li><strong>Error Scenarios</strong>: 8+ edge cases tested</li></p><p>## 🔧 <strong>Test Features</strong></p><p>### Authentication Mocking</p><p><li>Uses mock tokens for testing</li></p><p><li>Bypasses real authentication issues</li></p><p><li>Focuses on business logic testing</li>
+</p><p>### Database Isolation</p><p><li>Creates test users and datasets</li></p><p><li>Cleans up after tests</li></p><p><li>Prevents test interference</li>
+</p><p>### Comprehensive Validation</p><p><li>Tests all validation rules</li></p><p><li>Covers error scenarios</li></p><p><li>Validates business logic</li>
+</p><p>## 📋 <strong>Test Categories</strong></p><p>### 1. Contract Creation Validation</p><p><pre><code class="language-javascript">// Tests dataset count limits
+expect(response.body.error).toContain('1 to 3 datasets');</p>// Tests contract structure
+expect(response.body.contract.datasetCount).toBe(2);
+expect(response.body.contract.tdpCount).toBe(2);
+</code></pre></p><p>### 2. TDP Signing Flow</p><p><pre><code class="language-javascript">// Tests individual signing
+expect(response.body.tdpSignature.signed).toBe(true);
+expect(response.body.allTdpsSigned).toBe(false);</p>// Tests duplicate signing prevention
+expect(response.body.error).toContain('already signed');
+</code></pre></p><p>### 3. Payment Tracking</p><p><pre><code class="language-javascript">// Tests payment recording
+expect(response.body.tdpPayment.status).toBe('PAID');</p>// Tests amount validation
+expect(response.body.error).toContain('does not match expected amount');
+</code></pre></p><p>### 4. Status Monitoring</p><p><pre><code class="language-javascript">// Tests status calculation
+expect(response.body.signedTdps).toBe(0);
+expect(response.body.totalTdps).toBe(2);
+expect(response.body.allTdpsSigned).toBe(false);
+</code></pre></p><p>## 🎯 <strong>Test Results Expected</strong></p>When running the tests, you should see:</p><p><pre><code class="language-javascript">🧪 Running Multi-TDP Contract Tests...</p><p>✅ Multi-TDP Contract Creation
+  ✓ should create contract with multiple datasets
+  ✓ should reject contract with more than 3 datasets
+  ✓ should reject contract with no datasets</p><p>✅ Multi-TDP Contract Status
+  ✓ should get multi-TDP contract status
+  ✓ should reject status request for single-TDP contract</p><p>✅ TDP Signing
+  ✓ should allow TDP to sign their portion
+  ✓ should reject signing by non-party TDP
+  ✓ should reject duplicate signing</p><p>✅ Payment Tracking
+  ✓ should record payment for TDP
+  ✓ should reject payment with wrong amount
+  ✓ should get payment summary</p><p>✅ Complete Multi-TDP Flow
+  ✓ should complete full multi-TDP contract flow</p><p>✅ Multi-TDP tests completed successfully!</code></pre></p><p>## 🔄 <strong>Integration with Existing Tests</strong></p>The new tests are designed to:
+<li><strong>Run independently</strong> without affecting existing tests</li></p><p><li><strong>Use isolated test data</strong> to prevent conflicts</li></p><p><li><strong>Follow existing patterns</strong> for consistency</li></p><p><li><strong>Provide comprehensive coverage</strong> of new features</li></p><p>## 📝 <strong>Next Steps</strong></p>* <strong>Run the tests</strong> to verify functionality</p><p><li><strong>Fix any issues</strong> that arise during testing</li></p><p><li><strong>Add more edge cases</strong> as needed</li></p><p><li><strong>Integrate with CI/CD</strong> pipeline</li></p><p><li><strong>Add performance tests</strong> for large contracts</li></p><p>## 🎉 <strong>Summary</strong></p><p>The test suite is now <strong>fully updated</strong> and provides comprehensive coverage for all multi-TDP functionality. The tests are:</p><p><li>✅ <strong>Comprehensive</strong> - Cover all new features</li></p><p><li>✅ <strong>Isolated</strong> - Don't interfere with existing tests</li></p><p><li>✅ <strong>Maintainable</strong> - Well-structured and documented</li></p><p><li>✅ <strong>Reliable</strong> - Test real business logic</li></p><p><li>✅ <strong>Fast</strong> - Quick execution for development</li></ul></ul></p><p>The test suite is ready for use and will help ensure the multi-TDP functionality works correctly in all scenarios. </p>
+            
+            </div>
+        </div>
+    </div>
+    <!-- Back to Top -->
+    <a href="#" class="back-to-top" id="backToTop">
+        <i class="fas fa-arrow-up"></i>
+    </a>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10.6.1/dist/mermaid.min.js"></script>
+    <script>
+        // Initialize Mermaid
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'default',
+            flowchart: {
+                useMaxWidth: true,
+                htmlLabels: true,
+                curve: 'basis'
+            },
+            sequence: {
+                useMaxWidth: true,
+                diagramMarginX: 50,
+                diagramMarginY: 10,
+                actorMargin: 50,
+                width: 150,
+                height: 65,
+                boxMargin: 10,
+                boxTextMargin: 5,
+                noteMargin: 10,
+                messageMargin: 35,
+                mirrorActors: true,
+                bottomMarginAdj: 1,
+                useMaxWidth: true,
+                rightAngles: false,
+                showSequenceNumbers: false
+            },
+            gantt: {
+                titleTopMargin: 25,
+                barHeight: 20,
+                barGap: 4,
+                topPadding: 50,
+                leftPadding: 75,
+                gridLineStartPadding: 35,
+                fontSize: 11,
+                fontFamily: '"Open-Sans", "sans-serif"',
+                numberSectionStyles: 4,
+                axisFormat: '%Y-%m-%d'
+            },
+            journey: {
+                useMaxWidth: true,
+                diagramPadding: 20
+            },
+            gitGraph: {
+                useMaxWidth: true,
+                diagramPadding: 20
+            },
+            securityLevel: 'loose',
+            logLevel: 1
+        });
+
+        // Back to top functionality
+        window.addEventListener('scroll', function() {
+            const backToTop = document.getElementById('backToTop');
+            if (window.pageYOffset > 300) {
+                backToTop.style.display = 'flex';
+            } else {
+                backToTop.style.display = 'none';
+            }
+        });
+
+        // Smooth scrolling for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        // Add syntax highlighting to code blocks
+        document.addEventListener('DOMContentLoaded', function() {
+            if (typeof Prism !== 'undefined') {
+                Prism.highlightAll();
+            }
+        });
+    </script>
+</body>
+</html>

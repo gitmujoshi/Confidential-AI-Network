@@ -1,0 +1,856 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Documentation - ContractFlow Pro</title>
+    <meta name="description" content="Complete documentation for ContractFlow Pro - Secure Contract Management for the AI Era">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f8f9fa;
+            color: #333;
+        }
+        .navbar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .navbar-brand {
+            color: white !important;
+            font-weight: 700;
+        }
+        .nav-link {
+            color: rgba(255,255,255,0.9) !important;
+            transition: color 0.3s ease;
+        }
+        .nav-link:hover {
+            color: white !important;
+        }
+        .hero-section {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 80px 0;
+            text-align: center;
+        }
+        .doc-card {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            padding: 25px;
+            margin-bottom: 30px;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            border-left: 4px solid #667eea;
+        }
+        .doc-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+        }
+        .doc-icon {
+            font-size: 2.5rem;
+            color: #667eea;
+            margin-bottom: 15px;
+        }
+        .doc-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 10px;
+        }
+        .doc-description {
+            color: #666;
+            margin-bottom: 15px;
+            line-height: 1.6;
+        }
+        .doc-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.9rem;
+            color: #888;
+        }
+        .doc-tags {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .doc-tag {
+            background: #e3f2fd;
+            color: #1976d2;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+        .category-section {
+            margin-bottom: 50px;
+        }
+        .category-title {
+            color: #333;
+            font-weight: 600;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #667eea;
+        }
+        .search-box {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .search-input {
+            border: 2px solid #e9ecef;
+            border-radius: 25px;
+            padding: 12px 20px;
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+        }
+        .search-input:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+        }
+        .stats-card {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+        .stats-number {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+        .stats-label {
+            color: #666;
+            font-weight: 500;
+        }
+        .breadcrumb {
+            background: transparent;
+            padding: 0;
+            margin-bottom: 30px;
+        }
+        .breadcrumb-item a {
+            color: #667eea;
+            text-decoration: none;
+        }
+        .breadcrumb-item.active {
+            color: #666;
+        }
+        .featured-badge {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-left: 10px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container">
+            <a class="navbar-brand" href="../index.html">
+                <i class="fas fa-file-contract me-2"></i>ContractFlow Pro
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="../index.html">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="../index.html#features">Features</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="../index.html#solutions">Solutions</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="../index.html#dashboards">Dashboards</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="index.html">Documents</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="../index.html#pricing">Pricing</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="../index.html#contact">Contact</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero-section">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 mx-auto">
+                    <h1 class="display-4 fw-bold mb-4">
+                        <i class="fas fa-book me-3"></i>Documentation Center
+                    </h1>
+                    <p class="lead mb-4">
+                        Complete technical documentation, guides, and resources for ContractFlow Pro
+                    </p>
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="stats-card">
+                                <div class="stats-number">15+</div>
+                                <div class="stats-label">Documents</div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="stats-card">
+                                <div class="stats-number">5</div>
+                                <div class="stats-label">Categories</div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="stats-card">
+                                <div class="stats-number">24/7</div>
+                                <div class="stats-label">Updated</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Main Content -->
+    <section class="py-5">
+        <div class="container">
+            <!-- Breadcrumb -->
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="../index.html">Home</a></li>
+                    <li class="breadcrumb-item active">Documentation</li>
+                </ol>
+            </nav>
+
+            <!-- Search Box -->
+            <div class="search-box">
+                <div class="row">
+                    <div class="col-lg-8 mx-auto">
+                        <div class="input-group">
+                            <span class="input-group-text bg-transparent border-end-0">
+                                <i class="fas fa-search text-muted"></i>
+                            </span>
+                            <input type="text" class="form-control search-input border-start-0" 
+                                   id="searchDocs" placeholder="Search documentation...">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Architecture & Design -->
+            <div class="category-section">
+                <h2 class="category-title">
+                    <i class="fas fa-sitemap me-2"></i>Architecture & Design
+                </h2>
+                <div class="row">
+                    <div class="col-lg-6">
+                        <div class="doc-card">
+                            <div class="doc-icon">
+                                <i class="fas fa-cloud"></i>
+                            </div>
+                            <div class="doc-title">
+                                Multi-Cloud Storage Architecture
+                                <span class="featured-badge">Featured</span>
+                            </div>
+                            <div class="doc-description">
+                                Comprehensive guide to hosting datasets on any public cloud provider. 
+                                Learn about AWS, Azure, GCP, OCI integration and unified storage interfaces.
+                            </div>
+                            <div class="doc-meta">
+                                <div class="doc-tags">
+                                    <span class="doc-tag">Cloud</span>
+                                    <span class="doc-tag">Storage</span>
+                                    <span class="doc-tag">Architecture</span>
+                                </div>
+                                <a href="multi-cloud-storage-architecture.html" class="btn btn-outline-primary btn-sm">
+                                    <i class="fas fa-external-link-alt me-1"></i>Read
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-6">
+                        <div class="doc-card">
+                            <div class="doc-icon">
+                                <i class="fas fa-chart-line"></i>
+                            </div>
+                            <div class="doc-title">Cloud Provider Comparison</div>
+                            <div class="doc-description">
+                                Interactive comparison of AWS, Azure, GCP, and OCI for dataset storage. 
+                                Compare costs, features, and performance metrics.
+                            </div>
+                            <div class="doc-meta">
+                                <div class="doc-tags">
+                                    <span class="doc-tag">Comparison</span>
+                                    <span class="doc-tag">Cloud</span>
+                                    <span class="doc-tag">Interactive</span>
+                                </div>
+                                <a href="cloud-provider-comparison.html" class="btn btn-outline-primary btn-sm">
+                                    <i class="fas fa-external-link-alt me-1"></i>View
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-6">
+                        <div class="doc-card">
+                            <div class="doc-icon">
+                                <i class="fas fa-project-diagram"></i>
+                            </div>
+                            <div class="doc-title">UML 4+1 Architecture Documentation</div>
+                            <div class="doc-description">
+                                Complete UML 4+1 architectural views including logical, process, development, 
+                                physical, and use case views for ContractFlow Pro.
+                            </div>
+                            <div class="doc-meta">
+                                <div class="doc-tags">
+                                    <span class="doc-tag">UML</span>
+                                    <span class="doc-tag">Architecture</span>
+                                    <span class="doc-tag">Design</span>
+                                </div>
+                                <a href="uml-architecture-documentation.html" class="btn btn-outline-primary btn-sm">
+                                    <i class="fas fa-external-link-alt me-1"></i>Read
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-6">
+                        <div class="doc-card">
+                            <div class="doc-icon">
+                                <i class="fas fa-key"></i>
+                            </div>
+                            <div class="doc-title">Decentralized KMS Architecture</div>
+                            <div class="doc-description">
+                                Architecture for decentralized Key Management System with blockchain integration, 
+                                multi-party key sharing, and secure key distribution.
+                            </div>
+                            <div class="doc-meta">
+                                <div class="doc-tags">
+                                    <span class="doc-tag">KMS</span>
+                                    <span class="doc-tag">Blockchain</span>
+                                    <span class="doc-tag">Security</span>
+                                </div>
+                                <a href="decentralized-kms-architecture.html" class="btn btn-outline-primary btn-sm">
+                                    <i class="fas fa-external-link-alt me-1"></i>Read
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-6">
+                        <div class="doc-card">
+                            <div class="doc-icon">
+                                <i class="fas fa-building"></i>
+                            </div>
+                            <div class="doc-title">Multi-Tenant KMS Architecture</div>
+                            <div class="doc-description">
+                                Multi-tenant Key Management System architecture with tenant isolation, 
+                                shared infrastructure, and secure key management.
+                            </div>
+                            <div class="doc-meta">
+                                <div class="doc-tags">
+                                    <span class="doc-tag">Multi-Tenant</span>
+                                    <span class="doc-tag">KMS</span>
+                                    <span class="doc-tag">Isolation</span>
+                                </div>
+                                <a href="multi-tenant-kms-architecture.html" class="btn btn-outline-primary btn-sm">
+                                    <i class="fas fa-external-link-alt me-1"></i>Read
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-6">
+                        <div class="doc-card">
+                            <div class="doc-icon">
+                                <i class="fas fa-graduation-cap"></i>
+                            </div>
+                            <div class="doc-title">KMS Training Environment Architecture</div>
+                            <div class="doc-description">
+                                Architecture for training environments with secure key management, 
+                                isolated training spaces, and controlled data access.
+                            </div>
+                            <div class="doc-meta">
+                                <div class="doc-tags">
+                                    <span class="doc-tag">Training</span>
+                                    <span class="doc-tag">KMS</span>
+                                    <span class="doc-tag">Environment</span>
+                                </div>
+                                <a href="kms-training-environment-architecture.html" class="btn btn-outline-primary btn-sm">
+                                    <i class="fas fa-external-link-alt me-1"></i>Read
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Dataset Management -->
+            <div class="category-section">
+                <h2 class="category-title">
+                    <i class="fas fa-database me-2"></i>Dataset Management
+                </h2>
+                <div class="row">
+                    <div class="col-lg-6">
+                        <div class="doc-card">
+                            <div class="doc-icon">
+                                <i class="fas fa-shield-alt"></i>
+                            </div>
+                            <div class="doc-title">Dataset Access Integration</div>
+                            <div class="doc-description">
+                                Detailed analysis of secure dataset access integration with multi-layer 
+                                security, smart contracts, and audit logging.
+                            </div>
+                            <div class="doc-meta">
+                                <div class="doc-tags">
+                                    <span class="doc-tag">Security</span>
+                                    <span class="doc-tag">Access Control</span>
+                                    <span class="doc-tag">Integration</span>
+                                </div>
+                                <a href="dataset-access-integration-analysis.html" class="btn btn-outline-primary btn-sm">
+                                    <i class="fas fa-external-link-alt me-1"></i>Read
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-6">
+                        <div class="doc-card">
+                            <div class="doc-icon">
+                                <i class="fas fa-project-diagram"></i>
+                            </div>
+                            <div class="doc-title">Dataset Access Flow</div>
+                            <div class="doc-description">
+                                Visual diagram showing the complete flow from user authentication 
+                                to data retrieval and audit logging.
+                            </div>
+                            <div class="doc-meta">
+                                <div class="doc-tags">
+                                    <span class="doc-tag">Flow</span>
+                                    <span class="doc-tag">Visual</span>
+                                    <span class="doc-tag">Process</span>
+                                </div>
+                                <a href="dataset-access-flow-diagram.html" class="btn btn-outline-primary btn-sm">
+                                    <i class="fas fa-external-link-alt me-1"></i>View
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Security & Compliance -->
+            <div class="category-section">
+                <h2 class="category-title">
+                    <i class="fas fa-lock me-2"></i>Security & Compliance
+                </h2>
+                <div class="row">
+                    <div class="col-lg-6">
+                        <div class="doc-card">
+                            <div class="doc-icon">
+                                <i class="fas fa-key"></i>
+                            </div>
+                            <div class="doc-title">Authentication & Keycloak</div>
+                            <div class="doc-description">
+                                Complete guide to authentication setup, Keycloak configuration, 
+                                and user management in ContractFlow Pro.
+                            </div>
+                            <div class="doc-meta">
+                                <div class="doc-tags">
+                                    <span class="doc-tag">Authentication</span>
+                                    <span class="doc-tag">Keycloak</span>
+                                    <span class="doc-tag">IAM</span>
+                                </div>
+                                <a href="authentication-rules.html" class="btn btn-outline-primary btn-sm">
+                                    <i class="fas fa-external-link-alt me-1"></i>Read
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-6">
+                        <div class="doc-card">
+                            <div class="doc-icon">
+                                <i class="fas fa-user-shield"></i>
+                            </div>
+                            <div class="doc-title">Role-Based Access Control</div>
+                            <div class="doc-description">
+                                Implementation guide for role-based dashboards and access control 
+                                for different user types (TDC, TDP, CCRP, AppAdmin).
+                            </div>
+                            <div class="doc-meta">
+                                <div class="doc-tags">
+                                    <span class="doc-tag">RBAC</span>
+                                    <span class="doc-tag">Roles</span>
+                                    <span class="doc-tag">Dashboards</span>
+                                </div>
+                                <a href="role-based-dashboard-implementation.html" class="btn btn-outline-primary btn-sm">
+                                    <i class="fas fa-external-link-alt me-1"></i>Read
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-6">
+                        <div class="doc-card">
+                            <div class="doc-icon">
+                                <i class="fas fa-id-card"></i>
+                            </div>
+                            <div class="doc-title">Identity & Access Management</div>
+                            <div class="doc-description">
+                                Comprehensive IAM documentation covering user management, 
+                                authentication flows, and security policies.
+                            </div>
+                            <div class="doc-meta">
+                                <div class="doc-tags">
+                                    <span class="doc-tag">IAM</span>
+                                    <span class="doc-tag">Identity</span>
+                                    <span class="doc-tag">Security</span>
+                                </div>
+                                <a href="identity-access-management.html" class="btn btn-outline-primary btn-sm">
+                                    <i class="fas fa-external-link-alt me-1"></i>Read
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-6">
+                        <div class="doc-card">
+                            <div class="doc-icon">
+                                <i class="fas fa-shield-alt"></i>
+                            </div>
+                            <div class="doc-title">Security Integration Guide</div>
+                            <div class="doc-description">
+                                Guide for integrating security features including encryption, 
+                                authentication, and compliance measures.
+                            </div>
+                            <div class="doc-meta">
+                                <div class="doc-tags">
+                                    <span class="doc-tag">Security</span>
+                                    <span class="doc-tag">Integration</span>
+                                    <span class="doc-tag">Compliance</span>
+                                </div>
+                                <a href="security-integration-guide.html" class="btn btn-outline-primary btn-sm">
+                                    <i class="fas fa-external-link-alt me-1"></i>Read
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Development & Testing -->
+            <div class="category-section">
+                <h2 class="category-title">
+                    <i class="fas fa-code me-2"></i>Development & Testing
+                </h2>
+                <div class="row">
+                    <div class="col-lg-6">
+                        <div class="doc-card">
+                            <div class="doc-icon">
+                                <i class="fas fa-vial"></i>
+                            </div>
+                            <div class="doc-title">Test Suite Documentation</div>
+                            <div class="doc-description">
+                                Comprehensive testing framework with unit tests, integration tests, 
+                                and end-to-end testing for ContractFlow Pro.
+                            </div>
+                            <div class="doc-meta">
+                                <div class="doc-tags">
+                                    <span class="doc-tag">Testing</span>
+                                    <span class="doc-tag">Framework</span>
+                                    <span class="doc-tag">Quality</span>
+                                </div>
+                                <a href="test-suite-documentation.html" class="btn btn-outline-primary btn-sm">
+                                    <i class="fas fa-external-link-alt me-1"></i>Read
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-6">
+                        <div class="doc-card">
+                            <div class="doc-icon">
+                                <i class="fas fa-users"></i>
+                            </div>
+                            <div class="doc-title">Test Data for Testers</div>
+                            <div class="doc-description">
+                                Complete guide with test users, credentials, and sample data 
+                                for testing all ContractFlow Pro features.
+                            </div>
+                            <div class="doc-meta">
+                                <div class="doc-tags">
+                                    <span class="doc-tag">Test Data</span>
+                                    <span class="doc-tag">Users</span>
+                                    <span class="doc-tag">Credentials</span>
+                                </div>
+                                <a href="test-data-for-testers.html" class="btn btn-outline-primary btn-sm">
+                                    <i class="fas fa-external-link-alt me-1"></i>Read
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-6">
+                        <div class="doc-card">
+                            <div class="doc-icon">
+                                <i class="fas fa-cogs"></i>
+                            </div>
+                            <div class="doc-title">Integration Testing Guide</div>
+                            <div class="doc-description">
+                                Guide for integration testing including API testing, 
+                                end-to-end workflows, and system integration.
+                            </div>
+                            <div class="doc-meta">
+                                <div class="doc-tags">
+                                    <span class="doc-tag">Integration</span>
+                                    <span class="doc-tag">Testing</span>
+                                    <span class="doc-tag">API</span>
+                                </div>
+                                <a href="integration-testing-guide.html" class="btn btn-outline-primary btn-sm">
+                                    <i class="fas fa-external-link-alt me-1"></i>Read
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-6">
+                        <div class="doc-card">
+                            <div class="doc-icon">
+                                <i class="fas fa-graduation-cap"></i>
+                            </div>
+                            <div class="doc-title">Training Course</div>
+                            <div class="doc-description">
+                                Comprehensive training course covering all aspects of 
+                                ContractFlow Pro implementation and usage.
+                            </div>
+                            <div class="doc-meta">
+                                <div class="doc-tags">
+                                    <span class="doc-tag">Training</span>
+                                    <span class="doc-tag">Course</span>
+                                    <span class="doc-tag">Education</span>
+                                </div>
+                                <a href="training-course.html" class="btn btn-outline-primary btn-sm">
+                                    <i class="fas fa-external-link-alt me-1"></i>Read
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Integration & Deployment -->
+            <div class="category-section">
+                <h2 class="category-title">
+                    <i class="fas fa-rocket me-2"></i>Integration & Deployment
+                </h2>
+                <div class="row">
+                    <div class="col-lg-6">
+                        <div class="doc-card">
+                            <div class="doc-icon">
+                                <i class="fas fa-docker"></i>
+                            </div>
+                            <div class="doc-title">Multi-Deployment Integration</div>
+                            <div class="doc-description">
+                                Guide for deploying ContractFlow Pro across multiple environments 
+                                with Docker, Kubernetes, and cloud platforms.
+                            </div>
+                            <div class="doc-meta">
+                                <div class="doc-tags">
+                                    <span class="doc-tag">Deployment</span>
+                                    <span class="doc-tag">Docker</span>
+                                    <span class="doc-tag">Kubernetes</span>
+                                </div>
+                                <a href="multi-deployment-integration-guide.html" class="btn btn-outline-primary btn-sm">
+                                    <i class="fas fa-external-link-alt me-1"></i>Read
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-6">
+                        <div class="doc-card">
+                            <div class="doc-icon">
+                                <i class="fas fa-cogs"></i>
+                            </div>
+                            <div class="doc-title">API Specifications</div>
+                            <div class="doc-description">
+                                Complete API documentation with endpoints, authentication, 
+                                request/response formats, and integration examples.
+                            </div>
+                            <div class="doc-meta">
+                                <div class="doc-tags">
+                                    <span class="doc-tag">API</span>
+                                    <span class="doc-tag">Integration</span>
+                                    <span class="doc-tag">Specifications</span>
+                                </div>
+                                <a href="api-specifications.html" class="btn btn-outline-primary btn-sm">
+                                    <i class="fas fa-external-link-alt me-1"></i>Read
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Enterprise & Templates -->
+            <div class="category-section">
+                <h2 class="category-title">
+                    <i class="fas fa-building me-2"></i>Enterprise & Templates
+                </h2>
+                <div class="row">
+                    <div class="col-lg-6">
+                        <div class="doc-card">
+                            <div class="doc-icon">
+                                <i class="fas fa-building"></i>
+                            </div>
+                            <div class="doc-title">Enterprise Registration Strategy</div>
+                            <div class="doc-description">
+                                Comprehensive strategy for enterprise registration, 
+                                onboarding, and integration with existing systems.
+                            </div>
+                            <div class="doc-meta">
+                                <div class="doc-tags">
+                                    <span class="doc-tag">Enterprise</span>
+                                    <span class="doc-tag">Registration</span>
+                                    <span class="doc-tag">Strategy</span>
+                                </div>
+                                <a href="enterprise-registration-strategy.html" class="btn btn-outline-primary btn-sm">
+                                    <i class="fas fa-external-link-alt me-1"></i>Read
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-6">
+                        <div class="doc-card">
+                            <div class="doc-icon">
+                                <i class="fas fa-file-contract"></i>
+                            </div>
+                            <div class="doc-title">Contract Template Guide</div>
+                            <div class="doc-description">
+                                Guide for creating and using contract templates, 
+                                including Ricardian contracts and smart contract templates.
+                            </div>
+                            <div class="doc-meta">
+                                <div class="doc-tags">
+                                    <span class="doc-tag">Templates</span>
+                                    <span class="doc-tag">Contracts</span>
+                                    <span class="doc-tag">Smart Contracts</span>
+                                </div>
+                                <a href="contract-template-guide.html" class="btn btn-outline-primary btn-sm">
+                                    <i class="fas fa-external-link-alt me-1"></i>Read
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Quick Links -->
+            <div class="category-section">
+                <h2 class="category-title">
+                    <i class="fas fa-link me-2"></i>Quick Links
+                </h2>
+                <div class="row">
+                    <div class="col-lg-4">
+                        <div class="doc-card">
+                            <div class="doc-icon">
+                                <i class="fas fa-home"></i>
+                            </div>
+                            <div class="doc-title">Back to Home</div>
+                            <div class="doc-description">
+                                Return to the main ContractFlow Pro website
+                            </div>
+                            <div class="doc-meta">
+                                <a href="../index.html" class="btn btn-primary btn-sm">
+                                    <i class="fas fa-home me-1"></i>Go Home
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-4">
+                        <div class="doc-card">
+                            <div class="doc-icon">
+                                <i class="fas fa-github"></i>
+                            </div>
+                            <div class="doc-title">GitHub Repository</div>
+                            <div class="doc-description">
+                                Access the complete source code and documentation
+                            </div>
+                            <div class="doc-meta">
+                                <a href="https://github.com/your-org/contractflow-pro" class="btn btn-outline-dark btn-sm">
+                                    <i class="fab fa-github me-1"></i>View Code
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-4">
+                        <div class="doc-card">
+                            <div class="doc-icon">
+                                <i class="fas fa-question-circle"></i>
+                            </div>
+                            <div class="doc-title">Support & Help</div>
+                            <div class="doc-description">
+                                Get help, report issues, or request features
+                            </div>
+                            <div class="doc-meta">
+                                <a href="../index.html#contact" class="btn btn-outline-info btn-sm">
+                                    <i class="fas fa-headset me-1"></i>Contact Support
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-dark text-white py-4">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <h5><i class="fas fa-file-contract me-2"></i>ContractFlow Pro</h5>
+                    <p class="text-muted">Secure Contract Management for the AI Era</p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <p class="text-muted mb-0">
+                        © 2024 ContractFlow Pro. All rights reserved.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Search functionality
+        document.getElementById('searchDocs').addEventListener('input', function(e) {
+            const searchTerm = e.target.value.toLowerCase();
+            const docCards = document.querySelectorAll('.doc-card');
+            
+            docCards.forEach(card => {
+                const title = card.querySelector('.doc-title').textContent.toLowerCase();
+                const description = card.querySelector('.doc-description').textContent.toLowerCase();
+                const tags = Array.from(card.querySelectorAll('.doc-tag')).map(tag => tag.textContent.toLowerCase());
+                
+                const matches = title.includes(searchTerm) || 
+                               description.includes(searchTerm) || 
+                               tags.some(tag => tag.includes(searchTerm));
+                
+                card.style.display = matches ? 'block' : 'none';
+            });
+        });
+
+        // Smooth scrolling for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+    </script>
+</body>
+</html> 

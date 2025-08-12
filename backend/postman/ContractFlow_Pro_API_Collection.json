@@ -1,0 +1,804 @@
+{
+  "info": {
+    "name": "ContractFlow Pro - Complete API Collection",
+    "description": "Comprehensive Postman collection for ContractFlow Pro API testing and development. Includes all endpoints for contract management, dataset operations, infrastructure provisioning, and multi-cloud integration.",
+    "version": "1.0.0",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:5001",
+      "type": "string"
+    },
+    {
+      "key": "api_base",
+      "value": "{{base_url}}/api",
+      "type": "string"
+    },
+    {
+      "key": "auth_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "user_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "contract_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "environment_id",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{auth_token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "item": [
+    {
+      "name": "Health & System",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/health",
+              "host": ["{{base_url}}"],
+              "path": ["health"]
+            },
+            "description": "Get system health status and information"
+          }
+        },
+        {
+          "name": "API Status",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{api_base}}/status",
+              "host": ["{{api_base}}"],
+              "path": ["status"]
+            },
+            "description": "Get API status information"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "User Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"user@example.com\",\n  \"password\": \"password123\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{api_base}}/auth/login",
+              "host": ["{{api_base}}"],
+              "path": ["auth", "login"]
+            },
+            "description": "User login with email and password"
+          }
+        },
+        {
+          "name": "User Registration",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"John Doe\",\n  \"email\": \"user@example.com\",\n  \"password\": \"password123\",\n  \"partyType\": \"TDC\",\n  \"organization\": \"AI Training Corp\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{api_base}}/auth/register",
+              "host": ["{{api_base}}"],
+              "path": ["auth", "register"]
+            },
+            "description": "Register new user"
+          }
+        },
+        {
+          "name": "Get Profile",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{api_base}}/auth/profile",
+              "host": ["{{api_base}}"],
+              "path": ["auth", "profile"]
+            },
+            "description": "Get current user profile (requires authentication)"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Contract Management",
+      "item": [
+        {
+          "name": "Contract Preview",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"datasetSelections\": [\n    {\n      \"datasetId\": \"DS-001\",\n      \"individualPrice\": 1000\n    }\n  ],\n  \"duration\": 30,\n  \"termsAndConditions\": \"Test terms and conditions\",\n  \"contractType\": \"AI_TRAINING\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{api_base}}/contracts/ricardian/multi-tdp-preview-test",
+              "host": ["{{api_base}}"],
+              "path": ["contracts", "ricardian", "multi-tdp-preview-test"]
+            },
+            "description": "Preview Ricardian contract without authentication"
+          }
+        },
+        {
+          "name": "Create Ricardian Contract",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"datasetSelections\": [\n    {\n      \"datasetId\": \"DS-001\",\n      \"individualPrice\": 1000\n    }\n  ],\n  \"duration\": 30,\n  \"termsAndConditions\": \"Custom terms and conditions\",\n  \"contractType\": \"AI_TRAINING\",\n  \"ccrpId\": 1,\n  \"privacyRequirements\": {\n    \"maxPrivacyLoss\": 0.1,\n    \"minAccuracy\": 0.85,\n    \"differentialPrivacy\": true,\n    \"federatedLearning\": false\n  },\n  \"trainingEnvironment\": {\n    \"computeType\": \"confidential-vm\",\n    \"memoryGB\": 32,\n    \"cpuCores\": 8,\n    \"gpuType\": \"V100\",\n    \"gpuCount\": 2\n  },\n  \"complianceSpecs\": {\n    \"regulations\": [\"GDPR\", \"DPDP_2023\"],\n    \"dataRetentionDays\": 90,\n    \"auditLogging\": true\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{api_base}}/contracts/ricardian",
+              "host": ["{{api_base}}"],
+              "path": ["contracts", "ricardian"]
+            },
+            "description": "Create new Ricardian contract (requires authentication)"
+          }
+        },
+        {
+          "name": "Get Contract",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{api_base}}/contracts/{{contract_id}}",
+              "host": ["{{api_base}}"],
+              "path": ["contracts", "{{contract_id}}"]
+            },
+            "description": "Get contract details by ID (requires authentication)"
+          }
+        },
+        {
+          "name": "List Contracts",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{api_base}}/contracts?page=1&limit=10&status=ACTIVE",
+              "host": ["{{api_base}}"],
+              "path": ["contracts"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                },
+                {
+                  "key": "status",
+                  "value": "ACTIVE"
+                }
+              ]
+            },
+            "description": "List contracts with pagination and filters (requires authentication)"
+          }
+        },
+        {
+          "name": "Update Contract",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"SIGNED\",\n  \"tdpSigned\": true,\n  \"tdpSignedAt\": \"2025-08-11T16:30:00.000Z\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{api_base}}/contracts/{{contract_id}}",
+              "host": ["{{api_base}}"],
+              "path": ["contracts", "{{contract_id}}"]
+            },
+            "description": "Update contract (requires authentication)"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Dataset Management",
+      "item": [
+        {
+          "name": "Get Public Datasets",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{api_base}}/datasets/public?category=CUSTOMER_DATA&priceMax=1000",
+              "host": ["{{api_base}}"],
+              "path": ["datasets", "public"],
+              "query": [
+                {
+                  "key": "category",
+                  "value": "CUSTOMER_DATA"
+                },
+                {
+                  "key": "priceMax",
+                  "value": "1000"
+                }
+              ]
+            },
+            "description": "Get public datasets with optional filters"
+          }
+        },
+        {
+          "name": "Search Datasets",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{api_base}}/datasets/search?q=customer&category=CUSTOMER_DATA&priceMax=1000",
+              "host": ["{{api_base}}"],
+              "path": ["datasets", "search"],
+              "query": [
+                {
+                  "key": "q",
+                  "value": "customer"
+                },
+                {
+                  "key": "category",
+                  "value": "CUSTOMER_DATA"
+                },
+                {
+                  "key": "priceMax",
+                  "value": "1000"
+                }
+              ]
+            },
+            "description": "Search datasets with query and filters"
+          }
+        },
+        {
+          "name": "Get TDP Datasets",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{api_base}}/tdp/datasets/{{user_id}}",
+              "host": ["{{api_base}}"],
+              "path": ["tdp", "datasets", "{{user_id}}"]
+            },
+            "description": "Get datasets owned by TDP user (requires authentication)"
+          }
+        },
+        {
+          "name": "Create Dataset",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Customer Behavior Dataset\",\n  \"description\": \"Comprehensive customer behavior data for AI training\",\n  \"category\": \"CUSTOMER_DATA\",\n  \"size\": \"2.5 GB\",\n  \"recordCount\": 1000000,\n  \"price\": 1000,\n  \"license\": \"COMMERCIAL_USE\",\n  \"confidentialComputingRequired\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{api_base}}/datasets",
+              "host": ["{{api_base}}"],
+              "path": ["datasets"]
+            },
+            "description": "Create new dataset (requires authentication)"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Infrastructure & Cloud",
+      "item": [
+        {
+          "name": "Create Training Environment",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"contractId\": \"{{contract_id}}\",\n  \"cloudProvider\": \"AZURE\",\n  \"region\": \"eastus\",\n  \"vmSize\": \"Standard_D2s_v3\",\n  \"vmCount\": 2,\n  \"enableGPU\": true,\n  \"gpuType\": \"V100\",\n  \"gpuCount\": 1,\n  \"enableConfidentialComputing\": true,\n  \"enableEncryption\": true,\n  \"enableMonitoring\": true,\n  \"complianceFramework\": \"GDPR\",\n  \"dataRetentionDays\": 90,\n  \"auditLogging\": true,\n  \"threatDetection\": true,\n  \"realTimeAlerts\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{api_base}}/infrastructure/environments",
+              "host": ["{{api_base}}"],
+              "path": ["infrastructure", "environments"]
+            },
+            "description": "Create training environment (requires authentication)"
+          }
+        },
+        {
+          "name": "Get Environment",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{api_base}}/infrastructure/environments/{{environment_id}}",
+              "host": ["{{api_base}}"],
+              "path": ["infrastructure", "environments", "{{environment_id}}"]
+            },
+            "description": "Get environment details (requires authentication)"
+          }
+        },
+        {
+          "name": "List Environments",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{api_base}}/infrastructure/environments?status=ACTIVE",
+              "host": ["{{api_base}}"],
+              "path": ["infrastructure", "environments"],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "ACTIVE"
+                }
+              ]
+            },
+            "description": "List environments (requires authentication)"
+          }
+        },
+        {
+          "name": "Destroy Environment",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{api_base}}/infrastructure/environments/{{environment_id}}",
+              "host": ["{{api_base}}"],
+              "path": ["infrastructure", "environments", "{{environment_id}}"]
+            },
+            "description": "Destroy training environment (requires authentication)"
+          }
+        },
+        {
+          "name": "Get Cloud Providers",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{api_base}}/infrastructure/cloud-providers",
+              "host": ["{{api_base}}"],
+              "path": ["infrastructure", "cloud-providers"]
+            },
+            "description": "Get available cloud providers (requires authentication)"
+          }
+        },
+        {
+          "name": "Get Cloud Provider Details",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{api_base}}/infrastructure/cloud-providers/AZURE",
+              "host": ["{{api_base}}"],
+              "path": ["infrastructure", "cloud-providers", "AZURE"]
+            },
+            "description": "Get specific cloud provider details (requires authentication)"
+          }
+        },
+        {
+          "name": "Cost Estimation",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cloudProvider\": \"AZURE\",\n  \"region\": \"eastus\",\n  \"duration\": 30,\n  \"resources\": {\n    \"compute\": {\n      \"vmSize\": \"Standard_D2s_v3\",\n      \"vmCount\": 2,\n      \"gpuEnabled\": true,\n      \"gpuType\": \"V100\",\n      \"gpuCount\": 1\n    },\n    \"storage\": {\n      \"type\": \"Premium_LRS\",\n      \"sizeGB\": 100\n    },\n    \"networking\": {\n      \"bandwidth\": \"10 Gbps\",\n      \"dataTransfer\": \"1000 GB\"\n    }\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{api_base}}/infrastructure/cost-estimation",
+              "host": ["{{api_base}}"],
+              "path": ["infrastructure", "cost-estimation"]
+            },
+            "description": "Estimate environment costs (requires authentication)"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Cloud Credentials",
+      "item": [
+        {
+          "name": "Store Cloud Credentials",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cloudProvider\": \"AZURE\",\n  \"secretManager\": \"VAULT\",\n  \"authMethod\": \"SERVICE_PRINCIPAL\",\n  \"defaultLocation\": \"eastus\",\n  \"defaultResourceGroupPrefix\": \"training\",\n  \"defaultVMSize\": \"Standard_D2s_v3\",\n  \"defaultStorageSku\": \"Premium_LRS\",\n  \"defaultDatabaseSku\": \"Basic\",\n  \"vnetAddressSpace\": \"10.0.0.0/16\",\n  \"privateSubnetPrefix\": \"10.0.1.0/24\",\n  \"publicSubnetPrefix\": \"10.0.2.0/24\",\n  \"enableEncryption\": true,\n  \"enableMonitoring\": true,\n  \"enableKeyVault\": true,\n  \"budgetLimit\": 1000,\n  \"alertThreshold\": 0.8\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{api_base}}/ccrp/cloud-credentials",
+              "host": ["{{api_base}}"],
+              "path": ["ccrp", "cloud-credentials"]
+            },
+            "description": "Store cloud provider credentials (requires authentication)"
+          }
+        },
+        {
+          "name": "Get Cloud Credentials",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{api_base}}/ccrp/cloud-credentials/{{user_id}}",
+              "host": ["{{api_base}}"],
+              "path": ["ccrp", "cloud-credentials", "{{user_id}}"]
+            },
+            "description": "Get stored cloud credentials (requires authentication)"
+          }
+        },
+        {
+          "name": "Validate Credentials",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{api_base}}/ccrp/cloud-credentials/1/validate",
+              "host": ["{{api_base}}"],
+              "path": ["ccrp", "cloud-credentials", "1", "validate"]
+            },
+            "description": "Validate cloud credentials (requires authentication)"
+          }
+        },
+        {
+          "name": "Get Secret Managers",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{api_base}}/secret-managers",
+              "host": ["{{api_base}}"],
+              "path": ["secret-managers"]
+            },
+            "description": "Get available secret managers (requires authentication)"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Dashboards",
+      "item": [
+        {
+          "name": "TDC Dashboard",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{api_base}}/tdc/dashboard/{{user_id}}",
+              "host": ["{{api_base}}"],
+              "path": ["tdc", "dashboard", "{{user_id}}"]
+            },
+            "description": "Get TDC dashboard (requires authentication)"
+          }
+        },
+        {
+          "name": "TDP Dashboard",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{api_base}}/tdp/dashboard/{{user_id}}",
+              "host": ["{{api_base}}"],
+              "path": ["tdp", "dashboard", "{{user_id}}"]
+            },
+            "description": "Get TDP dashboard (requires authentication)"
+          }
+        },
+        {
+          "name": "CCRP Dashboard",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{api_base}}/ccrp/dashboard/{{user_id}}",
+              "host": ["{{api_base}}"],
+              "path": ["ccrp", "dashboard", "{{user_id}}"]
+            },
+            "description": "Get CCRP dashboard (requires authentication)"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Search & Analytics",
+      "item": [
+        {
+          "name": "Get Contract Analytics",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{api_base}}/analytics/contracts?startDate=2025-08-01&endDate=2025-08-31",
+              "host": ["{{api_base}}"],
+              "path": ["analytics", "contracts"],
+              "query": [
+                {
+                  "key": "startDate",
+                  "value": "2025-08-01"
+                },
+                {
+                  "key": "endDate",
+                  "value": "2025-08-31"
+                }
+              ]
+            },
+            "description": "Get contract analytics (requires authentication)"
+          }
+        }
+      ]
+    },
+    {
+      "name": "User Management",
+      "item": [
+        {
+          "name": "List Users",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{api_base}}/users?page=1&limit=10",
+              "host": ["{{api_base}}"],
+              "path": ["users"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            },
+            "description": "List users (Admin only, requires authentication)"
+          }
+        },
+        {
+          "name": "Get User",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{api_base}}/users/{{user_id}}",
+              "host": ["{{api_base}}"],
+              "path": ["users", "{{user_id}}"]
+            },
+            "description": "Get user details (requires authentication)"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Security & Compliance",
+      "item": [
+        {
+          "name": "Get Environment Security",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{api_base}}/infrastructure/environments/{{environment_id}}/security",
+              "host": ["{{api_base}}"],
+              "path": ["infrastructure", "environments", "{{environment_id}}", "security"]
+            },
+            "description": "Get environment security status (requires authentication)"
+          }
+        },
+        {
+          "name": "Get Compliance Report",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{api_base}}/infrastructure/environments/{{environment_id}}/compliance",
+              "host": ["{{api_base}}"],
+              "path": ["infrastructure", "environments", "{{environment_id}}", "compliance"]
+            },
+            "description": "Get compliance report (requires authentication)"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Monitoring & Metrics",
+      "item": [
+        {
+          "name": "Get Environment Metrics",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{api_base}}/infrastructure/environments/{{environment_id}}/metrics?timeRange=24h&interval=5m",
+              "host": ["{{api_base}}"],
+              "path": ["infrastructure", "environments", "{{environment_id}}", "metrics"],
+              "query": [
+                {
+                  "key": "timeRange",
+                  "value": "24h"
+                },
+                {
+                  "key": "interval",
+                  "value": "5m"
+                }
+              ]
+            },
+            "description": "Get environment metrics (requires authentication)"
+          }
+        }
+      ]
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Auto-set variables from responses",
+          "if (pm.response && pm.response.json()) {",
+          "    const response = pm.response.json();",
+          "    ",
+          "    // Set auth token from login response",
+          "    if (response.token) {",
+          "        pm.collectionVariables.set('auth_token', response.token);",
+          "    }",
+          "    ",
+          "    // Set user ID from profile response",
+          "    if (response.id) {",
+          "        pm.collectionVariables.set('user_id', response.id);",
+          "    }",
+          "    ",
+          "    // Set contract ID from contract creation response",
+          "    if (response.contract && response.contract.id) {",
+          "        pm.collectionVariables.set('contract_id', response.contract.id);",
+          "    }",
+          "    ",
+          "    // Set environment ID from environment creation response",
+          "    if (response.environment && response.environment.id) {",
+          "        pm.collectionVariables.set('environment_id', response.environment.id);",
+          "    }",
+          "}"
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Common test scripts",
+          "pm.test('Status code is 200', function () {",
+          "    pm.response.to.have.status(200);",
+          "});",
+          "",
+          "pm.test('Response has required fields', function () {",
+          "    const response = pm.response.json();",
+          "    pm.expect(response).to.have.property('success');",
+          "});",
+          "",
+          "pm.test('Response time is less than 2000ms', function () {",
+          "    pm.expect(pm.response.responseTime).to.be.below(2000);",
+          "});"
+        ]
+      }
+    }
+  ]
+} 

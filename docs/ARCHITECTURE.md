@@ -12,8 +12,9 @@ Complete technical architecture documentation for the Contract Management System
 6. [Frontend Architecture](#frontend-architecture)
 7. [Blockchain Integration](#blockchain-integration)
 8. [Secret Management](#secret-management)
-9. [Security Architecture](#security-architecture)
-10. [Deployment Architecture](#deployment-architecture)
+9. [Differential Privacy Architecture](#differential-privacy-architecture)
+10. [Security Architecture](#security-architecture)
+11. [Deployment Architecture](#deployment-architecture)
 
 ## 🎯 System Overview
 
@@ -483,6 +484,330 @@ class AzureProvider {
   }
 }
 ```
+
+## 🔐 Differential Privacy Architecture
+
+### **Overview**
+The differential privacy system provides privacy-preserving data analysis with mathematical guarantees of privacy protection. It implements multiple noise mechanisms, budget tracking, and comprehensive audit logging.
+
+### **High-Level DP Architecture**
+```
+┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│   Frontend      │    │   DP Service    │    │   DP Mechanisms │
+│   DP Manager    │◄──►│   Layer         │◄──►│   (Laplace,     │
+│   Component     │    │                 │    │    Gaussian)    │
+└─────────────────┘    └─────────────────┘    └─────────────────┘
+                                │
+                                ▼
+                       ┌─────────────────┐
+                       │   Budget        │
+                       │   Tracker       │
+                       └─────────────────┘
+                                │
+                                ▼
+                       ┌─────────────────┐
+                       │   Database      │
+                       │   (Privacy      │
+                       │    Tables)      │
+                       └─────────────────┘
+```
+
+### **Core Components**
+
+#### **1. Differential Privacy Service**
+```javascript
+// backend/services/differentialPrivacyService.js
+class DifferentialPrivacyService {
+  constructor() {
+    this.mechanisms = {
+      laplace: new LaplaceMechanism(),
+      gaussian: new GaussianMechanism(),
+      exponential: new ExponentialMechanism(),
+      geometric: new GeometricMechanism()
+    };
+    this.budgetTracker = new PrivacyBudgetTracker();
+    this.sensitivityAnalyzer = new SensitivityAnalyzer();
+  }
+}
+```
+
+**Responsibilities:**
+- Orchestrates DP operations
+- Selects appropriate mechanisms
+- Manages privacy budget
+- Analyzes data sensitivity
+- Provides audit logging
+
+#### **2. Noise Mechanisms**
+
+**Laplace Mechanism**
+```javascript
+// backend/services/mechanisms/laplaceMechanism.js
+class LaplaceMechanism {
+  addNoise(value, epsilon, sensitivity) {
+    const scale = sensitivity / epsilon;
+    const noise = this.sampleLaplace(scale);
+    return value + noise;
+  }
+}
+```
+
+**Gaussian Mechanism**
+```javascript
+// backend/services/mechanisms/gaussianMechanism.js
+class GaussianMechanism {
+  addNoise(value, epsilon, delta, sensitivity) {
+    const scale = this.calculateGaussianScale(epsilon, delta, sensitivity);
+    const noise = this.sampleGaussian(scale);
+    return value + noise;
+  }
+}
+```
+
+#### **3. Privacy Budget Management**
+```javascript
+// backend/services/privacyBudgetTracker.js
+class PrivacyBudgetTracker {
+  async checkBudget(contractId, requiredEpsilon, requiredDelta) {
+    const budget = await this.getCurrentBudget(contractId);
+    return {
+      hasBudget: budget.remainingEpsilon >= requiredEpsilon && 
+                 budget.remainingDelta >= requiredDelta,
+      currentBudget: budget
+    };
+  }
+}
+```
+
+**Budget States:**
+- `ACTIVE`: Budget available for operations
+- `WARNING`: Budget running low (< 20%)
+- `EXHAUSTED`: Budget fully consumed
+- `RESET`: Budget has been reset
+
+#### **4. Sensitivity Analysis**
+```javascript
+// backend/services/sensitivityAnalyzer.js
+class SensitivityAnalyzer {
+  calculateSensitivity(queryType, data, parameters) {
+    switch(queryType) {
+      case 'COUNT':
+        return 1; // Adding/removing one record changes count by 1
+      case 'SUM':
+        return Math.max(...data.map(Math.abs)); // Max absolute value
+      case 'AVERAGE':
+        return this.calculateAverageSensitivity(data);
+      case 'GRADIENT':
+        return this.calculateGradientSensitivity(data, parameters);
+    }
+  }
+}
+```
+
+### **Database Schema**
+
+#### **Privacy Budget Tables**
+```sql
+-- PrivacyBudgets table
+CREATE TABLE "PrivacyBudgets" (
+  id SERIAL PRIMARY KEY,
+  contractId VARCHAR(255) NOT NULL REFERENCES contracts(contractId),
+  initialEpsilon DECIMAL(10,6) NOT NULL DEFAULT 1.0,
+  initialDelta DECIMAL(20,15) NOT NULL DEFAULT 0.00001,
+  remainingEpsilon DECIMAL(10,6) NOT NULL,
+  remainingDelta DECIMAL(20,15) NOT NULL,
+  totalEpsilonConsumed DECIMAL(10,6) NOT NULL DEFAULT 0,
+  totalDeltaConsumed DECIMAL(20,15) NOT NULL DEFAULT 0,
+  budgetStatus ENUM('ACTIVE', 'WARNING', 'EXHAUSTED', 'RESET') DEFAULT 'ACTIVE',
+  lastResetAt TIMESTAMP WITH TIME ZONE,
+  createdAt TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+  updatedAt TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
+);
+
+-- PrivacyBudgetLogs table
+CREATE TABLE "PrivacyBudgetLogs" (
+  id SERIAL PRIMARY KEY,
+  contractId VARCHAR(255) NOT NULL REFERENCES contracts(contractId),
+  epsilonConsumed DECIMAL(10,6) NOT NULL,
+  deltaConsumed DECIMAL(20,15) NOT NULL,
+  operation VARCHAR(255) NOT NULL,
+  operationId VARCHAR(255),
+  userId INTEGER REFERENCES users(id),
+  timestamp TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+  metadata JSON,
+  ipAddress VARCHAR(45),
+  userAgent TEXT
+);
+
+-- PrivacyOperationsLogs table
+CREATE TABLE "PrivacyOperationsLogs" (
+  id SERIAL PRIMARY KEY,
+  contractId VARCHAR(255) NOT NULL REFERENCES contracts(contractId),
+  operationType VARCHAR(255) NOT NULL,
+  epsilon DECIMAL(10,6) NOT NULL,
+  delta DECIMAL(20,15) NOT NULL,
+  mechanism VARCHAR(255) NOT NULL,
+  sensitivity DECIMAL(15,6) NOT NULL,
+  dataSize INTEGER,
+  queryType VARCHAR(255),
+  timestamp TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+  userId INTEGER REFERENCES users(id),
+  result JSON,
+  executionTime INTEGER,
+  success BOOLEAN NOT NULL DEFAULT true,
+  errorMessage TEXT,
+  ipAddress VARCHAR(45),
+  userAgent TEXT,
+  sessionId VARCHAR(255)
+);
+```
+
+### **API Architecture**
+
+#### **DP Endpoints Structure**
+```
+/api/dp/
+├── GET  /mechanisms           # Available DP mechanisms
+├── GET  /query-types          # Supported query types
+├── POST /test                 # Test DP functionality
+├── POST /apply                # Apply DP to data
+├── GET  /budget/:contractId   # Privacy budget status
+├── GET  /history/:contractId  # Operation history
+└── GET  /analytics/:contractId # Privacy analytics
+```
+
+#### **Request/Response Flow**
+```
+1. Client Request → Authentication Middleware
+2. Validation → DP Service
+3. Budget Check → Privacy Budget Tracker
+4. Sensitivity Analysis → Sensitivity Analyzer
+5. Noise Addition → Selected Mechanism
+6. Budget Update → Privacy Budget Tracker
+7. Audit Logging → Privacy Operations Log
+8. Response → Client
+```
+
+### **Privacy Mechanisms Implementation**
+
+#### **Laplace Mechanism**
+- **Use Case**: General-purpose noise addition
+- **Parameters**: epsilon, sensitivity
+- **Noise Distribution**: Laplace(0, sensitivity/epsilon)
+- **Best For**: Counts, sums, gradients
+
+#### **Gaussian Mechanism**
+- **Use Case**: Better utility for continuous data
+- **Parameters**: epsilon, delta, sensitivity
+- **Noise Distribution**: Normal(0, σ²) where σ² = 2ln(1.25/δ) × (sensitivity/ε)²
+- **Best For**: Averages, statistical measures
+
+#### **Exponential Mechanism**
+- **Use Case**: Discrete choice problems
+- **Parameters**: epsilon, utility function
+- **Best For**: Selection from discrete options
+
+#### **Geometric Mechanism**
+- **Use Case**: Integer count queries
+- **Parameters**: epsilon
+- **Best For**: Counting operations
+
+### **Budget Management Strategy**
+
+#### **Budget Allocation**
+- **Initial Budget**: Epsilon = 1.0, Delta = 1e-5 per contract
+- **Warning Threshold**: 20% remaining budget
+- **Exhaustion Handling**: Graceful degradation or budget reset
+
+#### **Budget Optimization**
+- **Query Batching**: Combine multiple queries
+- **Mechanism Selection**: Choose most efficient mechanism
+- **Parameter Tuning**: Optimize epsilon/delta ratios
+
+### **Security Considerations**
+
+#### **Privacy Guarantees**
+- **Mathematical Proofs**: All mechanisms provide proven privacy guarantees
+- **Composition Theorems**: Multiple operations compose safely
+- **Post-Processing Immunity**: Results remain private after additional processing
+
+#### **Audit and Compliance**
+- **Complete Logging**: All operations logged with metadata
+- **Budget Tracking**: Real-time budget consumption monitoring
+- **Compliance Reports**: Automated privacy compliance reporting
+
+### **Performance Characteristics**
+
+#### **Computational Complexity**
+- **Laplace**: O(1) - Constant time noise generation
+- **Gaussian**: O(1) - Constant time noise generation
+- **Sensitivity Analysis**: O(n) - Linear in data size
+- **Budget Management**: O(1) - Constant time database operations
+
+#### **Scalability**
+- **Horizontal Scaling**: Stateless service design
+- **Database Optimization**: Indexed queries for budget operations
+- **Caching**: Budget status caching for frequent checks
+
+### **Integration Points**
+
+#### **Training Service Integration**
+```javascript
+// backend/services/trainingService.js
+async trainModelWithDP(trainingData, privacyParams) {
+  const dpService = new DifferentialPrivacyService();
+  
+  // Apply DP to gradients
+  const noisyGradients = await dpService.applyDifferentialPrivacy(
+    trainingData.gradients,
+    { type: 'GRADIENT' },
+    privacyParams
+  );
+  
+  // Continue training with noisy gradients
+  return this.trainModel(noisyGradients);
+}
+```
+
+#### **Contract Service Integration**
+```javascript
+// backend/services/contractService.js
+async applyDPToContractData(contractId, data, query, privacyParams) {
+  const dpService = new DifferentialPrivacyService();
+  
+  // Apply DP to contract-related data
+  return await dpService.applyDifferentialPrivacy(
+    data,
+    query,
+    { ...privacyParams, contractId }
+  );
+}
+```
+
+### **Monitoring and Analytics**
+
+#### **Privacy Metrics Dashboard**
+- **Budget Utilization**: Real-time budget consumption
+- **Operation Success Rate**: Success/failure statistics
+- **Performance Metrics**: Execution time analysis
+- **Mechanism Usage**: Distribution of mechanism selection
+
+#### **Alerting System**
+- **Budget Warnings**: Low budget notifications
+- **Performance Alerts**: Slow operation detection
+- **Error Monitoring**: Failed operation tracking
+
+### **Future Enhancements**
+
+#### **Advanced Mechanisms**
+- **Rényi Differential Privacy**: More flexible privacy definitions
+- **Local Differential Privacy**: Client-side privacy
+- **Federated Learning**: Distributed privacy-preserving training
+
+#### **Automated Optimization**
+- **Parameter Tuning**: ML-based epsilon/delta optimization
+- **Mechanism Selection**: Automatic mechanism recommendation
+- **Budget Planning**: Predictive budget allocation
 
 ## 🛡️ Security Architecture
 
