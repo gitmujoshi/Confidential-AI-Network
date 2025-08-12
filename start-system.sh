@@ -2,7 +2,7 @@
 
 # Contract Management System Startup Script
 # This script ensures all components are properly configured and started
-# Now supports both Blockchain and SCITT CCF modes
+# Now supports both Blockchain and SCITT CCF modes with integrated testing
 
 set -e
 
@@ -75,6 +75,103 @@ start_scitt_ccf_services() {
         return 1
     fi
 }
+
+# Function to run SCITT CCF tests
+run_scitt_ccf_tests() {
+    local test_mode="${1:-quick}"
+    
+    echo ""
+    echo "🧪 Running SCITT CCF tests ($test_mode mode)..."
+    
+    if [ -f "test-scitt-ccf-suite.sh" ]; then
+        chmod +x test-scitt-ccf-suite.sh
+        
+        case $test_mode in
+            "quick")
+                ./test-scitt-ccf-suite.sh --quick
+                ;;
+            "full")
+                ./test-scitt-ccf-suite.sh --all
+                ;;
+            "infrastructure")
+                ./test-scitt-ccf-suite.sh --infrastructure
+                ;;
+            "integration")
+                ./test-scitt-ccf-suite.sh --integration
+                ;;
+            "performance")
+                ./test-scitt-ccf-suite.sh --performance
+                ;;
+            "none")
+                echo "   Skipping tests as requested"
+                return 0
+                ;;
+            *)
+                echo "   Running quick test suite"
+                ./test-scitt-ccf-suite.sh --quick
+                ;;
+        esac
+        
+        if [ $? -eq 0 ]; then
+            echo "✅ SCITT CCF tests passed"
+        else
+            echo "⚠️  SCITT CCF tests had issues, but continuing..."
+        fi
+    else
+        echo "⚠️  SCITT CCF test suite not found, skipping tests"
+    fi
+}
+
+# Function to show help
+show_help() {
+    echo "Contract Management System Startup Script"
+    echo ""
+    echo "Usage: $0 [OPTIONS]"
+    echo ""
+    echo "Options:"
+    echo "  --test-mode MODE    Set SCITT CCF test mode (quick|full|infrastructure|integration|performance|none)"
+    echo "  --no-tests          Skip SCITT CCF testing"
+    echo "  --help              Show this help message"
+    echo ""
+    echo "Test Modes:"
+    echo "  quick               Run quick test suite (default)"
+    echo "  full                Run full test suite"
+    echo "  infrastructure      Run only infrastructure tests"
+    echo "  integration         Run only integration tests"
+    echo "  performance         Run only performance tests"
+    echo "  none                Skip all tests"
+    echo ""
+    echo "Examples:"
+    echo "  $0                  # Start with quick tests"
+    echo "  $0 --test-mode full # Start with full tests"
+    echo "  $0 --no-tests       # Start without tests"
+}
+
+# Parse command line arguments
+TEST_MODE="quick"
+SKIP_TESTS=false
+
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        --test-mode)
+            TEST_MODE="$2"
+            shift 2
+            ;;
+        --no-tests)
+            SKIP_TESTS=true
+            shift
+            ;;
+        --help|-h)
+            show_help
+            exit 0
+            ;;
+        *)
+            echo "Unknown option: $1"
+            show_help
+            exit 1
+            ;;
+    esac
+done
 
 # Check if we're in the right directory
 if [ ! -f "backend/server.js" ]; then
@@ -186,6 +283,11 @@ if [ "$SCITT_CCF_ENABLED" = true ]; then
     fi
     
     cd ..
+    
+    # Step 8: Run SCITT CCF tests (if not skipped)
+    if [ "$SKIP_TESTS" = false ]; then
+        run_scitt_ccf_tests "$TEST_MODE"
+    fi
 fi
 
 echo ""
@@ -222,6 +324,16 @@ if [ "$SCITT_CCF_ENABLED" = true ]; then
     echo ""
     echo "🔗 SCITT CCF Integration:"
     echo "   Migration Mode: HYBRID (both blockchain and SCITT CCF)"
-    echo "   Test Integration: cd backend && node scripts/test-scitt-ccf-integration.js"
-    echo "   Switch Mode: Use backend API to change migration mode"
-fi 
+    echo "   Test Integration: ./test-scitt-ccf-suite.sh --quick"
+    echo "   Full Test Suite: ./test-scitt-ccf-suite.sh --all"
+    echo "   Switch Mode: ./manage-scitt-ccf.sh switch [MODE]"
+    echo "   Stop Services: ./stop-scitt-ccf.sh"
+fi
+
+echo ""
+echo "🧪 Testing Commands:"
+echo "   Quick Tests: ./test-scitt-ccf-suite.sh --quick"
+echo "   Full Tests: ./test-scitt-ccf-suite.sh --all"
+echo "   Performance: ./test-scitt-ccf-suite.sh --performance"
+echo "   Infrastructure: ./test-scitt-ccf-suite.sh --infrastructure"
+echo "   Integration: ./test-scitt-ccf-suite.sh --integration" 
