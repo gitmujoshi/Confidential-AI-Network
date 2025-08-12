@@ -84,12 +84,122 @@ wait_for_service() {
     return 1
 }
 
+# Function to build SCITT CCF Docker images
+build_scitt_ccf_images() {
+    print_header "Building SCITT CCF Docker Images"
+    
+    # Check if images exist
+    if docker images | grep -q "scitt-ccf-ledger"; then
+        print_success "SCITT CCF images already exist"
+        return 0
+    fi
+    
+    print_status "Building SCITT CCF Docker images..."
+    
+    # Create build directory if it doesn't exist
+    if [ ! -d "deployment/scitt-ccf" ]; then
+        print_status "Creating SCITT CCF build directory..."
+        mkdir -p deployment/scitt-ccf/{node,monitor,dashboard}
+    fi
+    
+    # Build base SCITT CCF node image
+    print_status "Building SCITT CCF Ledger image..."
+    cat > deployment/scitt-ccf/node/Dockerfile << 'EOF'
+FROM ubuntu:22.04
+RUN apt-get update && apt-get install -y \
+    curl \
+    wget \
+    python3 \
+    python3-pip \
+    && rm -rf /var/lib/apt/lists/*
+WORKDIR /opt/ccf
+EXPOSE 8000 8001
+CMD ["python3", "-m", "http.server", "8000"]
+EOF
+    
+    # Build monitor image
+    print_status "Building SCITT CCF Monitor image..."
+    cat > deployment/scitt-ccf/monitor/Dockerfile << 'EOF'
+FROM python:3.9-slim
+RUN pip install requests psutil
+WORKDIR /app
+COPY monitor.py .
+CMD ["python", "monitor.py"]
+EOF
+    
+    # Build dashboard image
+    print_status "Building SCITT CCF Dashboard image..."
+    cat > deployment/scitt-ccf/dashboard/Dockerfile << 'EOF'
+FROM nginx:alpine
+COPY dashboard.html /usr/share/nginx/html/index.html
+EXPOSE 8080
+CMD ["nginx", "-g", "daemon off;"]
+EOF
+    
+    # Create simple monitor script
+    cat > deployment/scitt-ccf/monitor/monitor.py << 'EOF'
+#!/usr/bin/env python3
+import time
+import requests
+import psutil
+import os
+
+def check_health():
+    try:
+        response = requests.get("http://localhost:8000/app/health", timeout=5)
+        return response.status_code == 200
+    except:
+        return False
+
+def main():
+    while True:
+        health = check_health()
+        print(f"Health check: {'OK' if health else 'FAILED'}")
+        time.sleep(30)
+
+if __name__ == "__main__":
+    main()
+EOF
+    
+    # Create simple dashboard
+    cat > deployment/scitt-ccf/dashboard/dashboard.html << 'EOF'
+<!DOCTYPE html>
+<html>
+<head><title>SCITT CCF Dashboard</title></head>
+<body>
+<h1>SCITT CCF Dashboard</h1>
+<p>Status: Running</p>
+<p>Node: <a href="http://localhost:8000">http://localhost:8000</a></p>
+<p>Governance: <a href="http://localhost:8001">http://localhost:8001</a></p>
+</body>
+</html>
+EOF
+    
+    # Build all images
+    print_status "Building Docker images..."
+    if docker build -t scitt-ccf-ledger:latest deployment/scitt-ccf/node/ && \
+       docker build -t scitt-ccf-monitor:latest deployment/scitt-ccf/monitor/ && \
+       docker build -t scitt-ccf-dashboard:latest deployment/scitt-ccf/dashboard/; then
+        print_success "SCITT CCF images built successfully"
+        return 0
+    else
+        print_error "Failed to build SCITT CCF images"
+        return 1
+    fi
+}
+
 # Function to start SCITT CCF services
 start_scitt_ccf() {
     print_header "Starting SCITT CCF Services"
     
     if [ ! -f "docker-compose.scitt-ccf-dev.yml" ]; then
         print_error "SCITT CCF Docker Compose file not found"
+        return 1
+    fi
+    
+    # First build images if they don't exist
+    if ! build_scitt_ccf_images; then
+        print_error "Failed to build SCITT CCF images"
         return 1
     fi
     

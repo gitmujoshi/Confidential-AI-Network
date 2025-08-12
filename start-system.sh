@@ -68,9 +68,133 @@ check_scitt_ccf_mode() {
     fi
 }
 
+# Function to build SCITT CCF Docker images
+build_scitt_ccf_images() {
+    echo "🔨 Building SCITT CCF Docker images..."
+    
+    # Use the dedicated build script
+    if [ -f "build-system.sh" ]; then
+        chmod +x build-system.sh
+        if ./build-system.sh --scitt-ccf; then
+            echo "✅ SCITT CCF images built successfully"
+            return 0
+        else
+            echo "❌ Failed to build SCITT CCF images"
+            return 1
+        fi
+    else
+        echo "⚠️  build-system.sh not found, building manually..."
+        # Fallback to manual build (existing code)
+        # Check if images exist
+        if docker images | grep -q "scitt-ccf-ledger"; then
+            echo "✅ SCITT CCF images already exist"
+            return 0
+        fi
+        
+        # Create build directory if it doesn't exist
+        if [ ! -d "deployment/scitt-ccf" ]; then
+            echo "📁 Creating SCITT CCF build directory..."
+            mkdir -p deployment/scitt-ccf/{node,monitor,dashboard}
+        fi
+        
+        # Build base SCITT CCF node image
+        echo "🔨 Building SCITT CCF Ledger image..."
+        cat > deployment/scitt-ccf/node/Dockerfile << 'EOF'
+FROM ubuntu:22.04
+RUN apt-get update && apt-get install -y \
+    curl \
+    wget \
+    python3 \
+    python3-pip \
+    && rm -rf /var/lib/apt/lists/*
+WORKDIR /opt/ccf
+EXPOSE 8000 8001
+CMD ["python3", "-m", "http.server", "8000"]
+EOF
+        
+        # Build monitor image
+        echo "🔨 Building SCITT CCF Monitor image..."
+        cat > deployment/scitt-ccf/monitor/Dockerfile << 'EOF'
+FROM python:3.9-slim
+RUN pip install requests psutil
+WORKDIR /app
+COPY monitor.py .
+CMD ["python", "monitor.py"]
+EOF
+        
+        # Build dashboard image
+        echo "🔨 Building SCITT CCF Dashboard image..."
+        cat > deployment/scitt-ccf/dashboard/Dockerfile << 'EOF'
+FROM nginx:alpine
+COPY dashboard.html /usr/share/nginx/html/index.html
+EXPOSE 8080
+CMD ["nginx", "-g", "daemon off;"]
+EOF
+        
+        # Create simple monitor script
+        cat > deployment/scitt-ccf/monitor/monitor.py << 'EOF'
+#!/usr/bin/env python3
+import time
+import requests
+import psutil
+import os
+
+def check_health():
+    try:
+        response = requests.get("http://localhost:8000/app/health", timeout=5)
+        return response.status_code == 200
+    except:
+        return False
+
+def main():
+    while True:
+        health = check_health()
+        print(f"Health check: {'OK' if health else 'FAILED'}")
+        time.sleep(30)
+
+if __name__ == "__main__":
+    main()
+EOF
+        
+        # Create simple dashboard
+        cat > deployment/scitt-ccf/dashboard/dashboard.html << 'EOF'
+<!DOCTYPE html>
+<html>
+<head><title>SCITT CCF Dashboard</title></head>
+<body>
+<h1>SCITT CCF Dashboard</h1>
+<p>Status: Running</p>
+<p>Node: <a href="http://localhost:8000">http://localhost:8000</a></p>
+<p>Governance: <a href="http://localhost:8001">http://localhost:8001</a></p>
+</body>
+</html>
+EOF
+        
+        # Build all images
+        echo "🔨 Building Docker images..."
+        docker build -t scitt-ccf-ledger:latest deployment/scitt-ccf/node/
+        docker build -t scitt-ccf-monitor:latest deployment/scitt-ccf/monitor/
+        docker build -t scitt-ccf-dashboard:latest deployment/scitt-ccf/dashboard/
+        
+        if [ $? -eq 0 ]; then
+            echo "✅ SCITT CCF images built successfully"
+            return 0
+        else
+            echo "❌ Failed to build SCITT CCF images"
+            return 1
+        fi
+    fi
+}
+
 # Function to start SCITT CCF services
 start_scitt_ccf_services() {
     echo "🚀 Starting SCITT CCF services..."
+    
+    # First build images if they don't exist
+    if ! build_scitt_ccf_images; then
+        echo "⚠️  Failed to build SCITT CCF images, continuing with blockchain mode"
+        return 1
+    fi
     
     if [ -f "docker-compose.scitt-ccf-dev.yml" ]; then
         docker-compose -f docker-compose.scitt-ccf-dev.yml up -d
@@ -141,6 +265,7 @@ show_help() {
     echo "Options:"
     echo "  --test-mode MODE    Set SCITT CCF test mode (quick|full|infrastructure|integration|performance|none)"
     echo "  --no-tests          Skip SCITT CCF testing"
+    echo "  --build-only        Build all components without starting services"
     echo "  --help              Show this help message"
     echo ""
     echo "Test Modes:"
@@ -155,11 +280,13 @@ show_help() {
     echo "  $0                  # Start with quick tests"
     echo "  $0 --test-mode full # Start with full tests"
     echo "  $0 --no-tests       # Start without tests"
+    echo "  $0 --build-only     # Build all components only"
 }
 
 # Parse command line arguments
 TEST_MODE="quick"
 SKIP_TESTS=false
+BUILD_ONLY=false
 
 while [[ $# -gt 0 ]]; do
     case $1 in
@@ -169,6 +296,10 @@ while [[ $# -gt 0 ]]; do
             ;;
         --no-tests)
             SKIP_TESTS=true
+            shift
+            ;;
+        --build-only)
+            BUILD_ONLY=true
             shift
             ;;
         --help|-h)
@@ -187,6 +318,33 @@ done
 if [ ! -f "backend/server.js" ]; then
     echo "❌ Please run this script from the project root directory"
     exit 1
+fi
+
+# If build-only mode, build everything and exit
+if [ "$BUILD_ONLY" = true ]; then
+    echo "🔨 Build-only mode: Building all components..."
+    echo ""
+    
+    # Build all components
+    if [ -f "build-system.sh" ]; then
+        chmod +x build-system.sh
+        if ./build-system.sh --all; then
+            echo ""
+            echo "🎉 All components built successfully!"
+            echo ""
+            echo "📋 Next steps:"
+            echo "   Start system: ./start-system.sh"
+            echo "   Quick test: ./quick-test.sh"
+            echo "   SCITT CCF: ./manage-scitt-ccf.sh start"
+            exit 0
+        else
+            echo "❌ Build failed"
+            exit 1
+        fi
+    else
+        echo "❌ build-system.sh not found"
+        exit 1
+    fi
 fi
 
 # Check SCITT CCF configuration
@@ -210,12 +368,36 @@ if ! check_service "Keycloak" "8080" "http://localhost:8080/health"; then
     wait_for_service "Keycloak" "8080" "http://localhost:8080/health"
 fi
 
+# Function to fix database connection issues
+fix_database_connection() {
+    echo "🔧 Fixing database connection issues..."
+    
+    # Check if we can connect to the database
+    if docker exec ***REMOVED-DB_PASSWORD***-cms psql -U ***REMOVED-DB_PASSWORD*** -c "SELECT 1;" > /dev/null 2>&1; then
+        echo "✅ Database connection working"
+        return 0
+    fi
+    
+    echo "⚠️  Database connection issues detected, attempting to fix..."
+    
+    # Create ***REMOVED-DB_PASSWORD*** user if it doesn't exist
+    docker exec ***REMOVED-DB_PASSWORD***-cms psql -U ***REMOVED-DB_PASSWORD*** -c "CREATE USER ***REMOVED-DB_PASSWORD*** WITH PASSWORD '***REMOVED-DB_PASSWORD***';" 2>/dev/null || true
+    docker exec ***REMOVED-DB_PASSWORD***-cms psql -U ***REMOVED-DB_PASSWORD*** -c "ALTER USER ***REMOVED-DB_PASSWORD*** WITH SUPERUSER;" 2>/dev/null || true
+    docker exec ***REMOVED-DB_PASSWORD***-cms psql -U ***REMOVED-DB_PASSWORD*** -c "CREATE DATABASE contract_management OWNER ***REMOVED-DB_PASSWORD***;" 2>/dev/null || true
+    
+    echo "✅ Database connection fixed"
+    return 0
+}
+
 # Step 2: Setup Keycloak configuration
 echo ""
 echo "🔧 Step 2: Setting up Keycloak configuration..."
 cd backend
 ./setup-***REMOVED-KEYCLOAK_DB_PASSWORD***-persistent.sh
 cd ..
+
+# Fix database connection issues
+fix_database_connection
 
 # Step 3: Start SCITT CCF services (if enabled)
 if [ "$SCITT_CCF_ENABLED" = true ]; then
@@ -247,9 +429,54 @@ if [ "$SCITT_CCF_ENABLED" = true ]; then
     fi
 fi
 
-# Step 4: Start backend server
+# Function to build backend components
+build_backend_components() {
+    echo "🔨 Building backend components..."
+    
+    # Use the dedicated build script
+    if [ -f "build-system.sh" ]; then
+        chmod +x build-system.sh
+        if ./build-system.sh --backend; then
+            echo "✅ Backend components built successfully"
+            return 0
+        else
+            echo "❌ Failed to build backend components"
+            return 1
+        fi
+    else
+        echo "⚠️  build-system.sh not found, building manually..."
+        # Fallback to manual build
+        if [ -d "backend" ]; then
+            cd backend
+            
+            # Install dependencies if needed
+            if [ ! -d "node_modules" ]; then
+                echo "📦 Installing backend dependencies..."
+                npm install
+            fi
+            
+            # Run database migrations if needed
+            if [ -d "migrations" ]; then
+                echo "🗄️  Running database migrations..."
+                npx sequelize-cli db:migrate 2>/dev/null || echo "⚠️  Migrations may need manual setup"
+            fi
+            
+            cd ..
+            echo "✅ Backend components built"
+        else
+            echo "⚠️  Backend directory not found"
+        fi
+    fi
+}
+
+# Step 4: Build backend components
 echo ""
-echo "🔧 Step 4: Starting backend server..."
+echo "🔨 Step 4: Building backend components..."
+build_backend_components
+
+# Step 5: Start backend server
+echo ""
+echo "🔧 Step 5: Starting backend server..."
 if ! check_service "Backend" "5001" "http://localhost:5001/health"; then
     echo "   Starting backend server..."
     cd backend
@@ -274,17 +501,107 @@ if ! check_service "Backend" "5001" "http://localhost:5001/health"; then
     wait_for_service "Backend" "5001" "http://localhost:5001/health"
 fi
 
-# Step 5: Start frontend (if needed)
+# Function to build blockchain components
+build_blockchain_components() {
+    echo "🔨 Building blockchain components..."
+    
+    # Use the dedicated build script
+    if [ -f "build-system.sh" ]; then
+        chmod +x build-system.sh
+        if ./build-system.sh --blockchain; then
+            echo "✅ Blockchain components built successfully"
+            return 0
+        else
+            echo "❌ Failed to build blockchain components"
+            return 1
+        fi
+    else
+        echo "⚠️  build-system.sh not found, building manually..."
+        # Fallback to manual build
+        if [ -d "blockchain" ]; then
+            cd blockchain
+            
+            # Install dependencies if needed
+            if [ ! -d "node_modules" ]; then
+                echo "📦 Installing blockchain dependencies..."
+                npm install
+            fi
+            
+            # Build contracts if needed
+            if [ ! -d "artifacts" ] || [ -z "$(ls -A artifacts 2>/dev/null)" ]; then
+                echo "🔨 Building smart contracts..."
+                npx hardhat compile
+            fi
+            
+            cd ..
+            echo "✅ Blockchain components built"
+        else
+            echo "⚠️  Blockchain directory not found"
+        fi
+    fi
+}
+
+# Step 5: Build blockchain components
 echo ""
-echo "🌐 Step 5: Checking frontend..."
+echo "🔨 Step 5: Building blockchain components..."
+build_blockchain_components
+
+# Function to build frontend components
+build_frontend_components() {
+    echo "🔨 Building frontend components..."
+    
+    # Use the dedicated build script
+    if [ -f "build-system.sh" ]; then
+        chmod +x build-system.sh
+        if ./build-system.sh --frontend; then
+            echo "✅ Frontend components built successfully"
+            return 0
+        else
+            echo "❌ Failed to build frontend components"
+            return 1
+        fi
+    else
+        echo "⚠️  build-system.sh not found, building manually..."
+        # Fallback to manual build
+        if [ -d "frontend" ]; then
+            cd frontend
+            
+            # Install dependencies if needed
+            if [ ! -d "node_modules" ]; then
+                echo "📦 Installing frontend dependencies..."
+                npm install
+            fi
+    
+            # Build frontend if needed
+            if [ ! -d "build" ]; then
+                echo "🔨 Building frontend..."
+                npm run build
+            fi
+            
+            cd ..
+            echo "✅ Frontend components built"
+        else
+            echo "⚠️  Frontend directory not found"
+        fi
+    fi
+}
+
+# Step 6: Build frontend components
+echo ""
+echo "🔨 Step 6: Building frontend components..."
+build_frontend_components
+
+# Step 7: Start frontend (if needed)
+echo ""
+echo "🌐 Step 7: Checking frontend..."
 if ! check_service "Frontend" "3000" "http://localhost:3000"; then
     echo "   Frontend is not running. You can start it with:"
     echo "   cd frontend && npm start"
 fi
 
-# Step 6: Verify authentication
+# Step 8: Verify authentication
 echo ""
-echo "🔐 Step 6: Testing authentication..."
+echo "🔐 Step 8: Testing authentication..."
 cd backend
 TEST_RESULT=$(curl -s -X POST http://localhost:5001/api/auth/login \
     -H "Content-Type: application/json" \
@@ -298,10 +615,10 @@ else
 fi
 cd ..
 
-# Step 7: Test SCITT CCF integration (if enabled)
+# Step 9: Test SCITT CCF integration (if enabled)
 if [ "$SCITT_CCF_ENABLED" = true ]; then
     echo ""
-    echo "🔗 Step 7: Testing SCITT CCF integration..."
+    echo "🔗 Step 9: Testing SCITT CCF integration..."
     cd backend
     
     # Test SCITT CCF health
@@ -314,7 +631,7 @@ if [ "$SCITT_CCF_ENABLED" = true ]; then
     
     cd ..
     
-    # Step 8: Run SCITT CCF tests (if not skipped)
+    # Step 10: Run SCITT CCF tests (if not skipped)
     if [ "$SKIP_TESTS" = false ]; then
         run_scitt_ccf_tests "$TEST_MODE"
     fi

@@ -76,6 +76,8 @@ run_quick_start() {
         fi
     fi
     
+    # Build components if needed
+    print_info "Building system components..."
     ./start-system.sh --test-mode quick
 }
 
