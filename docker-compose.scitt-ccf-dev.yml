@@ -40,7 +40,7 @@ services:
       ALERT_EMAIL: admin@contractflow.pro
       LOG_LEVEL: INFO
     depends_on:
-      scitt-ccf-node-dev:
+      scitt-ccf-node:
         condition: service_healthy
     networks:
       - cms-network
@@ -60,7 +60,7 @@ services:
     ports:
       - "8080:8080"
     depends_on:
-      - scitt-ccf-node-dev
+      - scitt-ccf-node
     networks:
       - cms-network
     restart: unless-stopped
