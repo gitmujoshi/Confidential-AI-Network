@@ -31,6 +31,9 @@ db.Contract = require('./Contract')(sequelize, Sequelize);
 db.Notification = require('./Notification')(sequelize, Sequelize);
 db.AIModel = require('./AIModel')(sequelize, Sequelize);
 
+// Import contract template model
+db.ContractTemplate = require('./ContractTemplate')(sequelize, Sequelize);
+
 // Import training environment models
 db.TrainingEnvironment = require('./TrainingEnvironment')(sequelize, Sequelize);
 db.TrainingJob = require('./TrainingJob')(sequelize, Sequelize);
@@ -62,6 +65,13 @@ db.Contract.belongsTo(db.User, { foreignKey: 'ccrpId', as: 'ccrp' });
 // CCRP Azure credentials associations
 db.User.hasOne(db.CCRPAzureCredentials, { foreignKey: 'ccrpUserId', as: 'azureCredentials' });
 db.CCRPAzureCredentials.belongsTo(db.User, { foreignKey: 'ccrpUserId', as: 'ccrp' });
+
+// Contract template associations
+db.User.hasMany(db.ContractTemplate, { foreignKey: 'createdBy', as: 'createdTemplates' });
+db.ContractTemplate.belongsTo(db.User, { foreignKey: 'createdBy', as: 'creator' });
+
+db.ContractTemplate.hasMany(db.Contract, { foreignKey: 'templateId', sourceKey: 'templateId', as: 'contracts' });
+db.Contract.belongsTo(db.ContractTemplate, { foreignKey: 'templateId', targetKey: 'templateId', as: 'template' });
 
 db.Contract.belongsTo(db.Dataset, { foreignKey: 'datasetId', as: 'dataset' });
 db.Dataset.hasMany(db.Contract, { foreignKey: 'datasetId', as: 'contracts' });

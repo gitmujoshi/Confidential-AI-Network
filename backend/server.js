@@ -31,6 +31,9 @@ const infrastructureRouter = require('./routes/infrastructure');
 const trainingRouter = require('./routes/training');
 const differentialPrivacyRouter = require('./routes/differential-privacy-simple');
 
+// Import contract template routes
+const contractTemplatesRouter = require('./routes/contract-templates');
+
 const app = express();
 const PORT = process.env.PORT || 8000;
 
@@ -157,6 +160,9 @@ app.use('/api/did', didRouter);
 app.use('/api/dpdp', dpdpRouter);
 app.use('/api/signing', signingRouter);
 app.use('/api/ai-models', aiModelsRouter);
+
+// Contract template routes
+app.use('/api/contract-templates', contractTemplatesRouter);
 
 // Role-specific routes
 app.use('/api/admin', adminRouter);
