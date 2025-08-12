@@ -124,6 +124,13 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: false
     },
     
+    // Contract template reference
+    templateId: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      comment: 'Reference to the contract template used for this contract'
+    },
+    
     // Ricardian Contract Legal Document (JSON)
     legalDocument: {
       field: 'legaldocument',

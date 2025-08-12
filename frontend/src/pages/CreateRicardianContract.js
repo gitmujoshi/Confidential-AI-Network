@@ -50,6 +50,7 @@ import toast from 'react-hot-toast';
 import { useUser } from '../contexts/UserContext';
 import MultiDatasetSelector from '../components/MultiDatasetSelector';
 import MultiCCRPSelector from '../components/MultiCCRPSelector';
+import ContractTemplateSelector from '../components/ContractTemplateSelector';
 
 /**
  * CreateRicardianContract Component
@@ -84,6 +85,7 @@ import MultiCCRPSelector from '../components/MultiCCRPSelector';
 
 // Stepper steps for contract creation process
 const steps = [
+  'Select Contract Template',
   'Select Contract Type & Datasets (1-3)',
   'Configure Contract & Environment',
   'Review Legal Document & Smart Contract',
@@ -98,6 +100,7 @@ function CreateRicardianContract() {
   // Component state
   const [activeStep, setActiveStep] = useState(0);
   const [selectedContractType, setSelectedContractType] = useState('AI_TRAINING');
+  const [selectedTemplate, setSelectedTemplate] = useState(null);
   const [selectedDatasets, setSelectedDatasets] = useState([]); // Array of selected datasets
   const [datasetPrices, setDatasetPrices] = useState({}); // Individual pricing per dataset
   const [selectedCcrp, setSelectedCcrp] = useState('');
@@ -460,17 +463,22 @@ function CreateRicardianContract() {
    * Handle next step in the stepper
    */
   const handleNext = () => {
-    if (activeStep === 0 && (!selectedContractType || selectedDatasets.length === 0)) {
+    if (activeStep === 0 && !selectedTemplate) {
+      toast.error('Please select a contract template before proceeding');
+      return;
+    }
+    
+    if (activeStep === 1 && (!selectedContractType || selectedDatasets.length === 0)) {
       toast.error('Please select both contract type and at least one dataset');
       return;
     }
     
-    if (activeStep === 0 && selectedDatasets.length > 3) {
+    if (activeStep === 1 && selectedDatasets.length > 3) {
       toast.error('You can only select up to 3 datasets');
       return;
     }
     
-    if (activeStep === 1 && !isFormValid()) {
+    if (activeStep === 2 && !isFormValid()) {
       toast.error('Please fill in all required fields');
       return;
     }
@@ -731,6 +739,53 @@ function CreateRicardianContract() {
         return (
           <Box>
             <Typography variant="h6" gutterBottom>
+              Select Contract Template
+            </Typography>
+            
+            <Typography variant="body1" color="text.secondary" paragraph>
+              Choose a contract template that best fits your needs. Templates provide predefined terms, 
+              pricing structures, and compliance settings.
+            </Typography>
+
+            {selectedTemplate && (
+              <Alert severity="info" sx={{ mb: 2 }}>
+                <strong>Selected Template:</strong> {selectedTemplate.name} - {selectedTemplate.description}
+              </Alert>
+            )}
+
+            <ContractTemplateSelector
+              onTemplateSelect={(template) => {
+                setSelectedTemplate(template);
+                setSelectedContractType(template.contractType);
+                // Pre-fill some fields based on template
+                if (template.standardDuration) {
+                  setContractData(prev => ({
+                    ...prev,
+                    duration: template.standardDuration.toString()
+                  }));
+                }
+                if (template.termsAndConditions) {
+                  setContractData(prev => ({
+                    ...prev,
+                    termsAndConditions: template.termsAndConditions
+                  }));
+                }
+              }}
+              dataset={selectedDatasets[0]} // Use first dataset for recommendations
+              userPreferences={{
+                category: selectedTemplate?.category,
+                duration: parseInt(contractData.duration) || 90,
+                budget: 1000 // Default budget
+              }}
+              showRecommendations={true}
+            />
+          </Box>
+        );
+      
+      case 1:
+        return (
+          <Box>
+            <Typography variant="h6" gutterBottom>
               Select Contract Type & Datasets (1-3)
             </Typography>
             
@@ -858,7 +913,7 @@ function CreateRicardianContract() {
           </Box>
         );
 
-      case 1:
+      case 2:
         return (
           <Box>
             <Typography variant="h6" gutterBottom>
@@ -1728,7 +1783,7 @@ function CreateRicardianContract() {
           </Box>
         );
 
-      case 2:
+      case 3:
         return (
           <Box>
             <Typography variant="h6" gutterBottom>
@@ -1998,7 +2053,7 @@ function CreateRicardianContract() {
           </Box>
         );
 
-      case 3:
+      case 4:
         return (
           <Box>
             <Typography variant="h6" gutterBottom>
