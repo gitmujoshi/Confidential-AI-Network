@@ -7,11 +7,12 @@ Complete guide for developers working on the Contract Management System. This gu
 1. [Development Setup](#development-setup)
 2. [Project Structure](#project-structure)
 3. [Development Workflow](#development-workflow)
-4. [Differential Privacy Development](#differential-privacy-development)
-5. [Testing](#testing)
-6. [Debugging](#debugging)
-7. [Deployment](#deployment)
-8. [Best Practices](#best-practices)
+4. [SCITT CCF Development](#scitt-ccf-development)
+5. [Differential Privacy Development](#differential-privacy-development)
+6. [Testing](#testing)
+7. [Debugging](#debugging)
+8. [Deployment](#deployment)
+9. [Best Practices](#best-practices)
 
 ## 🚀 Development Setup
 
@@ -20,12 +21,16 @@ Complete guide for developers working on the Contract Management System. This gu
 - **Docker** and **Docker Compose**
 - **Git** for version control
 - **PostgreSQL** (optional - Docker will provide)
+- **SCITT CCF Ledger** (optional - for high-performance mode)
 
 ### **Initial Setup**
 ```bash
 # Clone repository
 git clone <repository-url>
 cd ContractManagement
+
+# Checkout SCITT CCF integration branch
+git checkout feature/scitt-ccf-migration
 
 # Install dependencies
 npm install
@@ -43,8 +48,23 @@ cd ..
 cp env.example .env
 cp backend/config.env.example backend/config.env
 
+# Copy SCITT CCF configuration (optional)
+cp env.scitt-ccf.example .env.scitt-ccf
+
 # Update configuration
 # See SETUP.md for detailed configuration
+```
+
+### **SCITT CCF Development Setup**
+```bash
+# Setup SCITT CCF integration
+./manage-scitt-ccf.sh setup
+
+# Start SCITT CCF services
+./manage-scitt-ccf.sh start
+
+# Test integration
+./manage-scitt-ccf.sh test
 ```
 
 ## 🏗️ Project Structure
@@ -58,7 +78,11 @@ ContractManagement/
 ├── blockchain/              # Smart contracts
 ├── scripts/                 # Utility scripts
 ├── deployment/              # Deployment configurations
-└── tests/                   # End-to-end tests
+├── tests/                   # End-to-end tests
+├── SCITT_CCF_*.md          # SCITT CCF documentation
+├── manage-scitt-ccf.sh     # SCITT CCF management script
+├── docker-compose.scitt-ccf-dev.yml  # SCITT CCF services
+└── env.scitt-ccf.example   # SCITT CCF configuration template
 ```
 
 ### **Backend Structure**
@@ -66,10 +90,18 @@ ContractManagement/
 backend/
 ├── routes/                  # API routes
 ├── services/                # Business logic
+│   ├── scittCcfService.js  # SCITT CCF integration service
+│   ├── contractRouterService.js  # Contract routing service
+│   └── systemHealthMonitor.js   # Health monitoring service
 ├── models/                  # Database models
+│   ├── ScittClaim.js       # SCITT CCF claims model
+│   └── SystemHealthLog.js  # Health logging model
 ├── middleware/              # Express middleware
 ├── scripts/                 # Utility scripts
+│   └── test-scitt-ccf-integration.js  # SCITT CCF tests
 ├── tests/                   # Unit and integration tests
+├── migrations/              # Database migrations
+│   └── 20250108-add-scitt-ccf-tables.js  # SCITT CCF schema
 └── config/                  # Configuration files
 ```
 
@@ -92,490 +124,348 @@ frontend/
 
 #### **1. Start Development Environment**
 ```bash
-# Start all services
+# Start all services (including SCITT CCF if configured)
 ./start-system.sh
 
 # Or start individually
 docker-compose -f docker-compose.keycloak-persistent.yml up -d
+./manage-scitt-ccf.sh start  # If using SCITT CCF
 cd backend && npm run dev
-cd ../frontend && npm start
 ```
 
-#### **2. Check System Status**
+#### **2. SCITT CCF Development Workflow**
 ```bash
-# Check all services
-npm run status
+# Check SCITT CCF status
+./manage-scitt-ccf.sh status
 
-# Test authentication
-npm run test:login
+# View SCITT CCF logs
+./manage-scitt-ccf.sh logs
 
-# Check health
-curl -s http://localhost:5001/health
+# Test SCITT CCF integration
+./manage-scitt-ccf.sh test
+
+# Switch migration modes for testing
+./manage-scitt-ccf.sh switch HYBRID
+./manage-scitt-ccf.sh switch SCITT_CCF_ONLY
+./manage-scitt-ccf.sh switch ETHEREUM_ONLY
 ```
 
-#### **3. Make Changes**
-- **Backend**: Edit files in `backend/` directory
-- **Frontend**: Edit files in `frontend/src/` directory
-- **Database**: Use migrations in `backend/migrations/`
+## 🔗 SCITT CCF Development
 
-#### **4. Test Changes**
-```bash
-# Test authentication after changes
-npm run test:login
+### **Architecture Overview**
 
-# Run backend tests
-cd backend && npm test
+The SCITT CCF integration provides a high-performance alternative to traditional blockchain:
 
-# Run frontend tests
-cd frontend && npm test
-
-# Run end-to-end tests
-npm run test:e2e
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    Contract Router Service                   │
+│  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐  │
+│  │ Ethereum        │  │ SCITT CCF       │  │ Migration       │  │
+│  │ Service         │  │ Service         │  │ Orchestrator    │  │
+│  └─────────────────┘  └─────────────────┘  └─────────────────┘  │
+├─────────────────────────────────────────────────────────────┤
+│                    Data Layer                               │
+│  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐  │
+│  │ PostgreSQL      │  │ SCITT CCF       │  │ Ethereum        │  │
+│  │ (Primary)       │  │ Ledger          │  │ Blockchain      │  │
+│  └─────────────────┘  └─────────────────┘  └─────────────────┘  │
+└─────────────────────────────────────────────────────────────┘
 ```
 
-#### **5. Fix Issues**
-```bash
-# Fix authentication issues
-./fix-auth.sh
+### **Core Services**
 
-# Auto-fix Keycloak issues
-cd backend && node auto-fix-keycloak.js
+#### **1. ContractRouterService**
+The central orchestrator that routes contract operations:
 
-# Reset Keycloak completely
-npm run reset:keycloak
+```javascript
+const ContractRouterService = require('./services/contractRouterService');
+
+const router = new ContractRouterService();
+await router.initialize();
+
+// Create contract (automatically routed)
+const result = await router.createContract(contractData);
+console.log('Contract created with source:', result.source);
+
+// Get system health
+const health = await router.getSystemHealth();
+console.log('Overall health:', health.overall);
 ```
 
-### **Git Workflow**
+#### **2. ScittCcfService**
+Handles SCITT CCF Ledger operations:
 
-#### **Before Making Changes**
-```bash
-# Check current state
-npm run status
+```javascript
+const ScittCcfService = require('./services/scittCcfService');
 
-# Test current functionality
-npm run test:login
+const scittService = new ScittCcfService();
+await scittService.initialize();
 
-# Create feature branch
-git checkout -b feature/your-feature-name
+// Create contract in SCITT CCF
+const result = await scittService.createContract(contractData);
+
+// Get contract status
+const status = await scittService.getContractStatus(contractId);
 ```
 
-#### **During Development**
-```bash
-# Make small, focused changes
-# Test immediately after each change
-npm run test:login
+#### **3. SystemHealthMonitor**
+Monitors system health and performance:
 
-# Commit frequently with clear messages
-git add .
-git commit -m "feat: Add user profile update functionality
+```javascript
+const SystemHealthMonitor = require('./services/systemHealthMonitor');
 
-- Added profile update API endpoint
-- Updated frontend profile form
-- Added validation and error handling
-- Tested with all user roles"
+const monitor = new SystemHealthMonitor();
+await monitor.startMonitoring();
+
+// Get detailed metrics
+const metrics = await monitor.getDetailedMetrics();
 ```
 
-#### **After Making Changes**
-```bash
-# Test the specific change
-npm run test:login
+### **Database Models**
 
-# Test related functionality
-npm run status
+#### **ScittClaim Model**
+```javascript
+const ScittClaim = require('../models/ScittClaim');
 
-# Update documentation if needed
-# Push changes
-git push origin feature/your-feature-name
+// Create a new claim
+const claim = await ScittClaim.create({
+  claimId: 'CLAIM-001',
+  contractId: 1,
+  claimType: 'contract_creation',
+  claimData: { /* claim data */ },
+  status: 'PENDING'
+});
+
+// Find claims by contract
+const claims = await ScittClaim.findByContractId(1);
 ```
 
-## 🧪 Testing
+#### **SystemHealthLog Model**
+```javascript
+const SystemHealthLog = require('../models/SystemHealthLog');
 
-### **Test Categories**
+// Get system uptime
+const uptime = await SystemHealthLog.findSystemUptime('scittCcf', 24);
 
-#### **Unit Tests**
-```bash
-# Backend unit tests
-cd backend && npm test
-
-# Frontend unit tests
-cd frontend && npm test
-
-# Specific test files
-npm test -- auth.test.js
-npm test -- UserService.test.js
+// Get performance metrics
+const metrics = await SystemHealthLog.findAverageResponseTime('scittCcf', 24);
 ```
+
+### **Migration Modes**
+
+#### **HYBRID Mode (Recommended for Development)**
+- New contracts go to SCITT CCF
+- Existing contracts remain on Ethereum
+- Automatic fallback if SCITT CCF fails
+- Gradual migration path
+
+```javascript
+// Switch to hybrid mode
+await router.switchMigrationMode('HYBRID');
+
+// Create contract (will be routed to SCITT CCF)
+const result = await router.createContract(contractData);
+```
+
+#### **SCITT_CCF_ONLY Mode**
+- All contracts use SCITT CCF
+- No Ethereum fallback
+- Maximum performance
+- Requires SCITT CCF to be fully operational
+
+```javascript
+// Switch to SCITT CCF only mode
+await router.switchMigrationMode('SCITT_CCF_ONLY');
+```
+
+#### **ETHEREUM_ONLY Mode**
+- Traditional blockchain operation
+- No SCITT CCF integration
+- Legacy mode for troubleshooting
+
+```javascript
+// Switch to Ethereum only mode
+await router.switchMigrationMode('ETHEREUM_ONLY');
+```
+
+### **Testing SCITT CCF Integration**
 
 #### **Integration Tests**
 ```bash
-# API integration tests
-cd backend && npm run test:integration
-
-# Database integration tests
-npm test -- database.test.js
-
-# Authentication integration tests
-npm test -- auth.integration.test.js
+# Run comprehensive SCITT CCF tests
+cd backend
+node scripts/test-scitt-ccf-integration.js
+cd ..
 ```
 
-#### **End-to-End Tests**
+#### **Manual Testing**
 ```bash
-# Run all E2E tests
-npm run test:e2e
+# Test different migration modes
+./manage-scitt-ccf.sh switch HYBRID
+./manage-scitt-ccf.sh test
 
-# Run specific E2E test
-npm run test:e2e -- auth.spec.js
+./manage-scitt-ccf.sh switch SCITT_CCF_ONLY
+./manage-scitt-ccf.sh test
 
-# Run with specific browser
-npm run test:e2e -- --browser chrome
+./manage-scitt-ccf.sh switch ETHEREUM_ONLY
+./manage-scitt-ccf.sh test
 ```
 
-#### **Performance Tests**
+#### **Performance Testing**
 ```bash
-# Load testing
-npm run test:load
-
-# Memory testing
-npm run test:memory
-
-# API performance testing
-npm run test:performance
+# Run performance benchmarks
+cd backend
+node -e "
+  const ScittCcfService = require('./services/scittCcfService');
+  const service = new ScittCcfService();
+  
+  service.initialize()
+    .then(() => service.getPerformanceMetrics())
+    .then(metrics => console.log('Performance:', metrics))
+    .catch(console.error);
+"
+cd ..
 ```
 
-### **Test Data Management**
+### **Development Best Practices**
 
-#### **Create Test Data**
-```bash
-# Create test users
-cd backend && node scripts/source/create-e2e-users-direct.js
+#### **1. Service Initialization**
+Always initialize services before use:
 
-# Create test datasets
-node scripts/source/create-tdp-datasets.js
-
-# Create test contracts
-node scripts/source/create-contract-for-user-13.js
-```
-
-#### **Reset Test Data**
-```bash
-# Reset database
-cd backend && npm run db:reset
-
-# Reset Keycloak
-npm run reset:keycloak
-
-# Sync users to Keycloak
-node scripts/source/sync-users-to-keycloak.js
-```
-
-### **Test Commands Reference**
-
-| Command | Purpose | Location |
-|---------|---------|----------|
-| `npm test` | Run all tests | Backend/Frontend |
-| `npm run test:login` | Test authentication | Root |
-| `npm run test:integration` | API integration tests | Backend |
-| `npm run test:e2e` | End-to-end tests | Root |
-| `npm run test:coverage` | Generate coverage report | Backend |
-| `npm run test:watch` | Watch mode for tests | Backend/Frontend |
-
-## 🐛 Debugging
-
-### **Backend Debugging**
-
-#### **Enable Debug Logging**
-```bash
-# Set debug environment
-export DEBUG=app:*
-export NODE_ENV=development
-
-# Start with debug logging
-cd backend && DEBUG=* node server.js
-```
-
-#### **Database Debugging**
-```bash
-# Connect to database
-psql -h localhost -U postgres -d contract_management
-
-# Check database tables
-\dt
-
-# Check user data
-SELECT * FROM users WHERE email = 'tdc-test@example.com';
-```
-
-#### **Keycloak Debugging**
-```bash
-# Check Keycloak status
-curl -s http://localhost:8080/health
-
-# Check Keycloak logs
-docker logs keycloak-cms
-
-# Test Keycloak authentication directly
-curl -X POST http://localhost:8080/realms/contract-management/protocol/openid-connect/token \
-  -d "grant_type=password&client_id=contract-management-frontend&username=tdc-test@example.com&password=password123"
-```
-
-### **Frontend Debugging**
-
-#### **React Developer Tools**
-- Install React Developer Tools browser extension
-- Use browser dev tools for component inspection
-- Check network tab for API calls
-
-#### **Console Debugging**
 ```javascript
-// Add debug logs
-console.log('🔍 Debug:', data);
+const router = new ContractRouterService();
+await router.initialize();  // Required!
 
-// Check authentication state
-console.log('🔐 Auth State:', authState);
-
-// Check API responses
-console.log('📡 API Response:', response);
+// Now safe to use
+const result = await router.createContract(contractData);
 ```
 
-### **Common Debugging Scenarios**
+#### **2. Error Handling**
+Handle both SCITT CCF and Ethereum failures gracefully:
 
-#### **Authentication Issues**
+```javascript
+try {
+  const result = await router.createContract(contractData);
+  console.log('Contract created:', result.source);
+} catch (error) {
+  if (error.message.includes('SCITT CCF')) {
+    console.log('SCITT CCF failed, falling back to Ethereum');
+    // Handle fallback logic
+  } else {
+    console.error('Contract creation failed:', error);
+  }
+}
+```
+
+#### **3. Health Monitoring**
+Check system health before operations:
+
+```javascript
+const health = await router.getSystemHealth();
+if (!health.overall) {
+  throw new Error('System is unhealthy');
+}
+
+if (!health.scittCcf.isHealthy && router.migrationMode === 'SCITT_CCF_ONLY') {
+  throw new Error('SCITT CCF is required but unhealthy');
+}
+```
+
+#### **4. Migration Mode Management**
+Use appropriate migration modes for different scenarios:
+
+```javascript
+// Development: Use hybrid mode
+await router.switchMigrationMode('HYBRID');
+
+// Testing: Use specific modes
+await router.switchMigrationMode('SCITT_CCF_ONLY');
+await router.switchMigrationMode('ETHEREUM_ONLY');
+
+// Production: Use hybrid mode initially, then migrate
+await router.switchMigrationMode('HYBRID');
+// ... after validation ...
+await router.switchMigrationMode('SCITT_CCF_ONLY');
+```
+
+### **Debugging SCITT CCF Issues**
+
+#### **1. Check Service Status**
 ```bash
-# Check Keycloak configuration
-cd backend && node auto-fix-keycloak.js
+# Check SCITT CCF service status
+./manage-scitt-ccf.sh status
 
-# Reset authentication
-./fix-auth.sh
-
-# Check user sync
-node scripts/source/sync-users-to-keycloak.js
+# View service logs
+./manage-scitt-ccf.sh logs
 ```
 
-#### **Database Issues**
+#### **2. Test Individual Components**
 ```bash
-# Check database connection
-cd backend && node -e "require('./models').sequelize.authenticate().then(() => console.log('DB OK')).catch(console.error)"
-
-# Reset database
-npm run db:reset
-
-# Check migrations
-npx sequelize-cli db:migrate:status
+# Test SCITT CCF service directly
+cd backend
+node -e "
+  const ScittCcfService = require('./services/scittCcfService');
+  const service = new ScittCcfService();
+  
+  service.initialize()
+    .then(() => service.getHealthStatus())
+    .then(health => console.log('Health:', health))
+    .catch(console.error);
+"
+cd ..
 ```
 
-#### **API Issues**
+#### **3. Check Database Schema**
 ```bash
-# Test API endpoints
-curl -X GET http://localhost:5001/health
-curl -X POST http://localhost:5001/api/auth/login -H "Content-Type: application/json" -d '{"email":"tdc-test@example.com","password":"password123"}'
+# Verify SCITT CCF tables exist
+cd backend
+npm run migrate:status
 
-# Check API logs
-tail -f logs/backend.log
+# Run migration if needed
+npm run migrate:scitt-ccf
+cd ..
 ```
 
-## 🚀 Deployment
-
-### **Development Deployment**
+#### **4. Environment Configuration**
 ```bash
-# Start development environment
-./start-system.sh
+# Check SCITT CCF configuration
+cat .env.scitt-ccf
 
-# Check all services are running
-npm run status
-
-# Test functionality
-npm run test:login
+# Verify Docker services
+docker-compose -f docker-compose.scitt-ccf-dev.yml ps
 ```
 
-### **Production Deployment**
+### **Performance Optimization**
 
-#### **Environment Setup**
+#### **1. Caching**
+Enable caching for better performance:
+
 ```bash
-# Set production environment
-export NODE_ENV=production
-export PORT=5001
-
-# Update environment variables
-cp .env.production .env
-cp backend/config.production.env backend/config.env
+# In .env.scitt-ccf
+CACHE_ENABLED=true
+CACHE_TTL=300000  # 5 minutes
+CACHE_MAX_SIZE=1000
 ```
 
-#### **Database Migration**
+#### **2. Health Check Intervals**
+Adjust health check frequency:
+
 ```bash
-# Run database migrations
-cd backend && npx sequelize-cli db:migrate
-
-# Seed production data
-npx sequelize-cli db:seed:all
+# In .env.scitt-ccf
+HEALTH_CHECK_INTERVAL=30000  # 30 seconds
+HEALTH_CHECK_TIMEOUT=5000    # 5 seconds
 ```
 
-#### **Service Deployment**
-```bash
-# Deploy with Docker Compose
-docker-compose -f docker-compose.production.yml up -d
+#### **3. Batch Operations**
+Use batch operations for multiple contracts:
 
-# Or deploy individually
-cd backend && npm start
-cd ../frontend && npm run build && serve -s build
+```javascript
+// Migrate multiple contracts at once
+const contracts = await Contract.findAll({ where: { migration_status: 'PENDING' } });
+const results = await Promise.allSettled(
+  contracts.map(contract => router.migrateContract(contract.id))
+);
 ```
-
-### **Monitoring and Logging**
-
-#### **Health Checks**
-```bash
-# Check system health
-curl -s http://localhost:5001/health
-
-# Check Keycloak health
-curl -s http://localhost:8080/health
-
-# Check database health
-psql -h localhost -U postgres -d contract_management -c "SELECT 1;"
-```
-
-#### **Log Monitoring**
-```bash
-# Backend logs
-tail -f logs/backend.log
-
-# Keycloak logs
-docker logs -f keycloak-cms
-
-# Database logs
-docker logs -f postgres-keycloak
-```
-
-## 📚 Best Practices
-
-### **Code Organization**
-
-#### **Backend Best Practices**
-- **Service Layer**: Business logic in `services/` directory
-- **Route Layer**: API endpoints in `routes/` directory
-- **Model Layer**: Database models in `models/` directory
-- **Middleware**: Authentication and validation in `middleware/` directory
-
-#### **Frontend Best Practices**
-- **Component Structure**: Reusable components in `components/`
-- **Page Structure**: Page components in `pages/`
-- **Service Layer**: API calls in `services/`
-- **State Management**: Use React Context for global state
-
-### **Security Best Practices**
-
-#### **Authentication**
-- Always validate tokens on protected routes
-- Use HTTPS in production
-- Implement proper session management
-- Regular security audits
-
-#### **Data Validation**
-- Validate all input data
-- Sanitize user inputs
-- Use parameterized queries
-- Implement rate limiting
-
-### **Performance Best Practices**
-
-#### **Database Optimization**
-- Use database indexes
-- Optimize queries
-- Implement connection pooling
-- Regular database maintenance
-
-#### **API Optimization**
-- Implement caching
-- Use pagination for large datasets
-- Optimize response payloads
-- Monitor API performance
-
-### **Testing Best Practices**
-
-#### **Test Structure**
-- Unit tests for individual functions
-- Integration tests for API endpoints
-- End-to-end tests for user workflows
-- Performance tests for critical paths
-
-#### **Test Data Management**
-- Use isolated test databases
-- Create realistic test data
-- Clean up test data after tests
-- Use test fixtures for consistency
-
-### **Documentation Best Practices**
-
-#### **Code Documentation**
-- Document all public APIs
-- Use JSDoc for JavaScript functions
-- Keep README files updated
-- Document configuration options
-
-#### **Commit Messages**
-- Use conventional commit format
-- Write descriptive commit messages
-- Reference issues in commits
-- Keep commits focused and small
-
-## 🛠️ Development Tools
-
-### **Essential Tools**
-- **VS Code** with extensions for Node.js and React
-- **Postman** for API testing
-- **pgAdmin** for database management
-- **Docker Desktop** for containerization
-
-### **Recommended Extensions**
-- **ESLint** for code linting
-- **Prettier** for code formatting
-- **GitLens** for Git integration
-- **Thunder Client** for API testing
-
-### **Development Scripts**
-
-#### **Quick Commands**
-```bash
-# Start development
-./start-system.sh
-
-# Fix authentication
-./fix-auth.sh
-
-# Check status
-npm run status
-
-# Test login
-npm run test:login
-
-# Reset everything
-npm run reset:all
-```
-
-#### **Database Commands**
-```bash
-# Run migrations
-cd backend && npx sequelize-cli db:migrate
-
-# Rollback migrations
-npx sequelize-cli db:migrate:undo
-
-# Seed database
-npx sequelize-cli db:seed:all
-
-# Reset database
-npx sequelize-cli db:drop && npx sequelize-cli db:create && npx sequelize-cli db:migrate
-```
-
-## 📚 Related Documentation
-
-- **[Quick Start](QUICK_START.md)** - Get started in 5 minutes
-- **[Setup Guide](SETUP.md)** - Complete installation and configuration
-- **[User Guide](USER_GUIDE.md)** - How to use the system
-- **[API Reference](API_REFERENCE.md)** - Technical API documentation
-- **[Troubleshooting](TROUBLESHOOTING.md)** - Common issues and solutions
-
----
-
-*This developer guide consolidates information from multiple developer-related documents and workflow guides.* 
 
 ## 🔐 Differential Privacy Development
 

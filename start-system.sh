@@ -2,6 +2,7 @@
 
 # Contract Management System Startup Script
 # This script ensures all components are properly configured and started
+# Now supports both Blockchain and SCITT CCF modes
 
 set -e
 
@@ -45,10 +46,48 @@ wait_for_service() {
     return 1
 }
 
+# Function to check SCITT CCF mode
+check_scitt_ccf_mode() {
+    if [ -f ".env.scitt-ccf" ]; then
+        source .env.scitt-ccf
+        echo "🔗 SCITT CCF Mode: $MIGRATION_MODE"
+        return 0
+    else
+        echo "🔗 SCITT CCF Mode: Not configured (using blockchain only)"
+        return 1
+    fi
+}
+
+# Function to start SCITT CCF services
+start_scitt_ccf_services() {
+    echo "🚀 Starting SCITT CCF services..."
+    
+    if [ -f "docker-compose.scitt-ccf-dev.yml" ]; then
+        docker-compose -f docker-compose.scitt-ccf-dev.yml up -d
+        
+        # Wait for SCITT CCF node to be ready
+        echo "⏳ Waiting for SCITT CCF node to be ready..."
+        wait_for_service "SCITT CCF Node" "8000" "http://localhost:8000/app/health"
+        
+        echo "✅ SCITT CCF services started successfully"
+    else
+        echo "⚠️  SCITT CCF Docker Compose file not found"
+        return 1
+    fi
+}
+
 # Check if we're in the right directory
 if [ ! -f "backend/server.js" ]; then
     echo "❌ Please run this script from the project root directory"
     exit 1
+fi
+
+# Check SCITT CCF configuration
+echo ""
+echo "🔍 Checking system configuration..."
+SCITT_CCF_ENABLED=false
+if check_scitt_ccf_mode; then
+    SCITT_CCF_ENABLED=true
 fi
 
 # Step 1: Start Keycloak with persistent storage
@@ -69,14 +108,38 @@ cd backend
 ./setup-keycloak-persistent.sh
 cd ..
 
-# Step 3: Start backend server
+# Step 3: Start SCITT CCF services (if enabled)
+if [ "$SCITT_CCF_ENABLED" = true ]; then
+    echo ""
+    echo "🔗 Step 3: Starting SCITT CCF services..."
+    if start_scitt_ccf_services; then
+        echo "✅ SCITT CCF services are running"
+    else
+        echo "⚠️  SCITT CCF services failed to start, continuing with blockchain mode"
+        SCITT_CCF_ENABLED=false
+    fi
+fi
+
+# Step 4: Start backend server
 echo ""
-echo "🔧 Step 3: Starting backend server..."
+echo "🔧 Step 4: Starting backend server..."
 if ! check_service "Backend" "5001" "http://localhost:5001/health"; then
     echo "   Starting backend server..."
     cd backend
     pkill -f "node server.js" || true
     sleep 2
+    
+    # Set environment variables for SCITT CCF if enabled
+    if [ "$SCITT_CCF_ENABLED" = true ]; then
+        export SCITT_CCF_ENABLED=true
+        export MIGRATION_MODE=HYBRID
+        echo "   Starting with SCITT CCF integration enabled"
+    else
+        export SCITT_CCF_ENABLED=false
+        export MIGRATION_MODE=ETHEREUM_ONLY
+        echo "   Starting with blockchain mode only"
+    fi
+    
     node server.js &
     cd ..
     
@@ -84,17 +147,17 @@ if ! check_service "Backend" "5001" "http://localhost:5001/health"; then
     wait_for_service "Backend" "5001" "http://localhost:5001/health"
 fi
 
-# Step 4: Start frontend (if needed)
+# Step 5: Start frontend (if needed)
 echo ""
-echo "🌐 Step 4: Checking frontend..."
+echo "🌐 Step 5: Checking frontend..."
 if ! check_service "Frontend" "3000" "http://localhost:3000"; then
     echo "   Frontend is not running. You can start it with:"
     echo "   cd frontend && npm start"
 fi
 
-# Step 5: Verify authentication
+# Step 6: Verify authentication
 echo ""
-echo "🔐 Step 5: Testing authentication..."
+echo "🔐 Step 6: Testing authentication..."
 cd backend
 TEST_RESULT=$(curl -s -X POST http://localhost:5001/api/auth/login \
     -H "Content-Type: application/json" \
@@ -108,6 +171,23 @@ else
 fi
 cd ..
 
+# Step 7: Test SCITT CCF integration (if enabled)
+if [ "$SCITT_CCF_ENABLED" = true ]; then
+    echo ""
+    echo "🔗 Step 7: Testing SCITT CCF integration..."
+    cd backend
+    
+    # Test SCITT CCF health
+    SCITT_HEALTH=$(curl -s http://localhost:5001/api/system/health | jq -r '.scittCcf.isHealthy // false')
+    if [ "$SCITT_HEALTH" = "true" ]; then
+        echo "✅ SCITT CCF integration is healthy"
+    else
+        echo "⚠️  SCITT CCF integration health check failed"
+    fi
+    
+    cd ..
+fi
+
 echo ""
 echo "🎉 System startup completed!"
 echo ""
@@ -115,14 +195,33 @@ echo "📋 Service Status:"
 check_service "Keycloak" "8080" "http://localhost:8080/health"
 check_service "Backend" "5001" "http://localhost:5001/health"
 check_service "Frontend" "3000" "http://localhost:3000"
+
+if [ "$SCITT_CCF_ENABLED" = true ]; then
+    check_service "SCITT CCF Node" "8000" "http://localhost:8000/app/health"
+fi
+
 echo ""
 echo "🔗 Access URLs:"
 echo "   Frontend: http://localhost:3000"
 echo "   Backend API: http://localhost:5001"
 echo "   Keycloak Admin: http://localhost:8080/admin/"
+
+if [ "$SCITT_CCF_ENABLED" = true ]; then
+    echo "   SCITT CCF Node: http://localhost:8000"
+    echo "   SCITT CCF Governance: http://localhost:8001"
+fi
+
 echo ""
 echo "👤 Test Users:"
 echo "   TDC: tdc-test@example.com / password123"
 echo "   TDP: tdp-test@example.com / password123"
 echo "   CCRP: ccrp-test@example.com / password123"
-echo "   AppAdmin: appadmin-test@example.com / password123" 
+echo "   AppAdmin: appadmin-test@example.com / password123"
+
+if [ "$SCITT_CCF_ENABLED" = true ]; then
+    echo ""
+    echo "🔗 SCITT CCF Integration:"
+    echo "   Migration Mode: HYBRID (both blockchain and SCITT CCF)"
+    echo "   Test Integration: cd backend && node scripts/test-scitt-ccf-integration.js"
+    echo "   Switch Mode: Use backend API to change migration mode"
+fi 

@@ -1,16 +1,21 @@
 # Contract Management System
 
-A comprehensive contract management system with multi-party authentication, blockchain integration, confidential computing capabilities, and **differential privacy implementation**.
+A comprehensive contract management system with multi-party authentication, **SCITT CCF Ledger integration**, blockchain integration, confidential computing capabilities, and **differential privacy implementation**.
 
 ## 🚀 Quick Start
 
 ### **One-Command Setup**
 ```bash
-# Start everything properly
+# Start everything properly (supports both Blockchain and SCITT CCF)
 ./start-system.sh
 
 # Or fix authentication issues
 ./fix-auth.sh
+
+# Manage SCITT CCF services
+./manage-scitt-ccf.sh start
+./manage-scitt-ccf.sh status
+./manage-scitt-ccf.sh test
 ```
 
 ### **Available Test Users**
@@ -19,9 +24,41 @@ A comprehensive contract management system with multi-party authentication, bloc
 - **CCRP**: `ccrp-test@example.com` / `password123`
 - **AppAdmin**: `appadmin-test@example.com` / `password123`
 
+## 🔗 SCITT CCF Integration
+
+### **New High-Performance Ledger**
+- **10-100x Performance**: Massive throughput improvement over traditional blockchain
+- **Confidential Computing**: Hardware-level TEE (Trusted Execution Environment) support
+- **Standards Compliance**: IETF SCITT working group standards
+- **Hybrid Migration**: Seamless operation between Ethereum and SCITT CCF
+- **Zero Downtime**: Continuous service during migration
+
+### **Quick SCITT CCF Setup**
+```bash
+# Setup SCITT CCF integration
+./manage-scitt-ccf.sh setup
+
+# Start SCITT CCF services
+./manage-scitt-ccf.sh start
+
+# Test integration
+./manage-scitt-ccf.sh test
+
+# Switch migration modes
+./manage-scitt-ccf.sh switch HYBRID
+./manage-scitt-ccf.sh switch SCITT_CCF_ONLY
+./manage-scitt-ccf.sh switch ETHEREUM_ONLY
+```
+
+### **Migration Modes**
+- **`HYBRID`**: Use both systems simultaneously (recommended for transition)
+- **`SCITT_CCF_ONLY`**: Use only SCITT CCF Ledger
+- **`ETHEREUM_ONLY`**: Use only traditional blockchain
+
 ## 📋 Table of Contents
 
 - [Quick Start](#-quick-start)
+- [SCITT CCF Integration](#-scitt-ccf-integration)
 - [Documentation](#documentation)
 - [Architecture](#architecture)
 - [Differential Privacy](#differential-privacy)
@@ -50,6 +87,11 @@ docs/
 └── archive/                    # Old documentation (read-only)
 ```
 
+### **SCITT CCF Documentation**
+- **[SCITT CCF Integration Guide](SCITT_CCF_INTEGRATION_README.md)** - Complete integration guide
+- **[SCITT CCF Migration Design](SCITT_CCF_MIGRATION_DESIGN.md)** - Technical design document
+- **[SCITT CCF Management Script](manage-scitt-ccf.sh)** - Service management script
+
 ### **What Was Consolidated**
 
 - **Authentication**: 8+ files → `SETUP.md`
@@ -68,6 +110,7 @@ docs/
 - **[API Reference](docs/API_REFERENCE.md)** - Technical API documentation
 - **[Architecture](docs/ARCHITECTURE.md)** - System design and technical details
 - **[Troubleshooting](docs/TROUBLESHOOTING.md)** - Common issues and solutions
+- **[SCITT CCF Integration](SCITT_CCF_INTEGRATION_README.md)** - SCITT CCF setup and usage
 
 ## 🏗️ Architecture
 
@@ -77,9 +120,34 @@ docs/
 - **Database**: PostgreSQL with Sequelize ORM
 - **Authentication**: Keycloak IAM
 - **Blockchain**: Ethereum with Hardhat
+- **SCITT CCF**: High-performance confidential computing ledger
 - **Secret Management**: HashiCorp Vault
 - **Cloud Providers**: AWS, Azure, GCP, OCI
 - **Differential Privacy**: Complete implementation with budget tracking
+
+### **System Architecture**
+```
+┌─────────────────────────────────────────────────────────────┐
+│                Contract Management System                   │
+├─────────────────────────────────────────────────────────────┤
+│  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐  │
+│  │   Frontend      │  │   Backend       │  │   Keycloak      │  │
+│  │   (React)       │◄─►│   (Node.js)     │◄─►│   (IAM)         │  │
+│  └─────────────────┘  └─────────────────┘  └─────────────────┘  │
+├─────────────────────────────────────────────────────────────┤
+│                    Contract Router Service                   │
+│  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐  │
+│  │ Ethereum        │  │ SCITT CCF       │  │ Migration       │  │
+│  │ Service         │  │ Service         │  │ Orchestrator    │  │
+│  └─────────────────┘  └─────────────────┘  └─────────────────┘  │
+├─────────────────────────────────────────────────────────────┤
+│                    Data Layer                               │
+│  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐  │
+│  │ PostgreSQL      │  │ SCITT CCF       │  │ Ethereum        │  │
+│  │ (Primary)       │  │ Ledger          │  │ Blockchain      │  │
+│  └─────────────────┘  └─────────────────┘  └─────────────────┘  │
+└─────────────────────────────────────────────────────────────┘
+```
 
 ### **User Roles**
 - **TDP (Training Data Provider)**: Create and manage datasets
