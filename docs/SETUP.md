@@ -7,10 +7,11 @@ This guide consolidates all setup and configuration information for the Contract
 1. [Prerequisites](#prerequisites)
 2. [System Architecture](#system-architecture)
 3. [Installation](#installation)
-4. [Authentication Setup](#authentication-setup)
-5. [Configuration](#configuration)
-6. [Testing](#testing)
-7. [Troubleshooting](#troubleshooting)
+4. [SCITT CCF Integration Setup](#scitt-ccf-integration-setup)
+5. [Authentication Setup](#authentication-setup)
+6. [Configuration](#configuration)
+7. [Testing](#testing)
+8. [Troubleshooting](#troubleshooting)
 
 ## 🎯 Prerequisites
 
@@ -21,31 +22,45 @@ This guide consolidates all setup and configuration information for the Contract
 - **PostgreSQL** (v13+) - Optional (Docker will provide)
 
 ### **System Requirements**
-- **RAM**: 4GB minimum, 8GB recommended
-- **Storage**: 10GB free space
+- **RAM**: 4GB minimum, 8GB recommended (8GB+ for SCITT CCF)
+- **Storage**: 10GB free space (15GB+ for SCITT CCF)
 - **Network**: Internet access for Docker images
+- **TEE Support**: AMD SEV-SNP recommended for production SCITT CCF
 
 ### **Ports Required**
 - **3000**: Frontend (React)
 - **5001**: Backend (Node.js)
 - **5432**: PostgreSQL
 - **8080**: Keycloak
+- **8000**: SCITT CCF Node (if enabled)
+- **8001**: SCITT CCF Governance (if enabled)
 
 ## 🏗️ System Architecture
 
 ### **Components Overview**
 ```
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   Frontend      │    │    Backend      │    │   Keycloak      │
-│   (React)       │◄──►│   (Node.js)     │◄──►│   (IAM)         │
-│   Port: 3000    │    │   Port: 5001    │    │   Port: 8080    │
-└─────────────────┘    └─────────────────┘    └─────────────────┘
-                                │
-                                ▼
-                       ┌─────────────────┐
-                       │   PostgreSQL    │
-                       │   Port: 5432    │
-                       └─────────────────┘
+┌─────────────────────────────────────────────────────────────┐
+│                Contract Management System                   │
+├─────────────────────────────────────────────────────────────┤
+│  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐  │
+│  │   Frontend      │  │   Backend       │  │   Keycloak      │  │
+│  │   (React)       │◄─►│   (Node.js)     │◄─►│   (IAM)         │  │
+│  │   Port: 3000    │  │   Port: 5001    │  │   Port: 8080    │  │
+│  └─────────────────┘  └─────────────────┘  └─────────────────┘  │
+├─────────────────────────────────────────────────────────────┤
+│                    Contract Router Service                   │
+│  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐  │
+│  │ Ethereum        │  │ SCITT CCF       │  │ Migration       │  │
+│  │ Service         │  │ Service         │  │ Orchestrator    │  │
+│  └─────────────────┘  └─────────────────┘  └─────────────────┘  │
+├─────────────────────────────────────────────────────────────┤
+│                    Data Layer                               │
+│  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐  │
+│  │ PostgreSQL      │  │ SCITT CCF       │  │ Ethereum        │  │
+│  │ (Primary)       │  │ Ledger          │  │ Blockchain      │  │
+│  │ Port: 5432      │  │ Port: 8000      │  │ Port: 8545      │  │
+│  └─────────────────┘  └─────────────────┘  └─────────────────┘  │
+└─────────────────────────────────────────────────────────────┘
 ```
 
 ### **Authentication Flow**
@@ -54,12 +69,21 @@ This guide consolidates all setup and configuration information for the Contract
 3. **Role-Based Access**: System applies role-based permissions
 4. **Session Management**: Tokens are refreshed automatically
 
+### **SCITT CCF Integration Flow**
+1. **Contract Creation**: Contract Router Service determines target system
+2. **Intelligent Routing**: Routes to SCITT CCF or Ethereum based on configuration
+3. **Hybrid Operation**: Can operate both systems simultaneously
+4. **Migration Support**: Gradual migration from Ethereum to SCITT CCF
+
 ## 🚀 Installation
 
 ### **Step 1: Clone Repository**
 ```bash
 git clone <repository-url>
 cd ContractManagement
+
+# Checkout SCITT CCF integration branch (if not on main)
+git checkout feature/scitt-ccf-migration
 ```
 
 ### **Step 2: Environment Setup**
@@ -68,23 +92,167 @@ cd ContractManagement
 cp env.example .env
 cp backend/config.env.example backend/config.env
 
+# Copy SCITT CCF configuration (optional)
+cp env.scitt-ccf.example .env.scitt-ccf
+
 # Update configuration (see Configuration section)
 ```
 
 ### **Step 3: Start System**
 ```bash
-# One-command startup
+# One-command startup (supports both modes)
 ./start-system.sh
 ```
 
 This script will:
 - Start Keycloak and PostgreSQL containers
+- Start SCITT CCF services (if configured)
 - Configure Keycloak realm, clients, and roles
 - Sync users to Keycloak
-- Start backend server
+- Start backend server with appropriate mode
 - Start frontend development server
 - Run health checks
 - Test authentication
+- Test SCITT CCF integration (if enabled)
+
+## 🔗 SCITT CCF Integration Setup
+
+### **What is SCITT CCF?**
+
+SCITT CCF (Supply Chain Integrity Transparency and Trust) is Microsoft's high-performance ledger application built on Confidential Consortium Framework (CCF). It provides:
+
+- **10-100x Performance**: Massive throughput improvement over Ethereum
+- **Confidential Computing**: Hardware-level TEE (Trusted Execution Environment) support
+- **Standards Compliance**: IETF SCITT working group standards
+- **Enterprise Ready**: Production-grade infrastructure
+
+### **Setup SCITT CCF Integration**
+
+#### **Option 1: Automated Setup**
+```bash
+# Setup SCITT CCF integration
+./manage-scitt-ccf.sh setup
+
+# Start SCITT CCF services
+./manage-scitt-ccf.sh start
+
+# Test integration
+./manage-scitt-ccf.sh test
+```
+
+#### **Option 2: Manual Setup**
+```bash
+# 1. Create configuration
+cp env.scitt-ccf.example .env.scitt-ccf
+
+# 2. Edit configuration
+nano .env.scitt-ccf
+
+# 3. Start services
+docker-compose -f docker-compose.scitt-ccf-dev.yml up -d
+
+# 4. Run database migration
+cd backend
+npm run migrate:scitt-ccf
+cd ..
+```
+
+### **SCITT CCF Configuration**
+
+Edit `.env.scitt-ccf` with your settings:
+
+```bash
+# SCITT CCF Node Configuration
+SCITT_CCF_ENABLED=true
+SCITT_CCF_NODE_URL=https://127.0.0.1:8000
+SCITT_CCF_PLATFORM=virtual  # virtual, snp (AMD SEV-SNP)
+
+# Migration Mode
+MIGRATION_MODE=HYBRID  # ETHEREUM_ONLY, SCITT_CCF_ONLY, HYBRID
+
+# Health Monitoring
+HEALTH_CHECK_INTERVAL=30000
+HEALTH_CHECK_TIMEOUT=5000
+```
+
+### **Migration Modes**
+
+#### **HYBRID Mode (Recommended)**
+- New contracts go to SCITT CCF
+- Existing contracts remain on Ethereum
+- Automatic fallback if SCITT CCF fails
+- Gradual migration path
+
+#### **SCITT_CCF_ONLY Mode**
+- All contracts use SCITT CCF
+- No Ethereum fallback
+- Maximum performance
+- Requires SCITT CCF to be fully operational
+
+#### **ETHEREUM_ONLY Mode**
+- Traditional blockchain operation
+- No SCITT CCF integration
+- Legacy mode for troubleshooting
+
+### **SCITT CCF Service Management**
+
+```bash
+# Start services
+./manage-scitt-ccf.sh start
+
+# Check status
+./manage-scitt-ccf.sh status
+
+# View logs
+./manage-scitt-ccf.sh logs
+
+# Stop services
+./manage-scitt-ccf.sh stop
+
+# Restart services
+./manage-scitt-ccf.sh restart
+
+# Test integration
+./manage-scitt-ccf.sh test
+
+# Switch migration mode
+./manage-scitt-ccf.sh switch HYBRID
+```
+
+### **Database Migration**
+
+The SCITT CCF integration requires database schema updates:
+
+```bash
+cd backend
+
+# Run migration
+npm run migrate:scitt-ccf
+
+# Check migration status
+npm run migrate:status
+
+cd ..
+```
+
+This creates:
+- `scitt_claims` table for storing SCITT CCF claims
+- `system_health_log` table for monitoring
+- Enhanced `contracts` table with SCITT CCF fields
+
+### **Performance Testing**
+
+Test the performance improvements:
+
+```bash
+# Run performance benchmarks
+cd backend
+node scripts/test-scitt-ccf-integration.js
+cd ..
+
+# Compare blockchain vs SCITT CCF performance
+./manage-scitt-ccf.sh test
+```
 
 ## 🔐 Authentication Setup
 

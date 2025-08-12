@@ -6,14 +6,15 @@ Complete troubleshooting guide for the Contract Management System. This guide co
 
 1. [Quick Fixes](#quick-fixes)
 2. [Authentication Issues](#authentication-issues)
-3. [Backend Issues](#backend-issues)
-4. [Frontend Issues](#frontend-issues)
-5. [Database Issues](#database-issues)
-6. [Keycloak Issues](#***REMOVED-KEYCLOAK_DB_PASSWORD***-issues)
-7. [Differential Privacy Issues](#differential-privacy-issues)
-8. [Network Issues](#network-issues)
-9. [Performance Issues](#performance-issues)
-10. [Development Issues](#development-issues)
+3. [SCITT CCF Integration Issues](#scitt-ccf-integration-issues)
+4. [Backend Issues](#backend-issues)
+5. [Frontend Issues](#frontend-issues)
+6. [Database Issues](#database-issues)
+7. [Keycloak Issues](#***REMOVED-KEYCLOAK_DB_PASSWORD***-issues)
+8. [Differential Privacy Issues](#differential-privacy-issues)
+9. [Network Issues](#network-issues)
+10. [Performance Issues](#performance-issues)
+11. [Development Issues](#development-issues)
 
 ## ⚡ Quick Fixes
 
@@ -28,6 +29,7 @@ This script will:
 - Run Keycloak auto-fix
 - Start backend server
 - Test authentication
+- Test SCITT CCF integration (if enabled)
 - Report results
 
 #### **Start Everything Properly**
@@ -36,10 +38,12 @@ This script will:
 ```
 This script will:
 - Start Keycloak and PostgreSQL
+- Start SCITT CCF services (if configured)
 - Configure authentication
 - Start backend and frontend
 - Run health checks
 - Test authentication
+- Test SCITT CCF integration (if enabled)
 
 #### **Check System Status**
 ```bash
@@ -50,6 +54,17 @@ This will check:
 - Keycloak status
 - Database connection
 - Authentication status
+- SCITT CCF integration status (if enabled)
+
+#### **Check SCITT CCF Status**
+```bash
+./manage-scitt-ccf.sh status
+```
+This will check:
+- SCITT CCF service status
+- Docker container status
+- Service health
+- Backend integration status
 
 ### **Common Quick Fixes**
 
@@ -58,6 +73,8 @@ This will check:
 | Authentication fails | Run auto-fix | `./fix-auth.sh` |
 | Backend won't start | Kill and restart | `pkill -f "node server.js" && cd backend && node server.js` |
 | Keycloak issues | Reset Keycloak | `npm run reset:***REMOVED-KEYCLOAK_DB_PASSWORD***` |
+| SCITT CCF issues | Check status | `./manage-scitt-ccf.sh status` |
+| SCITT CCF won't start | Restart services | `./manage-scitt-ccf.sh restart` |
 | Database issues | Restart PostgreSQL | `docker-compose restart ***REMOVED-DB_PASSWORD***` |
 | Frontend blank | Clear cache | `Ctrl+F5` or `Cmd+Shift+R` |
 
@@ -100,78 +117,408 @@ npm run reset:***REMOVED-KEYCLOAK_DB_PASSWORD***
 # Check Keycloak status
 curl -s http://localhost:8080/health
 
-# Get admin token
-curl -X POST http://localhost:8080/realms/master/protocol/openid-connect/token \
-  -d "grant_type=password&client_id=admin-cli&username=admin&password=***REMOVED-KEYCLOAK_ADMIN_PASSWORD***"
+# Check Keycloak logs
+docker logs ***REMOVED-KEYCLOAK_DB_PASSWORD***-cms
 
-# Check client configuration
-curl -X GET http://localhost:8080/admin/realms/contract-management/clients \
-  -H "Authorization: Bearer $ADMIN_TOKEN"
+# Test Keycloak authentication directly
+curl -X POST http://localhost:8080/realms/contract-management/protocol/openid-connect/token \
+  -d "grant_type=password&client_id=contract-management-frontend&username=tdc-test@example.com&password=password123"
 ```
 
-### **"Realm not found" Error**
+## 🔗 SCITT CCF Integration Issues
+
+### **SCITT CCF Services Won't Start**
 
 #### **Symptoms**
 ```
-Failed to create user ... in Keycloak: { error: 'Realm not found.' }
+❌ SCITT CCF services failed to start, continuing with blockchain mode
 ```
+
+#### **Causes**
+- Docker Compose file not found
+- Port conflicts
+- Insufficient system resources
+- Configuration errors
 
 #### **Solutions**
-```bash
-# Create realm
-cd backend && node setup-***REMOVED-KEYCLOAK_DB_PASSWORD***.js
 
-# Or use the persistent setup
-./backend/setup-***REMOVED-KEYCLOAK_DB_PASSWORD***-persistent.sh
+**Quick Fix:**
+```bash
+# Check SCITT CCF status
+./manage-scitt-ccf.sh status
+
+# Restart SCITT CCF services
+./manage-scitt-ccf.sh restart
 ```
 
-### **"User not found" Error**
+**Manual Fix:**
+```bash
+# Check if Docker Compose file exists
+ls -la docker-compose.scitt-ccf-dev.yml
+
+# Check for port conflicts
+lsof -i :8000
+lsof -i :8001
+
+# Start services manually
+docker-compose -f docker-compose.scitt-ccf-dev.yml up -d
+
+# Check container status
+docker-compose -f docker-compose.scitt-ccf-dev.yml ps
+```
+
+**Configuration Fix:**
+```bash
+# Check configuration
+cat .env.scitt-ccf
+
+# Recreate configuration if needed
+./manage-scitt-ccf.sh setup
+
+# Verify Docker services
+docker-compose -f docker-compose.scitt-ccf-dev.yml config
+```
+
+### **SCITT CCF Health Check Fails**
 
 #### **Symptoms**
 ```
-User not found in Keycloak
+⚠️  SCITT CCF integration health check failed
 ```
+
+#### **Causes**
+- SCITT CCF node not responding
+- Network connectivity issues
+- Authentication problems
+- Service configuration errors
 
 #### **Solutions**
-```bash
-# Sync users to Keycloak
-node backend/scripts/source/sync-users-to-***REMOVED-KEYCLOAK_DB_PASSWORD***.js
 
-# Or create user manually
-curl -X POST http://localhost:8080/admin/realms/contract-management/users \
-  -H "Authorization: Bearer $ADMIN_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "username": "test@example.com",
-    "email": "test@example.com",
-    "enabled": true,
-    "credentials": [{
-      "type": "password",
-      "value": "password123",
-      "temporary": false
-    }]
-  }'
+**Quick Fix:**
+```bash
+# Check SCITT CCF health
+./manage-scitt-ccf.sh status
+
+# Test SCITT CCF integration
+./manage-scitt-ccf.sh test
 ```
 
-### **"401 Unauthorized" Error**
+**Manual Fix:**
+```bash
+# Check SCITT CCF node health
+curl -s http://localhost:8000/app/health
+
+# Check SCITT CCF governance
+curl -s http://localhost:8001
+
+# Check Docker container logs
+docker-compose -f docker-compose.scitt-ccf-dev.yml logs scitt-ccf-node
+
+# Check backend integration
+curl -s http://localhost:5001/api/system/health | jq '.scittCcf'
+```
+
+**Network Fix:**
+```bash
+# Check network connectivity
+ping localhost
+
+# Check firewall settings
+sudo ufw status
+
+# Check Docker network
+docker network ls
+docker network inspect cms-network
+```
+
+### **Migration Mode Issues**
 
 #### **Symptoms**
 ```
-HTTP 401 Unauthorized
+❌ Failed to switch migration mode
+❌ Migration mode not supported
 ```
 
+#### **Causes**
+- Invalid migration mode
+- Backend service not running
+- Configuration errors
+- Service initialization issues
+
 #### **Solutions**
+
+**Quick Fix:**
 ```bash
-# Check if backend is running
+# Check current migration mode
+./manage-scitt-ccf.sh status
+
+# Switch to supported mode
+./manage-scitt-ccf.sh switch HYBRID
+./manage-scitt-ccf.sh switch ETHEREUM_ONLY
+./manage-scitt-ccf.sh switch SCITT_CCF_ONLY
+```
+
+**Manual Fix:**
+```bash
+# Check backend status
 curl -s http://localhost:5001/health
 
-# Check if Keycloak is running
-curl -s http://localhost:8080/health
+# Check migration mode via API
+curl -s http://localhost:5001/api/system/health | jq '.migrationMode'
 
-# Test authentication directly
-curl -X POST http://localhost:5001/api/auth/login \
-  -H "Content-Type: application/json" \
-  -d '{"email":"tdc-test@example.com","password":"password123"}'
+# Test migration mode switching
+cd backend
+node -e "
+  const ContractRouterService = require('./services/contractRouterService');
+  const router = new ContractRouterService();
+  
+  router.initialize()
+    .then(() => router.switchMigrationMode('HYBRID'))
+    .then(result => console.log('Success:', result))
+    .catch(error => console.error('Error:', error));
+"
+cd ..
+```
+
+**Configuration Fix:**
+```bash
+# Check environment configuration
+cat .env.scitt-ccf | grep MIGRATION_MODE
+
+# Update configuration
+sed -i 's/MIGRATION_MODE=.*/MIGRATION_MODE=HYBRID/' .env.scitt-ccf
+
+# Restart backend
+pkill -f "node server.js"
+cd backend && node server.js &
+cd ..
+```
+
+### **Performance Issues with SCITT CCF**
+
+#### **Symptoms**
+```
+⚠️  SCITT CCF performance degraded
+❌ SCITT CCF response time too high
+```
+
+#### **Causes**
+- High system load
+- Insufficient resources
+- Network latency
+- Configuration suboptimal
+
+#### **Solutions**
+
+**Quick Fix:**
+```bash
+# Check system resources
+./manage-scitt-ccf.sh status
+
+# Restart SCITT CCF services
+./manage-scitt-ccf.sh restart
+```
+
+**Performance Optimization:**
+```bash
+# Check system resources
+htop
+free -h
+df -h
+
+# Check Docker resource usage
+docker stats
+
+# Optimize SCITT CCF configuration
+cat .env.scitt-ccf | grep -E "(HEALTH_CHECK|CACHE|TIMEOUT)"
+```
+
+**Configuration Optimization:**
+```bash
+# Edit SCITT CCF configuration
+nano .env.scitt-ccf
+
+# Optimize these settings:
+HEALTH_CHECK_INTERVAL=60000      # 1 minute
+HEALTH_CHECK_TIMEOUT=10000      # 10 seconds
+CACHE_ENABLED=true
+CACHE_TTL=600000                # 10 minutes
+CACHE_MAX_SIZE=2000
+
+# Restart services
+./manage-scitt-ccf.sh restart
+```
+
+### **Database Migration Issues**
+
+#### **Symptoms**
+```
+❌ SCITT CCF tables migration failed
+❌ Database schema not updated
+```
+
+#### **Causes**
+- Migration script errors
+- Database connection issues
+- Permission problems
+- Schema conflicts
+
+#### **Solutions**
+
+**Quick Fix:**
+```bash
+# Check migration status
+cd backend
+npm run migrate:status
+cd ..
+
+# Run migration manually
+cd backend
+npm run migrate:scitt-ccf
+cd ..
+```
+
+**Manual Fix:**
+```bash
+# Check database connection
+cd backend
+node -e "
+  require('./models').sequelize.authenticate()
+    .then(() => console.log('Database connection OK'))
+    .catch(console.error);
+"
+cd ..
+
+# Check existing tables
+psql -h localhost -U ***REMOVED-DB_PASSWORD*** -d contract_management -c "\dt"
+
+# Run migration manually
+cd backend
+node migrations/20250108-add-scitt-ccf-tables.js
+cd ..
+```
+
+**Schema Fix:**
+```bash
+# Check table structure
+psql -h localhost -U ***REMOVED-DB_PASSWORD*** -d contract_management -c "
+  SELECT table_name, column_name, data_type 
+  FROM information_schema.columns 
+  WHERE table_name IN ('scitt_claims', 'system_health_log')
+  ORDER BY table_name, ordinal_position;
+"
+
+# Check contract table enhancements
+psql -h localhost -U ***REMOVED-DB_PASSWORD*** -d contract_management -c "
+  SELECT column_name, data_type, is_nullable
+  FROM information_schema.columns 
+  WHERE table_name = 'contracts' 
+  AND column_name LIKE 'scitt_%'
+  ORDER BY ordinal_position;
+"
+```
+
+### **Integration Testing Issues**
+
+#### **Symptoms**
+```
+❌ SCITT CCF integration test failed
+❌ Test script not found
+```
+
+#### **Causes**
+- Test script missing
+- Dependencies not installed
+- Service not running
+- Configuration errors
+
+#### **Solutions**
+
+**Quick Fix:**
+```bash
+# Run integration test
+./manage-scitt-ccf.sh test
+
+# Check test script
+ls -la backend/scripts/test-scitt-ccf-integration.js
+```
+
+**Manual Fix:**
+```bash
+# Check if test script exists
+cd backend
+ls -la scripts/test-scitt-ccf-integration.js
+
+# Run test manually
+node scripts/test-scitt-ccf-integration.js
+
+# Check dependencies
+npm list
+cd ..
+```
+
+**Test Environment Fix:**
+```bash
+# Ensure services are running
+./manage-scitt-ccf.sh status
+
+# Check backend health
+curl -s http://localhost:5001/health
+
+# Run test with verbose output
+cd backend
+DEBUG=* node scripts/test-scitt-ccf-integration.js
+cd ..
+```
+
+### **Common SCITT CCF Error Messages**
+
+#### **"SCITT CCF service not found"**
+```bash
+# Check service configuration
+cat .env.scitt-ccf
+
+# Verify Docker services
+docker-compose -f docker-compose.scitt-ccf-dev.yml ps
+
+# Recreate services
+./manage-scitt-ccf.sh setup
+./manage-scitt-ccf.sh start
+```
+
+#### **"SCITT CCF health check failed"**
+```bash
+# Check service health
+./manage-scitt-ccf.sh status
+
+# Check logs
+./manage-scitt-ccf.sh logs
+
+# Restart services
+./manage-scitt-ccf.sh restart
+```
+
+#### **"Migration mode not supported"**
+```bash
+# Check supported modes
+./manage-scitt-ccf.sh switch HYBRID
+./manage-scitt-ccf.sh switch ETHEREUM_ONLY
+./manage-scitt-ccf.sh switch SCITT_CCF_ONLY
+
+# Check configuration
+cat .env.scitt-ccf | grep MIGRATION_MODE
+```
+
+#### **"SCITT CCF integration unhealthy"**
+```bash
+# Check integration status
+curl -s http://localhost:5001/api/system/health | jq '.scittCcf'
+
+# Test integration
+./manage-scitt-ccf.sh test
+
+# Check backend logs
+tail -f logs/backend.log
 ```
 
 ## 🔧 Backend Issues

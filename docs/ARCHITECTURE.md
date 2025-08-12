@@ -6,37 +6,43 @@ Complete technical architecture documentation for the Contract Management System
 
 1. [System Overview](#system-overview)
 2. [Architecture Components](#architecture-components)
-3. [Authentication & Authorization](#authentication--authorization)
-4. [Database Design](#database-design)
-5. [API Architecture](#api-architecture)
-6. [Frontend Architecture](#frontend-architecture)
-7. [Blockchain Integration](#blockchain-integration)
-8. [Secret Management](#secret-management)
-9. [Differential Privacy Architecture](#differential-privacy-architecture)
-10. [Security Architecture](#security-architecture)
-11. [Deployment Architecture](#deployment-architecture)
+3. [SCITT CCF Integration Architecture](#scitt-ccf-integration-architecture)
+4. [Authentication & Authorization](#authentication--authorization)
+5. [Database Design](#database-design)
+6. [API Architecture](#api-architecture)
+7. [Frontend Architecture](#frontend-architecture)
+8. [Blockchain Integration](#blockchain-integration)
+9. [Secret Management](#secret-management)
+10. [Differential Privacy Architecture](#differential-privacy-architecture)
+11. [Security Architecture](#security-architecture)
+12. [Deployment Architecture](#deployment-architecture)
 
 ## 🎯 System Overview
 
 ### **High-Level Architecture**
 ```
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   Frontend      │    │    Backend      │    │   Keycloak      │
-│   (React)       │◄──►│   (Node.js)     │◄──►│   (IAM)         │
-│   Port: 3000    │    │   Port: 5001    │    │   Port: 8080    │
-└─────────────────┘    └─────────────────┘    └─────────────────┘
-                                │
-                                ▼
-                       ┌─────────────────┐
-                       │   PostgreSQL    │
-                       │   Port: 5432    │
-                       └─────────────────┘
-                                │
-                                ▼
-                       ┌─────────────────┐
-                       │   Blockchain    │
-                       │   (Ethereum)    │
-                       └─────────────────┘
+┌─────────────────────────────────────────────────────────────┐
+│                Contract Management System                   │
+├─────────────────────────────────────────────────────────────┤
+│  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐  │
+│  │   Frontend      │  │   Backend       │  │   Keycloak      │  │
+│  │   (React)       │◄─►│   (Node.js)     │◄─►│   (IAM)         │  │
+│  │   Port: 3000    │  │   Port: 5001    │  │   Port: 8080    │  │
+│  └─────────────────┘  └─────────────────┘  └─────────────────┘  │
+├─────────────────────────────────────────────────────────────┤
+│                    Contract Router Service                   │
+│  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐  │
+│  │ Ethereum        │  │ SCITT CCF       │  │ Migration       │  │
+│  │ Service         │  │ Service         │  │ Orchestrator    │  │
+│  └─────────────────┘  └─────────────────┘  └─────────────────┘  │
+├─────────────────────────────────────────────────────────────┤
+│                    Data Layer                               │
+│  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐  │
+│  │ PostgreSQL      │  │ SCITT CCF       │  │ Ethereum        │  │
+│  │ (Primary)       │  │ Ledger          │  │ Blockchain      │  │
+│  │ Port: 5432      │  │ Port: 8000      │  │ Port: 8545      │  │
+│  └─────────────────┘  └─────────────────┘  └─────────────────┘  │
+└─────────────────────────────────────────────────────────────┘
 ```
 
 ### **System Components**
@@ -45,6 +51,7 @@ Complete technical architecture documentation for the Contract Management System
 - **Database**: PostgreSQL with Sequelize ORM
 - **Authentication**: Keycloak IAM
 - **Blockchain**: Ethereum with Hardhat
+- **SCITT CCF**: High-performance confidential computing ledger
 - **Secret Management**: HashiCorp Vault
 - **Cloud Providers**: AWS, Azure, GCP, OCI
 
@@ -76,7 +83,14 @@ frontend/
 backend/
 ├── routes/                  # API route handlers
 ├── services/                # Business logic layer
+│   ├── scittCcfService.js  # SCITT CCF integration service
+│   ├── contractRouterService.js  # Contract routing service
+│   ├── systemHealthMonitor.js   # Health monitoring service
+│   └── blockchainService.js     # Ethereum blockchain service
 ├── models/                  # Database models
+│   ├── ScittClaim.js       # SCITT CCF claims model
+│   ├── SystemHealthLog.js  # Health logging model
+│   └── Contract.js         # Enhanced contract model
 ├── middleware/              # Express middleware
 ├── scripts/                 # Utility scripts
 ├── tests/                   # Backend tests
@@ -89,25 +103,291 @@ backend/
 - **Database ORM**: Sequelize for database operations
 - **Authentication**: JWT token validation
 - **Validation**: Request/response validation
+- **Hybrid Architecture**: Support for both blockchain and SCITT CCF
 
 ### **Database Layer**
 ```
 Database Schema:
 ├── users                    # User accounts and profiles
-├── contracts               # Contract management
+├── contracts               # Contract management (enhanced with SCITT CCF)
 ├── datasets                # Dataset information
 ├── ai_models              # AI model metadata
 ├── ccrp_cloud_credentials # Cloud provider credentials
-├── audit_logs             # System audit trail
-└── blockchain_contracts   # Blockchain contract data
+├── scitt_claims           # SCITT CCF claims storage
+└── system_health_log      # System health monitoring
+```
+
+## 🔗 SCITT CCF Integration Architecture
+
+### **What is SCITT CCF?**
+
+SCITT CCF (Supply Chain Integrity Transparency and Trust) is Microsoft's high-performance ledger application built on Confidential Consortium Framework (CCF). It provides:
+
+- **10-100x Performance**: Massive throughput improvement over Ethereum
+- **Confidential Computing**: Hardware-level TEE (Trusted Execution Environment) support
+- **Standards Compliance**: IETF SCITT working group standards
+- **Enterprise Ready**: Production-grade infrastructure
+
+### **SCITT CCF Architecture Components**
+
+#### **1. Contract Router Service**
+The central orchestrator that intelligently routes contract operations:
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    Contract Router Service                   │
+├─────────────────────────────────────────────────────────────┤
+│  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐  │
+│  │ Route Selection │  │ Fallback Logic  │  │ Health Check    │  │
+│  │ Algorithm       │  │ & Recovery      │  │ Integration     │  │
+│  └─────────────────┘  └─────────────────┘  └─────────────────┘  │
+├─────────────────────────────────────────────────────────────┤
+│                    Service Integration                       │
+│  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐  │
+│  │ Ethereum        │  │ SCITT CCF       │  │ Migration       │  │
+│  │ Service         │  │ Service         │  │ Orchestrator    │  │
+│  └─────────────────┘  └─────────────────┘  └─────────────────┘  │
+└─────────────────────────────────────────────────────────────┘
 ```
 
 **Key Features**:
-- **Relational Design**: Normalized database schema
-- **Data Integrity**: Foreign key constraints
-- **Audit Trail**: Comprehensive logging
-- **Performance**: Optimized indexes
-- **Scalability**: Horizontal scaling support
+- **Intelligent Routing**: Automatically selects best system for each operation
+- **Fallback Mechanisms**: Seamless fallback if primary system fails
+- **Health Monitoring**: Real-time system health assessment
+- **Migration Support**: Gradual migration from Ethereum to SCITT CCF
+
+#### **2. SCITT CCF Service Layer**
+Handles all interactions with the SCITT CCF Ledger:
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    SCITT CCF Service Layer                  │
+├─────────────────────────────────────────────────────────────┤
+│  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐  │
+│  │ Claim Builder   │  │ TEE Attestation │  │ Receipt Manager │  │
+│  │ & Submitter     │  │ & Validation    │  │ & Storage       │  │
+│  └─────────────────┘  └─────────────────┘  └─────────────────┘  │
+├─────────────────────────────────────────────────────────────┤
+│                    SCITT CCF Integration                     │
+│  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐  │
+│  │ HTTP Client     │  │ Authentication  │  │ Error Handling  │  │
+│  │ & API Calls     │  │ & Security      │  │ & Retry Logic   │  │
+│  └─────────────────┘  └─────────────────┘  └─────────────────┘  │
+└─────────────────────────────────────────────────────────────┘
+```
+
+**Key Features**:
+- **Claim Management**: Builds and submits SCITT CCF claims
+- **TEE Integration**: Supports AMD SEV-SNP and virtual platforms
+- **Receipt Handling**: Manages SCITT CCF receipts and verification
+- **Local Storage**: Caches claims locally for fallback and auditing
+
+#### **3. System Health Monitor**
+Continuously monitors system health and performance:
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    System Health Monitor                    │
+├─────────────────────────────────────────────────────────────┤
+│  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐  │
+│  │ Health Checks   │  │ Performance     │  │ Alert System    │  │
+│  │ & Monitoring    │  │ Metrics         │  │ & Notifications │  │
+│  └─────────────────┘  └─────────────────┘  └─────────────────┘  │
+├─────────────────────────────────────────────────────────────┤
+│                    Data Collection                          │
+│  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐  │
+│  │ Response Time   │  │ Uptime Tracking │  │ Error Rate      │  │
+│  │ Monitoring      │  │ & Calculation   │  │ & Analysis      │  │
+│  └─────────────────┘  └─────────────────┘  └─────────────────┘  │
+└─────────────────────────────────────────────────────────────┘
+```
+
+**Key Features**:
+- **Real-time Monitoring**: Continuous health status tracking
+- **Performance Metrics**: Response time, throughput, and error rate monitoring
+- **Alert System**: Proactive notification of system issues
+- **Historical Data**: Performance trend analysis and reporting
+
+### **Migration Architecture**
+
+#### **Hybrid Migration Strategy**
+The system supports three migration modes:
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    Migration Modes                          │
+├─────────────────────────────────────────────────────────────┤
+│  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐  │
+│  │ ETHEREUM_ONLY   │  │ HYBRID          │  │ SCITT_CCF_ONLY  │  │
+│  │ Traditional     │  │ Both Systems    │  │ High Performance│  │
+│  │ Blockchain      │  │ Simultaneously  │  │ Ledger Only     │  │
+│  └─────────────────┘  └─────────────────┘  └─────────────────┘  │
+└─────────────────────────────────────────────────────────────┘
+```
+
+**Migration Modes**:
+
+1. **ETHEREUM_ONLY**:
+   - Traditional blockchain operation
+   - No SCITT CCF integration
+   - Legacy mode for troubleshooting
+
+2. **HYBRID** (Recommended):
+   - New contracts go to SCITT CCF
+   - Existing contracts remain on Ethereum
+   - Automatic fallback if SCITT CCF fails
+   - Gradual migration path
+
+3. **SCITT_CCF_ONLY**:
+   - All contracts use SCITT CCF
+   - No Ethereum fallback
+   - Maximum performance
+   - Requires SCITT CCF to be fully operational
+
+#### **Migration Flow**
+```
+┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│ Contract        │───►│ Route Selection │───►│ Target System   │
+│ Creation        │    │ Algorithm       │    │ (SCITT CCF or   │
+│ Request         │    │                 │    │ Ethereum)       │
+└─────────────────┘    └─────────────────┘    └─────────────────┘
+                                │
+                                ▼
+                       ┌─────────────────┐
+                       │ Health Check    │
+                       │ & Validation    │
+                       └─────────────────┘
+                                │
+                                ▼
+                       ┌─────────────────┐
+                       │ Execute         │
+                       │ Operation       │
+                       └─────────────────┘
+                                │
+                                ▼
+                       ┌─────────────────┐
+                       │ Fallback Logic  │
+                       │ (if needed)     │
+                       └─────────────────┘
+```
+
+### **SCITT CCF Data Flow**
+
+#### **Contract Creation Flow**
+```
+┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│ Frontend        │───►│ Backend API     │───►│ Contract Router │
+│ Contract Form   │    │ /api/contracts │    │ Service         │
+└─────────────────┘    └─────────────────┘    └─────────────────┘
+                                │
+                                ▼
+                       ┌─────────────────┐
+                       │ SCITT CCF       │
+                       │ Service         │
+                       └─────────────────┘
+                                │
+                                ▼
+                       ┌─────────────────┐
+                       │ Build Claim     │
+                       │ & Submit        │
+                       └─────────────────┘
+                                │
+                                ▼
+                       ┌─────────────────┐
+                       │ SCITT CCF       │
+                       │ Ledger          │
+                       └─────────────────┘
+                                │
+                                ▼
+                       ┌─────────────────┐
+                       │ Store Receipt   │
+                       │ & Update DB     │
+                       └─────────────────┘
+```
+
+#### **Contract Retrieval Flow**
+```
+┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│ Frontend        │───►│ Backend API     │───►│ Contract Router │
+│ Contract List   │    │ /api/contracts │    │ Service         │
+└─────────────────┘    └─────────────────┘    └─────────────────┘
+                                │
+                                ▼
+                       ┌─────────────────┐
+                       │ Check Source    │
+                       │ (SCITT CCF or   │
+                       │  Ethereum)      │
+                       └─────────────────┘
+                                │
+                                ▼
+                       ┌─────────────────┐
+                       │ Retrieve from   │
+                       │ Appropriate     │
+                       │ Source          │
+                       └─────────────────┘
+                                │
+                                ▼
+                       ┌─────────────────┐
+                       │ Merge & Return  │
+                       │ Unified Data    │
+                       └─────────────────┘
+```
+
+### **Performance Architecture**
+
+#### **Throughput Comparison**
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    Performance Comparison                    │
+├─────────────────────────────────────────────────────────────┤
+│  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐  │
+│  │ Ethereum        │  │ SCITT CCF       │  │ Improvement     │  │
+│  │ Blockchain      │  │ Ledger          │  │ Factor          │  │
+│  │ 15-30 TPS      │  │ 1,500-3,000 TPS│  │ 50-200x         │  │
+│  └─────────────────┘  └─────────────────┘  └─────────────────┘  │
+└─────────────────────────────────────────────────────────────┘
+```
+
+#### **Latency Comparison**
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    Latency Comparison                       │
+├─────────────────────────────────────────────────────────────┤
+│  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐  │
+│  │ Ethereum        │  │ SCITT CCF       │  │ Improvement     │  │
+│  │ Blockchain      │  │ Ledger          │  │ Factor          │  │
+│  │ 12-15 seconds  │  │ 100-500ms       │  │ 24-150x         │  │
+│  └─────────────────┘  └─────────────────┘  └─────────────────┘  │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### **Security Architecture**
+
+#### **TEE (Trusted Execution Environment) Support**
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    TEE Architecture                         │
+├─────────────────────────────────────────────────────────────┤
+│  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐  │
+│  │ AMD SEV-SNP     │  │ Virtual Platform│  │ Future TEE      │  │
+│  │ Hardware TEE    │  │ Development     │  │ Support         │  │
+│  │ Production      │  │ & Testing       │  │ (Intel SGX,     │  │
+│  │ Ready           │  │ Environment     │  │ ARM CCA)        │  │
+│  └─────────────────┘  └─────────────────┘  └─────────────────┘  │
+└─────────────────────────────────────────────────────────────┘
+```
+
+**TEE Features**:
+- **Memory Encryption**: Hardware-level memory protection
+- **Attestation**: Cryptographic proof of execution environment
+- **Isolation**: Secure execution environment separation
+- **Integrity**: Protection against tampering and attacks
+
+#### **Confidential Computing Benefits**
+- **Data Privacy**: Data remains encrypted during processing
+- **Code Integrity**: Execution environment cannot be modified
+- **Audit Trail**: Cryptographic proof of all operations
+- **Compliance**: Meets regulatory requirements for data handling
 
 ## 🔐 Authentication & Authorization
 
