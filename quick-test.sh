@@ -66,18 +66,48 @@ show_menu() {
 # Function to run quick start
 run_quick_start() {
     print_header "Starting System with Quick Tests"
+    
+    # Ensure SCITT CCF is configured
+    if [ ! -f ".env.scitt-ccf" ]; then
+        print_info "SCITT CCF not configured, setting up automatically..."
+        if [ -f "manage-scitt-ccf.sh" ]; then
+            chmod +x manage-scitt-ccf.sh
+            ./manage-scitt-ccf.sh setup
+        fi
+    fi
+    
     ./start-system.sh --test-mode quick
 }
 
 # Function to run full start
 run_full_start() {
     print_header "Starting System with Full Tests"
+    
+    # Ensure SCITT CCF is configured
+    if [ ! -f ".env.scitt-ccf" ]; then
+        print_info "SCITT CCF not configured, setting up automatically..."
+        if [ -f "manage-scitt-ccf.sh" ]; then
+            chmod +x manage-scitt-ccf.sh
+            ./manage-scitt-ccf.sh setup
+        fi
+    fi
+    
     ./start-system.sh --test-mode full
 }
 
 # Function to run start without tests
 run_start_no_tests() {
     print_header "Starting System without Tests"
+    
+    # Ensure SCITT CCF is configured
+    if [ ! -f ".env.scitt-ccf" ]; then
+        print_info "SCITT CCF not configured, setting up automatically..."
+        if [ -f "manage-scitt-ccf.sh" ]; then
+            chmod +x manage-scitt-ccf.sh
+            ./manage-scitt-ccf.sh setup
+        fi
+    fi
+    
     ./start-system.sh --no-tests
 }
 

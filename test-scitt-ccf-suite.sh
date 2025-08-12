@@ -182,7 +182,14 @@ check_prerequisites() {
     # Check if SCITT CCF configuration exists
     if [ ! -f ".env.scitt-ccf" ]; then
         print_warning "SCITT CCF configuration not found. Running setup..."
-        ./manage-scitt-ccf.sh setup
+        if ./manage-scitt-ccf.sh setup; then
+            print_success "SCITT CCF configuration created successfully"
+        else
+            print_error "Failed to create SCITT CCF configuration"
+            return 1
+        fi
+    else
+        print_success "SCITT CCF configuration found"
     fi
     
     # Check if Docker is running

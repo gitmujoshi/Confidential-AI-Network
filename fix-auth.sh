@@ -31,8 +31,18 @@ check_scitt_ccf_mode() {
         echo "🔗 SCITT CCF Mode: $MIGRATION_MODE"
         return 0
     else
-        echo "🔗 SCITT CCF Mode: Not configured (using blockchain only)"
-        return 1
+        echo "🔗 SCITT CCF Mode: Not configured - Auto-creating SCITT CCF config..."
+        # Auto-create SCITT CCF configuration
+        if [ -f "env.scitt-ccf.example" ]; then
+            cp env.scitt-ccf.example .env.scitt-ccf
+            echo "✅ Created .env.scitt-ccf from template"
+            source .env.scitt-ccf
+            echo "🔗 SCITT CCF Mode: $MIGRATION_MODE (auto-configured)"
+            return 0
+        else
+            echo "❌ env.scitt-ccf.example not found - please run ./manage-scitt-ccf.sh setup first"
+            return 1
+        fi
     fi
 }
 
@@ -72,6 +82,8 @@ SCITT_CCF_ENABLED=false
 if check_scitt_ccf_mode; then
     SCITT_CCF_ENABLED=true
     start_scitt_ccf_if_needed
+else
+    echo "⚠️  Failed to configure SCITT CCF, will use blockchain mode only"
 fi
 
 # Step 3: Auto-fix Keycloak configuration
@@ -98,11 +110,11 @@ sleep 2
 if [ "$SCITT_CCF_ENABLED" = true ]; then
     export SCITT_CCF_ENABLED=true
     export MIGRATION_MODE=HYBRID
-    echo "   Starting with SCITT CCF integration enabled"
+    echo "   Starting with SCITT CCF integration enabled (HYBRID mode)"
 else
     export SCITT_CCF_ENABLED=false
     export MIGRATION_MODE=ETHEREUM_ONLY
-    echo "   Starting with blockchain mode only"
+    echo "   Starting with blockchain mode only (fallback)"
 fi
 
 cd backend
