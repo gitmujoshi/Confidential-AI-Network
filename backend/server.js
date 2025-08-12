@@ -29,6 +29,7 @@ const infrastructureRouter = require('./routes/infrastructure');
 
 // Import training routes
 const trainingRouter = require('./routes/training');
+const differentialPrivacyRouter = require('./routes/differential-privacy-simple');
 
 const app = express();
 const PORT = process.env.PORT || 8000;
@@ -168,6 +169,7 @@ app.use('/api/infrastructure', infrastructureRouter);
 
 // Training routes
 app.use('/api/training', trainingRouter);
+app.use('/api/dp', differentialPrivacyRouter);
 
 // Error handling middleware
 app.use((err, req, res, next) => {

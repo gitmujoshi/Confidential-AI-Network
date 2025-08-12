@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enterprise Security - ContractFlow Pro</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="../styles.css" rel="stylesheet">
+    <style>
+        .feature-hero {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 80px 0;
+        }
+        .security-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin: 3rem 0;
+        }
+        .security-card {
+            background: white;
+            border-radius: 10px;
+            padding: 2rem;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            border-left: 4px solid var(--primary-color);
+        }
+        .security-icon {
+            font-size: 2.5rem;
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+        }
+        .compliance-badge {
+            display: inline-block;
+            background: #28a745;
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            margin: 0.5rem 0.5rem 0.5rem 0;
+        }
+        /* Password Protection Overlay */
+        .password-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+        }
+        
+        .password-form {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 3rem;
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .password-form h2 {
+            margin-bottom: 1.5rem;
+            font-weight: 600;
+        }
+        
+        .password-form .form-control {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            margin-bottom: 1rem;
+        }
+        
+        .password-form .form-control::placeholder {
+            color: rgba(255, 255, 255, 0.7);
+        }
+        
+        .password-form .btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 0.75rem 2rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .password-form .btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+        
+        .error-message {
+            color: #ff6b6b;
+            margin-top: 1rem;
+            display: none;
+        }
+        
+        .main-content {
+            display: none;
+        }
+        
+        .main-content.visible {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <!-- Password Protection Overlay -->
+    <div id="passwordOverlay" class="password-overlay">
+        <div class="password-form">
+            <h2><i class="fas fa-shield-alt me-2"></i>ContractFlow Pro</h2>
+            <p class="mb-4">This site is password protected. Please enter the access code to continue.</p>
+            <form id="passwordForm">
+                <div class="mb-3">
+                    <input type="password" class="form-control" id="accessPassword" placeholder="Enter access code" required>
+                </div>
+                <button type="submit" class="btn btn-primary w-100">
+                    <i class="fas fa-unlock me-2"></i>Access Site
+                </button>
+            </form>
+            <div id="errorMessage" class="error-message">
+                <i class="fas fa-exclamation-triangle me-2"></i>Invalid access code. Please try again.
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content (Hidden until password is entered) -->
+    <div id="mainContent" class="main-content">
+    
+    <!-- Development Disclaimer Banner -->
+    <div class="alert alert-warning alert-dismissible fade show" role="alert" style="margin-bottom: 0; border-radius: 0; border: none; background: linear-gradient(135deg, #ffc107 0%, #ff8c00 100%); color: #000; font-weight: 600;">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-10">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <strong>Development Notice:</strong> This is a prototype/development version of ContractFlow Pro. 
+                    The final application may differ significantly from the features described here. 
+                    This site is for demonstration and development purposes only.
+                </div>
+                <div class="col-md-2 text-end">
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
+        <div class="container">
+            <a class="navbar-brand" href="../index.html">
+                <i class="fas fa-shield-alt me-2"></i>ContractFlow Pro
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="../index.html">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="../index.html#features">Features</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="../index.html#solutions">Solutions</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="../index.html#contact">Contact</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="../index.html#dashboards">Dashboards</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="../docs/">Documents</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="../index.html#pricing">Pricing</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Feature Hero -->
+    <section class="feature-hero">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-lg-8">
+                    <h1 class="display-4 fw-bold mb-4">
+                        <i class="fas fa-shield-alt me-3"></i>Enterprise Security
+                    </h1>
+                    <p class="lead mb-4">
+                        Bank-grade security infrastructure with military-grade encryption, 
+                        comprehensive access controls, and compliance frameworks.
+                    </p>
+                    <div class="compliance-badges">
+                        <span class="compliance-badge">SOC 2 Type II</span>
+                        <span class="compliance-badge">GDPR Compliant</span>
+                        <span class="compliance-badge">HIPAA Ready</span>
+                        <span class="compliance-badge">ISO 27001</span>
+                    </div>
+                </div>
+                <div class="col-lg-4">
+                    <div class="text-center">
+                        <i class="fas fa-shield-alt fa-8x text-white-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Security Features -->
+    <section class="py-5">
+        <div class="container">
+            <div class="row text-center mb-5">
+                <div class="col-lg-8 mx-auto">
+                    <h2 class="display-5 fw-bold mb-3">Comprehensive Security Framework</h2>
+                    <p class="lead text-muted">Multi-layered security approach protecting your data at every level.</p>
+                </div>
+            </div>
+            
+            <div class="security-grid">
+                <div class="security-card">
+                    <div class="security-icon">
+                        <i class="fas fa-key"></i>
+                    </div>
+                    <h4>Keycloak IAM Integration</h4>
+                    <p>Enterprise-grade identity and access management with:</p>
+                    <ul>
+                        <li>Single Sign-On (SSO) capabilities</li>
+                        <li>Multi-factor authentication (MFA)</li>
+                        <li>Role-based access control (RBAC)</li>
+                        <li>Federation with existing identity providers</li>
+                        <li>Real-time user session management</li>
+                    </ul>
+                </div>
+
+                <div class="security-card">
+                    <div class="security-icon">
+                        <i class="fas fa-link"></i>
+                    </div>
+                    <h4>Blockchain Verification</h4>
+                    <p>Immutable audit trail with blockchain technology:</p>
+                    <ul>
+                        <li>Smart contract execution verification</li>
+                        <li>Tamper-proof audit logs</li>
+                        <li>Decentralized identity verification</li>
+                        <li>Cryptographic proof of data integrity</li>
+                        <li>Real-time transaction validation</li>
+                    </ul>
+                </div>
+
+                <div class="security-card">
+                    <div class="security-icon">
+                        <i class="fas fa-lock"></i>
+                    </div>
+                    <h4>Encrypted Data Storage</h4>
+                    <p>End-to-end encryption protecting sensitive data:</p>
+                    <ul>
+                        <li>AES-256 encryption at rest</li>
+                        <li>TLS 1.3 encryption in transit</li>
+                        <li>Client-side encryption for sensitive fields</li>
+                        <li>Key rotation and management</li>
+                        <li>Hardware Security Module (HSM) integration</li>
+                    </ul>
+                </div>
+
+                <div class="security-card">
+                    <div class="security-icon">
+                        <i class="fas fa-eye"></i>
+                    </div>
+                    <h4>Advanced Monitoring</h4>
+                    <p>Comprehensive security monitoring and alerting:</p>
+                    <ul>
+                        <li>Real-time threat detection</li>
+                        <li>Behavioral analytics</li>
+                        <li>Anomaly detection algorithms</li>
+                        <li>Automated incident response</li>
+                        <li>24/7 security operations center</li>
+                    </ul>
+                </div>
+
+                <div class="security-card">
+                    <div class="security-icon">
+                        <i class="fas fa-gavel"></i>
+                    </div>
+                    <h4>Compliance Framework</h4>
+                    <p>Built-in compliance with major regulations:</p>
+                    <ul>
+                        <li>GDPR data protection compliance</li>
+                        <li>HIPAA healthcare data standards</li>
+                        <li>SOX financial reporting requirements</li>
+                        <li>PCI DSS payment card security</li>
+                        <li>Automated compliance reporting</li>
+                    </ul>
+                </div>
+
+                <div class="security-card">
+                    <div class="security-icon">
+                        <i class="fas fa-shield-virus"></i>
+                    </div>
+                    <h4>Zero Trust Architecture</h4>
+                    <p>Modern security model with continuous verification:</p>
+                    <ul>
+                        <li>Never trust, always verify approach</li>
+                        <li>Micro-segmentation of network</li>
+                        <li>Least privilege access principles</li>
+                        <li>Continuous authentication</li>
+                        <li>Dynamic policy enforcement</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Security Benefits -->
+    <section class="bg-light py-5">
+        <div class="container">
+            <div class="row text-center mb-5">
+                <div class="col-lg-8 mx-auto">
+                    <h2 class="display-5 fw-bold mb-3">Security Benefits</h2>
+                    <p class="lead text-muted">Why enterprises trust ContractFlow Pro for their most sensitive data.</p>
+                </div>
+            </div>
+            
+            <div class="row g-4">
+                <div class="col-lg-4">
+                    <div class="text-center p-4">
+                        <i class="fas fa-chart-line fa-3x text-primary mb-3"></i>
+                        <h5>Risk Reduction</h5>
+                        <p class="text-muted">Reduce security incidents by 95% with our comprehensive security framework.</p>
+                    </div>
+                </div>
+                <div class="col-lg-4">
+                    <div class="text-center p-4">
+                        <i class="fas fa-clock fa-3x text-primary mb-3"></i>
+                        <h5>Faster Compliance</h5>
+                        <p class="text-muted">Achieve compliance 60% faster with built-in regulatory frameworks.</p>
+                    </div>
+                </div>
+                <div class="col-lg-4">
+                    <div class="text-center p-4">
+                        <i class="fas fa-dollar-sign fa-3x text-primary mb-3"></i>
+                        <h5>Cost Savings</h5>
+                        <p class="text-muted">Save up to 40% on security infrastructure costs with our integrated solution.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="py-5">
+        <div class="container">
+            <div class="row text-center">
+                <div class="col-lg-8 mx-auto">
+                    <h2 class="display-5 fw-bold mb-4">Ready to Secure Your Enterprise?</h2>
+                    <p class="lead mb-4">Join thousands of enterprises that trust ContractFlow Pro for their security needs.</p>
+                    <a href="../index.html#contact" class="btn btn-primary btn-lg me-3">
+                        <i class="fas fa-shield-alt me-2"></i>Get Security Demo
+                    </a>
+                    <a href="../index.html" class="btn btn-outline-primary btn-lg">
+                        <i class="fas fa-arrow-left me-2"></i>Back to Features
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-dark text-white py-4">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <h5><i class="fas fa-shield-alt me-2"></i>ContractFlow Pro</h5>
+                    <p class="text-muted">Enterprise-grade contract management with bank-grade security.</p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <p class="text-muted">&copy; 2024 ContractFlow Pro. All rights reserved.</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    </div> <!-- End of main content -->
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Password Protection Script -->
+    <script>
+        // Access codes - you can modify these
+        const validPasswords = [
+            'contractflow2024',
+            'ai-training',
+            'demo-access',
+            'enterprise'
+        ];
+        
+        // Check if user is already authenticated
+        const isAuthenticated = sessionStorage.getItem('contractflow_authenticated');
+        
+        if (isAuthenticated) {
+            // User is already authenticated, show content
+            document.getElementById('passwordOverlay').style.display = 'none';
+            document.getElementById('mainContent').classList.add('visible');
+        } else {
+            // Show password overlay
+            document.getElementById('passwordOverlay').style.display = 'flex';
+        }
+        
+        // Handle password form submission
+        document.getElementById('passwordForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const password = document.getElementById('accessPassword').value;
+            const errorMessage = document.getElementById('errorMessage');
+            
+            if (validPasswords.includes(password)) {
+                // Correct password
+                sessionStorage.setItem('contractflow_authenticated', 'true');
+                document.getElementById('passwordOverlay').style.display = 'none';
+                document.getElementById('mainContent').classList.add('visible');
+                errorMessage.style.display = 'none';
+            } else {
+                // Wrong password
+                errorMessage.style.display = 'block';
+                document.getElementById('accessPassword').value = '';
+                document.getElementById('accessPassword').focus();
+            }
+        });
+        
+        // Handle Enter key in password field
+        document.getElementById('accessPassword').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                document.getElementById('passwordForm').dispatchEvent(new Event('submit'));
+            }
+        });
+    </script>
+</body>
+</html> 

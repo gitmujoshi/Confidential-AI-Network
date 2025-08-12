@@ -10,9 +10,10 @@ Complete troubleshooting guide for the Contract Management System. This guide co
 4. [Frontend Issues](#frontend-issues)
 5. [Database Issues](#database-issues)
 6. [Keycloak Issues](#***REMOVED-KEYCLOAK_DB_PASSWORD***-issues)
-7. [Network Issues](#network-issues)
-8. [Performance Issues](#performance-issues)
-9. [Development Issues](#development-issues)
+7. [Differential Privacy Issues](#differential-privacy-issues)
+8. [Network Issues](#network-issues)
+9. [Performance Issues](#performance-issues)
+10. [Development Issues](#development-issues)
 
 ## ⚡ Quick Fixes
 
@@ -743,3 +744,475 @@ docker logs -f ***REMOVED-KEYCLOAK_DB_PASSWORD***-cms
 ---
 
 *This troubleshooting guide consolidates information from multiple troubleshooting documents and common issue solutions.* 
+
+## 🔐 Differential Privacy Issues
+
+### **Quick DP Fixes**
+
+#### **Test DP System Status**
+```bash
+# Check if DP endpoints are responding
+curl -s http://localhost:5001/api/dp/mechanisms
+
+# Test DP functionality
+curl -s -X POST http://localhost:5001/api/dp/test \
+  -H "Content-Type: application/json" \
+  -d '{"data":[1,2,3],"query":{"type":"COUNT"},"privacyParams":{"epsilon":1.0,"mechanism":"geometric"}}'
+```
+
+#### **Fix DP Database Issues**
+```bash
+# Check if DP tables exist
+psql -h localhost -U mukeshjoshi -d contract_management -c "\dt" | grep -i privacy
+
+# Run DP migration if tables are missing
+cd backend && node run-privacy-migration.js
+```
+
+### **Common DP Problems and Solutions**
+
+#### **1. "Differential Privacy Service Not Found" Error**
+
+**Symptoms:**
+```
+Error: Cannot find module '../services/differentialPrivacyService'
+```
+
+**Causes:**
+- DP service files not created
+- Import paths incorrect
+- File permissions issues
+
+**Solutions:**
+
+**Quick Fix:**
+```bash
+# Check if DP service exists
+ls -la backend/services/ | grep -i privacy
+
+# If missing, recreate the service
+cd backend && node scripts/create-dp-service.js
+```
+
+**Manual Fix:**
+```bash
+# Verify file structure
+find backend/ -name "*privacy*" -type f
+
+# Check import statements in routes
+grep -n "differentialPrivacyService" backend/routes/differential-privacy.js
+```
+
+#### **2. "Privacy Budget Tables Do Not Exist" Error**
+
+**Symptoms:**
+```
+Error: relation "PrivacyBudgets" does not exist
+```
+
+**Causes:**
+- Database migration not run
+- Tables created with wrong names
+- Database connection issues
+
+**Solutions:**
+
+**Quick Fix:**
+```bash
+# Run privacy budget migration
+cd backend && node run-privacy-migration.js
+```
+
+**Manual Fix:**
+```bash
+# Check database tables
+psql -h localhost -U mukeshjoshi -d contract_management -c "\dt" | grep -i privacy
+
+# Check migration files
+ls -la backend/migrations/ | grep -i privacy
+
+# Run migration manually
+psql -h localhost -U mukeshjoshi -d contract_management -f backend/migrations/add-privacy-budget-tables.js
+```
+
+#### **3. "Insufficient Privacy Budget" Error**
+
+**Symptoms:**
+```json
+{
+  "success": false,
+  "error": "Insufficient privacy budget",
+  "details": {
+    "requiredEpsilon": 0.2,
+    "availableEpsilon": 0.1
+  }
+}
+```
+
+**Causes:**
+- Budget fully consumed
+- Budget not initialized for contract
+- Budget reset needed
+
+**Solutions:**
+
+**Quick Fix:**
+```bash
+# Check budget status
+curl -s http://localhost:5001/api/dp/budget/contract-123
+
+# Reset budget (if you have permission)
+curl -s -X POST http://localhost:5001/api/dp/budget/contract-123/reset
+```
+
+**Manual Fix:**
+```bash
+# Check budget in database
+psql -h localhost -U mukeshjoshi -d contract_management -c "SELECT * FROM \"PrivacyBudgets\" WHERE \"contractId\" = 'contract-123';"
+
+# Reset budget manually
+psql -h localhost -U mukeshjoshi -d contract_management -c "UPDATE \"PrivacyBudgets\" SET \"remainingEpsilon\" = \"initialEpsilon\", \"remainingDelta\" = \"initialDelta\", \"budgetStatus\" = 'ACTIVE' WHERE \"contractId\" = 'contract-123';"
+```
+
+#### **4. "Invalid Privacy Parameters" Error**
+
+**Symptoms:**
+```json
+{
+  "success": false,
+  "error": "Invalid privacy parameters",
+  "details": {
+    "epsilon": "Must be between 0.1 and 10.0"
+  }
+}
+```
+
+**Causes:**
+- Epsilon/delta values out of range
+- Missing required parameters
+- Invalid mechanism selection
+
+**Solutions:**
+
+**Quick Fix:**
+```bash
+# Use valid parameters
+curl -s -X POST http://localhost:5001/api/dp/test \
+  -H "Content-Type: application/json" \
+  -d '{"data":[1,2,3],"query":{"type":"COUNT"},"privacyParams":{"epsilon":1.0,"delta":1e-5,"mechanism":"laplace"}}'
+```
+
+**Parameter Ranges:**
+- **Epsilon (ε)**: 0.1 to 10.0
+- **Delta (δ)**: 1e-6 to 1e-3
+- **Valid Mechanisms**: laplace, gaussian, exponential, geometric
+
+#### **5. "Mechanism Not Supported for Query Type" Error**
+
+**Symptoms:**
+```json
+{
+  "success": false,
+  "error": "Mechanism 'laplace' not supported for query type 'COUNT'"
+}
+```
+
+**Causes:**
+- Mechanism-query type mismatch
+- Query type not implemented
+- Configuration errors
+
+**Solutions:**
+
+**Quick Fix:**
+```bash
+# Check supported mechanisms for query type
+curl -s http://localhost:5001/api/dp/query-types
+
+# Use appropriate mechanism
+curl -s -X POST http://localhost:5001/api/dp/test \
+  -H "Content-Type: application/json" \
+  -d '{"data":[1,2,3],"query":{"type":"COUNT"},"privacyParams":{"epsilon":1.0,"mechanism":"geometric"}}'
+```
+
+**Mechanism-Query Type Mapping:**
+- **COUNT**: geometric
+- **SUM**: laplace
+- **AVERAGE**: gaussian
+- **GRADIENT**: laplace
+- **HISTOGRAM**: laplace
+- **PERCENTILE**: laplace
+
+#### **6. "Sensitivity Calculation Failed" Error**
+
+**Symptoms:**
+```json
+{
+  "success": false,
+  "error": "Failed to calculate sensitivity for query type 'CUSTOM'"
+}
+```
+
+**Causes:**
+- Unsupported query type
+- Data format issues
+- Sensitivity analyzer errors
+
+**Solutions:**
+
+**Quick Fix:**
+```bash
+# Use supported query types
+curl -s http://localhost:5001/api/dp/query-types
+
+# Test with simple data
+curl -s -X POST http://localhost:5001/api/dp/test \
+  -H "Content-Type: application/json" \
+  -d '{"data":[1,2,3],"query":{"type":"COUNT"},"privacyParams":{"epsilon":1.0,"mechanism":"geometric"}}'
+```
+
+**Supported Query Types:**
+- COUNT, SUM, AVERAGE, GRADIENT, HISTOGRAM, PERCENTILE
+
+#### **7. "DP Service Initialization Failed" Error**
+
+**Symptoms:**
+```
+Error initializing differential privacy service: Cannot find module './mechanisms/laplaceMechanism'
+```
+
+**Causes:**
+- Missing mechanism files
+- Import path issues
+- File corruption
+
+**Solutions:**
+
+**Quick Fix:**
+```bash
+# Check mechanism files
+ls -la backend/services/mechanisms/
+
+# Recreate missing mechanisms
+cd backend && node scripts/create-dp-mechanisms.js
+```
+
+**Manual Fix:**
+```bash
+# Verify file structure
+find backend/services/ -name "*mechanism*" -type f
+
+# Check import statements
+grep -n "require.*mechanism" backend/services/differentialPrivacyService.js
+```
+
+### **DP Performance Issues**
+
+#### **1. Slow DP Operations**
+
+**Symptoms:**
+- Operations taking > 5 seconds
+- Timeout errors
+- High CPU usage
+
+**Causes:**
+- Large datasets
+- Complex sensitivity calculations
+- Database bottlenecks
+- Memory issues
+
+**Solutions:**
+
+**Quick Fix:**
+```bash
+# Test with smaller data
+curl -s -X POST http://localhost:5001/api/dp/test \
+  -H "Content-Type: application/json" \
+  -d '{"data":[1,2,3],"query":{"type":"COUNT"},"privacyParams":{"epsilon":1.0,"mechanism":"geometric"}}'
+```
+
+**Optimization:**
+```bash
+# Check system resources
+top -p $(pgrep -f "node server.js")
+
+# Monitor database performance
+psql -h localhost -U mukeshjoshi -d contract_management -c "SELECT * FROM pg_stat_activity WHERE state = 'active';"
+```
+
+#### **2. High Memory Usage**
+
+**Symptoms:**
+- Out of memory errors
+- Slow response times
+- System instability
+
+**Causes:**
+- Large data arrays in memory
+- Memory leaks in DP operations
+- Insufficient system memory
+
+**Solutions:**
+
+**Quick Fix:**
+```bash
+# Restart backend to clear memory
+pkill -f "node server.js" && cd backend && node server.js &
+```
+
+**Optimization:**
+```bash
+# Check memory usage
+ps aux | grep "node server.js"
+
+# Monitor memory in real-time
+watch -n 1 'ps aux | grep "node server.js" | grep -v grep'
+```
+
+### **DP Integration Issues**
+
+#### **1. "DP Not Available in Training Service" Error**
+
+**Symptoms:**
+```
+Error: Differential privacy not available for training
+```
+
+**Causes:**
+- DP service not integrated
+- Training service configuration issues
+- Missing DP parameters
+
+**Solutions:**
+
+**Quick Fix:**
+```bash
+# Check if DP is enabled in training
+curl -s http://localhost:5001/api/training/config
+
+# Test DP training endpoint
+curl -s -X POST http://localhost:5001/api/training/dp \
+  -H "Content-Type: application/json" \
+  -d '{"data":[1,2,3],"privacyParams":{"epsilon":1.0,"delta":1e-5}}'
+```
+
+#### **2. "Contract Service DP Integration Failed" Error**
+
+**Symptoms:**
+```
+Error: Failed to apply DP to contract data
+```
+
+**Causes:**
+- Contract service not updated
+- DP service dependency issues
+- Configuration mismatches
+
+**Solutions:**
+
+**Quick Fix:**
+```bash
+# Check contract service health
+curl -s http://localhost:5001/api/contracts/health
+
+# Test contract DP endpoint
+curl -s -X POST http://localhost:5001/api/contracts/apply-dp \
+  -H "Content-Type: application/json" \
+  -d '{"contractId":"contract-123","data":[1,2,3],"privacyParams":{"epsilon":1.0}}'
+```
+
+### **DP Debugging Commands**
+
+#### **System Health Checks**
+```bash
+# Check DP service status
+curl -s http://localhost:5001/api/dp/mechanisms
+
+# Check DP database tables
+psql -h localhost -U mukeshjoshi -d contract_management -c "\dt" | grep -i privacy
+
+# Check DP service logs
+tail -f logs/backend.log | grep -i "differential\|privacy\|dp"
+```
+
+#### **Database Diagnostics**
+```bash
+# Check privacy budget status
+psql -h localhost -U mukeshjoshi -d contract_management -c "SELECT * FROM \"PrivacyBudgets\" LIMIT 5;"
+
+# Check privacy operation logs
+psql -h localhost -U mukeshjoshi -d contract_management -c "SELECT * FROM \"PrivacyOperationsLogs\" ORDER BY timestamp DESC LIMIT 5;"
+
+# Check privacy budget logs
+psql -h localhost -U mukeshjoshi -d contract_management -c "SELECT * FROM \"PrivacyBudgetLogs\" ORDER BY timestamp DESC LIMIT 5;"
+```
+
+#### **Performance Monitoring**
+```bash
+# Monitor DP endpoint response times
+time curl -s http://localhost:5001/api/dp/mechanisms
+
+# Test DP operation performance
+time curl -s -X POST http://localhost:5001/api/dp/test \
+  -H "Content-Type: application/json" \
+  -d '{"data":[1,2,3],"query":{"type":"COUNT"},"privacyParams":{"epsilon":1.0,"mechanism":"geometric"}}'
+```
+
+### **DP Recovery Procedures**
+
+#### **Complete DP System Reset**
+```bash
+# Stop all services
+pkill -f "node server.js"
+docker-compose down
+
+# Clear DP database tables
+psql -h localhost -U mukeshjoshi -d contract_management -c "DROP TABLE IF EXISTS \"PrivacyOperationsLogs\";"
+psql -h localhost -U mukeshjoshi -d contract_management -c "DROP TABLE IF EXISTS \"PrivacyBudgetLogs\";"
+psql -h localhost -U mukeshjoshi -d contract_management -c "DROP TABLE IF EXISTS \"PrivacyBudgets\";"
+
+# Recreate DP tables
+cd backend && node run-privacy-migration.js
+
+# Restart services
+cd .. && ./start-system.sh
+```
+
+#### **DP Service Recovery**
+```bash
+# Check DP service files
+find backend/ -name "*privacy*" -type f
+
+# Recreate missing services
+cd backend && node scripts/create-dp-services.js
+
+# Test DP functionality
+curl -s http://localhost:5001/api/dp/mechanisms
+```
+
+### **DP Best Practices for Troubleshooting**
+
+#### **1. Start Simple**
+- Test with basic queries first
+- Use default parameters initially
+- Verify each component individually
+
+#### **2. Check Dependencies**
+- Verify database connectivity
+- Check service file existence
+- Validate configuration files
+
+#### **3. Monitor Resources**
+- Watch memory usage
+- Monitor CPU utilization
+- Check disk space
+
+#### **4. Use Logging**
+- Enable debug logging
+- Monitor error logs
+- Track operation history
+
+#### **5. Test Incrementally**
+- Test endpoints individually
+- Verify data flow step by step
+- Check intermediate results 

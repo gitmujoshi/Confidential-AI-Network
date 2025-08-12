@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Data for Testers - ContractFlow Pro Documentation</title>
+    <meta name="description" content="Test Data for Testers - ContractFlow Pro Documentation">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.css" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f8f9fa;
+            color: #333;
+            line-height: 1.6;
+        }
+        .navbar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .navbar-brand {
+            color: white !important;
+            font-weight: 700;
+        }
+        .nav-link {
+            color: rgba(255,255,255,0.9) !important;
+            transition: color 0.3s ease;
+        }
+        .nav-link:hover {
+            color: white !important;
+        }
+        .doc-container {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            margin: 30px 0;
+            overflow: hidden;
+        }
+        .doc-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        .doc-content {
+            padding: 40px;
+        }
+        .doc-content h1, .doc-content h2, .doc-content h3, .doc-content h4, .doc-content h5, .doc-content h6 {
+            color: #333;
+            margin-top: 2rem;
+            margin-bottom: 1rem;
+            font-weight: 600;
+        }
+        .doc-content h1 {
+            font-size: 2.5rem;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 10px;
+        }
+        .doc-content h2 {
+            font-size: 2rem;
+            border-bottom: 2px solid #e9ecef;
+            padding-bottom: 8px;
+            color: #667eea;
+        }
+        .doc-content h3 {
+            font-size: 1.5rem;
+            color: #495057;
+        }
+        .doc-content p {
+            margin-bottom: 1rem;
+            font-size: 1.1rem;
+        }
+        .doc-content ul, .doc-content ol {
+            margin-bottom: 1rem;
+            padding-left: 2rem;
+        }
+        .doc-content li {
+            margin-bottom: 0.5rem;
+        }
+        
+        /* Enhanced Code Block Styling */
+        .doc-content pre {
+            background: #2d3748;
+            border: 1px solid #4a5568;
+            border-radius: 8px;
+            padding: 20px;
+            overflow-x: auto;
+            margin: 1.5rem 0;
+            position: relative;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        .doc-content pre code {
+            background: none;
+            color: #e2e8f0;
+            padding: 0;
+            font-family: 'Fira Code', 'Monaco', 'Consolas', monospace;
+            font-size: 0.9rem;
+            line-height: 1.5;
+            white-space: pre;
+            word-wrap: normal;
+        }
+        .doc-content code:not(pre code) {
+            background: #f7fafc;
+            color: #e53e3e;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            border: 1px solid #e2e8f0;
+        }
+        
+        /* Mermaid Diagram Styling */
+        .mermaid {
+            text-align: center;
+            margin: 2rem 0;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border: 1px solid #e9ecef;
+        }
+        .mermaid svg {
+            max-width: 100%;
+            height: auto;
+        }
+        
+        /* Enhanced Table Styling */
+        .doc-content table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1.5rem 0;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .doc-content th, .doc-content td {
+            border: 1px solid #e2e8f0;
+            padding: 12px 16px;
+            text-align: left;
+        }
+        .doc-content th {
+            background: #667eea;
+            color: white;
+            font-weight: 600;
+        }
+        .doc-content tr:nth-child(even) {
+            background: #f7fafc;
+        }
+        .doc-content tr:hover {
+            background: #edf2f7;
+        }
+        
+        /* Enhanced Blockquote Styling */
+        .doc-content blockquote {
+            border-left: 4px solid #667eea;
+            padding: 20px;
+            margin: 1.5rem 0;
+            background: #f7fafc;
+            border-radius: 0 8px 8px 0;
+            font-style: italic;
+            color: #4a5568;
+        }
+        .doc-content blockquote p {
+            margin-bottom: 0;
+        }
+        
+        /* Enhanced List Styling */
+        .doc-content ul {
+            list-style-type: none;
+            padding-left: 0;
+        }
+        .doc-content ul li {
+            position: relative;
+            padding-left: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+        .doc-content ul li:before {
+            content: "•";
+            color: #667eea;
+            font-weight: bold;
+            position: absolute;
+            left: 0;
+        }
+        .doc-content ol {
+            counter-reset: item;
+            list-style-type: none;
+            padding-left: 0;
+        }
+        .doc-content ol li {
+            counter-increment: item;
+            position: relative;
+            padding-left: 2rem;
+            margin-bottom: 0.5rem;
+        }
+        .doc-content ol li:before {
+            content: counter(item) ".";
+            color: #667eea;
+            font-weight: bold;
+            position: absolute;
+            left: 0;
+        }
+        
+        .breadcrumb {
+            background: transparent;
+            padding: 0;
+            margin-bottom: 20px;
+        }
+        .breadcrumb-item a {
+            color: #667eea;
+            text-decoration: none;
+        }
+        .breadcrumb-item.active {
+            color: #666;
+        }
+        .category-badge {
+            background: #e3f2fd;
+            color: #1976d2;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            margin-left: 10px;
+        }
+        .back-to-top {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: #667eea;
+            color: white;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+        .back-to-top:hover {
+            background: #5a6fd8;
+            color: white;
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container">
+            <a class="navbar-brand" href="../index.html">
+                <i class="fas fa-file-contract me-2"></i>ContractFlow Pro
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="../index.html">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="../index.html#features">Features</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="../index.html#solutions">Solutions</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="../index.html#dashboards">Dashboards</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="index.html">Documents</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="../index.html#pricing">Pricing</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="../index.html#contact">Contact</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container">
+        <!-- Breadcrumb -->
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="../index.html">Home</a></li>
+                <li class="breadcrumb-item"><a href="index.html">Documentation</a></li>
+                <li class="breadcrumb-item active">Test Data for Testers</li>
+            </ol>
+        </nav>
+
+        <!-- Document Container -->
+        <div class="doc-container">
+            <div class="doc-header">
+                <h1 class="mb-3">
+                    <i class="fas fa-book me-3"></i>Test Data for Testers
+                    <span class="category-badge">Development</span>
+                </h1>
+                <p class="lead mb-0">ContractFlow Pro Documentation</p>
+            </div>
+            <div class="doc-content">
+                
+                <p>
+                # Test Data Reference for Testers</p>This document provides a summary of all test users, datasets, AI models, and contracts available in the Contract Management System for testing purposes.</p><p>---</p><p>## Test Users</p><p>### TDP (Training Data Providers)</p><p><table class="table table-striped">| Name | Email | User ID | DEPA ID | Password | Description | Status </p><p>| ------------------------- | ------------------------------ | --------- | --------- | ---------- | ------------------------------------------------ | -------- </p><p>| MedData Solutions Inc. | tdp.medical@example.com | 10 | TDP-78af39d1-4edb-471c-8cc8-471614abd7b3 | password123 | Healthcare-focused TDP | ✅ Working </p><p>| NLP Research Foundation | tdp.nlp@example.com | 11 | TDP-8b2347bb-8028-4f7a-a7ab-50acc8bcf2e3 | password123 | NLP-focused TDP | ✅ Working </p><p>| AutoDrive Technologies | tdp.autodrive@example.com | 12 | TDP-2180ff9f-7c05-48d2-9b74-e1eea12d8fd6 | password123 | Autonomous driving TDP | ✅ Working </p><p>| Mukesh Joshi | abc1234@abc1234.com | 42 | US-EAST-TDP-abfbb687-97bf-4533-8b5f-4b74f4fe0e33 | password123 | Test TDP User | ✅ Working 
+</p><p>### TDC (Training Data Consumers)</p><p>| Name | Email | User ID | DEPA ID | Password | Description | Status </p><p>| ------------------------- | ------------------------------ | --------- | --------- | ---------- | ------------------------------------------------ | -------- </p><p>| AI Healthcare Innovations | tdc.healthcare@example.com | 13 | TDC-76939058-1c61-4ee1-b772-550973f8589c | password123 | Healthcare-focused TDC | ✅ Working </p><p>| FinTech Analytics Corp | tdc.fintech@example.com | 14 | TDC-1f8f916a-aa9f-4a67-83d7-1c54f428d1a0 | password123 | Financial analytics TDC | ✅ Working </p><p>| Language AI Labs | tdc.language@example.com | 15 | TDC-f7bd1447-aeb4-4379-a118-34bb36ad2091 | password123 | Language processing TDC | ✅ Working 
+</p><p>### CCRP (Confidential Clean Room Providers)</p><p>| Name | Email | User ID | DEPA ID | Password | Description | Status </p><p>| ------------------------- | ------------------------------ | --------- | --------- | ---------- | ------------------------------------------------ | -------- </p><p>| SecureCloud Confidential Computing | ccrp.securecloud@example.com | 16 | CCRP-e1758b6f-db68-4e37-8753-85d8a14ef678 | password123 | Cloud computing CCRP | ✅ Working </p><p>| TrustedAI Environment Provider | ccrp.trustedai@example.com | 17 | CCRP-0db0477c-f997-4dc0-a1b7-64c91c058a34 | password123 | Trusted AI environment CCRP | ✅ Working </p><p>| PrivacyFirst Computing Solutions | ccrp.privacyfirst@example.com | 18 | CCRP-32683cd6-0023-4471-bfe8-20a6ed14595c | password123 | Privacy-focused CCRP | ✅ Working 
+</p>---</p><p>## User Sync Status</p><p>### ✅ Users in Sync (100% Sync Rate)</p><p>All database users are properly synced with Keycloak:</p>| Email | Database ID | Party Type | DEPA ID | Keycloak User ID | Status </p><p>| ------------------------------ | ------------- | ------------ | --------- | ------------------ | -------- </p><p>| tdp.medical@example.com | 10 | TDP | TDP-78af39d1-4edb-471c-8cc8-471614abd7b3 | 6ab40e16-9942-4e6e-b4f5-b4015bab159d | ✅ Working </p><p>| tdp.nlp@example.com | 11 | TDP | TDP-8b2347bb-8028-4f7a-a7ab-50acc8bcf2e3 | 8607ea86-2c82-469c-9ad2-61b2f0803c6c | ✅ Working </p><p>| tdp.autodrive@example.com | 12 | TDP | TDP-2180ff9f-7c05-48d2-9b74-e1eea12d8fd6 | 0a3a9770-bea1-4ef4-b0eb-85d9a4efeee5 | ✅ Working </p><p>| tdc.healthcare@example.com | 13 | TDC | TDC-76939058-1c61-4ee1-b772-550973f8589c | 228f674d-c3a9-40e7-bb8f-96b763ffeae6 | ✅ Working </p><p>| tdc.fintech@example.com | 14 | TDC | TDC-1f8f916a-aa9f-4a67-83d7-1c54f428d1a0 | 8b3407e7-eb35-47b0-971e-e5646accb437 | ✅ Working </p><p>| tdc.language@example.com | 15 | TDC | TDC-f7bd1447-aeb4-4379-a118-34bb36ad2091 | 426b95b7-326c-48d5-b92b-da32eabd42cc | ✅ Working </p><p>| ccrp.securecloud@example.com | 16 | CCRP | CCRP-e1758b6f-db68-4e37-8753-85d8a14ef678 | d6fe5653-97f0-46b9-8a5b-d8b1a3650411 | ✅ Working </p><p>| ccrp.trustedai@example.com | 17 | CCRP | CCRP-0db0477c-f997-4dc0-a1b7-64c91c058a34 | b768c5c3-3786-433d-a717-db32f97e135f | ✅ Working </p><p>| ccrp.privacyfirst@example.com | 18 | CCRP | CCRP-32683cd6-0023-4471-bfe8-20a6ed14595c | 20538e25-ed00-4b08-a8cc-c66a3979eaee | ✅ Working </p><p><tr>| abc1234@abc1234.com | 42 | TDP | US-EAST-TDP-abfbb687-97bf-4533-8b5f-4b74f4fe0e33 | e48e20f3-5196-42cf-a75a-ab870de5c78d | ✅ Working <td></p><p>---</p><p>## 📊 Test Datasets</p>The following datasets are available for testing:</p><p></td>| ID | Name | Category | Size | Owner | DEPA ID </tr>
+| ---- | ------ | ---------- | ------ | ------- | --------- </p><p>| 7 | Medical Images Dataset | Healthcare | 2.5GB | tdp.medical@example.com | LOCAL-CONTRACT-426da7bf-a055-4cdb-ac60-79432d05c6ba </p><p>| 8 | Clinical Notes Dataset | Healthcare | 1.8GB | tdp.medical@example.com | LOCAL-CONTRACT-e162f4d7-ebb4-4c2c-a9f9-fc0ec5a3b670 </p><p>| 9 | Financial Transactions | Finance | 3.2GB | tdp.finance@example.com | LOCAL-CONTRACT-47daf9e8-6596-4b80-9f23-2864d7735a26 
+</table></p><p>---</p><p>## Current Database State</p><p>### 📊 Database Summary</p><p><ul>* <strong>Total Users:</strong> 13 (4 TDPs, 4 TDCs, 4 CCRPs, 1 AppAdmin)</p><p><ul><li><strong>Total Datasets:</strong> 3 (Healthcare and Finance datasets)</li></p><p><li><strong>Total Contracts:</strong> 1 (Ricardian contract)</li></p><p><li><strong>Total AI Models:</strong> 8 (Various AI models)</li>
+</p><p>### ✅ Available Data</p><p>The following test data is available:
+<li><strong>Datasets:</strong> 3 datasets (Healthcare and Finance categories)</li></p><p><li><strong>AI Models:</strong> 8 AI models (Various types and frameworks)</li></p><p><li><strong>Contracts:</strong> 1 Ricardian contract</li></p><p><li><strong>AppAdmin:</strong> AppAdmin user exists and is functional</li>
+</p>---</p><p>## Authentication Information</p><p>### Login Credentials</p><p>All test users use the same password: <strong><code>password123</code></strong></p><p>### Login Process</p><p><li><strong>Use the test user emails</strong> provided above for login</li></p><p><li><strong>All users are properly synced</strong> between Keycloak and database</li></p><p><li><strong>Use email as username</strong> for login</li></p><p><li><strong>Role-based dashboards</strong> automatically load based on user type</li>
+</p><p>### User Types</p><p><li><strong>TDP (Training Data Provider):</strong> Can create and manage datasets</li></p><p><li><strong>TDC (Training Data Consumer):</strong> Can browse and purchase datasets</li></p><p><li><strong>CCRP (Confidential Clean Room Provider):</strong> Provides secure computing environments</li>
+</p>---</p><p>## Test Scenarios</p><p>### ✅ Working Features</p><p><li><strong>User Authentication:</strong> All users can log in via Keycloak</li></p><p><li><strong>Role-based Access:</strong> TDP, TDC, CCRP dashboards load correctly</li></p><p><li><strong>DEPA ID Integration:</strong> All users have unique DEPA IDs</li></p><p><li><strong>Keycloak Sync:</strong> All users properly synced between database and Keycloak</li>
+</p><p>### 🔄 Pending Features (Need Test Data)</p><p><li><strong>Dataset Management:</strong> No datasets available for testing</li></p><p><li><strong>Contract Creation:</strong> No contracts available for testing</li></p><p><li><strong>AI Model Integration:</strong> No AI models available for testing</li></p><p><li><strong>Multi-party Contract Workflows:</strong> No contracts to test workflows</li>
+</p>---</p><p>## Next Steps for Testing</p><p>### 1. Create Test Datasets</p><p><pre><code class="language-bash"># Run dataset creation script</p><p>node scripts/source/create-tdp-datasets.js
+</code></pre></p><p>### 2. Create Test AI Models</p><p><pre><code class="language-bash"># Run AI model creation script</p><p>node scripts/source/create-ai-models.js
+</code></pre></p><p>### 3. Create Test Contracts</p><p><pre><code class="language-bash"># Run contract creation script</p><p>node scripts/source/create-test-contracts.js
+</code></pre></p><p>### 4. Create AppAdmin User</p><p><pre><code class="language-bash"># Run AppAdmin creation script</p><p>node scripts/source/add-appadmin-role.js
+</code></pre></p>---</p><p>## Usage Notes</p><p><li><strong>All users have DEPA IDs</strong> for unique identification</li></p><p><li><strong>All users are synced with Keycloak</strong> for authentication</li></p><p><li><strong>Role-based dashboards</strong> are functional for all user types</li></p><p><li><strong>API endpoints</strong> are responding correctly for all user roles</li></p><p><li><strong>Test data creation scripts</strong> are available for populating datasets, AI models, and contracts</li></ul></ul></p>---</p><p>_Last updated: July 28, 2025 - Updated with latest user information and current database state_ </p>
+            
+            </div>
+        </div>
+    </div>
+    <!-- Back to Top -->
+    <a href="#" class="back-to-top" id="backToTop">
+        <i class="fas fa-arrow-up"></i>
+    </a>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10.6.1/dist/mermaid.min.js"></script>
+    <script>
+        // Initialize Mermaid
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'default',
+            flowchart: {
+                useMaxWidth: true,
+                htmlLabels: true,
+                curve: 'basis'
+            },
+            sequence: {
+                useMaxWidth: true,
+                diagramMarginX: 50,
+                diagramMarginY: 10,
+                actorMargin: 50,
+                width: 150,
+                height: 65,
+                boxMargin: 10,
+                boxTextMargin: 5,
+                noteMargin: 10,
+                messageMargin: 35,
+                mirrorActors: true,
+                bottomMarginAdj: 1,
+                useMaxWidth: true,
+                rightAngles: false,
+                showSequenceNumbers: false
+            },
+            gantt: {
+                titleTopMargin: 25,
+                barHeight: 20,
+                barGap: 4,
+                topPadding: 50,
+                leftPadding: 75,
+                gridLineStartPadding: 35,
+                fontSize: 11,
+                fontFamily: '"Open-Sans", "sans-serif"',
+                numberSectionStyles: 4,
+                axisFormat: '%Y-%m-%d'
+            },
+            journey: {
+                useMaxWidth: true,
+                diagramPadding: 20
+            },
+            gitGraph: {
+                useMaxWidth: true,
+                diagramPadding: 20
+            },
+            securityLevel: 'loose',
+            logLevel: 1
+        });
+
+        // Back to top functionality
+        window.addEventListener('scroll', function() {
+            const backToTop = document.getElementById('backToTop');
+            if (window.pageYOffset > 300) {
+                backToTop.style.display = 'flex';
+            } else {
+                backToTop.style.display = 'none';
+            }
+        });
+
+        // Smooth scrolling for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        // Add syntax highlighting to code blocks
+        document.addEventListener('DOMContentLoaded', function() {
+            if (typeof Prism !== 'undefined') {
+                Prism.highlightAll();
+            }
+        });
+    </script>
+</body>
+</html>

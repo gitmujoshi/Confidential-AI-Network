@@ -16,6 +16,7 @@ const { Contract, User, Dataset, AIModel, TrainingEnvironment, TrainingJob } = r
 const InfrastructureService = require('./infrastructureService');
 const NotificationService = require('./notificationService');
 const { v4: uuidv4 } = require('uuid');
+const { DifferentialPrivacyService } = require('./differentialPrivacyService');
 
 class TrainingService {
   constructor() {
@@ -608,6 +609,323 @@ class TrainingService {
         message: `Training has completed for contract ${contract.contractId}`,
         metadata: { contractId: contract.contractId }
       });
+    }
+  }
+
+  /**
+   * Start training with differential privacy
+   */
+  async startDPTraining(contractId, trainingJob) {
+    try {
+      console.log(`🔐 Starting DP training for contract ${contractId}`);
+      
+      const contract = await this.getContract(contractId);
+      const dpService = new DifferentialPrivacyService();
+      
+      // Extract privacy parameters
+      const privacyParams = contract.privacyRequirements?.differentialPrivacy;
+      
+      if (!privacyParams?.enabled) {
+        throw new Error('Differential privacy not enabled for this contract');
+      }
+      
+      console.log(`📊 Privacy params: ε=${privacyParams.epsilon}, δ=${privacyParams.delta}`);
+      
+      // Get training data
+      const trainingData = await this.getTrainingData(contract.datasetId);
+      
+      // Apply DP to training data
+      const dpResult = await dpService.applyDifferentialPrivacy(
+        trainingData,
+        {
+          type: 'TRAINING_DATA',
+          parameters: {
+            dataType: 'FEATURE_VECTORS',
+            bounds: privacyParams.bounds
+          }
+        },
+        {
+          contractId: contract.contractId,
+          epsilon: privacyParams.epsilon * 0.3, // Use 30% of budget for data preprocessing
+          delta: privacyParams.delta * 0.3,
+          mechanism: privacyParams.mechanism || 'laplace'
+        }
+      );
+      
+      console.log(`✅ DP applied to training data`);
+      
+      // Train model with DP-protected data
+      const model = await this.trainModelWithDP(
+        dpResult.result,
+        privacyParams,
+        trainingJob,
+        contractId
+      );
+      
+      // Update training job with DP results
+      await trainingJob.update({
+        privacyMetrics: dpResult.privacyMetrics,
+        dpEnabled: true,
+        dpMechanism: privacyParams.mechanism,
+        dpEpsilonUsed: dpResult.privacyMetrics.epsilon,
+        dpDeltaUsed: dpResult.privacyMetrics.delta
+      });
+      
+      console.log(`🎯 DP training completed successfully`);
+      
+      return {
+        model,
+        privacyMetrics: dpResult.privacyMetrics,
+        trainingStatus: 'COMPLETED_WITH_DP',
+        dpData: {
+          originalDataSize: trainingData.length,
+          dpDataSize: dpResult.result.length,
+          noiseMetrics: dpResult.noiseMetrics
+        }
+      };
+      
+    } catch (error) {
+      console.error('❌ DP training failed:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Train model with differential privacy using DP-SGD
+   */
+  async trainModelWithDP(data, privacyParams, trainingJob, contractId) {
+    console.log(`🧠 Training model with DP-SGD`);
+    
+    // Initialize model
+    const model = await this.initializeModel(trainingJob.modelConfig);
+    
+    const { epsilon, delta, clipNorm = 1.0 } = privacyParams;
+    const epochs = trainingJob.trainingParams.maxEpochs || 100;
+    const batchSize = trainingJob.trainingParams.batchSize || 32;
+    
+    // Calculate remaining privacy budget for training
+    const remainingEpsilon = epsilon * 0.7; // Use remaining 70% for training
+    const remainingDelta = delta * 0.7;
+    
+    // Calculate epsilon per update
+    const totalUpdates = epochs * Math.ceil(data.length / batchSize);
+    const epsilonPerUpdate = remainingEpsilon / totalUpdates;
+    const deltaPerUpdate = remainingDelta / totalUpdates;
+    
+    console.log(`📊 Training with ${totalUpdates} updates, ε=${epsilonPerUpdate} per update`);
+    
+    const dpService = new DifferentialPrivacyService();
+    
+    for (let epoch = 0; epoch < epochs; epoch++) {
+      console.log(`🔄 DP Training Epoch ${epoch + 1}/${epochs}`);
+      
+      const batches = this.createBatches(data, batchSize);
+      
+      for (let batchIndex = 0; batchIndex < batches.length; batchIndex++) {
+        const batch = batches[batchIndex];
+        
+        // Compute gradients
+        const gradients = await this.computeGradients(model, batch);
+        
+        // Clip gradients for DP
+        const clippedGradients = await this.clipGradients(gradients, clipNorm);
+        
+        // Add noise to gradients using DP
+        const noisyGradients = await dpService.applyDifferentialPrivacy(
+          clippedGradients,
+          {
+            type: 'GRADIENT',
+            parameters: { clipNorm }
+          },
+          {
+            contractId: contractId,
+            epsilon: epsilonPerUpdate,
+            delta: deltaPerUpdate,
+            mechanism: 'laplace'
+          }
+        );
+        
+        // Update model with noisy gradients
+        await this.updateModel(model, noisyGradients.result);
+        
+        // Log progress every 10 batches
+        if (batchIndex % 10 === 0) {
+          console.log(`  Batch ${batchIndex + 1}/${batches.length} completed`);
+        }
+      }
+      
+      // Log epoch progress
+      console.log(`✅ DP Training Epoch ${epoch + 1}/${epochs} completed`);
+    }
+    
+    return model;
+  }
+
+  /**
+   * Clip gradients for differential privacy
+   */
+  async clipGradients(gradients, clipNorm) {
+    const l2Norm = this.calculateL2Norm(gradients);
+    
+    if (l2Norm > clipNorm) {
+      const scale = clipNorm / l2Norm;
+      return this.scaleGradients(gradients, scale);
+    }
+    
+    return gradients;
+  }
+
+  /**
+   * Calculate L2 norm of gradients
+   */
+  calculateL2Norm(gradients) {
+    if (Array.isArray(gradients)) {
+      return Math.sqrt(gradients.reduce((sum, val) => sum + val * val, 0));
+    } else if (typeof gradients === 'object') {
+      const values = Object.values(gradients).filter(v => typeof v === 'number');
+      return Math.sqrt(values.reduce((sum, val) => sum + val * val, 0));
+    }
+    return Math.abs(gradients);
+  }
+
+  /**
+   * Scale gradients by a factor
+   */
+  async scaleGradients(gradients, scale) {
+    if (Array.isArray(gradients)) {
+      return gradients.map(g => g * scale);
+    } else if (typeof gradients === 'object') {
+      const scaled = {};
+      for (const [key, value] of Object.entries(gradients)) {
+        if (typeof value === 'number') {
+          scaled[key] = value * scale;
+        } else if (Array.isArray(value)) {
+          scaled[key] = value.map(v => v * scale);
+        } else {
+          scaled[key] = value;
+        }
+      }
+      return scaled;
+    }
+    return gradients * scale;
+  }
+
+  /**
+   * Create batches from data
+   */
+  createBatches(data, batchSize) {
+    const batches = [];
+    for (let i = 0; i < data.length; i += batchSize) {
+      batches.push(data.slice(i, i + batchSize));
+    }
+    return batches;
+  }
+
+  /**
+   * Get training data for a dataset
+   */
+  async getTrainingData(datasetId) {
+    try {
+      const db = require('../models');
+      const dataset = await db.Dataset.findByPk(datasetId);
+      
+      if (!dataset) {
+        throw new Error(`Dataset not found: ${datasetId}`);
+      }
+      
+      // For now, return mock data - in production this would load actual dataset
+      // This is a placeholder for the actual data loading logic
+      const mockData = this.generateMockTrainingData(100, 10);
+      
+      console.log(`📊 Loaded training data: ${mockData.length} samples, ${mockData[0].length} features`);
+      
+      return mockData;
+      
+    } catch (error) {
+      console.error('Failed to get training data:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Generate mock training data for testing
+   */
+  generateMockTrainingData(samples, features) {
+    const data = [];
+    for (let i = 0; i < samples; i++) {
+      const sample = [];
+      for (let j = 0; j < features; j++) {
+        // Generate random feature values between -1 and 1
+        sample.push(Math.random() * 2 - 1);
+      }
+      data.push(sample);
+    }
+    return data;
+  }
+
+  /**
+   * Initialize model with configuration
+   */
+  async initializeModel(config) {
+    // Mock model initialization - in production this would create actual ML model
+    const model = {
+      weights: new Array(config.inputSize || 10).fill(0).map(() => Math.random() * 2 - 1),
+      bias: Math.random() * 2 - 1,
+      config: config
+    };
+    
+    console.log(`🧠 Model initialized with ${model.weights.length} weights`);
+    return model;
+  }
+
+  /**
+   * Compute gradients for a batch
+   */
+  async computeGradients(model, batch) {
+    // Mock gradient computation - in production this would compute actual gradients
+    const gradients = {
+      weights: model.weights.map(() => Math.random() * 2 - 1),
+      bias: Math.random() * 2 - 1
+    };
+    
+    return gradients;
+  }
+
+  /**
+   * Update model with gradients
+   */
+  async updateModel(model, gradients) {
+    // Mock model update - in production this would update actual model parameters
+    if (gradients.weights) {
+      for (let i = 0; i < model.weights.length; i++) {
+        model.weights[i] += gradients.weights[i] * 0.01; // Learning rate
+      }
+    }
+    
+    if (gradients.bias !== undefined) {
+      model.bias += gradients.bias * 0.01;
+    }
+  }
+
+  /**
+   * Get contract by ID
+   */
+  async getContract(contractId) {
+    try {
+      const db = require('../models');
+      const contract = await db.Contract.findOne({
+        where: { contractId }
+      });
+      
+      if (!contract) {
+        throw new Error(`Contract not found: ${contractId}`);
+      }
+      
+      return contract;
+      
+    } catch (error) {
+      console.error('Failed to get contract:', error);
+      throw error;
     }
   }
 }

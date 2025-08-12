@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dataset Access Integration Flow - ContractFlow Pro</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #f8f9fa;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        .flow-diagram {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin: 30px 0;
+        }
+        .flow-step {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            position: relative;
+        }
+        .flow-step::after {
+            content: '→';
+            position: absolute;
+            right: -15px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 24px;
+            color: #667eea;
+            z-index: 1;
+        }
+        .flow-step:last-child::after {
+            display: none;
+        }
+        .step-number {
+            background: rgba(255,255,255,0.2);
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        .step-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+        .step-description {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        .integration-points {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin: 30px 0;
+        }
+        .integration-point {
+            background: #f8f9fa;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            padding: 15px;
+            transition: all 0.3s ease;
+        }
+        .integration-point:hover {
+            border-color: #667eea;
+            transform: translateY(-2px);
+        }
+        .point-title {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 8px;
+        }
+        .point-description {
+            font-size: 14px;
+            color: #666;
+        }
+        .security-layers {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        .security-title {
+            font-weight: 600;
+            color: #856404;
+            margin-bottom: 15px;
+        }
+        .security-list {
+            list-style: none;
+            padding: 0;
+        }
+        .security-list li {
+            padding: 5px 0;
+            color: #856404;
+        }
+        .security-list li::before {
+            content: '🔒 ';
+            margin-right: 8px;
+        }
+        .code-example {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 20px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            margin: 20px 0;
+            overflow-x: auto;
+        }
+        .highlight {
+            background: #667eea;
+            color: white;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Dataset Access Integration Analysis</h1>
+        <p class="lead">Comprehensive integration strategy for secure dataset access in ContractFlow Pro</p>
+
+        <h2>Dataset Access Flow</h2>
+        <div class="flow-diagram">
+            <div class="flow-step">
+                <div class="step-number">1</div>
+                <div class="step-title">User Authentication</div>
+                <div class="step-description">User logs in via Keycloak IAM with role-based permissions</div>
+            </div>
+            <div class="flow-step">
+                <div class="step-number">2</div>
+                <div class="step-title">Contract Validation</div>
+                <div class="step-description">Smart contract verifies user has valid access rights</div>
+            </div>
+            <div class="flow-step">
+                <div class="step-number">3</div>
+                <div class="step-title">Access Control</div>
+                <div class="step-description">Role-based and time-based access restrictions applied</div>
+            </div>
+            <div class="flow-step">
+                <div class="step-number">4</div>
+                <div class="step-title">Data Retrieval</div>
+                <div class="step-description">Encrypted dataset retrieved from multi-cloud storage</div>
+            </div>
+            <div class="flow-step">
+                <div class="step-number">5</div>
+                <div class="step-title">Audit Logging</div>
+                <div class="step-description">All access events logged for compliance and monitoring</div>
+            </div>
+        </div>
+        <h2>Integration Points</h2>
+        <div class="integration-points">
+            <div class="integration-point">
+                <div class="point-title">🔐 Authentication Layer</div>
+                <div class="point-description">Keycloak IAM integration for user authentication and role management</div>
+            </div>
+            <div class="integration-point">
+                <div class="point-title">📋 Smart Contracts</div>
+                <div class="point-description">Blockchain-based contract validation and automated access control</div>
+            </div>
+            <div class="integration-point">
+                <div class="point-title">☁️ Multi-Cloud Storage</div>
+                <div class="point-description">AWS S3, Azure Blob, GCP Storage with unified access interface</div>
+            </div>
+            <div class="integration-point">
+                <div class="point-title">📊 Analytics Engine</div>
+                <div class="point-description">Usage tracking, performance metrics, and compliance reporting</div>
+            </div>
+            <div class="integration-point">
+                <div class="point-title">🔍 Audit System</div>
+                <div class="point-description">Comprehensive logging and real-time monitoring capabilities</div>
+            </div>
+            <div class="integration-point">
+                <div class="point-title">⚡ Caching Layer</div>
+                <div class="point-description">Redis-based caching for improved performance and reduced latency</div>
+            </div>
+        </div>
+        <h2>Security Layers</h2>
+        <div class="security-layers">
+            <div class="security-title">🔒 Multi-Layer Security Architecture</div>
+            <ul class="security-list">
+                <li><strong>Authentication:</strong> Keycloak-based SSO with MFA support</li>
+                <li><strong>Authorization:</strong> Role-based and contract-based access control</li>
+                <li><strong>Encryption:</strong> AES-256 at rest, TLS 1.3 in transit</li>
+                <li><strong>Token Management:</strong> Short-lived JWT tokens with automatic rotation</li>
+                <li><strong>Audit Trail:</strong> Immutable logs for all access events</li>
+                <li><strong>Watermarking:</strong> Digital watermarks for data tracking</li>
+                <li><strong>Rate Limiting:</strong> API rate limiting to prevent abuse</li>
+                <li><strong>Monitoring:</strong> Real-time threat detection and alerting</li>
+            </ul>
+        </div>
+        <h2>Technical Implementation</h2>
+        <div class="code-example">
+<span style="color: #81c784;">// Dataset Access Service</span>
+<span style="color: #64b5f6;">class</span> <span style="color: #ffb74d;">DatasetAccessService</span> {
+  <span style="color: #64b5f6;">async</span> <span style="color: #ffb74d;">requestAccess</span>(userId, datasetId, contractId) {
+    <span style="color: #81c784;">// Validate smart contract</span>
+    <span style="color: #64b5f6;">const</span> contract = <span style="color: #64b5f6;">await</span> <span style="color: #ffb74d;">this</span>.validateContract(contractId);
+    
+    <span style="color: #81c784;">// Check user permissions</span>
+    <span style="color: #64b5f6;">const</span> permissions = <span style="color: #64b5f6;">await</span> <span style="color: #ffb74d;">this</span>.checkPermissions(userId, datasetId);
+    
+    <span style="color: #81c784;">// Generate access token</span>
+    <span style="color: #64b5f6;">const</span> token = <span style="color: #ffb74d;">this</span>.generateAccessToken(userId, datasetId, permissions);
+    
+    <span style="color: #81c784;">// Log access request</span>
+    <span style="color: #64b5f6;">await</span> <span style="color: #ffb74d;">this</span>.auditService.logAccess(userId, datasetId, 'request', {
+      contractId,
+      timestamp: <span style="color: #64b5f6;">new</span> <span style="color: #ffb74d;">Date</span>(),
+      success: <span style="color: #4caf50;">true</span>
+    });
+    
+    <span style="color: #64b5f6;">return</span> { token, permissions, expiresAt: <span style="color: #ffb74d;">this</span>.calculateExpiry() };
+  }
+  
+  <span style="color: #64b5f6;">async</span> <span style="color: #ffb74d;">getDataset</span>(datasetId, accessToken) {
+    <span style="color: #81c784;">// Verify token</span>
+    <span style="color: #64b5f6;">const</span> decoded = <span style="color: #ffb74d;">this</span>.verifyToken(accessToken);
+    
+    <span style="color: #81c784;">// Get dataset from storage</span>
+    <span style="color: #64b5f6;">const</span> dataset = <span style="color: #64b5f6;">await</span> <span style="color: #ffb74d;">this</span>.storageProvider.getDataset(datasetId);
+    
+    <span style="color: #81c784;">// Apply transformations and watermarking</span>
+    <span style="color: #64b5f6;">const</span> processedData = <span style="color: #ffb74d;">this</span>.processDataset(dataset, decoded);
+    
+    <span style="color: #64b5f6;">return</span> processedData;
+  }
+}
+        </div>
+        <h2>Implementation Benefits</h2>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; margin: 20px 0;">
+            <div style="background: #e8f5e8; padding: 15px; border-radius: 8px; border-left: 4px solid #4caf50;">
+                <h4 style="color: #2e7d32; margin: 0 0 10px 0;">🚀 Performance</h4>
+                <p style="margin: 0; color: #2e7d32;">Sub-2 second dataset access with intelligent caching</p>
+            </div>
+            <div style="background: #fff3e0; padding: 15px; border-radius: 8px; border-left: 4px solid #ff9800;">
+                <h4 style="color: #e65100; margin: 0 0 10px 0;">🔒 Security</h4>
+                <p style="margin: 0; color: #e65100;">Multi-layer security with zero unauthorized access</p>
+            </div>
+            <div style="background: #e3f2fd; padding: 15px; border-radius: 8px; border-left: 4px solid #2196f3;">
+                <h4 style="color: #1565c0; margin: 0 0 10px 0;">📊 Compliance</h4>
+                <p style="margin: 0; color: #1565c0;">100% audit trail and regulatory compliance</p>
+            </div>
+            <div style="background: #f3e5f5; padding: 15px; border-radius: 8px; border-left: 4px solid #9c27b0;">
+                <h4 style="color: #6a1b9a; margin: 0 0 10px 0;">⚡ Scalability</h4>
+                <p style="margin: 0; color: #6a1b9a;">Cloud-native architecture supporting millions of datasets</p>
+            </div>
+        </div>
+        <h2>Next Steps</h2>
+        <ol style="line-height: 1.8;">
+            <li><strong>Phase 1 (Weeks 1-4):</strong> Core infrastructure and basic API endpoints</li>
+            <li><strong>Phase 2 (Weeks 5-8):</strong> Security implementation and smart contract integration</li>
+            <li><strong>Phase 3 (Weeks 9-12):</strong> Multi-cloud storage and performance optimization</li>
+            <li><strong>Phase 4 (Weeks 13-16):</strong> Advanced features and machine learning integration</li>
+        </ol>
+
+        <div style="background: #e8f5e8; padding: 20px; border-radius: 8px; margin-top: 30px; text-align: center;">
+            <h3 style="color: #2e7d32; margin: 0 0 10px 0;">Ready to Implement?</h3>
+            <p style="color: #2e7d32; margin: 0;">This integration will provide secure, scalable, and compliant dataset access for all ContractFlow Pro stakeholders.</p>
+        </div>
+    </div>
+</body>
+</html> 

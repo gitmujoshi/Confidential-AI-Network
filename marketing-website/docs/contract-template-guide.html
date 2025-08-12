@@ -1,0 +1,672 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contract Template Guide - ContractFlow Pro Documentation</title>
+    <meta name="description" content="Contract Template Guide - ContractFlow Pro Documentation">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.css" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f8f9fa;
+            color: #333;
+            line-height: 1.6;
+        }
+        .navbar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .navbar-brand {
+            color: white !important;
+            font-weight: 700;
+        }
+        .nav-link {
+            color: rgba(255,255,255,0.9) !important;
+            transition: color 0.3s ease;
+        }
+        .nav-link:hover {
+            color: white !important;
+        }
+        .doc-container {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            margin: 30px 0;
+            overflow: hidden;
+        }
+        .doc-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        .doc-content {
+            padding: 40px;
+        }
+        .doc-content h1, .doc-content h2, .doc-content h3, .doc-content h4, .doc-content h5, .doc-content h6 {
+            color: #333;
+            margin-top: 2rem;
+            margin-bottom: 1rem;
+            font-weight: 600;
+        }
+        .doc-content h1 {
+            font-size: 2.5rem;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 10px;
+        }
+        .doc-content h2 {
+            font-size: 2rem;
+            border-bottom: 2px solid #e9ecef;
+            padding-bottom: 8px;
+            color: #667eea;
+        }
+        .doc-content h3 {
+            font-size: 1.5rem;
+            color: #495057;
+        }
+        .doc-content p {
+            margin-bottom: 1rem;
+            font-size: 1.1rem;
+        }
+        .doc-content ul, .doc-content ol {
+            margin-bottom: 1rem;
+            padding-left: 2rem;
+        }
+        .doc-content li {
+            margin-bottom: 0.5rem;
+        }
+        
+        /* Enhanced Code Block Styling */
+        .doc-content pre {
+            background: #2d3748;
+            border: 1px solid #4a5568;
+            border-radius: 8px;
+            padding: 20px;
+            overflow-x: auto;
+            margin: 1.5rem 0;
+            position: relative;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        .doc-content pre code {
+            background: none;
+            color: #e2e8f0;
+            padding: 0;
+            font-family: 'Fira Code', 'Monaco', 'Consolas', monospace;
+            font-size: 0.9rem;
+            line-height: 1.5;
+            white-space: pre;
+            word-wrap: normal;
+        }
+        .doc-content code:not(pre code) {
+            background: #f7fafc;
+            color: #e53e3e;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            border: 1px solid #e2e8f0;
+        }
+        
+        /* Mermaid Diagram Styling */
+        .mermaid {
+            text-align: center;
+            margin: 2rem 0;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border: 1px solid #e9ecef;
+        }
+        .mermaid svg {
+            max-width: 100%;
+            height: auto;
+        }
+        
+        /* Enhanced Table Styling */
+        .doc-content table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1.5rem 0;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .doc-content th, .doc-content td {
+            border: 1px solid #e2e8f0;
+            padding: 12px 16px;
+            text-align: left;
+        }
+        .doc-content th {
+            background: #667eea;
+            color: white;
+            font-weight: 600;
+        }
+        .doc-content tr:nth-child(even) {
+            background: #f7fafc;
+        }
+        .doc-content tr:hover {
+            background: #edf2f7;
+        }
+        
+        /* Enhanced Blockquote Styling */
+        .doc-content blockquote {
+            border-left: 4px solid #667eea;
+            padding: 20px;
+            margin: 1.5rem 0;
+            background: #f7fafc;
+            border-radius: 0 8px 8px 0;
+            font-style: italic;
+            color: #4a5568;
+        }
+        .doc-content blockquote p {
+            margin-bottom: 0;
+        }
+        
+        /* Enhanced List Styling */
+        .doc-content ul {
+            list-style-type: none;
+            padding-left: 0;
+        }
+        .doc-content ul li {
+            position: relative;
+            padding-left: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+        .doc-content ul li:before {
+            content: "•";
+            color: #667eea;
+            font-weight: bold;
+            position: absolute;
+            left: 0;
+        }
+        .doc-content ol {
+            counter-reset: item;
+            list-style-type: none;
+            padding-left: 0;
+        }
+        .doc-content ol li {
+            counter-increment: item;
+            position: relative;
+            padding-left: 2rem;
+            margin-bottom: 0.5rem;
+        }
+        .doc-content ol li:before {
+            content: counter(item) ".";
+            color: #667eea;
+            font-weight: bold;
+            position: absolute;
+            left: 0;
+        }
+        
+        .breadcrumb {
+            background: transparent;
+            padding: 0;
+            margin-bottom: 20px;
+        }
+        .breadcrumb-item a {
+            color: #667eea;
+            text-decoration: none;
+        }
+        .breadcrumb-item.active {
+            color: #666;
+        }
+        .category-badge {
+            background: #e3f2fd;
+            color: #1976d2;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            margin-left: 10px;
+        }
+        .back-to-top {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: #667eea;
+            color: white;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+        .back-to-top:hover {
+            background: #5a6fd8;
+            color: white;
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container">
+            <a class="navbar-brand" href="../index.html">
+                <i class="fas fa-file-contract me-2"></i>ContractFlow Pro
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="../index.html">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="../index.html#features">Features</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="../index.html#solutions">Solutions</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="../index.html#dashboards">Dashboards</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="index.html">Documents</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="../index.html#pricing">Pricing</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="../index.html#contact">Contact</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container">
+        <!-- Breadcrumb -->
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="../index.html">Home</a></li>
+                <li class="breadcrumb-item"><a href="index.html">Documentation</a></li>
+                <li class="breadcrumb-item active">Contract Template Guide</li>
+            </ol>
+        </nav>
+
+        <!-- Document Container -->
+        <div class="doc-container">
+            <div class="doc-header">
+                <h1 class="mb-3">
+                    <i class="fas fa-book me-3"></i>Contract Template Guide
+                    <span class="category-badge">Templates</span>
+                </h1>
+                <p class="lead mb-0">ContractFlow Pro Documentation</p>
+            </div>
+            <div class="doc-content">
+                
+                <p>
+                # Contract JSON Template Guide</p><p>## Overview</p>This guide explains how to use the comprehensive JSON template for contracts in the Contract Management System. The template supports multi-party contracts between Training Data Providers (TDP), Training Data Consumers (TDC), and Confidential Clean Room Providers (CCRP).</p><p>## 📁 Files</p><ul>* <strong><code>contract_template.json</code></strong>: JSON Schema template with validation rules</p><p><ul><li><strong><code>sample_contract.json</code></strong>: Example contract with realistic data</li></p><p><li><strong><code>CONTRACT_TEMPLATE_GUIDE.md</code></strong>: This documentation</li>
+</p><p>## 🏗️ Template Structure</p><p>### 1. Metadata Section</p><p><pre><code class="language-json">{
+  "metadata": {
+    "templateVersion": "2.0.0",
+    "createdAt": "2024-01-15T10:30:00.000Z",
+    "lastModified": "2024-01-15T10:35:00.000Z",
+    "contractType": "DATA_SHARING"
+  }
+}
+</code></pre></p><strong>Purpose</strong>: System information and contract metadata
+<strong>Required Fields</strong>: <code>templateVersion</code>, <code>createdAt</code>, <code>contractType</code></p><p>### 2. Contract Identification</p><p><pre><code class="language-json">{
+  "contractId": "CONTRACT-1705312200000",
+  "blockchainContractId": 12345,
+  "status": "PENDING_TDP_APPROVAL"
+}
+</code></pre></p><strong>Purpose</strong>: Unique identifiers and workflow status
+<strong>Status Values</strong>:
+<li><code>PENDING_TDP_APPROVAL</code>: TDC created, waiting for TDP auto-sign</li></p><p><li><code>PENDING_CCRP_APPROVAL</code>: TDP signed, waiting for CCRP</li></p><p><li><code>ACTIVE</code>: All required parties signed</li></p><p><li><code>COMPLETED</code>: Contract execution finished</li></p><p><li><code>CANCELLED</code>: Contract cancelled</li></p><p>### 3. Parties Section</p><p><pre><code class="language-json">{
+  "parties": {
+    "tdp": {
+      "id": 1,
+      "name": "Acme Data Corp",
+      "email": "tdp@acmedata.com",
+      "walletAddress": "0x1234567890abcdef1234567890abcdef12345678",
+      "did": "did:web:acmedata.com:user:123",
+      "partyType": "TDP",
+      "organization": "Acme Data Corporation",
+      "signed": false,
+      "signedAt": null
+    }
+  }
+}
+</code></pre></p><strong>Party Types</strong>:
+<li><strong>TDP (Training Data Provider)</strong>: Dataset owner, auto-signs when contract created</li></p><p><li><strong>TDC (Training Data Consumer)</strong>: Contract initiator, signs to finalize</li></p><p><li><strong>CCRP (Confidential Clean Room Provider)</strong>: Optional reviewer, provides secure environment</li></p><p>### 4. Dataset Information</p><p><pre><code class="language-json">{
+  "dataset": {
+    "id": 1,
+    "datasetId": "DS-2024-001",
+    "name": "Customer Behavior Dataset 2024",
+    "description": "Comprehensive dataset containing customer behavior patterns...",
+    "category": "CUSTOMER_DATA",
+    "size": "2.5 GB",
+    "recordCount": 1000000,
+    "price": 5000.00,
+    "license": "COMMERCIAL_USE"
+  }
+}
+</code></pre></p><strong>Categories</strong>: <code>CUSTOMER_DATA</code>, <code>FINANCIAL_DATA</code>, <code>HEALTHCARE_DATA</code>, <code>RESEARCH_DATA</code>, <code>CUSTOM</code></p><p>### 5. Model Information</p><p><pre><code class="language-json">{
+  "model": {
+    "modelId": "MODEL-2024-001",
+    "name": "Customer Churn Prediction Model",
+    "description": "Machine learning model to predict customer churn...",
+    "type": "CLASSIFICATION",
+    "algorithm": "XGBoost",
+    "framework": "TensorFlow"
+  }
+}
+</code></pre></p><strong>Model Types</strong>: <code>CLASSIFICATION</code>, <code>REGRESSION</code>, <code>CLUSTERING</code>, <code>RECOMMENDATION</code>, <code>CUSTOM</code></p><p>### 6. Financial Terms</p><p><pre><code class="language-json">{
+  "financial": {
+    "price": 10000.00,
+    "currency": "USD",
+    "blockchainPrice": "10000000000000000000000",
+    "paymentTerms": "UPFRONT"
+  }
+}
+</code></pre></p><strong>Payment Terms</strong>: <code>UPFRONT</code>, <code>INSTALLMENTS</code>, <code>UPON_COMPLETION</code></p><p>### 7. Timeline</p><p><pre><code class="language-json">{
+  "timeline": {
+    "duration": 30,
+    "startDate": "2024-01-15",
+    "endDate": "2024-02-14",
+    "milestones": [...]
+  }
+}
+</code></pre></p><p>### 8. Data Processing & Compliance</p><p><pre><code class="language-json">{
+  "dataProcessing": {
+    "purpose": "Machine learning model training for customer churn prediction",
+    "dataTypes": ["customer-behavior", "purchase-history", "demographics"],
+    "retentionPeriod": 90,
+    "securityMeasures": ["encryption-at-rest", "access-controls"],
+    "compliance": ["DPDP_2023", "GDPR", "ISO_27001"]
+  }
+}
+</code></pre></p><p>### 9. Blockchain Information</p><p><pre><code class="language-json">{
+  "blockchain": {
+    "network": "goerli",
+    "contractAddress": "0x5FbDB2315678afecb367f032d93F642f64180aa3",
+    "transactionHash": "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef",
+    "gasUsed": 150000,
+    "gasPrice": "20000000000"
+  }
+}
+</code></pre></p><p>### 10. Audit Trail</p><p><pre><code class="language-json">{
+  "audit": {
+    "createdBy": "tdc@aitraining.com",
+    "createdAt": "2024-01-15T10:30:00.000Z",
+    "version": 1,
+    "changes": [...]
+  }
+}
+</code></pre></p><p>## 🔄 Contract Workflow</p><p>### 1. Contract Creation (TDC)</p><p><pre><code class="language-json">{
+  "status": "PENDING_TDP_APPROVAL",
+  "parties": {
+    "tdp": { "signed": false },
+    "tdc": { /<em> TDC info </em>/ },
+    "ccrp": { /<em> Optional CCRP </em>/ }
+  }
+}
+</code></pre></p><p>### 2. TDP Auto-Signing</p><p><pre><code class="language-json">{
+  "status": "PENDING_CCRP_APPROVAL",
+  "parties": {
+    "tdp": { 
+      "signed": true,
+      "signedAt": "2024-01-15T10:35:00.000Z"
+    }
+  }
+}
+</code></pre></p><p>### 3. CCRP Signing (if selected)</p><p><pre><code class="language-json">{
+  "status": "ACTIVE",
+  "parties": {
+    "ccrp": { 
+      "signed": true,
+      "signedAt": "2024-01-15T11:00:00.000Z"
+    }
+  }
+}
+</code></pre></p><p>### 4. Contract Completion</p><p><pre><code class="language-json">{
+  "status": "COMPLETED",
+  "timeline": {
+    "milestones": [
+      { "name": "Project Completion", "completed": true }
+    ]
+  }
+}
+</code></pre></p><p>## 🛠️ Usage Examples</p><p>### Creating a New Contract</p>
+<pre><code class="language-javascript">// Using the template to create a new contract
+const contractData = {
+  metadata: {
+    templateVersion: "2.0.0",
+    createdAt: new Date().toISOString(),
+    contractType: "DATA_SHARING"
+  },
+  contractId: <code>CONTRACT-${Date.now()}</code>,
+  status: "PENDING_TDP_APPROVAL",
+  parties: {
+    tdp: {
+      id: tdpUser.id,
+      name: tdpUser.name,
+      email: tdpUser.email,
+      partyType: "TDP",
+      signed: false
+    },
+    tdc: {
+      id: tdcUser.id,
+      name: tdcUser.name,
+      email: tdcUser.email,
+      partyType: "TDC"
+    }
+  },
+  dataset: {
+    id: dataset.id,
+    datasetId: dataset.datasetId,
+    name: dataset.name,
+    description: dataset.description,
+    category: dataset.category,
+    size: dataset.size,
+    recordCount: dataset.recordCount,
+    price: dataset.price,
+    license: dataset.license
+  },
+  model: {
+    modelId: modelId,
+    name: modelName,
+    description: modelDescription,
+    type: modelType
+  },
+  financial: {
+    price: totalPrice,
+    currency: "USD",
+    paymentTerms: "UPFRONT"
+  },
+  timeline: {
+    duration: durationInDays
+  },
+  termsAndConditions: terms,
+  dataProcessing: {
+    purpose: dataPurpose,
+    dataTypes: dataTypes,
+    retentionPeriod: retentionDays,
+    securityMeasures: securityMeasures,
+    compliance: complianceRequirements
+  },
+  audit: {
+    createdBy: currentUser.email,
+    createdAt: new Date().toISOString(),
+    version: 1
+  }
+};
+</code></pre></p><p>### Validating Contract Data</p>
+<pre><code class="language-javascript">// Using JSON Schema validation
+const Ajv = require('ajv');
+const contractSchema = require('./contract_template.json');</p><p>const ajv = new Ajv();
+const validate = ajv.compile(contractSchema);</p><p>const isValid = validate(contractData);
+if (!isValid) {
+  console.error('Validation errors:', validate.errors);
+}
+</code></pre></p><p>### API Integration</p>
+<pre><code class="language-javascript">// Creating contract via API
+const response = await fetch('/api/contracts', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+    'Authorization': <code>Bearer ${token}</code>
+  },
+  body: JSON.stringify({
+    tdpId: contractData.parties.tdp.id,
+    datasetId: contractData.dataset.id,
+    modelId: contractData.model.modelId,
+    price: contractData.financial.price,
+    duration: contractData.timeline.duration,
+    termsAndConditions: contractData.termsAndConditions,
+    ccrpId: contractData.parties.ccrp?.id
+  })
+});
+</code></pre></p><p>## 🔒 Security Considerations</p><p>### 1. Data Privacy</p><p><li>All personal data is anonymized</li></p><p><li>Data retention periods are enforced</li></p><p><li>Access controls are implemented</li>
+</p><p>### 2. Blockchain Security</p><p><li>Private keys never transmitted to backend</li></p><p><li>DID-based cryptographic verification</li></p><p><li>Immutable audit trail on blockchain</li>
+</p><p>### 3. Compliance</p><p><li>DPDP Act 2023 compliance</li></p><p><li>GDPR compliance for international data</li></p><p><li>ISO 27001 security standards</li>
+</p><p>## 📊 Performance Optimization</p><p>### 1. Database Indexing</p><p><pre><code class="language-sql">-- Optimized indexes for contract queries
+CREATE INDEX idx_contracts_status ON contracts(status);
+CREATE INDEX idx_contracts_tdp_id ON contracts(tdpId);
+CREATE INDEX idx_contracts_tdc_id ON contracts(tdcId);
+CREATE INDEX idx_contracts_ccrp_id ON contracts(ccrpId);
+</code></pre></p><p>### 2. Caching Strategy</p><p><pre><code class="language-javascript">// Cache frequently accessed contracts
+const contractCache = new Map();
+const cacheContract = (contractId, contractData) => {
+  contractCache.set(contractId, {
+    data: contractData,
+    timestamp: Date.now()
+  });
+};
+</code></pre></p><p>### 3. Blockchain Fallback</p><p><pre><code class="language-javascript">// Graceful fallback when blockchain unavailable
+if (!blockchainService.isConnected()) {
+  // Use database-only mode
+  contractData.blockchain = {
+    network: "database-only",
+    status: "FALLBACK"
+  };
+}
+</code></pre></p><p>## 🧪 Testing</p><p>### 1. Template Validation</p><p><pre><code class="language-bash"># Validate sample contract against template</p><p>npx ajv validate -s contract_template.json -d sample_contract.json
+</code></pre></p><p>### 2. API Testing</p><p><pre><code class="language-bash"># Test contract creation</p><p>curl -X POST http://localhost:5001/api/contracts \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -d @sample_contract.json
+</code></pre></p><p>### 3. Blockchain Testing</p><p><pre><code class="language-bash"># Test blockchain integration</p><p>npm run test:blockchain
+</code></pre></p><p>## 📈 Monitoring</p><p>### 1. Contract Metrics</p><p><li>Contract creation rate</li></p><p><li>Average processing time</li></p><p><li>Success/failure rates</li></p><p><li>Gas usage statistics</li>
+</p><p>### 2. Performance Metrics</p><p><li>API response times</li></p><p><li>Database query performance</li></p><p><li>Blockchain transaction success rates</li>
+</p><p>### 3. Compliance Metrics</p><p><li>DPDP compliance status</li></p><p><li>Data retention compliance</li></p><p><li>Security measure implementation</li>
+</p><p>## 🔄 Version Control</p><p>### Template Versioning</p><p><li>Major version changes for breaking changes</li></p><p><li>Minor version for new features</li></p><p><li>Patch version for bug fixes</li>
+</p><p>### Migration Strategy</p><p><pre><code class="language-javascript">// Version migration helper
+const migrateContract = (contractData, targetVersion) => {
+  const currentVersion = contractData.metadata.templateVersion;
+  // Migration logic here
+  return migratedContract;
+};
+</code></pre></p><p>## 📚 Additional Resources</p>* <a href="./API_DOCUMENTATION.md" target="_blank">API Documentation</a></p><p><li><a href="./blockchain/contracts/ContractManager.sol" target="_blank">Smart Contract Documentation</a></li></p><p><li><a href="./backend/models/Contract.js" target="_blank">Database Schema</a></li></p><p><li><a href="./frontend/src/pages/Contracts.js" target="_blank">Frontend Components</a></li></p><p>## 🤝 Support</p><p>For questions or issues with the contract template:</p><p><li>Check the <a href="./API_DOCUMENTATION.md" target="_blank">API Documentation</a></li></p><p><li>Review the <a href="./sample_contract.json" target="_blank">sample contract</a></li></p><p><li>Validate your contract against the <a href="./contract_template.json" target="_blank">template</a></li></p><p><li>Contact the development team</li></ul></ul><p>---</p><p><strong>Template Version</strong>: 2.0.0  
+<strong>Last Updated</strong>: 2024-01-15  
+<strong>Compatibility</strong>: Contract Management System v2.0+ </p>
+            
+            </div>
+        </div>
+    </div>
+    <!-- Back to Top -->
+    <a href="#" class="back-to-top" id="backToTop">
+        <i class="fas fa-arrow-up"></i>
+    </a>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10.6.1/dist/mermaid.min.js"></script>
+    <script>
+        // Initialize Mermaid
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'default',
+            flowchart: {
+                useMaxWidth: true,
+                htmlLabels: true,
+                curve: 'basis'
+            },
+            sequence: {
+                useMaxWidth: true,
+                diagramMarginX: 50,
+                diagramMarginY: 10,
+                actorMargin: 50,
+                width: 150,
+                height: 65,
+                boxMargin: 10,
+                boxTextMargin: 5,
+                noteMargin: 10,
+                messageMargin: 35,
+                mirrorActors: true,
+                bottomMarginAdj: 1,
+                useMaxWidth: true,
+                rightAngles: false,
+                showSequenceNumbers: false
+            },
+            gantt: {
+                titleTopMargin: 25,
+                barHeight: 20,
+                barGap: 4,
+                topPadding: 50,
+                leftPadding: 75,
+                gridLineStartPadding: 35,
+                fontSize: 11,
+                fontFamily: '"Open-Sans", "sans-serif"',
+                numberSectionStyles: 4,
+                axisFormat: '%Y-%m-%d'
+            },
+            journey: {
+                useMaxWidth: true,
+                diagramPadding: 20
+            },
+            gitGraph: {
+                useMaxWidth: true,
+                diagramPadding: 20
+            },
+            securityLevel: 'loose',
+            logLevel: 1
+        });
+
+        // Back to top functionality
+        window.addEventListener('scroll', function() {
+            const backToTop = document.getElementById('backToTop');
+            if (window.pageYOffset > 300) {
+                backToTop.style.display = 'flex';
+            } else {
+                backToTop.style.display = 'none';
+            }
+        });
+
+        // Smooth scrolling for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        // Add syntax highlighting to code blocks
+        document.addEventListener('DOMContentLoaded', function() {
+            if (typeof Prism !== 'undefined') {
+                Prism.highlightAll();
+            }
+        });
+    </script>
+</body>
+</html>

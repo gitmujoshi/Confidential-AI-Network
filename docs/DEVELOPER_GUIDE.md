@@ -7,10 +7,11 @@ Complete guide for developers working on the Contract Management System. This gu
 1. [Development Setup](#development-setup)
 2. [Project Structure](#project-structure)
 3. [Development Workflow](#development-workflow)
-4. [Testing](#testing)
-5. [Debugging](#debugging)
-6. [Deployment](#deployment)
-7. [Best Practices](#best-practices)
+4. [Differential Privacy Development](#differential-privacy-development)
+5. [Testing](#testing)
+6. [Debugging](#debugging)
+7. [Deployment](#deployment)
+8. [Best Practices](#best-practices)
 
 ## 🚀 Development Setup
 
@@ -575,3 +576,515 @@ npx sequelize-cli db:drop && npx sequelize-cli db:create && npx sequelize-cli db
 ---
 
 *This developer guide consolidates information from multiple developer-related documents and workflow guides.* 
+
+## 🔐 Differential Privacy Development
+
+### **Overview**
+The differential privacy system provides privacy-preserving data analysis capabilities. This section covers how to develop, extend, and maintain the DP functionality.
+
+### **Core Components**
+
+#### **1. Differential Privacy Service**
+```javascript
+// backend/services/differentialPrivacyService.js
+class DifferentialPrivacyService {
+  constructor() {
+    this.mechanisms = {
+      laplace: new LaplaceMechanism(),
+      gaussian: new GaussianMechanism(),
+      exponential: new ExponentialMechanism(),
+      geometric: new GeometricMechanism()
+    };
+    this.budgetTracker = new PrivacyBudgetTracker();
+    this.sensitivityAnalyzer = new SensitivityAnalyzer();
+  }
+}
+```
+
+**Key Methods:**
+- `applyDifferentialPrivacy(data, query, privacyParams)`
+- `validatePrivacyParams(params)`
+- `selectMechanism(queryType, data)`
+
+#### **2. Noise Mechanisms**
+```javascript
+// backend/services/mechanisms/laplaceMechanism.js
+class LaplaceMechanism {
+  addNoise(value, epsilon, sensitivity) {
+    const scale = sensitivity / epsilon;
+    const noise = this.sampleLaplace(scale);
+    return value + noise;
+  }
+  
+  addNoiseToArray(array, epsilon, sensitivity) {
+    return array.map(value => this.addNoise(value, epsilon, sensitivity));
+  }
+}
+```
+
+**Available Mechanisms:**
+- **Laplace**: `backend/services/mechanisms/laplaceMechanism.js`
+- **Gaussian**: `backend/services/mechanisms/gaussianMechanism.js`
+- **Exponential**: `backend/services/mechanisms/exponentialMechanism.js`
+- **Geometric**: `backend/services/mechanisms/geometricMechanism.js`
+
+#### **3. Privacy Budget Management**
+```javascript
+// backend/services/privacyBudgetTracker.js
+class PrivacyBudgetTracker {
+  async checkBudget(contractId, requiredEpsilon, requiredDelta) {
+    const budget = await this.getCurrentBudget(contractId);
+    return {
+      hasBudget: budget.remainingEpsilon >= requiredEpsilon && 
+                 budget.remainingDelta >= requiredDelta,
+      currentBudget: budget
+    };
+  }
+  
+  async consumeBudget(contractId, epsilon, delta) {
+    // Implementation details
+  }
+}
+```
+
+### **Adding New DP Mechanisms**
+
+#### **Step 1: Create Mechanism Class**
+```javascript
+// backend/services/mechanisms/customMechanism.js
+class CustomMechanism {
+  constructor() {
+    this.name = 'custom';
+    this.description = 'Custom differential privacy mechanism';
+  }
+  
+  addNoise(value, privacyParams) {
+    // Implement noise addition logic
+    const noise = this.generateNoise(privacyParams);
+    return value + noise;
+  }
+  
+  generateNoise(privacyParams) {
+    // Implement noise generation
+    return 0; // Placeholder
+  }
+  
+  validateParams(privacyParams) {
+    // Validate mechanism-specific parameters
+    return true;
+  }
+}
+```
+
+#### **Step 2: Register in DP Service**
+```javascript
+// backend/services/differentialPrivacyService.js
+const CustomMechanism = require('./mechanisms/customMechanism');
+
+class DifferentialPrivacyService {
+  constructor() {
+    this.mechanisms = {
+      // ... existing mechanisms
+      custom: new CustomMechanism()
+    };
+  }
+}
+```
+
+#### **Step 3: Add Tests**
+```javascript
+// backend/tests/custom-mechanism.test.js
+describe('CustomMechanism', () => {
+  let mechanism;
+  
+  beforeEach(() => {
+    mechanism = new CustomMechanism();
+  });
+  
+  test('should add noise to values', () => {
+    const result = mechanism.addNoise(10, { epsilon: 1.0 });
+    expect(result).not.toBe(10); // Should be different due to noise
+  });
+  
+  test('should validate parameters', () => {
+    const isValid = mechanism.validateParams({ epsilon: 1.0 });
+    expect(isValid).toBe(true);
+  });
+});
+```
+
+### **Adding New Query Types**
+
+#### **Step 1: Define Query Type**
+```javascript
+// backend/services/sensitivityAnalyzer.js
+class SensitivityAnalyzer {
+  calculateSensitivity(queryType, data, parameters) {
+    switch(queryType) {
+      // ... existing cases
+      case 'CUSTOM_QUERY':
+        return this.calculateCustomSensitivity(data, parameters);
+      default:
+        throw new Error(`Unsupported query type: ${queryType}`);
+    }
+  }
+  
+  calculateCustomSensitivity(data, parameters) {
+    // Implement sensitivity calculation for custom query
+    return 1.0; // Placeholder
+  }
+}
+```
+
+#### **Step 2: Update API Documentation**
+```javascript
+// backend/routes/differential-privacy.js
+router.get('/query-types', (req, res) => {
+  const queryTypes = [
+    // ... existing types
+    {
+      name: 'CUSTOM_QUERY',
+      description: 'Custom query type for specific use case',
+      sensitivity: 'data_dependent',
+      mechanism: 'custom'
+    }
+  ];
+  
+  res.json({ success: true, data: queryTypes });
+});
+```
+
+### **Database Schema Extensions**
+
+#### **Adding New Privacy Fields**
+```javascript
+// backend/migrations/add-custom-privacy-fields.js
+module.exports = {
+  up: async (queryInterface, Sequelize) => {
+    await queryInterface.addColumn('PrivacyOperationsLogs', 'customField', {
+      type: Sequelize.STRING,
+      allowNull: true
+    });
+  },
+  
+  down: async (queryInterface, Sequelize) => {
+    await queryInterface.removeColumn('PrivacyOperationsLogs', 'customField');
+  }
+};
+```
+
+#### **Running Migrations**
+```bash
+# Create migration runner
+cd backend
+node run-privacy-migration.js
+
+# Or run manually
+psql -h localhost -U mukeshjoshi -d contract_management -f migrations/add-custom-privacy-fields.js
+```
+
+### **Frontend Integration**
+
+#### **Adding DP Controls to Components**
+```javascript
+// frontend/src/components/DifferentialPrivacyManager.js
+import React, { useState, useEffect } from 'react';
+import { 
+  TextField, 
+  Select, 
+  MenuItem, 
+  Button,
+  FormControl,
+  InputLabel 
+} from '@mui/material';
+
+const DifferentialPrivacyManager = ({ contractId, onApply }) => {
+  const [privacyParams, setPrivacyParams] = useState({
+    epsilon: 1.0,
+    delta: 1e-5,
+    mechanism: 'laplace'
+  });
+  
+  const [budget, setBudget] = useState(null);
+  
+  useEffect(() => {
+    // Fetch current budget
+    fetchBudget(contractId);
+  }, [contractId]);
+  
+  const handleApply = async () => {
+    try {
+      const result = await applyDifferentialPrivacy(privacyParams);
+      onApply(result);
+    } catch (error) {
+      console.error('DP application failed:', error);
+    }
+  };
+  
+  return (
+    <div>
+      <FormControl fullWidth>
+        <InputLabel>Mechanism</InputLabel>
+        <Select
+          value={privacyParams.mechanism}
+          onChange={(e) => setPrivacyParams({
+            ...privacyParams,
+            mechanism: e.target.value
+          })}
+        >
+          <MenuItem value="laplace">Laplace</MenuItem>
+          <MenuItem value="gaussian">Gaussian</MenuItem>
+          <MenuItem value="exponential">Exponential</MenuItem>
+          <MenuItem value="geometric">Geometric</MenuItem>
+        </Select>
+      </FormControl>
+      
+      <TextField
+        label="Epsilon (ε)"
+        type="number"
+        value={privacyParams.epsilon}
+        onChange={(e) => setPrivacyParams({
+          ...privacyParams,
+          epsilon: parseFloat(e.target.value)
+        })}
+        inputProps={{ min: 0.1, max: 10, step: 0.1 }}
+      />
+      
+      <TextField
+        label="Delta (δ)"
+        type="number"
+        value={privacyParams.delta}
+        onChange={(e) => setPrivacyParams({
+          ...privacyParams,
+          delta: parseFloat(e.target.value)
+        })}
+        inputProps={{ min: 1e-6, max: 1e-3, step: 1e-6 }}
+      />
+      
+      <Button onClick={handleApply} variant="contained">
+        Apply Differential Privacy
+      </Button>
+      
+      {budget && (
+        <div>
+          <h4>Privacy Budget</h4>
+          <p>Remaining Epsilon: {budget.remainingEpsilon}</p>
+          <p>Remaining Delta: {budget.remainingDelta}</p>
+          <p>Status: {budget.budgetStatus}</p>
+        </div>
+      )}
+    </div>
+  );
+};
+```
+
+### **Testing DP Functionality**
+
+#### **Unit Tests**
+```javascript
+// backend/tests/differential-privacy.test.js
+describe('DifferentialPrivacyService', () => {
+  let dpService;
+  
+  beforeEach(() => {
+    dpService = new DifferentialPrivacyService();
+  });
+  
+  test('should apply Laplace mechanism', async () => {
+    const data = [1, 2, 3, 4, 5];
+    const query = { type: 'AVERAGE' };
+    const privacyParams = {
+      epsilon: 1.0,
+      mechanism: 'laplace',
+      contractId: 'test-contract'
+    };
+    
+    const result = await dpService.applyDifferentialPrivacy(
+      data, query, privacyParams
+    );
+    
+    expect(result.success).toBe(true);
+    expect(result.data.result).toHaveLength(5);
+    expect(result.data.privacyMetrics.mechanism).toBe('laplace');
+  });
+  
+  test('should respect privacy budget', async () => {
+    // Test budget enforcement
+  });
+  
+  test('should handle insufficient budget', async () => {
+    // Test budget exhaustion
+  });
+});
+```
+
+#### **Integration Tests**
+```javascript
+// backend/tests/api/differential-privacy.test.js
+describe('Differential Privacy API', () => {
+  test('GET /api/dp/mechanisms should return available mechanisms', async () => {
+    const response = await request(app)
+      .get('/api/dp/mechanisms')
+      .expect(200);
+    
+    expect(response.body.success).toBe(true);
+    expect(response.body.data).toHaveLength(4); // laplace, gaussian, exponential, geometric
+  });
+  
+  test('POST /api/dp/test should apply DP to test data', async () => {
+    const testData = {
+      data: [1, 2, 3, 4, 5],
+      query: { type: 'AVERAGE' },
+      privacyParams: {
+        epsilon: 0.1,
+        delta: 1e-5,
+        mechanism: 'laplace'
+      }
+    };
+    
+    const response = await request(app)
+      .post('/api/dp/test')
+      .send(testData)
+      .expect(200);
+    
+    expect(response.body.success).toBe(true);
+    expect(response.body.data.result).toHaveLength(5);
+  });
+});
+```
+
+### **Performance Optimization**
+
+#### **Budget Caching**
+```javascript
+// backend/services/privacyBudgetTracker.js
+class PrivacyBudgetTracker {
+  constructor() {
+    this.cache = new Map();
+    this.cacheTimeout = 5 * 60 * 1000; // 5 minutes
+  }
+  
+  async getCurrentBudget(contractId) {
+    const cached = this.cache.get(contractId);
+    if (cached && Date.now() - cached.timestamp < this.cacheTimeout) {
+      return cached.budget;
+    }
+    
+    const budget = await this.fetchFromDatabase(contractId);
+    this.cache.set(contractId, {
+      budget,
+      timestamp: Date.now()
+    });
+    
+    return budget;
+  }
+}
+```
+
+#### **Batch Operations**
+```javascript
+// backend/services/differentialPrivacyService.js
+async applyDifferentialPrivacyBatch(operations, privacyParams) {
+  const results = [];
+  
+  // Group operations by contract for batch budget checking
+  const operationsByContract = this.groupByContract(operations);
+  
+  for (const [contractId, contractOps] of operationsByContract) {
+    const totalEpsilon = contractOps.reduce((sum, op) => sum + op.epsilon, 0);
+    const totalDelta = contractOps.reduce((sum, op) => sum + op.delta, 0);
+    
+    // Check budget for all operations at once
+    const hasBudget = await this.budgetTracker.checkBudget(
+      contractId, totalEpsilon, totalDelta
+    );
+    
+    if (!hasBudget) {
+      throw new Error(`Insufficient budget for contract ${contractId}`);
+    }
+    
+    // Process all operations
+    for (const operation of contractOps) {
+      const result = await this.processOperation(operation);
+      results.push(result);
+    }
+    
+    // Update budget once for all operations
+    await this.budgetTracker.consumeBudget(
+      contractId, totalEpsilon, totalDelta
+    );
+  }
+  
+  return results;
+}
+```
+
+### **Debugging DP Issues**
+
+#### **Common Problems and Solutions**
+
+**1. Budget Exhaustion**
+```bash
+# Check budget status
+curl -s http://localhost:5001/api/dp/budget/contract-123
+
+# Check operation history
+curl -s http://localhost:5001/api/dp/history/contract-123
+```
+
+**2. Mechanism Selection Issues**
+```bash
+# Test specific mechanism
+curl -s -X POST http://localhost:5001/api/dp/test \
+  -H "Content-Type: application/json" \
+  -d '{"data":[1,2,3],"query":{"type":"COUNT"},"privacyParams":{"epsilon":1.0,"mechanism":"geometric"}}'
+```
+
+**3. Database Connection Issues**
+```bash
+# Check if DP tables exist
+psql -h localhost -U mukeshjoshi -d contract_management -c "\dt" | grep -i privacy
+
+# Run migration if needed
+cd backend && node run-privacy-migration.js
+```
+
+#### **Logging and Monitoring**
+```javascript
+// Enable detailed DP logging
+const dpLogger = {
+  info: (message, data) => console.log(`[DP INFO] ${message}`, data),
+  error: (message, error) => console.error(`[DP ERROR] ${message}`, error),
+  debug: (message, data) => {
+    if (process.env.DP_DEBUG) {
+      console.log(`[DP DEBUG] ${message}`, data);
+    }
+  }
+};
+```
+
+### **Best Practices for DP Development**
+
+#### **1. Privacy-First Design**
+- Always validate privacy parameters
+- Implement proper budget checking
+- Use appropriate mechanisms for query types
+- Log all operations for audit purposes
+
+#### **2. Performance Considerations**
+- Cache budget information when possible
+- Batch operations to reduce database calls
+- Use efficient noise generation algorithms
+- Monitor execution times
+
+#### **3. Testing Strategy**
+- Test with various data types and sizes
+- Verify privacy guarantees mathematically
+- Test budget enforcement thoroughly
+- Include edge cases in test coverage
+
+#### **4. Error Handling**
+- Graceful degradation when budget is exhausted
+- Clear error messages for debugging
+- Fallback mechanisms when possible
+- Comprehensive error logging 
