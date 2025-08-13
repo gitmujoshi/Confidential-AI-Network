@@ -8,17 +8,20 @@ WORKDIR /app
 COPY package*.json ./
 
 # Install dependencies
-RUN npm ci --only=production
+RUN npm install --omit=dev
 
 # Copy application code
 COPY . .
+
+# Create logs directory and set permissions
+RUN mkdir -p /logs
 
 # Create non-root user
 RUN addgroup -g 1001 -S nodejs
 RUN adduser -S nodejs -u 1001
 
-# Change ownership of the app directory
-RUN chown -R nodejs:nodejs /app
+# Change ownership of the app directory and logs
+RUN chown -R nodejs:nodejs /app /logs
 USER nodejs
 
 # Expose port

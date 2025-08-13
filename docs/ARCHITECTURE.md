@@ -16,6 +16,7 @@ Complete technical architecture documentation for the Contract Management System
 10. [Differential Privacy Architecture](#differential-privacy-architecture)
 11. [Security Architecture](#security-architecture)
 12. [Deployment Architecture](#deployment-architecture)
+13. [Testing Architecture](#testing-architecture)
 
 ## 🎯 System Overview
 
@@ -1222,14 +1223,85 @@ volumes:
 - **Error Tracking**: Comprehensive error logging
 - **User Analytics**: Usage analytics
 
-## 📚 Related Documentation
+## 🧪 Testing Architecture
 
-- **[Quick Start](QUICK_START.md)** - Get started in 5 minutes
-- **[Setup Guide](SETUP.md)** - Complete installation and configuration
-- **[User Guide](USER_GUIDE.md)** - How to use the system
-- **[Developer Guide](DEVELOPER_GUIDE.md)** - Development workflows
-- **[API Reference](API_REFERENCE.md)** - Technical API documentation
-- **[Troubleshooting](TROUBLESHOOTING.md)** - Common issues and solutions
+### **Updated Test Suite Structure**
+
+The system now includes comprehensive testing for SCITT CCF integration:
+
+```
+backend/tests/
+├── scitt-ccf-integration.test.js    # SCITT CCF service integration tests
+├── scitt-ccf-api.test.js           # SCITT CCF API endpoint tests
+├── api-test-suite.js               # General API tests
+├── contract-state-machine.test.js  # Contract lifecycle tests
+├── cloudProviders.test.js          # Cloud provider integration tests
+├── differential-privacy.test.js    # Differential privacy tests
+└── integration/                    # Integration test suites
+    ├── cloudCredentials.test.js    # Cloud credentials workflow
+    └── e2e/                       # End-to-end tests
+        └── cloudCredentialsWorkflow.test.js
+```
+
+### **SCITT CCF Test Coverage**
+
+#### **Integration Tests** (`scitt-ccf-integration.test.js`)
+- **Service Tests**: Service initialization, connection, TEE detection
+- **Contract Router Tests**: Migration modes, fallback scenarios, dual operations
+- **Health Monitor Tests**: System health monitoring for both SCITT CCF and Ethereum
+- **Migration Tests**: All migration modes (ETHEREUM_ONLY, SCITT_CCF_ONLY, HYBRID)
+- **Error Handling**: Service unavailability, network issues, invalid data
+- **Performance Tests**: Concurrent operations, response time validation
+
+#### **API Tests** (`scitt-ccf-api.test.js`)
+- **Health Endpoints**: SCITT CCF health status and metrics
+- **Contract Operations**: Create, read, update contracts via SCITT CCF
+- **Claims Management**: Submit, retrieve, and manage SCITT CCF claims
+- **TEE Attestation**: Verify trusted execution environment attestations
+- **Migration Endpoints**: Migration mode management and contract migration
+- **Configuration**: SCITT CCF configuration management
+- **Load Testing**: Concurrent operations and large data handling
+
+### **Test Data Management**
+
+The test suites use comprehensive test data created by `create-test-data.js`:
+- **8 Users** with different roles (TDP, TDC, CCRP, Admin)
+- **7 Datasets** with DEPA IDs and metadata
+- **3 AI Models** with performance metrics
+- **3 Contract Templates** for different use cases
+- **3 Sample Contracts** in various states
+
+### **Testing Workflows**
+
+```bash
+# Run all tests including SCITT CCF
+cd backend
+npm test
+
+# Run SCITT CCF specific tests
+npm test -- --testPathPattern="scitt-ccf"
+
+# Run specific test suites
+npm test -- scitt-ccf-integration.test.js
+npm test -- scitt-ccf-api.test.js
+
+# Run legacy integration tests
+node scripts/test-scitt-ccf-integration.js
+```
+
+### **Test Environment Setup**
+
+```yaml
+# Test environment configuration
+TEST_MODE: 'integration'
+NODE_ENV: 'test'
+SCITT_CCF_ENABLED: 'true'
+MIGRATION_MODE: 'HYBRID'
+BLOCKCHAIN_ENABLED: 'true'
+KEYCLOAK_ENABLED: 'true'
+```
+
+## 📚 Related Documentation
 
 ---
 

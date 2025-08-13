@@ -163,8 +163,8 @@ check_system_status() {
     fi
     
     # Check Keycloak
-    if curl -s "http://localhost:8080/health" > /dev/null 2>&1; then
-        print_success "Keycloak: Running on port 8080"
+    if curl -k -s "https://localhost:8443/realms/master" > /dev/null 2>&1; then
+        print_success "Keycloak: Running on port 8443 (HTTPS)"
     else
         print_warning "Keycloak: Not running"
     fi

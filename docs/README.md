@@ -15,6 +15,7 @@ Welcome to the streamlined documentation for the Contract Management System. Thi
 ### **Developer Documentation**
 - **[Developer Guide](DEVELOPER_GUIDE.md)** - Development setup and workflows
 - **[Architecture](ARCHITECTURE.md)** - System design and technical details
+- **[Testing](TESTING.md)** - Complete testing guide and test suites
 - **[Troubleshooting](TROUBLESHOOTING.md)** - Common issues and solutions
 
 ## 📋 Documentation Structure
@@ -28,6 +29,7 @@ docs/
 ├── DEVELOPER_GUIDE.md          # Developer documentation
 ├── API_REFERENCE.md            # Complete API documentation
 ├── ARCHITECTURE.md             # System architecture
+├── TESTING.md                  # Complete testing guide
 ├── TROUBLESHOOTING.md          # Common issues and solutions
 └── archive/                    # Old documentation (read-only)
 ```
@@ -67,10 +69,36 @@ All test users use password: `password123`
 
 | Role | Email | Status |
 |------|-------|--------|
-| TDC | `tdc-test@example.com` | ✅ Working |
-| TDP | `tdp-test@example.com` | ✅ Working |
-| CCRP | `ccrp-test@example.com` | ✅ Working |
-| AppAdmin | `appadmin-test@example.com` | ✅ Working |
+| TDC | `research@tdc.com` | ✅ Working |
+| TDP | `healthcare@tdp.com` | ✅ Working |
+| CCRP | `secure@ccrp.com` | ✅ Working |
+| AppAdmin | `admin@contractmanagement.com` | ✅ Working |
+
+## 🧪 Test Data Available
+
+The system includes comprehensive test data for testing:
+- **7 Datasets** with DEPA IDs (DATASET-001 to DATASET-007)
+- **3 AI Models** with DEPA IDs (MODEL-001 to MODEL-003)
+- **3 Contract Templates** for different use cases
+- **3 Sample Contracts** in various states
+
+## 🧪 Testing
+
+### **Run SCITT CCF Test Suites**
+```bash
+# Run all tests including SCITT CCF
+cd backend
+npm test
+
+# Run SCITT CCF specific tests
+npm test -- --testPathPattern="scitt-ccf"
+
+# Run specific test suites
+npm test -- scitt-ccf-integration.test.js
+npm test -- scitt-ccf-api.test.js
+```
+
+For complete testing documentation, see **[Testing Guide](TESTING.md)**.
 
 ## 🏗️ System Components
 

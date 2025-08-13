@@ -75,6 +75,7 @@ module.exports = (sequelize, DataTypes) => {
   }, {
     tableName: 'datasets',
     timestamps: true,
+    underscored: true,
     indexes: [
       {
         unique: true,

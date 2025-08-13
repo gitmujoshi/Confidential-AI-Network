@@ -418,6 +418,44 @@ psql -h localhost -U ***REMOVED-DB_PASSWORD*** -d contract_management -c "
 "
 ```
 
+### **SCITT CCF Testing Issues**
+
+#### **SCITT CCF Test Suites Not Found**
+```bash
+# Check if test files exist
+ls -la backend/tests/scitt-ccf*.test.js
+
+# Expected files:
+# - scitt-ccf-integration.test.js
+# - scitt-ccf-api.test.js
+```
+
+#### **SCITT CCF Test Suites Fail**
+```bash
+# Run SCITT CCF specific tests
+cd backend
+npm test -- --testPathPattern="scitt-ccf"
+
+# Run specific test suites
+npm test -- scitt-ccf-integration.test.js
+npm test -- scitt-ccf-api.test.js
+
+# Run with verbose output
+npm test -- --verbose --testPathPattern="scitt-ccf"
+```
+
+#### **SCITT CCF Test Environment Issues**
+```bash
+# Check test environment
+cat .env.scitt-ccf
+
+# Verify test data exists
+docker exec ***REMOVED-DB_PASSWORD***-app psql -U ***REMOVED-DB_PASSWORD*** -d contract_management -c "SELECT COUNT(*) FROM users;"
+
+# Recreate test data if needed
+docker exec cms-backend node /app/create-test-data.js
+```
+
 ### **Integration Testing Issues**
 
 #### **Symptoms**

@@ -6,13 +6,14 @@ Complete API documentation for the Contract Management System. This reference co
 
 1. [Authentication](#authentication)
 2. [User Management](#user-management)
-3. [Contract Management](#contract-management)
-4. [Dataset Management](#dataset-management)
-5. [Cloud Credentials](#cloud-credentials)
-6. [Blockchain Integration](#blockchain-integration)
-7. [Differential Privacy](#differential-privacy)
-8. [Error Handling](#error-handling)
-9. [Rate Limiting](#rate-limiting)
+3. [SCITT CCF Integration API](#-scitt-ccf-integration-api)
+4. [Contract Management](#contract-management)
+5. [Dataset Management](#dataset-management)
+6. [Cloud Credentials](#cloud-credentials)
+7. [Blockchain Integration](#blockchain-integration)
+8. [Differential Privacy](#differential-privacy)
+9. [Error Handling](#error-handling)
+10. [Rate Limiting](#rate-limiting)
 
 ## 🔐 Authentication
 
@@ -256,6 +257,149 @@ POST /auth/reset-password
 {
   "success": true,
   "message": "Password reset successfully"
+}
+```
+
+## 🔗 SCITT CCF Integration API
+
+### **SCITT CCF Health & Status**
+```http
+GET /api/scitt-ccf/health
+```
+
+**Response:**
+```json
+{
+  "status": "healthy",
+  "timestamp": "2025-08-13T12:00:00.000Z",
+  "scittCcf": {
+    "isHealthy": true,
+    "responseTime": 45,
+    "lastCheck": "2025-08-13T12:00:00.000Z"
+  }
+}
+```
+
+```http
+GET /api/scitt-ccf/metrics
+```
+
+**Response:**
+```json
+{
+  "totalClaims": 150,
+  "activeContracts": 45,
+  "averageResponseTime": 67,
+  "uptime": "99.9%",
+  "lastUpdated": "2025-08-13T12:00:00.000Z"
+}
+```
+
+### **SCITT CCF Contract Operations**
+```http
+POST /api/scitt-ccf/contracts
+```
+
+**Request Body:**
+```json
+{
+  "name": "SCITT CCF Test Contract",
+  "description": "Test contract created via SCITT CCF",
+  "tdpId": 2,
+  "tdcId": 5,
+  "ccrpId": 7,
+  "datasetId": 1,
+  "price": 5000,
+  "duration": 90,
+  "terms": "Test terms and conditions"
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "source": "SCITT_CCF",
+  "claimId": "CLAIM-2025-001",
+  "receipt": "RECEIPT-2025-001",
+  "contractId": "CONTRACT-2025-001",
+  "message": "Contract created successfully in SCITT CCF"
+}
+```
+
+```http
+GET /api/scitt-ccf/contracts/{claimId}/status
+```
+
+**Response:**
+```json
+{
+  "claimId": "CLAIM-2025-001",
+  "status": "ACTIVE",
+  "timestamp": "2025-08-13T12:00:00.000Z",
+  "contractId": "CONTRACT-2025-001"
+}
+```
+
+### **SCITT CCF Claims Management**
+```http
+POST /api/scitt-ccf/claims
+```
+
+**Request Body:**
+```json
+{
+  "type": "contract_creation",
+  "data": {
+    "name": "Test Claim",
+    "description": "Test claim data",
+    "tdpId": 2,
+    "tdcId": 5,
+    "price": 3000
+  }
+}
+```
+
+**Response:**
+```json
+{
+  "claimId": "CLAIM-2025-002",
+  "status": "submitted",
+  "timestamp": "2025-08-13T12:00:00.000Z"
+}
+```
+
+### **SCITT CCF Migration Management**
+```http
+GET /api/scitt-ccf/migration/mode
+```
+
+**Response:**
+```json
+{
+  "mode": "HYBRID",
+  "description": "Using both SCITT CCF and Ethereum",
+  "updatedAt": "2025-08-13T12:00:00.000Z"
+}
+```
+
+```http
+PUT /api/scitt-ccf/migration/mode
+```
+
+**Request Body:**
+```json
+{
+  "mode": "SCITT_CCF_ONLY"
+}
+```
+
+**Response:**
+```json
+{
+  "mode": "SCITT_CCF_ONLY",
+  "description": "Using only SCITT CCF Ledger",
+  "updatedAt": "2025-08-13T12:00:00.000Z"
 }
 ```
 

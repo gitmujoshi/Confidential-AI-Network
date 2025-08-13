@@ -68,9 +68,9 @@ start_scitt_ccf_if_needed() {
 # Step 1: Check Keycloak
 echo ""
 echo "🔐 Step 1: Checking Keycloak..."
-if ! check_service "Keycloak" "8080" "http://localhost:8080/health"; then
+    if ! check_service "Keycloak" "8443" "https://localhost:8443/realms/master"; then
     echo "   Starting Keycloak..."
-    docker-compose -f docker-compose.***REMOVED-KEYCLOAK_DB_PASSWORD***-persistent.yml up -d ***REMOVED-KEYCLOAK_DB_PASSWORD*** ***REMOVED-DB_PASSWORD***
+          docker-compose -f docker-compose.***REMOVED-KEYCLOAK_DB_PASSWORD***-dev.yml up -d ***REMOVED-KEYCLOAK_DB_PASSWORD*** ***REMOVED-DB_PASSWORD***
     echo "   Waiting for Keycloak to start..."
     sleep 15
 fi

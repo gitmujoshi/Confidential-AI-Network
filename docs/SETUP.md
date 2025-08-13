@@ -425,6 +425,28 @@ Expected response:
 npm test
 ```
 
+#### **SCITT CCF Test Suites**
+```bash
+# Navigate to backend directory
+cd backend
+
+# Run all tests including SCITT CCF
+npm test
+
+# Run SCITT CCF specific tests
+npm test -- --testPathPattern="scitt-ccf"
+
+# Run specific test suites
+npm test -- scitt-ccf-integration.test.js
+npm test -- scitt-ccf-api.test.js
+
+# Run with verbose output
+npm test -- --verbose --testPathPattern="scitt-ccf"
+
+# Return to root directory
+cd ..
+```
+
 #### **Test Authentication**
 ```bash
 npm run test:login
@@ -433,6 +455,22 @@ npm run test:login
 #### **Check System Status**
 ```bash
 npm run status
+```
+
+#### **Test Data Verification**
+```bash
+# Check if test data exists
+docker exec ***REMOVED-DB_PASSWORD***-app psql -U ***REMOVED-DB_PASSWORD*** -d contract_management -c "SELECT COUNT(*) FROM users;"
+
+# Expected results:
+# - 8 users (TDP, TDC, CCRP, Admin)
+# - 7 datasets with DEPA IDs
+# - 3 AI models with DEPA IDs
+# - 3 contract templates
+# - 3 sample contracts
+
+# Verify specific test data
+docker exec ***REMOVED-DB_PASSWORD***-app psql -U ***REMOVED-DB_PASSWORD*** -d contract_management -c "SELECT name, party_type, depa_id FROM users ORDER BY party_type;"
 ```
 
 ## 🚨 Troubleshooting
