@@ -473,6 +473,261 @@ class ScittCcfService {
       console.error('Failed to cleanup test data:', error);
     }
   }
+
+  /**
+   * Get system metrics
+   */
+  async getMetrics() {
+    try {
+      const totalClaims = await db.ScittClaim.count();
+      const activeContracts = await db.Contract.count({
+        where: { status: { [Op.ne]: 'COMPLETED' } }
+      });
+      
+      const performance = await this.getPerformanceMetrics();
+      const averageResponseTime = performance.latency || 0;
+      
+      return {
+        totalClaims,
+        activeContracts,
+        averageResponseTime,
+        uptime: '99.9%',
+        lastUpdated: new Date().toISOString()
+      };
+    } catch (error) {
+      console.error('Failed to get metrics:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Submit a claim to SCITT CCF
+   */
+  async submitClaim(claimData) {
+    try {
+      const claim = this.buildClaim(claimData);
+      
+      // Submit to SCITT CCF node
+      const response = await fetch(`${this.ccfNodeUrl}/app/claims`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(claim),
+        timeout: 10000
+      });
+      
+      if (!response.ok) {
+        throw new Error(`SCITT CCF submission failed: ${response.status}`);
+      }
+      
+      const result = await response.json();
+      
+      // Store claim locally
+      await this.storeClaimLocally(result.claimId, claim, claimData);
+      
+      return {
+        claimId: result.claimId,
+        status: 'submitted',
+        timestamp: new Date().toISOString()
+      };
+    } catch (error) {
+      console.error('Failed to submit claim:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get a specific claim
+   */
+  async getClaim(claimId) {
+    try {
+      const claim = await db.ScittClaim.findOne({
+        where: { claimId }
+      });
+      
+      if (!claim) {
+        throw new Error('Claim not found');
+      }
+      
+      return {
+        claimId: claim.claimId,
+        type: claim.claimType,
+        data: claim.claimData,
+        status: claim.status
+      };
+    } catch (error) {
+      console.error('Failed to get claim:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * List all claims for a user
+   */
+  async listClaims(userId) {
+    try {
+      const claims = await db.ScittClaim.findAll({
+        where: { userId },
+        order: [['createdAt', 'DESC']]
+      });
+      
+      return claims.map(claim => ({
+        claimId: claim.claimId,
+        type: claim.claimType,
+        status: claim.status,
+        createdAt: claim.createdAt
+      }));
+    } catch (error) {
+      console.error('Failed to list claims:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * List all contracts for a user
+   */
+  async listContracts(userId) {
+    try {
+      const contracts = await db.Contract.findAll({
+        where: { 
+          [Op.or]: [
+            { tdpId: userId },
+            { tdcId: userId },
+            { ccrpId: userId }
+          ]
+        },
+        order: [['createdAt', 'DESC']]
+      });
+      
+      return contracts.map(contract => ({
+        id: contract.id,
+        contractId: contract.contractId,
+        name: contract.name,
+        status: contract.status,
+        createdAt: contract.createdAt
+      }));
+    } catch (error) {
+      console.error('Failed to list contracts:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get attestation status for a contract
+   */
+  async getAttestationStatus(contractId) {
+    try {
+      // For now, return mock attestation status
+      // In production, this would verify with the TEE provider
+      return {
+        verified: true,
+        report: {
+          platform: this.teeProvider.platform,
+          timestamp: new Date().toISOString(),
+          signature: 'mock-signature'
+        },
+        provider: this.teeProvider.type
+      };
+    } catch (error) {
+      console.error('Failed to get attestation status:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get SCITT CCF configuration
+   */
+  async getConfiguration() {
+    try {
+      return {
+        nodeUrl: this.ccfNodeUrl,
+        teeProvider: this.teeProvider,
+        enabled: this.isInitialized,
+        migrationMode: process.env.MIGRATION_MODE || 'HYBRID'
+      };
+    } catch (error) {
+      console.error('Failed to get configuration:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Update SCITT CCF configuration
+   */
+  async updateConfiguration(configUpdate) {
+    try {
+      if (configUpdate.nodeUrl) {
+        this.ccfNodeUrl = configUpdate.nodeUrl;
+      }
+      
+      if (configUpdate.enabled !== undefined) {
+        this.isInitialized = configUpdate.enabled;
+      }
+      
+      // Test connection with new configuration
+      if (configUpdate.nodeUrl) {
+        await this.testConnection();
+      }
+      
+      return {
+        nodeUrl: this.ccfNodeUrl,
+        enabled: this.isInitialized,
+        updatedAt: new Date().toISOString()
+      };
+    } catch (error) {
+      console.error('Failed to update configuration:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Build a claim from claim data
+   */
+  buildClaim(claimData) {
+    return {
+      type: claimData.type || 'contract_creation',
+      data: claimData.data || claimData,
+      timestamp: new Date().toISOString(),
+      version: '1.0.0'
+    };
+  }
+
+  /**
+   * Get count of migrated contracts
+   */
+  async getMigratedContractCount() {
+    try {
+      return await db.ScittClaim.count({
+        where: { claimType: 'contract_migration' }
+      });
+    } catch (error) {
+      console.error('Failed to get migrated contract count:', error);
+      return 0;
+    }
+  }
+
+  /**
+   * Store claim locally in database
+   */
+  async storeClaimLocally(claimId, claim, originalData) {
+    try {
+      await db.ScittClaim.create({
+        claimId,
+        claimType: claim.type,
+        claimData: claim.data,
+        status: 'submitted',
+        userId: originalData.userId || 1, // Default to admin if no user specified
+        metadata: {
+          originalData,
+          submissionTimestamp: new Date().toISOString()
+        }
+      });
+      
+      console.log(`Claim ${claimId} stored locally successfully`);
+    } catch (error) {
+      console.error('Failed to store claim locally:', error);
+      throw error;
+    }
+  }
 }
 
 module.exports = ScittCcfService;

@@ -135,6 +135,35 @@ if [ -f "$PROJECT_ROOT/.***REMOVED-KEYCLOAK_DB_PASSWORD***.pid" ]; then
     ./setup-***REMOVED-KEYCLOAK_DB_PASSWORD***-persistent.sh
 fi
 
+# Step 1.5: Start Main Database and SCITT CCF Services
+print_status "Step 1.5: Starting Main Database and SCITT CCF Services..."
+if command -v docker &> /dev/null; then
+    # Start main database and SCITT CCF services
+    cd "$PROJECT_ROOT"
+    
+    # Start main services (database, ***REMOVED-KEYCLOAK_DB_PASSWORD***)
+    docker-compose -f docker-compose.main.yml up -d ***REMOVED-DB_PASSWORD***-app ***REMOVED-DB_PASSWORD***-***REMOVED-KEYCLOAK_DB_PASSWORD*** ***REMOVED-KEYCLOAK_DB_PASSWORD***
+    
+    # Wait for main database to be ready
+    print_status "Waiting for main database to be ready..."
+    wait_for_service "http://localhost:5432" "Main Database"
+    
+    # Start SCITT CCF services
+    print_status "Starting SCITT CCF services..."
+    docker-compose -f docker-compose.scitt-ccf-dev.yml up -d
+    
+    # Wait for SCITT CCF node to be ready
+    print_status "Waiting for SCITT CCF node to be ready..."
+    wait_for_service "http://localhost:8000/app/health" "SCITT CCF Node"
+    
+    print_success "SCITT CCF services started successfully"
+    
+    cd "$SCRIPT_DIR"
+else
+    print_error "Docker not found. Please install Docker to run database and SCITT CCF services."
+    print_warning "Continuing without database and SCITT CCF..."
+fi
+
 # Step 2: Start Blockchain (Hardhat)
 print_status "Step 2: Starting Blockchain (Hardhat)..."
 if check_port 8545; then

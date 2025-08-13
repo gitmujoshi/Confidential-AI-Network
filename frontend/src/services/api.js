@@ -250,6 +250,83 @@ const realApiService = {
     return response.data;
   },
 
+  // SCITT CCF API Methods
+  // Health and Status
+  getScittCcfHealth: async () => {
+    const response = await api.get('/api/scitt-ccf/health');
+    return response.data;
+  },
+  getScittCcfMetrics: async () => {
+    const response = await api.get('/api/scitt-ccf/metrics');
+    return response.data;
+  },
+
+  // Contract Operations
+  createScittCcfContract: async (contractData) => {
+    const response = await api.post('/api/scitt-ccf/contracts', contractData);
+    return response.data;
+  },
+  getScittCcfContractStatus: async (claimId) => {
+    const response = await api.get(`/api/scitt-ccf/contracts/${claimId}/status`);
+    return response.data;
+  },
+  getScittCcfContracts: async () => {
+    const response = await api.get('/api/scitt-ccf/contracts');
+    return response.data;
+  },
+
+  // Claims Management
+  submitScittCcfClaim: async (claimData) => {
+    const response = await api.post('/api/scitt-ccf/claims', claimData);
+    return response.data;
+  },
+  getScittCcfClaim: async (claimId) => {
+    const response = await api.get(`/api/scitt-ccf/claims/${claimId}`);
+    return response.data;
+  },
+  getScittCcfClaims: async () => {
+    const response = await api.get('/api/scitt-ccf/claims');
+    return response.data;
+  },
+
+  // TEE Attestation
+  verifyScittCcfAttestation: async (contractId) => {
+    const response = await api.post(`/api/scitt-ccf/contracts/${contractId}/verify-attestation`);
+    return response.data;
+  },
+  getScittCcfAttestation: async (contractId) => {
+    const response = await api.get(`/api/scitt-ccf/contracts/${contractId}/attestation`);
+    return response.data;
+  },
+
+  // Migration Management
+  getScittCcfMigrationMode: async () => {
+    const response = await api.get('/api/scitt-ccf/migration/mode');
+    return response.data;
+  },
+  setScittCcfMigrationMode: async (mode) => {
+    const response = await api.put('/api/scitt-ccf/migration/mode', { mode });
+    return response.data;
+  },
+  getScittCcfMigrationStatus: async () => {
+    const response = await api.get('/api/scitt-ccf/migration/status');
+    return response.data;
+  },
+  migrateContractToScittCcf: async (contractId) => {
+    const response = await api.post(`/api/scitt-ccf/migration/contracts/${contractId}`);
+    return response.data;
+  },
+
+  // Configuration
+  getScittCcfConfig: async () => {
+    const response = await api.get('/api/scitt-ccf/config');
+    return response.data;
+  },
+  updateScittCcfConfig: async (configUpdate) => {
+    const response = await api.put('/api/scitt-ccf/config', configUpdate);
+    return response.data;
+  },
+
   // AI Models
   getAIModels: async () => {
     const response = await api.get('/api/contracts/ricardian/available-models');
@@ -310,8 +387,8 @@ const realApiService = {
 
   // Users
   getUsers: async () => {
-    const response = await api.get('/api/users');
-    return response.data.users || [];
+    const response = await api.get('/api/admin/users');
+    return response.data;
   },
   getCCRPUsers: async (cloudProvider = null) => {
     // Create a clean URL with only the parameters we want

@@ -20,10 +20,10 @@ This document outlines the comprehensive design for migrating the Contract Manag
 - **Future-Proofing**: Microsoft-backed technology
 
 ### **Migration Strategy**
-- **Hybrid Approach**: Parallel operation during transition
-- **Phased Implementation**: Gradual migration over 6-12 months
-- **Risk Mitigation**: Fallback mechanisms and rollback capabilities
-- **Zero Downtime**: Continuous service during migration
+- **Simplified Approach**: Direct SCITT CCF implementation
+- **Single Backend**: No hybrid modes or blockchain fallbacks
+- **Risk Mitigation**: Simplified architecture reduces complexity
+- **Zero Downtime**: Continuous service with SCITT CCF only
 
 ## 🏗️ Architecture Overview
 
@@ -49,56 +49,79 @@ This document outlines the comprehensive design for migrating the Contract Manag
 ```
 
 ### **Target Architecture**
-```
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   Frontend      │    │    Backend      │    │   Keycloak      │
-│   (React)       │◄──►│   (Node.js)     │◄──►│   (IAM)         │
-│   Port: 3000    │    │   Port: 5001    │    │   Port: 8080    │
-└─────────────────┘    └─────────────────┘    └─────────────────┘
-                                │
-                                ▼
-                       ┌─────────────────┐
-                       │   PostgreSQL    │
-                       │   Port: 5432    │
-                       └─────────────────┘
-                                │
-                                ▼
-                       ┌─────────────────┐
-                       │ Contract Router │
-                       │   Service       │
-                       └─────────────────┘
-                                │
-                    ┌───────────┴───────────┐
-                    ▼                       ▼
-            ┌───────────────┐     ┌───────────────┐
-            │   Ethereum    │     │ SCITT CCF     │
-            │  Blockchain   │     │   Ledger      │
-            │  (Legacy)     │     │  (Primary)    │
-            └───────────────┘     └───────────────┘
+```mermaid
+graph TB
+    subgraph "Frontend Layer"
+        A[React Frontend<br/>Port: 3000]
+    end
+    
+    subgraph "Backend Layer"
+        B[Node.js Backend<br/>Port: 5001]
+        C[Keycloak IAM<br/>Port: 8080]
+    end
+    
+    subgraph "Service Layer"
+        D[Contract Router Service<br/>SCITT CCF Only]
+    end
+    
+    subgraph "Data Layer"
+        E[PostgreSQL<br/>Port: 5432]
+        F[SCITT CCF Ledger<br/>Port: 8000]
+    end
+    
+    A --> B
+    B --> C
+    B --> D
+    D --> F
+    B --> E
+    
+    style A fill:#e1f5fe
+    style B fill:#f3e5f5
+    style D fill:#e8f5e8
+    style E fill:#fff3e0
+    style F fill:#fce4ec
 ```
 
-### **Hybrid Mode Architecture**
-```
-┌─────────────────────────────────────────────────────────────┐
-│                Contract Management System                   │
-├─────────────────────────────────────────────────────────────┤
-│  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐  │
-│  │   Frontend      │  │   Backend       │  │   Keycloak      │  │
-│  │   (React)       │◄─►│   (Node.js)     │◄─►│   (IAM)         │  │
-│  └─────────────────┘  └─────────────────┘  └─────────────────┘  │
-├─────────────────────────────────────────────────────────────┤
-│                    Contract Router Service                   │
-│  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐  │
-│  │ Ethereum        │  │ SCITT CCF       │  │ Migration       │  │
-│  │ Service         │  │ Service         │  │ Orchestrator    │  │
-│  └─────────────────┘  └─────────────────┘  └─────────────────┘  │
-├─────────────────────────────────────────────────────────────┤
-│                    Data Layer                               │
-│  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐  │
-│  │ PostgreSQL      │  │ SCITT CCF       │  │ Ethereum        │  │
-│  │ (Primary)       │  │ Ledger          │  │ Blockchain      │  │
-│  └─────────────────┘  └─────────────────┘  └─────────────────┘  │
-└─────────────────────────────────────────────────────────────┘
+### **Simplified SCITT CCF Architecture**
+```mermaid
+graph TB
+    subgraph "Contract Management System"
+        subgraph "Frontend Layer"
+            A[React Frontend<br/>Port: 3000]
+            B[SCITT CCF Dashboard<br/>Real-time Monitoring]
+            C[Contract Management UI<br/>Role-based Dashboards]
+        end
+        
+        subgraph "Backend Layer"
+            D[Node.js Backend<br/>Port: 5001]
+            E[Keycloak IAM<br/>Port: 8080]
+        end
+        
+        subgraph "Service Layer"
+            F[Contract Router Service<br/>SCITT CCF Only]
+        end
+        
+        subgraph "Data Layer"
+            G[PostgreSQL<br/>Port: 5432]
+            H[SCITT CCF Ledger<br/>Port: 8000]
+            I[System Health<br/>Monitoring & Metrics]
+        end
+    end
+    
+    A --> D
+    B --> D
+    C --> D
+    D --> E
+    D --> F
+    F --> H
+    D --> G
+    D --> I
+    
+    style A fill:#e1f5fe
+    style D fill:#f3e5f5
+    style F fill:#e8f5e8
+    style G fill:#fff3e0
+    style H fill:#fce4ec
 ```
 
 ## 🔧 Technical Design
@@ -106,64 +129,37 @@ This document outlines the comprehensive design for migrating the Contract Manag
 ### **1. Contract Router Service**
 
 #### **Purpose**
-The Contract Router Service acts as the central orchestrator, intelligently routing contract operations between Ethereum and SCITT CCF based on configuration and system health.
+The Contract Router Service acts as the central orchestrator, routing all contract operations directly to SCITT CCF for simplified architecture.
 
 #### **Key Responsibilities**
-- Route contract operations to appropriate backend
-- Maintain data consistency between systems
-- Handle fallback scenarios
+- Route all contract operations to SCITT CCF
+- Maintain data consistency
 - Provide unified API interface
-- Monitor system health and performance
+- Monitor SCITT CCF system health and performance
 
 #### **Implementation Details**
 ```javascript
 class ContractRouterService {
   constructor() {
-    this.ethereumService = new BlockchainService();
     this.scittCcfService = new ScittCcfService();
-    this.migrationMode = process.env.MIGRATION_MODE || 'HYBRID';
     this.healthMonitor = new SystemHealthMonitor();
+    this.isInitialized = false;
   }
 
   async createContract(contractData) {
-    const routeDecision = await this.determineRoute('CREATE', contractData);
-    
-    switch (routeDecision.target) {
-      case 'SCITT_CCF':
-        return await this.executeScittCcfOperation('createContract', contractData);
-      case 'ETHEREUM':
-        return await this.executeEthereumOperation('createContract', contractData);
-      case 'DUAL':
-        return await this.executeDualOperation('createContract', contractData);
-      default:
-        throw new Error(`Unknown route target: ${routeDecision.target}`);
-    }
+    // All operations route directly to SCITT CCF
+    return await this.scittCcfService.createContract(contractData);
   }
 
-  async determineRoute(operation, data) {
+  async getSystemHealth() {
     const scittHealth = await this.healthMonitor.checkScittCcfHealth();
-    const ethereumHealth = await this.healthMonitor.checkEthereumHealth();
     
-    // Decision logic based on health, migration mode, and operation type
-    if (this.migrationMode === 'SCITT_CCF_ONLY' && scittHealth.isHealthy) {
-      return { target: 'SCITT_CCF', reason: 'Migration mode' };
-    }
-    
-    if (this.migrationMode === 'ETHEREUM_ONLY') {
-      return { target: 'ETHEREUM', reason: 'Migration mode' };
-    }
-    
-    if (this.migrationMode === 'HYBRID') {
-      if (scittHealth.isHealthy && ethereumHealth.isHealthy) {
-        return { target: 'DUAL', reason: 'Both systems healthy' };
-      } else if (scittHealth.isHealthy) {
-        return { target: 'SCITT_CCF', reason: 'Ethereum unhealthy' };
-      } else if (ethereumHealth.isHealthy) {
-        return { target: 'ETHEREUM', reason: 'SCITT CCF unhealthy' };
-      }
-    }
-    
-    return { target: 'ETHEREUM', reason: 'Fallback to legacy system' };
+    return {
+      overall: scittHealth.isHealthy,
+      scittCcf: scittHealth,
+      timestamp: new Date().toISOString(),
+      backend: 'SCITT_CCF_ONLY'
+    };
   }
 }
 ```
@@ -178,7 +174,7 @@ The SCITT CCF Service Layer provides a clean abstraction over the SCITT CCF Ledg
 - Retrieve claim status and receipts
 - Handle confidential computing operations
 - Manage TEE attestation
-- Provide fallback mechanisms
+- Provide local claim storage and tracking
 
 #### **Implementation Details**
 ```javascript

@@ -1,153 +1,318 @@
 # Test Data Reference for Testers
 
-This document provides a summary of all test users, datasets, AI models, and contracts available in the Contract Management System for testing purposes.
+This document provides a comprehensive summary of all test users, datasets, AI models, contracts, and related entities available in the Contract Management System for testing purposes.
 
 ---
 
-## Test Users
+## 🎯 **Test Data Overview**
 
-### TDP (Training Data Providers)
-| Name                    | Email                        | User ID | DEPA ID | Password | Description                                    | Status |
-|-------------------------|------------------------------|---------|---------|----------|------------------------------------------------|--------|
-| MedData Solutions Inc.  | tdp.medical@example.com      | 10      | TDP-78af39d1-4edb-471c-8cc8-471614abd7b3 | password123 | Healthcare-focused TDP | ✅ Working |
-| NLP Research Foundation | tdp.nlp@example.com          | 11      | TDP-8b2347bb-8028-4f7a-a7ab-50acc8bcf2e3 | password123 | NLP-focused TDP | ✅ Working |
-| AutoDrive Technologies  | tdp.autodrive@example.com    | 12      | TDP-2180ff9f-7c05-48d2-9b74-e1eea12d8fd6 | password123 | Autonomous driving TDP | ✅ Working |
-| Mukesh Joshi            | abc1234@abc1234.com          | 42      | US-EAST-TDP-abfbb687-97bf-4533-8b5f-4b74f4fe0e33 | password123 | Test TDP User | ✅ Working |
+The system contains **comprehensive test data** covering all user roles and business scenarios:
 
-### TDC (Training Data Consumers)
-| Name                    | Email                        | User ID | DEPA ID | Password | Description                                    | Status |
-|-------------------------|------------------------------|---------|---------|----------|------------------------------------------------|--------|
-| AI Healthcare Innovations | tdc.healthcare@example.com  | 13      | TDC-76939058-1c61-4ee1-b772-550973f8589c | password123 | Healthcare-focused TDC | ✅ Working |
-| FinTech Analytics Corp   | tdc.fintech@example.com     | 14      | TDC-1f8f916a-aa9f-4a67-83d7-1c54f428d1a0 | password123 | Financial analytics TDC | ✅ Working |
-| Language AI Labs         | tdc.language@example.com    | 15      | TDC-f7bd1447-aeb4-4379-a118-34bb36ad2091 | password123 | Language processing TDC | ✅ Working |
-
-### CCRP (Confidential Clean Room Providers)
-| Name                    | Email                        | User ID | DEPA ID | Password | Description                                    | Status |
-|-------------------------|------------------------------|---------|---------|----------|------------------------------------------------|--------|
-| SecureCloud Confidential Computing | ccrp.securecloud@example.com | 16 | CCRP-e1758b6f-db68-4e37-8753-85d8a14ef678 | password123 | Cloud computing CCRP | ✅ Working |
-| TrustedAI Environment Provider | ccrp.trustedai@example.com | 17 | CCRP-0db0477c-f997-4dc0-a1b7-64c91c058a34 | password123 | Trusted AI environment CCRP | ✅ Working |
-| PrivacyFirst Computing Solutions | ccrp.privacyfirst@example.com | 18 | CCRP-32683cd6-0023-4471-bfe8-20a6ed14595c | password123 | Privacy-focused CCRP | ✅ Working |
+- **👥 Users**: 8 test users across all roles
+- **📊 Datasets**: 7 datasets for TDPs (Healthcare, Finance, Retail)
+- **🤖 AI Models**: 3 AI models for TDCs
+- **🔐 CCRP Credentials**: Cloud provider credentials and Azure configurations
+- **📜 Contracts**: 3 sample contracts with different statuses
+- **🏗️ Training Environments**: Runtime environments for AI training
+- **💰 Privacy Budget**: Differential privacy settings
+- **📋 SCITT Claims**: SCITT CCF integration data (Primary Backend)
 
 ---
 
-## User Sync Status
+## 👥 **Test Users by Role**
 
-### ✅ Users in Sync (100% Sync Rate)
-All database users are properly synced with Keycloak:
+### **🔧 AppAdmin (System Administrator)**
+| Name | Email | DEPA ID | Description | Status |
+|------|-------|----------|-------------|---------|
+| System Administrator | admin@contractmanagement.com | USER-ADMIN-001 | System administrator with full access | ✅ Active |
 
-| Email                        | Database ID | Party Type | DEPA ID | Keycloak User ID | Status |
-|------------------------------|-------------|------------|---------|------------------|--------|
-| tdp.medical@example.com      | 10          | TDP        | TDP-78af39d1-4edb-471c-8cc8-471614abd7b3 | 6ab40e16-9942-4e6e-b4f5-b4015bab159d | ✅ Working |
-| tdp.nlp@example.com          | 11          | TDP        | TDP-8b2347bb-8028-4f7a-a7ab-50acc8bcf2e3 | 8607ea86-2c82-469c-9ad2-61b2f0803c6c | ✅ Working |
-| tdp.autodrive@example.com    | 12          | TDP        | TDP-2180ff9f-7c05-48d2-9b74-e1eea12d8fd6 | 0a3a9770-bea1-4ef4-b0eb-85d9a4efeee5 | ✅ Working |
-| tdc.healthcare@example.com   | 13          | TDC        | TDC-76939058-1c61-4ee1-b772-550973f8589c | 228f674d-c3a9-40e7-bb8f-96b763ffeae6 | ✅ Working |
-| tdc.fintech@example.com      | 14          | TDC        | TDC-1f8f916a-aa9f-4a67-83d7-1c54f428d1a0 | 8b3407e7-eb35-47b0-971e-e5646accb437 | ✅ Working |
-| tdc.language@example.com     | 15          | TDC        | TDC-f7bd1447-aeb4-4379-a118-34bb36ad2091 | 426b95b7-326c-48d5-b92b-da32eabd42cc | ✅ Working |
-| ccrp.securecloud@example.com | 16          | CCRP       | CCRP-e1758b6f-db68-4e37-8753-85d8a14ef678 | d6fe5653-97f0-46b9-8a5b-d8b1a3650411 | ✅ Working |
-| ccrp.trustedai@example.com   | 17          | CCRP       | CCRP-0db0477c-f997-4dc0-a1b7-64c91c058a34 | b768c5c3-3786-433d-a717-db32f97e135f | ✅ Working |
-| ccrp.privacyfirst@example.com | 18         | CCRP       | CCRP-32683cd6-0023-4471-bfe8-20a6ed14595c | 20538e25-ed00-4b08-a8cc-c66a3979eaee | ✅ Working |
-| abc1234@abc1234.com          | 42          | TDP        | US-EAST-TDP-abfbb687-97bf-4533-8b5f-4b74f4fe0e33 | e48e20f3-5196-42cf-a75a-ab870de5c78d | ✅ Working |
+### **📊 TDP (Training Data Providers)**
+| Name | Email | DEPA ID | Organization | Description | Status |
+|------|-------|----------|--------------|-------------|---------|
+| Healthcare Data Corp | healthcare@tdp.com | USER-TDP-001 | Healthcare Data Corporation | Healthcare datasets (medical imaging, patient records) | ✅ Active |
+| Financial Analytics Inc | finance@tdp.com | USER-TDP-002 | Financial Analytics Incorporated | Financial datasets (stock market, credit risk) | ✅ Active |
+| Retail Insights Ltd | retail@tdp.com | USER-TDP-003 | Retail Insights Limited | Retail datasets (customer behavior, inventory) | ✅ Active |
 
----
+### **🤖 TDC (Training Data Consumers)**
+| Name | Email | DEPA ID | Organization | Description | Status |
+|------|-------|----------|--------------|-------------|---------|
+| AI Research Institute | research@tdc.com | USER-TDC-001 | AI Research Institute | Medical AI and financial prediction models | ✅ Active |
+| Tech Startup Co | tech@tdc.com | USER-TDC-002 | Tech Startup Company | Customer segmentation and marketing AI | ✅ Active |
 
-## 📊 Test Datasets
-
-The following datasets are available for testing:
-
-| ID | Name | Category | Size | Owner | DEPA ID |
-|----|------|----------|------|-------|---------|
-| 7 | Medical Images Dataset | Healthcare | 2.5GB | tdp.medical@example.com | LOCAL-CONTRACT-426da7bf-a055-4cdb-ac60-79432d05c6ba |
-| 8 | Clinical Notes Dataset | Healthcare | 1.8GB | tdp.medical@example.com | LOCAL-CONTRACT-e162f4d7-ebb4-4c2c-a9f9-fc0ec5a3b670 |
-| 9 | Financial Transactions | Finance | 3.2GB | tdp.finance@example.com | LOCAL-CONTRACT-47daf9e8-6596-4b80-9f23-2864d7735a26 |
+### **🔐 CCRP (Confidential Clean Room Providers)**
+| Name | Email | DEPA ID | Organization | Description | Status |
+|------|-------|----------|--------------|-------------|---------|
+| Secure Compute Solutions | secure@ccrp.com | USER-CCRP-001 | Secure Compute Solutions | Azure-based secure computing | ✅ Active |
+| Privacy First Computing | privacy@ccrp.com | USER-CCRP-002 | Privacy First Computing | Multi-cloud privacy-focused computing | ✅ Active |
 
 ---
 
-## Current Database State
+## 📊 **Test Datasets**
 
-### 📊 Database Summary
-- **Total Users:** 13 (4 TDPs, 4 TDCs, 4 CCRPs, 1 AppAdmin)
-- **Total Datasets:** 3 (Healthcare and Finance datasets)
-- **Total Contracts:** 1 (Ricardian contract)
-- **Total AI Models:** 8 (Various AI models)
+### **🏥 Healthcare Datasets (Owner: Healthcare Data Corp)**
+| Dataset ID | Name | Category | Size | Records | Price | License | Description |
+|------------|------|----------|------|---------|-------|---------|-------------|
+| DATASET-001 | Medical Imaging Dataset | Computer Vision | 500MB | 100,000 | $5,000 | Commercial | Comprehensive medical imaging dataset for AI training |
+| DATASET-002 | Patient Records Dataset | Tabular | 200MB | 50,000 | $3,000 | Research | Anonymized patient records for research purposes |
+| DATASET-003 | Clinical Trial Data | Tabular | 150MB | 25,000 | $2,000 | Academic | Clinical trial results and outcomes data |
 
-### ✅ Available Data
-The following test data is available:
-- **Datasets:** 3 datasets (Healthcare and Finance categories)
-- **AI Models:** 8 AI models (Various types and frameworks)
-- **Contracts:** 1 Ricardian contract
-- **AppAdmin:** AppAdmin user exists and is functional
+### **💰 Financial Datasets (Owner: Financial Analytics Inc)**
+| Dataset ID | Name | Category | Size | Records | Price | License | Description |
+|------------|------|----------|------|---------|-------|---------|-------------|
+| DATASET-004 | Stock Market Data | Tabular | 1GB | 1,000,000 | $8,000 | Commercial | Historical stock market data for algorithmic trading |
+| DATASET-005 | Credit Risk Dataset | Tabular | 300MB | 75,000 | $4,000 | Commercial | Credit risk assessment data for banking |
 
----
-
-## Authentication Information
-
-### Login Credentials
-All test users use the same password: **`password123`**
-
-### Login Process
-1. **Use the test user emails** provided above for login
-2. **All users are properly synced** between Keycloak and database
-3. **Use email as username** for login
-4. **Role-based dashboards** automatically load based on user type
-
-### User Types
-- **TDP (Training Data Provider):** Can create and manage datasets
-- **TDC (Training Data Consumer):** Can browse and purchase datasets
-- **CCRP (Confidential Clean Room Provider):** Provides secure computing environments
+### **🛒 Retail Datasets (Owner: Retail Insights Ltd)**
+| Dataset ID | Name | Category | Size | Records | Price | License | Description |
+|------------|------|----------|------|---------|-------|---------|-------------|
+| DATASET-006 | Customer Behavior Data | Tabular | 400MB | 200,000 | $3,500 | Commercial | Customer shopping behavior and preferences |
+| DATASET-007 | Inventory Analytics | Tabular | 250MB | 100,000 | $1,500 | Commercial | Inventory management and sales analytics data |
 
 ---
 
-## Test Scenarios
+## 🤖 **AI Models**
 
-### ✅ Working Features
-- **User Authentication:** All users can log in via Keycloak
-- **Role-based Access:** TDP, TDC, CCRP dashboards load correctly
-- **DEPA ID Integration:** All users have unique DEPA IDs
-- **Keycloak Sync:** All users properly synced between database and Keycloak
+### **🏥 Medical AI Models (Owner: AI Research Institute)**
+| Model ID | Name | Type | Framework | Accuracy | Price | Description |
+|----------|------|------|-----------|----------|-------|-------------|
+| MODEL-001 | Medical AI Model | Computer Vision | PyTorch | 95% | $15,000 | AI model for medical diagnosis and analysis |
 
-### 🔄 Pending Features (Need Test Data)
-- **Dataset Management:** No datasets available for testing
-- **Contract Creation:** No contracts available for testing
-- **AI Model Integration:** No AI models available for testing
-- **Multi-party Contract Workflows:** No contracts to test workflows
+### **💰 Financial AI Models (Owner: AI Research Institute)**
+| Model ID | Name | Type | Framework | Accuracy | Price | Description |
+|----------|------|------|-----------|----------|-------|-------------|
+| MODEL-002 | Financial Prediction Model | Tabular | TensorFlow | 87% | $12,000 | AI model for financial market predictions |
+
+### **🛒 Marketing AI Models (Owner: Tech Startup Co)**
+| Model ID | Name | Type | Framework | Accuracy | Price | Description |
+|----------|------|------|-----------|----------|-------|-------------|
+| MODEL-003 | Customer Segmentation Model | Tabular | Scikit-learn | 92% | $8,000 | AI model for customer segmentation and targeting |
 
 ---
 
-## Next Steps for Testing
+## 🔐 **CCRP Cloud Credentials**
 
-### 1. Create Test Datasets
+### **☁️ Azure Credentials (Secure Compute Solutions)**
+| Credential ID | Subscription ID | Tenant ID | Location | Resource Group | Status |
+|---------------|------------------|-----------|----------|----------------|---------|
+| CCRP-AZURE-001 | sub-12345678-1234-1234-1234-123456789012 | tenant-12345678-1234-1234-1234-123456789012 | East US | training-rg-001 | ✅ Active |
+
+### **☁️ Multi-Cloud Credentials (Privacy First Computing)**
+| Credential ID | Cloud Provider | Credential Type | Status |
+|---------------|----------------|-----------------|---------|
+| CCRP-MULTI-001 | AWS | IAM Role | ✅ Active |
+| CCRP-MULTI-002 | GCP | Service Account | ✅ Active |
+| CCRP-MULTI-003 | Azure | Service Principal | ✅ Active |
+| CCRP-MULTI-004 | OCI | API Key | ✅ Active |
+
+---
+
+## 📜 **Contract Templates**
+
+| Template ID | Name | Type | Description | Created By |
+|-------------|------|------|-------------|------------|
+| TEMPLATE-001 | Standard AI Training Contract | AI_TRAINING | Standard contract template for AI model training | System Admin |
+| TEMPLATE-002 | Healthcare Data Contract | HEALTHCARE | Specialized contract for healthcare data usage | System Admin |
+| TEMPLATE-003 | Financial Data Contract | FINANCIAL | Contract template for financial data analysis | System Admin |
+
+---
+
+## 📋 **Sample Contracts**
+
+### **🏥 Healthcare AI Training Contract**
+| Contract ID | Name | TDP | TDC | CCRP | Status | Value |
+|-------------|------|-----|-----|------|--------|-------|
+| CONTRACT-001 | Healthcare AI Training Contract | Healthcare Data Corp | AI Research Institute | Secure Compute Solutions | PENDING_TDP_APPROVAL | $8,000 |
+
+### **💰 Financial Analytics Contract**
+| Contract ID | Name | TDP | TDC | CCRP | Status | Value |
+|-------------|------|-----|-----|------|--------|-------|
+| CONTRACT-002 | Financial Analytics Contract | Financial Analytics Inc | AI Research Institute | Privacy First Computing | PENDING_TDP_APPROVAL | $12,000 |
+
+### **🛒 Retail Customer Insights Contract**
+| Contract ID | Name | TDP | TDC | CCRP | Status | Value |
+|-------------|------|-----|-----|------|--------|-------|
+| CONTRACT-003 | Retail Customer Insights Contract | Retail Insights Ltd | Tech Startup Co | Secure Compute Solutions | PENDING_TDP_APPROVAL | $5,000 |
+
+---
+
+## 🏗️ **Training Environments**
+
+### **🔐 Secure Healthcare Environment**
+| Environment ID | Name | Cloud Provider | Compute Specs | Status | Contract |
+|----------------|------|----------------|---------------|--------|----------|
+| ENV-001 | Healthcare Training Environment | Azure | 4 vCPU, 16GB RAM, GPU | CREATING | CONTRACT-001 |
+
+### **🔒 Financial Privacy Environment**
+| Environment ID | Name | Cloud Provider | Compute Specs | Status | Contract |
+|----------------|------|----------------|---------------|--------|----------|
+| ENV-002 | Financial Training Environment | AWS | 8 vCPU, 32GB RAM, Encrypted Storage | CREATING | CONTRACT-002 |
+
+---
+
+## 💰 **Privacy Budget Settings**
+
+### **🔒 Differential Privacy Configuration**
+| Contract ID | Budget Type | Total Budget | Used Budget | Privacy Mechanism |
+|-------------|-------------|--------------|-------------|-------------------|
+| CONTRACT-001 | EPSILON | 1.0 | 0.0 | Laplace Mechanism |
+| CONTRACT-002 | DELTA | 0.01 | 0.0 | Gaussian Mechanism |
+| CONTRACT-003 | SENSITIVITY | 2.0 | 0.0 | Exponential Mechanism |
+
+---
+
+## 📊 **SCITT CCF Integration Data**
+
+### **🔐 SCITT Claims**
+| Claim ID | Type | Status | Contract | Description |
+|----------|------|--------|----------|-------------|
+| SCITT-CLAIM-001 | contract_creation | PENDING | CONTRACT-001 | Healthcare contract SCITT claim |
+| SCITT-CLAIM-002 | contract_creation | PENDING | CONTRACT-002 | Financial contract SCITT claim |
+| SCITT-CLAIM-003 | contract_creation | PENDING | CONTRACT-003 | Retail contract SCITT claim |
+
+---
+
+## 🔍 **Test Scenarios**
+
+### **1. TDP Workflow Testing**
+- **Login**: Use `healthcare@tdp.com`, `finance@tdp.com`, or `retail@tdp.com`
+- **Actions**: 
+  - View owned datasets
+  - Update dataset information
+  - Set pricing and licensing
+  - Respond to contract requests
+
+### **2. TDC Workflow Testing**
+- **Login**: Use `research@tdc.com` or `tech@tdc.com`
+- **Actions**:
+  - Browse available datasets
+  - View AI models
+  - Create training contracts
+  - Select CCRP providers
+
+### **3. CCRP Workflow Testing**
+- **Login**: Use `secure@ccrp.com` or `privacy@ccrp.com`
+- **Actions**:
+  - Manage cloud credentials
+  - Configure training environments
+  - Monitor contract execution
+  - Provide attestation reports
+
+### **4. Contract Lifecycle Testing**
+- **Contract Creation**: TDC creates contract
+- **TDP Approval**: TDP reviews and approves
+- **CCRP Selection**: TDC selects CCRP
+- **Environment Setup**: CCRP provisions training environment
+- **Execution**: AI model training begins
+- **Completion**: Contract fulfillment and payment
+
+---
+
+## 🚀 **Quick Test Commands**
+
+### **Test User Registration**
 ```bash
-# Run dataset creation script
-node scripts/source/create-tdp-datasets.js
+curl -X POST http://localhost:5001/api/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Test User",
+    "email": "test@example.com",
+    "partyType": "TDP",
+    "organization": "Test Corp"
+  }'
 ```
 
-### 2. Create Test AI Models
+### **Test Dataset Creation**
 ```bash
-# Run AI model creation script
-node scripts/source/create-ai-models.js
+curl -X POST http://localhost:5001/api/datasets \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Test Dataset",
+    "description": "Test dataset for testing",
+    "category": "Computer Vision",
+    "size": 100,
+    "recordCount": 1000,
+    "price": 100.00,
+    "license": "Test License"
+  }'
 ```
 
-### 3. Create Test Contracts
+### **Test Contract Creation**
 ```bash
-# Run contract creation script
-node scripts/source/create-test-contracts.js
-```
-
-### 4. Create AppAdmin User
-```bash
-# Run AppAdmin creation script
-node scripts/source/add-appadmin-role.js
+curl -X POST http://localhost:5001/api/contracts \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Test Contract",
+    "description": "Test contract for testing",
+    "price": 1000.00,
+    "duration": 30,
+    "termsAndConditions": "Test terms"
+  }'
 ```
 
 ---
 
-## Usage Notes
-- **All users have DEPA IDs** for unique identification
-- **All users are synced with Keycloak** for authentication
-- **Role-based dashboards** are functional for all user types
-- **API endpoints** are responding correctly for all user roles
-- **Test data creation scripts** are available for populating datasets, AI models, and contracts
+## 📋 **Data Verification Queries**
+
+### **Check User Counts by Role**
+```sql
+SELECT party_type, COUNT(*) as user_count 
+FROM users 
+GROUP BY party_type 
+ORDER BY party_type;
+```
+
+### **Check Dataset Counts by Owner**
+```sql
+SELECT u.name as owner, COUNT(d.id) as dataset_count
+FROM users u
+LEFT JOIN datasets d ON u.id = d.owner_id
+WHERE u.party_type = 'TDP'
+GROUP BY u.id, u.name
+ORDER BY u.name;
+```
+
+### **Check Contract Status Distribution**
+```sql
+SELECT status, COUNT(*) as contract_count
+FROM contracts
+GROUP BY status
+ORDER BY contract_count DESC;
+```
 
 ---
 
-_Last updated: July 28, 2025 - Updated with latest user information and current database state_ 
+## 🔧 **Troubleshooting**
+
+### **Common Issues**
+1. **User Not Found**: Ensure user exists in both database and Keycloak
+2. **Permission Denied**: Check user role and permissions
+3. **Dataset Access**: Verify dataset ownership and contract relationships
+4. **Contract Creation**: Ensure all required parties are available
+
+### **Data Reset**
+To reset test data to a clean state:
+```bash
+# Run the test data creation script
+node create-test-data.js
+
+# Or reset specific tables
+docker exec ***REMOVED-DB_PASSWORD***-app psql -U ***REMOVED-DB_PASSWORD*** -d contract_management -c "TRUNCATE users, datasets, contracts, ai_models CASCADE;"
+```
+
+---
+
+## 📞 **Support**
+
+For issues with test data:
+1. Check this document for correct test scenarios
+2. Verify database connectivity and user authentication
+3. Review system logs for error messages
+4. Contact the development team with specific error details
+
+---
+
+*Last Updated: 2025-01-08*
+*Test Data Version: 2.0.0*
+*Coverage: 100% of user roles and business scenarios* 

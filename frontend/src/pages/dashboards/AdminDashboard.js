@@ -31,6 +31,7 @@ import {
   Visibility,
   Settings,
   Assessment,
+  Storage as StorageIcon,
 } from '@mui/icons-material';
 import { useUser } from '../../contexts/UserContext';
 import { apiService } from '../../services/api';
@@ -505,6 +506,13 @@ const AdminDashboard = () => {
               onClick={() => navigate('/admin/system')}
             >
               System Settings
+            </Button>
+            <Button
+              variant="contained"
+              startIcon={<StorageIcon />}
+              onClick={() => navigate('/admin/scitt-ccf')}
+            >
+              SCITT CCF Dashboard
             </Button>
           </div>
         </CardContent>

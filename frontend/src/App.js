@@ -34,6 +34,7 @@ import CCRPAzureCredentials from './pages/CCRPAzureCredentials';
 import CCRPCloudCredentials from './pages/CCRPCloudCredentials';
 import InfrastructureProvisioning from './pages/InfrastructureProvisioning';
 import TrainingEnvironment from './pages/TrainingEnvironment';
+import ScittCcfDashboard from './components/ScittCcfDashboard';
 
 // Protected Route Component
 const ProtectedRoute = ({ children }) => {
@@ -198,7 +199,8 @@ function AppRoutes() {
               <Route path="/analytics" element={<div>Admin Analytics</div>} />
               <Route path="/compliance" element={<div>DPDP Compliance</div>} />
               <Route path="/system" element={<div>System Settings</div>} />
-              <Route path="/breaches/:breachId" element={<div>Data Breach Details</div>} />
+<Route path="/scitt-ccf" element={<ScittCcfDashboard />} />
+<Route path="/breaches/:breachId" element={<div>Data Breach Details</div>} />
             </Routes>
           </Layout>
         </RoleProtectedRoute>

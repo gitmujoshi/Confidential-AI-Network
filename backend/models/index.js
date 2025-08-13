@@ -50,6 +50,10 @@ db.AuditLog = require('./AuditLog')(sequelize, Sequelize);
 // Import CCRP Azure credentials model
 db.CCRPAzureCredentials = require('./CCRPAzureCredentials')(sequelize, Sequelize);
 
+// Import SCITT CCF models
+db.ScittClaim = require('./ScittClaim')(sequelize, Sequelize);
+db.SystemHealthLog = require('./SystemHealthLog')(sequelize, Sequelize);
+
 // Define associations
 db.User.hasMany(db.Dataset, { foreignKey: 'ownerId', as: 'datasets' });
 db.Dataset.belongsTo(db.User, { foreignKey: 'ownerId', as: 'owner' });

@@ -34,6 +34,9 @@ const differentialPrivacyRouter = require('./routes/differential-privacy-simple'
 // Import contract template routes
 const contractTemplatesRouter = require('./routes/contract-templates');
 
+// Import SCITT CCF routes
+const scittCcfRouter = require('./routes/scitt-ccf');
+
 const app = express();
 const PORT = process.env.PORT || 8000;
 
@@ -163,6 +166,9 @@ app.use('/api/ai-models', aiModelsRouter);
 
 // Contract template routes
 app.use('/api/contract-templates', contractTemplatesRouter);
+
+// SCITT CCF routes
+app.use('/api/scitt-ccf', scittCcfRouter);
 
 // Role-specific routes
 app.use('/api/admin', adminRouter);
