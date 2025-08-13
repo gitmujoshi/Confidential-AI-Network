@@ -397,3 +397,81 @@ section {
     color: white;
     transform: translateY(-2px);
 } 
+
+/* Add new styles for technology section and status cards */
+
+.tech-card {
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    border-left: 4px solid #007bff;
+}
+
+.tech-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+.tech-card h4 {
+    color: #333;
+    margin-bottom: 15px;
+}
+
+.tech-card ul li {
+    margin-bottom: 8px;
+    color: #666;
+}
+
+.status-card {
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease;
+}
+
+.status-card:hover {
+    transform: translateY(-3px);
+}
+
+.status-card.border-success {
+    border: 2px solid #28a745;
+}
+
+.status-card.border-warning {
+    border: 2px solid #ffc107;
+}
+
+.demo-features {
+    margin-bottom: 2rem;
+}
+
+.demo-feature {
+    text-align: center;
+    padding: 1rem;
+}
+
+.demo-feature i {
+    color: #007bff;
+    margin-bottom: 1rem;
+}
+
+.demo-feature h5 {
+    color: #333;
+    margin-bottom: 0.5rem;
+}
+
+.contact-info {
+    text-align: center;
+    padding: 1rem;
+}
+
+.contact-info i {
+    color: #007bff;
+    margin-bottom: 1rem;
+}
+
+.contact-info h5 {
+    color: #333;
+    margin-bottom: 0.5rem;
+} 
