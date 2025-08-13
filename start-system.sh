@@ -14,12 +14,23 @@ check_service() {
     local port=$2
     local url=$3
     
-    if curl -s "$url" > /dev/null 2>&1; then
-        echo "✅ $service_name is running on port $port"
-        return 0
+    # Use -k flag for HTTPS URLs to ignore SSL certificate verification
+    if [[ "$url" == https://* ]]; then
+        if curl -k -s "$url" > /dev/null 2>&1; then
+            echo "✅ $service_name is running on port $port"
+            return 0
+        else
+            echo "❌ $service_name is not running on port $port"
+            return 1
+        fi
     else
-        echo "❌ $service_name is not running on port $port"
-        return 1
+        if curl -s "$url" > /dev/null 2>&1; then
+            echo "✅ $service_name is running on port $port"
+            return 0
+        else
+            echo "❌ $service_name is not running on port $port"
+            return 1
+        fi
     fi
 }
 
@@ -33,9 +44,17 @@ wait_for_service() {
     
     echo "⏳ Waiting for $service_name to be ready..."
     while [ $attempt -le $max_attempts ]; do
-        if curl -s "$url" > /dev/null 2>&1; then
-            echo "✅ $service_name is ready!"
-            return 0
+        # Use -k flag for HTTPS URLs to ignore SSL certificate verification
+        if [[ "$url" == https://* ]]; then
+            if curl -k -s "$url" > /dev/null 2>&1; then
+                echo "✅ $service_name is ready!"
+                return 0
+            fi
+        else
+            if curl -s "$url" > /dev/null 2>&1; then
+                echo "✅ $service_name is ready!"
+                return 0
+            fi
         fi
         echo "   Attempt $attempt/$max_attempts..."
         sleep 2
@@ -127,7 +146,7 @@ EOF
         cat > deployment/scitt-ccf/dashboard/Dockerfile << 'EOF'
 FROM nginx:alpine
 COPY dashboard.html /usr/share/nginx/html/index.html
-EXPOSE 8080
+        EXPOSE 8443
 CMD ["nginx", "-g", "daemon off;"]
 EOF
         
@@ -360,12 +379,12 @@ fi
 # Step 1: Start Keycloak with persistent storage
 echo ""
 echo "🔐 Step 1: Starting Keycloak..."
-if ! check_service "Keycloak" "8080" "http://localhost:8080/health"; then
+    if ! check_service "Keycloak" "8443" "https://localhost:8443/realms/master"; then
     echo "   Starting Keycloak with persistent storage..."
-    docker-compose -f docker-compose.keycloak-persistent.yml up -d keycloak postgres
+          docker-compose -f docker-compose.keycloak-dev.yml up -d keycloak postgres
     
     # Wait for Keycloak to be ready
-    wait_for_service "Keycloak" "8080" "http://localhost:8080/health"
+            wait_for_service "Keycloak" "8443" "https://localhost:8443/realms/master"
 fi
 
 # Function to fix database connection issues
@@ -641,7 +660,7 @@ echo ""
 echo "🎉 System startup completed!"
 echo ""
 echo "📋 Service Status:"
-check_service "Keycloak" "8080" "http://localhost:8080/health"
+    check_service "Keycloak" "8443" "https://localhost:8443/realms/master"
 check_service "Backend" "5001" "http://localhost:5001/health"
 check_service "Frontend" "3000" "http://localhost:3000"
 
@@ -653,7 +672,7 @@ echo ""
 echo "🔗 Access URLs:"
 echo "   Frontend: http://localhost:3000"
 echo "   Backend API: http://localhost:5001"
-echo "   Keycloak Admin: http://localhost:8080/admin/"
+    echo "   Keycloak Admin: https://localhost:8443/admin/"
 
 if [ "$SCITT_CCF_ENABLED" = true ]; then
     echo "   SCITT CCF Node: http://localhost:8000"

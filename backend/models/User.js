@@ -244,6 +244,7 @@ module.exports = (sequelize, Sequelize) => {
   }, {
     tableName: 'users',
     timestamps: true,
+    underscored: true,
     
     // Database indexes for performance optimization
     indexes: [

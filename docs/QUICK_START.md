@@ -137,6 +137,47 @@ pkill -f "node server.js"
 pkill -f "react-scripts"
 ```
 
+## 🧪 Testing the System
+
+### **Quick Health Check**
+```bash
+# Check system status
+npm run status
+
+# Test authentication
+npm run test:login
+
+# Test SCITT CCF integration
+./manage-scitt-ccf.sh test
+```
+
+### **Run SCITT CCF Test Suites**
+```bash
+# Run all tests including SCITT CCF
+cd backend
+npm test
+
+# Run SCITT CCF specific tests
+npm test -- --testPathPattern="scitt-ccf"
+
+# Run specific test suites
+npm test -- scitt-ccf-integration.test.js
+npm test -- scitt-ccf-api.test.js
+```
+
+### **Test Data Verification**
+```bash
+# Check if test data exists
+docker exec postgres-app psql -U postgres -d contract_management -c "SELECT COUNT(*) FROM users;"
+
+# Expected results:
+# - 8 users (TDP, TDC, CCRP, Admin)
+# - 7 datasets with DEPA IDs
+# - 3 AI models with DEPA IDs
+# - 3 contract templates
+# - 3 sample contracts
+```
+
 ## 🚨 Troubleshooting
 
 ### **Authentication Issues**

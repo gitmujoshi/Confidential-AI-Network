@@ -21,7 +21,7 @@ const db = require('../models');
 
 class ScittCcfService {
   constructor() {
-    this.ccfNodeUrl = process.env.CCF_NODE_URL || 'https://127.0.0.1:8000';
+    this.ccfNodeUrl = process.env.CCF_NODE_URL || 'http://scitt-ccf-node-dev:8000';
     this.teeProvider = this.detectTeeProvider();
     this.isInitialized = false;
   }
@@ -51,7 +51,7 @@ class ScittCcfService {
    */
   async testConnection() {
     try {
-      const response = await fetch(`${this.ccfNodeUrl}/app/claims`, {
+      const response = await fetch(`${this.ccfNodeUrl}/app/health`, {
         method: 'GET',
         timeout: 5000
       });

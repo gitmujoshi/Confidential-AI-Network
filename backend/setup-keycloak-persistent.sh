@@ -8,7 +8,7 @@ set -e
 echo "🔧 Setting up Keycloak with persistent configuration..."
 
 # Check if Keycloak is running
-if ! curl -s http://localhost:8080/health > /dev/null 2>&1; then
+if ! curl -k -s https://localhost:8443/realms/master > /dev/null 2>&1; then
     echo "❌ Keycloak is not running. Please start Keycloak first."
     echo "   Run: docker-compose up -d keycloak"
     exit 1
@@ -16,13 +16,13 @@ fi
 
 # Wait for Keycloak to be ready
 echo "⏳ Waiting for Keycloak to be ready..."
-until curl -s http://localhost:8080/health > /dev/null 2>&1; do
+until curl -k -s https://localhost:8443/realms/master > /dev/null 2>&1; do
     sleep 2
 done
 
 # Get admin token
 echo "🔑 Getting admin token..."
-ADMIN_TOKEN=$(curl -s -X POST http://localhost:8080/realms/master/protocol/openid-connect/token \
+ADMIN_TOKEN=$(curl -k -s -X POST https://localhost:8443/realms/master/protocol/openid-connect/token \
     -d "grant_type=password&client_id=admin-cli&username=admin&password=admin123" \
     | jq -r '.access_token')
 
@@ -34,14 +34,14 @@ fi
 echo "✅ Admin token obtained"
 
 # Check if realm exists
-REALM_EXISTS=$(curl -s -H "Authorization: Bearer $ADMIN_TOKEN" \
-    http://localhost:8080/admin/realms/contract-management | jq -r '.realm')
+REALM_EXISTS=$(curl -k -s -H "Authorization: Bearer $ADMIN_TOKEN" \
+    https://localhost:8443/admin/realms/contract-management | jq -r '.realm')
 
 if [ "$REALM_EXISTS" = "contract-management" ]; then
     echo "✅ Realm 'contract-management' already exists"
 else
     echo "📝 Creating realm 'contract-management'..."
-    curl -X POST -H "Authorization: Bearer $ADMIN_TOKEN" \
+    curl -k -X POST -H "Authorization: Bearer $ADMIN_TOKEN" \
         -H "Content-Type: application/json" \
         -d '{
             "realm": "contract-management",
@@ -52,7 +52,7 @@ else
                 "frontendUrl": "http://localhost:3000"
             }
         }' \
-        http://localhost:8080/admin/realms
+        https://localhost:8443/admin/realms
     echo "✅ Realm created"
 fi
 
@@ -61,30 +61,30 @@ echo "👥 Creating roles..."
 ROLES=("TDP" "TDC" "CCRP" "ADMIN")
 
 for ROLE in "${ROLES[@]}"; do
-    ROLE_EXISTS=$(curl -s -H "Authorization: Bearer $ADMIN_TOKEN" \
-        "http://localhost:8080/admin/realms/contract-management/roles/$ROLE" | jq -r '.name')
+    ROLE_EXISTS=$(curl -k -s -H "Authorization: Bearer $ADMIN_TOKEN" \
+        "https://localhost:8443/admin/realms/contract-management/roles/$ROLE" | jq -r '.name')
     
     if [ "$ROLE_EXISTS" = "$ROLE" ]; then
         echo "   ✅ Role '$ROLE' already exists"
     else
-        curl -X POST -H "Authorization: Bearer $ADMIN_TOKEN" \
+        curl -k -X POST -H "Authorization: Bearer $ADMIN_TOKEN" \
             -H "Content-Type: application/json" \
             -d "{\"name\":\"$ROLE\",\"description\":\"$ROLE role\"}" \
-            http://localhost:8080/admin/realms/contract-management/roles
+            https://localhost:8443/admin/realms/contract-management/roles
         echo "   ✅ Role '$ROLE' created"
     fi
 done
 
 # Create frontend client
 echo "🌐 Setting up frontend client..."
-FRONTEND_CLIENT_EXISTS=$(curl -s -H "Authorization: Bearer $ADMIN_TOKEN" \
-    http://localhost:8080/admin/realms/contract-management/clients | \
+FRONTEND_CLIENT_EXISTS=$(curl -k -s -H "Authorization: Bearer $ADMIN_TOKEN" \
+    https://localhost:8443/admin/realms/contract-management/clients | \
     jq -r '.[] | select(.clientId == "contract-management-frontend") | .clientId')
 
 if [ "$FRONTEND_CLIENT_EXISTS" = "contract-management-frontend" ]; then
     echo "   ✅ Frontend client already exists"
 else
-    curl -X POST -H "Authorization: Bearer $ADMIN_TOKEN" \
+    curl -k -X POST -H "Authorization: Bearer $ADMIN_TOKEN" \
         -H "Content-Type: application/json" \
         -d '{
             "clientId": "contract-management-frontend",
@@ -96,20 +96,20 @@ else
             "webOrigins": ["http://localhost:3000"],
             "fullScopeAllowed": true
         }' \
-        http://localhost:8080/admin/realms/contract-management/clients
+        https://localhost:8443/admin/realms/contract-management/clients
     echo "   ✅ Frontend client created"
 fi
 
 # Create backend client
 echo "🔧 Setting up backend client..."
-BACKEND_CLIENT_EXISTS=$(curl -s -H "Authorization: Bearer $ADMIN_TOKEN" \
-    http://localhost:8080/admin/realms/contract-management/clients | \
+BACKEND_CLIENT_EXISTS=$(curl -k -s -H "Authorization: Bearer $ADMIN_TOKEN" \
+    https://localhost:8443/admin/realms/contract-management/clients | \
     jq -r '.[] | select(.clientId == "contract-management-backend") | .clientId')
 
 if [ "$BACKEND_CLIENT_EXISTS" = "contract-management-backend" ]; then
     echo "   ✅ Backend client already exists"
 else
-    curl -X POST -H "Authorization: Bearer $ADMIN_TOKEN" \
+    curl -k -X POST -H "Authorization: Bearer $ADMIN_TOKEN" \
         -H "Content-Type: application/json" \
         -d '{
             "clientId": "contract-management-backend",
@@ -120,7 +120,7 @@ else
             "directAccessGrantsEnabled": true,
             "fullScopeAllowed": true
         }' \
-        http://localhost:8080/admin/realms/contract-management/clients
+        https://localhost:8443/admin/realms/contract-management/clients
     echo "   ✅ Backend client created"
 fi
 
@@ -145,7 +145,7 @@ JWT_SECRET=your-super-secret-jwt-key-change-in-production
 JWT_EXPIRES_IN=24h
 
 # Keycloak Configuration
-KEYCLOAK_URL=http://localhost:8080
+KEYCLOAK_URL=https://localhost:8443
 KEYCLOAK_REALM=contract-management
 KEYCLOAK_CLIENT_ID=contract-management-frontend
 KEYCLOAK_CLIENT_SECRET=
@@ -263,7 +263,7 @@ echo "   Backend Client: contract-management-backend"
 echo "   Roles: TDP, TDC, CCRP, ADMIN"
 echo ""
 echo "🔗 Access URLs:"
-echo "   Keycloak Admin: http://localhost:8080/admin/"
-echo "   Login: http://localhost:8080/realms/contract-management/protocol/openid-connect/auth"
+echo "   Keycloak Admin: https://localhost:8443/admin/"
+echo "   Login: https://localhost:8443/realms/contract-management/protocol/openid-connect/auth"
 echo ""
 echo "✅ Keycloak configuration is now persistent!" 

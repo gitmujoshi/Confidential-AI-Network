@@ -2,15 +2,25 @@ const axios = require('axios');
 const { User } = require('../../models');
 
 // Keycloak configuration
-const KEYCLOAK_BASE_URL = 'http://localhost:8080';
+const KEYCLOAK_BASE_URL = 'https://localhost:8443';
 const KEYCLOAK_REALM = 'contract-management';
 const KEYCLOAK_ADMIN_USERNAME = 'admin';
 const KEYCLOAK_ADMIN_PASSWORD = 'admin123';
 
+// Configure axios to ignore SSL certificate verification for self-signed certs
+const httpsAgent = new (require('https').Agent)({
+  rejectUnauthorized: false
+});
+
+// Create axios instance with SSL verification disabled
+const axiosInstance = axios.create({
+  httpsAgent: httpsAgent
+});
+
 // Function to get Keycloak admin token
 async function getKeycloakToken() {
   try {
-    const response = await axios.post(`${KEYCLOAK_BASE_URL}/realms/master/protocol/openid-connect/token`, 
+    const response = await axiosInstance.post(`${KEYCLOAK_BASE_URL}/realms/master/protocol/openid-connect/token`, 
       new URLSearchParams({
         username: KEYCLOAK_ADMIN_USERNAME,
         password: KEYCLOAK_ADMIN_PASSWORD,
@@ -45,7 +55,7 @@ async function createKeycloakUser(token, userData) {
       }
     };
 
-    const response = await axios.post(
+    const response = await axiosInstance.post(
       `${KEYCLOAK_BASE_URL}/admin/realms/${KEYCLOAK_REALM}/users`,
       keycloakUser,
       {
@@ -57,7 +67,7 @@ async function createKeycloakUser(token, userData) {
     );
 
     // Get the created user to get the ID
-    const usersResponse = await axios.get(
+    const usersResponse = await axiosInstance.get(
       `${KEYCLOAK_BASE_URL}/admin/realms/${KEYCLOAK_REALM}/users?username=${encodeURIComponent(userData.email)}`,
       {
         headers: {
@@ -74,7 +84,7 @@ async function createKeycloakUser(token, userData) {
   } catch (error) {
     if (error.response?.status === 409) {
       // User already exists, get the existing user ID
-      const usersResponse = await axios.get(
+      const usersResponse = await axiosInstance.get(
         `${KEYCLOAK_BASE_URL}/admin/realms/${KEYCLOAK_REALM}/users?username=${encodeURIComponent(userData.email)}`,
         {
           headers: {
@@ -96,7 +106,7 @@ async function createKeycloakUser(token, userData) {
 // Function to update user password in Keycloak
 async function setKeycloakUserPassword(token, userId, password) {
   try {
-    await axios.put(
+    await axiosInstance.put(
       `${KEYCLOAK_BASE_URL}/admin/realms/${KEYCLOAK_REALM}/users/${userId}/reset-password`,
       {
         type: 'password',

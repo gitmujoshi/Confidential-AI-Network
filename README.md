@@ -19,10 +19,16 @@ A comprehensive contract management system with multi-party authentication, **SC
 ```
 
 ### **Available Test Users**
-- **TDC**: `tdc-test@example.com` / `password123`
-- **TDP**: `tdp-test@example.com` / `password123`
-- **CCRP**: `ccrp-test@example.com` / `password123`
-- **AppAdmin**: `appadmin-test@example.com` / `password123`
+- **TDC**: `research@tdc.com` / `password123`
+- **TDP**: `healthcare@tdp.com` / `password123`
+- **CCRP**: `secure@ccrp.com` / `password123`
+- **AppAdmin**: `admin@contractmanagement.com` / `password123`
+
+### **Test Data Available**
+- **7 Datasets** with DEPA IDs (DATASET-001 to DATASET-007)
+- **3 AI Models** with DEPA IDs (MODEL-001 to MODEL-003)
+- **3 Contract Templates** for different use cases
+- **3 Sample Contracts** in various states
 
 ## 🔗 SCITT CCF Integration
 
@@ -68,9 +74,34 @@ A comprehensive contract management system with multi-party authentication, **SC
 - [Testing](#testing)
 - [Troubleshooting](#troubleshooting)
 
-## 📚 Documentation
+## 🧪 Testing
 
-### **Streamlined Documentation Structure**
+### **Updated Test Suites for SCITT CCF**
+
+The backend test suites have been completely updated to include SCITT CCF integration:
+
+```bash
+# Run SCITT CCF integration tests
+cd backend
+npm test -- --testPathPattern="scitt-ccf"
+
+# Run all tests including SCITT CCF
+npm test
+
+# Run specific test suites
+npm test -- scitt-ccf-integration.test.js
+npm test -- scitt-ccf-api.test.js
+```
+
+### **Test Coverage**
+- **SCITT CCF Service Tests**: Service initialization, connection, contract creation
+- **Contract Router Tests**: Migration modes, fallback scenarios, dual operations
+- **System Health Tests**: SCITT CCF vs Ethereum health monitoring
+- **API Endpoint Tests**: All SCITT CCF API endpoints
+- **Migration Tests**: Contract migration workflows
+- **Performance Tests**: Load testing and concurrent operations
+
+## 📚 Documentation
 
 We've consolidated 80+ documentation files into a clear, organized structure:
 

@@ -404,6 +404,7 @@ module.exports = (sequelize, DataTypes) => {
   }, {
     tableName: 'contracts',
     timestamps: true,
+    underscored: true,
     
     // Database indexes for performance optimization
     indexes: [

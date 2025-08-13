@@ -290,9 +290,35 @@ await router.switchMigrationMode('ETHEREUM_ONLY');
 
 ### **Testing SCITT CCF Integration**
 
-#### **Integration Tests**
+#### **Updated Test Suites**
+
+The backend now includes comprehensive SCITT CCF test suites:
+
 ```bash
-# Run comprehensive SCITT CCF tests
+# Run all tests including SCITT CCF
+cd backend
+npm test
+
+# Run SCITT CCF specific tests
+npm test -- --testPathPattern="scitt-ccf"
+
+# Run specific test suites
+npm test -- scitt-ccf-integration.test.js
+npm test -- scitt-ccf-api.test.js
+```
+
+#### **Test Coverage**
+
+- **SCITT CCF Service Tests**: Service initialization, connection, TEE detection
+- **Contract Router Tests**: Migration modes, fallback scenarios, dual operations  
+- **System Health Tests**: SCITT CCF vs Ethereum health monitoring
+- **API Endpoint Tests**: All SCITT CCF API endpoints
+- **Migration Tests**: Contract migration workflows
+- **Performance Tests**: Load testing and concurrent operations
+
+#### **Legacy Integration Tests**
+```bash
+# Run comprehensive SCITT CCF tests (legacy)
 cd backend
 node scripts/test-scitt-ccf-integration.js
 cd ..

@@ -97,7 +97,31 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 WORKDIR /opt/ccf
 EXPOSE 8000 8001
-CMD ["python3", "-m", "http.server", "8000"]
+
+# Create a simple health check endpoint
+COPY server.py /opt/ccf/server.py
+CMD ["python3", "/opt/ccf/server.py"]
+EOF
+
+    # Create the server.py file
+    cat > deployment/scitt-ccf/node/server.py << 'EOF'
+#!/usr/bin/env python3
+import http.server
+import socketserver
+
+class HealthHandler(http.server.SimpleHTTPRequestHandler):
+    def do_GET(self):
+        if self.path == "/app/health":
+            self.send_response(200)
+            self.send_header("Content-type", "application/json")
+            self.end_headers()
+            self.wfile.write(b'{"status":"healthy"}')
+        else:
+            super().do_GET()
+
+if __name__ == "__main__":
+    with socketserver.TCPServer(("", 8000), HealthHandler) as httpd:
+        httpd.serve_forever()
 EOF
     
     # Build monitor image

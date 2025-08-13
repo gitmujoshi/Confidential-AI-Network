@@ -217,7 +217,7 @@ start_test_environment() {
     
     # Wait for services to be ready
     wait_for_service "SCITT CCF Node" "8000" "http://localhost:8000/app/health"
-    wait_for_service "SCITT CCF Governance" "8001" "http://localhost:8001"
+    wait_for_service "SCITT CCF Governance" "8000" "http://localhost:8000/governance/health"
     
     # Start backend if not running
     if ! check_service "Backend" "5001" "http://localhost:5001/health"; then
