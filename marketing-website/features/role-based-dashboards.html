@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Role-Based Dashboards - ContractFlow Pro</title>
+    <meta name="description" content="Explore the comprehensive role-based dashboards for TDPs, TDCs, CCRPs, and AppAdmins with tailored functionality and insights.">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="../styles.css" rel="stylesheet">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary fixed-top">
+        <div class="container">
+            <a class="navbar-brand fw-bold" href="../index.html">
+                <i class="fas fa-file-contract me-2"></i>ContractFlow Pro
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="../index.html">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="../index.html#features">Features</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="../index.html#dashboards">Dashboards</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="../index.html#technology">Technology</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="../index.html#contact">Contact</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero-section pt-5 mt-5">
+        <div class="container">
+            <div class="row text-center">
+                <div class="col-lg-8 mx-auto">
+                    <h1 class="display-4 fw-bold text-white mb-4">
+                        Role-Based Dashboards
+                    </h1>
+                    <p class="lead text-white-50 mb-4">
+                        Tailored interfaces for each user type with role-specific functionality, 
+                        real-time insights, and comprehensive management tools.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Dashboard Overview -->
+    <section class="py-5">
+        <div class="container">
+            <div class="row text-center mb-5">
+                <div class="col-lg-8 mx-auto">
+                    <h2 class="display-5 fw-bold mb-3">Dashboard Overview</h2>
+                    <p class="lead text-muted">Four distinct dashboards designed for specific user roles and responsibilities.</p>
+                </div>
+            </div>
+            <div class="row g-4">
+                <div class="col-lg-3 col-md-6">
+                    <div class="text-center">
+                        <div class="dashboard-icon mb-3">
+                            <i class="fas fa-user-shield fa-4x text-primary"></i>
+                        </div>
+                        <h5>AppAdmin</h5>
+                        <p class="text-muted small">System-wide management and oversight</p>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-6">
+                    <div class="text-center">
+                        <div class="dashboard-icon mb-3">
+                            <i class="fas fa-database fa-4x text-success"></i>
+                        </div>
+                        <h5>TDP</h5>
+                        <p class="text-muted small">Training Data Provider management</p>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-6">
+                    <div class="text-center">
+                        <div class="dashboard-icon mb-3">
+                            <i class="fas fa-shopping-cart fa-4x text-info"></i>
+                        </div>
+                        <h5>TDC</h5>
+                        <p class="text-muted small">Training Data Consumer interface</p>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-6">
+                    <div class="text-center">
+                        <div class="dashboard-icon mb-3">
+                            <i class="fas fa-server fa-4x text-warning"></i>
+                        </div>
+                        <h5>CCRP</h5>
+                        <p class="text-muted small">Confidential Computing Provider tools</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- AppAdmin Dashboard -->
+    <section class="py-5 bg-light">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-6">
+                    <h2 class="display-6 fw-bold mb-4">
+                        <i class="fas fa-user-shield text-primary me-2"></i>AppAdmin Dashboard
+                    </h2>
+                    <p class="lead mb-4">Comprehensive system-wide management and oversight for administrators.</p>
+                    
+                    <h5 class="mb-3">Core Features:</h5>
+                    <ul class="list-unstyled">
+                        <li class="mb-2"><i class="fas fa-check text-success me-2"></i><strong>User Management:</strong> System-wide user overview and role management</li>
+                        <li class="mb-2"><i class="fas fa-check text-success me-2"></i><strong>Contract Monitoring:</strong> Real-time contract analytics and status tracking</li>
+                        <li class="mb-2"><i class="fas fa-check text-success me-2"></i><strong>SCITT CCF Integration:</strong> Service status and health monitoring</li>
+                        <li class="mb-2"><i class="fas fa-check text-success me-2"></i><strong>Blockchain Health:</strong> Smart contract service monitoring</li>
+                        <li class="mb-2"><i class="fas fa-check text-success me-2"></i><strong>System Metrics:</strong> Performance, uptime, and resource utilization</li>
+                        <li class="mb-2"><i class="fas fa-check text-success me-2"></i><strong>Audit Logs:</strong> Complete system activity tracking</li>
+                    </ul>
+
+                    <h5 class="mb-3 mt-4">Key Metrics:</h5>
+                    <div class="row g-3">
+                        <div class="col-6">
+                            <div class="metric-card text-center p-3 bg-white rounded">
+                                <h6 class="text-muted">Total Users</h6>
+                                <h4 class="text-primary mb-0">1,247</h4>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="metric-card text-center p-3 bg-white rounded">
+                                <h6 class="text-muted">Active Contracts</h6>
+                                <h4 class="text-success mb-0">89</h4>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="metric-card text-center p-3 bg-white rounded">
+                                <h6 class="text-muted">System Uptime</h6>
+                                <h4 class="text-info mb-0">99.9%</h4>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="metric-card text-center p-3 bg-white rounded">
+                                <h6 class="text-muted">Data Volume</h6>
+                                <h4 class="text-warning mb-0">2.4TB</h4>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-6">
+                    <div class="dashboard-preview">
+                        <img src="https://via.placeholder.com/600x400/007bff/ffffff?text=AppAdmin+Dashboard" 
+                             alt="AppAdmin Dashboard Preview" class="img-fluid rounded shadow">
+                        <div class="text-center mt-3">
+                            <small class="text-muted">System-wide overview with real-time metrics and management tools</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- TDP Dashboard -->
+    <section class="py-5">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-6 order-lg-2">
+                    <h2 class="display-6 fw-bold mb-4">
+                        <i class="fas fa-database text-success me-2"></i>TDP Dashboard
+                    </h2>
+                    <p class="lead mb-4">Comprehensive management tools for Training Data Providers.</p>
+                    
+                    <h5 class="mb-3">Core Features:</h5>
+                    <ul class="list-unstyled">
+                        <li class="mb-2"><i class="fas fa-check text-success me-2"></i><strong>Dataset Management:</strong> JSONB-tagged datasets with advanced filtering</li>
+                        <li class="mb-2"><i class="fas fa-check text-success me-2"></i><strong>Contract Management:</strong> Auto-signing and approval workflows</li>
+                        <li class="mb-2"><i class="fas fa-check text-success me-2"></i><strong>Revenue Analytics:</strong> Payment tracking and growth metrics</li>
+                        <li class="mb-2"><i class="fas fa-check text-success me-2"></i><strong>Provenance Tracking:</strong> Data lineage and usage monitoring</li>
+                        <li class="mb-2"><i class="fas fa-check text-success me-2"></i><strong>Multi-TDP Support:</strong> Collaborative contract management</li>
+                        <li class="mb-2"><i class="fas fa-check text-success me-2"></i><strong>Performance Insights:</strong> Dataset popularity and usage analytics</li>
+                    </ul>
+
+                    <h5 class="mb-3 mt-4">Revenue Metrics:</h5>
+                    <div class="row g-3">
+                        <div class="col-6">
+                            <div class="metric-card text-center p-3 bg-light rounded">
+                                <h6 class="text-muted">Monthly Revenue</h6>
+                                <h4 class="text-success mb-0">$12,450</h4>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="metric-card text-center p-3 bg-light rounded">
+                                <h6 class="text-muted">Active Datasets</h6>
+                                <h4 class="text-primary mb-0">23</h4>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="metric-card text-center p-3 bg-light rounded">
+                                <h6 class="text-muted">Contract Success Rate</h6>
+                                <h4 class="text-info mb-0">94%</h4>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="metric-card text-center p-3 bg-light rounded">
+                                <h6 class="text-muted">Data Downloads</h6>
+                                <h4 class="text-warning mb-0">1,247</h4>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-6 order-lg-1">
+                    <div class="dashboard-preview">
+                        <img src="https://via.placeholder.com/600x400/28a745/ffffff?text=TDP+Dashboard" 
+                             alt="TDP Dashboard Preview" class="img-fluid rounded shadow">
+                        <div class="text-center mt-3">
+                            <small class="text-muted">Dataset management with revenue analytics and contract workflows</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- TDC Dashboard -->
+    <section class="py-5 bg-light">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-6">
+                    <h2 class="display-6 fw-bold mb-4">
+                        <i class="fas fa-shopping-cart text-info me-2"></i>TDC Dashboard
+                    </h2>
+                    <p class="lead mb-4">Intuitive interface for Training Data Consumers with advanced discovery and management.</p>
+                    
+                    <h5 class="mb-3">Core Features:</h5>
+                    <ul class="list-unstyled">
+                        <li class="mb-2"><i class="fas fa-check text-success me-2"></i><strong>Dataset Discovery:</strong> Advanced filtering with JSONB tags and metadata</li>
+                        <li class="mb-2"><i class="fas fa-check text-success me-2"></i><strong>Hybrid Contracts:</strong> Blockchain + SCITT CCF contract creation</li>
+                        <li class="mb-2"><i class="fas fa-check text-success me-2"></i><strong>Training Progress:</strong> Real-time monitoring with provenance tracking</li>
+                        <li class="mb-2"><i class="fas fa-check text-success me-2"></i><strong>Cost Analytics:</strong> Spending tracking and budget management</li>
+                        <li class="mb-2"><i class="fas fa-check text-success me-2"></i><strong>AI Model Management:</strong> Training pipeline and model deployment</li>
+                        <li class="mb-2"><i class="fas fa-check text-success me-2"></i><strong>Recommendations:</strong> AI-powered dataset suggestions</li>
+                    </ul>
+
+                    <h5 class="mb-3 mt-4">Usage Metrics:</h5>
+                    <div class="row g-3">
+                        <div class="col-6">
+                            <div class="metric-card text-center p-3 bg-white rounded">
+                                <h6 class="text-muted">Datasets Used</h6>
+                                <h4 class="text-info mb-0">47</h4>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="metric-card text-center p-3 bg-white rounded">
+                                <h6 class="text-muted">Active Contracts</h6>
+                                <h4 class="text-success mb-0">12</h4>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="metric-card text-center p-3 bg-white rounded">
+                                <h6 class="text-muted">Total Spending</h6>
+                                <h4 class="text-warning mb-0">$8,750</h4>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="metric-card text-center p-3 bg-white rounded">
+                                <h6 class="text-muted">Models Trained</h6>
+                                <h4 class="text-primary mb-0">8</h4>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-6">
+                    <div class="dashboard-preview">
+                        <img src="https://via.placeholder.com/600x400/17a2b8/ffffff?text=TDC+Dashboard" 
+                             alt="TDC Dashboard Preview" class="img-fluid rounded shadow">
+                        <div class="text-center mt-3">
+                            <small class="text-muted">Dataset discovery with hybrid contract creation and training monitoring</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CCRP Dashboard -->
+    <section class="py-5">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-6 order-lg-2">
+                    <h2 class="display-6 fw-bold mb-4">
+                        <i class="fas fa-server text-warning me-2"></i>CCRP Dashboard
+                    </h2>
+                    <p class="lead mb-4">Advanced tools for Confidential Computing Providers with SCITT CCF integration.</p>
+                    
+                    <h5 class="mb-3">Core Features:</h5>
+                    <ul class="list-unstyled">
+                        <li class="mb-2"><i class="fas fa-check text-success me-2"></i><strong>SCITT CCF Management:</strong> Environment provisioning and monitoring</li>
+                        <li class="mb-2"><i class="fas fa-check text-success me-2"></i><strong>Contract Execution:</strong> Real-time contract processing and provenance tracking</li>
+                        <li class="mb-2"><i class="fas fa-check text-success me-2"></i><strong>Resource Management:</strong> Utilization tracking and cost optimization</li>
+                        <li class="mb-2"><i class="fas fa-check text-success me-2"></i><strong>TEE Attestation:</strong> Trust establishment and verification</li>
+                        <li class="mb-2"><i class="fas fa-check text-success me-2"></i><strong>Security Monitoring:</strong> Compliance and threat detection</li>
+                        <li class="mb-2"><i class="fas fa-check text-success me-2"></i><strong>Performance Analytics:</strong> Health monitoring and optimization</li>
+                    </ul>
+
+                    <h5 class="mb-3 mt-4">Infrastructure Metrics:</h5>
+                    <div class="row g-3">
+                        <div class="col-6">
+                            <div class="metric-card text-center p-3 bg-light rounded">
+                                <h6 class="text-muted">Active Environments</h6>
+                                <h4 class="text-warning mb-0">15</h4>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="metric-card text-center p-3 bg-light rounded">
+                                <h6 class="text-muted">Resource Utilization</h6>
+                                <h4 class="text-info mb-0">78%</h4>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="metric-card text-center p-3 bg-light rounded">
+                                <h6 class="text-muted">Security Score</h6>
+                                <h4 class="text-success mb-0">A+</h4>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="metric-card text-center p-3 bg-light rounded">
+                                <h6 class="text-muted">Uptime</h6>
+                                <h4 class="text-primary mb-0">99.95%</h4>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-6 order-lg-1">
+                    <div class="dashboard-preview">
+                        <img src="https://via.placeholder.com/600x400/ffc107/000000?text=CCRP+Dashboard" 
+                             alt="CCRP Dashboard Preview" class="img-fluid rounded shadow">
+                        <div class="text-center mt-3">
+                            <small class="text-muted">SCITT CCF environment management with security and performance monitoring</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Dashboard Features -->
+    <section class="py-5 bg-light">
+        <div class="container">
+            <div class="row text-center mb-5">
+                <div class="col-lg-8 mx-auto">
+                    <h2 class="display-5 fw-bold mb-3">Dashboard Features</h2>
+                    <p class="lead text-muted">Advanced functionality available across all role-based dashboards.</p>
+                </div>
+            </div>
+            <div class="row g-4">
+                <div class="col-lg-3 col-md-6">
+                    <div class="feature-card text-center p-4 h-100">
+                        <div class="feature-icon mb-3">
+                            <i class="fas fa-shield-alt fa-3x text-primary"></i>
+                        </div>
+                        <h5>Role-Based Access Control</h5>
+                        <p class="text-muted small">Secure access based on user roles and permissions</p>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-6">
+                    <div class="feature-card text-center p-4 h-100">
+                        <div class="feature-icon mb-3">
+                            <i class="fas fa-tachometer-alt fa-3x text-success"></i>
+                        </div>
+                        <h5>Real-Time Metrics</h5>
+                        <p class="text-muted small">Live updates and performance indicators</p>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-6">
+                    <div class="feature-card text-center p-4 h-100">
+                        <div class="feature-icon mb-3">
+                            <i class="fas fa-chart-line fa-3x text-info"></i>
+                        </div>
+                        <h5>Advanced Analytics</h5>
+                        <p class="text-muted small">Comprehensive reporting and insights</p>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-6">
+                    <div class="feature-card text-center p-4 h-100">
+                        <div class="feature-icon mb-3">
+                            <i class="fas fa-mobile-alt fa-3x text-warning"></i>
+                        </div>
+                        <h5>Responsive Design</h5>
+                        <p class="text-muted small">Optimized for all devices and screen sizes</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Call to Action -->
+    <section class="py-5">
+        <div class="container">
+            <div class="row text-center">
+                <div class="col-lg-8 mx-auto">
+                    <h2 class="display-5 fw-bold mb-3">Experience the Dashboards</h2>
+                    <p class="lead text-muted mb-4">See how role-based dashboards can transform your contract management workflow.</p>
+                    <div class="d-flex justify-content-center gap-3">
+                        <a href="../index.html#demo" class="btn btn-primary btn-lg">
+                            <i class="fas fa-play me-2"></i>Request Demo
+                        </a>
+                        <a href="../index.html#contact" class="btn btn-outline-primary btn-lg">
+                            <i class="fas fa-envelope me-2"></i>Contact Us
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-dark text-white py-4">
+        <div class="container text-center">
+            <p>&copy; 2025 ContractFlow Pro. All rights reserved.</p>
+            <p class="small text-muted">Role-Based Dashboards for Enterprise Contract Management</p>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../script.js"></script>
+</body>
+</html>
+

@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hybrid Architecture - ContractFlow Pro</title>
+    <meta name="description" content="Explore the revolutionary hybrid blockchain + SCITT CCF architecture that combines Ethereum smart contracts with confidential computing for next-generation contract management.">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="../styles.css" rel="stylesheet">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary fixed-top">
+        <div class="container">
+            <a class="navbar-brand fw-bold" href="../index.html">
+                <i class="fas fa-file-contract me-2"></i>ContractFlow Pro
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="../index.html">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="../index.html#features">Features</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="../index.html#dashboards">Dashboards</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="../index.html#technology">Technology</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="../index.html#contact">Contact</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero-section pt-5 mt-5">
+        <div class="container">
+            <div class="row text-center">
+                <div class="col-lg-8 mx-auto">
+                    <h1 class="display-4 fw-bold text-white mb-4">
+                        Hybrid Blockchain + SCITT CCF Architecture
+                    </h1>
+                    <p class="lead text-white-50 mb-4">
+                        Revolutionary contract management combining the immutability of Ethereum smart contracts 
+                        with the privacy and security of SCITT CCF confidential computing.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Architecture Overview -->
+    <section class="py-5">
+        <div class="container">
+            <div class="row text-center mb-5">
+                <div class="col-lg-8 mx-auto">
+                    <h2 class="display-5 fw-bold mb-3">Architecture Overview</h2>
+                    <p class="lead text-muted">Three operational modes with seamless fallback and synchronization.</p>
+                </div>
+            </div>
+            <div class="row g-4">
+                <div class="col-lg-4">
+                    <div class="feature-card text-center p-4 h-100">
+                        <div class="feature-icon mb-3">
+                            <i class="fas fa-link fa-3x text-primary"></i>
+                        </div>
+                        <h4>ETHEREUM_ONLY Mode</h4>
+                        <p class="text-muted">Traditional smart contract operation with full blockchain integration.</p>
+                        <ul class="list-unstyled text-start">
+                            <li><i class="fas fa-check text-success me-2"></i>Solidity smart contracts</li>
+                            <li><i class="fas fa-check text-success me-2"></i>Ethereum blockchain</li>
+                            <li><i class="fas fa-check text-success me-2"></i>Gas optimization</li>
+                            <li><i class="fas fa-check text-success me-2"></i>Public verification</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="col-lg-4">
+                    <div class="feature-card text-center p-4 h-100">
+                        <div class="feature-icon mb-3">
+                            <i class="fas fa-shield-alt fa-3x text-success"></i>
+                        </div>
+                        <h4>SCITT_CCF_ONLY Mode</h4>
+                        <p class="text-muted">Pure confidential computing with TEE attestation and privacy preservation.</p>
+                        <ul class="list-unstyled text-start">
+                            <li><i class="fas fa-check text-success me-2"></i>Confidential computing</li>
+                            <li><i class="fas fa-check text-success me-2"></i>TEE attestation</li>
+                            <li><i class="fas fa-check text-success me-2"></i>Privacy preservation</li>
+                            <li><i class="fas fa-check text-success me-2"></i>Immutable ledger</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="col-lg-4">
+                    <div class="feature-card text-center p-4 h-100 border-primary">
+                        <div class="feature-icon mb-3">
+                            <i class="fas fa-cogs fa-3x text-primary"></i>
+                        </div>
+                        <h4>HYBRID Mode</h4>
+                        <p class="text-muted"><strong>Recommended:</strong> Both systems active with automatic fallback.</p>
+                        <ul class="list-unstyled text-start">
+                            <li><i class="fas fa-check text-success me-2"></i>Dual system operation</li>
+                            <li><i class="fas fa-check text-success me-2"></i>Automatic fallback</li>
+                            <li><i class="fas fa-check text-success me-2"></i>State synchronization</li>
+                            <li><i class="fas fa-check text-success me-2"></i>Maximum availability</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Smart Contracts Implementation -->
+    <section class="py-5 bg-light">
+        <div class="container">
+            <div class="row text-center mb-5">
+                <div class="col-lg-8 mx-auto">
+                    <h2 class="display-5 fw-bold mb-3">Smart Contracts Implementation</h2>
+                    <p class="lead text-muted">Solidity-based smart contracts with comprehensive contract lifecycle management.</p>
+                </div>
+            </div>
+            <div class="row g-4">
+                <div class="col-lg-6">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h4 class="card-title"><i class="fas fa-code text-primary me-2"></i>ContractManager.sol</h4>
+                            <p class="card-text">Complete Solidity implementation for managing contracts between TDPs, TDCs, and CCRPs.</p>
+                            <ul class="list-unstyled">
+                                <li><i class="fas fa-check text-success me-2"></i>Contract lifecycle management</li>
+                                <li><i class="fas fa-check text-success me-2"></i>Auto-signing for TDPs</li>
+                                <li><i class="fas fa-check text-success me-2"></i>CCRP integration</li>
+                                <li><i class="fas fa-check text-success me-2"></i>Status enforcement</li>
+                                <li><i class="fas fa-check text-success me-2"></i>Event emission</li>
+                                <li><i class="fas fa-check text-success me-2"></i>Security protection</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-6">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h4 class="card-title"><i class="fas fa-cogs text-primary me-2"></i>Blockchain Service</h4>
+                            <p class="card-text">Flexible blockchain integration with graceful fallback and health monitoring.</p>
+                            <ul class="list-unstyled">
+                                <li><i class="fas fa-check text-success me-2"></i>Flexible operation modes</li>
+                                <li><i class="fas fa-check text-success me-2"></i>Graceful fallback support</li>
+                                <li><i class="fas fa-check text-success me-2"></i>Health monitoring</li>
+                                <li><i class="fas fa-check text-success me-2"></i>Mock results for testing</li>
+                                <li><i class="fas fa-check text-success me-2"></i>Event processing</li>
+                                <li><i class="fas fa-check text-success me-2"></i>Performance metrics</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Provenance Tracking -->
+    <section class="py-5">
+        <div class="container">
+            <div class="row text-center mb-5">
+                <div class="col-lg-8 mx-auto">
+                    <h2 class="display-5 fw-bold mb-3">Provenance Tracking System</h2>
+                    <p class="lead text-muted">Complete data lineage with Merkle tree verification and tamper-proof audit trails.</p>
+                </div>
+            </div>
+            <div class="row g-4">
+                <div class="col-lg-8">
+                    <div class="card">
+                        <div class="card-body">
+                            <h4 class="card-title"><i class="fas fa-tree text-success me-2"></i>Merkle Tree Architecture</h4>
+                            <div class="text-center mb-3">
+                                <pre class="bg-light p-3 rounded"><code>Root Hash (Level 0)
+├── Node 1 (Level 1) ── Node 2 (Level 1)
+│   ├── Node 3 (Level 2) ── Node 4 (Level 2)
+│   └── Node 5 (Level 2) ── Node 6 (Level 2)
+└── Node 7 (Level 1) ── Node 8 (Level 1)
+    ├── Node 9 (Level 2) ── Node 10 (Level 2)
+    └── Node 11 (Level 2) ── Node 12 (Level 2)</code></pre>
+                            </div>
+                            <p class="card-text">Cryptographic verification using Merkle trees ensures data integrity and provides tamper-proof audit trails.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-4">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h5 class="card-title">Provenance Models</h5>
+                            <ul class="list-unstyled">
+                                <li><i class="fas fa-database text-info me-2"></i><strong>MerkleTree:</strong> Tree structure and metadata</li>
+                                <li><i class="fas fa-circle text-info me-2"></i><strong>ProvenanceNode:</strong> Individual tree nodes</li>
+                                <li><i class="fas fa-camera text-info me-2"></i><strong>ProvenanceCapture:</strong> Data capture during processing</li>
+                                <li><i class="fas fa-check-circle text-info me-2"></i><strong>ProvenanceVerification:</strong> Verification results</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SCITT CCF Integration -->
+    <section class="py-5 bg-light">
+        <div class="container">
+            <div class="row text-center mb-5">
+                <div class="col-lg-8 mx-auto">
+                    <h2 class="display-5 fw-bold mb-3">SCITT CCF Integration</h2>
+                    <p class="lead text-muted">Confidential computing with TEE attestation and privacy-preserving contract execution.</p>
+                </div>
+            </div>
+            <div class="row g-4">
+                <div class="col-lg-6">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h4 class="card-title"><i class="fas fa-server text-success me-2"></i>Service Architecture</h4>
+                            <ul class="list-unstyled">
+                                <li><i class="fas fa-check text-success me-2"></i><strong>SCITT CCF Node:</strong> Main ledger (port 8000)</li>
+                                <li><i class="fas fa-check text-success me-2"></i><strong>Dashboard:</strong> Web interface (port 8082)</li>
+                                <li><i class="fas fa-check text-success me-2"></i><strong>Monitor:</strong> Health monitoring (port 8001)</li>
+                                <li><i class="fas fa-check text-success me-2"></i><strong>Redis:</strong> Caching (port 6379)</li>
+                                <li><i class="fas fa-check text-success me-2"></i><strong>PostgreSQL:</strong> Data storage (port 5434)</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-6">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h4 class="card-title"><i class="fas fa-code text-success me-2"></i>API Endpoints</h4>
+                            <ul class="list-unstyled">
+                                <li><i class="fas fa-check text-success me-2"></i><code>GET /api/scitt-ccf/health</code> - Service health</li>
+                                <li><i class="fas fa-check text-success me-2"></i><code>GET /api/scitt-ccf/metrics</code> - Performance metrics</li>
+                                <li><i class="fas fa-check text-success me-2"></i><code>POST /api/scitt-ccf/contracts</code> - Create contract</li>
+                                <li><i class="fas fa-check text-success me-2"></i><code>GET /api/scitt-ccf/contracts/:id/status</code> - Contract status</li>
+                                <li><i class="fas fa-check text-success me-2"></i><code>GET /api/scitt-ccf/contracts/:id/provenance</code> - Provenance tree</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Technical Improvements -->
+    <section class="py-5">
+        <div class="container">
+            <div class="row text-center mb-5">
+                <div class="col-lg-8 mx-auto">
+                    <h2 class="display-5 fw-bold mb-3">Technical Improvements</h2>
+                    <p class="lead text-muted">Database optimization, field naming consistency, and performance enhancements.</p>
+                </div>
+            </div>
+            <div class="row g-4">
+                <div class="col-lg-6">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h4 class="card-title"><i class="fas fa-database text-info me-2"></i>JSONB Field Optimization</h4>
+                            <p class="card-text">All JSON fields converted to JSONB for improved performance and indexing capabilities.</p>
+                            <h6>Performance Benefits:</h6>
+                            <ul class="list-unstyled">
+                                <li><i class="fas fa-rocket text-success me-2"></i><strong>10-100x faster</strong> than JSON field queries</li>
+                                <li><i class="fas fa-search text-success me-2"></i><strong>GIN indexes</strong> for fast tag searches</li>
+                                <li><i class="fas fa-save text-success me-2"></i><strong>Efficient storage</strong> with binary format</li>
+                                <li><i class="fas fa-code text-success me-2"></i><strong>Rich operators</strong> (@>, @?, etc.)</li>
+                            </ul>
+                            <h6>Example Queries:</h6>
+                            <pre class="bg-light p-2 rounded small"><code>WHERE tags @> '["ai", "machine-learning"]'
+WHERE metadata @> '{"category": "healthcare"}'
+WHERE cloud_providers @> '["AWS", "Azure"]'</code></pre>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-6">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h4 class="card-title"><i class="fas fa-snake text-warning me-2"></i>Field Naming Consistency</h4>
+                            <p class="card-text">All models use consistent snake_case field naming with <code>underscored: true</code>.</p>
+                            <h6>Field Mapping:</h6>
+                            <ul class="list-unstyled">
+                                <li><i class="fas fa-arrow-right text-primary me-2"></i><code>userId</code> → <code>user_id</code></li>
+                                <li><i class="fas fa-arrow-right text-primary me-2"></i><code>contractId</code> → <code>contract_id</code></li>
+                                <li><i class="fas fa-arrow-right text-primary me-2"></i><code>templateId</code> → <code>template_id</code></li>
+                                <li><i class="fas fa-arrow-right text-primary me-2"></i><code>datasetId</code> → <code>dataset_id</code></li>
+                            </ul>
+                            <h6>Benefits:</h6>
+                            <ul class="list-unstyled">
+                                <li><i class="fas fa-check text-success me-2"></i>Consistent database schema</li>
+                                <li><i class="fas fa-check text-success me-2"></i>Proper foreign key relationships</li>
+                                <li><i class="fas fa-check text-success me-2"></i>Optimized query performance</li>
+                                <li><i class="fas fa-check text-success me-2"></i>Easier maintenance</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Testing & Quality -->
+    <section class="py-5 bg-light">
+        <div class="container">
+            <div class="row text-center mb-5">
+                <div class="col-lg-8 mx-auto">
+                    <h2 class="display-5 fw-bold mb-3">Testing & Quality Assurance</h2>
+                    <p class="lead text-muted">Comprehensive test suites covering all features and integration points.</p>
+                </div>
+            </div>
+            <div class="row g-4">
+                <div class="col-lg-4">
+                    <div class="card h-100">
+                        <div class="card-body text-center">
+                            <h4 class="card-title"><i class="fas fa-vial text-primary me-2"></i>Unit Tests</h4>
+                            <p class="card-text">Fast mock-based testing with no external dependencies.</p>
+                            <code class="bg-light p-2 rounded">npm run test:mock</code>
+                            <ul class="list-unstyled mt-3 text-start">
+                                <li><i class="fas fa-check text-success me-2"></i>Business logic testing</li>
+                                <li><i class="fas fa-check text-success me-2"></i>Model validation</li>
+                                <li><i class="fas fa-check text-success me-2"></i>Service layer testing</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-4">
+                    <div class="card h-100">
+                        <div class="card-body text-center">
+                            <h4 class="card-title"><i class="fas fa-plug text-success me-2"></i>Integration Tests</h4>
+                            <p class="card-text">Real service connections and API endpoint testing.</p>
+                            <code class="bg-light p-2 rounded">npm run test:integration</code>
+                            <ul class="list-unstyled mt-3 text-start">
+                                <li><i class="fas fa-check text-success me-2"></i>API endpoint testing</li>
+                                <li><i class="fas fa-check text-success me-2"></i>Service integration</li>
+                                <li><i class="fas fa-check text-success me-2"></i>Database operations</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-4">
+                    <div class="card h-100">
+                        <div class="card-body text-center">
+                            <h4 class="card-title"><i class="fas fa-cogs text-info me-2"></i>Specialized Tests</h4>
+                            <p class="card-text">Feature-specific testing for SCITT CCF and hybrid mode.</p>
+                            <code class="bg-light p-2 rounded">npm run test:scitt-ccf</code>
+                            <ul class="list-unstyled mt-3 text-start">
+                                <li><i class="fas fa-check text-success me-2"></i>SCITT CCF integration</li>
+                                <li><i class="fas fa-check text-success me-2"></i>Hybrid mode testing</li>
+                                <li><i class="fas fa-check text-success me-2"></i>Provenance tracking</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Call to Action -->
+    <section class="py-5">
+        <div class="container">
+            <div class="row text-center">
+                <div class="col-lg-8 mx-auto">
+                    <h2 class="display-5 fw-bold mb-3">Ready to Experience the Future?</h2>
+                    <p class="lead text-muted mb-4">Join the revolution in contract management with hybrid blockchain + SCITT CCF architecture.</p>
+                    <div class="d-flex justify-content-center gap-3">
+                        <a href="../index.html#demo" class="btn btn-primary btn-lg">
+                            <i class="fas fa-play me-2"></i>Request Demo
+                        </a>
+                        <a href="../index.html#contact" class="btn btn-outline-primary btn-lg">
+                            <i class="fas fa-envelope me-2"></i>Contact Us
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-dark text-white py-4">
+        <div class="container text-center">
+            <p>&copy; 2025 ContractFlow Pro. All rights reserved.</p>
+            <p class="small text-muted">Hybrid Blockchain + SCITT CCF Contract Management System</p>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../script.js"></script>
+</body>
+</html>
+
