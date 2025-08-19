@@ -53,11 +53,8 @@
             <h6 class="mb-0 text-white">Quick Navigation</h6>
         </div>
         <ul class="side-nav-list">
-            <li><a href="#hero" class="side-nav-link active" data-section="hero">
-                <i class="fas fa-home me-2"></i>Hero
-            </a></li>
-            <li><a href="#why-matters" class="side-nav-link" data-section="why-matters">
-                <i class="fas fa-star me-2"></i>Why It Matters
+            <li><a href="#overview" class="side-nav-link active" data-section="overview">
+                <i class="fas fa-home me-2"></i>Overview
             </a></li>
             <li><a href="#ai-landscape" class="side-nav-link" data-section="ai-landscape">
                 <i class="fas fa-robot me-2"></i>AI Landscape
@@ -83,8 +80,8 @@
         </ul>
     </nav>
 
-    <!-- Hero Section -->
-    <section id="hero" class="hero-section">
+    <!-- Overview Section (Hero + Why It Matters Combined) -->
+    <section id="overview" class="hero-section">
         <div class="container">
             <div class="row align-items-center">
                 <div class="col-lg-6">
@@ -171,94 +168,60 @@
                     </div>
                 </div>
             </div>
+            
+            <!-- Why It Matters Content Integrated -->
+            <div class="row mt-5">
+                <div class="col-12">
+                    <div class="text-center mb-4">
+                        <h2 class="display-5 fw-bold text-white mb-3">Why ContractFlow Pro Matters</h2>
+                        <p class="lead text-white-50">Solving critical challenges in AI training data management and contract compliance</p>
+                    </div>
+                    
+                    <div class="row g-4">
+                        <div class="col-lg-3 col-md-6">
+                            <div class="why-matters-card bg-white bg-opacity-10 p-4 rounded border border-white border-opacity-25 text-center">
+                                <i class="fas fa-shield-alt fa-3x text-warning mb-3"></i>
+                                <h5 class="text-white">Enterprise Security</h5>
+                                <p class="text-white-50 mb-0">
+                                    FIPS 140-2 Level 3 HSM integration with multi-layer security architecture
+                                </p>
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-md-6">
+                            <div class="why-matters-card bg-white bg-opacity-10 p-4 rounded border border-white border-opacity-25 text-center">
+                                <i class="fas fa-chart-line fa-3x text-success mb-3"></i>
+                                <h5 class="text-white">Provenance Tracking</h5>
+                                <p class="text-white-50 mb-0">
+                                    Cryptographic data lineage with Merkle tree verification
+                                </p>
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-md-6">
+                            <div class="why-matters-card bg-white bg-opacity-10 p-4 rounded border border-white border-opacity-25 text-center">
+                                <i class="fas fa-users fa-3x text-info mb-3"></i>
+                                <h5 class="text-white">Multi-Party Support</h5>
+                                <p class="text-white-50 mb-0">
+                                    Role-based access control for TDP, TDC, CCRP, and Admin users
+                                </p>
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-md-6">
+                            <div class="why-matters-card bg-white bg-opacity-10 p-4 rounded border border-white border-opacity-25 text-center">
+                                <i class="fas fa-bell fa-3x text-warning mb-3"></i>
+                                <h5 class="text-white">Real-Time Updates</h5>
+                                <p class="text-white-50 mb-0">
+                                    WebSocket architecture for instant notifications and updates
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </section>
+
 
-    <!-- Why This Matters Section -->
-    <section id="why-matters" class="py-5 bg-dark text-white">
-        <div class="container">
-            <div class="row text-center mb-5">
-                <div class="col-lg-8 mx-auto">
-                    <h2 class="display-5 fw-bold mb-3">Why ContractFlow Pro Matters in Today's AI Landscape</h2>
-                    <p class="lead text-white-50">Solving critical challenges in AI training data management and contract compliance</p>
-                </div>
-            </div>
-            
-            <div class="row g-4 mb-5">
-                <div class="col-lg-6">
-                    <div class="problem-card p-4 h-100 bg-danger bg-opacity-25 rounded border border-danger">
-                        <div class="d-flex align-items-center mb-3">
-                            <i class="fas fa-exclamation-triangle fa-2x text-danger me-3"></i>
-                            <div>
-                                <h4 class="text-danger mb-1">Critical Problems in AI Today</h4>
-                                <p class="text-white-50 mb-0">What's breaking the AI industry</p>
-                            </div>
-                        </div>
-                        <ul class="list-unstyled text-white">
-                            <li><i class="fas fa-times text-danger me-2"></i><strong>Data Provenance Crisis:</strong> 78% of AI models lack verifiable training data lineage</li>
-                            <li><i class="fas fa-times text-danger me-2"></i><strong>Copyright Infringement:</strong> $2.3B in lawsuits against AI companies in 2024</li>
-                            <li><i class="fas fa-times text-danger me-2"></i><strong>Regulatory Chaos:</strong> EU AI Act, US Executive Orders, and global compliance requirements</li>
-                            <li><i class="fas fa-times text-danger me-2"></i><strong>Trust Deficit:</strong> 65% of enterprises don't trust AI model outputs without provenance</li>
-                            <li><i class="fas fa-times text-danger me-2"></i><strong>Supply Chain Opacity:</strong> No visibility into AI training data sources and licensing</li>
-                        </ul>
-                    </div>
-                </div>
-                
-                <div class="col-lg-6">
-                    <div class="solution-card p-4 h-100 bg-success bg-opacity-25 rounded border border-success">
-                        <div class="d-flex align-items-center mb-3">
-                            <i class="fas fa-check-circle fa-2x text-success me-3"></i>
-                            <div>
-                                <h4 class="text-success mb-1">Our Comprehensive Solutions</h4>
-                                <p class="text-white-50 mb-0">How we fix these problems</p>
-                            </div>
-                        </div>
-                        <ul class="list-unstyled text-white">
-                            <li><i class="fas fa-check text-success me-2"></i><strong>Complete Data Lineage:</strong> Cryptographic provenance tracking from source to model</li>
-                            <li><i class="fas fa-check text-success me-2"></i><strong>Copyright Protection:</strong> Automated licensing verification and compliance</li>
-                            <li><i class="fas fa-check text-success me-2"></i><strong>Regulatory Compliance:</strong> Built-in compliance with EU AI Act, GDPR, and global standards</li>
-                            <li><i class="fas fa-check text-success me-2"></i><strong>Trust Establishment:</strong> Verifiable attestations and cryptographic proof</li>
-                            <li><i class="fas fa-check text-success me-2"></i><strong>Supply Chain Transparency:</strong> Full visibility into data sources and licensing</li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="row text-center">
-                <div class="col-lg-10 mx-auto">
-                    <div class="impact-stats bg-primary bg-opacity-25 p-4 rounded border border-primary">
-                        <h3 class="text-primary mb-4">Real Impact in the AI Industry</h3>
-                        <div class="row g-4">
-                            <div class="col-lg-3 col-md-6">
-                                <div class="text-center">
-                                    <div class="display-6 fw-bold text-primary mb-2">$2.3B+</div>
-                                    <p class="text-white mb-0">Potential Legal Costs Prevented</p>
-                                </div>
-                            </div>
-                            <div class="col-lg-3 col-md-6">
-                                <div class="text-center">
-                                    <div class="display-6 fw-bold text-primary mb-2">78%</div>
-                                    <p class="text-white mb-0">Improvement in Data Provenance</p>
-                                </div>
-                            </div>
-                            <div class="col-lg-3 col-md-6">
-                                <div class="text-center">
-                                    <div class="display-6 fw-bold text-primary mb-2">65%</div>
-                                    <p class="text-white mb-0">Increase in AI Trust & Adoption</p>
-                                </div>
-                            </div>
-                            <div class="col-lg-3 col-md-6">
-                                <div class="text-center">
-                                    <div class="display-6 fw-bold text-primary mb-2">100%</div>
-                                    <p class="text-white mb-0">Regulatory Compliance</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
+
 
     <!-- Features Section -->
     <section id="features" class="py-5">
