@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Technology - ContractFlow Pro | Technical Architecture & Stack</title>
+    <meta name="description" content="Explore ContractFlow Pro's technical architecture: hybrid blockchain, SCITT CCF integration, HSM security, microservices, and enterprise-grade infrastructure.">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="styles.css" rel="stylesheet">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary fixed-top">
+        <div class="container">
+            <a class="navbar-brand fw-bold" href="index.html">
+                <i class="fas fa-file-contract me-2"></i>ContractFlow Pro
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="index.html">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="features.html">Features</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="solutions.html">Solutions</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="technology.html">Technology</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="pricing.html">Pricing</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="about.html">About</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="btn btn-outline-light ms-2" href="#demo">Request Demo</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Page Header -->
+    <section class="page-header bg-primary text-white">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 mx-auto text-center">
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb justify-content-center">
+                            <li class="breadcrumb-item"><a href="index.html" class="text-white-50">Home</a></li>
+                            <li class="breadcrumb-item active text-white" aria-current="page">Technology</li>
+                        </ol>
+                    </nav>
+                    <h1 class="display-4 fw-bold mb-3">Technical Architecture</h1>
+                    <p class="lead text-white-50">Enterprise-grade technology stack built for security, scalability, and compliance.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Technology Stack Overview -->
+    <section class="py-5">
+        <div class="container">
+            <div class="row text-center mb-5">
+                <div class="col-lg-8 mx-auto">
+                    <h2 class="display-5 fw-bold mb-3">Technology Stack</h2>
+                    <p class="lead text-muted">Modern, scalable architecture built on proven technologies.</p>
+                </div>
+            </div>
+            
+            <div class="row g-4">
+                <div class="col-lg-3 col-md-6">
+                    <div class="tech-card p-4 h-100 text-center">
+                        <i class="fab fa-ethereum fa-4x text-primary mb-3"></i>
+                        <h5>Blockchain</h5>
+                        <p class="text-muted">Ethereum smart contracts for immutable contract recording</p>
+                    </div>
+                </div>
+                
+                <div class="col-lg-3 col-md-6">
+                    <div class="tech-card p-4 h-100 text-center">
+                        <i class="fas fa-server fa-4x text-success mb-3"></i>
+                        <h5>Backend</h5>
+                        <p class="text-muted">Node.js/Express microservices architecture</p>
+                    </div>
+                </div>
+                
+                <div class="col-lg-3 col-md-6">
+                    <div class="tech-card p-4 h-100 text-center">
+                        <i class="fab fa-react fa-4x text-info mb-3"></i>
+                        <h5>Frontend</h5>
+                        <p class="text-muted">React-based user interface with role-based dashboards</p>
+                    </div>
+                </div>
+                
+                <div class="col-lg-3 col-md-6">
+                    <div class="tech-card p-4 h-100 text-center">
+                        <i class="fas fa-database fa-4x text-warning mb-3"></i>
+                        <h5>Database</h5>
+                        <p class="text-muted">PostgreSQL with Redis caching and monitoring</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Architecture Diagram -->
+    <section class="py-5 bg-light">
+        <div class="container">
+            <div class="row text-center mb-5">
+                <div class="col-lg-8 mx-auto">
+                    <h2 class="display-5 fw-bold mb-3">System Architecture</h2>
+                    <p class="lead text-muted">High-level overview of ContractFlow Pro's architecture.</p>
+                </div>
+            </div>
+            
+            <div class="row justify-content-center">
+                <div class="col-lg-10">
+                    <div class="architecture-diagram p-4 bg-white rounded shadow">
+                        <div class="text-center mb-4">
+                            <h4 class="text-primary">ContractFlow Pro Architecture</h4>
+                        </div>
+                        
+                        <div class="architecture-layers">
+                            <!-- Frontend Layer -->
+                            <div class="layer frontend-layer p-3 mb-3 bg-primary bg-opacity-10 rounded border border-primary">
+                                <h6 class="text-primary mb-2"><i class="fas fa-desktop me-2"></i>Frontend Layer</h6>
+                                <div class="row g-2">
+                                    <div class="col-md-3">
+                                        <div class="component p-2 bg-white rounded text-center">
+                                            <small>React App</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="component p-2 bg-white rounded text-center">
+                                            <small>User Dashboard</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="component p-2 bg-white rounded text-center">
+                                            <small>Contract Forms</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="component p-2 bg-white rounded text-center">
+                                            <small>Admin Panel</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Backend Layer -->
+                            <div class="layer backend-layer p-3 mb-3 bg-success bg-opacity-10 rounded border border-success">
+                                <h6 class="text-success mb-2"><i class="fas fa-cogs me-2"></i>Backend Services</h6>
+                                <div class="row g-2">
+                                    <div class="col-md-2">
+                                        <div class="component p-2 bg-white rounded text-center">
+                                            <small>Auth Service</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <div class="component p-2 bg-white rounded text-center">
+                                            <small>Contract Service</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <div class="component p-2 bg-white rounded text-center">
+                                            <small>DID Service</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <div class="component p-2 bg-white rounded text-center">
+                                            <small>Blockchain Service</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <div class="component p-2 bg-white rounded text-center">
+                                            <small>SCITT Service</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <div class="component p-2 bg-white rounded text-center">
+                                            <small>HSM Service</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Infrastructure Layer -->
+                            <div class="layer infrastructure-layer p-3 mb-3 bg-warning bg-opacity-10 rounded border border-warning">
+                                <h6 class="text-warning mb-2"><i class="fas fa-cloud me-2"></i>Infrastructure</h6>
+                                <div class="row g-2">
+                                    <div class="col-md-3">
+                                        <div class="component p-2 bg-white rounded text-center">
+                                            <small>PostgreSQL</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="component p-2 bg-white rounded text-center">
+                                            <small>Redis Cache</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="component p-2 bg-white rounded text-center">
+                                            <small>Keycloak IAM</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="component p-2 bg-white rounded text-center">
+                                            <small>Ethereum Node</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Security Layer -->
+                            <div class="layer security-layer p-3 bg-danger bg-opacity-10 rounded border border-danger">
+                                <h6 class="text-danger mb-2"><i class="fas fa-shield-alt me-2"></i>Security & Compliance</h6>
+                                <div class="row g-2">
+                                    <div class="col-md-2">
+                                        <div class="component p-2 bg-white rounded text-center">
+                                            <small>HSM</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <div class="component p-2 bg-white rounded text-center">
+                                            <small>KMS</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <div class="component p-2 bg-white rounded text-center">
+                                            <small>SCITT CCF</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <div class="component p-2 bg-white rounded text-center">
+                                            <small>Audit Logs</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <div class="component p-2 bg-white rounded text-center">
+                                            <small>Compliance</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-2">
+                                        <div class="component p-2 bg-white rounded text-center">
+                                            <small>Monitoring</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Security Features -->
+    <section class="py-5">
+        <div class="container">
+            <div class="row text-center mb-5">
+                <div class="col-lg-8 mx-auto">
+                    <h2 class="display-5 fw-bold mb-3">Security & Compliance</h2>
+                    <p class="lead text-muted">Enterprise-grade security features and compliance capabilities.</p>
+                </div>
+            </div>
+            
+            <div class="row g-4">
+                <div class="col-lg-6">
+                    <div class="security-card p-4 h-100 bg-success bg-opacity-10 rounded border border-success">
+                        <div class="d-flex align-items-center mb-3">
+                            <i class="fas fa-shield-alt fa-2x text-success me-3"></i>
+                            <div>
+                                <h4 class="text-success">Hardware Security Module (HSM)</h4>
+                                <p class="text-muted mb-0">FIPS 140-2 Level 3 Compliance</p>
+                            </div>
+                        </div>
+                        <ul class="list-unstyled">
+                            <li><i class="fas fa-check text-success me-2"></i>Centralized cryptographic key management</li>
+                            <li><i class="fas fa-check text-success me-2"></i>Automated key rotation and lifecycle management</li>
+                            <li><i class="fas fa-check text-success me-2"></i>Physical security for cryptographic operations</li>
+                            <li><i class="fas fa-check text-success me-2"></i>Enterprise-grade key storage and protection</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="col-lg-6">
+                    <div class="security-card p-4 h-100 bg-primary bg-opacity-10 rounded border border-primary">
+                        <div class="d-flex align-items-center mb-3">
+                            <i class="fas fa-eye fa-2x text-primary me-3"></i>
+                            <div>
+                                <h4 class="text-primary">SCITT-CCF Integration</h4>
+                                <p class="text-muted mb-0">Supply Chain Transparency & Trust</p>
+                            </div>
+                        </div>
+                        <ul class="list-unstyled">
+                            <li><i class="fas fa-check text-primary me-2"></i>Verifiable supply chain for AI training</li>
+                            <li><i class="fas fa-check text-primary me-2"></i>Cryptographic attestation of data and models</li>
+                            <li><i class="fas fa-check text-primary me-2"></i>Automated compliance monitoring and reporting</li>
+                            <li><i class="fas fa-check text-primary me-2"></i>Enhanced DID resolution and verification</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Technical Specifications -->
+    <section class="py-5 bg-light">
+        <div class="container">
+            <div class="row text-center mb-5">
+                <div class="col-lg-8 mx-auto">
+                    <h2 class="display-5 fw-bold mb-3">Technical Specifications</h2>
+                    <p class="lead text-muted">Detailed technical requirements and capabilities.</p>
+                </div>
+            </div>
+            
+            <div class="row g-4">
+                <div class="col-lg-6">
+                    <div class="spec-card p-4 h-100 bg-white rounded shadow">
+                        <h5 class="text-primary mb-3"><i class="fas fa-server me-2"></i>System Requirements</h5>
+                        <ul class="list-unstyled">
+                            <li><strong>Backend:</strong> Node.js 18+, Express 4.x</li>
+                            <li><strong>Database:</strong> PostgreSQL 14+, Redis 6+</li>
+                            <li><strong>Frontend:</strong> React 18+, Bootstrap 5</li>
+                            <li><strong>Blockchain:</strong> Ethereum Mainnet/Testnet</li>
+                            <li><strong>Authentication:</strong> Keycloak 22+</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="col-lg-6">
+                    <div class="spec-card p-4 h-100 bg-white rounded shadow">
+                        <h5 class="text-success mb-3"><i class="fas fa-chart-line me-2"></i>Performance Metrics</h5>
+                        <ul class="list-unstyled">
+                            <li><strong>Response Time:</strong> < 200ms average</li>
+                            <li><strong>Throughput:</strong> 1000+ requests/second</li>
+                            <li><strong>Uptime:</strong> 99.9% SLA</li>
+                            <li><strong>Scalability:</strong> Horizontal scaling support</li>
+                            <li><strong>Data Processing:</strong> Real-time streaming</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Integration & APIs -->
+    <section class="py-5">
+        <div class="container">
+            <div class="row text-center mb-5">
+                <div class="col-lg-8 mx-auto">
+                    <h2 class="display-5 fw-bold mb-3">Integration & APIs</h2>
+                    <p class="lead text-muted">Seamless integration with your existing systems and workflows.</p>
+                </div>
+            </div>
+            
+            <div class="row g-4">
+                <div class="col-lg-4">
+                    <div class="integration-card p-4 h-100 text-center">
+                        <i class="fas fa-plug fa-3x text-primary mb-3"></i>
+                        <h5>RESTful APIs</h5>
+                        <p class="text-muted">Comprehensive REST APIs for all system operations with OpenAPI 3.0 documentation.</p>
+                    </div>
+                </div>
+                
+                <div class="col-lg-4">
+                    <div class="integration-card p-4 h-100 text-center">
+                        <i class="fas fa-code fa-3x text-success mb-3"></i>
+                        <h5>SDKs & Libraries</h5>
+                        <p class="text-muted">JavaScript and Python SDKs for easy integration with your applications.</p>
+                    </div>
+                </div>
+                
+                <div class="col-lg-4">
+                    <div class="integration-card p-4 h-100 text-center">
+                        <i class="fas fa-exchange-alt fa-3x text-warning mb-3"></i>
+                        <h5>Webhooks</h5>
+                        <p class="text-muted">Real-time event notifications via webhooks for system integration.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Call to Action -->
+    <section class="py-5 bg-primary text-white">
+        <div class="container">
+            <div class="row text-center">
+                <div class="col-lg-8 mx-auto">
+                    <h2 class="display-5 fw-bold mb-3">Ready to Explore Our Technology?</h2>
+                    <p class="lead text-white-50 mb-4">Get a technical deep-dive and architecture review for your organization.</p>
+                    <div class="d-flex justify-content-center gap-3 flex-wrap">
+                        <a href="#demo" class="btn btn-light btn-lg">
+                            <i class="fas fa-play me-2"></i>Request Demo
+                        </a>
+                        <a href="docs.html" class="btn btn-outline-light btn-lg">
+                            <i class="fas fa-book me-2"></i>View Documentation
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-dark text-white py-4">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <p>&copy; 2025 ContractFlow Pro. All rights reserved.</p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <a href="about.html" class="text-white-50 me-3">About</a>
+                    <a href="features.html" class="text-white-50 me-3">Features</a>
+                    <a href="#contact" class="text-white-50">Contact</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
