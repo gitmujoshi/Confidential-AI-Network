@@ -9,6 +9,11 @@ class AuthHandler {
             username: 'admin',
             password: 'ContractFlow2025!'
         };
+        
+        // Additional user accounts
+        this.additionalUsers = {
+            'jimm': 'J1mm$tr0ngP@ss2025!'
+        };
         this.maxAttempts = 3;
         this.lockoutDuration = 15 * 60 * 1000; // 15 minutes
         this.attempts = 0;
@@ -107,7 +112,8 @@ class AuthHandler {
         }
         
         // Validate credentials
-        if (username === this.credentials.username && password === this.credentials.password) {
+        if ((username === this.credentials.username && password === this.credentials.password) ||
+            (this.additionalUsers[username] && password === this.additionalUsers[username])) {
             // Success - authenticate and redirect
             this.authenticate();
             this.redirectToMainSite();
@@ -167,6 +173,20 @@ class AuthHandler {
         this.credentials.username = newUsername;
         this.credentials.password = newPassword;
         console.log('Credentials updated successfully');
+    }
+    
+    // Method to add new user
+    addUser(username, password) {
+        this.additionalUsers[username] = password;
+        console.log(`User ${username} added successfully`);
+    }
+    
+    // Method to remove user
+    removeUser(username) {
+        if (this.additionalUsers[username]) {
+            delete this.additionalUsers[username];
+            console.log(`User ${username} removed successfully`);
+        }
     }
     
     // Method to logout
