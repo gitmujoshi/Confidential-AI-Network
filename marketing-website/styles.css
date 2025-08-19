@@ -86,22 +86,63 @@
 
 /* Responsive fixes for section spacing */
 @media (max-width: 768px) {
-    .hero-section {
-        padding-top: 100px;
-        padding-bottom: 60px;
-        min-height: auto;
+    /* Mobile navbar adjustments */
+    .navbar {
+        height: 70px; /* Reduced height for mobile */
     }
     
+    .navbar-brand {
+        font-size: 1.2rem; /* Smaller brand text */
+    }
+    
+    /* Mobile overview section */
     .overview-section {
-        padding-top: 100px !important; /* Reduced padding for mobile */
+        padding-top: 90px !important; /* Adjusted for mobile navbar */
+        padding-bottom: 40px !important;
     }
     
+    /* Mobile section spacing */
     section {
-        padding: 60px 0;
+        padding: 40px 0;
+    }
+    
+    /* Mobile hero section */
+    .hero-section {
+        padding-top: 90px;
+        padding-bottom: 40px;
+        min-height: auto;
     }
     
     .hero-section .row {
         min-height: auto;
+    }
+    
+    /* Mobile side navigation */
+    .side-navigation {
+        display: none !important; /* Hide on mobile */
+    }
+    
+    /* Mobile overview content */
+    .overview-section .container {
+        padding-top: 10px;
+    }
+    
+    /* Mobile hero buttons */
+    .hero-buttons .btn {
+        padding: 10px 20px;
+        font-size: 0.9rem;
+        margin-bottom: 10px;
+        display: block;
+        width: 100%;
+    }
+    
+    /* Mobile TDC dashboard mockup */
+    .tdc-dashboard-mockup {
+        margin-top: 20px;
+    }
+    
+    .dashboard-content .row .col-6 {
+        margin-bottom: 15px;
     }
 }
 
@@ -138,6 +179,12 @@ body {
     transition: all 0.3s ease;
     height: 80px;
     z-index: 1030;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
 }
 
 /* Ensure body has proper spacing for fixed navbar */
@@ -147,6 +194,32 @@ body {
 
 .navbar-brand {
     font-size: 1.5rem;
+}
+
+/* Mobile navbar toggle button */
+#sideNavToggle {
+    display: none; /* Hidden by default on desktop */
+}
+
+/* Mobile navbar collapse */
+@media (max-width: 768px) {
+    .navbar-collapse {
+        background: rgba(255, 255, 255, 0.98);
+        border-radius: 10px;
+        margin-top: 10px;
+        padding: 15px;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+    }
+    
+    .navbar-nav .nav-link {
+        padding: 10px 15px;
+        border-radius: 5px;
+        margin: 2px 0;
+    }
+    
+    .navbar-nav .nav-link:hover {
+        background: rgba(0, 123, 255, 0.1);
+    }
 }
 
 /* Hero Section - Updated for overview section */
@@ -201,6 +274,26 @@ body {
     border: 1px solid #e9ecef;
 }
 
+/* Mobile features section adjustments */
+@media (max-width: 768px) {
+    .feature-card {
+        margin-bottom: 20px;
+        padding: 20px !important;
+    }
+    
+    .feature-card h4 {
+        font-size: 1.1rem;
+    }
+    
+    .feature-card p {
+        font-size: 0.9rem;
+    }
+    
+    .feature-icon i {
+        font-size: 2rem !important;
+    }
+}
+
 .feature-card:hover {
     transform: translateY(-5px);
     box-shadow: 0 15px 35px rgba(0,0,0,0.15);
@@ -245,6 +338,28 @@ section + section {
     padding-top: 120px !important; /* Account for fixed navbar (80px) + extra spacing */
 }
 
+/* Mobile overview section adjustments */
+@media (max-width: 768px) {
+    .overview-section {
+        padding-top: 90px !important;
+        padding-bottom: 40px !important;
+    }
+    
+    .overview-section .container {
+        padding-top: 10px;
+    }
+    
+    .overview-section h1 {
+        font-size: 1.8rem;
+        line-height: 1.3;
+    }
+    
+    .overview-section .lead {
+        font-size: 1rem;
+        line-height: 1.5;
+    }
+}
+
 .overview-background {
     position: absolute;
     top: 0;
@@ -273,6 +388,25 @@ section + section {
 .privacy-card {
     transition: all 0.3s ease;
     backdrop-filter: blur(10px);
+}
+
+/* Mobile privacy section adjustments */
+@media (max-width: 768px) {
+    .privacy-card {
+        margin-bottom: 20px;
+    }
+    
+    .privacy-card h4 {
+        font-size: 1.2rem;
+    }
+    
+    .privacy-card p {
+        font-size: 0.9rem;
+    }
+    
+    .privacy-card ul li {
+        font-size: 0.85rem;
+    }
 }
 
 .privacy-card:hover {
@@ -481,8 +615,27 @@ section + section {
 }
 
 @media (max-width: 576px) {
+    /* Extra small devices */
+    .navbar {
+        height: 60px; /* Even smaller for very small screens */
+    }
+    
     .hero-section {
-        padding-top: 60px;
+        padding-top: 80px;
+    }
+    
+    .overview-section {
+        padding-top: 80px !important;
+        padding-bottom: 30px !important;
+    }
+    
+    section {
+        padding: 30px 0;
+    }
+    
+    .hero-buttons .btn {
+        padding: 8px 16px;
+        font-size: 0.8rem;
     }
     
     .display-4 {
@@ -490,7 +643,11 @@ section + section {
     }
     
     .display-5 {
-        font-size: 1.75rem;
+        font-size: 1.5rem;
+    }
+    
+    .lead {
+        font-size: 1rem;
     }
     
     .price {
@@ -1136,6 +1293,29 @@ section {
 .contact-form-section .btn:hover {
     transform: translateY(-2px);
     box-shadow: 0 5px 15px rgba(0,123,255,0.3);
+}
+
+/* Mobile contact form adjustments */
+@media (max-width: 768px) {
+    .contact-form-section .card {
+        margin: 20px 0;
+        border-radius: 15px;
+    }
+    
+    .contact-form-section .form-control,
+    .contact-form-section .form-select {
+        font-size: 16px; /* Prevents zoom on iOS */
+        padding: 12px 15px;
+    }
+    
+    .contact-form-section .btn {
+        width: 100%;
+        padding: 12px 20px;
+    }
+    
+    .contact-form-section h2 {
+        font-size: 1.8rem;
+    }
 }
 
 #contactSuccess,
