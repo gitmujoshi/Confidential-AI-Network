@@ -12,6 +12,7 @@ The ContractFlow Pro marketing website now uses a secure multi-page authenticati
 - **Session Management** - Authentication remains valid for 24 hours
 - **Responsive Design** - Works on all devices and screen sizes
 - **Professional UI** - Branded authentication interface
+- **Multiple User Support** - Support for multiple user accounts with different credentials
 
 ### Security Measures:
 - **Rate Limiting** - 15-minute lockout after failed attempts
@@ -19,26 +20,58 @@ The ContractFlow Pro marketing website now uses a secure multi-page authenticati
 - **Auto-logout** - Session expires after 24 hours
 - **No Backdoor** - All content is hidden until authenticated
 
+### User Account Management:
+- **Primary Admin Account** - `admin` with full access
+- **Additional User Accounts** - Support for multiple authorized users
+- **Individual Credentials** - Each user has unique username/password
+- **Account Management** - Add/remove users through JavaScript methods
+
 ## ⚙️ Configuration
 
+### Current User Accounts:
+- **Username**: `admin`
+- **Password**: `ContractFlow2025!`
+- **Username**: `jimm`
+- **Password**: `J1mm$tr0ngP@ss2025!`
+
 ### Changing the Password:
-1. Open `js/config.js`
-2. Update the `PASSWORD` value in the `SECURITY` section:
+1. Open `js/auth.js`
+2. Update the credentials in the constructor:
    ```javascript
-   SECURITY: {
-       PASSWORD: 'YourNewPassword123!', // Change this
-       // ... other settings
-   }
+   this.credentials = {
+       username: 'admin',
+       password: 'YourNewPassword123!' // Change this
+   };
    ```
 
 ### Adjusting Security Settings:
 ```javascript
-SECURITY: {
-    PASSWORD: 'YourPassword',           // Access password
-    MAX_ATTEMPTS: 3,                   // Failed attempts before lockout
-    LOCKOUT_DURATION_MINUTES: 15,      // Lockout duration in minutes
-    AUTH_VALIDITY_HOURS: 24           // How long authentication lasts
-}
+// In js/auth.js constructor
+this.maxAttempts = 3;                    // Failed attempts before lockout
+this.lockoutDuration = 15 * 60 * 1000;   // Lockout duration in minutes
+// Authentication validity is handled in isAuthenticated() method
+```
+
+### Managing Additional Users:
+To add a new user account, modify the `additionalUsers` object in `js/auth.js`:
+
+```javascript
+this.additionalUsers = {
+    'jimm': 'J1mm$tr0ngP@ss2025!',
+    'newuser': 'NewUserP@ss2025!'
+};
+```
+
+### User Management Methods:
+```javascript
+// Add new user
+authHandler.addUser('username', 'password');
+
+// Remove user
+authHandler.removeUser('username');
+
+// Update admin credentials
+authHandler.updateCredentials('newadmin', 'newpassword');
 ```
 
 ## 📱 User Experience
