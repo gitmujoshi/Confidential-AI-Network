@@ -1068,5 +1068,78 @@ section {
     font-size: 14px;
 }
 
+/* TDC Dashboard Mockup Styles */
+.tdc-dashboard-mockup {
+    background: white;
+    border: 1px solid #e9ecef;
+    overflow: hidden;
+    max-width: 500px;
+    margin: 0 auto;
+}
+
+.tdc-dashboard-mockup .dashboard-header {
+    border-bottom: 1px solid rgba(255,255,255,0.2);
+}
+
+.tdc-dashboard-mockup .dashboard-content {
+    min-height: 300px;
+}
+
+.tdc-dashboard-mockup .metric-card {
+    border: 1px solid #e9ecef;
+    transition: all 0.3s ease;
+}
+
+.tdc-dashboard-mockup .metric-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+
+.tdc-dashboard-mockup .metric-card h6 {
+    font-size: 0.8rem;
+    margin-bottom: 0.5rem;
+    color: #6c757d;
+}
+
+.tdc-dashboard-mockup .metric-card .badge {
+    font-size: 0.9rem;
+    padding: 0.5rem 0.75rem;
+}
+
+.tdc-dashboard-mockup .progress {
+    background-color: #e9ecef;
+    border-radius: 10px;
+}
+
+.tdc-dashboard-mockup .progress-bar {
+    border-radius: 10px;
+}
+
+.tdc-dashboard-mockup .dashboard-header h5 {
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+.tdc-dashboard-mockup .badge {
+    font-size: 0.7rem;
+    padding: 0.25rem 0.5rem;
+}
+
+/* Responsive adjustments for dashboard mockup */
+@media (max-width: 768px) {
+    .tdc-dashboard-mockup {
+        max-width: 100%;
+        margin: 1rem 0;
+    }
+    
+    .tdc-dashboard-mockup .dashboard-content {
+        padding: 1rem !important;
+    }
+    
+    .tdc-dashboard-mockup .metric-card {
+        padding: 0.75rem !important;
+    }
+}
+
 /* Password Protection System - REMOVED */
 /* This section has been replaced with a separate authentication page approach */
