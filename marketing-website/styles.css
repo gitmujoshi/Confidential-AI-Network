@@ -110,6 +110,13 @@
     z-index: 1;
 }
 
+/* Prevent section overlap */
+#overview, #features, #ai-landscape, #problems-solved, #version-upgrade, #demo, #partnerships, #contact {
+    position: relative;
+    z-index: 1;
+    clear: both;
+}
+
 :root {
     --primary-color: #007bff;
     --secondary-color: #6c757d;
@@ -222,18 +229,21 @@ section {
     position: relative;
 }
 
-section:not(:last-child) {
-    margin-bottom: 0;
-}
-
 /* Ensure proper spacing between sections */
 section + section {
     margin-top: 0;
 }
 
-/* Hero section specific spacing */
-.hero-section {
+/* Overview section specific spacing */
+#overview {
     margin-bottom: 0;
+    padding-bottom: 80px;
+}
+
+/* Features section specific spacing */
+#features {
+    margin-top: 0;
+    padding-top: 80px;
 }
 
 /* Why This Matters section specific spacing */
@@ -1193,6 +1203,8 @@ section {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     position: relative;
     overflow: hidden;
+    margin-bottom: 0;
+    padding-bottom: 80px;
 }
 
 #overview::before {
@@ -1243,6 +1255,18 @@ section {
 #overview .row:last-child {
     margin-top: 3rem;
     padding-bottom: 2rem;
+}
+
+/* Ensure overview section content stays within bounds */
+#overview .container {
+    position: relative;
+    z-index: 2;
+    overflow: visible;
+}
+
+#overview .why-matters-content {
+    margin-bottom: 0;
+    padding-bottom: 0;
 }
 
 /* TDC Dashboard Mockup Styles */
