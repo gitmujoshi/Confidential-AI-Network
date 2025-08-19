@@ -831,3 +831,113 @@ section {
     transform: translateY(-5px);
     box-shadow: 0 10px 25px rgba(0,0,0,0.1);
 }
+
+/* Password Protection System */
+.password-gate {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.password-container {
+    background: white;
+    border-radius: 20px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    padding: 40px;
+    max-width: 400px;
+    width: 100%;
+    text-align: center;
+}
+
+.password-logo {
+    margin-bottom: 30px;
+}
+
+.password-logo h2 {
+    font-weight: 700;
+    margin: 0;
+}
+
+.password-form h4 {
+    color: #333;
+    font-weight: 600;
+    margin-bottom: 15px;
+}
+
+.password-form p {
+    color: #666;
+    line-height: 1.6;
+}
+
+.password-form .form-control {
+    border: 2px solid #e9ecef;
+    border-radius: 10px;
+    padding: 15px 20px;
+    font-size: 16px;
+    transition: all 0.3s ease;
+}
+
+.password-form .form-control:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 0 0.2rem rgba(0,123,255,0.25);
+}
+
+.password-form .btn {
+    border-radius: 10px;
+    padding: 15px 30px;
+    font-weight: 600;
+    font-size: 16px;
+    transition: all 0.3s ease;
+}
+
+.password-form .btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0,123,255,0.3);
+}
+
+.password-footer {
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid #e9ecef;
+}
+
+#error-message {
+    border-radius: 10px;
+    border: none;
+    font-size: 14px;
+}
+
+.lockout-timer {
+    color: #666;
+}
+
+.lockout-timer .spinner-border {
+    width: 3rem;
+    height: 3rem;
+}
+
+/* Responsive adjustments */
+@media (max-width: 480px) {
+    .password-container {
+        padding: 30px 20px;
+        margin: 20px;
+    }
+    
+    .password-form .form-control {
+        padding: 12px 16px;
+        font-size: 14px;
+    }
+    
+    .password-form .btn {
+        padding: 12px 24px;
+        font-size: 14px;
+    }
+}
