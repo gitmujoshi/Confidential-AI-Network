@@ -269,6 +269,36 @@ section + section {
     margin-bottom: 0;
 }
 
+/* Privacy Preservation Section */
+.privacy-card {
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
+}
+
+.privacy-card:hover {
+    transform: translateY(-5px);
+    background: rgba(255, 255, 255, 0.2) !important;
+    border-color: rgba(255, 255, 255, 0.5) !important;
+}
+
+.bg-gradient-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    position: relative;
+    overflow: hidden;
+}
+
+.bg-gradient-primary::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="50" cy="50" r="1" fill="white" opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+    opacity: 0.3;
+    pointer-events: none;
+}
+
 /* Overview section specific spacing */
 #overview {
     margin-bottom: 0;
