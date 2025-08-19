@@ -1,5 +1,77 @@
 /* Custom CSS for ContractFlow Pro Marketing Website */
 
+/* Problem and Solution Cards */
+.problem-card, .solution-card {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.problem-card:hover, .solution-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+}
+
+/* Impact Stats */
+.impact-stats {
+    transition: all 0.3s ease;
+}
+
+.impact-stats:hover {
+    transform: scale(1.02);
+    box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+}
+
+/* Market Analysis Card */
+.market-analysis-card {
+    transition: all 0.3s ease;
+}
+
+.market-analysis-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+}
+
+/* Market Stats */
+.market-stat {
+    transition: all 0.3s ease;
+}
+
+.market-stat:hover {
+    transform: scale(1.05);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+}
+
+/* Timeline */
+.timeline-marker {
+    transition: all 0.3s ease;
+}
+
+.timeline-item:hover .timeline-marker {
+    transform: scale(1.5);
+}
+
+/* Use Case Cards */
+.use-case-card {
+    transition: all 0.3s ease;
+}
+
+.use-case-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+    background-color: rgba(255, 255, 255, 0.2) !important;
+}
+
+/* Impact Badges */
+.impact-badge {
+    transition: all 0.3s ease;
+}
+
+.impact-badge:hover {
+    transform: scale(1.05);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+}
+
+/* Enhanced Feature Cards */
+
 :root {
     --primary-color: #007bff;
     --secondary-color: #6c757d;
