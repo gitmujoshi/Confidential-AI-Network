@@ -832,22 +832,17 @@ section {
     box-shadow: 0 10px 25px rgba(0,0,0,0.1);
 }
 
-/* Password Protection System */
-.password-gate {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
+/* Authentication Page Styles */
+.auth-page {
+    min-height: 100vh;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    z-index: 9999;
     display: flex;
     align-items: center;
     justify-content: center;
     padding: 20px;
 }
 
-.password-container {
+.auth-container {
     background: white;
     border-radius: 20px;
     box-shadow: 0 20px 60px rgba(0,0,0,0.3);
@@ -857,27 +852,38 @@ section {
     text-align: center;
 }
 
-.password-logo {
+.auth-logo {
     margin-bottom: 30px;
 }
 
-.password-logo h2 {
+.auth-logo h2 {
     font-weight: 700;
     margin: 0;
 }
 
-.password-form h4 {
+.auth-logo p {
+    margin: 10px 0 0 0;
+    font-size: 16px;
+}
+
+.auth-form h4 {
     color: #333;
     font-weight: 600;
     margin-bottom: 15px;
 }
 
-.password-form p {
+.auth-form p {
     color: #666;
     line-height: 1.6;
 }
 
-.password-form .form-control {
+.auth-form .form-label {
+    font-weight: 600;
+    color: #333;
+    text-align: left;
+}
+
+.auth-form .form-control {
     border: 2px solid #e9ecef;
     border-radius: 10px;
     padding: 15px 20px;
@@ -885,12 +891,12 @@ section {
     transition: all 0.3s ease;
 }
 
-.password-form .form-control:focus {
+.auth-form .form-control:focus {
     border-color: #007bff;
     box-shadow: 0 0 0 0.2rem rgba(0,123,255,0.25);
 }
 
-.password-form .btn {
+.auth-form .btn {
     border-radius: 10px;
     padding: 15px 30px;
     font-weight: 600;
@@ -898,12 +904,12 @@ section {
     transition: all 0.3s ease;
 }
 
-.password-form .btn:hover {
+.auth-form .btn:hover {
     transform: translateY(-2px);
     box-shadow: 0 5px 15px rgba(0,123,255,0.3);
 }
 
-.password-footer {
+.auth-footer {
     margin-top: 20px;
     padding-top: 20px;
     border-top: 1px solid #e9ecef;
@@ -915,29 +921,23 @@ section {
     font-size: 14px;
 }
 
-.lockout-timer {
-    color: #666;
-}
-
-.lockout-timer .spinner-border {
-    width: 3rem;
-    height: 3rem;
-}
-
-/* Responsive adjustments */
+/* Responsive adjustments for auth page */
 @media (max-width: 480px) {
-    .password-container {
+    .auth-container {
         padding: 30px 20px;
         margin: 20px;
     }
     
-    .password-form .form-control {
+    .auth-form .form-control {
         padding: 12px 16px;
         font-size: 14px;
     }
     
-    .password-form .btn {
+    .auth-form .btn {
         padding: 12px 24px;
         font-size: 14px;
     }
 }
+
+/* Password Protection System - REMOVED */
+/* This section has been replaced with a separate authentication page approach */
