@@ -1068,6 +1068,126 @@ section {
     font-size: 14px;
 }
 
+/* Side Navigation Styles */
+.side-navigation {
+    position: fixed;
+    top: 50%;
+    right: 20px;
+    transform: translateY(-50%);
+    width: 280px;
+    background: rgba(33, 37, 41, 0.95);
+    backdrop-filter: blur(10px);
+    border-radius: 15px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    z-index: 1000;
+    transition: all 0.3s ease;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.side-navigation:hover {
+    background: rgba(33, 37, 41, 0.98);
+    transform: translateY(-50%) translateX(-5px);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+}
+
+.side-nav-header {
+    background: rgba(13, 110, 253, 0.9);
+    padding: 15px 20px;
+    border-radius: 15px 15px 0 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.side-nav-header h6 {
+    font-size: 0.9rem;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+}
+
+.side-nav-list {
+    list-style: none;
+    margin: 0;
+    padding: 15px 0;
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.side-nav-list::-webkit-scrollbar {
+    width: 4px;
+}
+
+.side-nav-list::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 2px;
+}
+
+.side-nav-list::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 2px;
+}
+
+.side-nav-list::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.5);
+}
+
+.side-nav-list li {
+    margin: 0;
+}
+
+.side-nav-link {
+    display: block;
+    padding: 12px 20px;
+    color: rgba(255, 255, 255, 0.8);
+    text-decoration: none;
+    transition: all 0.3s ease;
+    border-left: 3px solid transparent;
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+.side-nav-link:hover {
+    color: white;
+    background: rgba(255, 255, 255, 0.1);
+    border-left-color: #007bff;
+    text-decoration: none;
+}
+
+.side-nav-link.active {
+    color: white;
+    background: rgba(13, 110, 253, 0.2);
+    border-left-color: #007bff;
+}
+
+.side-nav-link i {
+    width: 16px;
+    text-align: center;
+}
+
+/* Responsive Side Navigation */
+@media (max-width: 1200px) {
+    .side-navigation {
+        width: 250px;
+        right: 15px;
+    }
+}
+
+@media (max-width: 768px) {
+    .side-navigation {
+        right: -300px;
+        transition: right 0.3s ease;
+    }
+    
+    .side-navigation.show {
+        right: 20px;
+    }
+    
+    .side-navigation {
+        width: 280px;
+        top: 80px;
+        transform: none;
+        max-height: calc(100vh - 100px);
+    }
+}
+
 /* TDC Dashboard Mockup Styles */
 .tdc-dashboard-mockup {
     background: white;
