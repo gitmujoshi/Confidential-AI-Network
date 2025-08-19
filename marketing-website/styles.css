@@ -939,5 +939,83 @@ section {
     }
 }
 
+/* Pricing Page Styles */
+.pricing-card {
+    transition: all 0.3s ease;
+    border-radius: 15px;
+    overflow: hidden;
+}
+
+.pricing-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+}
+
+.pricing-card.featured {
+    transform: scale(1.05);
+    border: 3px solid #007bff;
+}
+
+.pricing-card.featured:hover {
+    transform: scale(1.05) translateY(-10px);
+}
+
+.price {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: #007bff;
+}
+
+.price .currency {
+    font-size: 1.5rem;
+    vertical-align: top;
+}
+
+.price .amount {
+    font-size: 3rem;
+}
+
+.price .period {
+    font-size: 1rem;
+    font-weight: 400;
+    color: #6c757d;
+}
+
+.pricing-card .card-header {
+    border-bottom: none;
+}
+
+.pricing-card .card-body ul li {
+    padding: 8px 0;
+    border-bottom: 1px solid #f8f9fa;
+}
+
+.pricing-card .card-body ul li:last-child {
+    border-bottom: none;
+}
+
+/* About Page Styles */
+.page-header {
+    padding-top: 120px;
+    padding-bottom: 80px;
+}
+
+.breadcrumb {
+    background: transparent;
+    padding: 0;
+}
+
+.breadcrumb-item + .breadcrumb-item::before {
+    color: rgba(255,255,255,0.5);
+}
+
+.breadcrumb-item a {
+    text-decoration: none;
+}
+
+.breadcrumb-item a:hover {
+    text-decoration: underline;
+}
+
 /* Password Protection System - REMOVED */
 /* This section has been replaced with a separate authentication page approach */
