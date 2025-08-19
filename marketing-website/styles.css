@@ -5,6 +5,18 @@
     transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
+/* Why This Matters Section */
+.bg-dark {
+    position: relative;
+    z-index: 1;
+}
+
+/* AI Landscape Section */
+.bg-light {
+    position: relative;
+    z-index: 1;
+}
+
 .problem-card:hover, .solution-card:hover {
     transform: translateY(-5px);
     box-shadow: 0 10px 25px rgba(0,0,0,0.2);
@@ -72,6 +84,32 @@
 
 /* Enhanced Feature Cards */
 
+/* Responsive fixes for section spacing */
+@media (max-width: 768px) {
+    .hero-section {
+        padding-top: 100px;
+        padding-bottom: 60px;
+        min-height: auto;
+    }
+    
+    section {
+        padding: 60px 0;
+    }
+    
+    .hero-section .row {
+        min-height: auto;
+    }
+}
+
+/* Ensure proper stacking context */
+.hero-section {
+    z-index: 1;
+}
+
+.bg-dark, .bg-light, .bg-primary {
+    z-index: 1;
+}
+
 :root {
     --primary-color: #007bff;
     --secondary-color: #6c757d;
@@ -93,6 +131,12 @@ body {
     box-shadow: 0 2px 10px rgba(0,0,0,0.1);
     transition: all 0.3s ease;
     height: 80px;
+    z-index: 1030;
+}
+
+/* Ensure body has proper spacing for fixed navbar */
+body {
+    padding-top: 0;
 }
 
 .navbar-brand {
@@ -102,11 +146,12 @@ body {
 /* Hero Section */
 .hero-section {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    padding-top: 100px;
-    padding-bottom: 80px;
+    padding-top: 120px;
+    padding-bottom: 100px;
     position: relative;
     overflow: hidden;
     margin-bottom: 0;
+    min-height: 100vh;
 }
 
 .hero-section .row {
@@ -173,10 +218,16 @@ body {
 /* Section Spacing */
 section {
     margin-bottom: 0;
+    padding: 80px 0;
 }
 
 section:not(:last-child) {
     margin-bottom: 0;
+}
+
+/* Ensure proper spacing between sections */
+section + section {
+    margin-top: 0;
 }
 
 /* Solutions Section */
