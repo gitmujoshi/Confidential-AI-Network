@@ -1188,6 +1188,29 @@ section {
     }
 }
 
+/* Why It Matters Cards in Overview */
+.why-matters-card {
+    transition: all 0.3s ease;
+    border: 1px solid rgba(255, 255, 255, 0.25) !important;
+}
+
+.why-matters-card:hover {
+    transform: translateY(-5px);
+    background: rgba(255, 255, 255, 0.15) !important;
+    border-color: rgba(255, 255, 255, 0.4) !important;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+}
+
+.why-matters-card h5 {
+    font-weight: 600;
+    margin-bottom: 1rem;
+}
+
+.why-matters-card p {
+    font-size: 0.9rem;
+    line-height: 1.4;
+}
+
 /* TDC Dashboard Mockup Styles */
 .tdc-dashboard-mockup {
     background: white;
