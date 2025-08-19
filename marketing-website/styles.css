@@ -1017,5 +1017,56 @@ section {
     text-decoration: underline;
 }
 
+/* Contact Form Styles */
+.contact-form-section {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+}
+
+.contact-form-section .card {
+    border-radius: 20px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.1);
+}
+
+.contact-form-section .form-control,
+.contact-form-section .form-select {
+    border: 2px solid #e9ecef;
+    border-radius: 10px;
+    padding: 15px 20px;
+    font-size: 16px;
+    transition: all 0.3s ease;
+}
+
+.contact-form-section .form-control:focus,
+.contact-form-section .form-select:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 0 0.2rem rgba(0,123,255,0.25);
+}
+
+.contact-form-section .form-label {
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 8px;
+}
+
+.contact-form-section .btn {
+    border-radius: 10px;
+    padding: 15px 30px;
+    font-weight: 600;
+    font-size: 16px;
+    transition: all 0.3s ease;
+}
+
+.contact-form-section .btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0,123,255,0.3);
+}
+
+#contactSuccess,
+#contactError {
+    border-radius: 10px;
+    border: none;
+    font-size: 14px;
+}
+
 /* Password Protection System - REMOVED */
 /* This section has been replaced with a separate authentication page approach */

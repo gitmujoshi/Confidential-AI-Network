@@ -1048,34 +1048,91 @@
         </div>
     </section>
 
-    <!-- Contact Section -->
+    <!-- Contact Form Section -->
     <section id="contact" class="py-5 bg-light">
         <div class="container">
-            <div class="row">
-                <div class="col-lg-8 mx-auto text-center">
+            <div class="row text-center mb-5">
+                <div class="col-lg-8 mx-auto">
                     <h2 class="display-5 fw-bold mb-3">Get in Touch</h2>
-                    <p class="lead text-muted mb-5">Ready to transform your contract management? Let's discuss how ContractFlow Pro can help.</p>
-                    <div class="row g-4">
-                        <div class="col-md-4">
-                            <div class="contact-info">
-                                <i class="fas fa-envelope fa-2x text-primary mb-3"></i>
-                                <h5>Email</h5>
-                                <p class="text-muted">info@contractflowpro.com</p>
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="contact-info">
-                                <i class="fas fa-phone fa-2x text-primary mb-3"></i>
-                                <h5>Phone</h5>
-                                <p class="text-muted">+1 (555) 123-4567</p>
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="contact-info">
-                                <i class="fas fa-map-marker-alt fa-2x text-primary mb-3"></i>
-                                <h5>Location</h5>
-                                <p class="text-muted">San Francisco, CA</p>
-                            </div>
+                    <p class="lead text-muted mb-5">Ready to explore privacy-preserving AI training? Let's discuss how we can help your organization.</p>
+                </div>
+            </div>
+            
+            <div class="row justify-content-center">
+                <div class="col-lg-8">
+                    <div class="card border-0 shadow-lg">
+                        <div class="card-body p-5">
+                            <form id="contactForm">
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <label for="firstName" class="form-label">First Name *</label>
+                                        <input type="text" class="form-control form-control-lg" id="firstName" required>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="lastName" class="form-label">Last Name *</label>
+                                        <input type="text" class="form-control form-control-lg" id="lastName" required>
+                                    </div>
+                                </div>
+                                
+                                <div class="row g-3 mt-3">
+                                    <div class="col-md-6">
+                                        <label for="email" class="form-label">Email Address *</label>
+                                        <input type="email" class="form-control form-control-lg" id="email" required>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="company" class="form-label">Company/Organization *</label>
+                                        <input type="text" class="form-control form-control-lg" id="company" required>
+                                    </div>
+                                </div>
+                                
+                                <div class="row g-3 mt-3">
+                                    <div class="col-md-6">
+                                        <label for="industry" class="form-label">Industry</label>
+                                        <select class="form-select form-select-lg" id="industry">
+                                            <option value="">Select Industry</option>
+                                            <option value="healthcare">Healthcare</option>
+                                            <option value="finance">Finance</option>
+                                            <option value="legal">Legal</option>
+                                            <option value="research">Research & Academia</option>
+                                            <option value="technology">Technology</option>
+                                            <option value="manufacturing">Manufacturing</option>
+                                            <option value="other">Other</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="useCase" class="form-label">Primary Use Case</label>
+                                        <select class="form-select form-select-lg" id="useCase">
+                                            <option value="">Select Use Case</option>
+                                            <option value="ai-training">AI Model Training</option>
+                                            <option value="data-sharing">Secure Data Sharing</option>
+                                            <option value="compliance">Regulatory Compliance</option>
+                                            <option value="privacy">Data Privacy Protection</option>
+                                            <option value="other">Other</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                
+                                <div class="mt-3">
+                                    <label for="message" class="form-label">Tell us about your needs *</label>
+                                    <textarea class="form-control form-control-lg" id="message" rows="4" placeholder="Describe your AI training requirements, data privacy concerns, compliance needs, or any specific questions you have..." required></textarea>
+                                </div>
+                                
+                                <div class="mt-4">
+                                    <button type="submit" class="btn btn-primary btn-lg w-100">
+                                        <i class="fas fa-paper-plane me-2"></i>Send Message
+                                    </button>
+                                </div>
+                                
+                                <div id="contactSuccess" class="alert alert-success mt-3" style="display: none;">
+                                    <i class="fas fa-check-circle me-2"></i>
+                                    Thank you! We'll get back to you within 24 hours.
+                                </div>
+                                
+                                <div id="contactError" class="alert alert-danger mt-3" style="display: none;">
+                                    <i class="fas fa-exclamation-triangle me-2"></i>
+                                    <span id="errorText"></span>
+                                </div>
+                            </form>
                         </div>
                     </div>
                 </div>
