@@ -38,14 +38,53 @@
                         </li>
                     <li class="nav-item">
                         <a class="btn btn-outline-light ms-2" href="#demo">Request Demo</a>
+                        <button class="btn btn-outline-light ms-2 d-lg-none" id="sideNavToggle" type="button">
+                            <i class="fas fa-bars"></i>
+                        </button>
                     </li>
                 </ul>
             </div>
         </div>
     </nav>
 
+    <!-- Side Navigation -->
+    <nav class="side-navigation" id="sideNav">
+        <div class="side-nav-header">
+            <h6 class="mb-0 text-white">Quick Navigation</h6>
+        </div>
+        <ul class="side-nav-list">
+            <li><a href="#hero" class="side-nav-link active" data-section="hero">
+                <i class="fas fa-home me-2"></i>Hero
+            </a></li>
+            <li><a href="#why-matters" class="side-nav-link" data-section="why-matters">
+                <i class="fas fa-star me-2"></i>Why It Matters
+            </a></li>
+            <li><a href="#ai-landscape" class="side-nav-link" data-section="ai-landscape">
+                <i class="fas fa-robot me-2"></i>AI Landscape
+            </a></li>
+            <li><a href="#problems-solved" class="side-nav-link" data-section="problems-solved">
+                <i class="fas fa-lightbulb me-2"></i>Problems Solved
+            </a></li>
+            <li><a href="#features" class="side-nav-link" data-section="features">
+                <i class="fas fa-list me-2"></i>Features
+            </a></li>
+            <li><a href="#version-upgrade" class="side-nav-link" data-section="version-upgrade">
+                <i class="fas fa-rocket me-2"></i>v3.0 Upgrade
+            </a></li>
+            <li><a href="#demo" class="side-nav-link" data-section="demo">
+                <i class="fas fa-play me-2"></i>Demo
+            </a></li>
+            <li><a href="#partnerships" class="side-nav-link" data-section="partnerships">
+                <i class="fas fa-handshake me-2"></i>Partnerships
+            </a></li>
+            <li><a href="#contact" class="side-nav-link" data-section="contact">
+                <i class="fas fa-envelope me-2"></i>Contact
+            </a></li>
+        </ul>
+    </nav>
+
     <!-- Hero Section -->
-    <section id="home" class="hero-section">
+    <section id="hero" class="hero-section">
         <div class="container">
             <div class="row align-items-center">
                 <div class="col-lg-6">
@@ -136,7 +175,7 @@
     </section>
 
     <!-- Why This Matters Section -->
-    <section class="py-5 bg-dark text-white">
+    <section id="why-matters" class="py-5 bg-dark text-white">
         <div class="container">
             <div class="row text-center mb-5">
                 <div class="col-lg-8 mx-auto">
@@ -491,7 +530,7 @@
     </section>
 
     <!-- AI Landscape & Market Opportunity Section -->
-    <section class="py-5 bg-light">
+    <section id="ai-landscape" class="py-5 bg-light">
         <div class="container">
             <div class="row text-center mb-5">
                 <div class="col-lg-8 mx-auto">
@@ -755,7 +794,7 @@
     </section>
 
     <!-- Version 3.0 Upgrade Section -->
-    <section class="py-5 bg-success text-white">
+    <section id="version-upgrade" class="py-5 bg-success text-white">
         <div class="container">
             <div class="row text-center mb-5">
                 <div class="col-lg-8 mx-auto">
@@ -810,7 +849,7 @@
     </section>
 
     <!-- Real-World Problems & Use Cases Section -->
-    <section class="py-5 bg-primary text-white">
+    <section id="problems-solved" class="py-5 bg-primary text-white">
         <div class="container">
             <div class="row text-center mb-5">
                 <div class="col-lg-8 mx-auto">
@@ -1097,7 +1136,7 @@
     </section>
 
     <!-- Partnership Section -->
-    <section class="py-5 bg-light">
+    <section id="partnerships" class="py-5 bg-light">
         <div class="container">
             <div class="row text-center mb-5">
                 <div class="col-lg-8 mx-auto">
@@ -1253,5 +1292,6 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="script.js"></script>
     <script src="js/auth-check.js"></script>
+    <script src="js/side-nav.js"></script>
 </body>
 </html> 
