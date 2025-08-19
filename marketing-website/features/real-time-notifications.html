@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Real-Time Notifications with WebSocket Architecture - ContractFlow Pro v3.0</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="../styles.css" rel="stylesheet">
+    <style>
+        .feature-hero {
+            background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);
+            color: white;
+            padding: 80px 0;
+        }
+        .notification-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin: 3rem 0;
+        }
+        .notification-card {
+            background: white;
+            border-radius: 10px;
+            padding: 2rem;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            border-left: 4px solid var(--bs-info);
+        }
+        .notification-icon {
+            font-size: 2.5rem;
+            color: var(--bs-info);
+            margin-bottom: 1rem;
+        }
+        .feature-badge {
+            display: inline-block;
+            background: #28a745;
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            margin: 0.5rem 0.5rem 0.5rem 0;
+        }
+        .version-badge {
+            background: #ffc107;
+            color: #212529;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: bold;
+            margin-left: 1rem;
+        }
+        .architecture-diagram {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 2rem;
+            margin: 2rem 0;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary fixed-top">
+        <div class="container">
+            <a class="navbar-brand fw-bold" href="../index.html">
+                <i class="fas fa-file-contract me-2"></i>ContractFlow Pro
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="../index.html">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="../index.html#features">Features</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="../index.html#solutions">Solutions</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="../index.html#technology">Technology</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="../index.html#contact">Contact</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="feature-hero">
+        <div class="container">
+            <div class="row text-center">
+                <div class="col-lg-8 mx-auto">
+                    <div class="d-flex align-items-center justify-content-center mb-3">
+                        <h1 class="display-4 fw-bold text-white mb-0">Real-Time Notifications</h1>
+                        <span class="version-badge">v3.0</span>
+                    </div>
+                    <p class="lead text-white-50 mb-4">
+                        Instant real-time updates using WebSocket architecture with Redis pub/sub for high-performance messaging 
+                        and event-driven notifications across the entire system.
+                    </p>
+                    <div class="hero-buttons">
+                        <a href="#features" class="btn btn-light btn-lg me-3">
+                            <i class="fas fa-bell me-2"></i>Notification Features
+                        </a>
+                        <a href="#architecture" class="btn btn-outline-light btn-lg me-3">
+                            <i class="fas fa-cogs me-2"></i>WebSocket Architecture
+                        </a>
+                        <a href="#benefits" class="btn btn-outline-light btn-lg">
+                            <i class="fas fa-chart-line me-2"></i>Benefits
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="features" class="py-5">
+        <div class="container">
+            <div class="row text-center mb-5">
+                <div class="col-lg-8 mx-auto">
+                    <h2 class="display-5 fw-bold mb-3">Real-Time Notification Features</h2>
+                    <p class="lead text-muted">Instant updates and real-time communication across all system components.</p>
+                </div>
+            </div>
+            
+            <div class="notification-grid">
+                <div class="notification-card">
+                    <div class="notification-icon">
+                        <i class="fas fa-plug"></i>
+                    </div>
+                    <h4>WebSocket Connections</h4>
+                    <p>Persistent bidirectional connections for instant real-time communication between frontend and backend.</p>
+                    <ul class="list-unstyled">
+                        <li><i class="fas fa-check text-success me-2"></i>Persistent connections</li>
+                        <li><i class="fas fa-check text-success me-2"></i>Bidirectional communication</li>
+                        <li><i class="fas fa-check text-success me-2"></i>Low latency updates</li>
+                    </ul>
+                </div>
+
+                <div class="notification-card">
+                    <div class="notification-icon">
+                        <i class="fas fa-database"></i>
+                    </div>
+                    <h4>Redis Pub/Sub</h4>
+                    <p>High-performance messaging system using Redis publish/subscribe for scalable event distribution.</p>
+                    <ul class="list-unstyled">
+                        <li><i class="fas fa-check text-success me-2"></i>High-performance messaging</li>
+                        <li><i class="fas fa-check text-success me-2"></i>Scalable event distribution</li>
+                        <li><i class="fas fa-check text-success me-2"></i>Reliable delivery</li>
+                    </ul>
+                </div>
+
+                <div class="notification-card">
+                    <div class="notification-icon">
+                        <i class="fas fa-bolt"></i>
+                    </div>
+                    <h4>Event-Driven Updates</h4>
+                    <p>Real-time event propagation across the system for instant state synchronization and user experience.</p>
+                    <ul class="list-unstyled">
+                        <li><i class="fas fa-check text-success me-2"></i>Event propagation</li>
+                        <li><i class="fas fa-check text-success me-2"></i>State synchronization</li>
+                        <li><i class="fas fa-check text-success me-2"></i>Instant updates</li>
+                    </ul>
+                </div>
+
+                <div class="notification-card">
+                    <div class="notification-icon">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <h4>Role-Based Notifications</h4>
+                    <p>Targeted notifications based on user roles and permissions for personalized user experience.</p>
+                    <ul class="list-unstyled">
+                        <li><i class="fas fa-check text-success me-2"></i>Role-based targeting</li>
+                        <li><i class="fas fa-check text-success me-2"></i>Permission-based delivery</li>
+                        <li><i class="fas fa-check text-success me-2"></i>Personalized experience</li>
+                    </ul>
+                </div>
+
+                <div class="notification-card">
+                    <div class="notification-icon">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <h4>Real-Time Metrics</h4>
+                    <p>Live system metrics and performance indicators with instant updates and real-time monitoring.</p>
+                    <ul class="list-unstyled">
+                        <li><i class="fas fa-check text-success me-2"></i>Live metrics</li>
+                        <li><i class="fas fa-check text-success me-2"></i>Performance indicators</li>
+                        <li><i class="fas fa-check text-success me-2"></i>Instant updates</li>
+                    </ul>
+                </div>
+
+                <div class="notification-card">
+                    <div class="notification-icon">
+                        <i class="fas fa-shield-alt"></i>
+                    </div>
+                    <h4>Secure Communication</h4>
+                    <p>Encrypted WebSocket connections with authentication and authorization for secure real-time communication.</p>
+                    <ul class="list-unstyled">
+                        <li><i class="fas fa-check text-success me-2"></i>Encrypted connections</li>
+                        <li><i class="fas fa-check text-success me-2"></i>Authentication</li>
+                        <li><i class="fas fa-check text-success me-2"></i>Authorization</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Architecture Section -->
+    <section id="architecture" class="py-5 bg-light">
+        <div class="container">
+            <div class="row text-center mb-5">
+                <div class="col-lg-8 mx-auto">
+                    <h2 class="display-5 fw-bold mb-3">WebSocket Architecture</h2>
+                    <p class="lead text-muted">High-performance real-time communication architecture with Redis pub/sub messaging.</p>
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col-lg-10 mx-auto">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">Real-Time Notification Architecture</h5>
+                            <div class="mermaid">
+                                sequenceDiagram
+                                    participant User as User
+                                    participant FE as Frontend
+                                    participant WS as WebSocket Server
+                                    participant BE as Backend
+                                    participant DB as Database
+                                    participant Redis as Redis Cache
+
+                                    User->>FE: Connect to WebSocket
+                                    FE->>WS: Establish WebSocket Connection
+                                    WS->>BE: Authenticate User
+                                    BE->>DB: Verify User Session
+                                    DB-->>BE: User Authenticated
+                                    BE-->>WS: Connection Authorized
+                                    WS-->>FE: WebSocket Connected
+                                    FE-->>User: Connection Established
+                                    
+                                    Note over BE,DB: System Event Occurs (e.g., Contract Update)
+                                    BE->>DB: Log Event
+                                    BE->>Redis: Publish to Notification Channel
+                                    Redis->>WS: Push Notification
+                                    WS->>FE: Send Real-time Update
+                                    FE-->>User: Show Instant Notification
+                                    
+                                    Note over User,FE: User Takes Action
+                                    User->>FE: Respond to Notification
+                                    FE->>BE: Process User Action
+                                    BE->>DB: Update System State
+                                    BE->>Redis: Publish Update
+                                    Redis->>WS: Push State Change
+                                    WS->>FE: Send Updated State
+                                    FE-->>User: Show Updated Interface
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Benefits Section -->
+    <section id="benefits" class="py-5">
+        <div class="container">
+            <div class="row text-center mb-5">
+                <div class="col-lg-8 mx-auto">
+                    <h2 class="display-5 fw-bold mb-3">Benefits of Real-Time Notifications</h2>
+                    <p class="lead text-muted">Enhanced user experience and improved system responsiveness with instant updates.</p>
+                </div>
+            </div>
+            
+            <div class="row g-4">
+                <div class="col-lg-4">
+                    <div class="card h-100">
+                        <div class="card-body text-center">
+                            <i class="fas fa-rocket fa-3x text-info mb-3"></i>
+                            <h5 class="card-title">Instant Updates</h5>
+                            <p class="card-text">Real-time updates eliminate the need for page refreshes and provide instant feedback for all user actions.</p>
+                            <span class="feature-badge">Performance</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-lg-4">
+                    <div class="card h-100">
+                        <div class="card-body text-center">
+                            <i class="fas fa-users fa-3x text-success mb-3"></i>
+                            <h5 class="card-title">Better Collaboration</h5>
+                            <p class="card-text">Real-time notifications enable better collaboration between team members with instant awareness of changes.</p>
+                            <span class="feature-badge">Collaboration</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-lg-4">
+                    <div class="card h-100">
+                        <div class="card-body text-center">
+                            <i class="fas fa-chart-line fa-3x text-warning mb-3"></i>
+                            <h5 class="card-title">Live Monitoring</h5>
+                            <p class="card-text">Live system monitoring with real-time metrics and instant alerts for proactive issue resolution.</p>
+                            <span class="feature-badge">Monitoring</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="row g-4 mt-4">
+                <div class="col-lg-4">
+                    <div class="card h-100">
+                        <div class="card-body text-center">
+                            <i class="fas fa-shield-alt fa-3x text-danger mb-3"></i>
+                            <h5 class="card-title">Security Awareness</h5>
+                            <p class="card-text">Instant security notifications and real-time threat detection for immediate response to security events.</p>
+                            <span class="feature-badge">Security</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-lg-4">
+                    <div class="card h-100">
+                        <div class="card-body text-center">
+                            <i class="fas fa-tachometer-alt fa-3x text-primary mb-3"></i>
+                            <h5 class="card-title">Performance Metrics</h5>
+                            <p class="card-text">Real-time performance metrics and system health indicators for optimal system performance.</p>
+                            <span class="feature-badge">Performance</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-lg-4">
+                    <div class="card h-100">
+                        <div class="card-body text-center">
+                            <i class="fas fa-cogs fa-3x text-secondary mb-3"></i>
+                            <h5 class="card-title">Automated Workflows</h5>
+                            <p class="card-text">Event-driven automation with real-time triggers for streamlined business processes and workflows.</p>
+                            <span class="feature-badge">Automation</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Technical Details Section -->
+    <section class="py-5 bg-light">
+        <div class="container">
+            <div class="row text-center mb-5">
+                <div class="col-lg-8 mx-auto">
+                    <h2 class="display-5 fw-bold mb-3">Technical Implementation</h2>
+                    <p class="lead text-muted">Advanced WebSocket architecture with Redis pub/sub for high-performance real-time communication.</p>
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col-lg-8 mx-auto">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">WebSocket Service Implementation</h5>
+                            <div class="architecture-diagram">
+                                <h6>Key Components:</h6>
+                                <ul>
+                                    <li><strong>WebSocket Server:</strong> Manages persistent connections and message routing</li>
+                                    <li><strong>Redis Pub/Sub:</strong> High-performance message broker for event distribution</li>
+                                    <li><strong>Event Handlers:</strong> Process system events and generate notifications</li>
+                                    <li><strong>Connection Manager:</strong> Manages WebSocket connections and user sessions</li>
+                                    <li><strong>Message Router:</strong> Routes messages to appropriate users and roles</li>
+                                </ul>
+                                
+                                <h6 class="mt-4">Performance Features:</h6>
+                                <ul>
+                                    <li><strong>Connection Pooling:</strong> Efficient management of multiple WebSocket connections</li>
+                                    <li><strong>Message Batching:</strong> Batch multiple notifications for improved performance</li>
+                                    <li><strong>Load Balancing:</strong> Distribute connections across multiple WebSocket servers</li>
+                                    <li><strong>Compression:</strong> Message compression for reduced bandwidth usage</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="py-5 bg-primary text-white">
+        <div class="container">
+            <div class="row text-center">
+                <div class="col-lg-8 mx-auto">
+                    <h2 class="display-5 fw-bold mb-3">Ready for Real-Time Updates?</h2>
+                    <p class="lead text-white-50 mb-4">
+                        Experience instant notifications and real-time updates with our WebSocket architecture.
+                    </p>
+                    <div class="hero-buttons">
+                        <a href="../index.html#demo" class="btn btn-light btn-lg me-3">
+                            <i class="fas fa-play me-2"></i>Request Demo
+                        </a>
+                        <a href="../index.html#contact" class="btn btn-outline-light btn-lg">
+                            <i class="fas fa-envelope me-2"></i>Contact Us
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-dark text-white py-4">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <h5>ContractFlow Pro</h5>
+                    <p class="text-muted">Enterprise contract management with real-time notifications and enhanced security.</p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <p class="text-muted mb-0">&copy; 2025 ContractFlow Pro. All rights reserved.</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+    <script>
+        mermaid.initialize({ startOnLoad: true });
+    </script>
+</body>
+</html>

@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SCITT-CCF Integration - Supply Chain Transparency - ContractFlow Pro v3.0</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="../styles.css" rel="stylesheet">
+    <style>
+        .feature-hero {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+            padding: 80px 0;
+        }
+        .scitt-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin: 3rem 0;
+        }
+        .scitt-card {
+            background: white;
+            border-radius: 10px;
+            padding: 2rem;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            border-left: 4px solid var(--bs-success);
+        }
+        .scitt-icon {
+            font-size: 2.5rem;
+            color: var(--bs-success);
+            margin-bottom: 1rem;
+        }
+        .feature-badge {
+            display: inline-block;
+            background: #28a745;
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            margin: 0.5rem 0.5rem 0.5rem 0;
+        }
+        .version-badge {
+            background: #ffc107;
+            color: #212529;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: bold;
+            margin-left: 1rem;
+        }
+        .architecture-diagram {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 2rem;
+            margin: 2rem 0;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary fixed-top">
+        <div class="container">
+            <a class="navbar-brand fw-bold" href="../index.html">
+                <i class="fas fa-file-contract me-2"></i>ContractFlow Pro
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="../index.html">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="../index.html#features">Features</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="../index.html#solutions">Solutions</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="../index.html#technology">Technology</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="../index.html#contact">Contact</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="feature-hero">
+        <div class="container">
+            <div class="row text-center">
+                <div class="col-lg-8 mx-auto">
+                    <div class="d-flex align-items-center justify-content-center mb-3">
+                        <h1 class="display-4 fw-bold text-white mb-0">SCITT-CCF Integration</h1>
+                        <span class="version-badge">v3.0</span>
+                    </div>
+                    <p class="lead text-white-50 mb-4">
+                        Advanced SCITT-CCF integration for verifiable supply chain transparency, cryptographic attestation, 
+                        and compliance tracking for AI training with enterprise-grade security.
+                    </p>
+                    <div class="hero-buttons">
+                        <a href="#features" class="btn btn-light btn-lg me-3">
+                            <i class="fas fa-link me-2"></i>Integration Features
+                        </a>
+                        <a href="#architecture" class="btn btn-outline-light btn-lg me-3">
+                            <i class="fas fa-cogs me-2"></i>Architecture
+                        </a>
+                        <a href="#benefits" class="btn btn-outline-light btn-lg">
+                            <i class="fas fa-chart-line me-2"></i>Benefits
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="features" class="py-5">
+        <div class="container">
+            <div class="row text-center mb-5">
+                <div class="col-lg-8 mx-auto">
+                    <h2 class="display-5 fw-bold mb-3">SCITT-CCF Integration Features</h2>
+                    <p class="lead text-muted">Comprehensive supply chain transparency and compliance tracking capabilities.</p>
+                </div>
+            </div>
+            
+            <div class="scitt-grid">
+                <div class="scitt-card">
+                    <div class="scitt-icon">
+                        <i class="fas fa-link"></i>
+                    </div>
+                    <h4>Supply Chain Transparency</h4>
+                    <p>Complete visibility into the AI training supply chain with verifiable data lineage and provenance tracking.</p>
+                    <ul class="list-unstyled">
+                        <li><i class="fas fa-check text-success me-2"></i>Data lineage tracking</li>
+                        <li><i class="fas fa-check text-success me-2"></i>Provenance verification</li>
+                        <li><i class="fas fa-check text-success me-2"></i>Chain of custody</li>
+                    </ul>
+                </div>
+
+                <div class="scitt-card">
+                    <div class="scitt-icon">
+                        <i class="fas fa-certificate"></i>
+                    </div>
+                    <h4>Cryptographic Attestation</h4>
+                    <p>Cryptographic verification of training data, models, and processes with tamper-proof attestations.</p>
+                    <ul class="list-unstyled">
+                        <li><i class="fas fa-check text-success me-2"></i>Digital attestations</li>
+                        <li><i class="fas fa-check text-success me-2"></i>Cryptographic verification</li>
+                        <li><i class="fas fa-check text-success me-2"></i>Tamper-proof records</li>
+                    </ul>
+                </div>
+
+                <div class="scitt-card">
+                    <div class="scitt-icon">
+                        <i class="fas fa-shield-alt"></i>
+                    </div>
+                    <h4>Compliance Tracking</h4>
+                    <p>Automated compliance monitoring and reporting for regulatory requirements and industry standards.</p>
+                    <ul class="list-unstyled">
+                        <li><i class="fas fa-check text-success me-2"></i>Regulatory compliance</li>
+                        <li><i class="fas fa-check text-success me-2"></i>Industry standards</li>
+                        <li><i class="fas fa-check text-success me-2"></i>Automated reporting</li>
+                    </ul>
+                </div>
+
+                <div class="scitt-card">
+                    <div class="scitt-icon">
+                        <i class="fas fa-search"></i>
+                    </div>
+                    <h4>DID Verification</h4>
+                    <p>Enhanced DID resolution and verification chains for secure identity management and trust establishment.</p>
+                    <ul class="list-unstyled">
+                        <li><i class="fas fa-check text-success me-2"></i>DID resolution</li>
+                        <li><i class="fas fa-check text-success me-2"></i>Verification chains</li>
+                        <li><i class="fas fa-check text-success me-2"></i>Trust establishment</li>
+                    </ul>
+                </div>
+
+                <div class="scitt-card">
+                    <div class="scitt-icon">
+                        <i class="fas fa-tree"></i>
+                    </div>
+                    <h4>Merkle Tree Verification</h4>
+                    <p>Cryptographic Merkle tree architecture for efficient data integrity verification and tamper detection.</p>
+                    <ul class="list-unstyled">
+                        <li><i class="fas fa-check text-success me-2"></i>Merkle tree architecture</li>
+                        <li><i class="fas fa-check text-success me-2"></i>Data integrity verification</li>
+                        <li><i class="fas fa-check text-success me-2"></i>Tamper detection</li>
+                    </ul>
+                </div>
+
+                <div class="scitt-card">
+                    <div class="scitt-icon">
+                        <i class="fas fa-eye"></i>
+                    </div>
+                    <h4>External Verification</h4>
+                    <p>External verification and audit capabilities for third-party validation and regulatory oversight.</p>
+                    <ul class="list-unstyled">
+                        <li><i class="fas fa-check text-success me-2"></i>Third-party validation</li>
+                        <li><i class="fas fa-check text-success me-2"></i>Regulatory oversight</li>
+                        <li><i class="fas fa-check text-success me-2"></i>Audit capabilities</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Architecture Section -->
+    <section id="architecture" class="py-5 bg-light">
+        <div class="container">
+            <div class="row text-center mb-5">
+                <div class="col-lg-8 mx-auto">
+                    <h2 class="display-5 fw-bold mb-3">SCITT-CCF Integration Architecture</h2>
+                    <p class="lead text-muted">Advanced integration architecture for supply chain transparency and compliance tracking.</p>
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col-lg-10 mx-auto">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">SCITT-CCF Integration Architecture Diagram</h5>
+                            <div class="mermaid">
+                                graph TB
+                                    subgraph "SCITT-CCF Layer"
+                                        CCFNode[CCF Node]
+                                        SCITTService[SCITT Service]
+                                        TransparencyService[Transparency Service]
+                                        ComplianceService[Compliance Service]
+                                    end
+                                    
+                                    subgraph "Contract Management System"
+                                        ContractService[Contract Service]
+                                        DIDService[DID Service]
+                                        AuditService[Audit Service]
+                                        BlockchainService[Blockchain Service]
+                                    end
+                                    
+                                    subgraph "External Verification"
+                                        Verifier[External Verifier]
+                                        Auditor[External Auditor]
+                                        Regulator[Regulatory Body]
+                                    end
+                                    
+                                    subgraph "Data Integrity"
+                                        MerkleTree[Merkle Tree]
+                                        Attestation[Attestation Service]
+                                        Signature[Digital Signature]
+                                    end
+                                    
+                                    ContractService --> SCITTService
+                                    DIDService --> CCFNode
+                                    AuditService --> TransparencyService
+                                    BlockchainService --> ComplianceService
+                                    
+                                    SCITTService --> CCFNode
+                                    TransparencyService --> MerkleTree
+                                    ComplianceService --> Attestation
+                                    
+                                    CCFNode --> Verifier
+                                    CCFNode --> Auditor
+                                    CCFNode --> Regulator
+                                    
+                                    MerkleTree --> Signature
+                                    Attestation --> Signature
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Benefits Section -->
+    <section id="benefits" class="py-5">
+        <div class="container">
+            <div class="row text-center mb-5">
+                <div class="col-lg-8 mx-auto">
+                    <h2 class="display-5 fw-bold mb-3">Benefits of SCITT-CCF Integration</h2>
+                    <p class="lead text-muted">Enhanced transparency, compliance, and trust in AI training supply chains.</p>
+                </div>
+            </div>
+            
+            <div class="row g-4">
+                <div class="col-lg-4">
+                    <div class="card h-100">
+                        <div class="card-body text-center">
+                            <i class="fas fa-eye fa-3x text-success mb-3"></i>
+                            <h5 class="card-title">Complete Transparency</h5>
+                            <p class="card-text">Full visibility into the AI training supply chain with verifiable data lineage and provenance tracking.</p>
+                            <span class="feature-badge">Transparency</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-lg-4">
+                    <div class="card h-100">
+                        <div class="card-body text-center">
+                            <i class="fas fa-shield-alt fa-3x text-primary mb-3"></i>
+                            <h5 class="card-title">Enhanced Security</h5>
+                            <p class="card-text">Cryptographic verification and tamper-proof attestations for maximum data integrity and security.</p>
+                            <span class="feature-badge">Security</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-lg-4">
+                    <div class="card h-100">
+                        <div class="card-body text-center">
+                            <i class="fas fa-certificate fa-3x text-warning mb-3"></i>
+                            <h5 class="card-title">Regulatory Compliance</h5>
+                            <p class="card-text">Automated compliance monitoring and reporting for regulatory requirements and industry standards.</p>
+                            <span class="feature-badge">Compliance</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="row g-4 mt-4">
+                <div class="col-lg-4">
+                    <div class="card h-100">
+                        <div class="card-body text-center">
+                            <i class="fas fa-handshake fa-3x text-info mb-3"></i>
+                            <h5 class="card-title">Trust Establishment</h5>
+                            <p class="card-text">Cryptographic trust establishment with verifiable attestations and external validation capabilities.</p>
+                            <span class="feature-badge">Trust</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-lg-4">
+                    <div class="card h-100">
+                        <div class="card-body text-center">
+                            <i class="fas fa-chart-line fa-3x text-danger mb-3"></i>
+                            <h5 class="card-title">Performance Optimization</h5>
+                            <p class="card-text">Efficient Merkle tree verification and optimized attestation processes for high-performance operations.</p>
+                            <span class="feature-badge">Performance</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-lg-4">
+                    <div class="card h-100">
+                        <div class="card-body text-center">
+                            <i class="fas fa-globe fa-3x text-secondary mb-3"></i>
+                            <h5 class="card-title">Global Standards</h5>
+                            <p class="card-text">Compliance with global standards and interoperability with existing supply chain systems.</p>
+                            <span class="feature-badge">Standards</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Technical Details Section -->
+    <section class="py-5 bg-light">
+        <div class="container">
+            <div class="row text-center mb-5">
+                <div class="col-lg-8 mx-auto">
+                    <h2 class="display-5 fw-bold mb-3">Technical Implementation</h2>
+                    <p class="lead text-muted">Advanced SCITT-CCF integration with comprehensive supply chain transparency capabilities.</p>
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col-lg-8 mx-auto">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">SCITT-CCF Service Implementation</h5>
+                            <div class="architecture-diagram">
+                                <h6>Key Components:</h6>
+                                <ul>
+                                    <li><strong>SCITT Service:</strong> Manages supply chain integrity and transparency operations</li>
+                                    <li><strong>CCF Node:</strong> Confidential Consortium Framework node for secure computing</li>
+                                    <li><strong>Transparency Service:</strong> Handles data lineage and provenance tracking</li>
+                                    <li><strong>Compliance Service:</strong> Manages regulatory compliance and reporting</li>
+                                    <li><strong>Attestation Service:</strong> Generates and verifies cryptographic attestations</li>
+                                </ul>
+                                
+                                <h6 class="mt-4">Advanced Features:</h6>
+                                <ul>
+                                    <li><strong>Merkle Tree Architecture:</strong> Efficient data integrity verification</li>
+                                    <li><strong>Cryptographic Attestations:</strong> Tamper-proof verification records</li>
+                                    <li><strong>External Verification:</strong> Third-party validation capabilities</li>
+                                    <li><strong>Compliance Automation:</strong> Automated regulatory reporting</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="py-5 bg-primary text-white">
+        <div class="container">
+            <div class="row text-center">
+                <div class="col-lg-8 mx-auto">
+                    <h2 class="display-5 fw-bold mb-3">Ready for Supply Chain Transparency?</h2>
+                    <p class="lead text-white-50 mb-4">
+                        Experience complete supply chain transparency with SCITT-CCF integration and cryptographic verification.
+                    </p>
+                    <div class="hero-buttons">
+                        <a href="../index.html#demo" class="btn btn-light btn-lg me-3">
+                            <i class="fas fa-play me-2"></i>Request Demo
+                        </a>
+                        <a href="../index.html#contact" class="btn btn-outline-light btn-lg">
+                            <i class="fas fa-envelope me-2"></i>Contact Us
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-dark text-white py-4">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <h5>ContractFlow Pro</h5>
+                    <p class="text-muted">Enterprise contract management with SCITT-CCF integration and supply chain transparency.</p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <p class="text-muted mb-0">&copy; 2025 ContractFlow Pro. All rights reserved.</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+    <script>
+        mermaid.initialize({ startOnLoad: true });
+    </script>
+</body>
+</html>

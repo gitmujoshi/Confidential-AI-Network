@@ -1,8 +1,8 @@
 # UML 4+1 View Architecture Documentation
 ## Contract Management System
 
-**Document Version:** 2.0  
-**Date:** December 2024  
+**Document Version:** 3.0  
+**Date:** January 2025  
 **Author:** Contract Management System Team
 
 ---
@@ -41,7 +41,7 @@ This document provides a comprehensive UML 4+1 View Architecture for the Contrac
 - **CCRP (Confidential Clean Room Provider)**: **Compliance, resource monitoring, and real infrastructure provisioning**
 - **AppAdmin**: System administration and oversight
 
-### 1.4 **New Features (v2.0)**
+### 1.4 **New Features (v3.0)**
 - **Real Azure Infrastructure**: Actual Azure SDK integration replacing mock services
 - **CCRP-Specific Credentials**: Multi-tenant Azure credential management per CCRP
 - **Encrypted Credential Storage**: AES-256-CBC encrypted client secrets
@@ -49,6 +49,11 @@ This document provides a comprehensive UML 4+1 View Architecture for the Contrac
 - **Real Training Execution**: Actual container deployment with Azure Container Instances
 - **Cost Management**: Per-CCRP and per-contract budget tracking
 - **Multi-Tenant Security**: CCRP isolation with independent Azure subscriptions
+- **SCITT-CCF Integration**: Secure supply chain for AI training with CCF nodes
+- **Enhanced DID Management**: Improved DID resolution and verification
+- **Advanced Audit Logging**: Comprehensive system monitoring and compliance
+- **Real-time Notifications**: WebSocket-based real-time updates
+- **Enhanced Security**: Hardware Security Module (HSM) integration
 
 ---
 
@@ -418,6 +423,54 @@ graph TB
     ContractConfig --> AzureProvider
 ```
 
+### 3.3 **SCITT-CCF Integration Components**
+
+**Description:** This diagram illustrates the SCITT-CCF (Supply Chain Integrity, Transparency, and Trust - Confidential Computing Framework) integration architecture. It shows how the system integrates with CCF nodes for secure, verifiable AI training supply chains, including DID verification, contract transparency, and compliance tracking.
+
+```mermaid
+graph TB
+    subgraph "SCITT-CCF Layer"
+        CCFNode[CCF Node]
+        SCITTService[SCITT Service]
+        TransparencyService[Transparency Service]
+        ComplianceService[Compliance Service]
+    end
+    
+    subgraph "Contract Management System"
+        ContractService[Contract Service]
+        DIDService[DID Service]
+        AuditService[Audit Service]
+        BlockchainService[Blockchain Service]
+    end
+    
+    subgraph "External Verification"
+        Verifier[External Verifier]
+        Auditor[External Auditor]
+        Regulator[Regulatory Body]
+    end
+    
+    subgraph "Data Integrity"
+        MerkleTree[Merkle Tree]
+        Attestation[Attestation Service]
+        Signature[Digital Signature]
+    end
+    
+    ContractService --> SCITTService
+    DIDService --> CCFNode
+    AuditService --> TransparencyService
+    BlockchainService --> ComplianceService
+    
+    SCITTService --> CCFNode
+    TransparencyService --> MerkleTree
+    ComplianceService --> Attestation
+    
+    CCFNode --> Verifier
+    CCFNode --> Auditor
+    CCFNode --> Regulator
+    
+    MerkleTree --> Signature
+    Attestation --> Signature
+
 ---
 
 ## 4. Development View
@@ -658,6 +711,44 @@ sequenceDiagram
     BE-->>FE: Training Complete
     FE-->>TDC: Show Results
 ```
+
+### 5.4 **Real-Time Notifications & WebSocket Architecture**
+
+**Description:** This sequence diagram illustrates the real-time notification system using WebSockets for instant updates across the system. It shows how notifications are pushed to users for contract updates, training progress, and system events.
+
+```mermaid
+sequenceDiagram
+    participant User as User
+    participant FE as Frontend
+    participant WS as WebSocket Server
+    participant BE as Backend
+    participant DB as Database
+    participant Redis as Redis Cache
+
+    User->>FE: Connect to WebSocket
+    FE->>WS: Establish WebSocket Connection
+    WS->>BE: Authenticate User
+    BE->>DB: Verify User Session
+    DB-->>BE: User Authenticated
+    BE-->>WS: Connection Authorized
+    WS-->>FE: WebSocket Connected
+    FE-->>User: Connection Established
+    
+    Note over BE,DB: System Event Occurs (e.g., Contract Update)
+    BE->>DB: Log Event
+    BE->>Redis: Publish to Notification Channel
+    Redis->>WS: Push Notification
+    WS->>FE: Send Real-time Update
+    FE-->>User: Show Instant Notification
+    
+    Note over User,FE: User Takes Action
+    User->>FE: Respond to Notification
+    FE->>BE: Process User Action
+    BE->>DB: Update System State
+    BE->>Redis: Publish Update
+    Redis->>WS: Push State Change
+    WS->>FE: Send Updated State
+    FE-->>User: Show Updated Interface
 
 ---
 
@@ -975,6 +1066,71 @@ graph TB
     BE4 --> Audit
 ```
 
+#### 6.1.6 **Enhanced Security & HSM Integration Architecture**
+
+**Description:** This diagram illustrates the enhanced security architecture with Hardware Security Module (HSM) integration, advanced encryption, and multi-layer security controls. It shows how the system implements defense-in-depth with HSM, KMS, Azure Key Vault, and comprehensive monitoring.
+
+```mermaid
+graph TB
+    subgraph "Application Security Layer"
+        WAF[Web Application Firewall]
+        API_Gateway[API Gateway]
+        Rate_Limiter[Rate Limiter]
+        Input_Validator[Input Validator]
+    end
+    
+    subgraph "Authentication & Authorization"
+        Keycloak[Keycloak IAM]
+        MFA[Multi-Factor Auth]
+        RBAC[Role-Based Access Control]
+        JWT_Validator[JWT Validator]
+    end
+    
+    subgraph "Cryptographic Security"
+        HSM[Hardware Security Module]
+        KMS[Key Management Service]
+        AzureKV[Azure Key Vault]
+        Encryption[Encryption Service]
+    end
+    
+    subgraph "Network Security"
+        VPN[VPN Gateway]
+        Firewall[Network Firewall]
+        DDoS_Protection[DDoS Protection]
+        SSL_Termination[SSL Termination]
+    end
+    
+    subgraph "Monitoring & Compliance"
+        SIEM[SIEM System]
+        Audit_Logs[Audit Logs]
+        Compliance_Checker[Compliance Checker]
+        Alert_System[Alert System]
+    end
+    
+    WAF --> API_Gateway
+    API_Gateway --> Rate_Limiter
+    Rate_Limiter --> Input_Validator
+    
+    Input_Validator --> Keycloak
+    Keycloak --> MFA
+    MFA --> RBAC
+    RBAC --> JWT_Validator
+    
+    JWT_Validator --> HSM
+    HSM --> KMS
+    KMS --> AzureKV
+    AzureKV --> Encryption
+    
+    Encryption --> VPN
+    VPN --> Firewall
+    Firewall --> DDoS_Protection
+    DDoS_Protection --> SSL_Termination
+    
+    SSL_Termination --> SIEM
+    SIEM --> Audit_Logs
+    Audit_Logs --> Compliance_Checker
+    Compliance_Checker --> Alert_System
+
 ### 6.2 **Updated Deployment Configuration**
 
 #### Container Orchestration (Kubernetes)
@@ -1250,6 +1406,53 @@ classDiagram
         +findByDateRange()
     }
     
+    class SCITTAttestation {
+        +id: UUID
+        +contractId: UUID
+        +attestationId: String
+        +attestationType: String
+        +attestationData: JSON
+        +signature: String
+        +publicKey: String
+        +timestamp: Date
+        +expiryDate: Date
+        +status: String
+        +create()
+        +verify()
+        +revoke()
+        +findByContract()
+    }
+    
+    class SupplyChainEvent {
+        +id: UUID
+        +contractId: UUID
+        +eventType: String
+        +eventData: JSON
+        +participantId: UUID
+        +timestamp: Date
+        +blockchainTxHash: String
+        +create()
+        +findByContract()
+        +findByType()
+        +findByParticipant()
+    }
+    
+    class HSMKey {
+        +id: UUID
+        +keyId: String
+        +algorithm: String
+        +keyType: String
+        +publicKey: String
+        +keyMetadata: JSON
+        +creationDate: Date
+        +expiryDate: Date
+        +status: String
+        +create()
+        +rotate()
+        +revoke()
+        +getMetadata()
+    }
+    
     %% Backend Services
     class AuthService {
         +registerUser(userData)
@@ -1356,6 +1559,35 @@ classDiagram
         +testAzureConnectivity(ccrpUserId)
     }
     
+    class SCITTService {
+        +createAttestation(contractId, data)
+        +verifyAttestation(attestationId)
+        +getTransparencyReport(contractId)
+        +updateComplianceStatus(contractId, status)
+        +logSupplyChainEvent(eventData)
+        +validateDIDChain(didChain)
+    }
+    
+    class HSMService {
+        +generateKeyPair(algorithm)
+        +signMessage(message, keyId)
+        +verifySignature(message, signature, publicKey)
+        +encryptData(data, keyId)
+        +decryptData(encryptedData, keyId)
+        +rotateKeys(keyId)
+        +getKeyMetadata(keyId)
+    }
+    
+    class WebSocketService {
+        +connectUser(userId, connectionId)
+        +disconnectUser(userId)
+        +broadcastToUser(userId, message)
+        +broadcastToRole(role, message)
+        +broadcastToAll(message)
+        +getActiveConnections()
+        +validateConnection(connectionId)
+    }
+    
     %% Relationships
     ReactApp --> UserDashboard
     ReactApp --> ContractForm
@@ -1382,6 +1614,11 @@ classDiagram
     Contract --o AIModel
     Contract --o Notification
     Contract --o TrainingJob
+    Contract --o SCITTAttestation
+    Contract --o SupplyChainEvent
+    
+    User --o HSMKey
+    User --o SCITTAttestation
     
     %% Service Relationships
     AuthService --> User
@@ -1413,6 +1650,15 @@ classDiagram
     TrainingService --> Contract
     CCRPAzureCredentialsService --> CCRPAzureCredentials
     CCRPAzureCredentialsService --> User
+    
+    %% New Service Relationships
+    SCITTService --> SCITTAttestation
+    SCITTService --> SupplyChainEvent
+    SCITTService --> Contract
+    HSMService --> HSMKey
+    HSMService --> User
+    WebSocketService --> User
+    WebSocketService --> Notification
 ```
 
 ---
@@ -1482,6 +1728,26 @@ classDiagram
 - **Model Registration**: Real Azure ML model registration
 - **Security**: Real Azure Key Vault integration
 
+### 9.6 **Enhanced Security & SCITT-CCF Guidelines**
+
+#### **Hardware Security Module (HSM) Integration**
+- **Key Management**: Centralized cryptographic key management
+- **Hardware Security**: Physical security for cryptographic operations
+- **Key Rotation**: Automated key rotation and lifecycle management
+- **Compliance**: FIPS 140-2 Level 3 compliance for enterprise use
+
+#### **SCITT-CCF Integration**
+- **Supply Chain Transparency**: Verifiable supply chain for AI training
+- **Attestation**: Cryptographic attestation of training data and models
+- **Compliance Tracking**: Automated compliance monitoring and reporting
+- **DID Verification**: Enhanced DID resolution and verification chains
+
+#### **Real-Time Notifications**
+- **WebSocket Architecture**: Persistent connections for instant updates
+- **Event-Driven**: Real-time event propagation across the system
+- **User Experience**: Instant feedback for all system interactions
+- **Scalability**: Redis-based pub/sub for high-performance messaging
+
 ---
 
 ## 10. Conclusion
@@ -1494,10 +1760,10 @@ This UML 4+1 View Architecture provides a comprehensive framework for understand
 - **Process View**: Ensures proper integration and workflows
 - **Physical View**: Plans deployment and infrastructure
 
-The architecture supports enterprise-grade security, scalability, and compliance while maintaining clear separation of concerns and modular design principles. **The latest v2.0 update adds real Azure infrastructure provisioning with multi-tenant CCRP credential management, making the system truly production-ready for enterprise deployments.**
+The architecture supports enterprise-grade security, scalability, and compliance while maintaining clear separation of concerns and modular design principles. **The latest v3.0 update adds SCITT-CCF integration for supply chain transparency, enhanced HSM-based security, real-time notifications, and comprehensive compliance tracking, making the system enterprise-ready with advanced security and transparency features.**
 
 ---
 
-**Document Version:** 2.0  
-**Last Updated:** December 2024  
-**Next Review:** March 2025 
+**Document Version:** 3.0  
+**Last Updated:** January 2025  
+**Next Review:** April 2025 
