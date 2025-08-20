@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Getting Started - ContractFlow Pro</title>
+    <meta name="description" content="Get started with ContractFlow Pro development - Setup, configuration, and first steps">
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <!-- Custom CSS -->
+    <link href="../styles.css" rel="stylesheet">
+    
+    <style>
+        .dev-header {
+            background: linear-gradient(135deg, var(--gradient-start) 0%, var(--gradient-end) 100%);
+            color: white;
+            padding: 3rem 0;
+            margin-bottom: 2rem;
+        }
+        
+        .dev-content {
+            background: var(--white);
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: var(--shadow-light);
+            border: 1px solid var(--border-color);
+            margin-bottom: 2rem;
+        }
+        
+        .step-card {
+            background: var(--white);
+            border-radius: 8px;
+            padding: 1.5rem;
+            box-shadow: var(--shadow-light);
+            border: 1px solid var(--border-color);
+            margin-bottom: 1.5rem;
+            transition: all 0.2s ease;
+        }
+        
+        .step-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-medium);
+        }
+        
+        .step-number {
+            width: 40px;
+            height: 40px;
+            background: var(--primary-color);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+        
+        .code-block {
+            background: var(--accent-color);
+            border-radius: 8px;
+            padding: 1.5rem;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 0.875rem;
+            line-height: 1.6;
+            overflow-x: auto;
+            margin: 1rem 0;
+        }
+        
+        .sidebar-nav {
+            position: sticky;
+            top: 100px;
+        }
+        
+        .sidebar-nav .nav-link {
+            color: var(--text-light);
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            margin-bottom: 0.25rem;
+            transition: all 0.2s ease;
+        }
+        
+        .sidebar-nav .nav-link:hover,
+        .sidebar-nav .nav-link.active {
+            background: var(--primary-color);
+            color: var(--white);
+        }
+        
+        .prereq-item {
+            background: var(--accent-color);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border-left: 4px solid var(--primary-color);
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg fixed-top" style="background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px);">
+        <div class="container">
+            <a class="navbar-brand fw-bold" href="../index.html">
+                <i class="fas fa-cube me-2"></i>ContractFlow Pro
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="../index.html">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="../features.html">Features</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="../solutions.html">Solutions</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="../technology.html">Technology</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="../about.html">About</a>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-tachometer-alt me-1"></i>Dashboards
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="../dashboards/tdp-dashboard.html">
+                                <i class="fas fa-database me-2"></i>Training Data Provider
+                            </a></li>
+                            <li><a class="dropdown-item" href="../dashboards/tdc-dashboard.html">
+                                <i class="fas fa-robot me-2"></i>Training Data Consumer
+                            </a></li>
+                            <li><a class="dropdown-item" href="../dashboards/ccrp-dashboard.html">
+                                <i class="fas fa-shield-alt me-2"></i>Confidential Clean Room Provider
+                            </a></li>
+                            <li><a class="dropdown-item" href="../dashboards/admin-dashboard.html">
+                                <i class="fas fa-user-shield me-2"></i>System Administrator
+                            </a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-book me-1"></i>Documentation
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="../docs/api-reference.html">
+                                <i class="fas fa-code me-2"></i>API Reference
+                            </a></li>
+                            <li><a class="dropdown-item" href="../docs/architecture-guide.html">
+                                <i class="fas fa-sitemap me-2"></i>Architecture Guide
+                            </a></li>
+                            <li><a class="dropdown-item" href="../docs/user-guide.html">
+                                <i class="fas fa-user me-2"></i>User Guide
+                            </a></li>
+                            <li><a class="dropdown-item" href="../docs/security-guide.html">
+                                <i class="fas fa-shield-alt me-2"></i>Security Guide
+                            </a></li>
+                            <li><a class="dropdown-item" href="../docs/compliance-guide.html">
+                                <i class="fas fa-certificate me-2"></i>Compliance Guide
+                            </a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle active" href="#" role="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-code me-1"></i>Development
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item active" href="getting-started.html">
+                                <i class="fas fa-rocket me-2"></i>Getting Started
+                            </a></li>
+                            <li><a class="dropdown-item" href="sdk-documentation.html">
+                                <i class="fas fa-tools me-2"></i>SDK Documentation
+                            </a></li>
+                            <li><a class="dropdown-item" href="integration-guide.html">
+                                <i class="fas fa-puzzle-piece me-2"></i>Integration Guide
+                            </a></li>
+                            <li><a class="dropdown-item" href="examples.html">
+                                <i class="fas fa-lightbulb me-2"></i>Code Examples
+                            </a></li>
+                            <li><a class="dropdown-item" href="deployment-guide.html">
+                                <i class="fas fa-server me-2"></i>Deployment Guide
+                            </a></li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Development Header -->
+    <div class="dev-header">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8">
+                    <h1 class="display-4 fw-bold mb-3">Getting Started</h1>
+                    <p class="lead mb-0">Quick start guide for developers integrating with ContractFlow Pro</p>
+                </div>
+                <div class="col-lg-4 text-lg-end">
+                    <div class="d-flex align-items-center justify-content-lg-end">
+                        <div class="me-3">
+                            <div class="badge bg-white text-primary fs-6 px-3 py-2">
+                                <i class="fas fa-rocket me-1"></i>Developer Guide
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="container" style="margin-top: 120px;">
+        <div class="row">
+            <!-- Sidebar Navigation -->
+            <div class="col-lg-3">
+                <div class="sidebar-nav">
+                    <h5 class="fw-bold mb-3">Quick Navigation</h5>
+                    <nav class="nav flex-column">
+                        <a class="nav-link active" href="#prerequisites">Prerequisites</a>
+                        <a class="nav-link" href="#installation">Installation</a>
+                        <a class="nav-link" href="#configuration">Configuration</a>
+                        <a class="nav-link" href="#first-request">First Request</a>
+                        <a class="nav-link" href="#authentication">Authentication</a>
+                        <a class="nav-link" href="#next-steps">Next Steps</a>
+                    </nav>
+                </div>
+            </div>
+
+            <!-- Main Development Content -->
+            <div class="col-lg-9">
+                <!-- Prerequisites Section -->
+                <div id="prerequisites" class="dev-content">
+                    <h2 class="fw-bold mb-4">Prerequisites</h2>
+                    <p class="text-muted mb-4">Before you begin, ensure you have the following requirements:</p>
+                    
+                    <div class="prereq-item">
+                        <h6 class="fw-bold mb-2"><i class="fas fa-key me-2"></i>API Access</h6>
+                        <p class="mb-0">Valid ContractFlow Pro account with API access enabled</p>
+                    </div>
+                    
+                    <div class="prereq-item">
+                        <h6 class="fw-bold mb-2"><i class="fas fa-code me-2"></i>Programming Knowledge</h6>
+                        <p class="mb-0">Basic understanding of REST APIs and JSON</p>
+                    </div>
+                    
+                    <div class="prereq-item">
+                        <h6 class="fw-bold mb-2"><i class="fas fa-shield-alt me-2"></i>Security Requirements</h6>
+                        <p class="mb-0">HTTPS-enabled environment for secure API communication</p>
+                    </div>
+                    
+                    <div class="prereq-item">
+                        <h6 class="fw-bold mb-2"><i class="fas fa-clock me-2"></i>Time Estimate</h6>
+                        <p class="mb-0">15-30 minutes for basic setup and first API call</p>
+                    </div>
+                </div>
+
+                <!-- Installation Section -->
+                <div id="installation" class="dev-content">
+                    <h2 class="fw-bold mb-4">Installation</h2>
+                    <p class="text-muted mb-4">Choose your preferred programming language and install the necessary dependencies:</p>
+                    
+                    <div class="step-card">
+                        <div class="step-number">1</div>
+                        <h5 class="fw-bold mb-3">Python SDK</h5>
+                        <p class="text-muted mb-3">Install the official Python SDK using pip:</p>
+                        <div class="code-block">
+<pre>pip install contractflow-pro-sdk</pre>
+                        </div>
+                        <p class="text-muted mb-0">Or install from source:</p>
+                        <div class="code-block">
+<pre>git clone https://github.com/contractflow-pro/sdk-python.git
+cd sdk-python
+pip install -e .</pre>
+                        </div>
+                    </div>
+                    
+                    <div class="step-card">
+                        <div class="step-number">2</div>
+                        <h5 class="fw-bold mb-3">JavaScript/Node.js SDK</h5>
+                        <p class="text-muted mb-3">Install the official Node.js SDK using npm:</p>
+                        <div class="code-block">
+<pre>npm install contractflow-pro-sdk</pre>
+                        </div>
+                        <p class="text-muted mb-0">Or install from source:</p>
+                        <div class="code-block">
+<pre>git clone https://github.com/contractflow-pro/sdk-nodejs.git
+cd sdk-nodejs
+npm install</pre>
+                        </div>
+                    </div>
+                    
+                    <div class="step-card">
+                        <div class="step-number">3</div>
+                        <h5 class="fw-bold mb-3">REST API Client</h5>
+                        <p class="text-muted mb-3">For direct REST API access, use any HTTP client library:</p>
+                        <div class="code-block">
+<pre># Python - requests
+pip install requests
+
+# Node.js - axios
+npm install axios
+
+# cURL (command line)
+# Available on most systems by default</pre>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Configuration Section -->
+                <div id="configuration" class="dev-content">
+                    <h2 class="fw-bold mb-4">Configuration</h2>
+                    <p class="text-muted mb-4">Set up your environment variables and configuration files:</p>
+                    
+                    <div class="step-card">
+                        <h5 class="fw-bold mb-3">Environment Variables</h5>
+                        <p class="text-muted mb-3">Create a <code>.env</code> file in your project root:</p>
+                        <div class="code-block">
+<pre># ContractFlow Pro Configuration
+CONTRACTFLOW_API_URL=https://api.contractflow-pro.com
+CONTRACTFLOW_CLIENT_ID=your_client_id_here
+CONTRACTFLOW_CLIENT_SECRET=your_client_secret_here
+CONTRACTFLOW_ENVIRONMENT=production
+
+# Optional: Custom settings
+CONTRACTFLOW_TIMEOUT=30000
+CONTRACTFLOW_RETRY_ATTEMPTS=3</pre>
+                        </div>
+                    </div>
+                    
+                    <div class="step-card">
+                        <h5 class="fw-bold mb-3">SDK Configuration</h5>
+                        <p class="text-muted mb-3">Initialize the SDK with your credentials:</p>
+                        
+                        <h6 class="fw-bold mb-2">Python Example:</h6>
+                        <div class="code-block">
+<pre>from contractflow_pro import ContractFlowPro
+
+# Initialize client
+client = ContractFlowPro(
+    api_url="https://api.contractflow-pro.com",
+    client_id="your_client_id",
+    client_secret="your_client_secret"
+)</pre>
+                        </div>
+                        
+                        <h6 class="fw-bold mb-2 mt-3">JavaScript Example:</h6>
+                        <div class="code-block">
+<pre>const { ContractFlowPro } = require('contractflow-pro-sdk');
+
+// Initialize client
+const client = new ContractFlowPro({
+    apiUrl: 'https://api.contractflow-pro.com',
+    clientId: 'your_client_id',
+    clientSecret: 'your_client_secret'
+});</pre>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- First Request Section -->
+                <div id="first-request" class="dev-content">
+                    <h2 class="fw-bold mb-4">Your First API Request</h2>
+                    <p class="text-muted mb-4">Test your setup with a simple API call:</p>
+                    
+                    <div class="step-card">
+                        <h5 class="fw-bold mb-3">Test Connection</h5>
+                        <p class="text-muted mb-3">Verify your API connection is working:</p>
+                        
+                        <h6 class="fw-bold mb-2">Python Example:</h6>
+                        <div class="code-block">
+<pre># Test API connection
+try:
+    response = client.health.check()
+    print(f"API Status: {response['status']}")
+    print(f"Version: {response['version']}")
+except Exception as e:
+    print(f"Connection failed: {e}")</pre>
+                        </div>
+                        
+                        <h6 class="fw-bold mb-2 mt-3">JavaScript Example:</h6>
+                        <div class="code-block">
+<pre>// Test API connection
+try {
+    const response = await client.health.check();
+    console.log(`API Status: ${response.status}`);
+    console.log(`Version: ${response.version}`);
+} catch (error) {
+    console.error(`Connection failed: ${error.message}`);
+}</pre>
+                        </div>
+                        
+                        <h6 class="fw-bold mb-2 mt-3">cURL Example:</h6>
+                        <div class="code-block">
+<pre>curl -X GET "https://api.contractflow-pro.com/health" \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
+  -H "Content-Type: application/json"</pre>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Authentication Section -->
+                <div id="authentication" class="dev-content">
+                    <h2 class="fw-bold mb-4">Authentication</h2>
+                    <p class="text-muted mb-4">Learn how to authenticate your API requests:</p>
+                    
+                    <div class="step-card">
+                        <h5 class="fw-bold mb-3">OAuth 2.0 Flow</h5>
+                        <p class="text-muted mb-3">ContractFlow Pro uses OAuth 2.0 with JWT tokens:</p>
+                        
+                        <h6 class="fw-bold mb-2">1. Get Access Token:</h6>
+                        <div class="code-block">
+<pre># Python
+token = client.auth.get_token(
+    username="your_username",
+    password="your_password"
+)
+
+# JavaScript
+const token = await client.auth.getToken({
+    username: 'your_username',
+    password: 'your_password'
+});</pre>
+                        </div>
+                        
+                        <h6 class="fw-bold mb-2 mt-3">2. Use Token in Requests:</h6>
+                        <div class="code-block">
+<pre># Python
+client.set_token(token['access_token'])
+
+# JavaScript
+client.setToken(token.accessToken);</pre>
+                        </div>
+                        
+                        <h6 class="fw-bold mb-2 mt-3">3. Refresh Token (when needed):</h6>
+                        <div class="code-block">
+<pre># Python
+new_token = client.auth.refresh_token(token['refresh_token'])
+
+# JavaScript
+const newToken = await client.auth.refreshToken(token.refreshToken);</pre>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Next Steps Section -->
+                <div id="next-steps" class="dev-content">
+                    <h2 class="fw-bold mb-4">Next Steps</h2>
+                    <p class="text-muted mb-4">Now that you're set up, explore these resources:</p>
+                    
+                    <div class="row g-4">
+                        <div class="col-md-6">
+                            <div class="card h-100 border-0 shadow-sm">
+                                <div class="card-body text-center">
+                                    <i class="fas fa-code fa-3x text-primary mb-3"></i>
+                                    <h5 class="fw-bold">API Reference</h5>
+                                    <p class="text-muted">Complete API endpoint documentation</p>
+                                    <a href="../docs/api-reference.html" class="btn btn-primary">View API Docs</a>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card h-100 border-0 shadow-sm">
+                                <div class="card-body text-center">
+                                    <i class="fas fa-lightbulb fa-3x text-warning mb-3"></i>
+                                    <h5 class="fw-bold">Code Examples</h5>
+                                    <p class="text-muted">Real-world integration examples</p>
+                                    <a href="examples.html" class="btn btn-primary">View Examples</a>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card h-100 border-0 shadow-sm">
+                                <div class="card-body text-center">
+                                    <i class="fas fa-puzzle-piece fa-3x text-success mb-3"></i>
+                                    <h5 class="fw-bold">Integration Guide</h5>
+                                    <p class="text-muted">Step-by-step integration tutorials</p>
+                                    <a href="integration-guide.html" class="btn btn-primary">View Guide</a>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card h-100 border-0 shadow-sm">
+                                <div class="card-body text-center">
+                                    <i class="fas fa-server fa-3x text-info mb-3"></i>
+                                    <h5 class="fw-bold">Deployment Guide</h5>
+                                    <p class="text-muted">Production deployment best practices</p>
+                                    <a href="deployment-guide.html" class="btn btn-primary">View Guide</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-light mt-5 py-4">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <p class="mb-0 text-muted">&copy; 2025 ContractFlow Pro. All rights reserved.</p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <a href="../about.html#contact-form" class="text-muted text-decoration-none me-3">Support</a>
+                    <a href="../about.html" class="text-muted text-decoration-none">About</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Authentication Check -->
+    <script src="../js/auth-check.js"></script>
+    
+    <script>
+        // Smooth scrolling for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        // Update active nav link on scroll
+        window.addEventListener('scroll', () => {
+            const sections = document.querySelectorAll('.dev-content');
+            const navLinks = document.querySelectorAll('.sidebar-nav .nav-link');
+            
+            let current = '';
+            sections.forEach(section => {
+                const sectionTop = section.offsetTop;
+                if (pageYOffset >= sectionTop - 200) {
+                    current = section.getAttribute('id');
+                }
+            });
+
+            navLinks.forEach(link => {
+                link.classList.remove('active');
+                if (link.getAttribute('href') === `#${current}`) {
+                    link.classList.add('active');
+                }
+            });
+        });
+    </script>
+</body>
+</html>
