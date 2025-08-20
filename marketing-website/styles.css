@@ -158,13 +158,14 @@
 
 
 :root {
-    --primary-color: #007bff;
-    --secondary-color: #6c757d;
-    --success-color: #28a745;
-    --warning-color: #ffc107;
-    --danger-color: #dc3545;
-    --light-color: #f8f9fa;
-    --dark-color: #343a40;
+    --primary-color: #667eea;
+    --secondary-color: #764ba2;
+    --accent-color: #f8f9fa;
+    --text-dark: #2c3e50;
+    --text-light: #6c757d;
+    --white: #ffffff;
+    --gradient-start: #667eea;
+    --gradient-end: #764ba2;
 }
 
 /* Global Styles */
@@ -215,22 +216,58 @@ body {
         padding: 10px 15px;
         border-radius: 5px;
         margin: 2px 0;
+        color: var(--text-dark) !important;
+        font-weight: 500;
     }
     
     .navbar-nav .nav-link:hover {
-        background: rgba(0, 123, 255, 0.1);
+        background: rgba(102, 126, 234, 0.1);
+        color: var(--primary-color) !important;
+    }
+    
+    .navbar-nav .nav-link.active {
+        background: var(--primary-color);
+        color: white !important;
     }
 }
 
 /* Hero Section - Updated for overview section */
 .hero-section {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, var(--gradient-start) 0%, var(--gradient-end) 100%);
     padding-top: 120px;
     padding-bottom: 100px;
     position: relative;
     overflow: visible;
     margin-bottom: 0;
     min-height: auto;
+}
+
+/* Hero Typography */
+.hero-heading {
+    font-size: 2.5rem;
+    line-height: 1.2;
+    font-weight: 700;
+}
+
+.hero-description {
+    font-size: 1.1rem;
+    line-height: 1.6;
+}
+
+.value-proposition-heading {
+    font-size: 2rem;
+    line-height: 1.3;
+}
+
+/* Value Cards */
+.value-card {
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
+}
+
+.value-card:hover {
+    transform: translateY(-3px);
+    background: rgba(255, 255, 255, 0.15) !important;
 }
 
 .hero-section .row {
@@ -349,14 +386,19 @@ section + section {
         padding-top: 10px;
     }
     
-    .overview-section h1 {
-        font-size: 1.8rem;
-        line-height: 1.3;
+    .hero-heading {
+        font-size: 2rem;
+        line-height: 1.2;
     }
     
-    .overview-section .lead {
+    .hero-description {
         font-size: 1rem;
         line-height: 1.5;
+    }
+    
+    .value-proposition-heading {
+        font-size: 1.6rem;
+        line-height: 1.3;
     }
 }
 
@@ -1404,7 +1446,7 @@ section {
 .side-nav-link:hover {
     color: white;
     background: rgba(255, 255, 255, 0.1);
-    border-left-color: #007bff;
+    border-left-color: var(--primary-color);
     text-decoration: none;
 }
 
