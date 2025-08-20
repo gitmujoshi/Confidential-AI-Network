@@ -259,10 +259,27 @@ section {
     color: var(--black) !important;
 }
 
-/* Dark sections for contrast */
-.bg-dark, .bg-primary {
-    background-color: var(--black) !important;
-    color: var(--white) !important;
+/* Force all backgrounds to white with black text */
+.bg-dark, .bg-primary, .bg-success, .bg-warning, .bg-info, .bg-danger {
+    background-color: var(--white) !important;
+    color: var(--black) !important;
+}
+
+/* Page headers should be white with black text */
+.page-header {
+    background-color: var(--white) !important;
+    color: var(--black) !important;
+}
+
+/* Ensure all text is black on white backgrounds */
+.text-white, .text-white-50 {
+    color: var(--black) !important;
+}
+
+/* Force all sections to be white */
+.overview-section, .hero-section, .bg-gradient-primary {
+    background: var(--white) !important;
+    color: var(--black) !important;
 }
 
 /* Card backgrounds */
@@ -307,8 +324,9 @@ section {
     top: 0;
     left: 0;
     right: 0;
-    background: var(--white);
+    background: var(--white) !important;
     border-bottom: 1px solid var(--gray-200);
+    color: var(--black) !important;
 }
 
 /* Ensure body has proper spacing for fixed navbar */
@@ -334,6 +352,19 @@ body {
 .navbar-nav .nav-link.active {
     color: var(--black) !important;
     font-weight: 600;
+}
+
+/* Force navbar to be light theme */
+.navbar-dark {
+    background-color: var(--white) !important;
+}
+
+.navbar-dark .navbar-nav .nav-link {
+    color: var(--black) !important;
+}
+
+.navbar-dark .navbar-brand {
+    color: var(--black) !important;
 }
 
 /* Mobile navbar toggle button */
@@ -366,21 +397,21 @@ body {
     }
     
     .navbar-nav .nav-link.active {
-        background: var(--black);
-        color: var(--white) !important;
+        background: var(--gray-200);
+        color: var(--black) !important;
     }
 }
 
 /* Hero Section - Clean white background with black text */
 .hero-section {
-    background: var(--white);
+    background: var(--white) !important;
     padding-top: 120px;
     padding-bottom: 100px;
     position: relative;
     overflow: visible;
     margin-bottom: 0;
     min-height: auto;
-    color: var(--black);
+    color: var(--black) !important;
 }
 
 /* Hero section pattern removed for clean white background */
@@ -545,11 +576,11 @@ section + section {
     border-top: 1px solid #e9ecef;
 }
 
-/* Overview Section - Matching other sections structure */
+/* Overview Section - White background with black text */
 .overview-section {
     position: relative;
-    background: linear-gradient(135deg, #000000 0%, #333333 100%);
-    color: white;
+    background: var(--white) !important;
+    color: var(--black) !important;
     overflow: visible;
     z-index: 1;
     padding-top: 120px !important; /* Account for fixed navbar (80px) + extra spacing */
@@ -582,16 +613,7 @@ section + section {
     }
 }
 
-.overview-background {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="50" cy="50" r="0.5" fill="white" opacity="0.05"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
-    opacity: 0.2;
-    pointer-events: none;
-}
+/* Overview background pattern removed for clean white background */
 
 .overview-section .container {
     position: relative;
@@ -638,22 +660,13 @@ section + section {
 }
 
 .bg-gradient-primary {
-    background: linear-gradient(135deg, #000000 0%, #333333 100%);
+    background: var(--white) !important;
     position: relative;
     overflow: hidden;
+    color: var(--black) !important;
 }
 
-.bg-gradient-primary::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="50" cy="50" r="0.5" fill="white" opacity="0.05"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
-    opacity: 0.2;
-    pointer-events: none;
-}
+/* Privacy section grain pattern removed for clean white background */
 
 /* Overview section specific spacing */
 #overview {
@@ -674,6 +687,8 @@ section + section {
     margin-top: 0;
     position: relative;
     z-index: 1;
+    background-color: var(--white) !important;
+    color: var(--black) !important;
 }
 
 /* Solutions Section */
