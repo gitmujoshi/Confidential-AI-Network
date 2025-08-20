@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>TDP Dashboard - ContractFlow Pro</title>
+    <meta name="description" content="Training Data Provider Dashboard for ContractFlow Pro - Manage your datasets, contracts, and AI training collaborations">
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <!-- Custom CSS -->
+    <link href="../styles.css" rel="stylesheet">
+    
+    <style>
+        .dashboard-header {
+            background: linear-gradient(135deg, var(--gradient-start) 0%, var(--gradient-end) 100%);
+            color: white;
+            padding: 2rem 0;
+            margin-bottom: 2rem;
+        }
+        
+        .metric-card {
+            background: var(--white);
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: var(--shadow-light);
+            border: 1px solid var(--border-color);
+            transition: all 0.2s ease;
+        }
+        
+        .metric-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-medium);
+        }
+        
+        .metric-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            line-height: 1;
+        }
+        
+        .metric-label {
+            color: var(--text-light);
+            font-size: 0.875rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        
+        .dataset-card {
+            background: var(--white);
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: var(--shadow-light);
+            border: 1px solid var(--border-color);
+            transition: all 0.2s ease;
+        }
+        
+        .dataset-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-medium);
+        }
+        
+        .status-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        
+        .status-active {
+            background: rgba(50, 212, 164, 0.1);
+            color: var(--success-color);
+        }
+        
+        .status-pending {
+            background: rgba(246, 173, 85, 0.1);
+            color: var(--warning-color);
+        }
+        
+        .status-completed {
+            background: rgba(99, 91, 255, 0.1);
+            color: var(--primary-color);
+        }
+        
+        .chart-container {
+            background: var(--white);
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: var(--shadow-light);
+            border: 1px solid var(--border-color);
+        }
+        
+        .nav-pills .nav-link {
+            border-radius: 8px;
+            color: var(--text-light);
+            font-weight: 500;
+            padding: 0.75rem 1.5rem;
+            margin-right: 0.5rem;
+        }
+        
+        .nav-pills .nav-link.active {
+            background: var(--primary-color);
+            color: var(--white);
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg fixed-top" style="background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px);">
+        <div class="container">
+            <a class="navbar-brand fw-bold" href="../index.html">
+                <i class="fas fa-cube me-2"></i>ContractFlow Pro
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="../index.html">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="../features.html">Features</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="../solutions.html">Solutions</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="../technology.html">Technology</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="../about.html">About</a>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-user me-1"></i>TDP Dashboard
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="tdp-dashboard.html">TDP Dashboard</a></li>
+                            <li><a class="dropdown-item" href="tdc-dashboard.html">TDC Dashboard</a></li>
+                            <li><a class="dropdown-item" href="ccrp-dashboard.html">CCRP Dashboard</a></li>
+                            <li><a class="dropdown-item" href="admin-dashboard.html">Admin Dashboard</a></li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Dashboard Header -->
+    <div class="dashboard-header">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-lg-8">
+                    <h1 class="display-5 fw-bold mb-2">Training Data Provider Dashboard</h1>
+                    <p class="lead mb-0">Manage your datasets, monitor contract performance, and track AI training collaborations</p>
+                </div>
+                <div class="col-lg-4 text-lg-end">
+                    <div class="d-flex align-items-center justify-content-lg-end">
+                        <div class="me-3">
+                            <small class="text-white-50">Welcome back,</small>
+                            <div class="text-white fw-bold">Dr. Sarah Chen</div>
+                        </div>
+                        <div class="bg-white bg-opacity-20 rounded-circle d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
+                            <i class="fas fa-user fa-lg text-white"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="container" style="margin-top: 120px;">
+        <!-- Key Metrics -->
+        <div class="row g-4 mb-5">
+            <div class="col-lg-3 col-md-6">
+                <div class="metric-card text-center">
+                    <div class="metric-value">24</div>
+                    <div class="metric-label">Active Datasets</div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <div class="metric-card text-center">
+                    <div class="metric-value">18</div>
+                    <div class="metric-label">Active Contracts</div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <div class="metric-card text-center">
+                    <div class="metric-value">$47.2K</div>
+                    <div class="metric-label">Revenue Generated</div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <div class="metric-card text-center">
+                    <div class="metric-value">94%</div>
+                    <div class="metric-label">Data Quality Score</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Dashboard Tabs -->
+        <ul class="nav nav-pills mb-4" id="dashboardTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="overview-tab" data-bs-toggle="pill" data-bs-target="#overview" type="button" role="tab">
+                    <i class="fas fa-chart-line me-2"></i>Overview
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="datasets-tab" data-bs-toggle="pill" data-bs-target="#datasets" type="button" role="tab">
+                    <i class="fas fa-database me-2"></i>Datasets
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="contracts-tab" data-bs-toggle="pill" data-bs-target="#contracts" type="button" role="tab">
+                    <i class="fas fa-file-contract me-2"></i>Contracts
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="analytics-tab" data-bs-toggle="pill" data-bs-target="#analytics" type="button" role="tab">
+                    <i class="fas fa-chart-bar me-2"></i>Analytics
+                </button>
+            </li>
+        </ul>
+
+        <!-- Tab Content -->
+        <div class="tab-content" id="dashboardTabContent">
+            <!-- Overview Tab -->
+            <div class="tab-pane fade show active" id="overview" role="tabpanel">
+                <div class="row g-4">
+                    <div class="col-lg-8">
+                        <div class="chart-container">
+                            <h5 class="fw-bold mb-3">Revenue Trends</h5>
+                            <div class="bg-light rounded p-4 text-center" style="height: 300px;">
+                                <i class="fas fa-chart-line fa-3x text-muted mb-3"></i>
+                                <p class="text-muted">Revenue chart visualization would be integrated here</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-4">
+                        <div class="chart-container">
+                            <h5 class="fw-bold mb-3">Recent Activity</h5>
+                            <div class="d-flex align-items-center mb-3">
+                                <div class="bg-success rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px;">
+                                    <i class="fas fa-check text-white"></i>
+                                </div>
+                                <div>
+                                    <div class="fw-bold">New Contract Signed</div>
+                                    <small class="text-muted">Healthcare AI Training - 2 hours ago</small>
+                                </div>
+                            </div>
+                            <div class="d-flex align-items-center mb-3">
+                                <div class="bg-primary rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px;">
+                                    <i class="fas fa-upload text-white"></i>
+                                </div>
+                                <div>
+                                    <div class="fw-bold">Dataset Updated</div>
+                                    <small class="text-muted">Financial Fraud Detection - 5 hours ago</small>
+                                </div>
+                            </div>
+                            <div class="d-flex align-items-center">
+                                <div class="bg-warning rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px;">
+                                    <i class="fas fa-clock text-white"></i>
+                                </div>
+                                <div>
+                                    <div class="fw-bold">Training Completed</div>
+                                    <small class="text-muted">Image Recognition Model - 1 day ago</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Datasets Tab -->
+            <div class="tab-pane fade" id="datasets" role="tabpanel">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h4 class="fw-bold mb-0">Your Datasets</h4>
+                    <button class="btn btn-primary">
+                        <i class="fas fa-plus me-2"></i>Add Dataset
+                    </button>
+                </div>
+                <div class="row g-4">
+                    <div class="col-lg-6">
+                        <div class="dataset-card">
+                            <div class="d-flex justify-content-between align-items-start mb-3">
+                                <h6 class="fw-bold mb-0">Healthcare Patient Records</h6>
+                                <span class="status-badge status-active">Active</span>
+                            </div>
+                            <p class="text-muted small mb-3">Anonymized patient data for disease prediction models</p>
+                            <div class="row text-center">
+                                <div class="col-4">
+                                    <div class="fw-bold text-primary">2.4M</div>
+                                    <small class="text-muted">Records</small>
+                                </div>
+                                <div class="col-4">
+                                    <div class="fw-bold text-success">$12.5K</div>
+                                    <small class="text-muted">Revenue</small>
+                                </div>
+                                <div class="col-4">
+                                    <div class="fw-bold text-info">8</div>
+                                    <small class="text-muted">Contracts</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-6">
+                        <div class="dataset-card">
+                            <div class="d-flex justify-content-between align-items-start mb-3">
+                                <h6 class="fw-bold mb-0">Financial Transaction Data</h6>
+                                <span class="status-badge status-active">Active</span>
+                            </div>
+                            <p class="text-muted small mb-3">Secure financial data for fraud detection AI</p>
+                            <div class="row text-center">
+                                <div class="col-4">
+                                    <div class="fw-bold text-primary">5.1M</div>
+                                    <small class="text-muted">Records</small>
+                                </div>
+                                <div class="col-4">
+                                    <div class="fw-bold text-success">$18.2K</div>
+                                    <small class="text-muted">Revenue</small>
+                                </div>
+                                <div class="col-4">
+                                    <div class="fw-bold text-info">12</div>
+                                    <small class="text-muted">Contracts</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Contracts Tab -->
+            <div class="tab-pane fade" id="contracts" role="tabpanel">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h4 class="fw-bold mb-0">Active Contracts</h4>
+                    <button class="btn btn-outline-primary">
+                        <i class="fas fa-download me-2"></i>Export
+                    </button>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Contract ID</th>
+                                <th>Client</th>
+                                <th>Dataset</th>
+                                <th>Value</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>CTR-2024-001</code></td>
+                                <td>MedTech Solutions</td>
+                                <td>Healthcare Patient Records</td>
+                                <td>$8,500</td>
+                                <td><span class="status-badge status-active">Active</span></td>
+                                <td>
+                                    <button class="btn btn-sm btn-outline-primary">View</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><code>CTR-2024-002</code></td>
+                                <td>FinAI Corp</td>
+                                <td>Financial Transaction Data</td>
+                                <td>$12,000</td>
+                                <td><span class="status-badge status-active">Active</span></td>
+                                <td>
+                                    <button class="btn btn-sm btn-outline-primary">View</button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Analytics Tab -->
+            <div class="tab-pane fade" id="analytics" role="tabpanel">
+                <div class="row g-4">
+                    <div class="col-lg-6">
+                        <div class="chart-container">
+                            <h5 class="fw-bold mb-3">Dataset Performance</h5>
+                            <div class="bg-light rounded p-4 text-center" style="height: 250px;">
+                                <i class="fas fa-chart-pie fa-3x text-muted mb-3"></i>
+                                <p class="text-muted">Dataset performance chart would be integrated here</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-6">
+                        <div class="chart-container">
+                            <h5 class="fw-bold mb-3">Revenue by Industry</h5>
+                            <div class="bg-light rounded p-4 text-center" style="height: 250px;">
+                                <i class="fas fa-chart-bar fa-3x text-muted mb-3"></i>
+                                <p class="text-muted">Revenue breakdown chart would be integrated here</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-light mt-5 py-4">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <p class="mb-0 text-muted">&copy; 2025 ContractFlow Pro. All rights reserved.</p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <a href="../about.html#contact-form" class="text-muted text-decoration-none me-3">Support</a>
+                    <a href="../about.html" class="text-muted text-decoration-none">About</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Authentication Check -->
+    <script src="../js/auth-check.js"></script>
+</body>
+</html>
