@@ -158,7 +158,7 @@
 
 
 :root {
-    /* Minimal black and white color palette */
+    /* Centralized Black and White Design System */
     --primary-color: #000000;
     --primary-dark: #000000;
     --primary-light: #333333;
@@ -167,10 +167,22 @@
     --success-color: #000000;
     --warning-color: #000000;
     --error-color: #000000;
+    --info-color: #000000;
+    --danger-color: #000000;
     --text-dark: #000000;
     --text-light: #333333;
     --text-muted: #666666;
     --white: #ffffff;
+    --black: #000000;
+    --gray-100: #f8f9fa;
+    --gray-200: #e9ecef;
+    --gray-300: #dee2e6;
+    --gray-400: #ced4da;
+    --gray-500: #adb5bd;
+    --gray-600: #6c757d;
+    --gray-700: #495057;
+    --gray-800: #343a40;
+    --gray-900: #212529;
     --border-color: #e0e0e0;
     --shadow-light: 0 1px 3px rgba(0, 0, 0, 0.1);
     --shadow-medium: 0 4px 6px rgba(0, 0, 0, 0.1);
@@ -179,12 +191,96 @@
     --gradient-end: #333333;
 }
 
-/* Global Styles - Stripe-inspired */
+/* Global Styles - Centralized Black and White Design */
 body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
     line-height: 1.6;
     color: var(--text-dark);
     background-color: var(--white);
+}
+
+/* Bootstrap Color Overrides - Centralized Design System */
+.bg-primary, .bg-success, .bg-warning, .bg-info, .bg-danger {
+    background-color: var(--black) !important;
+}
+
+.text-primary, .text-success, .text-warning, .text-info, .text-danger {
+    color: var(--black) !important;
+}
+
+.border-primary, .border-success, .border-warning, .border-info, .border-danger {
+    border-color: var(--black) !important;
+}
+
+.btn-primary {
+    background-color: var(--black) !important;
+    border-color: var(--black) !important;
+    color: var(--white) !important;
+}
+
+.btn-primary:hover {
+    background-color: var(--gray-800) !important;
+    border-color: var(--gray-800) !important;
+}
+
+.btn-success, .btn-warning, .btn-info, .btn-danger {
+    background-color: var(--black) !important;
+    border-color: var(--black) !important;
+    color: var(--white) !important;
+}
+
+.btn-success:hover, .btn-warning:hover, .btn-info:hover, .btn-danger:hover {
+    background-color: var(--gray-800) !important;
+    border-color: var(--gray-800) !important;
+}
+
+.btn-outline-primary, .btn-outline-success, .btn-outline-warning, .btn-outline-info, .btn-outline-danger {
+    background-color: transparent !important;
+    border-color: var(--black) !important;
+    color: var(--black) !important;
+}
+
+.btn-outline-primary:hover, .btn-outline-success:hover, .btn-outline-warning:hover, .btn-outline-info:hover, .btn-outline-danger:hover {
+    background-color: var(--black) !important;
+    color: var(--white) !important;
+}
+
+.badge.bg-primary, .badge.bg-success, .badge.bg-warning, .badge.bg-info, .badge.bg-danger {
+    background-color: var(--black) !important;
+}
+
+.progress-bar.bg-success, .progress-bar.bg-warning, .progress-bar.bg-info, .progress-bar.bg-danger {
+    background-color: var(--black) !important;
+}
+
+/* Section Backgrounds - Consistent White */
+section {
+    background-color: var(--white) !important;
+    color: var(--black) !important;
+}
+
+/* Dark sections for contrast */
+.bg-dark, .bg-primary {
+    background-color: var(--black) !important;
+    color: var(--white) !important;
+}
+
+/* Card backgrounds */
+.card {
+    background-color: var(--white) !important;
+    border-color: var(--gray-300) !important;
+}
+
+/* Form elements */
+.form-control, .form-select {
+    background-color: var(--white) !important;
+    border-color: var(--gray-400) !important;
+    color: var(--black) !important;
+}
+
+.form-control:focus, .form-select:focus {
+    border-color: var(--black) !important;
+    box-shadow: 0 0 0 0.2rem rgba(0, 0, 0, 0.25) !important;
 }
 
 /* Stripe-like typography */
@@ -203,7 +299,7 @@ body {
 
 /* Navigation */
 .navbar {
-    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    box-shadow: var(--shadow-light);
     transition: all 0.3s ease;
     height: 80px;
     z-index: 1030;
@@ -211,8 +307,8 @@ body {
     top: 0;
     left: 0;
     right: 0;
-    background: rgba(255, 255, 255, 0.95);
-    backdrop-filter: blur(10px);
+    background: var(--white);
+    border-bottom: 1px solid var(--gray-200);
 }
 
 /* Ensure body has proper spacing for fixed navbar */
@@ -222,6 +318,22 @@ body {
 
 .navbar-brand {
     font-size: 1.5rem;
+    color: var(--black) !important;
+    font-weight: 700;
+}
+
+.navbar-nav .nav-link {
+    color: var(--black) !important;
+    font-weight: 500;
+}
+
+.navbar-nav .nav-link:hover {
+    color: var(--gray-700) !important;
+}
+
+.navbar-nav .nav-link.active {
+    color: var(--black) !important;
+    font-weight: 600;
 }
 
 /* Mobile navbar toggle button */
@@ -232,69 +344,61 @@ body {
 /* Mobile navbar collapse */
 @media (max-width: 768px) {
     .navbar-collapse {
-        background: rgba(255, 255, 255, 0.98);
+        background: var(--white);
         border-radius: 10px;
         margin-top: 10px;
         padding: 15px;
-        box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        box-shadow: var(--shadow-medium);
+        border: 1px solid var(--gray-200);
     }
     
     .navbar-nav .nav-link {
         padding: 10px 15px;
         border-radius: 5px;
         margin: 2px 0;
-        color: var(--text-dark) !important;
+        color: var(--black) !important;
         font-weight: 500;
     }
     
     .navbar-nav .nav-link:hover {
-        background: rgba(102, 126, 234, 0.1);
-        color: var(--primary-color) !important;
+        background: var(--gray-100);
+        color: var(--black) !important;
     }
     
     .navbar-nav .nav-link.active {
-        background: var(--primary-color);
-        color: white !important;
+        background: var(--black);
+        color: var(--white) !important;
     }
 }
 
-/* Hero Section - Minimal black design */
+/* Hero Section - Clean white background with black text */
 .hero-section {
-    background: linear-gradient(135deg, var(--gradient-start) 0%, var(--gradient-end) 100%);
+    background: var(--white);
     padding-top: 120px;
     padding-bottom: 100px;
     position: relative;
     overflow: visible;
     margin-bottom: 0;
     min-height: auto;
+    color: var(--black);
 }
 
-.hero-section::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="minimal-pattern" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="50" cy="50" r="0.3" fill="white" opacity="0.05"/></pattern></defs><rect width="100" height="100" fill="url(%23minimal-pattern)"/></svg>');
-    opacity: 0.2;
-    pointer-events: none;
-}
+/* Hero section pattern removed for clean white background */
 
-/* Hero Typography - Minimal design */
+/* Hero Typography - Black text on white background */
 .hero-heading {
     font-size: 3.5rem;
     line-height: 1.1;
     font-weight: 700;
     letter-spacing: -0.02em;
-    color: var(--white);
+    color: var(--black);
 }
 
 .hero-description {
     font-size: 1.375rem;
     line-height: 1.5;
     font-weight: 400;
-    color: rgba(255, 255, 255, 0.9);
+    color: var(--gray-700);
 }
 
 .value-proposition-heading {
@@ -325,41 +429,41 @@ body {
     z-index: 2;
 }
 
-/* Minimal design buttons */
+/* Hero buttons - Black and white design */
 .hero-buttons .btn {
     padding: 16px 32px;
     font-weight: 600;
     font-size: 1rem;
     border-radius: 8px;
     transition: all 0.2s ease;
-    border: none;
+    border: 2px solid;
     position: relative;
     overflow: hidden;
 }
 
 .hero-buttons .btn-primary {
-    background: var(--white);
-    color: var(--primary-color);
+    background: var(--black);
+    color: var(--white);
+    border-color: var(--black);
     box-shadow: var(--shadow-medium);
 }
 
 .hero-buttons .btn-primary:hover {
     transform: translateY(-2px);
     box-shadow: var(--shadow-heavy);
-    background: var(--white);
-    color: var(--primary-color);
+    background: var(--gray-800);
+    border-color: var(--gray-800);
 }
 
 .hero-buttons .btn-outline-light {
     background: transparent;
-    color: var(--white);
-    border: 2px solid rgba(255, 255, 255, 0.3);
-    backdrop-filter: blur(10px);
+    color: var(--black);
+    border-color: var(--black);
 }
 
 .hero-buttons .btn-outline-light:hover {
-    background: rgba(255, 255, 255, 0.1);
-    border-color: rgba(255, 255, 255, 0.5);
+    background: var(--black);
+    color: var(--white);
     transform: translateY(-2px);
 }
 
