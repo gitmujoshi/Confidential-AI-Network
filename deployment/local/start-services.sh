@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Contract Management System - Complete Service Startup Script
-# This script starts all services: Keycloak, Blockchain, Backend, and Frontend
+# This script starts all services: Keycloak, SCITT CCF, Backend, and Frontend
 
 set -e  # Exit on any error
 
@@ -132,7 +132,9 @@ if [ -f "$PROJECT_ROOT/.***REMOVED-KEYCLOAK_DB_PASSWORD***.pid" ]; then
     
     # Setup Keycloak configuration if it doesn't exist
     print_status "Setting up Keycloak configuration..."
-    ./setup-***REMOVED-KEYCLOAK_DB_PASSWORD***-persistent.sh
+    cd "$PROJECT_ROOT"
+    ./deployment/local/setup-***REMOVED-KEYCLOAK_DB_PASSWORD***-persistent.sh
+    cd "$SCRIPT_DIR"
 fi
 
 # Step 1.5: Start Main Database and SCITT CCF Services
@@ -141,22 +143,65 @@ if command -v docker &> /dev/null; then
     # Start main database and SCITT CCF services
     cd "$PROJECT_ROOT"
     
-    # Start main services (database, ***REMOVED-KEYCLOAK_DB_PASSWORD***)
-    docker-compose -f docker-compose.main.yml up -d ***REMOVED-DB_PASSWORD***-app ***REMOVED-DB_PASSWORD***-***REMOVED-KEYCLOAK_DB_PASSWORD*** ***REMOVED-KEYCLOAK_DB_PASSWORD***
-    
-    # Wait for main database to be ready
-    print_status "Waiting for main database to be ready..."
-    wait_for_service "http://localhost:5432" "Main Database"
+    # Start main services (database only - Keycloak already started in Step 1)
+    if docker-compose -f docker-compose.main.yml up -d ***REMOVED-DB_PASSWORD***-app ***REMOVED-DB_PASSWORD***-***REMOVED-KEYCLOAK_DB_PASSWORD*** --remove-orphans; then
+        print_success "Main database services started successfully"
+        
+        # Wait for main database to be ready
+        print_status "Waiting for main database to be ready..."
+        
+        # Wait for PostgreSQL to be ready (check if it accepts connections)
+        max_attempts=30
+        attempt=1
+        while [ $attempt -le $max_attempts ]; do
+            if docker exec ***REMOVED-DB_PASSWORD***-app pg_isready -U ***REMOVED-DB_PASSWORD*** >/dev/null 2>&1; then
+                print_success "Main Database is ready!"
+                break
+            fi
+            
+            echo -n "."
+            sleep 2
+            attempt=$((attempt + 1))
+        done
+        
+        if [ $attempt -gt $max_attempts ]; then
+            print_error "Main Database failed to start within $((max_attempts * 2)) seconds"
+            print_warning "Continuing without main database..."
+        fi
+    else
+        print_error "Failed to start main database services"
+        print_warning "Continuing without main database..."
+    fi
     
     # Start SCITT CCF services
     print_status "Starting SCITT CCF services..."
-    docker-compose -f docker-compose.scitt-ccf-dev.yml up -d
-    
-    # Wait for SCITT CCF node to be ready
-    print_status "Waiting for SCITT CCF node to be ready..."
-    wait_for_service "http://localhost:8000/app/health" "SCITT CCF Node"
-    
-    print_success "SCITT CCF services started successfully"
+    if docker-compose -f docker-compose.scitt-ccf-dev.yml up -d --remove-orphans; then
+        print_success "SCITT CCF services started successfully"
+        
+        # Wait for SCITT CCF node to be ready
+        print_status "Waiting for SCITT CCF node to be ready..."
+        
+        # Wait for SCITT CCF to be ready (check if port is responding)
+        max_attempts=30
+        attempt=1
+        while [ $attempt -le $max_attempts ]; do
+            if curl -s "http://localhost:8000" >/dev/null 2>&1; then
+                print_success "SCITT CCF Node is ready!"
+                break
+            fi
+            
+            echo -n "."
+            sleep 2
+            attempt=$((attempt + 1))
+        done
+        
+        if [ $attempt -gt $max_attempts ]; then
+            print_warning "SCITT CCF Node health check failed, but continuing..."
+        fi
+    else
+        print_error "Failed to start SCITT CCF services"
+        print_warning "Continuing without SCITT CCF..."
+    fi
     
     cd "$SCRIPT_DIR"
 else
@@ -164,23 +209,30 @@ else
     print_warning "Continuing without database and SCITT CCF..."
 fi
 
-# Step 2: Start Blockchain (Hardhat)
-print_status "Step 2: Starting Blockchain (Hardhat)..."
-if check_port 8545; then
-    print_warning "Port 8545 is already in use. Skipping Hardhat startup."
+# Step 2: Start SCITT CCF Ledger (replacing Blockchain)
+print_status "Step 2: Starting SCITT CCF Ledger..."
+if check_port 8000; then
+    print_warning "Port 8000 is already in use. SCITT CCF Ledger may already be running."
 else
-    print_status "Starting Hardhat blockchain on port 8545..."
-    cd ../../blockchain
-    npx hardhat node > ../../logs/hardhat.log 2>&1 &
-    echo $! > ../../.hardhat.pid
-    cd ../..
-    print_success "Hardhat started (PID: $(cat .hardhat.pid))"
+    print_status "Starting SCITT CCF Ledger on port 8000..."
+    cd "$PROJECT_ROOT"
+    
+    # Use the manage-scitt-ccf.sh script to start SCITT CCF services
+    if [ -f "./manage-scitt-ccf.sh" ]; then
+        ./manage-scitt-ccf.sh start > "$PROJECT_ROOT/logs/scitt-ccf.log" 2>&1 &
+        echo $! > "$PROJECT_ROOT/.scitt-ccf.pid"
+        print_success "SCITT CCF Ledger started (PID: $(cat "$PROJECT_ROOT/.scitt-ccf.pid"))"
+    else
+        print_error "manage-scitt-ccf.sh script not found. Please ensure SCITT CCF is properly configured."
+    fi
+    
+    cd "$SCRIPT_DIR"
 fi
 
-# Wait for blockchain to be ready
-#if [ -f ".hardhat.pid" ]; then
-#   wait_for_service "http://127.0.0.1:8545" "Blockchain"
-#fi
+# Wait for SCITT CCF to be ready
+if [ -f "$PROJECT_ROOT/.scitt-ccf.pid" ]; then
+    wait_for_service "http://localhost:8000/app/health" "SCITT CCF Ledger"
+fi
 
 # Step 3: Start Backend
 print_status "Step 3: Starting Backend API..."
@@ -190,8 +242,9 @@ else
     print_status "Starting backend on port 5001..."
     cd "$PROJECT_ROOT/backend"
     
-    # Enable blockchain in config
-    sed -i '' 's/BLOCKCHAIN_ENABLED=false/BLOCKCHAIN_ENABLED=true/' config.env
+    # Enable SCITT CCF in config (disable blockchain)
+    sed -i '' 's/BLOCKCHAIN_ENABLED=true/BLOCKCHAIN_ENABLED=false/' config.env
+    sed -i '' 's/SCITT_CCF_ENABLED=false/SCITT_CCF_ENABLED=true/' config.env
     
     node server.js > "$PROJECT_ROOT/logs/backend.log" 2>&1 &
     echo $! > "$PROJECT_ROOT/.backend.pid"
@@ -241,7 +294,8 @@ echo "=================="
 # Check each service
 services=(
     "Keycloak:8080"
-    "Blockchain:8545"
+    "SCITT CCF Ledger:8000"
+    "SCITT CCF Dashboard:8082"
     "Backend:5001"
     "Frontend:${PORT:-3000}"
 )
@@ -261,7 +315,8 @@ echo "==============="
 echo "  Frontend: http://localhost:${PORT:-3000}"
 echo "  Backend API: http://localhost:5001/api"
 echo "  Keycloak Admin: http://localhost:8080 (admin/***REMOVED-KEYCLOAK_ADMIN_PASSWORD***)"
-echo "  Blockchain: http://127.0.0.1:8545"
+echo "  SCITT CCF Ledger: http://localhost:8000"
+echo "  SCITT CCF Dashboard: http://localhost:8082"
 echo ""
 echo "📝 Logs are available in the 'logs/' directory"
 echo "🛑 To stop all services, run: ./stop-services.sh"

@@ -69,7 +69,7 @@ The Contract Management System is a comprehensive multi-tenant, multi-cloud AI t
 ### Backend (Node.js + Express)
 - **Database**: PostgreSQL with Sequelize ORM
 - **Authentication**: JWT with Keycloak integration
-- **Blockchain**: Ethereum smart contract integration
+- **Blockchain**: SCITT CCF (Supply Chain Integrity, Transparency and Trust - Confidential Consortium Framework)
 - **Notifications**: Email and in-app notifications
 - **Testing**: Comprehensive test suite
 - **Multi-Cloud Support**: Cross-cloud environment provisioning
@@ -97,7 +97,7 @@ The Contract Management System is a comprehensive multi-tenant, multi-cloud AI t
 ### Core Features (100% Complete)
 - [x] Multi-TDP contract creation and management
 - [x] Ricardian contract generation and signing
-- [x] Blockchain integration for contract storage
+- [x] SCITT CCF blockchain integration for contract storage and provenance
 - [x] DID-based authentication and signing
 - [x] Multi-tenant infrastructure management
 - [x] KMS integration for data encryption
@@ -125,7 +125,7 @@ The Contract Management System is a comprehensive multi-tenant, multi-cloud AI t
 - [x] Contract creation and management
 - [x] Dataset management and pricing
 - [x] Multi-cloud credential management
-- [x] Blockchain contract operations
+- [x] Ricardian smart contract operations with SCITT CCF ledger
 - [x] Training environment provisioning
 - [x] **Differential privacy operations (NEW!)**
   - [x] `GET /api/dp/mechanisms` - Available DP mechanisms
@@ -252,7 +252,7 @@ The Contract Management System has achieved **Version 3.1.0** with the successfu
 - **Backend**: ✅ Running with DP endpoints (Port 5001)
 - **Frontend**: ✅ Running with DP components (Port 3000)
 - **Database**: ✅ DP tables created and operational
-- **Blockchain**: ✅ Running (Port 8545)
+- **Blockchain**: ✅ SCITT CCF Running (Port 8000 - Node, Port 8082 - Dashboard)
 - **Differential Privacy**: ✅ Fully operational and tested
 
 The system is now **production-ready** with enterprise-grade differential privacy capabilities, making it suitable for organizations requiring strong privacy guarantees in their data analysis workflows.

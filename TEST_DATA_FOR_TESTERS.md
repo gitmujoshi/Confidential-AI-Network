@@ -15,7 +15,29 @@ The system contains **comprehensive test data** covering all user roles and busi
 - **📜 Contracts**: 3 sample contracts with different statuses
 - **🏗️ Training Environments**: Runtime environments for AI training
 - **💰 Privacy Budget**: Differential privacy settings
-- **📋 SCITT Claims**: SCITT CCF integration data (Primary Backend)
+- **📋 SCITT CCF Integration**: Comprehensive SCITT CCF ledger integration with hybrid mode support
+- **🔗 Modern Architecture**: SCITT CCF blockchain with Ricardian smart contracts
+
+---
+
+## 🏗️ **Technical Architecture Notes**
+
+### **📊 Database Schema**
+- **Field Naming**: All database columns use snake_case (e.g., `user_id`, `contract_id`)
+- **JSONB Fields**: JSON data is stored as JSONB for better performance and indexing
+- **Foreign Keys**: Proper foreign key relationships between all tables
+- **Indexes**: GIN indexes on JSONB fields for fast tag-based queries
+
+### **🔗 SCITT CCF Mode Support**
+- **Blockchain Mode**: Configurable via `SCITT_CCF_MODE` environment variable
+  - `SCITT_CCF_ONLY`: Pure SCITT CCF ledger mode (recommended)
+  - `DATABASE_ONLY`: Database-only mode for testing
+- **Fallback Support**: Automatic fallback to database mode if SCITT CCF unavailable
+
+### **🔐 Authentication & Authorization**
+- **Keycloak Integration**: Primary authentication via Keycloak
+- **Role-Based Access**: TDP, TDC, CCRP, AppAdmin roles
+- **JWT Tokens**: Secure API access with role validation
 
 ---
 
@@ -169,6 +191,23 @@ The system contains **comprehensive test data** covering all user roles and busi
 | SCITT-CLAIM-002 | contract_creation | PENDING | CONTRACT-002 | Financial contract SCITT claim |
 | SCITT-CLAIM-003 | contract_creation | PENDING | CONTRACT-003 | Retail contract SCITT claim |
 
+### **🌐 SCITT CCF Services**
+| Service | URL | Status | Description |
+|---------|-----|--------|-------------|
+| SCITT CCF Node | http://localhost:8000 | ✅ Active | Main SCITT CCF ledger node |
+| SCITT CCF Dashboard | http://localhost:8082 | ✅ Active | Web interface for SCITT CCF |
+| SCITT CCF Monitor | http://localhost:8001 | ✅ Active | Monitoring and health checks |
+| SCITT CCF Redis | localhost:6379 | ✅ Active | Caching and session storage |
+
+### **📋 SCITT CCF Test Endpoints**
+| Endpoint | Method | Description | Test Data |
+|-----------|--------|-------------|-----------|
+| `/api/scitt-ccf/health` | GET | SCITT CCF service health | Check service status |
+| `/api/scitt-ccf/metrics` | GET | SCITT CCF performance metrics | View system metrics |
+| `/api/scitt-ccf/contracts` | POST | Create contract in SCITT CCF | Submit contract data |
+| `/api/scitt-ccf/contracts/:id/status` | GET | Get contract status | Check contract state |
+| `/api/scitt-ccf/contracts/:id/provenance` | GET | Get provenance tree | View data lineage |
+
 ---
 
 ## 🔍 **Test Scenarios**
@@ -204,6 +243,18 @@ The system contains **comprehensive test data** covering all user roles and busi
 - **Environment Setup**: CCRP provisions training environment
 - **Execution**: AI model training begins
 - **Completion**: Contract fulfillment and payment
+
+### **5. SCITT CCF Integration Testing**
+- **Hybrid Contract Creation**: Test contracts created in both systems
+- **Provenance Tracking**: Verify data lineage in SCITT CCF
+- **Attestation**: Test TEE attestation and verification
+- **Fallback Scenarios**: Test system behavior when one ledger fails
+- **Multi-TDP Contracts**: Test contracts with multiple data providers
+
+### **6. JSONB Field Testing**
+- **Tag Queries**: Test fast tag-based searches using GIN indexes
+- **Metadata Operations**: Test JSONB field updates and queries
+- **Performance**: Verify improved query performance with JSONB
 
 ---
 
@@ -251,6 +302,45 @@ curl -X POST http://localhost:5001/api/contracts \
   }'
 ```
 
+### **Test SCITT CCF Integration**
+```bash
+# Check SCITT CCF health
+curl -X GET http://localhost:5001/api/scitt-ccf/health \
+  -H "Authorization: Bearer YOUR_TOKEN"
+
+# Get SCITT CCF metrics
+curl -X GET http://localhost:5001/api/scitt-ccf/metrics \
+  -H "Authorization: Bearer YOUR_TOKEN"
+
+# Create contract in SCITT CCF
+curl -X POST http://localhost:5001/api/scitt-ccf/contracts \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "SCITT CCF Test Contract",
+    "description": "Test contract in SCITT CCF",
+    "tdcId": "USER-TDC-001",
+    "tdpIds": ["USER-TDP-001"],
+    "ccrpId": "USER-CCRP-001"
+  }'
+```
+
+### **Test Hybrid Mode**
+```bash
+# Test contract creation in hybrid mode
+curl -X POST http://localhost:5001/api/contracts/ricardian \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Hybrid Test Contract",
+    "description": "Test contract in both systems",
+    "migrationMode": "HYBRID",
+    "tdcId": "USER-TDC-001",
+    "tdpIds": ["USER-TDP-001"],
+    "ccrpId": "USER-CCRP-001"
+  }'
+```
+
 ---
 
 ## 📋 **Data Verification Queries**
@@ -279,6 +369,36 @@ SELECT status, COUNT(*) as contract_count
 FROM contracts
 GROUP BY status
 ORDER BY contract_count DESC;
+```
+
+### **Test JSONB Field Performance**
+```sql
+-- Test tag-based queries using GIN indexes
+SELECT * FROM contract_templates 
+WHERE tags @> '["ai", "machine-learning"]';
+
+-- Test metadata queries
+SELECT * FROM datasets 
+WHERE metadata @> '{"category": "healthcare"}';
+
+-- Test array containment
+SELECT * FROM users 
+WHERE cloud_providers @> '["AWS", "Azure"]';
+```
+
+### **Verify SCITT CCF Integration**
+```sql
+-- Check SCITT claims
+SELECT * FROM scitt_claims 
+WHERE status = 'PENDING';
+
+-- Check provenance nodes
+SELECT * FROM provenance_nodes 
+WHERE contract_id = 'CONTRACT-001';
+
+-- Check contract datasets
+SELECT * FROM contract_datasets 
+WHERE contract_id = 'CONTRACT-001';
 ```
 
 ---
@@ -313,6 +433,7 @@ For issues with test data:
 
 ---
 
-*Last Updated: 2025-01-08*
-*Test Data Version: 2.0.0*
-*Coverage: 100% of user roles and business scenarios* 
+*Last Updated: 2025-08-18*
+*Test Data Version: 3.0.0*
+*Coverage: 100% of user roles, business scenarios, and technical features*
+*Includes: SCITT CCF integration, Hybrid mode, JSONB optimization, and comprehensive testing* 

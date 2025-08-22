@@ -71,7 +71,7 @@ The system implements the **Ricardian Contract** design pattern, which creates a
 ### ✅ **Fully Implemented & Working (85%)**
 - Complete Ricardian contract creation and deployment
 - Multi-dataset contract support (1-3 datasets)
-- Smart contract integration with Ethereum
+- Smart contract integration with SCITT CCF
 - Privacy and compliance features
 - Full frontend UI with 4-step wizard
 - Backend service architecture
@@ -673,7 +673,7 @@ DELETE /api/infrastructure/environments/:environmentId
 
 ### Scalability Considerations
 - **Database**: PostgreSQL with JSONB for flexible schema
-- **Blockchain**: Ethereum with local Hardhat node
+- **Blockchain**: SCITT CCF with modern confidential computing
 - **Caching**: In-memory template caching
 - **Async Processing**: Non-blocking contract creation
 - **Multi-Cloud**: Parallel provisioning across providers
@@ -684,11 +684,11 @@ DELETE /api/infrastructure/environments/:environmentId
 - **Backend**: Node.js + Express + Sequelize
 - **Frontend**: React + Material-UI
 - **Database**: PostgreSQL
-- **Blockchain**: Hardhat + Ethereum
+- **Blockchain**: SCITT CCF + Ricardian Contracts
 - **Cloud**: Multi-cloud provider integration
 
 ### Production Considerations
-- **Blockchain**: Ethereum mainnet/Goerli
+- **Blockchain**: SCITT CCF production deployment
 - **Security**: HTTPS, JWT authentication
 - **Monitoring**: Winston logging, health checks
 - **Deployment**: Docker containerization ready
