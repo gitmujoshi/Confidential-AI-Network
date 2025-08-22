@@ -29,6 +29,8 @@
     transition: all 0.3s ease;
     background: rgba(255, 255, 255, 0.95);
     backdrop-filter: blur(10px);
+    z-index: 1030;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
 }
 
 .navbar-scrolled {
@@ -56,8 +58,9 @@
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     position: relative;
     overflow: hidden;
-    padding-top: 120px;
+    padding-top: 140px;
     padding-bottom: 80px;
+    margin-top: 0;
 }
 
 .hero-background {
@@ -99,6 +102,49 @@
     padding: 1rem 0;
 }
 
+/* Hero Dashboard Cards */
+.hero-dashboards {
+    margin-top: 2rem;
+}
+
+.hero-dashboard-card {
+    display: block;
+    text-decoration: none;
+    color: inherit;
+    background: rgba(255, 255, 255, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 12px;
+    padding: 1rem 0.5rem;
+    text-align: center;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
+    animation: fadeInUp 0.6s ease-out;
+}
+
+.hero-dashboard-card:hover {
+    background: rgba(255, 255, 255, 0.25);
+    border-color: rgba(255, 255, 255, 0.4);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+    text-decoration: none;
+    color: inherit;
+}
+
+.dashboard-icon {
+    font-size: 1.5rem;
+    color: #ffffff;
+    margin-bottom: 0.5rem;
+}
+
+.dashboard-label {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #ffffff;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Hero Stats */
 .stat-number {
     color: #ffffff;
     font-weight: 700;
@@ -244,23 +290,32 @@
     border: 1px solid #e9ecef;
     transition: all 0.3s ease;
     height: 100%;
+    background: #f8f9fa !important;
+    border-left: 4px solid #007bff;
 }
 
 .startup-card:hover {
     transform: translateY(-3px);
     box-shadow: 0 8px 20px rgba(0,0,0,0.1);
     border-color: #dee2e6;
+    background: #ffffff !important;
+}
+
+.startup-card .fa-2x {
+    margin-top: 0.5rem;
 }
 
 .industry-data-card {
     transition: all 0.3s ease;
     border: 1px solid #e9ecef !important;
+    background: #ffffff !important;
 }
 
 .industry-data-card:hover {
     transform: translateY(-2px);
     box-shadow: 0 5px 15px rgba(0,0,0,0.1);
     border-color: #007bff !important;
+    background: #f8f9fa !important;
 }
 
 /* CTA Section */
@@ -1150,7 +1205,7 @@ section + section {
 @keyframes fadeInUp {
     from {
         opacity: 0;
-        transform: translateY(30px);
+        transform: translateY(20px);
     }
     to {
         opacity: 1;
@@ -2183,3 +2238,17 @@ section {
 
 /* Password Protection System - REMOVED */
 /* This section has been replaced with a separate authentication page approach */
+
+/* Ensure proper spacing for fixed navbar */
+body {
+    padding-top: 0;
+}
+
+/* Section spacing */
+section {
+    position: relative;
+}
+
+section:first-of-type {
+    margin-top: 0;
+}
