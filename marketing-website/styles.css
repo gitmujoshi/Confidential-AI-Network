@@ -1,5 +1,29 @@
 /* Custom CSS for ContractFlow Pro Marketing Website */
 
+/* Section Headers - Reduced Font Sizes */
+.section-header {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+}
+
+.section-subheader {
+    font-size: 1.25rem;
+    color: #6c757d;
+    margin-bottom: 2rem;
+}
+
+/* Override Bootstrap display classes for smaller headers */
+.display-5 {
+    font-size: 2.5rem !important;
+    font-weight: 700 !important;
+}
+
+.display-6 {
+    font-size: 2rem !important;
+    font-weight: 600 !important;
+}
+
 /* Navbar Styles */
 .navbar {
     transition: all 0.3s ease;
@@ -213,6 +237,30 @@
     transform: translateY(-3px);
     box-shadow: 0 8px 20px rgba(0,0,0,0.1);
     border-color: #dee2e6;
+}
+
+/* Startup TDC Section */
+.startup-card {
+    border: 1px solid #e9ecef;
+    transition: all 0.3s ease;
+    height: 100%;
+}
+
+.startup-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+    border-color: #dee2e6;
+}
+
+.industry-data-card {
+    transition: all 0.3s ease;
+    border: 1px solid #e9ecef !important;
+}
+
+.industry-data-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    border-color: #007bff !important;
 }
 
 /* CTA Section */
