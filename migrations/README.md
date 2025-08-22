@@ -25,14 +25,14 @@
   2. Sync users using backend scripts (see `backend/setup-keycloak.js`).
 
 ## Blockchain Setup
-- Smart contracts are deployed using Hardhat scripts:
-  - `blockchain/scripts/deploy.js`
+- Smart contracts are deployed using SCITT CCF:
+  - `backend/services/scittCcfService.js`
 - To set up the blockchain environment:
-  1. Start Hardhat node (see `deployment/local/start-services.sh`).
+  1. Start SCITT CCF services (see `deployment/local/start-services.sh`).
   2. Deploy contracts:
      ```sh
-     cd blockchain
-     npx hardhat run scripts/deploy.js --network localhost
+     ./manage-scitt-ccf.sh start
+     curl -X POST http://localhost:8000/api/contracts
      ```
 
 ## Migration Workflow
