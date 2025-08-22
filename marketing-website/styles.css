@@ -155,6 +155,42 @@
     font-size: 0.875rem;
 }
 
+/* Hero Benefits Cards */
+.hero-benefits {
+    margin-bottom: 2rem;
+}
+
+.benefit-card {
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
+}
+
+.benefit-card:hover {
+    background: rgba(255, 255, 255, 0.2) !important;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+}
+
+.benefit-card .fa-2x {
+    margin-top: 0.25rem;
+}
+
+/* Compliance Assurance */
+.compliance-assurance {
+    margin-bottom: 2rem;
+}
+
+.compliance-assurance .rounded-pill {
+    backdrop-filter: blur(10px);
+    transition: all 0.3s ease;
+}
+
+.compliance-assurance .rounded-pill:hover {
+    background: rgba(255, 255, 255, 0.25) !important;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
 .hero-visual {
     position: relative;
     z-index: 2;
@@ -2251,4 +2287,19 @@ section {
 
 section:first-of-type {
     margin-top: 0;
+}
+
+/* Platform Benefits Highlight */
+.platform-benefits-highlight {
+    border: 1px solid #e9ecef;
+    transition: all 0.3s ease;
+}
+
+.platform-benefits-highlight:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1) !important;
+}
+
+.platform-benefits-highlight .fa-3x {
+    margin-bottom: 1rem;
 }
