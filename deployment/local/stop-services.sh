@@ -79,7 +79,18 @@ kill_process() {
 print_status "Stopping services by PID files..."
 kill_by_pid_file "../../.frontend.pid" "Frontend"
 kill_by_pid_file "../../.backend.pid" "Backend"
-kill_by_pid_file "../../.hardhat.pid" "Blockchain"
+kill_by_pid_file "../../.scitt-ccf.pid" "SCITT CCF"
+
+# Stop SCITT CCF Docker containers
+print_status "Stopping SCITT CCF Docker containers..."
+cd ../..
+if [ -f "./manage-scitt-ccf.sh" ]; then
+    ./manage-scitt-ccf.sh stop >/dev/null 2>&1 || true
+    print_success "SCITT CCF services stopped"
+else
+    print_warning "manage-scitt-ccf.sh script not found"
+fi
+cd deployment/local
 
 # Stop Keycloak Docker container
 print_status "Stopping Keycloak Docker container..."
@@ -91,14 +102,25 @@ else
     print_warning "Keycloak Docker container was not running"
 fi
 
+# Stop main database containers
+print_status "Stopping main database containers..."
+cd ../..
+if [ -f "docker-compose.main.yml" ]; then
+    docker-compose -f docker-compose.main.yml down 2>/dev/null || true
+    print_success "Main database containers stopped"
+else
+    print_warning "docker-compose.main.yml not found"
+fi
+cd deployment/local
+
 # Kill by process name as fallback
 print_status "Killing any remaining processes..."
 kill_process "react-scripts" "Frontend"
 kill_process "node server.js" "Backend"
-kill_process "hardhat" "Blockchain"
+kill_process "manage-scitt-ccf" "SCITT CCF"
 
 # Clean up PID files
-rm -f ../../.frontend.pid ../../.backend.pid ../../.hardhat.pid ../../.keycloak.pid
+rm -f ../../.frontend.pid ../../.backend.pid ../../.scitt-ccf.pid ../../.keycloak.pid
 
 # Check if any services are still running
 echo ""
@@ -107,7 +129,7 @@ print_status "Checking for any remaining processes..."
 services=(
     "Frontend:react-scripts:3000"
     "Backend:node server.js:5001"
-    "Blockchain:hardhat:8545"
+    "SCITT CCF:manage-scitt-ccf:8000"
     "Keycloak:keycloak:8080"
 )
 
@@ -148,9 +170,15 @@ else
     echo "  Port 3000: FREE"
 fi
 
-if lsof -Pi :8545 -sTCP:LISTEN -t >/dev/null 2>&1; then
-    echo "  Port 8545: IN USE"
+if lsof -Pi :8000 -sTCP:LISTEN -t >/dev/null 2>&1; then
+    echo "  Port 8000: IN USE"
 else
-    echo "  Port 8545: FREE"
+    echo "  Port 8000: FREE"
+fi
+
+if lsof -Pi :8082 -sTCP:LISTEN -t >/dev/null 2>&1; then
+    echo "  Port 8082: IN USE"
+else
+    echo "  Port 8082: FREE"
 fi
 echo "" 

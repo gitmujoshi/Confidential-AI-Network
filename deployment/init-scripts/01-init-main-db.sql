@@ -678,3 +678,42 @@ BEGIN
     );
     RAISE NOTICE '=====================================================';
 END $$;
+
+-- Remove single dataset_id field from contracts table
+ALTER TABLE IF EXISTS contracts DROP COLUMN IF EXISTS dataset_id;
+
+-- Create contract_datasets junction table for many-to-many relationship
+CREATE TABLE IF NOT EXISTS contract_datasets (
+  id SERIAL PRIMARY KEY,
+  contract_id INTEGER NOT NULL REFERENCES contracts(contract_id) ON DELETE CASCADE ON UPDATE CASCADE,
+  dataset_id INTEGER NOT NULL REFERENCES datasets(dataset_id) ON DELETE CASCADE ON UPDATE CASCADE,
+  tdp_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE ON UPDATE CASCADE,
+  individual_price DECIMAL(10,2),
+  payment_status VARCHAR(50) DEFAULT 'PENDING',
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Add unique constraint to prevent duplicate entries
+ALTER TABLE contract_datasets ADD CONSTRAINT unique_contract_dataset UNIQUE(contract_id, dataset_id);
+
+-- Add indexes for performance
+CREATE INDEX IF NOT EXISTS idx_contract_datasets_contract_id ON contract_datasets(contract_id);
+CREATE INDEX IF NOT EXISTS idx_contract_datasets_dataset_id ON contract_datasets(dataset_id);
+CREATE INDEX IF NOT EXISTS idx_contract_datasets_tdp_id ON contract_datasets(tdp_id);
+CREATE INDEX IF NOT EXISTS idx_contract_datasets_payment_status ON contract_datasets(payment_status);
+
+-- Add tdp_ids array field to contracts table
+ALTER TABLE IF EXISTS contracts ADD COLUMN IF NOT EXISTS tdp_ids INTEGER[] DEFAULT '{}';
+
+-- Add datasets JSONB field to contracts table
+ALTER TABLE IF EXISTS contracts ADD COLUMN IF NOT EXISTS datasets JSONB DEFAULT '[]'::jsonb;
+
+-- Add provenance integration fields to contracts table
+ALTER TABLE IF EXISTS contracts ADD COLUMN IF NOT EXISTS provenance_tree_id VARCHAR(255);
+ALTER TABLE IF EXISTS contracts ADD COLUMN IF NOT EXISTS provenance_root VARCHAR(255);
+ALTER TABLE IF EXISTS contracts ADD COLUMN IF NOT EXISTS provenance_status VARCHAR(50) DEFAULT 'PENDING';
+
+-- Add indexes for provenance fields
+CREATE INDEX IF NOT EXISTS idx_contracts_provenance_tree_id ON contracts(provenance_tree_id);
+CREATE INDEX IF NOT EXISTS idx_contracts_provenance_status ON contracts(provenance_status);
