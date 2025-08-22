@@ -106,7 +106,7 @@ For complete testing documentation, see **[Testing Guide](TESTING.md)**.
 - **Backend**: Node.js with Express (Port 5001)
 - **Database**: PostgreSQL with Sequelize ORM
 - **Authentication**: Keycloak IAM (Port 8080)
-- **Blockchain**: Ethereum with Hardhat
+- **Blockchain**: SCITT CCF with Ricardian contracts
 - **Secret Management**: HashiCorp Vault
 - **Cloud Providers**: AWS, Azure, GCP, OCI
 
