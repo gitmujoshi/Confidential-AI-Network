@@ -158,6 +158,57 @@
     letter-spacing: 0.5px;
 }
 
+/* Dashboard Content Styling */
+.dashboard-content {
+    transition: all 0.3s ease;
+}
+
+.dashboard-section {
+    animation: fadeInUp 0.5s ease-out;
+}
+
+.dashboard-stat {
+    transition: all 0.3s ease;
+    border: 1px solid transparent;
+}
+
+.dashboard-stat:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+/* Active Dashboard Selector */
+.dashboard-selector.active {
+    background: #000000 !important;
+    border-color: #000000 !important;
+    color: #ffffff !important;
+}
+
+.dashboard-selector.active .dashboard-icon,
+.dashboard-selector.active .dashboard-label {
+    color: #ffffff !important;
+}
+
+/* Dashboard Selector Hover Effects */
+.dashboard-selector:hover {
+    background: #e9ecef !important;
+    border-color: #6c757d !important;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+/* Animation for dashboard content */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
 /* Hero Stats */
 .stat-number {
     color: #ffffff;
