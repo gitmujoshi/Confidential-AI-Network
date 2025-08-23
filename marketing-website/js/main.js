@@ -1,6 +1,6 @@
 // Main JavaScript for ContractFlow Pro Landing Page
 document.addEventListener('DOMContentLoaded', function() {
-    // Smooth scrolling for anchor links
+    // Smooth scrolling for navigation links
     document.querySelectorAll('a[href^="#"]').forEach(anchor => {
         anchor.addEventListener('click', function (e) {
             e.preventDefault();
@@ -14,23 +14,13 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // Navbar background change on scroll
-    const navbar = document.querySelector('.navbar');
-    window.addEventListener('scroll', function() {
-        if (window.scrollY > 50) {
-            navbar.classList.add('navbar-scrolled');
-        } else {
-            navbar.classList.remove('navbar-scrolled');
-        }
-    });
-
-    // Add scroll-triggered animations
+    // Animation observer for fade-in effects
     const observerOptions = {
         threshold: 0.1,
         rootMargin: '0px 0px -50px 0px'
     };
 
-    const observer = new IntersectionObserver(function(entries) {
+    const observer = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
             if (entry.isIntersecting) {
                 entry.target.classList.add('animate-in');
@@ -38,17 +28,49 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }, observerOptions);
 
-    // Observe elements for animation
-    document.querySelectorAll('.use-case-card, .problem-card, .solution-card, .benefit-card, .startup-card, .industry-data-card').forEach(el => {
+    // Observe all elements with animation classes
+    document.querySelectorAll('.animate-on-scroll').forEach(el => {
         observer.observe(el);
     });
 
     // Mobile menu toggle
-    const mobileMenuToggle = document.getElementById('sideNavToggle');
-    if (mobileMenuToggle) {
+    const mobileMenuToggle = document.querySelector('.mobile-menu-toggle');
+    const mobileMenu = document.querySelector('.mobile-menu');
+
+    if (mobileMenuToggle && mobileMenu) {
         mobileMenuToggle.addEventListener('click', function() {
-            const navbarCollapse = document.querySelector('.navbar-collapse');
-            navbarCollapse.classList.toggle('show');
+            mobileMenu.classList.toggle('active');
+            this.classList.toggle('active');
+        });
+    }
+
+    // Scroll progress bar
+    const scrollProgress = document.querySelector('.scroll-progress');
+    if (scrollProgress) {
+        window.addEventListener('scroll', () => {
+            const scrollTop = window.pageYOffset;
+            const docHeight = document.body.offsetHeight - window.innerHeight;
+            const scrollPercent = (scrollTop / docHeight) * 100;
+            scrollProgress.style.width = scrollPercent + '%';
+        });
+    }
+
+    // Back to top button
+    const backToTopBtn = document.querySelector('.back-to-top');
+    if (backToTopBtn) {
+        window.addEventListener('scroll', () => {
+            if (window.pageYOffset > 300) {
+                backToTopBtn.style.display = 'block';
+            } else {
+                backToTopBtn.style.display = 'none';
+            }
+        });
+
+        backToTopBtn.addEventListener('click', () => {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
         });
     }
 
@@ -62,109 +84,6 @@ document.addEventListener('DOMContentLoaded', function() {
             }, 2000);
         });
     }
-
-    // Dashboard Selection Functionality
-    const dashboardTabs = document.querySelectorAll('.dashboard-tab-btn');
-    const dashboardContent = document.getElementById('dashboardContent');
-    const dashboardSections = document.querySelectorAll('.dashboard-section');
-
-    dashboardTabs.forEach(tab => {
-        tab.addEventListener('click', function() {
-            const dashboardType = this.getAttribute('data-dashboard');
-            
-            // Hide all dashboard sections
-            dashboardSections.forEach(section => {
-                section.style.display = 'none';
-            });
-            
-            // Show the selected dashboard section
-            const selectedSection = document.getElementById(dashboardType + '-dashboard');
-            if (selectedSection) {
-                selectedSection.style.display = 'block';
-                
-                // Scroll to dashboard content
-                dashboardContent.scrollIntoView({
-                    behavior: 'smooth',
-                    block: 'start'
-                });
-            }
-            
-            // Update active state of dashboard tabs
-            dashboardTabs.forEach(tabBtn => {
-                tabBtn.classList.remove('active');
-            });
-            this.classList.add('active');
-        });
-    });
-
-    // Add scroll progress indicator
-    const progressBar = document.createElement('div');
-    progressBar.className = 'scroll-progress';
-    progressBar.style.cssText = `
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 0%;
-        height: 3px;
-        background: linear-gradient(90deg, #000000, #333333);
-        z-index: 9999;
-        transition: width 0.1s ease;
-    `;
-    document.body.appendChild(progressBar);
-
-    window.addEventListener('scroll', function() {
-        const scrollTop = document.documentElement.scrollTop;
-        const scrollHeight = document.documentElement.scrollHeight - document.documentElement.clientHeight;
-        const scrollPercent = (scrollTop / scrollHeight) * 100;
-        progressBar.style.width = scrollPercent + '%';
-    });
-
-    // Back to top button
-    const backToTopBtn = document.createElement('button');
-    backToTopBtn.innerHTML = '<i class="fas fa-arrow-up"></i>';
-    backToTopBtn.className = 'back-to-top';
-    backToTopBtn.style.cssText = `
-        position: fixed;
-        bottom: 30px;
-        right: 30px;
-        width: 50px;
-        height: 50px;
-        border-radius: 50%;
-        background: #000000;
-        color: #ffffff;
-        border: none;
-        cursor: pointer;
-        display: none;
-        z-index: 1000;
-        transition: all 0.3s ease;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-    `;
-    document.body.appendChild(backToTopBtn);
-
-    window.addEventListener('scroll', function() {
-        if (window.scrollY > 300) {
-            backToTopBtn.style.display = 'block';
-        } else {
-            backToTopBtn.style.display = 'none';
-        }
-    });
-
-    backToTopBtn.addEventListener('click', function() {
-        window.scrollTo({
-            top: 0,
-            behavior: 'smooth'
-        });
-    });
-
-    backToTopBtn.addEventListener('mouseenter', function() {
-        this.style.transform = 'translateY(-3px)';
-        this.style.boxShadow = '0 6px 20px rgba(0,0,0,0.25)';
-    });
-
-    backToTopBtn.addEventListener('mouseleave', function() {
-        this.style.transform = 'translateY(0)';
-        this.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
-    });
 
     console.log('ContractFlow Pro landing page loaded successfully!');
 });
