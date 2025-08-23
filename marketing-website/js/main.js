@@ -64,12 +64,12 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // Dashboard Selection Functionality
-    const dashboardSelectors = document.querySelectorAll('.dashboard-selector');
+    const dashboardTabs = document.querySelectorAll('.dashboard-tab-btn');
     const dashboardContent = document.getElementById('dashboardContent');
     const dashboardSections = document.querySelectorAll('.dashboard-section');
 
-    dashboardSelectors.forEach(selector => {
-        selector.addEventListener('click', function() {
+    dashboardTabs.forEach(tab => {
+        tab.addEventListener('click', function() {
             const dashboardType = this.getAttribute('data-dashboard');
             
             // Hide all dashboard sections
@@ -81,7 +81,6 @@ document.addEventListener('DOMContentLoaded', function() {
             const selectedSection = document.getElementById(dashboardType + '-dashboard');
             if (selectedSection) {
                 selectedSection.style.display = 'block';
-                dashboardContent.style.display = 'block';
                 
                 // Scroll to dashboard content
                 dashboardContent.scrollIntoView({
@@ -90,9 +89,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 });
             }
             
-            // Update active state of dashboard selectors
-            dashboardSelectors.forEach(sel => {
-                sel.classList.remove('active');
+            // Update active state of dashboard tabs
+            dashboardTabs.forEach(tabBtn => {
+                tabBtn.classList.remove('active');
             });
             this.classList.add('active');
         });
