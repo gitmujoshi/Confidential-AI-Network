@@ -56,6 +56,7 @@ body {
     background-color: var(--white);
     margin: 0;
     padding: 0;
+    padding-top: 70px; /* Account for fixed navbar height */
 }
 
 /* ===== TYPOGRAPHY SYSTEM ===== */
@@ -193,7 +194,7 @@ p, li, span, div {
     background: var(--white);
     position: relative;
     overflow: hidden;
-    padding-top: 160px;
+    padding-top: 120px; /* Reduced from 160px to account for navbar height */
     padding-bottom: 80px;
     margin-top: 0;
 }
@@ -223,34 +224,48 @@ p, li, span, div {
     .hero-heading {
         font-size: 2.2rem;
     }
+    
+    .hero-section {
+        padding-top: 100px; /* Adjusted for mobile */
+    }
 }
 
 @media (max-width: 576px) {
     .hero-heading {
         font-size: 1.8rem;
     }
+    
+    .hero-section {
+        padding-top: 90px; /* Adjusted for small mobile */
+    }
 }
 
 /* ===== DASHBOARD SYSTEM ===== */
-.hero-dashboards {
-    margin-top: var(--spacing-xl);
+.dashboard-tabs {
+    margin-bottom: var(--spacing-xl);
 }
 
-.hero-dashboard-card {
+.dashboard-tab-btn {
     display: block;
+    width: 100%;
     text-decoration: none;
     color: inherit;
     background: var(--gray-100);
     border: 1px solid var(--gray-300);
     border-radius: 12px;
-    padding: 1rem 0.5rem;
+    padding: 1.5rem 1rem;
     text-align: center;
     transition: all var(--transition-normal);
     cursor: pointer;
     border: none;
+    height: 120px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
 }
 
-.hero-dashboard-card:hover {
+.dashboard-tab-btn:hover {
     background: var(--gray-200);
     border-color: var(--gray-500);
     transform: translateY(-2px);
@@ -259,18 +274,31 @@ p, li, span, div {
     color: inherit;
 }
 
+.dashboard-tab-btn.active {
+    background: var(--black) !important;
+    border-color: var(--black) !important;
+    color: var(--white) !important;
+}
+
+.dashboard-tab-btn.active .dashboard-icon,
+.dashboard-tab-btn.active .dashboard-label {
+    color: var(--white) !important;
+}
+
 .dashboard-icon {
-    font-size: 1.5rem;
+    font-size: 2rem;
     color: var(--black);
     margin-bottom: var(--spacing-sm);
+    transition: all var(--transition-normal);
 }
 
 .dashboard-label {
-    font-size: 0.8rem;
+    font-size: 0.9rem;
     font-weight: var(--font-weight-semibold);
     color: var(--black);
     text-transform: uppercase;
     letter-spacing: 0.5px;
+    transition: all var(--transition-normal);
 }
 
 /* Dashboard Content Styling */
@@ -292,25 +320,13 @@ p, li, span, div {
     box-shadow: var(--shadow-md);
 }
 
-/* Active Dashboard Selector */
-.dashboard-selector.active {
-    background: var(--black) !important;
-    border-color: var(--black) !important;
-    color: var(--white) !important;
+/* Remove old hero dashboard styles */
+.hero-dashboards,
+.hero-dashboard-card {
+    display: none;
 }
 
-.dashboard-selector.active .dashboard-icon,
-.dashboard-selector.active .dashboard-label {
-    color: var(--white) !important;
-}
 
-/* Dashboard Selector Hover Effects */
-.dashboard-selector:hover {
-    background: var(--gray-200) !important;
-    border-color: var(--gray-500) !important;
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-lg);
-}
 
 /* ===== CONTENT SECTIONS ===== */
 section {
