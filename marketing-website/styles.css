@@ -2317,3 +2317,73 @@ section:first-of-type {
 .platform-benefits-highlight .fa-3x {
     margin-bottom: 1rem;
 }
+
+/* Architecture Benefit Cards */
+.architecture-benefit-card {
+    transition: all 0.3s ease;
+    border: 1px solid #e9ecef;
+}
+
+.architecture-benefit-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+    border-color: #007bff;
+}
+
+.architecture-benefit-card .fa-2x {
+    margin-top: 0.5rem;
+}
+
+/* Implementation Steps */
+.implementation-step {
+    transition: all 0.3s ease;
+    border: 1px solid #e9ecef;
+    border-radius: 12px;
+    background: #ffffff;
+}
+
+.implementation-step:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+    border-color: #007bff;
+}
+
+.step-number {
+    font-size: 1.5rem;
+    font-weight: 700;
+    transition: all 0.3s ease;
+}
+
+.implementation-step:hover .step-number {
+    transform: scale(1.1);
+}
+
+/* Success Metrics & Customer Impact */
+.metric-card {
+    transition: all 0.3s ease;
+    border: 1px solid transparent;
+}
+
+.metric-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+}
+
+.success-story-card {
+    transition: all 0.3s ease;
+    border: 1px solid #e9ecef;
+}
+
+.success-story-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+    border-color: #007bff;
+}
+
+.success-icon {
+    transition: all 0.3s ease;
+}
+
+.success-story-card:hover .success-icon {
+    transform: scale(1.1);
+}
