@@ -726,8 +726,8 @@ section {
     color: rgba(255, 255, 255, 0.5) !important;
 }
 
-/* Force all sections to be white */
-.overview-section, .hero-section, .bg-gradient-primary {
+/* Force overview sections to be white (but not hero section) */
+.overview-section, .bg-gradient-primary {
     background: var(--white) !important;
     color: var(--black) !important;
 }
