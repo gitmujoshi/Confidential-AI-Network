@@ -586,3 +586,64 @@ footer a:hover {
     transform: translateY(-3px);
     box-shadow: var(--shadow-lg);
 }
+
+/* ===== MOBILE MENU ===== */
+.mobile-menu {
+    position: fixed;
+    top: 70px;
+    left: 0;
+    width: 100%;
+    height: calc(100vh - 70px);
+    background: var(--black);
+    color: var(--white);
+    transform: translateX(-100%);
+    transition: transform var(--transition-normal);
+    z-index: 1020;
+    overflow-y: auto;
+}
+
+.mobile-menu.active {
+    transform: translateX(0);
+}
+
+.mobile-menu .nav-link {
+    color: var(--white) !important;
+    padding: 1rem 2rem;
+    border-bottom: 1px solid var(--gray-700);
+    font-size: 1.1rem;
+    transition: all var(--transition-normal);
+}
+
+.mobile-menu .nav-link:hover {
+    background: var(--gray-800);
+    color: var(--white) !important;
+}
+
+.mobile-menu .nav-link.active {
+    background: var(--gray-700);
+    color: var(--white) !important;
+}
+
+.mobile-menu-toggle {
+    display: none;
+    background: none;
+    border: none;
+    color: var(--black);
+    font-size: 1.5rem;
+    cursor: pointer;
+    padding: 0.5rem;
+}
+
+.mobile-menu-toggle.active {
+    color: var(--white);
+}
+
+@media (max-width: 768px) {
+    .mobile-menu-toggle {
+        display: block;
+    }
+    
+    .navbar-nav {
+        display: none;
+    }
+}
