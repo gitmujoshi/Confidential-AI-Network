@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Architecture Guide - ContractFlow Pro</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="../styles.css" rel="stylesheet">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-white fixed-top">
+        <div class="container">
+            <a class="navbar-brand fw-bold" href="../index.html">
+                <i class="fas fa-file-contract me-2"></i>ContractFlow Pro
+            </a>
+            
+            <!-- Desktop Navigation -->
+            <div class="navbar-nav d-none d-lg-flex ms-auto">
+                <a class="nav-link" href="../index.html">Home</a>
+                <a class="nav-link" href="../features.html">Features</a>
+                <a class="nav-link" href="../solutions.html">Solutions</a>
+                <a class="nav-link" href="../technology.html">Technology</a>
+                <a class="nav-link" href="../about.html">About</a>
+                <div class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                        <i class="fas fa-tachometer-alt me-1"></i>Role-based Dashboards
+                    </a>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" href="../dashboards/tdp-dashboard.html">
+                            <i class="fas fa-database me-2"></i>Training Data Provider
+                        </a></li>
+                        <li><a class="dropdown-item" href="../dashboards/tdc-dashboard.html">
+                            <i class="fas fa-robot me-2"></i>Training Data Consumer
+                        </a></li>
+                        <li><a class="dropdown-item" href="../dashboards/ccrp-dashboard.html">
+                            <i class="fas fa-shield-alt me-2"></i>Confidential Clean Room Provider
+                        </a></li>
+                        <li><a class="dropdown-item" href="../dashboards/admin-dashboard.html">
+                            <i class="fas fa-user-shield me-2"></i>System Administrator
+                        </a></li>
+                    </ul>
+                </div>
+                <div class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle active" href="#" role="button" data-bs-toggle="dropdown">
+                        <i class="fas fa-book me-1"></i>Documentation
+                    </a>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" href="api-reference.html">
+                            <i class="fas fa-code me-2"></i>API Reference
+                        </a></li>
+                        <li><a class="dropdown-item active" href="architecture-guide.html">
+                            <i class="fas fa-sitemap me-2"></i>Architecture Guide
+                        </a></li>
+                        <li><a class="dropdown-item" href="user-guide.html">
+                            <i class="fas fa-user me-2"></i>User Guide
+                        </a></li>
+                        <li><a class="dropdown-item" href="security-guide.html">
+                            <i class="fas fa-shield-alt me-2"></i>Security Guide
+                        </a></li>
+                        <li><a class="dropdown-item" href="compliance-guide.html">
+                            <i class="fas fa-certificate me-2"></i>Compliance Guide
+                        </a></li>
+                    </ul>
+                </div>
+                <div class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                        <i class="fas fa-code me-1"></i>Development
+                    </a>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" href="../dev/getting-started.html">
+                            <i class="fas fa-rocket me-2"></i>Getting Started
+                        </a></li>
+                        <li><a class="dropdown-item" href="../dev/sdk-documentation.html">
+                            <i class="fas fa-tools me-2"></i>SDK Documentation
+                        </a></li>
+                        <li><a class="dropdown-item" href="../dev/integration-guide.html">
+                            <i class="fas fa-puzzle-piece me-2"></i>Integration Guide
+                        </a></li>
+                        <li><a class="dropdown-item" href="../dev/examples.html">
+                            <i class="fas fa-lightbulb me-2"></i>Code Examples
+                        </a></li>
+                        <li><a class="dropdown-item" href="../dev/deployment-guide.html">
+                            <i class="fas fa-server me-2"></i>Deployment Guide
+                        </a></li>
+                    </ul>
+                </div>
+                <a class="btn btn-primary ms-2" href="#demo">Get Started</a>
+            </div>
+            
+            <!-- Mobile Menu Toggle -->
+            <button class="mobile-menu-toggle d-lg-none">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Mobile Menu -->
+    <div class="mobile-menu">
+        <a class="nav-link" href="../index.html">Home</a>
+        <a class="nav-link" href="../features.html">Features</a>
+        <a class="nav-link" href="../solutions.html">Solutions</a>
+        <a class="nav-link" href="../technology.html">Technology</a>
+        <a class="nav-link" href="../about.html">About</a>
+        <a class="nav-link" href="../dashboards/tdp-dashboard.html">
+            <i class="fas fa-database me-2"></i>Training Data Provider Dashboard
+        </a>
+        <a class="nav-link" href="../dashboards/tdc-dashboard.html">
+            <i class="fas fa-robot me-2"></i>Training Data Consumer Dashboard
+        </a>
+        <a class="nav-link" href="../dashboards/ccrp-dashboard.html">
+            <i class="fas fa-shield-alt me-2"></i>Confidential Clean Room Provider Dashboard
+        </a>
+        <a class="nav-link" href="../dashboards/admin-dashboard.html">
+            <i class="fas fa-user-shield me-2"></i>System Administrator Dashboard
+        </a>
+        <a class="nav-link" href="api-reference.html">
+            <i class="fas fa-code me-2"></i>API Reference
+        </a>
+        <a class="nav-link active" href="architecture-guide.html">
+            <i class="fas fa-sitemap me-2"></i>Architecture Guide
+        </a>
+        <a class="nav-link" href="user-guide.html">
+            <i class="fas fa-user me-2"></i>User Guide
+        </a>
+        <a class="nav-link" href="security-guide.html">
+            <i class="fas fa-shield-alt me-2"></i>Security Guide
+        </a>
+        <a class="nav-link" href="compliance-guide.html">
+            <i class="fas fa-certificate me-2"></i>Compliance Guide
+        </a>
+        <a class="nav-link" href="../dev/getting-started.html">
+            <i class="fas fa-rocket me-2"></i>Getting Started
+        </a>
+        <a class="nav-link" href="../dev/sdk-documentation.html">
+            <i class="fas fa-tools me-2"></i>SDK Documentation
+        </a>
+        <a class="nav-link" href="../dev/integration-guide.html">
+            <i class="fas fa-puzzle-piece me-2"></i>Integration Guide
+        </a>
+        <a class="nav-link" href="../dev/examples.html">
+            <i class="fas fa-lightbulb me-2"></i>Code Examples
+        </a>
+        <a class="nav-link" href="../dev/deployment-guide.html">
+            <i class="fas fa-server me-2"></i>Deployment Guide
+        </a>
+        <a class="nav-link" href="#demo">Get Started</a>
+    </div>
+
+    <!-- Page Header -->
+    <section class="page-header bg-primary text-white py-5">
+        <div class="container">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="../index.html" class="text-white-50">Home</a></li>
+                    <li class="breadcrumb-item"><a href="index.html" class="text-white-50">Documentation</a></li>
+                    <li class="breadcrumb-item active text-white" aria-current="page">Architecture Guide</li>
+                </ol>
+            </nav>
+            <div class="row">
+                <div class="col-lg-8">
+                    <h1 class="display-4 fw-bold">System Architecture Guide</h1>
+                    <p class="lead">Understanding the technical foundation and component interactions of ContractFlow Pro</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Main Content -->
+    <section class="py-5">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-3">
+                    <!-- Table of Contents -->
+                    <div class="sticky-top" style="top: 100px;">
+                        <div class="card border-0 shadow-sm">
+                            <div class="card-header bg-light">
+                                <h5 class="mb-0">Table of Contents</h5>
+                            </div>
+                            <div class="card-body p-0">
+                                <nav class="nav flex-column">
+                                    <a class="nav-link" href="#overview">System Overview</a>
+                                    <a class="nav-link" href="#components">Core Components</a>
+                                    <a class="nav-link" href="#authentication">Authentication & Authorization</a>
+                                    <a class="nav-link" href="#contracts">Contract Management</a>
+                                    <a class="nav-link" href="#data-flow">Data Flow Architecture</a>
+                                    <a class="nav-link" href="#security">Security Architecture</a>
+                                    <a class="nav-link" href="#deployment">Deployment Architecture</a>
+                                </nav>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-lg-9">
+                    <!-- System Overview -->
+                    <div id="overview" class="mb-5">
+                        <h2 class="section-header">System Overview</h2>
+                        <p class="section-subheader">ContractFlow Pro is built on a microservices architecture that enables secure, privacy-preserving AI model training through smart contracts and confidential computing.</p>
+                        
+                        <div class="row g-4">
+                            <div class="col-md-6">
+                                <div class="card border-0 shadow-sm h-100">
+                                    <div class="card-body">
+                                        <h5 class="card-title"><i class="fas fa-layer-group text-primary me-2"></i>Microservices Architecture</h5>
+                                        <p class="card-text">Built with Node.js microservices that communicate through REST APIs and message queues, ensuring scalability and maintainability.</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card border-0 shadow-sm h-100">
+                                    <div class="card-body">
+                                        <h5 class="card-title"><i class="fas fa-database text-success me-2"></i>PostgreSQL Database</h5>
+                                        <p class="card-text">Centralized data storage with proper indexing and relationships for users, contracts, datasets, and AI models.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Core Components -->
+                    <div id="components" class="mb-5">
+                        <h2 class="section-header">Core Components</h2>
+                        
+                        <div class="row g-4">
+                            <div class="col-md-6">
+                                <div class="card border-0 shadow-sm h-100">
+                                    <div class="card-header bg-light">
+                                        <h5 class="mb-0"><i class="fas fa-key text-primary me-2"></i>Keycloak Identity Provider</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <p>Centralized authentication and authorization service that manages user identities, roles, and permissions across the platform.</p>
+                                        <ul class="list-unstyled">
+                                            <li><i class="fas fa-check text-success me-2"></i>Single Sign-On (SSO)</li>
+                                            <li><i class="fas fa-check text-success me-2"></i>Role-based Access Control</li>
+                                            <li><i class="fas fa-check text-success me-2"></i>Multi-factor Authentication</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <div class="card border-0 shadow-sm h-100">
+                                    <div class="card-header bg-light">
+                                        <h5 class="mb-0"><i class="fas fa-file-contract text-success me-2"></i>Contract Service</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <p>Manages Ricardian contracts between data providers, consumers, and clean room providers with automated execution.</p>
+                                        <ul class="list-unstyled">
+                                            <li><i class="fas fa-check text-success me-2"></i>Contract Creation & Management</li>
+                                            <li><i class="fas fa-check text-success me-2"></i>Automated Execution</li>
+                                            <li><i class="fas fa-check text-success me-2"></i>Compliance Validation</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <div class="card border-0 shadow-sm h-100">
+                                    <div class="card-header bg-light">
+                                        <h5 class="mb-0"><i class="fas fa-cloud text-info me-2"></i>SCITT CCF Integration</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <p>Microsoft's SCITT CCF provides transparent, verifiable data provenance and audit trails for all data operations.</p>
+                                        <ul class="list-unstyled">
+                                            <li><i class="fas fa-check text-success me-2"></i>Data Provenance</li>
+                                            <li><i class="fas fa-check text-success me-2"></i>Audit Trails</li>
+                                            <li><i class="fas fa-check text-success me-2"></i>Transparency</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <div class="card border-0 shadow-sm h-100">
+                                    <div class="card-header bg-light">
+                                        <h5 class="mb-0"><i class="fas fa-shield-alt text-warning me-2"></i>Confidential Computing</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <p>Enables AI model training on encrypted data without exposing raw information, ensuring mathematical privacy guarantees.</p>
+                                        <ul class="list-unstyled">
+                                            <li><i class="fas fa-check text-success me-2"></i>Encrypted Processing</li>
+                                            <li><i class="fas fa-check text-success me-2"></i>Privacy Preservation</li>
+                                            <li><i class="fas fa-check text-success me-2"></i>Secure Execution</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Authentication & Authorization -->
+                    <div id="authentication" class="mb-5">
+                        <h2 class="section-header">Authentication & Authorization</h2>
+                        <p class="section-subheader">Multi-layered security approach with Keycloak managing user identities and role-based access control.</p>
+                        
+                        <div class="card border-0 shadow-sm">
+                            <div class="card-body">
+                                <h5>User Registration & Authentication Flow</h5>
+                                <ol>
+                                    <li><strong>User Registration:</strong> Users register through Keycloak with email verification</li>
+                                    <li><strong>Role Assignment:</strong> Users are assigned roles (TDP, TDC, CCRP, Admin) based on their needs</li>
+                                    <li><strong>Authentication:</strong> JWT tokens provide secure access to platform services</li>
+                                    <li><strong>Authorization:</strong> Role-based permissions control access to different platform features</li>
+                                </ol>
+                                
+                                <h5 class="mt-4">Role-Based Access Control</h5>
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <div class="border rounded p-3">
+                                            <h6 class="text-primary">Training Data Provider (TDP)</h6>
+                                            <ul class="mb-0">
+                                                <li>Upload and manage datasets</li>
+                                                <li>Create licensing agreements</li>
+                                                <li>Monitor usage and revenue</li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="border rounded p-3">
+                                            <h6 class="text-success">Training Data Consumer (TDC)</h6>
+                                            <ul class="mb-0">
+                                                <li>Browse available datasets</li>
+                                                <li>Request data access</li>
+                                                <li>Train AI models securely</li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="border rounded p-3">
+                                            <h6 class="text-warning">Confidential Clean Room Provider (CCRP)</h6>
+                                            <ul class="mb-0">
+                                                <li>Provide secure computing environments</li>
+                                                <li>Execute training jobs</li>
+                                                <li>Ensure data isolation</li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="border rounded p-3">
+                                            <h6 class="text-info">System Administrator</h6>
+                                            <ul class="mb-0">
+                                                <li>Manage platform configuration</li>
+                                                <li>Monitor system health</li>
+                                                <li>Handle user support</li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Contract Management -->
+                    <div id="contracts" class="mb-5">
+                        <h2 class="section-header">Contract Management</h2>
+                        <p class="section-subheader">Ricardian contracts enable automated, legally enforceable agreements between platform participants.</p>
+                        
+                        <div class="card border-0 shadow-sm">
+                            <div class="card-body">
+                                <h5>Contract Signing Process</h5>
+                                <div class="row g-4">
+                                    <div class="col-md-6">
+                                        <h6 class="text-primary">1. Contract Creation</h6>
+                                        <p>Data providers create contracts specifying dataset terms, pricing, and usage restrictions.</p>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <h6 class="text-success">2. Consumer Review</h6>
+                                        <p>Data consumers review contract terms and accept or negotiate modifications.</p>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <h6 class="text-warning">3. Digital Signatures</h6>
+                                        <p>All parties digitally sign the contract using their authenticated identities.</p>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <h6 class="text-info">4. Automated Execution</h6>
+                                        <p>Smart contracts automatically enforce terms and handle payments.</p>
+                                    </div>
+                                </div>
+                                
+                                <h5 class="mt-4">Contract Types</h5>
+                                <ul>
+                                    <li><strong>Data Licensing Contracts:</strong> Define how datasets can be used, for how long, and at what cost</li>
+                                    <li><strong>Service Level Agreements:</strong> Specify CCRP performance and security requirements</li>
+                                    <li><strong>Compliance Contracts:</strong> Ensure regulatory requirements are met for data handling</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Data Flow Architecture -->
+                    <div id="data-flow" class="mb-5">
+                        <h2 class="section-header">Data Flow Architecture</h2>
+                        <p class="section-subheader">Secure data handling from upload through AI model training, with privacy preserved at every step.</p>
+                        
+                        <div class="card border-0 shadow-sm">
+                            <div class="card-body">
+                                <h5>Data Processing Pipeline</h5>
+                                <ol>
+                                    <li><strong>Data Upload:</strong> TDPs upload encrypted datasets with metadata</li>
+                                    <li><strong>Contract Agreement:</strong> TDCs and TDPs agree on terms through smart contracts</li>
+                                    <li><strong>Secure Transfer:</strong> Data is transferred to CCRP environments using encrypted channels</li>
+                                    <li><strong>Confidential Processing:</strong> AI models train on encrypted data without decryption</li>
+                                    <li><strong>Result Delivery:</strong> Training results are delivered to TDCs without exposing raw data</li>
+                                </ol>
+                                
+                                <h5 class="mt-4">Privacy Preservation Techniques</h5>
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <div class="border rounded p-3">
+                                            <h6 class="text-primary">Differential Privacy</h6>
+                                            <p>Adds controlled noise to data to prevent individual identification while preserving statistical properties.</p>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="border rounded p-3">
+                                            <h6 class="text-success">Homomorphic Encryption</h6>
+                                            <p>Enables computation on encrypted data without decryption, ensuring data remains private during processing.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Security Architecture -->
+                    <div id="security" class="mb-5">
+                        <h2 class="section-header">Security Architecture</h2>
+                        <p class="section-subheader">Multi-layered security approach protecting data, communications, and system integrity.</p>
+                        
+                        <div class="card border-0 shadow-sm">
+                            <div class="card-body">
+                                <h5>Security Layers</h5>
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <div class="border rounded p-3">
+                                            <h6 class="text-primary">Network Security</h6>
+                                            <ul class="mb-0">
+                                                <li>TLS/SSL encryption for all communications</li>
+                                                <li>VPN access for secure remote connections</li>
+                                                <li>Firewall protection and intrusion detection</li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="border rounded p-3">
+                                            <h6 class="text-success">Data Security</h6>
+                                            <ul class="mb-0">
+                                                <li>End-to-end encryption for data at rest and in transit</li>
+                                                <li>Key management through secure HSM integration</li>
+                                                <li>Regular security audits and penetration testing</li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="border rounded p-3">
+                                            <h6 class="text-warning">Application Security</h6>
+                                            <ul class="mb-0">
+                                                <li>Input validation and sanitization</li>
+                                                <li>SQL injection prevention</li>
+                                                <li>Cross-site scripting protection</li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="border rounded p-3">
+                                            <h6 class="text-info">Access Control</h6>
+                                            <ul class="mb-0">
+                                                <li>Multi-factor authentication</li>
+                                                <li>Role-based access control</li>
+                                                <li>Session management and timeout</li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Deployment Architecture -->
+                    <div id="deployment" class="mb-5">
+                        <h2 class="section-header">Deployment Architecture</h2>
+                        <p class="section-subheader">Flexible deployment options supporting both cloud and on-premises environments.</p>
+                        
+                        <div class="card border-0 shadow-sm">
+                            <div class="card-body">
+                                <h5>Deployment Options</h5>
+                                <div class="row g-4">
+                                    <div class="col-md-6">
+                                        <div class="card border h-100">
+                                            <div class="card-header bg-primary text-white">
+                                                <h6 class="mb-0"><i class="fas fa-cloud me-2"></i>Cloud Deployment</h6>
+                                            </div>
+                                            <div class="card-body">
+                                                <ul class="mb-0">
+                                                    <li>AWS, Azure, GCP, and OCI support</li>
+                                                    <li>Auto-scaling and load balancing</li>
+                                                    <li>Managed database services</li>
+                                                    <li>CDN for global performance</li>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="card border h-100">
+                                            <div class="card-header bg-success text-white">
+                                                <h6 class="mb-0"><i class="fas fa-server me-2"></i>On-Premises</h6>
+                                            </div>
+                                            <div class="card-body">
+                                                <ul class="mb-0">
+                                                    <li>Docker container deployment</li>
+                                                    <li>Kubernetes orchestration</li>
+                                                    <li>Local database and storage</li>
+                                                    <li>Custom security policies</li>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <h5 class="mt-4">Infrastructure Components</h5>
+                                <ul>
+                                    <li><strong>Load Balancers:</strong> Distribute traffic across multiple service instances</li>
+                                    <li><strong>API Gateways:</strong> Manage API access, rate limiting, and authentication</li>
+                                    <li><strong>Message Queues:</strong> Handle asynchronous communication between services</li>
+                                    <li><strong>Monitoring:</strong> Real-time system health and performance monitoring</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-dark text-white py-5">
+        <div class="container">
+            <div class="row g-4">
+                <div class="col-lg-4">
+                    <h5 class="mb-3">ContractFlow Pro</h5>
+                    <p class="text-muted">Enabling secure, privacy-preserving AI model training through smart contracts and confidential computing.</p>
+                </div>
+                <div class="col-lg-2">
+                    <h6 class="mb-3">Platform</h6>
+                    <ul class="list-unstyled">
+                        <li><a href="../features.html" class="text-muted text-decoration-none">Features</a></li>
+                        <li><a href="../solutions.html" class="text-muted text-decoration-none">Solutions</a></li>
+                        <li><a href="../technology.html" class="text-muted text-decoration-none">Technology</a></li>
+                        <li><a href="api-reference.html" class="text-muted text-decoration-none">API</a></li>
+                    </ul>
+                </div>
+                <div class="col-lg-2">
+                    <h6 class="mb-3">Resources</h6>
+                    <ul class="list-unstyled">
+                        <li><a href="../about.html" class="text-muted text-decoration-none">About</a></li>
+                        <li><a href="#contact" class="text-muted text-decoration-none">Contact</a></li>
+                        <li><a href="security-guide.html" class="text-muted text-decoration-none">Security</a></li>
+                        <li><a href="compliance-guide.html" class="text-muted text-decoration-none">Compliance</a></li>
+                    </ul>
+                </div>
+                <div class="col-lg-2">
+                    <h6 class="mb-3">Developers</h6>
+                    <ul class="list-unstyled">
+                        <li><a href="../dev/getting-started.html" class="text-muted text-decoration-none">Getting Started</a></li>
+                        <li><a href="../dev/sdk-documentation.html" class="text-muted text-decoration-none">SDK</a></li>
+                        <li><a href="../dev/integration-guide.html" class="text-muted text-decoration-none">Integration</a></li>
+                        <li><a href="api-reference.html" class="text-muted text-decoration-none">API Reference</a></li>
+                    </ul>
+                </div>
+                <div class="col-lg-2">
+                    <h6 class="mb-3">Documentation</h6>
+                    <ul class="list-unstyled">
+                        <li><a href="user-guide.html" class="text-muted text-decoration-none">User Guide</a></li>
+                        <li><a href="architecture-guide.html" class="text-muted text-decoration-none">Architecture</a></li>
+                        <li><a href="security-guide.html" class="text-muted text-decoration-none">Security</a></li>
+                        <li><a href="compliance-guide.html" class="text-muted text-decoration-none">Compliance</a></li>
+                    </ul>
+                </div>
+            </div>
+            <hr class="my-4">
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <p class="mb-0 text-muted">&copy; 2024 ContractFlow Pro. All rights reserved.</p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <a href="#" class="text-muted text-decoration-none me-3">Privacy Policy</a>
+                    <a href="#" class="text-muted text-decoration-none me-3">Terms of Service</a>
+                    <a href="#" class="text-muted text-decoration-none">Cookie Policy</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../js/main.js"></script>
+</body>
+</html>
