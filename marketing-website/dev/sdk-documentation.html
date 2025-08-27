@@ -1,0 +1,939 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SDK Documentation - ContractFlow Pro</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="../styles.css" rel="stylesheet">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-white fixed-top">
+        <div class="container">
+            <a class="navbar-brand fw-bold" href="../index.html">
+                <i class="fas fa-file-contract me-2"></i>ContractFlow Pro
+            </a>
+            
+            <!-- Desktop Navigation -->
+            <div class="navbar-nav d-none d-lg-flex ms-auto">
+                <a class="nav-link" href="../index.html">Home</a>
+                <a class="nav-link" href="../features.html">Features</a>
+                <a class="nav-link" href="../solutions.html">Solutions</a>
+                <a class="nav-link" href="../technology.html">Technology</a>
+                <a class="nav-link" href="../about.html">About</a>
+                <div class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                        <i class="fas fa-tachometer-alt me-1"></i>Role-based Dashboards
+                    </a>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" href="../dashboards/tdp-dashboard.html">
+                            <i class="fas fa-database me-2"></i>Training Data Provider
+                        </a></li>
+                        <li><a class="dropdown-item" href="../dashboards/tdc-dashboard.html">
+                            <i class="fas fa-robot me-2"></i>Training Data Consumer
+                        </a></li>
+                        <li><a class="dropdown-item" href="../dashboards/ccrp-dashboard.html">
+                            <i class="fas fa-shield-alt me-2"></i>Confidential Clean Room Provider
+                        </a></li>
+                        <li><a class="dropdown-item" href="../dashboards/admin-dashboard.html">
+                            <i class="fas fa-user-shield me-2"></i>System Administrator
+                        </a></li>
+                    </ul>
+                </div>
+                <div class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                        <i class="fas fa-book me-1"></i>Documentation
+                    </a>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" href="../docs/api-reference.html">
+                            <i class="fas fa-code me-2"></i>API Reference
+                        </a></li>
+                        <li><a class="dropdown-item" href="../docs/architecture-guide.html">
+                            <i class="fas fa-sitemap me-2"></i>Architecture Guide
+                        </a></li>
+                        <li><a class="dropdown-item" href="../docs/user-guide.html">
+                            <i class="fas fa-user me-2"></i>User Guide
+                        </a></li>
+                        <li><a class="dropdown-item" href="../docs/security-guide.html">
+                            <i class="fas fa-shield-alt me-2"></i>Security Guide
+                        </a></li>
+                        <li><a class="dropdown-item" href="../docs/compliance-guide.html">
+                            <i class="fas fa-certificate me-2"></i>Compliance Guide
+                        </a></li>
+                    </ul>
+                </div>
+                <div class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle active" href="#" role="button" data-bs-toggle="dropdown">
+                        <i class="fas fa-code me-1"></i>Development
+                    </a>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" href="getting-started.html">
+                            <i class="fas fa-rocket me-2"></i>Getting Started
+                        </a></li>
+                        <li><a class="dropdown-item active" href="sdk-documentation.html">
+                            <i class="fas fa-tools me-2"></i>SDK Documentation
+                        </a></li>
+                        <li><a class="dropdown-item" href="integration-guide.html">
+                            <i class="fas fa-puzzle-piece me-2"></i>Integration Guide
+                        </a></li>
+                        <li><a class="dropdown-item" href="examples.html">
+                            <i class="fas fa-lightbulb me-2"></i>Code Examples
+                        </a></li>
+                        <li><a class="dropdown-item" href="deployment-guide.html">
+                            <i class="fas fa-server me-2"></i>Deployment Guide
+                        </a></li>
+                    </ul>
+                </div>
+                <a class="btn btn-primary ms-2" href="#demo">Get Started</a>
+            </div>
+            
+            <!-- Mobile Menu Toggle -->
+            <button class="mobile-menu-toggle d-lg-none">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Mobile Menu -->
+    <div class="mobile-menu">
+        <a class="nav-link" href="../index.html">Home</a>
+        <a class="nav-link" href="../features.html">Features</a>
+        <a class="nav-link" href="../solutions.html">Solutions</a>
+        <a class="nav-link" href="../technology.html">Technology</a>
+        <a class="nav-link" href="../about.html">About</a>
+        <a class="nav-link" href="../dashboards/tdp-dashboard.html">
+            <i class="fas fa-database me-2"></i>Training Data Provider Dashboard
+        </a>
+        <a class="nav-link" href="../dashboards/tdc-dashboard.html">
+            <i class="fas fa-robot me-2"></i>Training Data Consumer Dashboard
+        </a>
+        <a class="nav-link" href="../dashboards/ccrp-dashboard.html">
+            <i class="fas fa-shield-alt me-2"></i>Confidential Clean Room Provider Dashboard
+        </a>
+        <a class="nav-link" href="../dashboards/admin-dashboard.html">
+            <i class="fas fa-user-shield me-2"></i>System Administrator Dashboard
+        </a>
+        <a class="nav-link" href="../docs/api-reference.html">
+            <i class="fas fa-code me-2"></i>API Reference
+        </a>
+        <a class="nav-link" href="../docs/architecture-guide.html">
+            <i class="fas fa-sitemap me-2"></i>Architecture Guide
+        </a>
+        <a class="nav-link" href="../docs/user-guide.html">
+            <i class="fas fa-user me-2"></i>User Guide
+        </a>
+        <a class="nav-link" href="../docs/security-guide.html">
+            <i class="fas fa-shield-alt me-2"></i>Security Guide
+        </a>
+        <a class="nav-link" href="../docs/compliance-guide.html">
+            <i class="fas fa-certificate me-2"></i>Compliance Guide
+        </a>
+        <a class="nav-link" href="getting-started.html">
+            <i class="fas fa-rocket me-2"></i>Getting Started
+        </a>
+        <a class="nav-link active" href="sdk-documentation.html">
+            <i class="fas fa-tools me-2"></i>SDK Documentation
+        </a>
+        <a class="nav-link" href="integration-guide.html">
+            <i class="fas fa-puzzle-piece me-2"></i>Integration Guide
+        </a>
+        <a class="nav-link" href="examples.html">
+            <i class="fas fa-lightbulb me-2"></i>Code Examples
+        </a>
+        <a class="nav-link" href="deployment-guide.html">
+            <i class="fas fa-server me-2"></i>Deployment Guide
+        </a>
+        <a class="nav-link" href="#demo">Get Started</a>
+    </div>
+
+    <!-- Page Header -->
+    <section class="page-header bg-primary text-white py-5">
+        <div class="container">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="../index.html" class="text-white-50">Home</a></li>
+                    <li class="breadcrumb-item"><a href="getting-started.html" class="text-white-50">Development</a></li>
+                    <li class="breadcrumb-item active text-white" aria-current="page">SDK Documentation</li>
+                </ol>
+            </nav>
+            <div class="row">
+                <div class="col-lg-8">
+                    <h1 class="display-4 fw-bold">SDK Documentation</h1>
+                    <p class="lead">Comprehensive guide to integrating with ContractFlow Pro using our Software Development Kit</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Main Content -->
+    <section class="py-5">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-3">
+                    <!-- Table of Contents -->
+                    <div class="sticky-top" style="top: 100px;">
+                        <div class="card border-0 shadow-sm">
+                            <div class="card-header bg-light">
+                                <h5 class="mb-0">Table of Contents</h5>
+                            </div>
+                            <div class="card-body p-0">
+                                <nav class="nav flex-column">
+                                    <a class="nav-link" href="#overview">SDK Overview</a>
+                                    <a class="nav-link" href="#installation">Installation</a>
+                                    <a class="nav-link" href="#authentication">Authentication</a>
+                                    <a class="nav-link" href="#core-modules">Core Modules</a>
+                                    <a class="nav-link" href="#contract-management">Contract Management</a>
+                                    <a class="nav-link" href="#data-operations">Data Operations</a>
+                                    <a class="nav-link" href="#training-integration">Training Integration</a>
+                                    <a class="nav-link" href="#error-handling">Error Handling</a>
+                                </nav>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-lg-9">
+                    <!-- SDK Overview -->
+                    <div id="overview" class="mb-5">
+                        <h2 class="section-header">SDK Overview</h2>
+                        <p class="section-subheader">The ContractFlow Pro SDK provides a comprehensive set of tools for integrating with our platform programmatically.</p>
+                        
+                        <div class="alert alert-info">
+                            <h5><i class="fas fa-info-circle me-2"></i>SDK Features</h5>
+                            <ul class="mb-0">
+                                <li><strong>Multi-language Support:</strong> JavaScript/Node.js, Python, and Java</li>
+                                <li><strong>Type Safety:</strong> Full TypeScript definitions for JavaScript</li>
+                                <li><strong>Comprehensive Coverage:</strong> All platform APIs and features</li>
+                                <li><strong>Security First:</strong> Built-in authentication and encryption</li>
+                                <li><strong>Developer Experience:</strong> Intuitive API design with extensive documentation</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="row g-4">
+                            <div class="col-md-6">
+                                <div class="card border-0 shadow-sm h-100">
+                                    <div class="card-body">
+                                        <h5 class="card-title"><i class="fas fa-code text-primary me-2"></i>JavaScript/Node.js</h5>
+                                        <p class="card-text">Primary SDK with full TypeScript support, comprehensive examples, and npm package distribution.</p>
+                                        <div class="mt-3">
+                                            <span class="badge bg-primary me-1">TypeScript</span>
+                                            <span class="badge bg-success me-1">npm</span>
+                                            <span class="badge bg-info me-1">ES6+</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card border-0 shadow-sm h-100">
+                                    <div class="card-body">
+                                        <h5 class="card-title"><i class="fab fa-python text-success me-2"></i>Python</h5>
+                                        <p class="card-text">Python SDK with async support, comprehensive data science integration, and pip package distribution.</p>
+                                        <div class="mt-3">
+                                            <span class="badge bg-success me-1">Python 3.8+</span>
+                                            <span class="badge bg-info me-1">Async</span>
+                                            <span class="badge bg-warning me-1">pip</span>
+                                        </div>
+                                    </div>
+                                </div>
+                        </div>
+                    </div>
+
+                    <!-- Installation -->
+                    <div id="installation" class="mb-5">
+                        <h2 class="section-header">Installation</h2>
+                        <p class="section-subheader">Get started with the ContractFlow Pro SDK in your preferred programming language.</p>
+                        
+                        <div class="card border-0 shadow-sm">
+                            <div class="card-header bg-light">
+                                <h5 class="mb-0"><i class="fab fa-node-js text-success me-2"></i>JavaScript/Node.js Installation</h5>
+                            </div>
+                            <div class="card-body">
+                                <h6>Using npm</h6>
+                                <div class="bg-dark text-light p-3 rounded">
+                                    <code>npm install @contractflow-pro/sdk</code>
+                                </div>
+                                
+                                <h6 class="mt-3">Using yarn</h6>
+                                <div class="bg-dark text-light p-3 rounded">
+                                    <code>yarn add @contractflow-pro/sdk</code>
+                                </div>
+                                
+                                <h6 class="mt-3">Basic Import</h6>
+                                <div class="bg-dark text-light p-3 rounded">
+                                    <pre><code>import { ContractFlowPro } from '@contractflow-pro/sdk';
+
+// Initialize the SDK
+const client = new ContractFlowPro({
+    apiKey: 'your-api-key',
+    environment: 'production'
+});</code></pre>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="card border-0 shadow-sm mt-4">
+                            <div class="card-header bg-light">
+                                <h5 class="mb-0"><i class="fab fa-python text-success me-2"></i>Python Installation</h5>
+                            </div>
+                            <div class="card-body">
+                                <h6>Using pip</h6>
+                                <div class="bg-dark text-light p-3 rounded">
+                                    <code>pip install contractflow-pro-sdk</code>
+                                </div>
+                                
+                                <h6 class="mt-3">Using conda</h6>
+                                <div class="bg-dark text-light p-3 rounded">
+                                    <code>conda install -c contractflow-pro contractflow-pro-sdk</code>
+                                </div>
+                                
+                                <h6 class="mt-3">Basic Import</h6>
+                                <div class="bg-dark text-light p-3 rounded">
+                                    <pre><code>from contractflow_pro import ContractFlowPro
+
+# Initialize the SDK
+client = ContractFlowPro(
+    api_key='your-api-key',
+    environment='production'
+)</code></pre>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Authentication -->
+                    <div id="authentication" class="mb-5">
+                        <h2 class="section-header">Authentication</h2>
+                        <p class="section-subheader">Secure authentication methods for accessing ContractFlow Pro APIs.</p>
+                        
+                        <div class="row g-4">
+                            <div class="col-md-6">
+                                <div class="card border-0 shadow-sm h-100">
+                                    <div class="card-header bg-light">
+                                        <h5 class="mb-0"><i class="fas fa-key text-primary me-2"></i>API Key Authentication</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <h6>Setup</h6>
+                                        <ol>
+                                            <li>Generate API key in your dashboard</li>
+                                            <li>Store key securely (environment variables)</li>
+                                            <li>Initialize SDK with key</li>
+                                            <li>Key automatically included in requests</li>
+                                        </ol>
+                                        
+                                        <h6 class="mt-3">Security Best Practices</h6>
+                                        <ul>
+                                            <li>Never commit API keys to version control</li>
+                                            <li>Use environment variables or secure vaults</li>
+                                            <li>Rotate keys regularly</li>
+                                            <li>Limit key permissions to minimum required</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <div class="card border-0 shadow-sm h-100">
+                                    <div class="card-header bg-light">
+                                        <h5 class="mb-0"><i class="fas fa-user-shield text-success me-2"></i>OAuth 2.0 Authentication</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <h6>OAuth Flow</h6>
+                                        <ol>
+                                            <li>Register OAuth application</li>
+                                            <li>Implement authorization flow</li>
+                                            <li>Handle callback and token exchange</li>
+                                            <li>Use refresh tokens for long-term access</li>
+                                        </ol>
+                                        
+                                        <h6 class="mt-3">Supported Scopes</h6>
+                                        <ul>
+                                            <li><code>read:contracts</code> - Read contract information</li>
+                                            <li><code>write:contracts</code> - Create and modify contracts</li>
+                                            <li><code>read:data</code> - Access dataset metadata</li>
+                                            <li><code>write:data</code> - Upload and manage datasets</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="card border-0 shadow-sm mt-4">
+                            <div class="card-header bg-light">
+                                <h5 class="mb-0"><i class="fas fa-code text-warning me-2"></i>Code Examples</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <h6>JavaScript/TypeScript</h6>
+                                        <div class="bg-dark text-light p-3 rounded">
+                                            <pre><code>import { ContractFlowPro } from '@contractflow-pro/sdk';
+
+const client = new ContractFlowPro({
+    apiKey: process.env.CONTRACTFLOW_API_KEY,
+    environment: process.env.NODE_ENV || 'development'
+});
+
+// Test connection
+try {
+    const user = await client.auth.getCurrentUser();
+    console.log('Authenticated as:', user.email);
+} catch (error) {
+    console.error('Authentication failed:', error.message);
+}</code></pre>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <h6>Python</h6>
+                                        <div class="bg-dark text-light p-3 rounded">
+                                            <pre><code>import os
+from contractflow_pro import ContractFlowPro
+
+client = ContractFlowPro(
+    api_key=os.environ['CONTRACTFLOW_API_KEY'],
+    environment=os.environ.get('ENVIRONMENT', 'development')
+)
+
+# Test connection
+try:
+    user = client.auth.get_current_user()
+    print(f'Authenticated as: {user.email}')
+except Exception as error:
+    print(f'Authentication failed: {error.message}')</code></pre>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Core Modules -->
+                    <div id="core-modules" class="mb-5">
+                        <h2 class="section-header">Core Modules</h2>
+                        <p class="section-subheader">Essential SDK modules for interacting with ContractFlow Pro platform features.</p>
+                        
+                        <div class="row g-4">
+                            <div class="col-md-6">
+                                <div class="card border-0 shadow-sm h-100">
+                                    <div class="card-header bg-light">
+                                        <h5 class="mb-0"><i class="fas fa-users text-primary me-2"></i>User Management</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <h6>Available Methods</h6>
+                                        <ul>
+                                            <li><code>getCurrentUser()</code> - Get authenticated user info</li>
+                                            <li><code>updateProfile(profile)</code> - Update user profile</li>
+                                            <li><code>changePassword(oldPass, newPass)</code> - Change password</li>
+                                            <li><code>enableMFA()</code> - Enable multi-factor authentication</li>
+                                        </ul>
+                                        
+                                        <h6 class="mt-3">User Object Properties</h6>
+                                        <ul>
+                                            <li><code>id</code> - Unique user identifier</li>
+                                            <li><code>email</code> - User email address</li>
+                                            <li><code>role</code> - User role (TDP, TDC, CCRP, Admin)</li>
+                                            <li><code>organization</code> - User's organization</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <div class="card border-0 shadow-sm h-100">
+                                    <div class="card-header bg-light">
+                                        <h5 class="mb-0"><i class="fas fa-file-contract text-success me-2"></i>Contract Management</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <h6>Available Methods</h6>
+                                        <ul>
+                                            <li><code>createContract(data)</code> - Create new contract</li>
+                                            <li><code>getContract(id)</code> - Retrieve contract details</li>
+                                            <li><code>listContracts(filters)</code> - List contracts with filters</li>
+                                            <li><code>signContract(id)</code> - Sign contract digitally</li>
+                                        </ul>
+                                        
+                                        <h6 class="mt-3">Contract Object Properties</h6>
+                                        <ul>
+                                            <li><code>id</code> - Contract identifier</li>
+                                            <li><code>status</code> - Contract status</li>
+                                            <li><code>parties</code> - Contract participants</li>
+                                            <li><code>terms</code> - Contract terms and conditions</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <div class="card border-0 shadow-sm h-100">
+                                    <div class="card-header bg-light">
+                                        <h5 class="mb-0"><i class="fas fa-database text-warning me-2"></i>Dataset Management</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <h6>Available Methods</h6>
+                                        <ul>
+                                            <li><code>uploadDataset(file, metadata)</code> - Upload dataset</li>
+                                            <li><code>getDataset(id)</code> - Get dataset details</li>
+                                            <li><code>listDatasets(filters)</code> - List available datasets</li>
+                                            <li><code>updateDataset(id, updates)</code> - Update dataset</li>
+                                        </ul>
+                                        
+                                        <h6 class="mt-3">Dataset Object Properties</h6>
+                                        <ul>
+                                            <li><code>id</code> - Dataset identifier</li>
+                                            <li><code>name</code> - Dataset name</li>
+                                            <li><code>size</code> - Dataset size in bytes</li>
+                                            <li><code>metadata</code> - Dataset metadata</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <div class="card border-0 shadow-sm h-100">
+                                    <div class="card-header bg-light">
+                                        <h5 class="mb-0"><i class="fas fa-robot text-info me-2"></i>AI Training</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <h6>Available Methods</h6>
+                                        <ul>
+                                            <li><code>startTraining(config)</code> - Start training job</li>
+                                            <li><code>getTrainingStatus(id)</code> - Get training progress</li>
+                                            <li><code>listTrainingJobs(filters)</code> - List training jobs</li>
+                                            <li><code>downloadResults(id)</code> - Download training results</li>
+                                        </ul>
+                                        
+                                        <h6 class="mt-3">Training Object Properties</h6>
+                                        <ul>
+                                            <li><code>id</code> - Training job identifier</li>
+                                            <li><code>status</code> - Training status</li>
+                                            <li><code>progress</code> - Training progress percentage</li>
+                                            <li><code>config</code> - Training configuration</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Contract Management -->
+                    <div id="contract-management" class="mb-5">
+                        <h2 class="section-header">Contract Management</h2>
+                        <p class="section-subheader">Comprehensive contract operations using the SDK.</p>
+                        
+                        <div class="card border-0 shadow-sm">
+                            <div class="card-body">
+                                <h5>Creating Contracts</h5>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <h6>JavaScript/TypeScript</h6>
+                                        <div class="bg-dark text-light p-3 rounded">
+                                            <pre><code>const contract = await client.contracts.create({
+    type: 'data_licensing',
+    datasetId: 'dataset-123',
+    terms: {
+        usage: 'ai_training',
+        duration: '12_months',
+        restrictions: ['no_redistribution']
+    },
+    pricing: {
+        model: 'per_usage',
+        rate: 0.01
+    }
+});
+
+console.log('Contract created:', contract.id);</code></pre>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <h6>Python</h6>
+                                        <div class="bg-dark text-light p-3 rounded">
+                                            <pre><code>contract = client.contracts.create({
+    'type': 'data_licensing',
+    'dataset_id': 'dataset-123',
+    'terms': {
+        'usage': 'ai_training',
+        'duration': '12_months',
+        'restrictions': ['no_redistribution']
+    },
+    'pricing': {
+        'model': 'per_usage',
+        'rate': 0.01
+    }
+})
+
+print(f'Contract created: {contract.id}')</code></pre>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <h5 class="mt-4">Contract Operations</h5>
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <div class="border rounded p-3">
+                                            <h6 class="text-primary">Contract Retrieval</h6>
+                                            <div class="bg-dark text-light p-2 rounded">
+                                                <code>const contract = await client.contracts.get('contract-123');</code>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="border rounded p-3">
+                                            <h6 class="text-success">Contract Listing</h6>
+                                            <div class="bg-dark text-light p-2 rounded">
+                                                <code>const contracts = await client.contracts.list({ status: 'active' });</code>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="border rounded p-3">
+                                            <h6 class="text-warning">Contract Signing</h6>
+                                            <div class="bg-dark text-light p-2 rounded">
+                                                <code>await client.contracts.sign('contract-123');</code>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="border rounded p-3">
+                                            <h6 class="text-info">Contract Updates</h6>
+                                            <div class="bg-dark text-light p-2 rounded">
+                                                <code>await client.contracts.update('contract-123', { status: 'amended' });</code>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Data Operations -->
+                    <div id="data-operations" class="mb-5">
+                        <h2 class="section-header">Data Operations</h2>
+                        <p class="section-subheader">Managing datasets and data access through the SDK.</p>
+                        
+                        <div class="card border-0 shadow-sm">
+                            <div class="card-body">
+                                <h5>Dataset Upload</h5>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <h6>JavaScript/TypeScript</h6>
+                                        <div class="bg-dark text-light p-3 rounded">
+                                            <pre><code>const dataset = await client.datasets.upload(
+    'path/to/dataset.csv',
+    {
+        name: 'Financial Fraud Dataset',
+        description: 'Historical fraud detection data',
+        category: 'financial',
+        privacyLevel: 'confidential',
+        compliance: ['GDPR', 'SOX']
+    }
+);
+
+console.log('Dataset uploaded:', dataset.id);</code></pre>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <h6>Python</h6>
+                                        <div class="bg-dark text-light p-3 rounded">
+                                            <pre><code>dataset = client.datasets.upload(
+    'path/to/dataset.csv',
+    {
+        'name': 'Financial Fraud Dataset',
+        'description': 'Historical fraud detection data',
+        'category': 'financial',
+        'privacy_level': 'confidential',
+        'compliance': ['GDPR', 'SOX']
+    }
+)
+
+print(f'Dataset uploaded: {dataset.id}')</code></pre>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <h5 class="mt-4">Dataset Management</h5>
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <div class="border rounded p-3">
+                                            <h6 class="text-primary">List Datasets</h6>
+                                            <div class="bg-dark text-light p-2 rounded">
+                                                <code>const datasets = await client.datasets.list({ category: 'financial' });</code>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="border rounded p-3">
+                                            <h6 class="text-success">Get Dataset</h6>
+                                            <div class="bg-dark text-light p-2 rounded">
+                                                <code>const dataset = await client.datasets.get('dataset-123');</code>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="border rounded p-3">
+                                            <h6 class="text-warning">Update Dataset</h6>
+                                            <div class="bg-dark text-light p-2 rounded">
+                                                <code>await client.datasets.update('dataset-123', { description: 'Updated description' });</code>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="border rounded p-3">
+                                            <h6 class="text-info">Delete Dataset</h6>
+                                            <div class="bg-dark text-light p-2 rounded">
+                                                <code>await client.datasets.delete('dataset-123');</code>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Training Integration -->
+                    <div id="training-integration" class="mb-5">
+                        <h2 class="section-header">AI Training Integration</h2>
+                        <p class="section-subheader">Integrate AI model training workflows with the ContractFlow Pro platform.</p>
+                        
+                        <div class="card border-0 shadow-sm">
+                            <div class="card-body">
+                                <h5>Starting Training Jobs</h5>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <h6>JavaScript/TypeScript</h6>
+                                        <div class="bg-dark text-light p-3 rounded">
+                                            <pre><code>const trainingJob = await client.training.start({
+    modelType: 'neural_network',
+    datasetIds: ['dataset-123', 'dataset-456'],
+    hyperparameters: {
+        learningRate: 0.001,
+        batchSize: 32,
+        epochs: 100
+    },
+    privacySettings: {
+        differentialPrivacy: true,
+        epsilon: 1.0
+    }
+});
+
+console.log('Training started:', trainingJob.id);</code></pre>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <h6>Python</h6>
+                                        <div class="bg-dark text-light p-3 rounded">
+                                            <pre><code>training_job = client.training.start({
+    'model_type': 'neural_network',
+    'dataset_ids': ['dataset-123', 'dataset-456'],
+    'hyperparameters': {
+        'learning_rate': 0.001,
+        'batch_size': 32,
+        'epochs': 100
+    },
+    'privacy_settings': {
+        'differential_privacy': True,
+        'epsilon': 1.0
+    }
+})
+
+print(f'Training started: {training_job.id}')</code></pre>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <h5 class="mt-4">Monitoring Training Progress</h5>
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <div class="border rounded p-3">
+                                            <h6 class="text-primary">Get Status</h6>
+                                            <div class="bg-dark text-light p-2 rounded">
+                                                <code>const status = await client.training.getStatus('job-123');</code>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="border rounded p-3">
+                                            <h6 class="text-success">List Jobs</h6>
+                                            <div class="bg-dark text-light p-2 rounded">
+                                                <code>const jobs = await client.training.listJobs({ status: 'running' });</code>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="border rounded p-3">
+                                            <h6 class="text-warning">Cancel Job</h6>
+                                            <div class="bg-dark text-light p-2 rounded">
+                                                <code>await client.training.cancel('job-123');</code>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="border rounded p-3">
+                                            <h6 class="text-info">Download Results</h6>
+                                            <div class="bg-dark text-light p-2 rounded">
+                                                <code>const results = await client.training.downloadResults('job-123');</code>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Error Handling -->
+                    <div id="error-handling" class="mb-5">
+                        <h2 class="section-header">Error Handling</h2>
+                        <p class="section-subheader">Proper error handling patterns for robust SDK integration.</p>
+                        
+                        <div class="card border-0 shadow-sm">
+                            <div class="card-body">
+                                <h5>Error Types</h5>
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <div class="border rounded p-3">
+                                            <h6 class="text-danger">Authentication Errors</h6>
+                                            <ul>
+                                                <li><code>InvalidApiKeyError</code> - Invalid or expired API key</li>
+                                                <li><code>UnauthorizedError</code> - Insufficient permissions</li>
+                                                <li><code>TokenExpiredError</code> - OAuth token expired</li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="border rounded p-3">
+                                            <h6 class="text-warning">Validation Errors</h6>
+                                            <ul>
+                                                <li><code>ValidationError</code> - Invalid input data</li>
+                                                <li><code>RequiredFieldError</code> - Missing required fields</li>
+                                                <li><code>InvalidFormatError</code> - Incorrect data format</li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="border rounded p-3">
+                                            <h6 class="text-info">Resource Errors</h6>
+                                            <ul>
+                                                <li><code>NotFoundError</code> - Resource not found</li>
+                                                <li><code>ConflictError</code> - Resource conflict</li>
+                                                <li><code>RateLimitError</code> - API rate limit exceeded</li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="border rounded p-3">
+                                            <h6 class="text-secondary">Network Errors</h6>
+                                            <ul>
+                                                <li><code>ConnectionError</code> - Network connection failed</li>
+                                                <li><code>TimeoutError</code> - Request timeout</li>
+                                                <li><code>ServerError</code> - Server-side error</li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <h5 class="mt-4">Error Handling Examples</h5>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <h6>JavaScript/TypeScript</h6>
+                                        <div class="bg-dark text-light p-3 rounded">
+                                            <pre><code>try {
+    const contract = await client.contracts.create(contractData);
+    console.log('Contract created:', contract.id);
+} catch (error) {
+    if (error instanceof ValidationError) {
+        console.error('Validation failed:', error.details);
+    } else if (error instanceof UnauthorizedError) {
+        console.error('Authentication required');
+    } else {
+        console.error('Unexpected error:', error.message);
+    }
+}</code></pre>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <h6>Python</h6>
+                                        <div class="bg-dark text-light p-3 rounded">
+                                            <pre><code>try:
+    contract = client.contracts.create(contract_data)
+    print(f'Contract created: {contract.id}')
+except ValidationError as error:
+    print(f'Validation failed: {error.details}')
+except UnauthorizedError:
+    print('Authentication required')
+except Exception as error:
+    print(f'Unexpected error: {error.message}')</code></pre>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-dark text-white py-5">
+        <div class="container">
+            <div class="row g-4">
+                <div class="col-lg-4">
+                    <h5 class="mb-3">ContractFlow Pro</h5>
+                    <p class="text-muted">Enabling secure, privacy-preserving AI model training through smart contracts and confidential computing.</p>
+                </div>
+                <div class="col-lg-2">
+                    <h6 class="mb-3">Platform</h6>
+                    <ul class="list-unstyled">
+                        <li><a href="../features.html" class="text-muted text-decoration-none">Features</a></li>
+                        <li><a href="../solutions.html" class="text-muted text-decoration-none">Solutions</a></li>
+                        <li><a href="../technology.html" class="text-muted text-decoration-none">Technology</a></li>
+                        <li><a href="../docs/api-reference.html" class="text-muted text-decoration-none">API</a></li>
+                    </ul>
+                </div>
+                <div class="col-lg-2">
+                    <h6 class="mb-3">Resources</h6>
+                    <ul class="list-unstyled">
+                        <li><a href="../about.html" class="text-muted text-decoration-none">About</a></li>
+                        <li><a href="#contact" class="text-muted text-decoration-none">Contact</a></li>
+                        <li><a href="../docs/security-guide.html" class="text-muted text-decoration-none">Security</a></li>
+                        <li><a href="../docs/compliance-guide.html" class="text-muted text-decoration-none">Compliance</a></li>
+                    </ul>
+                </div>
+                <div class="col-lg-2">
+                    <h6 class="mb-3">Developers</h6>
+                    <ul class="list-unstyled">
+                        <li><a href="getting-started.html" class="text-muted text-decoration-none">Getting Started</a></li>
+                        <li><a href="sdk-documentation.html" class="text-muted text-decoration-none">SDK</a></li>
+                        <li><a href="integration-guide.html" class="text-muted text-decoration-none">Integration</a></li>
+                        <li><a href="../docs/api-reference.html" class="text-muted text-decoration-none">API Reference</a></li>
+                    </ul>
+                </div>
+                <div class="col-lg-2">
+                    <h6 class="mb-3">Documentation</h6>
+                    <ul class="list-unstyled">
+                        <li><a href="../docs/user-guide.html" class="text-muted text-decoration-none">User Guide</a></li>
+                        <li><a href="../docs/architecture-guide.html" class="text-muted text-decoration-none">Architecture</a></li>
+                        <li><a href="../docs/security-guide.html" class="text-muted text-decoration-none">Security</a></li>
+                        <li><a href="../docs/compliance-guide.html" class="text-muted text-decoration-none">Compliance</a></li>
+                    </ul>
+                </div>
+            </div>
+            <hr class="my-4">
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <p class="mb-0 text-muted">&copy; 2024 ContractFlow Pro. All rights reserved.</p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <a href="#" class="text-muted text-decoration-none me-3">Privacy Policy</a>
+                    <a href="#" class="text-muted text-decoration-none me-3">Terms of Service</a>
+                    <a href="#" class="text-muted text-decoration-none">Cookie Policy</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../js/main.js"></script>
+</body>
+</html>
