@@ -1,8 +1,8 @@
 # UML 4+1 View Architecture Documentation
 ## Contract Management System
 
-**Document Version:** 3.0  
-**Date:** January 2025  
+**Document Version:** 4.0  
+**Date:** August 2025  
 **Author:** Contract Management System Team
 
 ---
@@ -17,6 +17,8 @@
 6. [Physical View](#physical-view)
 7. [Stakeholder Mapping](#stakeholder-mapping)
 8. [Implementation Guidelines](#implementation-guidelines)
+9. [Deployment & Development](#deployment--development)
+10. [Testing & Quality Assurance](#testing--quality-assurance)
 
 ---
 
@@ -41,19 +43,19 @@ This document provides a comprehensive UML 4+1 View Architecture for the Contrac
 - **CCRP (Confidential Clean Room Provider)**: **Compliance, resource monitoring, and real infrastructure provisioning**
 - **AppAdmin**: System administration and oversight
 
-### 1.4 **New Features (v3.0)**
-- **Real Azure Infrastructure**: Actual Azure SDK integration replacing mock services
-- **CCRP-Specific Credentials**: Multi-tenant Azure credential management per CCRP
-- **Encrypted Credential Storage**: AES-256-CBC encrypted client secrets
-- **Contract-Specific Configuration**: Contract overrides for CCRP Azure defaults
-- **Real Training Execution**: Actual container deployment with Azure Container Instances
-- **Cost Management**: Per-CCRP and per-contract budget tracking
-- **Multi-Tenant Security**: CCRP isolation with independent Azure subscriptions
-- **SCITT-CCF Integration**: Secure supply chain for AI training with CCF nodes
-- **Enhanced DID Management**: Improved DID resolution and verification
-- **Advanced Audit Logging**: Comprehensive system monitoring and compliance
-- **Real-time Notifications**: WebSocket-based real-time updates
-- **Enhanced Security**: Hardware Security Module (HSM) integration
+### 1.4 **New Features (v4.0)**
+- **SCITT CCF Integration**: Complete blockchain infrastructure for secure contract execution
+- **Enhanced IAM Integration**: Robust Keycloak authentication with HTTPS and persistent configuration
+- **AI Models Single Selection**: Improved contract creation workflow with single AI model selection
+- **UI Layout Fixes**: Resolved header overlap issues and improved dashboard functionality
+- **Contract Template System**: Enhanced template selection with visual feedback and recommendations
+- **Multi-TDP Contract Support**: Advanced dataset selection and TDP management
+- **Real-time Contract Creation**: End-to-end contract creation workflow with SCITT CCF
+- **Enhanced Error Handling**: Improved user feedback and error resolution
+- **Production Deployment Scripts**: Comprehensive Ubuntu VM deployment automation
+- **Local VM Development**: Complete local development environment setup
+- **HTTPS/SSL Integration**: Full SSL support for production and development
+- **Comprehensive Testing**: Automated test suites for all system components
 
 ---
 
@@ -1750,7 +1752,142 @@ classDiagram
 
 ---
 
-## 10. Conclusion
+## 9. Deployment & Development
+
+### 9.1 **Ubuntu VM Production Deployment**
+
+#### **Automated Deployment Scripts**
+- **Interactive Deployment**: `deployment/deploy-to-ubuntu-vm.sh` - Comprehensive setup with user prompts
+- **Quick Deployment**: `deployment/quick-deploy-ubuntu.sh` - One-command deployment for experienced users
+- **Manual Guide**: `deployment/UBUNTU_VM_DEPLOYMENT_GUIDE.md` - Step-by-step manual instructions
+
+#### **Production Features**
+- **HTTPS/SSL**: Let's Encrypt certificates for main domain, self-signed for Keycloak
+- **Keycloak IAM**: Complete identity and access management with persistent configuration
+- **SCITT CCF Integration**: Blockchain infrastructure for secure contract execution
+- **Firewall Configuration**: UFW with secure port access (22, 80, 443, 8443)
+- **Backup System**: Automated database and data backups
+- **Monitoring**: Health checks and service status monitoring
+
+#### **Network Architecture**
+```
+Internet → Nginx (80/443) → Frontend (3000) / Backend (5001)
+                    ↓
+              Keycloak (8443)
+```
+
+### 9.2 **Local VM Development Environment**
+
+#### **Local Setup Options**
+- **VirtualBox**: Free, cross-platform virtualization (recommended for beginners)
+- **VMware**: Professional virtualization with better performance
+- **Hyper-V**: Windows-native virtualization (Windows 10/11 Pro)
+- **UTM**: macOS-native virtualization with Apple Silicon support
+
+#### **Local Deployment Script**
+- **Automated Setup**: `deployment/deploy-to-local-vm.sh` - Complete local environment setup
+- **Quick Start Guide**: `deployment/LOCAL_VM_QUICK_START.md` - 10-minute setup guide
+- **Comprehensive Guide**: `deployment/LOCAL_VM_SETUP_GUIDE.md` - Detailed setup instructions
+
+#### **Local Environment Features**
+- **Port Exposure**: All services accessible on localhost (3000, 5001, 8443, 5432, 5433)
+- **Development Mode**: HTTP for main app, HTTPS for Keycloak
+- **Test Data**: Automatic creation of test users and sample data
+- **Hot Reload**: Development-friendly configuration
+
+### 9.3 **Environment Configuration**
+
+#### **Production Environment**
+```bash
+# Keycloak with real domain
+KEYCLOAK_URL=https://yourdomain.com:8443
+FRONTEND_URL=https://yourdomain.com
+BACKEND_URL=https://yourdomain.com
+
+# Strong passwords and secrets
+KEYCLOAK_ADMIN_PASSWORD=your_strong_admin_password
+POSTGRES_PASSWORD=your_strong_db_password
+JWT_SECRET=your_very_long_random_jwt_secret
+```
+
+#### **Local Development Environment**
+```bash
+# Localhost configuration
+KEYCLOAK_URL=https://localhost:8443
+FRONTEND_URL=http://localhost:3000
+BACKEND_URL=http://localhost:5001
+
+# Development passwords
+KEYCLOAK_ADMIN_PASSWORD=admin123
+POSTGRES_PASSWORD=postgres123
+JWT_SECRET=your_local_jwt_secret_here
+```
+
+### 9.4 **Deployment Workflow**
+
+#### **Development to Production Pipeline**
+1. **Local Development**: Test changes in local VM environment
+2. **Code Review**: Validate changes and run automated tests
+3. **Staging Deployment**: Deploy to staging environment for testing
+4. **Production Deployment**: Use Ubuntu deployment scripts for production
+5. **Monitoring**: Monitor production environment and user feedback
+
+#### **Infrastructure as Code**
+- **Docker Compose**: Service orchestration and configuration
+- **Environment Files**: Centralized configuration management
+- **SSL Certificates**: Automated certificate generation and renewal
+- **Backup Scripts**: Automated backup and recovery procedures
+
+---
+
+## 10. Testing & Quality Assurance
+
+### 10.1 **Automated Test Suites**
+
+#### **API Testing Scripts**
+- **Basic API Tests**: `deployment/test-basic-apis-simple.sh` - Core API functionality
+- **User Authentication**: `deployment/test-user-login-all-types.sh` - All user role testing
+- **Contract Creation**: `deployment/test-contract-creation-end-to-end.sh` - End-to-end workflow
+- **UI Functionality**: `deployment/test-contract-creation-ui-fixes.sh` - Frontend functionality
+- **AI Models**: `deployment/test-ai-models-single-selection.sh` - AI model selection testing
+
+#### **Component Testing**
+- **Frontend API Access**: `deployment/test-frontend-api-access.sh` - Frontend-backend integration
+- **TDC Dashboard**: `deployment/test-tdc-dashboard.sh` - Dashboard functionality
+- **Contract Creation UI**: `deployment/test-contract-creation-ui-fixes.sh` - UI workflow testing
+
+### 10.2 **Quality Assurance Features**
+
+#### **Error Handling & Validation**
+- **Input Validation**: Comprehensive form validation and error messages
+- **User Feedback**: Clear error messages and success confirmations
+- **Debug Information**: Development mode debugging for troubleshooting
+- **Graceful Degradation**: Fallback mechanisms for service failures
+
+#### **Performance & Reliability**
+- **Health Checks**: Automated service health monitoring
+- **Load Testing**: Performance testing for high-traffic scenarios
+- **Error Recovery**: Automatic retry mechanisms and error recovery
+- **Resource Monitoring**: Real-time resource usage tracking
+
+### 10.3 **Testing Workflow**
+
+#### **Pre-Deployment Testing**
+1. **Unit Tests**: Component-level testing
+2. **Integration Tests**: Service integration testing
+3. **End-to-End Tests**: Complete workflow testing
+4. **Performance Tests**: Load and stress testing
+5. **Security Tests**: Authentication and authorization testing
+
+#### **Post-Deployment Validation**
+1. **Health Checks**: Verify all services are running
+2. **Functional Tests**: Test all user workflows
+3. **Performance Monitoring**: Monitor response times and resource usage
+4. **User Acceptance**: Validate with real user scenarios
+
+---
+
+## 11. Conclusion
 
 This UML 4+1 View Architecture provides a comprehensive framework for understanding, developing, and maintaining the Contract Management System. Each view serves specific stakeholders and concerns:
 
@@ -1760,10 +1897,10 @@ This UML 4+1 View Architecture provides a comprehensive framework for understand
 - **Process View**: Ensures proper integration and workflows
 - **Physical View**: Plans deployment and infrastructure
 
-The architecture supports enterprise-grade security, scalability, and compliance while maintaining clear separation of concerns and modular design principles. **The latest v3.0 update adds SCITT-CCF integration for supply chain transparency, enhanced HSM-based security, real-time notifications, and comprehensive compliance tracking, making the system enterprise-ready with advanced security and transparency features.**
+The architecture supports enterprise-grade security, scalability, and compliance while maintaining clear separation of concerns and modular design principles. **The latest v4.0 update adds comprehensive SCITT CCF integration, enhanced IAM with Keycloak, complete deployment automation, local development environment setup, and extensive testing frameworks, making the system production-ready with enterprise-grade deployment and development capabilities.**
 
 ---
 
-**Document Version:** 3.0  
-**Last Updated:** January 2025  
-**Next Review:** April 2025 
+**Document Version:** 4.0  
+**Last Updated:** August 2025  
+**Next Review:** November 2025 

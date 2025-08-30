@@ -4,6 +4,7 @@ A comprehensive contract management system with multi-party authentication, **SC
 
 ## 🚀 Quick Start
 
+### **Local Development**
 ```bash
 # Start everything properly (SCITT CCF only)
 ./start-system-scitt-ccf.sh
@@ -18,6 +19,18 @@ npm run status
 
 # Test authentication
 npm run test:login
+```
+
+### **Production Deployment**
+```bash
+# Ubuntu VM deployment (interactive)
+./deployment/deploy-to-ubuntu-vm.sh
+
+# Ubuntu VM deployment (quick)
+./deployment/quick-deploy-ubuntu.sh yourdomain.com
+
+# Local VM development environment
+./deployment/deploy-to-local-vm.sh
 ```
 
 ## 🔗 SCITT CCF Integration
@@ -161,6 +174,26 @@ npm test -- scitt-ccf-api.test.js
 - **Multi-Cloud Support**: AWS, Azure, GCP, OCI integration
 - **Global Deployment**: Multi-jurisdiction deployment support
 - **Real-Time Monitoring**: System health and performance monitoring
+
+## 🚀 Deployment Options
+
+### **Local Development Environment**
+- **Quick Setup**: `./deployment/deploy-to-local-vm.sh` - Complete local environment
+- **VirtualBox Guide**: `deployment/LOCAL_VM_QUICK_START.md` - 10-minute setup
+- **Comprehensive Guide**: `deployment/LOCAL_VM_SETUP_GUIDE.md` - Detailed instructions
+
+### **Production Ubuntu VM Deployment**
+- **Interactive Setup**: `./deployment/deploy-to-ubuntu-vm.sh` - Step-by-step production deployment
+- **Quick Deployment**: `./deployment/quick-deploy-ubuntu.sh` - One-command deployment
+- **Manual Guide**: `deployment/UBUNTU_VM_DEPLOYMENT_GUIDE.md` - Complete production setup
+
+### **Deployment Features**
+- ✅ **HTTPS/SSL**: Let's Encrypt certificates with Nginx reverse proxy
+- ✅ **Keycloak IAM**: Complete identity management with persistent configuration
+- ✅ **SCITT CCF Integration**: Blockchain infrastructure for secure contracts
+- ✅ **Firewall & Security**: UFW firewall with secure port configuration
+- ✅ **Backup & Monitoring**: Automated backups and health checks
+- ✅ **Local Development**: Full development environment in VM
 
 ## 🏗️ Technology Stack
 
