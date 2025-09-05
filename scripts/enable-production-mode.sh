@@ -6,8 +6,8 @@ echo "🔒 Enabling production mode - making files read-only..."
 # Core configuration files
 chmod 444 config.env secrets.env
 
-# Core system files
-chmod 444 start-system.sh stop-system.sh
+# Core system files - keep executable for script manager
+chmod 755 start-system.sh stop-system.sh
 
 # Script files
 chmod 755 scripts/*.sh

@@ -5,6 +5,15 @@
 
 set -e
 
+# Load centralized configuration
+if [ -f "config.env" ]; then
+    echo "✅ Loading centralized configuration from config.env"
+    source config.env
+else
+    echo "⚠️  Centralized configuration file not found: config.env"
+    echo "⚠️  Using default values"
+fi
+
 # Colors for output
 RED='\033[0;31m'
 GREEN='\033[0;32m'
