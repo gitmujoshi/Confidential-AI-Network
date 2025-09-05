@@ -29,9 +29,9 @@ chmod 755 scripts/load-config.sh scripts/script-manager.sh
 chmod 755 scripts/test-*.sh scripts/create-test-data*.sh
 chmod 644 scripts/load-config.js scripts/create-test-data*.js scripts/test-data-common*.js
 
-# Core system files - READ-ONLY
-print_status "⚙️ Setting core system files to read-only..." $YELLOW
-chmod 444 start-system.sh stop-system.sh
+# Core system files - EXECUTABLE (needed by script manager)
+print_status "⚙️ Setting core system files to executable..." $YELLOW
+chmod 755 start-system.sh stop-system.sh
 
 # Backend service files - READ-ONLY
 print_status "🔧 Setting backend service files to read-only..." $YELLOW
