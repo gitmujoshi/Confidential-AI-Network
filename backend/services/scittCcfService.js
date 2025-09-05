@@ -18,12 +18,16 @@
 
 const { Op } = require('sequelize');
 const db = require('../models');
+const axios = require('axios');
+const ProvenanceService = require('./ProvenanceService');
+const { ContractId, Money, Duration, ValidationError } = require('@contract-management/value-objects');
 
 class ScittCcfService {
   constructor() {
-    this.ccfNodeUrl = process.env.CCF_NODE_URL || 'http://scitt-ccf-node-dev:8000';
+    this.ccfNodeUrl = process.env.CCF_NODE_URL || 'http://localhost:8000';
     this.teeProvider = this.detectTeeProvider();
     this.isInitialized = false;
+    this.provenanceService = new ProvenanceService();
   }
 
   /**
@@ -32,6 +36,9 @@ class ScittCcfService {
   async initialize() {
     try {
       console.log('🔗 Initializing SCITT CCF service...');
+      
+      // Initialize provenance service
+      await this.provenanceService.initialize();
       
       // Test connection to SCITT CCF node
       await this.testConnection();
@@ -87,38 +94,107 @@ class ScittCcfService {
    */
   async createContract(contractData) {
     if (!this.isInitialized) {
-      throw new Error('SCITT CCF service not initialized');
+      throw new Error('SCITT CCF Service not initialized');
     }
 
     try {
-      const claim = this.buildContractClaim(contractData);
+      console.log('📜 Creating contract with provenance tracking...');
       
-      // Submit claim to SCITT CCF
-      const result = await this.submitClaim(claim);
+      // DEFENSIVE COPY: Clone the contractData to prevent mutation
+      const sanitizedContractData = { ...contractData };
+      console.log('🔍 Debug createContract - Original contractData:', JSON.stringify(contractData, null, 2));
+      console.log('🔍 Debug createContract - Sanitized contractData:', JSON.stringify(sanitizedContractData, null, 2));
+      console.log('🔍 Debug createContract - contractData.contractId:', contractData.contractId);
+      console.log('🔍 Debug createContract - sanitizedContractData.contractId:', sanitizedContractData.contractId);
+      console.log('🔍 Debug createContract - typeof contractData.contractId:', typeof contractData.contractId);
+      console.log('🔍 Debug createContract - typeof sanitizedContractData.contractId:', typeof sanitizedContractData.contractId);
       
-      // Store claim in local database for tracking
-      await this.storeClaimLocally(result.claimId, claim, contractData);
+      // VALIDATION: Ensure contractId exists and is valid
+      if (!sanitizedContractData.contractId) {
+        throw new Error('Contract ID is required for provenance tracking');
+      }
+      
+      // Create provenance tree for contract data
+      console.log('🔍 Debug createContract - About to call _extractProvenanceData...');
+      const provenanceData = this._extractProvenanceData(sanitizedContractData);
+      console.log('🔍 Debug createContract - provenanceData:', JSON.stringify(provenanceData, null, 2));
+      console.log('🔍 Debug createContract - After _extractProvenanceData - sanitizedContractData.contractId:', sanitizedContractData.contractId);
+      
+      // VALIDATION: Check if contractId was corrupted during provenance processing
+      if (!sanitizedContractData.contractId) {
+        throw new Error('Contract ID was corrupted during provenance data extraction');
+      }
+      const provenanceTree = await this.provenanceService.createProvenanceTree(
+        sanitizedContractData.contractId || `CONTRACT-${Date.now()}`,
+        provenanceData
+      );
+      console.log('🔍 Debug createContract - provenanceTree:', JSON.stringify(provenanceTree, null, 2));
+      console.log('🔍 Debug createContract - After createProvenanceTree - sanitizedContractData.contractId:', sanitizedContractData.contractId);
+      
+      // VALIDATION: Final check before building claim
+      if (!sanitizedContractData.contractId) {
+        throw new Error('Contract ID was corrupted during provenance tree creation');
+      }
+      
+      // Build contract claim with provenance root
+      const claim = this.buildContractClaim(sanitizedContractData, provenanceTree.rootHash);
+      console.log('🔍 Debug createContract - claim:', JSON.stringify(claim, null, 2));
+      console.log('🔍 Debug createContract - After buildContractClaim - sanitizedContractData.contractId:', sanitizedContractData.contractId);
+      
+      // Submit claim to SCITT CCF Ledger
+      const response = await this.submitClaim(claim);
+      console.log('🔍 Debug createContract - response:', JSON.stringify(response, null, 2));
+      console.log('🔍 Debug createContract - After submitClaim - sanitizedContractData.contractId:', sanitizedContractData.contractId);
+      
+      // FINAL VALIDATION: Ensure contractId is still intact
+      if (!sanitizedContractData.contractId) {
+        throw new Error('Contract ID was corrupted during claim submission');
+      }
+      
+      // Store claim locally with provenance information
+      // Create a clean copy without any null/undefined values that might corrupt contractId
+      console.log('🔍 Debug createContract - Before finalContractData creation:');
+      console.log('  - sanitizedContractData.contractId:', sanitizedContractData.contractId);
+      console.log('  - typeof sanitizedContractData.contractId:', typeof sanitizedContractData.contractId);
+      console.log('  - sanitizedContractData keys:', Object.keys(sanitizedContractData));
+      console.log('  - Full sanitizedContractData:', JSON.stringify(sanitizedContractData, null, 2));
+      
+      // Create a clean copy, explicitly preserving contractId
+      const finalContractData = {
+        contractId: sanitizedContractData.contractId,
+        test: sanitizedContractData.test
+      };
+      
+      console.log('🔍 Debug createContract - After finalContractData creation:');
+      console.log('  - finalContractData.contractId:', finalContractData.contractId);
+      console.log('  - typeof finalContractData.contractId:', typeof finalContractData.contractId);
+      console.log('  - finalContractData keys:', Object.keys(finalContractData));
+      console.log('🔍 Debug createContract - Final contractData for storage:', JSON.stringify(finalContractData, null, 2));
+      console.log('🔍 Debug createContract - Final contractId type:', typeof finalContractData.contractId);
+      console.log('🔍 Debug createContract - Final contractId value:', finalContractData.contractId);
+      
+      await this.storeClaimLocally(response.claimId, claim, finalContractData, provenanceTree);
+      
+      console.log(`✅ Contract created with provenance tree: ${provenanceTree.treeId}`);
       
       return {
         success: true,
-        claimId: result.claimId,
-        receipt: result.receipt,
-        contractId: contractData.contractId,
-        message: 'Contract created successfully in SCITT CCF',
-        source: 'SCITT_CCF',
-        teeProvider: this.teeProvider
+        contractId: sanitizedContractData.contractId,
+        claimId: response.claimId,
+        provenanceTreeId: provenanceTree.treeId,
+        provenanceRoot: provenanceTree.rootHash,
+        message: 'Contract created successfully with provenance tracking'
       };
-      
     } catch (error) {
-      console.error('SCITT CCF contract creation failed:', error);
-      throw new Error(`SCITT CCF operation failed: ${error.message}`);
+      console.error('❌ Failed to create contract:', error);
+      throw error;
     }
   }
 
   /**
    * Build a contract claim for SCITT CCF
    */
-  buildContractClaim(contractData) {
+  buildContractClaim(contractData, provenanceRoot) {
     return {
       type: 'contract_creation',
       data: {
@@ -134,7 +210,8 @@ class ScittCcfService {
           timestamp: new Date().toISOString(),
           version: '1.0.0',
           system: 'ContractFlow Pro',
-          teeProvider: this.teeProvider.type
+          teeProvider: this.teeProvider.type,
+          provenanceRoot: provenanceRoot
         }
       }
     };
@@ -177,22 +254,57 @@ class ScittCcfService {
   /**
    * Store claim locally for tracking
    */
-  async storeClaimLocally(claimId, claim, contractData) {
+  async storeClaimLocally(claimId, claim, contractData, provenanceTree) {
     try {
-      await db.ScittClaim.create({
+      console.log('🔍 Debug storeClaimLocally:');
+      console.log('  claimId:', claimId);
+      console.log('  contractData:', JSON.stringify(contractData, null, 2));
+      console.log('  contractData.contractId:', contractData.contractId);
+      console.log('  claim:', JSON.stringify(claim, null, 2));
+      console.log('  claim.type:', claim.type);
+      console.log('  claim.data:', JSON.stringify(claim.data, null, 2));
+      console.log('  claim.data.contractId:', claim.data?.contractId);
+      console.log('  provenanceTree.treeId:', provenanceTree.treeId);
+      
+      // VALIDATION: Ensure contractId exists before database insertion
+      if (!contractData.contractId) {
+        throw new Error('Contract ID is required for storing claim locally');
+      }
+      
+      console.log('🔍 About to create ScittClaim with:');
+      console.log('  - claimId:', claimId);
+      console.log('  - contractId:', contractData.contractId);
+      console.log('  - claimType:', claim.type);
+      console.log('  - claimData:', JSON.stringify(claim.data, null, 2));
+      console.log('  - receipt:', claim.receipt || `RECEIPT-${claimId}`);
+      console.log('  - status: SUBMITTED');
+      console.log('  - provenanceTreeId:', provenanceTree.treeId);
+      console.log('  - provenanceRoot:', provenanceTree.rootHash);
+      
+      const insertData = {
         claimId: claimId,
         contractId: contractData.contractId,
         claimType: claim.type,
-        claimData: claim,
-        status: 'PENDING',
-        receipt: null
-      });
+        claimData: claim.data,
+        receipt: claim.receipt || `RECEIPT-${claimId}`,
+        status: 'SUBMITTED',
+        provenanceTreeId: provenanceTree.treeId,
+        provenanceRoot: provenanceTree.rootHash,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      };
       
-      console.log(`Claim ${claimId} stored locally for contract ${contractData.contractId}`);
+      console.log('🔍 Final insert data for ScittClaim:');
+      console.log('  - insertData:', JSON.stringify(insertData, null, 2));
+      console.log('  - insertData.contractId type:', typeof insertData.contractId);
+      console.log('  - insertData.contractId value:', insertData.contractId);
       
+      await db.ScittClaim.create(insertData);
+      
+      console.log(`✅ Claim ${claimId} stored locally successfully with contractId: ${contractData.contractId}`);
     } catch (error) {
-      console.error('Failed to store claim locally:', error);
-      // Don't throw error as this is not critical for contract creation
+      console.error('❌ Failed to store claim locally:', error);
+      throw error;
     }
   }
 
@@ -501,9 +613,9 @@ class ScittCcfService {
   }
 
   /**
-   * Submit a claim to SCITT CCF
+   * Submit a general claim to SCITT CCF (for non-contract claims)
    */
-  async submitClaim(claimData) {
+  async submitGeneralClaim(claimData) {
     try {
       const claim = this.buildClaim(claimData);
       
@@ -521,8 +633,9 @@ class ScittCcfService {
       
       const result = await response.json();
       
-      // Store claim locally
-      await this.storeClaimLocally(result.claimId, claim, claimData);
+      // Note: This method is for general claim submission, not contract creation
+      // Contract creation uses the createContract method which handles provenance tracking
+      // For general claims, we don't store them locally as they don't have contract context
       
       return {
         claimId: result.claimId,
@@ -683,12 +796,57 @@ class ScittCcfService {
    * Build a claim from claim data
    */
   buildClaim(claimData) {
-    return {
-      type: claimData.type || 'contract_creation',
-      data: claimData.data || claimData,
-      timestamp: new Date().toISOString(),
-      version: '1.0.0'
-    };
+    try {
+      // Validate contract ID if present
+      let validatedContractId = null;
+      if (claimData.contractId) {
+        try {
+          validatedContractId = new ContractId(claimData.contractId);
+        } catch (error) {
+          throw new ValidationError(`Invalid contract ID: ${error.message}`);
+        }
+      }
+
+      // Validate price if present
+      let validatedPrice = null;
+      if (claimData.price) {
+        try {
+          validatedPrice = new Money(claimData.price, 'USD');
+        } catch (error) {
+          throw new ValidationError(`Invalid price: ${error.message}`);
+        }
+      }
+
+      // Validate duration if present
+      let validatedDuration = null;
+      if (claimData.duration) {
+        try {
+          validatedDuration = new Duration(claimData.duration, 'DAYS');
+        } catch (error) {
+          throw new ValidationError(`Invalid duration: ${error.message}`);
+        }
+      }
+
+      return {
+        type: claimData.type || 'contract_creation',
+        data: {
+          ...claimData.data || claimData,
+          contractId: validatedContractId?.value || claimData.contractId,
+          price: validatedPrice?.amount || claimData.price,
+          duration: validatedDuration?.durationValue || claimData.duration
+        },
+        timestamp: new Date().toISOString(),
+        version: '1.0.0',
+        validation: {
+          contractIdValid: !!validatedContractId,
+          priceValid: !!validatedPrice,
+          durationValid: !!validatedDuration
+        }
+      };
+    } catch (error) {
+      console.error('❌ Error building claim with Value Objects:', error);
+      throw error;
+    }
   }
 
   /**
@@ -705,26 +863,112 @@ class ScittCcfService {
     }
   }
 
+  // REMOVED: Duplicate storeClaimLocally method that was missing contractId
+  // The correct method is at line 244 with signature: storeClaimLocally(claimId, claim, contractData, provenanceTree)
+
   /**
-   * Store claim locally in database
+   * Extract data for provenance tracking from contract
+   * @private
    */
-  async storeClaimLocally(claimId, claim, originalData) {
-    try {
-      await db.ScittClaim.create({
-        claimId,
-        claimType: claim.type,
-        claimData: claim.data,
-        status: 'submitted',
-        userId: originalData.userId || 1, // Default to admin if no user specified
-        metadata: {
-          originalData,
-          submissionTimestamp: new Date().toISOString()
-        }
+  _extractProvenanceData(contractData) {
+    const provenanceData = [];
+    
+    // Add contract metadata
+    provenanceData.push({
+      type: 'CONTRACT_METADATA',
+      data: {
+        name: contractData.name,
+        description: contractData.description,
+        price: contractData.price,
+        duration: contractData.duration,
+        termsAndConditions: contractData.termsAndConditions
+      }
+    });
+    
+    // Add legal document
+    if (contractData.legalDocument) {
+      provenanceData.push({
+        type: 'LEGAL_DOCUMENT',
+        data: contractData.legalDocument
       });
-      
-      console.log(`Claim ${claimId} stored locally successfully`);
+    }
+    
+    // Add environment specifications
+    if (contractData.environmentSpecs) {
+      provenanceData.push({
+        type: 'ENVIRONMENT_SPECS',
+        data: contractData.environmentSpecs
+      });
+    }
+    
+    // Add training parameters
+    if (contractData.trainingParams) {
+      provenanceData.push({
+        type: 'TRAINING_PARAMS',
+        data: contractData.trainingParams
+      });
+    }
+    
+    // Add timestamp
+    provenanceData.push({
+      type: 'TIMESTAMP',
+      data: new Date().toISOString()
+    });
+    
+    return provenanceData;
+  }
+
+  /**
+   * Get provenance tree for a contract
+   * @param {string} contractId - Contract ID
+   * @returns {Object} - Provenance tree
+   */
+  async getProvenanceTree(contractId) {
+    if (!this.isInitialized) {
+      throw new Error('SCITT CCF Service not initialized');
+    }
+
+    try {
+      return await this.provenanceService.getProvenanceTree(contractId);
     } catch (error) {
-      console.error('Failed to store claim locally:', error);
+      console.error(`❌ Failed to get provenance tree for contract ${contractId}:`, error);
+      throw error;
+    }
+  }
+
+  /**
+   * Generate provenance report for a contract
+   * @param {string} contractId - Contract ID
+   * @returns {Object} - Provenance report
+   */
+  async generateProvenanceReport(contractId) {
+    if (!this.isInitialized) {
+      throw new Error('SCITT CCF Service not initialized');
+    }
+
+    try {
+      return await this.provenanceService.generateProvenanceReport(contractId);
+    } catch (error) {
+      console.error(`❌ Failed to generate provenance report for contract ${contractId}:`, error);
+      throw error;
+    }
+  }
+
+  /**
+   * Verify provenance proof
+   * @param {Object} proof - Merkle proof to verify
+   * @param {string} expectedHash - Expected hash value
+   * @returns {Object} - Verification result
+   */
+  async verifyProvenanceProof(proof, expectedHash) {
+    if (!this.isInitialized) {
+      throw new Error('SCITT CCF Service not initialized');
+    }
+
+    try {
+      return await this.provenanceService.verifyProvenanceProof(proof, expectedHash);
+    } catch (error) {
+      console.error('❌ Failed to verify provenance proof:', error);
       throw error;
     }
   }
