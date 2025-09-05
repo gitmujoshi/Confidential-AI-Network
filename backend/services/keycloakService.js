@@ -2,16 +2,22 @@
  * Keycloak Service for authentication and user management
  */
 const axios = require('axios');
+const https = require('https');
 
 class KeycloakService {
   constructor() {
-    this.baseUrl = process.env.KEYCLOAK_URL || 'http://localhost:8080';
+    this.baseUrl = process.env.KEYCLOAK_URL || 'https://localhost:8443';
     this.realm = process.env.KEYCLOAK_REALM || 'contract-management';
     this.adminRealm = 'master';
     this.clientId = process.env.KEYCLOAK_CLIENT_ID || 'contract-management-client';
     this.clientSecret = process.env.KEYCLOAK_CLIENT_SECRET || '';
     this.adminUsername = process.env.KEYCLOAK_ADMIN_USERNAME || 'admin';
     this.adminPassword = process.env.KEYCLOAK_ADMIN_PASSWORD || 'admin123';
+    
+    // Configure axios to handle HTTPS with self-signed certificates in development
+    this.httpsAgent = new https.Agent({
+      rejectUnauthorized: false
+    });
   }
 
   /**
@@ -23,7 +29,8 @@ class KeycloakService {
       const response = await axios.post(`${this.baseUrl}/realms/${this.adminRealm}/protocol/openid-connect/token`, 
         `grant_type=password&client_id=admin-cli&username=${this.adminUsername}&password=${this.adminPassword}`,
         {
-          headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          httpsAgent: this.httpsAgent
         }
       );
       return response.data.access_token;
@@ -56,7 +63,8 @@ class KeycloakService {
       const response = await axios.post(`${this.baseUrl}/realms/${this.realm}/protocol/openid-connect/token`,
         requestBody,
         {
-          headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          httpsAgent: this.httpsAgent
         }
       );
       return response.data;
@@ -180,7 +188,8 @@ class KeycloakService {
           headers: {
             'Authorization': `Bearer ${adminToken}`,
             'Content-Type': 'application/json'
-          }
+          },
+          httpsAgent: this.httpsAgent
         }
       );
 

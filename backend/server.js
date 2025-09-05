@@ -2,17 +2,43 @@ const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
-require('dotenv').config({ path: './config.env' });
+// Load environment variables based on NODE_ENV
+if (process.env.NODE_ENV === 'test') {
+  require('dotenv').config({ path: './config.test.env' });
+} else {
+  require("dotenv").config({ path: "../config.env" });
+  // Load secrets if available
+  try {
+    require("dotenv").config({ path: "../secrets.env" });
+  } catch (error) {
+    console.log('⚠️ Secrets file not found, using config.env only');
+  }
+}
 
 const db = require('./models');
 const BlockchainService = require('./services/blockchainService');
 const blockchainService = new BlockchainService();
 const { authenticateToken } = require('./middleware/auth');
 
+// Ensure database models are synced
+async function syncDatabase() {
+  try {
+    console.log('🔧 Syncing database models...');
+    await db.sequelize.sync({ force: false, alter: false });
+    console.log('✅ Database models synced successfully');
+  } catch (error) {
+    console.error('❌ Database sync failed:', error.message);
+    // Don't fail startup, just log the error
+  }
+}
+
 // Import routes
+const authRouter = require('./routes/auth');
+const userRouter = require('./routes/users');
 const contractsRouter = require('./routes/contracts');
 const datasetsRouter = require('./routes/datasets');
-const authRouter = require('./routes/auth');
+const scittCcfRouter = require('./routes/scitt-ccf');
+const provenanceRouter = require('./routes/provenance');
 const didRouter = require('./routes/did');
 const dpdpRouter = require('./routes/dpdp');
 const signingRouter = require('./routes/signing');
@@ -33,9 +59,6 @@ const differentialPrivacyRouter = require('./routes/differential-privacy-simple'
 
 // Import contract template routes
 const contractTemplatesRouter = require('./routes/contract-templates');
-
-// Import SCITT CCF routes
-const scittCcfRouter = require('./routes/scitt-ccf');
 
 const app = express();
 const PORT = process.env.PORT || 8000;
@@ -89,7 +112,9 @@ setInterval(() => {
 async function checkKeycloakHealth() {
   try {
     const axios = require('axios');
-    const response = await axios.get('http://localhost:8080/health');
+    const response = await axios.get('${KEYCLOAK_URL:-https://localhost:8443}/health', { 
+      httpsAgent: new (require('https').Agent)({ rejectUnauthorized: false }) 
+    });
     logger.info('✅ Keycloak health check passed');
     return true;
   } catch (error) {
@@ -123,7 +148,7 @@ const corsOptions = {
     if (!origin) return callback(null, true);
     
     const allowedOrigins = [
-      'http://localhost:3000',
+      '${FRONTEND_URL:-http://localhost:3000}',
       'http://localhost:3001',
       'http://127.0.0.1:3000',
       'http://127.0.0.1:3001'
@@ -156,9 +181,10 @@ app.get('/health', (req, res) => {
 });
 
 // API routes
+app.use('/api/auth', authRouter);
+app.use('/api/users', userRouter);
 app.use('/api/contracts', contractsRouter);
 app.use('/api/datasets', datasetsRouter);
-app.use('/api/auth', authRouter);
 app.use('/api/did', didRouter);
 app.use('/api/dpdp', dpdpRouter);
 app.use('/api/signing', signingRouter);
@@ -169,6 +195,7 @@ app.use('/api/contract-templates', contractTemplatesRouter);
 
 // SCITT CCF routes
 app.use('/api/scitt-ccf', scittCcfRouter);
+app.use('/api/provenance', provenanceRouter);
 
 // Role-specific routes
 app.use('/api/admin', adminRouter);
@@ -182,6 +209,10 @@ app.use('/api/infrastructure', infrastructureRouter);
 // Training routes
 app.use('/api/training', trainingRouter);
 app.use('/api/dp', differentialPrivacyRouter);
+
+// Debug routes
+const debugRouter = require('./routes/debug');
+app.use('/api/debug', debugRouter);
 
 // Error handling middleware
 app.use((err, req, res, next) => {
@@ -208,17 +239,41 @@ async function initializeServices() {
     // Email service is auto-initialized in constructor
     console.log('✅ Email service initialized');
 
-    // Test database connection
-    await db.sequelize.authenticate();
-    logger.info('Database connection established successfully.');
+    // Test database connection with retry
+    console.log('🔍 Testing database connection...');
+    let retries = 3;
+    while (retries > 0) {
+      try {
+        await db.sequelize.authenticate();
+        logger.info('Database connection established successfully.');
+        break;
+      } catch (error) {
+        retries--;
+        if (retries === 0) {
+          throw error;
+        }
+        console.log(`⚠️ Database connection failed, retrying... (${retries} attempts left)`);
+        await new Promise(resolve => setTimeout(resolve, 2000));
+      }
+    }
 
-    // Initialize blockchain service
-    console.log('🔗 Initializing blockchain service...');
-    await blockchainService.initialize();
-    logger.info('Blockchain service initialized successfully.');
+    // Sync database schema from models (create if not exists)
+    console.log('🏗️  Syncing database schema from models...');
+    await db.sequelize.sync({ force: false });
+    console.log('✅ Database schema synced successfully from models');
 
-    // Check Keycloak health
-    await checkKeycloakHealth();
+    // Initialize blockchain service only if enabled
+    if (process.env.BLOCKCHAIN_ENABLED !== 'false') {
+      console.log('🔗 Initializing blockchain service...');
+      await blockchainService.initialize();
+      logger.info('Blockchain service initialized successfully.');
+    } else {
+      console.log('ℹ️  Blockchain service disabled in configuration (BLOCKCHAIN_ENABLED=false)');
+    }
+
+    // Check Keycloak health (temporarily disabled)
+    // await checkKeycloakHealth();
+    console.log('⚠️ Keycloak health check skipped for now');
 
     // Start server
     app.listen(PORT, () => {
@@ -229,6 +284,8 @@ async function initializeServices() {
 
   } catch (error) {
     logger.error('Failed to initialize services:', error);
+    console.error('Full error details:', error);
+    console.error('Error stack:', error.stack);
     process.exit(1);
   }
 }

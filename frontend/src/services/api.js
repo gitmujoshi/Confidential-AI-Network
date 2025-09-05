@@ -119,7 +119,7 @@ api.interceptors.response.use(
 );
 
 // MOCK MODE: To enable mock API responses for registration, you can use either:
-// 1. URL parameter: Add ?mock=true to your URL (e.g., http://localhost:3000?mock=true)
+// 1. URL parameter: Add ?mock=true to your URL (e.g., ${FRONTEND_URL:-http://localhost:3000}?mock=true)
 // 2. Browser console: localStorage.setItem('USE_MOCK_API', 'true') (if localStorage is available)
 // To disable, remove the URL parameter or run: localStorage.removeItem('USE_MOCK_API')
 //
@@ -202,6 +202,10 @@ const realApiService = {
   },
   getContract: async (contractId) => {
     const response = await api.get(`/api/contracts/${contractId}`);
+    return response.data;
+  },
+  getContractTemplates: async () => {
+    const response = await api.get('/api/contract-templates');
     return response.data;
   },
   createContract: async (contractData) => {
