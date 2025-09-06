@@ -14,10 +14,11 @@ class KeycloakService {
     this.adminUsername = process.env.KEYCLOAK_ADMIN_USERNAME || 'admin';
     this.adminPassword = process.env.KEYCLOAK_ADMIN_PASSWORD || '***REMOVED-KEYCLOAK_ADMIN_PASSWORD***';
     
-    // Configure axios to handle HTTPS with self-signed certificates in development
-    this.httpsAgent = new https.Agent({
+    // Configure axios based on URL scheme
+    this.isHttps = this.baseUrl.startsWith('https://');
+    this.httpsAgent = this.isHttps ? new https.Agent({
       rejectUnauthorized: false
-    });
+    }) : null;
   }
 
   /**
@@ -155,8 +156,8 @@ class KeycloakService {
     try {
       const adminToken = await this.getAdminToken();
       
-      // Generate temporary password
-      const temporaryPassword = this.generateTemporaryPassword();
+      // Use provided password or generate temporary password
+      const password = userData.password || this.generateTemporaryPassword();
       
       // Prepare user data for Keycloak
       const ***REMOVED-KEYCLOAK_DB_PASSWORD***UserData = {
@@ -168,8 +169,8 @@ class KeycloakService {
         emailVerified: false,
         credentials: [{
           type: 'password',
-          value: temporaryPassword,
-          temporary: false
+          value: password,
+          temporary: !userData.password // Only temporary if no password provided
         }],
         attributes: {
           partyType: [userData.partyType],
@@ -214,7 +215,7 @@ class KeycloakService {
 
       return {
         ***REMOVED-KEYCLOAK_DB_PASSWORD***UserId: userId,
-        temporaryPassword: temporaryPassword,
+        temporaryPassword: password, // Return the actual password used
         username: userData.email,
         email: userData.email
       };
