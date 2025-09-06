@@ -25,6 +25,7 @@ import UserRegistration from './pages/UserRegistration';
 import Login from './pages/Login';
 import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
+import FirstLoginWizard from './pages/FirstLoginWizard';
 import EnterpriseDIDManagement from './pages/EnterpriseDIDManagement';
 import Profile from './pages/Profile';
 import TestContracts from './pages/TestContracts';
@@ -167,6 +168,12 @@ function AppRoutes() {
         <PublicRoute>
           <ResetPassword />
         </PublicRoute>
+      } />
+      
+      <Route path="/first-login" element={
+        <ProtectedRoute>
+          <FirstLoginWizard />
+        </ProtectedRoute>
       } />
       
       {/* Protected Routes */}
