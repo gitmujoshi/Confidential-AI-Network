@@ -45,6 +45,7 @@ const didRouter = require('./routes/did');
 const dpdpRouter = require('./routes/dpdp');
 const signingRouter = require('./routes/signing');
 const aiModelsRouter = require('./routes/ai-models');
+const notificationsRouter = require('./routes/notifications');
 
 // Import role-specific routes
 const adminRouter = require('./routes/admin');
@@ -178,6 +179,7 @@ app.use('/api/did', didRouter);
 app.use('/api/dpdp', dpdpRouter);
 app.use('/api/signing', signingRouter);
 app.use('/api/ai-models', aiModelsRouter);
+app.use('/api/notifications', notificationsRouter);
 
 // Contract template routes
 app.use('/api/contract-templates', contractTemplatesRouter);
