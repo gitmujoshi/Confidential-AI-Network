@@ -599,6 +599,37 @@ router.post('/login', logAuthEvent('LOGIN'), async (req, res) => {
       
     } catch (kcError) {
       console.error('❌ Keycloak authentication failed:', kcError);
+      
+      // Check if this is a first-login scenario (account not fully set up)
+      if (kcError.message && kcError.message.includes('Account is not fully set up')) {
+        console.log('🔐 First-login detected: Account requires setup, returning requiresPasswordChange');
+        
+        // Find user for first-login response
+        const user = await db.User.findOne({ 
+          where: { 
+            email: email.toLowerCase(), 
+            isActive: true 
+          } 
+        });
+        
+        if (user) {
+          return res.json({
+            message: 'First login detected - password change required',
+            requiresPasswordChange: true,
+            isFirstLogin: true,
+            user: {
+              id: user.id,
+              email: email,
+              name: user?.name || 'User',
+              partyType: user?.partyType || 'User',
+              depaId: user?.depaId || null,
+              firstLogin: user.firstLogin
+            },
+            note: 'Please complete the first-login setup to continue'
+          });
+        }
+      }
+      
       return res.status(401).json({
         error: 'Authentication failed',
         code: 'AUTHENTICATION_FAILED',

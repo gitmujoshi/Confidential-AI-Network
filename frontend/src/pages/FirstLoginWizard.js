@@ -404,14 +404,21 @@ const FirstLoginWizard = () => {
     </Card>
   );
 
-  // Redirect if user is not logged in or doesn't need first login
-  if (!currentUser) {
-    navigate('/login');
-    return null;
-  }
+  // Handle navigation in useEffect to prevent infinite loops
+  React.useEffect(() => {
+    if (!currentUser) {
+      navigate('/login');
+      return;
+    }
 
-  if (!currentUser.firstLogin) {
-    navigate('/dashboard');
+    if (!currentUser.firstLogin) {
+      navigate('/dashboard');
+      return;
+    }
+  }, [currentUser, navigate]);
+
+  // Don't render if user is not ready or doesn't need first login
+  if (!currentUser || !currentUser.firstLogin) {
     return null;
   }
 
