@@ -574,7 +574,7 @@ handle_test() {
                 ./scripts/test-admin-user.sh
             else
                 print_status $BLUE "Testing all user roles..."
-                ./scripts/test-all-user-roles.sh
+                ./scripts/test-user-roles-all.sh
             fi
             ;;
         datasets)
