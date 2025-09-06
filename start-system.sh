@@ -19,7 +19,7 @@ load_centralized_config() {
     if [ -f "config.env" ]; then
         echo "✅ Loading centralized configuration from config.env"
         source config.env
-        echo "🔗 SCITT CCF Mode: ${SCITT_CCF_ENABLED:-false}"
+        echo "🔗 SCITT CCF Mode: ${SCITT_CCF_ENABLED}"
     else
         echo "❌ Centralized configuration file not found: config.env"
         echo "⚠️ Please ensure config.env exists"
@@ -84,17 +84,8 @@ for i in {1..30}; do
 done
 
 echo ""
-echo -e "${BLUE}🔧 Step 2: Setting up Keycloak configuration...${NC}"
-
-# Setup Keycloak configuration
-if [ -f "backend/setup-keycloak-persistent.sh" ]; then
-    chmod +x backend/setup-keycloak-persistent.sh
-    cd backend
-    ./setup-keycloak-persistent.sh --skip-user-sync || echo "⚠️  Keycloak setup had minor issues but continuing..."
-    cd ..
-else
-    echo "⚠️  Keycloak setup script not found"
-fi
+echo -e "${BLUE}🔧 Step 2: Keycloak configuration...${NC}"
+echo "✅ Using existing Keycloak configuration (persistent setup)"
 
 echo ""
 echo -e "${BLUE}🔗 Step 3: Starting SCITT CCF services (if enabled)...${NC}"

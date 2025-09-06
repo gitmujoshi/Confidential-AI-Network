@@ -1,181 +1,173 @@
 #!/bin/bash
 
-# Contract Management System - Status Check Script
+# Local Services Status Script
+# This script shows status of local services using centralized configuration
 
-echo "📊 Contract Management System Status"
-echo "====================================="
+set -e
 
 # Colors
-GREEN='\033[0;32m'
 RED='\033[0;31m'
+GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m'
 
-# Function to check service status
-check_service() {
-    local name=$1
-    local url=$2
-    local port=$3
-    local process_name=$4
+echo -e "${BLUE}📊 Contract Management System - Local Status${NC}"
+echo "=================================================="
+
+# Function to validate required environment variables
+validate_required_vars() {
+    local missing_vars=()
     
-    echo -n "$name: "
+    for var in "$@"; do
+        if [ -z "${!var}" ]; then
+            missing_vars+=("$var")
+        fi
+    done
     
-    # Special handling for Keycloak (Docker container)
-    if [ "$name" = "Keycloak IAM" ]; then
-        if command -v docker &> /dev/null && docker ps | grep -q "keycloak-cms"; then
-            echo -e "${GREEN}✅ RUNNING${NC}"
-        else
-            echo -e "${RED}❌ NOT RUNNING${NC}"
-        fi
-    else
-        # Check if process is running
-        if pgrep -f "$process_name" >/dev/null 2>&1; then
-            echo -e "${GREEN}✅ RUNNING${NC}"
-        else
-            echo -e "${RED}❌ NOT RUNNING${NC}"
-        fi
+    if [ ${#missing_vars[@]} -gt 0 ]; then
+        echo -e "${RED}❌ ERROR: Required environment variables are missing:${NC}"
+        for var in "${missing_vars[@]}"; do
+            echo -e "  - $var"
+        done
+        echo -e "${YELLOW}💡 Make sure config.env is properly configured and sourced${NC}"
+        exit 1
     fi
-    
-    echo "  URL: $url"
-    echo "  Port: $port"
-    echo ""
 }
 
-# Function to check Docker container status
-check_docker_container() {
-    local name=$1
-    local container_name=$2
-    local url=$3
-    local port=$4
-    local description=$5
-    
-    echo -n "$name: "
-    if command -v docker &> /dev/null && docker ps | grep -q "$container_name"; then
-        echo -e "${GREEN}✅ RUNNING${NC}"
-        echo "  Container: $container_name"
-        echo "  URL: $url"
-        echo "  Port: $port"
-        if [ -n "$description" ]; then
-            echo "  Description: $description"
-        fi
-    else
-        echo -e "${RED}❌ NOT RUNNING${NC}"
-        echo "  Container: $container_name"
-        echo "  URL: $url"
-        echo "  Port: $port"
-    fi
-    echo ""
-}
-
-# Check each service
-check_service "Keycloak IAM" "http://localhost:8080" "8080" "keycloak"
-check_service "Backend API" "http://localhost:5001/health" "5001" "node server.js"
-check_service "Frontend" "http://localhost:3000" "3000" "react-scripts"
-
-# Check PostgreSQL Databases
-echo "🗄️  PostgreSQL Databases:"
-echo "=========================="
-check_docker_container "Main App Database" "postgres-app" "postgresql://localhost:5432/contract_management" "5432" "Main application database"
-check_docker_container "Keycloak Database" "postgres-keycloak" "postgresql://localhost:5433/keycloak" "5433" "Keycloak IAM database"
-check_docker_container "SCITT CCF Database" "scitt-ccf-postgres-dev" "postgresql://localhost:5434/scitt_ccf_dev" "5434" "SCITT CCF ledger database"
-
-# Check SCITT CCF Services (Blockchain/Ledger)
-echo "⛓️  SCITT CCF Blockchain Services:"
-echo "===================================="
-check_docker_container "SCITT CCF Node" "scitt-ccf-node-dev" "http://localhost:8000" "8000" "Main blockchain/ledger node"
-check_docker_container "SCITT CCF Dashboard" "scitt-ccf-dashboard-dev" "http://localhost:8082" "8082" "Blockchain monitoring dashboard"
-check_docker_container "SCITT CCF Monitor" "scitt-ccf-monitor-dev" "N/A" "N/A" "Blockchain monitoring service"
-check_docker_container "SCITT CCF Redis" "scitt-ccf-redis-dev" "redis://localhost:6379" "6379" "Blockchain cache and session store"
-
-# Note: Hardhat and Ganache are not needed as SCITT CCF provides blockchain functionality
-
-# Check Docker containers
-echo "🐳 Docker Container Status:"
-echo "==========================="
-if command -v docker &> /dev/null; then
-    if docker ps | grep -q "keycloak-cms"; then
-        echo -e "  ${GREEN}✅ Keycloak container running${NC}"
-    else
-        echo -e "  ${RED}❌ Keycloak container not running${NC}"
-    fi
-    
-    # Check PostgreSQL containers
-    if docker ps | grep -q "postgres-app"; then
-        echo -e "  ${GREEN}✅ Main PostgreSQL container running${NC}"
-    else
-        echo -e "  ${RED}❌ Main PostgreSQL container not running${NC}"
-    fi
-    
-    if docker ps | grep -q "postgres-keycloak"; then
-        echo -e "  ${GREEN}✅ Keycloak PostgreSQL container running${NC}"
-    else
-        echo -e "  ${RED}❌ Keycloak PostgreSQL container not running${NC}"
-    fi
-    
-    if docker ps | grep -q "scitt-ccf-postgres-dev"; then
-        echo -e "  ${GREEN}✅ SCITT CCF PostgreSQL container running${NC}"
-    else
-        echo -e "  ${RED}❌ SCITT CCF PostgreSQL container not running${NC}"
-    fi
-    
-    # Check SCITT CCF containers
-    if docker ps | grep -q "scitt-ccf-node-dev"; then
-        echo -e "  ${GREEN}✅ SCITT CCF Node container running${NC}"
-    else
-        echo -e "  ${RED}❌ SCITT CCF Node container not running${NC}"
-    fi
-    
-    if docker ps | grep -q "scitt-ccf-dashboard-dev"; then
-        echo -e "  ${GREEN}✅ SCITT CCF Dashboard container running${NC}"
-    else
-        echo -e "  ${RED}❌ SCITT CCF Dashboard container not running${NC}"
-    fi
+# Load centralized configuration
+if [ -f "config.env" ]; then
+    echo -e "${GREEN}✅ Loading centralized configuration from config.env${NC}"
+    source config.env
 else
-    echo -e "  ${YELLOW}⚠️  Docker not installed${NC}"
+    echo -e "${RED}❌ Centralized configuration file not found: config.env${NC}"
+    exit 1
 fi
 
-echo ""
-echo "📝 PID Files:"
-if [ -f "../../.keycloak.pid" ]; then
-    echo -e "  ${GREEN}✅ .keycloak.pid${NC}"
-else
-    echo -e "  ${RED}❌ .keycloak.pid${NC}"
+# Validate required environment variables
+validate_required_vars "BACKEND_PORT" "FRONTEND_PORT" "KEYCLOAK_URL" "KEYCLOAK_REALM" "DB_PORT"
+
+# Load secrets (if available)
+if [ -f "secrets.env" ]; then
+    echo -e "${GREEN}✅ Loading secrets from secrets.env${NC}"
+    source secrets.env
 fi
 
-if [ -f "../../.hardhat.pid" ]; then
-    echo -e "  ${GREEN}✅ .hardhat.pid${NC}"
-else
-    echo -e "  ${RED}❌ .hardhat.pid${NC}"
+# Check if we're in the right directory
+if [ ! -f "docker-compose.keycloak-dev.yml" ]; then
+    echo -e "${RED}❌ Please run this script from the project root directory${NC}"
+    exit 1
 fi
 
-if [ -f "../../.backend.pid" ]; then
-    echo -e "  ${GREEN}✅ .backend.pid${NC}"
+# Check Docker services
+echo -e "${BLUE}🐳 Docker Services:${NC}"
+if docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}" | grep -E "(postgres|keycloak|scitt)" >/dev/null; then
+    docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}" | grep -E "(postgres|keycloak|scitt)"
 else
-    echo -e "  ${RED}❌ .backend.pid${NC}"
+    echo -e "${RED}❌ No Docker services running${NC}"
 fi
 
-if [ -f "../../.frontend.pid" ]; then
-    echo -e "  ${GREEN}✅ .frontend.pid${NC}"
+# Check ports (using centralized config)
+echo -e "\n${BLUE}🔌 Port Status (from centralized config):${NC}"
+for port in ${FRONTEND_PORT} ${BACKEND_PORT} ${DB_PORT} 8000 8082 8443; do
+    if lsof -i :$port >/dev/null 2>&1; then
+        echo -e "  Port $port: ${GREEN}✅ In Use${NC}"
+    else
+        echo -e "  Port $port: ${RED}❌ Available${NC}"
+    fi
+done
+
+# Check HTTPS Keycloak (using centralized config)
+echo -e "\n${BLUE}🔐 Keycloak IAM (from centralized config):${NC}"
+if curl -k -s "${KEYCLOAK_URL}/realms/master" >/dev/null 2>&1; then
+    echo -e "  Keycloak: ${GREEN}✅ Running${NC}"
+    echo -e "  URL: ${KEYCLOAK_URL}"
+    echo -e "  Admin Console: ${KEYCLOAK_URL}/admin"
+    echo -e "  Realm: ${KEYCLOAK_REALM}"
 else
-    echo -e "  ${RED}❌ .frontend.pid${NC}"
+    echo -e "  Keycloak: ${RED}❌ Not accessible${NC}"
+    echo -e "  Expected URL: ${KEYCLOAK_URL}"
 fi
 
-echo ""
-echo "🔗 Quick Access:"
-echo "  Frontend: http://localhost:3000"
-echo "  Backend API: http://localhost:5001/api"
-echo "  Keycloak Admin: http://localhost:8080 (admin/admin123)"
-echo "  SCITT CCF Node: http://localhost:8000 (Blockchain/Ledger)"
-echo "  SCITT CCF Dashboard: http://localhost:8082 (Blockchain Monitoring)"
-echo ""
-echo "🗄️  Database Connections:"
-echo "  Main App DB: postgresql://postgres:postgres@localhost:5432/contract_management"
-echo "  Keycloak DB: postgresql://keycloak:keycloak@localhost:5433/keycloak"
-echo "  SCITT CCF DB: postgresql://scitt_user:scitt_pass@localhost:5434/scitt_ccf_dev"
-echo "  Redis Cache: redis://localhost:6379"
-echo ""
-echo "📋 Commands:"
-echo "  Start all: ./start-services.sh"
-echo "  Stop all:  ./stop-services.sh"
-echo "  Status:    ./status.sh" 
+# Check SCITT CCF services (using centralized config)
+echo -e "\n${BLUE}⛓️ SCITT CCF Services (from centralized config):${NC}"
+if curl -s "${SCITT_CCF_URL}/app/health" >/dev/null 2>&1; then
+    echo -e "  SCITT CCF Node: ${GREEN}✅ Running${NC}"
+    echo -e "  URL: ${SCITT_CCF_URL}"
+else
+    echo -e "  SCITT CCF Node: ${RED}❌ Not accessible${NC}"
+    echo -e "  Expected URL: ${SCITT_CCF_URL}"
+fi
+
+if curl -s "${SCITT_CCF_DASHBOARD_URL}" >/dev/null 2>&1; then
+    echo -e "  SCITT CCF Dashboard: ${GREEN}✅ Running${NC}"
+    echo -e "  URL: ${SCITT_CCF_DASHBOARD_URL}"
+else
+    echo -e "  SCITT CCF Dashboard: ${RED}❌ Not accessible${NC}"
+fi
+
+# Check application services (using centralized config)
+echo -e "\n${BLUE}🚀 Application Services (from centralized config):${NC}"
+if curl -s "http://localhost:${BACKEND_PORT}/health" >/dev/null 2>&1; then
+    echo -e "  Backend: ${GREEN}✅ Running${NC}"
+    echo -e "  URL: http://localhost:${BACKEND_PORT}"
+else
+    echo -e "  Backend: ${RED}❌ Not accessible${NC}"
+    echo -e "  Expected URL: http://localhost:${BACKEND_PORT}"
+fi
+
+if curl -s "http://localhost:${FRONTEND_PORT}" >/dev/null 2>&1; then
+    echo -e "  Frontend: ${GREEN}✅ Running${NC}"
+    echo -e "  URL: http://localhost:${FRONTEND_PORT}"
+else
+    echo -e "  Frontend: ${RED}❌ Not accessible${NC}"
+    echo -e "  Expected URL: http://localhost:${FRONTEND_PORT}"
+fi
+
+# Test IAM integration (using centralized config)
+echo -e "\n${BLUE}🧪 IAM Integration Test (using centralized config):${NC}"
+LOGIN_RESPONSE=$(curl -s -X POST "http://localhost:${BACKEND_PORT}/api/auth/login" \
+    -H "Content-Type: application/json" \
+    -d '{"email":"admin@contractmanagement.com","password":"admin123"}' 2>/dev/null || echo "FAILED")
+
+if echo "$LOGIN_RESPONSE" | grep -q "accessToken"; then
+    echo -e "  Login Test: ${GREEN}✅ Success${NC}"
+else
+    echo -e "  Login Test: ${RED}❌ Failed${NC}"
+    echo "  Response: $LOGIN_RESPONSE"
+fi
+
+# Check running processes (improved detection)
+echo -e "\n${BLUE}📁 Service Process Status:${NC}"
+
+# Check backend process
+BACKEND_PID=$(ps aux | grep -E "node.*server\.js" | grep -v grep | awk '{print $2}' | head -1)
+if [ -n "$BACKEND_PID" ]; then
+    echo -e "  Backend Process: ${GREEN}✅ Running (PID: $BACKEND_PID)${NC}"
+else
+    echo -e "  Backend Process: ${RED}❌ Not running${NC}"
+fi
+
+# Check frontend process
+FRONTEND_PID=$(ps aux | grep -E "npm.*start|react-scripts" | grep -v grep | awk '{print $2}' | head -1)
+if [ -n "$FRONTEND_PID" ]; then
+    echo -e "  Frontend Process: ${GREEN}✅ Running (PID: $FRONTEND_PID)${NC}"
+else
+    echo -e "  Frontend Process: ${RED}❌ Not running${NC}"
+fi
+
+echo -e "\n${BLUE}🔗 Quick Access (from centralized config):${NC}"
+echo "  Frontend: http://localhost:${FRONTEND_PORT}"
+echo "  Backend API: http://localhost:${BACKEND_PORT}/api"
+echo "  Keycloak Admin: ${KEYCLOAK_URL}/admin (${KEYCLOAK_ADMIN_USER}/${KEYCLOAK_ADMIN_PASSWORD})"
+echo "  SCITT CCF Node: ${SCITT_CCF_URL}"
+echo "  SCITT CCF Dashboard: ${SCITT_CCF_DASHBOARD_URL}"
+echo "  Database: localhost:${DB_PORT}"
+
+echo -e "\n${BLUE}📋 Commands:${NC}"
+echo "  Start: ./scripts/script-manager.sh system start"
+echo "  Stop: ./scripts/script-manager.sh system stop"
+echo "  Status: ./scripts/script-manager.sh system status"
+echo "  Config: ./scripts/config-loader.js"
+
+echo -e "\n${YELLOW}⚠️  Using centralized configuration from config.env${NC}" 
