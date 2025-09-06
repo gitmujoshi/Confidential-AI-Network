@@ -5,6 +5,8 @@ const { BlockchainService, NotificationService, ricardianContractService } = req
 const blockchainService = new BlockchainService();
 const notificationService = new NotificationService();
 const { authenticateToken } = require('../middleware/auth');
+const ContractValidationService = require('../services/contractValidationService');
+const contractValidationService = new ContractValidationService();
 
 /**
  * Enhanced DID signature verification using DID service
@@ -61,10 +63,8 @@ router.get('/', async (req, res) => {
     const contracts = await db.Contract.findAndCountAll({
       where: whereClause,
       include: [
-        { model: db.User, as: 'tdp', attributes: ['id', 'name', 'email', 'walletAddress'] },
         { model: db.User, as: 'tdc', attributes: ['id', 'name', 'email', 'walletAddress'] },
-        { model: db.User, as: 'ccrp', attributes: ['id', 'name', 'email', 'walletAddress', 'cloudProviders', 'description'] },
-        { model: db.Dataset, as: 'dataset', attributes: ['id', 'name', 'description', 'category'] }
+        { model: db.User, as: 'ccrp', attributes: ['id', 'name', 'email', 'walletAddress', 'cloudProviders', 'description'] }
       ],
       order: [['createdAt', 'DESC']],
       limit: parseInt(limit),
@@ -174,10 +174,8 @@ router.get('/user/:userId', async (req, res) => {
     const contracts = await db.Contract.findAndCountAll({
       where: whereClause,
       include: [
-        { model: db.User, as: 'tdp', attributes: ['id', 'name', 'email', 'walletAddress'] },
         { model: db.User, as: 'tdc', attributes: ['id', 'name', 'email', 'walletAddress'] },
-        { model: db.User, as: 'ccrp', attributes: ['id', 'name', 'email', 'walletAddress', 'cloudProviders', 'description'] },
-        { model: db.Dataset, as: 'dataset', attributes: ['id', 'name', 'description', 'category'] }
+        { model: db.User, as: 'ccrp', attributes: ['id', 'name', 'email', 'walletAddress', 'cloudProviders', 'description'] }
       ],
       order: [['createdAt', 'DESC']],
       limit: parseInt(limit),
@@ -461,39 +459,38 @@ router.post('/ricardian', authenticateToken, async (req, res) => {
   try {
     console.log('🔍 Ricardian contract creation request body:', req.body);
     console.log('🔍 Ricardian contract creation user:', req.user?.localUser);
-    console.log('🔍 Using UPDATED validation logic for multi-dataset format');
+    console.log('🔍 Using Value Objects validation for enhanced data integrity');
     
+    // Validate contract data using Value Objects
+    let validatedData;
+    try {
+      validatedData = contractValidationService.validateContractCreation(req.body);
+      console.log('✅ Value Objects validation passed');
+    } catch (validationError) {
+      console.log('❌ Value Objects validation failed:', validationError.message);
+      return res.status(400).json({ 
+        error: 'Contract validation failed', 
+        details: validationError.message 
+      });
+    }
+
     const {
-      datasetSelections, // Array of {datasetId, individualPrice} objects
-      aiModelIds, // Array of AI model IDs to link to contract
+      datasetSelections,
+      aiModelIds,
       duration,
       termsAndConditions,
       ccrpId,
-      contractType = 'AI_TRAINING',
+      contractType,
       environmentSpecs,
       trainingParams,
-      privacyRequirements, // New privacy requirements object
-      trainingEnvironment, // New comprehensive training environment
-      complianceSpecs, // New compliance specifications
+      privacyRequirements,
+      trainingEnvironment,
+      complianceSpecs,
       kmsConfigs,
-      // Global DEPA ID options
       globalDEPAId,
       deploymentPrefix,
       jurisdiction
-    } = req.body;
-
-    // Validate required fields for new format
-    if (!datasetSelections || !Array.isArray(datasetSelections) || datasetSelections.length === 0) {
-      console.log('❌ Missing or invalid datasetSelections:', datasetSelections);
-      return res.status(400).json({ error: 'Missing or invalid datasetSelections' });
-    }
-
-    if (!duration || !termsAndConditions) {
-      console.log('❌ Missing required fields:', { duration, termsAndConditions });
-      return res.status(400).json({ error: 'Missing required fields: duration and termsAndConditions' });
-    }
-
-    console.log('✅ Validation passed for new format');
+    } = validatedData;
 
     // Get TDC user from authentication context
     const tdcUser = req.user?.localUser;
@@ -548,7 +545,7 @@ router.post('/ricardian', authenticateToken, async (req, res) => {
     let ccrpUser = null;
     if (ccrpId) {
       ccrpUser = await db.User.findOne({
-        where: { id: ccrpId, partyType: 'CCRP' }
+        where: { id: parseInt(ccrpId), partyType: 'CCRP' }
       });
 
       if (!ccrpUser) {
@@ -560,15 +557,15 @@ router.post('/ricardian', authenticateToken, async (req, res) => {
     let aiModels = [];
     if (aiModelIds && Array.isArray(aiModelIds) && aiModelIds.length > 0) {
       aiModels = await db.AIModel.findAll({
-        where: { id: aiModelIds }
+        where: { id: aiModelIds.map(id => parseInt(id)) }
       });
     }
 
-    // Generate unique contract ID
-    const contractId = `RICARDIAN-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    // Generate unique contract ID using Value Objects
+    const contractId = contractValidationService.generateContractId().value;
 
-    // Calculate total price
-    const totalPrice = validatedDatasets.reduce((sum, { price }) => sum + price, 0);
+    // Calculate total price using Value Objects
+    const totalPrice = contractValidationService.calculateTotalPrice(validatedData.datasetSelections).amount;
 
     console.log(`✅ Creating Ricardian contract with ID: ${contractId}`);
 
@@ -583,7 +580,7 @@ router.post('/ricardian', authenticateToken, async (req, res) => {
       primaryDatasetId: validatedDatasets[0].dataset.id, // Primary dataset for backward compatibility
       aiModelIds: aiModels.map(model => model.id),
       price: totalPrice,
-      duration: parseInt(duration),
+      duration: duration.durationValue,
       termsAndConditions,
       // Store multi-dataset information
       datasetSelections: validatedDatasets.map(({ dataset, price }) => ({

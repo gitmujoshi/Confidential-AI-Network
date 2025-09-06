@@ -1,3 +1,5 @@
+console.log('🚀 Starting backend server with updated CORS configuration...');
+console.log('🚀 Starting backend server with CORS fix...');
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
@@ -112,7 +114,7 @@ setInterval(() => {
 async function checkKeycloakHealth() {
   try {
     const axios = require('axios');
-    const response = await axios.get('${KEYCLOAK_URL:-https://localhost:8443}/health', { 
+    const response = await axios.get(`${process.env.KEYCLOAK_URL || 'https://localhost:8443'}/health`, { 
       httpsAgent: new (require('https').Agent)({ rejectUnauthorized: false }) 
     });
     logger.info('✅ Keycloak health check passed');
@@ -141,26 +143,13 @@ app.use(helmet());
 // });
 // app.use(limiter);
 
-// CORS configuration
+// CORS configuration - Permissive for development
 const corsOptions = {
-  origin: function (origin, callback) {
-    // Allow requests with no origin (like mobile apps or curl requests)
-    if (!origin) return callback(null, true);
-    
-    const allowedOrigins = [
-      '${FRONTEND_URL:-http://localhost:3000}',
-      'http://localhost:3001',
-      'http://127.0.0.1:3000',
-      'http://127.0.0.1:3001'
-    ];
-    
-    if (allowedOrigins.indexOf(origin) !== -1) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
-  credentials: true
+  origin: true, // Allow all origins in development
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin'],
+  optionsSuccessStatus: 200 // Some legacy browsers choke on 204
 };
 
 app.use(cors(corsOptions));
