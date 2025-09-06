@@ -34,7 +34,8 @@ const testSuites = {
       JWT_SECRET: 'test-secret-key',
       DATABASE_URL: '***REMOVED-DB_PASSWORD***ql://mukeshjoshi@localhost:5432/contract_management_test',
       BLOCKCHAIN_ENABLED: 'false',
-      KEYCLOAK_ENABLED: 'false'
+      KEYCLOAK_ENABLED: 'false',
+      SCITT_CCF_ENABLED: 'false'
     }
   },
   integration: {
@@ -46,7 +47,9 @@ const testSuites = {
       'blockchainService.test.js',
       'blockchainService.simple.test.js',
       'blockchainService.constructor.test.js',
-      'simple-ai-model.test.js'
+      'simple-ai-model.test.js',
+      'scitt-ccf-api.test.js',
+      'scitt-ccf-integration.test.js'
     ],
     environment: {
       TEST_MODE: 'integration',
@@ -58,11 +61,40 @@ const testSuites = {
       KEYCLOAK_URL: 'http://localhost:8080',
       KEYCLOAK_REALM: 'contract-management',
       KEYCLOAK_ADMIN_USER: 'admin',
-      KEYCLOAK_ADMIN_PASSWORD: 'admin'
+      KEYCLOAK_ADMIN_PASSWORD: 'admin',
+      SCITT_CCF_ENABLED: 'true',
+      CCF_NODE_URL: 'http://localhost:8000'
     },
     prerequisites: [
       'Keycloak server running on http://localhost:8080',
       'Blockchain node running on http://localhost:8545',
+      'SCITT CCF node running on http://localhost:8000',
+      'PostgreSQL database running'
+    ]
+  },
+  scittCcf: {
+    name: 'SCITT CCF Tests',
+    description: 'SCITT CCF specific integration and API tests',
+    files: [
+      'scitt-ccf-api.test.js',
+      'scitt-ccf-integration.test.js',
+      'contract-state-machine.test.js',
+      'multi-tdp-contracts.test.js'
+    ],
+    environment: {
+      TEST_MODE: 'integration',
+      NODE_ENV: 'test',
+      JWT_SECRET: 'test-secret-key',
+      DATABASE_URL: '***REMOVED-DB_PASSWORD***ql://mukeshjoshi@localhost:5432/contract_management_test',
+      BLOCKCHAIN_ENABLED: 'true',
+      KEYCLOAK_ENABLED: 'true',
+      SCITT_CCF_ENABLED: 'true',
+      CCF_NODE_URL: 'http://localhost:8000',
+      MIGRATION_MODE: 'HYBRID'
+    },
+    prerequisites: [
+      'SCITT CCF node running on http://localhost:8000',
+      'Keycloak server running on http://localhost:8080',
       'PostgreSQL database running'
     ]
   },
@@ -81,7 +113,11 @@ const testSuites = {
       'blockchainService.test.js',
       'blockchainService.simple.test.js',
       'blockchainService.constructor.test.js',
-      'simple-ai-model.test.js'
+      'simple-ai-model.test.js',
+      'scitt-ccf-api.test.js',
+      'scitt-ccf-integration.test.js',
+      'contract-state-machine.test.js',
+      'multi-tdp-contracts.test.js'
     ],
     environment: {
       TEST_MODE: 'auto', // Will automatically choose based on service availability
@@ -89,7 +125,8 @@ const testSuites = {
       JWT_SECRET: 'test-secret-key',
       DATABASE_URL: '***REMOVED-DB_PASSWORD***ql://mukeshjoshi@localhost:5432/contract_management_test',
       BLOCKCHAIN_ENABLED: 'auto',
-      KEYCLOAK_ENABLED: 'auto'
+      KEYCLOAK_ENABLED: 'auto',
+      SCITT_CCF_ENABLED: 'auto'
     }
   }
 };

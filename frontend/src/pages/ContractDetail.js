@@ -336,6 +336,9 @@ function ContractDetail() {
     () => apiService.getContract(contractId)
   );
 
+  // Get datasets for display (handle both old and new format)
+  const displayDatasets = contract?.datasetSelections || contract?.datasets || [];
+
   // Debug: Log contract data to see what Ricardian fields are present
   React.useEffect(() => {
     if (contract) {
@@ -385,7 +388,7 @@ function ContractDetail() {
     ['multi-tdp-status', contractId],
     () => apiService.getMultiTDPContractStatus(contractId),
     {
-      enabled: !!contract?.datasets && contract.datasets.length > 1
+      enabled: !!displayDatasets && displayDatasets.length > 1
     }
   );
 
@@ -412,7 +415,7 @@ function ContractDetail() {
     ['payment-summary', contractId],
     () => apiService.getPaymentSummary(contractId),
     {
-      enabled: !!contract?.datasets && contract.datasets.length > 1
+      enabled: !!displayDatasets && displayDatasets.length > 1
     }
   );
 
@@ -530,8 +533,8 @@ function ContractDetail() {
     }
   );
 
-  // Check if this is a multi-TDP contract
-  const isMultiTDPContract = contract?.datasets && contract.datasets.length > 1;
+  // Check if this is a multi-TDP contract (handle both old and new Ricardian format)
+  const isMultiTDPContract = (displayDatasets && displayDatasets.length > 1);
 
   if (isLoading) {
     return (
@@ -587,7 +590,7 @@ function ContractDetail() {
 
         if (partyType === 'TDP' && isMultiTDPContract) {
           // Find the TDP ID for the current user
-          const tdpDataset = contract.datasets.find(dataset => 
+          const tdpDataset = displayDatasets.find(dataset => 
             dataset.tdpId === currentUser.id || dataset.tdp?.id === currentUser.id
           );
           
@@ -757,9 +760,9 @@ function ContractDetail() {
       tdc: contract.tdc,
       ccrp: contract.ccrp,
       
-      // Dataset information
-      dataset: contract.dataset,
-      datasets: contract.datasets,
+              // Dataset information
+        dataset: displayDatasets[0],
+              datasets: displayDatasets,
       contractDatasets: contract.contractDatasets,
       datasetCount: contract.datasetCount,
       tdpCount: contract.tdpCount,
@@ -846,10 +849,42 @@ function ContractDetail() {
             <CardContent>
               <Box display="flex" justifyContent="space-between" alignItems="flex-start">
                 <Box>
-                  <Typography variant="h5" gutterBottom fontFamily="monospace">
-                    {contract.depaId || 'NULL'}
-                  </Typography>
-                  <Typography variant="body2" color="textSecondary">
+                  {/* Contract ID Field */}
+                  <Box sx={{ mb: 2 }}>
+                    <Typography variant="body2" color="textSecondary" fontSize="0.75rem" gutterBottom>
+                      Contract ID (Ricardian)
+                    </Typography>
+                    <Typography variant="h5" fontFamily="monospace" sx={{ 
+                      backgroundColor: 'grey.100', 
+                      padding: '12px 16px', 
+                      borderRadius: '6px',
+                      border: '1px solid',
+                      borderColor: 'grey.300'
+                    }}>
+                      {contract.contractId || 'NULL'}
+                    </Typography>
+                  </Box>
+                  
+                  {/* Global DEPA ID Field */}
+                  {contract.depaId && (
+                    <Box sx={{ mb: 2 }}>
+                      <Typography variant="body2" color="textSecondary" fontSize="0.75rem" gutterBottom>
+                        Global DEPA ID
+                      </Typography>
+                      <Typography variant="body2" fontFamily="monospace" sx={{ 
+                        backgroundColor: 'primary.50', 
+                        padding: '12px 16px', 
+                        borderRadius: '6px',
+                        border: '1px solid',
+                        borderColor: 'primary.200',
+                        color: 'primary.700'
+                      }}>
+                        {contract.depaId}
+                      </Typography>
+                    </Box>
+                  )}
+                  
+                  <Typography variant="body2" color="textSecondary" mt={1}>
                     Created: {format(new Date(contract.createdAt), 'MMM dd, yyyy HH:mm')}
                   </Typography>
                   {isMultiTDPContract && (
@@ -890,89 +925,103 @@ function ContractDetail() {
                       </TableRow>
                     </TableHead>
                     <TableBody>
-                      {contract.datasets.map((dataset) => (
-                        <TableRow key={dataset.id}>
-                          <TableCell>
-                            <Typography variant="body2" fontWeight="medium">
-                              {dataset.name}
-                            </Typography>
-                            <Typography variant="caption" color="textSecondary">
-                              {dataset.description}
-                            </Typography>
-                            <Typography variant="caption" color="textSecondary" display="block">
-                              Category: {dataset.category} | Size: {dataset.size} MB
-                            </Typography>
-                          </TableCell>
-                          <TableCell>
-                            <Typography variant="body2">
-                              {dataset.tdp?.name || 'Unknown TDP'}
-                            </Typography>
-                            <Typography variant="caption" color="textSecondary">
-                              {dataset.tdp?.email}
-                            </Typography>
-                          </TableCell>
-                          <TableCell>
-                            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
-                              <Typography variant="caption" fontFamily="monospace" fontSize="0.7rem">
-                                Dataset: {dataset.depaId || 'Not assigned'}
+                      {displayDatasets.map((dataset, index) => {
+                        // Handle both old and new dataset formats
+                        const datasetName = dataset.name || dataset.datasetName || `Dataset ${index + 1}`;
+                        const datasetDescription = dataset.description || 'No description available';
+                        const datasetCategory = dataset.category || 'Unknown';
+                        const datasetSize = dataset.size || 0;
+                        const datasetPrice = dataset.price || dataset.individualPrice || 0;
+                        const tdpName = dataset.tdp?.name || dataset.tdpName || 'Unknown TDP';
+                        const tdpEmail = dataset.tdp?.email || 'No email';
+                        const tdpId = dataset.tdp?.id || dataset.tdpId;
+                        const depaId = dataset.depaId || 'Not assigned';
+                        const tdpDepaId = dataset.tdp?.depaId || 'Not assigned';
+                        
+                        return (
+                          <TableRow key={dataset.id || index}>
+                            <TableCell>
+                              <Typography variant="body2" fontWeight="medium">
+                                {datasetName}
                               </Typography>
-                              <Typography variant="caption" fontFamily="monospace" fontSize="0.7rem">
-                                TDP: {dataset.tdp?.depaId || 'Not assigned'}
+                              <Typography variant="caption" color="textSecondary">
+                                {datasetDescription}
                               </Typography>
-                            </Box>
-                          </TableCell>
-                          <TableCell>
-                            <Typography variant="body2" fontWeight="medium">
-                              ${dataset.price}
-                            </Typography>
-                          </TableCell>
-                          <TableCell>
-                            <TDPStatusChip 
-                              signed={dataset.tdpSigned} 
-                              signedAt={dataset.tdpSignedAt}
-                            />
-                          </TableCell>
-                          <TableCell>
-                            <PaymentStatusChip 
-                              paid={dataset.paymentPaid}
-                              paidAt={dataset.paymentPaidAt}
-                              amount={dataset.price}
-                            />
-                          </TableCell>
-                          <TableCell>
-                            <Box display="flex" gap={1}>
-                              {/* TDP Signing */}
-                              {isTDP && (dataset.tdp?.id === currentUser.id || dataset.tdpId === currentUser.id) && 
-                               !dataset.tdpSigned && contract.status === 'PENDING_TDP_APPROVAL' && (
-                                <Button
-                                  variant="outlined"
-                                  size="small"
-                                  onClick={() => handleSignContract('TDP')}
-                                  disabled={signing}
-                                >
-                                  {signing ? 'Signing...' : 'Sign'}
-                                </Button>
-                              )}
-                              
-                              {/* TDC Payment Recording */}
-                              {isTDC && contract.tdc?.id === currentUser.id && 
-                               dataset.tdpSigned && !dataset.paymentPaid && (
-                                <Button
-                                  variant="outlined"
-                                  size="small"
-                                  onClick={() => {
-                                    setSelectedTDP(dataset.tdp);
-                                    setPaymentAmount(dataset.price.toString());
-                                    setPaymentDialogOpen(true);
-                                  }}
-                                >
-                                  Record Payment
-                                </Button>
-                              )}
-                            </Box>
-                          </TableCell>
-                        </TableRow>
-                      ))}
+                              <Typography variant="caption" color="textSecondary" display="block">
+                                Category: {datasetCategory} | Size: {datasetSize} MB
+                              </Typography>
+                            </TableCell>
+                            <TableCell>
+                              <Typography variant="body2">
+                                {tdpName}
+                              </Typography>
+                              <Typography variant="caption" color="textSecondary">
+                                {tdpEmail}
+                              </Typography>
+                            </TableCell>
+                            <TableCell>
+                              <Box sx={{ display: "flex", flexDirection: 'column', gap: 0.5 }}>
+                                <Typography variant="caption" fontFamily="monospace" fontSize="0.7rem">
+                                  Dataset: {depaId}
+                                </Typography>
+                                <Typography variant="caption" fontFamily="monospace" fontSize="0.7rem">
+                                  TDP: {tdpDepaId}
+                                </Typography>
+                              </Box>
+                            </TableCell>
+                            <TableCell>
+                              <Typography variant="body2" fontWeight="medium">
+                                ${datasetPrice}
+                              </Typography>
+                            </TableCell>
+                            <TableCell>
+                              <TDPStatusChip 
+                                signed={dataset.tdpSigned} 
+                                signedAt={dataset.tdpSignedAt}
+                              />
+                            </TableCell>
+                            <TableCell>
+                              <PaymentStatusChip 
+                                paid={dataset.paymentPaid}
+                                paidAt={dataset.paymentPaidAt}
+                                amount={datasetPrice}
+                              />
+                            </TableCell>
+                            <TableCell>
+                              <Box display="flex" gap={1}>
+                                {/* TDP Signing */}
+                                {isTDP && (tdpId === currentUser.id) && 
+                                 !dataset.tdpSigned && contract.status === 'PENDING_TDP_APPROVAL' && (
+                                  <Button
+                                    variant="outlined"
+                                    size="small"
+                                    onClick={() => handleSignContract('TDP')}
+                                    disabled={signing}
+                                  >
+                                    {signing ? 'Signing...' : 'Sign'}
+                                  </Button>
+                                )}
+                                
+                                {/* TDC Payment Recording */}
+                                {isTDC && contract.tdc?.id === currentUser.id && 
+                                 dataset.tdpSigned && !dataset.paymentPaid && (
+                                  <Button
+                                    variant="outlined"
+                                    size="small"
+                                    onClick={() => {
+                                      setSelectedTDP({ id: tdpId, name: tdpName, email: tdpEmail });
+                                      setPaymentAmount(datasetPrice.toString());
+                                      setPaymentDialogOpen(true);
+                                    }}
+                                  >
+                                    Record Payment
+                                  </Button>
+                                )}
+                              </Box>
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
                     </TableBody>
                   </Table>
                 </TableContainer>
@@ -981,19 +1030,19 @@ function ContractDetail() {
                   <Storage color="primary" />
                   <Box>
                     <Typography variant="body1" fontWeight="medium">
-                      {contract.dataset?.name}
+                      {displayDatasets[0]?.name || displayDatasets[0]?.datasetName || 'Dataset'}
                     </Typography>
                     <Typography variant="body2" color="textSecondary">
-                      {contract.dataset?.description}
+                      {displayDatasets[0]?.description || 'No description available'}
                     </Typography>
                     <Typography variant="body2" fontSize="0.75rem" color="textSecondary">
-                      Category: {contract.dataset?.category} | Size: {contract.dataset?.size} MB
+                      Category: {displayDatasets[0]?.category || 'Unknown'} | Size: {displayDatasets[0]?.size || 0} MB
                     </Typography>
                     <Typography variant="caption" fontFamily="monospace" fontSize="0.7rem">
-                      Dataset DEPA ID: {contract.dataset?.depaId || 'Not assigned'}
+                      Dataset DEPA ID: {displayDatasets[0]?.depaId || 'Not assigned'}
                     </Typography>
                     <Typography variant="caption" fontFamily="monospace" fontSize="0.7rem">
-                      TDP DEPA ID: {contract.dataset?.owner?.depaId || 'Not assigned'}
+                      TDP DEPA ID: {displayDatasets[0]?.tdp?.depaId || displayDatasets[0]?.tdpName || 'Not assigned'}
                     </Typography>
                   </Box>
                 </Box>

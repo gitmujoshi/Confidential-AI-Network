@@ -47,9 +47,9 @@ print_status "Creating backup: $BACKUP_NAME"
 
 # Function to get admin token
 get_admin_token() {
-    local response=$(curl -s -X POST "http://localhost:8080/realms/master/protocol/openid-connect/token" \
+    local response=$(curl -k -s -X POST "${KEYCLOAK_URL:-https://localhost:8443}/realms/master/protocol/openid-connect/token" \
         -H "Content-Type: application/x-www-form-urlencoded" \
-        -d "grant_type=password&client_id=admin-cli&username=admin&password=***REMOVED-KEYCLOAK_ADMIN_PASSWORD***")
+        -d "grant_type=password&client_id=admin-cli&username=${KEYCLOAK_ADMIN_USER:-admin}&password=${KEYCLOAK_ADMIN_PASSWORD:-***REMOVED-KEYCLOAK_ADMIN_PASSWORD***}")
     
     echo "$response" | grep -o '"access_token":"[^"]*"' | cut -d'"' -f4
 }
@@ -63,7 +63,7 @@ export_realm() {
     print_status "Exporting realm: $realm_name"
     
     # Export realm configuration
-    curl -s -X GET "http://localhost:8080/admin/realms/$realm_name" \
+    curl -k -s -X GET "${KEYCLOAK_URL:-https://localhost:8443}/admin/realms/$realm_name" \
         -H "Authorization: Bearer $admin_token" \
         -H "Content-Type: application/json" > "$backup_file"
     
@@ -84,7 +84,7 @@ export_users() {
     print_status "Exporting users from realm: $realm_name"
     
     # Export users
-    curl -s -X GET "http://localhost:8080/admin/realms/$realm_name/users" \
+    curl -k -s -X GET "${KEYCLOAK_URL:-https://localhost:8443}/admin/realms/$realm_name/users" \
         -H "Authorization: Bearer $admin_token" \
         -H "Content-Type: application/json" > "$backup_file"
     
@@ -98,7 +98,7 @@ export_users() {
 # Main backup function
 backup_***REMOVED-KEYCLOAK_DB_PASSWORD***() {
     # Check if Keycloak is running
-    if ! curl -s "http://localhost:8080/health" >/dev/null 2>&1; then
+    if ! curl -k -s "${KEYCLOAK_URL:-https://localhost:8443}/realms/master" >/dev/null 2>&1; then
         print_error "Keycloak is not running. Please start Keycloak first."
         exit 1
     fi

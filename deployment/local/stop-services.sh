@@ -1,184 +1,91 @@
 #!/bin/bash
 
-# Contract Management System - Service Stop Script
-# This script stops all services and cleans up processes
+# Local Services Stop Script
+# This script stops all local services using centralized configuration
 
-echo "🛑 Stopping Contract Management System..."
+set -e
 
-# Colors for output
-RED='\033[0;31m'
+# Colors
 GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
-NC='\033[0m' # No Color
+YELLOW='\033[1;33m'
+RED='\033[0;31m'
+NC='\033[0m'
 
-print_status() {
-    echo -e "${BLUE}[INFO]${NC} $1"
-}
+echo -e "${BLUE}🛑 Stopping All Local Services${NC}"
+echo "=============================================="
 
-print_success() {
-    echo -e "${GREEN}[SUCCESS]${NC} $1"
-}
-
-print_warning() {
-    echo -e "${YELLOW}[WARNING]${NC} $1"
-}
-
-# Function to kill process by PID file
-kill_by_pid_file() {
-    local pid_file=$1
-    local service_name=$2
-    
-    if [ -f "$pid_file" ]; then
-        local pid=$(cat "$pid_file")
-        if ps -p $pid > /dev/null 2>&1; then
-            print_status "Stopping $service_name (PID: $pid)..."
-            kill $pid 2>/dev/null || true
-            sleep 2
-            
-            # Force kill if still running
-            if ps -p $pid > /dev/null 2>&1; then
-                print_warning "Force killing $service_name..."
-                kill -9 $pid 2>/dev/null || true
-            fi
-            
-            rm -f "$pid_file"
-            print_success "$service_name stopped"
-        else
-            print_warning "$service_name was not running"
-            rm -f "$pid_file"
-        fi
-    else
-        print_warning "No PID file found for $service_name"
-    fi
-}
-
-# Function to kill processes by name
-kill_process() {
-    local process_name=$1
-    local service_name=$2
-    
-    if pgrep -f "$process_name" >/dev/null; then
-        print_status "Stopping $service_name processes..."
-        pkill -f "$process_name" || true
-        sleep 2
-        
-        # Force kill if still running
-        if pgrep -f "$process_name" >/dev/null; then
-            print_warning "Force killing $service_name..."
-            pkill -9 -f "$process_name" || true
-        fi
-        
-        print_success "$service_name stopped"
-    else
-        print_warning "$service_name was not running"
-    fi
-}
-
-# Stop services by PID files
-print_status "Stopping services by PID files..."
-kill_by_pid_file "../../.frontend.pid" "Frontend"
-kill_by_pid_file "../../.backend.pid" "Backend"
-kill_by_pid_file "../../.scitt-ccf.pid" "SCITT CCF"
-
-# Stop SCITT CCF Docker containers
-print_status "Stopping SCITT CCF Docker containers..."
-cd ../..
-if [ -f "./manage-scitt-ccf.sh" ]; then
-    ./manage-scitt-ccf.sh stop >/dev/null 2>&1 || true
-    print_success "SCITT CCF services stopped"
+# Load centralized configuration
+if [ -f "config/system.env" ]; then
+    echo -e "${GREEN}✅ Loading centralized configuration from config/system.env${NC}"
+    source config/system.env
 else
-    print_warning "manage-scitt-ccf.sh script not found"
-fi
-cd deployment/local
-
-# Stop Keycloak Docker container
-print_status "Stopping Keycloak Docker container..."
-if docker ps | grep -q "***REMOVED-KEYCLOAK_DB_PASSWORD***-cms"; then
-    docker stop ***REMOVED-KEYCLOAK_DB_PASSWORD***-cms 2>/dev/null || true
-    docker rm ***REMOVED-KEYCLOAK_DB_PASSWORD***-cms 2>/dev/null || true
-    print_success "Keycloak Docker container stopped"
-else
-    print_warning "Keycloak Docker container was not running"
+    echo -e "${RED}❌ Centralized configuration file not found: config/system.env${NC}"
+    echo -e "${YELLOW}⚠️ Using default values${NC}"
+    BACKEND_PORT=5001
+    FRONTEND_PORT=3000
+    KEYCLOAK_URL=https://localhost:8443
+    SCITT_CCF_URL=http://localhost:8000
 fi
 
-# Stop main database containers
-print_status "Stopping main database containers..."
-cd ../..
-if [ -f "docker-compose.main.yml" ]; then
-    docker-compose -f docker-compose.main.yml down 2>/dev/null || true
-    print_success "Main database containers stopped"
-else
-    print_warning "docker-compose.main.yml not found"
+# Check if we're in the right directory
+if [ ! -f "docker-compose.***REMOVED-KEYCLOAK_DB_PASSWORD***-dev.yml" ]; then
+    echo -e "${RED}❌ Please run this script from the project root directory${NC}"
+    exit 1
 fi
-cd deployment/local
 
-# Kill by process name as fallback
-print_status "Killing any remaining processes..."
-kill_process "react-scripts" "Frontend"
-kill_process "node server.js" "Backend"
-kill_process "manage-scitt-ccf" "SCITT CCF"
+# Step 1: Stop Frontend
+echo -e "${BLUE}🎨 Step 1: Stopping Frontend...${NC}"
+if [ -f "frontend.pid" ] && ps -p $(cat frontend.pid) > /dev/null 2>&1; then
+    echo -e "${YELLOW}   Stopping frontend (PID: $(cat frontend.pid))${NC}"
+    kill $(cat frontend.pid) 2>/dev/null || true
+    rm -f frontend.pid frontend.port
+    echo -e "${GREEN}✅ Frontend stopped${NC}"
+else
+    echo -e "${YELLOW}   Frontend not running${NC}"
+fi
 
-# Clean up PID files
-rm -f ../../.frontend.pid ../../.backend.pid ../../.scitt-ccf.pid ../../.***REMOVED-KEYCLOAK_DB_PASSWORD***.pid
+# Step 2: Stop Backend
+echo -e "${BLUE}🔧 Step 2: Stopping Backend...${NC}"
+if [ -f "backend.pid" ] && ps -p $(cat backend.pid) > /dev/null 2>&1; then
+    echo -e "${YELLOW}   Stopping backend (PID: $(cat backend.pid))${NC}"
+    kill $(cat backend.pid) 2>/dev/null || true
+    rm -f backend.pid
+    echo -e "${GREEN}✅ Backend stopped${NC}"
+else
+    echo -e "${YELLOW}   Backend not running${NC}"
+fi
 
-# Check if any services are still running
-echo ""
-print_status "Checking for any remaining processes..."
+# Step 3: Stop SCITT CCF services
+echo -e "${BLUE}⛓️ Step 3: Stopping SCITT CCF services...${NC}"
+docker-compose -f docker-compose.scitt-ccf-dev.yml down 2>/dev/null || true
+echo -e "${GREEN}✅ SCITT CCF services stopped${NC}"
 
-services=(
-    "Frontend:react-scripts:3000"
-    "Backend:node server.js:5001"
-    "SCITT CCF:manage-scitt-ccf:8000"
-    "Keycloak:***REMOVED-KEYCLOAK_DB_PASSWORD***:8080"
-)
+# Step 4: Stop Keycloak and Database
+echo -e "${BLUE}🔐 Step 4: Stopping Keycloak and Database...${NC}"
+docker-compose -f docker-compose.***REMOVED-KEYCLOAK_DB_PASSWORD***-dev.yml down 2>/dev/null || true
+echo -e "${GREEN}✅ Keycloak and Database stopped${NC}"
 
-all_stopped=true
+# Step 5: Clean up any remaining processes
+echo -e "${BLUE}🧹 Step 5: Cleaning up remaining processes...${NC}"
+pkill -f "node.*server.js" 2>/dev/null || true
+pkill -f "npm.*start" 2>/dev/null || true
+echo -e "${GREEN}✅ Cleanup completed${NC}"
 
-for service in "${services[@]}"; do
-    IFS=':' read -r name process port <<< "$service"
-    
-    if pgrep -f "$process" >/dev/null; then
-        echo -e "  ${RED}❌${NC} $name is still running"
-        all_stopped=false
-    else
-        echo -e "  ${GREEN}✅${NC} $name stopped"
+# Step 6: Free up ports (if needed)
+echo -e "${BLUE}🔌 Step 6: Checking ports...${NC}"
+for port in ${FRONTEND_PORT:-3000} ${BACKEND_PORT:-5001} 5433 8000 8082 8443; do
+    if lsof -i :$port >/dev/null 2>&1; then
+        echo -e "${YELLOW}   Port $port still in use${NC}"
+        lsof -ti:$port | xargs kill -9 2>/dev/null || true
     fi
 done
 
+echo -e "\n${GREEN}✅ All local services stopped successfully!${NC}"
+echo "=============================================="
+echo -e "${BLUE}📋 Management Commands:${NC}"
+echo "Start: ./deployment/local/start-services.sh"
+echo "Status: ./manage-scitt-ccf.sh status"
+echo "Config: ./scripts/config-loader.js"
 echo ""
-if [ "$all_stopped" = true ]; then
-    print_success "🎉 All services stopped successfully!"
-else
-    print_warning "⚠️  Some services may still be running. You may need to stop them manually."
-fi
-
-echo ""
-echo "📝 To start all services again, run: ./start-services.sh"
-
-echo ""
-echo "📊 Port Status:"
-if lsof -Pi :5001 -sTCP:LISTEN -t >/dev/null 2>&1; then
-    echo "  Port 5001: IN USE"
-else
-    echo "  Port 5001: FREE"
-fi
-
-if lsof -Pi :3000 -sTCP:LISTEN -t >/dev/null 2>&1; then
-    echo "  Port 3000: IN USE"
-else
-    echo "  Port 3000: FREE"
-fi
-
-if lsof -Pi :8000 -sTCP:LISTEN -t >/dev/null 2>&1; then
-    echo "  Port 8000: IN USE"
-else
-    echo "  Port 8000: FREE"
-fi
-
-if lsof -Pi :8082 -sTCP:LISTEN -t >/dev/null 2>&1; then
-    echo "  Port 8082: IN USE"
-else
-    echo "  Port 8082: FREE"
-fi
-echo "" 
+echo -e "${YELLOW}⚠️  Using centralized configuration from config/system.env${NC}" 

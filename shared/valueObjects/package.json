@@ -1,0 +1,25 @@
+{
+  "name": "@contract-management/value-objects",
+  "version": "1.0.0",
+  "description": "Shared Value Objects for Contract Management System",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "test": "jest",
+    "lint": "eslint . --ext .ts",
+    "dev": "tsc --watch"
+  },
+  "keywords": ["value-objects", "domain-driven-design", "validation", "typescript"],
+  "author": "Contract Management System Team",
+  "license": "MIT",
+  "dependencies": {},
+  "devDependencies": {
+    "typescript": "^5.0.0",
+    "jest": "^29.0.0",
+    "@types/jest": "^29.0.0",
+    "eslint": "^8.0.0",
+    "@typescript-eslint/eslint-plugin": "^6.0.0",
+    "@typescript-eslint/parser": "^6.0.0"
+  }
+}

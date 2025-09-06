@@ -219,19 +219,20 @@ module.exports = (sequelize, DataTypes) => {
   }, {
     tableName: 'ccrp_cloud_credentials',
     timestamps: true,
+    underscored: true,
     indexes: [
       {
         unique: true,
-        fields: ['ccrpUserId', 'cloudProvider']
+        fields: ['ccrp_user_id', 'cloud_provider']
       },
       {
-        fields: ['cloudProvider']
+        fields: ['cloud_provider']
       },
       {
-        fields: ['isActive']
+        fields: ['is_active']
       },
       {
-        fields: ['validationStatus']
+        fields: ['validation_status']
       }
     ]
   });

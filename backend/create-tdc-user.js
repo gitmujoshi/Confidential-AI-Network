@@ -47,6 +47,10 @@ async function createTDCUser() {
       location: ''
     });
 
+    // Set the password for the user
+    const password = 'TdcPass123!';
+    await ***REMOVED-KEYCLOAK_DB_PASSWORD***Service.updateUserPassword(***REMOVED-KEYCLOAK_DB_PASSWORD***Result.***REMOVED-KEYCLOAK_DB_PASSWORD***UserId, password);
+
     // Update user with Keycloak ID
     await user.update({
       iamUserId: ***REMOVED-KEYCLOAK_DB_PASSWORD***Result.***REMOVED-KEYCLOAK_DB_PASSWORD***UserId,

@@ -3,7 +3,7 @@
  * Creates test users, datasets, and models for the Contract Management System
  */
 
-const { User, Dataset, AIModel, Contract, ContractTemplate } = require('../models');
+const { User, Dataset, AIModel, Contract, ContractTemplate } = require('./models');
 const { Op } = require('sequelize');
 
 // Test data configuration

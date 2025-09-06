@@ -4,6 +4,7 @@
   "description": "Frontend for smart contract management app",
   "private": true,
   "dependencies": {
+    "@contract-management/value-objects": "file:../shared/valueObjects",
     "@emotion/react": "^11.11.1",
     "@emotion/styled": "^11.11.0",
     "@mui/icons-material": "^5.14.19",

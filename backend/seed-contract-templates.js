@@ -140,7 +140,7 @@ async function seedTemplates() {
     
     for (const template of defaultTemplates) {
       const existingTemplate = await sequelize.query(
-        'SELECT id FROM contract_templates WHERE "templateId" = :templateId',
+        'SELECT id FROM contract_templates WHERE template_id = :templateId',
         {
           replacements: { templateId: template.templateId },
           type: Sequelize.QueryTypes.SELECT
@@ -150,10 +150,10 @@ async function seedTemplates() {
       if (existingTemplate.length === 0) {
         await sequelize.query(
           `INSERT INTO contract_templates (
-            "templateId", name, description, category, "contractType", 
-            "standardDuration", "priceMultiplier", "basePrice", "termsAndConditions", 
-            tags, "privacySettings", "trainingEnvironmentSpecs", status, version, "usageCount",
-            "createdAt", "updatedAt"
+            template_id, name, description, category, contract_type, 
+            standard_duration, price_multiplier, base_price, terms_and_conditions, 
+            tags, privacy_settings, training_environment_specs, status, version, usage_count,
+            created_at, updated_at
           ) VALUES (
             :templateId, :name, :description, :category, :contractType,
             :standardDuration, :priceMultiplier, :basePrice, :termsAndConditions,

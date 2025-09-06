@@ -11,6 +11,10 @@ yarn-error.log*
 .env.test.local
 .env.production.local
 
+# Secrets files
+secrets.env.local
+*.secrets
+
 # Secrets and credentials
 secrets/
 credentials/

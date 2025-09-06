@@ -139,7 +139,7 @@ const AdminDashboard = () => {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" style={{ paddingTop: '16px' }}>
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>

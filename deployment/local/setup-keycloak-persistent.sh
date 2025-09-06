@@ -41,7 +41,7 @@ wait_for_***REMOVED-KEYCLOAK_DB_PASSWORD***() {
     local attempt=1
     
     while [ $attempt -le $max_attempts ]; do
-        if curl -s "http://localhost:8080/health" >/dev/null 2>&1; then
+        if curl -k -s "${KEYCLOAK_URL:-https://localhost:8443}/realms/master" >/dev/null 2>&1; then
             print_success "Keycloak is ready!"
             return 0
         fi
@@ -60,7 +60,7 @@ check_realm_exists() {
     local admin_token=$1
     local realm_name=$2
     
-    local response=$(curl -s -X GET "http://localhost:8080/admin/realms/$realm_name" \
+    local response=$(curl -k -s -X GET "${KEYCLOAK_URL:-https://localhost:8443}/admin/realms/$realm_name" \
         -H "Authorization: Bearer $admin_token" \
         -H "Content-Type: application/json" 2>/dev/null || echo "NOT_FOUND")
     
@@ -73,9 +73,9 @@ check_realm_exists() {
 
 # Function to get admin token
 get_admin_token() {
-    local response=$(curl -s -X POST "http://localhost:8080/realms/master/protocol/openid-connect/token" \
+    local response=$(curl -k -s -X POST "${KEYCLOAK_URL:-https://localhost:8443}/realms/master/protocol/openid-connect/token" \
         -H "Content-Type: application/x-www-form-urlencoded" \
-        -d "grant_type=password&client_id=admin-cli&username=admin&password=***REMOVED-KEYCLOAK_ADMIN_PASSWORD***")
+        -d "grant_type=password&client_id=admin-cli&username=${KEYCLOAK_ADMIN_USER:-admin}&password=${KEYCLOAK_ADMIN_PASSWORD:-***REMOVED-KEYCLOAK_ADMIN_PASSWORD***}")
     
     echo "$response" | grep -o '"access_token":"[^"]*"' | cut -d'"' -f4
 }

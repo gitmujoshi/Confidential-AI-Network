@@ -1,119 +1,90 @@
 // Centralized Jest mocks for mock test mode
+const MockRegistry = require('./registry');
+
 function setupMocks() {
-  jest.mock('../services/didService', () => {
+  // Mock database models using registry
+  jest.mock('../../models', () => {
+    return {
+      User: MockRegistry.mocks.User,
+      Dataset: MockRegistry.mocks.Dataset,
+      Contract: MockRegistry.mocks.Contract,
+      AIModel: MockRegistry.mocks.AIModel,
+      Notification: MockRegistry.mocks.Notification,
+      AuditLog: MockRegistry.mocks.AuditLog,
+      sequelize: MockRegistry.database.sequelize
+    };
+  });
+
+  // Mock services using registry constructors
+  jest.mock('../../services/didService', () => {
+    return jest.fn().mockImplementation(() => new MockRegistry.serviceConstructors.DIDService());
+  });
+  jest.mock('../../services/***REMOVED-KEYCLOAK_DB_PASSWORD***Service', () => {
+    return jest.fn().mockImplementation(() => new MockRegistry.serviceConstructors.KeycloakService());
+  });
+  jest.mock('../../services/blockchainService', () => {
+    return jest.fn().mockImplementation(() => new MockRegistry.serviceConstructors.BlockchainService());
+  });
+  jest.mock('../../services/globalDEPAIdService', () => {
+    return jest.fn().mockImplementation(() => new MockRegistry.serviceConstructors.GlobalDEPAIdService());
+  });
+  jest.mock('../../services/depaIdService', () => {
+    return jest.fn().mockImplementation(() => new MockRegistry.serviceConstructors.DEPAIdService());
+  });
+  jest.mock('../../services/scittCcfService', () => {
+    return jest.fn().mockImplementation(() => new MockRegistry.serviceConstructors.ScittCcfService());
+  });
+  jest.mock('../../services/contractRouterService', () => {
+    return jest.fn().mockImplementation(() => new MockRegistry.serviceConstructors.ContractRouterService());
+  });
+  jest.mock('../../services/systemHealthMonitor', () => {
+    return jest.fn().mockImplementation(() => new MockRegistry.serviceConstructors.SystemHealthMonitor());
+  });
+
+  // Mock additional services that might be used
+  jest.mock('../../services/emailService', () => {
     return jest.fn().mockImplementation(() => ({
-      resolveDID: jest.fn().mockResolvedValue({
-        id: 'did:web:github.com:testuser',
-        verificationMethod: [{
-          id: 'did:web:github.com:testuser#owner',
-          type: 'JsonWebKey2020',
-          publicKeyJwk: {
-            kty: 'EC',
-            crv: 'secp256k1',
-            x: 'mock-x-coordinate',
-            y: 'mock-y-coordinate'
-          }
-        }]
-      }),
-      extractPublicKey: jest.fn().mockResolvedValue({
-        kty: 'EC',
-        crv: 'secp256k1',
-        x: 'mock-x-coordinate',
-        y: 'mock-y-coordinate'
-      })
+      sendEmail: jest.fn().mockResolvedValue({ success: true }),
+      sendVerificationEmail: jest.fn().mockResolvedValue({ success: true })
     }));
   });
 
-  jest.mock('../services/***REMOVED-KEYCLOAK_DB_PASSWORD***Service', () => {
+  jest.mock('../../services/notificationService', () => {
     return jest.fn().mockImplementation(() => ({
-      createUser: jest.fn().mockResolvedValue({
-        ***REMOVED-KEYCLOAK_DB_PASSWORD***UserId: 'mock-***REMOVED-KEYCLOAK_DB_PASSWORD***-user-id',
-        temporaryPassword: 'mock-temp-password'
-      }),
-      updateUser: jest.fn().mockResolvedValue({
-        success: true,
-        message: 'User updated successfully'
-      }),
-      deleteUser: jest.fn().mockResolvedValue({
-        success: true,
-        message: 'User deleted successfully'
-      }),
-      authenticateUser: jest.fn().mockResolvedValue({
-        success: true,
-        token: 'mock-access-token',
-        userInfo: {
-          sub: 'mock-user-id',
-          email: 'test@example.com',
-          name: 'Test User'
-        }
-      }),
-      validateToken: jest.fn().mockResolvedValue({
-        valid: true,
-        payload: {
-          sub: 'mock-user-id',
-          email: 'test@example.com',
-          realm_access: { roles: ['TDP'] }
-        }
-      }),
-      assignRole: jest.fn().mockResolvedValue({
-        success: true,
-        message: 'Role assigned successfully'
-      }),
-      getUserRoles: jest.fn().mockResolvedValue(['TDP', 'USER'])
+      createNotification: jest.fn().mockResolvedValue({ success: true }),
+      getUserNotifications: jest.fn().mockResolvedValue([])
     }));
   });
 
-  jest.mock('../services/blockchainService', () => {
+  jest.mock('../../services/auditService', () => {
     return jest.fn().mockImplementation(() => ({
-      initialize: jest.fn().mockResolvedValue(true),
-      isConnected: jest.fn().mockResolvedValue(false),
-      getMode: jest.fn().mockReturnValue({
-        blockchainEnabled: false,
-        blockchainAvailable: false,
-        mode: 'DATABASE_ONLY'
-      }),
-      createContract: jest.fn().mockResolvedValue({
-        success: true,
-        transactionHash: 'MOCK_TX_HASH',
-        contractId: '1',
-        message: 'Contract created successfully (mock)'
-      }),
-      signContract: jest.fn().mockResolvedValue({
-        success: true,
-        transactionHash: 'MOCK_SIGN_TX_HASH',
-        message: 'Contract signed successfully (mock)'
-      }),
-      selectCCRP: jest.fn().mockResolvedValue({
-        success: true,
-        transactionHash: 'MOCK_CCRP_TX_HASH',
-        message: 'CCRP selected successfully (mock)'
-      }),
-      getContract: jest.fn().mockResolvedValue({
-        contractId: '1',
-        tdpAddress: '0x1234567890123456789012345678901234567890',
-        tdcAddress: '0x2345678901234567890123456789012345678901',
-        ccrpAddress: '0x3456789012345678901234567890123456789012',
-        datasetId: 'test-dataset',
-        modelId: 'test-model',
-        price: '1000',
-        duration: 30,
-        termsAndConditions: 'Test terms',
-        status: 'PENDING_TDP_APPROVAL',
-        createdAt: new Date(),
-        tdpSigned: false,
-        ccrpSigned: false
-      }),
-      healthCheck: jest.fn().mockResolvedValue({
-        blockchainEnabled: false,
-        blockchainAvailable: false,
-        mode: 'DATABASE_ONLY',
-        connected: false,
-        contractAddress: null,
-        timestamp: new Date().toISOString()
-      })
+      logAction: jest.fn().mockResolvedValue({ success: true }),
+      getAuditLogs: jest.fn().mockResolvedValue([])
     }));
   });
 
+  jest.mock('../../services/dpdpService', () => {
+    return jest.fn().mockImplementation(() => ({
+      validateCompliance: jest.fn().mockResolvedValue({ compliant: true }),
+      generateReport: jest.fn().mockResolvedValue({ report: 'mock-report' })
+    }));
+  });
+
+  jest.mock('../../services/ricardianContractService', () => {
+    return jest.fn().mockImplementation(() => ({
+      generateContract: jest.fn().mockResolvedValue({ contract: 'mock-contract' }),
+      validateContract: jest.fn().mockResolvedValue({ valid: true })
+    }));
+  });
+
+  jest.mock('../../services/signingService', () => {
+    return jest.fn().mockImplementation(() => ({
+      signES256: jest.fn().mockResolvedValue({ signature: 'mock-signature' }),
+      verifyES256: jest.fn().mockResolvedValue({ verified: true })
+    }));
+  });
+
+  // Mock external dependencies
   jest.mock('axios', () => ({
     get: jest.fn(),
     post: jest.fn(),

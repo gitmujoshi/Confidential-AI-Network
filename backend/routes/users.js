@@ -33,7 +33,7 @@ router.get('/', authenticateToken, logAuthEvent('GET_ALL_USERS'), async (req, re
         'description', 'isRegistered', 'registrationDate', 'createdAt',
         'did', 'didSource', 'didVerified', 'didVerificationMethod',
         'onboardingStatus', 'profileCompleted', 'emailVerified', 'isActive',
-        'depaId'
+        'depaId', 'cloudProviders'
       ],
       order: [['createdAt', 'DESC']]
     });
@@ -200,7 +200,8 @@ router.put('/:id', authenticateToken, logAuthEvent('UPDATE_USER_BY_ID'), async (
     const allowedFields = [
       'name', 'description', 'organization', 'phoneNumber', 'website', 'location',
       'did', 'didSource', 'didVerified', 'didVerificationMethod',
-      'publicKey', 'isActive', 'profileCompleted', 'emailVerified', 'onboardingStatus'
+      'publicKey', 'isActive', 'profileCompleted', 'emailVerified', 'onboardingStatus',
+      'cloudProviders'
     ];
 
     // Filter update data to only include allowed fields
@@ -231,7 +232,8 @@ router.put('/:id', authenticateToken, logAuthEvent('UPDATE_USER_BY_ID'), async (
         isActive: userToUpdate.isActive,
         profileCompleted: userToUpdate.profileCompleted,
         emailVerified: userToUpdate.emailVerified,
-        onboardingStatus: userToUpdate.onboardingStatus
+        onboardingStatus: userToUpdate.onboardingStatus,
+        cloudProviders: userToUpdate.cloudProviders
       }
     });
 

@@ -12,7 +12,7 @@ module.exports = (sequelize) => {
       allowNull: false,
       references: {
         model: 'training_environments',
-        key: 'environmentId'
+        key: 'environment_id'
       }
     },
     resourceType: {
@@ -67,18 +67,19 @@ module.exports = (sequelize) => {
   }, {
     tableName: 'environment_resources',
     timestamps: true,
+    underscored: true,
     indexes: [
       {
-        fields: ['environmentId']
+        fields: ['environment_id']
       },
       {
-        fields: ['resourceType']
+        fields: ['resource_type']
       },
       {
         fields: ['status']
       },
       {
-        fields: ['resourceId']
+        fields: ['resource_id']
       }
     ]
   });

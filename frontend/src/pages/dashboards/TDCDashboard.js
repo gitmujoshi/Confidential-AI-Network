@@ -50,18 +50,16 @@ const TDCDashboard = () => {
       console.log('🔍 TDC Dashboard - User:', user);
 
       try {
-        const [datasetsRes, contractsRes, trainingRes, paymentsRes] = await Promise.all([
-          apiService.get('/api/datasets/public'),
-          apiService.get(`/api/tdc/contracts/${user.id}`),
-          apiService.get(`/api/tdc/training/${user.id}`),
-          apiService.get(`/api/tdc/payments/${user.id}`)
+        const [datasetsRes, contractsRes] = await Promise.all([
+          apiService.get('/api/datasets'),
+          apiService.get('/api/contracts')
         ]);
 
         return {
           datasets: datasetsRes.data.datasets || [],
           contracts: contractsRes.data.contracts || [],
-          training: trainingRes.data.training || [],
-          payments: paymentsRes.data.payments || {}
+          training: [], // Will be implemented later
+          payments: { totalSpent: 0 } // Will be implemented later
         };
       } catch (error) {
         console.error('❌ TDC Dashboard API Error:', error);
@@ -145,7 +143,7 @@ const TDCDashboard = () => {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" style={{ paddingTop: '16px' }}>
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
@@ -390,7 +388,46 @@ const TDCDashboard = () => {
                   <TableBody>
                     {recentContracts.map((contract) => (
                       <TableRow key={contract.id}>
-                        <TableCell fontFamily="monospace">{contract.depaId || 'NULL'}</TableCell>
+                        <TableCell>
+                          <Box sx={{ minWidth: '180px' }}>
+                            {/* Contract ID Field */}
+                            <Box sx={{ mb: 1 }}>
+                              <Typography variant="caption" color="textSecondary" display="block">
+                                Contract ID (Ricardian)
+                              </Typography>
+                              <Typography variant="body2" fontFamily="monospace" fontWeight="medium" sx={{ 
+                                backgroundColor: 'grey.100', 
+                                padding: '4px 8px', 
+                                borderRadius: '3px',
+                                border: '1px solid',
+                                borderColor: 'grey.300',
+                                fontSize: '0.75rem'
+                              }}>
+                                {contract.contractId || 'NULL'}
+                              </Typography>
+                            </Box>
+                            
+                            {/* Global DEPA ID Field */}
+                            {contract.depaId && (
+                              <Box>
+                                <Typography variant="caption" color="textSecondary" display="block">
+                                  Global DEPA ID
+                                </Typography>
+                                <Typography variant="caption" fontFamily="monospace" sx={{ 
+                                  backgroundColor: 'primary.50', 
+                                  padding: '4px 8px', 
+                                  borderRadius: '3px',
+                                  border: '1px solid',
+                                  borderColor: 'primary.200',
+                                  color: 'primary.700',
+                                  fontSize: '0.7rem'
+                                }}>
+                                  {contract.depaId}
+                                </Typography>
+                              </Box>
+                            )}
+                          </Box>
+                        </TableCell>
                         <TableCell>
                           <Chip 
                             label={contract.status} 

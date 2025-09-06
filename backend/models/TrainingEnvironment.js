@@ -62,21 +62,21 @@ module.exports = (sequelize, DataTypes) => {
     
     // Infrastructure configuration
     infrastructureConfig: {
-      type: DataTypes.JSON,
+      type: DataTypes.JSONB,
       allowNull: true,
       comment: 'Infrastructure configuration (compute, storage, network)'
     },
     
     // Security configuration
     securityConfig: {
-      type: DataTypes.JSON,
+      type: DataTypes.JSONB,
       allowNull: true,
       comment: 'Security configuration (encryption, access control, monitoring)'
     },
     
     // Monitoring configuration
     monitoringConfig: {
-      type: DataTypes.JSON,
+      type: DataTypes.JSONB,
       allowNull: true,
       comment: 'Monitoring and logging configuration'
     },
@@ -90,7 +90,7 @@ module.exports = (sequelize, DataTypes) => {
     
     // Provisioning logs
     provisioningLogs: {
-      type: DataTypes.JSON,
+      type: DataTypes.JSONB,
       allowNull: true,
       comment: 'Infrastructure provisioning logs'
     },
@@ -118,7 +118,7 @@ module.exports = (sequelize, DataTypes) => {
     
     // Terraform state (for Terraform-provisioned environments)
     terraformState: {
-      type: DataTypes.JSON,
+      type: DataTypes.JSONB,
       allowNull: true,
       comment: 'Terraform state and outputs for Infrastructure as Code'
     },
@@ -156,24 +156,25 @@ module.exports = (sequelize, DataTypes) => {
   }, {
     tableName: 'training_environments',
     timestamps: true,
+    underscored: true,
     
     // Database indexes for performance optimization
     indexes: [
       {
         unique: true,
-        fields: ['environmentId']   // Fast environment ID lookups
+        fields: ['environment_id']   // Fast environment ID lookups
       },
       {
-        fields: ['contractId']      // Fast contract-based queries
+        fields: ['contract_id']      // Fast contract-based queries
       },
       {
         fields: ['status']          // Fast status-based queries
       },
       {
-        fields: ['cloudProvider']   // Fast provider-based queries
+        fields: ['cloud_provider']   // Fast provider-based queries
       },
       {
-        fields: ['createdBy']       // Fast user-based queries
+        fields: ['created_by']       // Fast user-based queries
       },
       // Removed problematic index - column doesn't exist yet
     ]

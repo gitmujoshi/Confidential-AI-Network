@@ -193,10 +193,10 @@ main() {
     print_success "🎉 Restart completed!"
     echo ""
     echo "📝 Service URLs:"
-    echo "  Frontend: http://localhost:3000"
-    echo "  Backend:  http://localhost:5000"
-    echo "  Keycloak: http://localhost:8080"
-    echo "  Blockchain: http://localhost:8545"
+    echo "  Frontend: http://localhost:${FRONTEND_PORT:-3000}"
+    echo "  Backend:  http://localhost:${BACKEND_PORT:-5001}"
+    echo "  Keycloak: ${KEYCLOAK_URL:-https://localhost:8443}"
+    echo "  Blockchain: http://localhost:${BLOCKCHAIN_RPC_URL:-8545}"
 }
 
 # Run main function

@@ -42,18 +42,16 @@ const TDPDashboard = () => {
   const { data: dashboardData, isLoading, error } = useQuery(
     ['tdpDashboard', user?.id],
     async () => {
-      const [datasetsRes, contractsRes, paymentsRes, analyticsRes] = await Promise.all([
-        apiService.get(`/api/tdp/datasets/${user.id}`),
-        apiService.get(`/api/tdp/contracts/${user.id}`),
-        apiService.get(`/api/tdp/payments/${user.id}`),
-        apiService.get(`/api/tdp/analytics/${user.id}`)
+      const [datasetsRes, contractsRes] = await Promise.all([
+        apiService.get('/api/datasets'),
+        apiService.get('/api/contracts')
       ]);
 
       return {
         datasets: datasetsRes.data.datasets || [],
         contracts: contractsRes.data.contracts || [],
-        payments: paymentsRes.data.payments || {},
-        analytics: analyticsRes.data.analytics || {}
+        payments: { totalRevenue: 0, pendingAmount: 0 }, // Will be implemented later
+        analytics: {} // Will be implemented later
       };
     },
     {
@@ -129,7 +127,7 @@ const TDPDashboard = () => {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" style={{ paddingTop: '16px' }}>
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
@@ -374,7 +372,46 @@ const TDPDashboard = () => {
                   <TableBody>
                     {recentContracts.map((contract) => (
                       <TableRow key={contract.id}>
-                        <TableCell fontFamily="monospace">{contract.depaId || 'NULL'}</TableCell>
+                        <TableCell>
+                          <Box sx={{ minWidth: '180px' }}>
+                            {/* Contract ID Field */}
+                            <Box sx={{ mb: 1 }}>
+                              <Typography variant="caption" color="textSecondary" display="block">
+                                Contract ID (Ricardian)
+                              </Typography>
+                              <Typography variant="body2" fontFamily="monospace" fontWeight="medium" sx={{ 
+                                backgroundColor: 'grey.100', 
+                                padding: '4px 8px', 
+                                borderRadius: '3px',
+                                border: '1px solid',
+                                borderColor: 'grey.300',
+                                fontSize: '0.75rem'
+                              }}>
+                                {contract.contractId || 'NULL'}
+                              </Typography>
+                            </Box>
+                            
+                            {/* Global DEPA ID Field */}
+                            {contract.depaId && (
+                              <Box>
+                                <Typography variant="caption" color="textSecondary" display="block">
+                                  Global DEPA ID
+                                </Typography>
+                                <Typography variant="caption" fontFamily="monospace" sx={{ 
+                                  backgroundColor: 'primary.50', 
+                                  padding: '4px 8px', 
+                                  borderRadius: '3px',
+                                  border: '1px solid',
+                                  borderColor: 'primary.200',
+                                  color: 'primary.700',
+                                  fontSize: '0.7rem'
+                                }}>
+                                  {contract.depaId}
+                                </Typography>
+                              </Box>
+                            )}
+                          </Box>
+                        </TableCell>
                         <TableCell>
                           <Chip 
                             label={contract.status} 

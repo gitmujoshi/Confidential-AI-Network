@@ -59,7 +59,13 @@ class ContractRouterService {
 
     try {
       console.log('📜 Creating contract via SCITT CCF...');
-      return await this.scittCcfService.createContract(contractData);
+      console.log('🔍 ContractRouter Debug - contractData:', JSON.stringify(contractData, null, 2));
+      console.log('🔍 ContractRouter Debug - contractData.contractId:', contractData.contractId);
+      
+      const result = await this.scittCcfService.createContract(contractData);
+      
+      console.log('🔍 ContractRouter Debug - result:', JSON.stringify(result, null, 2));
+      return result;
       
     } catch (error) {
       console.error('Contract creation failed:', error);

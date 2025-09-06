@@ -1,324 +1,257 @@
 #!/bin/bash
 
-# Contract Management System - Complete Service Startup Script
-# This script starts all services: Keycloak, SCITT CCF, Backend, and Frontend
+# Local Services Start Script
+# This script starts local services using centralized configuration
 
-set -e  # Exit on any error
+set -e
 
-echo "🚀 Starting Contract Management System with all services..."
-
-# Colors for output
-RED='\033[0;31m'
+# Colors
 GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
-NC='\033[0m' # No Color
+YELLOW='\033[1;33m'
+RED='\033[0;31m'
+NC='\033[0m'
 
-# Function to print colored output
-print_status() {
-    echo -e "${BLUE}[INFO]${NC} $1"
-}
+echo -e "${BLUE}🚀 Starting Local Services using Centralized Configuration${NC}"
+echo "=============================================================="
 
-print_success() {
-    echo -e "${GREEN}[SUCCESS]${NC} $1"
-}
+# Load centralized configuration
+if [ -f "config.env" ]; then
+    echo -e "${GREEN}✅ Loading centralized configuration from config.env${NC}"
+    source config.env
+else
+    echo -e "${RED}❌ Centralized configuration file not found: config.env${NC}"
+    echo -e "${YELLOW}⚠️ Please ensure config.env exists${NC}"
+    exit 1
+fi
 
-print_warning() {
-    echo -e "${YELLOW}[WARNING]${NC} $1"
-}
+# Check if we're in the right directory
+if [ ! -f "docker-compose.***REMOVED-KEYCLOAK_DB_PASSWORD***-dev.yml" ]; then
+    echo -e "${RED}❌ Please run this script from the project root directory${NC}"
+    exit 1
+fi
 
-print_error() {
-    echo -e "${RED}[ERROR]${NC} $1"
-}
+# Step 1: Start Keycloak with persistent storage
+echo -e "${BLUE}🔐 Step 1: Starting Keycloak with persistent storage...${NC}"
+echo -e "${BLUE}   Using: ${KEYCLOAK_URL} (realm: ${KEYCLOAK_REALM})${NC}"
+docker-compose -f docker-compose.***REMOVED-KEYCLOAK_DB_PASSWORD***-dev.yml up -d
 
-# Function to check if a port is in use
-check_port() {
-    local port=$1
-    if lsof -Pi :$port -sTCP:LISTEN -t >/dev/null 2>&1; then
-        return 0  # Port is in use
-    else
-        return 1  # Port is free
+# Wait for Keycloak to be ready
+echo -e "${BLUE}⏳ Waiting for Keycloak to be ready...${NC}"
+max_attempts=30
+attempt=1
+while [ $attempt -le $max_attempts ]; do
+    if curl -k -s "${KEYCLOAK_URL}/health" >/dev/null 2>&1; then
+        echo -e "${GREEN}✅ Keycloak is ready!${NC}"
+        break
     fi
-}
+    echo -n "."
+    sleep 2
+    attempt=$((attempt + 1))
+done
 
-# Function to wait for a service to be ready
-wait_for_service() {
-    local url=$1
-    local service_name=$2
-    local max_attempts=30
-    local attempt=1
+if [ $attempt -gt $max_attempts ]; then
+    echo -e "${RED}❌ Keycloak failed to start within $((max_attempts * 2)) seconds${NC}"
+    exit 1
+fi
+
+# Step 2: Start SCITT CCF services
+echo -e "${BLUE}⛓️ Step 2: Starting SCITT CCF services...${NC}"
+docker-compose -f docker-compose.scitt-ccf-dev.yml up -d
+
+# Wait for SCITT CCF services to be ready
+echo -e "${BLUE}⏳ Waiting for SCITT CCF services to be ready...${NC}"
+max_attempts=30
+attempt=1
+while [ $attempt -le $max_attempts ]; do
+    if curl -s "${SCITT_CCF_URL}/app/health" >/dev/null 2>&1; then
+        echo -e "${GREEN}✅ SCITT CCF Node is ready!${NC}"
+        break
+    fi
+    echo -n "."
+    sleep 2
+    attempt=$((attempt + 1))
+done
+
+if [ $attempt -gt $max_attempts ]; then
+    echo -e "${YELLOW}⚠️ SCITT CCF Node not ready, but continuing...${NC}"
+fi
+
+# Check service status
+echo -e "${BLUE}📊 Checking service status...${NC}"
+
+# Check Keycloak
+if curl -k -s "${KEYCLOAK_URL}/health" >/dev/null 2>&1; then
+    echo -e "${GREEN}✅ Keycloak is running at ${KEYCLOAK_URL}${NC}"
+else
+    echo -e "${RED}❌ Keycloak not accessible at ${KEYCLOAK_URL}${NC}"
+fi
+
+# Check SCITT CCF
+if curl -s "${SCITT_CCF_URL}/app/health" >/dev/null 2>&1; then
+    echo -e "${GREEN}✅ SCITT CCF Node is running at ${SCITT_CCF_URL}${NC}"
+else
+    echo -e "${RED}❌ SCITT CCF Node not accessible at ${SCITT_CCF_URL}${NC}"
+fi
+
+# Check SCITT CCF Dashboard
+if curl -s "http://localhost:8082" >/dev/null 2>&1; then
+    echo -e "${GREEN}✅ SCITT CCF Dashboard is running${NC}"
+else
+    echo -e "${RED}❌ SCITT CCF Dashboard not accessible${NC}"
+fi
+
+# Check Database
+if docker exec ***REMOVED-DB_PASSWORD***-cms pg_isready -U ***REMOVED-KEYCLOAK_DB_PASSWORD*** >/dev/null 2>&1; then
+    echo -e "${GREEN}✅ PostgreSQL Database is running${NC}"
+else
+    echo -e "${RED}❌ PostgreSQL Database not accessible${NC}"
+fi
+
+# Step 3: Start Backend
+echo -e "${BLUE}🔧 Step 3: Starting Backend...${NC}"
+echo -e "${BLUE}   Using port: ${BACKEND_PORT:-5001}${NC}"
+
+# Check if backend directory exists
+if [ ! -d "backend" ]; then
+    echo -e "${RED}❌ Backend directory not found${NC}"
+    exit 1
+fi
+
+# Check if backend port is available
+if lsof -Pi :${BACKEND_PORT:-5001} -sTCP:LISTEN -t >/dev/null 2>&1; then
+    echo -e "${YELLOW}⚠️  Port ${BACKEND_PORT:-5001} is already in use${NC}"
+    echo -e "${YELLOW}   Backend might already be running${NC}"
+else
+    # Start backend in background
+    cd backend
+    echo -e "${BLUE}📁 Starting backend from: $(pwd)${NC}"
     
-    print_status "Waiting for $service_name to be ready..."
+    # Start the server and capture the PID
+    npm start > ../backend.log 2>&1 &
+    BACKEND_PID=$!
     
+    # Save PID to file for later cleanup
+    echo $BACKEND_PID > ../backend.pid
+    
+    cd ..
+    
+    echo -e "${GREEN}✅ Backend started with PID: $BACKEND_PID${NC}"
+    
+    # Wait for backend to be ready
+    echo -e "${BLUE}⏳ Waiting for backend to be ready...${NC}"
+    max_attempts=30
+    attempt=1
     while [ $attempt -le $max_attempts ]; do
-        if curl -s "$url" >/dev/null 2>&1; then
-            print_success "$service_name is ready!"
-            return 0
+        if curl -s "http://localhost:${BACKEND_PORT:-5001}/health" >/dev/null 2>&1; then
+            echo -e "${GREEN}✅ Backend is ready!${NC}"
+            break
         fi
-        
         echo -n "."
         sleep 2
         attempt=$((attempt + 1))
     done
     
-    print_error "$service_name failed to start within $((max_attempts * 2)) seconds"
-    return 1
-}
-
-# Function to kill process by PID file
-kill_by_pid_file() {
-    local pid_file=$1
-    local service_name=$2
-    
-    if [ -f "$pid_file" ]; then
-        local pid=$(cat "$pid_file")
-        if ps -p $pid > /dev/null 2>&1; then
-            print_status "Stopping $service_name (PID: $pid)..."
-            kill $pid 2>/dev/null || true
-            rm -f "$pid_file"
-        fi
+    if [ $attempt -gt $max_attempts ]; then
+        echo -e "${YELLOW}⚠️ Backend not ready, but continuing...${NC}"
+        echo -e "${YELLOW}   Check backend.log for details${NC}"
     fi
-}
-
-# Store the script directory for later use
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PROJECT_ROOT="$(dirname "$(dirname "$SCRIPT_DIR")")"
-
-# Create logs directory
-mkdir -p "$PROJECT_ROOT/logs"
-
-# Stop any existing services
-print_status "Stopping any existing services..."
-./stop-services.sh 2>/dev/null || true
-
-# Step 1: Start Keycloak
-print_status "Step 1: Starting Keycloak IAM..."
-if check_port 8080; then
-    print_warning "Port 8080 is already in use. Skipping Keycloak startup."
-else
-    print_status "Starting Keycloak on port 8080..."
-    
-    # Check if Docker is available
-    if command -v docker &> /dev/null; then
-        # Create persistent directories for Keycloak
-        mkdir -p "$PROJECT_ROOT/***REMOVED-KEYCLOAK_DB_PASSWORD***-data"
-        
-        # Stop and remove existing container if it exists
-        docker stop ***REMOVED-KEYCLOAK_DB_PASSWORD***-cms 2>/dev/null || true
-        docker rm ***REMOVED-KEYCLOAK_DB_PASSWORD***-cms 2>/dev/null || true
-        
-        docker run -d \
-            --name ***REMOVED-KEYCLOAK_DB_PASSWORD***-cms \
-            -p 8080:8080 \
-            -e KEYCLOAK_ADMIN=admin \
-            -e KEYCLOAK_ADMIN_PASSWORD=***REMOVED-KEYCLOAK_ADMIN_PASSWORD*** \
-            -e KC_HEALTH_ENABLED=true \
-            -v "$PROJECT_ROOT/***REMOVED-KEYCLOAK_DB_PASSWORD***-data:/opt/***REMOVED-KEYCLOAK_DB_PASSWORD***/data" \
-            -v "$PROJECT_ROOT/***REMOVED-KEYCLOAK_DB_PASSWORD***-data/logs:/opt/***REMOVED-KEYCLOAK_DB_PASSWORD***/logs" \
-            quay.io/***REMOVED-KEYCLOAK_DB_PASSWORD***/***REMOVED-KEYCLOAK_DB_PASSWORD***:latest start-dev > "$PROJECT_ROOT/logs/***REMOVED-KEYCLOAK_DB_PASSWORD***.log" 2>&1 &
-        
-        echo $! > "$PROJECT_ROOT/.***REMOVED-KEYCLOAK_DB_PASSWORD***.pid"
-        print_success "Keycloak started with Docker (PID: $(cat "$PROJECT_ROOT/.***REMOVED-KEYCLOAK_DB_PASSWORD***.pid"))"
-        print_status "Keycloak data will be persisted in: $PROJECT_ROOT/***REMOVED-KEYCLOAK_DB_PASSWORD***-data"
-    else
-        print_error "Docker not found. Please install Docker to run Keycloak."
-        print_warning "Continuing without Keycloak..."
-    fi
-fi
-
-# Wait for Keycloak to be ready
-if [ -f "$PROJECT_ROOT/.***REMOVED-KEYCLOAK_DB_PASSWORD***.pid" ]; then
-    wait_for_service "http://localhost:8080/health" "Keycloak"
-    
-    # Setup Keycloak configuration if it doesn't exist
-    print_status "Setting up Keycloak configuration..."
-    cd "$PROJECT_ROOT"
-    ./deployment/local/setup-***REMOVED-KEYCLOAK_DB_PASSWORD***-persistent.sh
-    cd "$SCRIPT_DIR"
-fi
-
-# Step 1.5: Start Main Database and SCITT CCF Services
-print_status "Step 1.5: Starting Main Database and SCITT CCF Services..."
-if command -v docker &> /dev/null; then
-    # Start main database and SCITT CCF services
-    cd "$PROJECT_ROOT"
-    
-    # Start main services (database only - Keycloak already started in Step 1)
-    if docker-compose -f docker-compose.main.yml up -d ***REMOVED-DB_PASSWORD***-app ***REMOVED-DB_PASSWORD***-***REMOVED-KEYCLOAK_DB_PASSWORD*** --remove-orphans; then
-        print_success "Main database services started successfully"
-        
-        # Wait for main database to be ready
-        print_status "Waiting for main database to be ready..."
-        
-        # Wait for PostgreSQL to be ready (check if it accepts connections)
-        max_attempts=30
-        attempt=1
-        while [ $attempt -le $max_attempts ]; do
-            if docker exec ***REMOVED-DB_PASSWORD***-app pg_isready -U ***REMOVED-DB_PASSWORD*** >/dev/null 2>&1; then
-                print_success "Main Database is ready!"
-                break
-            fi
-            
-            echo -n "."
-            sleep 2
-            attempt=$((attempt + 1))
-        done
-        
-        if [ $attempt -gt $max_attempts ]; then
-            print_error "Main Database failed to start within $((max_attempts * 2)) seconds"
-            print_warning "Continuing without main database..."
-        fi
-    else
-        print_error "Failed to start main database services"
-        print_warning "Continuing without main database..."
-    fi
-    
-    # Start SCITT CCF services
-    print_status "Starting SCITT CCF services..."
-    if docker-compose -f docker-compose.scitt-ccf-dev.yml up -d --remove-orphans; then
-        print_success "SCITT CCF services started successfully"
-        
-        # Wait for SCITT CCF node to be ready
-        print_status "Waiting for SCITT CCF node to be ready..."
-        
-        # Wait for SCITT CCF to be ready (check if port is responding)
-        max_attempts=30
-        attempt=1
-        while [ $attempt -le $max_attempts ]; do
-            if curl -s "http://localhost:8000" >/dev/null 2>&1; then
-                print_success "SCITT CCF Node is ready!"
-                break
-            fi
-            
-            echo -n "."
-            sleep 2
-            attempt=$((attempt + 1))
-        done
-        
-        if [ $attempt -gt $max_attempts ]; then
-            print_warning "SCITT CCF Node health check failed, but continuing..."
-        fi
-    else
-        print_error "Failed to start SCITT CCF services"
-        print_warning "Continuing without SCITT CCF..."
-    fi
-    
-    cd "$SCRIPT_DIR"
-else
-    print_error "Docker not found. Please install Docker to run database and SCITT CCF services."
-    print_warning "Continuing without database and SCITT CCF..."
-fi
-
-# Step 2: Start SCITT CCF Ledger (replacing Blockchain)
-print_status "Step 2: Starting SCITT CCF Ledger..."
-if check_port 8000; then
-    print_warning "Port 8000 is already in use. SCITT CCF Ledger may already be running."
-else
-    print_status "Starting SCITT CCF Ledger on port 8000..."
-    cd "$PROJECT_ROOT"
-    
-    # Use the manage-scitt-ccf.sh script to start SCITT CCF services
-    if [ -f "./manage-scitt-ccf.sh" ]; then
-        ./manage-scitt-ccf.sh start > "$PROJECT_ROOT/logs/scitt-ccf.log" 2>&1 &
-        echo $! > "$PROJECT_ROOT/.scitt-ccf.pid"
-        print_success "SCITT CCF Ledger started (PID: $(cat "$PROJECT_ROOT/.scitt-ccf.pid"))"
-    else
-        print_error "manage-scitt-ccf.sh script not found. Please ensure SCITT CCF is properly configured."
-    fi
-    
-    cd "$SCRIPT_DIR"
-fi
-
-# Wait for SCITT CCF to be ready
-if [ -f "$PROJECT_ROOT/.scitt-ccf.pid" ]; then
-    wait_for_service "http://localhost:8000/app/health" "SCITT CCF Ledger"
-fi
-
-# Step 3: Start Backend
-print_status "Step 3: Starting Backend API..."
-if check_port 5001; then
-    print_warning "Port 5001 is already in use. Skipping backend startup."
-else
-    print_status "Starting backend on port 5001..."
-    cd "$PROJECT_ROOT/backend"
-    
-    # Enable SCITT CCF in config (disable blockchain)
-    sed -i '' 's/BLOCKCHAIN_ENABLED=true/BLOCKCHAIN_ENABLED=false/' config.env
-    sed -i '' 's/SCITT_CCF_ENABLED=false/SCITT_CCF_ENABLED=true/' config.env
-    
-    node server.js > "$PROJECT_ROOT/logs/backend.log" 2>&1 &
-    echo $! > "$PROJECT_ROOT/.backend.pid"
-    cd "$SCRIPT_DIR"
-    print_success "Backend started (PID: $(cat "$PROJECT_ROOT/.backend.pid"))"
-fi
-
-# Wait for backend to be ready
-if [ -f "$PROJECT_ROOT/.backend.pid" ]; then
-    wait_for_service "http://localhost:5001/health" "Backend"
 fi
 
 # Step 4: Start Frontend
-print_status "Step 4: Starting Frontend..."
-if check_port 3000; then
-    print_warning "Port 3000 is already in use. Trying port 3001..."
-    if check_port 3001; then
-        print_error "Both ports 3000 and 3001 are in use. Please free up a port."
-        exit 1
+echo -e "${BLUE}🎨 Step 4: Starting Frontend...${NC}"
+echo -e "${BLUE}   Using port: ${FRONTEND_PORT:-3000}${NC}"
+
+# Check if frontend directory exists
+if [ ! -d "frontend" ]; then
+    echo -e "${YELLOW}⚠️ Frontend directory not found, skipping frontend startup${NC}"
+else
+    # Check if frontend port is available
+    frontend_port=${FRONTEND_PORT:-3000}
+    if lsof -Pi :$frontend_port -sTCP:LISTEN -t >/dev/null 2>&1; then
+        echo -e "${YELLOW}⚠️  Port $frontend_port is already in use${NC}"
+        echo -e "${YELLOW}   Frontend might already be running${NC}"
     else
-        export PORT=3001
-        print_status "Starting frontend on port 3001..."
+        # Start frontend in background
+        cd frontend
+        echo -e "${BLUE}📁 Starting frontend from: $(pwd)${NC}"
+        
+        # Set port and start the server
+        PORT=$frontend_port npm start > ../frontend.log 2>&1 &
+        FRONTEND_PID=$!
+        
+        # Save PID to file for later cleanup
+        echo $FRONTEND_PID > ../frontend.pid
+        echo $frontend_port > ../frontend.port
+        
+        cd ..
+        
+        echo -e "${GREEN}✅ Frontend started with PID: $FRONTEND_PID on port $frontend_port${NC}"
+        
+        # Wait for frontend to be ready
+        echo -e "${BLUE}⏳ Waiting for frontend to be ready...${NC}"
+        max_attempts=30
+        attempt=1
+        while [ $attempt -le $max_attempts ]; do
+            if curl -s "http://localhost:$frontend_port" >/dev/null 2>&1; then
+                echo -e "${GREEN}✅ Frontend is ready!${NC}"
+                break
+            fi
+            echo -n "."
+            sleep 2
+            attempt=$((attempt + 1))
+        done
+        
+        if [ $attempt -gt $max_attempts ]; then
+            echo -e "${YELLOW}⚠️ Frontend not ready, but continuing...${NC}"
+            echo -e "${YELLOW}   Check frontend.log for details${NC}"
+        fi
+    fi
+fi
+
+# Final Status Check
+echo -e "\n${BLUE}📊 Final Service Status:${NC}"
+
+# Check Backend
+if [ -f "backend.pid" ] && ps -p $(cat backend.pid) > /dev/null 2>&1; then
+    echo -e "${GREEN}✅ Backend: Running (PID: $(cat backend.pid))${NC}"
+    if curl -s "http://localhost:${BACKEND_PORT:-5001}/health" >/dev/null 2>&1; then
+        echo -e "   🌐 Health: http://localhost:${BACKEND_PORT:-5001}/health"
+    else
+        echo -e "   ⚠️  Health check failed"
     fi
 else
-    print_status "Starting frontend on port 3000..."
+    echo -e "${RED}❌ Backend: Not running${NC}"
 fi
 
-cd "$PROJECT_ROOT/frontend"
-npm start > "$PROJECT_ROOT/logs/frontend.log" 2>&1 &
-echo $! > "$PROJECT_ROOT/.frontend.pid"
-cd "$SCRIPT_DIR"
-print_success "Frontend started (PID: $(cat "$PROJECT_ROOT/.frontend.pid"))"
-
-# Wait for frontend to be ready
-if [ -f "$PROJECT_ROOT/.frontend.pid" ]; then
-    frontend_port=${PORT:-3000}
-    wait_for_service "http://localhost:$frontend_port" "Frontend"
-fi
-
-# Final status check
-echo ""
-print_success "🎉 All services started successfully!"
-echo ""
-echo "📊 Service Status:"
-echo "=================="
-
-# Check each service
-services=(
-    "Keycloak:8080"
-    "SCITT CCF Ledger:8000"
-    "SCITT CCF Dashboard:8082"
-    "Backend:5001"
-    "Frontend:${PORT:-3000}"
-)
-
-for service in "${services[@]}"; do
-    IFS=':' read -r name port <<< "$service"
-    if check_port $port; then
-        echo -e "  ${GREEN}✅${NC} $name (http://localhost:$port)"
+# Check Frontend
+if [ -f "frontend.pid" ] && ps -p $(cat frontend.pid) > /dev/null 2>&1; then
+    port=$(cat frontend.port 2>/dev/null || echo "3000")
+    echo -e "${GREEN}✅ Frontend: Running (PID: $(cat frontend.pid)) on port $port${NC}"
+    if curl -s "http://localhost:$port" >/dev/null 2>&1; then
+        echo -e "   🌐 URL: http://localhost:$port"
     else
-        echo -e "  ${RED}❌${NC} $name (http://localhost:$port)"
+        echo -e "   ⚠️  Frontend not responding"
     fi
-done
+else
+    echo -e "${RED}❌ Frontend: Not running${NC}"
+fi
 
+echo -e "\n${GREEN}🎉 All services started successfully!${NC}"
+echo "=============================================================="
+echo -e "${BLUE}🔗 Service URLs (from centralized config):${NC}"
+echo "Frontend: http://localhost:${FRONTEND_PORT:-3000}"
+echo "Backend: http://localhost:${BACKEND_PORT:-5001}"
+echo "Keycloak Admin: ${KEYCLOAK_URL}/admin (${KEYCLOAK_ADMIN_USER}/${KEYCLOAK_ADMIN_PASSWORD})"
+echo "SCITT CCF Node: ${SCITT_CCF_URL}"
+echo "SCITT CCF Dashboard: http://localhost:8082"
+echo "Database: localhost:${DB_PORT} (${DB_NAME})"
 echo ""
-echo "🔗 Access URLs:"
-echo "==============="
-echo "  Frontend: http://localhost:${PORT:-3000}"
-echo "  Backend API: http://localhost:5001/api"
-echo "  Keycloak Admin: http://localhost:8080 (admin/***REMOVED-KEYCLOAK_ADMIN_PASSWORD***)"
-echo "  SCITT CCF Ledger: http://localhost:8000"
-echo "  SCITT CCF Dashboard: http://localhost:8082"
+echo -e "${BLUE}📋 Management Commands:${NC}"
+echo "Status: ./manage-scitt-ccf.sh status"
+echo "Stop: ./stop-system.sh"
+echo "Fix Auth: ./scripts/fix-auth-unified.sh"
+echo "Config: ./scripts/config-loader.js"
+echo "Logs: tail -f backend.log frontend.log"
 echo ""
-echo "📝 Logs are available in the 'logs/' directory"
-echo "🛑 To stop all services, run: ./stop-services.sh"
-echo ""
-print_success "Contract Management System is ready! 🚀" 
+echo -e "${YELLOW}⚠️  Using centralized configuration from config/system.env${NC}" 

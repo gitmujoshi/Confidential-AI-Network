@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Integration Guide - ContractFlow Pro</title>
+    <meta name="description" content="Comprehensive integration guide for ContractFlow Pro - Learn how to integrate with our APIs, SDKs, and third-party services">
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <!-- Custom CSS -->
+    <link href="../styles.css" rel="stylesheet">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-white fixed-top">
+        <div class="container">
+            <a class="navbar-brand fw-bold" href="../index.html">
+                <i class="fas fa-file-contract me-2"></i>ContractFlow Pro
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="../index.html">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="../features.html">Features</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="../solutions.html">Solutions</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="../technology.html">Technology</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="../about.html">About</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="../docs/index.html">Documentation</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container mt-5 pt-5">
+        <div class="row">
+            <div class="col-lg-8 mx-auto">
+                <h1 class="display-4 fw-bold mb-4">Integration Guide</h1>
+                
+                <div class="alert alert-info">
+                    <h5><i class="fas fa-info-circle me-2"></i>Integration Overview</h5>
+                    <p class="mb-0">This guide covers how to integrate ContractFlow Pro with your existing systems, APIs, and third-party services.</p>
+                </div>
+
+                <h2 class="h3 mt-5 mb-3">API Integration</h2>
+                <p>ContractFlow Pro provides RESTful APIs for seamless integration:</p>
+                
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="fas fa-code me-2"></i>Authentication</h5>
+                    </div>
+                    <div class="card-body">
+                        <p>All API requests require authentication using JWT tokens:</p>
+                        <pre><code>Authorization: Bearer &lt;your-jwt-token&gt;</code></pre>
+                    </div>
+                </div>
+
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="fas fa-database me-2"></i>Dataset Management</h5>
+                    </div>
+                    <div class="card-body">
+                        <p>Manage datasets through our API:</p>
+                        <ul>
+                            <li><code>POST /api/datasets</code> - Create new dataset</li>
+                            <li><code>GET /api/datasets</code> - List datasets</li>
+                            <li><code>PUT /api/datasets/{id}</code> - Update dataset</li>
+                            <li><code>DELETE /api/datasets/{id}</code> - Delete dataset</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="fas fa-file-contract me-2"></i>Contract Management</h5>
+                    </div>
+                    <div class="card-body">
+                        <p>Handle contracts programmatically:</p>
+                        <ul>
+                            <li><code>POST /api/contracts</code> - Create contract</li>
+                            <li><code>GET /api/contracts</code> - List contracts</li>
+                            <li><code>GET /api/contracts/{id}</code> - Get contract details</li>
+                            <li><code>PUT /api/contracts/{id}</code> - Update contract</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <h2 class="h3 mt-5 mb-3">SDK Integration</h2>
+                <p>Use our official SDKs for easier integration:</p>
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="card-title"><i class="fab fa-python me-2"></i>Python SDK</h5>
+                                <p class="card-text">Install and use our Python SDK:</p>
+                                <pre><code>pip install contractflow-pro</code></pre>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="card-title"><i class="fab fa-node-js me-2"></i>Node.js SDK</h5>
+                                <p class="card-text">Install and use our Node.js SDK:</p>
+                                <pre><code>npm install contractflow-pro</code></pre>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <h2 class="h3 mt-5 mb-3">Third-Party Integrations</h2>
+                <p>Connect with popular services and platforms:</p>
+                
+                <ul>
+                    <li><strong>Cloud Providers:</strong> AWS, Azure, Google Cloud</li>
+                    <li><strong>Data Storage:</strong> S3, Azure Blob, Google Cloud Storage</li>
+                    <li><strong>Identity Providers:</strong> Keycloak, Auth0, Okta</li>
+                    <li><strong>Monitoring:</strong> Prometheus, Grafana, DataDog</li>
+                    <li><strong>CI/CD:</strong> GitHub Actions, GitLab CI, Jenkins</li>
+                </ul>
+
+                <h2 class="h3 mt-5 mb-3">Webhook Integration</h2>
+                <p>Receive real-time notifications about events:</p>
+                
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <h5 class="card-title">Available Webhooks</h5>
+                        <ul>
+                            <li><code>contract.created</code> - New contract created</li>
+                            <li><code>contract.updated</code> - Contract status changed</li>
+                            <li><code>dataset.uploaded</code> - New dataset uploaded</li>
+                            <li><code>training.completed</code> - AI training finished</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <h2 class="h3 mt-5 mb-3">Security Considerations</h2>
+                <p>Important security practices for integration:</p>
+                
+                <ul>
+                    <li><strong>API Key Management:</strong> Rotate keys regularly</li>
+                    <li><strong>HTTPS Only:</strong> Always use secure connections</li>
+                    <li><strong>Rate Limiting:</strong> Respect API rate limits</li>
+                    <li><strong>Input Validation:</strong> Validate all inputs</li>
+                    <li><strong>Error Handling:</strong> Implement proper error handling</li>
+                </ul>
+
+                <div class="alert alert-success mt-5">
+                    <h5><i class="fas fa-lightbulb me-2"></i>Integration Best Practices</h5>
+                    <ul class="mb-0">
+                        <li>Start with our getting started guide</li>
+                        <li>Use our SDKs when possible</li>
+                        <li>Implement proper error handling and retry logic</li>
+                        <li>Test integrations in a staging environment</li>
+                        <li>Monitor API usage and performance</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-dark text-white py-5 mt-5">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-6">
+                    <h5>ContractFlow Pro</h5>
+                    <p>Secure AI training data management platform</p>
+                </div>
+                <div class="col-lg-6 text-end">
+                    <p>&copy; 2024 ContractFlow Pro. All rights reserved.</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Custom JS -->
+    <script src="../script.js"></script>
+</body>
+</html>

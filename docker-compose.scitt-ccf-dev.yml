@@ -1,8 +1,10 @@
-version: '3.8'
+# Docker Compose file for SCITT CCF development services
 
 services:
   scitt-ccf-node:
-    image: scitt-ccf-ledger:latest
+    build:
+      context: ./deployment/scitt-ccf/node
+      dockerfile: Dockerfile
     container_name: scitt-ccf-node-dev
     ports:
       - "8000:8000"
@@ -13,7 +15,7 @@ services:
     networks:
       - cms-network
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/governance/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:8000/"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -44,7 +46,7 @@ services:
     image: redis:7-alpine
     container_name: scitt-ccf-redis-dev
     ports:
-      - "6379:6379"
+      - "6380:6379"
     networks:
       - cms-network
 

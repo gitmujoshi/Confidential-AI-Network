@@ -104,10 +104,43 @@ const ContractCard = ({ contract, onView, onEdit, onDelete, onDownloadContract, 
     <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
       <CardContent sx={{ flexGrow: 1 }}>
         <Box display="flex" justifyContent="space-between" alignItems="flex-start" mb={2}>
-                          <Typography variant="h6" component="h2" gutterBottom fontFamily="monospace">
-                  {contract.depaId || 'NULL'}
+          <Box sx={{ flex: 1 }}>
+            {/* Contract ID Field */}
+            <Box sx={{ mb: 2 }}>
+              <Typography variant="body2" color="textSecondary" fontSize="0.75rem" gutterBottom>
+                Contract ID (Ricardian)
+              </Typography>
+              <Typography variant="h6" component="h2" fontFamily="monospace" sx={{ 
+                backgroundColor: 'grey.100', 
+                padding: '8px 12px', 
+                borderRadius: '4px',
+                border: '1px solid',
+                borderColor: 'grey.300'
+              }}>
+                {contract.contractId || 'NULL'}
+              </Typography>
+            </Box>
+            
+            {/* Global DEPA ID Field */}
+            {contract.depaId && (
+              <Box>
+                <Typography variant="body2" color="textSecondary" fontSize="0.75rem" gutterBottom>
+                  Global DEPA ID
                 </Typography>
-          <Box display="flex" gap={1}>
+                <Typography variant="body2" fontFamily="monospace" sx={{ 
+                  backgroundColor: 'primary.50', 
+                  padding: '8px 12px', 
+                  borderRadius: '4px',
+                  border: '1px solid',
+                  borderColor: 'primary.200',
+                  color: 'primary.700'
+                }}>
+                  {contract.depaId}
+                </Typography>
+              </Box>
+            )}
+          </Box>
+          <Box display="flex" gap={1} sx={{ ml: 2 }}>
             <StatusChip status={contract.status} />
             {isMultiTDPContract && (
               <Chip label="Multi-TDP" color="primary" size="small" />
@@ -219,12 +252,46 @@ const ContractRow = ({ contract, onView, onEdit, onDelete, onDownloadContract, o
   return (
     <TableRow hover>
       <TableCell>
-        <Box display="flex" alignItems="center" gap={1}>
-                            <Typography variant="body2" fontWeight="medium" fontFamily="monospace">
-                    {contract.depaId || 'NULL'}
-                  </Typography>
+        <Box sx={{ minWidth: '200px' }}>
+          {/* Contract ID Field */}
+          <Box sx={{ mb: 1 }}>
+            <Typography variant="caption" color="textSecondary" display="block">
+              Contract ID (Ricardian)
+            </Typography>
+            <Typography variant="body2" fontFamily="monospace" fontWeight="medium" sx={{ 
+              backgroundColor: 'grey.100', 
+              padding: '4px 8px', 
+              borderRadius: '3px',
+              border: '1px solid',
+              borderColor: 'grey.300',
+              fontSize: '0.75rem'
+            }}>
+              {contract.contractId || 'NULL'}
+            </Typography>
+          </Box>
+          
+          {/* Global DEPA ID Field */}
+          {contract.depaId && (
+            <Box>
+              <Typography variant="caption" color="textSecondary" display="block">
+                Global DEPA ID
+              </Typography>
+              <Typography variant="caption" fontFamily="monospace" sx={{ 
+                backgroundColor: 'primary.50', 
+                padding: '4px 8px', 
+                borderRadius: '3px',
+                border: '1px solid',
+                borderColor: 'primary.200',
+                color: 'primary.700',
+                fontSize: '0.7rem'
+              }}>
+                {contract.depaId}
+              </Typography>
+            </Box>
+          )}
+          
           {isMultiTDPContract && (
-            <Chip label="Multi-TDP" color="primary" size="small" />
+            <Chip label="Multi-TDP" color="primary" size="small" sx={{ mt: 1 }} />
           )}
         </Box>
       </TableCell>
@@ -453,7 +520,11 @@ function Contracts() {
       const completeContract = await apiService.getContract(contract.contractId);
       
       const contractData = {
-        contractId: completeContract.contractId,
+        // Contract Identifiers
+        contractId: completeContract.contractId, // Ricardian Contract ID
+        globalDEPAId: completeContract.depaId, // Global DEPA ID for jurisdictional compliance
+        
+        // Contract Status
         status: completeContract.status,
         createdAt: completeContract.createdAt,
         updatedAt: completeContract.updatedAt,
@@ -509,7 +580,7 @@ function Contracts() {
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `${completeContract.contractId}_complete_contract.json`;
+      a.download = `${completeContract.contractId}_${completeContract.depaId || 'NO-DEPA-ID'}_complete_contract.json`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
@@ -536,7 +607,7 @@ function Contracts() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `${contract.contractId}_legal_document.json`;
+          a.download = `${contract.contractId}_${contract.depaId || 'NO-DEPA-ID'}_legal_document.json`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -547,7 +618,7 @@ function Contracts() {
   };
 
   return (
-    <Box>
+    <Box sx={{ pt: 2 }}>
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
         <Typography variant="h4">Contracts</Typography>
         <Button variant="contained" startIcon={<Add />} onClick={handleCreateContract}>
@@ -782,9 +853,40 @@ function Contracts() {
             <DialogContent>
               <Grid container spacing={3}>
                 <Grid item xs={12}>
-                  <Typography variant="h6" gutterBottom fontFamily="monospace">
-                    {selectedContract.depaId || 'NULL'}
-                  </Typography>
+                  {/* Contract ID Field */}
+                  <Box sx={{ mb: 2 }}>
+                    <Typography variant="body2" color="textSecondary" fontSize="0.75rem" gutterBottom>
+                      Contract ID (Ricardian)
+                    </Typography>
+                    <Typography variant="h6" fontFamily="monospace" sx={{ 
+                      backgroundColor: 'grey.100', 
+                      padding: '12px 16px', 
+                      borderRadius: '6px',
+                      border: '1px solid',
+                      borderColor: 'grey.300'
+                    }}>
+                      {selectedContract.contractId || 'NULL'}
+                    </Typography>
+                  </Box>
+                  
+                  {/* Global DEPA ID Field */}
+                  {selectedContract.depaId && (
+                    <Box>
+                      <Typography variant="body2" color="textSecondary" fontSize="0.75rem" gutterBottom>
+                        Global DEPA ID
+                      </Typography>
+                      <Typography variant="body2" fontFamily="monospace" sx={{ 
+                        backgroundColor: 'primary.50', 
+                        padding: '12px 16px', 
+                        borderRadius: '6px',
+                        border: '1px solid',
+                        borderColor: 'primary.200',
+                        color: 'primary.700'
+                      }}>
+                        {selectedContract.depaId}
+                      </Typography>
+                    </Box>
+                  )}
                 </Grid>
                 
                 <Grid item xs={12} md={6}>

@@ -229,7 +229,7 @@ module.exports = (sequelize, Sequelize) => {
     
     // Cloud providers for CCRP users (array of supported providers)
     cloudProviders: {
-      type: Sequelize.DataTypes.JSON,
+      type: Sequelize.DataTypes.JSONB,
       allowNull: true,
       comment: 'Array of cloud providers supported by CCRP users (AWS, Azure, GCP, OCI)'
     },
@@ -250,47 +250,47 @@ module.exports = (sequelize, Sequelize) => {
     indexes: [
       {
         unique: true,
-        fields: ['walletAddress'],
+        fields: ['wallet_address'],
         where: {
-          walletAddress: {
+          wallet_address: {
             [Sequelize.Op.ne]: null
           }
         }
       },
       {
         unique: true,
-        fields: ['iamUserId']      // Fast IAM user lookups
+        fields: ['iam_user_id']      // Fast IAM user lookups
       },
       {
         unique: true,
         fields: ['did']            // Fast DID lookups
       },
       {
-        fields: ['partyType']      // Fast role-based queries
+        fields: ['party_type']      // Fast role-based queries
       },
       {
         fields: ['email']          // Fast email lookups
       },
       {
-        fields: ['publicKey'],
+        fields: ['public_key'],
         where: {
-          publicKey: {
+          public_key: {
             [Sequelize.Op.ne]: null
           }
         }
       },
       {
-        fields: ['onboardingStatus'] // Fast onboarding status queries
+        fields: ['onboarding_status'] // Fast onboarding status queries
       },
       {
-        fields: ['profileCompleted'] // Fast profile completion queries
+        fields: ['profile_completed'] // Fast profile completion queries
       },
       {
-        fields: ['lastLoginAt']    // Fast login history queries
+        fields: ['last_login_at']    // Fast login history queries
       },
       {
         unique: true,
-        fields: ['depaId']         // Fast DEPA ID lookups
+        fields: ['depa_id']         // Fast DEPA ID lookups
       }
     ]
   });

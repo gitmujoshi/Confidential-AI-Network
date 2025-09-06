@@ -1,0 +1,32 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+rule_files:
+  # - "first_rules.yml"
+  # - "second_rules.yml"
+
+scrape_configs:
+  - job_name: 'scitt-ccf-service'
+    static_configs:
+      - targets: ['scitt-ccf-node:9000']
+    metrics_path: '/metrics'
+    scrape_interval: 10s
+
+  - job_name: 'scitt-ccf-***REMOVED-DB_PASSWORD***'
+    static_configs:
+      - targets: ['scitt-ccf-***REMOVED-DB_PASSWORD***:5432']
+    metrics_path: '/metrics'
+    scrape_interval: 30s
+
+  - job_name: 'scitt-ccf-redis'
+    static_configs:
+      - targets: ['scitt-ccf-redis:6379']
+    metrics_path: '/metrics'
+    scrape_interval: 30s
+
+  - job_name: 'api-gateway'
+    static_configs:
+      - targets: ['localhost:8000']
+    metrics_path: '/metrics'
+    scrape_interval: 10s

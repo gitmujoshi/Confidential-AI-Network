@@ -6,12 +6,17 @@
 set -e
 
 # Load centralized configuration
-# Load centralized configuration
-source scripts/load-config.sh    echo -e "${BLUE}✅ Loading centralized configuration from config.env${NC}"
+if [ -f "config.env" ]; then
+    source scripts/load-config.sh
+    echo -e "${BLUE}✅ Loading centralized configuration from config.env${NC}"
 else
     echo -e "${RED}❌ config.env not found${NC}"
     exit 1
 fi
+
+# Load common test data
+source scripts/test-data-common-simple.sh
+echo -e "${BLUE}✅ Loading common test data${NC}"
 
 # Colors for output
 GREEN='\033[0;32m'
@@ -43,7 +48,7 @@ test_user_role() {
     # Test login
     ((TOTAL_TESTS++))
     echo "  Testing login..."
-    local login_response=$(curl -s -X POST "/api/auth/login" \
+    local login_response=$(curl -s -X POST "${BACKEND_URL}/api/auth/login" \
         -H "Content-Type: application/json" \
         -d "{\"email\": \"${email}\", \"password\": \"${password}\"}" 2>/dev/null || echo "FAILED")
     
@@ -216,11 +221,11 @@ test_admin_capabilities() {
 
 echo -e "${BLUE}🔍 Testing User Roles${NC}"
 
-# Test each user role
-test_user_role "TDP" "tdp.medical@example.com" "password123" "dataset_management"
-test_user_role "TDC" "tdc.healthcare@example.com" "password123" "model_management"
-test_user_role "CCRP" "ccrp.secure@example.com" "password123" "environment_management"
-test_user_role "Admin" "admin@contractmanagement.com" "password123" "system_management"
+# Test each user role using common test data
+test_user_role "TDP" "$TDP_USER_EMAIL" "$TDP_USER_PASSWORD" "dataset_management"
+test_user_role "TDC" "$TDC_USER_EMAIL" "$TDC_USER_PASSWORD" "model_management"
+test_user_role "CCRP" "$CCRP_USER_EMAIL" "$CCRP_USER_PASSWORD" "environment_management"
+test_user_role "Admin" "$ADMIN_USER_EMAIL" "$ADMIN_USER_PASSWORD" "system_management"
 
 echo -e "\n${GREEN}🎉 User Role Testing Completed!${NC}"
 echo ""

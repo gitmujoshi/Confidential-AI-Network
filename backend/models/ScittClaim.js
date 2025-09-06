@@ -22,21 +22,25 @@ module.exports = (sequelize) => {
       type: DataTypes.STRING(255),
       allowNull: false,
       unique: true,
+      field: 'claim_id',
       comment: 'Unique identifier for the claim in SCITT CCF'
     },
     contractId: {
-      type: DataTypes.INTEGER,
+      type: DataTypes.STRING(255),
       allowNull: false,
-      comment: 'Reference to the contract this claim belongs to'
+      field: 'contract_id',
+      comment: 'Reference to the contract this claim belongs to (can be string or integer)'
     },
     claimType: {
       type: DataTypes.STRING(100),
       allowNull: false,
+      field: 'claim_type',
       comment: 'Type of claim (contract_creation, contract_approval, contract_completion, etc.)'
     },
     claimData: {
       type: DataTypes.JSONB,
       allowNull: false,
+      field: 'claim_data',
       comment: 'Complete claim data as submitted to SCITT CCF'
     },
     receipt: {
@@ -54,29 +58,44 @@ module.exports = (sequelize) => {
       type: DataTypes.DATE,
       allowNull: false,
       defaultValue: DataTypes.NOW,
+      field: 'created_at',
       comment: 'Timestamp when the claim was created'
     },
     updatedAt: {
       type: DataTypes.DATE,
       allowNull: false,
       defaultValue: DataTypes.NOW,
+      field: 'updated_at',
       comment: 'Timestamp when the claim was last updated'
+    },
+    provenanceTreeId: {
+      type: DataTypes.STRING(255),
+      allowNull: true,
+      field: 'provenance_tree_id',
+      comment: 'ID of the provenance tree for this claim'
+    },
+    provenanceRoot: {
+      type: DataTypes.STRING(255),
+      allowNull: true,
+      field: 'provenance_root',
+      comment: 'Root hash of the provenance tree for this claim'
     }
   }, {
     tableName: 'scitt_claims',
     timestamps: true,
+    underscored: true,
     indexes: [
       {
         name: 'idx_claim_id',
-        fields: ['claimId']
+        fields: ['claim_id']
       },
       {
         name: 'idx_contract_id',
-        fields: ['contractId']
+        fields: ['contract_id']
       },
       {
         name: 'idx_claim_type',
-        fields: ['claimType']
+        fields: ['claim_type']
       },
       {
         name: 'idx_status',
@@ -89,7 +108,8 @@ module.exports = (sequelize) => {
   // Define associations
   ScittClaim.associate = (models) => {
     ScittClaim.belongsTo(models.Contract, {
-      foreignKey: 'contractId',
+      foreignKey: 'contractId',  // This matches the model attribute name
+      targetKey: 'contractId',   // Reference Contract.contractId (STRING), not Contract.id
       as: 'contract',
       onDelete: 'CASCADE'
     });

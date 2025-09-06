@@ -1,0 +1,66 @@
+# Docker Compose file for HTTPS-enabled Keycloak
+
+services:
+  # Keycloak Database
+  ***REMOVED-DB_PASSWORD***-***REMOVED-KEYCLOAK_DB_PASSWORD***:
+    image: ***REMOVED-DB_PASSWORD***:15
+    container_name: ***REMOVED-DB_PASSWORD***-***REMOVED-KEYCLOAK_DB_PASSWORD***
+    env_file:
+      - config.env
+      - secrets.env
+    environment:
+      POSTGRES_DB: ***REMOVED-KEYCLOAK_DB_PASSWORD***
+      POSTGRES_USER: ***REMOVED-KEYCLOAK_DB_PASSWORD***
+      POSTGRES_PASSWORD: ${KEYCLOAK_DB_PASSWORD}
+    volumes:
+      - ***REMOVED-DB_PASSWORD***_***REMOVED-KEYCLOAK_DB_PASSWORD***_data:/var/lib/***REMOVED-DB_PASSWORD***ql/data
+    ports:
+      - "5433:5432"
+    networks:
+      - ***REMOVED-KEYCLOAK_DB_PASSWORD***-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ***REMOVED-KEYCLOAK_DB_PASSWORD*** -d ***REMOVED-KEYCLOAK_DB_PASSWORD***"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Keycloak IAM Server with HTTPS
+  ***REMOVED-KEYCLOAK_DB_PASSWORD***:
+    image: quay.io/***REMOVED-KEYCLOAK_DB_PASSWORD***/***REMOVED-KEYCLOAK_DB_PASSWORD***:latest
+    container_name: ***REMOVED-KEYCLOAK_DB_PASSWORD***-cms
+    env_file:
+      - config.env
+      - secrets.env
+    environment:
+      KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN_USER}
+      KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
+      KC_DB: ***REMOVED-DB_PASSWORD***
+      KC_DB_URL: jdbc:***REMOVED-DB_PASSWORD***ql://***REMOVED-DB_PASSWORD***-***REMOVED-KEYCLOAK_DB_PASSWORD***:5432/***REMOVED-KEYCLOAK_DB_PASSWORD***
+      KC_DB_USERNAME: ***REMOVED-KEYCLOAK_DB_PASSWORD***
+      KC_DB_PASSWORD: ${KEYCLOAK_DB_PASSWORD}
+    command: start-dev --https-port=8443 --https-certificate-file=/opt/***REMOVED-KEYCLOAK_DB_PASSWORD***/conf/cert.pem --https-certificate-key-file=/opt/***REMOVED-KEYCLOAK_DB_PASSWORD***/conf/key.pem --health-enabled=true
+    ports:
+      - "8443:8443"
+    volumes:
+      - ***REMOVED-KEYCLOAK_DB_PASSWORD***_data:/opt/***REMOVED-KEYCLOAK_DB_PASSWORD***/data
+      - ./deployment/***REMOVED-KEYCLOAK_DB_PASSWORD***-certs:/opt/***REMOVED-KEYCLOAK_DB_PASSWORD***/conf:ro
+    depends_on:
+      ***REMOVED-DB_PASSWORD***-***REMOVED-KEYCLOAK_DB_PASSWORD***:
+        condition: service_healthy
+    networks:
+      - ***REMOVED-KEYCLOAK_DB_PASSWORD***-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "-k", "https://localhost:8443/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+volumes:
+  ***REMOVED-DB_PASSWORD***_***REMOVED-KEYCLOAK_DB_PASSWORD***_data:
+    driver: local
+  ***REMOVED-KEYCLOAK_DB_PASSWORD***_data:
+    driver: local
+
+networks:
+  ***REMOVED-KEYCLOAK_DB_PASSWORD***-network:
+    driver: bridge

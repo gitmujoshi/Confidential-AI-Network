@@ -27,6 +27,10 @@ module.exports = (sequelize, DataTypes) => {
     contractId: {
       type: DataTypes.STRING,
       allowNull: false,
+      references: {
+        model: 'contracts',
+        key: 'contract_id'
+      },
       comment: 'Associated contract ID'
     },
     
@@ -53,14 +57,14 @@ module.exports = (sequelize, DataTypes) => {
     
     // Environment specifications from contract
     environmentSpecs: {
-      type: DataTypes.JSON,
+      type: DataTypes.JSONB,
       allowNull: true,
       comment: 'Environment specifications from contract'
     },
     
     // Training parameters from contract
     trainingParams: {
-      type: DataTypes.JSON,
+      type: DataTypes.JSONB,
       allowNull: true,
       comment: 'Training parameters from contract'
     },
@@ -85,7 +89,7 @@ module.exports = (sequelize, DataTypes) => {
     
     // Training results
     results: {
-      type: DataTypes.JSON,
+      type: DataTypes.JSONB,
       allowNull: true,
       comment: 'Training results including accuracy, loss, privacy metrics'
     },
@@ -99,7 +103,7 @@ module.exports = (sequelize, DataTypes) => {
     
     // Training logs
     logs: {
-      type: DataTypes.JSON,
+      type: DataTypes.JSONB,
       allowNull: true,
       comment: 'Training execution logs'
     },
@@ -143,27 +147,28 @@ module.exports = (sequelize, DataTypes) => {
   }, {
     tableName: 'training_jobs',
     timestamps: true,
+    underscored: true,
     
     // Database indexes for performance optimization
     indexes: [
       {
         unique: true,
-        fields: ['jobId']           // Fast job ID lookups
+        fields: ['job_id']           // Fast job ID lookups
       },
       {
-        fields: ['contractId']      // Fast contract-based queries
+        fields: ['contract_id']      // Fast contract-based queries
       },
       {
         fields: ['status']          // Fast status-based queries
       },
       {
-        fields: ['createdBy']       // Fast user-based queries
+        fields: ['created_by']       // Fast user-based queries
       },
       {
-        fields: ['cloudProvider']   // Fast provider-based queries
+        fields: ['cloud_provider']   // Fast provider-based queries
       },
       {
-        fields: ['startedAt']       // Fast time-based queries
+        fields: ['started_at']       // Fast time-based queries
       }
     ]
   });

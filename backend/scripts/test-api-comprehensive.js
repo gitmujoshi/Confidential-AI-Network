@@ -11,8 +11,8 @@ const path = require('path');
 
 // Configuration
 const CONFIG = {
-  baseURL: process.env.API_BASE_URL || 'http://localhost:5001',
-  apiBase: process.env.API_BASE_URL ? `${process.env.API_BASE_URL}/api` : 'http://localhost:5001/api',
+  baseURL: process.env.API_BASE_URL || '${BACKEND_URL:-http://localhost:5001}',
+  apiBase: process.env.API_BASE_URL ? `${process.env.API_BASE_URL}/api` : '${BACKEND_URL:-http://localhost:5001}/api',
   timeout: 30000,
   testUsers: {
     tdc: { email: 'tdc@test.com', password: 'TestPassword123!' },

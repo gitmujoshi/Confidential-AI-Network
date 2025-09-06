@@ -1,11 +1,16 @@
 const axios = require('axios');
 
+// Load environment variables
+require('dotenv').config({ path: '../config.env' });
+
 async function updateRealm() {
   try {
     console.log('🔐 Getting admin token...');
     
+    const KEYCLOAK_URL = process.env.KEYCLOAK_URL || 'https://localhost:8443';
+    
     // Get admin token
-    const tokenResponse = await axios.post('http://localhost:8080/realms/master/protocol/openid-connect/token', 
+    const tokenResponse = await axios.post(`${KEYCLOAK_URL}/realms/master/protocol/openid-connect/token`, 
       new URLSearchParams({
         username: 'admin',
         password: '***REMOVED-KEYCLOAK_ADMIN_PASSWORD***',
@@ -26,13 +31,13 @@ async function updateRealm() {
       displayName: 'Contract Management System',
       displayNameHtml: '<div class="kc-logo-text"><span>Contract Management</span></div>',
       attributes: {
-        frontendUrl: 'http://localhost:8080',
+        frontendUrl: KEYCLOAK_URL,
         backendUrl: 'http://localhost:5001'
       }
     };
     
     console.log('🔄 Updating realm configuration...');
-    await axios.put('http://localhost:8080/admin/realms/contract-management', realmUpdate, {
+    await axios.put(`${KEYCLOAK_URL}/admin/realms/contract-management`, realmUpdate, {
       headers: {
         'Authorization': `Bearer ${adminToken}`,
         'Content-Type': 'application/json'

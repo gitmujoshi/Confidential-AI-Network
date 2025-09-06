@@ -54,9 +54,9 @@ echo "🔄 Restoring Keycloak from backup: $BACKUP_NAME"
 
 # Function to get admin token
 get_admin_token() {
-    local response=$(curl -s -X POST "http://localhost:8080/realms/master/protocol/openid-connect/token" \
+    local response=$(curl -k -s -X POST "${KEYCLOAK_URL:-https://localhost:8443}/realms/master/protocol/openid-connect/token" \
         -H "Content-Type: application/x-www-form-urlencoded" \
-        -d "grant_type=password&client_id=admin-cli&username=admin&password=***REMOVED-KEYCLOAK_ADMIN_PASSWORD***")
+        -d "grant_type=password&client_id=admin-cli&username=${KEYCLOAK_ADMIN_USER:-admin}&password=${KEYCLOAK_ADMIN_PASSWORD:-***REMOVED-KEYCLOAK_ADMIN_PASSWORD***}")
     
     echo "$response" | grep -o '"access_token":"[^"]*"' | cut -d'"' -f4
 }
@@ -68,7 +68,7 @@ wait_for_***REMOVED-KEYCLOAK_DB_PASSWORD***() {
     local attempt=1
     
     while [ $attempt -le $max_attempts ]; do
-        if curl -s "http://localhost:8080/health" >/dev/null 2>&1; then
+        if curl -k -s "${KEYCLOAK_URL:-https://localhost:8443}/realms/master" >/dev/null 2>&1; then
             print_success "Keycloak is ready!"
             return 0
         fi
@@ -90,7 +90,7 @@ import_realm() {
     print_status "Importing realm configuration..."
     
     # Import realm
-    local response=$(curl -s -X POST "http://localhost:8080/admin/realms" \
+    local response=$(curl -k -s -X POST "${KEYCLOAK_URL:-https://localhost:8443}/admin/realms" \
         -H "Authorization: Bearer $admin_token" \
         -H "Content-Type: application/json" \
         -d @"$realm_file")
@@ -101,7 +101,7 @@ import_realm() {
         local realm_name=$(grep -o '"realm":"[^"]*"' "$realm_file" | cut -d'"' -f4)
         
         # Update realm
-        curl -s -X PUT "http://localhost:8080/admin/realms/$realm_name" \
+        curl -k -s -X PUT "${KEYCLOAK_URL:-https://localhost:8443}/admin/realms/$realm_name" \
             -H "Authorization: Bearer $admin_token" \
             -H "Content-Type: application/json" \
             -d @"$realm_file" >/dev/null
@@ -135,7 +135,7 @@ import_users() {
             user_json=$(echo "$user_json" | sed 's/,$//')
             
             # Import user
-            local response=$(curl -s -X POST "http://localhost:8080/admin/realms/contract-management/users" \
+            local response=$(curl -k -s -X POST "${KEYCLOAK_URL:-https://localhost:8443}/admin/realms/${KEYCLOAK_REALM:-contract-management}/users" \
                 -H "Authorization: Bearer $admin_token" \
                 -H "Content-Type: application/json" \
                 -d "$user_json")
@@ -157,7 +157,7 @@ import_users() {
 # Main restore function
 restore_***REMOVED-KEYCLOAK_DB_PASSWORD***() {
     # Check if Keycloak is running
-    if ! curl -s "http://localhost:8080/health" >/dev/null 2>&1; then
+    if ! curl -k -s "${KEYCLOAK_URL:-https://localhost:8443}/realms/master" >/dev/null 2>&1; then
         print_error "Keycloak is not running. Please start Keycloak first."
         exit 1
     fi
@@ -198,7 +198,7 @@ restore_***REMOVED-KEYCLOAK_DB_PASSWORD***() {
     
     print_success "Restore completed successfully!"
     print_status "Backup restored: $BACKUP_NAME"
-    print_status "Keycloak Admin Console: http://localhost:8080"
+    print_status "Keycloak Admin Console: ${KEYCLOAK_URL:-https://localhost:8443}/admin"
 }
 
 # Run restore

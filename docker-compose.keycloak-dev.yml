@@ -4,16 +4,19 @@ services:
   ***REMOVED-KEYCLOAK_DB_PASSWORD***:
     image: quay.io/***REMOVED-KEYCLOAK_DB_PASSWORD***/***REMOVED-KEYCLOAK_DB_PASSWORD***:26.3.2
     container_name: ***REMOVED-KEYCLOAK_DB_PASSWORD***-cms
+    env_file:
+      - config.env
+      - secrets.env
     environment:
-      KEYCLOAK_ADMIN: admin
-      KEYCLOAK_ADMIN_PASSWORD: ***REMOVED-KEYCLOAK_ADMIN_PASSWORD***
+      KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN_USER}
+      KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
       KC_DB: ***REMOVED-DB_PASSWORD***
       KC_DB_URL: jdbc:***REMOVED-DB_PASSWORD***ql://***REMOVED-DB_PASSWORD***:5432/***REMOVED-KEYCLOAK_DB_PASSWORD***
       KC_DB_USERNAME: ***REMOVED-KEYCLOAK_DB_PASSWORD***
-      KC_DB_PASSWORD: ***REMOVED-KEYCLOAK_DB_PASSWORD***
+      KC_DB_PASSWORD: ${KEYCLOAK_DB_PASSWORD}
       KC_HOSTNAME_STRICT: false
-      KC_HTTPS_ENABLED: true
-      KC_HTTP_ENABLED: false
+      KC_HTTPS_ENABLED: false
+      KC_HTTP_ENABLED: true
       KC_HEALTH_ENABLED: true
       KC_PROXY: edge
       KC_SPI_LOGIN_PROTOCOL_OPENID_CONNECT_LEGACY_LOGOUT_REDIRECT_URI: true
@@ -24,7 +27,7 @@ services:
       KC_HTTPS_CERTIFICATE_KEY_FILE: /opt/***REMOVED-KEYCLOAK_DB_PASSWORD***/conf/server.key
     command: start-dev
     ports:
-      - "8443:8443"
+      - "8080:8080"
     volumes:
       - ***REMOVED-KEYCLOAK_DB_PASSWORD***_data:/opt/***REMOVED-KEYCLOAK_DB_PASSWORD***/data
       - ./***REMOVED-KEYCLOAK_DB_PASSWORD***-config:/opt/***REMOVED-KEYCLOAK_DB_PASSWORD***/conf
@@ -36,10 +39,13 @@ services:
   ***REMOVED-DB_PASSWORD***:
     image: ***REMOVED-DB_PASSWORD***:15
     container_name: ***REMOVED-DB_PASSWORD***-cms
+    env_file:
+      - config.env
+      - secrets.env
     environment:
       POSTGRES_DB: ***REMOVED-KEYCLOAK_DB_PASSWORD***
       POSTGRES_USER: ***REMOVED-KEYCLOAK_DB_PASSWORD***
-      POSTGRES_PASSWORD: ***REMOVED-KEYCLOAK_DB_PASSWORD***
+      POSTGRES_PASSWORD: ${KEYCLOAK_DB_PASSWORD}
     volumes:
       - ***REMOVED-DB_PASSWORD***_data:/var/lib/***REMOVED-DB_PASSWORD***ql/data
     ports:

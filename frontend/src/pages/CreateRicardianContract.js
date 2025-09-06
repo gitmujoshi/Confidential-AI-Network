@@ -51,6 +51,7 @@ import { useUser } from '../contexts/UserContext';
 import MultiDatasetSelector from '../components/MultiDatasetSelector';
 import MultiCCRPSelector from '../components/MultiCCRPSelector';
 import ContractTemplateSelector from '../components/ContractTemplateSelector';
+import ContractValidationService from '../services/contractValidationService';
 
 /**
  * CreateRicardianContract Component
@@ -86,7 +87,7 @@ import ContractTemplateSelector from '../components/ContractTemplateSelector';
 // Stepper steps for contract creation process
 const steps = [
   'Select Contract Template',
-  'Select Contract Type & Datasets (1-3)',
+  'Select Datasets (1-3)',
   'Configure Contract & Environment',
   'Review Legal Document & Smart Contract',
   'Create Contract'
@@ -97,15 +98,17 @@ function CreateRicardianContract() {
   const queryClient = useQueryClient();
   const { currentUser, isTDC, isAuthenticated } = useUser();
   
+  // Initialize validation service
+  const validationService = new ContractValidationService();
+  
   // Component state
   const [activeStep, setActiveStep] = useState(0);
-  const [selectedContractType, setSelectedContractType] = useState('AI_TRAINING');
   const [selectedTemplate, setSelectedTemplate] = useState(null);
   const [selectedDatasets, setSelectedDatasets] = useState([]); // Array of selected datasets
   const [datasetPrices, setDatasetPrices] = useState({}); // Individual pricing per dataset
   const [selectedCcrp, setSelectedCcrp] = useState('');
   const [selectedCcrpCloudProviders, setSelectedCcrpCloudProviders] = useState({}); // { [ccrpId]: provider }
-  const [selectedAiModels, setSelectedAiModels] = useState([]); // Array of selected AI model IDs
+  const [selectedAiModels, setSelectedAiModels] = useState(''); // Single selected AI model ID
   const [selectedCloudProvider, setSelectedCloudProvider] = useState(''); // Add cloud provider filter
   const [contractData, setContractData] = useState({
     price: '',
@@ -357,7 +360,6 @@ function CreateRicardianContract() {
 
   // Fetch data
   const { data: datasetsResponse, isLoading: datasetsLoading } = useQuery('datasets', apiService.getDatasets);
-  const { data: supportedTypes = [] } = useQuery('contract-types', apiService.getSupportedContractTypes);
   const { data: aiModelsResponse, isLoading: aiModelsLoading } = useQuery('ai-models', apiService.getAIModels);
   
   // Manual CCRP users fetch to avoid React Query parameter injection
@@ -387,22 +389,58 @@ function CreateRicardianContract() {
       owner && self.findIndex(o => o.id === owner.id) === index
     );
 
-  // Contract creation mutation
+  // Contract creation mutation - Create contract first, then SCITT CCF claim
   const createRicardianContractMutation = useMutation(
-    (data) => apiService.createRicardianContract(data), // Use contract creation
+    async (data) => {
+      // First create the contract in the regular contracts table
+      const contractResponse = await apiService.createRicardianContract(data);
+      
+      if (contractResponse?.contract?.contractId) {
+        // Then create the SCITT CCF claim using the actual contract ID
+        const scittData = {
+          ...data,
+          contractId: contractResponse.contract.contractId // Use the actual contract ID from the database
+        };
+        
+        const scittResponse = await apiService.createScittCcfContract(scittData);
+        return {
+          ...contractResponse,
+          scittCcf: scittResponse
+        };
+      }
+      
+      return contractResponse;
+    },
     {
       onSuccess: (response) => {
         setContractCreationError(null);
-        setCreatedContract(response);
-        queryClient.invalidateQueries('contracts');
-        toast.success('Contract created successfully!');
         
-        // Navigate to the newly created contract detail page
         if (response?.contract?.contractId) {
+          // Contract created successfully
+          setCreatedContract({
+            contract: {
+              contractId: response.contract.contractId,
+              claimId: response.scittCcf?.claimId,
+              source: 'SCITT_CCF'
+            },
+            message: response.scittCcf?.message || 'Contract created successfully with SCITT CCF integration!'
+          });
+          queryClient.invalidateQueries('contracts');
+          toast.success('Contract created successfully with SCITT CCF integration!');
+          
+          // Navigate to the newly created contract detail page
           navigate(`/contracts/${response.contract.contractId}`);
         } else {
-          // Fallback: Move to the next step to show the contract document
-          setActiveStep(activeStep + 1);
+          // Fallback to old format for backward compatibility
+          setCreatedContract(response);
+          queryClient.invalidateQueries('contracts');
+          toast.success('Contract created successfully!');
+          
+          if (response?.contract?.contractId) {
+            navigate(`/contracts/${response.contract.contractId}`);
+          } else {
+            setActiveStep(activeStep + 1);
+          }
         }
       },
       onError: (error) => {
@@ -468,8 +506,8 @@ function CreateRicardianContract() {
       return;
     }
     
-    if (activeStep === 1 && (!selectedContractType || selectedDatasets.length === 0)) {
-      toast.error('Please select both contract type and at least one dataset');
+    if (activeStep === 1 && selectedDatasets.length === 0) {
+      toast.error('Please select at least one dataset');
       return;
     }
     
@@ -543,7 +581,7 @@ function CreateRicardianContract() {
         datasetSelections,
         duration: parseInt(contractData.duration),
         termsAndConditions: contractData.termsAndConditions,
-        contractType: selectedContractType,
+        contractType: 'AI_TRAINING',
         privacyRequirements: {
           maxPrivacyLoss: trainingParams.maxPrivacyLoss,
           minAccuracy: trainingParams.minAccuracy,
@@ -633,61 +671,44 @@ function CreateRicardianContract() {
   /**
    * Handle contract creation
    */
-  const handleCreateRicardianContract = () => {
-    if (selectedDatasets.length === 0 || !isFormValid()) {
-      toast.error('Please fill in all required fields and select at least one dataset');
-      return;
+  const handleCreateContract = async () => {
+    try {
+      setContractCreationError(null);
+      
+      // Prepare contract data for regular contract creation API
+      const contractPayload = {
+        termsAndConditions: contractData.termsAndConditions || `Contract for ${selectedDatasets.map(d => d.name).join(', ')} - AI training contract using ${selectedDatasets.length} dataset(s)`,
+        price: parseFloat(contractData.price) || 0,
+        duration: parseInt(contractData.duration) || 90,
+        datasetSelections: selectedDatasets.map(dataset => ({
+          datasetId: dataset.datasetId,
+          individualPrice: dataset.price || 0
+        })),
+        aiModelIds: selectedAiModels || [],
+        environmentSpecs: environmentSpecs || { cpu: '4', ram: '8GB' },
+        trainingParams: trainingEnvironment ? { epochs: 100, batchSize: 32 } : { epochs: 50, batchSize: 16 }
+      };
+
+      // Validate contract data using Value Objects
+      console.log('🔍 Validating contract data with Value Objects...');
+      const validation = validationService.validateContractForm(contractPayload);
+      
+      if (!validation.isValid) {
+        const errorMessages = Object.values(validation.errors).join(', ');
+        console.error('❌ Contract validation failed:', validation.errors);
+        setContractCreationError(`Validation failed: ${errorMessages}`);
+        toast.error(`Validation failed: ${errorMessages}`);
+        return;
+      }
+
+      console.log('✅ Contract validation passed with Value Objects');
+      console.log('📝 Creating contract with SCITT CCF integration:', contractPayload);
+      createRicardianContractMutation.mutate(contractPayload);
+    } catch (error) {
+      console.error('Contract creation error:', error);
+      setContractCreationError(error.message);
+      toast.error('Failed to create contract');
     }
-
-    // Prepare dataset selections array for the backend
-    const datasetSelections = selectedDatasets.map(dataset => ({
-      datasetId: dataset.datasetId,
-      individualPrice: parseFloat(datasetPrices[dataset.id])
-    }));
-    
-    console.log('🔍 Selected datasets:', selectedDatasets.map(d => ({ 
-      id: d.id, 
-      datasetId: d.datasetId, 
-      name: d.name,
-      price: datasetPrices[d.id]
-    })));
-    console.log('🔍 Dataset selections for backend:', datasetSelections);
-    
-    const ccrpUser = ccrpUsers.find(user => user.id === parseInt(selectedCcrp));
-    
-    const contractPayload = {
-      datasetSelections, // Array of {datasetId, individualPrice} objects
-      duration: parseInt(contractData.duration),
-      termsAndConditions: contractData.termsAndConditions,
-      ccrpId: ccrpUser ? ccrpUser.id : null,
-      // Add privacy requirements
-      privacyRequirements: {
-        maxPrivacyLoss: trainingParams.maxPrivacyLoss,
-        minAccuracy: trainingParams.minAccuracy,
-        differentialPrivacy: trainingParams.differentialPrivacy,
-        federatedLearning: trainingParams.federatedLearning,
-        secureMultiPartyComputation: trainingParams.secureMultiPartyComputation
-      },
-      // Add comprehensive training environment specifications
-      trainingEnvironment,
-      // Add compliance specifications
-      complianceSpecs,
-      // Add AI model IDs if selected
-      aiModelIds: selectedAiModels.length > 0 ? selectedAiModels : null,
-      // Add environment specifications
-      environmentSpecs,
-      // Add training parameters
-      trainingParams,
-      // Add global DEPA ID options
-      ...(enableGlobalDEPAId && {
-        globalDEPAId: true,
-        deploymentPrefix: deploymentPrefix || undefined,
-        jurisdiction: selectedJurisdiction || undefined
-      })
-    };
-
-    console.log('📝 Creating multi-TDP contract with payload:', contractPayload);
-    createRicardianContractMutation.mutate(contractPayload);
   };
 
   const saveContractLocally = () => {
@@ -754,9 +775,9 @@ function CreateRicardianContract() {
             )}
 
             <ContractTemplateSelector
+              selectedTemplate={selectedTemplate}
               onTemplateSelect={(template) => {
                 setSelectedTemplate(template);
-                setSelectedContractType(template.contractType);
                 // Pre-fill some fields based on template
                 if (template.standardDuration) {
                   setContractData(prev => ({
@@ -786,7 +807,7 @@ function CreateRicardianContract() {
         return (
           <Box>
             <Typography variant="h6" gutterBottom>
-              Select Contract Type & Datasets (1-3)
+              Select Datasets (1-3)
             </Typography>
             
             <Grid container spacing={3}>
@@ -794,33 +815,19 @@ function CreateRicardianContract() {
                 <Card>
                   <CardContent>
                     <Typography variant="h6" gutterBottom>
-                      Contract Type
+                      Ricardian Contract
                     </Typography>
-                    <FormControl fullWidth>
-                      <InputLabel>Contract Type</InputLabel>
-                      <Select
-                        value={selectedContractType}
-                        onChange={(e) => setSelectedContractType(e.target.value)}
-                        label="Contract Type"
-                      >
-                        {(supportedTypes || []).map((type) => (
-                          <MenuItem key={type.id} value={type.id}>
-                            {type.name}
-                          </MenuItem>
-                        ))}
-                      </Select>
-                    </FormControl>
                     
                     <Box sx={{ mt: 2 }}>
                       <Typography variant="body2" color="text.secondary">
                         <SecurityIcon sx={{ mr: 1, verticalAlign: 'middle' }} />
-                        Contracts combine human-readable legal documents with machine-executable smart contracts.
+                        All contracts are Ricardian contracts that combine human-readable legal documents with machine-executable smart contracts.
                       </Typography>
                     </Box>
                   </CardContent>
                 </Card>
               </Grid>
-              
+
               <Grid item xs={12} md={6}>
                 <Card>
                   <CardContent>
@@ -930,29 +937,27 @@ function CreateRicardianContract() {
                     
                     <FormControl fullWidth margin="normal">
                       <InputLabel>AI Models</InputLabel>
+                      
+
+                      
                       <Select
-                        multiple
                         value={selectedAiModels}
                         onChange={(e) => setSelectedAiModels(e.target.value)}
                         label="AI Models"
-                        renderValue={(selected) => (
-                          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-                            {selected.map((modelId) => {
-                              const model = aiModelsResponse?.models?.find(m => m.id === modelId);
-                              return (
-                                <Chip 
-                                  key={modelId} 
-                                  label={model?.name || modelId} 
-                                  size="small" 
-                                />
-                              );
-                            })}
-                          </Box>
-                        )}
+                        renderValue={(selected) => {
+                          if (!selected) return 'Select an AI model (optional)';
+                          const model = aiModelsResponse?.models?.find(m => m.id === selected);
+                          return model?.name || selected;
+                        }}
                       >
+                        <MenuItem value="">
+                          <ListItemText 
+                            primary="No AI Model (Optional)"
+                            secondary="Proceed without selecting an AI model"
+                          />
+                        </MenuItem>
                         {(aiModelsResponse?.models || []).map((model) => (
                           <MenuItem key={model.id} value={model.id}>
-                            <Checkbox checked={selectedAiModels.indexOf(model.id) > -1} />
                             <ListItemText 
                               primary={model.name}
                               secondary={`${model.type} - ${model.architecture}`}
@@ -961,7 +966,7 @@ function CreateRicardianContract() {
                         ))}
                       </Select>
                       <Typography variant="caption" color="text.secondary">
-                        Select AI models to be used in this contract (optional)
+                        Select an AI model to be used in this contract (optional)
                       </Typography>
                     </FormControl>
                     
@@ -1933,21 +1938,55 @@ function CreateRicardianContract() {
             </Grid>
             
             {/* Model Information */}
-            {selectedAiModels.length > 0 && (
+            {selectedAiModels && (
               <Grid container spacing={3} sx={{ mt: 2 }}>
                 <Grid item xs={12}>
                   <Card>
                     <CardContent>
                       <Typography variant="h6" gutterBottom>
-                        Selected AI Models
+                        Selected AI Model
                       </Typography>
+                      
+
+                      
                       <Grid container spacing={2}>
-                        {selectedAiModels.map((modelId) => {
-                          const model = aiModelsResponse?.models?.find(m => m.id === modelId);
-                          if (!model) return null;
+                        {(() => {
+                          // Convert selectedAiModels to number for comparison
+                          const selectedModelId = parseInt(selectedAiModels);
+                          const model = aiModelsResponse?.models?.find(m => m.id === selectedModelId);
+                          
+
+                          
+                          if (!selectedAiModels) {
+                            return (
+                              <Grid item xs={12}>
+                                <Alert severity="info">
+                                  <Typography variant="body2">
+                                    No AI model selected. Please go back to Step 3 and select an AI model.
+                                  </Typography>
+                                </Alert>
+                              </Grid>
+                            );
+                          }
+                          
+                          if (!model) {
+                            return (
+                              <Grid item xs={12}>
+                                <Alert severity="warning">
+                                  <Typography variant="body2">
+                                    No AI model found with ID: {selectedAiModels}
+                                  </Typography>
+                                  <Typography variant="caption" color="textSecondary">
+                                    Available models: {aiModelsResponse?.models?.map(m => `${m.name} (ID: ${m.id})`).join(', ') || 'None'}
+                                  </Typography>
+
+                                </Alert>
+                              </Grid>
+                            );
+                          }
                           
                           return (
-                            <Grid item xs={12} md={6} key={modelId}>
+                            <Grid item xs={12} md={6} key={selectedAiModels}>
                               <Card variant="outlined">
                                 <CardContent>
                                   <Typography variant="h6" gutterBottom>
@@ -2309,7 +2348,7 @@ function CreateRicardianContract() {
                   <Grid item xs={12} md={6}>
                     <Typography variant="subtitle2">Contract Type:</Typography>
                     <Typography variant="body2" gutterBottom>
-                      {selectedContractType.replace('_', ' ')}
+                      Ricardian Contract
                     </Typography>
                     
                     <Typography variant="subtitle2">Dataset:</Typography>
@@ -2317,13 +2356,13 @@ function CreateRicardianContract() {
                       {selectedDatasets.map(ds => ds.name).join(', ')}
                     </Typography>
                     
-                    <Typography variant="subtitle2">AI Models:</Typography>
+                    <Typography variant="subtitle2">AI Model:</Typography>
                     <Typography variant="body2" gutterBottom>
-                      {selectedAiModels.length > 0 
-                        ? selectedAiModels.map(modelId => {
-                            const model = aiModelsResponse?.models?.find(m => m.id === modelId);
-                            return model?.name || modelId;
-                          }).join(', ')
+                      {selectedAiModels 
+                        ? (() => {
+                            const model = aiModelsResponse?.models?.find(m => m.id === selectedAiModels);
+                            return model?.name || selectedAiModels;
+                          })()
                         : 'None selected'
                       }
                     </Typography>
@@ -2378,12 +2417,21 @@ function CreateRicardianContract() {
 
   return (
     <Box sx={{ p: 3 }}>
-                  <Typography variant="h4" gutterBottom>
-              Create Contract
-            </Typography>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
+        <Typography variant="h4" gutterBottom>
+          Create Contract
+        </Typography>
+        <Chip 
+          label="SCITT CCF" 
+          color="primary" 
+          variant="outlined"
+          icon={<VerifiedIcon />}
+          size="small"
+        />
+      </Box>
       
       <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
-        Create a contract that combines human-readable legal documents with machine-executable smart contracts.
+        Create a contract with SCITT CCF integration for enhanced provenance tracking and blockchain transparency.
       </Typography>
 
       <Stepper activeStep={activeStep} sx={{ mb: 4 }}>
@@ -2410,10 +2458,10 @@ function CreateRicardianContract() {
           {activeStep === steps.length - 1 && !createdContract ? (
             <Button
               variant="contained"
-              onClick={handleCreateRicardianContract}
+              onClick={handleCreateContract}
               disabled={createRicardianContractMutation.isLoading}
             >
-              {createRicardianContractMutation.isLoading ? 'Creating Contract...' : 'Create Contract'}
+              {createRicardianContractMutation.isLoading ? 'Creating SCITT CCF Contract...' : 'Create SCITT CCF Contract'}
             </Button>
           ) : activeStep < steps.length - 1 ? (
             <Button

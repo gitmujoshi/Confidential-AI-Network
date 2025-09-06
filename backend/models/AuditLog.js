@@ -65,12 +65,13 @@ module.exports = (sequelize, DataTypes) => {
   }, {
     tableName: 'AuditLogs',
     timestamps: true,
+    underscored: true,
     indexes: [
       {
-        fields: ['eventType', 'timestamp']
+        fields: ['event_type', 'timestamp']
       },
       {
-        fields: ['userId', 'timestamp']
+        fields: ['user_id', 'timestamp']
       },
       {
         fields: ['timestamp']

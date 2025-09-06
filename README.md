@@ -6,19 +6,31 @@ A comprehensive contract management system with multi-party authentication, **SC
 
 ### **Local Development**
 ```bash
-# Start everything properly (SCITT CCF only)
-./start-system-scitt-ccf.sh
+# ✅ CURRENT - Start everything properly (SCITT CCF only)
+./start-system.sh                    # Main system startup (replaces start-system-scitt-ccf.sh)
 
-# Manage SCITT CCF services
+# ✅ CURRENT - Manage SCITT CCF services
 ./manage-scitt-ccf.sh start
 ./manage-scitt-ccf.sh status
 ./manage-scitt-ccf.sh test
 
-# Check system health
+# ✅ CURRENT - Check system health
 npm run status
 
-# Test authentication
+# ✅ CURRENT - Test authentication
 npm run test:login
+```
+
+### **🔧 Configuration & Fixes**
+```bash
+# ✅ CURRENT - Unified authentication fix (NEW)
+./scripts/fix-auth-unified.sh       # Fix authentication issues
+
+# ✅ CURRENT - SSL configuration fix (NEW)
+./scripts/fix-ssl-inconsistencies.sh # Fix SSL configuration issues
+
+# ✅ CURRENT - Centralized configuration (NEW)
+./scripts/config-loader.js           # Load configurations from config/system.env
 ```
 
 ### **Production Deployment**
@@ -232,15 +244,28 @@ cd ContractManagement
 # Install dependencies
 npm install
 
-# Setup environment
-cp config.env.example config.env
-# Edit config.env with your settings
+# ✅ CURRENT - Setup environment (NEW centralized config)
+cp config/system.env.example config/system.env
+# Edit config/system.env with your settings
 
-# Start services
-./start-system-scitt-ccf.sh
+# ✅ CURRENT - Start services
+./start-system.sh                    # Main system startup
 
-# Run tests
+# ✅ CURRENT - Run tests
 npm test
+```
+
+### **🔧 Configuration Management**
+```bash
+# ✅ CURRENT - Use centralized configuration
+./scripts/config-loader.js           # Load from config/system.env
+
+# ✅ CURRENT - Fix common issues
+./scripts/fix-auth-unified.sh       # Authentication issues
+./scripts/fix-ssl-inconsistencies.sh # SSL configuration issues
+
+# ✅ CURRENT - Clean up outdated scripts
+./scripts/cleanup-outdated-scripts.sh # Remove outdated files
 ```
 
 ## 📊 System Status
@@ -268,9 +293,62 @@ docker-compose logs -f
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
+## 📚 Documentation
+
+Comprehensive documentation is organized in the `docs/` directory:
+
+### 🏗️ Architecture & Design
+- **[AI/ML Training Solution Roadmap](docs/architecture/AI_ML_TRAINING_COMPLETE_SOLUTION_ROADMAP.md)** - Complete solution analysis and roadmap
+- **[Data Model Reference](docs/architecture/DATA_MODEL_REFERENCE.md)** - Database schema and data models
+- **[Decentralized KMS Architecture](docs/architecture/DECENTRALIZED_KMS_ARCHITECTURE.md)** - Key management system design
+- **[Multi-Tenant KMS Architecture](docs/architecture/MULTI_TENANT_KMS_ARCHITECTURE.md)** - Multi-tenant key management
+- **[Current vs Outdated Scripts](docs/architecture/CURRENT_VS_OUTDATED_SCRIPTS.md)** - Script analysis and recommendations
+- **[Centralized Configuration Architecture](docs/architecture/CENTRALIZED_CONFIGURATION_ARCHITECTURE.md)** - Configuration management design
+
+### 🔌 API & Integration
+- **[Complete API Specifications](docs/api/COMPLETE_API_SPECIFICATIONS.md)** - Comprehensive API documentation
+- **[API Endpoint Reference](docs/api/API_ENDPOINT_REFERENCE.md)** - Complete API endpoint reference
+- **[Cloud API Specifications](docs/api/CLOUD_API_SPECIFICATIONS.md)** - Cloud provider API specifications
+- **[SCITT CCF API Specifications](docs/api/SCITT_CCF_API_SPECIFICATIONS.md)** - SCITT CCF integration APIs
+
+### 🔄 Data Flows & Processes
+- **[TDP Encrypted Dataset TEE Flow](docs/flows/TDP_ENCRYPTED_DATASET_TEE_FLOW.md)** - TDP dataset upload and TEE decryption
+- **[TDC Encrypted AI Model TEE Flow](docs/flows/TDC_ENCRYPTED_AI_MODEL_TEE_FLOW.md)** - TDC AI model upload and TEE decryption
+- **[CCRP Environment Offerings Flow](docs/flows/CCRP_ENVIRONMENT_OFFERINGS_CONFIGURATION_FLOW.md)** - CCRP environment setup and configuration
+
+### 🛠️ Implementation Details
+- **[Backend Services Documentation](docs/implementation/BACKEND_SERVICES_DOCUMENTATION.md)** - Complete backend services documentation
+- **[Frontend Components Documentation](docs/implementation/FRONTEND_COMPONENTS_DOCUMENTATION.md)** - Frontend components and architecture
+- **[Contract Management System PRD](docs/implementation/CONTRACT_MANAGEMENT_SYSTEM_PRD.md)** - Product requirements document
+- **[Current System Status](docs/implementation/CURRENT_SYSTEM_STATUS.md)** - Current system status and capabilities
+
+### 📖 Guides & Tutorials
+- **[Developer Guide](docs/guides/DEVELOPER_GUIDE.md)** - Complete developer setup and workflow guide
+- **[Contract Template Guide](docs/guides/CONTRACT_TEMPLATE_GUIDE.md)** - Contract template creation and management
+- **[DEPA Integration Guide](docs/guides/DEPA_INTEGRATION_GUIDE.md)** - DEPA integration procedures
+- **[Setup Troubleshooting Guide](docs/guides/SETUP_TROUBLESHOOTING_GUIDE.md)** - Common setup issues and solutions
+- **[Training Course](docs/guides/TRAINING_COURSE.md)** - Training materials and courses
+
+### 🧪 Testing & Quality Assurance
+- **[Integration Testing Guide](docs/testing/INTEGRATION_TESTING_GUIDE.md)** - Comprehensive testing procedures
+- **[Test Data for Testers](docs/testing/TEST_DATA_FOR_TESTERS.md)** - Test data and user accounts
+- **[Tester Guide for Confidential Computing](docs/testing/TESTER_GUIDE_CONFIDENTIAL_COMPUTING.md)** - Confidential computing testing guide
+
+### 🔒 Security & Compliance
+- **[Security Integration Guide](docs/security/SECURITY_INTEGRATION_GUIDE.md)** - Security implementation and best practices
+- **[Identity and Access Management](docs/security/IDENTITY_AND_ACCESS_MANAGEMENT_DOCUMENTATION.md)** - IAM documentation
+- **[DPDP Compliance Implementation](docs/compliance/DPDP_COMPLIANCE_IMPLEMENTATION.md)** - DPDP 2023 compliance implementation
+
+### 📋 Quick Reference
+- **[Documentation Index](docs/README.md)** - Complete documentation index
+- **[Developer Guide](docs/DEVELOPER_GUIDE.md)** - Development setup and guidelines
+- **[Setup Guide](docs/SETUP.md)** - Detailed setup instructions
+- **[Testing Guide](docs/TESTING.md)** - Testing procedures and guidelines
+- **[Troubleshooting](docs/TROUBLESHOOTING.md)** - Common issues and solutions
+
 ## 🆘 Support
 
-- **Documentation**: Check the docs folder for comprehensive guides
+- **Documentation**: Check the [docs folder](docs/README.md) for comprehensive guides
 - **Issues**: Report bugs and feature requests via GitHub Issues
 - **Discussions**: Join community discussions on GitHub Discussions
 

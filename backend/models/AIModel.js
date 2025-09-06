@@ -56,7 +56,7 @@ module.exports = (sequelize) => {
       comment: 'Privacy-preserving technique used with this model'
     },
     validationMetrics: {
-      type: DataTypes.JSON,
+      type: DataTypes.JSONB,
       allowNull: false,
       comment: 'Array of validation metrics used for this model'
     },
@@ -81,7 +81,7 @@ module.exports = (sequelize) => {
       comment: 'Whether this model is available for use in contracts'
     },
     metadata: {
-      type: DataTypes.JSON,
+      type: DataTypes.JSONB,
       allowNull: true,
       comment: 'Additional model-specific metadata'
     },
@@ -98,10 +98,11 @@ module.exports = (sequelize) => {
   }, {
     tableName: 'ai_models',
     timestamps: true,
+    underscored: true,
     indexes: [
       {
         unique: true,
-        fields: ['modelId']
+        fields: ['model_id']
       },
       {
         fields: ['type']
@@ -110,7 +111,7 @@ module.exports = (sequelize) => {
         fields: ['framework']
       },
       {
-        fields: ['isActive']
+        fields: ['is_active']
       }
     ]
   });

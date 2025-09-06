@@ -1,0 +1,317 @@
+#!/usr/bin/env node
+
+/**
+ * Create Test Users via API
+ * This script creates test users using the proper registration API endpoints
+ * instead of direct database or Keycloak commands
+ */
+
+const axios = require('axios');
+
+// Configuration
+const CONFIG = {
+  baseURL: 'http://localhost:5001',
+  apiBase: 'http://localhost:5001/api',
+  timeout: 30000
+};
+
+// Test users configuration
+const testUsers = [
+  {
+    name: 'MedData Solutions Inc.',
+    email: 'tdp.medical@example.com',
+    partyType: 'TDP',
+    organization: 'MedData Solutions Inc.',
+    description: 'Healthcare data provider specializing in medical imaging datasets'
+  },
+  {
+    name: 'NLP Research Foundation',
+    email: 'tdp.nlp@example.com',
+    partyType: 'TDP',
+    organization: 'NLP Research Foundation',
+    description: 'Natural language processing datasets for research and development'
+  },
+  {
+    name: 'AutoDrive Technologies',
+    email: 'tdp.autodrive@example.com',
+    partyType: 'TDP',
+    organization: 'AutoDrive Technologies',
+    description: 'Autonomous vehicle training data and sensor datasets'
+  },
+  {
+    name: 'AI Healthcare Innovations',
+    email: 'tdc.healthcare@example.com',
+    partyType: 'TDC',
+    organization: 'AI Healthcare Innovations',
+    description: 'AI-powered healthcare solutions company'
+  },
+  {
+    name: 'FinTech Analytics Corp',
+    email: 'tdc.fintech@example.com',
+    partyType: 'TDC',
+    organization: 'FinTech Analytics Corp',
+    description: 'Financial technology and analytics solutions'
+  },
+  {
+    name: 'Language AI Labs',
+    email: 'tdc.language@example.com',
+    partyType: 'TDC',
+    organization: 'Language AI Labs',
+    description: 'Advanced language AI research and development'
+  },
+  {
+    name: 'SecureCloud Confidential Computing',
+    email: 'ccrp.securecloud@example.com',
+    partyType: 'CCRP',
+    organization: 'SecureCloud Confidential Computing',
+    description: 'Secure cloud infrastructure for confidential computing'
+  },
+  {
+    name: 'TrustedAI Environment Provider',
+    email: 'ccrp.trustedai@example.com',
+    partyType: 'CCRP',
+    organization: 'TrustedAI Environment Provider',
+    description: 'Trusted AI training environments with security guarantees'
+  },
+  {
+    name: 'PrivacyFirst Computing Solutions',
+    email: 'ccrp.privacyfirst@example.com',
+    partyType: 'CCRP',
+    organization: 'PrivacyFirst Computing Solutions',
+    description: 'Privacy-first computing infrastructure and services'
+  }
+];
+
+/**
+ * Test Utilities
+ */
+class TestUtils {
+  static log(message, type = 'info') {
+    const timestamp = new Date().toISOString();
+    const colors = {
+      success: '\x1b[32m', // Green
+      error: '\x1b[31m',   // Red
+      warning: '\x1b[33m', // Yellow
+      info: '\x1b[36m',    // Cyan
+      reset: '\x1b[0m'     // Reset
+    };
+    
+    const color = colors[type] || colors.reset;
+    console.log(`${color}${timestamp} - ${message}${colors.reset}`);
+  }
+
+  static async makeRequest(method, endpoint, data = null, headers = {}) {
+    try {
+      const config = {
+        method,
+        url: `${CONFIG.apiBase}${endpoint}`,
+        headers: {
+          'Content-Type': 'application/json',
+          ...headers
+        },
+        timeout: CONFIG.timeout
+      };
+
+      if (data) {
+        config.data = data;
+      }
+
+      const response = await axios(config);
+      return {
+        success: true,
+        data: response.data,
+        status: response.status,
+        headers: response.headers
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: error.response?.data || error.message,
+        status: error.response?.status || 500
+      };
+    }
+  }
+}
+
+/**
+ * Create test users via API
+ */
+async function createTestUsers() {
+  console.log('🚀 Starting Test User Creation via API...\n');
+  
+  const results = {
+    created: [],
+    failed: [],
+    total: testUsers.length
+  };
+
+  for (const userData of testUsers) {
+    try {
+      TestUtils.log(`👤 Creating user: ${userData.email}`, 'info');
+      
+      // Create user via registration API
+      const response = await TestUtils.makeRequest('POST', '/auth/register', userData);
+      
+      if (response.success && response.data.success) {
+        TestUtils.log(`✅ User ${userData.email} created successfully`, 'success');
+        results.created.push({
+          email: userData.email,
+          partyType: userData.partyType,
+          userId: response.data.user?.id
+        });
+      } else {
+        TestUtils.log(`❌ Failed to create user ${userData.email}: ${response.error}`, 'error');
+        results.failed.push({
+          email: userData.email,
+          partyType: userData.partyType,
+          error: response.error
+        });
+      }
+      
+      // Small delay between requests
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+    } catch (error) {
+      TestUtils.log(`❌ Error creating user ${userData.email}: ${error.message}`, 'error');
+      results.failed.push({
+        email: userData.email,
+        partyType: userData.partyType,
+        error: error.message
+      });
+    }
+  }
+
+  // Print summary
+  console.log('\n📊 Test User Creation Summary:');
+  console.log('================================');
+  console.log(`✅ Successfully created: ${results.created.length}/${results.total}`);
+  console.log(`❌ Failed: ${results.failed.length}/${results.total}`);
+  
+  if (results.created.length > 0) {
+    console.log('\n✅ Successfully Created Users:');
+    results.created.forEach(user => {
+      console.log(`   - ${user.email} (${user.partyType})`);
+    });
+  }
+  
+  if (results.failed.length > 0) {
+    console.log('\n❌ Failed to Create Users:');
+    results.failed.forEach(user => {
+      console.log(`   - ${user.email} (${user.partyType}): ${user.error}`);
+    });
+  }
+
+  return results;
+}
+
+/**
+ * Test login for created users
+ */
+async function testUserLogins(results) {
+  console.log('\n🧪 Testing User Logins...\n');
+  
+  const loginResults = {
+    successful: [],
+    failed: []
+  };
+
+  for (const user of results.created) {
+    try {
+      TestUtils.log(`🔐 Testing login for: ${user.email}`, 'info');
+      
+      // Test login with default password
+      const loginData = {
+        email: user.email,
+        password: 'password123' // Default password for test users
+      };
+
+      const response = await TestUtils.makeRequest('POST', '/auth/login', loginData);
+      
+      if (response.success && response.data.token) {
+        TestUtils.log(`✅ Login successful for ${user.email}`, 'success');
+        loginResults.successful.push({
+          email: user.email,
+          partyType: user.partyType,
+          token: response.data.token
+        });
+      } else {
+        TestUtils.log(`❌ Login failed for ${user.email}: ${response.error}`, 'error');
+        loginResults.failed.push({
+          email: user.email,
+          partyType: user.partyType,
+          error: response.error
+        });
+      }
+      
+      // Small delay between requests
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+    } catch (error) {
+      TestUtils.log(`❌ Error testing login for ${user.email}: ${error.message}`, 'error');
+      loginResults.failed.push({
+        email: user.email,
+        partyType: user.partyType,
+        error: error.message
+      });
+    }
+  }
+
+  // Print login summary
+  console.log('\n📊 Login Test Summary:');
+  console.log('=======================');
+  console.log(`✅ Successful logins: ${loginResults.successful.length}/${results.created.length}`);
+  console.log(`❌ Failed logins: ${loginResults.failed.length}/${results.created.length}`);
+
+  return loginResults;
+}
+
+/**
+ * Main execution
+ */
+async function main() {
+  try {
+    // Check if backend is running
+    TestUtils.log('🔍 Checking backend availability...', 'info');
+    try {
+      const healthResponse = await axios.get('http://localhost:5001/health', { timeout: 5000 });
+      if (healthResponse.status === 200) {
+        TestUtils.log('✅ Backend is running', 'success');
+      } else {
+        TestUtils.log('❌ Backend health check failed', 'error');
+        process.exit(1);
+      }
+    } catch (error) {
+      TestUtils.log('❌ Backend is not available. Please start the backend first.', 'error');
+      process.exit(1);
+    }
+    
+    // Create test users
+    const creationResults = await createTestUsers();
+    
+    if (creationResults.created.length === 0) {
+      TestUtils.log('❌ No users were created. Cannot test logins.', 'error');
+      return;
+    }
+    
+    // Test user logins
+    const loginResults = await testUserLogins(creationResults);
+    
+    // Final summary
+    console.log('\n🎉 Test User Creation Complete!');
+    console.log('===============================');
+    console.log(`📝 Created ${creationResults.created.length} test users`);
+    console.log(`🔐 Tested ${loginResults.successful.length} successful logins`);
+    console.log(`\n💡 Test users can now be used with password: password123`);
+    
+  } catch (error) {
+    TestUtils.log(`❌ Script execution failed: ${error.message}`, 'error');
+    process.exit(1);
+  }
+}
+
+// Run the script
+if (require.main === module) {
+  main();
+}
+
+module.exports = { createTestUsers, testUserLogins };

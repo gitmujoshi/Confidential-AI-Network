@@ -44,17 +44,11 @@ module.exports = (sequelize, DataTypes) => {
       autoIncrement: true
     },
     
-    // Unique contract identifier (human-readable)
+    // Contract ID (unique identifier)
     contractId: {
       type: DataTypes.STRING,
       allowNull: false,
       unique: true
-    },
-    
-    // Blockchain contract ID (from smart contract)
-    blockchainContractId: {
-      type: DataTypes.INTEGER,
-      allowNull: true
     },
     
     // Ricardian Contract Fields
@@ -71,22 +65,7 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: true,
       comment: 'Cryptographic signature binding legal document to smart contract'
     },
-    
-    smartContractAddress: {
-      field: 'smartcontractaddress',
-      type: DataTypes.STRING(42), // Ethereum address format
-      allowNull: true,
-      comment: 'Smart contract address for automated execution'
-    },
-    
-    smartContractNetwork: {
-      field: 'smartcontractnetwork',
-      type: DataTypes.STRING,
-      allowNull: true,
-      defaultValue: 'goerli',
-      comment: 'Blockchain network (goerli, mainnet, etc.)'
-    },
-    
+
     // Contract status in the workflow - Updated to match UML state diagram
     status: {
       type: DataTypes.ENUM(
@@ -128,13 +107,17 @@ module.exports = (sequelize, DataTypes) => {
     templateId: {
       type: DataTypes.STRING,
       allowNull: true,
+      references: {
+        model: 'contract_templates',
+        key: 'template_id'
+      },
       comment: 'Reference to the contract template used for this contract'
     },
     
-    // Ricardian Contract Legal Document (JSON)
+    // Ricardian Contract Legal Document (JSONB)
     legalDocument: {
       field: 'legaldocument',
-      type: DataTypes.JSON,
+      type: DataTypes.JSONB,
       allowNull: true,
       comment: 'Complete legal document with terms, parties, and signatures'
     },
@@ -142,7 +125,7 @@ module.exports = (sequelize, DataTypes) => {
     // Environment Specifications for CCRP
     environmentSpecs: {
       field: 'environmentspecs',
-      type: DataTypes.JSON,
+      type: DataTypes.JSONB,
       allowNull: true,
       comment: 'CCRP environment specifications including compute, security, and KMS config'
     },
@@ -150,7 +133,7 @@ module.exports = (sequelize, DataTypes) => {
     // Training Parameters
     trainingParams: {
       field: 'trainingparams',
-      type: DataTypes.JSON,
+      type: DataTypes.JSONB,
       allowNull: true,
       comment: 'AI training parameters including model type, privacy techniques, and validation metrics'
     },
@@ -158,50 +141,23 @@ module.exports = (sequelize, DataTypes) => {
     // Selected AI Model IDs
     aiModelIds: {
       field: 'aimodelids',
-      type: DataTypes.JSON,
+      type: DataTypes.JSONB,
       allowNull: true,
       comment: 'Array of selected AI model IDs for this contract'
-    },
-    
-    // Attestation Verification
-    attestationVerified: {
-      field: 'attestationverified',
-      type: DataTypes.BOOLEAN,
-      defaultValue: false,
-      comment: 'Whether Azure attestation has been verified'
-    },
-    
-    attestationReport: {
-      field: 'attestationreport',
-      type: DataTypes.JSON,
-      allowNull: true,
-      comment: 'Azure Confidential Computing attestation report'
     },
     
     // KMS Configuration
     kmsConfigs: {
       field: 'kmsconfigs',
-      type: DataTypes.JSON,
+      type: DataTypes.JSONB,
       allowNull: true,
       comment: 'Multi-KMS provider configurations for data decryption'
     },
-    
-    // TDP signature status
-    tdpSigned: {
-      type: DataTypes.BOOLEAN,
-      defaultValue: false
-    },
-    
+
     // CCRP signature status
     ccrpSigned: {
       type: DataTypes.BOOLEAN,
       defaultValue: false
-    },
-    
-    // Timestamp when TDP signed (auto-signed when contract created)
-    tdpSignedAt: {
-      type: DataTypes.DATE,
-      allowNull: true
     },
     
     // Timestamp when CCRP signed (manual review and sign)
@@ -229,7 +185,7 @@ module.exports = (sequelize, DataTypes) => {
         key: 'id'
       }
     },
-    
+
     // Selected cloud provider for this contract
     ccrpCloudProvider: {
       type: DataTypes.STRING,
@@ -305,13 +261,6 @@ module.exports = (sequelize, DataTypes) => {
       comment: 'Monthly budget limit for this contract'
     },
     
-    // All datasets and TDPs with individual payments
-    contractDatasets: {
-      type: DataTypes.JSON,
-      allowNull: false,
-      comment: 'Array of dataset objects: [{datasetId, tdpId, datasetName, tdpName, individualPrice, paymentStatus}]'
-    },
-    
     // Total number of datasets in this contract
     datasetCount: {
       type: DataTypes.INTEGER,
@@ -341,20 +290,6 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.DECIMAL(10, 2),
       allowNull: true,
       comment: 'Total price for all datasets combined'
-    },
-    
-    // Contract status for multiple TDPs
-    tdpSignatures: {
-      type: DataTypes.JSON,
-      allowNull: true,
-      comment: 'JSON object tracking signatures from each TDP: {tdpId: {signed: boolean, signedAt: timestamp, paymentAmount: decimal}}'
-    },
-    
-    // Payment tracking for each TDP
-    tdpPayments: {
-      type: DataTypes.JSON,
-      allowNull: true,
-      comment: 'JSON object tracking payments to each TDP: {tdpId: {amount: decimal, status: string, paidAt: timestamp}}'
     },
     
     // Contract status considering multiple TDPs - Updated to match UML state diagram
@@ -400,6 +335,26 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.STRING,
       allowNull: true,
       comment: 'Log/monitoring destination for training job logs and metrics'
+    },
+
+    // Provenance Integration Fields
+    provenanceTreeId: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      comment: 'Reference to the Merkle provenance tree for this contract'
+    },
+
+    provenanceRoot: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      comment: 'Hash of the provenance tree root for verification'
+    },
+
+    provenanceStatus: {
+      type: DataTypes.ENUM('PENDING', 'ACTIVE', 'COMPLETED', 'FAILED'),
+      defaultValue: 'PENDING',
+      allowNull: false,
+      comment: 'Status of provenance tracking for this contract'
     }
   }, {
     tableName: 'contracts',
@@ -410,32 +365,25 @@ module.exports = (sequelize, DataTypes) => {
     indexes: [
       {
         unique: true,
-        fields: ['contractId']     // Fast contract ID lookups
+        fields: ['contract_id']     // Fast contract ID lookups
       },
       {
         fields: ['status']         // Fast status-based queries
       },
       {
-        fields: ['tdcId']          // Fast TDC contract queries
+        fields: ['tdc_id']          // Fast TDC contract queries
       },
       {
-        fields: ['ccrpId']         // Fast CCRP contract queries
+        fields: ['ccrp_id']         // Fast CCRP contract queries
       },
       {
-        fields: ['blockchainContractId']  // Fast blockchain ID lookups
+        fields: ['depa_id']               // Fast DEPA ID lookups
       },
       {
-        fields: ['legaldocumenthash']     // Fast legal document hash lookups
+        fields: ['provenance_tree_id']     // Fast provenance tree lookups
       },
       {
-        fields: ['smartcontractaddress']  // Fast smart contract address lookups
-      },
-      {
-        fields: ['attestationverified']   // Fast attestation verification queries
-      },
-      {
-        unique: true,
-        fields: ['depaId']               // Fast DEPA ID lookups
+        fields: ['provenance_status']     // Fast provenance status queries
       }
     ]
   });
@@ -450,6 +398,29 @@ module.exports = (sequelize, DataTypes) => {
     
     // Contract belongs to CCRP (Confidential Clean Room Provider) - optional
     Contract.belongsTo(models.User, { foreignKey: 'ccrpId', as: 'ccrp' });
+
+    // NEW: Many-to-many with datasets through junction table
+    Contract.belongsToMany(models.Dataset, { 
+      through: 'contract_datasets',
+      foreignKey: 'contract_id',
+      otherKey: 'dataset_id',
+      as: 'contractDatasets'
+    });
+    
+    // NEW: Many-to-many with TDPs through junction table
+    Contract.belongsToMany(models.User, {
+      through: 'contract_datasets',
+      foreignKey: 'contract_id',
+      otherKey: 'tdp_id',
+      as: 'tdps'
+    });
+
+    // Contract belongs to ContractTemplate
+    Contract.belongsTo(models.ContractTemplate, { 
+      foreignKey: 'templateId', 
+      targetKey: 'templateId',
+      as: 'template' 
+    });
   };
 
   return Contract;
