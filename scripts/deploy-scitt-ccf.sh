@@ -1,0 +1,302 @@
+#!/bin/bash
+
+# SCITT CCF Deployment Script
+# This script deploys the isolated SCITT CCF services
+
+set -e  # Exit on any error
+
+# Colors for output
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+NC='\033[0m' # No Color
+
+# Configuration
+SCITT_COMPOSE_FILE="docker-compose.scitt-ccf-isolated.yml"
+GATEWAY_DIR="gateway"
+SCITT_DIR="scitt-ccf"
+TIMEOUT=300  # 5 minutes timeout for health checks
+
+# Logging functions
+log_info() {
+    echo -e "${BLUE}ℹ️  $1${NC}"
+}
+
+log_success() {
+    echo -e "${GREEN}✅ $1${NC}"
+}
+
+log_warning() {
+    echo -e "${YELLOW}⚠️  $1${NC}"
+}
+
+log_error() {
+    echo -e "${RED}❌ $1${NC}"
+}
+
+# Check prerequisites
+check_prerequisites() {
+    log_info "Checking prerequisites..."
+    
+    # Check if Docker is running
+    if ! docker info > /dev/null 2>&1; then
+        log_error "Docker is not running. Please start Docker and try again."
+        exit 1
+    fi
+    
+    # Check if Docker Compose is available
+    if ! command -v docker-compose &> /dev/null; then
+        log_error "Docker Compose is not installed. Please install it and try again."
+        exit 1
+    fi
+    
+    # Check if required directories exist
+    if [ ! -d "$SCITT_DIR" ]; then
+        log_error "SCITT CCF directory not found: $SCITT_DIR"
+        exit 1
+    fi
+    
+    if [ ! -d "$GATEWAY_DIR" ]; then
+        log_error "Gateway directory not found: $GATEWAY_DIR"
+        exit 1
+    fi
+    
+    log_success "Prerequisites check passed"
+}
+
+# Install dependencies
+install_dependencies() {
+    log_info "Installing dependencies..."
+    
+    # Install SCITT CCF dependencies
+    if [ -f "$SCITT_DIR/package.json" ]; then
+        log_info "Installing SCITT CCF dependencies..."
+        cd "$SCITT_DIR"
+        npm install
+        cd ..
+        log_success "SCITT CCF dependencies installed"
+    fi
+    
+    # Install Gateway dependencies
+    if [ -f "$GATEWAY_DIR/package.json" ]; then
+        log_info "Installing Gateway dependencies..."
+        cd "$GATEWAY_DIR"
+        npm install
+        cd ..
+        log_success "Gateway dependencies installed"
+    fi
+}
+
+# Deploy SCITT CCF services
+deploy_scitt_services() {
+    log_info "Deploying SCITT CCF services..."
+    
+    # Stop any existing SCITT services
+    log_info "Stopping existing SCITT services..."
+    docker-compose -f "$SCITT_COMPOSE_FILE" down --remove-orphans 2>/dev/null || true
+    
+    # Start SCITT services
+    log_info "Starting SCITT CCF services..."
+    docker-compose -f "$SCITT_COMPOSE_FILE" up -d
+    
+    log_success "SCITT CCF services started"
+}
+
+# Wait for services to be healthy
+wait_for_services() {
+    log_info "Waiting for services to be healthy..."
+    
+    local start_time=$(date +%s)
+    local scitt_healthy=false
+    local postgres_healthy=false
+    local redis_healthy=false
+    
+    while [ $(($(date +%s) - start_time)) -lt $TIMEOUT ]; do
+        # Check PostgreSQL health
+        if docker-compose -f "$SCITT_COMPOSE_FILE" ps scitt-ccf-postgres | grep -q "healthy"; then
+            if [ "$postgres_healthy" = false ]; then
+                log_success "PostgreSQL is healthy"
+                postgres_healthy=true
+            fi
+        fi
+        
+        # Check Redis health
+        if docker-compose -f "$SCITT_COMPOSE_FILE" ps scitt-ccf-redis | grep -q "healthy"; then
+            if [ "$redis_healthy" = false ]; then
+                log_success "Redis is healthy"
+                redis_healthy=true
+            fi
+        fi
+        
+        # Check SCITT CCF service health
+        if curl -s http://localhost:9000/health > /dev/null 2>&1; then
+            if [ "$scitt_healthy" = false ]; then
+                log_success "SCITT CCF service is healthy"
+                scitt_healthy=true
+            fi
+        fi
+        
+        # Check if all services are healthy
+        if [ "$postgres_healthy" = true ] && [ "$redis_healthy" = true ] && [ "$scitt_healthy" = true ]; then
+            log_success "All SCITT CCF services are healthy!"
+            return 0
+        fi
+        
+        log_info "Waiting for services to be healthy... ($(($(date +%s) - start_time))s elapsed"
+        sleep 10
+    done
+    
+    log_error "Timeout waiting for services to be healthy"
+    return 1
+}
+
+# Deploy API Gateway
+deploy_gateway() {
+    log_info "Deploying API Gateway..."
+    
+    # Check if gateway is already running
+    if curl -s ${SCITT_CCF_URL:-http://localhost:8000}/health > /dev/null 2>&1; then
+        log_warning "API Gateway is already running on port 8000"
+        return 0
+    fi
+    
+    # Start gateway in background
+    cd "$GATEWAY_DIR"
+    nohup npm start > gateway.log 2>&1 &
+    local gateway_pid=$!
+    cd ..
+    
+    # Wait for gateway to start
+    local start_time=$(date +%s)
+    while [ $(($(date +%s) - start_time)) -lt 60 ]; do
+        if curl -s ${SCITT_CCF_URL:-http://localhost:8000}/health > /dev/null 2>&1; then
+            log_success "API Gateway is running on port 8000"
+            return 0
+        fi
+        sleep 2
+    done
+    
+    log_error "Failed to start API Gateway"
+    kill $gateway_pid 2>/dev/null || true
+    return 1
+}
+
+# Run integration tests
+run_tests() {
+    log_info "Running integration tests..."
+    
+    if [ -f "scripts/test-scitt-integration.js" ]; then
+        cd scripts
+        node test-scitt-integration.js
+        cd ..
+        log_success "Integration tests completed"
+    else
+        log_warning "Integration test script not found, skipping tests"
+    fi
+}
+
+# Display service status
+show_status() {
+    log_info "Service Status:"
+    echo "=================="
+    
+    # SCITT CCF services
+    echo "SCITT CCF Services:"
+    docker-compose -f "$SCITT_COMPOSE_FILE" ps --format "table {{.Name}}\t{{.Status}}\t{{.Ports}}"
+    echo ""
+    
+    # API Gateway
+    echo "API Gateway:"
+    if curl -s ${SCITT_CCF_URL:-http://localhost:8000}/health > /dev/null 2>&1; then
+        echo "✅ Running on ${SCITT_CCF_URL:-http://localhost:8000}"
+        curl -s ${SCITT_CCF_URL:-http://localhost:8000}/health | jq '.status' 2>/dev/null || echo "Status: Available"
+    else
+        echo "❌ Not running"
+    fi
+    echo ""
+    
+    # Health check summary
+    echo "Health Check Summary:"
+    echo "Main App: $(curl -s ${BACKEND_URL:-http://localhost:5001}/health | jq -r '.status' 2>/dev/null || echo 'Unknown')"
+    echo "SCITT CCF: $(curl -s http://localhost:9000/health | jq -r '.status' 2>/dev/null || echo 'Unknown')"
+    echo "API Gateway: $(curl -s ${SCITT_CCF_URL:-http://localhost:8000}/health | jq -r '.status' 2>/dev/null || echo 'Unknown')"
+}
+
+# Main deployment function
+main() {
+    log_info "🚀 Starting SCITT CCF Deployment..."
+    log_info "Timestamp: $(date)"
+    log_info "Working directory: $(pwd)"
+    
+    # Check prerequisites
+    check_prerequisites
+    
+    # Install dependencies
+    install_dependencies
+    
+    # Deploy SCITT services
+    deploy_scitt_services
+    
+    # Wait for services to be healthy
+    if ! wait_for_services; then
+        log_error "Deployment failed: Services did not become healthy"
+        exit 1
+    fi
+    
+    # Deploy API Gateway
+    if ! deploy_gateway; then
+        log_error "Deployment failed: Could not start API Gateway"
+        exit 1
+    fi
+    
+    # Run tests
+    run_tests
+    
+    # Show final status
+    show_status
+    
+    log_success "🎉 SCITT CCF deployment completed successfully!"
+    log_info "Services available at:"
+    log_info "  - SCITT CCF API: http://localhost:9000"
+    log_info "  - SCITT CCF Dashboard: http://localhost:9001"
+    log_info "  - SCITT CCF Monitor: http://localhost:9002"
+    log_info "  - API Gateway: ${SCITT_CCF_URL:-http://localhost:8000}"
+    log_info "  - Main App: ${BACKEND_URL:-http://localhost:5001}"
+}
+
+# Handle script arguments
+case "${1:-}" in
+    "status")
+        show_status
+        ;;
+    "stop")
+        log_info "Stopping SCITT CCF services..."
+        docker-compose -f "$SCITT_COMPOSE_FILE" down --remove-orphans
+        pkill -f "gateway/server.js" 2>/dev/null || true
+        log_success "SCITT CCF services stopped"
+        ;;
+    "restart")
+        log_info "Restarting SCITT CCF services..."
+        docker-compose -f "$SCITT_COMPOSE_FILE" restart
+        log_success "SCITT CCF services restarted"
+        ;;
+    "logs")
+        log_info "Showing SCITT CCF service logs..."
+        docker-compose -f "$SCITT_COMPOSE_FILE" logs -f
+        ;;
+    "help"|"-h"|"--help")
+        echo "Usage: $0 [command]"
+        echo ""
+        echo "Commands:"
+        echo "  (no args)  Deploy SCITT CCF services"
+        echo "  status     Show service status"
+        echo "  stop       Stop SCITT CCF services"
+        echo "  restart    Restart SCITT CCF services"
+        echo "  logs       Show service logs"
+        echo "  help       Show this help message"
+        ;;
+    *)
+        main
+        ;;
+esac

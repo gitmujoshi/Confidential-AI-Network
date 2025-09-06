@@ -39,11 +39,11 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: false
     },
     tags: {
-      type: DataTypes.JSON,
+      type: DataTypes.JSONB,
       allowNull: true
     },
     metadata: {
-      type: DataTypes.JSON,
+      type: DataTypes.JSONB,
       allowNull: true
     },
     isPublic: {
@@ -79,19 +79,19 @@ module.exports = (sequelize, DataTypes) => {
     indexes: [
       {
         unique: true,
-        fields: ['datasetId']
+        fields: ['dataset_id']
       },
       {
         fields: ['category']
       },
       {
-        fields: ['ownerId']
+        fields: ['owner_id']
       },
       {
-        fields: ['isPublic']
+        fields: ['is_public']
       },
       {
-        fields: ['confidentialComputingRequired']
+        fields: ['confidential_computing_required']
       }
     ]
   });

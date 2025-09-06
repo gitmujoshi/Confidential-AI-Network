@@ -14,16 +14,16 @@ NC='\033[0m'
 # Load centralized configuration
 source scripts/load-config.sh
 
-# Test User Data
-TDP_USER_EMAIL=""
-TDC_USER_EMAIL=""
-CCRP_USER_EMAIL=""
-ADMIN_USER_EMAIL=""
+# Test User Data (from registration API)
+TDP_USER_EMAIL="tdp-test@example.com"
+TDC_USER_EMAIL="tdc-test@example.com"
+CCRP_USER_EMAIL="ccrp-test@example.com"
+ADMIN_USER_EMAIL="admin-test@example.com"
 
-TDP_USER_PASSWORD=""
-TDC_USER_PASSWORD=""
-CCRP_USER_PASSWORD=""
-ADMIN_USER_PASSWORD=""
+TDP_USER_PASSWORD="TestPassword123!"
+TDC_USER_PASSWORD="TestPassword123!"
+CCRP_USER_PASSWORD="TestPassword123!"
+ADMIN_USER_PASSWORD="TestPassword123!"
 
 TDP_USER_TOKEN=""
 TDC_USER_TOKEN=""

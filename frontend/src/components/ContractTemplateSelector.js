@@ -36,8 +36,9 @@ import { api } from '../services/api';
 const ContractTemplateSelector = ({ 
   onTemplateSelect, 
   dataset, 
-  userPreferences = {},
-  showRecommendations = true 
+  userPreferences = {}, 
+  showRecommendations = false,
+  selectedTemplate = null // Add selectedTemplate prop
 }) => {
   const [templates, setTemplates] = useState([]);
   const [filteredTemplates, setFilteredTemplates] = useState([]);
@@ -69,27 +70,27 @@ const ContractTemplateSelector = ({
   }, [templates, searchTerm, selectedCategory, selectedContractType]);
 
   const loadTemplates = async () => {
-    try {
-      setLoading(true);
-      const response = await api.get('/contract-templates');
-      
-      if (response.data.success) {
-        setTemplates(response.data.data);
-        setFilteredTemplates(response.data.data);
-      } else {
-        setError('Failed to load templates');
+          try {
+        setLoading(true);
+        const response = await api.get('/api/contract-templates');
+        
+        if (response.data.success) {
+          setTemplates(response.data.data);
+          setFilteredTemplates(response.data.data);
+        } else {
+          setError('Failed to load templates');
+        }
+      } catch (error) {
+        console.error('Error loading templates:', error);
+        setError('Failed to load contract templates');
+      } finally {
+        setLoading(false);
       }
-    } catch (error) {
-      console.error('Error loading templates:', error);
-      setError('Failed to load contract templates');
-    } finally {
-      setLoading(false);
-    }
   };
 
   const loadRecommendations = async () => {
     try {
-      const response = await api.post('/contract-templates/recommendations', {
+      const response = await api.post('/api/contract-templates/recommendations', {
         dataset,
         userPreferences
       });
@@ -158,8 +159,8 @@ const ContractTemplateSelector = ({
   };
 
   const calculateTemplatePrice = (template, datasetPrice) => {
-    const basePrice = template.basePrice || 0;
-    const multiplierPrice = parseFloat(datasetPrice) * parseFloat(template.priceMultiplier);
+    const basePrice = parseFloat(template.basePrice) || 0;
+    const multiplierPrice = parseFloat(datasetPrice || 0) * parseFloat(template.priceMultiplier || 1);
     return basePrice + multiplierPrice;
   };
 
@@ -172,23 +173,29 @@ const ContractTemplateSelector = ({
   const renderTemplateCard = (template, isRecommendation = false) => {
     const datasetPrice = dataset?.price || 0;
     const templatePrice = calculateTemplatePrice(template, datasetPrice);
-    const popularity = Math.min(template.usageCount / 10, 5);
+    const popularity = Math.min((template.usageCount || 0) / 10, 5);
 
     return (
-      <Card 
-        key={template.id} 
-        sx={{ 
-          mb: 2, 
-          cursor: 'pointer',
-          transition: 'all 0.2s ease-in-out',
-          '&:hover': {
-            transform: 'translateY(-2px)',
-            boxShadow: 3
-          },
-          border: isRecommendation ? '2px solid #1976d2' : '1px solid #e0e0e0'
-        }}
-        onClick={() => handleTemplateSelect(template)}
-      >
+              <Card 
+          key={template.id} 
+          sx={{ 
+            mb: 2, 
+            cursor: 'pointer',
+            transition: 'all 0.2s ease-in-out',
+            '&:hover': {
+              transform: 'translateY(-2px)',
+              boxShadow: 3
+            },
+            border: selectedTemplate?.id === template.id 
+              ? '3px solid #1976d2' 
+              : isRecommendation 
+                ? '2px solid #1976d2' 
+                : '1px solid #e0e0e0',
+            backgroundColor: selectedTemplate?.id === template.id ? '#f3f8ff' : 'inherit',
+            boxShadow: selectedTemplate?.id === template.id ? 4 : 1
+          }}
+          onClick={() => handleTemplateSelect(template)}
+        >
         <CardContent>
           <Box display="flex" justifyContent="space-between" alignItems="flex-start" mb={2}>
             <Box>
@@ -244,7 +251,7 @@ const ContractTemplateSelector = ({
           </Box>
 
           <Box display="flex" flexWrap="wrap" gap={1} mb={2}>
-            {template.tags.map((tag, index) => (
+            {(template.tags || []).map((tag, index) => (
               <Chip 
                 key={index} 
                 label={tag} 
@@ -303,7 +310,7 @@ const ContractTemplateSelector = ({
                     • Federated Learning: {template.privacySettings.federatedLearning?.enabled ? 'Enabled' : 'Disabled'}
                   </Typography>
                   <Typography variant="body2">
-                    • Data Retention: {template.privacySettings.dataRetention}
+                    • Data Retention: {template.privacySettings.dataRetention || 'Not specified'}
                   </Typography>
                 </Box>
               )}
@@ -316,13 +323,13 @@ const ContractTemplateSelector = ({
               {template.trainingEnvironmentSpecs && (
                 <Box>
                   <Typography variant="body2">
-                    • Compute: {template.trainingEnvironmentSpecs.computeRequirements}
+                    • Compute: {template.trainingEnvironmentSpecs.computeRequirements || 'Not specified'}
                   </Typography>
                   <Typography variant="body2">
-                    • Security: {template.trainingEnvironmentSpecs.securityLevel}
+                    • Security: {template.trainingEnvironmentSpecs.securityLevel || 'Not specified'}
                   </Typography>
                   <Typography variant="body2">
-                    • Compliance: {template.trainingEnvironmentSpecs.compliance?.join(', ')}
+                    • Compliance: {template.trainingEnvironmentSpecs.compliance?.join(', ') || 'Not specified'}
                   </Typography>
                 </Box>
               )}

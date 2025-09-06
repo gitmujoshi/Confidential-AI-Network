@@ -29,7 +29,7 @@ module.exports = (sequelize, DataTypes) => {
       defaultValue: false
     },
     metadata: {
-      type: DataTypes.JSON,
+      type: DataTypes.JSONB,
       allowNull: true
     },
     userId: {
@@ -46,10 +46,10 @@ module.exports = (sequelize, DataTypes) => {
     underscored: true,
     indexes: [
       {
-        fields: ['userId']
+        fields: ['user_id']
       },
       {
-        fields: ['isRead']
+        fields: ['is_read']
       },
       {
         fields: ['type']

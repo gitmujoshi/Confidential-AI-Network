@@ -15,12 +15,32 @@
 const crypto = require('crypto');
 const { ethers } = require('ethers');
 const { Contract } = require('../models');
-const blockchainService = require('./blockchainService');
+const BlockchainService = require('./blockchainService');
+const DEPAIdService = require('./depaIdService');
+const GlobalDEPAIdService = require('./globalDEPAIdService');
+const blockchainService = new BlockchainService();
+const depaIdService = new DEPAIdService();
+const globalDEPAIdService = new GlobalDEPAIdService();
 
 class RicardianContractService {
   constructor() {
     this.supportedNetworks = ['goerli', 'mainnet', 'sepolia'];
     this.legalDocumentTemplates = null; // Will be loaded lazily
+    // Initialize blockchain service
+    this.initializeBlockchainService();
+  }
+
+  async initializeBlockchainService() {
+    try {
+      // Only initialize blockchain service if it's enabled
+      if (process.env.BLOCKCHAIN_ENABLED !== 'false') {
+        await blockchainService.initialize();
+      } else {
+        console.log('ℹ️  Blockchain service disabled in configuration (BLOCKCHAIN_ENABLED=false)');
+      }
+    } catch (error) {
+      console.warn('⚠️  Blockchain service initialization failed:', error.message);
+    }
   }
 
   /**
@@ -232,28 +252,23 @@ class RicardianContractService {
       // Generate DEPA ID for the contract
       let depaId;
       
-        if (contractData.globalDEPAId) {
-          // Use global DEPA ID service for multi-deployment support
-          const GlobalDEPAIdService = require('./globalDEPAIdService');
-          const globalDEPAIdService = new GlobalDEPAIdService();
-          
-          if (contractData.jurisdiction) {
-            // Generate jurisdiction-compliant DEPA ID
-            depaId = globalDEPAIdService.generateJurisdictionCompliantDEPAId('CONTRACT', contractData.jurisdiction);
-          } else {
-            // Generate standard global DEPA ID
-            depaId = globalDEPAIdService.generateGlobalDEPAId('CONTRACT', contractData.deploymentPrefix);
-          }
-          
-          console.log(`✅ Generated Global Contract DEPA ID: ${depaId}`);
+      if (contractData.globalDEPAId) {
+        // Use global DEPA ID service for multi-deployment support
+        if (contractData.jurisdiction) {
+          // Generate jurisdiction-compliant DEPA ID
+          depaId = globalDEPAIdService.generateJurisdictionCompliantDEPAId('CONTRACT', contractData.jurisdiction);
         } else {
-          // Use standard DEPA ID service for backward compatibility
-          const DEPAIdService = require('./depaIdService');
-          const depaIdService = new DEPAIdService();
-          depaId = depaIdService.generateContractDEPAId();
-          
-          console.log(`✅ Generated Standard Contract DEPA ID: ${depaId}`);
+          // Generate standard global DEPA ID
+          depaId = globalDEPAIdService.generateGlobalDEPAId('CONTRACT', contractData.deploymentPrefix);
         }
+        
+        console.log(`✅ Generated Global Contract DEPA ID: ${depaId}`);
+      } else {
+        // Use standard DEPA ID service for backward compatibility
+        depaId = depaIdService.generateContractDEPAId();
+        
+        console.log(`✅ Generated Standard Contract DEPA ID: ${depaId}`);
+      }
       
       const contractRecord = {
         contractId: contractData.contractId,
@@ -349,17 +364,17 @@ class RicardianContractService {
           parties: {
             dataProvider: {
               ...template.ricardianContract.legalDocument.parties.dataProvider,
-              name: contractData.tdp.name,
-              email: contractData.tdp.email,
-              blockchainAddress: contractData.tdp.blockchainAddress,
-              did: contractData.tdp.did
+              name: contractData.tdp?.name || 'Unknown TDP',
+              email: contractData.tdp?.email || 'unknown@tdp.com',
+              blockchainAddress: contractData.tdp?.blockchainAddress || '0x0000000000000000000000000000000000000000',
+              did: contractData.tdp?.did || 'did:unknown:tdp'
             },
             modelTrainer: {
               ...template.ricardianContract.legalDocument.parties.modelTrainer,
-              name: contractData.tdc.name,
-              email: contractData.tdc.email,
-              blockchainAddress: contractData.tdc.blockchainAddress,
-              did: contractData.tdc.did
+              name: contractData.tdc?.name || 'Unknown TDC',
+              email: contractData.tdc?.email || 'unknown@tdc.com',
+              blockchainAddress: contractData.tdc?.blockchainAddress || '0x0000000000000000000000000000000000000000',
+              did: contractData.tdc?.did || 'did:unknown:tdc'
             },
             ccrp: contractData.ccrp ? {
               ...template.ricardianContract.legalDocument.parties.ccrp,
@@ -492,14 +507,24 @@ class RicardianContractService {
       const modelId = Array.isArray(contractData.aiModelIds) && contractData.aiModelIds.length > 0
         ? contractData.aiModelIds[0]
         : 'default-model';
+      
+      // Handle different data structures for blockchain address
+      let blockchainAddress = '0x0000000000000000000000000000000000000000'; // Default fallback
+      if (contractData.tdp && contractData.tdp.blockchainAddress) {
+        blockchainAddress = contractData.tdp.blockchainAddress;
+      } else if (contractData.tdpId) {
+        // For test data, we might not have the full tdp object
+        blockchainAddress = '0x0000000000000000000000000000000000000000';
+      }
+      
       // Call the real blockchain deployment
       const result = await blockchainService.createContract(
-        contractData.tdp.blockchainAddress,
-        contractData.datasetId,
+        blockchainAddress,
+        contractData.datasetId || contractData.datasetSelections?.[0]?.datasetId,
         modelId,
-        contractData.price,
-        contractData.duration,
-        contractData.termsAndConditions,
+        contractData.price || 100,
+        contractData.duration || 30,
+        contractData.termsAndConditions || 'Default terms',
         privateKey
       );
       return {

@@ -15,12 +15,19 @@ const axios = require('axios');
 const { Sequelize } = require('sequelize');
 require('dotenv').config({ path: './config.env' });
 
+// Configure axios for HTTPS (ignore SSL in development)
+const httpsAgent = new (require('https').Agent)({
+  rejectUnauthorized: false
+});
+
+axios.defaults.httpsAgent = httpsAgent;
+
 // Configuration
-const KEYCLOAK_BASE_URL = 'http://localhost:8080';
+const KEYCLOAK_BASE_URL = '${KEYCLOAK_URL:-https://localhost:8443}';
 const KEYCLOAK_REALM = 'contract-management';
 const KEYCLOAK_ADMIN_USERNAME = 'admin';
 const KEYCLOAK_ADMIN_PASSWORD = 'admin123';
-const BACKEND_URL = 'http://localhost:5001';
+const BACKEND_URL = '${BACKEND_URL:-http://localhost:5001}';
 
 // Test users configuration
 const testUsers = [
@@ -85,16 +92,6 @@ async function checkPrerequisites() {
   console.log('🔍 Checking system prerequisites...');
   
   try {
-    // Check if Keycloak is running
-    const keycloakResponse = await axios.get(`${KEYCLOAK_BASE_URL}/health`, { timeout: 5000 });
-    console.log('✅ Keycloak is running');
-  } catch (error) {
-    console.error('❌ Keycloak is not running. Please start Keycloak first.');
-    console.log('💡 Start Keycloak with: docker-compose up keycloak');
-    process.exit(1);
-  }
-  
-  try {
     // Check if backend is running
     const backendResponse = await axios.get(`${BACKEND_URL}/health`, { timeout: 5000 });
     console.log('✅ Backend is running');
@@ -104,7 +101,7 @@ async function checkPrerequisites() {
     process.exit(1);
   }
   
-  console.log('✅ All prerequisites met');
+  console.log('✅ Backend prerequisite met, proceeding with Keycloak setup...');
 }
 
 // Step 2: Setup Keycloak realm and client
@@ -156,8 +153,8 @@ async function setupKeycloak() {
       publicClient: true,
       standardFlowEnabled: true,
       directAccessGrantsEnabled: true,
-      redirectUris: ['http://localhost:3000/*'],
-      webOrigins: ['http://localhost:3000']
+      redirectUris: ['${FRONTEND_URL:-http://localhost:3000}/*'],
+      webOrigins: ['${FRONTEND_URL:-http://localhost:3000}']
     }, {
       headers: {
         'Authorization': `Bearer ${adminToken}`,

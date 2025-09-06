@@ -21,6 +21,42 @@ const scittCcfService = new ScittCcfService();
 const contractRouter = new ContractRouterService();
 const healthMonitor = new SystemHealthMonitor();
 
+// Initialize services asynchronously
+let servicesInitialized = false;
+
+async function initializeServices() {
+  if (servicesInitialized) return;
+  
+  try {
+    console.log('🔧 Initializing SCITT CCF services...');
+    
+    // Initialize SCITT CCF service
+    await scittCcfService.initialize();
+    console.log('✅ SCITT CCF service initialized');
+    
+    // Initialize contract router service
+    await contractRouter.initialize();
+    console.log('✅ Contract router service initialized');
+    
+    // Initialize health monitor
+    await healthMonitor.startMonitoring();
+    console.log('✅ Health monitor started');
+    
+    servicesInitialized = true;
+    console.log('🎉 All SCITT CCF services initialized successfully');
+    
+  } catch (error) {
+    console.error('❌ Failed to initialize SCITT CCF services:', error.message);
+    servicesInitialized = false;
+    throw error;
+  }
+}
+
+// Initialize services when the module is loaded
+initializeServices().catch(error => {
+  console.error('❌ SCITT CCF services initialization failed:', error.message);
+});
+
 // Health and Status Endpoints
 router.get('/health', async (req, res) => {
   try {
@@ -54,7 +90,15 @@ router.get('/metrics', async (req, res) => {
 // Contract Operations
 router.post('/contracts', authenticateToken, async (req, res) => {
   try {
+    // Ensure services are initialized
+    if (!servicesInitialized) {
+      await initializeServices();
+    }
+    
     const contractData = req.body;
+    console.log('🔍 Route Debug - contractData:', JSON.stringify(contractData, null, 2));
+    console.log('🔍 Route Debug - contractData.contractId:', contractData.contractId);
+    
     const result = await contractRouter.createContract(contractData);
     
     res.status(201).json({
@@ -109,7 +153,7 @@ router.get('/contracts', authenticateToken, async (req, res) => {
 router.post('/claims', authenticateToken, async (req, res) => {
   try {
     const claimData = req.body;
-    const result = await scittCcfService.submitClaim(claimData);
+    const result = await scittCcfService.submitGeneralClaim(claimData);
     
     res.status(201).json({
       claimId: result.claimId,

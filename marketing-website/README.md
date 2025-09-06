@@ -221,6 +221,16 @@ gtag('event', 'form_submit', {
 
 ## 🔒 Security
 
+### **Authentication System**
+The marketing site includes a password-protected authentication system with multiple user accounts.
+
+### **Security Features**
+- Maximum 3 failed login attempts before 15-minute lockout
+- 24-hour authentication validity
+- Secure password storage
+- Session management
+- User credentials are managed securely in the authentication system
+
 ### **Best Practices**
 - Use HTTPS
 - Validate form inputs

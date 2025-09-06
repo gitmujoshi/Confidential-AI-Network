@@ -9,7 +9,8 @@ const axios = require('axios');
 const https = require('https');
 
 // Load centralized configuration
-require('./load-config.js');
+const { loadConfig } = require('./load-config.js');
+loadConfig();
 
 // Configuration
 const API_BASE_URL = process.env.BACKEND_URL;
@@ -30,11 +31,14 @@ function log(message, color = 'reset') {
   console.log(`${colors[color]}${message}${colors.reset}`);
 }
 
-// Test users data
+// Test users data with common password
+const COMMON_TEST_PASSWORD = 'TestPassword123!';
+
 const testUsers = [
   {
     name: 'TDP Test User',
     email: 'tdp-test@example.com',
+    password: COMMON_TEST_PASSWORD,
     partyType: 'TDP',
     organization: 'TDP Test Organization',
     description: 'Test TDP user created via registration API'
@@ -42,6 +46,7 @@ const testUsers = [
   {
     name: 'TDC Test User',
     email: 'tdc-test@example.com',
+    password: COMMON_TEST_PASSWORD,
     partyType: 'TDC',
     organization: 'TDC Test Organization',
     description: 'Test TDC user created via registration API'
@@ -49,6 +54,7 @@ const testUsers = [
   {
     name: 'CCRP Test User',
     email: 'ccrp-test@example.com',
+    password: COMMON_TEST_PASSWORD,
     partyType: 'CCRP',
     organization: 'CCRP Test Organization',
     description: 'Test CCRP user created via registration API'
@@ -56,6 +62,7 @@ const testUsers = [
   {
     name: 'Admin Test User',
     email: 'admin-test@example.com',
+    password: COMMON_TEST_PASSWORD,
     partyType: 'AppAdmin',
     organization: 'Admin Test Organization',
     description: 'Test Admin user created via registration API'

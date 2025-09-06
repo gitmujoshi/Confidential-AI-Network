@@ -1,140 +1,87 @@
-# Contract Management System Documentation
+# 📚 Contract Management System Documentation
 
-Welcome to the streamlined documentation for the Contract Management System. This documentation has been consolidated from 80+ files into a clear, organized structure.
+## 📋 Overview
 
-## 🚀 Quick Navigation
+This directory contains comprehensive documentation for the Contract Management System - a complete AI/ML training solution with confidential computing, differential privacy, and comprehensive safety features.
 
-### **Getting Started**
-- **[Quick Start](QUICK_START.md)** - Get up and running in 5 minutes
-- **[Setup Guide](SETUP.md)** - Complete installation and configuration
+## 📁 Documentation Structure
 
-### **User Documentation**
-- **[User Guide](USER_GUIDE.md)** - Complete user documentation for all roles
-- **[API Reference](API_REFERENCE.md)** - Complete API documentation
+### 🏗️ Architecture (`/architecture`)
+- **AI_ML_TRAINING_COMPLETE_SOLUTION_ROADMAP.md** - Complete solution analysis and roadmap
+- **CURRENT_VS_OUTDATED_SCRIPTS.md** - Script analysis and recommendations
+- **CENTRALIZED_CONFIGURATION_ARCHITECTURE.md** - Configuration management design
+- **DATA_MODEL_REFERENCE.md** - Database schema and data models
+- **DECENTRALIZED_KMS_ARCHITECTURE.md** - Decentralized key management system
+- **KMS_TRAINING_ENVIRONMENT_ARCHITECTURE.md** - KMS integration with training environments
+- **MULTI_TENANT_KMS_ARCHITECTURE.md** - Multi-tenant KMS architecture
+- **UML_4PLUS1_ARCHITECTURE.md** - UML 4+1 architectural view
 
-### **Developer Documentation**
-- **[Developer Guide](DEVELOPER_GUIDE.md)** - Development setup and workflows
-- **[Architecture](ARCHITECTURE.md)** - System design and technical details
-- **[Testing](TESTING.md)** - Complete testing guide and test suites
-- **[Troubleshooting](TROUBLESHOOTING.md)** - Common issues and solutions
+### 🔌 API Reference (`/api`)
+- **API_ENDPOINT_REFERENCE.md** - Complete API endpoint reference
+- **CLOUD_API_SPECIFICATIONS.md** - Cloud provider API specifications
+- **COMPLETE_API_SPECIFICATIONS.md** - Comprehensive API specifications
+- **SCITT_CCF_API_SPECIFICATIONS.md** - SCITT CCF API specifications
 
-## 📋 Documentation Structure
+### 🔄 Data Flows (`/flows`)
+- **CCRP_ENVIRONMENT_OFFERINGS_CONFIGURATION_FLOW.md** - CCRP environment setup
+- **TDC_ENCRYPTED_AI_MODEL_TEE_FLOW.md** - TDC AI model upload and TEE decryption
+- **TDP_ENCRYPTED_DATASET_TEE_FLOW.md** - TDP dataset upload and TEE decryption
 
-```
-docs/
-├── README.md                    # This file - Main entry point
-├── QUICK_START.md              # Get started in 5 minutes
-├── SETUP.md                    # Complete setup guide
-├── USER_GUIDE.md               # End-user documentation
-├── DEVELOPER_GUIDE.md          # Developer documentation
-├── API_REFERENCE.md            # Complete API documentation
-├── ARCHITECTURE.md             # System architecture
-├── TESTING.md                  # Complete testing guide
-├── TROUBLESHOOTING.md          # Common issues and solutions
-└── archive/                    # Old documentation (read-only)
-```
+### 🛠️ Implementation (`/implementation`)
+- **BACKEND_SERVICES_DOCUMENTATION.md** - Complete backend services documentation
+- **CONTRACT_MANAGEMENT_SYSTEM_PRD.md** - Product requirements document
+- **CURRENT_SYSTEM_STATUS.md** - Current system status and capabilities
+- **DIFFERENTIAL_PRIVACY_IMPLEMENTATION_SUMMARY.md** - Differential privacy implementation
+- **FRONTEND_COMPONENTS_DOCUMENTATION.md** - Frontend components and architecture
+- **TRAINING_ENVIRONMENT_INTEGRATION_PRD.md** - Training environment PRD
 
-## 🎯 Quick Commands
+### 📖 Guides (`/guides`)
+- **DEVELOPER_GUIDE.md** - Complete developer setup and workflow guide
+- **CONTRACT_TEMPLATE_GUIDE.md** - Contract template guide
+- **DEPA_INTEGRATION_GUIDE.md** - DEPA integration guide
+- **SETUP_TROUBLESHOOTING_GUIDE.md** - Setup troubleshooting guide
+- **TRAINING_COURSE.md** - Training course materials
 
-### **Start the System**
-```bash
-./start-system.sh
-```
+### 🧪 Testing (`/testing`)
+- **INTEGRATION_TESTING_GUIDE.md** - Integration testing guide
+- **TEST_DATA_FOR_TESTERS.md** - Test data for testers
+- **TESTER_GUIDE_CONFIDENTIAL_COMPUTING.md** - Confidential computing tester guide
 
-### **Fix Authentication Issues**
-```bash
-./fix-auth.sh
-```
+### 🔒 Security (`/security`)
+- **IDENTITY_AND_ACCESS_MANAGEMENT_DOCUMENTATION.md** - IAM documentation
+- **SECURITY_INTEGRATION_GUIDE.md** - Security integration guide
 
-### **Check System Status**
-```bash
-npm run status
-```
+### 📋 Compliance (`/compliance`)
+- **DPDP_COMPLIANCE_IMPLEMENTATION.md** - DPDP compliance implementation
 
-### **Test Authentication**
-```bash
-npm run test:login
-```
+## 🚀 Quick Start
 
-## 👥 User Roles
+1. **For Developers**: Start with DEVELOPER_GUIDE.md
+2. **For Script Management**: Review CURRENT_VS_OUTDATED_SCRIPTS.md
+3. **For Configuration**: Check CENTRALIZED_CONFIGURATION_ARCHITECTURE.md
+4. **For System Architecture**: Review AI_ML_TRAINING_COMPLETE_SOLUTION_ROADMAP.md
+5. **For API Integration**: Check COMPLETE_API_SPECIFICATIONS.md
+6. **For Security**: Review SECURITY_INTEGRATION_GUIDE.md
+7. **For Testing**: Follow INTEGRATION_TESTING_GUIDE.md
 
-- **TDC (Training Data Consumer)**: Browse and purchase datasets
-- **TDP (Training Data Provider)**: Create and manage datasets  
-- **CCRP (Confidential Clean Room Provider)**: Provide secure computing environments
-- **AppAdmin**: System administration
+## 📊 System Status
 
-## 🔐 Test Users
-
-All test users use password: `password123`
-
-| Role | Email | Status |
-|------|-------|--------|
-| TDC | `research@tdc.com` | ✅ Working |
-| TDP | `healthcare@tdp.com` | ✅ Working |
-| CCRP | `secure@ccrp.com` | ✅ Working |
-| AppAdmin | `admin@contractmanagement.com` | ✅ Working |
-
-## 🧪 Test Data Available
-
-The system includes comprehensive test data for testing:
-- **7 Datasets** with DEPA IDs (DATASET-001 to DATASET-007)
-- **3 AI Models** with DEPA IDs (MODEL-001 to MODEL-003)
-- **3 Contract Templates** for different use cases
-- **3 Sample Contracts** in various states
-
-## 🧪 Testing
-
-### **Run SCITT CCF Test Suites**
-```bash
-# Run all tests including SCITT CCF
-cd backend
-npm test
-
-# Run SCITT CCF specific tests
-npm test -- --testPathPattern="scitt-ccf"
-
-# Run specific test suites
-npm test -- scitt-ccf-integration.test.js
-npm test -- scitt-ccf-api.test.js
-```
-
-For complete testing documentation, see **[Testing Guide](TESTING.md)**.
-
-## 🏗️ System Components
-
-- **Frontend**: React.js with Material-UI (Port 3000)
-- **Backend**: Node.js with Express (Port 5001)
-- **Database**: PostgreSQL with Sequelize ORM
-- **Authentication**: Keycloak IAM (Port 8080)
-- **Blockchain**: SCITT CCF with Ricardian contracts
-- **Secret Management**: HashiCorp Vault
-- **Cloud Providers**: AWS, Azure, GCP, OCI
-
-## 📚 What Was Consolidated
-
-This documentation consolidates content from:
-- **Authentication**: 8+ files → `SETUP.md`
-- **API Documentation**: 4+ files → `API_REFERENCE.md`
-- **Secret Management**: 4+ files → `ARCHITECTURE.md`
-- **User Guides**: 6+ files → `USER_GUIDE.md`
-- **Developer Guides**: 5+ files → `DEVELOPER_GUIDE.md`
-- **Troubleshooting**: 10+ files → `TROUBLESHOOTING.md`
-
-## 🔄 Migration Notes
-
-- **Old files** have been moved to `docs/archive/`
-- **Cross-references** have been updated throughout the codebase
-- **Search functionality** works across all consolidated docs
-- **Version history** is preserved in Git
-
-## 🆘 Need Help?
-
-1. **Check [Troubleshooting](TROUBLESHOOTING.md)** for common issues
-2. **Use [Quick Start](QUICK_START.md)** for immediate setup
-3. **Review [Developer Guide](DEVELOPER_GUIDE.md)** for development workflows
-4. **Consult [API Reference](API_REFERENCE.md)** for technical details
+- **Current Version**: v1.0.0
+- **Implementation Status**: 95% Complete
+- **Key Features**: 
+  - ✅ Multi-tenant architecture (TDP, TDC, CCRP)
+  - ✅ Ricardian contracts with SCITT CCF integration
+  - ✅ Confidential computing with TEE support
+  - ✅ Differential privacy implementation
+  - ✅ Multi-cloud support (Azure, AWS, GCP, OCI)
+  - ✅ Value Objects pattern implementation
+  - ✅ Centralized configuration management
+  - ✅ Current vs outdated scripts analysis
+  - ⚠️ AI Safety & Content Moderation (Pending)
+  - ⚠️ Advanced Privacy Protections (Partial)
 
 ---
 
-*Last updated: 2025-08-03*
-*Version: 2.0.0 (Streamlined)* 
+**Last Updated**: September 2, 2025  
+**Version**: 1.0.0  
+**Status**: Active Development

@@ -6,7 +6,7 @@
 
 const axios = require('axios');
 
-const API_BASE = 'http://localhost:5001/api';
+const API_BASE = '${BACKEND_URL:-http://localhost:5001}/api';
 
 async function updateTDPDIDAsAppAdmin() {
   try {

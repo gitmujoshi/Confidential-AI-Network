@@ -96,37 +96,37 @@ module.exports = (sequelize, DataTypes) => {
       comment: 'Template terms and conditions text'
     },
     
-    // Legal document template (JSON)
+    // Legal document template (JSONB)
     legalDocumentTemplate: {
-      type: DataTypes.JSON,
+      type: DataTypes.JSONB,
       allowNull: true,
-      comment: 'JSON template for legal document generation'
+      comment: 'JSONB template for legal document generation'
     },
     
     // Training environment specifications
     trainingEnvironmentSpecs: {
-      type: DataTypes.JSON,
+      type: DataTypes.JSONB,
       allowNull: true,
       comment: 'Default training environment specifications'
     },
     
     // Privacy and compliance settings
     privacySettings: {
-      type: DataTypes.JSON,
+      type: DataTypes.JSONB,
       allowNull: true,
       comment: 'Default privacy and compliance settings'
     },
     
     // KMS configuration template
     kmsConfigTemplate: {
-      type: DataTypes.JSON,
+      type: DataTypes.JSONB,
       allowNull: true,
       comment: 'Default KMS configuration for this template'
     },
     
     // Template metadata
     metadata: {
-      type: DataTypes.JSON,
+      type: DataTypes.JSONB,
       allowNull: true,
       comment: 'Additional template metadata and configuration'
     },
@@ -157,7 +157,7 @@ module.exports = (sequelize, DataTypes) => {
     
     // Template tags for search and categorization
     tags: {
-      type: DataTypes.JSON,
+      type: DataTypes.JSONB,
       allowNull: true,
       comment: 'Array of tags for template categorization and search'
     },
@@ -188,13 +188,14 @@ module.exports = (sequelize, DataTypes) => {
   }, {
     tableName: 'contract_templates',
     timestamps: true,
+    underscored: true,
     
     // Indexes for performance
     indexes: [
       {
         name: 'idx_contract_templates_template_id',
         unique: true,
-        fields: ['templateId']
+        fields: ['template_id']
       },
       {
         name: 'idx_contract_templates_category',
@@ -206,7 +207,7 @@ module.exports = (sequelize, DataTypes) => {
       },
       {
         name: 'idx_contract_templates_contract_type',
-        fields: ['contractType']
+        fields: ['contract_type']
       },
       {
         name: 'idx_contract_templates_tags',

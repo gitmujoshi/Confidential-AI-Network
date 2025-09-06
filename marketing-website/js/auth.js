@@ -12,7 +12,10 @@ class AuthHandler {
         
         // Additional user accounts
         this.additionalUsers = {
-            'jimm': 'J1mm$tr0ngP@ss2025!'
+            'jimm': 'J1mm$tr0ngP@ss2025!',
+            'user': 'User$tr0ngP@ss2025!',
+            'archanam': 'Archanam$tr0ngP@ss2025!',
+            'dhavalj': 'DhavalJ$ecure2025!'
         };
         this.maxAttempts = 3;
         this.lockoutDuration = 15 * 60 * 1000; // 15 minutes

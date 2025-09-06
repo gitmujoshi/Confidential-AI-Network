@@ -275,17 +275,10 @@ router.post('/', async (req, res) => {
       depaId: `DATASET-${uuidv4()}`
     });
 
-    // Get dataset with owner info
-    const fullDataset = await db.Dataset.findOne({
-      where: { id: dataset.id },
-      include: [
-        { model: db.User, as: 'owner', attributes: ['id', 'name', 'email'] }
-      ]
-    });
-
+    // Return the created dataset directly (will fetch owner separately if needed)
     res.status(201).json({
       success: true,
-      dataset: fullDataset
+      dataset: dataset
     });
   } catch (error) {
     console.error('Error creating dataset:', error);

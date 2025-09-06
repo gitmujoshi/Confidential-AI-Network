@@ -1,13 +1,12 @@
 // Test setup file for Jest
-const { sequelize } = require('../models');
-const KeycloakService = require('../services/keycloakService');
 const { setTestEnv } = require('../../tests/test-env');
-setTestEnv(process.env.TEST_MODE || 'mock');
 
-// Centralized mock setup
-if ((process.env.TEST_MODE || 'mock') === 'mock') {
-  require('./mocks').setupMocks();
-}
+// Load test environment variables
+require('dotenv').config({ path: './config.test.env' });
+
+// Set test mode based on environment variable, default to integration for actual integration tests
+const TEST_MODE = process.env.TEST_MODE || 'integration';
+setTestEnv(TEST_MODE);
 
 // Import centralized test utilities
 const testUtils = require('./utils');
@@ -20,23 +19,34 @@ global.testTracker = {
   createdKeycloakUsers: [],
   createdDatabaseUsers: [],
   testMode: process.env.TEST_MODE || 'mock', // 'mock' or 'integration'
-  keycloakService: null
+  keycloakService: null,
+  scittCcfService: null
 };
+
+// Centralized mock setup - only use mocks in mock mode
+if (global.testTracker.testMode === 'mock') {
+  require('./mocks').setupMocks();
+  console.log('✅ Mocks enabled for mock test mode');
+} else {
+  console.log('✅ Running integration tests without mocks');
+}
 
 // Global test setup
 beforeAll(async () => {
-  // Ensure database connection
-  try {
-    await sequelize.authenticate();
-    console.log('✅ Database connection established for tests');
-  } catch (error) {
-    console.error('❌ Database connection failed:', error.message);
-    throw error;
-  }
-
-  // Initialize Keycloak service for integration tests
+  // Only connect to database for integration tests
   if (global.testTracker.testMode === 'integration') {
     try {
+      const { sequelize } = require('../models');
+      await sequelize.authenticate();
+      console.log('✅ Database connection established for integration tests');
+    } catch (error) {
+      console.error('❌ Database connection failed:', error.message);
+      throw error;
+    }
+
+    // Initialize Keycloak service for integration tests
+    try {
+      const KeycloakService = require('../services/keycloakService');
       global.testTracker.keycloakService = new KeycloakService();
       await global.testTracker.keycloakService.getAdminToken();
       console.log('✅ Keycloak service initialized for integration tests');
@@ -44,6 +54,18 @@ beforeAll(async () => {
       console.warn('⚠️ Keycloak service not available, falling back to mock mode');
       global.testTracker.testMode = 'mock';
     }
+
+    // Initialize SCITT CCF service for integration tests
+    try {
+      const ScittCcfService = require('../services/scittCcfService');
+      global.testTracker.scittCcfService = new ScittCcfService();
+      await global.testTracker.scittCcfService.initialize();
+      console.log('✅ SCITT CCF service initialized for integration tests');
+    } catch (error) {
+      console.warn('⚠️ SCITT CCF service not available, some tests may be skipped');
+    }
+  } else {
+    console.log('✅ Running in mock mode - no external services required');
   }
 });
 
@@ -67,12 +89,25 @@ afterAll(async () => {
     }
   }
 
-  // Close database connection
+  // Close database connection only if it was established
+  if (global.testTracker.testMode === 'integration') {
+    try {
+      const { sequelize } = require('../models');
+      await sequelize.close();
+      console.log('✅ Database connection closed');
+    } catch (error) {
+      console.error('❌ Error closing database connection:', error.message);
+    }
+  }
+
+  // Clear mock registry instances
   try {
-    await sequelize.close();
-    console.log('✅ Database connection closed');
+    const MockRegistry = require('./mocks/registry');
+    MockRegistry.clearInstances();
+    MockRegistry.resetMocks();
+    console.log('✅ Mock registry cleaned up');
   } catch (error) {
-    console.error('❌ Error closing database connection:', error.message);
+    console.warn('⚠️ Mock registry cleanup failed:', error.message);
   }
 });
 

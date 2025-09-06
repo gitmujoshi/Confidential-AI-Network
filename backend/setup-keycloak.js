@@ -9,7 +9,7 @@ const axios = require('axios');
 
 class KeycloakSetup {
   constructor() {
-    this.baseURL = 'http://localhost:8080';
+    this.baseURL = process.env.KEYCLOAK_URL || 'https://localhost:8443';
     this.adminToken = null;
   }
 
@@ -173,8 +173,8 @@ class KeycloakSetup {
       console.log('   Backend Client: contract-management-backend');
       console.log('   Roles: TDP, TDC, CCRP, ADMIN');
       console.log('\n🔗 Access URLs:');
-      console.log('   Keycloak Admin: http://localhost:8080/admin/');
-      console.log('   Login: http://localhost:8080/realms/contract-management/protocol/openid-connect/auth');
+      console.log(`   Keycloak Admin: ${this.baseURL}/admin/`);
+      console.log(`   Login: ${this.baseURL}/realms/contract-management/protocol/openid-connect/auth`);
 
     } catch (error) {
       console.error('\n💥 Setup failed:', error.message);

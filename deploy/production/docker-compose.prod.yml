@@ -1,0 +1,269 @@
+version: '3.8'
+
+# Production Docker Compose for Contract Management System
+# This file is designed for production deployment with separate VMs per service
+
+services:
+  # Frontend Service (Deploy on Frontend VM)
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.prod
+    container_name: cms-frontend-prod
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      REACT_APP_API_URL: ${FRONTEND_API_URL:-http://backend-vm:5001}
+      REACT_APP_KEYCLOAK_URL: ${FRONTEND_KEYCLOAK_URL:-http://keycloak-vm:8080}
+      REACT_APP_KEYCLOAK_REALM: contract-management
+      REACT_APP_KEYCLOAK_CLIENT_ID: contract-management-frontend
+    ports:
+      - "3000:3000"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:3000 || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - cms-prod-network
+
+  # Backend Service (Deploy on Backend VM)
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.prod
+    container_name: cms-backend-prod
+    environment:
+      NODE_ENV: production
+      PORT: 5001
+      DB_HOST: ${DB_HOST:-database-vm}
+      DB_PORT: 5432
+      DB_NAME: contract_management
+      DB_USER: ${DB_USER:-postgres}
+      DB_PASSWORD: ${DB_PASSWORD}
+      KEYCLOAK_URL: ${KEYCLOAK_URL:-http://keycloak-vm:8080}
+      KEYCLOAK_REALM: contract-management
+      KEYCLOAK_CLIENT_ID: contract-management-client
+      KEYCLOAK_CLIENT_SECRET: ${KEYCLOAK_CLIENT_SECRET}
+      KEYCLOAK_ADMIN_USER: admin
+      KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
+      KEYCLOAK_ENABLED: true
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRES_IN: 24h
+      CORS_ORIGIN: ${CORS_ORIGIN:-http://frontend-vm:3000}
+      LOG_LEVEL: info
+      # SCITT CCF Configuration
+      SCITT_CCF_ENABLED: ${SCITT_CCF_ENABLED:-true}
+      SCITT_CCF_NODE_URL: ${SCITT_CCF_NODE_URL:-http://scitt-vm:8000}
+      SCITT_CCF_PLATFORM: ${SCITT_CCF_PLATFORM:-virtual}
+    ports:
+      - "5001:5001"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:5001/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - cms-prod-network
+
+  # Keycloak Service (Deploy on Keycloak VM)
+  keycloak:
+    image: quay.io/keycloak/keycloak:23.0
+    container_name: cms-keycloak-prod
+    environment:
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://${KEYCLOAK_DB_HOST:-keycloak-db-vm}:5432/keycloak
+      KC_DB_USERNAME: keycloak
+      KC_DB_PASSWORD: ${KEYCLOAK_DB_PASSWORD}
+      KC_HOSTNAME_STRICT: false
+      KC_HOSTNAME_STRICT_HTTPS: false
+      KC_HTTP_ENABLED: true
+      KC_LOG_LEVEL: INFO
+      KC_PROXY: edge
+    ports:
+      - "8080:8080"
+    restart: unless-stopped
+    command: start --optimized
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8080/health/ready || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    networks:
+      - cms-prod-network
+
+  # Main Application Database (Deploy on Database VM)
+  postgres-app:
+    image: postgres:15
+    container_name: cms-postgres-app-prod
+    environment:
+      POSTGRES_DB: contract_management
+      POSTGRES_USER: ${DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_INITDB_ARGS: "--auth-host=scram-sha-256"
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_app_data:/var/lib/postgresql/data
+      - ./backend/migrations:/docker-entrypoint-initdb.d
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-postgres} -d contract_management"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - cms-prod-network
+
+  # Keycloak Database (Deploy on Keycloak Database VM)
+  postgres-keycloak:
+    image: postgres:15
+    container_name: cms-postgres-keycloak-prod
+    environment:
+      POSTGRES_DB: keycloak
+      POSTGRES_USER: keycloak
+      POSTGRES_PASSWORD: ${KEYCLOAK_DB_PASSWORD}
+      POSTGRES_INITDB_ARGS: "--auth-host=scram-sha-256"
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_keycloak_data:/var/lib/postgresql/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U keycloak -d keycloak"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - cms-prod-network
+
+  # SCITT CCF Node (Deploy on SCITT VM)
+  scitt-ccf-node:
+    image: scitt-ccf-ledger:latest
+    container_name: cms-scitt-ccf-prod
+    environment:
+      NODE_ENV: production
+      PLATFORM: ${SCITT_CCF_PLATFORM:-virtual}
+      CCF_NETWORK: production
+      CCF_NODE_PORT: 8000
+      CCF_GOVERNANCE_PORT: 8001
+    ports:
+      - "8000:8000"
+      - "8001:8001"
+    volumes:
+      - scitt_ccf_data:/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - cms-prod-network
+
+  # SCITT CCF Monitor (Deploy on SCITT VM)
+  scitt-ccf-monitor:
+    image: scitt-ccf-monitor:latest
+    container_name: cms-scitt-monitor-prod
+    environment:
+      SCITT_CCF_NODE_URL: http://scitt-ccf-node:8000
+      NODE_ENV: production
+    depends_on:
+      scitt-ccf-node:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - cms-prod-network
+
+  # SCITT CCF Dashboard (Deploy on SCITT VM)
+  scitt-ccf-dashboard:
+    image: scitt-ccf-dashboard:latest
+    container_name: cms-scitt-dashboard-prod
+    ports:
+      - "8082:8080"
+    depends_on:
+      - scitt-ccf-node
+    restart: unless-stopped
+    networks:
+      - cms-prod-network
+
+  # SCITT CCF Database (Deploy on SCITT Database VM)
+  scitt-ccf-postgres:
+    image: postgres:15
+    container_name: cms-scitt-postgres-prod
+    environment:
+      POSTGRES_DB: scitt_ccf_prod
+      POSTGRES_USER: scitt_user
+      POSTGRES_PASSWORD: ${SCITT_DB_PASSWORD}
+      POSTGRES_INITDB_ARGS: "--auth-host=scram-sha-256"
+    ports:
+      - "5432:5432"
+    volumes:
+      - scitt_ccf_postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U scitt_user -d scitt_ccf_prod"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - cms-prod-network
+
+  # Redis for Caching (Deploy on Backend VM or separate Cache VM)
+  redis:
+    image: redis:7-alpine
+    container_name: cms-redis-prod
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - cms-prod-network
+
+  # Nginx Load Balancer (Deploy on Load Balancer VM)
+  nginx:
+    image: nginx:alpine
+    container_name: cms-nginx-prod
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.prod.conf:/etc/nginx/nginx.conf
+      - ./nginx/ssl:/etc/nginx/ssl
+    depends_on:
+      - frontend
+      - backend
+      - keycloak
+    restart: unless-stopped
+    networks:
+      - cms-prod-network
+
+volumes:
+  postgres_app_data:
+    driver: local
+  postgres_keycloak_data:
+    driver: local
+  scitt_ccf_data:
+    driver: local
+  scitt_ccf_postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+
+networks:
+  cms-prod-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16

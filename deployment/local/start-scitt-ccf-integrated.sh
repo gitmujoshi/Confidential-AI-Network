@@ -91,7 +91,7 @@ if command -v docker &> /dev/null; then
     
     # Wait for Keycloak to be ready
     print_status "Waiting for Keycloak to be ready..."
-    wait_for_service "http://localhost:8080/health" "Keycloak"
+    wait_for_service "${KEYCLOAK_URL:-https://localhost:8443}/realms/master" "Keycloak"
     
     print_success "Main database and Keycloak started successfully"
 else
@@ -145,7 +145,7 @@ else
     
     # Wait for backend to be ready
     print_status "Waiting for backend to be ready..."
-    wait_for_service "http://localhost:5001/health" "Backend"
+    wait_for_service "http://localhost:${BACKEND_PORT:-5001}/health" "Backend"
 fi
 
 # Step 6: Start Frontend
@@ -179,12 +179,12 @@ fi
 print_success "🎉 Contract Management System with SCITT CCF Integration started successfully!"
 echo ""
 echo "📊 Service Status:"
-echo "   Main Database: http://localhost:5432 ✅"
-echo "   Keycloak: http://localhost:8080 ✅"
-echo "   SCITT CCF Node: http://localhost:8000 ✅"
-echo "   SCITT CCF Dashboard: http://localhost:8082 ✅"
-echo "   Backend API: http://localhost:5001 ✅"
-echo "   Frontend: http://localhost:${PORT:-3000} ✅"
+echo "   Main Database: http://localhost:${DB_PORT:-5432} ✅"
+echo "   Keycloak: ${KEYCLOAK_URL:-https://localhost:8443} ✅"
+echo "   SCITT CCF Node: ${SCITT_CCF_URL:-http://localhost:8000} ✅"
+echo "   SCITT CCF Dashboard: ${SCITT_CCF_DASHBOARD_URL:-http://localhost:8082} ✅"
+echo "   Backend API: http://localhost:${BACKEND_PORT:-5001} ✅"
+echo "   Frontend: http://localhost:${FRONTEND_PORT:-3000} ✅"
 echo ""
 echo "🔗 SCITT CCF Integration:"
 echo "   Migration Mode: SCITT_CCF_ONLY"

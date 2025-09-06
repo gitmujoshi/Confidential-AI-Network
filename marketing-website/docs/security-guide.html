@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Security Guide - ContractFlow Pro</title>
+    <meta name="description" content="Comprehensive security guide for ContractFlow Pro - Learn about our security architecture, encryption, and best practices">
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <!-- Custom CSS -->
+    <link href="../styles.css" rel="stylesheet">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-white fixed-top">
+        <div class="container">
+            <a class="navbar-brand fw-bold" href="../index.html">
+                <i class="fas fa-file-contract me-2"></i>ContractFlow Pro
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="../index.html">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="../features.html">Features</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="../solutions.html">Solutions</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="../technology.html">Technology</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="../about.html">About</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="index.html">Documentation</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container mt-5 pt-5">
+        <div class="row">
+            <div class="col-lg-8 mx-auto">
+                <h1 class="display-4 fw-bold mb-4">Security Guide</h1>
+                
+                <div class="alert alert-info">
+                    <h5><i class="fas fa-info-circle me-2"></i>Security Overview</h5>
+                    <p class="mb-0">ContractFlow Pro implements enterprise-grade security measures to protect your data and ensure compliance with industry standards.</p>
+                </div>
+
+                <h2 class="h3 mt-5 mb-3">Confidential Computing</h2>
+                <p>Our platform leverages confidential computing technologies to ensure data remains encrypted and protected even during processing:</p>
+                
+                <ul>
+                    <li><strong>Hardware Attestation:</strong> Intel SGX, AMD SEV, ARM TrustZone</li>
+                    <li><strong>Software Attestation:</strong> Code integrity verification and runtime monitoring</li>
+                    <li><strong>Secure Key Release:</strong> Policy-based access with cryptographic verification</li>
+                    <li><strong>Memory Encryption:</strong> Data protection at rest and in transit</li>
+                </ul>
+
+                <h2 class="h3 mt-5 mb-3">Encryption Standards</h2>
+                <p>We use industry-standard encryption protocols:</p>
+                
+                <ul>
+                    <li><strong>AES-256:</strong> For data at rest</li>
+                    <li><strong>TLS 1.3:</strong> For data in transit</li>
+                    <li><strong>RSA-4096:</strong> For key exchange</li>
+                    <li><strong>ECDSA:</strong> For digital signatures</li>
+                </ul>
+
+                <h2 class="h3 mt-5 mb-3">Access Control</h2>
+                <p>Multi-layered access control system:</p>
+                
+                <ul>
+                    <li><strong>Role-Based Access Control (RBAC):</strong> Granular permissions</li>
+                    <li><strong>Multi-Factor Authentication (MFA):</strong> Enhanced login security</li>
+                    <li><strong>Single Sign-On (SSO):</strong> Enterprise integration</li>
+                    <li><strong>API Key Management:</strong> Secure service-to-service communication</li>
+                </ul>
+
+                <h2 class="h3 mt-5 mb-3">Compliance & Auditing</h2>
+                <p>Built-in compliance and auditing features:</p>
+                
+                <ul>
+                    <li><strong>GDPR Compliance:</strong> Data protection and privacy controls</li>
+                    <li><strong>HIPAA Compliance:</strong> Healthcare data protection</li>
+                    <li><strong>DPDP 2023:</strong> Indian data protection compliance</li>
+                    <li><strong>Audit Logging:</strong> Comprehensive activity tracking</li>
+                </ul>
+
+                <div class="alert alert-success mt-5">
+                    <h5><i class="fas fa-shield-alt me-2"></i>Security Best Practices</h5>
+                    <ul class="mb-0">
+                        <li>Regular security updates and patches</li>
+                        <li>Continuous monitoring and threat detection</li>
+                        <li>Regular security assessments and penetration testing</li>
+                        <li>Employee security training and awareness programs</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-dark text-white py-5 mt-5">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-6">
+                    <h5>ContractFlow Pro</h5>
+                    <p>Secure AI training data management platform</p>
+                </div>
+                <div class="col-lg-6 text-end">
+                    <p>&copy; 2024 ContractFlow Pro. All rights reserved.</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Custom JS -->
+    <script src="../script.js"></script>
+</body>
+</html>

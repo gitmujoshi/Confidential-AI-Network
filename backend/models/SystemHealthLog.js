@@ -52,18 +52,19 @@ module.exports = (sequelize) => {
   }, {
     tableName: 'system_health_log',
     timestamps: false,
+    underscored: true,
     indexes: [
       {
         name: 'idx_system_name',
-        fields: ['systemName']
+        fields: ['system_name']
       },
       {
         name: 'idx_health_status',
-        fields: ['healthStatus']
+        fields: ['health_status']
       },
       {
         name: 'idx_created_at',
-        fields: ['createdAt']
+        fields: ['created_at']
       }
     ],
     comment: 'System health monitoring logs for Ethereum and SCITT CCF systems'

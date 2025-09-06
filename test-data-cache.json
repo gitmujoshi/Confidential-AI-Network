@@ -1,0 +1,29 @@
+{
+    "users": {
+        "tdp": "",
+        "tdc": "",
+        "ccrp": "",
+        "admin": ""
+    },
+    "credentials": {
+        "tdp": "",
+        "tdc": "",
+        "ccrp": "",
+        "admin": ""
+    },
+    "datasets": {
+        "medical": "",
+        "financial": ""
+    },
+    "ai_models": {
+        "medical_diagnosis": "",
+        "fraud_detection": ""
+    },
+    "contracts": {
+        "medical_sharing": ""
+    },
+    "environments": {
+        "medical_training": ""
+    },
+    "created": "2025-09-05T15:55:02Z"
+}

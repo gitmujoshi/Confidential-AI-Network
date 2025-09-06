@@ -129,7 +129,7 @@ function Datasets() {
   }
 
   return (
-    <Box>
+    <Box sx={{ pt: 2 }}>
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
         <Typography variant="h4">
           {user?.partyType === 'TDP' ? 'My Datasets' : 'Datasets'}

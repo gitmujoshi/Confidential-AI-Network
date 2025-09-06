@@ -2,8 +2,9 @@
 
 # Start All Servers Script
 # This script starts all development servers for the Contract Management System
+# Now uses centralized configuration from config/system.env
 
-echo "🚀 Starting Contract Management servers..."
+echo "🚀 Starting Contract Management servers using centralized configuration..."
 
 # Colors for output
 RED='\033[0;31m'
@@ -11,6 +12,16 @@ GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
+
+# Load centralized configuration
+if [ -f "config/system.env" ]; then
+    echo -e "${GREEN}✅ Loading centralized configuration from config/system.env${NC}"
+    source config/system.env
+else
+    echo -e "${RED}❌ Centralized configuration file not found: config/system.env${NC}"
+    echo -e "${YELLOW}⚠️ Please ensure config/system.env exists${NC}"
+    exit 1
+fi
 
 # Function to check if a port is available
 check_port() {
@@ -56,9 +67,9 @@ start_backend() {
         return 1
     fi
     
-    # Check if port 5001 is available
-    if ! check_port 5001; then
-        echo -e "${YELLOW}⚠️  Port 5001 is already in use${NC}"
+    # Check if backend port is available
+    if ! check_port ${BACKEND_PORT:-5001}; then
+        echo -e "${YELLOW}⚠️  Port ${BACKEND_PORT:-5001} is already in use${NC}"
         return 1
     fi
     
@@ -78,7 +89,7 @@ start_backend() {
     echo -e "${GREEN}✅ Backend started with PID: $BACKEND_PID${NC}"
     
     # Wait for backend to be ready
-    if wait_for_service "http://localhost:5001/health" "Backend"; then
+    if wait_for_service "http://localhost:${BACKEND_PORT:-5001}/health" "Backend"; then
         return 0
     else
         echo -e "${RED}❌ Backend failed to start properly${NC}"
@@ -96,13 +107,13 @@ start_frontend() {
         return 1
     fi
     
-    # Check if port 3000 is available, if not try 3001
-    local frontend_port=3000
-    if ! check_port 3000; then
-        echo -e "${YELLOW}⚠️  Port 3000 is in use, trying port 3001...${NC}"
+    # Check if frontend port is available, if not try alternative
+    local frontend_port=${FRONTEND_PORT:-3000}
+    if ! check_port $frontend_port; then
+        echo -e "${YELLOW}⚠️  Port $frontend_port is in use, trying port 3001...${NC}"
         frontend_port=3001
         if ! check_port 3001; then
-            echo -e "${RED}❌ Both ports 3000 and 3001 are in use${NC}"
+            echo -e "${RED}❌ Both ports $frontend_port and 3001 are in use${NC}"
             return 1
         fi
     fi
@@ -176,7 +187,7 @@ start_keycloak() {
     if [ $? -eq 0 ]; then
         echo -e "${GREEN}✅ Keycloak started via Docker Compose${NC}"
         # Wait for Keycloak to be ready (port 8080)
-        if wait_for_service "http://localhost:8080/auth" "Keycloak"; then
+        if wait_for_service "${KEYCLOAK_URL:-https://localhost:8443}/realms/master" "Keycloak"; then
             return 0
         else
             echo -e "${RED}❌ Keycloak failed to start properly${NC}"
@@ -195,8 +206,8 @@ show_status() {
     # Check backend
     if [ -f "backend.pid" ] && ps -p $(cat backend.pid) > /dev/null 2>&1; then
         echo -e "${GREEN}✅ Backend: Running (PID: $(cat backend.pid))${NC}"
-        if curl -s "http://localhost:5001/health" >/dev/null 2>&1; then
-            echo -e "   🌐 Health: http://localhost:5001/health"
+        if curl -s "http://localhost:${BACKEND_PORT:-5001}/health" >/dev/null 2>&1; then
+            echo -e "   🌐 Health: http://localhost:${BACKEND_PORT:-5001}/health"
         else
             echo -e "   ⚠️  Health check failed"
         fi

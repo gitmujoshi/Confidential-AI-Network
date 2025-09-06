@@ -40,7 +40,7 @@ const authenticateToken = async (req, res, next) => {
       });
     }
 
-    // Try Keycloak validation first
+    // Try Keycloak validation first if enabled and available
     console.log('🔍 [auth.js] KEYCLOAK_ENABLED:', process.env.KEYCLOAK_ENABLED, 'Type:', typeof process.env.KEYCLOAK_ENABLED);
     if (process.env.KEYCLOAK_ENABLED === 'true') {
       console.log('🔍 [auth.js] Starting Keycloak validation...');
@@ -64,7 +64,8 @@ const authenticateToken = async (req, res, next) => {
           
           // Use only Keycloak username to match with database iamUsername
           // Fallback to email if username is not available
-          const keycloakUsername = validationResult.user.username || validationResult.user.email;
+          const userInfo = validationResult.user || validationResult.payload || {};
+          const keycloakUsername = userInfo.username || userInfo.email || userInfo.preferred_username;
           
           if (!keycloakUsername) {
             return res.status(404).json({ 
@@ -74,13 +75,50 @@ const authenticateToken = async (req, res, next) => {
             });
           }
           
-          // Find user by iamUsername (which should match Keycloak username)
-          const user = await db.User.findOne({ 
-            where: { 
-              iamUsername: keycloakUsername,
-              isActive: true 
-            } 
+          // Find user by multiple possible identifiers
+          let user = null;
+          
+          console.log('🔍 [auth.js] Looking for user with:', {
+            keycloakUsername,
+            userInfoEmail: userInfo.email,
+            userInfoSub: userInfo.sub
           });
+          
+          // Try to find user by iamUsername first
+          if (keycloakUsername) {
+            console.log('🔍 [auth.js] Trying to find user by iamUsername:', keycloakUsername);
+            user = await db.User.findOne({ 
+              where: { 
+                iamUsername: keycloakUsername,
+                isActive: true 
+              } 
+            });
+            console.log('🔍 [auth.js] User found by iamUsername:', user ? 'YES' : 'NO');
+          }
+          
+          // If not found by iamUsername, try by email
+          if (!user && userInfo.email) {
+            console.log('🔍 [auth.js] Trying to find user by email:', userInfo.email);
+            user = await db.User.findOne({ 
+              where: { 
+                email: userInfo.email,
+                isActive: true 
+              } 
+            });
+            console.log('🔍 [auth.js] User found by email:', user ? 'YES' : 'NO');
+          }
+          
+          // If still not found, try by iamUserId (Keycloak user ID)
+          if (!user && userInfo.sub) {
+            console.log('🔍 [auth.js] Trying to find user by iamUserId:', userInfo.sub);
+            user = await db.User.findOne({ 
+              where: { 
+                iamUserId: userInfo.sub,
+                isActive: true 
+              } 
+            });
+            console.log('🔍 [auth.js] User found by iamUserId:', user ? 'YES' : 'NO');
+          }
 
           if (!user) {
             return res.status(404).json({ 
@@ -95,8 +133,8 @@ const authenticateToken = async (req, res, next) => {
 
           // Attach user information to request
           req.user = {
-            ...validationResult.user,
-            id: validationResult.user.dbUserId || user.id, // Use dbUserId if available, fallback to local user id
+            ...userInfo,
+            id: userInfo.dbUserId || user.id, // Use dbUserId if available, fallback to local user id
             partyType: user.partyType,
             localUser: {
               id: user.id,
@@ -143,11 +181,60 @@ const authenticateToken = async (req, res, next) => {
       }
     }
 
-    // If Keycloak is not enabled, return error
-    return res.status(500).json({
-      error: 'Keycloak authentication is required but not enabled',
-      code: 'KEYCLOAK_NOT_ENABLED'
-    });
+    // If Keycloak is not enabled, use JWT validation for development
+    console.log('🔐 Keycloak disabled, using JWT validation for development');
+    
+    try {
+      const jwt = require('jsonwebtoken');
+      const decoded = jwt.verify(token, process.env.JWT_SECRET || 'dev-secret-key');
+      
+      // Find user in database
+      const user = await db.User.findOne({
+        where: { 
+          id: decoded.userId,
+          isActive: true 
+        }
+      });
+      
+      if (!user) {
+        return res.status(401).json({
+          error: 'User not found',
+          code: 'USER_NOT_FOUND',
+          details: 'User not found in database'
+        });
+      }
+      
+      // Set user context for the request
+      req.user = {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        partyType: user.partyType,
+        organization: user.organization,
+        walletAddress: user.walletAddress,
+        publicKey: user.publicKey,
+        did: user.did,
+        depaId: user.depaId,
+        location: user.location,
+        isRegistered: user.isRegistered,
+        onboardingStatus: user.onboardingStatus,
+        profileCompleted: user.profileCompleted,
+        emailVerified: user.emailVerified,
+        token: token,
+        authType: 'jwt'
+      };
+      
+      console.log('🔑 [auth.js] req.user after JWT validation:', req.user);
+      return next();
+      
+    } catch (jwtError) {
+      console.error('❌ JWT validation failed:', jwtError);
+      return res.status(401).json({
+        error: 'Invalid or expired token',
+        code: 'TOKEN_INVALID',
+        details: 'JWT token validation failed'
+      });
+    }
 
   } catch (error) {
     console.error('❌ Authentication error:', error);

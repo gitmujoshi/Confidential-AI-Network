@@ -55,7 +55,7 @@ class AuthCheck {
             const logoutLi = document.createElement('li');
             logoutLi.className = 'nav-item';
             logoutLi.innerHTML = `
-                <button class="btn btn-outline-light ms-2" onclick="logout()">
+                <button class="btn btn-outline-primary ms-2" id="logout-btn" onclick="logout()">
                     <i class="fas fa-sign-out-alt me-2"></i>Logout
                 </button>
             `;
@@ -66,7 +66,7 @@ class AuthCheck {
     // Method to logout
     logout() {
         localStorage.removeItem('cfp_auth');
-        window.location.href = 'login.html';
+        window.location.href = 'index.html';
     }
 }
 

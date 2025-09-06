@@ -29,9 +29,9 @@ else
 fi
 
 # Check if database is configured
-if [ ! -f "backend/config.env" ]; then
-    echo -e "${YELLOW}⚠️  Backend config not found. You may need to:${NC}"
-    echo "  cp env.example backend/config.env"
+if [ ! -f "config.env" ]; then
+    echo -e "${YELLOW}⚠️  Root config not found. You may need to:${NC}"
+    echo "  cp config.env.example config.env"
     echo "  Update database configuration"
     echo ""
 fi

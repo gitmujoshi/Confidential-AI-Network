@@ -1,0 +1,284 @@
+#!/usr/bin/env node
+
+/**
+ * Fix User Synchronization Script
+ * 
+ * This script fixes the user synchronization between Keycloak and the database
+ * by creating database users with the correct iamUserId mapping.
+ */
+
+const axios = require('axios');
+const { User } = require('../models');
+const https = require('https');
+
+const CONFIG = {
+  keycloakUrl: 'https://localhost:8443',
+  keycloakRealm: 'contract-management',
+  backendUrl: 'http://localhost:5001',
+  adminUsername: 'admin',
+  adminPassword: 'admin123'
+};
+
+// Configure axios to handle HTTPS with self-signed certificates
+const httpsAgent = new https.Agent({
+  rejectUnauthorized: false
+});
+
+const testUsers = [
+  {
+    email: 'tdp.medical@example.com',
+    name: 'MedData Solutions Inc.',
+    partyType: 'TDP',
+    organization: 'MedData Solutions Inc.',
+    description: 'Medical data provider specializing in healthcare datasets',
+    keycloakId: '9af98024-5bf9-4e58-840b-3e3acf3fa2a5'
+  },
+  {
+    email: 'tdp.nlp@example.com',
+    name: 'NLP Research Foundation',
+    partyType: 'TDP',
+    organization: 'NLP Research Foundation',
+    description: 'Natural language processing research data provider',
+    keycloakId: '77f19f04-f8ab-4cf2-918a-679d0807f0a8'
+  },
+  {
+    email: 'tdp.autodrive@example.com',
+    name: 'AutoDrive Technologies',
+    partyType: 'TDP',
+    organization: 'AutoDrive Technologies',
+    description: 'Autonomous driving data and model provider',
+    keycloakId: '1052753a-aab5-4242-b9a9-994c11f2784e'
+  },
+  {
+    email: 'tdc.healthcare@example.com',
+    name: 'AI Healthcare Innovations',
+    partyType: 'TDC',
+    organization: 'AI Healthcare Innovations',
+    description: 'Healthcare AI model training and analytics',
+    keycloakId: '6c0be390-03ae-46d5-8629-0a9c4963478a'
+  },
+  {
+    email: 'tdc.fintech@example.com',
+    name: 'FinTech Analytics Corp',
+    partyType: 'TDC',
+    organization: 'FinTech Analytics Corp',
+    description: 'Financial technology data analytics',
+    keycloakId: '4cc466f2-104a-4aa2-bf30-e3036171ed2b'
+  },
+  {
+    email: 'tdc.language@example.com',
+    name: 'Language AI Labs',
+    partyType: 'TDC',
+    organization: 'Language AI Labs',
+    description: 'Language model training and research',
+    keycloakId: '4e1f298d-a43c-446f-9220-96e4e9699dec'
+  },
+  {
+    email: 'ccrp.securecloud@example.com',
+    name: 'SecureCloud Confidential Computing',
+    partyType: 'CCRP',
+    organization: 'SecureCloud Confidential Computing',
+    description: 'Secure cloud infrastructure for confidential computing',
+    keycloakId: 'b84dbd34-3a67-44ae-9477-bfc8ec2a6a73'
+  },
+  {
+    email: 'ccrp.trustedai@example.com',
+    name: 'TrustedAI Environment Provider',
+    partyType: 'CCRP',
+    organization: 'TrustedAI Environment Provider',
+    description: 'Trusted AI training environment provider',
+    keycloakId: 'c8bd1d7f-4821-4e8d-969b-7c7f8ef5ef81'
+  },
+  {
+    email: 'ccrp.privacyfirst@example.com',
+    name: 'PrivacyFirst Computing Solutions',
+    partyType: 'CCRP',
+    organization: 'PrivacyFirst Computing Solutions',
+    description: 'Privacy-first computing solutions provider',
+    keycloakId: 'ba903c93-b9e5-49af-babd-bd9dde9ce535'
+  }
+];
+
+async function getAdminToken() {
+  try {
+    console.log('🔑 Getting admin token...');
+    const response = await axios.post(
+      `${CONFIG.keycloakUrl}/realms/master/protocol/openid-connect/token`,
+      `grant_type=password&client_id=admin-cli&username=${CONFIG.adminUsername}&password=${CONFIG.adminPassword}`,
+      {
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        httpsAgent: httpsAgent
+      }
+    );
+    console.log('✅ Admin token retrieved successfully');
+    return response.data.access_token;
+  } catch (error) {
+    console.error('❌ Failed to get admin token:', error.response?.data || error.message);
+    throw error;
+  }
+}
+
+async function setUserPassword(keycloakUserId, password, adminToken) {
+  try {
+    console.log(`   🔐 Setting password for user ${keycloakUserId}...`);
+    const response = await axios.put(
+      `${CONFIG.keycloakUrl}/admin/realms/${CONFIG.keycloakRealm}/users/${keycloakUserId}/reset-password`,
+      {
+        type: 'password',
+        value: password,
+        temporary: false
+      },
+      {
+        headers: {
+          'Authorization': `Bearer ${adminToken}`,
+          'Content-Type': 'application/json'
+        },
+        httpsAgent: httpsAgent
+      }
+    );
+    console.log(`   ✅ Password set successfully for user ${keycloakUserId}`);
+    return true;
+  } catch (error) {
+    console.error(`   ❌ Failed to set password for user ${keycloakUserId}:`, error.response?.data || error.message);
+    return false;
+  }
+}
+
+async function createDatabaseUser(userData) {
+  try {
+    console.log(`   🗄️ Creating database user for ${userData.email}...`);
+    
+    // Generate DEPA ID
+    const DEPAIdService = require('../services/depaIdService');
+    const depaIdService = new DEPAIdService();
+    const depaId = depaIdService.generateUserDEPAId(userData.partyType);
+    
+    // Generate DID
+    const domain = userData.email.split('@')[1] || 'example.com';
+    const did = `did:web:${domain}:user:${userData.email.split('@')[0]}`;
+    
+    const dbUser = await User.create({
+      walletAddress: null, // Enterprise users don't have wallet addresses
+      publicKey: null,
+      partyType: userData.partyType,
+      name: userData.name,
+      email: userData.email.toLowerCase(),
+      description: userData.description || '',
+      organization: userData.organization || '',
+      phoneNumber: null,
+      website: null,
+      location: null,
+      did: did,
+      didSource: 'SYSTEM_GENERATED',
+      didVerified: true,
+      didVerificationMethod: 'SYSTEM_GENERATED',
+      onboardingStatus: 'IN_PROGRESS',
+      profileCompleted: false,
+      emailVerified: false,
+      isRegistered: true,
+      registrationDate: new Date(),
+      isActive: true,
+      iamUserId: userData.keycloakId,
+      iamUsername: userData.email,
+      depaId: depaId
+    });
+    
+    console.log(`   ✅ Database user created successfully with ID: ${dbUser.id}`);
+    return dbUser;
+  } catch (error) {
+    console.error(`   ❌ Failed to create database user for ${userData.email}:`, error.message);
+    throw error;
+  }
+}
+
+async function testUserLogin(email) {
+  try {
+    console.log(`   🔐 Testing login for ${email}...`);
+    const response = await axios.post(
+      `${CONFIG.backendUrl}/api/auth/login`,
+      {
+        email: email,
+        password: 'password123'
+      },
+      {
+        headers: { 'Content-Type': 'application/json' },
+        timeout: 10000
+      }
+    );
+    
+    if (response.data.accessToken) {
+      console.log(`   ✅ Login successful for ${email}`);
+      return true;
+    } else {
+      console.log(`   ❌ Login failed for ${email}: No access token`);
+      return false;
+    }
+  } catch (error) {
+    console.error(`   ❌ Login failed for ${email}:`, error.response?.data || error.message);
+    return false;
+  }
+}
+
+async function main() {
+  console.log('🚀 Starting User Synchronization Fix...\n');
+  
+  try {
+    // Get admin token
+    const adminToken = await getAdminToken();
+    
+    let successCount = 0;
+    let failCount = 0;
+    
+    // Process each user
+    for (const userData of testUsers) {
+      console.log(`\n👤 Processing user: ${userData.email}`);
+      
+      try {
+        // Set password in Keycloak
+        const passwordSet = await setUserPassword(userData.keycloakId, 'password123', adminToken);
+        
+        if (passwordSet) {
+          // Create database user
+          await createDatabaseUser(userData);
+          
+          // Test login
+          const loginSuccess = await testUserLogin(userData.email);
+          
+          if (loginSuccess) {
+            successCount++;
+            console.log(`   ✅ User ${userData.email} fully synchronized and working`);
+          } else {
+            failCount++;
+            console.log(`   ❌ User ${userData.email} created but login failed`);
+          }
+        } else {
+          failCount++;
+          console.log(`   ❌ Failed to set password for ${userData.email}`);
+        }
+      } catch (error) {
+        failCount++;
+        console.error(`   ❌ Error processing user ${userData.email}:`, error.message);
+      }
+    }
+    
+    console.log('\n📊 User Synchronization Summary:');
+    console.log('================================');
+    console.log(`✅ Successfully synchronized: ${successCount}/${testUsers.length}`);
+    console.log(`❌ Failed: ${failCount}/${testUsers.length}`);
+    
+    if (successCount > 0) {
+      console.log('\n🎉 Some users are now working!');
+      console.log('💡 Test with password: password123');
+    }
+    
+  } catch (error) {
+    console.error('\n❌ Script failed:', error.message);
+    process.exit(1);
+  }
+}
+
+if (require.main === module) {
+  main();
+}
+
+module.exports = { fixUserSync: main };

@@ -16,7 +16,7 @@
             <a class="navbar-brand fw-bold" href="index.html">
                 <i class="fas fa-file-contract me-2"></i>ContractFlow Pro
             </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
@@ -369,6 +369,117 @@
                         </ul>
                     </div>
                 </div>
+                
+                <div class="col-lg-6">
+                    <div class="security-card p-4 h-100 bg-success bg-opacity-10 rounded border border-success">
+                        <div class="d-flex align-items-center mb-3">
+                            <i class="fas fa-shield-alt fa-2x text-success me-3"></i>
+                            <div>
+                                <h4 class="text-success">Confidential Computing</h4>
+                                <p class="text-dark mb-0">Hardware-Enforced Data Protection</p>
+                            </div>
+                        </div>
+                        <ul class="list-unstyled">
+                            <li><i class="fas fa-check text-success me-2"></i>Hardware + Software Attestation</li>
+                            <li><i class="fas fa-check text-success me-2"></i>Secure Key Release Mechanisms</li>
+                            <li><i class="fas fa-check text-success me-2"></i>Trusted Execution Environments</li>
+                            <li><i class="fas fa-check text-success me-2"></i>Memory Encryption & Isolation</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Confidential Computing Deep Dive -->
+    <section class="py-5 bg-light">
+        <div class="container">
+            <div class="row text-center mb-5">
+                <div class="col-lg-8 mx-auto">
+                    <h2 class="display-5 fw-bold mb-3">Confidential Computing: The Future of Data Security</h2>
+                    <p class="lead text-dark">Understanding why confidential computing is essential for AI training and data privacy.</p>
+                </div>
+            </div>
+            
+
+            
+            <div class="row g-4 mb-5">
+                <div class="col-lg-6">
+                    <div class="info-card p-4 h-100 bg-white rounded shadow">
+                        <h4 class="text-primary mb-3"><i class="fas fa-question-circle me-2"></i>Why Confidential Computing?</h4>
+                        <div class="mb-3">
+                            <h6 class="text-success">Data Privacy in AI Training</h6>
+                            <p class="text-dark">Traditional cloud computing exposes sensitive training data and models to potential breaches. Confidential computing ensures data remains encrypted even during processing.</p>
+                        </div>
+                        <div class="mb-3">
+                            <h6 class="text-success">Regulatory Compliance</h6>
+                            <p class="text-dark">GDPR, HIPAA, and AI regulations require data protection during processing. Confidential computing provides the technical foundation for compliance.</p>
+                        </div>
+                        <div class="mb-3">
+                            <h6 class="text-success">Multi-Party Collaboration</h6>
+                            <p class="text-dark">Enables secure collaboration between organizations without exposing raw data, perfect for federated learning and joint AI model development.</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-lg-6">
+                    <div class="info-card p-4 h-100 bg-white rounded shadow">
+                        <h4 class="text-primary mb-3"><i class="fas fa-cogs me-2"></i>What is Confidential Computing?</h4>
+                        <div class="mb-3">
+                            <h6 class="text-success">Hardware-Enforced Security</h6>
+                            <p class="text-dark">Uses specialized CPU features like Intel SGX, AMD SEV, or ARM TrustZone to create isolated execution environments where data is encrypted in memory.</p>
+                        </div>
+                        <div class="mb-3">
+                            <h6 class="text-success">Trusted Execution Environments (TEEs)</h6>
+                            <p class="text-dark">Secure enclaves that protect code and data from the host operating system, hypervisor, and other applications.</p>
+                        </div>
+                        <div class="mb-3">
+                            <h6 class="text-success">End-to-End Encryption</h6>
+                            <p class="text-dark">Data remains encrypted throughout the entire processing pipeline, from input to output, ensuring complete confidentiality.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="row g-4">
+                <div class="col-lg-4">
+                    <div class="feature-highlight p-4 h-100 text-center bg-white rounded shadow">
+                        <i class="fas fa-microchip fa-3x text-primary mb-3"></i>
+                        <h5 class="text-primary">Hardware Attestation</h5>
+                        <p class="text-dark">Cryptographic proof that code is running on genuine, unmodified hardware with verified security features.</p>
+                        <ul class="list-unstyled text-start">
+                            <li><i class="fas fa-check text-success me-2"></i>CPU identity verification</li>
+                            <li><i class="fas fa-check text-success me-2"></i>Security feature validation</li>
+                            <li><i class="fas fa-check text-success me-2"></i>Firmware integrity checks</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="col-lg-4">
+                    <div class="feature-highlight p-4 h-100 text-center bg-white rounded shadow">
+                        <i class="fas fa-code fa-3x text-success mb-3"></i>
+                        <h5 class="text-success">Software Attestation</h5>
+                        <p class="text-dark">Verification that the correct, unmodified software is running in the secure enclave.</p>
+                        <ul class="list-unstyled text-start">
+                            <li><i class="fas fa-check text-success me-2"></i>Code measurement & hashing</li>
+                            <li><i class="fas fa-check text-success me-2"></i>Dependency verification</li>
+                            <li><i class="fas fa-check text-success me-2"></i>Runtime integrity monitoring</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="col-lg-4">
+                    <div class="feature-highlight p-4 h-100 text-center bg-white rounded shadow">
+                        <i class="fas fa-key fa-3x text-warning mb-3"></i>
+                        <h5 class="text-warning">Secure Key Release</h5>
+                        <p class="text-dark">Conditional decryption keys that are only released when specific security conditions are met.</p>
+                        <ul class="list-unstyled text-start">
+                            <li><i class="fas fa-check text-success me-2"></i>Policy-based key release</li>
+                            <li><i class="fas fa-check text-success me-2"></i>Attestation verification</li>
+                            <li><i class="fas fa-check text-success me-2"></i>Time-bound access control</li>
+                        </ul>
+                    </div>
+                </div>
             </div>
         </div>
     </section>
@@ -451,6 +562,80 @@
         </div>
     </section>
 
+    <!-- Confidential Computing Workflow -->
+    <section class="py-5">
+        <div class="container">
+            <div class="row text-center mb-5">
+                <div class="col-lg-8 mx-auto">
+                    <h2 class="display-5 fw-bold mb-3">How Confidential Computing Works</h2>
+                    <p class="lead text-dark">Step-by-step process of secure data processing in trusted execution environments.</p>
+                </div>
+            </div>
+            
+            <div class="row g-4">
+                <div class="col-lg-3">
+                    <div class="workflow-step p-4 h-100 text-center bg-white rounded shadow">
+                        <div class="step-number mb-3">1</div>
+                        <i class="fas fa-lock fa-2x text-primary mb-3"></i>
+                        <h5 class="text-primary">Data Encryption</h5>
+                        <p class="text-dark">Sensitive data is encrypted before transmission to the cloud, ensuring it's protected in transit and at rest.</p>
+                    </div>
+                </div>
+                
+                <div class="col-lg-3">
+                    <div class="workflow-step p-4 h-100 text-center bg-white rounded shadow">
+                        <div class="step-number mb-3">2</div>
+                        <i class="fas fa-shield-alt fa-2x text-success mb-3"></i>
+                        <h5 class="text-success">TEE Creation</h5>
+                        <p class="text-dark">Secure enclave is created using hardware security features, isolating the processing environment from the host system.</p>
+                    </div>
+                </div>
+                
+                <div class="col-lg-3">
+                    <div class="workflow-step p-4 h-100 text-center bg-white rounded shadow">
+                        <div class="step-number mb-3">3</div>
+                        <i class="fas fa-check-circle fa-2x text-warning mb-3"></i>
+                        <h5 class="text-warning">Attestation</h5>
+                        <p class="text-dark">Hardware and software integrity is verified through cryptographic attestation, ensuring the environment is secure.</p>
+                    </div>
+                </div>
+                
+                <div class="col-lg-3">
+                    <div class="workflow-step p-4 h-100 text-center bg-white rounded shadow">
+                        <div class="step-number mb-3">4</div>
+                        <i class="fas fa-key fa-2x text-info mb-3"></i>
+                        <h5 class="text-info">Secure Processing</h5>
+                        <p class="text-dark">Data is processed within the secure enclave, with keys released only after successful attestation verification.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="row mt-5">
+                <div class="col-lg-8 mx-auto">
+                    <div class="info-box p-4 bg-primary bg-opacity-10 rounded border border-primary">
+                        <h5 class="text-primary mb-3"><i class="fas fa-info-circle me-2"></i>Key Benefits of This Approach</h5>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <ul class="list-unstyled">
+                                    <li><i class="fas fa-check text-primary me-2"></i>Data never leaves encrypted state</li>
+                                    <li><i class="fas fa-check text-primary me-2"></i>Hardware-level security guarantees</li>
+                                    <li><i class="fas fa-check text-primary me-2"></i>Compliance with strict regulations</li>
+                                </ul>
+                            </div>
+                            <div class="col-md-6">
+                                <ul class="list-unstyled">
+                                    <li><i class="fas fa-check text-primary me-2"></i>Zero-trust architecture</li>
+                                    <li><i class="fas fa-check text-primary me-2"></i>Auditable processing trails</li>
+                                    <li><i class="fas fa-check text-primary me-2"></i>Multi-party collaboration support</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
     <!-- Call to Action -->
     <section class="py-5 bg-primary text-white">
         <div class="container">
@@ -489,5 +674,6 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="js/auth-check.js"></script>
+    <script src="script.js"></script>
 </body>
 </html>

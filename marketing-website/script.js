@@ -235,23 +235,8 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Mobile menu toggle
-    const navbarToggler = document.querySelector('.navbar-toggler');
-    const navbarCollapse = document.querySelector('.navbar-collapse');
-    
-    if (navbarToggler && navbarCollapse) {
-        navbarToggler.addEventListener('click', function() {
-            navbarCollapse.classList.toggle('show');
-        });
-        
-        // Close mobile menu when clicking on a link
-        const mobileNavLinks = navbarCollapse.querySelectorAll('.nav-link');
-        mobileNavLinks.forEach(link => {
-            link.addEventListener('click', function() {
-                navbarCollapse.classList.remove('show');
-            });
-        });
-    }
+    // Mobile menu is handled automatically by Bootstrap 5
+    // No custom JavaScript needed for basic mobile menu functionality
 
     // Form validation
     function validateForm(form) {

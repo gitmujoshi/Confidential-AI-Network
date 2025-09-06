@@ -8,6 +8,8 @@ const KeycloakService = require('./keycloakService');
 const NotificationService = require('./notificationService');
 const SigningService = require('./signingService');
 const AuditService = require('./auditService');
+const DEPAIdService = require('./depaIdService');
+const GlobalDEPAIdService = require('./globalDEPAIdService');
 const ricardianContractService = require('./ricardianContractService');
 
 module.exports = {
@@ -20,5 +22,7 @@ module.exports = {
   NotificationService,
   SigningService,
   AuditService,
-  ricardianContractService // This is a singleton instance
+  DEPAIdService,
+  GlobalDEPAIdService,
+  ricardianContractService // Export as singleton instance
 }; 

@@ -14,8 +14,8 @@ const { Sequelize } = require('sequelize');
 // Configuration
 const SERVICES = {
   keycloak: { url: 'http://localhost:8080', name: 'Keycloak' },
-  backend: { url: 'http://localhost:5001/health', name: 'Backend API' },
-  frontend: { url: 'http://localhost:3000', name: 'Frontend' },
+  backend: { url: '${BACKEND_URL:-http://localhost:5001}/health', name: 'Backend API' },
+  frontend: { url: '${FRONTEND_URL:-http://localhost:3000}', name: 'Frontend' },
   database: { name: 'PostgreSQL Database' }
 };
 
@@ -155,7 +155,7 @@ async function testAuthentication() {
       return false;
     }
     
-    const loginResponse = await axios.post('http://localhost:5001/api/auth/login', {
+    const loginResponse = await axios.post('${BACKEND_URL:-http://localhost:5001}/api/auth/login', {
       email: 'tdc.healthcare@example.com',
       password: 'password123'
     });

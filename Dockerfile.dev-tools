@@ -1,0 +1,49 @@
+# Development Tools Container
+FROM node:20-alpine
+
+# Install system dependencies
+RUN apk add --no-cache \
+    curl \
+    wget \
+    git \
+    vim \
+    nano \
+    htop \
+    postgresql-client \
+    docker-cli \
+    docker-compose \
+    jq \
+    bash \
+    openssh-client \
+    rsync
+
+# Install global npm packages
+RUN npm install -g \
+    nodemon \
+    pm2 \
+    typescript \
+    ts-node \
+    @types/node \
+    eslint \
+    prettier \
+    jest \
+    supertest
+
+# Create workspace directory
+WORKDIR /workspace
+
+# Set up bash profile
+RUN echo 'alias ll="ls -la"' >> /root/.bashrc && \
+    echo 'alias la="ls -A"' >> /root/.bashrc && \
+    echo 'alias l="ls -CF"' >> /root/.bashrc && \
+    echo 'alias ..="cd .."' >> /root/.bashrc && \
+    echo 'alias ...="cd ../.."' >> /root/.bashrc && \
+    echo 'alias grep="grep --color=auto"' >> /root/.bashrc && \
+    echo 'alias fgrep="fgrep --color=auto"' >> /root/.bashrc && \
+    echo 'alias egrep="egrep --color=auto"' >> /root/.bashrc
+
+# Set default shell
+SHELL ["/bin/bash", "-c"]
+
+# Default command
+CMD ["tail", "-f", "/dev/null"]

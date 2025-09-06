@@ -16,7 +16,7 @@
             <a class="navbar-brand fw-bold" href="index.html">
                 <i class="fas fa-file-contract me-2"></i>ContractFlow Pro
             </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
@@ -212,6 +212,20 @@
                 <div class="col-lg-6">
                     <div class="feature-card p-4 h-100">
                         <div class="d-flex align-items-center mb-3">
+                            <i class="fas fa-shield-alt fa-2x text-success me-3"></i>
+                            <div>
+                                <h4>Confidential Computing</h4>
+                                <p class="text-dark mb-0">Hardware-Enforced Data Protection</p>
+                            </div>
+                        </div>
+                        <p>Advanced confidential computing with hardware attestation, secure key release, and trusted execution environments for maximum data security.</p>
+                        <a href="#confidential-computing" class="btn btn-outline-success">Learn More</a>
+                    </div>
+                </div>
+                
+                <div class="col-lg-6">
+                    <div class="feature-card p-4 h-100">
+                        <div class="d-flex align-items-center mb-3">
                             <i class="fas fa-chart-line fa-2x text-success me-3"></i>
                             <div>
                                 <h4>Advanced Compliance</h4>
@@ -220,6 +234,100 @@
                         </div>
                         <p>Comprehensive compliance monitoring with EU AI Act, GDPR, and global standards, including automated reporting and real-time monitoring.</p>
                         <a href="features/advanced-compliance.html" class="btn btn-outline-primary">Learn More</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Confidential Computing Deep Dive -->
+    <section id="confidential-computing" class="py-5 bg-light">
+        <div class="container">
+            <div class="row text-center mb-5">
+                <div class="col-lg-8 mx-auto">
+                    <h2 class="display-5 fw-bold mb-3">Confidential Computing: The Foundation of Trust</h2>
+                    <p class="lead text-dark">Advanced hardware and software security for the most sensitive AI training operations.</p>
+                </div>
+            </div>
+            
+            <div class="row g-4 mb-5">
+                <div class="col-lg-4">
+                    <div class="tech-card p-4 h-100 bg-white rounded shadow text-center">
+                        <i class="fas fa-microchip fa-3x text-primary mb-3"></i>
+                        <h5 class="text-primary">Hardware Attestation</h5>
+                        <p class="text-dark">Cryptographic verification of hardware integrity using Intel SGX, AMD SEV, and ARM TrustZone technologies.</p>
+                        <ul class="list-unstyled text-start">
+                            <li><i class="fas fa-check text-success me-2"></i>CPU identity verification</li>
+                            <li><i class="fas fa-check text-success me-2"></i>Security feature validation</li>
+                            <li><i class="fas fa-check text-success me-2"></i>Firmware integrity checks</li>
+                            <li><i class="fas fa-check text-success me-2"></i>Hardware security module support</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="col-lg-4">
+                    <div class="tech-card p-4 h-100 bg-white rounded shadow text-center">
+                        <i class="fas fa-code fa-3x text-success mb-3"></i>
+                        <h5 class="text-success">Software Attestation</h5>
+                        <p class="text-dark">Comprehensive verification of software integrity and runtime environment security.</p>
+                        <ul class="list-unstyled text-start">
+                            <li><i class="fas fa-check text-success me-2"></i>Code measurement & hashing</li>
+                            <li><i class="fas fa-check text-success me-2"></i>Dependency verification</li>
+                            <li><i class="fas fa-check text-success me-2"></i>Runtime integrity monitoring</li>
+                            <li><i class="fas fa-check text-success me-2"></i>Container security validation</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="col-lg-4">
+                    <div class="tech-card p-4 h-100 bg-white rounded shadow text-center">
+                        <i class="fas fa-key fa-3x text-warning mb-3"></i>
+                        <h5 class="text-warning">Secure Key Release</h5>
+                        <p class="text-dark">Policy-based key management with conditional release based on attestation results.</p>
+                        <ul class="list-unstyled text-start">
+                            <li><i class="fas fa-check text-success me-2"></i>Policy-based key release</li>
+                            <li><i class="fas fa-check text-success me-2"></i>Attestation verification</li>
+                            <li><i class="fas fa-check text-success me-2"></i>Time-bound access control</li>
+                            <li><i class="fas fa-check text-success me-2"></i>Multi-party key management</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="row g-4">
+                <div class="col-lg-6">
+                    <div class="info-card p-4 h-100 bg-white rounded shadow">
+                        <h4 class="text-primary mb-3"><i class="fas fa-question-circle me-2"></i>Why This Matters for AI Training</h4>
+                        <div class="mb-3">
+                            <h6 class="text-success">Data Privacy Protection</h6>
+                            <p class="text-dark">Sensitive training data remains encrypted even during processing, protecting intellectual property and personal information.</p>
+                        </div>
+                        <div class="mb-3">
+                            <h6 class="text-success">Regulatory Compliance</h6>
+                            <p class="text-dark">Meets strict requirements of GDPR, HIPAA, and emerging AI regulations through technical security guarantees.</p>
+                        </div>
+                        <div class="mb-3">
+                            <h6 class="text-success">Multi-Party Collaboration</h6>
+                            <p class="text-dark">Enables secure collaboration between organizations without exposing raw data or compromising privacy.</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-lg-6">
+                    <div class="info-card p-4 h-100 bg-white rounded shadow">
+                        <h4 class="text-primary mb-3"><i class="fas fa-cogs me-2"></i>Technical Implementation</h4>
+                        <div class="mb-3">
+                            <h6 class="text-success">Trusted Execution Environments</h6>
+                            <p class="text-dark">Secure enclaves that isolate processing from the host system, providing hardware-level security guarantees.</p>
+                        </div>
+                        <div class="mb-3">
+                            <h6 class="text-success">Memory Encryption</h6>
+                            <p class="text-dark">All data in memory is encrypted, preventing unauthorized access even if the system is compromised.</p>
+                        </div>
+                        <div class="mb-3">
+                            <h6 class="text-success">Zero-Trust Architecture</h6>
+                            <p class="text-dark">Continuous verification of security posture with no implicit trust in any component of the system.</p>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -315,5 +423,6 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="js/auth-check.js"></script>
+    <script src="script.js"></script>
 </body>
 </html>

@@ -1,0 +1,119 @@
+version: '3.8'
+
+services:
+  # SCITT CCF PostgreSQL Database (Port 5433 - Different from main app)
+  scitt-ccf-postgres:
+    image: postgres:15
+    container_name: scitt-ccf-postgres
+    ports:
+      - "5433:5432"  # Different port to avoid conflicts
+    environment:
+      POSTGRES_DB: scitt_ccf
+      POSTGRES_USER: scitt_user
+      POSTGRES_PASSWORD: scitt_pass
+      POSTGRES_INITDB_ARGS: "--encoding=UTF-8 --lc-collate=C --lc-ctype=C"
+    volumes:
+      - scitt_postgres_data:/var/lib/postgresql/data
+      - ./scitt-ccf/init:/docker-entrypoint-initdb.d
+    networks:
+      - scitt-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U scitt_user -d scitt_ccf"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # SCITT CCF Redis (Port 6380 - Different from main app)
+  scitt-ccf-redis:
+    image: redis:7-alpine
+    container_name: scitt-ccf-redis
+    ports:
+      - "6380:6379"  # Different port to avoid conflicts
+    volumes:
+      - scitt_redis_data:/data
+    networks:
+      - scitt-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # SCITT CCF Node Service (Port 9000)
+  scitt-ccf-node:
+    build:
+      context: ./scitt-ccf
+      dockerfile: Dockerfile
+    container_name: scitt-ccf-node
+    ports:
+      - "9000:9000"
+    environment:
+      NODE_ENV: development
+      PORT: 9000
+      DATABASE_URL: postgresql://scitt_user:scitt_pass@scitt-ccf-postgres:5432/scitt_ccf
+      REDIS_URL: redis://scitt-ccf-redis:6379
+      SCITT_CCF_SECRET: scitt_ccf_secret_key_123
+      LOG_LEVEL: debug
+    depends_on:
+      scitt-ccf-postgres:
+        condition: service_healthy
+      scitt-ccf-redis:
+        condition: service_healthy
+    networks:
+      - scitt-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: unless-stopped
+
+  # SCITT CCF Dashboard (Port 9001)
+  scitt-ccf-dashboard:
+    build:
+      context: ./scitt-ccf/dashboard
+      dockerfile: Dockerfile
+    container_name: scitt-ccf-dashboard
+    ports:
+      - "9001:3000"
+    environment:
+      REACT_APP_SCITT_CCF_API_URL: http://localhost:9000
+      REACT_APP_SCITT_CCF_DASHBOARD_URL: http://localhost:9001
+    depends_on:
+      - scitt-ccf-node
+    networks:
+      - scitt-network
+    restart: unless-stopped
+
+  # SCITT CCF Monitor (Port 9002)
+  scitt-ccf-monitor:
+    image: prom/prometheus:latest
+    container_name: scitt-ccf-monitor
+    ports:
+      - "9002:9090"
+    volumes:
+      - ./scitt-ccf/monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+      - scitt_prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=200h'
+      - '--web.enable-lifecycle'
+    networks:
+      - scitt-network
+    restart: unless-stopped
+
+volumes:
+  scitt_postgres_data:
+    driver: local
+  scitt_redis_data:
+    driver: local
+  scitt_prometheus_data:
+    driver: local
+
+networks:
+  scitt-network:
+    driver: bridge
+    name: scitt-network

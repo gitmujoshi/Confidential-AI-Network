@@ -15,6 +15,15 @@ NC='\033[0m'
 echo -e "${BLUE}🎨 Starting Frontend with Memory Optimization${NC}"
 echo ""
 
+# Load centralized configuration
+if [ -f "config.env" ]; then
+    echo -e "${GREEN}✅ Loading centralized configuration from config.env${NC}"
+    source config.env
+else
+    echo -e "${RED}❌ Centralized configuration file not found: config.env${NC}"
+    echo "⚠️ Please ensure config.env exists"
+fi
+
 # Check if we're in the right directory
 if [ ! -f "frontend/package.json" ]; then
     echo -e "${RED}❌ Error: frontend/package.json not found${NC}"
@@ -32,7 +41,7 @@ if [ ! -d "frontend/node_modules" ]; then
 fi
 
 # Set memory optimization
-export NODE_OPTIONS="--max-old-space-size=2048"
+export NODE_OPTIONS="${NODE_OPTIONS:---max-old-space-size=2048}"
 export GENERATE_SOURCEMAP=false
 
 echo -e "${BLUE}📊 Memory Configuration:${NC}"
@@ -54,7 +63,7 @@ fi
 
 # Start frontend with error handling
 echo -e "${BLUE}🚀 Starting React development server...${NC}"
-echo "  • Port: 3000 (default)"
+echo "  • Port: ${FRONTEND_PORT:-3000} (from config)"
 echo "  • Proxy: http://localhost:5000 (backend)"
 echo ""
 

@@ -1,0 +1,590 @@
+#!/usr/bin/env node
+
+/**
+ * Create Test Data for Contract Creation
+ * This script creates comprehensive test data including:
+ * - Datasets with DEPA IDs
+ * - AI Models
+ * - Training Environments
+ * - Cloud Credentials
+ * - Users with proper roles
+ * 
+ * This enables testing contract creation with SCITT CCF integration
+ */
+
+const axios = require('axios');
+const https = require('https');
+
+// Configuration
+const CONFIG = {
+  backendUrl: '${BACKEND_URL:-http://localhost:5001}',
+  keycloakUrl: '${KEYCLOAK_URL:-https://localhost:8443}',
+  keycloakRealm: 'contract-management',
+  adminUsername: 'admin@contractmanagement.com',
+  adminPassword: 'admin123'
+};
+
+// HTTPS agent for self-signed certificates
+const httpsAgent = new https.Agent({ rejectUnauthorized: false });
+
+// Test data definitions
+const testDatasets = [
+  {
+    datasetId: 'medical-imaging-v1',
+    name: 'Medical Imaging Dataset v1.0',
+    description: 'High-quality medical imaging dataset for AI model training',
+    category: 'Computer Vision',
+    size: 51200, // 50GB in MB
+    recordCount: 10000,
+    price: 5000.00,
+    license: 'Commercial',
+    ownerId: 12, // TDP User 1
+    tags: ['medical', 'imaging', 'healthcare', 'AI-training'],
+    metadata: {
+      resolution: '1024x1024',
+      modalities: ['CT', 'MRI', 'X-Ray'],
+      anonymized: true,
+      compliance: ['HIPAA', 'GDPR']
+    }
+  },
+  {
+    datasetId: 'financial-transactions-v1',
+    name: 'Financial Transaction Dataset',
+    description: 'Secure financial transaction data for fraud detection',
+    category: 'Tabular',
+    size: 25600, // 25GB in MB
+    recordCount: 500000,
+    price: 3000.00,
+    license: 'Commercial',
+    ownerId: 12, // TDP User 1
+    tags: ['finance', 'transactions', 'fraud detection', 'structured'],
+    metadata: {
+      timeRange: '2020-2024',
+      transactionTypes: ['credit', 'debit', 'transfer'],
+      anonymized: true,
+      compliance: ['PCI-DSS', 'SOX']
+    }
+  },
+  {
+    datasetId: 'satellite-imagery-v1',
+    name: 'Satellite Imagery Collection',
+    description: 'High-resolution satellite imagery for environmental monitoring',
+    category: 'Computer Vision',
+    size: 102400, // 100GB in MB
+    recordCount: 5000,
+    price: 7500.00,
+    license: 'Commercial',
+    ownerId: 13, // TDP User 2
+    tags: ['satellite', 'imagery', 'geospatial', 'environmental'],
+    metadata: {
+      resolution: '10m',
+      coverage: 'Global',
+      timeRange: '2020-2024',
+      bands: ['RGB', 'NIR', 'SWIR']
+    }
+  },
+  {
+    datasetId: 'nlp-corpus-v1',
+    name: 'Natural Language Processing Corpus',
+    description: 'Multi-language text corpus for NLP model training',
+    category: 'Natural Language Processing',
+    size: 15360, // 15GB in MB
+    recordCount: 1000000,
+    price: 2000.00,
+    license: 'Academic',
+    ownerId: 13, // TDP User 2
+    tags: ['NLP', 'text', 'multi-language', 'corpus'],
+    metadata: {
+      languages: ['English', 'Spanish', 'French', 'German'],
+      textTypes: ['news', 'literature', 'technical'],
+      averageLength: '500 words',
+      quality: 'curated'
+    }
+  },
+  {
+    datasetId: 'iot-sensors-v1',
+    name: 'IoT Sensor Network Data',
+    description: 'Real-time IoT sensor data from smart city infrastructure',
+    category: 'Tabular',
+    size: 30720, // 30GB in MB
+    recordCount: 2000000,
+    price: 4000.00,
+    license: 'Commercial',
+    ownerId: 12, // TDP User 1
+    tags: ['IoT', 'sensors', 'smart city', 'time series'],
+    metadata: {
+      sensorTypes: ['temperature', 'humidity', 'air quality', 'traffic'],
+      updateFrequency: '1 minute',
+      coverage: 'City-wide',
+      dataQuality: 'real-time'
+    }
+  }
+];
+
+const testAIModels = [
+  {
+    modelId: 'medical-image-classifier-v2-1',
+    name: 'Medical Image Classifier v2.1',
+    description: 'Advanced CNN model for medical image classification',
+    type: 'cnn',
+    architecture: 'ResNet-152',
+    parameters: '150M',
+    framework: 'PyTorch',
+    privacyTechnique: 'differential-privacy',
+    validationMetrics: { accuracy: '95%', f1: '0.94' },
+    maxEpochs: 150,
+    batchSize: 32,
+    learningRate: 0.001,
+    metadata: {
+      inputShape: [224, 224, 3],
+      outputClasses: 10,
+      trainingData: 'Medical Imaging Dataset v1.0',
+      modelSize: '150MB'
+    }
+  },
+  {
+    modelId: 'fraud-detection-ensemble',
+    name: 'Fraud Detection Ensemble',
+    description: 'Ensemble model for financial fraud detection',
+    type: 'other',
+    architecture: 'Random Forest + XGBoost',
+    parameters: '25M',
+    framework: 'PyTorch',
+    privacyTechnique: 'federated-learning',
+    validationMetrics: { accuracy: '92%', auc: '0.91' },
+    maxEpochs: 100,
+    batchSize: 64,
+    learningRate: 0.01,
+    metadata: {
+      algorithms: ['Random Forest', 'XGBoost', 'Logistic Regression'],
+      inputFeatures: 50,
+      trainingData: 'Financial Transaction Dataset',
+      modelSize: '25MB'
+    }
+  },
+  {
+    modelId: 'satellite-segmentation-v1',
+    name: 'Satellite Image Segmentation Model',
+    description: 'U-Net model for satellite image segmentation',
+    type: 'cnn',
+    architecture: 'U-Net with ResNet backbone',
+    parameters: '200M',
+    framework: 'TensorFlow',
+    privacyTechnique: 'homomorphic-encryption',
+    validationMetrics: { accuracy: '88%', iou: '0.85' },
+    maxEpochs: 200,
+    batchSize: 16,
+    learningRate: 0.0001,
+    metadata: {
+      inputShape: [512, 512, 3],
+      outputClasses: 5,
+      trainingData: 'Satellite Imagery Collection',
+      modelSize: '200MB'
+    }
+  },
+  {
+    modelId: 'multilingual-bert-v1',
+    name: 'Multi-Language BERT Model',
+    description: 'Fine-tuned BERT model for multi-language NLP tasks',
+    type: 'transformer',
+    architecture: 'BERT-base-multilingual',
+    parameters: '500M',
+    framework: 'PyTorch',
+    privacyTechnique: 'secure-multi-party-computation',
+    validationMetrics: { accuracy: '89%', bleu: '0.87' },
+    maxEpochs: 50,
+    batchSize: 8,
+    learningRate: 0.00001,
+    metadata: {
+      baseModel: 'bert-base-multilingual-cased',
+      maxSequenceLength: 512,
+      trainingData: 'Natural Language Processing Corpus',
+      modelSize: '500MB'
+    }
+  },
+  {
+    modelId: 'iot-anomaly-detection-v1',
+    name: 'IoT Anomaly Detection Model',
+    description: 'LSTM-based model for IoT sensor anomaly detection',
+    type: 'rnn',
+    architecture: 'Bidirectional LSTM with Attention',
+    parameters: '80M',
+    framework: 'PyTorch',
+    privacyTechnique: 'federated-learning',
+    validationMetrics: { accuracy: '91%', precision: '0.89' },
+    maxEpochs: 100,
+    batchSize: 128,
+    learningRate: 0.001,
+    metadata: {
+      inputShape: [100, 10],
+      outputClasses: 2,
+      trainingData: 'IoT Sensor Network Data',
+      modelSize: '80MB'
+    }
+  }
+];
+
+const testTrainingEnvironments = [
+  {
+    name: 'High-Performance GPU Cluster',
+    description: 'Enterprise-grade GPU cluster for deep learning training',
+    environmentType: 'ON_PREMISES',
+    computeResources: {
+      gpus: 16,
+      cpuCores: 128,
+      memory: '2TB',
+      storage: '50TB'
+    },
+    softwareStack: {
+      os: 'Ubuntu 22.04 LTS',
+      containerRuntime: 'Docker',
+      orchestration: 'Kubernetes',
+      mlFrameworks: ['PyTorch', 'TensorFlow', 'JAX']
+    },
+    security: {
+      networkIsolation: true,
+      dataEncryption: true,
+      accessControl: 'RBAC',
+      auditLogging: true
+    },
+    tags: ['GPU', 'enterprise', 'on-premises', 'high-performance']
+  },
+  {
+    name: 'Cloud ML Platform',
+    description: 'Scalable cloud-based machine learning platform',
+    environmentType: 'CLOUD',
+    computeResources: {
+      gpus: 8,
+      cpuCores: 64,
+      memory: '512GB',
+      storage: '10TB'
+    },
+    softwareStack: {
+      os: 'Linux',
+      containerRuntime: 'Docker',
+      orchestration: 'Kubernetes',
+      mlFrameworks: ['PyTorch', 'TensorFlow', 'Scikit-learn']
+    },
+    security: {
+      networkIsolation: true,
+      dataEncryption: true,
+      accessControl: 'IAM',
+      auditLogging: true
+    },
+    tags: ['cloud', 'scalable', 'managed', 'pay-per-use']
+  },
+  {
+    name: 'Edge Computing Environment',
+    description: 'Distributed edge computing for IoT model inference',
+    environmentType: 'EDGE',
+    computeResources: {
+      gpus: 2,
+      cpuCores: 16,
+      memory: '64GB',
+      storage: '2TB'
+    },
+    softwareStack: {
+      os: 'Ubuntu 20.04 LTS',
+      containerRuntime: 'Docker',
+      orchestration: 'Docker Swarm',
+      mlFrameworks: ['ONNX Runtime', 'TensorFlow Lite']
+    },
+    security: {
+      networkIsolation: true,
+      dataEncryption: true,
+      accessControl: 'Certificate-based',
+      auditLogging: true
+    },
+    tags: ['edge', 'IoT', 'distributed', 'low-latency']
+  }
+];
+
+const testCloudCredentials = [
+  {
+    cloudProvider: 'AWS',
+    authMethod: 'IAM_ROLE',
+    region: 'us-east-1',
+    services: ['S3', 'EC2', 'SageMaker', 'Lambda'],
+    validationStatus: 'VALIDATED',
+    metadata: {
+      accountId: '123456789012',
+      roleArn: 'arn:aws:iam::123456789012:role/MLTrainingRole',
+      permissions: ['s3:ReadWrite', 'ec2:FullAccess', 'sagemaker:FullAccess']
+    }
+  },
+  {
+    cloudProvider: 'Azure',
+    authMethod: 'SERVICE_PRINCIPAL',
+    region: 'East US',
+    services: ['Blob Storage', 'VM', 'ML Studio', 'Functions'],
+    validationStatus: 'VALIDATED',
+    metadata: {
+      subscriptionId: 'subscription-123',
+      tenantId: 'tenant-456',
+      permissions: ['Storage Contributor', 'Contributor', 'ML Studio Contributor']
+    }
+  },
+  {
+    cloudProvider: 'GCP',
+    authMethod: 'SERVICE_ACCOUNT',
+    region: 'us-central1',
+    services: ['Cloud Storage', 'Compute Engine', 'AI Platform', 'Cloud Functions'],
+    validationStatus: 'VALIDATED',
+    metadata: {
+      projectId: 'ml-training-project',
+      serviceAccountEmail: 'ml-service@ml-training-project.iam.gserviceaccount.com',
+      permissions: ['Storage Admin', 'Compute Admin', 'AI Platform Developer']
+    }
+  }
+];
+
+// Helper functions
+async function getAuthToken() {
+  try {
+    console.log('🔐 Getting authentication token...');
+    
+    const response = await axios.post(`${CONFIG.backendUrl}/api/auth/login`, {
+      email: CONFIG.adminUsername,
+      password: CONFIG.adminPassword
+    });
+    
+    if (response.data.accessToken) {
+      console.log('✅ Authentication successful');
+      return response.data.accessToken;
+    } else {
+      throw new Error('No accessToken in response');
+    }
+  } catch (error) {
+    console.error('❌ Authentication failed:', error.response?.data || error.message);
+    throw error;
+  }
+}
+
+async function createDataset(dataset, token) {
+  try {
+    console.log(`📊 Creating dataset: ${dataset.name}`);
+    
+    const response = await axios.post(`${CONFIG.backendUrl}/api/datasets`, dataset, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      }
+    });
+    
+    console.log(`✅ Dataset created: ${response.data.depaId}`);
+    return response.data;
+  } catch (error) {
+    console.error(`❌ Failed to create dataset ${dataset.name}:`, error.response?.data || error.message);
+    throw error;
+  }
+}
+
+async function createAIModel(model, token) {
+  try {
+    console.log(`🤖 Creating AI model: ${model.name}`);
+    
+    const response = await axios.post(`${CONFIG.backendUrl}/api/ai-models`, model, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      }
+    });
+    
+    console.log(`✅ AI model created: ${response.data.id}`);
+    return response.data;
+  } catch (error) {
+    console.error(`❌ Failed to create AI model ${model.name}:`, error.response?.data || error.message);
+    throw error;
+  }
+}
+
+async function createTrainingEnvironment(environment, token) {
+  try {
+    console.log(`🏗️ Creating training environment: ${environment.name}`);
+    
+    const response = await axios.post(`${CONFIG.backendUrl}/api/training-environments`, environment, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      }
+    });
+    
+    console.log(`✅ Training environment created: ${response.data.id}`);
+    return response.data;
+  } catch (error) {
+    console.error(`❌ Failed to create training environment ${environment.name}:`, error.response?.data || error.message);
+    throw error;
+  }
+}
+
+async function createCloudCredentials(credentials, token) {
+  try {
+    console.log(`☁️ Creating cloud credentials for: ${credentials.cloudProvider}`);
+    
+    const response = await axios.post(`${CONFIG.backendUrl}/api/cloud-credentials`, credentials, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      }
+    });
+    
+    console.log(`✅ Cloud credentials created: ${response.data.id}`);
+    return response.data;
+  } catch (error) {
+    console.error(`❌ Failed to create cloud credentials for ${credentials.cloudProvider}:`, error.response?.data || error.message);
+    throw error;
+  }
+}
+
+async function testContractCreation(token) {
+  try {
+    console.log('📝 Testing contract creation...');
+    
+    // Get available datasets, models, and environments
+    const datasetsResponse = await axios.get(`${CONFIG.backendUrl}/api/datasets`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    
+    const modelsResponse = await axios.get(`${CONFIG.backendUrl}/api/ai-models`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    
+    const environmentsResponse = await axios.get(`${CONFIG.backendUrl}/api/training-environments`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    
+    if (datasetsResponse.data.length === 0 || modelsResponse.data.length === 0) {
+      console.log('⚠️ No datasets or models available for contract creation test');
+      return;
+    }
+    
+    // Create a test contract
+    const testContract = {
+      title: 'Test AI Model Training Contract',
+      description: 'Contract for testing SCITT CCF integration with AI model training',
+      contractType: 'AI_MODEL_TRAINING',
+      parties: {
+        tdc: 'tdc.medical@example.com',
+        tdp: 'tdp.medical@example.com',
+        ccrp: 'ccrp.cloud@example.com'
+      },
+      dataAssets: [datasetsResponse.data[0].depaId],
+      aiModels: [modelsResponse.data[0].id],
+      trainingEnvironment: environmentsResponse.data[0].id,
+      terms: {
+        duration: '6 months',
+        dataUsage: 'Training only',
+        confidentiality: 'High',
+        compliance: ['GDPR', 'HIPAA']
+      },
+      scittCcfIntegration: {
+        enabled: true,
+        ledgerType: 'SCITT_CCF',
+        provenanceTracking: true,
+        auditTrail: true
+      }
+    };
+    
+    const contractResponse = await axios.post(`${CONFIG.backendUrl}/api/contracts`, testContract, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      }
+    });
+    
+    console.log(`✅ Test contract created: ${contractResponse.data.contractId}`);
+    console.log(`🔗 Contract URL: ${CONFIG.backendUrl}/contracts/${contractResponse.data.contractId}`);
+    
+  } catch (error) {
+    console.error('❌ Contract creation test failed:', error.response?.data || error.message);
+  }
+}
+
+// Main execution
+async function main() {
+  try {
+    console.log('🚀 Starting test data creation for contract testing...');
+    console.log('==================================================');
+    
+    // Get authentication token
+    const token = await getAuthToken();
+    
+    // Create datasets
+    console.log('\n📊 Creating test datasets...');
+    const createdDatasets = [];
+    for (const dataset of testDatasets) {
+      try {
+        const created = await createDataset(dataset, token);
+        createdDatasets.push(created);
+      } catch (error) {
+        console.log(`⚠️ Skipping dataset: ${dataset.name}`);
+      }
+    }
+    
+    // Create AI models
+    console.log('\n🤖 Creating test AI models...');
+    const createdModels = [];
+    for (const model of testAIModels) {
+      try {
+        const created = await createAIModel(model, token);
+        createdModels.push(created);
+      } catch (error) {
+        console.log(`⚠️ Skipping AI model: ${model.name}`);
+      }
+    }
+    
+    // Create training environments
+    console.log('\n🏗️ Creating test training environments...');
+    const createdEnvironments = [];
+    for (const environment of testTrainingEnvironments) {
+      try {
+        const created = await createTrainingEnvironment(environment, token);
+        createdEnvironments.push(created);
+      } catch (error) {
+        console.log(`⚠️ Skipping training environment: ${environment.name}`);
+      }
+    }
+    
+    // Create cloud credentials
+    console.log('\n☁️ Creating test cloud credentials...');
+    const createdCredentials = [];
+    for (const credentials of testCloudCredentials) {
+      try {
+        const created = await createCloudCredentials(credentials, token);
+        createdCredentials.push(created);
+      } catch (error) {
+        console.log(`⚠️ Skipping cloud credentials: ${credentials.cloudProvider}`);
+      }
+    }
+    
+    // Test contract creation
+    console.log('\n📝 Testing contract creation...');
+    await testContractCreation(token);
+    
+    // Summary
+    console.log('\n🎉 Test data creation completed!');
+    console.log('================================');
+    console.log(`📊 Datasets created: ${createdDatasets.length}/${testDatasets.length}`);
+    console.log(`🤖 AI Models created: ${createdModels.length}/${testAIModels.length}`);
+    console.log(`🏗️ Training Environments created: ${createdEnvironments.length}/${testTrainingEnvironments.length}`);
+    console.log(`☁️ Cloud Credentials created: ${createdCredentials.length}/${testCloudCredentials.length}`);
+    
+    console.log('\n🔗 Next Steps:');
+    console.log('1. Access the frontend at ${FRONTEND_URL:-http://localhost:3000}');
+    console.log('2. Login with admin credentials');
+    console.log('3. Navigate to Contracts → Create New Contract');
+    console.log('4. Select the created datasets, AI models, and environments');
+    console.log('5. Enable SCITT CCF integration');
+    console.log('6. Test contract creation and SCITT CCF integration');
+    
+  } catch (error) {
+    console.error('❌ Test data creation failed:', error.message);
+    process.exit(1);
+  }
+}
+
+if (require.main === module) {
+  main();
+}
+
+module.exports = { createTestData: main };

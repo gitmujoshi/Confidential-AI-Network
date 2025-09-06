@@ -3,6 +3,7 @@
 /**
  * ContractFlow Pro - Complete API Testing Suite
  * Tests all endpoints, authentication, and functionality
+ * Now includes SCITT CCF integration testing
  */
 
 const axios = require('axios');
@@ -26,7 +27,8 @@ let testData = {
   users: {},
   contracts: {},
   datasets: {},
-  environments: {}
+  environments: {},
+  scittCcf: {} // Add SCITT CCF test data
 };
 
 /**
@@ -300,6 +302,74 @@ class InfrastructureTests {
 }
 
 /**
+ * SCITT CCF Integration Tests
+ */
+class ScittCcfTests {
+  static async testScittCcfHealth() {
+    const response = await TestUtils.makeRequest('GET', '/scitt-ccf/health');
+    TestUtils.assert(response.success, 'SCITT CCF health check failed');
+    TestUtils.assert(response.data.status === 'healthy', 'SCITT CCF should be healthy');
+    TestUtils.assert(response.data.scittCcf, 'SCITT CCF health data missing');
+    return response.data;
+  }
+
+  static async testScittCcfMetrics() {
+    const response = await TestUtils.makeRequest('GET', '/scitt-ccf/metrics');
+    TestUtils.assert(response.success, 'SCITT CCF metrics failed');
+    TestUtils.assert(response.data.totalClaims !== undefined, 'Total claims should be available');
+    TestUtils.assert(response.data.activeContracts !== undefined, 'Active contracts should be available');
+    return response.data;
+  }
+
+  static async testScittCcfContractCreation() {
+    const contractData = {
+      name: 'SCITT CCF Test Contract',
+      description: 'Test contract for SCITT CCF integration',
+      tdpId: testData.users.tdp?.id || 1,
+      tdcId: testData.users.tdc?.id || 2,
+      datasetId: testData.datasets.public?.[0]?.id || 1,
+      price: 1000,
+      duration: 30,
+      terms: 'Test terms and conditions for SCITT CCF'
+    };
+
+    const response = await TestUtils.makeRequest('POST', '/scitt-ccf/contracts', contractData, {
+      'Authorization': `Bearer ${testData.tokens.tdc || testData.tokens.admin}`
+    });
+    
+    TestUtils.assert(response.success, 'SCITT CCF contract creation failed');
+    TestUtils.assert(response.data.success, 'SCITT CCF contract response indicates failure');
+    TestUtils.assert(response.data.source === 'SCITT_CCF', 'Contract should be created in SCITT CCF');
+    
+    testData.scittCcf.contract = response.data;
+    return response.data;
+  }
+
+  static async testScittCcfContractStatus() {
+    if (!testData.scittCcf.contract?.claimId) {
+      throw new Error('No SCITT CCF contract available for status test');
+    }
+
+    const claimId = testData.scittCcf.contract.claimId;
+    const response = await TestUtils.makeRequest('GET', `/scitt-ccf/contracts/${claimId}/status`);
+    
+    TestUtils.assert(response.success, 'SCITT CCF contract status failed');
+    TestUtils.assert(response.data.claimId === claimId, 'Claim ID mismatch');
+    TestUtils.assert(response.data.status, 'Status should be available');
+    return response.data;
+  }
+
+  static async testScittCcfConfiguration() {
+    const response = await TestUtils.makeRequest('GET', '/scitt-ccf/configuration');
+    TestUtils.assert(response.success, 'SCITT CCF configuration failed');
+    TestUtils.assert(response.data.migrationMode, 'Migration mode should be available');
+    TestUtils.assert(['ETHEREUM_ONLY', 'SCITT_CCF_ONLY', 'HYBRID'].includes(response.data.migrationMode), 
+      'Invalid migration mode');
+    return response.data;
+  }
+}
+
+/**
  * Dashboard Tests
  */
 class DashboardTests {
@@ -367,6 +437,13 @@ class APITestSuite {
       await TestUtils.runTest('Get Cloud Providers', () => InfrastructureTests.testGetCloudProviders());
       await TestUtils.runTest('Cost Estimation', () => InfrastructureTests.testCostEstimation());
       
+      // SCITT CCF Tests
+      await TestUtils.runTest('SCITT CCF Health Check', () => ScittCcfTests.testScittCcfHealth());
+      await TestUtils.runTest('SCITT CCF Metrics', () => ScittCcfTests.testScittCcfMetrics());
+      await TestUtils.runTest('SCITT CCF Contract Creation', () => ScittCcfTests.testScittCcfContractCreation());
+      await TestUtils.runTest('SCITT CCF Contract Status', () => ScittCcfTests.testScittCcfContractStatus());
+      await TestUtils.runTest('SCITT CCF Configuration', () => ScittCcfTests.testScittCcfConfiguration());
+      
       // Dashboard Tests
       await TestUtils.runTest('TDC Dashboard', () => DashboardTests.testTDCDashboard());
       
@@ -427,5 +504,6 @@ module.exports = {
   DatasetTests,
   InfrastructureTests,
   DashboardTests,
-  SystemTests
+  SystemTests,
+  ScittCcfTests
 }; 

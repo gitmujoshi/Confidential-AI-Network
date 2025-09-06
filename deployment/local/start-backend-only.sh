@@ -66,7 +66,7 @@ wait_for_service() {
 }
 
 # Create logs directory
-mkdir -p ../logs
+mkdir -p ../../logs
 
 # Stop any existing backend
 print_status "Stopping any existing backend..."
@@ -87,18 +87,20 @@ else
     print_status "Starting backend on port 5001 (blockchain disabled)..."
     cd backend
     
-    # Disable blockchain in config
-    sed -i '' 's/BLOCKCHAIN_ENABLED=true/BLOCKCHAIN_ENABLED=false/' config.env
+    # Load centralized configuration
+    source ../config.env
     
-    node server.js > ../logs/backend.log 2>&1 &
-    echo $! > ../.backend.pid
+    # Start backend with blockchain disabled
+    BLOCKCHAIN_ENABLED=false node server.js > ../../logs/backend.log 2>&1 &
+    BACKEND_PID=$!
+    echo $BACKEND_PID > ../../.backend.pid
     cd ../deployment/local
-    print_success "Backend started (PID: $(cat ../.backend.pid))"
+    print_success "Backend started (PID: $BACKEND_PID)"
 fi
 
 # Wait for backend to be ready
-if [ -f "../.backend.pid" ]; then
-    wait_for_service "http://localhost:5001/health" "Backend"
+if [ -f "../../.backend.pid" ]; then
+    wait_for_service "http://localhost:${BACKEND_PORT:-5001}/health" "Backend"
 fi
 
 # Final status check
@@ -108,17 +110,17 @@ echo ""
 echo "📊 Service Status:"
 echo "=================="
 
-if check_port 5001; then
-    echo -e "  ${GREEN}✅${NC} Backend (http://localhost:5001)"
+if check_port ${BACKEND_PORT:-5001}; then
+    echo -e "  ${GREEN}✅${NC} Backend (http://localhost:${BACKEND_PORT:-5001})"
 else
-    echo -e "  ${RED}❌${NC} Backend (http://localhost:5001)"
+    echo -e "  ${RED}❌${NC} Backend (http://localhost:${BACKEND_PORT:-5001})"
 fi
 
 echo ""
 echo "🔗 Access URLs:"
 echo "==============="
-echo "  Backend API: http://localhost:5001/api"
-echo "  Health Check: http://localhost:5001/health"
+echo "  Backend API: http://localhost:${BACKEND_PORT:-5001}/api"
+echo "  Health Check: http://localhost:${BACKEND_PORT:-5001}/health"
 echo ""
 echo "📝 Logs are available in the 'logs/backend.log' file"
 echo "🛑 To stop the backend, run: kill \$(cat ../../.backend.pid)"

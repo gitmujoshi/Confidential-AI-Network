@@ -339,7 +339,8 @@ const Layout = ({ children }) => {
           flexGrow: 1,
           p: 3,
           width: { sm: `calc(100% - ${drawerWidth}px)` },
-          marginTop: '64px',
+          marginTop: '80px', // Increased to account for AppBar height
+          minHeight: 'calc(100vh - 80px)', // Ensure full height
         }}
       >
         {children}

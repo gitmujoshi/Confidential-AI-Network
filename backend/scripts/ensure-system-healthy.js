@@ -143,8 +143,8 @@ async function finalHealthCheck() {
     console.log(`\n${colors.green}${colors.bold}🎉 SYSTEM IS NOW HEALTHY!${colors.reset}`);
     console.log(`${colors.green}Your Contract Management System is fully operational.${colors.reset}`);
     console.log(`\n${colors.blue}📋 Quick Reference:${colors.reset}`);
-    console.log(`  Frontend: http://localhost:3000`);
-    console.log(`  Backend API: http://localhost:5001`);
+    console.log(`  Frontend: ${FRONTEND_URL:-http://localhost:3000}`);
+    console.log(`  Backend API: ${BACKEND_URL:-http://localhost:5001}`);
     console.log(`  Keycloak Admin: http://localhost:8080 (admin/admin123)`);
     console.log(`\n${colors.blue}🔐 Test Credentials:${colors.reset}`);
     console.log(`  TDC: tdc.healthcare@example.com / password123`);
