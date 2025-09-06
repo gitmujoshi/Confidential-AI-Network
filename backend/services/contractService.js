@@ -823,20 +823,78 @@ class ContractService {
   }
 
   /**
-   * Get contract by ID
+   * Get contract by ID with full details including datasets and users
    */
   async getContract(contractId) {
     try {
       const db = require('../models');
       const contract = await db.Contract.findOne({
-        where: { contractId }
+        where: { contractId },
+        include: [
+          { 
+            model: db.User, 
+            as: 'tdp', 
+            attributes: ['id', 'name', 'email', 'depaId', 'walletAddress', 'did'] 
+          },
+          { 
+            model: db.User, 
+            as: 'tdc', 
+            attributes: ['id', 'name', 'email', 'depaId', 'walletAddress', 'did'] 
+          },
+          { 
+            model: db.User, 
+            as: 'ccrp', 
+            attributes: ['id', 'name', 'email', 'depaId', 'walletAddress', 'did'] 
+          }
+        ]
       });
       
       if (!contract) {
         throw new Error(`Contract not found: ${contractId}`);
       }
       
-      return contract;
+      // Parse JSON fields if they exist and are strings
+      const contractData = contract.toJSON();
+      
+      // Ensure datasetSelections is properly parsed
+      if (contractData.datasetSelections && typeof contractData.datasetSelections === 'string') {
+        try {
+          contractData.datasetSelections = JSON.parse(contractData.datasetSelections);
+        } catch (parseError) {
+          console.warn('Failed to parse datasetSelections JSON:', parseError);
+          contractData.datasetSelections = [];
+        }
+      }
+      
+      // Ensure other JSON fields are properly parsed
+      if (contractData.environmentSpecs && typeof contractData.environmentSpecs === 'string') {
+        try {
+          contractData.environmentSpecs = JSON.parse(contractData.environmentSpecs);
+        } catch (parseError) {
+          console.warn('Failed to parse environmentSpecs JSON:', parseError);
+          contractData.environmentSpecs = {};
+        }
+      }
+      
+      if (contractData.trainingParams && typeof contractData.trainingParams === 'string') {
+        try {
+          contractData.trainingParams = JSON.parse(contractData.trainingParams);
+        } catch (parseError) {
+          console.warn('Failed to parse trainingParams JSON:', parseError);
+          contractData.trainingParams = {};
+        }
+      }
+      
+      if (contractData.legalDocument && typeof contractData.legalDocument === 'string') {
+        try {
+          contractData.legalDocument = JSON.parse(contractData.legalDocument);
+        } catch (parseError) {
+          console.warn('Failed to parse legalDocument JSON:', parseError);
+          contractData.legalDocument = {};
+        }
+      }
+      
+      return contractData;
       
     } catch (error) {
       console.error('Failed to get contract:', error);
