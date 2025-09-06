@@ -578,17 +578,22 @@ router.post('/login', logAuthEvent('LOGIN'), async (req, res) => {
       
       console.log('✅ Keycloak authentication successful for:', email);
       
+      // Check if user needs to change password on first login
+      const requiresPasswordChange = user.firstLogin || false;
+      
       return res.json({
         message: 'Login successful',
         accessToken: tokenResponse.access_token,
         refreshToken: tokenResponse.refresh_token,
         expiresIn: tokenResponse.expires_in,
+        requiresPasswordChange,
         user: {
           id: user.id, // Add the user ID
           email: email,
           name: user?.name || 'User',
           partyType: user?.partyType || 'User',
-          depaId: user?.depaId || null
+          depaId: user?.depaId || null,
+          firstLogin: user.firstLogin
         }
       });
       
@@ -740,11 +745,21 @@ router.post('/update-password', authenticateToken, logAuthEvent('UPDATE_PASSWORD
       // Update password in Keycloak
       await ***REMOVED-KEYCLOAK_DB_PASSWORD***Service.updateUserPassword(localUser.iamUserId, newPassword);
       
+      // Clear first login flag if this was a first-time password change
+      if (localUser.firstLogin) {
+        await db.User.update(
+          { firstLogin: false },
+          { where: { id: localUser.id } }
+        );
+        console.log('✅ First login flag cleared for user:', localUser.email);
+      }
+      
       console.log('✅ Password updated in Keycloak successfully');
       
       return res.json({
         message: 'Password updated successfully',
         success: true,
+        firstLoginCompleted: localUser.firstLogin, // Indicate if this completed first login
         note: 'Password updated in Keycloak. You may need to log in again with your new password for security.'
       });
     } catch (kcError) {
