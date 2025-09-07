@@ -161,6 +161,13 @@ module.exports = (sequelize, Sequelize) => {
       comment: 'Whether user has completed profile setup'
     },
     
+    // First login flag
+    firstLogin: {
+      type: Sequelize.DataTypes.BOOLEAN,
+      defaultValue: true,
+      comment: 'Whether this is the user\'s first login (requires password change)'
+    },
+    
     // Email verification status
     emailVerified: {
       type: Sequelize.DataTypes.BOOLEAN,

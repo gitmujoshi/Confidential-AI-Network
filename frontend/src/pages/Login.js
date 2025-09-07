@@ -103,32 +103,51 @@ const Login = () => {
         password: formData.password
       });
 
-      // Use new backend response: accessToken and user
-      if (response.data.accessToken) {
-        const { user, accessToken, refreshToken } = response.data;
-        localStorage.setItem('authToken', accessToken);
-        if (refreshToken) {
-          localStorage.setItem('refreshToken', refreshToken);
+      // Handle both normal login (with accessToken) and first-login (requiresPasswordChange)
+      if (response.data.accessToken || response.data.requiresPasswordChange) {
+        const { user, accessToken, refreshToken, requiresPasswordChange } = response.data;
+        
+        // Only set tokens if they exist (normal login)
+        if (accessToken) {
+          localStorage.setItem('authToken', accessToken);
+          if (refreshToken) {
+            localStorage.setItem('refreshToken', refreshToken);
+          }
         }
         
         // Set user from login response
         setUser(user);
         console.log('✅ Login successful, user set from login response:', user);
         
-        setSuccess('Login successful! Redirecting to dashboard...');
-        
-        // Wait for user state to be properly set before navigation
-        setTimeout(() => {
-          // Double-check that user is set in context
-          const currentUser = JSON.parse(localStorage.getItem('currentUser') || 'null');
-          if (currentUser) {
-            console.log('✅ User confirmed in localStorage, navigating to dashboard');
-            navigate('/dashboard');
-          } else {
-            console.log('⚠️ User not in localStorage, navigating anyway');
-            navigate('/dashboard');
-          }
-        }, 1000); // Reduced timeout to 1 second
+        // Check if user needs to change password (first login)
+        if (requiresPasswordChange) {
+          console.log('🔐 First login detected, redirecting to password change wizard');
+          setSuccess('First login detected! Please set your new password...');
+          
+          setTimeout(() => {
+            navigate('/first-login', { 
+              state: { 
+                user: user,
+                temporaryPassword: formData.password // Pass temp password for reference
+              }
+            });
+          }, 1000);
+        } else {
+          setSuccess('Login successful! Redirecting to dashboard...');
+          
+          // Wait for user state to be properly set before navigation
+          setTimeout(() => {
+            // Double-check that user is set in context
+            const currentUser = JSON.parse(localStorage.getItem('currentUser') || 'null');
+            if (currentUser) {
+              console.log('✅ User confirmed in localStorage, navigating to dashboard');
+              navigate('/dashboard');
+            } else {
+              console.log('⚠️ User not in localStorage, navigating anyway');
+              navigate('/dashboard');
+            }
+          }, 1000); // Reduced timeout to 1 second
+        }
       } else {
         setError('Login failed: Invalid response from server.');
       }
