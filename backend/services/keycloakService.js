@@ -136,7 +136,8 @@ class KeycloakService {
           headers: {
             'Authorization': `Bearer ${adminToken}`,
             'Content-Type': 'application/json'
-          }
+          },
+          httpsAgent: this.httpsAgent
         }
       );
       

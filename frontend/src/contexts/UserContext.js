@@ -24,44 +24,45 @@ export const UserProvider = ({ children }) => {
   const [deploymentStatus, setDeploymentStatus] = useState(null);
   const [globalDEPAIdValidation, setGlobalDEPAIdValidation] = useState(null);
 
-  // Load deployment status on mount
-  useEffect(() => {
-    const loadDeploymentStatus = async () => {
-      try {
-        const response = await apiService.get('/api/global-deployment/status');
-        if (response.data.success) {
-          setDeploymentStatus(response.data.data);
-        }
-      } catch (error) {
-        console.warn('Failed to load deployment status:', error);
-        // Continue without deployment features
-      }
-    };
+  // Load deployment status on mount - TEMPORARILY DISABLED
+  // useEffect(() => {
+  //   const loadDeploymentStatus = async () => {
+  //     try {
+  //       const response = await apiService.get('/api/global-deployment/status');
+  //       if (response.data.success) {
+  //         setDeploymentStatus(response.data.data);
+  //       }
+  //     } catch (error) {
+  //       // Silently fail for missing endpoints - don't log to prevent spam
+  //       setDeploymentStatus(null);
+  //     }
+  //   };
 
-    loadDeploymentStatus();
-  }, []);
+  //   loadDeploymentStatus();
+  // }, []);
 
-  // Validate global DEPA ID when user changes
-  useEffect(() => {
-    const validateGlobalDEPAId = async () => {
-      if (!currentUser?.depaId) return;
+  // Validate global DEPA ID when user changes - TEMPORARILY DISABLED
+  // useEffect(() => {
+  //   const validateGlobalDEPAId = async () => {
+  //     // Skip validation during first-login to prevent re-render loops
+  //     if (!currentUser?.depaId || currentUser?.firstLogin) return;
 
-      try {
-        const response = await apiService.post('/api/global-deployment/verify', {
-          globalDEPAId: currentUser.depaId
-        });
+  //     try {
+  //       const response = await apiService.post('/api/global-deployment/verify', {
+  //         globalDEPAId: currentUser.depaId
+  //       });
         
-        if (response.data.success) {
-          setGlobalDEPAIdValidation(response.data.data);
-        }
-      } catch (error) {
-        console.warn('Failed to validate global DEPA ID:', error);
-        // Continue without validation
-      }
-    };
+  //       if (response.data.success) {
+  //         setGlobalDEPAIdValidation(response.data.data);
+  //       }
+  //     } catch (error) {
+  //       // Silently fail for missing endpoints - don't log to prevent spam
+  //       setGlobalDEPAIdValidation(null);
+  //     }
+  //   };
 
-    validateGlobalDEPAId();
-  }, [currentUser?.depaId]);
+  //   validateGlobalDEPAId();
+  // }, [currentUser?.depaId, currentUser?.firstLogin]);
 
   // Function to get current MetaMask account
   const getCurrentMetaMaskAccount = async () => {

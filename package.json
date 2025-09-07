@@ -15,6 +15,10 @@
     "register-hardhat": "cd backend && npm run register-hardhat",
     "test:mock": "NODE_ENV=test node -r ./tests/test-env.js ./node_modules/.bin/jest --testPathPattern=mock|models|api|core|security|performance --runInBand --setupFilesAfterEnv=./tests/setup.js",
     "test:integration": "NODE_ENV=test node -r ./tests/test-env.js ./node_modules/.bin/jest --testPathPattern=integration|blockchainService|registration-integration|simple-ai-model --runInBand --setupFilesAfterEnv=./tests/setup.js",
+    "test:config": "node test-config-validation.js",
+    "test:e2e": "node run-e2e-tests.js",
+    "test:e2e:verbose": "VERBOSE=true node run-e2e-tests.js",
+    "test:e2e:mocha": "cd tests && mocha e2e-user-registration-first-login.js --timeout 15000",
     "test": "NODE_ENV=test node -r ./tests/test-env.js ./node_modules/.bin/jest --runInBand --setupFilesAfterEnv=./tests/setup.js"
   },
   "keywords": [
@@ -26,6 +30,7 @@
   "author": "Contract Management Team",
   "license": "MIT",
   "devDependencies": {
+    "colors": "^1.4.0",
     "concurrently": "^8.2.2",
     "jest-junit": "^16.0.0"
   },
