@@ -240,7 +240,7 @@ router.post('/register', logAuthEvent('REGISTER'), async (req, res) => {
     const transaction = await db.sequelize.transaction();
 
     try {
-      // Step 1: Try to create user in Keycloak first
+      // Step 1: Create user in Keycloak first (REQUIRED)
       if (process.env.KEYCLOAK_ENABLED === 'true') {
         try {
           console.log('🔐 Creating user in Keycloak...');
@@ -257,12 +257,27 @@ router.post('/register', logAuthEvent('REGISTER'), async (req, res) => {
             walletAddress: walletAddress || null
           });
           keycloakSuccess = true;
-          console.log('✅ Keycloak user created successfully');
+          console.log('✅ Keycloak user created successfully:', {
+            keycloakUserId: keycloakResult.keycloakUserId,
+            username: keycloakResult.username,
+            email: keycloakResult.email
+          });
         } catch (kcError) {
           console.error('❌ Keycloak user creation failed:', kcError);
-          keycloakSuccess = false;
-          // Continue with database creation even if Keycloak fails
+          await transaction.rollback();
+          return res.status(500).json({
+            error: 'Failed to create user in authentication system',
+            code: 'KEYCLOAK_CREATION_FAILED',
+            details: 'User registration requires successful authentication system integration'
+          });
         }
+      } else {
+        await transaction.rollback();
+        return res.status(500).json({
+          error: 'Authentication system not enabled',
+          code: 'KEYCLOAK_DISABLED',
+          details: 'Keycloak integration is required for user registration'
+        });
       }
 
       // Step 2: Create user in database (only if Keycloak succeeded)
@@ -325,8 +340,9 @@ router.post('/register', logAuthEvent('REGISTER'), async (req, res) => {
           onboardingStatus: 'IN_PROGRESS',
           profileCompleted: false,
           emailVerified: false,
-          iamUserId: keycloakResult?.keycloakUserId,
-          iamUsername: email
+          iamUserId: keycloakResult.keycloakUserId,
+          iamUsername: keycloakResult.username,
+          firstLogin: !password // Set firstLogin to true if no password was provided (temporary password generated)
         }, { transaction });
         dbSuccess = true;
         console.log('✅ Database user created successfully');
@@ -396,7 +412,7 @@ router.post('/register', logAuthEvent('REGISTER'), async (req, res) => {
 
     // --- TRIGGER EMAIL VERIFICATION (after successful transaction) ---
     try {
-      await keycloakService.sendEmailVerification(keycloakResult?.keycloakUserId);
+      await keycloakService.sendEmailVerification(keycloakResult.keycloakUserId);
     } catch (emailError) {
       console.warn('⚠️ Failed to trigger Keycloak email verification:', emailError.message);
     }
@@ -424,17 +440,20 @@ router.post('/register', logAuthEvent('REGISTER'), async (req, res) => {
         isRegistered: dbUser.isRegistered,
         onboardingStatus: dbUser.onboardingStatus,
         profileCompleted: dbUser.profileCompleted,
-        emailVerified: dbUser.emailVerified
+        emailVerified: dbUser.emailVerified,
+        iamUserId: dbUser.iamUserId,
+        iamUsername: dbUser.iamUsername,
+        firstLogin: dbUser.firstLogin
       },
       loginCredentials: password ? {
         email: dbUser.email,
         password: password,
         note: 'Use these credentials to log in. This is the password you provided during registration.'
-      } : (keycloakResult?.temporaryPassword ? {
+      } : {
         email: dbUser.email,
         password: keycloakResult.temporaryPassword,
         note: 'Use these credentials to log in. This is a temporary password that should be changed on first login.'
-      } : null),
+      },
       nextSteps: [
         'Use the provided credentials to log in',
         'Change your password on first login',
@@ -724,6 +743,119 @@ router.post('/refresh', async (req, res) => {
 
   } catch (error) {
     console.error('❌ Refresh token error:', error);
+    res.status(500).json({ 
+      error: 'Internal server error',
+      code: 'INTERNAL_ERROR'
+    });
+  }
+});
+
+/**
+ * POST /api/auth/first-login-password
+ * Update password for first-login users (no auth token required)
+ */
+router.post('/first-login-password', logAuthEvent('FIRST_LOGIN_PASSWORD'), async (req, res) => {
+  try {
+    console.log('🔐 [First-Login] Endpoint called with body:', req.body);
+    const { email, currentPassword, newPassword } = req.body;
+
+    if (!email || !currentPassword || !newPassword) {
+      return res.status(400).json({ 
+        error: 'Email, current password, and new password are required',
+        code: 'MISSING_REQUIRED_FIELDS'
+      });
+    }
+
+    if (newPassword.length < 8) {
+      return res.status(400).json({ 
+        error: 'New password must be at least 8 characters long',
+        code: 'PASSWORD_TOO_SHORT'
+      });
+    }
+
+    // Find user in database
+    const user = await db.User.findOne({ 
+      where: { 
+        email: email.toLowerCase(), 
+        isActive: true 
+      } 
+    });
+    
+    if (!user) {
+      return res.status(401).json({
+        error: 'User not found',
+        code: 'USER_NOT_FOUND'
+      });
+    }
+
+    console.log('🔐 [First-Login] User found:', {
+      id: user.id,
+      email: user.email,
+      iamUsername: user.iamUsername,
+      iamUserId: user.iamUserId,
+      firstLogin: user.firstLogin
+    });
+
+    // Only allow this endpoint for first-login users
+    if (!user.firstLogin) {
+      return res.status(403).json({
+        error: 'This endpoint is only for first-login users',
+        code: 'NOT_FIRST_LOGIN'
+      });
+    }
+
+    if (!user.iamUserId) {
+      return res.status(500).json({
+        error: 'User not properly synced with Keycloak',
+        code: 'USER_NOT_IN_KEYCLOAK'
+      });
+    }
+
+    try {
+      // For first-login users, we skip current password verification since:
+      // 1. They have temporary passwords with required actions (UPDATE_PASSWORD)
+      // 2. Keycloak won't allow authentication until required actions are completed
+      // 3. We use admin API to verify and update password directly
+      
+      console.log('🔐 [First-Login] Using admin API to update password for first-login user:', user.email);
+      
+      // Update password in Keycloak using admin API
+      await keycloakService.updateUserPassword(user.iamUserId, newPassword);
+      console.log('🔐 [First-Login] Password updated in Keycloak successfully');
+      
+      // Remove any required actions (like UPDATE_PASSWORD) since user has set their password
+      try {
+        await keycloakService.removeRequiredAction(user.iamUserId, 'UPDATE_PASSWORD');
+        console.log('🔐 [First-Login] Removed UPDATE_PASSWORD required action');
+      } catch (actionError) {
+        console.warn('⚠️ [First-Login] Could not remove required action:', actionError.message);
+      }
+      
+      // Clear first login flag in database
+      await db.User.update(
+        { firstLogin: false },
+        { where: { id: user.id } }
+      );
+      
+      console.log('✅ First login password updated successfully for:', email);
+      
+      return res.json({
+        message: 'Password updated successfully',
+        success: true,
+        firstLoginCompleted: true,
+        note: 'You can now log in with your new password.'
+      });
+    } catch (kcError) {
+      console.error('❌ Keycloak password update failed:', kcError);
+      return res.status(500).json({
+        error: 'Failed to update password in authentication system',
+        code: 'PASSWORD_UPDATE_FAILED',
+        details: 'Could not update password in Keycloak'
+      });
+    }
+
+  } catch (error) {
+    console.error('❌ First login password update error:', error);
     res.status(500).json({ 
       error: 'Internal server error',
       code: 'INTERNAL_ERROR'

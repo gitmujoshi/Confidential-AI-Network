@@ -404,22 +404,25 @@ const FirstLoginWizard = () => {
     </Card>
   );
 
-  // Handle navigation in useEffect to prevent infinite loops
-  React.useEffect(() => {
-    if (!currentUser) {
-      navigate('/login');
-      return;
-    }
-
-    if (!currentUser.firstLogin) {
-      navigate('/dashboard');
-      return;
-    }
-  }, [currentUser, navigate]);
-
   // Don't render if user is not ready or doesn't need first login
-  if (!currentUser || !currentUser.firstLogin) {
-    return null;
+  if (!currentUser) {
+    return (
+      <Container maxWidth="md">
+        <Box sx={{ py: 4, textAlign: 'center' }}>
+          <Typography variant="h6">Loading user information...</Typography>
+        </Box>
+      </Container>
+    );
+  }
+
+  if (!currentUser.firstLogin) {
+    return (
+      <Container maxWidth="md">
+        <Box sx={{ py: 4, textAlign: 'center' }}>
+          <Typography variant="h6">Redirecting to dashboard...</Typography>
+        </Box>
+      </Container>
+    );
   }
 
   return (

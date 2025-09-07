@@ -103,12 +103,16 @@ const Login = () => {
         password: formData.password
       });
 
-      // Use new backend response: accessToken and user
-      if (response.data.accessToken) {
+      // Handle both normal login (with accessToken) and first-login (requiresPasswordChange)
+      if (response.data.accessToken || response.data.requiresPasswordChange) {
         const { user, accessToken, refreshToken, requiresPasswordChange } = response.data;
-        localStorage.setItem('authToken', accessToken);
-        if (refreshToken) {
-          localStorage.setItem('refreshToken', refreshToken);
+        
+        // Only set tokens if they exist (normal login)
+        if (accessToken) {
+          localStorage.setItem('authToken', accessToken);
+          if (refreshToken) {
+            localStorage.setItem('refreshToken', refreshToken);
+          }
         }
         
         // Set user from login response
@@ -118,7 +122,7 @@ const Login = () => {
         // Check if user needs to change password (first login)
         if (requiresPasswordChange) {
           console.log('🔐 First login detected, redirecting to password change wizard');
-          setSuccess('Login successful! Please set your new password...');
+          setSuccess('First login detected! Please set your new password...');
           
           setTimeout(() => {
             navigate('/first-login', { 

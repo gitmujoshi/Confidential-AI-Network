@@ -25,7 +25,7 @@ import UserRegistration from './pages/UserRegistration';
 import Login from './pages/Login';
 import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
-import FirstLoginWizard from './pages/FirstLoginWizard';
+import FirstLoginWizard from './pages/FirstLoginWizard.simple';
 import EnterpriseDIDManagement from './pages/EnterpriseDIDManagement';
 import Profile from './pages/Profile';
 import TestContracts from './pages/TestContracts';
@@ -83,7 +83,13 @@ const PublicRoute = ({ children }) => {
   }
   
   // If user is authenticated, redirect to dashboard
+  // BUT: Don't redirect if user needs first-login setup
   if (user || token) {
+    // Check if user needs first-login setup
+    if (user && user.firstLogin) {
+      // Allow access to public routes for first-login users
+      return children;
+    }
     return <Navigate to="/dashboard" replace />;
   }
   
@@ -170,11 +176,7 @@ function AppRoutes() {
         </PublicRoute>
       } />
       
-      <Route path="/first-login" element={
-        <ProtectedRoute>
-          <FirstLoginWizard />
-        </ProtectedRoute>
-      } />
+      <Route path="/first-login" element={<FirstLoginWizard />} />
       
       {/* Protected Routes */}
       <Route path="/" element={
