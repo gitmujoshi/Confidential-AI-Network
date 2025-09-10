@@ -7,7 +7,7 @@ const { authenticateToken } = require('../middleware/auth');
 router.get('/dashboard', authenticateToken, async (req, res) => {
   try {
     // Check if user is admin
-    if (req.user.partyType !== 'AppAdmin') {
+    if (req.user.localUser?.partyType !== 'AppAdmin') {
       return res.status(403).json({ error: 'Access denied. Admin privileges required.' });
     }
 
@@ -20,7 +20,6 @@ router.get('/dashboard', authenticateToken, async (req, res) => {
     // Get all contracts
     const contracts = await Contract.findAll({
       include: [
-        { model: User, as: 'tdp', attributes: ['name', 'email'] },
         { model: User, as: 'tdc', attributes: ['name', 'email'] },
         { model: User, as: 'ccrp', attributes: ['name', 'email'] }
       ],
@@ -104,7 +103,7 @@ router.get('/dashboard', authenticateToken, async (req, res) => {
 // Get all users for admin
 router.get('/users', authenticateToken, async (req, res) => {
   try {
-    if (req.user.partyType !== 'AppAdmin') {
+    if (req.user.localUser?.partyType !== 'AppAdmin') {
       return res.status(403).json({ error: 'Access denied. Admin privileges required.' });
     }
 
@@ -127,13 +126,12 @@ router.get('/users', authenticateToken, async (req, res) => {
 // Get all contracts for admin
 router.get('/contracts', authenticateToken, async (req, res) => {
   try {
-    if (req.user.partyType !== 'AppAdmin') {
+    if (req.user.localUser?.partyType !== 'AppAdmin') {
       return res.status(403).json({ error: 'Access denied. Admin privileges required.' });
     }
 
     const contracts = await Contract.findAll({
       include: [
-        { model: User, as: 'tdp', attributes: ['name', 'email'] },
         { model: User, as: 'tdc', attributes: ['name', 'email'] },
         { model: User, as: 'ccrp', attributes: ['name', 'email'] }
       ],
@@ -150,7 +148,7 @@ router.get('/contracts', authenticateToken, async (req, res) => {
 // Get all datasets for admin
 router.get('/datasets', authenticateToken, async (req, res) => {
   try {
-    if (req.user.partyType !== 'AppAdmin') {
+    if (req.user.localUser?.partyType !== 'AppAdmin') {
       return res.status(403).json({ error: 'Access denied. Admin privileges required.' });
     }
 
@@ -169,7 +167,7 @@ router.get('/datasets', authenticateToken, async (req, res) => {
 // Get data breaches for admin
 router.get('/data-breaches', authenticateToken, async (req, res) => {
   try {
-    if (req.user.partyType !== 'AppAdmin') {
+    if (req.user.localUser?.partyType !== 'AppAdmin') {
       return res.status(403).json({ error: 'Access denied. Admin privileges required.' });
     }
 
@@ -187,7 +185,7 @@ router.get('/data-breaches', authenticateToken, async (req, res) => {
 // Get compliance data for admin
 router.get('/compliance', authenticateToken, async (req, res) => {
   try {
-    if (req.user.partyType !== 'AppAdmin') {
+    if (req.user.localUser?.partyType !== 'AppAdmin') {
       return res.status(403).json({ error: 'Access denied. Admin privileges required.' });
     }
 

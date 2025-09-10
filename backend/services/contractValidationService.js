@@ -91,6 +91,21 @@ class ContractValidationService {
         validated.jurisdiction = data.jurisdiction.trim();
       }
 
+      // Validate environment specifications
+      if (data.environmentSpecs && typeof data.environmentSpecs === 'object') {
+        validated.environmentSpecs = data.environmentSpecs;
+      }
+
+      // Validate training parameters
+      if (data.trainingParams && typeof data.trainingParams === 'object') {
+        validated.trainingParams = data.trainingParams;
+      }
+
+      // Validate KMS configurations
+      if (data.kmsConfigs && typeof data.kmsConfigs === 'object') {
+        validated.kmsConfigs = data.kmsConfigs;
+      }
+
     } catch (error) {
       errors.push(`Validation error: ${error.message}`);
     }

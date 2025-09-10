@@ -318,6 +318,14 @@ module.exports = (sequelize, DataTypes) => {
       comment: 'System-generated DEPA ID (CONTRACT-<GUID>)'
     },
     
+    // Contract datasets - JSON array storing dataset information for multi-dataset contracts
+    contractDatasets: {
+      field: 'contract_datasets',
+      type: DataTypes.JSONB,
+      allowNull: true,
+      comment: 'JSON array storing dataset information for multi-dataset contracts'
+    },
+    
     // Service account/role for cloud execution
     serviceAccount: {
       type: DataTypes.STRING,
@@ -399,21 +407,9 @@ module.exports = (sequelize, DataTypes) => {
     // Contract belongs to CCRP (Confidential Clean Room Provider) - optional
     Contract.belongsTo(models.User, { foreignKey: 'ccrpId', as: 'ccrp' });
 
-    // NEW: Many-to-many with datasets through junction table
-    Contract.belongsToMany(models.Dataset, { 
-      through: 'contract_datasets',
-      foreignKey: 'contract_id',
-      otherKey: 'dataset_id',
-      as: 'contractDatasets'
-    });
+    // Note: contractDatasets is stored as JSON field in database, not as association
     
-    // NEW: Many-to-many with TDPs through junction table
-    Contract.belongsToMany(models.User, {
-      through: 'contract_datasets',
-      foreignKey: 'contract_id',
-      otherKey: 'tdp_id',
-      as: 'tdps'
-    });
+    // Note: TDP relationships are managed through the contractDatasets JSON field
 
     // Contract belongs to ContractTemplate
     Contract.belongsTo(models.ContractTemplate, { 

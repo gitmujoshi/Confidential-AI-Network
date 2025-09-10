@@ -33,17 +33,37 @@ const Login = () => {
 
   // Clear stale authentication data on mount
   useEffect(() => {
-    // Clear any stale authentication data immediately when Login component mounts
-    console.log('🧹 [Login] Clearing stale authentication data on mount...');
-    localStorage.removeItem('authToken');
-    localStorage.removeItem('refreshToken');
-    localStorage.removeItem('user');
-    localStorage.removeItem('currentUser');
-    sessionStorage.clear();
+    const clearStaleTokens = async () => {
+      const token = localStorage.getItem('authToken');
+      if (token) {
+        try {
+          // Try to validate the token using apiService
+          const response = await apiService.get('/api/auth/profile');
+          
+          if (response.data.user) {
+            // Token is valid, redirect to dashboard
+            console.log('✅ [Login] Valid token found, redirecting to dashboard');
+            navigate('/dashboard');
+            return;
+          }
+        } catch (error) {
+          console.log('🔍 [Login] Token validation failed, clearing stale data');
+        }
+        
+        // Token is invalid, clear it
+        console.log('🧹 [Login] Clearing invalid authentication data...');
+        localStorage.removeItem('authToken');
+        localStorage.removeItem('refreshToken');
+        localStorage.removeItem('user');
+        localStorage.removeItem('currentUser');
+        sessionStorage.clear();
+      }
+      
+      console.log('🔄 [Login] Ready for fresh login');
+    };
     
-    // Don't check for token auth on login page - let user login fresh
-    console.log('🔄 [Login] Ready for fresh login');
-  }, []);
+    clearStaleTokens();
+  }, [navigate]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -52,7 +72,7 @@ const Login = () => {
 
   // Development: Get reset token for testing
   const handleGetDevResetToken = async () => {
-    if (!formData.email) {
+    if (!formData.email.trim()) {
       setError('Please enter an email address first.');
       return;
     }
@@ -61,7 +81,7 @@ const Login = () => {
       setDevLoading(true);
       setError('');
       
-      const response = await apiService.getDevResetToken(formData.email);
+      const response = await apiService.getDevResetToken(formData.email.trim());
       
       if (response.data.success) {
         const { token, minutesRemaining } = response.data;
@@ -81,7 +101,7 @@ const Login = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    if (!formData.email || !formData.password) {
+    if (!formData.email.trim() || !formData.password) {
       setError('Please fill in all fields.');
       return;
     }
@@ -99,7 +119,7 @@ const Login = () => {
       sessionStorage.clear();
 
       const response = await apiService.login({
-        email: formData.email,
+        email: formData.email.trim(),
         password: formData.password
       });
 
@@ -253,7 +273,23 @@ const Login = () => {
           <Button
             fullWidth
             variant="text"
-            onClick={() => navigate('/register')}
+            onClick={() => {
+              console.log('🔗 [Login] Navigating to registration page...');
+              // Clear any stale tokens before navigating to registration
+              localStorage.removeItem('authToken');
+              localStorage.removeItem('refreshToken');
+              localStorage.removeItem('user');
+              localStorage.removeItem('currentUser');
+              sessionStorage.clear();
+              
+              // Set a flag to indicate intentional navigation to registration
+              sessionStorage.setItem('navigatingToRegistration', 'true');
+              
+              // Use setTimeout to ensure cleanup completes before navigation
+              setTimeout(() => {
+                navigate('/register');
+              }, 100);
+            }}
             sx={{ mt: 1 }}
           >
             Don't have an account? Sign Up

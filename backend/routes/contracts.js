@@ -105,20 +105,24 @@ router.get('/', async (req, res) => {
       }
       // Fetch all selected models if aiModelIds is present
       if (contract.aiModelIds && Array.isArray(contract.aiModelIds) && contract.aiModelIds.length > 0) {
-        const db = require('../models');
-        const models = await db.AIModel.findAll({ where: { id: contract.aiModelIds } });
-        modelInfoList = models.map(model => ({
-          modelName: model.name,
-          modelType: model.type,
-          architecture: model.architecture,
-          framework: model.framework,
-          parameters: model.parameters,
-          privacyTechnique: model.privacyTechnique,
-          validationMetrics: model.validationMetrics,
-          maxEpochs: model.maxEpochs,
-          batchSize: model.batchSize,
-          learningRate: model.learningRate
-        }));
+        try {
+          const models = await db.AIModel.findAll({ where: { id: contract.aiModelIds } });
+          modelInfoList = models.map(model => ({
+            modelName: model.name,
+            modelType: model.type,
+            architecture: model.architecture,
+            framework: model.framework,
+            parameters: model.parameters,
+            privacyTechnique: model.privacyTechnique,
+            validationMetrics: model.validationMetrics,
+            maxEpochs: model.maxEpochs,
+            batchSize: model.batchSize,
+            learningRate: model.learningRate
+          }));
+        } catch (modelError) {
+          console.error('Error fetching AI models:', modelError);
+          modelInfoList = [];
+        }
       }
       return {
         ...contract.toJSON(),
@@ -216,23 +220,70 @@ router.get('/user/:userId', async (req, res) => {
       }
       // Fetch all selected models if aiModelIds is present
       if (contract.aiModelIds && Array.isArray(contract.aiModelIds) && contract.aiModelIds.length > 0) {
-        const db = require('../models');
-        const models = await db.AIModel.findAll({ where: { id: contract.aiModelIds } });
-        modelInfoList = models.map(model => ({
-          modelName: model.name,
-          modelType: model.type,
-          architecture: model.architecture,
-          framework: model.framework,
-          parameters: model.parameters,
-          privacyTechnique: model.privacyTechnique,
-          validationMetrics: model.validationMetrics,
-          maxEpochs: model.maxEpochs,
-          batchSize: model.batchSize,
-          learningRate: model.learningRate
-        }));
+        try {
+          const models = await db.AIModel.findAll({ where: { id: contract.aiModelIds } });
+          modelInfoList = models.map(model => ({
+            modelName: model.name,
+            modelType: model.type,
+            architecture: model.architecture,
+            framework: model.framework,
+            parameters: model.parameters,
+            privacyTechnique: model.privacyTechnique,
+            validationMetrics: model.validationMetrics,
+            maxEpochs: model.maxEpochs,
+            batchSize: model.batchSize,
+            learningRate: model.learningRate
+          }));
+        } catch (modelError) {
+          console.error('Error fetching AI models:', modelError);
+          modelInfoList = [];
+        }
       }
+      
+      // Add dataset information if contractDatasets is null or empty but we have a datasetId
+      let contractData = contract.toJSON();
+      if ((!contractData.contractDatasets || contractData.contractDatasets.length === 0) && contractData.datasetId) {
+        try {
+          const dataset = await db.Dataset.findOne({
+            where: { id: contractData.datasetId },
+            include: [{ 
+              model: db.User, 
+              as: 'owner', 
+              attributes: ['id', 'name', 'email', 'depaId', 'walletAddress', 'did'] 
+            }]
+          });
+          
+          if (dataset) {
+            contractData.contractDatasets = [{
+              datasetId: dataset.datasetId,
+              datasetName: dataset.name,
+              description: dataset.description,
+              category: dataset.category,
+              size: dataset.size,
+              recordCount: dataset.recordCount,
+              license: dataset.license,
+              tags: dataset.tags || [],
+              depaId: dataset.depaId,
+              individualPrice: contractData.price,
+              tdpId: dataset.owner.id,
+              tdpName: dataset.owner.name,
+              tdp: {
+                id: dataset.owner.id,
+                name: dataset.owner.name,
+                email: dataset.owner.email,
+                depaId: dataset.owner.depaId,
+                walletAddress: dataset.owner.walletAddress,
+                did: dataset.owner.did
+              }
+            }];
+          }
+        } catch (datasetError) {
+          console.warn('Failed to fetch dataset information for contract in list:', datasetError);
+        }
+      }
+      
       return {
-        ...contract.toJSON(),
+        ...contractData,
         modelInfo,
         modelInfoList
       };
@@ -314,7 +365,7 @@ router.get('/:contractId', async (req, res) => {
     }
 
     res.json({
-      ...contract.toJSON(),
+      ...contract,
       modelInfo,
       modelInfoList
     });
@@ -514,7 +565,7 @@ router.post('/ricardian', authenticateToken, async (req, res) => {
       // Get dataset and verify it exists
       const dataset = await db.Dataset.findOne({
         where: { datasetId: datasetId },
-        include: [{ model: db.User, as: 'owner', attributes: ['id', 'name', 'email', 'walletAddress', 'did', 'partyType'] }]
+        include: [{ model: db.User, as: 'owner', attributes: ['id', 'name', 'email', 'depaId', 'walletAddress', 'did', 'partyType'] }]
       });
 
       if (!dataset) {
@@ -588,7 +639,13 @@ router.post('/ricardian', authenticateToken, async (req, res) => {
         individualPrice: price,
         tdpId: dataset.owner.id,
         tdpName: dataset.owner.name,
+        tdpEmail: dataset.owner.email,
+        tdpDepaId: dataset.owner.depaId,
+        tdpWalletAddress: dataset.owner.walletAddress,
+        tdpDid: dataset.owner.did,
         datasetName: dataset.name,
+        description: dataset.description,
+        depaId: dataset.depaId,
         confidentialComputingRequired: dataset.confidentialComputingRequired || false,
         category: dataset.category,
         size: dataset.size,
@@ -622,6 +679,7 @@ router.post('/ricardian', authenticateToken, async (req, res) => {
       } : null,
       environmentSpecs,
       trainingParams,
+      kmsConfigs,
       // Add global DEPA ID options
       globalDEPAId,
       deploymentPrefix,

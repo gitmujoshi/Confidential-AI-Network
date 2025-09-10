@@ -38,6 +38,33 @@ import apiService from '../services/api';
 const UserRegistration = () => {
   const navigate = useNavigate();
   
+  // Clear any existing auth tokens on mount to allow fresh registration
+  useEffect(() => {
+    const isNavigatingFromLogin = sessionStorage.getItem('navigatingToRegistration');
+    console.log('🧹 [UserRegistration] Clearing any existing auth tokens for fresh registration...', 
+                isNavigatingFromLogin ? '(navigated from login)' : '(direct access)');
+    
+    // Force clear all authentication data
+    localStorage.removeItem('authToken');
+    localStorage.removeItem('refreshToken');
+    localStorage.removeItem('user');
+    localStorage.removeItem('currentUser');
+    
+    // Clear the navigation flag but preserve it for debugging
+    if (isNavigatingFromLogin) {
+      sessionStorage.removeItem('navigatingToRegistration');
+      console.log('🔗 [UserRegistration] Navigation from login detected and cleared');
+    }
+    
+    // Also clear any React Query cache that might contain user data
+    if (window.queryClient) {
+      window.queryClient.removeQueries(['user']);
+      window.queryClient.removeQueries(['profile']);
+    }
+    
+    console.log('✅ [UserRegistration] All auth data cleared, registration page ready');
+  }, []);
+  
   // Form state
   const [formData, setFormData] = useState({
     name: '',
@@ -77,38 +104,9 @@ const UserRegistration = () => {
   const [blockchainStatus, setBlockchainStatus] = useState('unknown');
   const [blockchainLoading, setBlockchainLoading] = useState(false);
 
-  // Multi-deployment support
-  const [enableGlobalDEPAId, setEnableGlobalDEPAId] = useState(false);
-  const [deploymentPrefix, setDeploymentPrefix] = useState('');
-  const [selectedJurisdiction, setSelectedJurisdiction] = useState('');
-  const [availableJurisdictions, setAvailableJurisdictions] = useState([]);
+  // Deployment status (read-only, config-driven)
   const [deploymentStatus, setDeploymentStatus] = useState(null);
 
-  // Load deployment data on mount
-  useEffect(() => {
-    const loadDeploymentData = async () => {
-      try {
-        // Load jurisdictions
-        const jurisdictionsResponse = await apiService.get('/api/global-deployment/jurisdictions');
-        if (jurisdictionsResponse.data.success) {
-          setAvailableJurisdictions(jurisdictionsResponse.data.data.jurisdictions);
-        }
-        
-        // Load deployment status
-        const statusResponse = await apiService.get('/api/global-deployment/status');
-        if (statusResponse.data.success) {
-          setDeploymentStatus(statusResponse.data.data);
-          // Set default deployment prefix
-          setDeploymentPrefix(statusResponse.data.data.currentDeployment.prefix);
-        }
-      } catch (error) {
-        console.warn('Failed to load deployment data:', error);
-        // Continue without global features
-      }
-    };
-
-    loadDeploymentData();
-  }, []);
 
   useEffect(() => {
     // Check for mock mode in localStorage or URL params
@@ -473,12 +471,6 @@ const UserRegistration = () => {
           existingDID,
           didVerificationSignature
         }),
-        // Add global DEPA ID options
-        ...(enableGlobalDEPAId && {
-          globalDEPAId: true,
-          deploymentPrefix: deploymentPrefix || undefined,
-          jurisdiction: selectedJurisdiction || undefined
-        })
       };
 
       console.log('Submitting registration data:', registrationData);
@@ -498,13 +490,7 @@ const UserRegistration = () => {
         // Show DEPA ID information if available
         if (response.data.user.depaId) {
           const depaIdInfo = response.data.user.depaId;
-          const isGlobal = depaIdInfo.includes('-') && depaIdInfo.split('-').length >= 4;
-          
-          if (isGlobal) {
-            setSuccess(prev => prev + `\n\n🌍 Global DEPA ID: ${depaIdInfo}\n📍 Deployment: ${deploymentPrefix || 'Current'}\n🏛️ Jurisdiction: ${selectedJurisdiction || 'Standard'}`);
-          } else {
-            setSuccess(prev => prev + `\n\n🆔 DEPA ID: ${depaIdInfo}`);
-          }
+          setSuccess(prev => prev + `\n\n🆔 DEPA ID: ${depaIdInfo}`);
         }
       } else {
         setError('Registration failed: ' + response.data.error);
@@ -543,106 +529,6 @@ const UserRegistration = () => {
           Register for the Contract Management System
         </Typography>
 
-        {/* Global DEPA ID Configuration */}
-        <Card sx={{ mb: 3 }}>
-          <CardContent>
-            <Box display="flex" alignItems="center" gap={2} mb={2}>
-              <PublicIcon color="primary" />
-              <Typography variant="h6">Global DEPA ID Configuration</Typography>
-            </Box>
-            
-            <FormControlLabel
-              control={
-                <Switch
-                  checked={enableGlobalDEPAId}
-                  onChange={(e) => setEnableGlobalDEPAId(e.target.checked)}
-                />
-              }
-              label="Enable Global DEPA ID (Multi-Deployment Support)"
-            />
-            
-            {enableGlobalDEPAId && (
-              <Box sx={{ mt: 2 }}>
-                <Grid container spacing={2}>
-                  <Grid item xs={12} md={6}>
-                    <TextField
-                      fullWidth
-                      label="Deployment Prefix"
-                      value={deploymentPrefix}
-                      onChange={(e) => setDeploymentPrefix(e.target.value)}
-                      helperText="Leave empty to use current deployment prefix"
-                      placeholder={deploymentStatus?.currentDeployment?.prefix || 'LOCAL'}
-                    />
-                  </Grid>
-                  <Grid item xs={12} md={6}>
-                    <FormControl fullWidth>
-                      <InputLabel>Jurisdiction (Optional)</InputLabel>
-                      <Select
-                        value={selectedJurisdiction}
-                        onChange={(e) => setSelectedJurisdiction(e.target.value)}
-                        label="Jurisdiction (Optional)"
-                      >
-                        <MenuItem value="">None (Standard)</MenuItem>
-                        {availableJurisdictions.map((jurisdiction) => (
-                          <MenuItem key={jurisdiction.code} value={jurisdiction.code}>
-                            {jurisdiction.name}
-                          </MenuItem>
-                        ))}
-                      </Select>
-                      <FormHelperText>
-                        Select jurisdiction for compliance requirements
-                      </FormHelperText>
-                    </FormControl>
-                  </Grid>
-                </Grid>
-                
-                {selectedJurisdiction && (
-                  <Accordion sx={{ mt: 2 }}>
-                    <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                      <Box display="flex" alignItems="center" gap={2}>
-                        <BusinessIcon color="primary" />
-                        <Typography variant="subtitle2">
-                          Jurisdiction Compliance: {selectedJurisdiction}
-                        </Typography>
-                      </Box>
-                    </AccordionSummary>
-                    <AccordionDetails>
-                      {availableJurisdictions.find(j => j.code === selectedJurisdiction) && (
-                        <Grid container spacing={2}>
-                          <Grid item xs={12}>
-                            <Typography variant="body2" color="text.secondary">
-                              <strong>Data Residency:</strong> {availableJurisdictions.find(j => j.code === selectedJurisdiction).dataResidency}
-                            </Typography>
-                          </Grid>
-                          <Grid item xs={12}>
-                            <Typography variant="body2" color="text.secondary">
-                              <strong>Encryption Standards:</strong>
-                            </Typography>
-                            <Box display="flex" gap={1} flexWrap="wrap" mt={1}>
-                              {availableJurisdictions.find(j => j.code === selectedJurisdiction).encryptionStandards.map((standard) => (
-                                <Chip key={standard} label={standard} size="small" variant="outlined" />
-                              ))}
-                            </Box>
-                          </Grid>
-                          <Grid item xs={12}>
-                            <Typography variant="body2" color="text.secondary">
-                              <strong>Audit Requirements:</strong>
-                            </Typography>
-                            <Box display="flex" gap={1} flexWrap="wrap" mt={1}>
-                              {availableJurisdictions.find(j => j.code === selectedJurisdiction).auditRequirements.map((requirement) => (
-                                <Chip key={requirement} label={requirement} size="small" variant="outlined" />
-                              ))}
-                            </Box>
-                          </Grid>
-                        </Grid>
-                      )}
-                    </AccordionDetails>
-                  </Accordion>
-                )}
-              </Box>
-            )}
-          </CardContent>
-        </Card>
 
         {/* Mock Mode Toggle */}
         <Box sx={{ mb: 3, textAlign: 'center' }}>

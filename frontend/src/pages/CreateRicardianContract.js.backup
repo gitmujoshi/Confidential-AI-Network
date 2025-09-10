@@ -116,13 +116,6 @@ function CreateRicardianContract() {
     termsAndConditions: '',
   });
   const [environmentSpecs, setEnvironmentSpecs] = useState({
-    type: 'cloud',
-    instanceType: '',
-    cpu: '',
-    memory: '',
-    storage: '',
-    gpu: '',
-    notes: '',
     infrastructure: {
       computeType: 'confidential-vm',
       memoryGB: 32,
@@ -137,86 +130,44 @@ function CreateRicardianContract() {
       networkIsolation: true
     },
     kms: {
-      provider: '',
-      keyId: '',
-      algorithm: '',
-      rotationPeriod: '',
+      provider: 'azure-key-vault',
       keyName: 'training-data-key',
       region: 'eastus'
     }
   });
 
+  // Multi-deployment support
+  const [enableGlobalDEPAId, setEnableGlobalDEPAId] = useState(false);
+  const [deploymentPrefix, setDeploymentPrefix] = useState('');
+  const [selectedJurisdiction, setSelectedJurisdiction] = useState('');
+  const [availableJurisdictions, setAvailableJurisdictions] = useState([]);
+  const [deploymentStatus, setDeploymentStatus] = useState(null);
 
-  // State for CCRP users
-  const [availableCcrpUsers, setAvailableCcrpUsers] = useState([]);
-
-  // Load CCRP users when user is authenticated
+  // Load deployment data on mount
   useEffect(() => {
-    const loadCcrpUsers = async () => {
-      if (!isAuthenticated) {
-        console.log('⏳ User not authenticated yet, skipping CCRP loading...');
-        return;
-      }
-
+    const loadDeploymentData = async () => {
       try {
-        console.log('🔍 Loading CCRP users...');
-        // Try /api/users/ccrp first (available to all authenticated users)
-        let ccrpResponse;
-        try {
-          ccrpResponse = await apiService.get('/api/users/ccrp');
-          console.log('📊 CCRP Response from /api/users/ccrp:', ccrpResponse);
-          if (ccrpResponse.data && Array.isArray(ccrpResponse.data)) {
-            console.log('✅ CCRP Users loaded:', ccrpResponse.data.length, 'users');
-            setAvailableCcrpUsers(ccrpResponse.data);
-          } else {
-            console.warn('⚠️ CCRP Response data is not an array:', ccrpResponse.data);
-            setAvailableCcrpUsers([]);
-          }
-        } catch (ccrpError) {
-          console.warn('⚠️ /api/users/ccrp failed, trying /api/ccrp/all:', ccrpError.response?.data);
-          // Fallback to /api/ccrp/all
-          try {
-            ccrpResponse = await apiService.get('/api/ccrp/all');
-            console.log('📊 CCRP Response from /api/ccrp/all:', ccrpResponse);
-            if (ccrpResponse.data && ccrpResponse.data.ccrpUsers && Array.isArray(ccrpResponse.data.ccrpUsers)) {
-              console.log('✅ CCRP Users loaded from /api/ccrp/all:', ccrpResponse.data.ccrpUsers.length, 'users');
-              setAvailableCcrpUsers(ccrpResponse.data.ccrpUsers);
-            } else {
-              console.warn('⚠️ CCRP /all Response data.ccrpUsers is not an array:', ccrpResponse.data);
-              setAvailableCcrpUsers([]);
-            }
-          } catch (allError) {
-            console.error('❌ Both CCRP endpoints failed:', allError);
-            console.error('Error details:', allError.response?.data);
-            setAvailableCcrpUsers([]);
-          }
+        // Load jurisdictions
+        const jurisdictionsResponse = await apiService.get('/api/global-deployment/jurisdictions');
+        if (jurisdictionsResponse.data.success) {
+          setAvailableJurisdictions(jurisdictionsResponse.data.data.jurisdictions);
         }
-      } catch (generalError) {
-        console.error('❌ Failed to load CCRP users:', generalError);
-        setAvailableCcrpUsers([]);
+        
+        // Load deployment status
+        const statusResponse = await apiService.get('/api/global-deployment/status');
+        if (statusResponse.data.success) {
+          setDeploymentStatus(statusResponse.data.data);
+          // Set default deployment prefix
+          setDeploymentPrefix(statusResponse.data.data.currentDeployment.prefix);
+        }
+      } catch (error) {
+        console.warn('Failed to load deployment data:', error);
+        // Continue without global features
       }
     };
 
-    loadCcrpUsers();
-  }, [isAuthenticated]);
-
-  // Handler functions for environment specs
-  const handleEnvironmentSpecChange = (field, value) => {
-    setEnvironmentSpecs(prev => ({
-      ...prev,
-      [field]: value
-    }));
-  };
-
-  const handleKmsConfigChange = (field, value) => {
-    setEnvironmentSpecs(prev => ({
-      ...prev,
-      kms: {
-        ...prev.kms,
-        [field]: value
-      }
-    }));
-  };
+    loadDeploymentData();
+  }, []);
 
   // Add comprehensive training environment specifications
   const [trainingEnvironment, setTrainingEnvironment] = useState({
@@ -408,7 +359,7 @@ function CreateRicardianContract() {
   const [createdContract, setCreatedContract] = useState(null);
 
   // Fetch data
-  const { data: datasetsResponse, isLoading: datasetsLoading } = useQuery('datasets', () => apiService.getDatasets({}, currentUser));
+  const { data: datasetsResponse, isLoading: datasetsLoading } = useQuery('datasets', apiService.getDatasets);
   const { data: aiModelsResponse, isLoading: aiModelsLoading } = useQuery('ai-models', apiService.getAIModels);
   
   // Manual CCRP users fetch to avoid React Query parameter injection
@@ -927,6 +878,151 @@ function CreateRicardianContract() {
                 mb: 3
               }}
             >
+              Contract Configuration
+            </Typography>
+            
+            <Grid container spacing={3}>
+              <Grid item xs={12} md={6}>
+                <Card>
+                  <CardContent>
+                    <Typography variant="h6" gutterBottom>
+                      Ricardian Contract
+                    </Typography>
+                    
+                    <Box sx={{ mt: 2 }}>
+                      <Typography variant="body2" color="text.secondary">
+                        <SecurityIcon sx={{ mr: 1, verticalAlign: 'middle' }} />
+                        All contracts are Ricardian contracts that combine human-readable legal documents with machine-executable smart contracts.
+                      </Typography>
+                    </Box>
+                  </CardContent>
+                </Card>
+              </Grid>
+
+              <Grid item xs={12} md={6}>
+                <Card>
+                  <CardContent>
+                    <Typography variant="h6" gutterBottom>
+                      Global DEPA ID Configuration
+                    </Typography>
+                    
+                    <FormControlLabel
+                      control={
+                        <Switch
+                          checked={enableGlobalDEPAId}
+                          onChange={(e) => setEnableGlobalDEPAId(e.target.checked)}
+                        />
+                      }
+                      label="Enable Global DEPA ID"
+                    />
+                    
+                    {enableGlobalDEPAId && (
+                      <Box sx={{ mt: 2 }}>
+                        <Grid container spacing={2}>
+                          <Grid item xs={12} md={6}>
+                            <TextField
+                              fullWidth
+                              label="Deployment Prefix"
+                              value={deploymentPrefix}
+                              onChange={(e) => setDeploymentPrefix(e.target.value)}
+                              helperText="Leave empty to use current deployment prefix"
+                              placeholder={deploymentStatus?.currentDeployment?.prefix || 'LOCAL'}
+                            />
+                          </Grid>
+                          <Grid item xs={12} md={6}>
+                            <FormControl fullWidth>
+                              <InputLabel>Jurisdiction (Optional)</InputLabel>
+                              <Select
+                                value={selectedJurisdiction}
+                                onChange={(e) => setSelectedJurisdiction(e.target.value)}
+                                label="Jurisdiction (Optional)"
+                              >
+                                <MenuItem value="">None (Standard)</MenuItem>
+                                {availableJurisdictions.map((jurisdiction) => (
+                                  <MenuItem key={jurisdiction.code} value={jurisdiction.code}>
+                                    {jurisdiction.name}
+                                  </MenuItem>
+                                ))}
+                              </Select>
+                            </FormControl>
+                          </Grid>
+                        </Grid>
+                        
+                        {selectedJurisdiction && (
+                          <Box sx={{ mt: 2 }}>
+                            <Typography variant="body2" color="text.secondary">
+                              <strong>Compliance:</strong> {availableJurisdictions.find(j => j.code === selectedJurisdiction)?.name}
+                            </Typography>
+                            <Typography variant="caption" color="text.secondary">
+                              Data residency: {availableJurisdictions.find(j => j.code === selectedJurisdiction)?.dataResidency}
+                            </Typography>
+                          </Box>
+                        )}
+                      </Box>
+                    )}
+                  </CardContent>
+                </Card>
+              </Grid>
+
+              <Grid item xs={12} md={6}>
+                <Card elevation={2}>
+                  <CardContent sx={{ p: 4 }}>
+                    <Typography 
+                      variant="h5" 
+                      gutterBottom
+                      sx={{ 
+                        fontWeight: 600,
+                        fontFamily: '"Inter", "Segoe UI", "Helvetica Neue", Arial, sans-serif',
+                        color: 'text.primary'
+                      }}
+                    >
+                      Contract Overview
+                    </Typography>
+                    <Typography 
+                      variant="body1" 
+                      color="text.secondary" 
+                      paragraph
+                      sx={{ 
+                        fontFamily: '"Inter", "Segoe UI", "Helvetica Neue", Arial, sans-serif',
+                        lineHeight: 1.6
+                      }}
+                    >
+                      You are creating a comprehensive AI training contract that will include:
+                    </Typography>
+                    <Box component="ul" sx={{ pl: 2, m: 0 }}>
+                      <Typography component="li" variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                        Contract details and terms
+                      </Typography>
+                      <Typography component="li" variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                        Privacy and accuracy requirements
+                      </Typography>
+                      <Typography component="li" variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                        Dataset selection (1-3 datasets)
+                      </Typography>
+                      <Typography component="li" variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                        Environment configuration
+                      </Typography>
+                    </Box>
+                  </CardContent>
+                </Card>
+              </Grid>
+            </Grid>
+          </Box>
+        );
+
+      case 2:
+        return (
+          <Box>
+            <Typography 
+              variant="h4" 
+              gutterBottom 
+              sx={{ 
+                fontWeight: 600, 
+                fontFamily: '"Inter", "Segoe UI", "Helvetica Neue", Arial, sans-serif',
+                color: 'primary.main',
+                mb: 3
+              }}
+            >
               Contract Details & Dataset Selection
             </Typography>
             
@@ -1282,53 +1378,6 @@ function CreateRicardianContract() {
           </Box>
         );
 
-      case 2:
-        return (
-          <Box>
-            <Typography 
-              variant="h4" 
-              gutterBottom 
-              sx={{ 
-                fontWeight: 600, 
-                fontFamily: '"Inter", "Segoe UI", "Helvetica Neue", Arial, sans-serif',
-                color: 'primary.main',
-                mb: 3
-              }}
-            >
-              Configure Environment & CCRP
-            </Typography>
-            
-            <Grid container spacing={4}>
-              {/* CCRP Selection Section */}
-              <Grid item xs={12}>
-                <Card elevation={2} sx={{ mb: 3 }}>
-                  <CardContent sx={{ p: 4 }}>
-                    <Typography 
-                      variant="h5" 
-                      gutterBottom
-                      sx={{ 
-                        fontWeight: 600,
-                        fontFamily: '"Inter", "Segoe UI", "Helvetica Neue", Arial, sans-serif',
-                        color: 'text.primary',
-                        mb: 3
-                      }}
-                    >
-                      CCRP Selection (Required)
-                    </Typography>
-                    
-                    <Typography 
-                      variant="body1" 
-                      color="text.secondary" 
-                      paragraph
-                      sx={{ 
-                        fontFamily: '"Inter", "Segoe UI", "Helvetica Neue", Arial, sans-serif',
-                        mb: 3
-                      }}
-                    >
-                      All CCRPs are displayed below. Use the cloud provider filter to find CCRPs that support specific cloud services.
-                    </Typography>
-                    
-                    <Grid container spacing={2}>
                       <Grid item xs={12} md={4}>
                         <FormControl fullWidth>
                           <InputLabel>Filter by Cloud Provider</InputLabel>
@@ -1353,536 +1402,575 @@ function CreateRicardianContract() {
                       <Typography variant="subtitle2" gutterBottom>
                         Available CCRPs:
                       </Typography>
-                      <MultiCCRPSelector
-                        ccrpUsers={availableCcrpUsers}
-                        selectedCcrp={selectedCcrp}
-                        onCcrpToggle={setSelectedCcrp}
-                        selectedCloudProvider={selectedCloudProvider}
-                        onCloudProviderChange={setSelectedCloudProvider}
-                        onCcrpCloudProviderSelect={() => {}}
-                        ccrpCloudProviderSelections={{}}
-                      />
+                      
+                      {ccrpUsers.length === 0 ? (
+                        <Alert severity="info">
+                          No CCRPs available at the moment.
+                        </Alert>
+                      ) : (
+                        <MultiCCRPSelector
+                          ccrpUsers={ccrpUsers}
+                          selectedCcrp={selectedCcrp}
+                          selectedCloudProvider={selectedCloudProvider}
+                          onCcrpToggle={setSelectedCcrp}
+                          onCloudProviderChange={setSelectedCloudProvider}
+                          onCcrpCloudProviderSelect={(ccrpId, provider) => setSelectedCcrpCloudProviders(prev => ({ ...prev, [ccrpId]: provider }))}
+                          ccrpCloudProviderSelections={selectedCcrpCloudProviders}
+                        />
+                      )}
+                      
+                      {selectedCcrp && (
+                        <Alert severity="success" sx={{ mt: 2 }}>
+                          <Typography variant="body2">
+                            <strong>Selected CCRP:</strong> {ccrpUsers.find(c => c.id === selectedCcrp)?.name}
+                          </Typography>
+                        </Alert>
+                      )}
                     </Box>
+                    
+                    <Typography variant="caption" color="text.secondary" sx={{ mt: 2, display: 'block' }}>
+                      Select a Confidential Clean Room Provider for secure training environment (optional)
+                    </Typography>
                   </CardContent>
                 </Card>
               </Grid>
 
-              {/* Environment Specifications Section */}
-              <Grid item xs={12}>
-                <Card elevation={2}>
-                  <CardContent sx={{ p: 4 }}>
-                    <Typography 
-                      variant="h5" 
-                      gutterBottom
-                      sx={{ 
-                        fontWeight: 600,
-                        fontFamily: '"Inter", "Segoe UI", "Helvetica Neue", Arial, sans-serif',
-                        color: 'text.primary',
-                        mb: 3
-                      }}
-                    >
+              <Grid item xs={12} md={6}>
+                <Card>
+                  <CardContent>
+                    <Typography variant="h6" gutterBottom>
                       Environment Specifications
                     </Typography>
-                    
-                    <Grid container spacing={3}>
-                      <Grid item xs={12} md={6}>
-                        <FormControl fullWidth>
-                          <InputLabel>Environment Type</InputLabel>
-                          <Select
-                            value={environmentSpecs.type}
-                            onChange={(e) => handleEnvironmentSpecChange('type', e.target.value)}
-                            label="Environment Type"
-                          >
-                            <MenuItem value="cloud">Cloud Environment</MenuItem>
-                            <MenuItem value="on-premise">On-Premise</MenuItem>
-                            <MenuItem value="hybrid">Hybrid</MenuItem>
-                          </Select>
-                        </FormControl>
-                      </Grid>
-                      
-                      <Grid item xs={12} md={6}>
-                        <TextField
-                          fullWidth
-                          label="Instance Type"
-                          value={environmentSpecs.instanceType}
-                          onChange={(e) => handleEnvironmentSpecChange('instanceType', e.target.value)}
-                          placeholder="e.g., t3.large, Standard_D4s_v3"
-                        />
-                      </Grid>
-                      
-                      <Grid item xs={12} md={6}>
-                        <TextField
-                          fullWidth
-                          label="CPU Requirements"
-                          value={environmentSpecs.cpu}
-                          onChange={(e) => handleEnvironmentSpecChange('cpu', e.target.value)}
-                          placeholder="e.g., 4 cores"
-                        />
-                      </Grid>
-                      
-                      <Grid item xs={12} md={6}>
-                        <TextField
-                          fullWidth
-                          label="Memory Requirements"
-                          value={environmentSpecs.memory}
-                          onChange={(e) => handleEnvironmentSpecChange('memory', e.target.value)}
-                          placeholder="e.g., 16 GB"
-                        />
-                      </Grid>
-                      
-                      <Grid item xs={12} md={6}>
-                        <TextField
-                          fullWidth
-                          label="Storage Requirements"
-                          value={environmentSpecs.storage}
-                          onChange={(e) => handleEnvironmentSpecChange('storage', e.target.value)}
-                          placeholder="e.g., 100 GB SSD"
-                        />
-                      </Grid>
-                      
-                      <Grid item xs={12} md={6}>
-                        <FormControl fullWidth>
-                          <InputLabel>GPU Type</InputLabel>
-                          <Select
-                            value={environmentSpecs.gpu}
-                            onChange={(e) => handleEnvironmentSpecChange('gpu', e.target.value)}
-                            label="GPU Type"
-                          >
-                            <MenuItem value="">None</MenuItem>
-                            <MenuItem value="nvidia-tesla-v100">NVIDIA Tesla V100</MenuItem>
-                            <MenuItem value="nvidia-tesla-t4">NVIDIA Tesla T4</MenuItem>
-                            <MenuItem value="nvidia-a100">NVIDIA A100</MenuItem>
-                            <MenuItem value="nvidia-rtx-3080">NVIDIA RTX 3080</MenuItem>
-                            <MenuItem value="amd-radeon-instinct">AMD Radeon Instinct</MenuItem>
-                          </Select>
-                        </FormControl>
-                      </Grid>
-                      
-                      <Grid item xs={12}>
-                        <TextField
-                          fullWidth
-                          label="Additional Environment Notes"
-                          value={environmentSpecs.notes}
-                          onChange={(e) => handleEnvironmentSpecChange('notes', e.target.value)}
-                          multiline
-                          rows={3}
-                          placeholder="Any additional environment specifications or requirements..."
-                        />
-                      </Grid>
-                    </Grid>
-                    
-                    <Typography 
-                      variant="h5" 
-                      gutterBottom 
-                      sx={{ 
-                        mt: 4, 
-                        fontWeight: 600,
-                        fontFamily: '"Inter", "Segoe UI", "Helvetica Neue", Arial, sans-serif',
-                        color: 'text.primary',
-                        mb: 3
-                      }}
-                    >
-                      Key Management Service (KMS) Configuration
+                    <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                      Define the computing infrastructure where this contract will be executed. 
+                      This includes the general hosting environment, security configurations, and platform requirements.
                     </Typography>
                     
-                    <Grid container spacing={3}>
-                      <Grid item xs={12} md={6}>
+                    <Accordion>
+                      <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                        <Typography variant="subtitle1">
+                          <StorageIcon sx={{ mr: 1 }} />
+                          Infrastructure
+                        </Typography>
+                      </AccordionSummary>
+                      <Typography variant="body2" color="text.secondary" sx={{ mt: 1, mb: 2 }}>
+                        Configure the general computing infrastructure including compute resources, 
+                        storage, and network requirements for contract execution.
+                      </Typography>
+                      <AccordionDetails>
+                        <Grid container spacing={2}>
+                          <Grid item xs={12}>
+                            <FormControl fullWidth>
+                              <InputLabel>Compute Type</InputLabel>
+                              <Select
+                                value={environmentSpecs.infrastructure.computeType}
+                                onChange={(e) => setEnvironmentSpecs({
+                                  ...environmentSpecs,
+                                  infrastructure: {
+                                    ...environmentSpecs.infrastructure,
+                                    computeType: e.target.value
+                                  }
+                                })}
+                                label="Compute Type"
+                              >
+                                <MenuItem value="confidential-vm">Confidential VM - Secure virtual machine with encryption</MenuItem>
+                                <MenuItem value="sgx-enclave">SGX Enclave - Intel SGX secure enclave for confidential computing</MenuItem>
+                                <MenuItem value="sev-snp">SEV-SNP - AMD Secure Encrypted Virtualization with Secure Nested Paging</MenuItem>
+                              </Select>
+                              <FormHelperText>
+                                Choose the type of secure computing environment for your contract
+                              </FormHelperText>
+                            </FormControl>
+                          </Grid>
+                          <Grid item xs={6}>
+                            <TextField
+                              fullWidth
+                              label="Memory (GB)"
+                              type="number"
+                              value={environmentSpecs.infrastructure.memoryGB}
+                              onChange={(e) => setEnvironmentSpecs({
+                                ...environmentSpecs,
+                                infrastructure: {
+                                  ...environmentSpecs.infrastructure,
+                                  memoryGB: parseInt(e.target.value)
+                                }
+                              })}
+                            />
+                          </Grid>
+                          <Grid item xs={6}>
+                            <TextField
+                              fullWidth
+                              label="CPU Cores"
+                              type="number"
+                              value={environmentSpecs.infrastructure.cpuCores}
+                              onChange={(e) => setEnvironmentSpecs({
+                                ...environmentSpecs,
+                                infrastructure: {
+                                  ...environmentSpecs.infrastructure,
+                                  cpuCores: parseInt(e.target.value)
+                                }
+                              })}
+                            />
+                          </Grid>
+                        </Grid>
+                      </AccordionDetails>
+                    </Accordion>
+
+                    <Accordion>
+                      <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                        <Typography variant="subtitle1">
+                          <SecurityIcon sx={{ mr: 1 }} />
+                          Security
+                        </Typography>
+                      </AccordionSummary>
+                      <Typography variant="body2" color="text.secondary" sx={{ mt: 1, mb: 2 }}>
+                        Set up security controls including encryption, access controls, 
+                        and compliance requirements for data protection.
+                      </Typography>
+                      <AccordionDetails>
+                        <FormControlLabel
+                          control={
+                            <Switch
+                              checked={environmentSpecs.security.attestationRequired}
+                              onChange={(e) => setEnvironmentSpecs({
+                                ...environmentSpecs,
+                                security: {
+                                  ...environmentSpecs.security,
+                                  attestationRequired: e.target.checked
+                                }
+                              })}
+                            />
+                          }
+                          label="Attestation Required"
+                        />
+                        <FormControlLabel
+                          control={
+                            <Switch
+                              checked={environmentSpecs.security.encryptionAtRest}
+                              onChange={(e) => setEnvironmentSpecs({
+                                ...environmentSpecs,
+                                security: {
+                                  ...environmentSpecs.security,
+                                  encryptionAtRest: e.target.checked
+                                }
+                              })}
+                            />
+                          }
+                          label="Encryption at Rest"
+                        />
+                        <FormControlLabel
+                          control={
+                            <Switch
+                              checked={environmentSpecs.security.encryptionInTransit}
+                              onChange={(e) => setEnvironmentSpecs({
+                                ...environmentSpecs,
+                                security: {
+                                  ...environmentSpecs.security,
+                                  encryptionInTransit: e.target.checked
+                                }
+                              })}
+                            />
+                          }
+                          label="Encryption in Transit"
+                        />
+                      </AccordionDetails>
+                    </Accordion>
+
+                    <Accordion>
+                      <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                        <Typography variant="subtitle1">
+                          <KeyIcon sx={{ mr: 1 }} />
+                          KMS Configuration
+                        </Typography>
+                      </AccordionSummary>
+                      <Typography variant="body2" color="text.secondary" sx={{ mt: 1, mb: 2 }}>
+                        Configure key management services for encryption and secure key storage.
+                      </Typography>
+                      <AccordionDetails>
                         <FormControl fullWidth>
                           <InputLabel>KMS Provider</InputLabel>
                           <Select
-                            value={environmentSpecs.kms?.provider || ''}
-                            onChange={(e) => handleKmsConfigChange('provider', e.target.value)}
+                            value={environmentSpecs.kms.provider}
+                            onChange={(e) => setEnvironmentSpecs({
+                              ...environmentSpecs,
+                              kms: {
+                                ...environmentSpecs.kms,
+                                provider: e.target.value
+                              }
+                            })}
                             label="KMS Provider"
                           >
-                            <MenuItem value="">None</MenuItem>
+                            <MenuItem value="azure-key-vault">Azure Key Vault</MenuItem>
                             <MenuItem value="aws-kms">AWS KMS</MenuItem>
-                            <MenuItem value="azure-keyvault">Azure Key Vault</MenuItem>
-                            <MenuItem value="gcp-kms">Google Cloud KMS</MenuItem>
-                            <MenuItem value="hashicorp-vault">HashiCorp Vault</MenuItem>
-                            <MenuItem value="custom">Custom KMS</MenuItem>
+                            <MenuItem value="google-cloud-kms">Google Cloud KMS</MenuItem>
+                            <MenuItem value="hashicorp-vault">Hashicorp Vault</MenuItem>
                           </Select>
                         </FormControl>
-                      </Grid>
-                      
-                      <Grid item xs={12} md={6}>
                         <TextField
                           fullWidth
-                          label="Key ID/ARN"
-                          value={environmentSpecs.kms?.keyId || ''}
-                          onChange={(e) => handleKmsConfigChange('keyId', e.target.value)}
-                          placeholder="KMS Key ID or ARN"
+                          label="Key Name"
+                          value={environmentSpecs.kms.keyName}
+                          onChange={(e) => setEnvironmentSpecs({
+                            ...environmentSpecs,
+                            kms: {
+                              ...environmentSpecs.kms,
+                              keyName: e.target.value
+                            }
+                          })}
+                          margin="normal"
                         />
-                      </Grid>
-                      
-                      <Grid item xs={12} md={6}>
-                        <TextField
-                          fullWidth
-                          label="Encryption Algorithm"
-                          value={environmentSpecs.kms?.algorithm || ''}
-                          onChange={(e) => handleKmsConfigChange('algorithm', e.target.value)}
-                          placeholder="e.g., AES-256-GCM"
-                        />
-                      </Grid>
-                      
-                      <Grid item xs={12} md={6}>
-                        <TextField
-                          fullWidth
-                          label="Key Rotation Period (days)"
-                          type="number"
-                          value={environmentSpecs.kms?.rotationPeriod || ''}
-                          onChange={(e) => handleKmsConfigChange('rotationPeriod', e.target.value)}
-                          placeholder="e.g., 90"
-                        />
-                      </Grid>
-                    </Grid>
+                      </AccordionDetails>
+                    </Accordion>
                   </CardContent>
                 </Card>
               </Grid>
-            </Grid>
-          </Box>
-        );
 
-      case 2:
-        return (
-          <Box>
-            <Typography 
-              variant="h4" 
-              gutterBottom 
-              sx={{ 
-                fontWeight: 600, 
-                fontFamily: '"Inter", "Segoe UI", "Helvetica Neue", Arial, sans-serif',
-                color: 'primary.main',
-                mb: 3
-              }}
-            >
-              Contract Configuration Overview
-            </Typography>
-            
-            <Grid container spacing={3}>
+              {/* Training Environment Specifications */}
               <Grid item xs={12}>
-                <Card elevation={2}>
-                  <CardContent sx={{ p: 4 }}>
-                    <Typography 
-                      variant="h5" 
-                      gutterBottom
-                      sx={{ 
-                        fontWeight: 600,
-                        fontFamily: '"Inter", "Segoe UI", "Helvetica Neue", Arial, sans-serif',
-                        color: 'text.primary',
-                        mb: 3
-                      }}
-                    >
-                      Contract Summary
+                <Card>
+                  <CardContent>
+                    <Typography variant="h6" gutterBottom>
+                      Training Environment Specifications
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                      Configure AI training parameters and privacy-preserving techniques. 
+                      This section defines how the AI models will be trained while protecting data privacy.
                     </Typography>
                     
-                    <Typography 
-                      variant="body1" 
-                      color="text.secondary" 
-                      paragraph
-                      sx={{ 
-                        fontFamily: '"Inter", "Segoe UI", "Helvetica Neue", Arial, sans-serif',
-                        lineHeight: 1.6,
-                        mb: 3
-                      }}
-                    >
-                      You are creating a comprehensive AI training contract that combines legal agreements with technical specifications. 
-                      This contract will define the terms for data usage, privacy requirements, and computational environment setup.
-                    </Typography>
+                    <Accordion>
+                      <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                        <Typography variant="subtitle1">
+                          <StorageIcon sx={{ mr: 1 }} />
+                          Infrastructure Specifications
+                        </Typography>
+                      </AccordionSummary>
+                      <Typography variant="body2" color="text.secondary" sx={{ mt: 1, mb: 2 }}>
+                        Configure specialized computing resources for AI model training, 
+                        including GPU/TPU requirements and privacy-preserving compute resources.
+                      </Typography>
+                      <AccordionDetails>
+                        <Grid container spacing={2}>
+                          <Grid item xs={12} md={6}>
+                            <TextField
+                              fullWidth
+                              label="CPU Specification"
+                              value={trainingEnvironment.ccrpPlatform.infrastructure.compute.specifications.cpu}
+                              onChange={(e) => setTrainingEnvironment({
+                                ...trainingEnvironment,
+                                ccrpPlatform: {
+                                  ...trainingEnvironment.ccrpPlatform,
+                                  infrastructure: {
+                                    ...trainingEnvironment.ccrpPlatform.infrastructure,
+                                    compute: {
+                                      ...trainingEnvironment.ccrpPlatform.infrastructure.compute,
+                                      specifications: {
+                                        ...trainingEnvironment.ccrpPlatform.infrastructure.compute.specifications,
+                                        cpu: e.target.value
+                                      }
+                                    }
+                                  }
+                                }
+                              })}
+                              margin="normal"
+                            />
+                          </Grid>
+                          <Grid item xs={12} md={6}>
+                            <TextField
+                              fullWidth
+                              label="Memory Specification"
+                              value={trainingEnvironment.ccrpPlatform.infrastructure.compute.specifications.memory}
+                              onChange={(e) => setTrainingEnvironment({
+                                ...trainingEnvironment,
+                                ccrpPlatform: {
+                                  ...trainingEnvironment.ccrpPlatform,
+                                  infrastructure: {
+                                    ...trainingEnvironment.ccrpPlatform.infrastructure,
+                                    compute: {
+                                      ...trainingEnvironment.ccrpPlatform.infrastructure.compute,
+                                      specifications: {
+                                        ...trainingEnvironment.ccrpPlatform.infrastructure.compute.specifications,
+                                        memory: e.target.value
+                                      }
+                                    }
+                                  }
+                                }
+                              })}
+                              margin="normal"
+                            />
+                          </Grid>
+                          <Grid item xs={12} md={6}>
+                            <TextField
+                              fullWidth
+                              label="GPU Specification"
+                              value={trainingEnvironment.ccrpPlatform.infrastructure.compute.specifications.gpu}
+                              onChange={(e) => setTrainingEnvironment({
+                                ...trainingEnvironment,
+                                ccrpPlatform: {
+                                  ...trainingEnvironment.ccrpPlatform,
+                                  infrastructure: {
+                                    ...trainingEnvironment.ccrpPlatform.infrastructure,
+                                    compute: {
+                                      ...trainingEnvironment.ccrpPlatform.infrastructure.compute,
+                                      specifications: {
+                                        ...trainingEnvironment.ccrpPlatform.infrastructure.compute.specifications,
+                                        gpu: e.target.value
+                                      }
+                                    }
+                                  }
+                                }
+                              })}
+                              margin="normal"
+                            />
+                          </Grid>
+                          <Grid item xs={12} md={6}>
+                            <TextField
+                              fullWidth
+                              label="Storage Specification"
+                              value={trainingEnvironment.ccrpPlatform.infrastructure.compute.specifications.storage}
+                              onChange={(e) => setTrainingEnvironment({
+                                ...trainingEnvironment,
+                                ccrpPlatform: {
+                                  ...trainingEnvironment.ccrpPlatform,
+                                  infrastructure: {
+                                    ...trainingEnvironment.ccrpPlatform.infrastructure,
+                                    compute: {
+                                      ...trainingEnvironment.ccrpPlatform.infrastructure.compute,
+                                      specifications: {
+                                        ...trainingEnvironment.ccrpPlatform.infrastructure.compute.specifications,
+                                        storage: e.target.value
+                                      }
+                                    }
+                                  }
+                                }
+                              })}
+                              margin="normal"
+                            />
+                          </Grid>
+                        </Grid>
+                      </AccordionDetails>
+                    </Accordion>
 
-                    <Box component="ul" sx={{ pl: 2, mb: 3 }}>
-                      <Typography component="li" variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-                        ✓ Contract details and terms configured
+                    <Accordion>
+                      <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                        <Typography variant="subtitle1">
+                          <CodeIcon sx={{ mr: 1 }} />
+                          Training Specifications
+                        </Typography>
+                      </AccordionSummary>
+                      <Typography variant="body2" color="text.secondary" sx={{ mt: 1, mb: 2 }}>
+                        Define AI model architecture, training parameters, and privacy-preserving 
+                        techniques for secure model training.
                       </Typography>
-                      <Typography component="li" variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-                        ✓ Privacy and accuracy requirements set
-                      </Typography>
-                      <Typography component="li" variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-                        ✓ Dataset selection completed
-                      </Typography>
-                      <Typography component="li" variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-                        → Next: Environment configuration & CCRP selection
-                      </Typography>
-                    </Box>
+                      <AccordionDetails>
+                        <Grid container spacing={2}>
+                          <Grid item xs={12} md={6}>
+                            <TextField
+                              fullWidth
+                              label="Model Type"
+                              value={trainingEnvironment.trainingSpecifications.modelType}
+                              onChange={(e) => setTrainingEnvironment({
+                                ...trainingEnvironment,
+                                trainingSpecifications: {
+                                  ...trainingEnvironment.trainingSpecifications,
+                                  modelType: e.target.value
+                                }
+                              })}
+                              margin="normal"
+                            />
+                          </Grid>
+                          <Grid item xs={12} md={6}>
+                            <TextField
+                              fullWidth
+                              label="Framework"
+                              value={trainingEnvironment.trainingSpecifications.architecture.framework}
+                              onChange={(e) => setTrainingEnvironment({
+                                ...trainingEnvironment,
+                                trainingSpecifications: {
+                                  ...trainingEnvironment.trainingSpecifications,
+                                  architecture: {
+                                    ...trainingEnvironment.trainingSpecifications.architecture,
+                                    framework: e.target.value
+                                  }
+                                }
+                              })}
+                              margin="normal"
+                            />
+                          </Grid>
+                          <Grid item xs={12} md={6}>
+                            <TextField
+                              fullWidth
+                              label="Model Architecture"
+                              value={trainingEnvironment.trainingSpecifications.architecture.model}
+                              onChange={(e) => setTrainingEnvironment({
+                                ...trainingEnvironment,
+                                trainingSpecifications: {
+                                  ...trainingEnvironment.trainingSpecifications,
+                                  architecture: {
+                                    ...trainingEnvironment.trainingSpecifications.architecture,
+                                    model: e.target.value
+                                  }
+                                }
+                              })}
+                              margin="normal"
+                            />
+                          </Grid>
+                          <Grid item xs={12} md={6}>
+                            <TextField
+                              fullWidth
+                              label="Parameters"
+                              value={trainingEnvironment.trainingSpecifications.architecture.parameters}
+                              onChange={(e) => setTrainingEnvironment({
+                                ...trainingEnvironment,
+                                trainingSpecifications: {
+                                  ...trainingEnvironment.trainingSpecifications,
+                                  architecture: {
+                                    ...trainingEnvironment.trainingSpecifications.architecture,
+                                    parameters: e.target.value
+                                  }
+                                }
+                              })}
+                              margin="normal"
+                            />
+                          </Grid>
+                          <Grid item xs={12} md={6}>
+                            <TextField
+                              fullWidth
+                              label="Learning Rate"
+                              type="number"
+                              inputProps={{ step: 0.0001, min: 0.0001, max: 1.0 }}
+                              value={trainingEnvironment.trainingSpecifications.training.hyperparameters.learningRate}
+                              onChange={(e) => setTrainingEnvironment({
+                                ...trainingEnvironment,
+                                trainingSpecifications: {
+                                  ...trainingEnvironment.trainingSpecifications,
+                                  training: {
+                                    ...trainingEnvironment.trainingSpecifications.training,
+                                    hyperparameters: {
+                                      ...trainingEnvironment.trainingSpecifications.training.hyperparameters,
+                                      learningRate: parseFloat(e.target.value)
+                                    }
+                                  }
+                                }
+                              })}
+                              margin="normal"
+                            />
+                          </Grid>
+                          <Grid item xs={12} md={6}>
+                            <TextField
+                              fullWidth
+                              label="Batch Size"
+                              type="number"
+                              inputProps={{ min: 1, max: 1024 }}
+                              value={trainingEnvironment.trainingSpecifications.training.hyperparameters.batchSize}
+                              onChange={(e) => setTrainingEnvironment({
+                                ...trainingEnvironment,
+                                trainingSpecifications: {
+                                  ...trainingEnvironment.trainingSpecifications,
+                                  training: {
+                                    ...trainingEnvironment.trainingSpecifications.training,
+                                    hyperparameters: {
+                                      ...trainingEnvironment.trainingSpecifications.training.hyperparameters,
+                                      batchSize: parseInt(e.target.value)
+                                    }
+                                  }
+                                }
+                              })}
+                              margin="normal"
+                            />
+                          </Grid>
+                          <Grid item xs={12} md={6}>
+                            <TextField
+                              fullWidth
+                              label="Epochs"
+                              type="number"
+                              inputProps={{ min: 1, max: 1000 }}
+                              value={trainingEnvironment.trainingSpecifications.training.hyperparameters.epochs}
+                              onChange={(e) => setTrainingEnvironment({
+                                ...trainingEnvironment,
+                                trainingSpecifications: {
+                                  ...trainingEnvironment.trainingSpecifications,
+                                  training: {
+                                    ...trainingEnvironment.trainingSpecifications.training,
+                                    hyperparameters: {
+                                      ...trainingEnvironment.trainingSpecifications.training.hyperparameters,
+                                      epochs: parseInt(e.target.value)
+                                    }
+                                  }
+                                }
+                              })}
+                              margin="normal"
+                            />
+                          </Grid>
+                          <Grid item xs={12} md={6}>
+                            <TextField
+                              fullWidth
+                              label="Target Accuracy"
+                              type="number"
+                              inputProps={{ step: 0.01, min: 0.5, max: 1.0 }}
+                              value={trainingEnvironment.trainingSpecifications.training.validation.targetAccuracy}
+                              onChange={(e) => setTrainingEnvironment({
+                                ...trainingEnvironment,
+                                trainingSpecifications: {
+                                  ...trainingEnvironment.trainingSpecifications,
+                                  training: {
+                                    ...trainingEnvironment.trainingSpecifications.training,
+                                    validation: {
+                                      ...trainingEnvironment.trainingSpecifications.training.validation,
+                                      targetAccuracy: parseFloat(e.target.value)
+                                    }
+                                  }
+                                }
+                              })}
+                              margin="normal"
+                            />
+                          </Grid>
+                        </Grid>
+                      </AccordionDetails>
+                    </Accordion>
 
-                    <Typography 
-                      variant="body2" 
-                      color="primary.main"
-                      sx={{ 
-                        fontWeight: 500,
-                        fontFamily: '"Inter", "Segoe UI", "Helvetica Neue", Arial, sans-serif',
-                      }}
-                    >
-                      Click "Next" to configure the computational environment and optionally select a Confidential Clean Room Provider (CCRP).
-                    </Typography>
+                    <Accordion>
+                      <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                        <Typography variant="subtitle1">
+                          <SecurityIcon sx={{ mr: 1 }} />
+                          Compliance Requirements
+                        </Typography>
+                      </AccordionSummary>
+                      <AccordionDetails>
+                        <Typography variant="body2" color="text.secondary" paragraph>
+                          Select compliance standards that must be met:
+                        </Typography>
+                        {complianceSpecs.regulations.map((regulation, index) => (
+                          <FormControlLabel
+                            key={regulation.name}
+                            control={
+                              <Checkbox
+                                checked={regulation.status === 'COMPLIANT'}
+                                onChange={(e) => {
+                                  const updatedRegulations = [...complianceSpecs.regulations];
+                                  updatedRegulations[index] = {
+                                    ...regulation,
+                                    status: e.target.checked ? 'COMPLIANT' : 'NOT_COMPLIANT'
+                                  };
+                                  setComplianceSpecs({
+                                    ...complianceSpecs,
+                                    regulations: updatedRegulations
+                                  });
+                                }}
+                              />
+                            }
+                            label={`${regulation.name} - ${regulation.status}`}
+                          />
+                        ))}
+                      </AccordionDetails>
+                    </Accordion>
                   </CardContent>
                 </Card>
               </Grid>
             </Grid>
           </Box>
         );
-
 
       case 3:
-        return (
-          <Box>
-            <Typography 
-              variant="h4" 
-              gutterBottom 
-              sx={{ 
-                fontWeight: 600, 
-                fontFamily: '"Inter", "Segoe UI", "Helvetica Neue", Arial, sans-serif',
-                color: 'primary.main',
-                mb: 3
-              }}
-            >
-              Review Legal Document & Smart Contract
-            </Typography>
-            
-            <Grid container spacing={4}>
-              {/* CCRP Selection Section */}
-              <Grid item xs={12}>
-                <Card elevation={2} sx={{ mb: 3 }}>
-                  <CardContent sx={{ p: 4 }}>
-                    <Typography 
-                      variant="h5" 
-                      gutterBottom
-                      sx={{ 
-                        fontWeight: 600,
-                        fontFamily: '"Inter", "Segoe UI", "Helvetica Neue", Arial, sans-serif',
-                        color: 'text.primary',
-                        mb: 3
-                      }}
-                    >
-                      CCRP Selection (Required)
-                    </Typography>
-                    
-                    <Typography 
-                      variant="body1" 
-                      color="text.secondary" 
-                      paragraph
-                      sx={{ 
-                        fontFamily: '"Inter", "Segoe UI", "Helvetica Neue", Arial, sans-serif',
-                        mb: 3
-                      }}
-                    >
-                      All CCRPs are displayed below. Use the cloud provider filter to find CCRPs that support specific cloud services.
-                    </Typography>
-                    
-                    <Grid container spacing={2}>
-                      <Grid item xs={12} md={4}>
-                        <FormControl fullWidth>
-                          <InputLabel>Filter by Cloud Provider</InputLabel>
-                          <Select
-                            value={selectedCloudProvider}
-                            onChange={(e) => setSelectedCloudProvider(e.target.value)}
-                            label="Filter by Cloud Provider"
-                          >
-                            <MenuItem value="">
-                              <em>All Cloud Providers</em>
-                            </MenuItem>
-                            <MenuItem value="AWS">AWS</MenuItem>
-                            <MenuItem value="Azure">Azure</MenuItem>
-                            <MenuItem value="GCP">GCP</MenuItem>
-                            <MenuItem value="OCI">OCI</MenuItem>
-                          </Select>
-                        </FormControl>
-                      </Grid>
-                    </Grid>
-                    
-                    <Box sx={{ mt: 2 }}>
-                      <Typography variant="subtitle2" gutterBottom>
-                        Available CCRPs:
-                      </Typography>
-                      <MultiCCRPSelector
-                        ccrpUsers={availableCcrpUsers}
-                        selectedCcrp={selectedCcrp}
-                        onCcrpToggle={setSelectedCcrp}
-                        selectedCloudProvider={selectedCloudProvider}
-                        onCloudProviderChange={setSelectedCloudProvider}
-                        onCcrpCloudProviderSelect={() => {}}
-                        ccrpCloudProviderSelections={{}}
-                      />
-                    </Box>
-                  </CardContent>
-                </Card>
-              </Grid>
-
-              {/* Environment Specifications Section */}
-              <Grid item xs={12}>
-                <Card elevation={2}>
-                  <CardContent sx={{ p: 4 }}>
-                    <Typography 
-                      variant="h5" 
-                      gutterBottom
-                      sx={{ 
-                        fontWeight: 600,
-                        fontFamily: '"Inter", "Segoe UI", "Helvetica Neue", Arial, sans-serif',
-                        color: 'text.primary',
-                        mb: 3
-                      }}
-                    >
-                      Environment Specifications
-                    </Typography>
-                    
-                    <Grid container spacing={3}>
-                      <Grid item xs={12} md={6}>
-                        <FormControl fullWidth>
-                          <InputLabel>Environment Type</InputLabel>
-                          <Select
-                            value={environmentSpecs.type}
-                            onChange={(e) => handleEnvironmentSpecChange('type', e.target.value)}
-                            label="Environment Type"
-                          >
-                            <MenuItem value="cloud">Cloud Environment</MenuItem>
-                            <MenuItem value="on-premise">On-Premise</MenuItem>
-                            <MenuItem value="hybrid">Hybrid</MenuItem>
-                          </Select>
-                        </FormControl>
-                      </Grid>
-                      
-                      <Grid item xs={12} md={6}>
-                        <TextField
-                          fullWidth
-                          label="Instance Type"
-                          value={environmentSpecs.instanceType}
-                          onChange={(e) => handleEnvironmentSpecChange('instanceType', e.target.value)}
-                          placeholder="e.g., t3.large, Standard_D4s_v3"
-                        />
-                      </Grid>
-                      
-                      <Grid item xs={12} md={6}>
-                        <TextField
-                          fullWidth
-                          label="CPU Requirements"
-                          value={environmentSpecs.cpu}
-                          onChange={(e) => handleEnvironmentSpecChange('cpu', e.target.value)}
-                          placeholder="e.g., 4 cores"
-                        />
-                      </Grid>
-                      
-                      <Grid item xs={12} md={6}>
-                        <TextField
-                          fullWidth
-                          label="Memory Requirements"
-                          value={environmentSpecs.memory}
-                          onChange={(e) => handleEnvironmentSpecChange('memory', e.target.value)}
-                          placeholder="e.g., 16 GB"
-                        />
-                      </Grid>
-                      
-                      <Grid item xs={12} md={6}>
-                        <TextField
-                          fullWidth
-                          label="Storage Requirements"
-                          value={environmentSpecs.storage}
-                          onChange={(e) => handleEnvironmentSpecChange('storage', e.target.value)}
-                          placeholder="e.g., 100 GB SSD"
-                        />
-                      </Grid>
-                      
-                      <Grid item xs={12} md={6}>
-                        <FormControl fullWidth>
-                          <InputLabel>GPU Type</InputLabel>
-                          <Select
-                            value={environmentSpecs.gpu}
-                            onChange={(e) => handleEnvironmentSpecChange('gpu', e.target.value)}
-                            label="GPU Type"
-                          >
-                            <MenuItem value="">None</MenuItem>
-                            <MenuItem value="nvidia-tesla-v100">NVIDIA Tesla V100</MenuItem>
-                            <MenuItem value="nvidia-tesla-t4">NVIDIA Tesla T4</MenuItem>
-                            <MenuItem value="nvidia-a100">NVIDIA A100</MenuItem>
-                            <MenuItem value="nvidia-rtx-3080">NVIDIA RTX 3080</MenuItem>
-                            <MenuItem value="amd-radeon-instinct">AMD Radeon Instinct</MenuItem>
-                          </Select>
-                        </FormControl>
-                      </Grid>
-                      
-                      <Grid item xs={12}>
-                        <TextField
-                          fullWidth
-                          label="Additional Environment Notes"
-                          value={environmentSpecs.notes}
-                          onChange={(e) => handleEnvironmentSpecChange('notes', e.target.value)}
-                          multiline
-                          rows={3}
-                          placeholder="Any additional environment specifications or requirements..."
-                        />
-                      </Grid>
-                    </Grid>
-                    
-                    <Typography 
-                      variant="h5" 
-                      gutterBottom 
-                      sx={{ 
-                        mt: 4, 
-                        fontWeight: 600,
-                        fontFamily: '"Inter", "Segoe UI", "Helvetica Neue", Arial, sans-serif',
-                        color: 'text.primary',
-                        mb: 3
-                      }}
-                    >
-                      Key Management Service (KMS) Configuration
-                    </Typography>
-                    
-                    <Grid container spacing={3}>
-                      <Grid item xs={12} md={6}>
-                        <FormControl fullWidth>
-                          <InputLabel>KMS Provider</InputLabel>
-                          <Select
-                            value={environmentSpecs.kms?.provider || ''}
-                            onChange={(e) => handleKmsConfigChange('provider', e.target.value)}
-                            label="KMS Provider"
-                          >
-                            <MenuItem value="">None</MenuItem>
-                            <MenuItem value="aws-kms">AWS KMS</MenuItem>
-                            <MenuItem value="azure-keyvault">Azure Key Vault</MenuItem>
-                            <MenuItem value="gcp-kms">Google Cloud KMS</MenuItem>
-                            <MenuItem value="hashicorp-vault">HashiCorp Vault</MenuItem>
-                            <MenuItem value="custom">Custom KMS</MenuItem>
-                          </Select>
-                        </FormControl>
-                      </Grid>
-                      
-                      <Grid item xs={12} md={6}>
-                        <TextField
-                          fullWidth
-                          label="Key ID/ARN"
-                          value={environmentSpecs.kms?.keyId || ''}
-                          onChange={(e) => handleKmsConfigChange('keyId', e.target.value)}
-                          placeholder="KMS Key ID or ARN"
-                        />
-                      </Grid>
-                      
-                      <Grid item xs={12} md={6}>
-                        <TextField
-                          fullWidth
-                          label="Encryption Algorithm"
-                          value={environmentSpecs.kms?.algorithm || ''}
-                          onChange={(e) => handleKmsConfigChange('algorithm', e.target.value)}
-                          placeholder="e.g., AES-256-GCM"
-                        />
-                      </Grid>
-                      
-                      <Grid item xs={12} md={6}>
-                        <TextField
-                          fullWidth
-                          label="Key Rotation Period (days)"
-                          type="number"
-                          value={environmentSpecs.kms?.rotationPeriod || ''}
-                          onChange={(e) => handleKmsConfigChange('rotationPeriod', e.target.value)}
-                          placeholder="e.g., 90"
-                        />
-                      </Grid>
-                    </Grid>
-                  </CardContent>
-                </Card>
-              </Grid>
-            </Grid>
-          </Box>
-        );
-
-      case 4:
         return (
           <Box>
             <Typography variant="h6" gutterBottom>
@@ -2186,7 +2274,7 @@ function CreateRicardianContract() {
           </Box>
         );
 
-      case 5:
+      case 4:
         return (
           <Box>
             <Typography variant="h6" gutterBottom>

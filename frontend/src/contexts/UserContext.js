@@ -153,7 +153,9 @@ export const UserProvider = ({ children }) => {
         console.log('❌ [UserContext] Token authentication failed:', error.response?.status, error.message);
         // If token is invalid (401, 403, or 404), clear it
         if (error.response?.status === 401 || error.response?.status === 403 || error.response?.status === 404) {
+          console.log('🧹 [UserContext] Clearing invalid token and user data');
           localStorage.removeItem('authToken');
+          localStorage.removeItem('refreshToken');
           localStorage.removeItem('user');
           localStorage.removeItem('currentUser');
           setCurrentUser(null);

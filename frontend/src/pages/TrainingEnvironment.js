@@ -145,9 +145,9 @@ const TrainingEnvironment = () => {
       }
       
       // Load datasets
-      const datasetsResponse = await apiService.get('/api/datasets');
-      if (datasetsResponse.data.success) {
-        setDatasets(datasetsResponse.data.datasets);
+      const datasetsResponse = await apiService.getDatasets({}, currentUser);
+      if (datasetsResponse.datasets) {
+        setDatasets(datasetsResponse.datasets);
       }
       
       // Load models

@@ -43,13 +43,13 @@ const TDPDashboard = () => {
     ['tdpDashboard', user?.id],
     async () => {
       const [datasetsRes, contractsRes] = await Promise.all([
-        apiService.get('/api/datasets'),
-        apiService.get('/api/contracts')
+        apiService.getDatasets({}, user), // Use proper getDatasets with user context
+        apiService.getContracts(user.id, user) // Use proper getContracts with user context
       ]);
 
       return {
-        datasets: datasetsRes.data.datasets || [],
-        contracts: contractsRes.data.contracts || [],
+        datasets: datasetsRes.datasets || [],
+        contracts: contractsRes.contracts || [],
         payments: { totalRevenue: 0, pendingAmount: 0 }, // Will be implemented later
         analytics: {} // Will be implemented later
       };
@@ -143,7 +143,7 @@ const TDPDashboard = () => {
           <Button
             variant="contained"
             startIcon={<Add />}
-            onClick={() => navigate('/tdp/datasets/create')}
+            onClick={() => navigate('/datasets/add')}
           >
             Create Dataset
           </Button>
@@ -490,7 +490,7 @@ const TDPDashboard = () => {
             <Button
               variant="contained"
               startIcon={<Add />}
-              onClick={() => navigate('/tdp/datasets/create')}
+              onClick={() => navigate('/datasets/add')}
             >
               Create Dataset
             </Button>
@@ -518,7 +518,7 @@ const TDPDashboard = () => {
             <Button
               variant="contained"
               startIcon={<Storage />}
-              onClick={() => navigate('/tdp/datasets')}
+              onClick={() => navigate('/datasets')}
             >
               Manage Datasets
             </Button>

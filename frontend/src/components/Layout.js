@@ -76,6 +76,12 @@ const Layout = ({ children }) => {
     { text: 'Dashboard', icon: <Dashboard />, path: '/dashboard' },
     { text: 'Datasets', icon: <Storage />, path: '/datasets' },
     { text: 'Contracts', icon: <Description />, path: '/contracts' },
+    // CCRP-specific menu items (only for CCRP users, not AppAdmin)
+    ...(currentUser?.partyType === 'CCRP' ? [
+      { text: 'Environments', icon: <Security />, path: '/ccrp/environments' },
+      { text: 'Infrastructure', icon: <Security />, path: '/ccrp/infrastructure' },
+      { text: 'Cloud Credentials', icon: <Security />, path: '/ccrp/cloud-credentials' },
+    ] : []),
     // Only show Users menu for AppAdmin
     ...(currentUser?.partyType === 'AppAdmin' ? [{ text: 'Users', icon: <People />, path: '/admin/users' }] : []),
     { text: 'Notifications', icon: <Notifications />, path: '/notifications' },
@@ -135,15 +141,18 @@ const Layout = ({ children }) => {
             Quick Actions
           </Typography>
           <div className="space-y-2">
-            <Button
-              variant="outlined"
-              startIcon={<Security />}
-              onClick={() => navigate('/contracts/create')}
-              className="w-full justify-start"
-              size="small"
-            >
-              Create Contract
-            </Button>
+            {/* Only TDC users can create contracts */}
+            {isTDC && (
+              <Button
+                variant="outlined"
+                startIcon={<Security />}
+                onClick={() => navigate('/contracts/create')}
+                className="w-full justify-start"
+                size="small"
+              >
+                Create Contract
+              </Button>
+            )}
             <Button
               variant="outlined"
               startIcon={<Storage />}
@@ -151,7 +160,7 @@ const Layout = ({ children }) => {
               className="w-full justify-start"
               size="small"
             >
-              Browse Datasets
+              {isTDP ? 'My Datasets' : 'Browse Datasets'}
             </Button>
           </div>
         </div>

@@ -833,18 +833,15 @@ class ContractService {
         include: [
           { 
             model: db.User, 
-            as: 'tdp', 
-            attributes: ['id', 'name', 'email', 'depaId', 'walletAddress', 'did'] 
-          },
-          { 
-            model: db.User, 
             as: 'tdc', 
-            attributes: ['id', 'name', 'email', 'depaId', 'walletAddress', 'did'] 
+            attributes: ['id', 'name', 'email', 'depaId', 'walletAddress', 'did'],
+            required: false
           },
           { 
             model: db.User, 
             as: 'ccrp', 
-            attributes: ['id', 'name', 'email', 'depaId', 'walletAddress', 'did'] 
+            attributes: ['id', 'name', 'email', 'depaId', 'walletAddress', 'did'],
+            required: false
           }
         ]
       });
@@ -891,6 +888,57 @@ class ContractService {
         } catch (parseError) {
           console.warn('Failed to parse legalDocument JSON:', parseError);
           contractData.legalDocument = {};
+        }
+      }
+      
+      // If contractDatasets is missing data but we have counts, try to reconstruct
+      if ((!contractData.contractDatasets || contractData.contractDatasets.length < contractData.datasetCount) && contractData.datasetId) {
+        try {
+          const dataset = await db.Dataset.findOne({
+            where: { id: contractData.datasetId },
+            include: [{ 
+              model: db.User, 
+              as: 'owner', 
+              attributes: ['id', 'name', 'email', 'depaId', 'walletAddress', 'did'] 
+            }]
+          });
+          
+          if (dataset) {
+            contractData.contractDatasets = [{
+              datasetId: dataset.datasetId,
+              datasetName: dataset.name,
+              description: dataset.description,
+              category: dataset.category,
+              size: dataset.size,
+              recordCount: dataset.recordCount,
+              license: dataset.license,
+              tags: dataset.tags || [],
+              depaId: dataset.depaId,
+              individualPrice: contractData.price,
+              tdpId: dataset.owner.id,
+              tdpName: dataset.owner.name,
+              tdp: {
+                id: dataset.owner.id,
+                name: dataset.owner.name,
+                email: dataset.owner.email,
+                depaId: dataset.owner.depaId,
+                walletAddress: dataset.owner.walletAddress,
+                did: dataset.owner.did
+              }
+            }];
+          }
+        } catch (datasetError) {
+          console.warn('Failed to fetch dataset information for contract:', datasetError);
+        }
+      }
+      
+      // Also ensure contractDatasets is parsed if it's a string
+      if (contractData.contractDatasets && typeof contractData.contractDatasets === 'string') {
+        try {
+          contractData.contractDatasets = JSON.parse(contractData.contractDatasets);
+        } catch (parseError) {
+          console.warn('Failed to parse contractDatasets JSON:', parseError);
+          contractData.contractDatasets = [];
         }
       }
       
