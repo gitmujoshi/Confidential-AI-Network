@@ -172,7 +172,20 @@ const realApiService = {
   clearDIDCache: () => api.post('/api/did/cache/clear'),
 
   // Datasets
-  getDatasets: async (params) => {
+  getDatasets: async (params, userContext) => {
+    // Admin can see all datasets
+    if (userContext?.partyType === 'AppAdmin') {
+      const response = await api.get('/api/datasets', { params });
+      return response.data;
+    }
+    
+    // TDP users see only their own datasets
+    if (userContext?.partyType === 'TDP' && userContext?.id) {
+      const response = await api.get(`/api/tdp/datasets/${userContext.id}`, { params });
+      return response.data;
+    }
+    
+    // TDC and CCRP users see public datasets
     const response = await api.get('/api/datasets/public', { params });
     return response.data;
   },
@@ -187,17 +200,28 @@ const realApiService = {
     const response = await api.get('/api/datasets/search', { params });
     return response.data;
   },
-  getDatasetCategories: async () => {
-    const response = await api.get('/api/datasets/categories/list');
-    return response.data;
-  },
+    getDatasetCategories: async () => {
+      const response = await api.get('/api/datasets/categories/list');
+      return response.data;
+    },
+    getDatasetDomains: async () => {
+      const response = await api.get('/api/datasets/domains/list');
+      return response.data;
+    },
   getDatasetStats: async () => {
     const response = await api.get('/api/datasets/stats/overview');
     return response.data;
   },
 
   // Contracts
-  getContracts: async (userId) => {
+  getContracts: async (userId, userContext) => {
+    // Admin can see all contracts
+    if (userContext?.partyType === 'AppAdmin') {
+      const response = await api.get('/api/contracts');
+      return response.data;
+    }
+    
+    // Use the existing user-specific endpoint which already handles role-based filtering
     const response = await api.get(`/api/contracts/user/${userId}`);
     return response.data;
   },
@@ -391,8 +415,15 @@ const realApiService = {
   },
 
   // Users
-  getUsers: async () => {
-    const response = await api.get('/api/admin/users');
+  getUsers: async (userContext) => {
+    // Admin can see all users
+    if (userContext?.partyType === 'AppAdmin') {
+      const response = await api.get('/api/admin/users');
+      return response.data;
+    }
+    
+    // Other users see limited user info (for dropdowns, etc.)
+    const response = await api.get('/api/users/public');
     return response.data;
   },
   getCCRPUsers: async (cloudProvider = null) => {
@@ -402,6 +433,14 @@ const realApiService = {
       url += `?cloudProvider=${encodeURIComponent(cloudProvider)}`;
     }
     const response = await api.get(url);
+    return response.data;
+  },
+  getUsers: async () => {
+    const response = await api.get('/api/admin/users');
+    return response.data.users;
+  },
+  getDataset: async (datasetId) => {
+    const response = await api.get(`/api/datasets/${datasetId}`);
     return response.data;
   },
   getUser: (userId) => api.get(`/api/users/${userId}`),

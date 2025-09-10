@@ -51,13 +51,13 @@ const TDCDashboard = () => {
 
       try {
         const [datasetsRes, contractsRes] = await Promise.all([
-          apiService.get('/api/datasets'),
-          apiService.get('/api/contracts')
+          apiService.getDatasets({}, user), // Use proper getDatasets with user context
+          apiService.getContracts(user.id, user) // Use proper getContracts with user context
         ]);
 
         return {
-          datasets: datasetsRes.data.datasets || [],
-          contracts: contractsRes.data.contracts || [],
+          datasets: datasetsRes.datasets || [],
+          contracts: contractsRes.contracts || [],
           training: [], // Will be implemented later
           payments: { totalSpent: 0 } // Will be implemented later
         };

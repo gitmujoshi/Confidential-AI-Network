@@ -185,12 +185,20 @@ const ContractCard = ({ contract, onView, onEdit, onDelete, onDownloadContract, 
           // Single TDP contract display (legacy)
           <>
             <Typography variant="body2" color="textSecondary" paragraph>
-              <strong>Dataset:</strong> {contract.dataset?.name || 'N/A'}
+              <strong>Dataset:</strong> {
+                contract.contractDatasets?.[0]?.datasetName || 
+                contract.dataset?.name || 
+                'Not specified'
+              }
             </Typography>
             
             <Box display="flex" flexDirection="column" gap={1} mb={2}>
               <Typography variant="body2" fontSize="0.75rem">
-                <strong>TDP:</strong> {contract.tdp?.name}
+                <strong>TDP:</strong> {
+                  contract.contractDatasets?.[0]?.tdp?.name || 
+                  contract.tdp?.name || 
+                  'Not specified'
+                }
               </Typography>
               <Typography variant="body2" fontSize="0.75rem">
                 <strong>TDC:</strong> {contract.tdc?.name}
@@ -301,7 +309,11 @@ const ContractRow = ({ contract, onView, onEdit, onDelete, onDownloadContract, o
             {contract.datasets.length} datasets
           </Typography>
         ) : (
-          <Typography variant="body2">{contract.dataset?.name}</Typography>
+          <Typography variant="body2">
+            {contract.contractDatasets?.[0]?.datasetName || 
+             contract.dataset?.name || 
+             'Not specified'}
+          </Typography>
         )}
       </TableCell>
       <TableCell>
@@ -320,7 +332,11 @@ const ContractRow = ({ contract, onView, onEdit, onDelete, onDownloadContract, o
           ) : (
             <>
               <Typography variant="body2" fontSize="0.75rem">
-                TDP: {contract.tdp?.name}
+                TDP: {
+                  contract.contractDatasets?.[0]?.tdp?.name || 
+                  contract.tdp?.name || 
+                  'Not specified'
+                }
               </Typography>
               <Typography variant="body2" fontSize="0.75rem">
                 TDC: {contract.tdc?.name}
@@ -620,11 +636,25 @@ function Contracts() {
   return (
     <Box sx={{ pt: 2 }}>
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
-        <Typography variant="h4">Contracts</Typography>
-        <Button variant="contained" startIcon={<Add />} onClick={handleCreateContract}>
-          Create Contract
-        </Button>
+        <Typography variant="h4">
+          {currentUser?.partyType === 'TDP' ? 'My Contracts' : 'Contracts'}
+        </Typography>
+        {/* Only TDC users can create contracts */}
+        {currentUser?.partyType === 'TDC' && (
+          <Button variant="contained" startIcon={<Add />} onClick={handleCreateContract}>
+            Create Contract
+          </Button>
+        )}
       </Box>
+
+      {/* Role-based messaging for TDP users */}
+      {currentUser?.partyType === 'TDP' && (
+        <Box mb={2}>
+          <Typography variant="body2" color="textSecondary">
+            As a Training Data Provider, you can view and sign contracts where your datasets are involved. Contracts are initiated by Training Data Consumers.
+          </Typography>
+        </Box>
+      )}
 
       {/* Debug Information */}
       {process.env.NODE_ENV === 'development' && (
@@ -827,11 +857,17 @@ function Contracts() {
             No contracts found
           </Typography>
           <Typography variant="body2" color="textSecondary" mb={2}>
-            Create your first contract to get started
+            {currentUser?.partyType === 'TDP' 
+              ? 'You will see contracts here when you are involved as a Training Data Provider'
+              : 'Create your first contract to get started'
+            }
           </Typography>
-          <Button variant="contained" startIcon={<Add />} onClick={handleCreateContract}>
-            Create Contract
-          </Button>
+          {/* Only TDC users can create contracts */}
+          {currentUser?.partyType === 'TDC' && (
+            <Button variant="contained" startIcon={<Add />} onClick={handleCreateContract}>
+              Create Contract
+            </Button>
+          )}
         </Box>
       )}
 
@@ -894,7 +930,9 @@ function Contracts() {
                     <strong>Dataset:</strong>
                   </Typography>
                   <Typography variant="body1">
-                    {selectedContract.dataset?.name}
+                    {selectedContract.contractDatasets?.[0]?.datasetName || 
+                     selectedContract.dataset?.name || 
+                     'Not specified'}
                   </Typography>
                 </Grid>
                 
@@ -903,7 +941,10 @@ function Contracts() {
                     <strong>Model ID:</strong>
                   </Typography>
                   <Typography variant="body1">
-                    <em>Not applicable</em>
+                    {selectedContract.aiModelIds && selectedContract.aiModelIds.length > 0 
+                      ? selectedContract.aiModelIds.join(', ')
+                      : <em>Not applicable</em>
+                    }
                   </Typography>
                 </Grid>
                 
@@ -933,7 +974,13 @@ function Contracts() {
                     <Box display="flex" alignItems="center" gap={1}>
                       <Person fontSize="small" />
                       <Typography variant="body2">
-                        <strong>TDP:</strong> {selectedContract.tdp?.name} ({selectedContract.tdp?.email})
+                        <strong>TDP:</strong> {
+                          selectedContract.contractDatasets?.[0]?.tdp?.name 
+                            ? `${selectedContract.contractDatasets[0].tdp.name} (${selectedContract.contractDatasets[0].tdp.email})`
+                            : selectedContract.tdp?.name 
+                              ? `${selectedContract.tdp.name} (${selectedContract.tdp.email})`
+                              : '(Not specified)'
+                        }
                       </Typography>
                     </Box>
                     <Box display="flex" alignItems="center" gap={1}>

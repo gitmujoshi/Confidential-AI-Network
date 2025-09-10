@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Box,
   Typography,
@@ -19,6 +20,16 @@ import {
   IconButton,
   Tooltip,
   Badge,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Paper,
+  TableSortLabel,
+  ToggleButton,
+  ToggleButtonGroup,
 } from '@mui/material';
 import {
   Search,
@@ -29,26 +40,36 @@ import {
   Lock,
   Verified,
   Warning,
+  ViewList,
+  ViewModule,
+  Visibility,
 } from '@mui/icons-material';
 import { useUser } from '../contexts/UserContext';
 import { apiService } from '../services/api';
+import { DATASET_CATEGORIES } from '../config/datasetConstraints';
 
 function Datasets() {
-  const { user } = useUser();
+  const navigate = useNavigate();
+  const { currentUser: user } = useUser();
   const [datasets, setDatasets] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('');
-  const [selectedConfidentialComputing, setSelectedConfidentialComputing] = useState('');
+  const [selectedDomain, setSelectedDomain] = useState('');
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [categories, setCategories] = useState([]);
+  const [domains, setDomains] = useState([]);
+  const [viewMode, setViewMode] = useState('grid'); // 'grid' or 'table'
+  const [sortBy, setSortBy] = useState('name');
+  const [sortOrder, setSortOrder] = useState('asc');
 
   useEffect(() => {
     loadDatasets();
     loadCategories();
-  }, [page, searchTerm, selectedCategory, selectedConfidentialComputing]);
+    loadDomains();
+  }, [page, searchTerm, selectedCategory, selectedDomain]);
 
   const loadDatasets = async () => {
     try {
@@ -58,10 +79,10 @@ function Datasets() {
         limit: 12,
         ...(searchTerm && { q: searchTerm }),
         ...(selectedCategory && { category: selectedCategory }),
-        ...(selectedConfidentialComputing && { confidentialComputingRequired: selectedConfidentialComputing })
+        ...(selectedDomain && { domain: selectedDomain })
       };
 
-      const response = await apiService.getDatasets(params);
+      const response = await apiService.getDatasets(params, user);
       setDatasets(response.datasets || []);
       setTotalPages(Math.ceil((response.total || 0) / 12));
     } catch (error) {
@@ -75,9 +96,45 @@ function Datasets() {
   const loadCategories = async () => {
     try {
       const response = await apiService.getDatasetCategories();
-      setCategories(response.categories || []);
+      // Convert simple array to objects with value and label
+      const categoryObjects = (response || []).map(category => ({
+        value: category,
+        label: category,
+        description: getCategoryDescription(category),
+        icon: getCategoryIcon(category)
+      }));
+      setCategories(categoryObjects);
     } catch (error) {
       console.error('Error loading categories:', error);
+      // Fallback to hardcoded categories
+      setCategories(DATASET_CATEGORIES);
+    }
+  };
+
+  const loadDomains = async () => {
+    try {
+      const response = await apiService.getDatasetDomains();
+      // Convert simple array to objects with value and label
+      const domainObjects = (response || []).map(domain => ({
+        value: domain,
+        label: domain,
+        description: getDomainDescription(domain),
+        icon: getDomainIcon(domain)
+      }));
+      setDomains(domainObjects);
+    } catch (error) {
+      console.error('Error loading domains:', error);
+      // Fallback to hardcoded domains
+      const fallbackDomains = [
+        'Healthcare', 'Finance', 'Retail', 'Manufacturing', 'Technology',
+        'Education', 'Government', 'Energy', 'Transportation', 'Agriculture', 'Media', 'Other'
+      ];
+      setDomains(fallbackDomains.map(domain => ({
+        value: domain,
+        label: domain,
+        description: getDomainDescription(domain),
+        icon: getDomainIcon(domain)
+      })));
     }
   };
 
@@ -91,8 +148,8 @@ function Datasets() {
     setPage(1);
   };
 
-  const handleConfidentialComputingChange = (event) => {
-    setSelectedConfidentialComputing(event.target.value);
+  const handleDomainChange = (event) => {
+    setSelectedDomain(event.target.value);
     setPage(1);
   };
 
@@ -100,16 +157,111 @@ function Datasets() {
     setPage(value);
   };
 
-  const getConfidentialComputingColor = (required) => {
-    return required ? 'warning' : 'default';
+  const handleSort = (property) => {
+    const isAsc = sortBy === property && sortOrder === 'asc';
+    setSortOrder(isAsc ? 'desc' : 'asc');
+    setSortBy(property);
   };
 
-  const getConfidentialComputingIcon = (required) => {
-    return required ? <Security /> : <Storage />;
+  const handleViewModeChange = (event, newViewMode) => {
+    if (newViewMode !== null) {
+      setViewMode(newViewMode);
+    }
   };
 
-  const getConfidentialComputingLabel = (required) => {
-    return required ? 'Confidential Computing Required' : 'Standard Processing';
+  // Filter and sort datasets
+  const filteredAndSortedDatasets = datasets
+    .filter(dataset => {
+      const matchesSearch = !searchTerm || 
+        dataset.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        dataset.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (dataset.tags && dataset.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase())));
+      const matchesCategory = !selectedCategory || dataset.category === selectedCategory;
+      const matchesDomain = !selectedDomain || dataset.domain === selectedDomain;
+      return matchesSearch && matchesCategory && matchesDomain;
+    })
+    .sort((a, b) => {
+      let aValue = a[sortBy];
+      let bValue = b[sortBy];
+      
+      // Handle null/undefined values
+      if (!aValue) aValue = '';
+      if (!bValue) bValue = '';
+      
+      // Convert to string for comparison
+      aValue = String(aValue).toLowerCase();
+      bValue = String(bValue).toLowerCase();
+      
+      if (sortOrder === 'asc') {
+        return aValue.localeCompare(bValue);
+      } else {
+        return bValue.localeCompare(aValue);
+      }
+    });
+
+
+  // Helper functions for category metadata
+  const getCategoryDescription = (category) => {
+    const descriptions = {
+      'Computer Vision': 'Images, videos, and visual data',
+      'Natural Language Processing': 'Text, speech, and language data',
+      'Tabular': 'Structured data in rows and columns',
+      'Audio': 'Sound and audio data',
+      'Multimodal': 'Combination of different data types',
+      'Time Series': 'Data points indexed by time',
+      'Graph': 'Network and relationship data'
+    };
+    return descriptions[category] || 'Dataset category';
+  };
+
+  const getCategoryIcon = (category) => {
+    const icons = {
+      'Computer Vision': '🖼️',
+      'Natural Language Processing': '📝',
+      'Tabular': '📊',
+      'Audio': '🎵',
+      'Multimodal': '🔀',
+      'Time Series': '📈',
+      'Graph': '🕸️'
+    };
+    return icons[category] || '📁';
+  };
+
+  // Helper functions for domain metadata
+  const getDomainDescription = (domain) => {
+    const descriptions = {
+      'Healthcare': 'Medical, pharmaceutical, and health-related data',
+      'Finance': 'Banking, insurance, and financial services data',
+      'Retail': 'Consumer goods, retail, and e-commerce data',
+      'Manufacturing': 'Industrial, manufacturing, and supply chain data',
+      'Technology': 'Software, IT, and technology sector data',
+      'Education': 'Educational institutions and learning data',
+      'Government': 'Government agencies and public sector data',
+      'Energy': 'Energy, utilities, and environmental data',
+      'Transportation': 'Transportation, logistics, and mobility data',
+      'Agriculture': 'Agricultural, food production, and farming data',
+      'Media': 'Media, entertainment, and content creation data',
+      'Other': 'Other domains not specifically categorized'
+    };
+    return descriptions[domain] || 'Dataset domain';
+  };
+
+  const getDomainIcon = (domain) => {
+    const icons = {
+      'Healthcare': '🏥',
+      'Finance': '🏦',
+      'Retail': '🛒',
+      'Manufacturing': '🏭',
+      'Technology': '💻',
+      'Education': '🎓',
+      'Government': '🏛️',
+      'Energy': '⚡',
+      'Transportation': '🚚',
+      'Agriculture': '🌾',
+      'Media': '🎬',
+      'Other': '📁'
+    };
+    return icons[domain] || '📁';
   };
 
   if (loading) {
@@ -134,11 +286,31 @@ function Datasets() {
         <Typography variant="h4">
           {user?.partyType === 'TDP' ? 'My Datasets' : 'Datasets'}
         </Typography>
-        {user?.partyType === 'TDP' && (
-          <Button variant="contained" startIcon={<Add />}>
-            Add Dataset
-          </Button>
-        )}
+        <Box display="flex" alignItems="center" gap={2}>
+          <ToggleButtonGroup
+            value={viewMode}
+            exclusive
+            onChange={handleViewModeChange}
+            aria-label="view mode"
+            size="small"
+          >
+            <ToggleButton value="grid" aria-label="grid view">
+              <ViewModule />
+            </ToggleButton>
+            <ToggleButton value="table" aria-label="table view">
+              <ViewList />
+            </ToggleButton>
+          </ToggleButtonGroup>
+          {user?.partyType === 'TDP' && (
+            <Button 
+              variant="contained" 
+              startIcon={<Add />}
+              onClick={() => navigate('/datasets/add')}
+            >
+              Add Dataset
+            </Button>
+          )}
+        </Box>
       </Box>
       
       {/* Role-based messaging */}
@@ -175,8 +347,8 @@ function Datasets() {
                 >
                   <MenuItem value="">All Categories</MenuItem>
                   {(Array.isArray(categories) ? categories : []).map((category) => (
-                    <MenuItem key={category} value={category}>
-                      {category}
+                    <MenuItem key={category.value || category} value={category.value || category}>
+                      {category.label || category}
                     </MenuItem>
                   ))}
                 </Select>
@@ -184,15 +356,18 @@ function Datasets() {
             </Grid>
             <Grid item xs={12} md={3}>
               <FormControl fullWidth>
-                <InputLabel>Confidential Computing</InputLabel>
+                <InputLabel>Domain</InputLabel>
                 <Select
-                  value={selectedConfidentialComputing}
-                  label="Confidential Computing"
-                  onChange={handleConfidentialComputingChange}
+                  value={selectedDomain}
+                  label="Domain"
+                  onChange={handleDomainChange}
                 >
-                  <MenuItem value="">All Datasets</MenuItem>
-                  <MenuItem value="true">Confidential Computing Required</MenuItem>
-                  <MenuItem value="false">Standard Processing</MenuItem>
+                  <MenuItem value="">All Domains</MenuItem>
+                  {(Array.isArray(domains) ? domains : []).map((domain) => (
+                    <MenuItem key={domain.value || domain} value={domain.value || domain}>
+                      {domain.label || domain}
+                    </MenuItem>
+                  ))}
                 </Select>
               </FormControl>
             </Grid>
@@ -203,7 +378,7 @@ function Datasets() {
                 onClick={() => {
                   setSearchTerm('');
                   setSelectedCategory('');
-                  setSelectedConfidentialComputing('');
+                  setSelectedDomain('');
                   setPage(1);
                 }}
               >
@@ -214,11 +389,13 @@ function Datasets() {
         </CardContent>
       </Card>
 
-      {/* Datasets Grid */}
-      {datasets.length > 0 ? (
+      {/* Datasets Display */}
+      {filteredAndSortedDatasets.length > 0 ? (
         <>
-          <Grid container spacing={3}>
-            {datasets.map((dataset) => (
+          {/* Datasets Grid View */}
+          {viewMode === 'grid' && (
+            <Grid container spacing={3}>
+              {filteredAndSortedDatasets.map((dataset) => (
               <Grid item xs={12} sm={6} md={4} lg={3} key={dataset.id}>
                 <Card 
                   sx={{ 
@@ -244,29 +421,18 @@ function Datasets() {
                         </Typography>
                       </Box>
                       
-                      {/* Confidential Computing Badge */}
-                      <Tooltip title={getConfidentialComputingLabel(dataset.confidentialComputingRequired)}>
-                        <Badge
-                          badgeContent={dataset.confidentialComputingRequired ? 1 : 0}
-                          color={getConfidentialComputingColor(dataset.confidentialComputingRequired)}
-                        >
-                          <IconButton size="small" disabled>
-                            {getConfidentialComputingIcon(dataset.confidentialComputingRequired)}
-                          </IconButton>
-                        </Badge>
-                      </Tooltip>
+                      {/* Domain Badge */}
+                      {dataset.domain && (
+                        <Chip
+                          icon={<span>{getDomainIcon(dataset.domain)}</span>}
+                          label={dataset.domain}
+                          color="primary"
+                          size="small"
+                          sx={{ mb: 1 }}
+                        />
+                      )}
                     </Box>
 
-                    {/* Confidential Computing Indicator */}
-                    {dataset.confidentialComputingRequired && (
-                      <Chip
-                        icon={<Security />}
-                        label="Confidential Computing Required"
-                        color="warning"
-                        size="small"
-                        sx={{ mb: 1 }}
-                      />
-                    )}
 
                     {/* Dataset Description */}
                     <Typography variant="body2" color="text.secondary" sx={{ mb: 2, flexGrow: 1 }}>
@@ -332,6 +498,7 @@ function Datasets() {
                           fullWidth
                           variant="outlined"
                           size="small"
+                          onClick={() => navigate(`/datasets/${dataset.datasetId}`)}
                         >
                           View Details
                         </Button>
@@ -341,7 +508,141 @@ function Datasets() {
                 </Card>
               </Grid>
             ))}
-          </Grid>
+            </Grid>
+          )}
+
+          {/* Datasets Table View */}
+          {viewMode === 'table' && (
+            <Card>
+              <CardContent>
+                <TableContainer component={Paper} elevation={0}>
+                  <Table>
+                    <TableHead>
+                      <TableRow>
+                        <TableCell>
+                          <TableSortLabel
+                            active={sortBy === 'name'}
+                            direction={sortBy === 'name' ? sortOrder : 'asc'}
+                            onClick={() => handleSort('name')}
+                          >
+                            Name
+                          </TableSortLabel>
+                        </TableCell>
+                        <TableCell>
+                          <TableSortLabel
+                            active={sortBy === 'category'}
+                            direction={sortBy === 'category' ? sortOrder : 'asc'}
+                            onClick={() => handleSort('category')}
+                          >
+                            Category
+                          </TableSortLabel>
+                        </TableCell>
+                        <TableCell>Owner</TableCell>
+                        <TableCell>
+                          <TableSortLabel
+                            active={sortBy === 'price'}
+                            direction={sortBy === 'price' ? sortOrder : 'asc'}
+                            onClick={() => handleSort('price')}
+                          >
+                            Price
+                          </TableSortLabel>
+                        </TableCell>
+                        <TableCell>Size</TableCell>
+                        <TableCell>Records</TableCell>
+                        <TableCell>Domain</TableCell>
+                        <TableCell>DEPA ID</TableCell>
+                        <TableCell>Actions</TableCell>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {filteredAndSortedDatasets.map((dataset) => (
+                        <TableRow 
+                          key={dataset.id}
+                          hover
+                          sx={{ cursor: 'pointer' }}
+                          onClick={() => navigate(`/datasets/${dataset.datasetId}`)}
+                        >
+                          <TableCell>
+                            <Box>
+                              <Typography variant="subtitle2" fontWeight="bold">
+                                {dataset.name}
+                              </Typography>
+                              <Typography variant="caption" color="textSecondary">
+                                {dataset.description.length > 50 
+                                  ? `${dataset.description.substring(0, 50)}...` 
+                                  : dataset.description
+                                }
+                              </Typography>
+                            </Box>
+                          </TableCell>
+                          <TableCell>
+                            <Chip 
+                              label={dataset.category} 
+                              size="small" 
+                              variant="outlined"
+                            />
+                          </TableCell>
+                          <TableCell>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                              <Person fontSize="small" color="action" />
+                              <Typography variant="body2">
+                                {dataset.owner?.name || 'Unknown Owner'}
+                              </Typography>
+                            </Box>
+                          </TableCell>
+                          <TableCell>
+                            <Typography variant="h6" color="primary">
+                              ${dataset.price}
+                            </Typography>
+                          </TableCell>
+                          <TableCell>
+                            <Typography variant="body2">
+                              {dataset.size}MB
+                            </Typography>
+                          </TableCell>
+                          <TableCell>
+                            <Typography variant="body2">
+                              {dataset.recordCount.toLocaleString()}
+                            </Typography>
+                          </TableCell>
+                          <TableCell>
+                            {dataset.domain ? (
+                              <Chip
+                                icon={<span>{getDomainIcon(dataset.domain)}</span>}
+                                label={dataset.domain}
+                                color="primary"
+                                size="small"
+                              />
+                            ) : (
+                              <Typography variant="body2" color="textSecondary">
+                                Not specified
+                              </Typography>
+                            )}
+                          </TableCell>
+                          <TableCell>
+                            <Typography variant="body2" fontFamily="monospace" fontSize="0.75rem">
+                              {dataset.depaId || 'Not assigned'}
+                            </Typography>
+                          </TableCell>
+                          <TableCell>
+                            <IconButton 
+                              size="small"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                navigate(`/datasets/${dataset.datasetId}`);
+                              }}
+                            >
+                              <Visibility />
+                            </IconButton>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
+              </CardContent>
+            </Card>
+          )}
 
           {/* Pagination */}
           {totalPages > 1 && (
@@ -358,7 +659,7 @@ function Datasets() {
       ) : (
         <Alert severity="info">
           <AlertTitle>No Datasets Found</AlertTitle>
-          {searchTerm || selectedCategory || selectedConfidentialComputing
+          {searchTerm || selectedCategory || selectedDomain
             ? 'No datasets match your current filters. Try adjusting your search criteria.'
             : 'No datasets are available at this time.'
           }
@@ -366,7 +667,7 @@ function Datasets() {
       )}
 
       {/* Statistics */}
-      {datasets.length > 0 && (
+      {filteredAndSortedDatasets.length > 0 && (
         <Card sx={{ mt: 3 }}>
           <CardContent>
             <Typography variant="h6" gutterBottom>
@@ -376,7 +677,7 @@ function Datasets() {
               <Grid item xs={12} sm={6} md={3}>
                 <Box sx={{ textAlign: 'center' }}>
                   <Typography variant="h4" color="primary">
-                    {datasets.length}
+                    {filteredAndSortedDatasets.length}
                   </Typography>
                   <Typography variant="body2" color="text.secondary">
                     Total Datasets
@@ -385,28 +686,28 @@ function Datasets() {
               </Grid>
               <Grid item xs={12} sm={6} md={3}>
                 <Box sx={{ textAlign: 'center' }}>
-                  <Typography variant="h4" color="warning.main">
-                    {datasets.filter(d => d.confidentialComputingRequired).length}
+                  <Typography variant="h4" color="primary.main">
+                    {new Set(filteredAndSortedDatasets.map(d => d.domain).filter(Boolean)).size}
                   </Typography>
                   <Typography variant="body2" color="text.secondary">
-                    Confidential Computing Required
+                    Unique Domains
                   </Typography>
                 </Box>
               </Grid>
               <Grid item xs={12} sm={6} md={3}>
                 <Box sx={{ textAlign: 'center' }}>
                   <Typography variant="h4" color="success.main">
-                    {datasets.filter(d => !d.confidentialComputingRequired).length}
+                    {filteredAndSortedDatasets.filter(d => d.domain).length}
                   </Typography>
                   <Typography variant="body2" color="text.secondary">
-                    Standard Processing
+                    With Domain Classification
                   </Typography>
                 </Box>
               </Grid>
               <Grid item xs={12} sm={6} md={3}>
                 <Box sx={{ textAlign: 'center' }}>
                   <Typography variant="h4" color="info.main">
-                    {new Set(datasets.map(d => d.owner?.id)).size}
+                    {new Set(filteredAndSortedDatasets.map(d => d.owner?.id)).size}
                   </Typography>
                   <Typography variant="body2" color="text.secondary">
                     Unique TDPs

@@ -15,6 +15,8 @@ import { UserProvider, useUser } from './contexts/UserContext';
 import Layout from './components/Layout';
 import DashboardSelector from './components/dashboards/DashboardSelector';
 import Datasets from './pages/Datasets';
+import DatasetDetail from './pages/DatasetDetail';
+import AddDataset from './pages/AddDataset';
 import Contracts from './pages/Contracts';
 import ContractDetail from './pages/ContractDetail';
 import CreateRicardianContract from './pages/CreateRicardianContract';
@@ -71,10 +73,21 @@ const ProtectedRoute = ({ children }) => {
 // Public Route Component (redirects to dashboard if already authenticated)
 const PublicRoute = ({ children }) => {
   const { currentUser: user, isInitializing } = useUser();
-  const token = localStorage.getItem('authToken');
+  const currentPath = window.location.pathname;
+  
+  // Check if user is intentionally navigating to registration
+  const isNavigatingToRegistration = sessionStorage.getItem('navigatingToRegistration');
+  
+  console.log('🛣️ [PublicRoute] Route check:', { 
+    currentPath, 
+    user: user ? `${user.name} (${user.partyType})` : null, 
+    isInitializing,
+    isNavigatingToRegistration: !!isNavigatingToRegistration
+  });
   
   // Show loading while initializing
   if (isInitializing) {
+    console.log('⏳ [PublicRoute] Still initializing, showing loading...');
     return (
       <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
         <div>Loading...</div>
@@ -82,17 +95,28 @@ const PublicRoute = ({ children }) => {
     );
   }
   
-  // If user is authenticated, redirect to dashboard
-  // BUT: Don't redirect if user needs first-login setup
-  if (user || token) {
+  // If user is intentionally navigating to registration, allow it regardless of user state
+  if (isNavigatingToRegistration && currentPath === '/register') {
+    console.log('🔗 [PublicRoute] Allowing navigation to registration (from login button)');
+    return children;
+  }
+  
+  // Only redirect if we have a VALID authenticated user
+  // Don't check localStorage token directly - let UserContext validate it
+  if (user) {
+    console.log('👤 [PublicRoute] Authenticated user detected:', user.name);
     // Check if user needs first-login setup
-    if (user && user.firstLogin) {
+    if (user.firstLogin) {
+      console.log('🔐 [PublicRoute] First-login user, allowing access to public routes');
       // Allow access to public routes for first-login users
       return children;
     }
+    console.log('↩️ [PublicRoute] Redirecting authenticated user to dashboard');
     return <Navigate to="/dashboard" replace />;
   }
   
+  // If no valid user, allow access to public routes (registration, login, etc.)
+  console.log('✅ [PublicRoute] No authenticated user, allowing access to public route');
   return children;
 };
 
@@ -205,6 +229,8 @@ function AppRoutes() {
               <Route path="/dashboard" element={<DashboardSelector />} />
               <Route path="/users" element={<Users />} />
               <Route path="/contracts" element={<Contracts />} />
+              <Route path="/datasets" element={<Datasets />} />
+              <Route path="/datasets/:datasetId" element={<DatasetDetail />} />
               <Route path="/analytics" element={<div>Admin Analytics</div>} />
               <Route path="/compliance" element={<div>DPDP Compliance</div>} />
               <Route path="/system" element={<div>System Settings</div>} />
@@ -223,6 +249,7 @@ function AppRoutes() {
               <Route path="/" element={<Navigate to="/tdp/dashboard" replace />} />
               <Route path="/dashboard" element={<DashboardSelector />} />
               <Route path="/datasets" element={<Datasets />} />
+              <Route path="/datasets/add" element={<AddDataset />} />
               <Route path="/datasets/:datasetId" element={<div>TDP Dataset Details</div>} />
               <Route path="/contracts" element={<Contracts />} />
               <Route path="/contracts/:contractId" element={<ContractDetail />} />
@@ -283,6 +310,20 @@ function AppRoutes() {
           </Layout>
         </ProtectedRoute>
       } />
+      <Route path="/datasets/:datasetId" element={
+        <ProtectedRoute>
+          <Layout>
+            <DatasetDetail />
+          </Layout>
+        </ProtectedRoute>
+      } />
+      <Route path="/datasets/add" element={
+        <ProtectedRoute>
+          <Layout>
+            <AddDataset />
+          </Layout>
+        </ProtectedRoute>
+      } />
       <Route path="/contracts" element={
         <ProtectedRoute>
           <Layout>
@@ -298,18 +339,18 @@ function AppRoutes() {
         </ProtectedRoute>
       } />
       <Route path="/contracts/create" element={
-        <ProtectedRoute>
+        <RoleProtectedRoute allowedRoles={['TDC']}>
           <Layout>
             <CreateRicardianContract />
           </Layout>
-        </ProtectedRoute>
+        </RoleProtectedRoute>
       } />
       <Route path="/contracts/create-ricardian" element={
-        <ProtectedRoute>
+        <RoleProtectedRoute allowedRoles={['TDC']}>
           <Layout>
             <CreateRicardianContract />
           </Layout>
-        </ProtectedRoute>
+        </RoleProtectedRoute>
       } />
       <Route path="/ccrp" element={
         <RoleProtectedRoute allowedRoles={['CCRP', 'AppAdmin']}>

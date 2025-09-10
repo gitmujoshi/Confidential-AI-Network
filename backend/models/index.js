@@ -64,8 +64,12 @@ const ProvenanceNode = require('./ProvenanceNode')(sequelize);
 const ProvenanceCapture = require('./ProvenanceCapture')(sequelize);
 const ProvenanceVerification = require('./ProvenanceVerification')(sequelize);
 
-// Import ContractDataset junction model
-const ContractDataset = require('./ContractDataset')(sequelize, Sequelize);
+// Import constraint management models
+const ConstraintCategory = require('./ConstraintCategory')(sequelize, Sequelize);
+const ConstraintField = require('./ConstraintField')(sequelize, Sequelize);
+const ConstraintValue = require('./ConstraintValue')(sequelize, Sequelize);
+
+// Note: ContractDataset removed - using JSON field approach instead
 
 // Add provenance models to the models object
 db.MerkleTree = MerkleTree;
@@ -73,8 +77,12 @@ db.ProvenanceNode = ProvenanceNode;
 db.ProvenanceCapture = ProvenanceCapture;
 db.ProvenanceVerification = ProvenanceVerification;
 
-// Add ContractDataset model to the models object
-db.ContractDataset = ContractDataset;
+// Add constraint management models to the models object
+db.ConstraintCategory = ConstraintCategory;
+db.ConstraintField = ConstraintField;
+db.ConstraintValue = ConstraintValue;
+
+// Note: ContractDataset model removed - using JSON field in Contract model instead
 
 // Define associations
 // Note: Most associations are defined in the individual model files to avoid conflicts
@@ -83,6 +91,12 @@ db.ContractDataset = ContractDataset;
 // CCRP Azure credentials associations (not defined in User model)
 db.User.hasOne(db.CCRPAzureCredentials, { foreignKey: 'ccrpUserId', as: 'azureCredentials' });
 db.CCRPAzureCredentials.belongsTo(db.User, { foreignKey: 'ccrpUserId', as: 'ccrp' });
+
+// Constraint management associations
+db.ConstraintCategory.hasMany(db.ConstraintField, { foreignKey: 'categoryId', as: 'fields' });
+db.ConstraintField.belongsTo(db.ConstraintCategory, { foreignKey: 'categoryId', as: 'category' });
+db.ConstraintField.hasMany(db.ConstraintValue, { foreignKey: 'fieldId', as: 'values' });
+db.ConstraintValue.belongsTo(db.ConstraintField, { foreignKey: 'fieldId', as: 'field' });
 
 // Contract template associations (not defined in ContractTemplate model)
 db.User.hasMany(db.ContractTemplate, { foreignKey: 'createdBy', as: 'createdTemplates' });

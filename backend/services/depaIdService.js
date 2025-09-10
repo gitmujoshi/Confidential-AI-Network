@@ -19,15 +19,15 @@ const { v4: uuidv4 } = require('uuid');
 class DEPAIdService {
   constructor() {
     // Valid entity types for DEPA ID generation
-    this.validEntityTypes = ['TDC', 'TDP', 'CCRP', 'CONTRACT'];
+    this.validEntityTypes = ['TDC', 'TDP', 'CCRP', 'CONTRACT', 'DATASET'];
     
     // Regex pattern for DEPA ID validation
-    this.depaIdPattern = /^(TDC|TDP|CCRP|CONTRACT)-[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    this.depaIdPattern = /^(TDC|TDP|CCRP|CONTRACT|DATASET)-[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
   }
 
   /**
    * Generate a new DEPA ID for the specified entity type
-   * @param {string} entityType - The entity type (TDC, TDP, CCRP, CONTRACT)
+   * @param {string} entityType - The entity type (TDC, TDP, CCRP, CONTRACT, DATASET)
    * @returns {string} The generated DEPA ID
    * @throws {Error} If entity type is invalid
    */

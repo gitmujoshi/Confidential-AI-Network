@@ -311,7 +311,7 @@ module.exports = (sequelize, Sequelize) => {
     User.hasMany(models.Dataset, { foreignKey: 'ownerId', as: 'datasets' });
     
     // User can be involved in contracts as different parties
-    User.hasMany(models.Contract, { foreignKey: 'tdpId', as: 'tdpContracts' });
+    // Note: tdpContracts is now handled through many-to-many via contract_datasets table
     User.hasMany(models.Contract, { foreignKey: 'tdcId', as: 'tdcContracts' });
     User.hasMany(models.Contract, { foreignKey: 'ccrpId', as: 'ccrpContracts' });
     

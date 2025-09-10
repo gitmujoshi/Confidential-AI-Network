@@ -68,8 +68,8 @@ async function assignDatasetDEPAIds() {
       try {
         log(`📊 Processing dataset: ${dataset.name} (ID: ${dataset.id})`);
         
-        // Generate DEPA ID for dataset using CONTRACT entity type
-        const depaId = depaIdService.generateGlobalDEPAId('CONTRACT');
+        // Generate DEPA ID for dataset using DATASET entity type
+        const depaId = depaIdService.generateGlobalDEPAId('DATASET');
         
         // Update dataset with DEPA ID
         await dataset.update({ depaId });

@@ -125,15 +125,104 @@ router.get('/search', async (req, res) => {
   }
 });
 
+// Get dataset domain categories (must come before /:datasetId route)
+router.get('/domains/list', async (req, res) => {
+  try {
+    // Try to get domain categories from constraints database first
+    try {
+      const { ConstraintCategory, ConstraintField, ConstraintValue } = require('../models');
+      
+      const category = await ConstraintCategory.findOne({
+        where: { categoryKey: 'datasets' },
+        include: [{
+          model: ConstraintField,
+          as: 'fields',
+          where: { fieldKey: 'domain_category' },
+          include: [{
+            model: ConstraintValue,
+            as: 'values',
+            where: { isActive: true },
+            order: [['displayOrder', 'ASC'], ['label', 'ASC']]
+          }]
+        }]
+      });
+
+      if (category && category.fields && category.fields.length > 0) {
+        const domains = category.fields[0].values.map(value => value.valueKey);
+        console.log('✅ Retrieved domain categories from database:', domains);
+        return res.json(domains);
+      } else {
+        console.log('⚠️ No domain constraint data found in database');
+      }
+    } catch (dbError) {
+      console.log('❌ Database domain categories not available, using fallback:', dbError.message);
+    }
+
+    // Fallback to hardcoded domain categories if database is not available
+    const domains = [
+      'Healthcare',
+      'Finance',
+      'Retail',
+      'Manufacturing',
+      'Technology',
+      'Education',
+      'Government',
+      'Energy',
+      'Transportation',
+      'Agriculture',
+      'Media',
+      'Other'
+    ];
+
+    res.json(domains);
+  } catch (error) {
+    console.error('Error getting domain categories:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 // Get dataset categories (must come before /:datasetId route)
 router.get('/categories/list', async (req, res) => {
   try {
+    // Try to get categories from constraints database first
+    try {
+      const { ConstraintCategory, ConstraintField, ConstraintValue } = require('../models');
+      
+      const category = await ConstraintCategory.findOne({
+        where: { categoryKey: 'datasets' },
+        include: [{
+          model: ConstraintField,
+          as: 'fields',
+          where: { fieldKey: 'dataset_category' },
+          include: [{
+            model: ConstraintValue,
+            as: 'values',
+            where: { isActive: true },
+            order: [['displayOrder', 'ASC'], ['label', 'ASC']]
+          }]
+        }]
+      });
+
+      if (category && category.fields && category.fields.length > 0) {
+        const categories = category.fields[0].values.map(value => value.valueKey);
+        console.log('✅ Retrieved categories from database:', categories);
+        return res.json(categories);
+      } else {
+        console.log('⚠️ No constraint data found in database');
+      }
+    } catch (dbError) {
+      console.log('❌ Database categories not available, using fallback:', dbError.message);
+    }
+
+    // Fallback to hardcoded categories if database is not available
     const categories = [
       'Computer Vision',
       'Natural Language Processing',
       'Audio',
       'Tabular',
-      'Multimodal'
+      'Multimodal',
+      'Time Series',
+      'Graph'
     ];
 
     res.json(categories);
@@ -231,7 +320,21 @@ router.post('/', async (req, res) => {
       metadata,
       isPublic,
       confidentialComputingRequired,
-      ownerId
+      ownerId,
+      // Security and compliance fields
+      data_classification,
+      secure_enclave_required,
+      attestation_required,
+      encryption_algorithm,
+      encryption_at_rest,
+      encryption_in_transit,
+      data_residency_region,
+      processing_location,
+      cross_border_transfer_allowed,
+      attestation_policy,
+      access_control_policy,
+      retention_policy,
+      audit_configuration
     } = req.body;
 
     // Validate required fields
@@ -272,7 +375,21 @@ router.post('/', async (req, res) => {
       isPublic: isPublic !== undefined ? isPublic : true,
       confidentialComputingRequired: confidentialComputingRequired !== undefined ? confidentialComputingRequired : false,
       ownerId,
-      depaId: `DATASET-${uuidv4()}`
+      depaId: `DATASET-${uuidv4()}`,
+      // Security and compliance fields
+      data_classification: data_classification || 'INTERNAL',
+      secure_enclave_required: secure_enclave_required || false,
+      attestation_required: attestation_required || false,
+      encryption_algorithm: encryption_algorithm || 'AES-256-GCM',
+      encryption_at_rest: encryption_at_rest !== undefined ? encryption_at_rest : true,
+      encryption_in_transit: encryption_in_transit !== undefined ? encryption_in_transit : true,
+      data_residency_region: data_residency_region || null,
+      processing_location: processing_location || null,
+      cross_border_transfer_allowed: cross_border_transfer_allowed || false,
+      attestation_policy: attestation_policy || {},
+      access_control_policy: access_control_policy || {},
+      retention_policy: retention_policy || {},
+      audit_configuration: audit_configuration || {}
     });
 
     // Return the created dataset directly (will fetch owner separately if needed)
@@ -350,7 +467,7 @@ router.delete('/:datasetId', async (req, res) => {
 // Compatibility: GET / (all public datasets)
 router.get('/', async (req, res) => {
   try {
-    const { category, limit = 10, offset = 0 } = req.query;
+    const { category, domain, limit = 10, offset = 0 } = req.query;
 
     const whereClause = {
       isPublic: true,
@@ -359,6 +476,10 @@ router.get('/', async (req, res) => {
 
     if (category) {
       whereClause.category = category;
+    }
+
+    if (domain) {
+      whereClause.domain = domain;
     }
 
     const datasets = await db.Dataset.findAndCountAll({

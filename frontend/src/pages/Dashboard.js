@@ -35,15 +35,15 @@ const Dashboard = () => {
   // Fetch dashboard data
   const { data: dashboardData, isLoading } = useQuery('dashboard', async () => {
     const [datasetsRes, contractsRes, usersRes] = await Promise.all([
-      apiService.get('/api/datasets/public'),
-      apiService.get('/api/contracts'),
-      apiService.get('/api/users')
+      apiService.getDatasets({}, user), // Use proper getDatasets with user context
+      apiService.getContracts(user.id, user), // Use proper getContracts with user context
+      apiService.getUsers(user) // Use proper getUsers with user context
     ]);
 
     return {
-      datasets: datasetsRes.data.datasets || [],
-      contracts: contractsRes.data.contracts || [],
-      users: usersRes.data.users || []
+      datasets: datasetsRes.datasets || [],
+      contracts: contractsRes.contracts || [],
+      users: usersRes.users || usersRes.data?.users || []
     };
   });
 
@@ -93,19 +93,22 @@ const Dashboard = () => {
           </Typography>
         </div>
         <div className="flex space-x-3">
-          <Button
-            variant="contained"
-            startIcon={<Add />}
-            onClick={() => navigate('/contracts/create')}
-          >
-                          Create Contract
-          </Button>
+          {/* Only TDC users can create contracts */}
+          {user?.partyType === 'TDC' && (
+            <Button
+              variant="contained"
+              startIcon={<Add />}
+              onClick={() => navigate('/contracts/create')}
+            >
+              Create Contract
+            </Button>
+          )}
           <Button
             variant="outlined"
             startIcon={<Storage />}
             onClick={() => navigate('/datasets')}
           >
-            Browse Datasets
+            {user?.partyType === 'TDP' ? 'My Datasets' : 'Browse Datasets'}
           </Button>
         </div>
       </div>
@@ -301,14 +304,17 @@ const Dashboard = () => {
                   <Typography color="textSecondary">
                     No contracts found
                   </Typography>
-                  <Button
-                    variant="outlined"
-                    size="small"
-                    onClick={() => navigate('/contracts/create')}
-                    className="mt-2"
-                  >
-                    Create First Contract
-                  </Button>
+                  {/* Only TDC users can create contracts */}
+                  {user?.partyType === 'TDC' && (
+                    <Button
+                      variant="outlined"
+                      size="small"
+                      onClick={() => navigate('/contracts/create')}
+                      className="mt-2"
+                    >
+                      Create First Contract
+                    </Button>
+                  )}
                 </Box>
               )}
             </CardContent>

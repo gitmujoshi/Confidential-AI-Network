@@ -44,6 +44,44 @@ class RicardianContractService {
   }
 
   /**
+   * Convert datasetSelections to the contractDatasets format expected by frontend
+   */
+  convertDatasetSelectionsToContractDatasets(datasetSelections) {
+    console.log('🔍 Converting datasetSelections:', JSON.stringify(datasetSelections, null, 2));
+    
+    if (!datasetSelections || !Array.isArray(datasetSelections)) {
+      console.log('❌ No datasetSelections or not an array');
+      return [];
+    }
+
+    const result = datasetSelections.map(selection => ({
+      datasetId: selection.datasetId,
+      datasetName: selection.datasetName,
+      description: selection.description || 'No description available',
+      category: selection.category || 'Unknown',
+      size: selection.size || 0,
+      recordCount: selection.recordCount || 0,
+      license: selection.license || 'Not specified',
+      tags: selection.tags || [],
+      depaId: selection.depaId || 'Not assigned',
+      individualPrice: selection.individualPrice,
+      tdpId: selection.tdpId,
+      tdpName: selection.tdpName,
+      tdp: {
+        id: selection.tdpId,
+        name: selection.tdpName,
+        email: selection.tdpEmail || `${selection.tdpName}@example.com`,
+        depaId: selection.tdpDepaId || 'Not assigned',
+        walletAddress: selection.tdpWalletAddress || null,
+        did: selection.tdpDid || `did:web:test.com:user:${selection.tdpName?.toLowerCase().replace(/\s+/g, '.')}`
+      }
+    }));
+    
+    console.log('✅ Converted contractDatasets:', JSON.stringify(result, null, 2));
+    return result;
+  }
+
+  /**
    * Load legal document templates
    */
   async loadTemplates() {
@@ -302,7 +340,7 @@ class RicardianContractService {
         // Add KMS configurations if present
         kmsConfigs: contractData.kmsConfigs || null,
         // Add contractDatasets - required field for multi-dataset contracts
-        contractDatasets: contractData.datasetSelections || contractData.contractDatasets || [],
+        contractDatasets: this.convertDatasetSelectionsToContractDatasets(contractData.datasetSelections) || contractData.contractDatasets || [],
         // Add dataset count
         datasetCount: contractData.datasetSelections ? contractData.datasetSelections.length : 1,
         // Add TDP count
@@ -315,6 +353,8 @@ class RicardianContractService {
       
       const contract = await Contract.create(contractRecord);
       console.log('✅ Contract record created in database');
+
+      console.log(`✅ Contract created with ${contractRecord.datasetCount} datasets stored in JSON field`);
 
       return {
         success: true,

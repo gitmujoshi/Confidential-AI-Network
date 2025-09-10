@@ -337,7 +337,7 @@ function ContractDetail() {
   );
 
   // Get datasets for display (handle both old and new format)
-  const displayDatasets = contract?.datasetSelections || contract?.datasets || [];
+  const displayDatasets = contract?.contractDatasets || contract?.datasetSelections || contract?.datasets || [];
 
   // Debug: Log contract data to see what Ricardian fields are present
   React.useEffect(() => {
