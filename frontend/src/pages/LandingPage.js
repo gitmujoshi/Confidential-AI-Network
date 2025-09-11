@@ -29,6 +29,7 @@ import {
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import DEPAConfigurationDisplay from '../components/DEPAConfigurationDisplay';
+import apiService from '../services/api';
 
 const LandingPage = () => {
   const navigate = useNavigate();
@@ -43,10 +44,9 @@ const LandingPage = () => {
 
   const fetchDEPAConfiguration = async () => {
     try {
-      const response = await fetch('/api/depa/configuration');
-      const data = await response.json();
-      if (data.success) {
-        setDepaConfig(data.config);
+      const response = await apiService.get('/api/depa/configuration');
+      if (response.success) {
+        setDepaConfig(response.config);
       }
     } catch (error) {
       console.error('Error fetching DEPA configuration:', error);
