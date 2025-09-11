@@ -27,6 +27,7 @@ import UserRegistration from './pages/UserRegistration';
 import Login from './pages/Login';
 import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
+import LandingPage from './pages/LandingPage';
 import FirstLoginWizard from './pages/FirstLoginWizard.simple';
 import EnterpriseDIDManagement from './pages/EnterpriseDIDManagement';
 import Profile from './pages/Profile';
@@ -179,6 +180,7 @@ function AppRoutes() {
   return (
     <Routes>
       {/* Public Routes */}
+      <Route path="/" element={<LandingPage />} />
       <Route path="/login" element={
         <PublicRoute>
           <Login />
@@ -203,7 +205,7 @@ function AppRoutes() {
       <Route path="/first-login" element={<FirstLoginWizard />} />
       
       {/* Protected Routes */}
-      <Route path="/" element={
+      <Route path="/app" element={
         <ProtectedRoute>
           <Layout>
             <Navigate to="/dashboard" replace />
@@ -396,7 +398,7 @@ function AppRoutes() {
       <Route path="/user-registration" element={<Navigate to="/register" replace />} />
       
       {/* Catch all route */}
-      <Route path="*" element={<Navigate to="/dashboard" replace />} />
+      <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
 }
