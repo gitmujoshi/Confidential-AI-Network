@@ -70,11 +70,12 @@ const LandingPage = () => {
     {
       icon: <BusinessIcon sx={{ fontSize: 40, color: 'primary.main' }} />,
       title: 'Contract Management',
-      description: 'Secure contract creation, negotiation, and execution with blockchain integration.'
+      description: 'Secure contract creation, negotiation, and execution with SCITT CCF Ledger integration.'
     },
     {
       icon: <PublicIcon sx={{ fontSize: 40, color: 'primary.main' }} />,
-      description: 'Multi-party collaboration between TDCs, TDPs, and CCRPs with role-based access control.'
+      title: 'Multi-party Collaboration',
+      description: 'Secure collaboration between TDCs, TDPs, and CCRPs with role-based access control.'
     },
     {
       icon: <LocationIcon sx={{ fontSize: 40, color: 'primary.main' }} />,
@@ -87,7 +88,7 @@ const LandingPage = () => {
     'Privacy-preserving entity identification',
     'Regulatory compliance built-in',
     'Multi-party collaboration platform',
-    'Blockchain-based contract execution',
+    'SCITT CCF Ledger-based contract execution',
     'Role-based access control',
     'Audit trail and provenance tracking'
   ];
@@ -128,7 +129,7 @@ const LandingPage = () => {
               Secure Contract Management
             </Typography>
             <Typography variant="h5" color="text.secondary" paragraph sx={{ mb: 4 }}>
-              Privacy-compliant contract management with DEPA ID integration for TDCs, TDPs, and CCRPs
+              Privacy-compliant contract management with DEPA ID integration and SCITT CCF Ledger for TDCs, TDPs, and CCRPs
             </Typography>
             <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
               <Button
@@ -240,7 +241,8 @@ const LandingPage = () => {
             </Typography>
             <Typography variant="body1" color="text.secondary" paragraph sx={{ mb: 4 }}>
               Our contract management system is built with privacy and compliance at its core, 
-              featuring DEPA ID integration for secure entity identification and regulatory compliance.
+              featuring DEPA ID integration for secure entity identification and SCITT CCF Ledger 
+              for tamper-proof contract execution and regulatory compliance.
             </Typography>
             <Box>
               {benefits.map((benefit, index) => (
@@ -254,7 +256,7 @@ const LandingPage = () => {
           <Grid item xs={12} md={6}>
             <Paper elevation={3} sx={{ p: 4, bgcolor: 'primary.50' }}>
               <Typography variant="h5" gutterBottom sx={{ fontWeight: 'bold', color: 'primary.main' }}>
-                DEPA ID Configuration
+                DEPA ID & SCITT CCF Ledger
               </Typography>
               <Typography variant="body2" color="text.secondary" paragraph>
                 Each entity in our system receives a unique DEPA ID that follows the format:
@@ -278,6 +280,12 @@ const LandingPage = () => {
                 This ensures privacy compliance and provides a standardized way to identify 
                 Training Data Consumers (TDCs), Training Data Providers (TDPs), and 
                 Confidential Clean Room Providers (CCRPs).
+              </Typography>
+              <Typography variant="body2" color="text.secondary" paragraph>
+                <strong>SCITT CCF Ledger:</strong> All contracts are executed on a tamper-proof 
+                SCITT (Supply Chain Integrity, Transparency, and Trust) CCF (Confidential 
+                Computing Framework) Ledger, ensuring immutable contract records and 
+                regulatory compliance.
               </Typography>
               <Button
                 variant="contained"
