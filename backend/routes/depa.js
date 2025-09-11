@@ -12,8 +12,9 @@ const { authenticateToken } = require('../middleware/auth');
 /**
  * GET /api/depa/configuration
  * Get current deployment configuration for DEPA ID generation
+ * Public endpoint for registration page
  */
-router.get('/configuration', authenticateToken, (req, res) => {
+router.get('/configuration', (req, res) => {
   try {
     const config = {
       deploymentId: process.env.DEPLOYMENT_ID || 'LOCAL',
@@ -48,8 +49,9 @@ router.get('/configuration', authenticateToken, (req, res) => {
 /**
  * GET /api/depa/format-explanation
  * Get detailed explanation of DEPA ID format
+ * Public endpoint for registration page
  */
-router.get('/format-explanation', authenticateToken, (req, res) => {
+router.get('/format-explanation', (req, res) => {
   try {
     const prefix = process.env.DEPLOYMENT_PREFIX || 'LOCAL';
     
