@@ -98,7 +98,7 @@ deploy_scitt_services() {
     
     # Start SCITT services
     log_info "Starting SCITT CCF services..."
-    docker-compose -f "$SCITT_COMPOSE_FILE" up -d
+    docker-compose -f "$SCITT_COMPOSE_FILE" up -d --remove-orphans
     
     log_success "SCITT CCF services started"
 }

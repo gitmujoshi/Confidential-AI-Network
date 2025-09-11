@@ -26,9 +26,9 @@ test.describe('Authentication E2E Tests', () => {
   });
 
   test('should successfully login with valid credentials', async ({ page }) => {
-    // Login with valid credentials (using E2E test user)
-    await page.getByLabel(/email/i).fill('tdc-test@example.com');
-    await page.getByLabel(/password/i).fill('password123');
+    // Login with valid credentials (using working test user from TEST_USERS_CREDENTIALS.md)
+    await page.getByLabel(/email/i).fill('tdc.healthcare.2025-09-05t20-39-55@test.com');
+    await page.getByLabel(/password/i).fill('TestNewPassword123!');
     await page.getByRole('button', { name: /sign in/i }).click();
 
     // Should redirect to dashboard
@@ -67,8 +67,8 @@ test.describe('Authentication E2E Tests', () => {
 
   test('should logout successfully', async ({ page }) => {
     // First login
-    await page.getByLabel(/email/i).fill('tdc-test@example.com');
-    await page.getByLabel(/password/i).fill('password123');
+    await page.getByLabel(/email/i).fill('tdc.healthcare.2025-09-05t20-39-55@test.com');
+    await page.getByLabel(/password/i).fill('TestNewPassword123!');
     await page.getByRole('button', { name: /sign in/i }).click();
 
     // Wait for dashboard to load
@@ -91,7 +91,7 @@ test.describe('Authentication E2E Tests', () => {
     await expect(page.getByLabel(/email/i)).toBeVisible();
 
     // Fill email and submit
-    await page.getByLabel(/email/i).fill('tdc-test@example.com');
+    await page.getByLabel(/email/i).fill('tdc.healthcare.2025-09-05t20-39-55@test.com');
     await page.getByRole('button', { name: /send reset link/i }).click();
 
     // Should show success message
@@ -106,9 +106,9 @@ test.describe('Authentication E2E Tests', () => {
       console.log('🧹 Browser storage cleared for fresh login');
     });
     
-    // Login as TDC user (using E2E test user)
-    await page.getByLabel(/email/i).fill('tdc-test@example.com');
-    await page.getByLabel(/password/i).fill('password123');
+    // Login as TDC user (using working test user)
+    await page.getByLabel(/email/i).fill('tdc.healthcare.2025-09-05t20-39-55@test.com');
+    await page.getByLabel(/password/i).fill('TestNewPassword123!');
     await page.getByRole('button', { name: /sign in/i }).click();
 
     // Should redirect to dashboard
@@ -127,7 +127,7 @@ test.describe('Authentication E2E Tests', () => {
     }
 
     // Should show correct user info
-    await expect(page.getByText(/tdc-test@example.com/i)).toBeVisible();
+    await expect(page.getByText(/tdc.healthcare.2025-09-05t20-39-55@test.com/i)).toBeVisible();
     await expect(page.getByText(/TDC/i)).toBeVisible();
     // Should not show old user data
     await expect(page.locator('body')).not.toContainText('uitdc@example.com');

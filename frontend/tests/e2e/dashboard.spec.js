@@ -1,9 +1,15 @@
-import { test, expect } from '@playwright/test';
+const { test, expect } = require('@playwright/test');
 
 test.describe('Dashboard Tests', () => {
   test.beforeEach(async ({ page }) => {
-    // Navigate to the dashboard
-    await page.goto('http://localhost:3000/dashboard');
+    // Login before each test using working test user
+    await page.goto('/');
+    await page.getByLabel(/email/i).fill('tdc.healthcare.2025-09-05t20-39-55@test.com');
+    await page.getByLabel(/password/i).fill('TestNewPassword123!');
+    await page.getByRole('button', { name: /sign in/i }).click();
+    
+    // Wait for dashboard to load
+    await expect(page).toHaveURL(/.*dashboard/);
   });
 
   test('should display TDC dashboard correctly', async ({ page }) => {

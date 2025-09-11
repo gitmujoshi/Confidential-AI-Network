@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   # SCITT CCF PostgreSQL Database (Port 5433 - Different from main app)
   scitt-ccf-postgres:

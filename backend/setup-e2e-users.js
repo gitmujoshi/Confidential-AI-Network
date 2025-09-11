@@ -1,3 +1,12 @@
+// Load centralized configuration
+require('dotenv').config({ path: '../config.env' });
+// Load secrets if available
+try {
+  require('dotenv').config({ path: '../secrets.env' });
+} catch (error) {
+  console.log('⚠️ Secrets file not found, using config.env only');
+}
+
 const axios = require('axios');
 const db = require('./models');
 const KeycloakService = require('./services/keycloakService');
@@ -158,7 +167,8 @@ async function registerUser(userData) {
   console.log(`📝 Registering user: ${userData.email}`);
   
   try {
-    const response = await axios.post('http://localhost:5001/api/auth/register', {
+    const baseURL = `http://localhost:${process.env.BACKEND_PORT || 5001}`;
+    const response = await axios.post(`${baseURL}/api/auth/register`, {
       name: userData.name,
       email: userData.email,
       password: userData.password,

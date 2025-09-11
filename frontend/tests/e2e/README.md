@@ -1,341 +1,243 @@
-# E2E Testing with Playwright
+# E2E Test Suite
 
-This directory contains End-to-End (E2E) tests for the Contract Management Frontend using Playwright.
+Comprehensive end-to-end testing suite for the Contract Management System, covering role-based access control, core functionality, and advanced features.
 
 ## 🚀 Quick Start
 
-### 1. Install Dependencies
-```bash
-cd frontend
-npm install
-```
+### Prerequisites
+- Node.js 16+ 
+- npm or yarn
+- Playwright browsers installed
 
-### 2. Install Playwright Browsers
+### Installation
 ```bash
+# Install dependencies
+npm install
+
+# Install Playwright browsers
 npm run test:e2e:install
 ```
 
-### 3. Start the Backend Server
-Make sure your backend server is running on port 5001:
+### Running Tests
 ```bash
-cd ../backend
-npm start
-```
+# Run all tests
+npm run test:e2e:all
 
-### 4. Run E2E Tests
-```bash
-# Run all E2E tests
-npm run test:e2e
+# Run specific test suite
+npm run test:e2e:auth
+npm run test:e2e:core
+npm run test:e2e:role-based
 
-# Run tests with UI mode (interactive)
+# Run with UI
 npm run test:e2e:ui
 
-# Run tests in headed mode (see browser)
+# Run in headed mode (visible browser)
 npm run test:e2e:headed
+```
 
-# Run tests in debug mode
-npm run test:e2e:debug
+## 📋 Test Suites
 
-# View test reports
+### 1. Authentication & Authorization (`auth`)
+- **Files**: `auth.spec.js`, `role-based-access.spec.js`
+- **Duration**: ~5 minutes
+- **Description**: Tests login, logout, registration, and role-based access control
+
+### 2. Core Functionality (`core`)
+- **Files**: `dashboard.spec.js`, `contracts.spec.js`, `tdp-dataset-management.spec.js`
+- **Duration**: ~10 minutes
+- **Description**: Tests main application features and workflows
+
+### 3. Advanced Features (`advanced`)
+- **Files**: `training-parameters.spec.js`, `confidential-computing.spec.js`
+- **Duration**: ~15 minutes
+- **Description**: Tests advanced features like training parameters and confidential computing
+
+### 4. Integration Tests (`integration`)
+- **Files**: `end-to-end-workflows.spec.js`, `api-integration.spec.js`
+- **Duration**: ~20 minutes
+- **Description**: End-to-end workflow tests and API integration
+
+## 🔐 Role-Based Access Tests
+
+### Test Users
+- **TDP User**: `tdp.role-test@example.com` - Can create datasets, view own data
+- **TDC User**: `tdc.role-test@example.com` - Can create contracts, view public datasets
+- **CCRP User**: `ccrp.role-test@example.com` - Can manage environments, view assigned contracts
+- **Admin User**: `admin.role-test@example.com` - Can view all data, manage users
+
+### Test Scenarios
+1. **TDP Access Control**
+   - Can only see their own datasets
+   - Can only see contracts they're involved in
+   - Cannot see "Create Contract" button
+   - Can add new datasets
+
+2. **TDC Access Control**
+   - Can see public datasets
+   - Can see their own contracts
+   - Can see "Create Contract" button
+   - Cannot add datasets
+
+3. **CCRP Access Control**
+   - Can see public datasets
+   - Can see contracts assigned to them
+   - Cannot see "Create Contract" button
+   - Cannot add datasets
+
+4. **Admin Access Control**
+   - Can see all datasets
+   - Can see all contracts
+   - Can see Users menu
+   - Full system access
+
+## 🛠️ Test Data Management
+
+### Setup Test Data
+```bash
+# Create test users, datasets, and contracts
+npm run test:e2e:setup
+```
+
+### Cleanup Test Data
+```bash
+# Remove all test data
+npm run test:e2e:cleanup
+```
+
+### Reset Test Data
+```bash
+# Clean up and recreate test data
+node tests/e2e/setup-role-based-tests.js reset
+```
+
+## 📊 Test Reporting
+
+### HTML Report
+```bash
+# Generate HTML report
 npm run test:e2e:report
 ```
 
-## 📁 Test Structure
-
-```
-tests/e2e/
-├── auth.spec.js              # Authentication tests
-├── contracts.spec.js         # Contract management tests
-├── dashboard.spec.js         # Dashboard functionality tests
-├── training-parameters.spec.js # Max training runs feature tests
-├── global-setup.js           # Global test setup
-├── global-teardown.js        # Global test cleanup
-└── README.md                 # This file
+### Test Status
+```bash
+# Check test status
+npm run test:e2e:status
 ```
 
-## 🧪 Test Categories
+### Test Results
+- **Location**: `test-results/`
+- **HTML Report**: `test-results/html-report/index.html`
+- **JSON Results**: `test-results/results.json`
+- **JUnit Results**: `test-results/results.xml`
 
-### Authentication Tests (`auth.spec.js`)
-- Login form display
-- Invalid login handling
-- Successful login flow
-- Registration form
-- User registration
-- Logout functionality
-- Forgot password flow
+## 🔧 Configuration
 
-### Contract Management Tests (`contracts.spec.js`)
-- Contract page navigation
-- Contract creation
-- Contract viewing
-- Contract editing
-- Contract filtering
-- Contract signing
-- Contract status display
-- Contract deletion
+### Environment Variables
+```bash
+# Set test base URL
+export TEST_BASE_URL=http://localhost:3000
 
-### Dashboard Tests (`dashboard.spec.js`)
-- Dashboard display
-- User information
-- Navigation menu
-- Contract statistics
-- Recent contracts
-- Notifications
-- User profile
-- Responsive design
-- Charts and analytics
-- Quick actions
-- Search functionality
-- Theme switching
+# Set test user credentials
+export TEST_ADMIN_EMAIL=admin@example.com
+export TEST_ADMIN_PASSWORD=Test123!
+```
 
-### Training Parameters Tests (`training-parameters.spec.js`)
-- Max training runs field display
-- Field editing
-- Input validation
-- Contract saving
-- Contract details display
-- Field editing in details
-- JSON format display
-- Form validation
-- Different contract types
-- Export functionality
+### Browser Configuration
+- **Chromium**: Default browser
+- **Firefox**: Alternative browser
+- **WebKit**: Safari engine
+- **Mobile**: Chrome Mobile, Safari Mobile
 
-## 🛠️ Configuration
+### Test Configuration
+- **Timeout**: 30 seconds per test
+- **Retries**: 2 retries on failure
+- **Parallel**: Tests run in parallel
+- **Workers**: 1 worker in CI, multiple locally
 
-The E2E tests are configured in `playwright.config.js`:
+## 🐛 Debugging
 
-- **Base URL**: `http://localhost:3000`
-- **Test Directory**: `./tests/e2e`
-- **Browsers**: Chrome, Firefox, Safari, Mobile Chrome, Mobile Safari
-- **Screenshots**: On failure
-- **Videos**: On failure
-- **Traces**: On first retry
-- **Web Server**: Automatically starts React dev server
+### Debug Mode
+```bash
+# Run tests in debug mode
+npm run test:e2e:debug
+```
 
-## 🎯 Writing Tests
+### Headed Mode
+```bash
+# Run tests with visible browser
+npm run test:e2e:headed
+```
 
-### Basic Test Structure
+### UI Mode
+```bash
+# Run tests with Playwright UI
+npm run test:e2e:ui
+```
+
+### Specific Test
+```bash
+# Run specific test file
+npx playwright test tests/e2e/role-based-access.spec.js
+
+# Run specific test by name
+npx playwright test --grep "TDP should only see their own datasets"
+```
+
+## 📝 Writing Tests
+
+### Test Structure
 ```javascript
 const { test, expect } = require('@playwright/test');
 
 test.describe('Feature Name', () => {
-  test.beforeEach(async ({ page }) => {
-    // Setup before each test
-    await page.goto('/');
-    // Login if needed
-  });
-
   test('should do something', async ({ page }) => {
-    // Test steps
-    await page.getByRole('button', { name: /click me/i }).click();
-    
-    // Assertions
-    await expect(page.getByText(/success/i)).toBeVisible();
+    // Test implementation
   });
 });
 ```
 
 ### Best Practices
+1. **Use data-testid attributes** for reliable element selection
+2. **Wait for network idle** after navigation
+3. **Use proper assertions** with meaningful messages
+4. **Clean up test data** after tests
+5. **Use page objects** for complex interactions
 
-1. **Use Semantic Selectors**
-   ```javascript
-   // Good
-   await page.getByRole('button', { name: /login/i }).click();
-   await page.getByLabel(/email/i).fill('test@example.com');
-   
-   // Avoid
-   await page.click('#login-button');
-   await page.fill('#email-input', 'test@example.com');
-   ```
+### Test Data
+- Use the test data setup scripts
+- Create isolated test data for each test
+- Clean up after each test
+- Use meaningful test data names
 
-2. **Wait for Elements**
-   ```javascript
-   // Playwright auto-waits, but be explicit when needed
-   await expect(page.getByText(/loading/i)).toBeVisible();
-   await expect(page.getByText(/loading/i)).not.toBeVisible();
-   ```
-
-3. **Use Descriptive Test Names**
-   ```javascript
-   test('should display error message for invalid email format', async ({ page }) => {
-     // Test implementation
-   });
-   ```
-
-4. **Group Related Tests**
-   ```javascript
-   test.describe('Contract Creation', () => {
-     test('should create contract with valid data', async ({ page }) => {
-       // Test implementation
-     });
-     
-     test('should show validation errors for invalid data', async ({ page }) => {
-       // Test implementation
-     });
-   });
-   ```
-
-## 🔧 Debugging
-
-### Debug Mode
-```bash
-npm run test:e2e:debug
-```
-This opens Playwright Inspector where you can:
-- Step through tests
-- Inspect elements
-- View network requests
-- See console logs
-
-### UI Mode
-```bash
-npm run test:e2e:ui
-```
-This opens Playwright UI where you can:
-- Run tests interactively
-- View test results
-- Debug failures
-- Generate reports
-
-### Screenshots and Videos
-Failed tests automatically generate:
-- Screenshots in `test-results/`
-- Videos in `test-results/`
-- Traces in `test-results/`
-
-## 📊 Reports
-
-### HTML Report
-```bash
-npm run test:e2e:report
-```
-Opens detailed HTML report with:
-- Test results
-- Screenshots
-- Videos
-- Traces
-- Performance metrics
-
-### JSON Report
-Test results are saved to `test-results/e2e-results.json`
-
-### JUnit Report
-Test results are saved to `test-results/e2e-results.xml`
-
-## 🚀 CI/CD Integration
-
-### GitHub Actions Example
-```yaml
-name: E2E Tests
-on: [push, pull_request]
-jobs:
-  test:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
-        with:
-          node-version: '18'
-      - run: cd frontend && npm install
-      - run: cd frontend && npm run test:e2e:install
-      - run: cd backend && npm install
-      - run: cd backend && npm start &
-      - run: cd frontend && npm run test:e2e
-      - uses: actions/upload-artifact@v3
-        if: failure()
-        with:
-          name: playwright-report
-          path: frontend/playwright-report/
-```
-
-## 🔍 Troubleshooting
+## 🚨 Troubleshooting
 
 ### Common Issues
 
-1. **Tests Fail on CI but Pass Locally**
-   - Check if backend server is running
-   - Verify database connection
-   - Check for timing issues
+#### Tests Failing
+1. Check if the application is running
+2. Verify test data is set up correctly
+3. Check browser console for errors
+4. Run tests in headed mode to see what's happening
 
-2. **Element Not Found**
-   - Use `page.pause()` to debug
-   - Check if element is in viewport
-   - Verify element selectors
+#### Test Data Issues
+1. Run cleanup and setup again
+2. Check database for existing test data
+3. Verify user credentials are correct
 
-3. **Slow Tests**
-   - Use `page.waitForLoadState('networkidle')`
-   - Optimize selectors
-   - Reduce unnecessary waits
+#### Browser Issues
+1. Reinstall Playwright browsers
+2. Check browser version compatibility
+3. Try different browser
 
-4. **Flaky Tests**
-   - Add explicit waits
-   - Use more reliable selectors
-   - Check for race conditions
+### Getting Help
+1. Check test logs in `test-results/`
+2. Run tests in debug mode
+3. Check application logs
+4. Review test documentation
 
-### Debug Commands
-```bash
-# Run specific test file
-npm run test:e2e tests/e2e/auth.spec.js
-
-# Run specific test
-npm run test:e2e --grep "should login"
-
-# Run tests in specific browser
-npm run test:e2e --project=chromium
-
-# Run tests with custom timeout
-npm run test:e2e --timeout=60000
-```
-
-## 📈 Performance Testing
-
-### Load Testing
-```javascript
-test('should handle multiple users', async ({ browser }) => {
-  const context1 = await browser.newContext();
-  const context2 = await browser.newContext();
-  
-  const page1 = await context1.newPage();
-  const page2 = await context2.newPage();
-  
-  // Test concurrent operations
-});
-```
-
-### Visual Regression Testing
-```javascript
-test('should match screenshot', async ({ page }) => {
-  await page.goto('/dashboard');
-  await expect(page).toHaveScreenshot('dashboard.png');
-});
-```
-
-## 🎯 Next Steps
-
-1. **Add More Test Coverage**
-   - Dataset management
-   - User management
-   - Admin functionality
-   - Error handling
-
-2. **Performance Testing**
-   - Load testing
-   - Visual regression testing
-   - Accessibility testing
-
-3. **Mobile Testing**
-   - Touch interactions
-   - Responsive design
-   - Mobile-specific features
-
-4. **API Testing**
-   - Backend integration
-   - Error scenarios
-   - Data validation
-
-## 📚 Resources
+## 📚 Additional Resources
 
 - [Playwright Documentation](https://playwright.dev/)
-- [Playwright Test API](https://playwright.dev/docs/api/class-test)
-- [Best Practices](https://playwright.dev/docs/best-practices)
-- [Debugging Guide](https://playwright.dev/docs/debug) 
+- [Test Organization Guide](./test-organization.md)
+- [Test Data Setup](./setup-role-based-tests.js)
+- [Test Runner](./run-tests.js)

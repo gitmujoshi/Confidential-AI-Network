@@ -2,11 +2,11 @@ const { test, expect } = require('@playwright/test');
 
 test.describe('Training Parameters E2E Tests', () => {
   test.beforeEach(async ({ page }) => {
-    // Login before each test
+    // Login before each test using working test user
     await page.goto('/');
-    await page.getByLabel(/email/i).fill('test@example.com');
-    await page.getByLabel(/password/i).fill('password123');
-    await page.getByRole('button', { name: /login/i }).click();
+    await page.getByLabel(/email/i).fill('tdc.healthcare.2025-09-05t20-39-55@test.com');
+    await page.getByLabel(/password/i).fill('TestNewPassword123!');
+    await page.getByRole('button', { name: /sign in/i }).click();
     
     // Wait for dashboard to load
     await expect(page).toHaveURL(/.*dashboard/);
