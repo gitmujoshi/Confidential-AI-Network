@@ -631,16 +631,17 @@ const UserRegistration = () => {
 
             <Grid item xs={12}>
               <DEPAConfigurationDisplay
-                user={{ depaId: null, role: formData.partyType }}
+                user={{ depaId: null, partyType: formData.partyType }}
                 compact={false}
                 showFormat={true}
                 showDeploymentInfo={true}
                 showRegulatoryInfo={true}
                 title="DEPA ID Assignment Information"
+                defaultExpanded={true}
               />
               <Typography variant="body2" color="text.secondary" sx={{ mt: 2, fontStyle: 'italic' }}>
                 <strong>Note:</strong> Your DEPA ID will be automatically generated based on your selected role 
-                ({formData.partyType}) and the current deployment configuration. This ID is used for privacy 
+                ({formData.partyType || 'not selected'}) and the current deployment configuration. This ID is used for privacy 
                 compliance and cannot be changed after registration.
               </Typography>
             </Grid>
