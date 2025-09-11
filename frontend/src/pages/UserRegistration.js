@@ -637,7 +637,6 @@ const UserRegistration = () => {
                 showDeploymentInfo={true}
                 showRegulatoryInfo={true}
                 title="DEPA ID Assignment Information"
-                defaultExpanded={true}
               />
               <Typography variant="body2" color="text.secondary" sx={{ mt: 2, fontStyle: 'italic' }}>
                 <strong>Note:</strong> Your DEPA ID will be automatically generated based on your selected role 
