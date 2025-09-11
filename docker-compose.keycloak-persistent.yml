@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   ***REMOVED-KEYCLOAK_DB_PASSWORD***:
     image: quay.io/***REMOVED-KEYCLOAK_DB_PASSWORD***/***REMOVED-KEYCLOAK_DB_PASSWORD***:latest
