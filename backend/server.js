@@ -46,6 +46,9 @@ const dpdpRouter = require('./routes/dpdp');
 const signingRouter = require('./routes/signing');
 const aiModelsRouter = require('./routes/ai-models');
 const notificationsRouter = require('./routes/notifications');
+const globalDeploymentRouter = require('./routes/globalDeployment');
+const blockchainRouter = require('./routes/blockchain');
+const constraintsRouter = require('./routes/constraints');
 
 // Import role-specific routes
 const adminRouter = require('./routes/admin');
@@ -180,6 +183,9 @@ app.use('/api/dpdp', dpdpRouter);
 app.use('/api/signing', signingRouter);
 app.use('/api/ai-models', aiModelsRouter);
 app.use('/api/notifications', notificationsRouter);
+app.use('/api/global-deployment', globalDeploymentRouter);
+app.use('/api/blockchain', blockchainRouter);
+app.use('/api/constraints', constraintsRouter);
 
 // Contract template routes
 app.use('/api/contract-templates', contractTemplatesRouter);
