@@ -79,14 +79,14 @@ const LandingPage = () => {
     },
     {
       icon: <LocationIcon sx={{ fontSize: 40, color: 'primary.main' }} />,
-      title: 'Regulatory Compliance',
-      description: 'Built-in compliance with SOX, FedRAMP, CCPA and other regulatory frameworks.'
+      title: 'Regulatory Framework Support',
+      description: 'Configuration support for SOX, FedRAMP, CCPA and other regulatory frameworks.'
     }
   ];
 
   const benefits = [
     'Privacy-preserving entity identification',
-    'Regulatory compliance built-in',
+    'Regulatory framework configuration',
     'Multi-party collaboration platform',
     'SCITT CCF Ledger-based contract execution',
     'Role-based access control',
@@ -240,9 +240,9 @@ const LandingPage = () => {
               Why Choose Our Platform?
             </Typography>
             <Typography variant="body1" color="text.secondary" paragraph sx={{ mb: 4 }}>
-              Our contract management system is built with privacy and compliance at its core, 
+              Our contract management system is built with privacy and security at its core, 
               featuring DEPA ID integration for secure entity identification and SCITT CCF Ledger 
-              for tamper-proof contract execution and regulatory compliance.
+              for tamper-proof contract execution with configurable regulatory framework support.
             </Typography>
             <Box>
               {benefits.map((benefit, index) => (
