@@ -52,8 +52,8 @@ const LandingPage = () => {
       const response = await apiService.get('/api/depa/configuration');
       console.log('🔍 [LandingPage] DEPA config response:', response);
       
-      if (response.success) {
-        setDepaConfig(response.config);
+      if (response.data && response.data.success) {
+        setDepaConfig(response.data.config);
         console.log('✅ [LandingPage] DEPA config loaded successfully');
       } else {
         setDepaConfigError('Failed to load configuration');
@@ -178,18 +178,10 @@ const LandingPage = () => {
                   </Typography>
                 </Box>
               ) : depaConfigError ? (
-                <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', py: 2 }}>
-                  <Typography variant="body2" color="error" sx={{ mb: 1 }}>
-                    {depaConfigError}
+                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', py: 2 }}>
+                  <Typography variant="body2" color="text.secondary">
+                    Configuration unavailable
                   </Typography>
-                  <Button 
-                    size="small" 
-                    variant="outlined" 
-                    onClick={fetchDEPAConfiguration}
-                    sx={{ mt: 1 }}
-                  >
-                    Retry
-                  </Button>
                 </Box>
               ) : depaConfig ? (
                 <Box>
