@@ -90,7 +90,7 @@ const LandingPage = () => {
     'Multi-party collaboration platform',
     'SCITT CCF Ledger-based contract execution',
     'Role-based access control',
-    'Audit trail and provenance tracking'
+    'Comprehensive audit logging and provenance tracking'
   ];
 
   return (
