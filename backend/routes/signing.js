@@ -1,8 +1,40 @@
 const express = require('express');
 const router = express.Router();
+const crypto = require('crypto');
 const { authenticateToken } = require('../middleware/auth');
 const keyManagementService = require('../services/keyManagementService');
-const { User, Contract, Signature, SigningEvent, UserKey } = require('../models');
+const db = require('../models');
+const { User, Contract, Signature, SigningEvent, UserKey } = db;
+
+// Get key management configuration (public endpoint)
+router.get('/config', (req, res) => {
+  try {
+    const config = keyManagementService.getConfiguration();
+    
+    // Return only safe configuration (no private keys or sensitive data)
+    res.json({
+      success: true,
+      config: {
+        supportedAlgorithms: config.supportedAlgorithms,
+        defaultAlgorithm: config.defaultAlgorithm,
+        keyIdPrefix: config.keyIdPrefix,
+        keyExpiryDays: config.keyExpiryDays,
+        encryptionAlgorithm: config.encryptionAlgorithm,
+        algorithms: config.supportedAlgorithms.map(alg => ({
+          name: alg,
+          description: keyManagementService.getAlgorithmDescription(alg),
+          info: keyManagementService.getAlgorithmInfo(alg)
+        }))
+      }
+    });
+  } catch (error) {
+    console.error('Error fetching key management config:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: 'Failed to fetch key management configuration' 
+    });
+  }
+});
 
 // Get user's signing keys
 router.get('/keys', authenticateToken, async (req, res) => {

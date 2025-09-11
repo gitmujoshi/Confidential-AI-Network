@@ -10,11 +10,13 @@
 6. [User Management](#user-management)
 7. [Role-Based Access Control](#role-based-access-control)
 8. [Authentication Flows](#authentication-flows)
-9. [Security Settings](#security-settings)
-10. [Integration Points](#integration-points)
-11. [Deployment Configuration](#deployment-configuration)
-12. [Troubleshooting](#troubleshooting)
-13. [Monitoring & Auditing](#monitoring--auditing)
+9. [Contract Signing Integration](#contract-signing-integration)
+10. [Key Management Integration](#key-management-integration)
+11. [Security Settings](#security-settings)
+12. [Integration Points](#integration-points)
+13. [Deployment Configuration](#deployment-configuration)
+14. [Troubleshooting](#troubleshooting)
+15. [Monitoring & Auditing](#monitoring--auditing)
 
 ---
 
@@ -28,6 +30,9 @@ The Contract Management System uses **Keycloak** as its Identity and Access Mana
 - **Multi-Client Support**: Separate clients for frontend, backend, and admin operations
 - **Service Account Authentication**: Backend services authenticate using service accounts
 - **Role-Based Access Control**: Granular permissions based on user roles and party types
+- **Contract Signing Integration**: Seamless integration with digital contract signing workflows
+- **Key Management**: Secure generation, storage, and management of signing keys
+- **SCITT CCF Integration**: Integration with SCITT CCF ledger for immutable signature storage
 
 ---
 
@@ -42,7 +47,21 @@ The Contract Management System uses **Keycloak** as its Identity and Access Mana
 │ - User Login   │    │ - API Auth     │    │ - User Mgmt    │
 │ - Registration │    │ - Token Val.   │    │ - Client Mgmt   │
 │ - Dashboard    │    │ - Role Check   │    │ - Role Mgmt     │
+│ - Contract UI  │    │ - Key Mgmt     │    │ - Auth Flows    │
+│ - Signing UI   │    │ - Signing API  │    │ - Permissions   │
 └─────────────────┘    └─────────────────┘    └─────────────────┘
+                                │
+                                ▼
+                    ┌─────────────────┐
+                    │   SCITT CCF     │
+                    │   (Ledger)      │
+                    │                │
+                    │ - Immutable    │
+                    │   Storage      │
+                    │ - Provenance   │
+                    │   Tracking     │
+                    │ - Receipts     │
+                    └─────────────────┘
 ```
 
 ### Authentication Flow
@@ -336,6 +355,176 @@ curl -X POST https://localhost:8443/realms/contract-management/protocol/openid-c
 3. Keycloak validates and returns tokens
 4. Backend returns tokens to user
 ```
+
+---
+
+## 🔐 Contract Signing Integration
+
+### Overview
+The IAM system integrates seamlessly with the contract signing workflow, providing secure authentication and authorization for digital signature operations. Users must be authenticated through Keycloak before they can access signing functionality.
+
+### Signing Workflow Integration
+```
+1. User Authentication (Keycloak)
+   ↓
+2. Contract Access Authorization
+   ↓
+3. Key Management Access
+   ↓
+4. Signature Generation
+   ↓
+5. SCITT CCF Submission
+   ↓
+6. Audit Logging
+```
+
+### User Registration with Signing Capabilities
+When users register through the system, they are automatically provisioned with:
+- **DEPA ID**: Unique identifier for signing operations
+- **Party Type**: Determines signing permissions (TDP, TDC, CCRP, AppAdmin)
+- **Default Roles**: Based on party type for access control
+- **Key Management Access**: Ability to generate and manage signing keys
+
+### Role-Based Signing Permissions
+```json
+{
+  "signingPermissions": {
+    "TDP": {
+      "canSign": ["data_sharing_contracts", "privacy_agreements"],
+      "canView": ["own_contracts", "signed_contracts"],
+      "keyManagement": "full"
+    },
+    "TDC": {
+      "canSign": ["data_usage_contracts", "model_training_agreements"],
+      "canView": ["own_contracts", "signed_contracts"],
+      "keyManagement": "full"
+    },
+    "CCRP": {
+      "canSign": ["environment_setup_contracts", "infrastructure_agreements"],
+      "canView": ["all_contracts", "environment_contracts"],
+      "keyManagement": "full"
+    },
+    "AppAdmin": {
+      "canSign": ["all_contracts"],
+      "canView": ["all_contracts", "all_signatures"],
+      "keyManagement": "admin"
+    }
+  }
+}
+```
+
+### Authentication Requirements for Signing
+- **Valid JWT Token**: Must be authenticated through Keycloak
+- **Active Session**: Session must not be expired
+- **Role Verification**: User must have appropriate party type
+- **Key Access**: Must have access to valid signing keys
+
+### Integration Points
+```javascript
+// Signing API Authentication Middleware
+const authenticateSigning = async (req, res, next) => {
+  try {
+    // Validate JWT token
+    const token = req.headers.authorization?.replace('Bearer ', '');
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    
+    // Get user from Keycloak
+    const user = await ***REMOVED-KEYCLOAK_DB_PASSWORD***Service.getUserInfo(token);
+    
+    // Check signing permissions
+    const canSign = await checkSigningPermissions(user.partyType, req.body.contractType);
+    if (!canSign) {
+      return res.status(403).json({ error: 'Insufficient permissions for signing' });
+    }
+    
+    req.user = user;
+    next();
+  } catch (error) {
+    res.status(401).json({ error: 'Authentication required for signing' });
+  }
+};
+```
+
+---
+
+## 🔑 Key Management Integration
+
+### Overview
+The IAM system provides secure key management capabilities integrated with Keycloak authentication. Users can generate, store, and manage their signing keys through authenticated API endpoints.
+
+### Key Management Architecture
+```
+┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│   Frontend      │    │   Backend       │    │   Database      │
+│   Key UI        │◄──►│   Key Service   │◄──►│   User Keys     │
+│                │    │                │    │                │
+│ - Key Gen      │    │ - Key Gen      │    │ - Key Storage   │
+│ - Key Import   │    │ - Key Import   │    │ - Key Metadata  │
+│ - Key Export   │    │ - Key Export   │    │ - Key Status    │
+│ - Key List     │    │ - Key List     │    │ - Key History   │
+└─────────────────┘    └─────────────────┘    └─────────────────┘
+                                │
+                                ▼
+                    ┌─────────────────┐
+                    │   Keycloak      │
+                    │   (Auth)        │
+                    │                │
+                    │ - User Auth    │
+                    │ - Role Check   │
+                    │ - Permission   │
+                    │   Validation   │
+                    └─────────────────┘
+```
+
+### Key Management Configuration
+The system supports configurable key algorithms and settings through environment variables:
+
+```bash
+# Key Management Configuration
+KEY_ALGORITHMS=ECDSA-P256,RSA-2048,RSA-4096
+DEFAULT_KEY_ALGORITHM=ECDSA-P256
+KEY_ID_PREFIX=KEY
+KEY_EXPIRY_DAYS=365
+KEY_ENCRYPTION_ALGORITHM=aes-256-gcm
+KEY_ENCRYPTION_SALT=salt
+```
+
+### Supported Key Algorithms
+- **ECDSA-P256**: Elliptic Curve Digital Signature Algorithm with P-256 curve (Recommended)
+- **RSA-2048**: RSA algorithm with 2048-bit key length (Good balance)
+- **RSA-4096**: RSA algorithm with 4096-bit key length (Maximum security)
+
+### Key Lifecycle Management
+1. **Key Generation**: Users can generate new signing keys through authenticated API
+2. **Key Storage**: Keys are encrypted and stored in the database
+3. **Key Access**: Keys are accessed only by authenticated users
+4. **Key Rotation**: Users can generate new keys and retire old ones
+5. **Key Revocation**: Keys can be revoked for security purposes
+
+### Key Management API Endpoints
+```javascript
+// Key Management API Routes
+GET    /api/signing/config          // Get key management configuration
+GET    /api/signing/keys            // List user's keys
+POST   /api/signing/keys/generate   // Generate new key
+POST   /api/signing/keys/import     // Import existing key
+DELETE /api/signing/keys/:keyId     // Delete/revoke key
+GET    /api/signing/keys/:keyId/export // Export key data
+```
+
+### Security Considerations
+- **Encryption at Rest**: Private keys are encrypted using AES-256-GCM
+- **Access Control**: Only key owners can access their keys
+- **Audit Logging**: All key operations are logged for security
+- **Key Rotation**: Support for regular key rotation
+- **Secure Storage**: Keys are stored securely in the database
+
+### Integration with SCITT CCF
+Keys are used to create digital signatures that are submitted to the SCITT CCF ledger:
+1. **Key Access**: User authenticates and accesses their signing key
+2. **Signature Generation**: Key is used to generate digital signature
+3. **SCITT Submission**: Signature is submitted to SCITT CCF ledger
+4. **Receipt Storage**: SCITT receipt is stored for verification
 
 ---
 
