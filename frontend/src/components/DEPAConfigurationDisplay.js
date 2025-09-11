@@ -42,13 +42,14 @@ const DEPAConfigurationDisplay = ({
   showFormat = true,
   showDeploymentInfo = true,
   showRegulatoryInfo = true,
-  title = "DEPA ID Configuration"
+  title = "DEPA ID Configuration",
+  defaultExpanded = false
 }) => {
   const [config, setConfig] = useState(null);
   const [formatExplanation, setFormatExplanation] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [expanded, setExpanded] = useState(false);
+  const [expanded, setExpanded] = useState(defaultExpanded);
 
   useEffect(() => {
     fetchDEPAConfiguration();
@@ -59,20 +60,30 @@ const DEPAConfigurationDisplay = ({
     setError(null);
     
     try {
+      console.log('🔍 [DEPAConfigurationDisplay] Fetching DEPA configuration...');
       const [configResponse, formatResponse] = await Promise.all([
         apiService.get('/api/depa/configuration'),
         showFormat ? apiService.get('/api/depa/format-explanation') : Promise.resolve({ success: false })
       ]);
 
+      console.log('🔍 [DEPAConfigurationDisplay] Config response:', configResponse);
+      console.log('🔍 [DEPAConfigurationDisplay] Format response:', formatResponse);
+
       if (configResponse.success) {
         setConfig(configResponse.config);
+        console.log('✅ [DEPAConfigurationDisplay] Config set successfully');
+      } else {
+        console.error('❌ [DEPAConfigurationDisplay] Config response not successful:', configResponse);
       }
       
       if (formatResponse.success) {
         setFormatExplanation(formatResponse.explanation);
+        console.log('✅ [DEPAConfigurationDisplay] Format explanation set successfully');
+      } else {
+        console.log('ℹ️ [DEPAConfigurationDisplay] Format explanation not requested or failed');
       }
     } catch (err) {
-      console.error('Error fetching DEPA configuration:', err);
+      console.error('❌ [DEPAConfigurationDisplay] Error fetching DEPA configuration:', err);
       setError('Failed to load DEPA configuration');
     } finally {
       setLoading(false);
