@@ -36,6 +36,8 @@ const LandingPage = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const [depaConfig, setDepaConfig] = useState(null);
+  const [depaConfigLoading, setDepaConfigLoading] = useState(true);
+  const [depaConfigError, setDepaConfigError] = useState(null);
 
   useEffect(() => {
     // Fetch DEPA configuration for display
@@ -44,12 +46,24 @@ const LandingPage = () => {
 
   const fetchDEPAConfiguration = async () => {
     try {
+      setDepaConfigLoading(true);
+      setDepaConfigError(null);
+      
       const response = await apiService.get('/api/depa/configuration');
+      console.log('🔍 [LandingPage] DEPA config response:', response);
+      
       if (response.success) {
         setDepaConfig(response.config);
+        console.log('✅ [LandingPage] DEPA config loaded successfully');
+      } else {
+        setDepaConfigError('Failed to load configuration');
+        console.error('❌ [LandingPage] DEPA config response not successful:', response);
       }
     } catch (error) {
-      console.error('Error fetching DEPA configuration:', error);
+      console.error('❌ [LandingPage] Error fetching DEPA configuration:', error);
+      setDepaConfigError('Failed to load configuration');
+    } finally {
+      setDepaConfigLoading(false);
     }
   };
 
@@ -157,7 +171,27 @@ const LandingPage = () => {
                 <InfoIcon sx={{ mr: 1, color: 'primary.main' }} />
                 Current Deployment Configuration
               </Typography>
-              {depaConfig ? (
+              {depaConfigLoading ? (
+                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', py: 2 }}>
+                  <Typography variant="body2" color="text.secondary">
+                    Loading deployment configuration...
+                  </Typography>
+                </Box>
+              ) : depaConfigError ? (
+                <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', py: 2 }}>
+                  <Typography variant="body2" color="error" sx={{ mb: 1 }}>
+                    {depaConfigError}
+                  </Typography>
+                  <Button 
+                    size="small" 
+                    variant="outlined" 
+                    onClick={fetchDEPAConfiguration}
+                    sx={{ mt: 1 }}
+                  >
+                    Retry
+                  </Button>
+                </Box>
+              ) : depaConfig ? (
                 <Box>
                   <Grid container spacing={2} sx={{ mb: 2 }}>
                     <Grid item xs={6}>
