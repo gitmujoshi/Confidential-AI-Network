@@ -14,8 +14,6 @@ import {
   Paper
 } from '@mui/material';
 import {
-  ExpandMore as ExpandMoreIcon,
-  ExpandLess as ExpandLessIcon,
   Security as SecurityIcon,
   Info as InfoIcon,
   Public as PublicIcon,
@@ -42,14 +40,12 @@ const DEPAConfigurationDisplay = ({
   showFormat = true,
   showDeploymentInfo = true,
   showRegulatoryInfo = true,
-  title = "DEPA ID Configuration",
-  defaultExpanded = false
+  title = "DEPA ID Configuration"
 }) => {
   const [config, setConfig] = useState(null);
   const [formatExplanation, setFormatExplanation] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [expanded, setExpanded] = useState(defaultExpanded);
 
   useEffect(() => {
     fetchDEPAConfiguration();
@@ -90,9 +86,6 @@ const DEPAConfigurationDisplay = ({
     }
   };
 
-  const handleExpandClick = () => {
-    setExpanded(!expanded);
-  };
 
   if (loading) {
     return (
@@ -127,18 +120,11 @@ const DEPAConfigurationDisplay = ({
     <Card>
       <CardContent>
         {/* Header */}
-        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
-          <Box sx={{ display: 'flex', alignItems: 'center' }}>
-            <SecurityIcon sx={{ mr: 1, color: 'primary.main' }} />
-            <Typography variant="h6">
-              {title}
-            </Typography>
-          </Box>
-          {!compact && (
-            <IconButton onClick={handleExpandClick}>
-              {expanded ? <ExpandLessIcon /> : <ExpandMoreIcon />}
-            </IconButton>
-          )}
+        <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+          <SecurityIcon sx={{ mr: 1, color: 'primary.main' }} />
+          <Typography variant="h6">
+            {title}
+          </Typography>
         </Box>
 
         {/* Read-Only Notice */}
@@ -202,10 +188,9 @@ const DEPAConfigurationDisplay = ({
           </Box>
         )}
 
-        {/* Expanded View */}
+        {/* Expanded View - Always show for registration page */}
         {!compact && (
-          <Collapse in={expanded}>
-            <Box sx={{ mt: 2 }}>
+          <Box sx={{ mt: 2 }}>
               {/* DEPA ID Format */}
               {showFormat && formatExplanation && (
                 <Box sx={{ mb: 3 }}>
@@ -322,7 +307,6 @@ const DEPAConfigurationDisplay = ({
                 </Box>
               </Box>
             </Box>
-          </Collapse>
         )}
       </CardContent>
     </Card>
