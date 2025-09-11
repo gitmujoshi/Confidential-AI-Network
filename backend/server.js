@@ -49,6 +49,7 @@ const notificationsRouter = require('./routes/notifications');
 const globalDeploymentRouter = require('./routes/globalDeployment');
 const blockchainRouter = require('./routes/blockchain');
 const constraintsRouter = require('./routes/constraints');
+const depaRouter = require('./routes/depa');
 
 // Import role-specific routes
 const adminRouter = require('./routes/admin');
@@ -186,6 +187,7 @@ app.use('/api/notifications', notificationsRouter);
 app.use('/api/global-deployment', globalDeploymentRouter);
 app.use('/api/blockchain', blockchainRouter);
 app.use('/api/constraints', constraintsRouter);
+app.use('/api/depa', depaRouter);
 
 // Contract template routes
 app.use('/api/contract-templates', contractTemplatesRouter);

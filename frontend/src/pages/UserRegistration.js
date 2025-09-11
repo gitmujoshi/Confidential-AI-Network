@@ -34,6 +34,7 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { ethers } from 'ethers';
 import apiService from '../services/api';
+import DEPAConfigurationDisplay from '../components/DEPAConfigurationDisplay';
 
 const UserRegistration = () => {
   const navigate = useNavigate();
@@ -620,6 +621,29 @@ const UserRegistration = () => {
                 />
               </Grid>
             )}
+
+            {/* DEPA ID Configuration Section */}
+            <Grid item xs={12}>
+              <Divider sx={{ my: 2 }}>
+                <Typography variant="h6">DEPA ID Configuration</Typography>
+              </Divider>
+            </Grid>
+
+            <Grid item xs={12}>
+              <DEPAConfigurationDisplay
+                user={{ depaId: null, role: formData.partyType }}
+                compact={false}
+                showFormat={true}
+                showDeploymentInfo={true}
+                showRegulatoryInfo={true}
+                title="DEPA ID Assignment Information"
+              />
+              <Typography variant="body2" color="text.secondary" sx={{ mt: 2, fontStyle: 'italic' }}>
+                <strong>Note:</strong> Your DEPA ID will be automatically generated based on your selected role 
+                ({formData.partyType}) and the current deployment configuration. This ID is used for privacy 
+                compliance and cannot be changed after registration.
+              </Typography>
+            </Grid>
 
             {/* DID Section */}
             <Grid item xs={12}>

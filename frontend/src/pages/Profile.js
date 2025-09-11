@@ -33,6 +33,7 @@ import VerifiedIcon from '@mui/icons-material/Verified';
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import { ethers } from 'ethers';
+import DEPAConfigurationDisplay from '../components/DEPAConfigurationDisplay';
 
 const Profile = () => {
   const { currentUser, setUser, isInitializing, refreshAuth } = useUser();
@@ -692,13 +693,16 @@ const Profile = () => {
                     />
                   </Box>
 
+                  {/* DEPA ID Configuration - Read Only */}
                   <Box sx={{ mb: 2 }}>
-                    <Typography variant="body2" color="text.secondary">
-                      <strong>DEPA ID:</strong>
-                    </Typography>
-                    <Typography variant="body1" sx={{ wordBreak: 'break-all', fontFamily: 'monospace', fontSize: '0.95rem' }}>
-                      {profileUser.depaId || 'Not assigned'}
-                    </Typography>
+                    <DEPAConfigurationDisplay
+                      user={profileUser}
+                      compact={true}
+                      showFormat={false}
+                      showDeploymentInfo={false}
+                      showRegulatoryInfo={false}
+                      title="DEPA ID"
+                    />
                   </Box>
 
                   <Box sx={{ mb: 2 }}>
