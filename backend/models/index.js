@@ -58,6 +58,11 @@ db.CCRPAzureCredentials = require('./CCRPAzureCredentials')(sequelize, Sequelize
 db.ScittClaim = require('./ScittClaim')(sequelize, Sequelize);
 db.SystemHealthLog = require('./SystemHealthLog')(sequelize, Sequelize);
 
+// Import signing models
+db.UserKey = require('./UserKey')(sequelize, Sequelize);
+db.Signature = require('./Signature')(sequelize, Sequelize);
+db.SigningEvent = require('./SigningEvent')(sequelize, Sequelize);
+
 // Import provenance models
 const MerkleTree = require('./MerkleTree')(sequelize);
 const ProvenanceNode = require('./ProvenanceNode')(sequelize);

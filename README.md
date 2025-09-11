@@ -163,6 +163,12 @@ npm test -- scitt-ccf-api.test.js
 - **[SCITT CCF Migration Design](SCITT_CCF_MIGRATION_DESIGN.md)** - Technical design document
 - **[SCITT CCF Management Script](manage-scitt-ccf.sh)** - Service management script
 
+### **Contract Signing Documentation**
+- **[Contract Signing Strategy](docs/CONTRACT_SIGNING_STRATEGY.md)** - Complete contract signing strategy and implementation plan
+- **[Contract Signing Architecture](docs/contract-signing-architecture.md)** - Technical architecture for contract signing
+- **[Contract Signing SCITT Integration](docs/CONTRACT_SIGNING_SCITT_INTEGRATION.md)** - SCITT CCF integration for signatures
+- **[Contract Signing User Guide](docs/CONTRACT_SIGNING_USER_GUIDE.md)** - User guide for contract signing features
+
 ### **User Guides**
 - **[Test Data Reference](TEST_DATA_FOR_TESTERS.md)** - Complete test data guide
 - **[Setup Troubleshooting](SETUP_TROUBLESHOOTING_GUIDE.md)** - Common issues and solutions
@@ -182,6 +188,9 @@ npm test -- scitt-ccf-api.test.js
 - **Enterprise Security**: Hardware-level security and attestation
 
 ### **Advanced Features**
+- **Digital Contract Signing**: Secure digital signature generation and verification
+- **Key Management**: Multi-algorithm key generation and management (ECDSA-P256, RSA-2048, RSA-4096)
+- **SCITT CCF Integration**: Immutable signature storage and verification
 - **Differential Privacy**: Privacy-preserving data analytics
 - **Multi-Cloud Support**: AWS, Azure, GCP, OCI integration
 - **Global Deployment**: Multi-jurisdiction deployment support
@@ -337,6 +346,8 @@ Comprehensive documentation is organized in the `docs/` directory:
 ### 🔒 Security & Compliance
 - **[Security Integration Guide](docs/security/SECURITY_INTEGRATION_GUIDE.md)** - Security implementation and best practices
 - **[Identity and Access Management](docs/security/IDENTITY_AND_ACCESS_MANAGEMENT_DOCUMENTATION.md)** - IAM documentation
+- **[IAM Integration Design](docs/IAM_INTEGRATION_DESIGN.md)** - Complete Keycloak IAM integration design with contract signing
+- **[Key Management Design](docs/KEY_MANAGEMENT_DESIGN.md)** - Digital signing key management system design
 - **[DPDP Compliance Implementation](docs/compliance/DPDP_COMPLIANCE_IMPLEMENTATION.md)** - DPDP 2023 compliance implementation
 
 ### 📋 Quick Reference

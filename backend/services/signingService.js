@@ -31,13 +31,13 @@ class SigningService {
    * In production, these would be loaded from secure storage (HSM, KMS, etc.)
    */
   initializeEnterpriseKeys() {
-    // Your enterprise DID private key (replace with actual private key)
+    // Your enterprise DID private key (generated for testing)
     const enterprisePrivateJwk = {
       "kty": "EC",
       "crv": "P-256",
-      "x": "FFQw_IJcWPr8qZrwq48azt1hVM8JNp3nnJ0367TxUyQ=",
-      "y": "AkPYsoJhbJNqIRGwnUHQN2D3cq4MPtzlVPx8BVuzTAo=",
-      "d": "YOUR_ENTERPRISE_PRIVATE_KEY_D_VALUE", // Replace with actual private key
+      "x": "cX0djDmWUVv4tLG-Cd8VwPJYuTVtpMu4wV4iN72AyP8",
+      "y": "CawDUFlpd4ARJx27No2r_lRN1uQ5wlPqvBoMQgXiZmM",
+      "d": "Dv8-a8gAsOZVUoRHdKtSnwJlXieayah2k40bct30ZB0",
       "kid": "120c453f6d39fe0b8dfecceba8b0e7992f9bc650c2bf4001d2e448907b140877",
       "alg": "ES256"
     };
@@ -46,9 +46,9 @@ class SigningService {
     const ccrpPrivateJwk = {
       "kty": "EC",
       "crv": "P-256",
-      "x": "FFQw_IJcWPr8qZrwq48azt1hVM8JNp3nnJ0367TxUyQ=",
-      "y": "AkPYsoJhbJNqIRGwnUHQN2D3cq4MPtzlVPx8BVuzTAo=",
-      "d": "YOUR_ENTERPRISE_PRIVATE_KEY_D_VALUE", // Replace with actual private key
+      "x": "cX0djDmWUVv4tLG-Cd8VwPJYuTVtpMu4wV4iN72AyP8",
+      "y": "CawDUFlpd4ARJx27No2r_lRN1uQ5wlPqvBoMQgXiZmM",
+      "d": "Dv8-a8gAsOZVUoRHdKtSnwJlXieayah2k40bct30ZB0",
       "kid": "ccrp-privacyfirst-computing-key",
       "alg": "ES256"
     };
@@ -58,8 +58,8 @@ class SigningService {
       publicJwk: {
         "kty": "EC",
         "crv": "P-256",
-        "x": "FFQw_IJcWPr8qZrwq48azt1hVM8JNp3nnJ0367TxUyQ=",
-        "y": "AkPYsoJhbJNqIRGwnUHQN2D3cq4MPtzlVPx8BVuzTAo=",
+        "x": "cX0djDmWUVv4tLG-Cd8VwPJYuTVtpMu4wV4iN72AyP8",
+        "y": "CawDUFlpd4ARJx27No2r_lRN1uQ5wlPqvBoMQgXiZmM",
         "kid": "120c453f6d39fe0b8dfecceba8b0e7992f9bc650c2bf4001d2e448907b140877",
         "alg": "ES256"
       }
@@ -71,8 +71,8 @@ class SigningService {
       publicJwk: {
         "kty": "EC",
         "crv": "P-256",
-        "x": "FFQw_IJcWPr8qZrwq48azt1hVM8JNp3nnJ0367TxUyQ=",
-        "y": "AkPYsoJhbJNqIRGwnUHQN2D3cq4MPtzlVPx8BVuzTAo=",
+        "x": "cX0djDmWUVv4tLG-Cd8VwPJYuTVtpMu4wV4iN72AyP8",
+        "y": "CawDUFlpd4ARJx27No2r_lRN1uQ5wlPqvBoMQgXiZmM",
         "kid": "ccrp-privacyfirst-computing-key",
         "alg": "ES256"
       }

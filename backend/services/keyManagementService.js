@@ -3,25 +3,64 @@ const { promisify } = require('util');
 
 class KeyManagementService {
   constructor() {
-    this.keyAlgorithms = {
-      'ECDSA-P256': { name: 'ECDSA', namedCurve: 'P-256' },
-      'RSA-2048': { name: 'RSA', modulusLength: 2048 },
-      'RSA-4096': { name: 'RSA', modulusLength: 4096 }
-    };
+    // Load configuration from environment variables
+    this.loadConfiguration();
+  }
+
+  /**
+   * Load key management configuration from environment variables
+   */
+  loadConfiguration() {
+    // Parse supported algorithms from environment
+    const algorithmsEnv = process.env.KEY_ALGORITHMS || 'ECDSA-P256,RSA-2048,RSA-4096';
+    const supportedAlgorithms = algorithmsEnv.split(',').map(alg => alg.trim());
+    
+    // Build key algorithms configuration
+    this.keyAlgorithms = {};
+    
+    if (supportedAlgorithms.includes('ECDSA-P256')) {
+      this.keyAlgorithms['ECDSA-P256'] = { name: 'ec', namedCurve: 'prime256v1' };
+    }
+    
+    if (supportedAlgorithms.includes('RSA-2048')) {
+      this.keyAlgorithms['RSA-2048'] = { name: 'rsa', modulusLength: 2048 };
+    }
+    
+    if (supportedAlgorithms.includes('RSA-4096')) {
+      this.keyAlgorithms['RSA-4096'] = { name: 'rsa', modulusLength: 4096 };
+    }
+    
+    // Set default algorithm
+    this.defaultAlgorithm = process.env.DEFAULT_KEY_ALGORITHM || 'ECDSA-P256';
+    
+    // Key generation settings
+    this.keyIdPrefix = process.env.KEY_ID_PREFIX || 'KEY';
+    this.keyExpiryDays = parseInt(process.env.KEY_EXPIRY_DAYS) || 365;
+    
+    // Encryption settings
+    this.encryptionAlgorithm = process.env.KEY_ENCRYPTION_ALGORITHM || 'aes-256-gcm';
+    this.encryptionSalt = process.env.KEY_ENCRYPTION_SALT || 'salt';
+    
+    console.log(`🔐 [KeyManagement] Loaded configuration:`, {
+      supportedAlgorithms: Object.keys(this.keyAlgorithms),
+      defaultAlgorithm: this.defaultAlgorithm,
+      keyIdPrefix: this.keyIdPrefix,
+      keyExpiryDays: this.keyExpiryDays
+    });
   }
 
   /**
    * Generate a new key pair for signing
    * @param {Object} options - Key generation options
-   * @param {string} options.algorithm - Key algorithm (ECDSA-P256, RSA-2048, RSA-4096)
+   * @param {string} options.algorithm - Key algorithm (defaults to DEFAULT_KEY_ALGORITHM)
    * @param {string} options.userId - User ID for key association
    * @returns {Promise<Object>} Generated key pair with metadata
    */
   async generateKeyPair(options) {
-    const { algorithm, userId } = options;
+    const { algorithm = this.defaultAlgorithm, userId } = options;
     
     if (!this.keyAlgorithms[algorithm]) {
-      throw new Error(`Unsupported key algorithm: ${algorithm}`);
+      throw new Error(`Unsupported key algorithm: ${algorithm}. Supported: ${Object.keys(this.keyAlgorithms).join(', ')}`);
     }
 
     try {
@@ -84,7 +123,7 @@ class KeyManagementService {
   generateKeyId() {
     const timestamp = Date.now().toString(36);
     const random = crypto.randomBytes(8).toString('hex');
-    return `KEY-${timestamp}-${random}`;
+    return `${this.keyIdPrefix}-${timestamp}-${random}`;
   }
 
   /**
@@ -94,8 +133,8 @@ class KeyManagementService {
    * @returns {Object} Encrypted key data
    */
   encryptPrivateKey(privateKey, password) {
-    const algorithm = 'aes-256-gcm';
-    const key = crypto.scryptSync(password, 'salt', 32);
+    const algorithm = this.encryptionAlgorithm;
+    const key = crypto.scryptSync(password, this.encryptionSalt, 32);
     const iv = crypto.randomBytes(16);
     const cipher = crypto.createCipher(algorithm, key);
     
@@ -120,7 +159,7 @@ class KeyManagementService {
    */
   decryptPrivateKey(encryptedData, password) {
     const { encrypted, iv, authTag, algorithm } = encryptedData;
-    const key = crypto.scryptSync(password, 'salt', 32);
+    const key = crypto.scryptSync(password, this.encryptionSalt, 32);
     const decipher = crypto.createDecipher(algorithm, key);
     
     decipher.setAuthTag(Buffer.from(authTag, 'hex'));
@@ -135,13 +174,16 @@ class KeyManagementService {
    * Generate a digital signature
    * @param {string} data - Data to sign
    * @param {string} privateKey - Private key in PEM format
-   * @param {string} algorithm - Signing algorithm
+   * @param {string} algorithm - Signing algorithm (defaults to DEFAULT_KEY_ALGORITHM)
    * @returns {Promise<Object>} Signature data
    */
-  async generateSignature(data, privateKey, algorithm = 'ECDSA-P256') {
+  async generateSignature(data, privateKey, algorithm = this.defaultAlgorithm) {
     try {
       const algorithmConfig = this.keyAlgorithms[algorithm];
-      const sign = crypto.createSign(algorithmConfig.name);
+      
+      // For ECDSA, we need to specify the hash algorithm
+      const hashAlgorithm = algorithm === 'ECDSA-P256' ? 'sha256' : 'sha256';
+      const sign = crypto.createSign(hashAlgorithm);
       
       sign.update(data);
       const signature = sign.sign(privateKey, 'hex');
@@ -149,6 +191,7 @@ class KeyManagementService {
       return {
         signature,
         algorithm: algorithmConfig.name,
+        hashAlgorithm,
         timestamp: Date.now()
       };
     } catch (error) {
@@ -162,13 +205,16 @@ class KeyManagementService {
    * @param {string} data - Original data
    * @param {string} signature - Signature to verify
    * @param {string} publicKey - Public key in PEM format
-   * @param {string} algorithm - Signature algorithm
+   * @param {string} algorithm - Signature algorithm (defaults to DEFAULT_KEY_ALGORITHM)
    * @returns {Promise<boolean>} Verification result
    */
-  async verifySignature(data, signature, publicKey, algorithm = 'ECDSA-P256') {
+  async verifySignature(data, signature, publicKey, algorithm = this.defaultAlgorithm) {
     try {
       const algorithmConfig = this.keyAlgorithms[algorithm];
-      const verify = crypto.createVerify(algorithmConfig.name);
+      
+      // For ECDSA, we need to specify the hash algorithm
+      const hashAlgorithm = algorithm === 'ECDSA-P256' ? 'sha256' : 'sha256';
+      const verify = crypto.createVerify(hashAlgorithm);
       
       verify.update(data);
       const isValid = verify.verify(publicKey, signature, 'hex');
@@ -247,6 +293,30 @@ class KeyManagementService {
     };
     
     return descriptions[algorithm] || 'Unknown algorithm';
+  }
+
+  /**
+   * Get current key management configuration
+   * @returns {Object} Current configuration
+   */
+  getConfiguration() {
+    return {
+      supportedAlgorithms: Object.keys(this.keyAlgorithms),
+      defaultAlgorithm: this.defaultAlgorithm,
+      keyIdPrefix: this.keyIdPrefix,
+      keyExpiryDays: this.keyExpiryDays,
+      encryptionAlgorithm: this.encryptionAlgorithm,
+      keyAlgorithms: this.keyAlgorithms
+    };
+  }
+
+  /**
+   * Reload configuration from environment variables
+   * Useful for hot-reloading configuration without restart
+   */
+  reloadConfiguration() {
+    console.log('🔄 [KeyManagement] Reloading configuration from environment...');
+    this.loadConfiguration();
   }
 }
 
