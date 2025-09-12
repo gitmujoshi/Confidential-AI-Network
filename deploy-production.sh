@@ -2,6 +2,12 @@
 
 # Quick Production Deployment Script
 # This script provides a simplified way to deploy the AI training environment
+#
+# Usage: ./deploy-production.sh [environment] [cloud_provider] [region]
+# Example: ./deploy-production.sh production aws us-east-1
+#
+# Supported Cloud Providers: aws, azure, gcp, oci
+# Supported Environments: production, staging, development
 
 set -e
 
@@ -16,6 +22,13 @@ NC='\033[0m'
 ENVIRONMENT=${1:-production}
 CLOUD_PROVIDER=${2:-aws}
 REGION=${3:-us-east-1}
+
+echo "🚀 AI Model Training Environment - Quick Deployment"
+echo "=================================================="
+echo "Environment: $ENVIRONMENT"
+echo "Cloud Provider: $CLOUD_PROVIDER"
+echo "Region: $REGION"
+echo ""
 
 log() {
     echo -e "${BLUE}[$(date +'%Y-%m-%d %H:%M:%S')]${NC} $1"
