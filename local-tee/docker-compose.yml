@@ -1,0 +1,35 @@
+version: '3.8'
+
+services:
+  local-tee:
+    image: local-tee:latest
+    container_name: local-tee
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./data:/data
+      - ./outputs:/outputs
+      - ./logs:/logs
+    environment:
+      - TEE_MODE=local
+      - ATTESTATION_ENABLED=true
+    networks:
+      - tee-network
+
+  training-container:
+    image: training-container:local
+    container_name: training-container
+    depends_on:
+      - local-tee
+    volumes:
+      - ./data:/data:ro
+      - ./outputs:/outputs
+    environment:
+      - TEE_ENVIRONMENT=local
+      - PROVENANCE_ENABLED=true
+    networks:
+      - tee-network
+
+networks:
+  tee-network:
+    driver: bridge

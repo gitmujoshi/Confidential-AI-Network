@@ -1,0 +1,30 @@
+{
+  "environment": "local",
+  "providers": {
+    "local": {
+      "enabled": true,
+      "basePath": "./local-tee",
+      "containerImage": "training-container:local",
+      "resources": {
+        "cpu": 2,
+        "memory": "4GB",
+        "storage": "50GB"
+      }
+    }
+  },
+  "training": {
+    "defaultEpochs": 10,
+    "defaultBatchSize": 32,
+    "defaultLearningRate": 0.001,
+    "monitoringInterval": 30000
+  },
+  "provenance": {
+    "enabled": true,
+    "storagePath": "./local-tee/provenance"
+  },
+  "security": {
+    "attestationEnabled": true,
+    "encryptionEnabled": true,
+    "accessControlEnabled": true
+  }
+}
