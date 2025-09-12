@@ -11,7 +11,7 @@ Complete technical architecture documentation for the Contract Management System
 5. [Database Design](#database-design)
 6. [API Architecture](#api-architecture)
 7. [Frontend Architecture](#frontend-architecture)
-8. [Blockchain Integration](#blockchain-integration)
+8. [Legacy Blockchain Integration](#legacy-blockchain-integration-deprecated)
 9. [Secret Management](#secret-management)
 10. [Differential Privacy Architecture](#differential-privacy-architecture)
 11. [Security Architecture](#security-architecture)
@@ -96,8 +96,13 @@ frontend/
 ```
 backend/
 ├── routes/                  # API route handlers
-│   ├── contractSigning.js  # Unified contract signing API
-│   └── enterpriseSigning.js # Enterprise signing API
+│   ├── contractSigning.js  # Unified contract signing API (includes enterprise signing)
+│   ├── auth.js             # Authentication routes
+│   ├── contracts.js        # Contract management routes
+│   ├── datasets.js         # Dataset management routes
+│   ├── users.js            # User management routes
+│   ├── scitt-ccf.js        # SCITT CCF integration routes
+│   └── [other routes...]   # Additional API routes
 ├── services/                # Business logic layer
 │   ├── scittCcfService.js  # SCITT CCF integration service
 │   ├── contractSigningService.js  # Traditional signing service
@@ -135,7 +140,33 @@ Database Schema:
 ├── ai_models              # AI model metadata
 ├── ccrp_cloud_credentials # Cloud provider credentials
 ├── scitt_claims           # SCITT CCF claims storage
-└── system_health_log      # System health monitoring
+├── system_health_log      # System health monitoring
+├── enterprise_keys        # Enterprise signing keys
+├── signing_requests       # Contract signing requests
+├── signatures             # Digital signatures
+├── signing_events         # Signing event logs
+├── user_keys              # User signing keys
+├── audit_logs             # System audit logs
+├── privacy_budgets        # Differential privacy budgets
+├── privacy_budget_logs    # Privacy budget consumption logs
+├── privacy_operations_logs # Privacy operations logs
+├── provenance_captures    # Data provenance tracking
+├── provenance_nodes       # Provenance graph nodes
+├── provenance_verifications # Provenance verifications
+├── merkle_trees           # Merkle tree structures
+├── notifications          # System notifications
+├── training_environments  # Training environment configurations
+├── training_jobs          # Training job records
+├── contract_templates     # Contract templates
+├── constraint_categories  # Data constraint categories
+├── constraint_fields      # Constraint field definitions
+├── constraint_values      # Constraint values
+├── consents               # User consent records
+├── data_breaches          # Data breach records
+├── data_processing_records # Data processing records
+├── grievances             # User grievance records
+├── environment_costs      # Environment cost tracking
+└── environment_resources  # Environment resource tracking
 ```
 
 ## 🔗 SCITT CCF Integration Architecture
@@ -696,19 +727,25 @@ http://localhost:5001/api
 ```
 
 #### **Authentication Endpoints**
+- `POST /auth/register` - User registration with IAM integration
 - `POST /auth/login` - User authentication
 - `POST /auth/logout` - User logout
 - `POST /auth/refresh` - Token refresh
-- `POST /auth/register` - User registration
 - `GET /auth/profile` - Get user profile
 - `PUT /auth/profile` - Update user profile
+- `POST /auth/verify-email` - Send email verification
+- `GET /auth/verify-email/:token` - Verify email with token
+- `GET /auth/onboarding-status` - Get user onboarding status
+- `POST /auth/complete-onboarding` - Complete user onboarding
+- `POST /auth/forgot-password` - Request password reset
+- `POST /auth/reset-password` - Reset password with token
+- `POST /auth/wallet` - Wallet-based authentication
+- `GET /auth/nonce/:walletAddress` - Get nonce for wallet authentication
 
 #### **Contract Endpoints**
-- `GET /contracts` - List contracts
-- `POST /contracts` - Create contract
-- `GET /contracts/:id` - Get contract details
-- `PUT /contracts/:id` - Update contract
-- `DELETE /contracts/:id` - Delete contract
+- `GET /contracts` - List all contracts
+- `GET /contracts/user/:userId` - Get contracts for specific user
+- `GET /contracts/:contractId` - Get contract details by ID
 
 #### **Contract Signing Endpoints**
 - `GET /signing/config` - Get signing configuration
@@ -736,11 +773,9 @@ http://localhost:5001/api
 - `GET /signing/enterprise/kms/config` - Get KMS configuration
 
 #### **Dataset Endpoints**
-- `GET /datasets` - List datasets
-- `POST /datasets` - Create dataset
-- `GET /datasets/:id` - Get dataset details
-- `PUT /datasets/:id` - Update dataset
-- `DELETE /datasets/:id` - Delete dataset
+- `GET /datasets/public` - List public datasets
+- `GET /datasets/owner/:ownerId` - Get datasets by owner
+- `GET /datasets/search` - Search datasets with filters
 
 #### **Cloud Credentials Endpoints**
 - `GET /ccrp/cloud-credentials` - List credentials
@@ -829,11 +864,18 @@ App
 - **Dynamic Routes**: Contract details, dataset details
 - **Nested Routes**: Dashboard with sub-navigation
 
-## ⛓️ Blockchain Integration
+## ⛓️ Legacy Blockchain Integration (Deprecated)
 
-### **Smart Contract Architecture**
+> **Note**: The system has migrated from Ethereum blockchain to SCITT CCF ledger for improved performance and security. The blockchain integration is maintained for backward compatibility and gradual migration.
+
+### **Migration Status**
+- **Primary Ledger**: SCITT CCF (High-performance confidential computing ledger)
+- **Legacy Support**: Ethereum blockchain (for existing contracts)
+- **Migration Mode**: Hybrid (supports both systems during transition)
+
+### **Legacy Smart Contract Architecture**
 ```solidity
-// ContractManager.sol
+// ContractManager.sol (Legacy - maintained for backward compatibility)
 contract ContractManager {
     struct Contract {
         string contractId;
@@ -862,17 +904,17 @@ contract ContractManager {
 }
 ```
 
-### **Blockchain Integration Points**
-- **Contract Deployment**: Smart contract deployment
-- **Contract Storage**: On-chain contract data
-- **Event Logging**: Blockchain event tracking
-- **Transaction Verification**: Payment verification
+### **Legacy Integration Points**
+- **Contract Deployment**: Smart contract deployment (legacy)
+- **Contract Storage**: On-chain contract data (legacy)
+- **Event Logging**: Blockchain event tracking (legacy)
+- **Transaction Verification**: Payment verification (legacy)
 
-### **Integration Features**
-- **Multi-Chain Support**: Ethereum, Polygon, etc.
-- **Gas Optimization**: Efficient transaction handling
-- **Event Listening**: Real-time blockchain events
-- **Transaction Management**: Comprehensive transaction handling
+### **Migration Features**
+- **Hybrid Mode**: Supports both SCITT CCF and Ethereum
+- **Automatic Routing**: Contracts routed to appropriate system
+- **Fallback Support**: Ethereum fallback if SCITT CCF unavailable
+- **Gradual Migration**: Existing contracts remain on Ethereum
 
 ## 🔐 Secret Management
 
