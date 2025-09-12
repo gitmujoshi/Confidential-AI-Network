@@ -1,9 +1,8 @@
 /**
  * Training Job Model
  * 
- * Tracks training job execution, status, and results for contracts.
- * Each training job is associated with a contract and tracks the complete
- * training lifecycle from provisioning to completion.
+ * Tracks AI model training jobs including status, progress, and metadata
+ * for the complete training workflow.
  */
 
 module.exports = (sequelize, DataTypes) => {
@@ -27,177 +26,188 @@ module.exports = (sequelize, DataTypes) => {
     contractId: {
       type: DataTypes.STRING,
       allowNull: false,
-      references: {
-        model: 'contracts',
-        key: 'contract_id'
-      },
       comment: 'Associated contract ID'
     },
     
-    // Training job status
+    // Job status
     status: {
       type: DataTypes.ENUM(
         'PENDING',      // Job created, waiting to start
-        'PROVISIONING', // Environment being provisioned
+        'PROVISIONING', // TEE environment being provisioned
         'RUNNING',      // Training in progress
         'COMPLETED',    // Training completed successfully
         'FAILED',       // Training failed
-        'CANCELLED'     // Training cancelled
+        'CANCELLED',    // Training cancelled
+        'STALLED'       // Training appears to be stalled
       ),
       defaultValue: 'PENDING',
-      comment: 'Training job status'
+      comment: 'Current job status'
     },
     
-    // Cloud provider for this training job
-    cloudProvider: {
-      type: DataTypes.STRING,
-      allowNull: false,
-      comment: 'Cloud provider (AWS, GCP, Azure, OCI)'
+    // Priority level
+    priority: {
+      type: DataTypes.ENUM('LOW', 'NORMAL', 'HIGH', 'CRITICAL'),
+      defaultValue: 'NORMAL',
+      comment: 'Job priority level'
     },
     
-    // Environment specifications from contract
-    environmentSpecs: {
-      type: DataTypes.JSONB,
-      allowNull: true,
-      comment: 'Environment specifications from contract'
-    },
-    
-    // Training parameters from contract
-    trainingParams: {
-      type: DataTypes.JSONB,
-      allowNull: true,
-      comment: 'Training parameters from contract'
-    },
-    
-    // Estimated training duration
-    estimatedDuration: {
-      type: DataTypes.STRING,
-      allowNull: true,
-      comment: 'Estimated training duration (e.g., "50 hours")'
-    },
-    
-    // Training progress (0-100)
-    progress: {
+    // Retry configuration
+    retryCount: {
       type: DataTypes.INTEGER,
       defaultValue: 0,
-      validate: {
-        min: 0,
-        max: 100
-      },
-      comment: 'Training progress percentage (0-100)'
+      comment: 'Number of retry attempts'
     },
     
-    // Training results
-    results: {
-      type: DataTypes.JSONB,
-      allowNull: true,
-      comment: 'Training results including accuracy, loss, privacy metrics'
+    maxRetries: {
+      type: DataTypes.INTEGER,
+      defaultValue: 3,
+      comment: 'Maximum number of retry attempts'
     },
     
-    // Environment ID (if using external environment service)
+    // Environment details
     environmentId: {
       type: DataTypes.STRING,
       allowNull: true,
-      comment: 'External environment ID'
+      comment: 'TEE environment ID'
     },
     
-    // Training logs
-    logs: {
+    containerId: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      comment: 'Training container ID'
+    },
+    
+    // Provenance tracking
+    provenanceSessionId: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      comment: 'Provenance tracking session ID'
+    },
+    
+    // Training configuration
+    trainingConfig: {
       type: DataTypes.JSONB,
       allowNull: true,
-      comment: 'Training execution logs'
+      comment: 'Training parameters and configuration'
     },
     
-    // Error details if training failed
-    errorDetails: {
+    // Environment configuration
+    environmentConfig: {
+      type: DataTypes.JSONB,
+      allowNull: true,
+      comment: 'TEE environment configuration'
+    },
+    
+    // Datasets used for training
+    datasets: {
+      type: DataTypes.JSONB,
+      allowNull: true,
+      comment: 'List of datasets used for training'
+    },
+    
+    // AI models used for training
+    aiModels: {
+      type: DataTypes.JSONB,
+      allowNull: true,
+      comment: 'List of AI models used for training'
+    },
+    
+    // Parties involved in training
+    parties: {
+      type: DataTypes.JSONB,
+      allowNull: true,
+      comment: 'List of parties involved in training'
+    },
+    
+    // Job metadata
+    metadata: {
+      type: DataTypes.JSONB,
+      allowNull: true,
+      comment: 'Additional job metadata'
+    },
+    
+    // Error information
+    errorMessage: {
       type: DataTypes.TEXT,
       allowNull: true,
-      comment: 'Error details if training failed'
+      comment: 'Error message if job failed'
     },
     
-    // User who created the training job
-    createdBy: {
-      type: DataTypes.INTEGER,
-      allowNull: false,
-      references: {
-        model: 'users',
-        key: 'id'
-      },
-      comment: 'User who created the training job'
+    cancellationReason: {
+      type: DataTypes.TEXT,
+      allowNull: true,
+      comment: 'Reason for job cancellation'
     },
     
     // Timestamps
+    createdAt: {
+      type: DataTypes.DATE,
+      defaultValue: DataTypes.NOW,
+      comment: 'Job creation timestamp'
+    },
+    
     startedAt: {
       type: DataTypes.DATE,
       allowNull: true,
-      comment: 'When training started'
+      comment: 'Job start timestamp'
     },
     
     completedAt: {
       type: DataTypes.DATE,
       allowNull: true,
-      comment: 'When training completed'
+      comment: 'Job completion timestamp'
+    },
+    
+    failedAt: {
+      type: DataTypes.DATE,
+      allowNull: true,
+      comment: 'Job failure timestamp'
     },
     
     cancelledAt: {
       type: DataTypes.DATE,
       allowNull: true,
-      comment: 'When training was cancelled'
+      comment: 'Job cancellation timestamp'
+    },
+    
+    // Created by
+    createdBy: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      comment: 'User who created the job'
     }
   }, {
     tableName: 'training_jobs',
     timestamps: true,
-    underscored: true,
-    
-    // Database indexes for performance optimization
     indexes: [
       {
-        unique: true,
-        fields: ['job_id']           // Fast job ID lookups
+        fields: ['jobId']
       },
       {
-        fields: ['contract_id']      // Fast contract-based queries
+        fields: ['contractId']
       },
       {
-        fields: ['status']          // Fast status-based queries
+        fields: ['status']
       },
       {
-        fields: ['created_by']       // Fast user-based queries
+        fields: ['environmentId']
       },
       {
-        fields: ['cloud_provider']   // Fast provider-based queries
+        fields: ['createdAt']
       },
       {
-        fields: ['started_at']       // Fast time-based queries
+        fields: ['status', 'createdAt']
       }
-    ]
+    ],
+    comment: 'AI model training jobs tracking'
   });
 
-  /**
-   * Define associations with other models
-   * @param {Object} models - All Sequelize models
-   */
+  // Define associations
   TrainingJob.associate = (models) => {
-    // Training job belongs to a contract
-    TrainingJob.belongsTo(models.Contract, { 
-      foreignKey: 'contractId', 
-      targetKey: 'contractId',
-      as: 'contract'
-    });
-    
-    // Training job belongs to a user (creator)
-    TrainingJob.belongsTo(models.User, { 
-      foreignKey: 'createdBy', 
-      as: 'creator'
-    });
-    
-    // Training job has one environment
-    TrainingJob.hasOne(models.TrainingEnvironment, { 
-      foreignKey: 'contractId', 
-      sourceKey: 'contractId',
-      as: 'environment'
-    });
+    // Training job belongs to a contract (string reference)
+    // Note: This is a string reference, not a foreign key
+    // The actual relationship is handled in the service layer
   };
 
   return TrainingJob;
-}; 
+};
