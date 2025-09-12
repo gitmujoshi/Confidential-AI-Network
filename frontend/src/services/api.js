@@ -500,6 +500,21 @@ const realApiService = {
 
   // Health check
   healthCheck: () => api.get('/health'),
+
+  // KMS Configuration
+  testKMSConnection: (config) => api.post('/api/enterprise/kms/test', config),
+  saveKMSConfiguration: (config) => api.post('/api/enterprise/kms/save', config),
+  getKMSConfiguration: () => api.get('/api/enterprise/kms/config'),
+
+  // DEPA Configuration
+  getDEPAConfiguration: async () => {
+    const response = await api.get('/api/depa/configuration');
+    return response.data;
+  },
+  getDEPAFormatExplanation: async () => {
+    const response = await api.get('/api/depa/format-explanation');
+    return response.data;
+  },
 };
 
 // Create mock API service that only implements registration endpoints
@@ -561,6 +576,62 @@ const mockApiService = {
   getBlockchainStatus: async () => {
     await delay(300);
     return { connected: false, enabled: false, timestamp: new Date().toISOString() };
+  },
+
+  // DEPA Configuration for mock mode
+  getDEPAConfiguration: async () => {
+    await delay(300);
+    return {
+      success: true,
+      config: {
+        deploymentId: 'MOCK-DEPLOYMENT-001',
+        prefix: 'MOCK',
+        region: 'us-mock-1',
+        country: 'Mock Country',
+        jurisdiction: 'Mock-Jurisdiction',
+        dataResidency: 'MOCK',
+        regulatoryFramework: ['MOCK-REG-1', 'MOCK-REG-2'],
+        timezone: 'America/Mock',
+        currency: 'MOCK',
+        language: 'en-MOCK',
+        depaIdFormat: 'MOCK-{ENTITY_TYPE}-{UUID}',
+        entityTypes: ['TDC', 'TDP', 'CCRP', 'CONTRACT', 'DATASET']
+      }
+    };
+  },
+  getDEPAFormatExplanation: async () => {
+    await delay(300);
+    return {
+      success: true,
+      explanation: {
+        format: 'MOCK-{ENTITY_TYPE}-{UUID}',
+        components: [
+          {
+            name: 'Deployment Prefix',
+            value: 'MOCK',
+            description: 'Mock deployment identifier',
+            example: 'MOCK'
+          },
+          {
+            name: 'Entity Type',
+            value: '{ENTITY_TYPE}',
+            description: 'Type of entity (TDC, TDP, CCRP, CONTRACT, DATASET)',
+            examples: ['TDC', 'TDP', 'CCRP', 'CONTRACT', 'DATASET']
+          },
+          {
+            name: 'UUID',
+            value: '{UUID}',
+            description: 'Globally unique identifier (36-character UUID)',
+            example: '8f4e2a1b-3c4d-5e6f-7a8b-9c0d1e2f3a4b'
+          }
+        ],
+        examples: [
+          'MOCK-TDC-8f4e2a1b-3c4d-5e6f-7a8b-9c0d1e2f3a4b',
+          'MOCK-TDP-9a1b2c3d-4e5f-6a7b-8c9d-0e1f2a3b4c5d',
+          'MOCK-CCRP-1b2c3d4e-5f6a-7b8c-9d0e-1f2a3b4c5d6e'
+        ]
+      }
+    };
   },
   
   // For other methods, throw error indicating mock mode

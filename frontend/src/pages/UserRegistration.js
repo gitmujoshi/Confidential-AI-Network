@@ -98,52 +98,22 @@ const UserRegistration = () => {
   const [success, setSuccess] = useState('');
   const [keycloakFailed, setKeycloakFailed] = useState(false);
 
-  // Mock API mode
-  const [mockMode, setMockMode] = useState(false);
 
-  // Blockchain status
-  const [blockchainStatus, setBlockchainStatus] = useState('unknown');
-  const [blockchainLoading, setBlockchainLoading] = useState(false);
+  // System status
+  const [systemStatus, setSystemStatus] = useState('ready');
 
   // Deployment status (read-only, config-driven)
   const [deploymentStatus, setDeploymentStatus] = useState(null);
 
 
   useEffect(() => {
-    // Check for mock mode in localStorage or URL params
-    const urlParams = new URLSearchParams(window.location.search);
-    const mockParam = urlParams.get('mock');
-    const storedMock = localStorage.getItem('mockApiMode');
-    
-    if (mockParam === 'true' || storedMock === 'true') {
-      setMockMode(true);
-      localStorage.setItem('mockApiMode', 'true');
-    }
-
     // Initialize wallet connection
     initializeWallet();
     
-    // Check blockchain status
-    checkBlockchainStatus();
+    // System is ready
+    setSystemStatus('ready');
   }, []);
 
-  const checkBlockchainStatus = async () => {
-    if (mockMode) {
-      setBlockchainStatus('mock');
-      return;
-    }
-
-    try {
-      setBlockchainLoading(true);
-      const response = await apiService.getBlockchainStatus();
-      setBlockchainStatus(response.connected ? 'connected' : 'disconnected');
-    } catch (error) {
-      console.log('Blockchain not available:', error.message);
-      setBlockchainStatus('disconnected');
-    } finally {
-      setBlockchainLoading(false);
-    }
-  };
 
   const initializeWallet = async () => {
     if (typeof window.ethereum !== 'undefined') {
@@ -476,13 +446,6 @@ const UserRegistration = () => {
 
       console.log('Submitting registration data:', registrationData);
 
-      if (mockMode) {
-        // Mock response
-        console.log('Mock mode: Registration would be submitted with:', registrationData);
-        setSuccess('Registration successful! (Mock mode)\n\nStatus:\n- Database: ✅\n- Keycloak: ✅\n- Blockchain: ✅\n\n🔑 Login Credentials:\nEmail: ' + formData.email + '\nPassword: TempPass123!\n\n⚠️  This is a temporary password. Please change it on first login.');
-        return;
-      }
-
       const response = await apiService.register(registrationData);
 
       if (response.data.success) {
@@ -530,30 +493,26 @@ const UserRegistration = () => {
           Register for the Contract Management System
         </Typography>
 
-
-        {/* Mock Mode Toggle */}
-        <Box sx={{ mb: 3, textAlign: 'center' }}>
-          <FormControlLabel
-            control={
-              <Switch
-                checked={mockMode}
-                onChange={(e) => {
-                  setMockMode(e.target.checked);
-                  localStorage.setItem('mockApiMode', e.target.checked.toString());
-                }}
-              />
-            }
-            label="Mock API Mode"
-          />
-          {mockMode && (
-            <Alert severity="info" sx={{ mt: 1 }}>
-              Mock mode enabled. No actual API calls will be made.
-            </Alert>
-          )}
-        </Box>
-
         <form onSubmit={handleSubmit}>
           <Grid container spacing={3}>
+            {/* DEPA ID Configuration Section - Moved to top */}
+            <Grid item xs={12}>
+              <Divider sx={{ my: 2 }}>
+                <Typography variant="h6">DEPA ID Configuration</Typography>
+              </Divider>
+            </Grid>
+
+            <Grid item xs={12}>
+              <DEPAConfigurationDisplay
+                user={{ depaId: null, partyType: formData.partyType }}
+                compact={false}
+                showFormat={true}
+                showDeploymentInfo={true}
+                showRegulatoryInfo={true}
+                title="DEPA ID Assignment Information"
+              />
+            </Grid>
+
             {/* User Type Selection */}
             <Grid item xs={12}>
               <FormControl fullWidth>
@@ -621,29 +580,6 @@ const UserRegistration = () => {
                 />
               </Grid>
             )}
-
-            {/* DEPA ID Configuration Section */}
-            <Grid item xs={12}>
-              <Divider sx={{ my: 2 }}>
-                <Typography variant="h6">DEPA ID Configuration</Typography>
-              </Divider>
-            </Grid>
-
-            <Grid item xs={12}>
-              <DEPAConfigurationDisplay
-                user={{ depaId: null, partyType: formData.partyType }}
-                compact={false}
-                showFormat={true}
-                showDeploymentInfo={true}
-                showRegulatoryInfo={true}
-                title="DEPA ID Assignment Information"
-              />
-              <Typography variant="body2" color="text.secondary" sx={{ mt: 2, fontStyle: 'italic' }}>
-                <strong>Note:</strong> Your DEPA ID will be automatically generated based on your selected role 
-                ({formData.partyType || 'not selected'}) and the current deployment configuration. This ID is used for privacy 
-                compliance and cannot be changed after registration.
-              </Typography>
-            </Grid>
 
             {/* DID Section */}
             <Grid item xs={12}>
@@ -742,10 +678,10 @@ const UserRegistration = () => {
               />
             </Grid>
 
-            {/* Blockchain Status */}
+            {/* System Information */}
             <Grid item xs={12}>
               <Divider sx={{ my: 2 }}>
-                <Typography variant="h6">Blockchain Status (Optional)</Typography>
+                <Typography variant="h6">System Information</Typography>
               </Divider>
             </Grid>
 
@@ -753,41 +689,27 @@ const UserRegistration = () => {
               <Card variant="outlined">
                 <CardContent>
                   <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                    <Typography variant="h6" sx={{ mr: 2 }}>
-                      Blockchain Connection:
+                    <SecurityIcon sx={{ mr: 1, color: 'primary.main' }} />
+                    <Typography variant="h6">
+                      Secure Contract Management
                     </Typography>
-                    {blockchainLoading ? (
-                      <CircularProgress size={20} />
-                    ) : (
-                      <Chip
-                        label={
-                          blockchainStatus === 'connected' ? 'Connected' :
-                          blockchainStatus === 'disconnected' ? 'Not Available' :
-                          blockchainStatus === 'mock' ? 'Mock Mode' : 'Unknown'
-                        }
-                        color={
-                          blockchainStatus === 'connected' ? 'success' :
-                          blockchainStatus === 'disconnected' ? 'warning' :
-                          blockchainStatus === 'mock' ? 'info' : 'default'
-                        }
-                        size="small"
-                      />
-                    )}
                   </Box>
                   
                   <Alert severity="info" sx={{ mb: 2 }}>
                     <Typography variant="body2">
-                      <strong>Registration works without blockchain!</strong> You can complete registration now and connect to blockchain later when you need to sign contracts or perform blockchain operations.
+                      <strong>Your data is secure!</strong> This system uses SCITT CCF ledger technology for tamper-proof contract execution and enterprise-grade security. You can complete registration now and configure advanced signing options later.
                     </Typography>
                   </Alert>
 
-                  {blockchainStatus === 'disconnected' && (
-                    <Alert severity="warning" sx={{ mb: 2 }}>
-                      <Typography variant="body2">
-                        Blockchain is not currently available. This won't prevent registration, but you'll need blockchain access later for contract signing.
-                      </Typography>
-                    </Alert>
-                  )}
+                  <Typography variant="body2" color="text.secondary">
+                    The system provides enterprise-grade security with:
+                  </Typography>
+                  <Box component="ul" sx={{ mt: 1, pl: 2 }}>
+                    <li><Typography variant="body2" color="text.secondary">Tamper-proof contract storage</Typography></li>
+                    <li><Typography variant="body2" color="text.secondary">Enterprise key management integration</Typography></li>
+                    <li><Typography variant="body2" color="text.secondary">Audit trail and provenance tracking</Typography></li>
+                    <li><Typography variant="body2" color="text.secondary">Regulatory compliance built-in</Typography></li>
+                  </Box>
                 </CardContent>
               </Card>
             </Grid>
