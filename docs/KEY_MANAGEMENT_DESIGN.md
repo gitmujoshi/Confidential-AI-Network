@@ -1099,7 +1099,68 @@ class EnterpriseKeyService {
 
 ### Enterprise Signing Workflows
 
-#### 1. Remote Signing (Recommended for Enterprise)
+#### 1. User KMS Credential Configuration
+
+Users provide their cloud KMS credentials through a dedicated configuration interface:
+
+**KMS Configuration Component** (`EnterpriseKMSConfiguration.js`):
+- **Provider Selection**: Choose from Azure Key Vault, AWS KMS, Google Cloud KMS, or OCI KMS
+- **Credential Input**: Secure form fields for provider-specific credentials
+- **Connection Testing**: Validate credentials before saving
+- **Key ID Configuration**: Specify the signing key identifier
+- **Region/Vault Settings**: Configure location-specific settings
+
+**Credential Storage**:
+- **Encrypted Storage**: All credentials encrypted using HashiCorp Vault
+- **Secret Naming**: `kms-config-{userId}-{provider}` format
+- **Access Control**: User-specific credential access
+- **Audit Logging**: Complete credential access tracking
+
+**Supported Cloud Providers**:
+
+*Azure Key Vault:*
+```javascript
+{
+  vaultUrl: 'https://your-vault.vault.azure.net/',
+  clientId: 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx',
+  clientSecret: 'your-client-secret',
+  tenantId: 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx'
+}
+```
+
+*AWS KMS:*
+```javascript
+{
+  accessKeyId: 'AKIAIOSFODNN7EXAMPLE',
+  secretAccessKey: 'your-secret-access-key',
+  region: 'us-east-1'
+}
+```
+
+*Google Cloud KMS:*
+```javascript
+{
+  projectId: 'your-project-id',
+  location: 'us-central1',
+  keyRing: 'contract-management-keys',
+  cryptoKey: 'signing-key',
+  serviceAccountKey: '{"type": "service_account", ...}'
+}
+```
+
+*Oracle Cloud KMS:*
+```javascript
+{
+  compartmentId: 'ocid1.compartment.oc1..xxxxxxxx',
+  vaultId: 'ocid1.vault.oc1..xxxxxxxx',
+  userId: 'ocid1.user.oc1..xxxxxxxx',
+  fingerprint: 'xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx:xx',
+  privateKey: '-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----',
+  region: 'us-ashburn-1'
+}
+```
+
+#### 2. Remote Signing (Recommended for Enterprise)
 The application provides signing requests to enterprise systems without accessing private keys:
 
 ```javascript

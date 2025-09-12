@@ -83,13 +83,20 @@ frontend/
 ```
 backend/
 ├── routes/                  # API route handlers
+│   ├── contractSigning.js  # Unified contract signing API
+│   └── enterpriseSigning.js # Enterprise signing API
 ├── services/                # Business logic layer
 │   ├── scittCcfService.js  # SCITT CCF integration service
+│   ├── contractSigningService.js  # Traditional signing service
+│   ├── enterpriseSigningService.js # Enterprise signing service
+│   ├── cloudKmsService.js  # Cloud KMS integration service
 │   ├── contractRouterService.js  # Contract routing service
 │   ├── systemHealthMonitor.js   # Health monitoring service
 │   └── blockchainService.js     # Ethereum blockchain service
 ├── models/                  # Database models
 │   ├── ScittClaim.js       # SCITT CCF claims model
+│   ├── EnterpriseKey.js    # Enterprise key model
+│   ├── SigningRequest.js   # Signing request model
 │   ├── SystemHealthLog.js  # Health logging model
 │   └── Contract.js         # Enhanced contract model
 ├── middleware/              # Express middleware
@@ -390,6 +397,130 @@ The system supports three migration modes:
 - **Audit Trail**: Cryptographic proof of all operations
 - **Compliance**: Meets regulatory requirements for data handling
 
+## 🔐 Contract Signing Architecture
+
+### **Unified Signing Services**
+
+The system provides a comprehensive contract signing architecture that supports both traditional and enterprise signing workflows:
+
+#### **1. Traditional Signing Service** (`contractSigningService.js`)
+Handles standard contract signing operations:
+- **Key Generation**: ECDSA-P256, RSA-2048, RSA-4096 algorithms
+- **Key Management**: User key storage and lifecycle management
+- **Contract Signing**: Direct signing with user's private keys
+- **Signature Verification**: Cryptographic signature validation
+- **SCITT CCF Integration**: Automatic signature storage in ledger
+
+#### **2. Enterprise Signing Service** (`enterpriseSigningService.js`)
+Manages enterprise-grade signing workflows:
+- **Enterprise Key Registration**: Public key registration for external KMS
+- **Cloud KMS Integration**: Azure Key Vault, AWS KMS, Google Cloud KMS, OCI KMS
+- **Remote Signing**: Contract hash sent to enterprise KMS for signing
+- **Signature Verification**: Verification using registered public keys
+- **Audit Trail**: Complete signing request tracking
+
+#### **3. Cloud KMS Service** (`cloudKmsService.js`)
+Provides cloud provider integration:
+- **Multi-Cloud Support**: Azure, AWS, GCP, OCI
+- **Connection Testing**: Validate KMS credentials and connectivity
+- **Remote Operations**: Sign and verify using cloud KMS
+- **Security**: Encrypted credential storage and transmission
+
+### **Signing Workflow Architecture**
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    Contract Signing Flow                    │
+├─────────────────────────────────────────────────────────────┤
+│  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐  │
+│  │ Traditional     │  │ Enterprise      │  │ Cloud KMS       │  │
+│  │ Signing         │  │ Signing         │  │ Integration     │  │
+│  │ (Local Keys)    │  │ (Remote Keys)   │  │ (Multi-Cloud)   │  │
+│  └─────────────────┘  └─────────────────┘  └─────────────────┘  │
+├─────────────────────────────────────────────────────────────┤
+│                    SCITT CCF Integration                    │
+│  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐  │
+│  │ Signature       │  │ Audit Trail     │  │ Provenance      │  │
+│  │ Storage         │  │ & Logging       │  │ Tracking        │  │
+│  └─────────────────┘  └─────────────────┘  └─────────────────┘  │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### **API Endpoints Structure**
+
+#### **Traditional Signing** (`/api/signing/`)
+- `GET /config` - Signing configuration
+- `GET /keys` - User's signing keys
+- `POST /keys/generate` - Generate new signing key
+- `DELETE /keys/:keyId` - Revoke signing key
+- `POST /sign` - Sign contract
+- `POST /verify` - Verify signature
+- `GET /contracts/:contractId/signatures` - Get contract signatures
+- `GET /stats` - Signing statistics
+
+#### **Enterprise Signing** (`/api/signing/enterprise/`)
+- `POST /keys/register` - Register enterprise key
+- `GET /keys` - Get enterprise keys
+- `GET /keys/:keyId` - Get specific enterprise key
+- `DELETE /keys/:keyId` - Deactivate enterprise key
+- `GET /algorithms` - Supported algorithms
+- `POST /sign` - Initiate enterprise signing
+- `POST /verify` - Verify enterprise signature
+- `GET /signing-requests` - Get signing requests
+
+#### **KMS Configuration** (`/api/signing/enterprise/kms/`)
+- `POST /test` - Test KMS connection
+- `POST /save` - Save KMS configuration
+- `GET /config` - Get KMS configuration
+
+### **Security Model**
+
+#### **Traditional Signing Security**
+- **Key Storage**: Encrypted private keys in database
+- **Key Generation**: Cryptographically secure key generation
+- **Access Control**: User-based key access
+- **Audit Logging**: Complete signing event tracking
+
+#### **Enterprise Signing Security**
+- **No Private Key Access**: Application never stores private keys
+- **Credential Encryption**: KMS credentials encrypted in Vault
+- **Public Key Registration**: Only public keys stored locally
+- **Remote Signing**: Private keys remain in enterprise KMS
+- **Audit Trail**: Complete enterprise signing tracking
+
+### **Database Schema**
+
+#### **Enterprise Key Management**
+```sql
+-- Enterprise Keys table
+CREATE TABLE enterprise_keys (
+  key_id VARCHAR(255) PRIMARY KEY,
+  user_id INTEGER REFERENCES users(id),
+  public_key TEXT NOT NULL,
+  provider ENUM('azure', 'aws', 'gcp', 'oci') NOT NULL,
+  algorithm VARCHAR(50) NOT NULL,
+  status ENUM('ACTIVE', 'INACTIVE', 'REVOKED') DEFAULT 'ACTIVE',
+  metadata JSONB,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Signing Requests table
+CREATE TABLE signing_requests (
+  id SERIAL PRIMARY KEY,
+  contract_id VARCHAR(255) NOT NULL,
+  user_id INTEGER REFERENCES users(id),
+  key_id VARCHAR(255) NOT NULL,
+  contract_hash VARCHAR(64) NOT NULL,
+  status ENUM('PENDING', 'COMPLETED', 'FAILED', 'CANCELLED') DEFAULT 'PENDING',
+  signature TEXT,
+  kms_config JSONB NOT NULL,
+  error TEXT,
+  completed_at TIMESTAMP,
+  failed_at TIMESTAMP,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+```
+
 ## 🔐 Authentication & Authorization
 
 ### **Keycloak Integration**
@@ -556,6 +687,31 @@ http://localhost:5001/api
 - `GET /contracts/:id` - Get contract details
 - `PUT /contracts/:id` - Update contract
 - `DELETE /contracts/:id` - Delete contract
+
+#### **Contract Signing Endpoints**
+- `GET /signing/config` - Get signing configuration
+- `GET /signing/keys` - Get user's signing keys
+- `POST /signing/keys/generate` - Generate new signing key
+- `DELETE /signing/keys/:keyId` - Revoke signing key
+- `POST /signing/sign` - Sign contract
+- `POST /signing/verify` - Verify signature
+- `GET /signing/contracts/:contractId/signatures` - Get contract signatures
+- `GET /signing/stats` - Get signing statistics
+
+#### **Enterprise Signing Endpoints**
+- `POST /signing/enterprise/keys/register` - Register enterprise key
+- `GET /signing/enterprise/keys` - Get enterprise keys
+- `GET /signing/enterprise/keys/:keyId` - Get specific enterprise key
+- `DELETE /signing/enterprise/keys/:keyId` - Deactivate enterprise key
+- `GET /signing/enterprise/algorithms` - Get supported algorithms
+- `POST /signing/enterprise/sign` - Initiate enterprise signing
+- `POST /signing/enterprise/verify` - Verify enterprise signature
+- `GET /signing/enterprise/signing-requests` - Get signing requests
+
+#### **KMS Configuration Endpoints**
+- `POST /signing/enterprise/kms/test` - Test KMS connection
+- `POST /signing/enterprise/kms/save` - Save KMS configuration
+- `GET /signing/enterprise/kms/config` - Get KMS configuration
 
 #### **Dataset Endpoints**
 - `GET /datasets` - List datasets
