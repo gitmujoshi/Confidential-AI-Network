@@ -8,12 +8,13 @@ Complete API documentation for the Contract Management System. This reference co
 2. [User Management](#user-management)
 3. [SCITT CCF Integration API](#-scitt-ccf-integration-api)
 4. [Contract Management](#contract-management)
-5. [Dataset Management](#dataset-management)
-6. [Cloud Credentials](#cloud-credentials)
-7. [Blockchain Integration](#blockchain-integration)
-8. [Differential Privacy](#differential-privacy)
-9. [Error Handling](#error-handling)
-10. [Rate Limiting](#rate-limiting)
+5. [Contract Signing](#-contract-signing)
+6. [Dataset Management](#dataset-management)
+7. [Cloud Credentials](#cloud-credentials)
+8. [Blockchain Integration](#blockchain-integration)
+9. [Differential Privacy](#differential-privacy)
+10. [Error Handling](#error-handling)
+11. [Rate Limiting](#rate-limiting)
 
 ## 🔐 Authentication
 
@@ -257,6 +258,252 @@ POST /auth/reset-password
 {
   "success": true,
   "message": "Password reset successfully"
+}
+```
+
+### **Email Verification**
+```http
+POST /auth/verify-email
+```
+
+**Headers:**
+```http
+Authorization: Bearer <access_token>
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Verification email sent"
+}
+```
+
+### **Verify Email Token**
+```http
+GET /auth/verify-email/:token
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Email verified successfully"
+}
+```
+
+### **Onboarding Status**
+```http
+GET /auth/onboarding-status
+```
+
+**Headers:**
+```http
+Authorization: Bearer <access_token>
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "onboardingStatus": {
+    "isComplete": false,
+    "stepsCompleted": ["email_verification", "profile_setup"],
+    "nextStep": "wallet_connection",
+    "progress": 60
+  }
+}
+```
+
+### **Complete Onboarding**
+```http
+POST /auth/complete-onboarding
+```
+
+**Headers:**
+```http
+Authorization: Bearer <access_token>
+```
+
+**Request Body:**
+```json
+{
+  "walletAddress": "0x1234567890abcdef...",
+  "didDocument": "did:example:1234567890abcdef"
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Onboarding completed successfully"
+}
+```
+
+### **Wallet Authentication**
+```http
+POST /auth/wallet
+```
+
+**Request Body:**
+```json
+{
+  "walletAddress": "0x1234567890abcdef...",
+  "signature": "0xabcdef1234567890...",
+  "message": "Sign this message to authenticate"
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "accessToken": "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "refreshToken": "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "user": {
+    "id": 50,
+    "email": "user@example.com",
+    "partyType": "TDC",
+    "walletAddress": "0x1234567890abcdef..."
+  }
+}
+```
+
+### **Get Nonce for Wallet**
+```http
+GET /auth/nonce/:walletAddress
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "nonce": "random_nonce_string",
+  "message": "Sign this message to authenticate"
+}
+```
+
+### **Email Verification**
+```http
+POST /auth/verify-email
+```
+
+**Headers:**
+```http
+Authorization: Bearer <access_token>
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Verification email sent"
+}
+```
+
+### **Verify Email Token**
+```http
+GET /auth/verify-email/:token
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Email verified successfully"
+}
+```
+
+### **Onboarding Status**
+```http
+GET /auth/onboarding-status
+```
+
+**Headers:**
+```http
+Authorization: Bearer <access_token>
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "onboardingStatus": {
+    "isComplete": false,
+    "stepsCompleted": ["email_verification", "profile_setup"],
+    "nextStep": "wallet_connection",
+    "progress": 60
+  }
+}
+```
+
+### **Complete Onboarding**
+```http
+POST /auth/complete-onboarding
+```
+
+**Headers:**
+```http
+Authorization: Bearer <access_token>
+```
+
+**Request Body:**
+```json
+{
+  "walletAddress": "0x1234567890abcdef...",
+  "didDocument": "did:example:1234567890abcdef"
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Onboarding completed successfully"
+}
+```
+
+### **Wallet Authentication**
+```http
+POST /auth/wallet
+```
+
+**Request Body:**
+```json
+{
+  "walletAddress": "0x1234567890abcdef...",
+  "signature": "0xabcdef1234567890...",
+  "message": "Sign this message to authenticate"
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "accessToken": "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "refreshToken": "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "user": {
+    "id": 50,
+    "email": "user@example.com",
+    "partyType": "TDC",
+    "walletAddress": "0x1234567890abcdef..."
+  }
+}
+```
+
+### **Get Nonce for Wallet**
+```http
+GET /auth/nonce/:walletAddress
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "nonce": "random_nonce_string",
+  "message": "Sign this message to authenticate"
 }
 ```
 
@@ -574,6 +821,813 @@ Authorization: Bearer <access_token>
 {
   "success": true,
   "message": "Contract deleted successfully"
+}
+```
+
+## ✍️ Contract Signing
+
+### **Get Signing Configuration**
+```http
+GET /signing/config
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "config": {
+    "supportedAlgorithms": ["ECDSA-P256", "RSA-2048", "RSA-4096"],
+    "defaultAlgorithm": "ECDSA-P256",
+    "keyFormats": ["PEM", "JWK"]
+  }
+}
+```
+
+### **Get User's Signing Keys**
+```http
+GET /signing/keys
+```
+
+**Headers:**
+```http
+Authorization: Bearer <access_token>
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "keys": [
+    {
+      "keyId": "key_1234567890",
+      "algorithm": "ECDSA-P256",
+      "publicKey": "-----BEGIN PUBLIC KEY-----\n...\n-----END PUBLIC KEY-----",
+      "createdAt": "2025-01-15T10:30:00.000Z",
+      "status": "ACTIVE"
+    }
+  ]
+}
+```
+
+### **Generate New Signing Key**
+```http
+POST /signing/keys/generate
+```
+
+**Headers:**
+```http
+Authorization: Bearer <access_token>
+```
+
+**Request Body:**
+```json
+{
+  "algorithm": "ECDSA-P256",
+  "keyName": "My Signing Key"
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "key": {
+    "keyId": "key_1234567890",
+    "algorithm": "ECDSA-P256",
+    "publicKey": "-----BEGIN PUBLIC KEY-----\n...\n-----END PUBLIC KEY-----",
+    "createdAt": "2025-01-15T10:30:00.000Z"
+  }
+}
+```
+
+### **Sign Contract**
+```http
+POST /signing/sign
+```
+
+**Headers:**
+```http
+Authorization: Bearer <access_token>
+```
+
+**Request Body:**
+```json
+{
+  "contractId": "CONTRACT-2025-001",
+  "keyId": "key_1234567890",
+  "contractHash": "sha256_hash_of_contract"
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "signature": {
+    "signature": "base64_encoded_signature",
+    "algorithm": "ECDSA-P256",
+    "keyId": "key_1234567890",
+    "timestamp": "2025-01-15T10:30:00.000Z"
+  }
+}
+```
+
+### **Verify Signature**
+```http
+POST /signing/verify
+```
+
+**Request Body:**
+```json
+{
+  "contractId": "CONTRACT-2025-001",
+  "signature": "base64_encoded_signature",
+  "publicKey": "-----BEGIN PUBLIC KEY-----\n...\n-----END PUBLIC KEY-----",
+  "contractHash": "sha256_hash_of_contract"
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "isValid": true,
+  "verifiedAt": "2025-01-15T10:30:00.000Z"
+}
+```
+
+### **Get Contract Signatures**
+```http
+GET /signing/contracts/:contractId/signatures
+```
+
+**Headers:**
+```http
+Authorization: Bearer <access_token>
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "signatures": [
+    {
+      "signatureId": "sig_1234567890",
+      "userId": 50,
+      "keyId": "key_1234567890",
+      "signature": "base64_encoded_signature",
+      "algorithm": "ECDSA-P256",
+      "signedAt": "2025-01-15T10:30:00.000Z",
+      "status": "VALID"
+    }
+  ]
+}
+```
+
+### **Enterprise Key Registration**
+```http
+POST /signing/enterprise/keys/register
+```
+
+**Headers:**
+```http
+Authorization: Bearer <access_token>
+```
+
+**Request Body:**
+```json
+{
+  "publicKey": "-----BEGIN PUBLIC KEY-----\n...\n-----END PUBLIC KEY-----",
+  "algorithm": "ECDSA-P256",
+  "provider": "azure",
+  "keyName": "Enterprise Key",
+  "metadata": {
+    "keyVaultUrl": "https://myvault.vault.azure.net/",
+    "keyName": "my-signing-key"
+  }
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "key": {
+    "keyId": "ent_key_1234567890",
+    "algorithm": "ECDSA-P256",
+    "provider": "azure",
+    "status": "ACTIVE",
+    "createdAt": "2025-01-15T10:30:00.000Z"
+  }
+}
+```
+
+### **Enterprise Signing**
+```http
+POST /signing/enterprise/sign
+```
+
+**Headers:**
+```http
+Authorization: Bearer <access_token>
+```
+
+**Request Body:**
+```json
+{
+  "contractId": "CONTRACT-2025-001",
+  "keyId": "ent_key_1234567890",
+  "contractHash": "sha256_hash_of_contract",
+  "kmsConfig": {
+    "provider": "azure",
+    "keyVaultUrl": "https://myvault.vault.azure.net/",
+    "keyName": "my-signing-key"
+  }
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "signingRequest": {
+    "requestId": "req_1234567890",
+    "status": "PENDING",
+    "createdAt": "2025-01-15T10:30:00.000Z"
+  }
+}
+```
+
+### **KMS Configuration**
+```http
+POST /signing/enterprise/kms/test
+```
+
+**Headers:**
+```http
+Authorization: Bearer <access_token>
+```
+
+**Request Body:**
+```json
+{
+  "provider": "azure",
+  "credentials": {
+    "clientId": "your-client-id",
+    "clientSecret": "your-client-secret",
+    "tenantId": "your-tenant-id"
+  },
+  "keyVaultUrl": "https://myvault.vault.azure.net/"
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "connectionTest": {
+    "isConnected": true,
+    "responseTime": 150,
+    "testedAt": "2025-01-15T10:30:00.000Z"
+  }
+}
+```
+
+## ✍️ Contract Signing
+
+### **Get Signing Configuration**
+```http
+GET /signing/config
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "config": {
+    "supportedAlgorithms": ["ECDSA-P256", "RSA-2048", "RSA-4096"],
+    "defaultAlgorithm": "ECDSA-P256",
+    "keyFormats": ["PEM", "JWK"]
+  }
+}
+```
+
+### **Get User's Signing Keys**
+```http
+GET /signing/keys
+```
+
+**Headers:**
+```http
+Authorization: Bearer <access_token>
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "keys": [
+    {
+      "keyId": "key_1234567890",
+      "algorithm": "ECDSA-P256",
+      "publicKey": "-----BEGIN PUBLIC KEY-----\n...\n-----END PUBLIC KEY-----",
+      "createdAt": "2025-01-15T10:30:00.000Z",
+      "status": "ACTIVE"
+    }
+  ]
+}
+```
+
+### **Generate New Signing Key**
+```http
+POST /signing/keys/generate
+```
+
+**Headers:**
+```http
+Authorization: Bearer <access_token>
+```
+
+**Request Body:**
+```json
+{
+  "algorithm": "ECDSA-P256",
+  "keyName": "My Signing Key"
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "key": {
+    "keyId": "key_1234567890",
+    "algorithm": "ECDSA-P256",
+    "publicKey": "-----BEGIN PUBLIC KEY-----\n...\n-----END PUBLIC KEY-----",
+    "createdAt": "2025-01-15T10:30:00.000Z"
+  }
+}
+```
+
+### **Sign Contract**
+```http
+POST /signing/sign
+```
+
+**Headers:**
+```http
+Authorization: Bearer <access_token>
+```
+
+**Request Body:**
+```json
+{
+  "contractId": "CONTRACT-2025-001",
+  "keyId": "key_1234567890",
+  "contractHash": "sha256_hash_of_contract"
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "signature": {
+    "signature": "base64_encoded_signature",
+    "algorithm": "ECDSA-P256",
+    "keyId": "key_1234567890",
+    "timestamp": "2025-01-15T10:30:00.000Z"
+  }
+}
+```
+
+### **Verify Signature**
+```http
+POST /signing/verify
+```
+
+**Request Body:**
+```json
+{
+  "contractId": "CONTRACT-2025-001",
+  "signature": "base64_encoded_signature",
+  "publicKey": "-----BEGIN PUBLIC KEY-----\n...\n-----END PUBLIC KEY-----",
+  "contractHash": "sha256_hash_of_contract"
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "isValid": true,
+  "verifiedAt": "2025-01-15T10:30:00.000Z"
+}
+```
+
+### **Get Contract Signatures**
+```http
+GET /signing/contracts/:contractId/signatures
+```
+
+**Headers:**
+```http
+Authorization: Bearer <access_token>
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "signatures": [
+    {
+      "signatureId": "sig_1234567890",
+      "userId": 50,
+      "keyId": "key_1234567890",
+      "signature": "base64_encoded_signature",
+      "algorithm": "ECDSA-P256",
+      "signedAt": "2025-01-15T10:30:00.000Z",
+      "status": "VALID"
+    }
+  ]
+}
+```
+
+### **Enterprise Key Registration**
+```http
+POST /signing/enterprise/keys/register
+```
+
+**Headers:**
+```http
+Authorization: Bearer <access_token>
+```
+
+**Request Body:**
+```json
+{
+  "publicKey": "-----BEGIN PUBLIC KEY-----\n...\n-----END PUBLIC KEY-----",
+  "algorithm": "ECDSA-P256",
+  "provider": "azure",
+  "keyName": "Enterprise Key",
+  "metadata": {
+    "keyVaultUrl": "https://myvault.vault.azure.net/",
+    "keyName": "my-signing-key"
+  }
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "key": {
+    "keyId": "ent_key_1234567890",
+    "algorithm": "ECDSA-P256",
+    "provider": "azure",
+    "status": "ACTIVE",
+    "createdAt": "2025-01-15T10:30:00.000Z"
+  }
+}
+```
+
+### **Enterprise Signing**
+```http
+POST /signing/enterprise/sign
+```
+
+**Headers:**
+```http
+Authorization: Bearer <access_token>
+```
+
+**Request Body:**
+```json
+{
+  "contractId": "CONTRACT-2025-001",
+  "keyId": "ent_key_1234567890",
+  "contractHash": "sha256_hash_of_contract",
+  "kmsConfig": {
+    "provider": "azure",
+    "keyVaultUrl": "https://myvault.vault.azure.net/",
+    "keyName": "my-signing-key"
+  }
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "signingRequest": {
+    "requestId": "req_1234567890",
+    "status": "PENDING",
+    "createdAt": "2025-01-15T10:30:00.000Z"
+  }
+}
+```
+
+### **KMS Configuration**
+```http
+POST /signing/enterprise/kms/test
+```
+
+**Headers:**
+```http
+Authorization: Bearer <access_token>
+```
+
+**Request Body:**
+```json
+{
+  "provider": "azure",
+  "credentials": {
+    "clientId": "your-client-id",
+    "clientSecret": "your-client-secret",
+    "tenantId": "your-tenant-id"
+  },
+  "keyVaultUrl": "https://myvault.vault.azure.net/"
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "connectionTest": {
+    "isConnected": true,
+    "responseTime": 150,
+    "testedAt": "2025-01-15T10:30:00.000Z"
+  }
+}
+```
+
+## ✍️ Contract Signing
+
+### **Get Signing Configuration**
+```http
+GET /signing/config
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "config": {
+    "supportedAlgorithms": ["ECDSA-P256", "RSA-2048", "RSA-4096"],
+    "defaultAlgorithm": "ECDSA-P256",
+    "keyFormats": ["PEM", "JWK"]
+  }
+}
+```
+
+### **Get User's Signing Keys**
+```http
+GET /signing/keys
+```
+
+**Headers:**
+```http
+Authorization: Bearer <access_token>
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "keys": [
+    {
+      "keyId": "key_1234567890",
+      "algorithm": "ECDSA-P256",
+      "publicKey": "-----BEGIN PUBLIC KEY-----\n...\n-----END PUBLIC KEY-----",
+      "createdAt": "2025-01-15T10:30:00.000Z",
+      "status": "ACTIVE"
+    }
+  ]
+}
+```
+
+### **Generate New Signing Key**
+```http
+POST /signing/keys/generate
+```
+
+**Headers:**
+```http
+Authorization: Bearer <access_token>
+```
+
+**Request Body:**
+```json
+{
+  "algorithm": "ECDSA-P256",
+  "keyName": "My Signing Key"
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "key": {
+    "keyId": "key_1234567890",
+    "algorithm": "ECDSA-P256",
+    "publicKey": "-----BEGIN PUBLIC KEY-----\n...\n-----END PUBLIC KEY-----",
+    "createdAt": "2025-01-15T10:30:00.000Z"
+  }
+}
+```
+
+### **Sign Contract**
+```http
+POST /signing/sign
+```
+
+**Headers:**
+```http
+Authorization: Bearer <access_token>
+```
+
+**Request Body:**
+```json
+{
+  "contractId": "CONTRACT-2025-001",
+  "keyId": "key_1234567890",
+  "contractHash": "sha256_hash_of_contract"
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "signature": {
+    "signature": "base64_encoded_signature",
+    "algorithm": "ECDSA-P256",
+    "keyId": "key_1234567890",
+    "timestamp": "2025-01-15T10:30:00.000Z"
+  }
+}
+```
+
+### **Verify Signature**
+```http
+POST /signing/verify
+```
+
+**Request Body:**
+```json
+{
+  "contractId": "CONTRACT-2025-001",
+  "signature": "base64_encoded_signature",
+  "publicKey": "-----BEGIN PUBLIC KEY-----\n...\n-----END PUBLIC KEY-----",
+  "contractHash": "sha256_hash_of_contract"
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "isValid": true,
+  "verifiedAt": "2025-01-15T10:30:00.000Z"
+}
+```
+
+### **Get Contract Signatures**
+```http
+GET /signing/contracts/:contractId/signatures
+```
+
+**Headers:**
+```http
+Authorization: Bearer <access_token>
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "signatures": [
+    {
+      "signatureId": "sig_1234567890",
+      "userId": 50,
+      "keyId": "key_1234567890",
+      "signature": "base64_encoded_signature",
+      "algorithm": "ECDSA-P256",
+      "signedAt": "2025-01-15T10:30:00.000Z",
+      "status": "VALID"
+    }
+  ]
+}
+```
+
+### **Enterprise Key Registration**
+```http
+POST /signing/enterprise/keys/register
+```
+
+**Headers:**
+```http
+Authorization: Bearer <access_token>
+```
+
+**Request Body:**
+```json
+{
+  "publicKey": "-----BEGIN PUBLIC KEY-----\n...\n-----END PUBLIC KEY-----",
+  "algorithm": "ECDSA-P256",
+  "provider": "azure",
+  "keyName": "Enterprise Key",
+  "metadata": {
+    "keyVaultUrl": "https://myvault.vault.azure.net/",
+    "keyName": "my-signing-key"
+  }
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "key": {
+    "keyId": "ent_key_1234567890",
+    "algorithm": "ECDSA-P256",
+    "provider": "azure",
+    "status": "ACTIVE",
+    "createdAt": "2025-01-15T10:30:00.000Z"
+  }
+}
+```
+
+### **Enterprise Signing**
+```http
+POST /signing/enterprise/sign
+```
+
+**Headers:**
+```http
+Authorization: Bearer <access_token>
+```
+
+**Request Body:**
+```json
+{
+  "contractId": "CONTRACT-2025-001",
+  "keyId": "ent_key_1234567890",
+  "contractHash": "sha256_hash_of_contract",
+  "kmsConfig": {
+    "provider": "azure",
+    "keyVaultUrl": "https://myvault.vault.azure.net/",
+    "keyName": "my-signing-key"
+  }
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "signingRequest": {
+    "requestId": "req_1234567890",
+    "status": "PENDING",
+    "createdAt": "2025-01-15T10:30:00.000Z"
+  }
+}
+```
+
+### **KMS Configuration**
+```http
+POST /signing/enterprise/kms/test
+```
+
+**Headers:**
+```http
+Authorization: Bearer <access_token>
+```
+
+**Request Body:**
+```json
+{
+  "provider": "azure",
+  "credentials": {
+    "clientId": "your-client-id",
+    "clientSecret": "your-client-secret",
+    "tenantId": "your-tenant-id"
+  },
+  "keyVaultUrl": "https://myvault.vault.azure.net/"
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "connectionTest": {
+    "isConnected": true,
+    "responseTime": 150,
+    "testedAt": "2025-01-15T10:30:00.000Z"
+  }
 }
 ```
 
