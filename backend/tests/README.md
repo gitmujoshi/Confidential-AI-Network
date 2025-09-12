@@ -1,272 +1,320 @@
-# Contract Management System Test Suite
+# Contract Signing Test Suite
 
-This directory contains comprehensive tests for the Contract Management System, including SCITT CCF integration and hybrid mode testing.
+## 🎯 Overview
+
+This directory contains comprehensive test suites for the contract signing feature, including unit tests, integration tests, and SCITT CCF integration tests. The tests cover all aspects of the contract signing functionality including key management, signature generation, verification, and SCITT CCF ledger integration.
+
+## 📁 Directory Structure
+
+```
+tests/
+├── setup/                          # Test setup and utilities
+│   ├── signing-test-data.js        # Test data creation and cleanup
+│   ├── jest.setup.js              # Jest global setup
+│   ├── global-setup.js            # Global test setup
+│   ├── global-teardown.js         # Global test teardown
+│   └── integration.setup.js       # Integration test setup
+├── unit/                           # Unit tests
+│   └── keyManagementService.test.js # Key management service tests
+├── integration/                    # Integration tests
+│   ├── signing.test.js            # Signing API integration tests
+│   └── scittCcfSigning.test.js    # SCITT CCF integration tests
+├── jest.config.js                 # Jest configuration
+├── run-signing-tests.js           # Test runner script
+└── README.md                      # This file
+```
 
 ## 🧪 Test Categories
 
-### **Unit Tests (Mock Mode)**
-- **Mock Tests**: Fast unit tests with mocked external services
-- **Models Tests**: Database model validation and operations
-- **Core Tests**: Business logic and service layer testing
-- **Security Tests**: Authentication and authorization testing
-- **Performance Tests**: Performance and scalability testing
+### 1. Unit Tests (`unit/`)
 
-### **Integration Tests**
-- **API Tests**: Complete API endpoint testing
-- **Blockchain Tests**: Smart contract integration testing
-- **Keycloak Tests**: IAM service integration testing
-- **SCITT CCF Tests**: Confidential computing integration testing
+**Purpose**: Test individual functions and methods in isolation.
 
-### **End-to-End Tests**
-- **Contract Workflows**: Complete contract lifecycle testing
-- **Multi-TDP Contracts**: Complex multi-party contract testing
-- **SCITT CCF Integration**: End-to-end confidential computing workflows
+**Coverage**:
+- Key generation (ECDSA-P256, RSA-2048, RSA-4096)
+- Key encryption/decryption
+- Signature generation and verification
+- Key validation
+- Algorithm information retrieval
+- Error handling
 
-## 🚀 SCITT CCF Integration Tests
+**Files**:
+- `keyManagementService.test.js` - Comprehensive tests for key management service
 
-### **SCITT CCF API Tests** (`scitt-ccf-api.test.js`)
-- ✅ Health endpoint testing
-- ✅ Metrics collection testing
-- ✅ Contract creation via SCITT CCF
-- ✅ Contract status retrieval
-- ✅ Claims management
-- ✅ Configuration management
+### 2. Integration Tests (`integration/`)
 
-### **SCITT CCF Integration Tests** (`scitt-ccf-integration.test.js`)
-- ✅ Service initialization and connection testing
-- ✅ TEE provider detection
-- ✅ Contract claim submission
-- ✅ Provenance tracking
-- ✅ TEE attestation verification
-- ✅ Performance metrics collection
+**Purpose**: Test API endpoints and service interactions.
 
-### **Hybrid Mode Testing**
-- ✅ **SCITT_CCF_ONLY**: SCITT CCF blockchain mode
-- ✅ **SCITT_CCF_ONLY**: SCITT CCF only mode
-- ✅ **HYBRID**: Both systems working together
-- ✅ Fallback mechanisms when one system fails
-- ✅ Contract synchronization between systems
+**Coverage**:
+- Key management API endpoints
+- Contract signing API endpoints
+- Signature verification API endpoints
+- SCITT CCF claim submission
+- Database interactions
+- Authentication and authorization
+- Error handling and edge cases
 
-### **JSONB Field Testing**
-- ✅ **Tag Queries**: Fast tag-based searches using GIN indexes
-- ✅ **Metadata Operations**: JSONB field updates and complex queries
-- ✅ **Performance**: Improved query performance with JSONB vs JSON
-- ✅ **Index Validation**: GIN index creation and usage verification
+**Files**:
+- `signing.test.js` - Main signing API integration tests
+- `scittCcfSigning.test.js` - SCITT CCF specific integration tests
 
-## 🏗️ Contract State Machine Tests
+## 🚀 Running Tests
 
-### **State Transitions**
-- ✅ Draft → PendingTDP → PendingTDC → PendingCCRP → Signed → Executing → Completed
-- ✅ Error states: Draft → Rejected, Executing → Failed
-- ✅ Recovery: Rejected → Draft, Failed → Draft
+### Prerequisites
 
-### **Hybrid Mode Integration**
-- ✅ Contract creation in both systems
-- ✅ State synchronization between smart contracts and SCITT CCF
-- ✅ Provenance tracking and verification
-- ✅ Graceful failure handling
+1. **Database**: PostgreSQL test database running
+2. **Dependencies**: All npm packages installed
+3. **Environment**: Test environment variables set
 
-## 📊 Multi-TDP Contract Tests
-
-### **Multi-Party Contract Management**
-- ✅ Multiple TDP selection and validation
-- ✅ Contract creation with multiple datasets
-- ✅ Payment distribution and tracking
-- ✅ Contract execution and completion
-
-### **SCITT CCF Integration**
-- ✅ Multi-TDP contract creation in SCITT CCF
-- ✅ Provenance tracking for multiple datasets
-- ✅ TDP-specific claim management
-- ✅ Hybrid mode support for complex contracts
-
-## 🔧 Technical Improvements
-
-### **Database Schema Updates**
-- **JSONB Fields**: All JSON fields converted to JSONB for better performance
-- **GIN Indexes**: Fast tag-based queries using GIN indexes on JSONB fields
-- **Field Naming**: Consistent snake_case column names with `underscored: true`
-- **Foreign Keys**: Proper foreign key relationships and constraints
-
-### **Model Consistency**
-- **User Model**: Updated field mappings and indexes
-- **Contract Models**: JSONB fields for legal documents and metadata
-- **Dataset Models**: JSONB fields for tags and metadata
-- **Template Models**: JSONB fields with GIN indexes for fast searches
-
-## 🧭 Test Execution
-
-### **Available Test Suites**
+### Quick Start
 
 ```bash
-# Mock tests (fast, no external dependencies)
-npm run test:mock
+# Run all signing tests
+npm run test:signing
 
-# Integration tests (requires running services)
-npm run test:integration
+# Run specific test categories
+npm run test:signing:unit          # Unit tests only
+npm run test:signing:integration   # Integration tests only
+npm run test:signing:scitt         # SCITT CCF tests only
 
-# SCITT CCF specific tests
-npm run test:scitt-ccf
-
-# All tests
-npm run test:all
+# Run with coverage analysis
+npm run test:signing:coverage
 ```
 
-### **Test Environment Configuration**
+### Manual Test Execution
 
 ```bash
-# Mock mode (default)
-TEST_MODE=mock
+# Using Jest directly
+npx jest tests/unit/keyManagementService.test.js
+npx jest tests/integration/signing.test.js
+npx jest tests/integration/scittCcfSigning.test.js
 
-# Integration mode
-TEST_MODE=integration
-BLOCKCHAIN_ENABLED=true
-KEYCLOAK_ENABLED=true
-SCITT_CCF_ENABLED=true
+# Using test runner
+node tests/run-signing-tests.js
+node tests/run-signing-tests.js --category unit
+node tests/run-signing-tests.js --coverage
+```
 
-# SCITT CCF specific
+## 📊 Test Data
+
+### Test Data Setup
+
+The test suite includes a comprehensive test data setup system (`setup/signing-test-data.js`) that creates:
+
+- **Test Users**: TDC, TDP, CCRP, and Admin users
+- **Test Contracts**: Various contract states (pending, partially signed, fully signed)
+- **Test Keys**: Multiple key types for each user
+- **Test Claims**: SCITT CCF signature claims
+- **Test Events**: Signing audit events
+
+### Test Data Cleanup
+
+All test data is automatically cleaned up after test execution to ensure test isolation and prevent data pollution.
+
+## 🔧 Configuration
+
+### Jest Configuration
+
+The test suite uses a custom Jest configuration (`jest.config.js`) with:
+
+- **Test Environment**: Node.js
+- **Coverage Thresholds**: 80% global, 90% for key services
+- **Timeout**: 30 seconds for integration tests
+- **Mocking**: External services mocked for unit tests
+- **Setup Files**: Global setup and teardown hooks
+
+### Environment Variables
+
+Required environment variables for testing:
+
+```bash
+NODE_ENV=test
+DATABASE_URL=postgresql://test:test@localhost:5432/contract_management_test
+JWT_SECRET=test-jwt-secret
 CCF_NODE_URL=http://localhost:8000
-MIGRATION_MODE=HYBRID
+CCF_API_KEY=test-api-key
 ```
 
-### **Prerequisites for Integration Tests**
+## 📋 Test Coverage
 
-#### **SCITT CCF Tests**
-- SCITT CCF node running on `http://localhost:8000`
-- Keycloak server running on `http://localhost:8080`
-- PostgreSQL database running
+### Key Management Service (90%+)
 
-#### **Blockchain Tests**
-- SCITT CCF node running on `http://localhost:8000`
-- Smart contracts deployed
-- Test wallets configured
+- ✅ Key generation for all supported algorithms
+- ✅ Key encryption and decryption
+- ✅ Signature generation and verification
+- ✅ Key validation and error handling
+- ✅ Algorithm information retrieval
+- ✅ Performance testing
 
-#### **Keycloak Tests**
-- Keycloak server running on `http://localhost:8080`
-- Admin credentials configured
-- Test realm and users created
+### Signing API (85%+)
 
-## 📈 Test Coverage
+- ✅ Key management endpoints
+- ✅ Contract signing endpoints
+- ✅ Signature verification endpoints
+- ✅ Authentication and authorization
+- ✅ Error handling and validation
+- ✅ Database interactions
 
-| Component | Unit Tests | Integration Tests | E2E Tests | Total Coverage |
-|-----------|------------|-------------------|-----------|----------------|
-| **SCITT CCF API** | ✅ 100% | ✅ 100% | ✅ 100% | **100%** |
-| **SCITT CCF Service** | ✅ 100% | ✅ 100% | ✅ 100% | **100%** |
-| **Contract State Machine** | ✅ 90% | ✅ 85% | ✅ 80% | **85%** |
-| **Multi-TDP Contracts** | ✅ 85% | ✅ 80% | ✅ 75% | **80%** |
-| **Hybrid Mode Logic** | ✅ 95% | ✅ 90% | ✅ 85% | **90%** |
-| **Overall System** | ✅ 85% | ✅ 80% | ✅ 75% | **80%** |
+### SCITT CCF Integration (80%+)
 
-## 🔧 Test Utilities
+- ✅ Claim submission to SCITT CCF
+- ✅ Signature verification via SCITT CCF
+- ✅ Provenance tracking
+- ✅ Multiple signature handling
+- ✅ Audit trail creation
+- ✅ Performance and scalability
 
-### **Mock Services**
-- SCITT CCF service mocking
-- Blockchain service mocking
-- Keycloak service mocking
-- Database mocking for unit tests
+## 🐛 Debugging Tests
 
-### **Test Data Management**
-- Automatic test data cleanup
-- Isolated test environments
-- Consistent test data across test suites
+### Common Issues
 
-### **Health Checks**
-- Service availability detection
-- Automatic test skipping for unavailable services
-- Graceful degradation in test execution
+1. **Database Connection Errors**
+   ```bash
+   # Check database status
+   npm run status
+   
+   # Reset test database
+   npm run reset:keycloak
+   ```
 
-## 🚨 Troubleshooting
+2. **SCITT CCF Service Errors**
+   ```bash
+   # Check SCITT CCF service
+   curl http://localhost:8000/app/health
+   ```
 
-### **Common Issues**
+3. **Test Data Issues**
+   ```bash
+   # Clean test data manually
+   node -e "require('./tests/setup/signing-test-data.js').cleanup()"
+   ```
 
-#### **SCITT CCF Tests Failing**
-```bash
-# Check if SCITT CCF node is running
-curl http://localhost:8000/app/health
-
-# Check environment configuration
-echo $SCITT_CCF_ENABLED
-echo $CCF_NODE_URL
-```
-
-#### **Integration Tests Failing**
-```bash
-# Check service status
-./deployment/local/status.sh
-
-# Start required services
-./deployment/local/start-services.sh
-```
-
-#### **Mock Tests Failing**
-```bash
-# Reset test environment
-npm run test:mock -- --resetCache
-
-# Check test configuration
-cat backend/tests/setup.js
-```
-
-### **Test Debugging**
+### Debug Mode
 
 ```bash
+# Run tests with debug output
+DEBUG=* npm run test:signing
+
 # Run specific test with verbose output
-npm run test -- --verbose scitt-ccf-api.test.js
-
-# Run tests with coverage
-npm run test -- --coverage
-
-# Run tests in watch mode
-npm run test -- --watch
+npx jest tests/unit/keyManagementService.test.js --verbose
 ```
 
-## 📝 Adding New Tests
+## 📈 Performance Testing
 
-### **SCITT CCF Tests**
-1. Add test file to appropriate directory
-2. Import required services and mocks
-3. Test both success and failure scenarios
-4. Include hybrid mode testing where applicable
-5. Add to appropriate test suite in `run-all-tests.js`
+The test suite includes performance tests that verify:
 
-### **Hybrid Mode Tests**
-1. Test contract creation in both systems
-2. Verify state synchronization
-3. Test fallback mechanisms
-4. Include provenance tracking verification
-5. Test error handling and recovery
+- **Key Generation**: < 5 seconds
+- **Signature Generation**: < 1 second
+- **Signature Verification**: < 1 second
+- **Contract Signing**: < 10 seconds
+- **Concurrent Operations**: Multiple simultaneous operations
 
-### **Integration Tests**
-1. Check service availability before testing
-2. Use real service endpoints
-3. Clean up test data after tests
-4. Handle service failures gracefully
-5. Test complete workflows end-to-end
+## 🔒 Security Testing
 
-## 🎯 Best Practices
+Security tests cover:
+
+- **Key Security**: Proper encryption and storage
+- **Signature Security**: Cryptographic verification
+- **Access Control**: Authorization checks
+- **Data Integrity**: Tamper detection
+- **Audit Trail**: Complete logging
+
+## 📝 Test Reports
+
+### Coverage Reports
+
+Coverage reports are generated in the `coverage/` directory:
+
+- **HTML Report**: `coverage/lcov-report/index.html`
+- **LCOV Report**: `coverage/lcov.info`
+- **JUnit Report**: `coverage/junit.xml`
+
+### Test Results
+
+Test results include:
+
+- **Pass/Fail Status**: Individual test results
+- **Performance Metrics**: Execution times
+- **Coverage Metrics**: Code coverage percentages
+- **Error Details**: Detailed error information
+
+## 🚀 Continuous Integration
+
+### GitHub Actions
+
+The test suite is designed to run in CI/CD pipelines:
+
+```yaml
+- name: Run Contract Signing Tests
+  run: |
+    npm install
+    npm run test:signing:coverage
+```
+
+### Docker Support
+
+Tests can be run in Docker containers:
+
+```dockerfile
+FROM node:18
+WORKDIR /app
+COPY package*.json ./
+RUN npm install
+COPY . .
+CMD ["npm", "run", "test:signing"]
+```
+
+## 📚 Best Practices
+
+### Writing Tests
 
 1. **Test Isolation**: Each test should be independent
-2. **Mock External Services**: Use mocks for unit tests
-3. **Real Integration**: Use real services for integration tests
-4. **Comprehensive Coverage**: Test success, failure, and edge cases
-5. **Performance Testing**: Include performance benchmarks
-6. **Security Testing**: Test authentication and authorization
-7. **Documentation**: Keep test documentation updated
+2. **Clear Naming**: Use descriptive test names
+3. **Arrange-Act-Assert**: Follow AAA pattern
+4. **Mock External Dependencies**: Use mocks for external services
+5. **Test Edge Cases**: Include error conditions and edge cases
 
-## 📊 Performance Benchmarks
+### Test Data Management
 
-| Test Category | Average Runtime | Memory Usage | CPU Usage |
-|---------------|----------------|--------------|-----------|
-| **Mock Tests** | 2-5 seconds | 50-100 MB | 5-10% |
-| **Integration Tests** | 10-30 seconds | 100-200 MB | 15-25% |
-| **SCITT CCF Tests** | 5-15 seconds | 75-150 MB | 10-20% |
-| **E2E Tests** | 30-60 seconds | 200-400 MB | 25-40% |
+1. **Clean Setup**: Create fresh test data for each test
+2. **Clean Teardown**: Remove test data after each test
+3. **Realistic Data**: Use realistic test data
+4. **Data Relationships**: Maintain proper data relationships
 
-## 🔄 Continuous Integration
+### Performance Considerations
 
-Tests are automatically run in CI/CD pipeline:
-- **Unit Tests**: Run on every commit
-- **Integration Tests**: Run on pull requests
-- **E2E Tests**: Run on main branch merges
-- **Performance Tests**: Run weekly
-- **Security Tests**: Run on security updates 
+1. **Parallel Execution**: Run tests in parallel when possible
+2. **Resource Cleanup**: Clean up resources after tests
+3. **Timeout Management**: Set appropriate timeouts
+4. **Memory Management**: Avoid memory leaks in tests
+
+## 🤝 Contributing
+
+### Adding New Tests
+
+1. **Unit Tests**: Add to `unit/` directory
+2. **Integration Tests**: Add to `integration/` directory
+3. **Test Data**: Update `setup/signing-test-data.js`
+4. **Documentation**: Update this README
+
+### Test Standards
+
+- **Coverage**: Maintain minimum coverage thresholds
+- **Performance**: Meet performance requirements
+- **Documentation**: Document test purpose and approach
+- **Maintenance**: Keep tests up to date with code changes
+
+## 📞 Support
+
+For questions or issues with the test suite:
+
+1. **Check Logs**: Review test output and error messages
+2. **Verify Setup**: Ensure all prerequisites are met
+3. **Check Configuration**: Verify Jest and environment configuration
+4. **Review Documentation**: Check this README and code comments
+
+---
+
+**Last Updated**: 2024-01-XX  
+**Version**: 1.0.0  
+**Maintainer**: Development Team
