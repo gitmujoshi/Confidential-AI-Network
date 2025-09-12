@@ -11,6 +11,11 @@ const { AttestationService } = require('./attestationService');
 const { TrainingMonitoringService } = require('./trainingMonitoringService');
 const { ProvenanceService } = require('./provenanceService');
 const { NotificationService } = require('./notificationService');
+const SecureDataAccessService = require('./secureDataAccessService');
+const PrivacyPreservingTrainingService = require('./privacyPreservingTrainingService');
+const AdvancedMonitoringService = require('./advancedMonitoringService');
+const ProvenanceTrackingService = require('./provenanceTrackingService');
+const TrainingContainerService = require('./trainingContainerService');
 
 class TrainingOrchestrationService {
   constructor() {
@@ -20,6 +25,13 @@ class TrainingOrchestrationService {
     this.monitoringService = new TrainingMonitoringService();
     this.provenanceService = new ProvenanceService();
     this.notificationService = new NotificationService();
+    
+    // New services for complete implementation
+    this.secureDataAccessService = new SecureDataAccessService();
+    this.privacyPreservingTrainingService = new PrivacyPreservingTrainingService();
+    this.advancedMonitoringService = new AdvancedMonitoringService();
+    this.provenanceTrackingService = new ProvenanceTrackingService();
+    this.trainingContainerService = new TrainingContainerService();
     
     // Training job tracking
     this.activeJobs = new Map();
