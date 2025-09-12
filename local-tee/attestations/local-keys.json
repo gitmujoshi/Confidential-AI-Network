@@ -1,0 +1,6 @@
+{
+  "publicKey": "-----BEGIN PUBLIC KEY-----\nMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEiMWkUOHV7EjwIE0UOQqeFrIevD3f\nS1YUamXzgBubNmEKh/xI3BMltmnhFH4Kqp3+HuCqwNOY7T5WpasGvsfAcg==\n-----END PUBLIC KEY-----\n",
+  "privateKey": "-----BEGIN PRIVATE KEY-----\nMIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQg00IjYTolyici92io\ns8c0r5NSi0Vb2iS4s6QRPVDrrPehRANCAASIxaRQ4dXsSPAgTRQ5Cp4Wsh68Pd9L\nVhRqZfOAG5s2YQqH/EjcEyW2aeEUfgqqnf4e4KrA05jtPlalqwa+x8By\n-----END PRIVATE KEY-----\n",
+  "algorithm": "ECDSA-P256",
+  "generatedAt": "2025-09-12T15:15:30.173Z"
+}

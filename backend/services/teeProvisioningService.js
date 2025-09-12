@@ -7,6 +7,7 @@
  */
 
 const { v4: uuidv4 } = require('uuid');
+const LocalTEEProvider = require('./localTEEProvider');
 
 class TEEProvisioningService {
   constructor() {
@@ -14,10 +15,17 @@ class TEEProvisioningService {
       aws: new AWSProvider(),
       azure: new AzureProvider(),
       gcp: new GCPProvider(),
-      oci: new OCIProvider()
+      oci: new OCIProvider(),
+      local: new LocalTEEProvider()
     };
     
     this.activeEnvironments = new Map();
+    this.isLocalMode = process.env.NODE_ENV === 'development' || process.env.TEE_MODE === 'local';
+    
+    // Initialize local provider if in local mode
+    if (this.isLocalMode) {
+      this.providers.local.initialize().catch(console.error);
+    }
   }
 
   /**
@@ -31,22 +39,25 @@ class TEEProvisioningService {
       
       const environmentId = `env_${Date.now()}_${uuidv4().substr(0, 8)}`;
       
-      // Get provider-specific configuration
-      const provider = this.providers[config.provider];
+      // Use local provider if in local mode or no provider specified
+      const providerName = this.isLocalMode ? 'local' : (config.provider || 'local');
+      const provider = this.providers[providerName];
+      
       if (!provider) {
-        throw new Error(`Unsupported cloud provider: ${config.provider}`);
+        throw new Error(`Unsupported cloud provider: ${providerName}`);
       }
       
       // Provision environment using provider-specific service
       const environment = await provider.provisionEnvironment({
         environmentId,
+        provider: providerName,
         ...config
       });
       
       // Store environment details
       this.activeEnvironments.set(environmentId, environment);
       
-      console.log(`✅ TEE environment provisioned: ${environmentId}`);
+      console.log(`✅ TEE environment provisioned: ${environmentId} (${providerName})`);
       return environment;
       
     } catch (error) {
