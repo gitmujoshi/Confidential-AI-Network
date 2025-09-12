@@ -361,17 +361,36 @@ curl -X POST https://localhost:8443/realms/contract-management/protocol/openid-c
 ## 🔐 Contract Signing Integration
 
 ### Overview
-The IAM system integrates seamlessly with the contract signing workflow, providing secure authentication and authorization for digital signature operations. Users must be authenticated through Keycloak before they can access signing functionality.
+The IAM system integrates seamlessly with both traditional and enterprise contract signing workflows, providing secure authentication and authorization for digital signature operations. Users must be authenticated through Keycloak before they can access signing functionality.
 
-### Signing Workflow Integration
+### Enterprise Signing Workflow Integration
 ```
 1. User Authentication (Keycloak)
    ↓
-2. Contract Access Authorization
+2. Enterprise Key Registration
    ↓
-3. Key Management Access
+3. Contract Access Authorization
    ↓
-4. Signature Generation
+4. Enterprise KMS Integration
+   ↓
+5. Remote Signing Request
+   ↓
+6. Signature Verification
+   ↓
+7. SCITT CCF Submission
+   ↓
+8. Audit Logging
+```
+
+### Traditional Signing Workflow Integration
+```
+1. User Authentication (Keycloak)
+   ↓
+2. Local Key Generation
+   ↓
+3. Contract Access Authorization
+   ↓
+4. Local Signature Generation
    ↓
 5. SCITT CCF Submission
    ↓
@@ -384,6 +403,39 @@ When users register through the system, they are automatically provisioned with:
 - **Party Type**: Determines signing permissions (TDP, TDC, CCRP, AppAdmin)
 - **Default Roles**: Based on party type for access control
 - **Key Management Access**: Ability to generate and manage signing keys
+- **Enterprise Key Registration**: Ability to register enterprise public keys for remote signing
+
+### Enterprise Signing Integration
+The system supports enterprise signing workflows where private keys remain in the enterprise's own Key Management System (KMS):
+
+#### Supported Cloud KMS Providers
+- **Azure Key Vault**: Microsoft's cloud-based key management service
+- **AWS KMS**: Amazon Web Services Key Management Service
+- **Google Cloud KMS**: Google Cloud Platform Key Management Service
+- **OCI Vault**: Oracle Cloud Infrastructure Vault Service
+
+#### Enterprise Key Registration Process
+1. **User Authentication**: User must be authenticated through Keycloak
+2. **Public Key Upload**: Enterprise uploads their public key in PEM format
+3. **Key Validation**: System validates key format and algorithm compatibility
+4. **Metadata Storage**: Key metadata stored with user association
+5. **KMS Configuration**: Enterprise provides KMS credentials for signing requests
+
+#### Enterprise Signing Process
+1. **Contract Selection**: User selects contract to sign
+2. **Key Selection**: User selects registered enterprise key
+3. **KMS Configuration**: User provides KMS credentials
+4. **Remote Signing**: System sends contract hash to enterprise KMS
+5. **Signature Return**: Enterprise KMS returns signed hash
+6. **Verification**: System verifies signature using stored public key
+7. **Storage**: Signature stored in SCITT CCF ledger
+
+#### Security Model
+- **Private Key Isolation**: Private keys never leave enterprise KMS
+- **Public Key Verification**: All signatures verified using stored public keys
+- **Credential Management**: KMS credentials provided per signing request
+- **Audit Trail**: Complete logging of all signing operations
+- **Access Control**: Role-based access to signing functionality
 
 ### Role-Based Signing Permissions
 ```json
@@ -392,22 +444,43 @@ When users register through the system, they are automatically provisioned with:
     "TDP": {
       "canSign": ["data_sharing_contracts", "privacy_agreements"],
       "canView": ["own_contracts", "signed_contracts"],
-      "keyManagement": "full"
+      "keyManagement": "full",
+      "enterpriseSigning": {
+        "canRegisterKeys": true,
+        "canUseEnterpriseKeys": true,
+        "supportedProviders": ["azure", "aws", "gcp", "oci"]
+      }
     },
     "TDC": {
       "canSign": ["data_usage_contracts", "model_training_agreements"],
       "canView": ["own_contracts", "signed_contracts"],
-      "keyManagement": "full"
+      "keyManagement": "full",
+      "enterpriseSigning": {
+        "canRegisterKeys": true,
+        "canUseEnterpriseKeys": true,
+        "supportedProviders": ["azure", "aws", "gcp", "oci"]
+      }
     },
     "CCRP": {
       "canSign": ["environment_setup_contracts", "infrastructure_agreements"],
       "canView": ["all_contracts", "environment_contracts"],
-      "keyManagement": "full"
+      "keyManagement": "full",
+      "enterpriseSigning": {
+        "canRegisterKeys": true,
+        "canUseEnterpriseKeys": true,
+        "supportedProviders": ["azure", "aws", "gcp", "oci"]
+      }
     },
     "AppAdmin": {
       "canSign": ["all_contracts"],
       "canView": ["all_contracts", "all_signatures"],
-      "keyManagement": "admin"
+      "keyManagement": "admin",
+      "enterpriseSigning": {
+        "canRegisterKeys": true,
+        "canUseEnterpriseKeys": true,
+        "canManageAllKeys": true,
+        "supportedProviders": ["azure", "aws", "gcp", "oci"]
+      }
     }
   }
 }
@@ -417,11 +490,44 @@ When users register through the system, they are automatically provisioned with:
 - **Valid JWT Token**: Must be authenticated through Keycloak
 - **Active Session**: Session must not be expired
 - **Role Verification**: User must have appropriate party type
-- **Key Access**: Must have access to valid signing keys
+- **Key Access**: Must have access to valid signing keys (local or enterprise)
+- **Enterprise Key Registration**: For enterprise signing, must have registered public key
+- **KMS Credentials**: For enterprise signing, must provide valid KMS credentials
 
 ### Integration Points
 ```javascript
-// Signing API Authentication Middleware
+// Enterprise Signing API Authentication Middleware
+const authenticateEnterpriseSigning = async (req, res, next) => {
+  try {
+    // Validate JWT token
+    const token = req.headers.authorization?.replace('Bearer ', '');
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    
+    // Get user from Keycloak
+    const user = await ***REMOVED-KEYCLOAK_DB_PASSWORD***Service.getUserInfo(token);
+    
+    // Check enterprise signing permissions
+    const canUseEnterpriseSigning = await checkEnterpriseSigningPermissions(user.partyType);
+    if (!canUseEnterpriseSigning) {
+      return res.status(403).json({ error: 'Insufficient permissions for enterprise signing' });
+    }
+    
+    // Validate enterprise key access
+    if (req.body.keyId) {
+      const hasKeyAccess = await checkEnterpriseKeyAccess(user.id, req.body.keyId);
+      if (!hasKeyAccess) {
+        return res.status(403).json({ error: 'Access denied to enterprise key' });
+      }
+    }
+    
+    req.user = user;
+    next();
+  } catch (error) {
+    res.status(401).json({ error: 'Authentication required for enterprise signing' });
+  }
+};
+
+// Traditional Signing API Authentication Middleware
 const authenticateSigning = async (req, res, next) => {
   try {
     // Validate JWT token
@@ -450,7 +556,7 @@ const authenticateSigning = async (req, res, next) => {
 ## 🔑 Key Management Integration
 
 ### Overview
-The IAM system provides secure key management capabilities integrated with Keycloak authentication. Users can generate, store, and manage their signing keys through authenticated API endpoints.
+The IAM system provides secure key management capabilities integrated with Keycloak authentication. Users can generate, store, and manage their signing keys through authenticated API endpoints, including both local key management and enterprise key registration.
 
 ### Key Management Architecture
 ```
@@ -462,6 +568,8 @@ The IAM system provides secure key management capabilities integrated with Keycl
 │ - Key Import   │    │ - Key Import   │    │ - Key Metadata  │
 │ - Key Export   │    │ - Key Export   │    │ - Key Status    │
 │ - Key List     │    │ - Key List     │    │ - Key History   │
+│ - Enterprise   │    │ - Enterprise   │    │ - Enterprise    │
+│   Key Mgmt     │    │   Key Mgmt     │    │   Keys          │
 └─────────────────┘    └─────────────────┘    └─────────────────┘
                                 │
                                 ▼
@@ -473,6 +581,17 @@ The IAM system provides secure key management capabilities integrated with Keycl
                     │ - Role Check   │
                     │ - Permission   │
                     │   Validation   │
+                    └─────────────────┘
+                                │
+                                ▼
+                    ┌─────────────────┐
+                    │   Cloud KMS     │
+                    │   Integration   │
+                    │                │
+                    │ - Azure KV     │
+                    │ - AWS KMS      │
+                    │ - GCP KMS      │
+                    │ - OCI Vault    │
                     └─────────────────┘
 ```
 
@@ -501,15 +620,58 @@ KEY_ENCRYPTION_SALT=salt
 4. **Key Rotation**: Users can generate new keys and retire old ones
 5. **Key Revocation**: Keys can be revoked for security purposes
 
+### Enterprise Key Management
+The system supports enterprise key management where private keys remain in the enterprise's own Key Management System (KMS):
+
+#### Enterprise Key Registration
+1. **Public Key Upload**: Enterprise uploads their public key in PEM format
+2. **Key Validation**: System validates key format and algorithm compatibility
+3. **Metadata Storage**: Key metadata stored with user association
+4. **Provider Configuration**: Enterprise specifies their KMS provider (Azure, AWS, GCP, OCI)
+
+#### Supported Enterprise Key Algorithms
+- **ECDSA_P256**: Elliptic Curve Digital Signature Algorithm with P-256 curve
+- **ECDSA_P384**: Elliptic Curve Digital Signature Algorithm with P-384 curve
+- **ECDSA_P521**: Elliptic Curve Digital Signature Algorithm with P-521 curve
+- **RSA_2048**: RSA algorithm with 2048-bit key length
+- **RSA_4096**: RSA algorithm with 4096-bit key length
+
+#### Enterprise Key Lifecycle
+1. **Registration**: Enterprise registers public key with the system
+2. **Validation**: System validates key format and algorithm
+3. **Storage**: Public key stored for signature verification
+4. **Usage**: Key used for remote signing operations
+5. **Deactivation**: Key can be deactivated when no longer needed
+
+#### Enterprise Key Security Model
+- **Private Key Isolation**: Private keys never leave enterprise KMS
+- **Public Key Verification**: All signatures verified using stored public keys
+- **Credential Management**: KMS credentials provided per signing request
+- **Audit Trail**: Complete logging of all enterprise key operations
+- **Access Control**: Role-based access to enterprise key management
+
 ### Key Management API Endpoints
 ```javascript
-// Key Management API Routes
+// Traditional Key Management API Routes
 GET    /api/signing/config          // Get key management configuration
 GET    /api/signing/keys            // List user's keys
 POST   /api/signing/keys/generate   // Generate new key
 POST   /api/signing/keys/import     // Import existing key
 DELETE /api/signing/keys/:keyId     // Delete/revoke key
 GET    /api/signing/keys/:keyId/export // Export key data
+
+// Enterprise Key Management API Routes
+POST   /api/enterprise/keys/register           // Register enterprise public key
+GET    /api/enterprise/keys                    // List user's enterprise keys
+GET    /api/enterprise/keys/:keyId             // Get specific enterprise key
+DELETE /api/enterprise/keys/:keyId             // Deactivate enterprise key
+GET    /api/enterprise/keys/supported-algorithms // Get supported algorithms
+
+// Enterprise Signing API Routes
+POST   /api/enterprise/sign                    // Sign contract with enterprise KMS
+GET    /api/enterprise/signing-requests        // List signing requests
+GET    /api/enterprise/contracts/:contractId/signatures // Get contract signatures
+POST   /api/enterprise/verify                  // Verify contract signature
 ```
 
 ### Security Considerations
@@ -519,12 +681,32 @@ GET    /api/signing/keys/:keyId/export // Export key data
 - **Key Rotation**: Support for regular key rotation
 - **Secure Storage**: Keys are stored securely in the database
 
+### Enterprise Key Security Considerations
+- **Private Key Isolation**: Private keys never leave enterprise KMS systems
+- **Public Key Verification**: All signatures verified using stored public keys
+- **Credential Security**: KMS credentials provided per signing request, not stored
+- **Network Security**: All KMS communications use HTTPS/TLS encryption
+- **Access Control**: Role-based access to enterprise key management functions
+- **Audit Trail**: Complete logging of all enterprise key operations
+- **Key Validation**: Strict validation of public key format and algorithms
+- **Provider Security**: Support for enterprise-grade KMS providers only
+
 ### Integration with SCITT CCF
 Keys are used to create digital signatures that are submitted to the SCITT CCF ledger:
+
+#### Traditional Signing Integration
 1. **Key Access**: User authenticates and accesses their signing key
 2. **Signature Generation**: Key is used to generate digital signature
 3. **SCITT Submission**: Signature is submitted to SCITT CCF ledger
 4. **Receipt Storage**: SCITT receipt is stored for verification
+
+#### Enterprise Signing Integration
+1. **Enterprise Key Selection**: User selects registered enterprise key
+2. **KMS Configuration**: User provides KMS credentials
+3. **Remote Signing**: Contract hash sent to enterprise KMS for signing
+4. **Signature Verification**: Returned signature verified using stored public key
+5. **SCITT Submission**: Verified signature submitted to SCITT CCF ledger
+6. **Receipt Storage**: SCITT receipt is stored for verification
 
 ---
 

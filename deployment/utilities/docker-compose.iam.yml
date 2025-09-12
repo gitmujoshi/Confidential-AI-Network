@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   # PostgreSQL Database for Keycloak
   ***REMOVED-KEYCLOAK_DB_PASSWORD***-db:

@@ -63,6 +63,10 @@ db.UserKey = require('./UserKey')(sequelize, Sequelize);
 db.Signature = require('./Signature')(sequelize, Sequelize);
 db.SigningEvent = require('./SigningEvent')(sequelize, Sequelize);
 
+// Import enterprise signing models
+db.EnterpriseKey = require('./EnterpriseKey')(sequelize, Sequelize);
+db.SigningRequest = require('./SigningRequest')(sequelize, Sequelize);
+
 // Import provenance models
 const MerkleTree = require('./MerkleTree')(sequelize);
 const ProvenanceNode = require('./ProvenanceNode')(sequelize);
