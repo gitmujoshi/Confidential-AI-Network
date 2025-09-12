@@ -21,29 +21,42 @@ Complete technical architecture documentation for the Contract Management System
 ## 🎯 System Overview
 
 ### **High-Level Architecture**
-```
-┌─────────────────────────────────────────────────────────────┐
-│                Contract Management System                   │
-├─────────────────────────────────────────────────────────────┤
-│  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐  │
-│  │   Frontend      │  │   Backend       │  │   Keycloak      │  │
-│  │   (React)       │◄─►│   (Node.js)     │◄─►│   (IAM)         │  │
-│  │   Port: 3000    │  │   Port: 5001    │  │   Port: 8080    │  │
-│  └─────────────────┘  └─────────────────┘  └─────────────────┘  │
-├─────────────────────────────────────────────────────────────┤
-│                    Contract Router Service                   │
-│  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐  │
-│  │ Ethereum        │  │ SCITT CCF       │  │ Migration       │  │
-│  │ Service         │  │ Service         │  │ Orchestrator    │  │
-│  └─────────────────┘  └─────────────────┘  └─────────────────┘  │
-├─────────────────────────────────────────────────────────────┤
-│                    Data Layer                               │
-│  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐  │
-│  │ PostgreSQL      │  │ SCITT CCF       │  │ Ethereum        │  │
-│  │ (Primary)       │  │ Ledger          │  │ Blockchain      │  │
-│  │ Port: 5432      │  │ Port: 8000      │  │ Port: 8545      │  │
-│  └─────────────────┘  └─────────────────┘  └─────────────────┘  │
-└─────────────────────────────────────────────────────────────┘
+
+```mermaid
+graph TB
+    subgraph "Contract Management System"
+        subgraph "Presentation Layer"
+            Frontend["Frontend<br/>(React)<br/>Port: 3000"]
+        end
+        
+        subgraph "Application Layer"
+            Backend["Backend<br/>(Node.js)<br/>Port: 5001"]
+            Keycloak["Keycloak<br/>(IAM)<br/>Port: 8080"]
+        end
+        
+        subgraph "Contract Router Service"
+            Router["Contract Router<br/>Service"]
+            Ethereum["Ethereum<br/>Service"]
+            SCITT["SCITT CCF<br/>Service"]
+            Migration["Migration<br/>Orchestrator"]
+        end
+        
+        subgraph "Data Layer"
+            PostgreSQL["PostgreSQL<br/>(Primary)<br/>Port: 5432"]
+            SCITTLedger["SCITT CCF<br/>Ledger<br/>Port: 8000"]
+            Blockchain["Ethereum<br/>Blockchain<br/>Port: 8545"]
+        end
+    end
+    
+    Frontend <--> Backend
+    Backend <--> Keycloak
+    Backend --> Router
+    Router --> Ethereum
+    Router --> SCITT
+    Router --> Migration
+    Backend --> PostgreSQL
+    SCITT --> SCITTLedger
+    Ethereum --> Blockchain
 ```
 
 ### **System Components**
@@ -141,21 +154,30 @@ SCITT CCF (Supply Chain Integrity Transparency and Trust) is Microsoft's high-pe
 #### **1. Contract Router Service**
 The central orchestrator that intelligently routes contract operations:
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│                    Contract Router Service                   │
-├─────────────────────────────────────────────────────────────┤
-│  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐  │
-│  │ Route Selection │  │ Fallback Logic  │  │ Health Check    │  │
-│  │ Algorithm       │  │ & Recovery      │  │ Integration     │  │
-│  └─────────────────┘  └─────────────────┘  └─────────────────┘  │
-├─────────────────────────────────────────────────────────────┤
-│                    Service Integration                       │
-│  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐  │
-│  │ Ethereum        │  │ SCITT CCF       │  │ Migration       │  │
-│  │ Service         │  │ Service         │  │ Orchestrator    │  │
-│  └─────────────────┘  └─────────────────┘  └─────────────────┘  │
-└─────────────────────────────────────────────────────────────┘
+```mermaid
+graph TB
+    subgraph "Contract Router Service"
+        subgraph "Core Components"
+            RouteSelection["Route Selection<br/>Algorithm"]
+            FallbackLogic["Fallback Logic<br/>& Recovery"]
+            HealthCheck["Health Check<br/>Integration"]
+        end
+        
+        subgraph "Service Integration"
+            EthereumService["Ethereum<br/>Service"]
+            SCITTService["SCITT CCF<br/>Service"]
+            MigrationOrchestrator["Migration<br/>Orchestrator"]
+        end
+    end
+    
+    RouteSelection --> EthereumService
+    RouteSelection --> SCITTService
+    FallbackLogic --> EthereumService
+    FallbackLogic --> SCITTService
+    HealthCheck --> EthereumService
+    HealthCheck --> SCITTService
+    MigrationOrchestrator --> EthereumService
+    MigrationOrchestrator --> SCITTService
 ```
 
 **Key Features**:
@@ -167,21 +189,27 @@ The central orchestrator that intelligently routes contract operations:
 #### **2. SCITT CCF Service Layer**
 Handles all interactions with the SCITT CCF Ledger:
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│                    SCITT CCF Service Layer                  │
-├─────────────────────────────────────────────────────────────┤
-│  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐  │
-│  │ Claim Builder   │  │ TEE Attestation │  │ Receipt Manager │  │
-│  │ & Submitter     │  │ & Validation    │  │ & Storage       │  │
-│  └─────────────────┘  └─────────────────┘  └─────────────────┘  │
-├─────────────────────────────────────────────────────────────┤
-│                    SCITT CCF Integration                     │
-│  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐  │
-│  │ HTTP Client     │  │ Authentication  │  │ Error Handling  │  │
-│  │ & API Calls     │  │ & Security      │  │ & Retry Logic   │  │
-│  └─────────────────┘  └─────────────────┘  └─────────────────┘  │
-└─────────────────────────────────────────────────────────────┘
+```mermaid
+graph TB
+    subgraph "SCITT CCF Service Layer"
+        subgraph "Core Operations"
+            ClaimBuilder["Claim Builder<br/>& Submitter"]
+            TEEAttestation["TEE Attestation<br/>& Validation"]
+            ReceiptManager["Receipt Manager<br/>& Storage"]
+        end
+        
+        subgraph "SCITT CCF Integration"
+            HTTPClient["HTTP Client<br/>& API Calls"]
+            Authentication["Authentication<br/>& Security"]
+            ErrorHandling["Error Handling<br/>& Retry Logic"]
+        end
+    end
+    
+    ClaimBuilder --> HTTPClient
+    TEEAttestation --> Authentication
+    ReceiptManager --> ErrorHandling
+    HTTPClient --> Authentication
+    Authentication --> ErrorHandling
 ```
 
 **Key Features**:
@@ -193,21 +221,28 @@ Handles all interactions with the SCITT CCF Ledger:
 #### **3. System Health Monitor**
 Continuously monitors system health and performance:
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│                    System Health Monitor                    │
-├─────────────────────────────────────────────────────────────┤
-│  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐  │
-│  │ Health Checks   │  │ Performance     │  │ Alert System    │  │
-│  │ & Monitoring    │  │ Metrics         │  │ & Notifications │  │
-│  └─────────────────┘  └─────────────────┘  └─────────────────┘  │
-├─────────────────────────────────────────────────────────────┤
-│                    Data Collection                          │
-│  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐  │
-│  │ Response Time   │  │ Uptime Tracking │  │ Error Rate      │  │
-│  │ Monitoring      │  │ & Calculation   │  │ & Analysis      │  │
-│  └─────────────────┘  └─────────────────┘  └─────────────────┘  │
-└─────────────────────────────────────────────────────────────┘
+```mermaid
+graph TB
+    subgraph "System Health Monitor"
+        subgraph "Monitoring Components"
+            HealthChecks["Health Checks<br/>& Monitoring"]
+            PerformanceMetrics["Performance<br/>Metrics"]
+            AlertSystem["Alert System<br/>& Notifications"]
+        end
+        
+        subgraph "Data Collection"
+            ResponseTime["Response Time<br/>Monitoring"]
+            UptimeTracking["Uptime Tracking<br/>& Calculation"]
+            ErrorRate["Error Rate<br/>& Analysis"]
+        end
+    end
+    
+    HealthChecks --> ResponseTime
+    PerformanceMetrics --> UptimeTracking
+    AlertSystem --> ErrorRate
+    ResponseTime --> AlertSystem
+    UptimeTracking --> AlertSystem
+    ErrorRate --> AlertSystem
 ```
 
 **Key Features**:
@@ -221,16 +256,17 @@ Continuously monitors system health and performance:
 #### **Hybrid Migration Strategy**
 The system supports three migration modes:
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│                    Migration Modes                          │
-├─────────────────────────────────────────────────────────────┤
-│  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐  │
-│  │ ETHEREUM_ONLY   │  │ HYBRID          │  │ SCITT_CCF_ONLY  │  │
-│  │ Traditional     │  │ Both Systems    │  │ High Performance│  │
-│  │ Blockchain      │  │ Simultaneously  │  │ Ledger Only     │  │
-│  └─────────────────┘  └─────────────────┘  └─────────────────┘  │
-└─────────────────────────────────────────────────────────────┘
+```mermaid
+graph LR
+    subgraph "Migration Modes"
+        EthereumOnly["ETHEREUM_ONLY<br/>Traditional<br/>Blockchain"]
+        Hybrid["HYBRID<br/>Both Systems<br/>Simultaneously"]
+        SCITTOnly["SCITT_CCF_ONLY<br/>High Performance<br/>Ledger Only"]
+    end
+    
+    EthereumOnly --> Hybrid
+    Hybrid --> SCITTOnly
+    SCITTOnly -.-> EthereumOnly
 ```
 
 **Migration Modes**:
@@ -253,136 +289,117 @@ The system supports three migration modes:
    - Requires SCITT CCF to be fully operational
 
 #### **Migration Flow**
-```
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│ Contract        │───►│ Route Selection │───►│ Target System   │
-│ Creation        │    │ Algorithm       │    │ (SCITT CCF or   │
-│ Request         │    │                 │    │ Ethereum)       │
-└─────────────────┘    └─────────────────┘    └─────────────────┘
-                                │
-                                ▼
-                       ┌─────────────────┐
-                       │ Health Check    │
-                       │ & Validation    │
-                       └─────────────────┘
-                                │
-                                ▼
-                       ┌─────────────────┐
-                       │ Execute         │
-                       │ Operation       │
-                       └─────────────────┘
-                                │
-                                ▼
-                       ┌─────────────────┐
-                       │ Fallback Logic  │
-                       │ (if needed)     │
-                       └─────────────────┘
+
+```mermaid
+flowchart TD
+    A["Contract<br/>Creation<br/>Request"] --> B["Route Selection<br/>Algorithm"]
+    B --> C["Target System<br/>(SCITT CCF or<br/>Ethereum)"]
+    C --> D["Health Check<br/>& Validation"]
+    D --> E["Execute<br/>Operation"]
+    E --> F["Fallback Logic<br/>(if needed)"]
+    F --> G["Operation<br/>Complete"]
+    
+    D -->|"Health Check Failed"| F
+    E -->|"Operation Failed"| F
 ```
 
 ### **SCITT CCF Data Flow**
 
 #### **Contract Creation Flow**
-```
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│ Frontend        │───►│ Backend API     │───►│ Contract Router │
-│ Contract Form   │    │ /api/contracts │    │ Service         │
-└─────────────────┘    └─────────────────┘    └─────────────────┘
-                                │
-                                ▼
-                       ┌─────────────────┐
-                       │ SCITT CCF       │
-                       │ Service         │
-                       └─────────────────┘
-                                │
-                                ▼
-                       ┌─────────────────┐
-                       │ Build Claim     │
-                       │ & Submit        │
-                       └─────────────────┘
-                                │
-                                ▼
-                       ┌─────────────────┐
-                       │ SCITT CCF       │
-                       │ Ledger          │
-                       └─────────────────┘
-                                │
-                                ▼
-                       ┌─────────────────┐
-                       │ Store Receipt   │
-                       │ & Update DB     │
-                       └─────────────────┘
+
+```mermaid
+sequenceDiagram
+    participant F as Frontend<br/>Contract Form
+    participant B as Backend API<br/>/api/contracts
+    participant R as Contract Router<br/>Service
+    participant S as SCITT CCF<br/>Service
+    participant L as SCITT CCF<br/>Ledger
+    participant D as Database
+    
+    F->>B: Submit Contract
+    B->>R: Route Contract
+    R->>S: Process Contract
+    S->>S: Build Claim
+    S->>L: Submit Claim
+    L-->>S: Return Receipt
+    S->>D: Store Receipt & Update DB
+    D-->>S: Confirm Storage
+    S-->>R: Return Success
+    R-->>B: Return Success
+    B-->>F: Return Success
 ```
 
 #### **Contract Retrieval Flow**
-```
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│ Frontend        │───►│ Backend API     │───►│ Contract Router │
-│ Contract List   │    │ /api/contracts │    │ Service         │
-└─────────────────┘    └─────────────────┘    └─────────────────┘
-                                │
-                                ▼
-                       ┌─────────────────┐
-                       │ Check Source    │
-                       │ (SCITT CCF or   │
-                       │  Ethereum)      │
-                       └─────────────────┘
-                                │
-                                ▼
-                       ┌─────────────────┐
-                       │ Retrieve from   │
-                       │ Appropriate     │
-                       │ Source          │
-                       └─────────────────┘
-                                │
-                                ▼
-                       ┌─────────────────┐
-                       │ Merge & Return  │
-                       │ Unified Data    │
-                       └─────────────────┘
+
+```mermaid
+sequenceDiagram
+    participant F as Frontend<br/>Contract List
+    participant B as Backend API<br/>/api/contracts
+    participant R as Contract Router<br/>Service
+    participant S as SCITT CCF<br/>Service
+    participant E as Ethereum<br/>Service
+    participant D as Database
+    
+    F->>B: Request Contracts
+    B->>R: Route Request
+    R->>R: Check Source<br/>(SCITT CCF or Ethereum)
+    
+    alt SCITT CCF Source
+        R->>S: Retrieve from SCITT CCF
+        S-->>R: Return SCITT Data
+    else Ethereum Source
+        R->>E: Retrieve from Ethereum
+        E-->>R: Return Ethereum Data
+    end
+    
+    R->>D: Merge & Store Unified Data
+    D-->>R: Confirm Storage
+    R-->>B: Return Unified Data
+    B-->>F: Return Contract List
 ```
 
 ### **Performance Architecture**
 
-#### **Throughput Comparison**
-```
-┌─────────────────────────────────────────────────────────────┐
-│                    Performance Comparison                    │
-├─────────────────────────────────────────────────────────────┤
-│  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐  │
-│  │ Ethereum        │  │ SCITT CCF       │  │ Improvement     │  │
-│  │ Blockchain      │  │ Ledger          │  │ Factor          │  │
-│  │ 15-30 TPS      │  │ 1,500-3,000 TPS│  │ 50-200x         │  │
-│  └─────────────────┘  └─────────────────┘  └─────────────────┘  │
-└─────────────────────────────────────────────────────────────┘
+#### **Performance Comparison**
+
+```mermaid
+graph LR
+    subgraph "Throughput Comparison"
+        Ethereum["Ethereum<br/>Blockchain<br/>15-30 TPS"]
+        SCITT["SCITT CCF<br/>Ledger<br/>1,500-3,000 TPS"]
+        Improvement["Improvement<br/>Factor<br/>50-200x"]
+    end
+    
+    Ethereum --> SCITT
+    SCITT --> Improvement
 ```
 
-#### **Latency Comparison**
-```
-┌─────────────────────────────────────────────────────────────┐
-│                    Latency Comparison                       │
-├─────────────────────────────────────────────────────────────┤
-│  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐  │
-│  │ Ethereum        │  │ SCITT CCF       │  │ Improvement     │  │
-│  │ Blockchain      │  │ Ledger          │  │ Factor          │  │
-│  │ 12-15 seconds  │  │ 100-500ms       │  │ 24-150x         │  │
-│  └─────────────────┘  └─────────────────┘  └─────────────────┘  │
-└─────────────────────────────────────────────────────────────┘
+```mermaid
+graph LR
+    subgraph "Latency Comparison"
+        EthereumLatency["Ethereum<br/>Blockchain<br/>12-15 seconds"]
+        SCITTLatency["SCITT CCF<br/>Ledger<br/>100-500ms"]
+        LatencyImprovement["Improvement<br/>Factor<br/>24-150x"]
+    end
+    
+    EthereumLatency --> SCITTLatency
+    SCITTLatency --> LatencyImprovement
 ```
 
 ### **Security Architecture**
 
 #### **TEE (Trusted Execution Environment) Support**
-```
-┌─────────────────────────────────────────────────────────────┐
-│                    TEE Architecture                         │
-├─────────────────────────────────────────────────────────────┤
-│  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐  │
-│  │ AMD SEV-SNP     │  │ Virtual Platform│  │ Future TEE      │  │
-│  │ Hardware TEE    │  │ Development     │  │ Support         │  │
-│  │ Production      │  │ & Testing       │  │ (Intel SGX,     │  │
-│  │ Ready           │  │ Environment     │  │ ARM CCA)        │  │
-│  └─────────────────┘  └─────────────────┘  └─────────────────┘  │
-└─────────────────────────────────────────────────────────────┘
+
+```mermaid
+graph TB
+    subgraph "TEE Architecture"
+        AMD["AMD SEV-SNP<br/>Hardware TEE<br/>Production Ready"]
+        Virtual["Virtual Platform<br/>Development<br/>& Testing Environment"]
+        Future["Future TEE<br/>Support<br/>(Intel SGX, ARM CCA)"]
+    end
+    
+    AMD --> Virtual
+    Virtual --> Future
 ```
 
 **TEE Features**:
@@ -428,22 +445,27 @@ Provides cloud provider integration:
 
 ### **Signing Workflow Architecture**
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│                    Contract Signing Flow                    │
-├─────────────────────────────────────────────────────────────┤
-│  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐  │
-│  │ Traditional     │  │ Enterprise      │  │ Cloud KMS       │  │
-│  │ Signing         │  │ Signing         │  │ Integration     │  │
-│  │ (Local Keys)    │  │ (Remote Keys)   │  │ (Multi-Cloud)   │  │
-│  └─────────────────┘  └─────────────────┘  └─────────────────┘  │
-├─────────────────────────────────────────────────────────────┤
-│                    SCITT CCF Integration                    │
-│  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐  │
-│  │ Signature       │  │ Audit Trail     │  │ Provenance      │  │
-│  │ Storage         │  │ & Logging       │  │ Tracking        │  │
-│  └─────────────────┘  └─────────────────┘  └─────────────────┘  │
-└─────────────────────────────────────────────────────────────┘
+```mermaid
+graph TB
+    subgraph "Contract Signing Flow"
+        subgraph "Signing Services"
+            Traditional["Traditional<br/>Signing<br/>(Local Keys)"]
+            Enterprise["Enterprise<br/>Signing<br/>(Remote Keys)"]
+            CloudKMS["Cloud KMS<br/>Integration<br/>(Multi-Cloud)"]
+        end
+        
+        subgraph "SCITT CCF Integration"
+            SignatureStorage["Signature<br/>Storage"]
+            AuditTrail["Audit Trail<br/>& Logging"]
+            Provenance["Provenance<br/>Tracking"]
+        end
+    end
+    
+    Traditional --> SignatureStorage
+    Enterprise --> AuditTrail
+    CloudKMS --> Provenance
+    SignatureStorage --> AuditTrail
+    AuditTrail --> Provenance
 ```
 
 ### **API Endpoints Structure**
@@ -928,25 +950,21 @@ class AzureProvider {
 The differential privacy system provides privacy-preserving data analysis with mathematical guarantees of privacy protection. It implements multiple noise mechanisms, budget tracking, and comprehensive audit logging.
 
 ### **High-Level DP Architecture**
-```
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   Frontend      │    │   DP Service    │    │   DP Mechanisms │
-│   DP Manager    │◄──►│   Layer         │◄──►│   (Laplace,     │
-│   Component     │    │                 │    │    Gaussian)    │
-└─────────────────┘    └─────────────────┘    └─────────────────┘
-                                │
-                                ▼
-                       ┌─────────────────┐
-                       │   Budget        │
-                       │   Tracker       │
-                       └─────────────────┘
-                                │
-                                ▼
-                       ┌─────────────────┐
-                       │   Database      │
-                       │   (Privacy      │
-                       │    Tables)      │
-                       └─────────────────┘
+
+```mermaid
+graph TB
+    subgraph "Differential Privacy System"
+        Frontend["Frontend<br/>DP Manager<br/>Component"]
+        DPService["DP Service<br/>Layer"]
+        DPMechanisms["DP Mechanisms<br/>(Laplace, Gaussian)"]
+        BudgetTracker["Budget<br/>Tracker"]
+        Database["Database<br/>(Privacy Tables)"]
+    end
+    
+    Frontend <--> DPService
+    DPService <--> DPMechanisms
+    DPService --> BudgetTracker
+    BudgetTracker --> Database
 ```
 
 ### **Core Components**
@@ -1283,31 +1301,35 @@ async applyDPToContractData(contractId, data, query, privacyParams) {
 ## 🚀 Deployment Architecture
 
 ### **Development Environment**
-```
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   Frontend      │    │    Backend      │    │   Keycloak      │
-│   (Port 3000)   │◄──►│   (Port 5001)   │◄──►│   (Port 8080)   │
-└─────────────────┘    └─────────────────┘    └─────────────────┘
-                                │
-                                ▼
-                       ┌─────────────────┐
-                       │   PostgreSQL    │
-                       │   (Port 5432)   │
-                       └─────────────────┘
+
+```mermaid
+graph TB
+    subgraph "Development Environment"
+        Frontend["Frontend<br/>(Port 3000)"]
+        Backend["Backend<br/>(Port 5001)"]
+        Keycloak["Keycloak<br/>(Port 8080)"]
+        PostgreSQL["PostgreSQL<br/>(Port 5432)"]
+    end
+    
+    Frontend <--> Backend
+    Backend <--> Keycloak
+    Backend --> PostgreSQL
 ```
 
 ### **Production Environment**
-```
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   Load Balancer │    │   Application   │    │   Database      │
-│   (Nginx)       │◄──►│   (Docker)      │◄──►│   (PostgreSQL)  │
-└─────────────────┘    └─────────────────┘    └─────────────────┘
-                                │
-                                ▼
-                       ┌─────────────────┐
-                       │   Keycloak      │
-                       │   (IAM)         │
-                       └─────────────────┘
+
+```mermaid
+graph TB
+    subgraph "Production Environment"
+        LoadBalancer["Load Balancer<br/>(Nginx)"]
+        Application["Application<br/>(Docker)"]
+        Database["Database<br/>(PostgreSQL)"]
+        KeycloakProd["Keycloak<br/>(IAM)"]
+    end
+    
+    LoadBalancer <--> Application
+    Application <--> Database
+    Application --> KeycloakProd
 ```
 
 ### **Container Architecture**
