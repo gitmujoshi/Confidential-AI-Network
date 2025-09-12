@@ -14,11 +14,8 @@ import {
   Paper
 } from '@mui/material';
 import {
-  Security as SecurityIcon,
-  Info as InfoIcon,
   Public as PublicIcon,
-  Business as BusinessIcon,
-  LocationOn as LocationIcon
+  Business as BusinessIcon
 } from '@mui/icons-material';
 import { apiService } from '../services/api';
 
@@ -37,13 +34,10 @@ import { apiService } from '../services/api';
 const DEPAConfigurationDisplay = ({ 
   user, 
   compact = false, 
-  showFormat = true,
   showDeploymentInfo = true,
-  showRegulatoryInfo = true,
   title = "DEPA ID Configuration"
 }) => {
   const [config, setConfig] = useState(null);
-  const [formatExplanation, setFormatExplanation] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
@@ -57,26 +51,15 @@ const DEPAConfigurationDisplay = ({
     
     try {
       console.log('🔍 [DEPAConfigurationDisplay] Fetching DEPA configuration...');
-      const [configResponse, formatResponse] = await Promise.all([
-        apiService.get('/api/depa/configuration'),
-        showFormat ? apiService.get('/api/depa/format-explanation') : Promise.resolve({ success: false })
-      ]);
+      const configResponse = await apiService.getDEPAConfiguration();
 
       console.log('🔍 [DEPAConfigurationDisplay] Config response:', configResponse);
-      console.log('🔍 [DEPAConfigurationDisplay] Format response:', formatResponse);
 
       if (configResponse.success) {
         setConfig(configResponse.config);
         console.log('✅ [DEPAConfigurationDisplay] Config set successfully');
       } else {
         console.error('❌ [DEPAConfigurationDisplay] Config response not successful:', configResponse);
-      }
-      
-      if (formatResponse.success) {
-        setFormatExplanation(formatResponse.explanation);
-        console.log('✅ [DEPAConfigurationDisplay] Format explanation set successfully');
-      } else {
-        console.log('ℹ️ [DEPAConfigurationDisplay] Format explanation not requested or failed');
       }
     } catch (err) {
       console.error('❌ [DEPAConfigurationDisplay] Error fetching DEPA configuration:', err);
@@ -119,21 +102,6 @@ const DEPAConfigurationDisplay = ({
   return (
     <Card>
       <CardContent>
-        {/* Header */}
-        <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-          <SecurityIcon sx={{ mr: 1, color: 'primary.main' }} />
-          <Typography variant="h6">
-            {title}
-          </Typography>
-        </Box>
-
-        {/* Read-Only Notice */}
-        <Alert severity="info" sx={{ mb: 2 }}>
-          <Typography variant="body2">
-            <strong>Read-Only Configuration:</strong> DEPA ID configuration is set by system administrators 
-            during deployment and cannot be modified by users.
-          </Typography>
-        </Alert>
 
         {/* User DEPA ID (if available) */}
         {user?.depaId && (
@@ -191,43 +159,6 @@ const DEPAConfigurationDisplay = ({
         {/* Expanded View - Always show for registration page */}
         {!compact && (
           <Box sx={{ mt: 2 }}>
-              {/* DEPA ID Format */}
-              {showFormat && formatExplanation && (
-                <Box sx={{ mb: 3 }}>
-                  <Typography variant="subtitle2" gutterBottom sx={{ display: 'flex', alignItems: 'center' }}>
-                    <InfoIcon sx={{ mr: 1, fontSize: '1rem' }} />
-                    DEPA ID Format
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-                    <strong>Format:</strong> {formatExplanation.format}
-                  </Typography>
-                  <Paper 
-                    elevation={1} 
-                    sx={{ 
-                      p: 2, 
-                      bgcolor: 'grey.50', 
-                      border: '1px solid', 
-                      borderColor: 'grey.300',
-                      borderRadius: 1,
-                      mb: 2
-                    }}
-                  >
-                    <Typography variant="body2" sx={{ fontFamily: 'monospace', fontSize: '0.9rem' }}>
-                      Example: {formatExplanation.examples[0]}
-                    </Typography>
-                  </Paper>
-                  <Grid container spacing={1}>
-                    {formatExplanation.components.map((component, index) => (
-                      <Grid item xs={12} sm={6} key={index}>
-                        <Typography variant="caption" color="text.secondary">
-                          <strong>{component.name}:</strong> {component.description}
-                        </Typography>
-                      </Grid>
-                    ))}
-                  </Grid>
-                </Box>
-              )}
-
               {/* Deployment Configuration */}
               {showDeploymentInfo && (
                 <Box sx={{ mb: 3 }}>
@@ -267,45 +198,6 @@ const DEPAConfigurationDisplay = ({
                   </Grid>
                 </Box>
               )}
-
-              {/* Regulatory Framework */}
-              {showRegulatoryInfo && config.regulatoryFramework && config.regulatoryFramework.length > 0 && (
-                <Box sx={{ mb: 2 }}>
-                  <Typography variant="subtitle2" gutterBottom sx={{ display: 'flex', alignItems: 'center' }}>
-                    <LocationIcon sx={{ mr: 1, fontSize: '1rem' }} />
-                    Regulatory Framework
-                  </Typography>
-                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-                    {config.regulatoryFramework.map((framework, index) => (
-                      <Chip 
-                        key={index}
-                        label={framework} 
-                        size="small" 
-                        variant="outlined"
-                        color="secondary"
-                      />
-                    ))}
-                  </Box>
-                </Box>
-              )}
-
-              {/* Entity Types */}
-              <Box sx={{ mb: 2 }}>
-                <Typography variant="subtitle2" gutterBottom>
-                  Supported Entity Types
-                </Typography>
-                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-                  {config.entityTypes?.map((entityType, index) => (
-                    <Chip 
-                      key={index}
-                      label={entityType} 
-                      size="small" 
-                      variant="filled"
-                      color="primary"
-                    />
-                  ))}
-                </Box>
-              </Box>
             </Box>
         )}
       </CardContent>
