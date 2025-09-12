@@ -499,28 +499,83 @@ class ComplianceMonitoringService {
 }
 ```
 
-### **Phase 6: Testing & Validation (Weeks 11-12)**
+### **Phase 6: Provenance Tracking Integration (Weeks 11-12)**
 
-#### **6.1 End-to-End Testing**
+#### **6.1 Provenance-Enabled Training Workflow**
 ```javascript
-// tests/training-e2e.test.js
-describe('Training Environment E2E Tests', () => {
-  test('Complete training workflow', async () => {
+// Enhanced training orchestration with provenance tracking
+class ProvenanceEnabledTrainingOrchestrator extends TrainingOrchestrator {
+  constructor() {
+    super();
+    this.provenanceService = new TrainingProvenanceService();
+    this.verificationEngine = new TrainingVerificationEngine();
+  }
+
+  async executeTrainingWorkflow(contractId) {
+    try {
+      // 1. Initialize provenance tracking
+      const provenanceSession = await this.provenanceService.initializeProvenanceSession(contractId);
+      
+      // 2. Execute training with provenance capture
+      const trainingJob = await super.executeTrainingWorkflow(contractId);
+      
+      // 3. Capture complete training provenance
+      const provenanceData = await this.provenanceService.captureTrainingProvenance(trainingJob);
+      
+      // 4. Verify provenance integrity
+      const verificationResult = await this.verificationEngine.verifyTrainingProvenance(provenanceData);
+      
+      // 5. Store provenance data
+      await this.provenanceService.storeProvenanceData(provenanceData);
+      
+      return {
+        ...trainingJob,
+        provenance: {
+          sessionId: provenanceSession.sessionId,
+          merkleRootHash: provenanceData.merkleTree.rootHash,
+          verificationResult: verificationResult
+        }
+      };
+      
+    } catch (error) {
+      await this.provenanceService.captureErrorProvenance(contractId, error);
+      throw error;
+    }
+  }
+}
+```
+
+#### **6.2 End-to-End Testing with Provenance**
+```javascript
+// tests/training-e2e-with-provenance.test.js
+describe('Training Environment E2E Tests with Provenance', () => {
+  test('Complete training workflow with provenance tracking', async () => {
     // 1. Create test contract
     const contract = await createTestContract();
     
     // 2. Sign contract with all parties
     await signContractWithAllParties(contract.id);
     
-    // 3. Trigger training
-    const trainingJob = await trainingOrchestrator.executeTrainingWorkflow(contract.id);
+    // 3. Trigger provenance-enabled training
+    const trainingJob = await provenanceEnabledTrainingOrchestrator.executeTrainingWorkflow(contract.id);
     
-    // 4. Monitor training progress
-    await monitorTrainingProgress(trainingJob.jobId);
+    // 4. Verify provenance was captured
+    expect(trainingJob.provenance).toBeDefined();
+    expect(trainingJob.provenance.sessionId).toBeDefined();
+    expect(trainingJob.provenance.merkleRootHash).toBeDefined();
     
-    // 5. Validate results
+    // 5. Verify provenance integrity
+    const verificationResult = trainingJob.provenance.verificationResult;
+    expect(verificationResult.overallValid).toBe(true);
+    expect(verificationResult.merkleProofVerification.valid).toBe(true);
+    expect(verificationResult.signatureVerification.valid).toBe(true);
+    
+    // 6. Test cross-cloud verification
+    const crossCloudVerification = await verifyProvenanceCrossCloud(trainingJob.provenance.sessionId);
+    expect(crossCloudVerification.valid).toBe(true);
+    
+    // 7. Validate training results
     const results = await validateTrainingResults(trainingJob.jobId);
-    
     expect(results.status).toBe('completed');
     expect(results.modelId).toBeDefined();
     expect(results.validationResults.accuracy).toBeGreaterThan(0.9);
@@ -756,6 +811,7 @@ router.get('/training/progress/:jobId', async (req, res) => {
 - [ ] Update database schema for training jobs
 - [ ] Create training job models
 - [ ] Setup basic monitoring infrastructure
+- [ ] Initialize provenance tracking infrastructure
 
 ### **Phase 2: TEE Integration (Weeks 3-4)**
 - [ ] Implement AttestationService
@@ -785,8 +841,13 @@ router.get('/training/progress/:jobId', async (req, res) => {
 - [ ] Create audit logging system
 - [ ] Implement alerting system
 
-### **Phase 6: Testing (Weeks 11-12)**
-- [ ] Create end-to-end tests
+### **Phase 6: Provenance Tracking & Testing (Weeks 11-12)**
+- [ ] Implement provenance capture system
+- [ ] Create Merkle tree builder for training artifacts
+- [ ] Implement verification engine
+- [ ] Add cross-cloud verification
+- [ ] Create provenance-enabled training containers
+- [ ] Create end-to-end tests with provenance
 - [ ] Implement security tests
 - [ ] Setup performance tests
 - [ ] Create integration tests
@@ -824,6 +885,13 @@ router.get('/training/progress/:jobId', async (req, res) => {
 - **Data Retention**: 100% compliance with data retention policies
 - **Cleanup Success**: 100% automatic cleanup after training
 - **Regulatory Compliance**: 100% compliance with relevant regulations
+
+### **Provenance Metrics**
+- **Provenance Coverage**: 100% of training artifacts tracked
+- **Verification Speed**: < 1 second for Merkle proof verification
+- **Integrity Assurance**: 100% tamper detection rate
+- **Cross-Cloud Verification**: 100% consistency across cloud providers
+- **Audit Trail**: Complete chronological record of all operations
 
 ## 🔒 Security Considerations
 
