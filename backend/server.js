@@ -48,6 +48,7 @@ const aiModelsRouter = require('./routes/ai-models');
 const notificationsRouter = require('./routes/notifications');
 const globalDeploymentRouter = require('./routes/globalDeployment');
 const blockchainRouter = require('./routes/blockchain');
+const trainingRouter = require('./routes/training');
 const constraintsRouter = require('./routes/constraints');
 const depaRouter = require('./routes/depa');
 
@@ -182,6 +183,7 @@ app.use('/api/datasets', datasetsRouter);
 app.use('/api/did', didRouter);
 app.use('/api/dpdp', dpdpRouter);
 app.use('/api/signing', contractSigningRouter);
+app.use('/api/training', trainingRouter);
 app.use('/api/ai-models', aiModelsRouter);
 app.use('/api/notifications', notificationsRouter);
 app.use('/api/global-deployment', globalDeploymentRouter);
