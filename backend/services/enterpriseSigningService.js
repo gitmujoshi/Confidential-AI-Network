@@ -1,175 +1,422 @@
-/**
- * Enterprise Signing Service
- * Handles contract signing with enterprise cloud KMS systems
- */
-
-const { Contract, EnterpriseKey, SigningRequest, Signature } = require('../models');
-const CloudKMSService = require('./cloudKmsService');
-const EnterpriseKeyService = require('./enterpriseKeyService');
 const crypto = require('crypto');
-
+const { User, Contract, Signature, SigningEvent, EnterpriseKey, SigningRequest } = require('../models');
+const cloudKmsService = require('./cloudKmsService');
+const scittCcfService = require('./scittCcfService');
+const auditService = require('./auditService');
 class EnterpriseSigningService {
   constructor() {
-    this.cloudKmsService = new CloudKMSService();
-    this.enterpriseKeyService = new EnterpriseKeyService();
+    this.loadConfiguration();
   }
 
   /**
-   * Initiate contract signing with enterprise KMS
-   * @param {string} contractId - Contract ID
-   * @param {number} userId - User ID
-   * @param {string} keyId - Enterprise key ID
-   * @param {Object} kmsConfig - KMS configuration
-   * @returns {Promise<Object>} - Signing result
+   * Load enterprise signing configuration from environment variables
    */
-  async signContract(contractId, userId, keyId, kmsConfig) {
+  loadConfiguration() {
+    // Parse supported algorithms from environment
+    const algorithmsEnv = process.env.ENTERPRISE_SIGNING_ALGORITHMS || 'ECDSA-P256,RSA-2048,RSA-4096';
+    this.supportedAlgorithms = algorithmsEnv.split(',').map(alg => alg.trim());
+    this.supportedProviders = ['azure', 'aws', 'gcp', 'oci'];
+  }
+
+  /**
+   * Register an enterprise public key
+   */
+  async registerEnterpriseKey(userId, publicKey, provider, algorithm, metadata = {}) {
     try {
-      // Get contract details
-      const contract = await Contract.findOne({
-        where: { contractId: contractId }
+      if (!this.supportedProviders.includes(provider)) {
+        throw new Error(`Unsupported provider: ${provider}`);
+      }
+
+      if (!this.supportedAlgorithms.includes(algorithm)) {
+        throw new Error(`Unsupported algorithm: ${algorithm}`);
+      }
+
+      // Generate a unique key ID
+      const keyId = `ENT-${crypto.randomUUID()}`;
+
+      // Store the enterprise key
+      const enterpriseKey = await EnterpriseKey.create({
+        keyId,
+        userId,
+        publicKey: JSON.stringify(publicKey),
+        provider,
+        algorithm,
+        status: 'ACTIVE',
+        metadata: {
+          ...metadata,
+          registeredAt: new Date().toISOString(),
+          provider,
+          algorithm
+        }
       });
 
+      await auditService.log('ENTERPRISE_KEY_REGISTERED', {
+        userId,
+        keyId,
+        provider,
+        algorithm
+      });
+
+      return {
+        success: true,
+        keyId,
+        message: 'Enterprise key registered successfully'
+      };
+    } catch (error) {
+      console.error('Error registering enterprise key:', error);
+      throw new Error(`Failed to register enterprise key: ${error.message}`);
+    }
+  }
+
+  /**
+   * Get all enterprise keys for a user
+   */
+  async getEnterpriseKeys(userId) {
+    try {
+      const keys = await EnterpriseKey.findAll({
+        where: { userId },
+        attributes: ['keyId', 'publicKey', 'provider', 'algorithm', 'status', 'metadata', 'createdAt'],
+        order: [['createdAt', 'DESC']]
+      });
+
+      return {
+        success: true,
+        keys: keys.map(key => ({
+          keyId: key.keyId,
+          publicKey: JSON.parse(key.publicKey),
+          provider: key.provider,
+          algorithm: key.algorithm,
+          status: key.status,
+          metadata: key.metadata,
+          createdAt: key.createdAt
+        }))
+      };
+    } catch (error) {
+      console.error('Error fetching enterprise keys:', error);
+      throw new Error(`Failed to fetch enterprise keys: ${error.message}`);
+    }
+  }
+
+  /**
+   * Get a specific enterprise key
+   */
+  async getEnterpriseKey(keyId) {
+    try {
+      const key = await EnterpriseKey.findOne({
+        where: { keyId },
+        attributes: ['keyId', 'userId', 'publicKey', 'provider', 'algorithm', 'status', 'metadata', 'createdAt']
+      });
+
+      if (!key) {
+        throw new Error('Enterprise key not found');
+      }
+
+      return {
+        success: true,
+        key: {
+          keyId: key.keyId,
+          userId: key.userId,
+          publicKey: JSON.parse(key.publicKey),
+          provider: key.provider,
+          algorithm: key.algorithm,
+          status: key.status,
+          metadata: key.metadata,
+          createdAt: key.createdAt
+        }
+      };
+    } catch (error) {
+      console.error('Error fetching enterprise key:', error);
+      throw new Error(`Failed to fetch enterprise key: ${error.message}`);
+    }
+  }
+
+  /**
+   * Deactivate an enterprise key
+   */
+  async deactivateEnterpriseKey(userId, keyId) {
+    try {
+      const key = await EnterpriseKey.findOne({
+        where: { keyId, userId }
+      });
+
+      if (!key) {
+        throw new Error('Enterprise key not found');
+      }
+
+      await key.update({ status: 'INACTIVE' });
+
+      await auditService.log('ENTERPRISE_KEY_DEACTIVATED', {
+        userId,
+        keyId
+      });
+
+      return {
+        success: true,
+        message: 'Enterprise key deactivated successfully'
+      };
+    } catch (error) {
+      console.error('Error deactivating enterprise key:', error);
+      throw new Error(`Failed to deactivate enterprise key: ${error.message}`);
+    }
+  }
+
+  /**
+   * Get supported algorithms for enterprise signing
+   */
+  getSupportedAlgorithms() {
+    return {
+      success: true,
+      algorithms: this.supportedAlgorithms.map(algorithm => {
+        const algorithmInfo = {
+          'ECDSA-P256': {
+            name: 'ECDSA',
+            curve: 'P-256',
+            keySize: 256,
+            description: 'Elliptic Curve Digital Signature Algorithm with P-256 curve'
+          },
+          'RSA-2048': {
+            name: 'RSA',
+            keySize: 2048,
+            description: 'RSA with 2048-bit key size'
+          },
+          'RSA-4096': {
+            name: 'RSA',
+            keySize: 4096,
+            description: 'RSA with 4096-bit key size'
+          }
+        };
+
+        return {
+          algorithm,
+          ...algorithmInfo[algorithm]
+        };
+      })
+    };
+  }
+
+  /**
+   * Initiate enterprise contract signing
+   */
+  async initiateEnterpriseSigning(contractId, userId, enterpriseKeyId, contractHash, kmsConfig) {
+    try {
+      // Verify the contract exists
+      const contract = await Contract.findByPk(contractId);
       if (!contract) {
         throw new Error('Contract not found');
       }
 
-      // Get enterprise key
-      const enterpriseKey = await this.enterpriseKeyService.getEnterpriseKey(keyId, userId);
-
-      // Generate contract hash
-      const contractHash = this.generateContractHash(contract);
-
-      // Create signing request record
-      const signingRequest = await SigningRequest.create({
-        contractId: contractId,
-        userId: userId,
-        keyId: keyId,
-        contractHash: contractHash,
-        status: 'PENDING',
-        kmsConfig: kmsConfig,
-        createdAt: new Date()
+      // Get the enterprise key
+      const enterpriseKey = await EnterpriseKey.findOne({
+        where: { keyId: enterpriseKeyId, userId, status: 'ACTIVE' }
       });
 
-      try {
-        // Sign with enterprise KMS
-        const signingResult = await this.cloudKmsService.signContract(
-          contractHash,
-          {
-            provider: kmsConfig.provider,
-            keyId: kmsConfig.keyId,
-            credentials: kmsConfig.credentials
-          }
-        );
+      if (!enterpriseKey) {
+        throw new Error('Enterprise key not found or inactive');
+      }
 
-        // Verify signature with stored public key
-        const isValid = this.cloudKmsService.verifySignature(
-          signingResult.signature,
-          contractHash,
-          enterpriseKey.publicKey
-        );
-
-        if (!isValid) {
-          throw new Error('Signature verification failed');
+      // Create signing request
+      const signingRequest = await SigningRequest.create({
+        contractId,
+        userId,
+        keyId: enterpriseKeyId,
+        contractHash,
+        status: 'PENDING',
+        kmsConfig: {
+          ...kmsConfig,
+          provider: enterpriseKey.provider,
+          algorithm: enterpriseKey.algorithm
         }
+      });
 
-        // Create signature record
-        const signature = await Signature.create({
-          contractId: contractId,
-          userId: userId,
-          keyId: keyId,
-          signature: signingResult.signature,
-          algorithm: signingResult.algorithm,
-          contractHash: contractHash,
-          signedAt: new Date(),
-          verifiedAt: new Date(),
-          isValid: true
-        });
+      // Perform remote signing using cloud KMS
+      try {
+        const signature = await cloudKmsService.sign(
+          enterpriseKey.provider,
+          kmsConfig.keyId || enterpriseKeyId,
+          contractHash,
+          kmsConfig.credentials
+        );
 
-        // Update signing request status
+        // Update signing request as completed
         await signingRequest.update({
           status: 'COMPLETED',
-          signature: signingResult.signature,
+          signature,
           completedAt: new Date()
         });
 
-        // Update contract status
-        await contract.update({
-          status: 'SIGNED',
-          signedAt: new Date(),
-          updatedAt: new Date()
+        // Store signature in database
+        const signatureRecord = await Signature.create({
+          contractId,
+          userId,
+          keyId: enterpriseKeyId,
+          signature,
+          algorithm: enterpriseKey.algorithm,
+          status: 'ACTIVE',
+          metadata: {
+            signedAt: new Date().toISOString(),
+            contractHash,
+            provider: enterpriseKey.provider,
+            signingRequestId: signingRequest.id
+          }
+        });
+
+        // Log signing event
+        await SigningEvent.create({
+          contractId,
+          userId,
+          keyId: enterpriseKeyId,
+          eventType: 'ENTERPRISE_SIGNED',
+          status: 'SUCCESS',
+          metadata: {
+            signatureId: signatureRecord.id,
+            contractHash,
+            provider: enterpriseKey.provider,
+            signingRequestId: signingRequest.id
+          }
+        });
+
+        // Store in SCITT CCF ledger
+        try {
+          await scittCcfService.storeSignature(contractId, signature, {
+            userId,
+            keyId: enterpriseKeyId,
+            algorithm: enterpriseKey.algorithm,
+            contractHash,
+            provider: enterpriseKey.provider
+          });
+        } catch (scittError) {
+          console.warn('Failed to store signature in SCITT CCF:', scittError);
+          // Continue even if SCITT CCF fails
+        }
+
+        await auditService.log('ENTERPRISE_CONTRACT_SIGNED', {
+          contractId,
+          userId,
+          keyId: enterpriseKeyId,
+          signatureId: signatureRecord.id,
+          provider: enterpriseKey.provider
         });
 
         return {
           success: true,
-          signature: {
-            id: signature.id,
-            signature: signingResult.signature,
-            algorithm: signingResult.algorithm,
-            signedAt: signature.signedAt,
-            verifiedAt: signature.verifiedAt
-          },
-          contract: {
-            id: contract.id,
-            contractId: contract.contractId,
-            status: contract.status,
-            signedAt: contract.signedAt
-          }
+          signatureId: signatureRecord.id,
+          signature,
+          message: 'Contract signed successfully using enterprise key'
         };
-
       } catch (signingError) {
-        // Update signing request status to failed
+        // Update signing request as failed
         await signingRequest.update({
           status: 'FAILED',
           error: signingError.message,
           failedAt: new Date()
         });
 
+        // Log failed signing event
+        await SigningEvent.create({
+          contractId,
+          userId,
+          keyId: enterpriseKeyId,
+          eventType: 'ENTERPRISE_SIGN_FAILED',
+          status: 'FAILED',
+          metadata: {
+            error: signingError.message,
+            signingRequestId: signingRequest.id
+          }
+        });
+
         throw signingError;
       }
-
     } catch (error) {
-      console.error('Error in enterprise signing:', error);
-      throw new Error(`Failed to sign contract: ${error.message}`);
+      console.error('Error initiating enterprise signing:', error);
+      throw new Error(`Failed to initiate enterprise signing: ${error.message}`);
+    }
+  }
+
+  /**
+   * Verify an enterprise signature
+   */
+  async verifyEnterpriseSignature(contractId, signature, enterpriseKeyId, contractHash) {
+    try {
+      // Get the enterprise key
+      const enterpriseKey = await EnterpriseKey.findOne({
+        where: { keyId: enterpriseKeyId, status: 'ACTIVE' }
+      });
+
+      if (!enterpriseKey) {
+        throw new Error('Enterprise key not found or inactive');
+      }
+
+      // Verify signature using the stored public key
+      const publicKey = JSON.parse(enterpriseKey.publicKey);
+      const isValid = await cloudKmsService.verifySignature(
+        contractHash,
+        signature,
+        publicKey,
+        enterpriseKey.algorithm
+      );
+
+      if (!isValid) {
+        throw new Error('Invalid signature');
+      }
+
+      await auditService.log('ENTERPRISE_SIGNATURE_VERIFIED', {
+        contractId,
+        keyId: enterpriseKeyId,
+        signature
+      });
+
+      return {
+        success: true,
+        valid: true,
+        message: 'Enterprise signature is valid'
+      };
+    } catch (error) {
+      console.error('Error verifying enterprise signature:', error);
+      throw new Error(`Failed to verify enterprise signature: ${error.message}`);
     }
   }
 
   /**
    * Get signing requests for a user
-   * @param {number} userId - User ID
-   * @returns {Promise<Array>} - List of signing requests
    */
-  async getUserSigningRequests(userId) {
+  async getSigningRequests(userId) {
     try {
       const requests = await SigningRequest.findAll({
-        where: { userId: userId },
+        where: { userId },
         include: [
           {
             model: Contract,
-            attributes: ['contractId', 'title', 'status']
+            as: 'contract',
+            attributes: ['id', 'contractId', 'title', 'status']
           },
           {
             model: EnterpriseKey,
-            attributes: ['keyId', 'algorithm', 'provider']
+            as: 'enterpriseKey',
+            attributes: ['keyId', 'provider', 'algorithm']
           }
         ],
         order: [['createdAt', 'DESC']]
       });
 
-      return requests.map(request => ({
-        id: request.id,
-        contractId: request.contractId,
-        keyId: request.keyId,
-        contractHash: request.contractHash,
-        status: request.status,
-        signature: request.signature,
-        createdAt: request.createdAt,
-        completedAt: request.completedAt,
-        failedAt: request.failedAt,
-        error: request.error,
-        contract: request.Contract,
-        enterpriseKey: request.EnterpriseKey
-      }));
-
+      return {
+        success: true,
+        requests: requests.map(req => ({
+          id: req.id,
+          contractId: req.contractId,
+          userId: req.userId,
+          keyId: req.keyId,
+          contractHash: req.contractHash,
+          status: req.status,
+          signature: req.signature,
+          kmsConfig: req.kmsConfig,
+          error: req.error,
+          completedAt: req.completedAt,
+          failedAt: req.failedAt,
+          createdAt: req.createdAt,
+          contract: req.contract,
+          enterpriseKey: req.enterpriseKey
+        }))
+      };
     } catch (error) {
       console.error('Error fetching signing requests:', error);
       throw new Error(`Failed to fetch signing requests: ${error.message}`);
@@ -177,99 +424,42 @@ class EnterpriseSigningService {
   }
 
   /**
-   * Get contract signatures
-   * @param {string} contractId - Contract ID
-   * @returns {Promise<Array>} - List of signatures
+   * Get contract signatures (both traditional and enterprise)
    */
   async getContractSignatures(contractId) {
     try {
       const signatures = await Signature.findAll({
-        where: { contractId: contractId, isValid: true },
+        where: { contractId, status: 'ACTIVE' },
         include: [
           {
-            model: EnterpriseKey,
-            attributes: ['keyId', 'algorithm', 'provider']
+            model: User,
+            as: 'signer',
+            attributes: ['id', 'username', 'email', 'firstName', 'lastName']
           }
         ],
-        order: [['signedAt', 'DESC']]
+        order: [['createdAt', 'ASC']]
       });
 
-      return signatures.map(signature => ({
-        id: signature.id,
-        userId: signature.userId,
-        keyId: signature.keyId,
-        signature: signature.signature,
-        algorithm: signature.algorithm,
-        signedAt: signature.signedAt,
-        verifiedAt: signature.verifiedAt,
-        enterpriseKey: signature.EnterpriseKey
-      }));
-
+      return {
+        success: true,
+        signatures: signatures.map(sig => ({
+          id: sig.id,
+          userId: sig.userId,
+          keyId: sig.keyId,
+          signature: sig.signature,
+          algorithm: sig.algorithm,
+          status: sig.status,
+          metadata: sig.metadata,
+          createdAt: sig.createdAt,
+          signer: sig.signer,
+          isEnterprise: sig.metadata?.provider ? true : false
+        }))
+      };
     } catch (error) {
       console.error('Error fetching contract signatures:', error);
       throw new Error(`Failed to fetch contract signatures: ${error.message}`);
     }
   }
-
-  /**
-   * Generate contract hash for signing
-   * @param {Object} contract - Contract object
-   * @returns {string} - Contract hash
-   */
-  generateContractHash(contract) {
-    const contractData = {
-      contractId: contract.contractId,
-      title: contract.title,
-      description: contract.description,
-      terms: contract.terms,
-      price: contract.price,
-      currency: contract.currency,
-      startDate: contract.startDate,
-      endDate: contract.endDate,
-      partyType: contract.partyType,
-      createdAt: contract.createdAt
-    };
-
-    const contractString = JSON.stringify(contractData, Object.keys(contractData).sort());
-    return crypto.createHash('sha256').update(contractString).digest('hex');
-  }
-
-  /**
-   * Verify contract signature
-   * @param {string} contractId - Contract ID
-   * @param {string} signature - Signature to verify
-   * @param {string} keyId - Key ID
-   * @returns {Promise<boolean>} - Verification result
-   */
-  async verifyContractSignature(contractId, signature, keyId) {
-    try {
-      // Get contract
-      const contract = await Contract.findOne({
-        where: { contractId: contractId }
-      });
-
-      if (!contract) {
-        throw new Error('Contract not found');
-      }
-
-      // Get enterprise key
-      const enterpriseKey = await this.enterpriseKeyService.getEnterpriseKey(keyId, contract.userId);
-
-      // Generate contract hash
-      const contractHash = this.generateContractHash(contract);
-
-      // Verify signature
-      return this.cloudKmsService.verifySignature(
-        signature,
-        contractHash,
-        enterpriseKey.publicKey
-      );
-
-    } catch (error) {
-      console.error('Error verifying contract signature:', error);
-      return false;
-    }
-  }
 }
 
-module.exports = EnterpriseSigningService;
+module.exports = new EnterpriseSigningService();

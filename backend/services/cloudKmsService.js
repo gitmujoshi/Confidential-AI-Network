@@ -69,6 +69,129 @@ class CloudKMSService {
       return false;
     }
   }
+
+  /**
+   * Test connection to cloud KMS
+   * @param {string} provider - Cloud provider (azure, aws, gcp, oci)
+   * @param {Object} config - KMS configuration
+   * @returns {Promise<Object>} - Test result
+   */
+  async testConnection(provider, config) {
+    try {
+      switch (provider) {
+        case 'azure':
+          return await this.testAzureConnection(config);
+        case 'aws':
+          return await this.testAWSConnection(config);
+        case 'gcp':
+          return await this.testGCPConnection(config);
+        case 'oci':
+          return await this.testOCIConnection(config);
+        default:
+          throw new Error(`Unsupported provider: ${provider}`);
+      }
+    } catch (error) {
+      console.error(`KMS connection test failed for ${provider}:`, error);
+      throw new Error(`Connection test failed: ${error.message}`);
+    }
+  }
+
+  /**
+   * Test Azure Key Vault connection
+   */
+  async testAzureConnection(config) {
+    const { credentials, keyId, vaultUrl } = config;
+    
+    if (!credentials.clientId || !credentials.clientSecret || !credentials.tenantId) {
+      throw new Error('Missing Azure credentials');
+    }
+
+    if (!vaultUrl) {
+      throw new Error('Vault URL is required for Azure');
+    }
+
+    // Mock test - in production, this would make an actual API call
+    return {
+      provider: 'azure',
+      vaultUrl,
+      keyId,
+      status: 'connected',
+      message: 'Azure Key Vault connection successful'
+    };
+  }
+
+  /**
+   * Test AWS KMS connection
+   */
+  async testAWSConnection(config) {
+    const { credentials, keyId, region } = config;
+    
+    if (!credentials.accessKeyId || !credentials.secretAccessKey) {
+      throw new Error('Missing AWS credentials');
+    }
+
+    if (!region) {
+      throw new Error('Region is required for AWS');
+    }
+
+    // Mock test - in production, this would make an actual API call
+    return {
+      provider: 'aws',
+      region,
+      keyId,
+      status: 'connected',
+      message: 'AWS KMS connection successful'
+    };
+  }
+
+  /**
+   * Test Google Cloud KMS connection
+   */
+  async testGCPConnection(config) {
+    const { credentials, keyId, region } = config;
+    
+    if (!credentials.projectId || !credentials.serviceAccountKey) {
+      throw new Error('Missing GCP credentials');
+    }
+
+    if (!region) {
+      throw new Error('Region is required for GCP');
+    }
+
+    // Mock test - in production, this would make an actual API call
+    return {
+      provider: 'gcp',
+      projectId: credentials.projectId,
+      region,
+      keyId,
+      status: 'connected',
+      message: 'Google Cloud KMS connection successful'
+    };
+  }
+
+  /**
+   * Test Oracle Cloud KMS connection
+   */
+  async testOCIConnection(config) {
+    const { credentials, keyId, region } = config;
+    
+    if (!credentials.userId || !credentials.privateKey || !credentials.fingerprint) {
+      throw new Error('Missing OCI credentials');
+    }
+
+    if (!region) {
+      throw new Error('Region is required for OCI');
+    }
+
+    // Mock test - in production, this would make an actual API call
+    return {
+      provider: 'oci',
+      region,
+      keyId,
+      status: 'connected',
+      message: 'Oracle Cloud KMS connection successful'
+    };
+  }
 }
 
 /**

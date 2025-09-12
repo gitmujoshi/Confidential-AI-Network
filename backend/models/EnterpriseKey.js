@@ -88,15 +88,8 @@ module.exports = (sequelize) => {
       as: 'user'
     });
     
-    EnterpriseKey.hasMany(models.SigningRequest, {
-      foreignKey: 'keyId',
-      as: 'signingRequests'
-    });
-    
-    EnterpriseKey.hasMany(models.Signature, {
-      foreignKey: 'keyId',
-      as: 'signatures'
-    });
+    // Note: keyId is a string field, not a foreign key
+    // Associations will be handled manually in the service layer
   };
 
   return EnterpriseKey;

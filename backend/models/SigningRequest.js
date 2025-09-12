@@ -15,10 +15,7 @@ module.exports = (sequelize) => {
     contractId: {
       type: DataTypes.STRING(255),
       allowNull: false,
-      references: {
-        model: 'contracts',
-        key: 'contractId'
-      }
+      comment: 'Contract ID string reference'
     },
     userId: {
       type: DataTypes.INTEGER,
@@ -98,19 +95,12 @@ module.exports = (sequelize) => {
 
   // Define associations
   SigningRequest.associate = (models) => {
-    SigningRequest.belongsTo(models.Contract, {
-      foreignKey: 'contractId',
-      as: 'contract'
-    });
+    // Note: contractId and keyId are string references, not foreign keys
+    // Associations will be handled manually in the service layer
     
     SigningRequest.belongsTo(models.User, {
       foreignKey: 'userId',
       as: 'user'
-    });
-    
-    SigningRequest.belongsTo(models.EnterpriseKey, {
-      foreignKey: 'keyId',
-      as: 'enterpriseKey'
     });
   };
 
