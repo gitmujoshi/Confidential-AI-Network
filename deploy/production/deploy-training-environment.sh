@@ -2,10 +2,21 @@
 
 # Production Deployment Script for AI Model Training Environment
 # This script deploys the complete training environment to production
+# 
+# Usage: ./deploy-training-environment.sh [environment] [region] [cloud_provider]
+# Example: ./deploy-training-environment.sh production us-east-1 aws
+#
+# Supported Cloud Providers: aws, azure, gcp, oci
+# Supported Regions: Any valid region for the chosen cloud provider
 
 set -e
 
 echo "🚀 Starting production deployment of AI Model Training Environment..."
+echo "📋 Deployment Configuration:"
+echo "   Environment: ${1:-production}"
+echo "   Region: ${2:-us-east-1}"
+echo "   Cloud Provider: ${3:-aws}"
+echo ""
 
 # Configuration
 ENVIRONMENT=${1:-production}
