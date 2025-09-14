@@ -48,6 +48,9 @@ classDiagram
     class Dataset {
         +id: Integer
         +datasetId: String
+        +provenanceTreeId: String
+        +dataLineage: String
+        +provenanceHash: String
         +name: String
         +description: Text
         +category: DatasetCategory
@@ -163,6 +166,73 @@ classDiagram
         +enforceLimits()
     }
     
+    class MerkleTree {
+        +id: Integer
+        +treeId: String
+        +contractId: String
+        +rootHash: String
+        +depth: Integer
+        +nodeCount: Integer
+        +status: String
+        +createdAt: DateTime
+        +updatedAt: DateTime
+        +addNode()
+        +verifyProof()
+        +getRootHash()
+        +updateTree()
+    }
+    
+    class ProvenanceNode {
+        +id: Integer
+        +nodeId: String
+        +treeId: String
+        +nodeType: String
+        +dataHash: String
+        +parentHash: String
+        +leftChildHash: String
+        +rightChildHash: String
+        +level: Integer
+        +position: Integer
+        +metadata: JSON
+        +isVerified: Boolean
+        +createdAt: DateTime
+        +updatedAt: DateTime
+        +calculateHash()
+        +verifyIntegrity()
+        +updateMetadata()
+    }
+    
+    class ProvenanceCapture {
+        +id: Integer
+        +captureId: String
+        +contractId: String
+        +nodeId: String
+        +captureType: String
+        +dataHash: String
+        +metadata: JSON
+        +timestamp: DateTime
+        +createdAt: DateTime
+        +updatedAt: DateTime
+        +captureData()
+        +verifyCapture()
+        +getProvenanceChain()
+    }
+    
+    class ProvenanceVerification {
+        +id: Integer
+        +verificationId: String
+        +captureId: String
+        +verificationType: String
+        +status: String
+        +proof: String
+        +verifiedAt: DateTime
+        +createdAt: DateTime
+        +updatedAt: DateTime
+        +verifyProof()
+        +generateProof()
+        +updateStatus()
+    }
+    
     User ||--o{ Dataset : owns
     User ||--o{ Contract : participates
     User ||--o{ CCRPCloudCredentials : has
@@ -170,6 +240,10 @@ classDiagram
     Contract ||--o{ ScittClaim : generates
     Contract ||--o{ TrainingEnvironment : provisions
     Contract ||--o{ PrivacyBudget : has
+    Contract ||--o{ MerkleTree : has
+    MerkleTree ||--o{ ProvenanceNode : contains
+    ProvenanceNode ||--o{ ProvenanceCapture : captured_by
+    ProvenanceCapture ||--o{ ProvenanceVerification : verified_by
     CCRPCloudCredentials ||--o{ TrainingEnvironment : used_for
 ```
 
@@ -258,12 +332,39 @@ classDiagram
         +getContractExecutionStatus(contractId)
     }
     
+    class ProvenanceTrackingService {
+        +initializeProvenanceTracking(config)
+        +createProvenanceNode(config)
+        +addNodeToMerkleTree(sessionId, nodeId)
+        +verifyProvenanceNode(nodeId, proof)
+        +getProvenanceTree(treeId)
+        +generateMerkleProof(nodeId)
+        +verifyCrossCloudConsistency(treeId)
+        +getProvenanceAuditTrail(contractId)
+    }
+    
+    class TrainingProvenanceService {
+        +captureTrainingProvenance(trainingJob)
+        +captureDataProvenance(trainingJob)
+        +captureCodeProvenance(trainingJob)
+        +captureModelProvenance(trainingJob)
+        +buildProvenanceTree(provenanceData)
+        +generateProvenanceProofs(provenanceTree)
+        +signProvenanceData(provenanceTree, proofs)
+        +storeProvenance(jobId, signedProvenance)
+    }
+    
     ContractRouterService --> ScittCcfService : uses
     ContractRouterService --> SystemHealthMonitor : uses
     UserService --> User : manages
     DatasetService --> Dataset : manages
     ContractService --> Contract : manages
     ContractService --> ScittClaim : creates
+    ProvenanceTrackingService --> MerkleTree : manages
+    ProvenanceTrackingService --> ProvenanceNode : manages
+    ProvenanceTrackingService --> ProvenanceCapture : manages
+    ProvenanceTrackingService --> ProvenanceVerification : manages
+    TrainingProvenanceService --> ProvenanceTrackingService : uses
 ```
 
 ### **1.3 Merkle Tree Provenance Integration**
