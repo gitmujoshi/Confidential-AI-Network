@@ -146,6 +146,101 @@ graph TB
 
 ---
 
+## **🔐 Encryption & Data Protection Workflow**
+
+### **End-to-End Encryption Process**
+
+```mermaid
+graph TB
+    subgraph "TDP Data Preparation"
+        A1[TDP: Raw Confidential Data] --> A2[TDP: Data Encryption with AES-256]
+        A2 --> A3[TDP: Generate Data Encryption Key]
+        A3 --> A4[TDP: Encrypt DEK with TDP Public Key]
+        A4 --> A5[Platform: Store Encrypted Data + Encrypted DEK]
+    end
+    
+    subgraph "Contract & Key Exchange"
+        B1[TDC: Generate TDC Key Pair] --> B2[Smart Contract: Store TDC Public Key]
+        B2 --> B3[TDP: Encrypt DEK with TDC Public Key]
+        B3 --> B4[Smart Contract: Store TDC-Encrypted DEK]
+        B4 --> B5[CCRP: Generate TEE Attestation Key]
+    end
+    
+    subgraph "Secure Training Environment"
+        C1[CCRP: Provision TEE with Attestation] --> C2[TEE: Generate Internal Keys]
+        C2 --> C3[Platform: Transfer Encrypted Data to TEE]
+        C3 --> C4[TEE: Decrypt DEK using TDC Private Key]
+        C4 --> C5[TEE: Decrypt Data using DEK]
+        C5 --> C6[TEE: Process Data in Secure Memory]
+        C6 --> C7[TEE: Encrypt Model with TDC Public Key]
+    end
+    
+    subgraph "Model Delivery & Verification"
+        D1[TEE: Encrypted Model Output] --> D2[Platform: Store Encrypted Model]
+        D2 --> D3[TDC: Decrypt Model with Private Key]
+        D3 --> D4[Smart Contract: Verify Model Integrity]
+        D4 --> D5[Platform: Generate Provenance Hash]
+    end
+    
+    A5 --> B1
+    B5 --> C1
+    C7 --> D1
+    D5 --> E1[Complete Audit Trail]
+    
+    style A1 fill:#e1f5fe
+    style B1 fill:#f3e5f5
+    style C1 fill:#e8f5e8
+    style D1 fill:#fff3e0
+```
+
+### **Encryption Layers & Key Management**
+
+#### **1. Data Encryption (TDP Side)**
+- **AES-256-GCM**: Industry-standard symmetric encryption for data at rest
+- **Data Encryption Key (DEK)**: Unique key per dataset, randomly generated
+- **Key Encryption Key (KEK)**: TDP's RSA-4096 or ECC-384 public key
+- **Encrypted Storage**: Data + encrypted DEK stored in platform
+
+#### **2. Key Exchange (Contract Phase)**
+- **TDC Key Generation**: RSA-4096 or ECC-384 key pair created
+- **Public Key Sharing**: TDC public key stored in smart contract
+- **DEK Re-encryption**: Original DEK encrypted with TDC public key
+- **Dual Encryption**: DEK encrypted with both TDP and TDC keys
+
+#### **3. TEE Attestation & Decryption (CCRP Side)**
+- **TEE Attestation**: Cryptographic proof of secure environment
+- **Hardware Security Module (HSM)**: Secure key storage in TEE
+- **Key Derivation**: TEE generates internal keys from attestation
+- **Secure Decryption**: Data decrypted only within verified TEE
+
+#### **4. Model Encryption & Delivery**
+- **Model Encryption**: Trained model encrypted with TDC public key
+- **Integrity Verification**: SHA-256 hash for model authenticity
+- **Provenance Hashing**: Complete audit trail with cryptographic signatures
+- **Secure Transfer**: Encrypted model delivered to TDC
+
+### **Security Guarantees**
+
+#### **For TDPs:**
+- ✅ **Data Never Exposed**: Raw data never leaves encrypted state
+- ✅ **Key Control**: TDP controls data access through key management
+- ✅ **Audit Trail**: Complete visibility into data usage
+- ✅ **Revocation**: Ability to revoke access through key rotation
+
+#### **For TDCs:**
+- ✅ **Secure Access**: Data only accessible in verified TEE environments
+- ✅ **Model Protection**: Trained models encrypted with TDC keys
+- ✅ **Privacy Guarantees**: No access to raw data outside TEE
+- ✅ **Attestation**: Cryptographic proof of secure execution
+
+#### **For CCRPs:**
+- ✅ **Hardware Security**: TEE provides hardware-level isolation
+- ✅ **Key Isolation**: Encryption keys never accessible outside TEE
+- ✅ **Attestation**: Verifiable proof of secure environment
+- ✅ **Compliance**: Meets highest security standards
+
+---
+
 ## **🔐 Security & Privacy Architecture**
 
 ### **Confidential Computing**
