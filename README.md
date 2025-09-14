@@ -50,7 +50,7 @@ npm run test:login
 The system is built on **Microsoft's SCITT CCF Ledger** for high-performance, confidential computing contract management.
 
 ### **Key Features**
-- **High Performance**: 10-100x throughput improvement over traditional blockchain
+- **High Performance**: 10-100x throughput improvement over traditional blockchain systems
 - **Confidential Computing**: Hardware-level TEE (Trusted Execution Environment) support
 - **Standards Compliance**: IETF SCITT working group standards
 - **Enterprise Ready**: Production-grade infrastructure and security
@@ -77,7 +77,7 @@ The system is built on **Microsoft's SCITT CCF Ledger** for high-performance, co
 The system now operates in **SCITT CCF only** mode for simplified architecture:
 
 - **`SCITT_CCF_ONLY`**: Use only SCITT CCF Ledger (Current)
-- **Legacy Support**: Ethereum blockchain support has been removed for cleaner architecture
+- **Legacy Support**: Traditional blockchain support has been removed for cleaner SCITT CCF architecture
 
 ## ��️ Architecture
 
@@ -211,7 +211,7 @@ npm test -- scitt-ccf-api.test.js
 ### **Deployment Features**
 - ✅ **HTTPS/SSL**: Let's Encrypt certificates with Nginx reverse proxy
 - ✅ **Keycloak IAM**: Complete identity management with persistent configuration
-- ✅ **SCITT CCF Integration**: Blockchain infrastructure for secure contracts
+- ✅ **SCITT CCF Integration**: High-performance ledger infrastructure for secure contracts
 - ✅ **Firewall & Security**: UFW firewall with secure port configuration
 - ✅ **Backup & Monitoring**: Automated backups and health checks
 - ✅ **Local Development**: Full development environment in VM

@@ -11,7 +11,7 @@ Complete technical architecture documentation for the Contract Management System
 5. [Database Design](#database-design)
 6. [API Architecture](#api-architecture)
 7. [Frontend Architecture](#frontend-architecture)
-8. [Legacy Blockchain Integration](#legacy-blockchain-integration-deprecated)
+8. [Legacy System Integration](#legacy-system-integration-deprecated)
 9. [Secret Management](#secret-management)
 10. [Differential Privacy Architecture](#differential-privacy-architecture)
 11. [Security Architecture](#security-architecture)
@@ -44,7 +44,7 @@ graph TB
         subgraph "Data Layer"
             PostgreSQL["PostgreSQL<br/>(Primary)<br/>Port: 5432"]
             SCITTLedger["SCITT CCF<br/>Ledger<br/>Port: 8000"]
-            Blockchain["Ethereum<br/>Blockchain<br/>Port: 8545"]
+            LegacySystem["Legacy<br/>System<br/>Port: 8545"]
         end
     end
     
@@ -56,7 +56,7 @@ graph TB
     Router --> Migration
     Backend --> PostgreSQL
     SCITT --> SCITTLedger
-    Ethereum --> Blockchain
+    Legacy --> LegacySystem
 ```
 
 ### **System Components**
@@ -64,7 +64,7 @@ graph TB
 - **Backend**: Node.js with Express.js
 - **Database**: PostgreSQL with Sequelize ORM
 - **Authentication**: Keycloak IAM
-- **Blockchain**: Ethereum with Hardhat
+- **Legacy System**: Traditional blockchain (deprecated)
 - **SCITT CCF**: High-performance confidential computing ledger
 - **Secret Management**: HashiCorp Vault
 - **Cloud Providers**: AWS, Azure, GCP, OCI
@@ -110,7 +110,7 @@ backend/
 │   ├── cloudKmsService.js  # Cloud KMS integration service
 │   ├── contractRouterService.js  # Contract routing service
 │   ├── systemHealthMonitor.js   # Health monitoring service
-│   └── blockchainService.js     # Ethereum blockchain service
+│   └── legacyService.js         # Legacy system service (deprecated)
 ├── models/                  # Database models
 │   ├── ScittClaim.js       # SCITT CCF claims model
 │   ├── EnterpriseKey.js    # Enterprise key model
@@ -129,7 +129,7 @@ backend/
 - **Database ORM**: Sequelize for database operations
 - **Authentication**: JWT token validation
 - **Validation**: Request/response validation
-- **Hybrid Architecture**: Support for both blockchain and SCITT CCF
+- **SCITT CCF Architecture**: Primary ledger with legacy system support
 
 ### **Database Layer**
 ```
@@ -290,26 +290,26 @@ The system supports three migration modes:
 ```mermaid
 graph LR
     subgraph "Migration Modes"
-        EthereumOnly["ETHEREUM_ONLY<br/>Traditional<br/>Blockchain"]
+        LegacyOnly["LEGACY_ONLY<br/>Traditional<br/>System"]
         Hybrid["HYBRID<br/>Both Systems<br/>Simultaneously"]
         SCITTOnly["SCITT_CCF_ONLY<br/>High Performance<br/>Ledger Only"]
     end
     
-    EthereumOnly --> Hybrid
+    LegacyOnly --> Hybrid
     Hybrid --> SCITTOnly
-    SCITTOnly -.-> EthereumOnly
+    SCITTOnly -.-> LegacyOnly
 ```
 
 **Migration Modes**:
 
-1. **ETHEREUM_ONLY**:
-   - Traditional blockchain operation
+1. **LEGACY_ONLY**:
+   - Traditional system operation
    - No SCITT CCF integration
    - Legacy mode for troubleshooting
 
 2. **HYBRID** (Recommended):
    - New contracts go to SCITT CCF
-   - Existing contracts remain on Ethereum
+   - Existing contracts remain on legacy system
    - Automatic fallback if SCITT CCF fails
    - Gradual migration path
 
@@ -396,24 +396,24 @@ sequenceDiagram
 ```mermaid
 graph LR
     subgraph "Throughput Comparison"
-        Ethereum["Ethereum<br/>Blockchain<br/>15-30 TPS"]
+        Legacy["Legacy<br/>System<br/>15-30 TPS"]
         SCITT["SCITT CCF<br/>Ledger<br/>1,500-3,000 TPS"]
         Improvement["Improvement<br/>Factor<br/>50-200x"]
     end
     
-    Ethereum --> SCITT
+    Legacy --> SCITT
     SCITT --> Improvement
 ```
 
 ```mermaid
 graph LR
     subgraph "Latency Comparison"
-        EthereumLatency["Ethereum<br/>Blockchain<br/>12-15 seconds"]
+        LegacyLatency["Legacy<br/>System<br/>12-15 seconds"]
         SCITTLatency["SCITT CCF<br/>Ledger<br/>100-500ms"]
         LatencyImprovement["Improvement<br/>Factor<br/>24-150x"]
     end
     
-    EthereumLatency --> SCITTLatency
+    LegacyLatency --> SCITTLatency
     SCITTLatency --> LatencyImprovement
 ```
 
@@ -864,13 +864,13 @@ App
 - **Dynamic Routes**: Contract details, dataset details
 - **Nested Routes**: Dashboard with sub-navigation
 
-## ⛓️ Legacy Blockchain Integration (Deprecated)
+## ⛓️ Legacy System Integration (Deprecated)
 
-> **Note**: The system has migrated from Ethereum blockchain to SCITT CCF ledger for improved performance and security. The blockchain integration is maintained for backward compatibility and gradual migration.
+> **Note**: The system has migrated from traditional blockchain to SCITT CCF ledger for improved performance and security. The legacy system integration is maintained for backward compatibility and gradual migration.
 
 ### **Migration Status**
 - **Primary Ledger**: SCITT CCF (High-performance confidential computing ledger)
-- **Legacy Support**: Ethereum blockchain (for existing contracts)
+- **Legacy Support**: Traditional blockchain system (for existing contracts)
 - **Migration Mode**: Hybrid (supports both systems during transition)
 
 ### **Legacy Smart Contract Architecture**
@@ -907,14 +907,14 @@ contract ContractManager {
 ### **Legacy Integration Points**
 - **Contract Deployment**: Smart contract deployment (legacy)
 - **Contract Storage**: On-chain contract data (legacy)
-- **Event Logging**: Blockchain event tracking (legacy)
+- **Event Logging**: Legacy system event tracking (deprecated)
 - **Transaction Verification**: Payment verification (legacy)
 
 ### **Migration Features**
-- **Hybrid Mode**: Supports both SCITT CCF and Ethereum
+- **Hybrid Mode**: Supports both SCITT CCF and legacy system
 - **Automatic Routing**: Contracts routed to appropriate system
-- **Fallback Support**: Ethereum fallback if SCITT CCF unavailable
-- **Gradual Migration**: Existing contracts remain on Ethereum
+- **Fallback Support**: Legacy system fallback if SCITT CCF unavailable
+- **Gradual Migration**: Existing contracts remain on legacy system
 
 ## 🔐 Secret Management
 
@@ -1517,7 +1517,7 @@ TEST_MODE: 'integration'
 NODE_ENV: 'test'
 SCITT_CCF_ENABLED: 'true'
 MIGRATION_MODE: 'HYBRID'
-BLOCKCHAIN_ENABLED: 'true'
+LEGACY_SYSTEM_ENABLED: 'false'
 KEYCLOAK_ENABLED: 'true'
 ```
 
