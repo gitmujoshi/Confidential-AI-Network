@@ -150,6 +150,25 @@ graph TB
 
 ### **End-to-End Encryption Process**
 
+#### **Phase 1: Data Preparation & Encryption (TDP Side)**
+When a Training Data Provider uploads confidential data, the platform immediately encrypts it using **AES-256-GCM encryption** with platform-managed keys stored in a Hardware Security Module (HSM). The raw data never exists in unencrypted form on the platform. The system generates metadata tags for data classification and creates a **data access token** that will be required for any future access to this dataset.
+
+#### **Phase 2: Contract Negotiation & Access Control**
+When a Training Data Consumer requests access to a dataset, the **smart contract validates** the contract terms, pricing, and usage requirements. The TDP reviews and approves the access request, after which the platform issues an **encrypted access token** with specific permissions and time-limited validity. The CCRP provisions a **Trusted Execution Environment (TEE)** with hardware-level security isolation.
+
+#### **Phase 3: Secure Processing in Confidential Computing Environment**
+The CCRP performs **hardware attestation** to cryptographically prove the TEE environment is secure and isolated. The platform transfers the encrypted data to the verified TEE, where it's **decrypted only within the secure enclave**. The data is processed using **differential privacy techniques** to ensure individual records cannot be identified. The TEE generates an **encrypted model output** and creates a **provenance attestation** proving the training was performed securely.
+
+#### **Phase 4: Model Delivery & Verification**
+The encrypted model and attestation are stored on the platform. The **smart contract verifies the TEE attestation** to ensure the training was performed in a secure environment. The TDC receives the encrypted model, and the platform generates a **complete audit trail** documenting every step of the process for compliance and regulatory reporting.
+
+#### **Key Security Guarantees:**
+- **Data Never Exposed**: Raw data remains encrypted except within verified TEE environments
+- **Hardware-Level Protection**: Intel SGX/AMD SEV provides hardware isolation
+- **Cryptographic Proof**: Every step is cryptographically verified and attested
+- **Complete Audit Trail**: Full visibility into data usage and processing
+- **Automatic Compliance**: Built-in regulatory compliance and reporting
+
 ```mermaid
 graph TB
     subgraph "TDP Data Preparation"
