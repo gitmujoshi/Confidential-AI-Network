@@ -9,7 +9,7 @@
 1. [Authentication & User Management](#authentication--user-management)
 2. [Multi-Tenant Infrastructure Management](#multi-tenant-infrastructure-management)
 3. [KMS (Key Management Service) Integration](#kms-key-management-service-integration)
-4. [Merkle Tree Provenance Tracking](#merkle-tree-provenance-tracking)
+4. [Provenance Tracking System](#provenance-tracking-system)
 5. [DID (Decentralized Identifier) Management](#did-decentralized-identifier-management)
 6. [Contract Management](#contract-management)
 7. [Dataset Management](#dataset-management)
@@ -452,27 +452,264 @@ List all KMS keys for the tenant.
 
 ---
 
-## Merkle Tree Provenance Tracking
+## Provenance Tracking System
 
-### Capture Provenance
-**POST** `/provenance/capture`
+The Provenance Tracking System provides comprehensive auditability of AI model training processes, data lineage, and code execution using Merkle trees and cryptographic verification.
 
-Capture Merkle tree provenance for model auditing.
+### Base URL
+```
+/api/provenance
+```
+
+---
+
+## 🌳 **Merkle Tree Management**
+
+### Create Merkle Tree
+**POST** `/provenance/trees`
+
+Creates a new Merkle tree for tracking provenance of a contract.
 
 **Headers:** `Authorization: Bearer <token>`
 
 **Request Body:**
 ```json
 {
-  "contractId": "CONTRACT-123",
-  "nodeType": "DATASET_ROOT",
-  "dataHash": "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef",
-  "timestamp": "2024-12-15T10:30:00.000Z",
-  "crossCloudVerified": true,
+  "contractId": "CONTRACT-001",
+  "treeType": "BINARY_MERKLE_TREE",
+  "hashAlgorithm": "SHA256",
+  "maxDepth": 10,
+  "description": "Provenance tree for MNIST training contract"
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": {
+    "treeId": "TREE-001",
+    "contractId": "CONTRACT-001",
+    "rootHash": "0xabc123...",
+    "depth": 0,
+    "nodeCount": 0,
+    "status": "ACTIVE",
+    "createdAt": "2025-01-08T10:00:00Z"
+  }
+}
+```
+
+### Get Merkle Tree
+**GET** `/provenance/trees/{treeId}`
+
+Retrieves details of a specific Merkle tree.
+
+**Headers:** `Authorization: Bearer <token>`
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": {
+    "treeId": "TREE-001",
+    "contractId": "CONTRACT-001",
+    "rootHash": "0xabc123...",
+    "depth": 4,
+    "nodeCount": 15,
+    "status": "ACTIVE",
+    "createdAt": "2025-01-08T10:00:00Z",
+    "updatedAt": "2025-01-08T12:00:00Z"
+  }
+}
+```
+
+### List Merkle Trees
+**GET** `/provenance/trees`
+
+Lists all Merkle trees with optional filtering.
+
+**Headers:** `Authorization: Bearer <token>`
+
+**Query Parameters:**
+- `contractId` (optional): Filter by contract ID
+- `status` (optional): Filter by tree status
+- `limit` (optional): Number of results (default: 50)
+- `offset` (optional): Pagination offset (default: 0)
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": {
+    "trees": [
+      {
+        "treeId": "TREE-001",
+        "contractId": "CONTRACT-001",
+        "rootHash": "0xabc123...",
+        "status": "ACTIVE",
+        "nodeCount": 15,
+        "createdAt": "2025-01-08T10:00:00Z"
+      }
+    ],
+    "pagination": {
+      "total": 1,
+      "limit": 50,
+      "offset": 0
+    }
+  }
+}
+```
+
+---
+
+## 📝 **Provenance Node Management**
+
+### Create Provenance Node
+**POST** `/provenance/nodes`
+
+Creates a new node in the Merkle tree.
+
+**Headers:** `Authorization: Bearer <token>`
+
+**Request Body:**
+```json
+{
+  "treeId": "TREE-001",
+  "nodeType": "DATASET",
+  "content": "MNIST training dataset",
   "metadata": {
-    "dataSource": "TDP_AWS_S3",
-    "encryptionKeyId": "tdp-dataset-key-001",
-    "hashAlgorithm": "SHA256"
+    "datasetName": "MNIST",
+    "size": "11.2MB",
+    "recordCount": 70000,
+    "dataSource": "TDP-001"
+  },
+  "parentNodes": [],
+  "childNodes": []
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": {
+    "nodeId": "NODE-001",
+    "treeId": "TREE-001",
+    "nodeType": "DATASET",
+    "dataHash": "0xdef456...",
+    "parentHash": null,
+    "leftChildHash": null,
+    "rightChildHash": null,
+    "level": 0,
+    "position": 0,
+    "metadata": {
+      "datasetName": "MNIST",
+      "size": "11.2MB",
+      "recordCount": 70000,
+      "dataSource": "TDP-001"
+    },
+    "isVerified": true,
+    "createdAt": "2025-01-08T10:00:00Z"
+  }
+}
+```
+
+### Get Provenance Node
+**GET** `/provenance/nodes/{nodeId}`
+
+Retrieves details of a specific provenance node.
+
+**Headers:** `Authorization: Bearer <token>`
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": {
+    "nodeId": "NODE-001",
+    "treeId": "TREE-001",
+    "nodeType": "DATASET",
+    "dataHash": "0xdef456...",
+    "parentHash": null,
+    "leftChildHash": "0x789abc...",
+    "rightChildHash": "0x123def...",
+    "level": 0,
+    "position": 0,
+    "metadata": {
+      "datasetName": "MNIST",
+      "size": "11.2MB",
+      "recordCount": 70000,
+      "dataSource": "TDP-001"
+    },
+    "isVerified": true,
+    "createdAt": "2025-01-08T10:00:00Z"
+  }
+}
+```
+
+### List Provenance Nodes
+**GET** `/provenance/nodes`
+
+Lists all provenance nodes with optional filtering.
+
+**Headers:** `Authorization: Bearer <token>`
+
+**Query Parameters:**
+- `treeId` (optional): Filter by tree ID
+- `nodeType` (optional): Filter by node type
+- `isVerified` (optional): Filter by verification status
+- `limit` (optional): Number of results (default: 50)
+- `offset` (optional): Pagination offset (default: 0)
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": {
+    "nodes": [
+      {
+        "nodeId": "NODE-001",
+        "treeId": "TREE-001",
+        "nodeType": "DATASET",
+        "dataHash": "0xdef456...",
+        "level": 0,
+        "position": 0,
+        "isVerified": true,
+        "createdAt": "2025-01-08T10:00:00Z"
+      }
+    ],
+    "pagination": {
+      "total": 1,
+      "limit": 50,
+      "offset": 0
+    }
+  }
+}
+```
+
+---
+
+## 🔍 **Provenance Capture Management**
+
+### Create Provenance Capture
+**POST** `/provenance/captures`
+
+Captures provenance data at a specific point in time.
+
+**Headers:** `Authorization: Bearer <token>`
+
+**Request Body:**
+```json
+{
+  "contractId": "CONTRACT-001",
+  "nodeId": "NODE-001",
+  "captureType": "TRAINING_START",
+  "dataHash": "0xabc123...",
+  "metadata": {
+    "trainingJobId": "JOB-001",
+    "environmentId": "ENV-001",
+    "timestamp": "2025-01-08T10:00:00Z",
+    "dataSize": "11.2MB"
   }
 }
 ```
@@ -481,35 +718,71 @@ Capture Merkle tree provenance for model auditing.
 ```json
 {
   "success": true,
-  "provenance": {
-    "provenanceId": "PROV-001",
-    "contractId": "CONTRACT-123",
-    "nodeType": "DATASET_ROOT",
-    "merkleRoot": "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef",
-    "timestamp": "2024-12-15T10:30:00.000Z",
-    "crossCloudVerified": true,
-    "auditSignature": "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef"
+  "data": {
+    "captureId": "CAPTURE-001",
+    "contractId": "CONTRACT-001",
+    "nodeId": "NODE-001",
+    "captureType": "TRAINING_START",
+    "dataHash": "0xabc123...",
+    "metadata": {
+      "trainingJobId": "JOB-001",
+      "environmentId": "ENV-001",
+      "timestamp": "2025-01-08T10:00:00Z",
+      "dataSize": "11.2MB"
+    },
+    "timestamp": "2025-01-08T10:00:00Z",
+    "createdAt": "2025-01-08T10:00:00Z"
   }
 }
 ```
 
-### Verify Provenance
+### Get Provenance Capture
+**GET** `/provenance/captures/{captureId}`
+
+Retrieves details of a specific provenance capture.
+
+**Headers:** `Authorization: Bearer <token>`
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": {
+    "captureId": "CAPTURE-001",
+    "contractId": "CONTRACT-001",
+    "nodeId": "NODE-001",
+    "captureType": "TRAINING_START",
+    "dataHash": "0xabc123...",
+    "metadata": {
+      "trainingJobId": "JOB-001",
+      "environmentId": "ENV-001",
+      "timestamp": "2025-01-08T10:00:00Z",
+      "dataSize": "11.2MB"
+    },
+    "timestamp": "2025-01-08T10:00:00Z",
+    "createdAt": "2025-01-08T10:00:00Z"
+  }
+}
+```
+
+---
+
+## ✅ **Provenance Verification**
+
+### Verify Provenance Node
 **POST** `/provenance/verify`
 
-Verify Merkle tree provenance for model audit.
+Verifies the integrity of a provenance node using Merkle proof.
 
 **Headers:** `Authorization: Bearer <token>`
 
 **Request Body:**
 ```json
 {
-  "contractId": "CONTRACT-123",
-  "nodeType": "DATASET_ROOT",
-  "merkleProof": [
-    "0x1111111111111111111111111111111111111111111111111111111111111111",
-    "0x2222222222222222222222222222222222222222222222222222222222222222"
-  ],
-  "expectedHash": "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef"
+  "nodeId": "NODE-001",
+  "proof": "0xproof123...",
+  "rootHash": "0xabc123...",
+  "verificationType": "MERKLE_PROOF"
 }
 ```
 
@@ -517,21 +790,26 @@ Verify Merkle tree provenance for model audit.
 ```json
 {
   "success": true,
-  "verification": {
-    "verified": true,
-    "nodeType": "DATASET_ROOT",
-    "merkleRoot": "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef",
-    "verificationMethod": "MERKLE_PROOF_VERIFICATION",
-    "crossCloudVerified": true,
-    "timestamp": "2024-12-15T10:30:00.000Z"
+  "data": {
+    "verificationId": "VERIFY-001",
+    "nodeId": "NODE-001",
+    "verificationType": "MERKLE_PROOF",
+    "status": "SUCCESS",
+    "proof": "0xproof123...",
+    "verifiedAt": "2025-01-08T10:00:00Z",
+    "details": {
+      "isValid": true,
+      "verificationTime": "0.001s",
+      "proofSize": "256 bytes"
+    }
   }
 }
 ```
 
-### Get Provenance Audit Trail
-**GET** `/provenance/audit-trail/:contractId`
+### Get Verification Status
+**GET** `/provenance/verifications/{verificationId}`
 
-Get complete provenance audit trail for a contract.
+Retrieves the status of a provenance verification.
 
 **Headers:** `Authorization: Bearer <token>`
 
@@ -539,77 +817,333 @@ Get complete provenance audit trail for a contract.
 ```json
 {
   "success": true,
-  "auditTrail": [
-    {
-      "timestamp": "2024-12-15T10:30:00.000Z",
-      "action": "DATASET_PROVENANCE_CAPTURED",
-      "nodeType": "DATASET_ROOT",
-      "merkleRoot": "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef",
-      "dataSource": "TDP_AWS_S3",
-      "crossCloudVerified": true,
-      "auditSignature": "0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef"
-    },
-    {
-      "timestamp": "2024-12-15T10:30:00.000Z",
-      "action": "MODEL_SPECIFICATION_PROVENANCE_CAPTURED",
-      "nodeType": "MODEL_SPECIFICATION_ROOT",
-      "merkleRoot": "0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890",
-      "dataSource": "TDC_AZURE_BLOB",
-      "crossCloudVerified": true,
-      "auditSignature": "0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890"
-    }
-  ]
-}
-```
-
-### Generate Provenance Report
-**POST** `/provenance/report`
-
-Generate comprehensive provenance report for model governance.
-
-**Headers:** `Authorization: Bearer <token>`
-
-**Request Body:**
-```json
-{
-  "contractId": "CONTRACT-123",
-  "reportType": "COMPREHENSIVE",
-  "dateRange": {
-    "startDate": "2024-12-15T00:00:00.000Z",
-    "endDate": "2025-01-15T23:59:59.000Z"
+  "data": {
+    "verificationId": "VERIFY-001",
+    "captureId": "CAPTURE-001",
+    "verificationType": "MERKLE_PROOF",
+    "status": "SUCCESS",
+    "proof": "0xproof123...",
+    "verifiedAt": "2025-01-08T10:00:00Z",
+    "createdAt": "2025-01-08T10:00:00Z"
   }
 }
 ```
+
+---
+
+## 🔗 **Provenance Chain & Lineage**
+
+### Get Provenance Chain
+**GET** `/provenance/chain/{contractId}`
+
+Retrieves the complete provenance chain for a contract.
+
+**Headers:** `Authorization: Bearer <token>`
 
 **Response:**
 ```json
 {
   "success": true,
-  "report": {
-    "reportId": "REPORT-001",
-    "contractId": "CONTRACT-123",
-    "reportType": "COMPREHENSIVE",
-    "generatedAt": "2024-12-15T12:00:00.000Z",
-    "dataLineage": {
-      "dataSource": "TDP_AWS_S3",
-      "transformations": ["preprocessing", "training", "validation"],
-      "finalOutput": "TDC_AZURE_BLOB"
+  "data": {
+    "contractId": "CONTRACT-001",
+    "treeId": "TREE-001",
+    "rootHash": "0xabc123...",
+    "chain": [
+      {
+        "nodeId": "NODE-001",
+        "nodeType": "DATASET",
+        "level": 0,
+        "position": 0,
+        "dataHash": "0xdef456...",
+        "captures": [
+          {
+            "captureId": "CAPTURE-001",
+            "captureType": "TRAINING_START",
+            "timestamp": "2025-01-08T10:00:00Z"
+          }
+        ]
+      }
+    ],
+    "totalNodes": 15,
+    "verifiedNodes": 15,
+    "verificationRate": "100%"
+  }
+}
+```
+
+### Get Data Lineage
+**GET** `/provenance/lineage/{datasetId}`
+
+Retrieves the complete data lineage for a dataset.
+
+**Headers:** `Authorization: Bearer <token>`
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": {
+    "datasetId": "DATASET-001",
+    "lineage": {
+      "source": {
+        "nodeId": "NODE-001",
+        "nodeType": "DATASET",
+        "dataHash": "0xdef456...",
+        "metadata": {
+          "datasetName": "MNIST",
+          "size": "11.2MB",
+          "recordCount": 70000
+        }
+      },
+      "transformations": [
+        {
+          "nodeId": "NODE-002",
+          "nodeType": "TRANSFORM",
+          "operation": "DATA_PREPROCESSING",
+          "dataHash": "0x789abc...",
+          "timestamp": "2025-01-08T10:30:00Z"
+        }
+      ],
+      "outputs": [
+        {
+          "nodeId": "NODE-003",
+          "nodeType": "MODEL",
+          "dataHash": "0x123def...",
+          "metadata": {
+            "modelName": "MNIST_CNN",
+            "accuracy": "99.2%",
+            "framework": "TensorFlow"
+          }
+        }
+      ]
     },
-    "modelExplainability": {
-      "dataInfluence": "High",
-      "featureImportance": "Tracked",
-      "decisionPath": "Documented"
-    },
-    "complianceVerification": {
-      "dpdp2023": "Compliant",
-      "gdpr": "Compliant",
-      "hipaa": "Compliant"
-    },
-    "biasDetection": {
-      "dataBias": "None detected",
-      "modelBias": "None detected",
-      "demographicBias": "None detected"
+    "verificationStatus": "VERIFIED",
+    "lastVerified": "2025-01-08T12:00:00Z"
+  }
+}
+```
+
+---
+
+## 📊 **Provenance Analytics**
+
+### Get Provenance Statistics
+**GET** `/provenance/stats`
+
+Retrieves provenance tracking statistics.
+
+**Headers:** `Authorization: Bearer <token>`
+
+**Query Parameters:**
+- `contractId` (optional): Filter by contract ID
+- `timeRange` (optional): Time range filter (e.g., "7d", "30d", "90d")
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": {
+    "totalTrees": 25,
+    "totalNodes": 1500,
+    "totalCaptures": 5000,
+    "totalVerifications": 4800,
+    "verificationRate": "96%",
+    "averageTreeDepth": 4.2,
+    "averageNodesPerTree": 60,
+    "timeRange": "30d",
+    "trends": {
+      "treesCreated": [5, 8, 12, 15, 18, 22, 25],
+      "nodesAdded": [50, 80, 120, 150, 180, 220, 250],
+      "verificationsCompleted": [45, 75, 115, 145, 175, 210, 240]
     }
+  }
+}
+```
+
+### Get Audit Trail
+**GET** `/provenance/audit/{contractId}`
+
+Retrieves the complete audit trail for a contract.
+
+**Headers:** `Authorization: Bearer <token>`
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": {
+    "contractId": "CONTRACT-001",
+    "auditTrail": [
+      {
+        "timestamp": "2025-01-08T10:00:00Z",
+        "action": "TREE_CREATED",
+        "details": {
+          "treeId": "TREE-001",
+          "rootHash": "0xabc123...",
+          "initiatedBy": "TDC-001"
+        }
+      },
+      {
+        "timestamp": "2025-01-08T10:30:00Z",
+        "action": "NODE_ADDED",
+        "details": {
+          "nodeId": "NODE-001",
+          "nodeType": "DATASET",
+          "dataHash": "0xdef456...",
+          "initiatedBy": "TDP-001"
+        }
+      }
+    ],
+    "totalEvents": 15,
+    "verificationStatus": "COMPLETE",
+    "lastUpdated": "2025-01-08T12:00:00Z"
+  }
+}
+```
+
+---
+
+## 🚨 **Provenance Error Responses**
+
+### Common Error Codes:
+
+**400 Bad Request:**
+```json
+{
+  "success": false,
+  "error": "INVALID_REQUEST",
+  "message": "Invalid request parameters",
+  "details": {
+    "field": "treeId",
+    "issue": "Required field missing"
+  }
+}
+```
+
+**401 Unauthorized:**
+```json
+{
+  "success": false,
+  "error": "UNAUTHORIZED",
+  "message": "Authentication required",
+  "code": "TOKEN_MISSING"
+}
+```
+
+**404 Not Found:**
+```json
+{
+  "success": false,
+  "error": "NOT_FOUND",
+  "message": "Provenance tree not found",
+  "details": {
+    "treeId": "TREE-999"
+  }
+}
+```
+
+**500 Internal Server Error:**
+```json
+{
+  "success": false,
+  "error": "INTERNAL_ERROR",
+  "message": "Provenance service error",
+  "requestId": "req-123456"
+}
+```
+
+---
+
+## 🔧 **Provenance Rate Limiting**
+
+- **Standard endpoints**: 100 requests per minute
+- **Verification endpoints**: 50 requests per minute
+- **Analytics endpoints**: 20 requests per minute
+
+Rate limit headers are included in responses:
+```http
+X-RateLimit-Limit: 100
+X-RateLimit-Remaining: 95
+X-RateLimit-Reset: 1640995200
+```
+
+---
+
+## 📚 **Provenance Integration Examples**
+
+### JavaScript/Node.js:
+```javascript
+const axios = require('axios');
+
+const provenanceAPI = axios.create({
+  baseURL: 'https://api.contractmanagement.com/api/provenance',
+  headers: {
+    'Authorization': `Bearer ${jwtToken}`,
+    'Content-Type': 'application/json'
+  }
+});
+
+// Create a Merkle tree
+const createTree = async (contractId) => {
+  const response = await provenanceAPI.post('/trees', {
+    contractId,
+    treeType: 'BINARY_MERKLE_TREE',
+    hashAlgorithm: 'SHA256',
+    maxDepth: 10
+  });
+  return response.data;
+};
+```
+
+### Python:
+```python
+import requests
+
+class ProvenanceClient:
+    def __init__(self, base_url, jwt_token):
+        self.base_url = base_url
+        self.headers = {
+            'Authorization': f'Bearer {jwt_token}',
+            'Content-Type': 'application/json'
+        }
+    
+    def create_tree(self, contract_id):
+        response = requests.post(
+            f'{self.base_url}/api/provenance/trees',
+            json={
+                'contractId': contract_id,
+                'treeType': 'BINARY_MERKLE_TREE',
+                'hashAlgorithm': 'SHA256',
+                'maxDepth': 10
+            },
+            headers=self.headers
+        )
+        return response.json()
+```
+
+---
+
+## 🔄 **Provenance Webhook Events**
+
+The provenance system can send webhook notifications for important events:
+
+### Available Events:
+- `tree.created` - Merkle tree created
+- `node.added` - Node added to tree
+- `capture.created` - Provenance data captured
+- `verification.completed` - Verification completed
+- `verification.failed` - Verification failed
+
+### Webhook Payload:
+```json
+{
+  "event": "verification.completed",
+  "timestamp": "2025-01-08T10:00:00Z",
+  "data": {
+    "verificationId": "VERIFY-001",
+    "nodeId": "NODE-001",
+    "status": "SUCCESS",
+    "contractId": "CONTRACT-001"
   }
 }
 ```

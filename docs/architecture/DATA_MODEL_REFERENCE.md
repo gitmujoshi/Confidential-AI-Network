@@ -27,6 +27,9 @@ datasets
 ├── owner_id (FK → users.id)
 ├── depa_id (unique identifier)
 ├── confidential_computing_required
+├── provenance_tree_id (FK → merkle_trees.tree_id)
+├── data_lineage (TEXT)
+├── provenance_hash (VARCHAR)
 └── timestamps
 
 ai_models
