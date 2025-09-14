@@ -43,7 +43,7 @@ The CCRP performs **hardware attestation** to cryptographically prove the Truste
 The TEE generates an **encrypted model output** with cryptographic attestation proving secure training. **Smart contracts automatically verify** the training results and attestation to ensure compliance with contract terms. The platform creates **comprehensive provenance documentation** showing the complete data lineage and training process. The TDC receives the **encrypted trained model** with full documentation and attestation. **Automated payment settlement** occurs through smart contracts, with **revenue distribution** to the TDP based on the agreed pricing model.
 
 #### **Phase 5: Compliance & Audit**
-The platform generates a **complete audit trail** documenting every step of the process for regulatory compliance. **Automated compliance reports** are generated for regulators, including data usage statistics, privacy protection measures, and security attestations. **Auditors can verify data lineage** through cryptographic proofs and immutable blockchain records. The platform provides **detailed usage analytics** for all stakeholders, enabling continuous improvement and optimization.
+The platform generates a **complete audit trail** documenting every step of the process for regulatory compliance. **Automated compliance reports** are generated for regulators, including data usage statistics, privacy protection measures, and security attestations. **Auditors can verify data lineage** through cryptographic proofs and immutable SCITT CCF ledger records. The platform provides **detailed usage analytics** for all stakeholders, enabling continuous improvement and optimization.
 
 #### **Key System Benefits:**
 - **Automated Workflow**: Minimal manual intervention required
@@ -304,7 +304,7 @@ graph TB
 
 ### **Provenance Tracking**
 - **Complete audit trail**: Track data lineage from source to model
-- **Immutable records**: Blockchain-based provenance verification
+- **Immutable records**: SCITT CCF ledger-based provenance verification
 - **Model transparency**: Full visibility into training data sources
 - **Compliance reporting**: Automated audit reports for regulators
 - **Data governance**: Track data usage and transformations
@@ -312,7 +312,7 @@ graph TB
 
 ### **Smart Contract Automation**
 - **Automated execution**: No manual intervention required
-- **Immutable records**: All actions recorded on blockchain
+- **Immutable records**: All actions recorded on SCITT CCF ledger
 - **Conditional logic**: Execute based on predefined conditions
 - **Payment automation**: Automatic settlement upon completion
 
@@ -396,7 +396,7 @@ contract AITrainingContract {
 - **Risk Assessment**: Automated safety scoring
 
 ### **Provenance & Audit**
-- **Blockchain Integration**: Ethereum, Hyperledger Fabric
+- **SCITT CCF Integration**: Microsoft's high-performance confidential computing ledger
 - **Data Lineage Tracking**: Apache Airflow, MLflow
 - **Audit Logging**: Structured logging with tamper-proof storage
 - **Compliance Reporting**: Automated regulatory report generation

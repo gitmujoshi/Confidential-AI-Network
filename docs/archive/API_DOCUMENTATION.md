@@ -1818,10 +1818,10 @@ Sign a contract using enhanced DID-based authentication with cryptographic verif
     "tdpSigned": true,
     "tdpSignedAt": "2024-12-15T00:00:00.000Z"
   },
-  "blockchainTransaction": {
+  "scittTransaction": {
     "transactionHash": "DID_TX_1704067200000_did_web_mukeshjoshidpi_github_io",
-    "message": "DID signature recorded on blockchain",
-    "mode": "DATABASE_ONLY"
+    "message": "DID signature recorded on SCITT CCF ledger",
+    "mode": "SCITT_CCF_ONLY"
   }
 }
 ```
@@ -1865,7 +1865,7 @@ Check the health and status of DID resolution services.
 - **DID Document Resolution:** Automatic resolution and validation of DID documents
 - **Timestamp-based Messages:** Prevents replay attacks with unique timestamps
 - **Multiple Verification Methods:** Support for various cryptographic algorithms
-- **Fallback Mode:** Database-only operation when blockchain unavailable
+- **SCITT CCF Mode:** High-performance ledger operation with confidential computing
 - **Enterprise Security:** Role-based access control and audit logging
 - **Multi-Cloud Security:** Cross-cloud security isolation and verification
 - **Provenance Security:** Tamper-proof provenance tracking with Merkle trees
