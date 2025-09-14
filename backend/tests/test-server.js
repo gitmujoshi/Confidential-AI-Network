@@ -1,7 +1,10 @@
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
-require('dotenv').config();
+
+// Set up test environment before loading any other modules
+const { setTestEnv } = require('../../tests/test-env');
+setTestEnv('integration');
 
 const db = require('../models');
 const BlockchainService = require('../services/blockchainService');

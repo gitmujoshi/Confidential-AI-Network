@@ -62,8 +62,16 @@ function parseEnvFile(filePath) {
 function loadConfig(options = {}) {
   const { verbose = false, rootDir = process.cwd() } = options;
   
-  const configPath = path.join(rootDir, 'config.env');
-  const secretsPath = path.join(rootDir, 'secrets.env');
+  // Look for config.env in the project root
+  // If we're in backend directory, go up one level
+  // If we're in root directory, use current directory
+  let projectRoot = rootDir;
+  if (path.basename(rootDir) === 'backend') {
+    projectRoot = path.resolve(rootDir, '..');
+  }
+  
+  const configPath = path.join(projectRoot, 'config.env');
+  const secretsPath = path.join(projectRoot, 'secrets.env');
   
   let configLoaded = false;
   let secretsLoaded = false;
@@ -95,28 +103,11 @@ function loadConfig(options = {}) {
     }
   }
   
-  // Set default values for missing secrets
-  const defaults = {
-    DB_PASSWORD: 'postgres',
-    POSTGRES_PASSWORD: 'postgres',
-    KEYCLOAK_DB_PASSWORD: 'keycloak',
-    JWT_SECRET: 'your-super-secret-jwt-key-change-in-production',
-    KEYCLOAK_CLIENT_SECRET: 'elyMs5qenxOEbjIyXGKPYdqFea6beW8N',
-    KEYCLOAK_ADMIN_PASSWORD: 'admin123',
-    EMAIL_PASS: 'your-app-password',
-    VAULT_TOKEN: 'hvs.xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'
-  };
+  // No default values - all configuration must come from config.env and secrets.env
+  // This ensures that missing configuration is caught early rather than using potentially incorrect defaults
   
-  Object.entries(defaults).forEach(([key, defaultValue]) => {
-    if (!process.env[key]) {
-      process.env[key] = defaultValue;
-    }
-  });
-  
-  // Set derived configuration values
-  process.env.BACKEND_URL = process.env.BACKEND_URL || `http://localhost:${process.env.PORT || 5001}`;
-  process.env.FRONTEND_URL = process.env.FRONTEND_URL || `http://localhost:${process.env.FRONTEND_PORT || 3000}`;
-  process.env.KEYCLOAK_URL = process.env.KEYCLOAK_URL || `https://localhost:${process.env.KEYCLOAK_PORT || 8443}`;
+  // Derived configuration values must be explicitly set in config.env
+  // No defaults to ensure all configuration is explicit and intentional
   
   return {
     configLoaded,
@@ -171,24 +162,36 @@ function showConfig() {
 }
 
 /**
- * Get configuration for tests with proper defaults
+ * Get configuration for tests - no defaults, all values must be in config.env
  */
 function getTestConfig() {
   // Ensure configuration is loaded
   loadConfig({ verbose: false });
   
+  // Validate required test configuration
+  const requiredTestVars = [
+    'BACKEND_URL', 'FRONTEND_URL', 'KEYCLOAK_URL',
+    'DB_HOST', 'DB_PORT', 'DB_NAME', 'DB_USER', 'DB_PASSWORD',
+    'TEST_TIMEOUT'
+  ];
+  
+  const missingVars = requiredTestVars.filter(varName => !process.env[varName]);
+  if (missingVars.length > 0) {
+    throw new Error(`Missing required test configuration variables: ${missingVars.join(', ')}. Please add these to your config.env file.`);
+  }
+  
   return {
-    backend: process.env.BACKEND_URL || 'http://localhost:5001',
-    frontend: process.env.FRONTEND_URL || 'http://localhost:3000',
-    keycloak: process.env.KEYCLOAK_URL || 'https://localhost:8443',
+    backend: process.env.BACKEND_URL,
+    frontend: process.env.FRONTEND_URL,
+    keycloak: process.env.KEYCLOAK_URL,
     database: {
-      host: process.env.DB_HOST || 'localhost',
-      port: parseInt(process.env.DB_PORT) || 5432,
-      name: process.env.DB_NAME || 'contract_management',
-      user: process.env.DB_USER || 'postgres',
-      password: process.env.DB_PASSWORD || 'postgres'
+      host: process.env.DB_HOST,
+      port: parseInt(process.env.DB_PORT),
+      name: process.env.DB_NAME,
+      user: process.env.DB_USER,
+      password: process.env.DB_PASSWORD
     },
-    timeout: parseInt(process.env.TEST_TIMEOUT) || 10000,
+    timeout: parseInt(process.env.TEST_TIMEOUT),
     verbose: process.env.VERBOSE === 'true' || process.env.NODE_ENV === 'development'
   };
 }
