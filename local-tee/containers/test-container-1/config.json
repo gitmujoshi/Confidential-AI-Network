@@ -1,0 +1,10 @@
+{
+  "containerId": "test-container-1",
+  "jobId": "test-job-1",
+  "epochs": 10,
+  "batchSize": 32,
+  "learningRate": 0.001,
+  "algorithm": "adam",
+  "template": "python",
+  "createdAt": "2025-09-13T11:28:48.572Z"
+}

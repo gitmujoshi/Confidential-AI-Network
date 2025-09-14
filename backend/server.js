@@ -61,22 +61,21 @@ const ccrpRouter = require('./routes/ccrp');
 // Import infrastructure routes
 const infrastructureRouter = require('./routes/infrastructure');
 
-// Import training routes
-const trainingRouter = require('./routes/training');
+// Import differential privacy routes
 const differentialPrivacyRouter = require('./routes/differential-privacy-simple');
 
 // Import contract template routes
 const contractTemplatesRouter = require('./routes/contract-templates');
 
 const app = express();
-const PORT = process.env.PORT || 8000;
+const PORT = process.env.PORT;
 
 // Winston logger setup
 const winston = require('winston');
 const path = require('path');
 
 const logDir = path.join(__dirname, '../logs');
-const logLevel = process.env.LOG_LEVEL || 'info';
+const logLevel = process.env.LOG_LEVEL;
 
 const logger = winston.createLogger({
   level: logLevel,
@@ -120,7 +119,7 @@ setInterval(() => {
 async function checkKeycloakHealth() {
   try {
     const axios = require('axios');
-    const response = await axios.get(`${process.env.KEYCLOAK_URL || 'https://localhost:8443'}/health`, { 
+    const response = await axios.get(`${process.env.KEYCLOAK_URL}/health`, { 
       httpsAgent: new (require('https').Agent)({ rejectUnauthorized: false }) 
     });
     logger.info('✅ Keycloak health check passed');
@@ -207,8 +206,7 @@ app.use('/api/ccrp', ccrpRouter);
 // Infrastructure routes
 app.use('/api/infrastructure', infrastructureRouter);
 
-// Training routes
-app.use('/api/training', trainingRouter);
+// Differential privacy routes
 app.use('/api/dp', differentialPrivacyRouter);
 
 // Debug routes
@@ -301,6 +299,9 @@ process.on('SIGINT', () => {
   logger.info('SIGINT received, shutting down gracefully');
   process.exit(0);
 });
+
+// Export app for testing
+module.exports = app;
 
 // Start the application
 initializeServices(); 

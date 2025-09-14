@@ -5,12 +5,12 @@
  * including TEE provisioning, data access, training execution, and monitoring.
  */
 
-const { ContractService } = require('./contractService');
-const { TEEProvisioningService } = require('./teeProvisioningService');
-const { AttestationService } = require('./attestationService');
-const { TrainingMonitoringService } = require('./trainingMonitoringService');
-const { ProvenanceService } = require('./provenanceService');
-const { NotificationService } = require('./notificationService');
+const ContractService = require('./contractService');
+const TEEProvisioningService = require('./teeProvisioningService');
+const AttestationService = require('./attestationService');
+const TrainingMonitoringService = require('./trainingMonitoringService');
+const ProvenanceService = require('./provenanceService');
+const NotificationService = require('./notificationService');
 const SecureDataAccessService = require('./secureDataAccessService');
 const PrivacyPreservingTrainingService = require('./privacyPreservingTrainingService');
 const AdvancedMonitoringService = require('./advancedMonitoringService');
