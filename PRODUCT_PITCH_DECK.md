@@ -153,39 +153,37 @@ graph TB
 ```mermaid
 graph TB
     subgraph "TDP Data Preparation"
-        A1[TDP: Raw Confidential Data] --> A2[TDP: Data Encryption with AES-256]
-        A2 --> A3[TDP: Generate Data Encryption Key]
-        A3 --> A4[TDP: Encrypt DEK with TDP Public Key]
-        A4 --> A5[Platform: Store Encrypted Data + Encrypted DEK]
+        A1[TDP: Raw Confidential Data] --> A2[TDP: Encrypt with AES-256-GCM]
+        A2 --> A3[Platform: Store Encrypted Data + Metadata]
+        A3 --> A4[Platform: Generate Data Access Token]
     end
     
-    subgraph "Contract & Key Exchange"
-        B1[TDC: Generate TDC Key Pair] --> B2[Smart Contract: Store TDC Public Key]
-        B2 --> B3[TDP: Encrypt DEK with TDC Public Key]
-        B3 --> B4[Smart Contract: Store TDC-Encrypted DEK]
-        B4 --> B5[CCRP: Generate TEE Attestation Key]
+    subgraph "Contract & Access Control"
+        B1[TDC: Request Dataset Access] --> B2[Smart Contract: Validate Contract Terms]
+        B2 --> B3[TDP: Approve Access Request]
+        B3 --> B4[Platform: Issue Encrypted Access Token]
+        B4 --> B5[CCRP: Provision TEE Environment]
     end
     
-    subgraph "Secure Training Environment"
-        C1[CCRP: Provision TEE with Attestation] --> C2[TEE: Generate Internal Keys]
-        C2 --> C3[Platform: Transfer Encrypted Data to TEE]
-        C3 --> C4[TEE: Decrypt DEK using TDC Private Key]
-        C4 --> C5[TEE: Decrypt Data using DEK]
-        C5 --> C6[TEE: Process Data in Secure Memory]
-        C6 --> C7[TEE: Encrypt Model with TDC Public Key]
+    subgraph "Confidential Computing Environment"
+        C1[CCRP: TEE Attestation & Verification] --> C2[Platform: Transfer Encrypted Data to TEE]
+        C2 --> C3[TEE: Decrypt Data in Secure Enclave]
+        C3 --> C4[TEE: Process Data with Differential Privacy]
+        C4 --> C5[TEE: Generate Encrypted Model Output]
+        C5 --> C6[TEE: Create Provenance Attestation]
     end
     
     subgraph "Model Delivery & Verification"
-        D1[TEE: Encrypted Model Output] --> D2[Platform: Store Encrypted Model]
-        D2 --> D3[TDC: Decrypt Model with Private Key]
-        D3 --> D4[Smart Contract: Verify Model Integrity]
-        D4 --> D5[Platform: Generate Provenance Hash]
+        D1[TEE: Encrypted Model + Attestation] --> D2[Platform: Store Encrypted Model]
+        D2 --> D3[Smart Contract: Verify TEE Attestation]
+        D3 --> D4[TDC: Receive Encrypted Model]
+        D4 --> D5[Platform: Generate Audit Trail]
     end
     
-    A5 --> B1
+    A4 --> B1
     B5 --> C1
-    C7 --> D1
-    D5 --> E1[Complete Audit Trail]
+    C6 --> D1
+    D5 --> E1[Complete Compliance Report]
     
     style A1 fill:#e1f5fe
     style B1 fill:#f3e5f5
@@ -197,47 +195,47 @@ graph TB
 
 #### **1. Data Encryption (TDP Side)**
 - **AES-256-GCM**: Industry-standard symmetric encryption for data at rest
-- **Data Encryption Key (DEK)**: Unique key per dataset, randomly generated
-- **Key Encryption Key (KEK)**: TDP's RSA-4096 or ECC-384 public key
-- **Encrypted Storage**: Data + encrypted DEK stored in platform
+- **Platform-Managed Keys**: Keys generated and managed by the platform's HSM
+- **Data Classification**: Automatic tagging based on sensitivity levels
+- **Encrypted Storage**: Data stored with platform-managed encryption keys
 
-#### **2. Key Exchange (Contract Phase)**
-- **TDC Key Generation**: RSA-4096 or ECC-384 key pair created
-- **Public Key Sharing**: TDC public key stored in smart contract
-- **DEK Re-encryption**: Original DEK encrypted with TDC public key
-- **Dual Encryption**: DEK encrypted with both TDP and TDC keys
+#### **2. Access Control & Token Management**
+- **JWT Tokens**: Secure access tokens with role-based permissions
+- **Smart Contract Validation**: Contract terms verified before access
+- **Time-Limited Access**: Tokens expire after training completion
+- **Audit Logging**: All access attempts logged and monitored
 
-#### **3. TEE Attestation & Decryption (CCRP Side)**
-- **TEE Attestation**: Cryptographic proof of secure environment
-- **Hardware Security Module (HSM)**: Secure key storage in TEE
-- **Key Derivation**: TEE generates internal keys from attestation
-- **Secure Decryption**: Data decrypted only within verified TEE
+#### **3. TEE Attestation & Secure Processing**
+- **Hardware Attestation**: Intel SGX/AMD SEV attestation for TEE verification
+- **Remote Attestation**: Cryptographic proof of secure environment
+- **In-Enclave Decryption**: Data decrypted only within verified TEE
+- **Memory Protection**: Hardware-level isolation prevents data leakage
 
-#### **4. Model Encryption & Delivery**
-- **Model Encryption**: Trained model encrypted with TDC public key
+#### **4. Model Output & Verification**
+- **Encrypted Model Output**: Models encrypted with platform keys
+- **TEE Attestation**: Cryptographic proof of secure training
 - **Integrity Verification**: SHA-256 hash for model authenticity
-- **Provenance Hashing**: Complete audit trail with cryptographic signatures
-- **Secure Transfer**: Encrypted model delivered to TDC
+- **Provenance Chain**: Complete audit trail with cryptographic signatures
 
 ### **Security Guarantees**
 
 #### **For TDPs:**
 - ✅ **Data Never Exposed**: Raw data never leaves encrypted state
-- ✅ **Key Control**: TDP controls data access through key management
-- ✅ **Audit Trail**: Complete visibility into data usage
-- ✅ **Revocation**: Ability to revoke access through key rotation
+- ✅ **Access Control**: Granular control over who can access data
+- ✅ **Audit Trail**: Complete visibility into data usage and access
+- ✅ **Revocation**: Ability to revoke access through token invalidation
 
 #### **For TDCs:**
 - ✅ **Secure Access**: Data only accessible in verified TEE environments
-- ✅ **Model Protection**: Trained models encrypted with TDC keys
+- ✅ **Model Protection**: Trained models encrypted and attested
 - ✅ **Privacy Guarantees**: No access to raw data outside TEE
 - ✅ **Attestation**: Cryptographic proof of secure execution
 
 #### **For CCRPs:**
 - ✅ **Hardware Security**: TEE provides hardware-level isolation
-- ✅ **Key Isolation**: Encryption keys never accessible outside TEE
 - ✅ **Attestation**: Verifiable proof of secure environment
 - ✅ **Compliance**: Meets highest security standards
+- ✅ **Resource Control**: Full control over TEE provisioning and management
 
 ---
 
