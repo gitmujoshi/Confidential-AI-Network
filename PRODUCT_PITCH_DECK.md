@@ -32,25 +32,54 @@ Our platform revolutionizes AI training by enabling **confidential data sharing*
 
 ```mermaid
 graph TB
-    A[TDP Uploads Confidential Dataset] --> B[Smart Contract Creation]
-    B --> C[TDC Selects Dataset & Environment]
-    C --> D[CCRP Provisions Secure Enclave]
-    D --> E[Automated Training Execution]
-    E --> F[Privacy-Preserving Model Delivery]
-    F --> G[Verifiable Results & Payment]
-    
-    subgraph "Confidential Computing Environment"
-        D --> H[TEE Attestation]
-        H --> I[Differential Privacy Engine]
-        I --> J[Secure Model Training]
-        J --> K[Encrypted Model Output]
+    subgraph "Phase 1: Data Preparation & Discovery"
+        A1[TDP: Upload Confidential Dataset] --> A2[TDP: Set Privacy Specifications]
+        A2 --> A3[TDP: Define Usage Terms & Pricing]
+        A3 --> A4[Platform: Content Safety Validation]
+        A4 --> A5[Platform: Provenance Tracking Setup]
+        A5 --> A6[Dataset Available in Marketplace]
     end
     
-    subgraph "Smart Contract Automation"
-        B --> L[Contract Terms]
-        L --> M[Automated Execution]
-        M --> N[Payment Settlement]
+    subgraph "Phase 2: Contract Negotiation & Setup"
+        B1[TDC: Browse Available Datasets] --> B2[TDC: Create Training Contract]
+        B2 --> B3[TDC: Select CCRP Environment]
+        B3 --> B4[Smart Contract: Terms Validation]
+        B4 --> B5[TDP: Approve Contract Terms]
+        B5 --> B6[CCRP: Provision Secure Enclave]
     end
+    
+    subgraph "Phase 3: Secure Training Execution"
+        C1[CCRP: TEE Attestation & Verification] --> C2[Platform: Data Transfer to TEE]
+        C2 --> C3[Platform: Differential Privacy Engine]
+        C3 --> C4[Platform: Secure Model Training]
+        C4 --> C5[Platform: Safety Metrics Monitoring]
+        C5 --> C6[Platform: Training Progress Tracking]
+    end
+    
+    subgraph "Phase 4: Model Delivery & Settlement"
+        D1[Platform: Encrypted Model Output] --> D2[Smart Contract: Results Verification]
+        D2 --> D3[Platform: Provenance Documentation]
+        D3 --> D4[TDC: Receive Trained Model]
+        D4 --> D5[Smart Contract: Automated Payment]
+        D5 --> D6[TDP: Revenue Distribution]
+    end
+    
+    subgraph "Phase 5: Compliance & Audit"
+        E1[Platform: Complete Audit Trail] --> E2[Regulators: Compliance Reports]
+        E2 --> E3[Auditors: Data Lineage Verification]
+        E3 --> E4[Platform: Usage Analytics]
+    end
+    
+    A6 --> B1
+    B6 --> C1
+    C6 --> D1
+    D6 --> E1
+    
+    style A1 fill:#e1f5fe
+    style B1 fill:#f3e5f5
+    style C1 fill:#e8f5e8
+    style D1 fill:#fff3e0
+    style E1 fill:#fce4ec
 ```
 
 ---
