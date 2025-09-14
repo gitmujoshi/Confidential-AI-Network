@@ -30,6 +30,28 @@ Our platform revolutionizes AI training by enabling **confidential data sharing*
 
 ### **End-to-End Workflow**
 
+#### **Phase 1: Data Preparation & Discovery**
+**Training Data Providers (TDPs)** begin by uploading their confidential datasets to the platform, where they immediately set **privacy specifications** and **data classification levels**. TDPs define **usage terms, pricing models, and access restrictions** for their data. The platform performs **automated content safety validation** using AI-powered filtering to detect sensitive content, age-inappropriate material, and compliance issues. **Provenance tracking is automatically set up** to create an immutable audit trail of data lineage. Once validated, the dataset becomes available in the **secure marketplace** for discovery by potential consumers.
+
+#### **Phase 2: Contract Negotiation & Setup**
+**Training Data Consumers (TDCs)** browse available datasets in the marketplace, filtering by domain, data type, privacy level, and pricing. When a TDC finds suitable data, they create a **detailed training contract** specifying model requirements, training duration, and success criteria. TDCs select their preferred **Confidential Clean Room Provider (CCRP)** environment based on performance, cost, and compliance requirements. **Smart contracts automatically validate** the contract terms, pricing, and technical feasibility. The TDP reviews and **approves the contract terms**, after which the CCRP provisions a **secure enclave** with hardware-level isolation and attestation capabilities.
+
+#### **Phase 3: Secure Training Execution**
+The CCRP performs **hardware attestation** to cryptographically prove the Trusted Execution Environment (TEE) is secure and isolated. The platform **transfers encrypted data** to the verified TEE, where it's decrypted only within the secure enclave. The **differential privacy engine** applies mathematical privacy guarantees to ensure individual records cannot be identified during training. **Secure model training** proceeds within the hardware-protected environment, with **real-time safety metrics monitoring** to ensure content compliance and data protection. The platform provides **comprehensive training progress tracking** with detailed logs and performance metrics.
+
+#### **Phase 4: Model Delivery & Settlement**
+The TEE generates an **encrypted model output** with cryptographic attestation proving secure training. **Smart contracts automatically verify** the training results and attestation to ensure compliance with contract terms. The platform creates **comprehensive provenance documentation** showing the complete data lineage and training process. The TDC receives the **encrypted trained model** with full documentation and attestation. **Automated payment settlement** occurs through smart contracts, with **revenue distribution** to the TDP based on the agreed pricing model.
+
+#### **Phase 5: Compliance & Audit**
+The platform generates a **complete audit trail** documenting every step of the process for regulatory compliance. **Automated compliance reports** are generated for regulators, including data usage statistics, privacy protection measures, and security attestations. **Auditors can verify data lineage** through cryptographic proofs and immutable blockchain records. The platform provides **detailed usage analytics** for all stakeholders, enabling continuous improvement and optimization.
+
+#### **Key System Benefits:**
+- **Automated Workflow**: Minimal manual intervention required
+- **Cryptographic Security**: Every step is cryptographically verified
+- **Regulatory Compliance**: Built-in audit trails and reporting
+- **Revenue Generation**: Automated payment and revenue distribution
+- **Complete Transparency**: Full visibility into data usage and processing
+
 ```mermaid
 graph TB
     subgraph "Phase 1: Data Preparation & Discovery"
