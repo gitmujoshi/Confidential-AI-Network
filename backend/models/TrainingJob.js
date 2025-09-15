@@ -26,7 +26,8 @@ module.exports = (sequelize, DataTypes) => {
     contractId: {
       type: DataTypes.STRING,
       allowNull: false,
-      comment: 'Associated contract ID'
+      comment: 'Associated contract ID',
+      references: null  // Disable automatic foreign key constraint
     },
     
     // Job status

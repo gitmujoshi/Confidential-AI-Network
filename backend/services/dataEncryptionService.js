@@ -32,8 +32,10 @@ class DataEncryptionService {
   initializeEncryptionKey() {
     try {
       // Use environment variable if available, otherwise generate
-      this.encryptionKey = process.env.DATA_ENCRYPTION_KEY || 
-        crypto.randomBytes(this.keyLength).toString('hex');
+      this.encryptionKey = process.env.DATA_ENCRYPTION_KEY;
+      if (!this.encryptionKey) {
+        throw new Error('DATA_ENCRYPTION_KEY environment variable is required');
+      }
       
       // Convert hex string to buffer
       this.keyBuffer = Buffer.from(this.encryptionKey, 'hex');
@@ -61,7 +63,7 @@ class DataEncryptionService {
       const iv = crypto.randomBytes(this.ivLength);
       
       // Create cipher
-      const cipher = crypto.createCipher(this.algorithm, this.keyBuffer);
+      const cipher = crypto.createCipherGCM(this.algorithm, this.keyBuffer, iv);
       cipher.setAAD(Buffer.from(keyId || 'default', 'utf8'));
       
       // Encrypt data
@@ -107,7 +109,7 @@ class DataEncryptionService {
       }
 
       // Create decipher
-      const decipher = crypto.createDecipher(this.algorithm, this.keyBuffer);
+      const decipher = crypto.createDecipherGCM(this.algorithm, this.keyBuffer, Buffer.from(encryptedData.iv, 'hex'));
       decipher.setAAD(Buffer.from(encryptedData.keyId || 'default', 'utf8'));
       
       // Set authentication tag

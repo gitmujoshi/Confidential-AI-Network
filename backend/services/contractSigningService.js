@@ -13,10 +13,26 @@ class ContractSigningService {
    * Load signing configuration from environment variables
    */
   loadConfiguration() {
+    // Validate required environment variables
+    this.validateEnvironmentVariables();
+    
     // Parse supported algorithms from environment
-    const algorithmsEnv = process.env.SIGNING_ALGORITHMS || 'ECDSA-P256,RSA-2048,RSA-4096';
+    const algorithmsEnv = process.env.SIGNING_ALGORITHMS;
     this.supportedAlgorithms = algorithmsEnv.split(',').map(alg => alg.trim());
-    this.defaultAlgorithm = process.env.DEFAULT_SIGNING_ALGORITHM || 'ECDSA-P256';
+    this.defaultAlgorithm = process.env.DEFAULT_SIGNING_ALGORITHM;
+  }
+  
+  validateEnvironmentVariables() {
+    const requiredVars = [
+      'SIGNING_ALGORITHMS',
+      'DEFAULT_SIGNING_ALGORITHM'
+    ];
+    
+    const missingVars = requiredVars.filter(varName => !process.env[varName]);
+    
+    if (missingVars.length > 0) {
+      throw new Error(`Missing required environment variables: ${missingVars.join(', ')}`);
+    }
   }
 
   /**

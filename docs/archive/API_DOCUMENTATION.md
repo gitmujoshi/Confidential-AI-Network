@@ -16,8 +16,9 @@
 8. [Cross-Cloud Training Management](#cross-cloud-training-management)
 9. [DPDP (Digital Personal Data Protection) Compliance](#dpdp-digital-personal-data-protection-compliance)
 10. [User Management (AppAdmin)](#user-management-appadmin)
-11. [Notification System](#notification-system)
-12. [Error Handling](#error-handling)
+11. [Enhanced Encryption System](#enhanced-encryption-system)
+12. [Notification System](#notification-system)
+13. [Error Handling](#error-handling)
 
 ---
 
@@ -1869,6 +1870,294 @@ Check the health and status of DID resolution services.
 - **Enterprise Security:** Role-based access control and audit logging
 - **Multi-Cloud Security:** Cross-cloud security isolation and verification
 - **Provenance Security:** Tamper-proof provenance tracking with Merkle trees
+
+---
+
+## Enhanced Encryption System
+
+The system provides intelligent encryption that automatically selects the optimal method based on file size and type.
+
+### Encryption Method Selection
+
+| File Size | Method | Throughput | Memory Usage | Use Case |
+|-----------|--------|------------|--------------|----------|
+| < 100MB | In-Memory | 500 MB/s | File size × 2 | JSON, config files |
+| 100MB-1GB | Streaming | 200 MB/s | 64KB chunks | CSV, log files |
+| > 1GB | **LUKS** | **1000+ MB/s** | **64KB blocks** | **Large datasets, models** |
+
+### Get Encryption Methods
+**GET** `/enhanced-encryption/methods`
+
+Get available encryption methods and their capabilities.
+
+**Response:**
+```json
+{
+  "success": true,
+  "methods": {
+    "memory": {
+      "name": "In-Memory Encryption",
+      "description": "Fast encryption for small files (< 100MB)",
+      "maxSize": "100MB",
+      "advantages": ["Fast", "Simple", "Low memory overhead"],
+      "useCases": ["JSON data", "Small text files", "Configuration files"]
+    },
+    "streaming": {
+      "name": "Streaming Encryption",
+      "description": "Chunked encryption for medium files (100MB - 1GB)",
+      "maxSize": "1GB",
+      "advantages": ["Memory efficient", "Progress tracking", "Resumable"],
+      "useCases": ["CSV files", "Log files", "Medium datasets"]
+    },
+    "luks": {
+      "name": "LUKS Encryption",
+      "description": "Hardware-accelerated encryption for large files (> 1GB)",
+      "maxSize": "10GB+",
+      "advantages": ["Hardware acceleration", "Industry standard", "High performance"],
+      "useCases": ["Large datasets", "Model files", "Binary data"]
+    }
+  },
+  "autoSelection": "The system automatically selects the best method based on file size",
+  "timestamp": "2024-12-15T00:00:00.000Z"
+}
+```
+
+### Encrypt Data
+**POST** `/enhanced-encryption/encrypt-data`
+
+Encrypt data with automatic method selection.
+
+**Headers:**
+- `Authorization: Bearer <token>`
+- `Content-Type: application/json`
+
+**Request Body:**
+```json
+{
+  "data": {
+    "sensitive": "test data",
+    "value": 123
+  },
+  "dataType": "TRAINING_DATA"
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": {
+    "method": "memory",
+    "encryptedData": {
+      "encrypted": "a1b2c3d4...",
+      "iv": "e5f6g7h8...",
+      "tag": "i9j0k1l2...",
+      "keyId": "TRAINING_DATA_1704067200000",
+      "algorithm": "aes-256-gcm",
+      "timestamp": "2024-12-15T00:00:00.000Z"
+    },
+    "originalSize": 25,
+    "encryptedSize": 89
+  },
+  "message": "Data encrypted successfully"
+}
+```
+
+### Encrypt File
+**POST** `/enhanced-encryption/encrypt-file`
+
+Encrypt uploaded file with automatic method selection.
+
+**Headers:**
+- `Authorization: Bearer <token>`
+- `Content-Type: multipart/form-data`
+
+**Request Body:**
+- `file`: File upload (multipart)
+- `dataType`: String (e.g., "TRAINING_DATA", "MODEL", "DATASET")
+
+**Response (Small File - Memory Method):**
+```json
+{
+  "success": true,
+  "data": {
+    "method": "memory",
+    "encryptedData": {
+      "encrypted": "a1b2c3d4...",
+      "iv": "e5f6g7h8...",
+      "tag": "i9j0k1l2...",
+      "keyId": "TRAINING_DATA_1704067200000",
+      "algorithm": "aes-256-gcm",
+      "timestamp": "2024-12-15T00:00:00.000Z"
+    },
+    "originalSize": 1024000,
+    "encryptedSize": 1024128
+  },
+  "message": "File encrypted successfully"
+}
+```
+
+**Response (Large File - LUKS Method):**
+```json
+{
+  "success": true,
+  "data": {
+    "method": "luks",
+    "containerPath": "/tmp/luks-containers/dataset-1704067200000.luks",
+    "originalSize": 2147483648,
+    "containerSize": 2362232012,
+    "algorithm": "LUKS",
+    "cipher": "aes-xts-plain64",
+    "hash": "sha256",
+    "keySize": 256,
+    "metadata": {
+      "keyId": "TRAINING_DATA_1704067200000",
+      "tdpId": "TDP-123",
+      "fileName": "large_dataset.zip",
+      "timestamp": "2024-12-15T00:00:00.000Z"
+    }
+  },
+  "message": "File encrypted successfully"
+}
+```
+
+### Decrypt Data
+**POST** `/enhanced-encryption/decrypt-data`
+
+Decrypt data with automatic method detection.
+
+**Headers:**
+- `Authorization: Bearer <token>`
+- `Content-Type: application/json`
+
+**Request Body:**
+```json
+{
+  "encryptedData": {
+    "method": "luks",
+    "containerPath": "/tmp/luks-containers/dataset-1704067200000.luks",
+    "dataType": "TRAINING_DATA"
+  },
+  "accessToken": "eyJhbGciOiJSUzI1NiIs..."
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": {
+    "success": true,
+    "data": "decrypted data content",
+    "method": "luks",
+    "extractedSize": 2147483648
+  },
+  "message": "Data decrypted successfully"
+}
+```
+
+### Get Encryption Status
+**GET** `/enhanced-encryption/status`
+
+Get enhanced encryption service status and statistics.
+
+**Response:**
+```json
+{
+  "success": true,
+  "service": "Enhanced Platform Encryption",
+  "statistics": {
+    "thresholds": {
+      "small": 104857600,
+      "medium": 1073741824,
+      "large": 10737418240
+    },
+    "supportedTypes": ["json", "text", "binary", "image", "archive"],
+    "methods": ["memory", "streaming", "luks"],
+    "luksAvailable": true
+  },
+  "timestamp": "2024-12-15T00:00:00.000Z"
+}
+```
+
+### Performance Test
+**POST** `/enhanced-encryption/test-performance`
+
+Test encryption performance with different methods (Admin only).
+
+**Headers:**
+- `Authorization: Bearer <admin-token>`
+- `Content-Type: application/json`
+
+**Request Body:**
+```json
+{
+  "testSizes": [1024, 1048576, 10485760, 104857600]
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "results": [
+    {
+      "size": 1024,
+      "method": "memory",
+      "duration": 5,
+      "throughput": 204800,
+      "success": true
+    },
+    {
+      "size": 1048576,
+      "method": "memory",
+      "duration": 12,
+      "throughput": 87381,
+      "success": true
+    },
+    {
+      "size": 10485760,
+      "method": "streaming",
+      "duration": 45,
+      "throughput": 232794,
+      "success": true
+    },
+    {
+      "size": 104857600,
+      "method": "luks",
+      "duration": 120,
+      "throughput": 873813,
+      "success": true
+    }
+  ],
+  "timestamp": "2024-12-15T00:00:00.000Z"
+}
+```
+
+### LUKS Security Features
+
+- **AES-256-XTS**: Industry-standard encryption algorithm
+- **SHA-256**: Secure hash function for key derivation
+- **PBKDF2**: 100,000 iterations for key derivation
+- **Hardware Acceleration**: CPU AES-NI instructions for 10x+ performance
+- **Random IVs**: Unique initialization vectors per container
+- **Key Rotation**: Automatic key rotation every 30 days
+- **TEE Integration**: Keys only accessible in secure environments
+
+### Training Integration
+
+The training code automatically handles LUKS-encrypted files:
+
+```python
+# Training code detects encrypted data
+encrypted_data = self.config.get('encryptedData')
+if encrypted_data:
+    return self.load_encrypted_data(encrypted_data)
+
+# LUKS decryption in TEE
+decryptor = LUKSDecryptor(backend_url, access_token)
+result = decryptor.decrypt_file(encrypted_data, output_path)
+```
 
 ---
 

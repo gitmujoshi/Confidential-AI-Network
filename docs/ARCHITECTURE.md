@@ -14,9 +14,10 @@ Complete technical architecture documentation for the Contract Management System
 8. [Legacy System Integration](#legacy-system-integration-deprecated)
 9. [Secret Management](#secret-management)
 10. [Differential Privacy Architecture](#differential-privacy-architecture)
-11. [Security Architecture](#security-architecture)
-12. [Deployment Architecture](#deployment-architecture)
-13. [Testing Architecture](#testing-architecture)
+11. [LUKS Encryption Architecture](#luks-encryption-architecture)
+12. [Security Architecture](#security-architecture)
+13. [Deployment Architecture](#deployment-architecture)
+14. [Testing Architecture](#testing-architecture)
 
 ## 🎯 System Overview
 
@@ -1442,6 +1443,189 @@ volumes:
 - **Infrastructure Monitoring**: System resources
 - **Error Tracking**: Comprehensive error logging
 - **User Analytics**: Usage analytics
+
+## 🔐 LUKS Encryption Architecture
+
+### **Overview**
+
+The system implements a multi-tier encryption architecture using LUKS (Linux Unified Key Setup) for large file encryption, providing hardware-accelerated encryption for datasets and AI models.
+
+### **Encryption Method Selection**
+
+The system automatically selects the optimal encryption method based on file size:
+
+```mermaid
+graph TD
+    A[File Upload] --> B{File Size?}
+    B -->|Small < 100MB| C[In-Memory Encryption]
+    B -->|Medium 100MB-1GB| D[Streaming Encryption]
+    B -->|Large > 1GB| E[LUKS Encryption]
+    
+    C --> F[AES-256-GCM in RAM]
+    D --> G[Chunked AES-256-GCM]
+    E --> H[Hardware-Accelerated LUKS]
+    
+    F --> I[Encrypted Data]
+    G --> I
+    H --> I
+```
+
+### **LUKS Architecture Components**
+
+#### **1. Enhanced Platform Encryption Service**
+
+```javascript
+// Automatic method selection
+const method = selectEncryptionMethod(fileSize, dataType);
+// Returns: 'memory', 'streaming', or 'luks'
+
+// LUKS encryption for large files
+const result = await luksEncryptionService.createLUKSContainer(
+    inputPath, outputPath, password, metadata
+);
+```
+
+#### **2. LUKS Container Structure**
+
+```
+luks-container.luks
+├── LUKS Header (512 bytes)
+│   ├── Magic Number
+│   ├── Version
+│   ├── Cipher: aes-xts-plain64
+│   ├── Hash: sha256
+│   ├── Key Slots (8 slots)
+│   └── Key Material
+├── Encrypted Data Blocks
+│   ├── Filesystem (ext4)
+│   ├── Original File
+│   └── Metadata (.luks-metadata.json)
+└── Authentication Tag
+```
+
+#### **3. Training Environment Integration**
+
+```python
+# Training code automatically detects encrypted data
+encrypted_data = self.config.get('encryptedData')
+if encrypted_data:
+    return self.load_encrypted_data(encrypted_data)
+
+# LUKS decryption in TEE
+decryptor = LUKSDecryptor(backend_url, access_token)
+result = decryptor.decrypt_file(encrypted_data, output_path)
+```
+
+### **API Endpoints**
+
+#### **Enhanced Encryption APIs**
+
+```bash
+# Encrypt large file (auto-selects LUKS for > 1GB)
+POST /api/enhanced-encryption/encrypt-file
+Content-Type: multipart/form-data
+Authorization: Bearer <token>
+
+# Decrypt data (auto-detects method)
+POST /api/enhanced-encryption/decrypt-data
+Content-Type: application/json
+Authorization: Bearer <token>
+
+# Get encryption methods and capabilities
+GET /api/enhanced-encryption/methods
+```
+
+### **Performance Characteristics**
+
+| Method | File Size | Throughput | Memory Usage | Use Case |
+|--------|-----------|------------|--------------|----------|
+| In-Memory | < 100MB | 500 MB/s | File size × 2 | JSON, config files |
+| Streaming | 100MB-1GB | 200 MB/s | 64KB chunks | CSV, log files |
+| **LUKS** | **> 1GB** | **1000+ MB/s** | **64KB blocks** | **Large datasets, models** |
+
+### **Security Features**
+
+#### **LUKS Security**
+- **AES-256-XTS**: Industry-standard encryption
+- **SHA-256**: Secure hash function
+- **PBKDF2**: 100,000 iterations for key derivation
+- **Hardware Acceleration**: CPU AES-NI instructions
+- **Random IVs**: Unique per container
+
+#### **Key Management**
+- **Data Encryption Key (DEK)**: Random 256-bit key per container
+- **Key Encryption Key (KEK)**: Platform-managed key
+- **Key Rotation**: Automatic every 30 days
+- **TEE Integration**: Keys only accessible in secure environment
+
+### **Training Integration**
+
+#### **TEE Container Requirements**
+
+```dockerfile
+# LUKS tools in training container
+RUN apt-get install -y \
+    cryptsetup \
+    e2fsprogs \
+    mount \
+    umount
+
+# Python dependencies
+RUN pip install requests numpy pandas torch tensorflow
+```
+
+#### **Decryption Process in Training**
+
+1. **Container Download**: Download LUKS container if remote
+2. **Key Retrieval**: Get decryption key from backend
+3. **LUKS Open**: `cryptsetup luksOpen` with key file
+4. **Mount Container**: Mount decrypted filesystem
+5. **Extract Data**: Copy data from mounted container
+6. **Load Data**: Load data for training (NumPy, Pickle, JSON, CSV)
+7. **Cleanup**: Unmount, close container, clean temp files
+
+### **Error Handling and Fallbacks**
+
+```python
+# Automatic fallback chain
+if luksAvailable && fileSize > 1GB:
+    return await encryptWithLUKS(data, key, dataType, tdpId)
+elif fileSize > 100MB:
+    return await encryptWithStreaming(data, key, dataType, tdpId)
+else:
+    return await encryptInMemory(data, key, dataType, tdpId)
+```
+
+### **Monitoring and Logging**
+
+#### **Performance Metrics**
+- Encryption/decryption throughput
+- Memory usage patterns
+- Container creation time
+- Key rotation events
+
+#### **Security Events**
+- Container access attempts
+- Key derivation operations
+- Authentication failures
+- Cleanup operations
+
+### **Future Enhancements**
+
+#### **1. Hardware Security Modules (HSM)**
+- HSM integration for key management
+- Hardware-based key generation
+- Tamper-resistant key storage
+
+#### **2. Cloud Storage Integration**
+- Direct encryption to cloud storage
+- Streaming encryption to S3/Azure/GCP
+- Server-side encryption with customer keys
+
+#### **3. Parallel Processing**
+- Multi-threaded encryption for very large files
+- Chunked parallel processing
+- Progress tracking and resumable operations
 
 ## 🧪 Testing Architecture
 

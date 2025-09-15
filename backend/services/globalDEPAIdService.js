@@ -19,22 +19,46 @@ class GlobalDEPAIdService extends DEPAIdService {
   constructor() {
     super(); // Call parent constructor to maintain existing functionality
     
+    // Validate required environment variables
+    this.validateEnvironmentVariables();
+    
     // Global deployment registry
     this.deploymentRegistry = new Map();
     
     // Current deployment configuration
     this.currentDeployment = {
-      deploymentId: process.env.DEPLOYMENT_ID || 'LOCAL',
-      prefix: process.env.DEPLOYMENT_PREFIX || 'LOCAL',
-      region: process.env.DEPLOYMENT_REGION || 'local',
-      country: process.env.DEPLOYMENT_COUNTRY || 'Unknown',
-      jurisdiction: process.env.DEPLOYMENT_JURISDICTION || 'LOCAL',
-      dataResidency: process.env.DEPLOYMENT_DATA_RESIDENCY || 'LOCAL',
+      deploymentId: process.env.DEPLOYMENT_ID,
+      prefix: process.env.DEPLOYMENT_PREFIX,
+      region: process.env.DEPLOYMENT_REGION,
+      country: process.env.DEPLOYMENT_COUNTRY,
+      jurisdiction: process.env.DEPLOYMENT_JURISDICTION,
+      dataResidency: process.env.DEPLOYMENT_DATA_RESIDENCY,
       regulatoryFramework: process.env.DEPLOYMENT_REGULATORY_FRAMEWORK?.split(',') || [],
-      timezone: process.env.DEPLOYMENT_TIMEZONE || 'UTC',
-      currency: process.env.DEPLOYMENT_CURRENCY || 'USD',
-      language: process.env.DEPLOYMENT_LANGUAGE || 'en-US'
+      timezone: process.env.DEPLOYMENT_TIMEZONE,
+      currency: process.env.DEPLOYMENT_CURRENCY,
+      language: process.env.DEPLOYMENT_LANGUAGE
     };
+  }
+  
+  validateEnvironmentVariables() {
+    const requiredVars = [
+      'DEPLOYMENT_ID',
+      'DEPLOYMENT_PREFIX',
+      'DEPLOYMENT_REGION',
+      'DEPLOYMENT_COUNTRY',
+      'DEPLOYMENT_JURISDICTION',
+      'DEPLOYMENT_DATA_RESIDENCY',
+      'DEPLOYMENT_TIMEZONE',
+      'DEPLOYMENT_CURRENCY',
+      'DEPLOYMENT_LANGUAGE'
+    ];
+    
+    const missingVars = requiredVars.filter(varName => !process.env[varName]);
+    
+    if (missingVars.length > 0) {
+      throw new Error(`Missing required environment variables: ${missingVars.join(', ')}`);
+    }
+  }
     
     // Jurisdiction-specific configurations
     this.jurisdictionConfigs = {

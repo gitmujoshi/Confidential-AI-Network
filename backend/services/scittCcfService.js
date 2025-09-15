@@ -24,10 +24,28 @@ const { ContractId, Money, Duration, ValidationError } = require('@contract-mana
 
 class ScittCcfService {
   constructor() {
-    this.ccfNodeUrl = process.env.CCF_NODE_URL || 'http://localhost:8000';
+    // Validate required environment variables
+    this.validateEnvironmentVariables();
+    
+    this.ccfNodeUrl = process.env.CCF_NODE_URL;
     this.teeProvider = this.detectTeeProvider();
     this.isInitialized = false;
     this.provenanceService = new ProvenanceService();
+  }
+  
+  validateEnvironmentVariables() {
+    const requiredVars = [
+      'CCF_NODE_URL',
+      'CCF_PLATFORM',
+      'CCF_API_KEY',
+      'MIGRATION_MODE'
+    ];
+    
+    const missingVars = requiredVars.filter(varName => !process.env[varName]);
+    
+    if (missingVars.length > 0) {
+      throw new Error(`Missing required environment variables: ${missingVars.join(', ')}`);
+    }
   }
 
   /**
@@ -85,7 +103,7 @@ class ScittCcfService {
     return {
       type: 'virtual',
       capabilities: ['encryption', 'isolation'],
-      platform: process.env.CCF_PLATFORM || 'virtual'
+      platform: process.env.CCF_PLATFORM
     };
   }
 
@@ -226,7 +244,7 @@ class ScittCcfService {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${process.env.CCF_API_KEY || 'dev-key'}`
+          'Authorization': `Bearer ${process.env.CCF_API_KEY}`
         },
         body: JSON.stringify(claim),
         timeout: 10000
@@ -755,7 +773,7 @@ class ScittCcfService {
         nodeUrl: this.ccfNodeUrl,
         teeProvider: this.teeProvider,
         enabled: this.isInitialized,
-        migrationMode: process.env.MIGRATION_MODE || 'HYBRID'
+        migrationMode: process.env.MIGRATION_MODE
       };
     } catch (error) {
       console.error('Failed to get configuration:', error);

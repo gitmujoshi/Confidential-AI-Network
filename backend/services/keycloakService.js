@@ -6,19 +6,39 @@ const https = require('https');
 
 class KeycloakService {
   constructor() {
-    this.baseUrl = process.env.KEYCLOAK_URL || 'https://localhost:8443';
-    this.realm = process.env.KEYCLOAK_REALM || 'contract-management';
+    // Validate required environment variables
+    this.validateEnvironmentVariables();
+    
+    this.baseUrl = process.env.KEYCLOAK_URL;
+    this.realm = process.env.KEYCLOAK_REALM;
     this.adminRealm = 'master';
-    this.clientId = process.env.KEYCLOAK_CLIENT_ID || 'contract-management-client';
-    this.clientSecret = process.env.KEYCLOAK_CLIENT_SECRET || '';
-    this.adminUsername = process.env.KEYCLOAK_ADMIN_USERNAME || 'admin';
-    this.adminPassword = process.env.KEYCLOAK_ADMIN_PASSWORD || '***REMOVED-KEYCLOAK_ADMIN_PASSWORD***';
+    this.clientId = process.env.KEYCLOAK_CLIENT_ID;
+    this.clientSecret = process.env.KEYCLOAK_CLIENT_SECRET;
+    this.adminUsername = process.env.KEYCLOAK_ADMIN_USERNAME;
+    this.adminPassword = process.env.KEYCLOAK_ADMIN_PASSWORD;
     
     // Configure axios based on URL scheme
     this.isHttps = this.baseUrl.startsWith('https://');
     this.httpsAgent = this.isHttps ? new https.Agent({
       rejectUnauthorized: false
     }) : null;
+  }
+  
+  validateEnvironmentVariables() {
+    const requiredVars = [
+      'KEYCLOAK_URL',
+      'KEYCLOAK_REALM',
+      'KEYCLOAK_CLIENT_ID',
+      'KEYCLOAK_CLIENT_SECRET',
+      'KEYCLOAK_ADMIN_USERNAME',
+      'KEYCLOAK_ADMIN_PASSWORD'
+    ];
+    
+    const missingVars = requiredVars.filter(varName => !process.env[varName]);
+    
+    if (missingVars.length > 0) {
+      throw new Error(`Missing required environment variables: ${missingVars.join(', ')}`);
+    }
   }
 
   /**

@@ -6,5 +6,16 @@
   "learningRate": 0.001,
   "algorithm": "adam",
   "template": "python",
+  "datasetType": "MNIST",
+  "framework": "pytorch",
+  "normalize": true,
+  "validationSplit": 0.2,
+  "shuffle": true,
+  "syntheticConfig": {
+    "samples": 1000,
+    "features": 10,
+    "classes": 2,
+    "distribution": "normal"
+  },
   "createdAt": "2025-09-13T10:47:32.882Z"
 }

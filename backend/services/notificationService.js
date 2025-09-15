@@ -11,9 +11,12 @@ class NotificationService {
   initializeTransporter() {
     if (this.emailEnabled) {
       // For development, use a test account or configure your email service
+      // Validate required environment variables
+      this.validateEnvironmentVariables();
+      
       this.transporter = nodemailer.createTransport({
-        host: process.env.EMAIL_HOST || 'smtp.gmail.com',
-        port: process.env.EMAIL_PORT || 587,
+        host: process.env.EMAIL_HOST,
+        port: parseInt(process.env.EMAIL_PORT),
         secure: false,
         auth: {
           user: process.env.EMAIL_USER,
@@ -24,11 +27,28 @@ class NotificationService {
       console.log('📧 Email sending is disabled. Emails will be logged instead.');
     }
   }
+  
+  validateEnvironmentVariables() {
+    if (this.emailEnabled) {
+      const requiredVars = [
+        'EMAIL_HOST',
+        'EMAIL_PORT',
+        'EMAIL_USER',
+        'EMAIL_PASS'
+      ];
+      
+      const missingVars = requiredVars.filter(varName => !process.env[varName]);
+      
+      if (missingVars.length > 0) {
+        throw new Error(`Missing required environment variables: ${missingVars.join(', ')}`);
+      }
+    }
+  }
 
   async sendEmail(to, subject, html) {
     try {
       const mailOptions = {
-        from: process.env.EMAIL_USER || 'noreply@example.com',
+        from: process.env.EMAIL_USER,
         to: to,
         subject: subject,
         html: html

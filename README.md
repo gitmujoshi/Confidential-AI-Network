@@ -45,6 +45,32 @@ npm run test:login
 ./deployment/deploy-to-local-vm.sh
 ```
 
+## 🔐 LUKS Encryption for Large Files
+
+The system implements **intelligent encryption** that automatically selects the optimal method based on file size:
+
+- **Small Files (< 100MB)**: In-memory encryption for fast processing
+- **Medium Files (100MB-1GB)**: Streaming encryption for memory efficiency  
+- **Large Files (> 1GB)**: **LUKS encryption** with hardware acceleration
+
+### **LUKS Benefits for Large Datasets**
+- **Hardware Acceleration**: 10x+ performance using CPU AES-NI instructions
+- **Memory Efficient**: 64KB blocks regardless of file size
+- **Industry Standard**: Widely used, audited, and trusted
+- **Training Integration**: Seamless decryption in TEE environments
+
+### **Quick LUKS Setup**
+```bash
+# Test LUKS encryption capabilities
+curl -X GET http://localhost:5001/api/enhanced-encryption/methods
+
+# Encrypt large file (auto-selects LUKS for > 1GB)
+curl -X POST http://localhost:5001/api/enhanced-encryption/encrypt-file \
+  -H "Authorization: Bearer <token>" \
+  -F "file=@large_dataset.zip" \
+  -F "dataType=TRAINING_DATA"
+```
+
 ## 🔗 SCITT CCF Integration
 
 The system is built on **Microsoft's SCITT CCF Ledger** for high-performance, confidential computing contract management.

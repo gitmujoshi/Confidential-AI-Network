@@ -1,0 +1,11 @@
+{
+  "jobId": "test-job-1",
+  "containerId": "test-container-1",
+  "status": "completed",
+  "finalMetrics": {
+    "finalLoss": 2.3030333805084227,
+    "finalAccuracy": 0.10125
+  },
+  "totalEpochs": 10,
+  "completedAt": "2025-09-14T12:52:34.961998"
+}

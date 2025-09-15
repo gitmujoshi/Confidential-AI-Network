@@ -48,6 +48,7 @@ const aiModelsRouter = require('./routes/ai-models');
 const notificationsRouter = require('./routes/notifications');
 const globalDeploymentRouter = require('./routes/globalDeployment');
 const blockchainRouter = require('./routes/blockchain');
+const platformEncryptionRouter = require('./routes/platform-encryption');
 const trainingRouter = require('./routes/training');
 const constraintsRouter = require('./routes/constraints');
 const depaRouter = require('./routes/depa');
@@ -196,6 +197,13 @@ app.use('/api/contract-templates', contractTemplatesRouter);
 // SCITT CCF routes
 app.use('/api/scitt-ccf', scittCcfRouter);
 app.use('/api/provenance', provenanceRouter);
+
+// Platform encryption routes
+app.use('/api/platform-encryption', platformEncryptionRouter);
+
+// Enhanced encryption routes
+const enhancedEncryptionRouter = require('./routes/enhanced-encryption');
+app.use('/api/enhanced-encryption', enhancedEncryptionRouter);
 
 // Role-specific routes
 app.use('/api/admin', adminRouter);

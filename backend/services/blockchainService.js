@@ -102,7 +102,10 @@ class BlockchainService {
       this.contractAddress = deploymentInfo.contractAddress;
 
       // Initialize provider
-      const blockchainUrl = process.env.BLOCKCHAIN_URL || 'http://127.0.0.1:8545';
+      const blockchainUrl = process.env.BLOCKCHAIN_URL;
+      if (!blockchainUrl) {
+        throw new Error('BLOCKCHAIN_URL environment variable is required');
+      }
       this.provider = new ethers.JsonRpcProvider(blockchainUrl);
       
       // Test connection

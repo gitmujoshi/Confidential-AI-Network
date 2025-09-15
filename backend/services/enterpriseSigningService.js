@@ -12,10 +12,25 @@ class EnterpriseSigningService {
    * Load enterprise signing configuration from environment variables
    */
   loadConfiguration() {
+    // Validate required environment variables
+    this.validateEnvironmentVariables();
+    
     // Parse supported algorithms from environment
-    const algorithmsEnv = process.env.ENTERPRISE_SIGNING_ALGORITHMS || 'ECDSA-P256,RSA-2048,RSA-4096';
+    const algorithmsEnv = process.env.ENTERPRISE_SIGNING_ALGORITHMS;
     this.supportedAlgorithms = algorithmsEnv.split(',').map(alg => alg.trim());
     this.supportedProviders = ['azure', 'aws', 'gcp', 'oci'];
+  }
+  
+  validateEnvironmentVariables() {
+    const requiredVars = [
+      'ENTERPRISE_SIGNING_ALGORITHMS'
+    ];
+    
+    const missingVars = requiredVars.filter(varName => !process.env[varName]);
+    
+    if (missingVars.length > 0) {
+      throw new Error(`Missing required environment variables: ${missingVars.join(', ')}`);
+    }
   }
 
   /**
