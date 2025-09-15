@@ -14,7 +14,10 @@ class TrainingContainerService {
   constructor() {
     this.activeContainers = new Map();
     this.containerTemplates = new Map();
-    this.basePath = process.env.TRAINING_BASE_PATH || './local-tee';
+    this.basePath = process.env.TRAINING_BASE_PATH;
+    if (!this.basePath) {
+      throw new Error('TRAINING_BASE_PATH environment variable is required');
+    }
     this.isLocalMode = process.env.NODE_ENV === 'development' || process.env.TEE_MODE === 'local';
     
     this.initializeTemplates();

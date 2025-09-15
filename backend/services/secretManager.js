@@ -39,8 +39,8 @@ class SecretManager {
       const vault = require('node-vault');
       return vault({
         apiVersion: 'v1',
-        endpoint: process.env.VAULT_ADDR || 'http://localhost:8200',
-        token: process.env.VAULT_TOKEN || 'dev-token-12345'
+        endpoint: process.env.VAULT_ADDR,
+        token: process.env.VAULT_TOKEN
       });
     } catch (error) {
       console.warn('⚠️ Vault provider not available:', error.message);
@@ -55,7 +55,7 @@ class SecretManager {
     try {
       const { SecretsManagerClient } = require('@aws-sdk/client-secrets-manager');
       return new SecretsManagerClient({ 
-        region: process.env.AWS_REGION || 'us-east-1' 
+        region: process.env.AWS_REGION 
       });
     } catch (error) {
       console.warn('⚠️ AWS Secrets Manager not available:', error.message);

@@ -3,11 +3,21 @@ const logger = require('./loggerService');
 
 class ScittIntegrationService {
   constructor() {
-    this.baseUrl = process.env.SCITT_CCF_URL || 'http://localhost:9000';
+    this.baseUrl = process.env.SCITT_CCF_URL;
     this.enabled = process.env.SCITT_CCF_ENABLED === 'true';
-    this.timeout = parseInt(process.env.SCITT_CCF_TIMEOUT) || 5000;
+    this.timeout = parseInt(process.env.SCITT_CCF_TIMEOUT);
     this.retryAttempts = parseInt(process.env.SCITT_CCF_RETRY_ATTEMPTS) || 3;
-    this.retryDelay = parseInt(process.env.SCITT_CCF_RETRY_DELAY) || 1000;
+    this.retryDelay = parseInt(process.env.SCITT_CCF_RETRY_DELAY);
+    
+    if (!this.baseUrl) {
+      throw new Error('SCITT_CCF_URL environment variable is required');
+    }
+    if (!this.timeout) {
+      throw new Error('SCITT_CCF_TIMEOUT environment variable is required');
+    }
+    if (!this.retryDelay) {
+      throw new Error('SCITT_CCF_RETRY_DELAY environment variable is required');
+    }
   }
 
   /**

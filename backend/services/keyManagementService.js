@@ -11,8 +11,11 @@ class KeyManagementService {
    * Load key management configuration from environment variables
    */
   loadConfiguration() {
+    // Validate required environment variables
+    this.validateEnvironmentVariables();
+    
     // Parse supported algorithms from environment
-    const algorithmsEnv = process.env.KEY_ALGORITHMS || 'ECDSA-P256,RSA-2048,RSA-4096';
+    const algorithmsEnv = process.env.KEY_ALGORITHMS;
     const supportedAlgorithms = algorithmsEnv.split(',').map(alg => alg.trim());
     
     // Build key algorithms configuration
@@ -31,15 +34,15 @@ class KeyManagementService {
     }
     
     // Set default algorithm
-    this.defaultAlgorithm = process.env.DEFAULT_KEY_ALGORITHM || 'ECDSA-P256';
+    this.defaultAlgorithm = process.env.DEFAULT_KEY_ALGORITHM;
     
     // Key generation settings
-    this.keyIdPrefix = process.env.KEY_ID_PREFIX || 'KEY';
-    this.keyExpiryDays = parseInt(process.env.KEY_EXPIRY_DAYS) || 365;
+    this.keyIdPrefix = process.env.KEY_ID_PREFIX;
+    this.keyExpiryDays = parseInt(process.env.KEY_EXPIRY_DAYS);
     
     // Encryption settings
-    this.encryptionAlgorithm = process.env.KEY_ENCRYPTION_ALGORITHM || 'aes-256-gcm';
-    this.encryptionSalt = process.env.KEY_ENCRYPTION_SALT || 'salt';
+    this.encryptionAlgorithm = process.env.KEY_ENCRYPTION_ALGORITHM;
+    this.encryptionSalt = process.env.KEY_ENCRYPTION_SALT;
     
     console.log(`🔐 [KeyManagement] Loaded configuration:`, {
       supportedAlgorithms: Object.keys(this.keyAlgorithms),
@@ -47,6 +50,23 @@ class KeyManagementService {
       keyIdPrefix: this.keyIdPrefix,
       keyExpiryDays: this.keyExpiryDays
     });
+  }
+  
+  validateEnvironmentVariables() {
+    const requiredVars = [
+      'KEY_ALGORITHMS',
+      'DEFAULT_KEY_ALGORITHM',
+      'KEY_ID_PREFIX',
+      'KEY_EXPIRY_DAYS',
+      'KEY_ENCRYPTION_ALGORITHM',
+      'KEY_ENCRYPTION_SALT'
+    ];
+    
+    const missingVars = requiredVars.filter(varName => !process.env[varName]);
+    
+    if (missingVars.length > 0) {
+      throw new Error(`Missing required environment variables: ${missingVars.join(', ')}`);
+    }
   }
 
   /**

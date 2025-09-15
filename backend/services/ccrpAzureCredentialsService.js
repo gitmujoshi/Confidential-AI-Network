@@ -10,7 +10,10 @@ const crypto = require('crypto');
 
 class CCRPAzureCredentialsService {
   constructor() {
-    this.encryptionKey = process.env.ENCRYPTION_KEY || 'default-key';
+    this.encryptionKey = process.env.ENCRYPTION_KEY;
+    if (!this.encryptionKey) {
+      throw new Error('ENCRYPTION_KEY environment variable is required');
+    }
   }
 
   /**

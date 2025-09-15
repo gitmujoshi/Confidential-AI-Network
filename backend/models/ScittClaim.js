@@ -95,7 +95,7 @@ module.exports = (sequelize) => {
       },
       {
         name: 'idx_claim_type',
-        fields: ['claim_type']
+        fields: ['claim_type']  // Use the database column name (with underscore)
       },
       {
         name: 'idx_status',

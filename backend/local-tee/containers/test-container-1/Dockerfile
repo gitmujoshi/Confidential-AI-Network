@@ -2,13 +2,17 @@ FROM python:3.9-slim
 
 WORKDIR /app
 
-# Install system dependencies
+# Install system dependencies including LUKS tools
 RUN apt-get update && apt-get install -y \
     gcc \
     g++ \
     curl \
     wget \
     git \
+    cryptsetup \
+    e2fsprogs \
+    mount \
+    umount \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Python dependencies
@@ -20,6 +24,7 @@ RUN pip install --no-cache-dir tensorflow==2.13.0
 RUN pip install --no-cache-dir matplotlib==3.7.2
 RUN pip install --no-cache-dir seaborn==0.12.2
 RUN pip install --no-cache-dir jupyter==1.0.0
+RUN pip install --no-cache-dir requests==2.31.0
 
 # Copy application files
 COPY . .

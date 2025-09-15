@@ -12,13 +12,16 @@ class EmailService {
   initializeTransporter() {
     try {
       // For development, use a test account or configure with real SMTP
+      // Validate required environment variables
+      this.validateEnvironmentVariables();
+      
       this.transporter = nodemailer.createTransport({
-        host: process.env.SMTP_HOST || 'smtp.gmail.com',
-        port: process.env.SMTP_PORT || 587,
+        host: process.env.SMTP_HOST,
+        port: parseInt(process.env.SMTP_PORT),
         secure: false, // true for 465, false for other ports
         auth: {
-          user: process.env.SMTP_USER || 'test@example.com',
-          pass: process.env.SMTP_PASS || 'testpassword'
+          user: process.env.SMTP_USER,
+          pass: process.env.SMTP_PASS
         }
       });
 
@@ -34,6 +37,22 @@ class EmailService {
       };
     }
   }
+  
+  validateEnvironmentVariables() {
+    const requiredVars = [
+      'SMTP_HOST',
+      'SMTP_PORT',
+      'SMTP_USER',
+      'SMTP_PASS',
+      'FROM_EMAIL'
+    ];
+    
+    const missingVars = requiredVars.filter(varName => !process.env[varName]);
+    
+    if (missingVars.length > 0) {
+      throw new Error(`Missing required environment variables: ${missingVars.join(', ')}`);
+    }
+  }
 
   /**
    * Send email notification
@@ -41,7 +60,7 @@ class EmailService {
   async sendEmail(to, subject, content, options = {}) {
     try {
       const mailOptions = {
-        from: process.env.FROM_EMAIL || 'noreply@contractmanagement.com',
+        from: process.env.FROM_EMAIL,
         to,
         subject,
         html: content,

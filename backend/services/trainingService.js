@@ -15,6 +15,7 @@
 const { Contract, User, Dataset, AIModel, TrainingEnvironment, TrainingJob } = require('../models');
 const InfrastructureService = require('./infrastructureService');
 const NotificationService = require('./notificationService');
+const DataLoadingService = require('./dataLoadingService');
 const { v4: uuidv4 } = require('uuid');
 const { DifferentialPrivacyService } = require('./differentialPrivacyService');
 
@@ -22,6 +23,7 @@ class TrainingService {
   constructor() {
     this.infrastructureService = new InfrastructureService();
     this.notificationService = new NotificationService();
+    this.dataLoadingService = new DataLoadingService();
   }
 
   /**
@@ -822,7 +824,7 @@ class TrainingService {
   }
 
   /**
-   * Get training data for a dataset
+   * Get training data for a dataset using the generic data loading service
    */
   async getTrainingData(datasetId) {
     try {
@@ -833,13 +835,20 @@ class TrainingService {
         throw new Error(`Dataset not found: ${datasetId}`);
       }
       
-      // For now, return mock data - in production this would load actual dataset
-      // This is a placeholder for the actual data loading logic
-      const mockData = this.generateMockTrainingData(100, 10);
+      console.log(`📊 Loading dataset: ${dataset.name} (${dataset.type})`);
       
-      console.log(`📊 Loaded training data: ${mockData.length} samples, ${mockData[0].length} features`);
+      // Use the generic data loading service
+      const loadedData = await this.dataLoadingService.loadDataset(dataset, {
+        framework: 'tensorflow',
+        normalize: true,
+        validationSplit: 0.2,
+        batchSize: 32,
+        shuffle: true
+      });
       
-      return mockData;
+      console.log(`✅ Dataset loaded: ${loadedData.metadata.recordCount} samples, ${loadedData.metadata.featureCount} features`);
+      
+      return loadedData;
       
     } catch (error) {
       console.error('Failed to get training data:', error);
