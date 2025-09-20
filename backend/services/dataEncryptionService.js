@@ -62,9 +62,8 @@ class DataEncryptionService {
       // Generate random IV
       const iv = crypto.randomBytes(this.ivLength);
       
-      // Create cipher
-      const cipher = crypto.createCipherGCM(this.algorithm, this.keyBuffer, iv);
-      cipher.setAAD(Buffer.from(keyId || 'default', 'utf8'));
+      // Create cipher using GCM mode
+      const cipher = crypto.createCipherGCM('aes-256-gcm', this.keyBuffer, iv);
       
       // Encrypt data
       let encrypted = cipher.update(JSON.stringify(data), 'utf8', 'hex');
@@ -78,7 +77,7 @@ class DataEncryptionService {
         iv: iv.toString('hex'),
         tag: tag.toString('hex'),
         keyId: keyId || 'default',
-        algorithm: this.algorithm,
+        algorithm: 'aes-256-gcm',
         timestamp: new Date().toISOString()
       };
 
@@ -108,9 +107,8 @@ class DataEncryptionService {
         return null;
       }
 
-      // Create decipher
-      const decipher = crypto.createDecipherGCM(this.algorithm, this.keyBuffer, Buffer.from(encryptedData.iv, 'hex'));
-      decipher.setAAD(Buffer.from(encryptedData.keyId || 'default', 'utf8'));
+      // Create decipher using GCM mode
+      const decipher = crypto.createDecipherGCM('aes-256-gcm', this.keyBuffer, Buffer.from(encryptedData.iv, 'hex'));
       
       // Set authentication tag
       decipher.setAuthTag(Buffer.from(encryptedData.tag, 'hex'));

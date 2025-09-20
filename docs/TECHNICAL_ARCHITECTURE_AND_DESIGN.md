@@ -8,8 +8,13 @@
 5. [Security Architecture](#security-architecture)
 6. [DID Integration](#did-integration)
 7. [Blockchain Integration](#blockchain-integration)
-8. [Deployment Architecture](#deployment-architecture)
-9. [Performance & Scalability](#performance--scalability)
+8. [Merkle Tree Provenance](#merkle-tree-provenance)
+9. [Multi-Cloud TEE Provisioning](#multi-cloud-tee-provisioning)
+10. [AI Model Management & TEE Integration](#ai-model-management--tee-integration)
+11. [Environment Marketplace](#environment-marketplace)
+12. [CCRP Monitoring & Management](#ccrp-monitoring--management)
+13. [Deployment Architecture](#deployment-architecture)
+14. [Performance & Scalability](#performance--scalability)
 
 ## System Overview
 
@@ -22,6 +27,11 @@ The Contract Management System is a blockchain-based platform for secure data sh
 - **Authentication**: Keycloak IAM integration with JWT tokens
 - **Blockchain**: Smart contracts with flexible integration modes
 - **DID Support**: Multiple DID methods with enterprise integration
+- **Merkle Tree Provenance**: Cryptographic data lineage tracking
+- **Multi-Cloud TEE**: Trusted execution environments across cloud providers
+- **AI Model Management**: Secure model upload, encryption, and processing
+- **Environment Marketplace**: Training environment discovery and provisioning
+- **SCITT CCF Integration**: Supply Chain Integrity Transparency and Trust
 
 ## Architecture Components
 
@@ -52,6 +62,12 @@ The Contract Management System is a blockchain-based platform for secure data sh
 - **Blockchain Service**: Smart contract integration
 - **Email Service**: Notification and verification
 - **Audit Service**: Comprehensive logging
+- **Provenance Tracking Service**: Merkle tree-based data lineage
+- **TEE Provisioning Service**: Multi-cloud trusted execution environments
+- **AI Model Service**: Secure model management and processing
+- **Environment Marketplace Service**: Training environment discovery
+- **TEE Model Decryption Service**: Secure model decryption in TEE
+- **Multi-Cloud TEE Service**: Cross-cloud TEE orchestration
 
 ## Data Models
 
@@ -110,6 +126,78 @@ The Contract Management System is a blockchain-based platform for secure data sh
 }
 ```
 
+### AI Model Model
+```javascript
+{
+  id: UUID,
+  ownerId: UUID (User),
+  name: String,
+  description: String,
+  version: String,
+  modelType: String,
+  architecture: String,
+  framework: String,
+  parameters: String,
+  inputSize: String,
+  outputClasses: String,
+  license: String,
+  tags: Array,
+  filePath: String,
+  fileName: String,
+  fileSize: Integer,
+  encryptionConfig: JSON,
+  teeConfig: JSON,
+  status: ENUM('UPLOADED', 'ENCRYPTED', 'DEPLOYED', 'TRAINING', 'COMPLETED'),
+  createdAt: DateTime,
+  updatedAt: DateTime
+}
+```
+
+### Provenance Node Model
+```javascript
+{
+  id: UUID,
+  nodeId: String (unique),
+  nodeType: ENUM('DATA', 'CODE', 'MODEL', 'EXECUTION', 'CONTRACT'),
+  dataHash: String,
+  parentHash: String,
+  metadata: JSON,
+  createdAt: DateTime
+}
+```
+
+### Training Environment Model
+```javascript
+{
+  id: UUID,
+  contractId: UUID (Contract),
+  name: String,
+  description: String,
+  provider: ENUM('AWS', 'Azure', 'GCP', 'OCI', 'Local'),
+  region: String,
+  instanceType: String,
+  status: ENUM('PENDING', 'PROVISIONING', 'ACTIVE', 'TERMINATED', 'ERROR'),
+  teeEnabled: Boolean,
+  specifications: JSON,
+  cost: Decimal,
+  createdAt: DateTime,
+  updatedAt: DateTime
+}
+```
+
+### Merkle Tree Model
+```javascript
+{
+  id: UUID,
+  sessionId: String (unique),
+  rootHash: String,
+  treeData: JSON,
+  nodeCount: Integer,
+  createdAt: DateTime,
+  updatedAt: DateTime
+}
+```
+
 ## API Design
 
 ### Authentication Endpoints
@@ -137,6 +225,44 @@ The Contract Management System is a blockchain-based platform for secure data sh
 - `GET /api/users/:id` - Get user details
 - `PUT /api/users/:id` - Update user
 - `DELETE /api/users/:id` - Delete user
+
+### AI Model Management Endpoints
+- `POST /api/ai-models/upload` - Upload AI model (TDC)
+- `GET /api/ai-models` - List AI models
+- `GET /api/ai-models/:id` - Get model details
+- `PUT /api/ai-models/:id` - Update model metadata
+- `DELETE /api/ai-models/:id` - Delete model
+
+### Provenance Tracking Endpoints
+- `POST /api/provenance/initialize` - Initialize provenance tracking
+- `POST /api/provenance/nodes` - Create provenance node
+- `POST /api/provenance/trees/:sessionId/nodes` - Add node to Merkle tree
+- `POST /api/provenance/nodes/:nodeId/verify` - Verify provenance node
+- `POST /api/provenance/chains/:sessionId/verify` - Verify provenance chain
+- `GET /api/provenance/reports/:sessionId` - Get provenance report
+
+### TEE Model Decryption Endpoints
+- `POST /api/tee/decrypt-model` - Request model decryption in TEE
+
+### Multi-Cloud TEE Endpoints
+- `POST /api/multi-cloud-tee/provision` - Provision TEE environment
+- `GET /api/multi-cloud-tee/providers` - Get available TEE providers
+- `GET /api/multi-cloud-tee/environments` - List user TEE environments
+- `GET /api/multi-cloud-tee/environments/:id` - Get TEE environment details
+- `DELETE /api/multi-cloud-tee/environments/:id` - Terminate TEE environment
+- `POST /api/multi-cloud-tee/cost-estimate` - Get cost estimation
+
+### Environment Marketplace Endpoints
+- `GET /api/marketplace/environments` - Browse available environments
+- `GET /api/marketplace/environments/:id` - Get environment details
+- `POST /api/marketplace/environments/:id/request` - Request environment access
+
+### Infrastructure Management Endpoints
+- `GET /api/infrastructure/environments` - List all training environments
+- `GET /api/infrastructure/environments/stats` - Get environment statistics
+- `GET /api/infrastructure/environments/search` - Search environments
+- `GET /api/infrastructure/environments/provider/:provider` - Get environments by provider
+- `GET /api/infrastructure/environments/:id/monitor` - Get environment monitoring data
 
 ## Security Architecture
 
@@ -210,6 +336,160 @@ contract ContractManager {
 4. **Completion**: Contract completed
 5. **Termination**: Contract terminated
 
+## Merkle Tree Provenance
+
+### Architecture Overview
+The Merkle Tree Provenance system provides cryptographic verification of data lineage throughout the AI training pipeline.
+
+```
+┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│ Data Ingestion  │    │ Provenance Node │    │ Merkle Tree     │
+│                 │───►│ Creation        │───►│ Construction    │
+└─────────────────┘    └─────────────────┘    └─────────────────┘
+                              │                         │
+                              ▼                         ▼
+                       ┌─────────────────┐    ┌─────────────────┐
+                       │ Digital         │    │ Verification    │
+                       │ Signature       │    │ & Audit         │
+                       └─────────────────┘    └─────────────────┘
+```
+
+### Components
+- **ProvenanceTrackingService**: Core service for managing provenance nodes and Merkle trees
+- **Provenance Nodes**: Individual data points representing dataset transformations
+- **Merkle Trees**: Cryptographic structures for efficient verification
+- **Digital Signatures**: Cryptographic proof of data authenticity
+- **Timestamping**: Immutable time records for audit trails
+
+### Features
+- **Data Lineage Tracking**: Complete audit trail from source to model
+- **Cryptographic Verification**: Tamper-proof evidence of data integrity
+- **Cross-Cloud Verification**: Multi-provider verification support
+- **Automated Timestamping**: Blockchain-based timestamping service
+- **Verification Reports**: Comprehensive provenance analysis
+
+## Multi-Cloud TEE Provisioning
+
+### Architecture Overview
+Multi-cloud Trusted Execution Environment (TEE) provisioning enables secure computation across different cloud providers.
+
+```
+┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│ TEE Request     │    │ Provider        │    │ TEE Instance    │
+│                 │───►│ Selection       │───►│ Provisioning    │
+└─────────────────┘    └─────────────────┘    └─────────────────┘
+         │                       │                       │
+         ▼                       ▼                       ▼
+┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│ AWS Nitro       │    │ Azure SGX       │    │ GCP Confidential│
+│ Enclaves        │    │ Enclaves        │    │ VMs             │
+└─────────────────┘    └─────────────────┘    └─────────────────┘
+```
+
+### Supported Providers
+- **AWS**: Nitro Enclaves with EC2 instances
+- **Azure**: SGX enclaves and Confidential VMs
+- **GCP**: Confidential Computing with AMD SEV
+- **OCI**: Confidential Computing instances
+- **Local**: Development and testing environments
+
+### Features
+- **Multi-Provider Support**: Seamless switching between cloud providers
+- **Automated Provisioning**: Infrastructure-as-Code deployment
+- **Cost Optimization**: Intelligent provider selection based on cost
+- **Security Attestation**: Cryptographic proof of TEE integrity
+- **Environment Monitoring**: Real-time resource and security monitoring
+
+## AI Model Management & TEE Integration
+
+### Architecture Overview
+Secure AI model lifecycle management with TEE integration for confidential computing.
+
+```
+┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│ Model Upload    │    │ Encryption &    │    │ TEE Deployment  │
+│ (TDC)           │───►│ Key Management  │───►│ & Training      │
+└─────────────────┘    └─────────────────┘    └─────────────────┘
+         │                       │                       │
+         ▼                       ▼                       ▼
+┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│ Model Metadata  │    │ TEE Attestation │    │ Secure Model    │
+│ Management      │    │ & Verification  │    │ Execution       │
+└─────────────────┘    └─────────────────┘    └─────────────────┘
+```
+
+### Components
+- **TDC Model Upload Interface**: User-friendly model upload workflow
+- **AI Model Service**: Backend model management and metadata storage
+- **TEE Model Decryption Service**: Secure model decryption within TEE
+- **Encryption Configuration**: Advanced encryption settings and key management
+- **TEE Configuration**: TEE-specific settings and attestation requirements
+
+### Features
+- **Secure Model Upload**: Encrypted model storage with metadata management
+- **TEE Integration**: Seamless deployment to trusted execution environments
+- **Key Management**: Advanced encryption key management and rotation
+- **Attestation Verification**: Cryptographic proof of TEE integrity
+- **Model Lifecycle Management**: Complete model versioning and deployment tracking
+
+## Environment Marketplace
+
+### Architecture Overview
+Decentralized marketplace for discovering and accessing training environments across multiple providers.
+
+```
+┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│ Environment     │    │ Marketplace     │    │ Access Request  │
+│ Discovery       │───►│ Filtering &     │───►│ & Approval      │
+└─────────────────┘    │ Selection       │    └─────────────────┘
+                       └─────────────────┘
+                              │
+                              ▼
+                       ┌─────────────────┐
+                       │ Environment     │
+                       │ Provisioning    │
+                       └─────────────────┘
+```
+
+### Features
+- **Environment Discovery**: Browse available training environments
+- **Provider Comparison**: Side-by-side comparison of different providers
+- **Cost Analysis**: Real-time cost estimation and optimization
+- **Capability Matching**: Automatic matching of requirements to capabilities
+- **Access Management**: Secure environment access request and approval workflow
+
+## CCRP Monitoring & Management
+
+### Architecture Overview
+Comprehensive monitoring and management dashboard for Certified Clean Room Providers (CCRP).
+
+```
+┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│ Environment     │    │ Real-time       │    │ Alert &         │
+│ Monitoring      │───►│ Metrics         │───►│ Notification    │
+└─────────────────┘    │ Collection      │    │ System          │
+                       └─────────────────┘    └─────────────────┘
+                              │
+                              ▼
+                       ┌─────────────────┐
+                       │ CCRP Dashboard  │
+                       │ & Analytics     │
+                       └─────────────────┘
+```
+
+### Components
+- **CCRP Environment Monitoring Component**: Real-time environment status and metrics
+- **Environment Monitoring Service**: Backend monitoring data collection and processing
+- **Alert System**: Automated alerting for critical events and thresholds
+- **Analytics Dashboard**: Comprehensive reporting and trend analysis
+
+### Features
+- **Real-time Monitoring**: Live environment status, resource utilization, and performance metrics
+- **Resource Management**: CPU, memory, disk, and network monitoring
+- **Security Monitoring**: TEE attestation status and security event tracking
+- **Cost Tracking**: Real-time cost monitoring and budget management
+- **Compliance Reporting**: Automated compliance and audit report generation
+
 ## Deployment Architecture
 
 ### Local Development
@@ -268,14 +548,19 @@ contract ContractManager {
 - **Database**: PostgreSQL 14+
 - **ORM**: Sequelize
 - **Authentication**: Keycloak
-- **Testing**: Jest
+- **Testing**: Jest, Mocha, Supertest
+- **Cryptography**: Node.js crypto, merkletreejs
+- **File Upload**: Multer
+- **Utilities**: uuid, lodash
 
 ### Frontend
 - **Framework**: React 18+
-- **State Management**: Context API
+- **State Management**: Context API, React Query
 - **Routing**: React Router
-- **UI Library**: Custom components
+- **UI Library**: Material-UI (MUI), Custom components
 - **Build Tool**: Create React App
+- **Testing**: React Testing Library, Jest
+- **Data Fetching**: React Query, Axios
 
 ### Infrastructure
 - **Containerization**: Docker
@@ -283,6 +568,9 @@ contract ContractManager {
 - **CI/CD**: GitHub Actions
 - **Monitoring**: Prometheus + Grafana
 - **Logging**: Centralized logging
+- **Cloud Providers**: AWS, Azure, GCP, OCI
+- **TEE Technologies**: AWS Nitro Enclaves, Azure SGX, GCP Confidential Computing, OCI Confidential Computing
+- **Key Management**: Azure Key Vault, AWS KMS, GCP Secret Manager
 
 ---
 

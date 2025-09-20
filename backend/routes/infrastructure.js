@@ -74,6 +74,127 @@ router.post('/environments', authenticateToken, async (req, res) => {
 });
 
 /**
+ * Get all training environments (with filtering)
+ * GET /api/infrastructure/environments
+ */
+router.get('/environments', authenticateToken, async (req, res) => {
+  try {
+    const { status, provider, type, userId, limit = 50, offset = 0 } = req.query;
+    const userRole = req.user.localUser?.partyType;
+    const currentUserId = req.user.localUser?.id;
+
+    console.log('🔍 Getting all training environments:', {
+      userRole,
+      currentUserId,
+      filters: { status, provider, type, userId }
+    });
+
+    // Build where clause based on filters and permissions
+    let whereClause = {};
+    let includeOptions = [
+      { 
+        model: db.Contract, 
+        as: 'contract',
+        include: [
+          { model: db.User, as: 'tdp', attributes: ['id', 'name', 'email'] },
+          { model: db.User, as: 'tdc', attributes: ['id', 'name', 'email'] },
+          { model: db.User, as: 'ccrp', attributes: ['id', 'name', 'email'] }
+        ]
+      },
+      { model: db.EnvironmentResource, as: 'resources' },
+      { model: db.EnvironmentCost, as: 'costs' }
+    ];
+
+    // Apply filters
+    if (status) whereClause.status = status;
+    if (provider) whereClause.provider = provider;
+    if (type) whereClause.type = type;
+
+    // Apply role-based access control
+    if (userRole === 'AppAdmin') {
+      // Admin can see all environments
+      if (userId) {
+        // If specific user requested, filter by contracts involving that user
+        includeOptions[0].where = {
+          [db.Sequelize.Op.or]: [
+            { tdcId: userId },
+            { tdpId: userId },
+            { ccrpId: userId }
+          ]
+        };
+      }
+    } else {
+      // Regular users can only see environments for contracts they're involved in
+      includeOptions[0].where = {
+        [db.Sequelize.Op.or]: [
+          { tdcId: currentUserId },
+          { tdpId: currentUserId },
+          { ccrpId: currentUserId }
+        ]
+      };
+    }
+
+    const { rows: environments, count: total } = await db.TrainingEnvironment.findAndCountAll({
+      where: whereClause,
+      include: includeOptions,
+      order: [['createdAt', 'DESC']],
+      limit: parseInt(limit),
+      offset: parseInt(offset)
+    });
+
+    // Filter out environments where user doesn't have access to the contract
+    const accessibleEnvironments = environments.filter(env => {
+      if (!env.contract) return false;
+      if (userRole === 'AppAdmin') return true;
+      
+      return env.contract.tdcId === currentUserId ||
+             env.contract.tdpId === currentUserId ||
+             env.contract.ccrpId === currentUserId;
+    });
+
+    res.json({
+      success: true,
+      data: {
+        environments: accessibleEnvironments.map(env => ({
+          id: env.id,
+          name: env.name,
+          status: env.status,
+          type: env.type,
+          provider: env.provider,
+          region: env.region,
+          contractId: env.contractId,
+          contract: env.contract ? {
+            id: env.contract.contractId,
+            title: env.contract.title,
+            status: env.contract.status,
+            tdp: env.contract.tdp,
+            tdc: env.contract.tdc,
+            ccrp: env.contract.ccrp
+          } : null,
+          resources: env.resources,
+          costs: env.costs,
+          createdAt: env.createdAt,
+          updatedAt: env.updatedAt
+        })),
+        pagination: {
+          total: accessibleEnvironments.length,
+          limit: parseInt(limit),
+          offset: parseInt(offset),
+          hasMore: parseInt(offset) + parseInt(limit) < accessibleEnvironments.length
+        }
+      }
+    });
+
+  } catch (error) {
+    console.error('Error getting training environments:', error);
+    res.status(500).json({ 
+      success: false,
+      error: error.message || 'Internal server error' 
+    });
+  }
+});
+
+/**
  * Get training environment status
  * GET /api/infrastructure/environments/:environmentId
  */
@@ -168,6 +289,252 @@ router.get('/contracts/:contractId/environments', authenticateToken, async (req,
   } catch (error) {
     console.error('Error getting contract environments:', error);
     res.status(500).json({ error: error.message || 'Internal server error' });
+  }
+});
+
+/**
+ * Get environment statistics and summary
+ * GET /api/infrastructure/environments/stats
+ */
+router.get('/environments/stats', authenticateToken, async (req, res) => {
+  try {
+    const userRole = req.user.localUser?.partyType;
+    const currentUserId = req.user.localUser?.id;
+
+    console.log('📊 Getting environment statistics for user:', currentUserId);
+
+    // Build base query with role-based access control
+    let contractWhereClause = {};
+    if (userRole !== 'AppAdmin') {
+      contractWhereClause = {
+        [db.Sequelize.Op.or]: [
+          { tdcId: currentUserId },
+          { tdpId: currentUserId },
+          { ccrpId: currentUserId }
+        ]
+      };
+    }
+
+    // Get all accessible environments
+    const environments = await db.TrainingEnvironment.findAll({
+      include: [{
+        model: db.Contract,
+        as: 'contract',
+        where: contractWhereClause,
+        required: true
+      }]
+    });
+
+    // Calculate statistics
+    const stats = {
+      total: environments.length,
+      byStatus: environments.reduce((acc, env) => {
+        acc[env.status] = (acc[env.status] || 0) + 1;
+        return acc;
+      }, {}),
+      byProvider: environments.reduce((acc, env) => {
+        acc[env.provider] = (acc[env.provider] || 0) + 1;
+        return acc;
+      }, {}),
+      byType: environments.reduce((acc, env) => {
+        acc[env.type] = (acc[env.type] || 0) + 1;
+        return acc;
+      }, {}),
+      totalCosts: environments.reduce((sum, env) => {
+        return sum + (env.estimatedCost || 0);
+      }, 0),
+      activeEnvironments: environments.filter(env => env.status === 'ACTIVE').length,
+      recentEnvironments: environments
+        .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+        .slice(0, 5)
+        .map(env => ({
+          id: env.id,
+          name: env.name,
+          status: env.status,
+          provider: env.provider,
+          createdAt: env.createdAt
+        }))
+    };
+
+    res.json({
+      success: true,
+      data: stats
+    });
+
+  } catch (error) {
+    console.error('Error getting environment statistics:', error);
+    res.status(500).json({ 
+      success: false,
+      error: error.message || 'Internal server error' 
+    });
+  }
+});
+
+/**
+ * Search environments by name or description
+ * GET /api/infrastructure/environments/search
+ */
+router.get('/environments/search', authenticateToken, async (req, res) => {
+  try {
+    const { q, limit = 10 } = req.query;
+    const userRole = req.user.localUser?.partyType;
+    const currentUserId = req.user.localUser?.id;
+
+    if (!q || q.trim().length < 2) {
+      return res.status(400).json({
+        success: false,
+        error: 'Search query must be at least 2 characters long'
+      });
+    }
+
+    console.log('🔍 Searching environments with query:', q);
+
+    // Build search criteria
+    const searchTerm = `%${q.trim()}%`;
+    let contractWhereClause = {};
+    
+    if (userRole !== 'AppAdmin') {
+      contractWhereClause = {
+        [db.Sequelize.Op.or]: [
+          { tdcId: currentUserId },
+          { tdpId: currentUserId },
+          { ccrpId: currentUserId }
+        ]
+      };
+    }
+
+    const environments = await db.TrainingEnvironment.findAll({
+      where: {
+        [db.Sequelize.Op.or]: [
+          { name: { [db.Sequelize.Op.iLike]: searchTerm } },
+          { description: { [db.Sequelize.Op.iLike]: searchTerm } },
+          { provider: { [db.Sequelize.Op.iLike]: searchTerm } },
+          { region: { [db.Sequelize.Op.iLike]: searchTerm } }
+        ]
+      },
+      include: [{
+        model: db.Contract,
+        as: 'contract',
+        where: contractWhereClause,
+        required: true,
+        attributes: ['contractId', 'title', 'status']
+      }],
+      limit: parseInt(limit),
+      order: [['updatedAt', 'DESC']]
+    });
+
+    res.json({
+      success: true,
+      data: {
+        query: q,
+        results: environments.map(env => ({
+          id: env.id,
+          name: env.name,
+          description: env.description,
+          status: env.status,
+          provider: env.provider,
+          region: env.region,
+          contractId: env.contractId,
+          contract: env.contract,
+          createdAt: env.createdAt
+        }))
+      }
+    });
+
+  } catch (error) {
+    console.error('Error searching environments:', error);
+    res.status(500).json({ 
+      success: false,
+      error: error.message || 'Internal server error' 
+    });
+  }
+});
+
+/**
+ * Get environments by provider
+ * GET /api/infrastructure/environments/provider/:provider
+ */
+router.get('/environments/provider/:provider', authenticateToken, async (req, res) => {
+  try {
+    const { provider } = req.params;
+    const { status, limit = 20, offset = 0 } = req.query;
+    const userRole = req.user.localUser?.partyType;
+    const currentUserId = req.user.localUser?.id;
+
+    console.log(`🔍 Getting environments for provider: ${provider}`);
+
+    // Validate provider
+    const validProviders = ['AWS', 'Azure', 'GCP', 'OCI'];
+    if (!validProviders.includes(provider)) {
+      return res.status(400).json({
+        success: false,
+        error: `Invalid provider. Must be one of: ${validProviders.join(', ')}`
+      });
+    }
+
+    // Build query with role-based access control
+    let whereClause = { provider };
+    if (status) whereClause.status = status;
+
+    let contractWhereClause = {};
+    if (userRole !== 'AppAdmin') {
+      contractWhereClause = {
+        [db.Sequelize.Op.or]: [
+          { tdcId: currentUserId },
+          { tdpId: currentUserId },
+          { ccrpId: currentUserId }
+        ]
+      };
+    }
+
+    const { rows: environments, count: total } = await db.TrainingEnvironment.findAndCountAll({
+      where: whereClause,
+      include: [{
+        model: db.Contract,
+        as: 'contract',
+        where: contractWhereClause,
+        required: true,
+        include: [
+          { model: db.User, as: 'tdp', attributes: ['id', 'name', 'email'] },
+          { model: db.User, as: 'tdc', attributes: ['id', 'name', 'email'] },
+          { model: db.User, as: 'ccrp', attributes: ['id', 'name', 'email'] }
+        ]
+      }],
+      limit: parseInt(limit),
+      offset: parseInt(offset),
+      order: [['createdAt', 'DESC']]
+    });
+
+    res.json({
+      success: true,
+      data: {
+        provider,
+        environments: environments.map(env => ({
+          id: env.id,
+          name: env.name,
+          status: env.status,
+          type: env.type,
+          region: env.region,
+          contractId: env.contractId,
+          contract: env.contract,
+          createdAt: env.createdAt,
+          updatedAt: env.updatedAt
+        })),
+        pagination: {
+          total,
+          limit: parseInt(limit),
+          offset: parseInt(offset),
+          hasMore: parseInt(offset) + parseInt(limit) < total
+        }
+      }
+    });
+
+  } catch (error) {
+    console.error('Error getting environments by provider:', error);
+    res.status(500).json({ 
+      success: false,
+      error: error.message || 'Internal server error' 
+    });
   }
 });
 

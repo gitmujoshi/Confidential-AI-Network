@@ -1,0 +1,68 @@
+{
+  "created": 6,
+  "total": 6,
+  "users": [
+    {
+      "name": "Alice Johnson",
+      "email": "alice@tdp.com",
+      "partyType": "TDP",
+      "role": "TDP"
+    },
+    {
+      "name": "Bob Smith",
+      "email": "bob@tdc.com",
+      "partyType": "TDC",
+      "role": "TDC"
+    },
+    {
+      "name": "Carol Williams",
+      "email": "carol@ccrp.com",
+      "partyType": "CCRP",
+      "role": "CCRP"
+    },
+    {
+      "name": "David Admin",
+      "email": "david@admin.com",
+      "partyType": "TDP",
+      "role": "AppAdmin"
+    },
+    {
+      "name": "Eve Brown",
+      "email": "eve@tdp2.com",
+      "partyType": "TDP",
+      "role": "TDP"
+    },
+    {
+      "name": "Frank Davis",
+      "email": "frank@tdc2.com",
+      "partyType": "TDC",
+      "role": "TDC"
+    }
+  ],
+  "loginResults": [
+    {
+      "email": "alice@tdp.com",
+      "success": true
+    },
+    {
+      "email": "bob@tdc.com",
+      "success": true
+    },
+    {
+      "email": "carol@ccrp.com",
+      "success": true
+    },
+    {
+      "email": "david@admin.com",
+      "success": true
+    },
+    {
+      "email": "eve@tdp2.com",
+      "success": true
+    },
+    {
+      "email": "frank@tdc2.com",
+      "success": true
+    }
+  ]
+}

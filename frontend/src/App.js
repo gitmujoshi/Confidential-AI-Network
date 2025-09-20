@@ -38,6 +38,8 @@ import CCRPAzureCredentials from './pages/CCRPAzureCredentials';
 import CCRPCloudCredentials from './pages/CCRPCloudCredentials';
 import InfrastructureProvisioning from './pages/InfrastructureProvisioning';
 import TrainingEnvironment from './pages/TrainingEnvironment';
+import TDCModelUpload from './pages/TDCModelUpload';
+import EnvironmentMarketplace from './pages/EnvironmentMarketplace';
 import ScittCcfDashboard from './components/ScittCcfDashboard';
 
 // Protected Route Component
@@ -271,6 +273,8 @@ function AppRoutes() {
               <Route path="/dashboard" element={<DashboardSelector />} />
               <Route path="/datasets" element={<Datasets />} />
               <Route path="/datasets/:datasetId" element={<div>TDC Dataset Details</div>} />
+              <Route path="/models/upload" element={<TDCModelUpload />} />
+              <Route path="/marketplace" element={<EnvironmentMarketplace />} />
               <Route path="/contracts" element={<Contracts />} />
               <Route path="/contracts/:contractId" element={<ContractDetail />} />
               <Route path="/training" element={<div>TDC Training Progress</div>} />

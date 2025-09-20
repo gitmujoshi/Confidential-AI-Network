@@ -34,6 +34,7 @@ import {
 import { useUser } from '../../contexts/UserContext';
 import { apiService } from '../../services/api';
 import CloudProviderManager from '../../components/CloudProviderManager';
+import CCRPEnvironmentMonitoring from '../../components/CCRPEnvironmentMonitoring';
 
 const CCRPDashboard = () => {
   const navigate = useNavigate();
@@ -575,6 +576,13 @@ const CCRPDashboard = () => {
               Security Settings
             </Button>
           </div>
+        </CardContent>
+      </Card>
+
+      {/* Environment Monitoring Section */}
+      <Card sx={{ mt: 3 }}>
+        <CardContent>
+          <CCRPEnvironmentMonitoring />
         </CardContent>
       </Card>
     </div>

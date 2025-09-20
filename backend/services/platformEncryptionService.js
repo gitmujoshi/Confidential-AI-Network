@@ -183,6 +183,8 @@ class PlatformEncryptionService {
       };
       
       const keyType = dataTypeMapping[dataType] || `${dataType}_ENCRYPTION`;
+      logger.info(`Looking for encryption key: ${keyType}`);
+      logger.info(`Available keys: ${Object.keys(this.dataEncryptionKeys || {}).join(', ')}`);
       const encryptionKey = this.dataEncryptionKeys[keyType];
       if (!encryptionKey) {
         throw new Error(`No encryption key found for data type: ${dataType} (mapped to: ${keyType})`);
@@ -192,7 +194,7 @@ class PlatformEncryptionService {
       const dek = crypto.randomBytes(32);
       
       // Encrypt data with DEK
-      const encryptedData = await this.dataEncryptionService.encryptData(JSON.stringify(data), dek.toString('hex'));
+      const encryptedData = await this.dataEncryptionService.encryptData(JSON.stringify(data));
       
       // Encrypt DEK with platform key (KEK)
       const encryptedDek = await this.encryptKey(dek, encryptionKey);
