@@ -53,8 +53,10 @@ router.get('/status', async (req, res) => {
  */
 router.post('/encrypt-data', authenticateToken, requireRole(['TDP']), async (req, res) => {
   try {
+    logger.info('🔐 Platform encryption encrypt-data route hit');
     const { data, dataType } = req.body;
     const tdpId = req.user.id;
+    logger.info(`Request data: ${JSON.stringify({ data, dataType, tdpId })}`);
     
     if (!data || !dataType) {
       return res.status(400).json({

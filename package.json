@@ -19,6 +19,11 @@
     "test:e2e": "node run-e2e-tests.js",
     "test:e2e:verbose": "VERBOSE=true node run-e2e-tests.js",
     "test:e2e:mocha": "cd tests && mocha e2e-user-registration-first-login.js --timeout 15000",
+    "test:comprehensive": "node tests/run-comprehensive-tests.js",
+    "test:provenance": "cd tests && npx mocha provenance-tracking.test.js --timeout 60000",
+    "test:tee": "cd tests && npx mocha multi-cloud-tee.test.js --timeout 90000",
+    "test:model-upload": "cd tests && npx mocha tdc-model-upload-tee.test.js --timeout 120000",
+    "test:monitoring": "cd tests && npx mocha ccrp-environment-monitoring.test.js --timeout 60000",
     "test": "NODE_ENV=test node -r ./tests/test-env.js ./node_modules/.bin/jest --runInBand --setupFilesAfterEnv=./tests/setup.js"
   },
   "keywords": [

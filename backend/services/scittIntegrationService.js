@@ -1,5 +1,5 @@
 const axios = require('axios');
-const logger = require('./loggerService');
+const logger = require('../utils/logger');
 
 class ScittIntegrationService {
   constructor() {

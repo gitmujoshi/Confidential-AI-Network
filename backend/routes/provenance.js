@@ -1,258 +1,586 @@
+/**
+ * Provenance API Routes
+ * 
+ * Handles Merkle tree provenance tracking, verification, and audit capabilities
+ * for AI model training with cryptographic verification and cross-cloud support.
+ */
+
 const express = require('express');
 const router = express.Router();
-const { requireRole } = require('../middleware/auth');
-const ProvenanceService = require('../services/ProvenanceService');
+const ProvenanceTrackingService = require('../services/provenanceTrackingService');
+const ScittIntegrationService = require('../services/scittIntegrationService');
+const { requireAuth, requireRole } = require('../middleware/auth');
+const { body, param, query, validationResult } = require('express-validator');
 
-// Initialize provenance service
-const provenanceService = new ProvenanceService();
-
-// Initialize service on route load
-provenanceService.initialize().catch(console.error);
+// Initialize services
+const provenanceService = new ProvenanceTrackingService();
+const scittService = new ScittIntegrationService();
 
 /**
- * @route   POST /api/provenance/tree
- * @desc    Create a new provenance tree for a contract
- * @access  Private (TDC, TDP, CCRP, AppAdmin)
+ * Initialize provenance tracking for a training job
+ * POST /api/provenance/initialize
  */
-router.post('/tree', requireRole(['TDC', 'TDP', 'CCRP', 'AppAdmin']), async (req, res) => {
-  try {
-    const { contractId, data } = req.body;
+router.post('/initialize',
+  requireAuth,
+  [
+    body('jobId').isString().notEmpty().withMessage('Job ID is required'),
+    body('contractId').isString().notEmpty().withMessage('Contract ID is required'),
+    body('environmentId').isString().notEmpty().withMessage('Environment ID is required'),
+    body('config').optional().isObject().withMessage('Config must be an object')
+  ],
+  async (req, res) => {
+    try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({
+          success: false,
+          message: 'Validation failed',
+          errors: errors.array()
+        });
+      }
 
-    if (!contractId || !data) {
-      return res.status(400).json({
+      const { jobId, contractId, environmentId, config = {} } = req.body;
+
+      console.log(`🌳 Initializing provenance tracking for job: ${jobId}`);
+
+      // Initialize provenance tracking session
+      const session = await provenanceService.initializeProvenanceTracking({
+        jobId,
+        contractId,
+        environmentId,
+        userId: req.user.id,
+        ...config
+      });
+
+      // Create SCITT CCF provenance record
+      const scittRecord = await scittService.createProvenanceRecord(
+        contractId,
+        session.rootHash,
+        'PROVENANCE_INITIALIZATION',
+        {
+          sessionId: session.sessionId,
+          jobId,
+          environmentId,
+          createdBy: req.user.id,
+          timestamp: new Date()
+        }
+      );
+
+      res.json({
+        success: true,
+        message: 'Provenance tracking initialized successfully',
+        data: {
+          sessionId: session.sessionId,
+          rootHash: session.rootHash,
+          scittClaimId: scittRecord.claimId,
+          status: session.status,
+          createdAt: session.createdAt
+        }
+      });
+
+    } catch (error) {
+      console.error('❌ Provenance initialization failed:', error);
+      res.status(500).json({
         success: false,
-        message: 'Contract ID and data are required'
+        message: 'Failed to initialize provenance tracking',
+        error: error.message
       });
     }
-
-    const tree = await provenanceService.createProvenanceTree(contractId, data);
-    
-    res.status(201).json({
-      success: true,
-      message: 'Provenance tree created successfully',
-      data: tree
-    });
-  } catch (error) {
-    console.error('❌ Error creating provenance tree:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to create provenance tree',
-      error: error.message
-    });
   }
-});
+);
 
 /**
- * @route   POST /api/provenance/node
- * @desc    Add a new node to an existing provenance tree
- * @access  Private (TDC, TDP, CCRP, AppAdmin)
+ * Create a new provenance node
+ * POST /api/provenance/nodes
  */
-router.post('/node', requireRole(['TDC', 'TDP', 'CCRP', 'AppAdmin']), async (req, res) => {
-  try {
-    const { treeId, nodeData } = req.body;
+router.post('/nodes',
+  requireAuth,
+  [
+    body('nodeId').isString().notEmpty().withMessage('Node ID is required'),
+    body('type').isIn(['DATA', 'CODE', 'MODEL', 'EXECUTION', 'CONTRACT']).withMessage('Invalid node type'),
+    body('content').notEmpty().withMessage('Node content is required'),
+    body('sessionId').optional().isString().withMessage('Session ID must be a string'),
+    body('parentNodes').optional().isArray().withMessage('Parent nodes must be an array'),
+    body('metadata').optional().isObject().withMessage('Metadata must be an object')
+  ],
+  async (req, res) => {
+    try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({
+          success: false,
+          message: 'Validation failed',
+          errors: errors.array()
+        });
+      }
 
-    if (!treeId || !nodeData) {
-      return res.status(400).json({
+      const { nodeId, type, content, sessionId, parentNodes = [], metadata = {} } = req.body;
+
+      console.log(`📝 Creating provenance node: ${nodeId} of type: ${type}`);
+
+      // Create provenance node
+      const node = await provenanceService.createProvenanceNode({
+        nodeId,
+        type,
+        content,
+        parentNodes,
+        metadata: {
+          ...metadata,
+          createdBy: req.user.id,
+          userRole: req.user.role
+        }
+      });
+
+      // Add to Merkle tree if session specified
+      let merkleProof = null;
+      if (sessionId) {
+        merkleProof = await provenanceService.addNodeToMerkleTree(sessionId, nodeId);
+      }
+
+      // Create SCITT CCF record for the node
+      const scittRecord = await scittService.createProvenanceRecord(
+        metadata.contractId || 'unknown',
+        node.hash,
+        `PROVENANCE_NODE_${type}`,
+        {
+          nodeId,
+          type,
+          sessionId,
+          parentNodes,
+          createdBy: req.user.id,
+          timestamp: node.createdAt
+        }
+      );
+
+      res.status(201).json({
+        success: true,
+        message: 'Provenance node created successfully',
+        data: {
+          nodeId: node.nodeId,
+          type: node.type,
+          hash: node.hash,
+          signature: node.signature,
+          timestamp: node.timestamp,
+          merkleProof,
+          scittClaimId: scittRecord.claimId,
+          verificationStatus: node.verificationStatus,
+          createdAt: node.createdAt
+        }
+      });
+
+    } catch (error) {
+      console.error('❌ Provenance node creation failed:', error);
+      res.status(500).json({
         success: false,
-        message: 'Tree ID and node data are required'
+        message: 'Failed to create provenance node',
+        error: error.message
       });
     }
-
-    const newNode = await provenanceService.addProvenanceNode(treeId, nodeData);
-    
-    res.status(201).json({
-      success: true,
-      message: 'Node added to provenance tree successfully',
-      data: newNode
-    });
-  } catch (error) {
-    console.error('❌ Error adding node to provenance tree:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to add node to provenance tree',
-      error: error.message
-    });
   }
-});
+);
 
 /**
- * @route   POST /api/provenance/proof
- * @desc    Generate a Merkle proof for a specific node
- * @access  Private (TDC, TDP, CCRP, AppAdmin)
+ * Verify a provenance node
+ * POST /api/provenance/nodes/:nodeId/verify
  */
-router.post('/proof', requireRole(['TDC', 'TDP', 'CCRP', 'AppAdmin']), async (req, res) => {
-  try {
-    const { treeId, nodeId } = req.body;
+router.post('/nodes/:nodeId/verify',
+  requireAuth,
+  [
+    param('nodeId').isString().notEmpty().withMessage('Node ID is required'),
+    body('verificationConfig').optional().isObject().withMessage('Verification config must be an object')
+  ],
+  async (req, res) => {
+    try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({
+          success: false,
+          message: 'Validation failed',
+          errors: errors.array()
+        });
+      }
 
-    if (!treeId || !nodeId) {
-      return res.status(400).json({
+      const { nodeId } = req.params;
+      const { verificationConfig = {} } = req.body;
+
+      console.log(`🔍 Verifying provenance node: ${nodeId}`);
+
+      // Perform node verification
+      const verification = await provenanceService.verifyProvenanceNode(nodeId, {
+        ...verificationConfig,
+        verifiedBy: req.user.id,
+        timestamp: new Date()
+      });
+
+      // Create SCITT CCF verification record
+      const scittRecord = await scittService.createProvenanceRecord(
+        verificationConfig.contractId || 'unknown',
+        verification.nodeId,
+        'PROVENANCE_VERIFICATION',
+        {
+          nodeId,
+          verificationResults: verification.results,
+          overallStatus: verification.overallStatus,
+          verifiedBy: req.user.id,
+          timestamp: verification.timestamp
+        }
+      );
+
+      res.json({
+        success: true,
+        message: 'Node verification completed',
+        data: {
+          nodeId: verification.nodeId,
+          overallStatus: verification.overallStatus,
+          results: verification.results,
+          scittClaimId: scittRecord.claimId,
+          timestamp: verification.timestamp
+        }
+      });
+
+    } catch (error) {
+      console.error('❌ Node verification failed:', error);
+      res.status(500).json({
         success: false,
-        message: 'Tree ID and node ID are required'
+        message: 'Failed to verify provenance node',
+        error: error.message
       });
     }
-
-    const proof = await provenanceService.generateMerkleProof(treeId, nodeId);
-    
-    res.status(200).json({
-      success: true,
-      message: 'Merkle proof generated successfully',
-      data: proof
-    });
-  } catch (error) {
-    console.error('❌ Error generating Merkle proof:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to generate Merkle proof',
-      error: error.message
-    });
   }
-});
+);
 
 /**
- * @route   POST /api/provenance/verify
- * @desc    Verify a provenance proof
- * @access  Private (TDC, TDP, CCRP, AppAdmin)
+ * Verify complete provenance chain
+ * POST /api/provenance/sessions/:sessionId/verify-chain
  */
-router.post('/verify', requireRole(['TDC', 'TDP', 'CCRP', 'AppAdmin']), async (req, res) => {
-  try {
-    const { proof, expectedHash } = req.body;
+router.post('/sessions/:sessionId/verify-chain',
+  requireAuth,
+  [
+    param('sessionId').isString().notEmpty().withMessage('Session ID is required')
+  ],
+  async (req, res) => {
+    try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({
+          success: false,
+          message: 'Validation failed',
+          errors: errors.array()
+        });
+      }
 
-    if (!proof || !expectedHash) {
-      return res.status(400).json({
+      const { sessionId } = req.params;
+
+      console.log(`🔗 Verifying complete provenance chain: ${sessionId}`);
+
+      // Verify entire provenance chain
+      const chainVerification = await provenanceService.verifyProvenanceChain(sessionId);
+
+      // Create SCITT CCF chain verification record
+      const scittRecord = await scittService.createProvenanceRecord(
+        chainVerification.contractId || 'unknown',
+        sessionId,
+        'PROVENANCE_CHAIN_VERIFICATION',
+        {
+          sessionId,
+          chainIntegrity: chainVerification.chainIntegrity,
+          overallStatus: chainVerification.overallStatus,
+          nodeCount: chainVerification.nodeVerifications.length,
+          verifiedBy: req.user.id,
+          timestamp: chainVerification.timestamp
+        }
+      );
+
+      res.json({
+        success: true,
+        message: 'Provenance chain verification completed',
+        data: {
+          sessionId: chainVerification.sessionId,
+          overallStatus: chainVerification.overallStatus,
+          chainIntegrity: chainVerification.chainIntegrity,
+          nodeVerifications: chainVerification.nodeVerifications,
+          scittClaimId: scittRecord.claimId,
+          timestamp: chainVerification.timestamp
+        }
+      });
+
+    } catch (error) {
+      console.error('❌ Chain verification failed:', error);
+      res.status(500).json({
         success: false,
-        message: 'Proof and expected hash are required'
+        message: 'Failed to verify provenance chain',
+        error: error.message
       });
     }
-
-    const result = await provenanceService.verifyProvenanceProof(proof, expectedHash);
-    
-    res.status(200).json({
-      success: true,
-      message: 'Proof verification completed',
-      data: result
-    });
-  } catch (error) {
-    console.error('❌ Error verifying provenance proof:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to verify provenance proof',
-      error: error.message
-    });
   }
-});
+);
 
 /**
- * @route   GET /api/provenance/tree/:contractId
- * @desc    Get provenance tree for a contract
- * @access  Private (TDC, TDP, CCRP, AppAdmin)
+ * Get provenance report
+ * GET /api/provenance/sessions/:sessionId/report
  */
-router.get('/tree/:contractId', requireRole(['TDC', 'TDP', 'CCRP', 'AppAdmin']), async (req, res) => {
-  try {
-    const { contractId } = req.params;
+router.get('/sessions/:sessionId/report',
+  requireAuth,
+  [
+    param('sessionId').isString().notEmpty().withMessage('Session ID is required'),
+    query('includeNodes').optional().isBoolean().withMessage('Include nodes must be boolean'),
+    query('includeVerifications').optional().isBoolean().withMessage('Include verifications must be boolean')
+  ],
+  async (req, res) => {
+    try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({
+          success: false,
+          message: 'Validation failed',
+          errors: errors.array()
+        });
+      }
 
-    const tree = await provenanceService.getProvenanceTree(contractId);
-    
-    res.status(200).json({
-      success: true,
-      message: 'Provenance tree retrieved successfully',
-      data: tree
-    });
-  } catch (error) {
-    console.error('❌ Error retrieving provenance tree:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to retrieve provenance tree',
-      error: error.message
-    });
+      const { sessionId } = req.params;
+      const { includeNodes = true, includeVerifications = true } = req.query;
+
+      console.log(`📊 Generating provenance report for session: ${sessionId}`);
+
+      // Get comprehensive provenance report
+      const report = await provenanceService.getProvenanceReport(sessionId);
+
+      // Get SCITT CCF verification claims
+      const scittClaims = await scittService.listContractClaims(report.contractId, {
+        claimType: 'PROVENANCE_',
+        sessionId,
+        limit: 100
+      });
+
+      const responseData = {
+        sessionId: report.sessionId,
+        jobId: report.jobId,
+        contractId: report.contractId,
+        status: report.status,
+        rootHash: report.rootHash,
+        nodeCount: report.nodeCount,
+        chainIntegrity: report.chainIntegrity,
+        createdAt: report.createdAt,
+        scittClaimsCount: scittClaims.claims.length,
+        recommendations: report.recommendations
+      };
+
+      if (includeNodes) {
+        responseData.nodes = report.nodes;
+      }
+
+      if (includeVerifications) {
+        responseData.scittClaims = scittClaims.claims;
+      }
+
+      res.json({
+        success: true,
+        message: 'Provenance report generated successfully',
+        data: responseData
+      });
+
+    } catch (error) {
+      console.error('❌ Report generation failed:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to generate provenance report',
+        error: error.message
+      });
+    }
   }
-});
+);
 
 /**
- * @route   GET /api/provenance/report/:contractId
- * @desc    Generate provenance report for a contract
- * @access  Private (TDC, TDP, CCRP, AppAdmin)
+ * Get provenance node details
+ * GET /api/provenance/nodes/:nodeId
  */
-router.get('/report/:contractId', requireRole(['TDC', 'TDP', 'CCRP', 'AppAdmin']), async (req, res) => {
-  try {
-    const { contractId } = req.params;
+router.get('/nodes/:nodeId',
+  requireAuth,
+  [
+    param('nodeId').isString().notEmpty().withMessage('Node ID is required')
+  ],
+  async (req, res) => {
+    try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({
+          success: false,
+          message: 'Validation failed',
+          errors: errors.array()
+        });
+      }
 
-    const report = await provenanceService.generateProvenanceReport(contractId);
-    
-    res.status(200).json({
-      success: true,
-      message: 'Provenance report generated successfully',
-      data: report
-    });
-  } catch (error) {
-    console.error('❌ Error generating provenance report:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to generate provenance report',
-      error: error.message
-    });
+      const { nodeId } = req.params;
+
+      // Get node from in-memory store (in production, this would come from database)
+      const node = provenanceService.provenanceNodes.get(nodeId);
+      if (!node) {
+        return res.status(404).json({
+          success: false,
+          message: 'Provenance node not found'
+        });
+      }
+
+      res.json({
+        success: true,
+        message: 'Provenance node retrieved successfully',
+        data: {
+          nodeId: node.nodeId,
+          type: node.type,
+          parentNodes: node.parentNodes,
+          childNodes: node.childNodes,
+          metadata: node.metadata,
+          hash: node.hash,
+          signature: node.signature,
+          timestamp: node.timestamp,
+          merkleProof: node.merkleProof,
+          verificationStatus: node.verificationStatus,
+          createdAt: node.createdAt
+        }
+      });
+
+    } catch (error) {
+      console.error('❌ Failed to get provenance node:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to retrieve provenance node',
+        error: error.message
+      });
+    }
   }
-});
+);
 
 /**
- * @route   DELETE /api/provenance/cleanup/:contractId
- * @desc    Clean up provenance data for a contract
- * @access  Private (AppAdmin only)
+ * List provenance sessions
+ * GET /api/provenance/sessions
  */
-router.delete('/cleanup/:contractId', requireRole(['AppAdmin']), async (req, res) => {
-  try {
-    const { contractId } = req.params;
+router.get('/sessions',
+  requireAuth,
+  requireRole(['AppAdmin', 'TDP', 'TDC', 'CCRP']),
+  [
+    query('contractId').optional().isString().withMessage('Contract ID must be a string'),
+    query('jobId').optional().isString().withMessage('Job ID must be a string'),
+    query('status').optional().isIn(['INITIALIZED', 'ACTIVE', 'COMPLETED', 'FAILED']).withMessage('Invalid status'),
+    query('limit').optional().isInt({ min: 1, max: 100 }).withMessage('Limit must be between 1 and 100'),
+    query('offset').optional().isInt({ min: 0 }).withMessage('Offset must be non-negative')
+  ],
+  async (req, res) => {
+    try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({
+          success: false,
+          message: 'Validation failed',
+          errors: errors.array()
+        });
+      }
 
-    const result = await provenanceService.cleanupProvenanceData(contractId);
-    
-    res.status(200).json({
-      success: true,
-      message: 'Provenance data cleanup completed',
-      data: { contractId, cleanupStatus: result }
-    });
-  } catch (error) {
-    console.error('❌ Error cleaning up provenance data:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to cleanup provenance data',
-      error: error.message
-    });
+      const { contractId, jobId, status, limit = 20, offset = 0 } = req.query;
+
+      // Filter sessions based on query parameters
+      let sessions = Array.from(provenanceService.provenanceTrees.values());
+
+      if (contractId) {
+        sessions = sessions.filter(s => s.contractId === contractId);
+      }
+
+      if (jobId) {
+        sessions = sessions.filter(s => s.jobId === jobId);
+      }
+
+      if (status) {
+        sessions = sessions.filter(s => s.status === status);
+      }
+
+      // Apply pagination
+      const total = sessions.length;
+      sessions = sessions.slice(offset, offset + limit);
+
+      const sessionData = sessions.map(session => ({
+        sessionId: session.sessionId,
+        jobId: session.jobId,
+        contractId: session.contractId,
+        environmentId: session.environmentId,
+        status: session.status,
+        rootHash: session.rootHash,
+        nodeCount: session.nodes.size,
+        createdAt: session.createdAt
+      }));
+
+      res.json({
+        success: true,
+        message: 'Provenance sessions retrieved successfully',
+        data: {
+          sessions: sessionData,
+          pagination: {
+            total,
+            limit: parseInt(limit),
+            offset: parseInt(offset),
+            hasMore: offset + limit < total
+          }
+        }
+      });
+
+    } catch (error) {
+      console.error('❌ Failed to list provenance sessions:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to list provenance sessions',
+        error: error.message
+      });
+    }
   }
-});
+);
 
 /**
- * @route   GET /api/provenance/health
- * @desc    Get provenance service health status
- * @access  Private (All authenticated users)
+ * Generate Merkle proof for a specific node
+ * GET /api/provenance/nodes/:nodeId/proof
  */
-router.get('/health', requireRole(['TDC', 'TDP', 'CCRP', 'AppAdmin']), async (req, res) => {
-  try {
-    const healthStatus = {
-      service: 'ProvenanceService',
-      status: provenanceService.isInitialized ? 'HEALTHY' : 'UNHEALTHY',
-      timestamp: new Date().toISOString(),
-      version: '2.0.0',
-      features: [
-        'Merkle Tree Building',
-        'Hash Calculation',
-        'Proof Generation',
-        'Proof Verification',
-        'Provenance Reporting'
-      ]
-    };
-    
-    res.status(200).json({
-      success: true,
-      message: 'Provenance service health check completed',
-      data: healthStatus
-    });
-  } catch (error) {
-    console.error('❌ Error checking provenance service health:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to check provenance service health',
-      error: error.message
-    });
+router.get('/nodes/:nodeId/proof',
+  requireAuth,
+  [
+    param('nodeId').isString().notEmpty().withMessage('Node ID is required')
+  ],
+  async (req, res) => {
+    try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({
+          success: false,
+          message: 'Validation failed',
+          errors: errors.array()
+        });
+      }
+
+      const { nodeId } = req.params;
+
+      // Find the session containing this node
+      const session = provenanceService.findSessionByNodeId(nodeId);
+      if (!session) {
+        return res.status(404).json({
+          success: false,
+          message: 'Node not found in any session'
+        });
+      }
+
+      // Generate Merkle proof
+      const merkleProof = await provenanceService.generateMerkleProof(session.sessionId, nodeId);
+
+      res.json({
+        success: true,
+        message: 'Merkle proof generated successfully',
+        data: merkleProof
+      });
+
+    } catch (error) {
+      console.error('❌ Failed to generate Merkle proof:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to generate Merkle proof',
+        error: error.message
+      });
+    }
   }
-});
+);
 
 module.exports = router;

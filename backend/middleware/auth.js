@@ -8,6 +8,11 @@
  * - JWT token validation
  * - Role-based access control
  * - User context injection
+ */
+
+const logger = require('../utils/logger');
+
+/**
  * - Error handling
  */
 
@@ -22,6 +27,7 @@ const tokenBlacklist = require('../tokenBlacklist');
  */
 const authenticateToken = async (req, res, next) => {
   try {
+    logger.info(`🔐 Authentication middleware hit for ${req.method} ${req.path}`);
     const authHeader = req.headers['authorization'];
     const token = authHeader && authHeader.split(' ')[1]; // Bearer TOKEN
 
@@ -259,6 +265,7 @@ const requireRole = (roles) => {
 
     const userRoles = req.user.roles || [];
     const userPartyType = req.user.partyType;
+    logger.info(`🔐 Role check - Required: ${JSON.stringify(roles)}, User roles: ${JSON.stringify(userRoles)}, Party type: ${userPartyType}`);
     
     // Check if user has any of the required roles
     const hasRole = Array.isArray(roles) 

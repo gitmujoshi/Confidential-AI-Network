@@ -58,7 +58,6 @@ class GlobalDEPAIdService extends DEPAIdService {
     if (missingVars.length > 0) {
       throw new Error(`Missing required environment variables: ${missingVars.join(', ')}`);
     }
-  }
     
     // Jurisdiction-specific configurations
     this.jurisdictionConfigs = {

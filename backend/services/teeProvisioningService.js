@@ -8,6 +8,7 @@
 
 const { v4: uuidv4 } = require('uuid');
 const LocalTEEProvider = require('./localTEEProvider');
+const { AWSProvider, AzureProvider, GCPProvider, OCIProvider } = require('./multiCloudTEEProviders');
 
 class TEEProvisioningService {
   constructor() {
@@ -22,10 +23,185 @@ class TEEProvisioningService {
     this.activeEnvironments = new Map();
     this.isLocalMode = process.env.NODE_ENV === 'development' || process.env.TEE_MODE === 'local';
     
-    // Initialize local provider if in local mode
-    if (this.isLocalMode) {
-      this.providers.local.initialize().catch(console.error);
+    // Initialize providers
+    this.initializeProviders();
+  }
+
+  /**
+   * Initialize all TEE providers
+   */
+  async initializeProviders() {
+    console.log('🔧 Initializing TEE providers...');
+    
+    try {
+      // Always initialize local provider for development/testing
+      await this.providers.local.initialize();
+      
+      // Initialize cloud providers if not in local mode
+      if (!this.isLocalMode) {
+        const initPromises = [];
+        
+        if (process.env.AWS_REGION) {
+          initPromises.push(this.providers.aws.initialize());
+        }
+        
+        if (process.env.AZURE_SUBSCRIPTION_ID) {
+          initPromises.push(this.providers.azure.initialize());
+        }
+        
+        if (process.env.GCP_PROJECT_ID) {
+          initPromises.push(this.providers.gcp.initialize());
+        }
+        
+        if (process.env.OCI_TENANCY_ID) {
+          initPromises.push(this.providers.oci.initialize());
+        }
+        
+        await Promise.allSettled(initPromises);
+      }
+      
+      console.log('✅ TEE providers initialized successfully');
+    } catch (error) {
+      console.error('❌ Failed to initialize TEE providers:', error);
+      // Don't throw error, allow service to continue with available providers
     }
+  }
+
+  /**
+   * Get available providers and their capabilities
+   * @returns {Object} Available providers info
+   */
+  getAvailableProviders() {
+    const availableProviders = {};
+    
+    Object.entries(this.providers).forEach(([name, provider]) => {
+      if (provider.isInitialized || name === 'local') {
+        availableProviders[name] = {
+          name: provider.providerName || name,
+          supportedRegions: provider.supportedRegions || [],
+          supportedInstanceTypes: provider.supportedInstanceTypes || [],
+          features: provider.teeFeatures || provider.nitroFeatures || provider.sgxFeatures || provider.confidentialFeatures || provider.ociFeatures || {},
+          isInitialized: provider.isInitialized || true
+        };
+      }
+    });
+    
+    return availableProviders;
+  }
+
+  /**
+   * Get all environments for a user across all providers
+   * @param {string} userId - User ID
+   * @returns {Array} User environments
+   */
+  async getUserEnvironments(userId) {
+    const allEnvironments = [];
+    
+    for (const [providerName, provider] of Object.entries(this.providers)) {
+      try {
+        // Get environments from each provider
+        const providerEnvironments = Array.from(provider.activeEnvironments?.values() || []);
+        const userEnvironments = providerEnvironments.filter(env => 
+          env.provisionedBy === userId || env.userId === userId
+        );
+        
+        // Add provider info to environments
+        userEnvironments.forEach(env => {
+          env.providerName = providerName;
+          // Add mock monitoring data if not present
+          if (!env.monitoring) {
+            env.monitoring = {
+              cpuUsage: Math.floor(Math.random() * 80) + 10,
+              memoryUsage: Math.floor(Math.random() * 70) + 15,
+              storageUsage: Math.floor(Math.random() * 60) + 20,
+              networkUsage: Math.floor(Math.random() * 50) + 5
+            };
+          }
+          // Add mock security score if not present
+          if (!env.security?.score) {
+            env.security = env.security || {};
+            env.security.score = Math.floor(Math.random() * 30) + 70; // 70-100
+          }
+        });
+        
+        allEnvironments.push(...userEnvironments);
+      } catch (error) {
+        console.warn(`❌ Failed to get environments from ${providerName}:`, error.message);
+      }
+    }
+    
+    // Sort by creation date, newest first
+    return allEnvironments.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+  }
+
+  /**
+   * Get environment by ID across all providers
+   * @param {string} environmentId - Environment ID
+   * @returns {Object|null} Environment details
+   */
+  async getEnvironmentById(environmentId) {
+    for (const [providerName, provider] of Object.entries(this.providers)) {
+      try {
+        const environment = await provider.getEnvironmentStatus(environmentId);
+        if (environment) {
+          environment.providerName = providerName;
+          return environment;
+        }
+      } catch (error) {
+        // Continue searching in other providers
+        console.debug(`Environment ${environmentId} not found in ${providerName}`);
+      }
+    }
+    return null;
+  }
+
+  /**
+   * Terminate environment across all providers
+   * @param {string} environmentId - Environment ID
+   * @returns {Object} Termination result
+   */
+  async terminateEnvironment(environmentId) {
+    for (const [providerName, provider] of Object.entries(this.providers)) {
+      try {
+        const environment = await provider.getEnvironmentStatus(environmentId);
+        if (environment) {
+          console.log(`🗑️ Terminating environment ${environmentId} in ${providerName}`);
+          return await provider.terminateEnvironment(environmentId);
+        }
+      } catch (error) {
+        console.debug(`Environment ${environmentId} not found in ${providerName}`);
+      }
+    }
+    throw new Error(`Environment ${environmentId} not found in any provider`);
+  }
+
+  /**
+   * Get cost estimation for environment configuration
+   * @param {Object} config - Environment configuration
+   * @returns {Object} Cost estimation
+   */
+  async getCostEstimation(config) {
+    const provider = this.providers[config.provider || 'local'];
+    if (!provider) {
+      throw new Error(`Unsupported provider: ${config.provider}`);
+    }
+    
+    const hourlyCost = provider.calculateEstimatedCost ? 
+      provider.calculateEstimatedCost(config) : 
+      provider.calculateAWSCost?.(config.instanceType, config) ||
+      provider.calculateAzureCost?.(config.instanceType, config) ||
+      provider.calculateGCPCost?.(config.instanceType, config) ||
+      provider.calculateOCICost?.(config.instanceType, config) ||
+      0.10; // Default fallback
+    
+    return {
+      provider: config.provider || 'local',
+      hourlyCost,
+      dailyCost: Math.round(hourlyCost * 24 * 100) / 100,
+      monthlyCost: Math.round(hourlyCost * 24 * 30 * 100) / 100,
+      currency: 'USD',
+      estimatedAt: new Date()
+    };
   }
 
   /**

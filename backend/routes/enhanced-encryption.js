@@ -14,8 +14,20 @@ const EnhancedPlatformEncryptionService = require('../services/enhancedPlatformE
 const { authenticateToken, requireRole } = require('../middleware/auth');
 const logger = require('../utils/logger');
 
-// Initialize service
-const enhancedEncryptionService = EnhancedPlatformEncryptionService;
+// Initialize service lazily
+let enhancedEncryptionService = null;
+
+const getEnhancedEncryptionService = () => {
+  if (!enhancedEncryptionService) {
+    try {
+      enhancedEncryptionService = new EnhancedPlatformEncryptionService();
+    } catch (error) {
+      logger.error('Failed to initialize enhanced encryption service:', error);
+      throw new Error('Enhanced encryption service initialization failed');
+    }
+  }
+  return enhancedEncryptionService;
+};
 
 // Configure multer for file uploads
 const storage = multer.diskStorage({
@@ -46,7 +58,7 @@ const upload = multer({
  */
 router.get('/status', async (req, res) => {
   try {
-    const stats = enhancedEncryptionService.getStatistics();
+    const stats = getEnhancedEncryptionService().getStatistics();
     
     res.json({
       success: true,
@@ -82,7 +94,7 @@ router.post('/encrypt-data', authenticateToken, requireRole(['TDP']), async (req
       });
     }
     
-    const result = await enhancedEncryptionService.encryptData(data, dataType, tdpId);
+    const result = await getEnhancedEncryptionService().encryptData(data, dataType, tdpId);
     
     logger.info(`Data encrypted for TDP ${tdpId}, type: ${dataType}, method: ${result.method}`);
     
@@ -129,7 +141,7 @@ router.post('/encrypt-file', authenticateToken, requireRole(['TDP']), upload.sin
     }
     
     // Encrypt the uploaded file
-    const result = await enhancedEncryptionService.encryptData(req.file.path, dataType, tdpId);
+    const result = await getEnhancedEncryptionService().encryptData(req.file.path, dataType, tdpId);
     
     // Clean up uploaded file
     fs.unlinkSync(req.file.path);
@@ -176,7 +188,7 @@ router.post('/decrypt-data', authenticateToken, requireRole(['TDC']), async (req
       });
     }
     
-    const result = await enhancedEncryptionService.decryptData(encryptedData, tdcId, accessToken);
+    const result = await getEnhancedEncryptionService().decryptData(encryptedData, tdcId, accessToken);
     
     logger.info(`Data decrypted for TDC ${tdcId}, method: ${result.method}`);
     
@@ -265,7 +277,7 @@ router.post('/test-performance', authenticateToken, requireRole(['AppAdmin']), a
       const startTime = Date.now();
       
       try {
-        const result = await enhancedEncryptionService.encryptData(testData, dataType, tdpId);
+        const result = await getEnhancedEncryptionService().encryptData(testData, dataType, tdpId);
         const endTime = Date.now();
         
         results.push({

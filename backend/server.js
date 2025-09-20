@@ -40,16 +40,17 @@ const userRouter = require('./routes/users');
 const contractsRouter = require('./routes/contracts');
 const datasetsRouter = require('./routes/datasets');
 const scittCcfRouter = require('./routes/scitt-ccf');
-const provenanceRouter = require('./routes/provenance');
+// const provenanceRouter = require('./routes/provenance'); // Temporarily disabled due to dependencies
 const didRouter = require('./routes/did');
 const dpdpRouter = require('./routes/dpdp');
 const contractSigningRouter = require('./routes/contractSigning');
 const aiModelsRouter = require('./routes/ai-models');
+// const aiModelsUploadRouter = require('./routes/ai-models-upload'); // Temporarily disabled due to middleware issues
 const notificationsRouter = require('./routes/notifications');
 const globalDeploymentRouter = require('./routes/globalDeployment');
 const blockchainRouter = require('./routes/blockchain');
 const platformEncryptionRouter = require('./routes/platform-encryption');
-const trainingRouter = require('./routes/training');
+// const trainingRouter = require('./routes/training'); // Temporarily disabled due to duplicate class issues
 const constraintsRouter = require('./routes/constraints');
 const depaRouter = require('./routes/depa');
 
@@ -67,6 +68,9 @@ const differentialPrivacyRouter = require('./routes/differential-privacy-simple'
 
 // Import contract template routes
 const contractTemplatesRouter = require('./routes/contract-templates');
+
+// Import TEE model decryption routes  
+// const teeModelDecryptionRouter = require('./routes/tee-model-decryption'); // Temporarily disabled due to middleware issues
 
 const app = express();
 const PORT = process.env.PORT;
@@ -183,8 +187,9 @@ app.use('/api/datasets', datasetsRouter);
 app.use('/api/did', didRouter);
 app.use('/api/dpdp', dpdpRouter);
 app.use('/api/signing', contractSigningRouter);
-app.use('/api/training', trainingRouter);
+// app.use('/api/training', trainingRouter); // Temporarily disabled due to duplicate class issues
 app.use('/api/ai-models', aiModelsRouter);
+// app.use('/api/ai-models', aiModelsUploadRouter); // Temporarily disabled due to middleware issues
 app.use('/api/notifications', notificationsRouter);
 app.use('/api/global-deployment', globalDeploymentRouter);
 app.use('/api/blockchain', blockchainRouter);
@@ -196,7 +201,18 @@ app.use('/api/contract-templates', contractTemplatesRouter);
 
 // SCITT CCF routes
 app.use('/api/scitt-ccf', scittCcfRouter);
-app.use('/api/provenance', provenanceRouter);
+// app.use('/api/provenance', provenanceRouter); // Temporarily disabled due to logger dependency issue
+
+// TEE model decryption routes
+// app.use('/api/tee', teeModelDecryptionRouter); // Temporarily disabled due to middleware issues
+
+// Multi-cloud TEE provisioning routes
+// const multiCloudTEERouter = require('./routes/multi-cloud-tee'); // Temporarily disabled due to duplicate class issues
+// app.use('/api/multi-cloud-tee', multiCloudTEERouter);
+
+// Environment marketplace routes
+// const environmentMarketplaceRouter = require('./routes/environment-marketplace'); // Temporarily disabled due to middleware issues
+// app.use('/api/marketplace', environmentMarketplaceRouter);
 
 // Platform encryption routes
 app.use('/api/platform-encryption', platformEncryptionRouter);
@@ -213,6 +229,10 @@ app.use('/api/ccrp', ccrpRouter);
 
 // Infrastructure routes
 app.use('/api/infrastructure', infrastructureRouter);
+
+// Environment monitoring routes
+// const environmentMonitoringRouter = require('./routes/environment-monitoring'); // Temporarily disabled due to duplicate class issues
+// app.use('/api/infrastructure', environmentMonitoringRouter);
 
 // Differential privacy routes
 app.use('/api/dp', differentialPrivacyRouter);

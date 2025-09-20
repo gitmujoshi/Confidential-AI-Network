@@ -14,16 +14,16 @@ NC='\033[0m'
 # Load centralized configuration
 source scripts/load-config.sh
 
-# Test User Data (from registration API) - Using working Keycloak users
-TDP_USER_EMAIL="eve@tdp2.com"
-TDC_USER_EMAIL="frank@tdc2.com"
-CCRP_USER_EMAIL="carol@ccrp.com"
-ADMIN_USER_EMAIL="david@admin.com"
+# Test User Data (from registration API) - Using new test users with common password
+TDP_USER_EMAIL="tdp-test@example.com"
+TDC_USER_EMAIL="tdc-test@example.com"
+CCRP_USER_EMAIL="ccrp-test@example.com"
+ADMIN_USER_EMAIL="admin-test@example.com"
 
-TDP_USER_PASSWORD="password123"
-TDC_USER_PASSWORD="password123"
-CCRP_USER_PASSWORD="password123"
-ADMIN_USER_PASSWORD="password123"
+TDP_USER_PASSWORD="TestPassword123!"
+TDC_USER_PASSWORD="TestPassword123!"
+CCRP_USER_PASSWORD="TestPassword123!"
+ADMIN_USER_PASSWORD="TestPassword123!"
 
 TDP_USER_TOKEN=""
 TDC_USER_TOKEN=""
