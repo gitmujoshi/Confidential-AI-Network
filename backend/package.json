@@ -26,7 +26,8 @@
     "health": "curl -s http://localhost:5001/health",
     "test:login": "curl -X POST http://localhost:5001/api/auth/login -H 'Content-Type: application/json' -d '{\"email\":\"tdc-test@example.com\",\"password\":\"password123\"}'",
     "reset:***REMOVED-KEYCLOAK_DB_PASSWORD***": "docker-compose -f ../docker-compose.***REMOVED-KEYCLOAK_DB_PASSWORD***-persistent.yml down && docker-compose -f ../docker-compose.***REMOVED-KEYCLOAK_DB_PASSWORD***-persistent.yml up -d && sleep 10 && npm run setup",
-    "status": "echo '=== Service Status ===' && curl -s http://localhost:8080/health > /dev/null && echo '✅ Keycloak: Running' || echo '❌ Keycloak: Not running' && curl -s http://localhost:5001/health > /dev/null && echo '✅ Backend: Running' || echo '❌ Backend: Not running' && curl -s http://localhost:3000 > /dev/null && echo '✅ Frontend: Running' || echo '❌ Frontend: Not running'"
+    "status": "echo '=== Service Status ===' && curl -s http://localhost:8080/health > /dev/null && echo '✅ Keycloak: Running' || echo '❌ Keycloak: Not running' && curl -s http://localhost:5001/health > /dev/null && echo '✅ Backend: Running' || echo '❌ Backend: Not running' && curl -s http://localhost:3000 > /dev/null && echo '✅ Frontend: Running' || echo '❌ Frontend: Not running'",
+    "db:ensure-training-metadata": "node scripts/ensure-training-jobs-metadata.js"
   },
   "dependencies": {
     "@contract-management/value-objects": "file:../shared/valueObjects",

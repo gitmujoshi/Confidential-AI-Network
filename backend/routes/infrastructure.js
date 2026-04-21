@@ -6,6 +6,49 @@ const { authenticateToken } = require('../middleware/auth');
 
 const infrastructureService = new InfrastructureService();
 
+function tdpDatasetInvolvementWhere(userId) {
+  const numericUserId = parseInt(userId, 10);
+  if (!Number.isFinite(numericUserId)) {
+    return { id: -1 };
+  }
+
+  return db.Sequelize.where(
+    db.Sequelize.cast(db.Sequelize.col('contract.contract_datasets'), 'text'),
+    'ILIKE',
+    `%"tdpId":${numericUserId}%`
+  );
+}
+
+function contractPartyAccessOr(userId) {
+  const numericUserId = parseInt(userId, 10);
+  if (!Number.isFinite(numericUserId)) {
+    return { id: -1 };
+  }
+
+  return {
+    [db.Sequelize.Op.or]: [
+      { tdcId: numericUserId },
+      { ccrpId: numericUserId },
+      tdpDatasetInvolvementWhere(numericUserId)
+    ]
+  };
+}
+
+function userCanAccessContractRow(contract, user) {
+  if (!contract || !user?.id) return false;
+  if (user.partyType === 'AppAdmin') return true;
+
+  const uid = user.id;
+  if (contract.tdcId === uid || contract.ccrpId === uid) return true;
+
+  const datasetsText =
+    contract.contractDatasets != null
+      ? JSON.stringify(contract.contractDatasets)
+      : '';
+
+  return datasetsText.includes(`"tdpId":${uid}`);
+}
+
 /**
  * Infrastructure Management Routes
  * 
@@ -34,7 +77,6 @@ router.post('/environments', authenticateToken, async (req, res) => {
     const contract = await db.Contract.findOne({
       where: { contractId },
       include: [
-        { model: db.User, as: 'tdp' },
         { model: db.User, as: 'tdc' },
         { model: db.User, as: 'ccrp' }
       ]
@@ -96,7 +138,6 @@ router.get('/environments', authenticateToken, async (req, res) => {
         model: db.Contract, 
         as: 'contract',
         include: [
-          { model: db.User, as: 'tdp', attributes: ['id', 'name', 'email'] },
           { model: db.User, as: 'tdc', attributes: ['id', 'name', 'email'] },
           { model: db.User, as: 'ccrp', attributes: ['id', 'name', 'email'] }
         ]
@@ -115,23 +156,11 @@ router.get('/environments', authenticateToken, async (req, res) => {
       // Admin can see all environments
       if (userId) {
         // If specific user requested, filter by contracts involving that user
-        includeOptions[0].where = {
-          [db.Sequelize.Op.or]: [
-            { tdcId: userId },
-            { tdpId: userId },
-            { ccrpId: userId }
-          ]
-        };
+        includeOptions[0].where = contractPartyAccessOr(userId);
       }
     } else {
       // Regular users can only see environments for contracts they're involved in
-      includeOptions[0].where = {
-        [db.Sequelize.Op.or]: [
-          { tdcId: currentUserId },
-          { tdpId: currentUserId },
-          { ccrpId: currentUserId }
-        ]
-      };
+      includeOptions[0].where = contractPartyAccessOr(currentUserId);
     }
 
     const { rows: environments, count: total } = await db.TrainingEnvironment.findAndCountAll({
@@ -146,10 +175,8 @@ router.get('/environments', authenticateToken, async (req, res) => {
     const accessibleEnvironments = environments.filter(env => {
       if (!env.contract) return false;
       if (userRole === 'AppAdmin') return true;
-      
-      return env.contract.tdcId === currentUserId ||
-             env.contract.tdpId === currentUserId ||
-             env.contract.ccrpId === currentUserId;
+
+      return userCanAccessContractRow(env.contract, { id: currentUserId, partyType: userRole });
     });
 
     res.json({
@@ -167,7 +194,6 @@ router.get('/environments', authenticateToken, async (req, res) => {
             id: env.contract.contractId,
             title: env.contract.title,
             status: env.contract.status,
-            tdp: env.contract.tdp,
             tdc: env.contract.tdc,
             ccrp: env.contract.ccrp
           } : null,
@@ -217,14 +243,7 @@ router.get('/environments/:environmentId', authenticateToken, async (req, res) =
       return res.status(404).json({ error: 'Contract not found' });
     }
 
-    // Check if user is authorized to view this environment
-    const isAuthorized = 
-      req.user.localUser.partyType === 'AppAdmin' ||
-      contract.tdcId === req.user.localUser.id ||
-      contract.tdpId === req.user.localUser.id ||
-      contract.ccrpId === req.user.localUser.id;
-
-    if (!isAuthorized) {
+    if (!userCanAccessContractRow(contract, req.user.localUser)) {
       return res.status(403).json({ error: 'Access denied' });
     }
 
@@ -251,7 +270,6 @@ router.get('/contracts/:contractId/environments', authenticateToken, async (req,
     const contract = await db.Contract.findOne({
       where: { contractId },
       include: [
-        { model: db.User, as: 'tdp' },
         { model: db.User, as: 'tdc' },
         { model: db.User, as: 'ccrp' }
       ]
@@ -261,14 +279,7 @@ router.get('/contracts/:contractId/environments', authenticateToken, async (req,
       return res.status(404).json({ error: 'Contract not found' });
     }
 
-    // Check if user is authorized to view this contract
-    const isAuthorized = 
-      req.user.localUser.partyType === 'AppAdmin' ||
-      contract.tdcId === req.user.localUser.id ||
-      contract.tdpId === req.user.localUser.id ||
-      contract.ccrpId === req.user.localUser.id;
-
-    if (!isAuthorized) {
+    if (!userCanAccessContractRow(contract, req.user.localUser)) {
       return res.status(403).json({ error: 'Access denied' });
     }
 
@@ -306,13 +317,7 @@ router.get('/environments/stats', authenticateToken, async (req, res) => {
     // Build base query with role-based access control
     let contractWhereClause = {};
     if (userRole !== 'AppAdmin') {
-      contractWhereClause = {
-        [db.Sequelize.Op.or]: [
-          { tdcId: currentUserId },
-          { tdpId: currentUserId },
-          { ccrpId: currentUserId }
-        ]
-      };
+      contractWhereClause = contractPartyAccessOr(currentUserId);
     }
 
     // Get all accessible environments
@@ -394,13 +399,7 @@ router.get('/environments/search', authenticateToken, async (req, res) => {
     let contractWhereClause = {};
     
     if (userRole !== 'AppAdmin') {
-      contractWhereClause = {
-        [db.Sequelize.Op.or]: [
-          { tdcId: currentUserId },
-          { tdpId: currentUserId },
-          { ccrpId: currentUserId }
-        ]
-      };
+      contractWhereClause = contractPartyAccessOr(currentUserId);
     }
 
     const environments = await db.TrainingEnvironment.findAll({
@@ -478,13 +477,7 @@ router.get('/environments/provider/:provider', authenticateToken, async (req, re
 
     let contractWhereClause = {};
     if (userRole !== 'AppAdmin') {
-      contractWhereClause = {
-        [db.Sequelize.Op.or]: [
-          { tdcId: currentUserId },
-          { tdpId: currentUserId },
-          { ccrpId: currentUserId }
-        ]
-      };
+      contractWhereClause = contractPartyAccessOr(currentUserId);
     }
 
     const { rows: environments, count: total } = await db.TrainingEnvironment.findAndCountAll({
@@ -495,7 +488,6 @@ router.get('/environments/provider/:provider', authenticateToken, async (req, re
         where: contractWhereClause,
         required: true,
         include: [
-          { model: db.User, as: 'tdp', attributes: ['id', 'name', 'email'] },
           { model: db.User, as: 'tdc', attributes: ['id', 'name', 'email'] },
           { model: db.User, as: 'ccrp', attributes: ['id', 'name', 'email'] }
         ]
@@ -644,7 +636,6 @@ router.post('/estimate-cost', authenticateToken, async (req, res) => {
     const contract = await db.Contract.findOne({
       where: { contractId },
       include: [
-        { model: db.User, as: 'tdp' },
         { model: db.User, as: 'tdc' },
         { model: db.User, as: 'ccrp' }
       ]
@@ -654,14 +645,7 @@ router.post('/estimate-cost', authenticateToken, async (req, res) => {
       return res.status(404).json({ error: 'Contract not found' });
     }
 
-    // Check if user is authorized
-    const isAuthorized = 
-      req.user.localUser.partyType === 'AppAdmin' ||
-      contract.tdcId === req.user.localUser.id ||
-      contract.tdpId === req.user.localUser.id ||
-      contract.ccrpId === req.user.localUser.id;
-
-    if (!isAuthorized) {
+    if (!userCanAccessContractRow(contract, req.user.localUser)) {
       return res.status(403).json({ error: 'Access denied' });
     }
 
@@ -803,13 +787,7 @@ router.get('/environments/:environmentId/metrics', authenticateToken, async (req
       return res.status(404).json({ error: 'Contract not found' });
     }
 
-    const isAuthorized = 
-      req.user.localUser.partyType === 'AppAdmin' ||
-      contract.tdcId === req.user.localUser.id ||
-      contract.tdpId === req.user.localUser.id ||
-      contract.ccrpId === req.user.localUser.id;
-
-    if (!isAuthorized) {
+    if (!userCanAccessContractRow(contract, req.user.localUser)) {
       return res.status(403).json({ error: 'Access denied' });
     }
 

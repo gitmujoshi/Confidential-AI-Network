@@ -8,6 +8,7 @@ Comprehensive end-to-end testing suite for the Contract Management System, cover
 - Node.js 16+ 
 - npm or yarn
 - Playwright browsers installed
+- **Backend API running** at `BACKEND_URL` / port from repo root `config.env` (same as `getBackendURL()` in `frontend/load-config.js`). Global setup calls `/health` and will **abort** if the server is down.
 
 ### Installation
 ```bash
@@ -20,12 +21,16 @@ npm run test:e2e:install
 
 ### Running Tests
 ```bash
-# Run all tests
-npm run test:e2e:all
+# Run all Playwright projects (Chromium, Firefox, WebKit, Mobile Chrome, Mobile Safari)
+npm run test:e2e
 
-# Run specific test suite
+# Faster: desktop Chromium only
+npm run test:e2e:chromium
+
+# Subsets (see package.json)
 npm run test:e2e:auth
 npm run test:e2e:core
+npm run test:e2e:advanced
 npm run test:e2e:role-based
 
 # Run with UI
@@ -35,27 +40,22 @@ npm run test:e2e:ui
 npm run test:e2e:headed
 ```
 
-## 📋 Test Suites
+**CI / local:** `playwright.config.js` sets `reuseExistingServer: true`, so if `FRONTEND_URL` (e.g. `http://localhost:3000`) already responds, Playwright will not try to bind a second dev server. `CI=1` is therefore safe while `npm run start` is running.
 
-### 1. Authentication & Authorization (`auth`)
-- **Files**: `auth.spec.js`, `role-based-access.spec.js`
-- **Duration**: ~5 minutes
-- **Description**: Tests login, logout, registration, and role-based access control
+## 📋 Test Suites (current files)
 
-### 2. Core Functionality (`core`)
-- **Files**: `dashboard.spec.js`, `contracts.spec.js`, `tdp-dataset-management.spec.js`
-- **Duration**: ~10 minutes
-- **Description**: Tests main application features and workflows
+### 1. Authentication (`auth`)
+- **File**: `auth.spec.js`
+- **Description**: Login, logout, registration, forgot password, TDC dashboard smoke
 
-### 3. Advanced Features (`advanced`)
-- **Files**: `training-parameters.spec.js`, `confidential-computing.spec.js`
-- **Duration**: ~15 minutes
-- **Description**: Tests advanced features like training parameters and confidential computing
+### 2. Core (`core`)
+- **Files**: `auth.spec.js`, `contracts.spec.js`, `dashboard.spec.js`, `tdc-training.spec.js`
 
-### 4. Integration Tests (`integration`)
-- **Files**: `end-to-end-workflows.spec.js`, `api-integration.spec.js`
-- **Duration**: ~20 minutes
-- **Description**: End-to-end workflow tests and API integration
+### 3. Advanced (`advanced`)
+- **Files** (`npm run test:e2e:advanced`): `training-parameters.spec.js`, `system-fixes-validation.spec.js`, `tdc-training.spec.js`, `ccrp-training-environment.spec.js`
+
+### 4. Full E2E (`integration` / `all`)
+- **Path**: `tests/e2e/*.spec.js` (same as `npm run test:e2e`)
 
 ## 🔐 Role-Based Access Tests
 
@@ -90,25 +90,15 @@ npm run test:e2e:headed
    - Can see Users menu
    - Full system access
 
-## 🛠️ Test Data Management
+## 🛠️ Test data
 
-### Setup Test Data
-```bash
-# Create test users, datasets, and contracts
-npm run test:e2e:setup
-```
+Seeding runs in **`global-setup.js`** via `test-data-setup.js` (APIs only, no direct DB). Ensure backend is up and `config.env` / `FRONTEND_URL` match before running tests.
 
-### Cleanup Test Data
-```bash
-# Remove all test data
-npm run test:e2e:cleanup
-```
+### TDC / CCRP training smoke tests
+- **`tdc-training.spec.js`** — TDC user loads **`/tdc/training`**, checks copy; API smoke: unknown contract returns **404** for job list.
+- **`ccrp-training-environment.spec.js`** — CCRP user loads **`/ccrp/training-environment`** (uses **`/api/ccrp/training/...`** in the app).
 
-### Reset Test Data
-```bash
-# Clean up and recreate test data
-node tests/e2e/setup-role-based-tests.js reset
-```
+See **[docs/training/TDC_TRAINING_RUNTIME.md](../../../docs/training/TDC_TRAINING_RUNTIME.md)** for API details.
 
 ## 📊 Test Reporting
 
@@ -116,12 +106,6 @@ node tests/e2e/setup-role-based-tests.js reset
 ```bash
 # Generate HTML report
 npm run test:e2e:report
-```
-
-### Test Status
-```bash
-# Check test status
-npm run test:e2e:status
 ```
 
 ### Test Results
@@ -176,11 +160,8 @@ npm run test:e2e:ui
 
 ### Specific Test
 ```bash
-# Run specific test file
-npx playwright test tests/e2e/role-based-access.spec.js
-
-# Run specific test by name
-npx playwright test --grep "TDP should only see their own datasets"
+npx playwright test tests/e2e/dashboard.spec.js
+npx playwright test --grep "should load admin dashboard"
 ```
 
 ## 📝 Writing Tests

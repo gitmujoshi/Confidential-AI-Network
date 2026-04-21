@@ -133,3 +133,7 @@ private-keys.json
 # Vault binaries (too large for GitHub)
 backend/vault
 backend/vault_*.zip
+
+# Playwright (local runs; keep HTML report out of commits)
+frontend/test-results/
+frontend/playwright-report/

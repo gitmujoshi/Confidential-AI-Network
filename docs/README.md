@@ -32,6 +32,9 @@ This directory contains comprehensive documentation for the Contract Management 
 - **[USER_AUTH_ARCHITECTURE.md](./USER_AUTH_ARCHITECTURE.md)** - User authentication architecture
 - **[SECRETS_MANAGEMENT.md](./SECRETS_MANAGEMENT.md)** - Secrets management system
 
+### 🤖 **Training runtime (TDC / CCRP)**
+- **[training/TDC_TRAINING_RUNTIME.md](./training/TDC_TRAINING_RUNTIME.md)** — TDC training API & UI, `TRAINING_SIMULATION_MODE`, register-model, CCRP `/api/ccrp/training` routes
+
 ### 📝 **Contract Signing & Management**
 - **[CONTRACT_SIGNING_OVERVIEW.md](./CONTRACT_SIGNING_OVERVIEW.md)** - Contract signing system overview
 - **[CONTRACT_SIGNING_STRATEGY.md](./CONTRACT_SIGNING_STRATEGY.md)** - Contract signing strategy and approach

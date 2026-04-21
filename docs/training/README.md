@@ -27,6 +27,7 @@ Our training program is designed to provide:
 - **Module**: `TDC_TRAINING_MODULE.md`
 - **Duration**: 2-3 hours
 - **Focus**: Data consumption, training job management, model access
+- **Runtime (API & UI — current implementation)**: **[TDC_TRAINING_RUNTIME.md](./TDC_TRAINING_RUNTIME.md)** — start training from a signed contract, simulation vs real run, register trained model as `AIModel`, CCRP training routes.
 - **Key Topics**:
   - Dashboard navigation
   - Dataset browsing and evaluation

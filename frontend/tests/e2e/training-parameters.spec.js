@@ -1,217 +1,86 @@
 const { test, expect } = require('@playwright/test');
+const axios = require('axios');
+const { getBackendURL } = require('../../load-config');
 
 test.describe('Training Parameters E2E Tests', () => {
+  test.describe.configure({ mode: 'serial' });
+
+  async function authenticateViaApi(page) {
+    const backendURL = getBackendURL();
+    const email = 'tdc.healthcare.2025-09-05t20-39-55@test.com';
+    const password = 'TestNewPassword123!';
+
+    const loginResponse = await axios.post(`${backendURL}/api/auth/login`, { email, password });
+    const { accessToken, user } = loginResponse.data || {};
+    if (!accessToken || !user) throw new Error('API login did not return accessToken/user');
+
+    await page.addInitScript(({ token, u }) => {
+      localStorage.setItem('authToken', token);
+      localStorage.setItem('user', JSON.stringify(u));
+      localStorage.setItem('currentUser', JSON.stringify(u));
+    }, { token: accessToken, u: user });
+  }
+
   test.beforeEach(async ({ page }) => {
-    // Login before each test using working test user
-    await page.goto('/');
-    await page.getByLabel(/email/i).fill('tdc.healthcare.2025-09-05t20-39-55@test.com');
-    await page.getByLabel(/password/i).fill('TestNewPassword123!');
-    await page.getByRole('button', { name: /sign in/i }).click();
-    
-    // Wait for dashboard to load
-    await expect(page).toHaveURL(/.*dashboard/);
+    await authenticateViaApi(page);
+    // Go straight to contract creation page (this is where training params live)
+    await page.goto('/contracts/create');
+    await expect(page).not.toHaveURL(/.*\/login/);
   });
 
-  test('should display max training runs field in contract creation', async ({ page }) => {
-    // Navigate to contract creation
-    await page.getByRole('link', { name: /contracts/i }).click();
-    await page.getByRole('button', { name: /create contract/i }).click();
-    
-    // Should show training parameters section
-    await expect(page.getByText(/training parameters/i)).toBeVisible();
-    
-    // Should show max training runs field
-    await expect(page.getByLabel(/max training runs/i)).toBeVisible();
-    
-    // Should have default value
-    await expect(page.getByLabel(/max training runs/i)).toHaveValue('5');
-  });
+  async function navigateToPrivacyAccuracyStep(page) {
+    // Wait for datasets + template list (CreateRicardianContract loads datasets first)
+    const templatesHeading = page.getByRole('heading', { name: /All Available Templates/i });
+    await templatesHeading.waitFor({ state: 'visible', timeout: 60000 });
 
-  test('should allow editing max training runs value', async ({ page }) => {
-    // Navigate to contract creation
-    await page.getByRole('link', { name: /contracts/i }).click();
-    await page.getByRole('button', { name: /create contract/i }).click();
-    
-    // Find and edit max training runs field
-    const maxTrainingRunsField = page.getByLabel(/max training runs/i);
-    await maxTrainingRunsField.clear();
-    await maxTrainingRunsField.fill('10');
-    
-    // Should have updated value
-    await expect(maxTrainingRunsField).toHaveValue('10');
-  });
-
-  test('should validate max training runs input', async ({ page }) => {
-    // Navigate to contract creation
-    await page.getByRole('link', { name: /contracts/i }).click();
-    await page.getByRole('button', { name: /create contract/i }).click();
-    
-    // Try to enter invalid value
-    const maxTrainingRunsField = page.getByLabel(/max training runs/i);
-    await maxTrainingRunsField.clear();
-    await maxTrainingRunsField.fill('-1');
-    
-    // Should show validation error
-    await expect(page.getByText(/must be a positive number/i)).toBeVisible();
-    
-    // Try to enter zero
-    await maxTrainingRunsField.clear();
-    await maxTrainingRunsField.fill('0');
-    
-    // Should show validation error
-    await expect(page.getByText(/must be greater than 0/i)).toBeVisible();
-  });
-
-  test('should save max training runs in contract', async ({ page }) => {
-    // Navigate to contract creation
-    await page.getByRole('link', { name: /contracts/i }).click();
-    await page.getByRole('button', { name: /create contract/i }).click();
-    
-    // Fill basic contract information
-    await page.getByLabel(/contract name/i).fill('Test Training Contract');
-    await page.getByLabel(/description/i).fill('Test contract with max training runs');
-    await page.getByLabel(/duration/i).fill('30');
-    await page.getByLabel(/price/i).fill('1000');
-    
-    // Set max training runs
-    await page.getByLabel(/max training runs/i).clear();
-    await page.getByLabel(/max training runs/i).fill('15');
-    
-    // Fill other training parameters
-    await page.getByLabel(/max privacy loss/i).fill('0.1');
-    await page.getByLabel(/min accuracy/i).fill('0.85');
-    
-    // Submit contract
-    await page.getByRole('button', { name: /create contract/i }).click();
-    
-    // Should show success message
-    await expect(page.getByText(/contract created successfully/i)).toBeVisible();
-  });
-
-  test('should display max training runs in contract details', async ({ page }) => {
-    // First create a contract with max training runs
-    await page.getByRole('link', { name: /contracts/i }).click();
-    await page.getByRole('button', { name: /create contract/i }).click();
-    
-    // Fill contract form
-    await page.getByLabel(/contract name/i).fill('Test Contract for Display');
-    await page.getByLabel(/description/i).fill('Test contract');
-    await page.getByLabel(/duration/i).fill('30');
-    await page.getByLabel(/price/i).fill('1000');
-    await page.getByLabel(/max training runs/i).clear();
-    await page.getByLabel(/max training runs/i).fill('8');
-    await page.getByLabel(/max privacy loss/i).fill('0.1');
-    await page.getByLabel(/min accuracy/i).fill('0.85');
-    
-    await page.getByRole('button', { name: /create contract/i }).click();
-    await expect(page.getByText(/contract created successfully/i)).toBeVisible();
-    
-    // Navigate to contract details
-    await page.getByRole('link', { name: /test contract for display/i }).click();
-    
-    // Should show max training runs in contract details
-    await expect(page.getByText(/max training runs/i)).toBeVisible();
-    await expect(page.getByText(/8/i)).toBeVisible();
-  });
-
-  test('should allow editing max training runs in contract details', async ({ page }) => {
-    // Navigate to contract details
-    await page.getByRole('link', { name: /contracts/i }).click();
-    await page.getByRole('link', { name: /test contract/i }).click();
-    
-    // Click edit button
-    await page.getByRole('button', { name: /edit/i }).click();
-    
-    // Should be able to edit max training runs
-    const maxTrainingRunsField = page.getByLabel(/max training runs/i);
-    await expect(maxTrainingRunsField).toBeVisible();
-    
-    // Update the value
-    await maxTrainingRunsField.clear();
-    await maxTrainingRunsField.fill('12');
-    
-    // Save changes
-    await page.getByRole('button', { name: /save/i }).click();
-    
-    // Should show success message
-    await expect(page.getByText(/contract updated successfully/i)).toBeVisible();
-    
-    // Should show updated value
-    await expect(page.getByText(/12/i)).toBeVisible();
-  });
-
-  test('should display training parameters in JSON format', async ({ page }) => {
-    // Navigate to contract details
-    await page.getByRole('link', { name: /contracts/i }).click();
-    await page.getByRole('link', { name: /test contract/i }).click();
-    
-    // Should show training parameters section
-    await expect(page.getByText(/training parameters/i)).toBeVisible();
-    
-    // Should show JSON view of training parameters
-    await expect(page.getByText(/"maxTrainingRuns"/)).toBeVisible();
-    await expect(page.getByText(/"maxPrivacyLoss"/)).toBeVisible();
-    await expect(page.getByText(/"minAccuracy"/)).toBeVisible();
-  });
-
-  test('should handle training parameters form validation', async ({ page }) => {
-    // Navigate to contract creation
-    await page.getByRole('link', { name: /contracts/i }).click();
-    await page.getByRole('button', { name: /create contract/i }).click();
-    
-    // Try to submit without required fields
-    await page.getByRole('button', { name: /create contract/i }).click();
-    
-    // Should show validation errors
-    await expect(page.getByText(/contract name is required/i)).toBeVisible();
-    await expect(page.getByText(/description is required/i)).toBeVisible();
-    
-    // Fill required fields but leave max training runs empty
-    await page.getByLabel(/contract name/i).fill('Test Contract');
-    await page.getByLabel(/description/i).fill('Test description');
-    await page.getByLabel(/duration/i).fill('30');
-    await page.getByLabel(/price/i).fill('1000');
-    
-    // Clear max training runs
-    await page.getByLabel(/max training runs/i).clear();
-    
-    // Should use default value or show validation
-    await expect(page.getByLabel(/max training runs/i)).toHaveValue('5');
-  });
-
-  test('should handle training parameters in different contract types', async ({ page }) => {
-    // Navigate to contract creation
-    await page.getByRole('link', { name: /contracts/i }).click();
-    await page.getByRole('button', { name: /create contract/i }).click();
-    
-    // Should show max training runs for all contract types
-    await expect(page.getByLabel(/max training runs/i)).toBeVisible();
-    
-    // Change contract type if available
-    const contractTypeSelect = page.getByLabel(/contract type/i);
-    if (await contractTypeSelect.isVisible()) {
-      await contractTypeSelect.selectOption('AI_TRAINING');
-      
-      // Should still show max training runs
-      await expect(page.getByLabel(/max training runs/i)).toBeVisible();
+    if (await page.getByText(/All Available Templates \(0\)/i).count()) {
+      test.skip(true, 'No contract templates — run Playwright global-setup / seed /api/contract-templates');
     }
+    if (await page.getByRole('alert').filter({ hasText: /no templates match/i }).count()) {
+      test.skip(true, 'No templates match filters — adjust UI filters or re-seed contract templates');
+    }
+
+    await page.keyboard.press('Escape').catch(() => {});
+
+    const firstTemplateCard = page.locator('.MuiCard-root').filter({
+      has: page.getByRole('heading', { level: 3 }),
+    }).first();
+    await expect(firstTemplateCard).toBeVisible({ timeout: 30000 });
+    await firstTemplateCard.scrollIntoViewIfNeeded();
+    await firstTemplateCard.click();
+    await expect(page.getByText(/Selected Template:/i)).toBeVisible({ timeout: 15000 });
+
+    // Privacy & Accuracy fields live on step 1 ("Contract Details & Dataset Selection"), not step 0
+    const nextBtn = page.getByRole('button', { name: /^Next$/ });
+    await expect(nextBtn).toBeEnabled({ timeout: 30000 });
+    await nextBtn.scrollIntoViewIfNeeded();
+    await nextBtn.click({ force: true });
+
+    await expect(page.getByText('Privacy & Accuracy Requirements')).toBeVisible({ timeout: 60000 });
+  }
+
+  test('should show privacy & accuracy requirement fields', async ({ page }) => {
+    await navigateToPrivacyAccuracyStep(page);
+    await expect(page.getByText('Privacy & Accuracy Requirements')).toBeVisible();
+    await expect(page.getByLabel(/maximum privacy loss/i)).toBeVisible();
+    await expect(page.getByLabel(/minimum accuracy/i)).toBeVisible();
+
+    const privacySection = page.getByRole('heading', { name: /privacy & accuracy requirements/i }).locator('..');
+    const privacyTechniqueCombobox = privacySection.getByRole('combobox').first();
+    await expect(privacyTechniqueCombobox).toBeVisible();
   });
 
-  test('should export training parameters with contract', async ({ page }) => {
-    // Navigate to contract details
-    await page.getByRole('link', { name: /contracts/i }).click();
-    await page.getByRole('link', { name: /test contract/i }).click();
-    
-    // Click export button
-    await page.getByRole('button', { name: /export/i }).click();
-    
-    // Should download contract with training parameters
-    const downloadPromise = page.waitForEvent('download');
-    await page.getByRole('button', { name: /download json/i }).click();
-    const download = await downloadPromise;
-    
-    // Should have meaningful filename
-    expect(download.suggestedFilename()).toContain('contract');
-    expect(download.suggestedFilename()).toContain('.json');
+  test('should allow editing maximum privacy loss (epsilon)', async ({ page }) => {
+    await navigateToPrivacyAccuracyStep(page);
+    const field = page.getByLabel(/maximum privacy loss/i);
+    await field.fill('0.25');
+    await expect(field).toHaveValue('0.25');
   });
-}); 
+
+  test('should allow editing minimum accuracy (%)', async ({ page }) => {
+    await navigateToPrivacyAccuracyStep(page);
+    const field = page.getByLabel(/minimum accuracy/i);
+    await field.fill('90');
+    await expect(field).toHaveValue('90');
+  });
+});

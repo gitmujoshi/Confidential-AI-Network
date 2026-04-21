@@ -53,6 +53,7 @@ const platformEncryptionRouter = require('./routes/platform-encryption');
 // const trainingRouter = require('./routes/training'); // Temporarily disabled due to duplicate class issues
 const constraintsRouter = require('./routes/constraints');
 const depaRouter = require('./routes/depa');
+const tdcTrainingRouter = require('./routes/tdc-training');
 
 // Import role-specific routes
 const adminRouter = require('./routes/admin');
@@ -195,6 +196,7 @@ app.use('/api/global-deployment', globalDeploymentRouter);
 app.use('/api/blockchain', blockchainRouter);
 app.use('/api/constraints', constraintsRouter);
 app.use('/api/depa', depaRouter);
+app.use('/api/tdc/training', tdcTrainingRouter);
 
 // Contract template routes
 app.use('/api/contract-templates', contractTemplatesRouter);

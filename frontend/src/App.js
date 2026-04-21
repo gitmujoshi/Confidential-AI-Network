@@ -39,6 +39,7 @@ import CCRPCloudCredentials from './pages/CCRPCloudCredentials';
 import InfrastructureProvisioning from './pages/InfrastructureProvisioning';
 import TrainingEnvironment from './pages/TrainingEnvironment';
 import TDCModelUpload from './pages/TDCModelUpload';
+import TDCTraining from './pages/TDCTraining';
 import EnvironmentMarketplace from './pages/EnvironmentMarketplace';
 import ScittCcfDashboard from './components/ScittCcfDashboard';
 
@@ -277,7 +278,7 @@ function AppRoutes() {
               <Route path="/marketplace" element={<EnvironmentMarketplace />} />
               <Route path="/contracts" element={<Contracts />} />
               <Route path="/contracts/:contractId" element={<ContractDetail />} />
-              <Route path="/training" element={<div>TDC Training Progress</div>} />
+              <Route path="/training" element={<TDCTraining />} />
               <Route path="/payments" element={<div>TDC Payments</div>} />
             </Routes>
           </Layout>

@@ -196,6 +196,11 @@ start_scitt_ccf() {
         print_error "SCITT CCF Docker Compose file not found"
         return 1
     fi
+
+    # Use a stable compose project name to avoid stale/hashed project state.
+    # Also proactively remove any stale/orphan containers before bringing services up,
+    # otherwise compose can fail with "No such container" during recreate.
+    local COMPOSE_PROJECT_NAME="contractmanagement-scitt-ccf"
     
     # First build images if they don't exist
     if ! build_scitt_ccf_images; then
@@ -204,7 +209,14 @@ start_scitt_ccf() {
     fi
     
     print_status "Starting SCITT CCF services..."
-    docker-compose -f docker-compose.scitt-ccf-dev.yml up -d
+    # Prefer Compose V2 if available, fall back to docker-compose.
+    if docker compose version > /dev/null 2>&1; then
+        docker compose -p "$COMPOSE_PROJECT_NAME" -f docker-compose.scitt-ccf-dev.yml down --remove-orphans > /dev/null 2>&1 || true
+        docker compose -p "$COMPOSE_PROJECT_NAME" -f docker-compose.scitt-ccf-dev.yml up -d --remove-orphans --force-recreate
+    else
+        COMPOSE_PROJECT_NAME="$COMPOSE_PROJECT_NAME" docker-compose -f docker-compose.scitt-ccf-dev.yml down --remove-orphans > /dev/null 2>&1 || true
+        COMPOSE_PROJECT_NAME="$COMPOSE_PROJECT_NAME" docker-compose -f docker-compose.scitt-ccf-dev.yml up -d --remove-orphans --force-recreate
+    fi
     
     print_status "Waiting for SCITT CCF node to be ready..."
     if wait_for_service "SCITT CCF Node" "8000" "http://localhost:8000/app/health"; then

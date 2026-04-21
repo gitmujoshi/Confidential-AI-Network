@@ -2,9 +2,8 @@
 
 services:
   scitt-ccf-node:
-    build:
-      context: ./deployment/scitt-ccf/node
-      dockerfile: Dockerfile
+    # Image is built by `manage-scitt-ccf.sh` (build_scitt_ccf_images)
+    image: scitt-ccf-ledger:latest
     container_name: scitt-ccf-node-dev
     ports:
       - "8000:8000"

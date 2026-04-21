@@ -63,10 +63,11 @@ function loadConfig(options = {}) {
   const { verbose = false, rootDir = process.cwd() } = options;
   
   // Look for config.env in the project root
-  // If we're in backend directory, go up one level
-  // If we're in root directory, use current directory
+  // If we're in a package subdirectory (backend/frontend/etc), go up one level.
+  // If we're in root directory, use current directory.
   let projectRoot = rootDir;
-  if (path.basename(rootDir) === 'backend') {
+  const basename = path.basename(rootDir);
+  if (['backend', 'frontend', 'gateway', 'blockchain', 'marketing-website'].includes(basename)) {
     projectRoot = path.resolve(rootDir, '..');
   }
   

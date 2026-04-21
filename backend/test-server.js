@@ -22,6 +22,7 @@ const adminRouter = require('./routes/admin');
 const tdpRouter = require('./routes/tdp');
 const tdcRouter = require('./routes/tdc');
 const ccrpRouter = require('./routes/ccrp');
+const tdcTrainingRouter = require('./routes/tdc-training');
 
 const app = express();
 const PORT = process.env.PORT || 5001;
@@ -55,6 +56,7 @@ app.use('/api/admin', authenticateToken, adminRouter);
 app.use('/api/tdp', authenticateToken, tdpRouter);
 app.use('/api/tdc', authenticateToken, tdcRouter);
 app.use('/api/ccrp', authenticateToken, ccrpRouter);
+app.use('/api/tdc/training', tdcTrainingRouter);
 
 // Error handling middleware
 app.use((err, req, res, next) => {

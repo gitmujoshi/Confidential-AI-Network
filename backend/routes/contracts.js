@@ -155,21 +155,42 @@ router.get('/user/:userId', async (req, res) => {
       return res.status(404).json({ error: 'User not found' });
     }
 
+    const numericUserId = parseInt(userId, 10);
     let whereClause = {};
+
     if (user.partyType === 'AppAdmin') {
       // AppAdmin can view all contracts
       if (status) {
         whereClause.status = status;
       }
     } else {
-      // Regular users: only contracts where they are a party
-      whereClause = {
-        [db.Sequelize.Op.or]: [
-          { tdpId: userId },
-          { tdcId: userId },
-          { ccrpId: userId }
-        ]
-      };
+      // Regular users: only contracts where they are a party.
+      //
+      // NOTE: `tdpId` is not a first-class DB column on `contracts` in the current schema.
+      // TDP involvement is represented inside the JSONB `contract_datasets` payload.
+      const partyFilters = [];
+
+      if (user.partyType === 'TDC') {
+        partyFilters.push({ tdcId: numericUserId });
+      }
+
+      if (user.partyType === 'CCRP') {
+        partyFilters.push({ ccrpId: numericUserId });
+      }
+
+      if (user.partyType === 'TDP') {
+        partyFilters.push(
+          db.Sequelize.where(
+            db.Sequelize.cast(db.Sequelize.col('contract_datasets'), 'text'),
+            'ILIKE',
+            `%"tdpId":${numericUserId}%`
+          )
+        );
+      }
+
+      // If we couldn't derive any filters, fail closed (empty result) rather than querying invalid columns.
+      whereClause = partyFilters.length > 0 ? { [db.Sequelize.Op.or]: partyFilters } : { id: -1 };
+
       if (status) {
         whereClause.status = status;
       }
