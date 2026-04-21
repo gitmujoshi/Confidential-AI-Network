@@ -75,17 +75,6 @@ const TDCModelUpload = () => {
   const navigate = useNavigate();
   const { currentUser, isTDC } = useUser();
   const queryClient = useQueryClient();
-  
-  // Access control
-  if (!isTDC()) {
-    return (
-      <Box sx={{ p: 3 }}>
-        <Alert severity="error">
-          Access denied. Only TDC (Training Data Consumer) users can upload AI models.
-        </Alert>
-      </Box>
-    );
-  }
 
   // State management
   const [activeStep, setActiveStep] = useState(0);
@@ -967,6 +956,17 @@ const TDCModelUpload = () => {
         return null;
     }
   };
+
+  // Access control (must be after hooks are declared)
+  if (!isTDC()) {
+    return (
+      <Box sx={{ p: 3 }}>
+        <Alert severity="error">
+          Access denied. Only TDC (Training Data Consumer) users can upload AI models.
+        </Alert>
+      </Box>
+    );
+  }
 
   return (
     <Box sx={{ maxWidth: 1000, mx: 'auto', p: 3 }}>

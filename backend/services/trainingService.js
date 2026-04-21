@@ -937,6 +937,83 @@ class TrainingService {
       throw error;
     }
   }
+
+  /**
+   * Jobs for contracts where the user is TDC or CCRP (CCRP training console).
+   */
+  async getTrainingJobs(userId) {
+    const { Op } = require('sequelize');
+    const uid = Number(userId);
+    if (!Number.isFinite(uid)) {
+      throw new Error('Invalid user id');
+    }
+    const contracts = await Contract.findAll({
+      where: { [Op.or]: [{ tdcId: uid }, { ccrpId: uid }] },
+      attributes: ['contractId'],
+    });
+    const ids = contracts.map((c) => c.contractId).filter(Boolean);
+    if (ids.length === 0) return [];
+    return TrainingJob.findAll({
+      where: { contractId: { [Op.in]: ids } },
+      order: [['createdAt', 'DESC']],
+    });
+  }
+
+  /**
+   * Container registry not implemented — return empty until multi-cloud container tracking exists.
+   */
+  async getTrainingContainers(_userId) {
+    return [];
+  }
+
+  /**
+   * Manual deploy from CCRP UI (ad-hoc job record; extend with real orchestration later).
+   */
+  async deployTrainingJob(userId, config = {}) {
+    const contractId =
+      config.contractId ||
+      `ccrp-manual-${userId}-${Date.now()}`;
+    const jobId = `job-${contractId}-${Date.now()}`;
+    const job = await TrainingJob.create({
+      jobId,
+      contractId,
+      status: 'PENDING',
+      trainingConfig: config,
+      metadata: {
+        deployConfig: config,
+        source: 'ccrp_deploy',
+      },
+      createdBy: String(userId),
+    });
+    return job.get({ plain: true });
+  }
+
+  async stopTrainingJob(jobId) {
+    const job = await TrainingJob.findOne({ where: { jobId } });
+    if (!job) throw new Error('Training job not found');
+    await job.update({
+      status: 'CANCELLED',
+      cancelledAt: new Date(),
+      cancellationReason: 'Stopped by user',
+    });
+  }
+
+  async deleteTrainingJob(jobId) {
+    const job = await TrainingJob.findOne({ where: { jobId } });
+    if (!job) throw new Error('Training job not found');
+    await job.destroy();
+  }
+
+  async getTrainingJobLogs(jobId) {
+    const job = await TrainingJob.findOne({ where: { jobId } });
+    if (!job) throw new Error('Training job not found');
+    const plain = job.get({ plain: true });
+    if (plain.logs && Array.isArray(plain.logs)) return plain.logs;
+    if (plain.metadata?.logLines) return plain.metadata.logLines;
+    return [
+      `[${new Date().toISOString()}] INFO: Log streaming not attached for job ${jobId}`,
+    ];
+  }
 }
 
 module.exports = TrainingService; 

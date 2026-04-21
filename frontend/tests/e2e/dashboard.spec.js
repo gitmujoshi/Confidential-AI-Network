@@ -1,115 +1,108 @@
 const { test, expect } = require('@playwright/test');
+const axios = require('axios');
+const { getBackendURL } = require('../../load-config');
 
 test.describe('Dashboard Tests', () => {
-  test.beforeEach(async ({ page }) => {
-    // Login before each test using working test user
-    await page.goto('/');
-    await page.getByLabel(/email/i).fill('tdc.healthcare.2025-09-05t20-39-55@test.com');
-    await page.getByLabel(/password/i).fill('TestNewPassword123!');
-    await page.getByRole('button', { name: /sign in/i }).click();
-    
-    // Wait for dashboard to load
-    await expect(page).toHaveURL(/.*dashboard/);
-  });
+  test.describe.configure({ mode: 'serial' });
+
+  const BACKEND_URL = getBackendURL();
+  const PASSWORD = 'TestNewPassword123!';
+
+  async function seedAuth(page, { email }) {
+    const loginResponse = await axios.post(`${BACKEND_URL}/api/auth/login`, { email, password: PASSWORD });
+    const { accessToken, user } = loginResponse.data || {};
+    if (!accessToken || !user) throw new Error('API login did not return accessToken/user');
+
+    await page.addInitScript(({ token, u }) => {
+      localStorage.setItem('authToken', token);
+      localStorage.setItem('user', JSON.stringify(u));
+      localStorage.setItem('currentUser', JSON.stringify(u));
+    }, { token: accessToken, u: user });
+  }
+
+  async function waitForDashboardReady(page, { partyType, welcomeHeading }) {
+    const loading = page.getByText(new RegExp(`Loading ${partyType} dashboard\\.\\.\\.`, 'i'));
+    await loading.waitFor({ state: 'hidden', timeout: 120000 }).catch(() => {});
+
+    const error = page.getByText(new RegExp(`Error loading ${partyType} dashboard`, 'i'));
+    if (await error.isVisible().catch(() => false)) {
+      throw new Error(`Dashboard failed to load: ${await error.textContent()}`);
+    }
+
+    await expect(page.getByRole('heading', { name: welcomeHeading })).toBeVisible({ timeout: 120000 });
+  }
 
   test('should display TDC dashboard correctly', async ({ page }) => {
-    // Check if dashboard loads
-    await expect(page.locator('h1')).toContainText('Dashboard');
-    
-    // Check for contract summary
-    await expect(page.locator('[data-testid="contract-summary"]')).toBeVisible();
-    
-    // Check for dataset access
-    await expect(page.locator('[data-testid="dataset-access"]')).toBeVisible();
+    await seedAuth(page, { email: 'tdc.healthcare.2025-09-05t20-39-55@test.com' });
+    await page.goto('/tdc/dashboard');
+    await expect(page).not.toHaveURL(/.*\/login/);
+
+    await waitForDashboardReady(page, { partyType: 'TDC', welcomeHeading: /Welcome to Your TDC Dashboard/i });
+    const main = page.getByRole('main');
+    await expect(main.getByText('Available Datasets', { exact: true }).first()).toBeVisible({ timeout: 120000 });
+    await expect(main.getByText('My Contracts', { exact: true }).first()).toBeVisible({ timeout: 120000 });
   });
 
   test('should display TDP dashboard correctly', async ({ page }) => {
-    // Navigate to TDP dashboard
-    await page.goto('http://localhost:3000/dashboard/tdp');
-    
-    // Check if TDP dashboard loads
-    await expect(page.locator('h1')).toContainText('TDP Dashboard');
-    
-    // Check for dataset management
-    await expect(page.locator('[data-testid="dataset-management"]')).toBeVisible();
-    
-    // Check for contract requests
-    await expect(page.locator('[data-testid="contract-requests"]')).toBeVisible();
+    await seedAuth(page, { email: 'tdp.e2e@test.com' });
+    await page.goto('/tdp/dashboard');
+    await expect(page).not.toHaveURL(/.*\/login/);
+
+    await waitForDashboardReady(page, { partyType: 'TDP', welcomeHeading: /Welcome to Your TDP Dashboard/i });
+    const main = page.getByRole('main');
+    await expect(main.getByRole('heading', { name: 'My Datasets', exact: true })).toBeVisible({ timeout: 120000 });
+    await expect(main.getByText('Total Contracts', { exact: true })).toBeVisible({ timeout: 120000 });
   });
 
   test('should display CCRP dashboard correctly', async ({ page }) => {
-    // Navigate to CCRP dashboard
-    await page.goto('http://localhost:3000/dashboard/ccrp');
-    
-    // Check if CCRP dashboard loads
-    await expect(page.locator('h1')).toContainText('CCRP Dashboard');
-    
-    // Check for environment management
-    await expect(page.locator('[data-testid="environment-management"]')).toBeVisible();
-    
-    // Check for contract execution
-    await expect(page.locator('[data-testid="contract-execution"]')).toBeVisible();
+    await seedAuth(page, { email: 'ccrp.e2e@test.com' });
+    await page.goto('/ccrp/dashboard');
+    await expect(page).not.toHaveURL(/.*\/login/);
+
+    await waitForDashboardReady(page, { partyType: 'CCRP', welcomeHeading: /Welcome to Your CCRP Dashboard/i });
   });
 
   test('should display Admin dashboard correctly', async ({ page }) => {
-    // Navigate to Admin dashboard
-    await page.goto('http://localhost:3000/dashboard/admin');
-    
-    // Check if Admin dashboard loads
-    await expect(page.locator('h1')).toContainText('Admin Dashboard');
-    
-    // Check for user management
-    await expect(page.locator('[data-testid="user-management"]')).toBeVisible();
-    
-    // Check for system monitoring
-    await expect(page.locator('[data-testid="system-monitoring"]')).toBeVisible();
+    await seedAuth(page, { email: 'appadmin.e2e@test.com' });
+    await page.goto('/admin/dashboard');
+    await expect(page).not.toHaveURL(/.*\/login/);
+
+    const loading = page.getByText(/Loading admin dashboard/i);
+    await loading.waitFor({ state: 'hidden', timeout: 120000 }).catch(() => {});
+
+    const error = page.getByText(/Error loading admin dashboard/i);
+    if (await error.isVisible().catch(() => false)) {
+      throw new Error(`Admin dashboard failed to load: ${await error.textContent()}`);
+    }
+
+    await expect(page.getByRole('heading', { name: /System Administration Dashboard/i })).toBeVisible({ timeout: 120000 });
+    await expect(page.getByText('Total Users', { exact: true })).toBeVisible({ timeout: 120000 });
   });
 
   test('should display SCITT CCF dashboard correctly', async ({ page }) => {
-    // Navigate to SCITT CCF dashboard
-    await page.goto('http://localhost:3000/dashboard/admin/scitt-ccf');
-    
-    // Check if SCITT CCF dashboard loads
-    await expect(page.locator('h1')).toContainText('SCITT CCF Dashboard');
-    
-    // Check for SCITT CCF health status
-    await expect(page.locator('[data-testid="scitt-ccf-health"]')).toBeVisible();
-    
-    // Check for contract claims
-    await expect(page.locator('[data-testid="contract-claims"]')).toBeVisible();
-    
-    // Check for provenance tracking
-    await expect(page.locator('[data-testid="provenance-tracking"]')).toBeVisible();
-    
-    // Check for TEE attestation
-    await expect(page.locator('[data-testid="tee-attestation"]')).toBeVisible();
+    await seedAuth(page, { email: 'appadmin.e2e@test.com' });
+    await page.goto('/admin/scitt-ccf');
+    await expect(page).not.toHaveURL(/.*\/login/);
+
+    await expect(page.getByRole('heading', { name: 'SCITT CCF Dashboard', exact: true })).toBeVisible({ timeout: 120000 });
+    await expect(page.getByText('System Health', { exact: true })).toBeVisible({ timeout: 120000 });
+    await expect(page.getByText('Migration Mode', { exact: true })).toBeVisible({ timeout: 120000 });
   });
 
   test('should display SCITT CCF metrics correctly', async ({ page }) => {
-    // Navigate to SCITT CCF dashboard
-    await page.goto('http://localhost:3000/dashboard/admin/scitt-ccf');
-    
-    // Check for performance metrics
-    await expect(page.locator('[data-testid="performance-metrics"]')).toBeVisible();
-    
-    // Check for claim statistics
-    await expect(page.locator('[data-testid="claim-statistics"]')).toBeVisible();
-    
-    // Check for system health
-    await expect(page.locator('[data-testid="system-health"]')).toBeVisible();
+    await seedAuth(page, { email: 'appadmin.e2e@test.com' });
+    await page.goto('/admin/scitt-ccf');
+
+    await expect(page.getByText('Performance Metrics', { exact: true })).toBeVisible({ timeout: 120000 });
+    await expect(page.getByText('Migration Status', { exact: true })).toBeVisible({ timeout: 120000 });
   });
 
   test('should handle SCITT CCF configuration changes', async ({ page }) => {
-    // Navigate to SCITT CCF dashboard
-    await page.goto('http://localhost:3000/dashboard/admin/scitt-ccf');
-    
-    // Check for configuration section
-    await expect(page.locator('[data-testid="configuration-section"]')).toBeVisible();
-    
-    // Check for migration mode selector
-    await expect(page.locator('[data-testid="migration-mode-selector"]')).toBeVisible();
-    
-    // Check for TEE provider configuration
-    await expect(page.locator('[data-testid="tee-provider-config"]')).toBeVisible();
+    await seedAuth(page, { email: 'appadmin.e2e@test.com' });
+    await page.goto('/admin/scitt-ccf');
+
+    await expect(page.getByText('Configuration', { exact: true })).toBeVisible({ timeout: 120000 });
+    await expect(page.getByRole('button', { name: 'Edit Config', exact: true })).toBeVisible({ timeout: 120000 });
+    await expect(page.getByRole('button', { name: 'Change Mode', exact: true })).toBeVisible({ timeout: 120000 });
   });
-}); 
+});

@@ -154,6 +154,25 @@ graph TB
 
 ## 🧪 Testing
 
+### **Frontend E2E (Playwright)**
+
+From `frontend/`:
+
+```bash
+npm run test:e2e:install    # browsers (once)
+npm run test:e2e:chromium   # fast single-browser run
+```
+
+The **backend must be up** (`http://localhost:5001/health` or `BACKEND_URL` in `config.env`). Global setup **fails fast** if the API is unreachable (no more silent runs against a dead server).
+
+**Docs:** [frontend/tests/e2e/README.md](frontend/tests/e2e/README.md)
+
+**Backend unit (TDC helpers):**
+
+```bash
+cd backend && npm run test:unit -- --testPathPattern=tdc-training-helpers
+```
+
 ### **Updated Test Suites for SCITT CCF**
 
 The backend test suites have been completely updated to include SCITT CCF integration:
@@ -183,6 +202,7 @@ npm test -- scitt-ccf-api.test.js
 - **[Developer Guide](docs/DEVELOPER_GUIDE.md)** - Development setup and guidelines
 - **[API Reference](docs/API_REFERENCE.md)** - Complete API documentation
 - **[Architecture Guide](docs/ARCHITECTURE.md)** - System architecture overview
+- **[TDC training runtime](docs/training/TDC_TRAINING_RUNTIME.md)** - TDC/CCRP training APIs, env vars, UI routes
 
 ### **SCITT CCF Documentation**
 - **[SCITT CCF Integration Guide](SCITT_CCF_INTEGRATION_README.md)** - Complete integration guide
@@ -214,6 +234,8 @@ npm test -- scitt-ccf-api.test.js
 - **Enterprise Security**: Hardware-level security and attestation
 
 ### **Advanced Features**
+- **TDC training jobs**: Start training from a **signed** contract (`/tdc/training`), simulated runs by default (`TRAINING_SIMULATION_MODE`), optional **register trained model** for inference (`POST /api/tdc/training/jobs/:jobId/register-model`). See **[docs/training/TDC_TRAINING_RUNTIME.md](docs/training/TDC_TRAINING_RUNTIME.md)**.
+- **CCRP training console**: Deploy/monitor jobs via **`/api/ccrp/training/...`** and UI at **`/ccrp/training-environment`**.
 - **Digital Contract Signing**: Secure digital signature generation and verification
 - **Key Management**: Multi-algorithm key generation and management (ECDSA-P256, RSA-2048, RSA-4096)
 - **SCITT CCF Integration**: Immutable signature storage and verification

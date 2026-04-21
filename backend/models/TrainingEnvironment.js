@@ -204,6 +204,18 @@ module.exports = (sequelize, DataTypes) => {
       sourceKey: 'contractId',
       as: 'trainingJob'
     });
+
+    TrainingEnvironment.hasMany(models.EnvironmentResource, {
+      foreignKey: 'environmentId',
+      sourceKey: 'environmentId',
+      as: 'resources'
+    });
+
+    TrainingEnvironment.hasMany(models.EnvironmentCost, {
+      foreignKey: 'environmentId',
+      sourceKey: 'environmentId',
+      as: 'costs'
+    });
   };
 
   return TrainingEnvironment;

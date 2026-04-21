@@ -1,20 +1,21 @@
 // @ts-check
 const { defineConfig, devices } = require('@playwright/test');
-const { getFrontendURL, FRONTEND_PORT } = require('./load-config');
+const { getFrontendURL } = require('./load-config');
 
 /**
  * @see https://playwright.dev/docs/test-configuration
  */
 module.exports = defineConfig({
   testDir: './tests/e2e',
-  /* Run tests in files in parallel */
+  /* Serial execution avoids flaky logins and shared-backend races (default workers=1). */
   fullyParallel: true,
   /* Fail the build on CI if you accidentally left test.only in the source code. */
   forbidOnly: !!process.env.CI,
   /* Retry on CI only */
   retries: process.env.CI ? 2 : 0,
-  /* Opt out of parallel tests on CI. */
-  workers: process.env.CI ? 1 : undefined,
+  /* One worker by default: E2E hits one backend/Keycloak; parallel files caused 401s and order-dependent failures. Override: PW_WORKERS=4 */
+  workers:
+    process.env.PW_WORKERS !== undefined ? parseInt(process.env.PW_WORKERS, 10) || 1 : 1,
   /* Reporter to use. See https://playwright.dev/docs/test-reporters */
   reporter: [
     ['html'],
@@ -84,7 +85,9 @@ module.exports = defineConfig({
   webServer: {
     command: 'npm run start',
     url: getFrontendURL(),
-    reuseExistingServer: !process.env.CI,
+    // Reuse when FRONTEND_URL already responds (local dev server or CI job that started the app).
+    // If nothing is listening, Playwright still starts `npm run start` as usual.
+    reuseExistingServer: true,
     timeout: 120 * 1000,
   },
   

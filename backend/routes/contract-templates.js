@@ -344,7 +344,8 @@ router.use(authenticateToken);
 router.post('/', async (req, res) => {
   try {
     // Check if user has admin privileges
-    if (req.user.localUser.partyType !== 'ADMIN') {
+    const partyType = req.user?.localUser?.partyType || req.user?.partyType;
+    if (partyType !== 'AppAdmin') {
       return res.status(403).json({
         success: false,
         error: 'Only administrators can create contract templates'
@@ -380,7 +381,8 @@ router.post('/', async (req, res) => {
 router.put('/:templateId', async (req, res) => {
   try {
     // Check if user has admin privileges
-    if (req.user.localUser.partyType !== 'ADMIN') {
+    const partyType = req.user?.localUser?.partyType || req.user?.partyType;
+    if (partyType !== 'AppAdmin') {
       return res.status(403).json({
         success: false,
         error: 'Only administrators can update contract templates'
@@ -424,7 +426,8 @@ router.put('/:templateId', async (req, res) => {
 router.delete('/:templateId', async (req, res) => {
   try {
     // Check if user has admin privileges
-    if (req.user.localUser.partyType !== 'ADMIN') {
+    const partyType = req.user?.localUser?.partyType || req.user?.partyType;
+    if (partyType !== 'AppAdmin') {
       return res.status(403).json({
         success: false,
         error: 'Only administrators can delete contract templates'
@@ -467,7 +470,8 @@ router.delete('/:templateId', async (req, res) => {
 router.post('/seed', async (req, res) => {
   try {
     // Check if user has admin privileges
-    if (req.user.localUser.partyType !== 'ADMIN') {
+    const partyType = req.user?.localUser?.partyType || req.user?.partyType;
+    if (partyType !== 'AppAdmin') {
       return res.status(403).json({
         success: false,
         error: 'Only administrators can seed default templates'

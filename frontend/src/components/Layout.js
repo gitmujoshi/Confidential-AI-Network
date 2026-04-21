@@ -31,6 +31,7 @@ import {
   Add,
   Business,
   Security,
+  Psychology,
 } from '@mui/icons-material';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useQuery } from 'react-query';
@@ -76,6 +77,7 @@ const Layout = ({ children }) => {
     { text: 'Dashboard', icon: <Dashboard />, path: '/dashboard' },
     { text: 'Datasets', icon: <Storage />, path: '/datasets' },
     { text: 'Contracts', icon: <Description />, path: '/contracts' },
+    ...(isTDC ? [{ text: 'Training', icon: <Psychology />, path: '/tdc/training' }] : []),
     // CCRP-specific menu items (only for CCRP users, not AppAdmin)
     ...(currentUser?.partyType === 'CCRP' ? [
       { text: 'Environments', icon: <Security />, path: '/ccrp/environments' },
@@ -117,7 +119,10 @@ const Layout = ({ children }) => {
             return (
               <ListItem key={item.text} disablePadding className="mb-1">
                 <ListItemButton
-                  onClick={() => navigate(item.path)}
+                  onClick={() => {
+                    navigate(item.path);
+                    setMobileOpen(false);
+                  }}
                   className={`rounded-md ${
                     isActive ? 'bg-blue-50 text-blue-700' : 'hover:bg-gray-50'
                   }`}
@@ -146,7 +151,10 @@ const Layout = ({ children }) => {
               <Button
                 variant="outlined"
                 startIcon={<Security />}
-                onClick={() => navigate('/contracts/create')}
+                onClick={() => {
+                  navigate('/contracts/create');
+                  setMobileOpen(false);
+                }}
                 className="w-full justify-start"
                 size="small"
               >
@@ -156,7 +164,10 @@ const Layout = ({ children }) => {
             <Button
               variant="outlined"
               startIcon={<Storage />}
-              onClick={() => navigate('/datasets')}
+              onClick={() => {
+                navigate('/datasets');
+                setMobileOpen(false);
+              }}
               className="w-full justify-start"
               size="small"
             >
@@ -348,8 +359,9 @@ const Layout = ({ children }) => {
           flexGrow: 1,
           p: 3,
           width: { sm: `calc(100% - ${drawerWidth}px)` },
-          marginTop: '80px', // Increased to account for AppBar height
-          minHeight: 'calc(100vh - 80px)', // Ensure full height
+          // xs: taller offset so wrapped AppBar + chips do not cover the first row of main content
+          marginTop: { xs: '120px', sm: '80px' },
+          minHeight: { xs: 'calc(100vh - 120px)', sm: 'calc(100vh - 80px)' },
         }}
       >
         {children}

@@ -279,6 +279,31 @@ const realApiService = {
     return response.data;
   },
 
+  /** TDC: start training for a signed contract (see backend TRAINING_SIMULATION_MODE) */
+  startTdcTraining: async (contractId) => {
+    const response = await api.post(
+      `/api/tdc/training/contracts/${encodeURIComponent(contractId)}/start`
+    );
+    return response.data;
+  },
+  listTdcTrainingJobs: async (contractId) => {
+    const response = await api.get(
+      `/api/tdc/training/contracts/${encodeURIComponent(contractId)}/jobs`
+    );
+    return response.data;
+  },
+  getTdcTrainingJob: async (jobId) => {
+    const response = await api.get(`/api/tdc/training/jobs/${encodeURIComponent(jobId)}`);
+    return response.data;
+  },
+  registerTdcTrainingModel: async (jobId, payload = {}) => {
+    const response = await api.post(
+      `/api/tdc/training/jobs/${encodeURIComponent(jobId)}/register-model`,
+      payload
+    );
+    return response.data;
+  },
+
   // SCITT CCF API Methods
   // Health and Status
   getScittCcfHealth: async () => {

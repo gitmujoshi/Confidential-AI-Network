@@ -39,6 +39,7 @@ import {
   Storage,
   NetworkCheck,
   Security,
+  Verified,
   Speed,
   Warning,
   CheckCircle,

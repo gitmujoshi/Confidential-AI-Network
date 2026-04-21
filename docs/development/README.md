@@ -10,6 +10,7 @@ This directory contains comprehensive documentation for developers who need to e
 - **[Developer Guide](DEVELOPER_GUIDE.md)** - Complete developer documentation
 - **[Local Development Setup](LOCAL_DEVELOPMENT_SETUP.md)** - Step-by-step local setup
 - **[Testing Guide](TESTING_GUIDE.md)** - Comprehensive testing strategies
+- **[TDC training runtime](../training/TDC_TRAINING_RUNTIME.md)** - TDC/CCRP training APIs, `TRAINING_SIMULATION_MODE`, Playwright prerequisites
 
 ### **Quick Start for Developers**
 ```bash
