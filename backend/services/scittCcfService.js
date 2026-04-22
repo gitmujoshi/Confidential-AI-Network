@@ -696,10 +696,26 @@ class ScittCcfService {
    */
   async listClaims(userId) {
     try {
-      const claims = await db.ScittClaim.findAll({
-        where: { userId },
-        order: [['createdAt', 'DESC']]
+      // scitt_claims does not have a userId column. Claims are linked to contracts by contractId.
+      // List claims for contracts where the user participates (TDP/TDC/CCRP).
+      const contracts = await db.Contract.findAll({
+        where: {
+          [Op.or]: [
+            { tdcId: userId },
+            { ccrpId: userId },
+          ],
+        },
+        attributes: ['contractId'],
+        order: [['createdAt', 'DESC']],
       });
+
+      const contractIds = contracts.map((c) => c.contractId).filter(Boolean);
+      const claims = contractIds.length > 0
+        ? await db.ScittClaim.findAll({
+            where: { contractId: { [Op.in]: contractIds } },
+            order: [['createdAt', 'DESC']],
+          })
+        : [];
       
       return claims.map(claim => ({
         claimId: claim.claimId,
@@ -721,7 +737,6 @@ class ScittCcfService {
       const contracts = await db.Contract.findAll({
         where: { 
           [Op.or]: [
-            { tdpId: userId },
             { tdcId: userId },
             { ccrpId: userId }
           ]
