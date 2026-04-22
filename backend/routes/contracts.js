@@ -7,6 +7,7 @@ const notificationService = new NotificationService();
 const { authenticateToken } = require('../middleware/auth');
 const ContractValidationService = require('../services/contractValidationService');
 const contractValidationService = new ContractValidationService();
+const crypto = require('crypto');
 
 /**
  * Enhanced DID signature verification using DID service
@@ -393,6 +394,120 @@ router.get('/:contractId', async (req, res) => {
   } catch (error) {
     console.error('Error getting contract:', error);
     res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// ---------------------------------------------------------------------------
+// Contract signing helpers (frontend expects /api/contracts/:contractId/*)
+// ---------------------------------------------------------------------------
+
+// Get signing data (message/hash) for a contract
+router.get('/:contractId/signing-data', authenticateToken, async (req, res) => {
+  try {
+    const { contractId } = req.params;
+    const partyType = req.user?.localUser?.partyType;
+    if (!partyType) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    const contract = await db.Contract.findOne({ where: { contractId } });
+    if (!contract) {
+      return res.status(404).json({ error: 'Contract not found' });
+    }
+
+    const timestamp = new Date().toISOString();
+    const message = `Sign contract ${contract.contractId} as ${partyType} at ${timestamp}`;
+    const contractHash = crypto.createHash('sha256').update(message).digest('hex');
+
+    return res.json({
+      success: true,
+      message,
+      contractHash,
+      contractId: contract.contractId,
+      partyType,
+      timestamp,
+    });
+  } catch (error) {
+    console.error('Error generating signing data:', error);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Sign contract as a party (TDP/CCRP/TDC)
+router.post('/:contractId/sign', authenticateToken, async (req, res) => {
+  try {
+    const { contractId } = req.params;
+    const currentUser = req.user?.localUser;
+    if (!currentUser?.id || !currentUser?.partyType) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    const { signature, partyType, timestamp, walletAddress, did } = req.body || {};
+    if (!signature || !partyType) {
+      return res.status(400).json({ error: 'Missing required fields: signature, partyType' });
+    }
+
+    // Enforce role matches unless AppAdmin.
+    if (currentUser.partyType !== 'AppAdmin' && currentUser.partyType !== partyType) {
+      return res.status(403).json({ error: 'Role mismatch: not authorized to sign as this partyType' });
+    }
+
+    const contract = await db.Contract.findOne({ where: { contractId } });
+    if (!contract) {
+      return res.status(404).json({ error: 'Contract not found' });
+    }
+
+    // Append signature into legalDocument (best-effort, schema-flexible)
+    const legal = (contract.legalDocument && typeof contract.legalDocument === 'object')
+      ? { ...contract.legalDocument }
+      : {};
+    legal.signatures = Array.isArray(legal.signatures) ? [...legal.signatures] : [];
+    legal.signatures.push({
+      partyType,
+      signerUserId: currentUser.id,
+      walletAddress: walletAddress || currentUser.walletAddress || null,
+      did: did || currentUser.did || null,
+      signature,
+      timestamp: timestamp || new Date().toISOString(),
+    });
+
+    const updates = { legalDocument: legal };
+
+    if (partyType === 'TDP') {
+      const datasets = contract.contractDatasets;
+      const isLinkedTdp = Array.isArray(datasets) && datasets.some((d) => Number(d?.tdpId) === Number(currentUser.id));
+      if (currentUser.partyType !== 'AppAdmin' && !isLinkedTdp) {
+        return res.status(403).json({ error: 'Only a linked TDP can sign this contract' });
+      }
+
+      // Advance to CCRP approval stage for legacy workflow.
+      if (contract.status === 'PENDING_TDP_APPROVAL' || contract.status === 'PENDING_TDP') {
+        updates.status = 'PENDING_CCRP_APPROVAL';
+      }
+    }
+
+    if (partyType === 'CCRP') {
+      if (currentUser.partyType !== 'AppAdmin' && Number(contract.ccrpId) !== Number(currentUser.id)) {
+        return res.status(403).json({ error: 'Only the assigned CCRP can sign this contract' });
+      }
+      updates.ccrpSigned = true;
+      updates.ccrpSignedAt = new Date();
+      updates.status = 'SIGNED';
+    }
+
+    // NOTE: TDC signing is not required by the current training runtime gate (it checks status === SIGNED).
+    await contract.update(updates);
+
+    return res.json({
+      success: true,
+      contractId: contract.contractId,
+      status: contract.status,
+      ccrpSigned: contract.ccrpSigned,
+      ccrpSignedAt: contract.ccrpSignedAt,
+    });
+  } catch (error) {
+    console.error('Error signing contract:', error);
+    return res.status(500).json({ error: 'Internal server error' });
   }
 });
 
