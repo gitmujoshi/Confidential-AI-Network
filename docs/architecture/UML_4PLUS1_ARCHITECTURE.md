@@ -300,23 +300,23 @@ classDiagram
         +checkAvailability()
     }
     
-    User ||--o{ Dataset : owns
-    User ||--o{ Contract : participates
-    User ||--o{ CCRPCloudCredentials : has
-    Dataset ||--o{ Contract : used_in
-    Contract ||--o{ ScittClaim : generates
-    Contract ||--o{ TrainingEnvironment : provisions
-    Contract ||--o{ PrivacyBudget : has
-    Contract ||--o{ MerkleTree : has
-    MerkleTree ||--o{ ProvenanceNode : contains
-    ProvenanceNode ||--o{ ProvenanceCapture : captured_by
-    ProvenanceCapture ||--o{ ProvenanceVerification : verified_by
-    CCRPCloudCredentials ||--o{ TrainingEnvironment : used_for
-    User ||--o{ AiModel : owns
-    User ||--o{ EnvironmentOffering : provides
-    Contract ||--o{ AiModel : uses
-    Contract ||--o{ TEEEnvironment : provisions
-    EnvironmentOffering ||--o{ TEEEnvironment : instantiates
+    User "1" o-- "*" Dataset : owns
+    User "1" o-- "*" Contract : participates
+    User "1" o-- "*" CCRPCloudCredentials : has
+    Dataset "1" o-- "*" Contract : used_in
+    Contract "1" o-- "*" ScittClaim : generates
+    Contract "1" o-- "*" TrainingEnvironment : provisions
+    Contract "1" o-- "*" PrivacyBudget : has
+    Contract "1" o-- "*" MerkleTree : has
+    MerkleTree "1" o-- "*" ProvenanceNode : contains
+    ProvenanceNode "1" o-- "*" ProvenanceCapture : captured_by
+    ProvenanceCapture "1" o-- "*" ProvenanceVerification : verified_by
+    CCRPCloudCredentials "1" o-- "*" TrainingEnvironment : used_for
+    User "1" o-- "*" AiModel : owns
+    User "1" o-- "*" EnvironmentOffering : provides
+    Contract "1" o-- "*" AiModel : uses
+    Contract "1" o-- "*" TEEEnvironment : provisions
+    EnvironmentOffering "1" o-- "*" TEEEnvironment : instantiates
 ```
 
 ### **1.2 Service Layer Architecture**
@@ -589,11 +589,11 @@ classDiagram
         +verifyProvenance()
     }
     
-    Contract ||--o{ ScittClaim : generates
-    Contract ||--o{ MerkleTreeProvenance : has
-    ScittClaim ||--o{ ProvenanceCapture : includes
-    MerkleTreeProvenance ||--o{ ProvenanceNode : contains
-    ProvenanceNode ||--o{ ProvenanceCapture : tracks
+    Contract "1" o-- "*" ScittClaim : generates
+    Contract "1" o-- "*" MerkleTreeProvenance : has
+    ScittClaim "1" o-- "*" ProvenanceCapture : includes
+    MerkleTreeProvenance "1" o-- "*" ProvenanceNode : contains
+    ProvenanceNode "1" o-- "*" ProvenanceCapture : tracks
 ```
 
 ### **1.4 Enhanced Service Layer with Provenance**
