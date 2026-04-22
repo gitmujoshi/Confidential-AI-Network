@@ -2,7 +2,9 @@
 
 ## 📊 Current Status Overview
 
-Based on comprehensive analysis, the Contract Management System is **95% complete** with a solid foundation for AI/ML model training on both confidential and public data. Here's the detailed status:
+This document is a forward-looking roadmap. As of **2026**, the system includes an implemented **TDC training runtime** and **CCRP training environment/job monitoring** surface (API + UI + E2E smoke coverage). Use this doc for gaps/priorities, and refer to the runtime doc for the current API surface.
+
+**Canonical runtime doc:** `docs/training/TDC_TRAINING_RUNTIME.md`
 
 ## ✅ **What's Already Implemented (Strong Foundation)**
 
@@ -28,9 +30,16 @@ Based on comprehensive analysis, the Contract Management System is **95% complet
 - **Model Validation**: Cross-validation with secure multiparty validation
 - **Training Execution**: Automated training triggered by contract activation
 
+#### **2026: Training runtime implementation (now in place)**
+- **TDC training API**: `/api/tdc/training/*` (start contract-scoped jobs, list jobs, view job, register model)
+- **CCRP job/environment monitoring APIs**: `/api/ccrp/training/*` (UI-backed listing/actions/logs)
+- **Simulation support**: `TRAINING_SIMULATION_MODE` for deterministic local testing
+- **DB hardening**: training-job metadata ensure script + migration (to keep job records consistent)
+- **E2E smoke**: Playwright specs for TDC training page and CCRP training environment page
+
 ## ⚠️ **Critical Gaps for Complete Solution**
 
-### **1. AI Safety & Content Moderation (0% Implemented)**
+### **1. AI Safety & Content Moderation (Not implemented)**
 **MISSING**: No content filtering or AI safety measures for:
 - Harmful content detection in training data
 - Child safety protections
