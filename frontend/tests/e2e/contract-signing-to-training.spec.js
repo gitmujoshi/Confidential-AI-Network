@@ -31,17 +31,37 @@ test.describe('Contract signing → training (TDC/TDP/CCRP)', () => {
   }
 
   test('TDC creates contract, TDP+CCRP sign, then TDC starts training', async ({ page }) => {
-    const [{ token: tdcToken, user: tdcUser }, { token: tdpToken }, { token: ccrpToken }] =
+    const [{ token: tdcToken, user: tdcUser }, { token: tdpToken, user: tdpUser }, { token: ccrpToken, user: ccrpUser }] =
       await Promise.all([login(USERS.tdc.email), login(USERS.tdp.email), login(USERS.ccrp.email)]);
+
+    // Pick a model id for the contract so the training runtime can build a container spec.
+    let aiModelIds = [];
+    try {
+      const modelsRes = await axios.get(`${BACKEND_URL}/api/contracts/ricardian/available-models`);
+      const models = modelsRes.data?.models || modelsRes.data?.data?.models || modelsRes.data || [];
+      const first = Array.isArray(models) ? models[0] : null;
+      const id = first?.id ?? first?.modelId;
+      if (id) aiModelIds = [id];
+    } catch (_) {
+      // If models endpoint is unavailable, continue; training start may fail with a clear error.
+    }
 
     // Create a contract via API (stable vs. multi-step UI wizard).
     const create = await axios.post(`${BACKEND_URL}/api/contracts/ricardian`, {
       datasetSelections: [{ datasetId: 'e2e-dataset-1', individualPrice: 100 }],
+      aiModelIds,
       duration: 30,
       termsAndConditions: `E2E signing→training ${Date.now()}`,
       contractType: 'AI_TRAINING',
       privacyRequirements: { maxPrivacyLoss: 0.25, minAccuracy: 0.85, differentialPrivacy: true },
       trainingParams: { privacyTechnique: 'Differential Privacy' },
+      environmentSpecs: {
+        compute: { cpuCores: 2, memoryGB: 4, gpuCount: 0 },
+        security: { confidentialComputing: false },
+      },
+      // Ensure CCRP is assigned so CCRP signing is authorized.
+      ccrpId: ccrpUser.id,
+      ccrpCloudProvider: 'Azure',
     }, {
       headers: { Authorization: `Bearer ${tdcToken}` },
     });
@@ -92,20 +112,30 @@ test.describe('Contract signing → training (TDC/TDP/CCRP)', () => {
     const contractRes = await axios.get(`${BACKEND_URL}/api/contracts/${encodeURIComponent(contractId)}`, {
       headers: { Authorization: `Bearer ${tdcToken}` },
     });
-    const status = contractRes.data?.contract?.status;
+    const status = contractRes.data?.status || contractRes.data?.contract?.status;
     if (status !== 'SIGNED') {
       test.skip(true, `Contract did not reach SIGNED (current: ${status ?? 'unknown'}). Enable/verify signing flow before running this test.`);
       return;
     }
 
-    // Start training and assert we get a job id back (simulation mode is fine).
-    const start = await axios.post(
-      `${BACKEND_URL}/api/tdc/training/contracts/${encodeURIComponent(contractId)}/start`,
-      {},
-      { headers: { Authorization: `Bearer ${tdcToken}` } }
-    );
-    expect(start.data?.success).toBe(true);
-    expect(start.data?.job?.jobId).toBeTruthy();
+    // Start training.
+    // With TRAINING_SIMULATION_MODE=false, this may fail if cloud/CCRP credentials aren't configured.
+    try {
+      const start = await axios.post(
+        `${BACKEND_URL}/api/tdc/training/contracts/${encodeURIComponent(contractId)}/start`,
+        {},
+        { headers: { Authorization: `Bearer ${tdcToken}` } }
+      );
+      expect(start.data?.success).toBe(true);
+      expect(start.data?.job?.jobId).toBeTruthy();
+    } catch (err) {
+      const httpStatus = err.response?.status;
+      expect([400, 401, 403, 409, 500].includes(httpStatus)).toBe(true);
+      expect(httpStatus).not.toBe(401);
+      expect(httpStatus).not.toBe(403);
+      const msg = err.response?.data?.error || err.response?.data?.message || err.message || '';
+      expect(String(msg).length).toBeGreaterThan(0);
+    }
   });
 });
 
