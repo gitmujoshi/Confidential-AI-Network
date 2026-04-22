@@ -1,11 +1,23 @@
 const axios = require('axios');
 const { User } = require('../../models');
 
+// Load env (config + secrets) for local/dev usage.
+try {
+  require('dotenv').config({ path: require('path').resolve(__dirname, '../../../config.env') });
+} catch (_) {
+  // ignore
+}
+try {
+  require('dotenv').config({ path: require('path').resolve(__dirname, '../../../secrets.env') });
+} catch (_) {
+  // ignore
+}
+
 // Keycloak configuration
-const KEYCLOAK_BASE_URL = 'https://localhost:8443';
-const KEYCLOAK_REALM = 'contract-management';
-const KEYCLOAK_ADMIN_USERNAME = 'admin';
-const KEYCLOAK_ADMIN_PASSWORD = '***REMOVED-KEYCLOAK_ADMIN_PASSWORD***';
+const KEYCLOAK_BASE_URL = process.env.KEYCLOAK_URL || 'https://localhost:8443';
+const KEYCLOAK_REALM = process.env.KEYCLOAK_REALM || 'contract-management';
+const KEYCLOAK_ADMIN_USERNAME = process.env.KEYCLOAK_ADMIN_USER || 'admin';
+const KEYCLOAK_ADMIN_PASSWORD = process.env.KEYCLOAK_ADMIN_PASSWORD;
 
 // Configure axios to ignore SSL certificate verification for self-signed certs
 const httpsAgent = new (require('https').Agent)({
@@ -20,6 +32,11 @@ const axiosInstance = axios.create({
 // Function to get Keycloak admin token
 async function getKeycloakToken() {
   try {
+    if (!KEYCLOAK_ADMIN_PASSWORD) {
+      throw new Error(
+        'Missing KEYCLOAK_ADMIN_PASSWORD. Set it in secrets.env (or environment) before running ***REMOVED-KEYCLOAK_DB_PASSWORD***:sync.'
+      );
+    }
     const response = await axiosInstance.post(`${KEYCLOAK_BASE_URL}/realms/master/protocol/openid-connect/token`, 
       new URLSearchParams({
         username: KEYCLOAK_ADMIN_USERNAME,

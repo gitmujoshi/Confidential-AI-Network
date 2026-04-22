@@ -7,6 +7,9 @@ test.describe('Contract signing → training (TDC/TDP/CCRP)', () => {
 
   const BACKEND_URL = getBackendURL();
   const PASSWORD = 'TestNewPassword123!';
+  const WAIT_FOR_LOCAL_TRAINING =
+    process.env.E2E_WAIT_FOR_LOCAL_TRAINING === 'true' ||
+    process.env.E2E_WAIT_FOR_LOCAL_TRAINING === '1';
 
   const USERS = {
     tdc: { email: 'tdc.healthcare.2025-09-05t20-39-55@test.com' },
@@ -28,6 +31,38 @@ test.describe('Contract signing → training (TDC/TDP/CCRP)', () => {
       localStorage.setItem('user', JSON.stringify(u));
       localStorage.setItem('currentUser', JSON.stringify(u));
     }, { t: token, u: user });
+  }
+
+  async function sleep(ms) {
+    await new Promise((r) => setTimeout(r, ms));
+  }
+
+  async function waitForJobToFinish({ contractId, jobId, token, timeoutMs = 180000 }) {
+    const started = Date.now();
+    // eslint-disable-next-line no-constant-condition
+    while (true) {
+      if (Date.now() - started > timeoutMs) {
+        throw new Error(`Timed out waiting for job ${jobId} to finish`);
+      }
+
+      const jobsRes = await axios.get(
+        `${BACKEND_URL}/api/tdc/training/contracts/${encodeURIComponent(contractId)}/jobs`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      const jobs = jobsRes.data?.jobs || [];
+      const j = Array.isArray(jobs) ? jobs.find((x) => x?.jobId === jobId) : null;
+      if (!j) {
+        await sleep(1500);
+        continue;
+      }
+
+      const st = j.status;
+      if (st === 'COMPLETED' || st === 'FAILED' || st === 'CANCELLED' || st === 'STALLED') {
+        return j;
+      }
+
+      await sleep(2000);
+    }
   }
 
   test('TDC creates contract, TDP+CCRP sign, then TDC starts training', async ({ page }) => {
@@ -120,6 +155,8 @@ test.describe('Contract signing → training (TDC/TDP/CCRP)', () => {
 
     // Start training.
     // With TRAINING_SIMULATION_MODE=false, this may fail if cloud/CCRP credentials aren't configured.
+    // If E2E_WAIT_FOR_LOCAL_TRAINING=true and backend is configured for local-docker execution mode,
+    // we additionally wait for the job to complete and assert results + logs.
     try {
       const start = await axios.post(
         `${BACKEND_URL}/api/tdc/training/contracts/${encodeURIComponent(contractId)}/start`,
@@ -128,6 +165,34 @@ test.describe('Contract signing → training (TDC/TDP/CCRP)', () => {
       );
       expect(start.data?.success).toBe(true);
       expect(start.data?.job?.jobId).toBeTruthy();
+
+      const jobId = start.data.job.jobId;
+
+      if (WAIT_FOR_LOCAL_TRAINING) {
+        const done = await waitForJobToFinish({ contractId, jobId, token: tdcToken });
+        expect(done.status).toBe('COMPLETED');
+        expect(done.results).toBeTruthy();
+        expect(done.results.accuracy).toBeDefined();
+        expect(done.results.loss).toBeDefined();
+        expect(done.results.artifactUri).toBeTruthy();
+
+        // Logs should be available for local-docker jobs.
+        const logsRes = await axios.get(
+          `${BACKEND_URL}/api/tdc/training/jobs/${encodeURIComponent(jobId)}/logs`,
+          { headers: { Authorization: `Bearer ${tdcToken}` } }
+        );
+        expect(String(logsRes.data)).toContain('[trainer]');
+        expect(String(logsRes.data)).toContain('completed');
+
+        // Register trained model.
+        const reg = await axios.post(
+          `${BACKEND_URL}/api/tdc/training/jobs/${encodeURIComponent(jobId)}/register-model`,
+          { name: `E2E Trained Model ${Date.now()}` },
+          { headers: { Authorization: `Bearer ${tdcToken}` } }
+        );
+        expect(reg.data?.success).toBe(true);
+        expect(reg.data?.modelId).toBeTruthy();
+      }
     } catch (err) {
       const httpStatus = err.response?.status;
       expect([400, 401, 403, 409, 500].includes(httpStatus)).toBe(true);

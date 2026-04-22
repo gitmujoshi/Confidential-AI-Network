@@ -227,11 +227,37 @@ services:
     networks:
       - cms-network
 
+  # pgAdmin (PostgreSQL UI admin console)
+  pgadmin:
+    image: dpage/pgadmin4:8
+    container_name: pgadmin-dev
+    env_file:
+      - config.env
+      - secrets.env
+    environment:
+      # Set these in secrets.env (recommended) or export before docker-compose up:
+      # PGADMIN_DEFAULT_EMAIL=admin@example.com
+      # PGADMIN_DEFAULT_PASSWORD=StrongPassword123!
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
+      PGADMIN_CONFIG_SERVER_MODE: 'False'
+    ports:
+      - "5050:80"
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    depends_on:
+      - ***REMOVED-DB_PASSWORD***-app
+      - ***REMOVED-DB_PASSWORD***-***REMOVED-KEYCLOAK_DB_PASSWORD***
+    restart: unless-stopped
+    networks:
+      - cms-network
+
 volumes:
   ***REMOVED-DB_PASSWORD***_app_data:
   ***REMOVED-DB_PASSWORD***_***REMOVED-KEYCLOAK_DB_PASSWORD***_data:
   redis_data:
   backend_logs:
+  pgadmin_data:
 
 networks:
   cms-network:
