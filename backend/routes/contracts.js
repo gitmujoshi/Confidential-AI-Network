@@ -667,6 +667,7 @@ router.post('/ricardian', authenticateToken, async (req, res) => {
       duration,
       termsAndConditions,
       ccrpId,
+      ccrpCloudProvider,
       contractType,
       environmentSpecs,
       trainingParams,
@@ -763,6 +764,7 @@ router.post('/ricardian', authenticateToken, async (req, res) => {
       primaryTdpId: Array.from(tdpIds)[0], // Primary TDP for backward compatibility
       tdcId: tdcUser.id,
       ccrpId: ccrpUser?.id,
+      ccrpCloudProvider: ccrpCloudProvider || null,
       datasetId: validatedDatasets[0].dataset.id, // Use first dataset as primary (for backward compatibility)
       primaryDatasetId: validatedDatasets[0].dataset.id, // Primary dataset for backward compatibility
       aiModelIds: aiModels.map(model => model.id),
