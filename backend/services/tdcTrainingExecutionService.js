@@ -3,8 +3,8 @@
  *
  * - Validates the contract (signed, TDC ownership, env + training params, datasets/models).
  * - Persists a TrainingJob with an explicit containerSpec snapshot (image, CPU/RAM, GPU, command, refs).
- * - Default: TRAINING_SIMULATION_MODE=true runs an async simulated pipeline (no cloud calls).
- * - Set TRAINING_SIMULATION_MODE=false to delegate to TrainingService.triggerTrainingRun (requires cloud + DB shape expected by that service).
+ * - Default: TRAINING_SIMULATION_MODE=false uses TrainingService.triggerTrainingRun (requires cloud + DB shape expected by that service).
+ * - Set TRAINING_SIMULATION_MODE=true to run an async simulated pipeline (no cloud calls).
  */
 
 const { Op } = require('sequelize');

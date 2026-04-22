@@ -14,7 +14,7 @@ This document describes the **TDC (Training Data Consumer)** training flow imple
 
 | Variable | Purpose |
 |----------|---------|
-| `TRAINING_SIMULATION_MODE` | Default `true` (or unset): runs a **simulated** training pipeline (no cloud provisioning). Set to `false` to call `TrainingService.triggerTrainingRun` (requires Azure/CCRP and DB shape expected by that path). |
+| `TRAINING_SIMULATION_MODE` | Default `false` (or unset): uses the **real execution path** (`TrainingService.triggerTrainingRun`) and therefore requires cloud/CCRP credentials and the DB shape expected by that path. Set to `true` to run a **simulated** training pipeline (no cloud provisioning). |
 | `BACKEND_URL` / `BACKEND_PORT` | API base URL for Node-side calls and Playwright global setup. |
 
 After pulling changes that add `training_jobs.metadata`, ensure the column exists:

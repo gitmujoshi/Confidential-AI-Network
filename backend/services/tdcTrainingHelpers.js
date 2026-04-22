@@ -43,7 +43,8 @@ function mapPrivacyTechnique(tp) {
 
 function isSimulationMode() {
   const v = process.env.TRAINING_SIMULATION_MODE;
-  if (v === undefined || v === '') return true;
+  // Default to real execution unless explicitly enabled.
+  if (v === undefined || v === '') return false;
   return v === 'true' || v === '1';
 }
 
