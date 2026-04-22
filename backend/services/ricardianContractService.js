@@ -314,6 +314,7 @@ class RicardianContractService {
         primaryTdpId: contractData.primaryTdpId,
         tdcId: contractData.tdcId,
         ccrpId: contractData.ccrpId,
+        ccrpCloudProvider: contractData.ccrpCloudProvider,
         datasetId: contractData.datasetId,
         primaryDatasetId: contractData.primaryDatasetId,
         modelId: contractData.modelId,
