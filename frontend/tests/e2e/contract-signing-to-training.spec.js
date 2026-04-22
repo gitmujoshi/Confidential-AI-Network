@@ -96,7 +96,8 @@ test.describe('Contract signing → training (TDC/TDP/CCRP)', () => {
       },
       // Ensure CCRP is assigned so CCRP signing is authorized.
       ccrpId: ccrpUser.id,
-      ccrpCloudProvider: 'Azure',
+      // For local-docker training, prefer Local to satisfy contract completeness without cloud credentials.
+      ccrpCloudProvider: WAIT_FOR_LOCAL_TRAINING ? 'Local' : 'Azure',
     };
     await testInfo.attach('contract.create.payload.json', {
       contentType: 'application/json',
