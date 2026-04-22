@@ -54,6 +54,16 @@ class ContractValidationService {
         }
       }
 
+      // Validate CCRP cloud provider (optional, but required for training completeness when CCRP is selected)
+      if (data.ccrpCloudProvider !== undefined && data.ccrpCloudProvider !== null && data.ccrpCloudProvider !== '') {
+        const validProviders = ['Local', 'AWS', 'Azure', 'GCP', 'OCI'];
+        if (typeof data.ccrpCloudProvider !== 'string' || !validProviders.includes(data.ccrpCloudProvider)) {
+          errors.push(`Invalid ccrpCloudProvider. Must be one of: ${validProviders.join(', ')}`);
+        } else {
+          validated.ccrpCloudProvider = data.ccrpCloudProvider;
+        }
+      }
+
       // Validate contract type
       if (data.contractType && !['AI_TRAINING', 'DATA_ANALYTICS', 'MODEL_INFERENCE'].includes(data.contractType)) {
         errors.push('Invalid contract type');
