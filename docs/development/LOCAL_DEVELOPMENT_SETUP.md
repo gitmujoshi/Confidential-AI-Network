@@ -189,6 +189,11 @@ npm run dev:monitoring
 curl http://localhost:3001/health
 curl http://localhost:3001/api/users
 curl http://localhost:3001/api/training/health
+
+# Training (current)
+# TDC training endpoints (requires a TDC-authenticated token)
+# See docs/training/TDC_TRAINING_RUNTIME.md for the full set.
+# curl -H "Authorization: Bearer <token>" http://localhost:3001/api/tdc/training/contracts/<contractId>/jobs
 ```
 
 ### **Step 4: Frontend Setup**
