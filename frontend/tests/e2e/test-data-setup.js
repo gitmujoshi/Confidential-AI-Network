@@ -118,7 +118,7 @@ class E2ETestDataManager {
       const existingProviders = ccrpRecord.data?.cloudProviders;
       const providers = Array.isArray(existingProviders) && existingProviders.length > 0
         ? existingProviders
-        : ['Azure'];
+        : ['Local', 'Azure'];
 
       await axios.put(`${backendURL}/api/users/${ccrpUser.id}`, {
         cloudProviders: providers,

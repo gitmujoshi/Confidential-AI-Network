@@ -34,6 +34,7 @@ const CloudProviderManager = ({ userId, currentProviders = [], description = '' 
   const queryClient = useQueryClient();
 
   const availableProviders = [
+    { value: 'Local', label: 'Local (Docker)', description: 'Local training execution (no cloud)' },
     { value: 'AWS', label: 'Amazon Web Services', description: 'Nitro Enclaves' },
     { value: 'Azure', label: 'Microsoft Azure', description: 'SGX Enclaves' },
     { value: 'GCP', label: 'Google Cloud Platform', description: 'Confidential VMs' },
@@ -72,6 +73,7 @@ const CloudProviderManager = ({ userId, currentProviders = [], description = '' 
 
   const getProviderColor = (provider) => {
     switch (provider) {
+      case 'Local': return 'default';
       case 'AWS': return 'warning';
       case 'Azure': return 'info';
       case 'GCP': return 'error';
