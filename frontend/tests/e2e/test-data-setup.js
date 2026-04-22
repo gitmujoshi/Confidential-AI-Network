@@ -102,6 +102,62 @@ class E2ETestDataManager {
       email: 'appadmin.e2e@test.com',
       password: 'TestNewPassword123!',
     });
+
+    // Ensure CCRP test user advertises at least one cloud provider (for CCRP selection UI).
+    try {
+      const { user: ccrpUser } = await login({
+        email: 'ccrp.e2e@test.com',
+        password: 'TestNewPassword123!',
+      });
+
+      // Fetch CCRP user record as AppAdmin, then update cloudProviders if missing.
+      const ccrpRecord = await axios.get(`${backendURL}/api/users/${ccrpUser.id}`, {
+        headers: { Authorization: `Bearer ${adminToken}` },
+      });
+
+      const existingProviders = ccrpRecord.data?.cloudProviders;
+      const providers = Array.isArray(existingProviders) && existingProviders.length > 0
+        ? existingProviders
+        : ['Azure'];
+
+      await axios.put(`${backendURL}/api/users/${ccrpUser.id}`, {
+        cloudProviders: providers,
+        description: ccrpRecord.data?.description || 'CCRP provider for E2E tests',
+      }, {
+        headers: { Authorization: `Bearer ${adminToken}` },
+      });
+    } catch (err) {
+      // Non-fatal: CCRP UI will still load, but provider filtering may be limited.
+      console.warn('⚠️ Failed to ensure CCRP cloud providers for E2E:', err.response?.status || err.message);
+    }
+
+    // Seed at least one AI model for contract creation and training runtime prerequisites.
+    try {
+      const list = await axios.get(`${backendURL}/api/ai-models?limit=1&offset=0`);
+      const models = list.data?.models || [];
+      if (!Array.isArray(models) || models.length === 0) {
+        await axios.post(`${backendURL}/api/ai-models`, {
+          modelId: 'e2e-model-1',
+          name: 'E2E Base Model',
+          description: 'Seeded model for Playwright E2E tests',
+          type: 'transformer',
+          architecture: 'bert-base',
+          parameters: '110M',
+          framework: 'PyTorch',
+          privacyTechnique: 'differential-privacy',
+          validationMetrics: ['accuracy'],
+          maxEpochs: 3,
+          batchSize: 8,
+          learningRate: 0.0001,
+          metadata: { seededBy: 'playwright' },
+        }, {
+          headers: { Authorization: `Bearer ${adminToken}` },
+        });
+      }
+    } catch (err) {
+      // Non-fatal: some deployments may lock down model creation.
+      console.warn('⚠️ Failed to seed AI model for E2E:', err.response?.status || err.message);
+    }
     await axios.post(`${backendURL}/api/contract-templates/seed`, {}, {
       headers: { Authorization: `Bearer ${adminToken}` },
     }).catch((err) => {
@@ -162,9 +218,12 @@ class E2ETestDataManager {
     if (existingContractsTotal === 0) {
       await axios.post(`${backendURL}/api/contracts/ricardian`, {
         datasetSelections: [{ datasetId, individualPrice: 100 }],
+        aiModelIds: ['e2e-model-1'],
         duration: 30,
         termsAndConditions: 'E2E seeded contract terms.',
         contractType: 'AI_TRAINING',
+        ccrpCloudProvider: 'Azure',
+        environmentSpecs: { compute: { cpuCores: 2, memoryGB: 4, gpuCount: 0 }, security: { confidentialComputing: false } },
         privacyRequirements: {
           maxPrivacyLoss: 0.25,
           minAccuracy: 0.85,
