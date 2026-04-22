@@ -49,9 +49,9 @@ describe('tdcTrainingHelpers', () => {
       else process.env.TRAINING_SIMULATION_MODE = prev;
     });
 
-    it('defaults to true when unset', () => {
+    it('defaults to false when unset', () => {
       delete process.env.TRAINING_SIMULATION_MODE;
-      expect(isSimulationMode()).toBe(true);
+      expect(isSimulationMode()).toBe(false);
     });
 
     it('respects false', () => {
