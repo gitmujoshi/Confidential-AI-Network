@@ -60,7 +60,6 @@ This directory contains comprehensive documentation for the Contract Management 
 - **[KMS_TRAINING_ENVIRONMENT_ARCHITECTURE.md](./architecture/KMS_TRAINING_ENVIRONMENT_ARCHITECTURE.md)** - KMS integration with training environments
 - **[MULTI_TENANT_KMS_ARCHITECTURE.md](./architecture/MULTI_TENANT_KMS_ARCHITECTURE.md)** - Multi-tenant KMS architecture
 - **[UML_4PLUS1_ARCHITECTURE.md](./architecture/UML_4PLUS1_ARCHITECTURE.md)** - UML 4+1 architectural view
-- **[UML_4PLUS1_ARCHITECTURE_DOCUMENTATION.md](./architecture/UML_4PLUS1_ARCHITECTURE_DOCUMENTATION.md)** - UML architecture documentation
 - **[MODEL_DEFINITIONS_REVIEW.md](./architecture/MODEL_DEFINITIONS_REVIEW.md)** - Model definitions review
 - **[CURRENT_VS_OUTDATED_SCRIPTS.md](./architecture/CURRENT_VS_OUTDATED_SCRIPTS.md)** - Script analysis and recommendations
 
