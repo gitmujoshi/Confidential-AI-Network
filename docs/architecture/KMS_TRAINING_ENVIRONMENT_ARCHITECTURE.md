@@ -404,6 +404,16 @@ sequenceDiagram
     Training->>Contract: Training Completed
 ```
 
+### 6.1.1 Current implementation notes (2026)
+
+The conceptual flow above is implemented in a **role-scoped API** design:
+
+- **TDC (start training / view jobs / register model)**: `backend/routes/tdc-training.js` mounted at `/api/tdc/training/*`
+- **CCRP (environment + job monitoring/actions)**: `/api/ccrp/training/*` APIs used by the CCRP UI
+
+For the up-to-date runtime/API surface, env vars (including simulation mode), and DB metadata script, see:
+- `docs/training/TDC_TRAINING_RUNTIME.md`
+
 ### 6.2 Training Container Architecture
 
 ```typescript
