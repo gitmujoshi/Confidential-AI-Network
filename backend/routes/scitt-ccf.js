@@ -139,7 +139,8 @@ router.get('/contracts/:claimId/status', authenticateToken, async (req, res) => 
 
 router.get('/contracts', authenticateToken, async (req, res) => {
   try {
-    const contracts = await scittCcfService.listContracts(req.user.id);
+    const userId = req.user?.localUser?.id || req.user?.id;
+    const contracts = await scittCcfService.listContracts(userId);
     res.json({ contracts });
   } catch (error) {
     res.status(500).json({
@@ -189,7 +190,8 @@ router.get('/claims/:claimId', authenticateToken, async (req, res) => {
 
 router.get('/claims', authenticateToken, async (req, res) => {
   try {
-    const claims = await scittCcfService.listClaims(req.user.id);
+    const userId = req.user?.localUser?.id || req.user?.id;
+    const claims = await scittCcfService.listClaims(userId);
     res.json({ claims });
   } catch (error) {
     res.status(500).json({
