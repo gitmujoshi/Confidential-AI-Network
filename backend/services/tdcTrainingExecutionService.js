@@ -34,7 +34,12 @@ async function expandContractTrainingInputs(contract) {
     .map((d) => d?.datasetId)
     .filter((v) => v !== undefined && v !== null && String(v).length > 0);
 
-  const modelIds = Array.isArray(contract.aiModelIds) ? contract.aiModelIds : [];
+  const modelIdsRaw = Array.isArray(contract.aiModelIds) ? contract.aiModelIds : [];
+  const modelIds = modelIdsRaw.filter((v) => v !== undefined && v !== null);
+  const numericModelIds = modelIds
+    .map((v) => (typeof v === 'number' ? v : Number(v)))
+    .filter((v) => Number.isFinite(v) && v > 0);
+  const hasNumericModelIds = numericModelIds.length > 0 && numericModelIds.length === modelIds.length;
 
   const [datasets, models] = await Promise.all([
     datasetIds.length > 0
@@ -59,7 +64,11 @@ async function expandContractTrainingInputs(contract) {
       : Promise.resolve([]),
     modelIds.length > 0
       ? db.AIModel.findAll({
-          where: { modelId: { [Op.in]: modelIds } },
+          // aiModelIds in contracts is stored as DB ids (integers) in the current ricardian creation route.
+          // Fall back to modelId (string) matching only if ids aren't numeric.
+          where: hasNumericModelIds
+            ? { id: { [Op.in]: numericModelIds } }
+            : { modelId: { [Op.in]: modelIds.map(String) } },
           attributes: [
             'modelId',
             'name',
