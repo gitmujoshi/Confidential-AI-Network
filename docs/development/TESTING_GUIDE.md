@@ -101,6 +101,12 @@ module.exports = {
 
 ## 🔬 **Unit Testing**
 
+> Note: This guide includes some legacy examples using `/api/training/*`.  
+> The current contract-scoped training flow uses:
+> - `/api/tdc/training/*` for **TDC** training start/job tracking/register-model
+> - `/api/ccrp/training/*` for **CCRP** environment/job monitoring and actions  
+> For up-to-date endpoints and environment variables, see `docs/training/TDC_TRAINING_RUNTIME.md`.
+
 ### **Backend Unit Tests**
 
 #### **Service Testing**

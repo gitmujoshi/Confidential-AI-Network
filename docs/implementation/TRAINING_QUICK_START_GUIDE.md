@@ -589,16 +589,17 @@ app.use('/api', trainingRouter);
 cd backend
 npm start &
 
-# Test the training API
-curl -X POST http://localhost:3000/api/training/execute/CONTRACT-2025-001 \
-  -H "Content-Type: application/json" \
-  -d '{}'
-
-# Check training status
-curl http://localhost:3000/api/training/status/job_1234567890_abc123
-
-# Check training progress
-curl http://localhost:3000/api/training/progress/job_1234567890_abc123
+# NOTE: The endpoints below were for an older training router prototype.
+# For the current TDC contract-scoped flow, see docs/training/TDC_TRAINING_RUNTIME.md.
+#
+# Example (current): start training for a signed contract (TDC-only)
+# curl -X POST http://localhost:5001/api/tdc/training/contracts/<contractId>/start \
+#   -H "Authorization: Bearer <token>" \
+#   -H "Content-Type: application/json"
+#
+# Example (current): list jobs for a contract (TDC-only)
+# curl http://localhost:5001/api/tdc/training/contracts/<contractId>/jobs \
+#   -H "Authorization: Bearer <token>"
 ```
 
 ## 🧪 Testing the Training Workflow
@@ -614,28 +615,7 @@ async function testTrainingWorkflow() {
   try {
     console.log('🧪 Testing training workflow...');
     
-    // 1. Execute training
-    const executeResponse = await axios.post(
-      'http://localhost:3000/api/training/execute/CONTRACT-2025-001'
-    );
-    
-    console.log('✅ Training execution response:', executeResponse.data);
-    
-    const jobId = executeResponse.data.trainingJob.jobId;
-    
-    // 2. Check status
-    const statusResponse = await axios.get(
-      `http://localhost:3000/api/training/status/${jobId}`
-    );
-    
-    console.log('✅ Training status:', statusResponse.data);
-    
-    // 3. Check progress
-    const progressResponse = await axios.get(
-      `http://localhost:3000/api/training/progress/${jobId}`
-    );
-    
-    console.log('✅ Training progress:', progressResponse.data);
+    console.log('See docs/training/TDC_TRAINING_RUNTIME.md for current API examples.');
     
   } catch (error) {
     console.error('❌ Test failed:', error.message);
@@ -682,11 +662,11 @@ docker logs -f <container_id>
 ### **Check Training Status**
 
 ```bash
-# Check all training jobs
-curl http://localhost:3000/api/training/jobs
-
-# Check specific job status
-curl http://localhost:3000/api/training/status/job_1234567890_abc123
+# Current status endpoints are role-specific.
+# - TDC:   /api/tdc/training/contracts/<contractId>/jobs
+# - CCRP:  /api/ccrp/training/jobs/<userId> (plus start/stop/delete/logs per job)
+#
+# See docs/training/TDC_TRAINING_RUNTIME.md for full examples.
 ```
 
 ## 🚀 Next Steps
