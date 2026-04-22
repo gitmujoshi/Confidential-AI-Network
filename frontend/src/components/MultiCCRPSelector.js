@@ -60,6 +60,7 @@ const MultiCCRPSelector = ({
   // Get cloud provider color
   const getProviderColor = (provider) => {
     switch (provider) {
+      case 'Local': return 'default';
       case 'AWS': return 'warning';
       case 'Azure': return 'info';
       case 'GCP': return 'error';
@@ -101,6 +102,7 @@ const MultiCCRPSelector = ({
               <MenuItem value="">
                 <em>All Cloud Providers</em>
               </MenuItem>
+              <MenuItem value="Local">Local (Docker)</MenuItem>
               <MenuItem value="AWS">AWS - Amazon Web Services</MenuItem>
               <MenuItem value="Azure">Azure - Microsoft Azure</MenuItem>
               <MenuItem value="GCP">GCP - Google Cloud Platform</MenuItem>

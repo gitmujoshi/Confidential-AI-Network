@@ -347,7 +347,7 @@ router.put('/cloud-providers/:userId', authenticateToken, async (req, res) => {
     }
 
     // Validate cloud providers
-    const validProviders = ['AWS', 'Azure', 'GCP', 'OCI'];
+    const validProviders = ['Local', 'AWS', 'Azure', 'GCP', 'OCI'];
     if (cloudProviders && !Array.isArray(cloudProviders)) {
       return res.status(400).json({ error: 'cloudProviders must be an array' });
     }
