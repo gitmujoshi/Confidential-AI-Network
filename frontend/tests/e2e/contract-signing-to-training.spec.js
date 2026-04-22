@@ -65,7 +65,7 @@ test.describe('Contract signing → training (TDC/TDP/CCRP)', () => {
     }
   }
 
-  test('TDC creates contract, TDP+CCRP sign, then TDC starts training', async ({ page }) => {
+  test('TDC creates contract, TDP+CCRP sign, then TDC starts training', async ({ page }, testInfo) => {
     const [{ token: tdcToken, user: tdcUser }, { token: tdpToken, user: tdpUser }, { token: ccrpToken, user: ccrpUser }] =
       await Promise.all([login(USERS.tdc.email), login(USERS.tdp.email), login(USERS.ccrp.email)]);
 
@@ -82,7 +82,7 @@ test.describe('Contract signing → training (TDC/TDP/CCRP)', () => {
     }
 
     // Create a contract via API (stable vs. multi-step UI wizard).
-    const create = await axios.post(`${BACKEND_URL}/api/contracts/ricardian`, {
+    const contractPayload = {
       datasetSelections: [{ datasetId: 'e2e-dataset-1', individualPrice: 100 }],
       aiModelIds,
       duration: 30,
@@ -97,12 +97,22 @@ test.describe('Contract signing → training (TDC/TDP/CCRP)', () => {
       // Ensure CCRP is assigned so CCRP signing is authorized.
       ccrpId: ccrpUser.id,
       ccrpCloudProvider: 'Azure',
-    }, {
+    };
+    await testInfo.attach('contract.create.payload.json', {
+      contentType: 'application/json',
+      body: JSON.stringify(contractPayload, null, 2),
+    });
+
+    const create = await axios.post(`${BACKEND_URL}/api/contracts/ricardian`, contractPayload, {
       headers: { Authorization: `Bearer ${tdcToken}` },
     });
 
     const contractId = create.data?.contract?.contractId;
     expect(contractId).toBeTruthy();
+    await testInfo.attach('contract.id.txt', {
+      contentType: 'text/plain',
+      body: String(contractId),
+    });
 
     // The frontend expects these signing routes. If they are not present in this backend build,
     // skip instead of hard-failing the whole suite.
@@ -148,6 +158,10 @@ test.describe('Contract signing → training (TDC/TDP/CCRP)', () => {
       headers: { Authorization: `Bearer ${tdcToken}` },
     });
     const status = contractRes.data?.status || contractRes.data?.contract?.status;
+    await testInfo.attach('contract.detail.json', {
+      contentType: 'application/json',
+      body: JSON.stringify(contractRes.data, null, 2),
+    });
     if (status !== 'SIGNED') {
       test.skip(true, `Contract did not reach SIGNED (current: ${status ?? 'unknown'}). Enable/verify signing flow before running this test.`);
       return;
@@ -167,6 +181,14 @@ test.describe('Contract signing → training (TDC/TDP/CCRP)', () => {
       expect(start.data?.job?.jobId).toBeTruthy();
 
       const jobId = start.data.job.jobId;
+      await testInfo.attach('training.start.response.json', {
+        contentType: 'application/json',
+        body: JSON.stringify(start.data, null, 2),
+      });
+      await testInfo.attach('training.jobId.txt', {
+        contentType: 'text/plain',
+        body: String(jobId),
+      });
 
       if (WAIT_FOR_LOCAL_TRAINING) {
         const done = await waitForJobToFinish({ contractId, jobId, token: tdcToken });
@@ -175,6 +197,10 @@ test.describe('Contract signing → training (TDC/TDP/CCRP)', () => {
         expect(done.results.accuracy).toBeDefined();
         expect(done.results.loss).toBeDefined();
         expect(done.results.artifactUri).toBeTruthy();
+        await testInfo.attach('training.job.done.json', {
+          contentType: 'application/json',
+          body: JSON.stringify(done, null, 2),
+        });
 
         // Logs should be available for local-docker jobs.
         const logsRes = await axios.get(
@@ -183,6 +209,27 @@ test.describe('Contract signing → training (TDC/TDP/CCRP)', () => {
         );
         expect(String(logsRes.data)).toContain('[trainer]');
         expect(String(logsRes.data)).toContain('completed');
+        await testInfo.attach('training.logs.txt', {
+          contentType: 'text/plain',
+          body: String(logsRes.data).slice(-200000),
+        });
+
+        // Best-effort provenance snapshot (SCITT claims) to include in report.
+        // This may be empty depending on config and which operations emit claims.
+        try {
+          const claims = await axios.get(`${BACKEND_URL}/api/scitt-ccf/claims`, {
+            headers: { Authorization: `Bearer ${tdcToken}` },
+          });
+          await testInfo.attach('provenance.scitt-claims.json', {
+            contentType: 'application/json',
+            body: JSON.stringify(claims.data, null, 2),
+          });
+        } catch (e) {
+          await testInfo.attach('provenance.scitt-claims.error.txt', {
+            contentType: 'text/plain',
+            body: String(e.response?.status || e.message || e),
+          });
+        }
 
         // Register trained model.
         const reg = await axios.post(
@@ -192,6 +239,10 @@ test.describe('Contract signing → training (TDC/TDP/CCRP)', () => {
         );
         expect(reg.data?.success).toBe(true);
         expect(reg.data?.modelId).toBeTruthy();
+        await testInfo.attach('training.register-model.response.json', {
+          contentType: 'application/json',
+          body: JSON.stringify(reg.data, null, 2),
+        });
       }
     } catch (err) {
       const httpStatus = err.response?.status;
@@ -200,6 +251,10 @@ test.describe('Contract signing → training (TDC/TDP/CCRP)', () => {
       expect(httpStatus).not.toBe(403);
       const msg = err.response?.data?.error || err.response?.data?.message || err.message || '';
       expect(String(msg).length).toBeGreaterThan(0);
+      await testInfo.attach('training.start.error.json', {
+        contentType: 'application/json',
+        body: JSON.stringify({ httpStatus, msg, data: err.response?.data || null }, null, 2),
+      });
     }
   });
 });
