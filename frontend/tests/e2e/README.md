@@ -94,6 +94,43 @@ npm run test:e2e:headed
 
 Seeding runs in **`global-setup.js`** via `test-data-setup.js` (APIs only, no direct DB). Ensure backend is up and `config.env` / `FRONTEND_URL` match before running tests.
 
+## 🎬 Manual recorded demo: create → sign → train (UI)
+
+This is the **recommended way to record the full UI workflow** (dataset selection, CCRP selection, party sign-in/signing, then training start).  
+Some parts of the contract creation flow (wallet / blockchain signing) are **not reliably automatable** in Playwright across environments, so for a customer-style demo, record this manually.
+
+### Prereqs
+- Backend + Keycloak running (and healthy): start via `./start-system.sh`
+- Ensure test users exist / are synced: `npm run ***REMOVED-KEYCLOAK_DB_PASSWORD***:sync`
+- Decide training mode:
+  - **Real execution**: `TRAINING_SIMULATION_MODE=false` (default when unset)
+  - **Demo-only** (no cloud provisioning): `TRAINING_SIMULATION_MODE=true`
+
+### Step 1 — TDC creates the contract (datasets + CCRP)
+- Login as **TDC** (example seeded user used by E2E): `tdc.healthcare.2025-09-05t20-39-55@test.com`
+- Navigate to **Contracts** → **Create Contract**
+- **Select 1–3 datasets** (example seeded dataset: `E2E Sample Dataset`)
+- **Select a CCRP** in “Configure Environment & CCRP”
+- Complete the wizard and create the contract (this may prompt wallet / chain signing depending on config)
+- Copy the created **Contract ID** (e.g. `CONTRACT-...`)
+
+### Step 2 — TDP signs
+- Logout, login as **TDP** (seeded user): `tdp.e2e@test.com`
+- Open the contract detail page: `/contracts/<CONTRACT_ID>`
+- Click **Sign Contract as TDP**
+
+### Step 3 — CCRP signs
+- Logout, login as **CCRP** (seeded user): `ccrp.e2e@test.com`
+- Open `/contracts/<CONTRACT_ID>`
+- Click **Sign Contract as CCRP**
+- Verify contract status becomes **SIGNED**
+
+### Step 4 — TDC starts training
+- Logout, login as **TDC**
+- Go to **Training** (`/tdc/training`)
+- Find the **SIGNED** contract and click **Start training**
+- Watch the job status change and (optionally) use **Register model** after completion
+
 ### TDC / CCRP training smoke tests
 - **`tdc-training.spec.js`** — TDC user loads **`/tdc/training`**, checks copy; API smoke: unknown contract returns **404** for job list.
 - **`ccrp-training-environment.spec.js`** — CCRP user loads **`/ccrp/training-environment`** (uses **`/api/ccrp/training/...`** in the app).
