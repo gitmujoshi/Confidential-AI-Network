@@ -15,6 +15,8 @@ This document describes the **TDC (Training Data Consumer)** training flow imple
 | Variable | Purpose |
 |----------|---------|
 | `TRAINING_SIMULATION_MODE` | Default `false` (or unset): uses the **real execution path** (`TrainingService.triggerTrainingRun`) and therefore requires cloud/CCRP credentials and the DB shape expected by that path. Set to `true` to run a **simulated** training pipeline (no cloud provisioning). |
+| `TRAINING_EXECUTION_MODE` | Optional. Set to `local-docker` to run training in a **separate local Docker container** instead of the cloud/Terraform path. Requires Docker installed and a local trainer image (see below). |
+| `LOCAL_TRAINING_IMAGE` | Optional. Docker image used for `TRAINING_EXECUTION_MODE=local-docker`. Defaults to `contractmanagement/local-trainer:latest`. |
 | `BACKEND_URL` / `BACKEND_PORT` | API base URL for Node-side calls and Playwright global setup. |
 
 After pulling changes that add `training_jobs.metadata`, ensure the column exists:
@@ -53,7 +55,35 @@ Mounted under **`/api/ccrp`** with authentication. Used by **Training Environmen
 
 - **Container spec snapshot:** `backend/services/tdcTrainingHelpers.js` — `buildContainerSpec(contract)` merges `trainingParams`, `environmentSpecs.compute`, dataset/model refs.
 - **Simulation:** phases and results stored on `TrainingJob.metadata` (requires `metadata` column on PostgreSQL).
+- **Local Docker execution:** set `TRAINING_EXECUTION_MODE=local-docker` to run a local Python trainer container. The placeholder trainer writes results to `backend/local-training/runs/<jobId>/outputs/metrics.json` on the backend host.
 - **Register model:** `POST .../register-model` writes **`AIModel`** with `metadata.source = 'tdc_training_job'` and links `job.metadata.registeredModelId`.
+
+## Local training runner (Docker)
+
+This repo includes a minimal placeholder trainer (`backend/local-training/train.py`) so you can exercise the end-to-end flow **without** Azure/Terraform.
+
+### Build the trainer image
+
+```bash
+docker build -t contractmanagement/local-trainer:latest -f backend/local-training/Dockerfile backend/local-training
+```
+
+### Run training through the app runtime
+
+Set environment variables for the backend:
+
+```bash
+export TRAINING_SIMULATION_MODE=false
+export TRAINING_EXECUTION_MODE=local-docker
+export LOCAL_TRAINING_IMAGE=contractmanagement/local-trainer:latest
+```
+
+Then start training as normal via UI (`/tdc/training`) or API:
+
+```bash
+curl -X POST "http://localhost:5001/api/tdc/training/contracts/<contractId>/start" \
+  -H "Authorization: Bearer <token>"
+```
 
 ## Related code
 

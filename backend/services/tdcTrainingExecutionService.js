@@ -28,6 +28,76 @@ async function loadContractForTraining(contractId) {
   });
 }
 
+async function expandContractTrainingInputs(contract) {
+  const datasetSelections = Array.isArray(contract.contractDatasets) ? contract.contractDatasets : [];
+  const datasetIds = datasetSelections
+    .map((d) => d?.datasetId)
+    .filter((v) => v !== undefined && v !== null && String(v).length > 0);
+
+  const modelIds = Array.isArray(contract.aiModelIds) ? contract.aiModelIds : [];
+
+  const [datasets, models] = await Promise.all([
+    datasetIds.length > 0
+      ? db.Dataset.findAll({
+          where: { datasetId: { [Op.in]: datasetIds } },
+          attributes: [
+            'datasetId',
+            'name',
+            'description',
+            'category',
+            'size',
+            'recordCount',
+            'price',
+            'license',
+            'tags',
+            'metadata',
+            'isPublic',
+            'confidentialComputingRequired',
+            'ownerId',
+          ],
+        })
+      : Promise.resolve([]),
+    modelIds.length > 0
+      ? db.AIModel.findAll({
+          where: { modelId: { [Op.in]: modelIds } },
+          attributes: [
+            'modelId',
+            'name',
+            'description',
+            'type',
+            'architecture',
+            'parameters',
+            'framework',
+            'privacyTechnique',
+            'validationMetrics',
+            'maxEpochs',
+            'batchSize',
+            'learningRate',
+            'metadata',
+            'isActive',
+          ],
+        })
+      : Promise.resolve([]),
+  ]);
+
+  return {
+    contract: {
+      contractId: contract.contractId,
+      status: contract.status,
+      tdcId: contract.tdcId,
+      ccrpId: contract.ccrpId,
+      ccrpCloudProvider: contract.ccrpCloudProvider,
+      environmentSpecs: contract.environmentSpecs,
+      trainingParams: contract.trainingParams,
+      kmsConfigs: contract.kmsConfigs,
+    },
+    datasets: datasets.map((d) => d.get({ plain: true })),
+    models: models.map((m) => m.get({ plain: true })),
+    datasetSelections,
+    aiModelIds: modelIds,
+  };
+}
+
 function validateTdcCanTrain(contract, userId) {
   if (!contract) {
     const err = new Error('Contract not found');
@@ -203,6 +273,48 @@ class TdcTrainingExecutionService {
       });
 
       scheduleSimulation(jobId, contract);
+      return this.getJobPublic(jobId);
+    }
+
+    // Local Docker execution mode (runs training in a separate container on the backend host).
+    if (process.env.TRAINING_EXECUTION_MODE === 'local-docker') {
+      const jobId = `job-${contract.contractId}-${Date.now()}`;
+      const containerSpec = buildContainerSpec(contract);
+      const inputs = await expandContractTrainingInputs(contract);
+
+      await db.TrainingJob.create({
+        jobId,
+        contractId: contract.contractId,
+        status: 'PENDING',
+        trainingConfig: contract.trainingParams,
+        environmentConfig: {
+          environmentSpecs: contract.environmentSpecs,
+          cloudProvider: contract.ccrpCloudProvider,
+          containerSpec,
+        },
+        datasets: contract.contractDatasets,
+        aiModels: contract.aiModelIds,
+        metadata: {
+          simulation: false,
+          progress: 0,
+          containerSpec,
+          phases: [{ name: 'PENDING', at: new Date().toISOString() }],
+          executionMode: 'local-docker',
+          inputs,
+        },
+        createdBy: userId,
+      });
+
+      const { runLocalDockerTraining } = require('./localDockerTrainingRunner');
+      setImmediate(() => {
+        runLocalDockerTraining({
+          jobId,
+          contractId: contract.contractId,
+          containerSpec,
+          trainingParams: contract.trainingParams,
+        });
+      });
+
       return this.getJobPublic(jobId);
     }
 
