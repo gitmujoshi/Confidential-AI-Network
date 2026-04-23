@@ -296,6 +296,12 @@ const realApiService = {
     const response = await api.get(`/api/tdc/training/jobs/${encodeURIComponent(jobId)}`);
     return response.data;
   },
+  getTdcTrainingJobLogs: async (jobId) => {
+    const response = await api.get(`/api/tdc/training/jobs/${encodeURIComponent(jobId)}/logs`, {
+      responseType: 'text',
+    });
+    return response.data;
+  },
   registerTdcTrainingModel: async (jobId, payload = {}) => {
     const response = await api.post(
       `/api/tdc/training/jobs/${encodeURIComponent(jobId)}/register-model`,

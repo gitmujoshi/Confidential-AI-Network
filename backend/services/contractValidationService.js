@@ -112,8 +112,31 @@ class ContractValidationService {
       }
 
       // Validate KMS configurations
-      if (data.kmsConfigs && typeof data.kmsConfigs === 'object') {
+      if (data.kmsConfigs && (typeof data.kmsConfigs === 'object' || Array.isArray(data.kmsConfigs))) {
         validated.kmsConfigs = data.kmsConfigs;
+      }
+
+      // Optional execution/runtime fields (used by CCRP runtimes and audits)
+      if (data.containerImage !== undefined && data.containerImage !== null) {
+        if (typeof data.containerImage !== 'string') {
+          errors.push('Invalid containerImage (must be a string)');
+        } else {
+          validated.containerImage = data.containerImage.trim();
+        }
+      }
+      if (data.serviceAccount !== undefined && data.serviceAccount !== null) {
+        if (typeof data.serviceAccount !== 'string') {
+          errors.push('Invalid serviceAccount (must be a string)');
+        } else {
+          validated.serviceAccount = data.serviceAccount.trim();
+        }
+      }
+      if (data.logDestination !== undefined && data.logDestination !== null) {
+        if (typeof data.logDestination !== 'string') {
+          errors.push('Invalid logDestination (must be a string)');
+        } else {
+          validated.logDestination = data.logDestination.trim();
+        }
       }
 
     } catch (error) {

@@ -223,7 +223,40 @@ class E2ETestDataManager {
         termsAndConditions: 'E2E seeded contract terms.',
         contractType: 'AI_TRAINING',
         ccrpCloudProvider: 'Azure',
-        environmentSpecs: { compute: { cpuCores: 2, memoryGB: 4, gpuCount: 0 }, security: { confidentialComputing: false } },
+        environmentSpecs: {
+          compute: { cpuCores: 2, memoryGB: 4, gpuCount: 0 },
+          security: {
+            confidentialComputing: false,
+            attestationRequired: true,
+            encryptionAtRest: true,
+            encryptionInTransit: true,
+            networkIsolation: true,
+          },
+          kms: {
+            provider: 'hashicorp-vault',
+            keyId: 'e2e-local-key',
+            algorithm: 'AES-256-GCM',
+            rotationPeriod: 90,
+          },
+          runtime: {
+            containerSpec: {
+              image: 'mcr.microsoft.com/azureml/openmpi4.1.0-ubuntu20.04:latest',
+              command: 'python train.py',
+              cpuCores: 2,
+              memoryGB: 4,
+              gpuCount: 0,
+            },
+          },
+        },
+        kmsConfigs: {
+          provider: 'hashicorp-vault',
+          keyId: 'e2e-local-key',
+          vaultUrl: 'http://localhost:8200',
+          metadata: { seededBy: 'playwright', purpose: 'e2e' },
+        },
+        containerImage: 'mcr.microsoft.com/azureml/openmpi4.1.0-ubuntu20.04:latest',
+        serviceAccount: 'local/e2e-runner',
+        logDestination: 'local:file',
         privacyRequirements: {
           maxPrivacyLoss: 0.25,
           minAccuracy: 0.85,
@@ -231,6 +264,12 @@ class E2ETestDataManager {
         },
         trainingParams: {
           privacyTechnique: 'Differential Privacy',
+          framework: 'PyTorch',
+          architecture: 'bert-base',
+          maxEpochs: 5,
+          batchSize: 32,
+          learningRate: 0.001,
+          validationMetrics: ['accuracy', 'loss'],
         },
       }, {
         headers: { Authorization: `Bearer ${tdcToken}` },

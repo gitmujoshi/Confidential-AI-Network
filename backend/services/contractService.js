@@ -881,6 +881,15 @@ class ContractService {
           contractData.trainingParams = {};
         }
       }
+
+      if (contractData.kmsConfigs && typeof contractData.kmsConfigs === 'string') {
+        try {
+          contractData.kmsConfigs = JSON.parse(contractData.kmsConfigs);
+        } catch (parseError) {
+          console.warn('Failed to parse kmsConfigs JSON:', parseError);
+          contractData.kmsConfigs = {};
+        }
+      }
       
       if (contractData.legalDocument && typeof contractData.legalDocument === 'string') {
         try {
