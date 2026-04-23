@@ -3,6 +3,9 @@ const path = require('path');
 const { spawn } = require('child_process');
 
 const db = require('../models');
+const { writeLocalScittClaim } = require('./provenanceClaimWriter');
+const { buildTrainingModelProvenance } = require('./tdcTrainingHelpers');
+const { buildJobTrainingProvenanceBundle } = require('./provenanceAuditReportService');
 
 function repoRoot() {
   return path.resolve(__dirname, '..', '..');
@@ -27,6 +30,14 @@ function safeReadJson(filePath) {
 }
 
 async function updateJob(jobId, patch) {
+  // Shallow-merge metadata so we do not drop fields set at job creation (e.g. `inputs`)
+  // or by earlier runner updates (`phases`, `local`, etc.).
+  if (patch.metadata !== undefined && patch.metadata !== null && typeof patch.metadata === 'object') {
+    const row = await db.TrainingJob.findOne({ where: { jobId } });
+    const prevMeta =
+      row && row.metadata && typeof row.metadata === 'object' ? { ...row.metadata } : {};
+    patch = { ...patch, metadata: { ...prevMeta, ...patch.metadata } };
+  }
   await db.TrainingJob.update(patch, { where: { jobId } });
 }
 
@@ -130,11 +141,32 @@ async function runLocalDockerTraining({ jobId, contractId, containerSpec, traini
       const metricsPath = path.join(outDir, 'metrics.json');
       const metrics = safeReadJson(metricsPath) || {};
 
-      const results = {
+      let inputs = null;
+      let trainingJobDepaId = null;
+      try {
+        const jrow = await db.TrainingJob.findOne({ where: { jobId } });
+        const plain = jrow?.get ? jrow.get({ plain: true }) : jrow;
+        inputs = plain?.metadata?.inputs || null;
+        trainingJobDepaId = plain?.metadata?.depaId || null;
+      } catch (_) {
+        // ignore
+      }
+      const coreMetrics = {
         accuracy: metrics.accuracy,
         loss: metrics.loss,
         epochsCompleted: metrics.epochsCompleted,
         artifactUri: metrics.artifactUri || `file://${path.join(outDir, 'model.bin')}`,
+      };
+      const provBase = buildTrainingModelProvenance(inputs, coreMetrics);
+      const modelProvenance =
+        provBase && typeof provBase === 'object'
+          ? { ...provBase, trainingJobDepaId }
+          : trainingJobDepaId
+            ? { trainingJobDepaId }
+            : null;
+      const results = {
+        ...coreMetrics,
+        modelProvenance,
       };
 
       if (code === 0) {
@@ -155,6 +187,43 @@ async function runLocalDockerTraining({ jobId, contractId, containerSpec, traini
             local: { outDir, inputsDir, contractJsonPath, logFile, image },
           },
         });
+
+        try {
+          const bundle = await buildJobTrainingProvenanceBundle(jobId);
+          fs.writeFileSync(
+            path.join(outDir, 'provenance-report.json'),
+            JSON.stringify(bundle, null, 2),
+            'utf8'
+          );
+        } catch (e) {
+          console.warn('⚠️ Failed to write provenance-report.json:', e.message);
+        }
+
+        // Provenance claim (best-effort).
+        try {
+          await writeLocalScittClaim({
+            contractId,
+            claimType: 'training_completed',
+            claimData: {
+              contractId,
+              contractDepaId: modelProvenance?.contractDepaId ?? null,
+              jobId,
+              trainingJobDepaId,
+              executionMode: 'local-docker',
+              modelProvenance,
+              artifactPath: path.join(outDir, 'model.bin'),
+              metricsPath,
+              timestamp: new Date().toISOString(),
+              source: 'localDockerTrainingRunner',
+              note:
+                'Raw metrics and artifact download are on TrainingJob.metadata.results; no duplicate results blob here.',
+            },
+            status: 'SUBMITTED',
+            stableDedupeKey: jobId,
+          });
+        } catch (_) {
+          // ignore
+        }
       } else {
         await updateJob(jobId, {
           status: 'FAILED',
@@ -173,6 +242,41 @@ async function runLocalDockerTraining({ jobId, contractId, containerSpec, traini
             local: { outDir, inputsDir, contractJsonPath, logFile, image },
           },
         });
+
+        try {
+          const bundle = await buildJobTrainingProvenanceBundle(jobId);
+          fs.writeFileSync(
+            path.join(outDir, 'provenance-report.json'),
+            JSON.stringify(bundle, null, 2),
+            'utf8'
+          );
+        } catch (e) {
+          console.warn('⚠️ Failed to write provenance-report.json:', e.message);
+        }
+
+        try {
+          await writeLocalScittClaim({
+            contractId,
+            claimType: 'training_failed',
+            claimData: {
+              contractId,
+              contractDepaId: modelProvenance?.contractDepaId ?? null,
+              jobId,
+              trainingJobDepaId,
+              executionMode: 'local-docker',
+              exitCode: code,
+              modelProvenance,
+              logFile,
+              timestamp: new Date().toISOString(),
+              source: 'localDockerTrainingRunner',
+              note: 'Partial metrics (if any) are inside modelProvenance.trainingMetrics; TrainingJob row has full metadata.',
+            },
+            status: 'FAILED',
+            stableDedupeKey: jobId,
+          });
+        } catch (_) {
+          // ignore
+        }
       }
     } finally {
       try {

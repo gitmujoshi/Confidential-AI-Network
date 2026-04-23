@@ -21,12 +21,13 @@ import {
   TableCell,
   TableHead,
   TableRow,
+  Stack,
 } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import { useUser } from '../contexts/UserContext';
-import apiService from '../services/api';
+import apiService, { api } from '../services/api';
 import toast from 'react-hot-toast';
 
 const TERMINAL = new Set(['COMPLETED', 'FAILED', 'CANCELLED']);
@@ -105,6 +106,57 @@ export default function TDCTraining() {
       clearInterval(id);
     };
   }, [pollJobId]);
+
+  const triggerJsonDownload = (filename, data) => {
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const handleDownloadJobProvenance = async () => {
+    if (!liveJob?.jobId) return;
+    try {
+      const data = await apiService.getTdcTrainingProvenanceReport(liveJob.jobId);
+      triggerJsonDownload(`${liveJob.jobId}-provenance-report.json`, data);
+      toast.success('Downloaded job provenance report');
+    } catch (e) {
+      toast.error(e.response?.data?.error || e.message || 'Download failed');
+    }
+  };
+
+  const handleDownloadContractAudit = async () => {
+    if (!liveJob?.contractId) return;
+    try {
+      const report = await apiService.getScittProvenanceReport(liveJob.contractId);
+      triggerJsonDownload(`${liveJob.contractId}-provenance-audit.json`, report);
+      toast.success('Downloaded contract audit bundle');
+    } catch (e) {
+      toast.error(e.response?.data?.error || e.message || 'Download failed');
+    }
+  };
+
+  const handleDownloadModelArtifact = async () => {
+    if (!liveJob?.artifactDownloadUrl) {
+      toast.error('No downloadable model artifact for this job');
+      return;
+    }
+    try {
+      const res = await api.get(liveJob.artifactDownloadUrl, { responseType: 'blob' });
+      const url = URL.createObjectURL(res.data);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${liveJob.jobId}-model.bin`;
+      a.click();
+      URL.revokeObjectURL(url);
+      toast.success('Downloaded model artifact');
+    } catch (e) {
+      toast.error(e.response?.data?.error || e.message || 'Download failed');
+    }
+  };
 
   const handleRegisterModel = async () => {
     if (!liveJob?.jobId) return;
@@ -272,6 +324,33 @@ export default function TDCTraining() {
           </Typography>
           {typeof liveJob.progress === 'number' && (
             <LinearProgress variant="determinate" value={Math.min(100, liveJob.progress)} sx={{ mb: 2 }} />
+          )}
+
+          {(TERMINAL.has(liveJob.status) || liveJob.results) && (
+            <Box sx={{ mb: 2 }}>
+              <Typography variant="subtitle2" gutterBottom>
+                Provenance &amp; artifacts (host / API — not only inside the trainer container)
+              </Typography>
+              <Stack direction="row" flexWrap="wrap" gap={1}>
+                <Button size="small" variant="outlined" onClick={handleDownloadJobProvenance}>
+                  Download job provenance (JSON)
+                </Button>
+                <Button size="small" variant="outlined" onClick={handleDownloadContractAudit}>
+                  Download contract audit bundle (JSON)
+                </Button>
+                {liveJob.artifactDownloadUrl && (
+                  <Button size="small" variant="outlined" onClick={handleDownloadModelArtifact}>
+                    Download model.bin
+                  </Button>
+                )}
+              </Stack>
+              {liveJob.provenanceReportUrl && (
+                <Typography variant="caption" color="text.secondary" display="block" sx={{ mt: 0.5 }}>
+                  API: <code>{liveJob.provenanceReportUrl}</code> — on local-docker, the same JSON is also written next to{' '}
+                  <code>metrics.json</code> as <code>provenance-report.json</code> under the run outputs folder on the backend host.
+                </Typography>
+              )}
+            </Box>
           )}
 
           <Accordion defaultExpanded>

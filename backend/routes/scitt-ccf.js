@@ -201,6 +201,30 @@ router.get('/claims', authenticateToken, async (req, res) => {
   }
 });
 
+/**
+ * Full provenance / audit bundle for a contract (for reviews, not raw scitt_claims alone).
+ * Same access pattern as listing claims: TDC/CCRP on the contract, or AppAdmin.
+ */
+router.get('/provenance-report/:contractId', authenticateToken, async (req, res) => {
+  try {
+    const userId = req.user?.localUser?.id || req.user?.id;
+    if (!userId) {
+      return res.status(401).json({ success: false, error: 'Unauthorized' });
+    }
+    const { contractId } = req.params;
+    const partyType = req.user?.localUser?.partyType;
+    const { buildProvenanceAuditReport } = require('../services/provenanceAuditReportService');
+    const report = await buildProvenanceAuditReport(contractId, userId, { partyType });
+    return res.json({ success: true, report });
+  } catch (error) {
+    const code = error.statusCode && error.statusCode >= 400 && error.statusCode < 600 ? error.statusCode : 500;
+    return res.status(code).json({
+      success: false,
+      error: error.message || 'Failed to build provenance report',
+    });
+  }
+});
+
 // TEE Attestation
 router.post('/contracts/:contractId/verify-attestation', authenticateToken, async (req, res) => {
   try {

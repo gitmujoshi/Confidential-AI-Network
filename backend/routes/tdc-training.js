@@ -3,6 +3,7 @@
  */
 
 const express = require('express');
+const path = require('path');
 const router = express.Router();
 const { authenticateToken } = require('../middleware/auth');
 const TdcTrainingExecutionService = require('../services/tdcTrainingExecutionService');
@@ -154,6 +155,96 @@ router.get(
       }
 
       return res.type('text/plain').send(buf.toString('utf8'));
+    } catch (err) {
+      return handleError(res, err);
+    }
+  }
+);
+
+router.get(
+  '/jobs/:jobId/artifact',
+  authenticateToken,
+  async (req, res) => {
+    try {
+      const { jobId } = req.params;
+      const userId = req.user?.localUser?.id;
+      if (!userId) {
+        return res.status(401).json({ success: false, error: 'Unauthorized' });
+      }
+      if (req.user?.localUser?.partyType !== 'TDC') {
+        return res.status(403).json({ success: false, error: 'TDC role required' });
+      }
+
+      // Authorization check (ensures requesting user owns the contract as TDC).
+      await service.getJobForUser(jobId, userId);
+
+      const row = await db.TrainingJob.findOne({ where: { jobId } });
+      if (!row) {
+        return res.status(404).json({ success: false, error: 'Training job not found' });
+      }
+
+      const plain = row.get({ plain: true });
+      const outDir = plain?.metadata?.local?.outDir || null;
+      if (!outDir) {
+        return res.status(404).json({ success: false, error: 'Artifact not available for this job' });
+      }
+
+      const artifactPath = `${outDir}/model.bin`;
+      if (!fs.existsSync(artifactPath)) {
+        return res.status(404).json({ success: false, error: 'Artifact file not found' });
+      }
+
+      res.setHeader('Content-Type', 'application/octet-stream');
+      res.setHeader(
+        'Content-Disposition',
+        `attachment; filename="${String(jobId).replace(/[^a-zA-Z0-9._-]/g, '_')}-model.bin"`
+      );
+      return fs.createReadStream(artifactPath).pipe(res);
+    } catch (err) {
+      return handleError(res, err);
+    }
+  }
+);
+
+router.get(
+  '/jobs/:jobId/provenance-report',
+  authenticateToken,
+  async (req, res) => {
+    try {
+      const { jobId } = req.params;
+      const userId = req.user?.localUser?.id;
+      if (!userId) {
+        return res.status(401).json({ success: false, error: 'Unauthorized' });
+      }
+      if (req.user?.localUser?.partyType !== 'TDC') {
+        return res.status(403).json({ success: false, error: 'TDC role required' });
+      }
+
+      await service.getJobForUser(jobId, userId);
+
+      const row = await db.TrainingJob.findOne({ where: { jobId } });
+      if (!row) {
+        return res.status(404).json({ success: false, error: 'Training job not found' });
+      }
+
+      const plain = row.get({ plain: true });
+      const outDir = plain?.metadata?.local?.outDir || null;
+      const filePath = outDir ? path.join(outDir, 'provenance-report.json') : null;
+
+      if (filePath && fs.existsSync(filePath)) {
+        return res.type('application/json').send(fs.readFileSync(filePath, 'utf8'));
+      }
+
+      const { buildJobTrainingProvenanceBundle } = require('../services/provenanceAuditReportService');
+      const bundle = await buildJobTrainingProvenanceBundle(jobId);
+      if (filePath) {
+        try {
+          fs.writeFileSync(filePath, JSON.stringify(bundle, null, 2), 'utf8');
+        } catch (_) {
+          // ignore disk write failures; still return JSON
+        }
+      }
+      return res.json(bundle);
     } catch (err) {
       return handleError(res, err);
     }

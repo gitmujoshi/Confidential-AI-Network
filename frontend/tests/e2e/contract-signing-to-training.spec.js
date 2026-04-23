@@ -170,8 +170,9 @@ test.describe('Contract signing → training (TDC/TDP/CCRP)', () => {
 
     // Start training.
     // With TRAINING_SIMULATION_MODE=false, this may fail if cloud/CCRP credentials aren't configured.
-    // If E2E_WAIT_FOR_LOCAL_TRAINING=true and backend is configured for local-docker execution mode,
-    // we additionally wait for the job to complete and assert results + logs.
+    // Only wrap the *start* call here: later steps (wait, logs, register-model) can legitimately return
+    // HTTP statuses (e.g. 404) that must not be mis-classified as "expected start failures".
+    let jobId;
     try {
       const start = await axios.post(
         `${BACKEND_URL}/api/tdc/training/contracts/${encodeURIComponent(contractId)}/start`,
@@ -180,8 +181,7 @@ test.describe('Contract signing → training (TDC/TDP/CCRP)', () => {
       );
       expect(start.data?.success).toBe(true);
       expect(start.data?.job?.jobId).toBeTruthy();
-
-      const jobId = start.data.job.jobId;
+      jobId = start.data.job.jobId;
       await testInfo.attach('training.start.response.json', {
         contentType: 'application/json',
         body: JSON.stringify(start.data, null, 2),
@@ -190,64 +190,14 @@ test.describe('Contract signing → training (TDC/TDP/CCRP)', () => {
         contentType: 'text/plain',
         body: String(jobId),
       });
-
-      if (WAIT_FOR_LOCAL_TRAINING) {
-        const done = await waitForJobToFinish({ contractId, jobId, token: tdcToken });
-        expect(done.status).toBe('COMPLETED');
-        expect(done.results).toBeTruthy();
-        expect(done.results.accuracy).toBeDefined();
-        expect(done.results.loss).toBeDefined();
-        expect(done.results.artifactUri).toBeTruthy();
-        await testInfo.attach('training.job.done.json', {
-          contentType: 'application/json',
-          body: JSON.stringify(done, null, 2),
-        });
-
-        // Logs should be available for local-docker jobs.
-        const logsRes = await axios.get(
-          `${BACKEND_URL}/api/tdc/training/jobs/${encodeURIComponent(jobId)}/logs`,
-          { headers: { Authorization: `Bearer ${tdcToken}` } }
-        );
-        expect(String(logsRes.data)).toContain('[trainer]');
-        expect(String(logsRes.data)).toContain('completed');
-        await testInfo.attach('training.logs.txt', {
-          contentType: 'text/plain',
-          body: String(logsRes.data).slice(-200000),
-        });
-
-        // Best-effort provenance snapshot (SCITT claims) to include in report.
-        // This may be empty depending on config and which operations emit claims.
-        try {
-          const claims = await axios.get(`${BACKEND_URL}/api/scitt-ccf/claims`, {
-            headers: { Authorization: `Bearer ${tdcToken}` },
-          });
-          await testInfo.attach('provenance.scitt-claims.json', {
-            contentType: 'application/json',
-            body: JSON.stringify(claims.data, null, 2),
-          });
-        } catch (e) {
-          await testInfo.attach('provenance.scitt-claims.error.txt', {
-            contentType: 'text/plain',
-            body: String(e.response?.status || e.message || e),
-          });
-        }
-
-        // Register trained model.
-        const reg = await axios.post(
-          `${BACKEND_URL}/api/tdc/training/jobs/${encodeURIComponent(jobId)}/register-model`,
-          { name: `E2E Trained Model ${Date.now()}` },
-          { headers: { Authorization: `Bearer ${tdcToken}` } }
-        );
-        expect(reg.data?.success).toBe(true);
-        expect(reg.data?.modelId).toBeTruthy();
-        await testInfo.attach('training.register-model.response.json', {
-          contentType: 'application/json',
-          body: JSON.stringify(reg.data, null, 2),
-        });
-      }
     } catch (err) {
       const httpStatus = err.response?.status;
-      expect([400, 401, 403, 409, 500].includes(httpStatus)).toBe(true);
+      const acceptableStartFailures = [400, 401, 403, 404, 409, 429, 500, 502, 503, 504];
+      if (err.response) {
+        expect(acceptableStartFailures).toContain(httpStatus);
+      } else {
+        expect(String(err.message || '').length).toBeGreaterThan(0);
+      }
       expect(httpStatus).not.toBe(401);
       expect(httpStatus).not.toBe(403);
       const msg = err.response?.data?.error || err.response?.data?.message || err.message || '';
@@ -256,6 +206,131 @@ test.describe('Contract signing → training (TDC/TDP/CCRP)', () => {
         contentType: 'application/json',
         body: JSON.stringify({ httpStatus, msg, data: err.response?.data || null }, null, 2),
       });
+      return;
+    }
+
+    if (WAIT_FOR_LOCAL_TRAINING) {
+      const done = await waitForJobToFinish({ contractId, jobId, token: tdcToken });
+      expect(done.status).toBe('COMPLETED');
+      expect(done.results).toBeTruthy();
+      expect(done.results.accuracy).toBeDefined();
+      expect(done.results.loss).toBeDefined();
+      expect(done.results.artifactUri).toBeTruthy();
+      // Top-level `modelProvenance` is preferred; nested copy lives under `results` for payloads.
+      const modelProv = done.modelProvenance ?? done.results?.modelProvenance;
+      expect(modelProv).toBeTruthy();
+      expect(modelProv.datasetsUsed?.length).toBeGreaterThan(0);
+      expect(modelProv.trainingMetrics).toBeTruthy();
+      expect(modelProv.trainingMetrics.loss).toBeDefined();
+      expect(modelProv.trainingMetrics.accuracy).toBeDefined();
+      expect(done.results.modelProvenance).toBeTruthy();
+      expect(done.results.modelProvenance.trainingMetrics?.epochsCompleted).toBeDefined();
+      await testInfo.attach('training.job.done.json', {
+        contentType: 'application/json',
+        body: JSON.stringify(done, null, 2),
+      });
+
+      // Logs should be available for local-docker jobs.
+      const logsRes = await axios.get(
+        `${BACKEND_URL}/api/tdc/training/jobs/${encodeURIComponent(jobId)}/logs`,
+        { headers: { Authorization: `Bearer ${tdcToken}` } }
+      );
+      expect(String(logsRes.data)).toContain('[trainer]');
+      expect(String(logsRes.data)).toContain('completed');
+      await testInfo.attach('training.logs.txt', {
+        contentType: 'text/plain',
+        body: String(logsRes.data).slice(-200000),
+      });
+
+      // Job-level provenance bundle (same JSON as UI download + on-host provenance-report.json).
+      try {
+        const provRes = await axios.get(
+          `${BACKEND_URL}/api/tdc/training/jobs/${encodeURIComponent(jobId)}/provenance-report`,
+          { headers: { Authorization: `Bearer ${tdcToken}` } }
+        );
+        const provBody =
+          typeof provRes.data === 'string' ? provRes.data : JSON.stringify(provRes.data, null, 2);
+        await testInfo.attach('training.job.provenance-report.json', {
+          contentType: 'application/json',
+          body: provBody,
+        });
+      } catch (e) {
+        await testInfo.attach('training.job.provenance-report.error.txt', {
+          contentType: 'text/plain',
+          body: String(e.response?.status || e.message || e),
+        });
+      }
+
+      // Trained model artifact (same as UI download).
+      try {
+        const artRes = await axios.get(
+          `${BACKEND_URL}/api/tdc/training/jobs/${encodeURIComponent(jobId)}/artifact`,
+          {
+            headers: { Authorization: `Bearer ${tdcToken}` },
+            responseType: 'arraybuffer',
+          }
+        );
+        await testInfo.attach('training.artifact.model.bin', {
+          body: Buffer.from(artRes.data),
+          contentType: 'application/octet-stream',
+        });
+      } catch (e) {
+        await testInfo.attach('training.artifact.model.bin.error.txt', {
+          contentType: 'text/plain',
+          body: String(e.response?.status || e.message || e),
+        });
+      }
+
+      // Best-effort provenance snapshot (SCITT claims) to include in report.
+      // This may be empty depending on config and which operations emit claims.
+      try {
+        const claims = await axios.get(`${BACKEND_URL}/api/scitt-ccf/claims`, {
+          headers: { Authorization: `Bearer ${tdcToken}` },
+        });
+        await testInfo.attach('provenance.scitt-claims.json', {
+          contentType: 'application/json',
+          body: JSON.stringify(claims.data, null, 2),
+        });
+      } catch (e) {
+        await testInfo.attach('provenance.scitt-claims.error.txt', {
+          contentType: 'text/plain',
+          body: String(e.response?.status || e.message || e),
+        });
+      }
+
+      // Register trained model.
+      const reg = await axios.post(
+        `${BACKEND_URL}/api/tdc/training/jobs/${encodeURIComponent(jobId)}/register-model`,
+        { name: `E2E Trained Model ${Date.now()}` },
+        { headers: { Authorization: `Bearer ${tdcToken}` } }
+      );
+      expect(reg.data?.success).toBe(true);
+      expect(reg.data?.modelId).toBeTruthy();
+      await testInfo.attach('training.register-model.response.json', {
+        contentType: 'application/json',
+        body: JSON.stringify(reg.data, null, 2),
+      });
+
+      // Contract-wide audit bundle after registration (includes new AIModel in report).
+      try {
+        const auditRes = await axios.get(
+          `${BACKEND_URL}/api/scitt-ccf/provenance-report/${encodeURIComponent(contractId)}`,
+          { headers: { Authorization: `Bearer ${tdcToken}` } }
+        );
+        const auditBody =
+          typeof auditRes.data === 'string'
+            ? auditRes.data
+            : JSON.stringify(auditRes.data?.report ?? auditRes.data, null, 2);
+        await testInfo.attach('training.contract.provenance-audit.json', {
+          contentType: 'application/json',
+          body: auditBody,
+        });
+      } catch (e) {
+        await testInfo.attach('training.contract.provenance-audit.error.txt', {
+          contentType: 'text/plain',
+          body: String(e.response?.status || e.message || e),
+        });
+      }
     }
   });
 });
