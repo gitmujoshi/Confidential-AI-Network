@@ -340,6 +340,10 @@ class RicardianContractService {
         environmentSpecs: contractData.environmentSpecs ?? {},
         // Add KMS configurations if present
         kmsConfigs: contractData.kmsConfigs || null,
+        // Optional runtime/execution fields (used for provisioning and auditability)
+        containerImage: contractData.containerImage || null,
+        serviceAccount: contractData.serviceAccount || null,
+        logDestination: contractData.logDestination || null,
         // Add contractDatasets - required field for multi-dataset contracts
         contractDatasets: this.convertDatasetSelectionsToContractDatasets(contractData.datasetSelections) || contractData.contractDatasets || [],
         // Add dataset count

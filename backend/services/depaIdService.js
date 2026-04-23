@@ -21,6 +21,8 @@ const { v4: uuidv4 } = require('uuid');
 
 class DEPAIdService {
   constructor() {
+    this.deploymentPrefix = (process.env.DEPLOYMENT_PREFIX || 'LOCAL').toString().trim() || 'LOCAL';
+
     // Valid entity types for DEPA ID generation
     this.validEntityTypes = [
       'TDC',
@@ -33,8 +35,13 @@ class DEPAIdService {
     ];
 
     // Regex pattern for DEPA ID validation
-    this.depaIdPattern =
+    // Support both:
+    // - legacy: {ENTITY_TYPE}-{UUID}
+    // - prefixed: {PREFIX}-{ENTITY_TYPE}-{UUID}  (e.g. LOCAL-TDC-...)
+    this.depaIdPatternLegacy =
       /^(TDC|TDP|CCRP|CONTRACT|DATASET|AIMODEL|TRAININGJOB)-[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    this.depaIdPatternPrefixed =
+      /^([A-Z0-9][A-Z0-9_-]{0,31})-(TDC|TDP|CCRP|CONTRACT|DATASET|AIMODEL|TRAININGJOB)-[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
   }
 
   /**
@@ -54,7 +61,8 @@ class DEPAIdService {
       const guid = uuidv4();
       
       // Create DEPA ID
-      const depaId = `${entityType}-${guid}`;
+      const prefix = this.deploymentPrefix.toUpperCase();
+      const depaId = `${prefix}-${entityType}-${guid}`;
       
       console.log(`✅ Generated DEPA ID: ${depaId} for entity type: ${entityType}`);
       
@@ -74,8 +82,8 @@ class DEPAIdService {
     if (!depaId || typeof depaId !== 'string') {
       return false;
     }
-    
-    return this.depaIdPattern.test(depaId);
+
+    return this.depaIdPatternPrefixed.test(depaId) || this.depaIdPatternLegacy.test(depaId);
   }
 
   /**
@@ -87,9 +95,14 @@ class DEPAIdService {
     if (!this.validateDEPAId(depaId)) {
       return null;
     }
-    const idx = depaId.indexOf('-');
-    if (idx <= 0) return null;
-    return depaId.slice(0, idx).toUpperCase();
+    const parts = depaId.split('-');
+    // legacy: ENTITY-uuid...
+    // prefixed: PREFIX-ENTITY-uuid...
+    if (parts.length < 2) return null;
+    const maybeEntity = parts[0].toUpperCase();
+    if (this.validEntityTypes.includes(maybeEntity)) return maybeEntity;
+    const entity = parts[1]?.toUpperCase?.() || null;
+    return this.validEntityTypes.includes(entity) ? entity : null;
   }
 
   /**
@@ -101,8 +114,12 @@ class DEPAIdService {
     if (!this.validateDEPAId(depaId)) {
       return null;
     }
-    const idx = depaId.indexOf('-');
-    return idx >= 0 ? depaId.slice(idx + 1) : null;
+    const parts = depaId.split('-');
+    if (parts.length < 2) return null;
+    const maybeEntity = parts[0].toUpperCase();
+    // GUID starts after ENTITY in legacy, after PREFIX+ENTITY in prefixed
+    const startIdx = this.validEntityTypes.includes(maybeEntity) ? 1 : 2;
+    return parts.length > startIdx ? parts.slice(startIdx).join('-') : null;
   }
 
   /**

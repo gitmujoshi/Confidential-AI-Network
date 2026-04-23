@@ -26,6 +26,8 @@ import {
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import RefreshIcon from '@mui/icons-material/Refresh';
+import ContentCopyIcon from '@mui/icons-material/ContentCopy';
+import CloseIcon from '@mui/icons-material/Close';
 import { useUser } from '../contexts/UserContext';
 import apiService, { api } from '../services/api';
 import toast from 'react-hot-toast';
@@ -40,7 +42,14 @@ export default function TDCTraining() {
   const [startingId, setStartingId] = useState(null);
   const [pollJobId, setPollJobId] = useState(null);
   const [liveJob, setLiveJob] = useState(null);
+  const [jobLogs, setJobLogs] = useState('');
+  const [logsLoading, setLogsLoading] = useState(false);
   const [registering, setRegistering] = useState(false);
+  const [jsonViewerOpen, setJsonViewerOpen] = useState(false);
+  const [jsonViewerTitle, setJsonViewerTitle] = useState('');
+  const [jsonViewerFilename, setJsonViewerFilename] = useState('');
+  const [jsonViewerData, setJsonViewerData] = useState(null);
+  const [jsonViewerLoading, setJsonViewerLoading] = useState(false);
 
   const loadContracts = useCallback(async () => {
     if (!currentUser?.id) return;
@@ -89,6 +98,7 @@ export default function TDCTraining() {
         const data = await apiService.getTdcTrainingJob(pollJobId);
         if (cancelled) return;
         setLiveJob(data.job);
+        setJobLogs('');
         if (data.job?.contractId) await loadJobsForContract(data.job.contractId);
         if (TERMINAL.has(data.job?.status)) {
           setPollJobId(null);
@@ -117,6 +127,23 @@ export default function TDCTraining() {
     URL.revokeObjectURL(url);
   };
 
+  const openJsonViewer = ({ title, filename, data }) => {
+    setJsonViewerTitle(title);
+    setJsonViewerFilename(filename);
+    setJsonViewerData(data);
+    setJsonViewerOpen(true);
+  };
+
+  const handleCopyJson = async () => {
+    try {
+      const txt = JSON.stringify(jsonViewerData, null, 2);
+      await navigator.clipboard.writeText(txt);
+      toast.success('Copied JSON');
+    } catch (e) {
+      toast.error('Copy failed');
+    }
+  };
+
   const handleDownloadJobProvenance = async () => {
     if (!liveJob?.jobId) return;
     try {
@@ -128,6 +155,23 @@ export default function TDCTraining() {
     }
   };
 
+  const handleViewJobProvenance = async () => {
+    if (!liveJob?.jobId) return;
+    setJsonViewerLoading(true);
+    try {
+      const data = await apiService.getTdcTrainingProvenanceReport(liveJob.jobId);
+      openJsonViewer({
+        title: 'Job provenance (JSON)',
+        filename: `${liveJob.jobId}-provenance-report.json`,
+        data,
+      });
+    } catch (e) {
+      toast.error(e.response?.data?.error || e.message || 'Failed to load provenance');
+    } finally {
+      setJsonViewerLoading(false);
+    }
+  };
+
   const handleDownloadContractAudit = async () => {
     if (!liveJob?.contractId) return;
     try {
@@ -136,6 +180,23 @@ export default function TDCTraining() {
       toast.success('Downloaded contract audit bundle');
     } catch (e) {
       toast.error(e.response?.data?.error || e.message || 'Download failed');
+    }
+  };
+
+  const handleViewContractAudit = async () => {
+    if (!liveJob?.contractId) return;
+    setJsonViewerLoading(true);
+    try {
+      const report = await apiService.getScittProvenanceReport(liveJob.contractId);
+      openJsonViewer({
+        title: 'Contract audit bundle (JSON)',
+        filename: `${liveJob.contractId}-provenance-audit.json`,
+        data: report,
+      });
+    } catch (e) {
+      toast.error(e.response?.data?.error || e.message || 'Failed to load audit bundle');
+    } finally {
+      setJsonViewerLoading(false);
     }
   };
 
@@ -155,6 +216,32 @@ export default function TDCTraining() {
       toast.success('Downloaded model artifact');
     } catch (e) {
       toast.error(e.response?.data?.error || e.message || 'Download failed');
+    }
+  };
+
+  const handleViewJob = async (jobId) => {
+    try {
+      setPollJobId(null);
+      setLiveJob(null);
+      setJobLogs('');
+      const data = await apiService.getTdcTrainingJob(jobId);
+      setLiveJob(data.job);
+      if (data.job?.contractId) await loadJobsForContract(data.job.contractId);
+    } catch (e) {
+      toast.error(e.response?.data?.error || e.message || 'Failed to load job');
+    }
+  };
+
+  const handleLoadLogs = async () => {
+    if (!liveJob?.jobId) return;
+    setLogsLoading(true);
+    try {
+      const txt = await apiService.getTdcTrainingJobLogs(liveJob.jobId);
+      setJobLogs(typeof txt === 'string' ? txt : JSON.stringify(txt, null, 2));
+    } catch (e) {
+      toast.error(e.response?.data?.error || e.message || 'Failed to load logs');
+    } finally {
+      setLogsLoading(false);
     }
   };
 
@@ -232,6 +319,7 @@ export default function TDCTraining() {
       {signedContracts.map((c) => {
         const cid = c.contractId;
         const jobs = jobsByContract[cid] || [];
+        const showDetailForThisContract = Boolean(liveJob?.contractId && liveJob.contractId === cid);
         return (
           <Card key={cid} sx={{ mb: 2 }}>
             <CardContent>
@@ -297,117 +385,255 @@ export default function TDCTraining() {
                           )}
                         </TableCell>
                         <TableCell>
-                          <Button size="small" onClick={() => { setPollJobId(j.jobId); setLiveJob(null); }}>
-                            Watch
-                          </Button>
+                          <Stack direction="row" gap={1} flexWrap="wrap" justifyContent="flex-end">
+                            <Button size="small" onClick={() => handleViewJob(j.jobId)}>
+                              View details
+                            </Button>
+                            <Button
+                              size="small"
+                              variant="outlined"
+                              onClick={() => {
+                                setPollJobId(j.jobId);
+                                setLiveJob(null);
+                                setJobLogs('');
+                              }}
+                            >
+                              Watch
+                            </Button>
+                          </Stack>
                         </TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
                 </Table>
               )}
+
+              {showDetailForThisContract && liveJob && (
+                <Paper variant="outlined" sx={{ p: 2, mt: 2 }}>
+                  <Typography variant="h6" gutterBottom>
+                    Selected job detail
+                  </Typography>
+                  <Typography variant="body2" sx={{ mb: 1 }}>
+                    <strong>{liveJob.jobId}</strong> — {liveJob.status}
+                    {liveJob.simulation && (
+                      <Chip size="small" label="Simulated" sx={{ ml: 1 }} />
+                    )}
+                  </Typography>
+                  {typeof liveJob.progress === 'number' && (
+                    <LinearProgress
+                      variant="determinate"
+                      value={Math.min(100, liveJob.progress)}
+                      sx={{ mb: 2 }}
+                    />
+                  )}
+
+                  {(TERMINAL.has(liveJob.status) || liveJob.results) && (
+                    <Box sx={{ mb: 2 }}>
+                      <Typography variant="subtitle2" gutterBottom>
+                        Provenance &amp; artifacts (host / API — not only inside the trainer container)
+                      </Typography>
+                      <Stack direction="row" flexWrap="wrap" gap={1}>
+                        <Button size="small" variant="outlined" onClick={handleViewJobProvenance} disabled={jsonViewerLoading}>
+                          View job provenance
+                        </Button>
+                        <Button size="small" variant="outlined" onClick={handleDownloadJobProvenance}>
+                          Download job provenance
+                        </Button>
+                        <Button size="small" variant="outlined" onClick={handleViewContractAudit} disabled={jsonViewerLoading}>
+                          View contract audit bundle
+                        </Button>
+                        <Button size="small" variant="outlined" onClick={handleDownloadContractAudit}>
+                          Download contract audit bundle
+                        </Button>
+                        {liveJob.artifactDownloadUrl && (
+                          <Button size="small" variant="outlined" onClick={handleDownloadModelArtifact}>
+                            Download model.bin
+                          </Button>
+                        )}
+                        <Button size="small" variant="outlined" onClick={handleLoadLogs} disabled={logsLoading}>
+                          {logsLoading ? 'Loading logs…' : 'View logs'}
+                        </Button>
+                      </Stack>
+                      {liveJob.provenanceReportUrl && (
+                        <Typography
+                          variant="caption"
+                          color="text.secondary"
+                          display="block"
+                          sx={{ mt: 0.5 }}
+                        >
+                          API: <code>{liveJob.provenanceReportUrl}</code> — on local-docker, the same JSON is also written
+                          next to <code>metrics.json</code> as <code>provenance-report.json</code> under the run outputs
+                          folder on the backend host.
+                        </Typography>
+                      )}
+                    </Box>
+                  )}
+
+                  {jobLogs && (
+                    <Accordion defaultExpanded>
+                      <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                        <Typography>Job logs</Typography>
+                      </AccordionSummary>
+                      <AccordionDetails>
+                        <Box
+                          component="pre"
+                          sx={{
+                            fontSize: 11,
+                            overflow: 'auto',
+                            m: 0,
+                            maxHeight: 360,
+                            whiteSpace: 'pre-wrap',
+                          }}
+                        >
+                          {jobLogs}
+                        </Box>
+                      </AccordionDetails>
+                    </Accordion>
+                  )}
+
+                  <Accordion defaultExpanded>
+                    <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                      <Typography>Container spec (runtime snapshot)</Typography>
+                    </AccordionSummary>
+                    <AccordionDetails>
+                      <Box component="pre" sx={{ fontSize: 11, overflow: 'auto', m: 0 }}>
+                        {JSON.stringify(liveJob.containerSpec, null, 2)}
+                      </Box>
+                    </AccordionDetails>
+                  </Accordion>
+
+                  <Accordion>
+                    <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                      <Typography>Training parameters (from contract)</Typography>
+                    </AccordionSummary>
+                    <AccordionDetails>
+                      <Box component="pre" sx={{ fontSize: 11, overflow: 'auto', m: 0 }}>
+                        {JSON.stringify(liveJob.trainingConfig, null, 2)}
+                      </Box>
+                    </AccordionDetails>
+                  </Accordion>
+
+                  {liveJob.results && (
+                    <Accordion defaultExpanded>
+                      <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                        <Typography>Results &amp; artifact (for deployment / inference)</Typography>
+                      </AccordionSummary>
+                      <AccordionDetails>
+                        <Box component="pre" sx={{ fontSize: 11, overflow: 'auto', m: 0 }}>
+                          {JSON.stringify(liveJob.results, null, 2)}
+                        </Box>
+                        {liveJob.inference?.note && (
+                          <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+                            {liveJob.inference.note}
+                          </Typography>
+                        )}
+                        {liveJob.status === 'COMPLETED' && !liveJob.registeredModelId && (
+                          <Button
+                            variant="contained"
+                            sx={{ mt: 2 }}
+                            disabled={registering}
+                            onClick={handleRegisterModel}
+                          >
+                            {registering ? 'Registering…' : 'Register trained model for inference'}
+                          </Button>
+                        )}
+                        {liveJob.registeredModelId && (
+                          <Alert severity="success" sx={{ mt: 2 }}>
+                            Registered as AIModel <code>{liveJob.registeredModelId}</code> — usable in new contracts and
+                            inference flows.
+                          </Alert>
+                        )}
+                      </AccordionDetails>
+                    </Accordion>
+                  )}
+                </Paper>
+              )}
             </CardContent>
           </Card>
         );
       })}
 
-      {liveJob && (
-        <Paper sx={{ p: 2, mt: 2 }}>
-          <Typography variant="h6" gutterBottom>
-            Active job detail
-          </Typography>
-          <Typography variant="body2" sx={{ mb: 1 }}>
-            <strong>{liveJob.jobId}</strong> — {liveJob.status}
-            {liveJob.simulation && (
-              <Chip size="small" label="Simulated" sx={{ ml: 1 }} />
-            )}
-          </Typography>
-          {typeof liveJob.progress === 'number' && (
-            <LinearProgress variant="determinate" value={Math.min(100, liveJob.progress)} sx={{ mb: 2 }} />
-          )}
-
-          {(TERMINAL.has(liveJob.status) || liveJob.results) && (
-            <Box sx={{ mb: 2 }}>
-              <Typography variant="subtitle2" gutterBottom>
-                Provenance &amp; artifacts (host / API — not only inside the trainer container)
-              </Typography>
-              <Stack direction="row" flexWrap="wrap" gap={1}>
-                <Button size="small" variant="outlined" onClick={handleDownloadJobProvenance}>
-                  Download job provenance (JSON)
-                </Button>
-                <Button size="small" variant="outlined" onClick={handleDownloadContractAudit}>
-                  Download contract audit bundle (JSON)
-                </Button>
-                {liveJob.artifactDownloadUrl && (
-                  <Button size="small" variant="outlined" onClick={handleDownloadModelArtifact}>
-                    Download model.bin
-                  </Button>
-                )}
-              </Stack>
-              {liveJob.provenanceReportUrl && (
-                <Typography variant="caption" color="text.secondary" display="block" sx={{ mt: 0.5 }}>
-                  API: <code>{liveJob.provenanceReportUrl}</code> — on local-docker, the same JSON is also written next to{' '}
-                  <code>metrics.json</code> as <code>provenance-report.json</code> under the run outputs folder on the backend host.
-                </Typography>
-              )}
-            </Box>
-          )}
-
-          <Accordion defaultExpanded>
-            <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-              <Typography>Container spec (runtime snapshot)</Typography>
-            </AccordionSummary>
-            <AccordionDetails>
-              <Box component="pre" sx={{ fontSize: 11, overflow: 'auto', m: 0 }}>
-                {JSON.stringify(liveJob.containerSpec, null, 2)}
-              </Box>
-            </AccordionDetails>
-          </Accordion>
-
-          <Accordion>
-            <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-              <Typography>Training parameters (from contract)</Typography>
-            </AccordionSummary>
-            <AccordionDetails>
-              <Box component="pre" sx={{ fontSize: 11, overflow: 'auto', m: 0 }}>
-                {JSON.stringify(liveJob.trainingConfig, null, 2)}
-              </Box>
-            </AccordionDetails>
-          </Accordion>
-
-          {liveJob.results && (
-            <Accordion defaultExpanded>
-              <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                <Typography>Results &amp; artifact (for deployment / inference)</Typography>
-              </AccordionSummary>
-              <AccordionDetails>
-                <Box component="pre" sx={{ fontSize: 11, overflow: 'auto', m: 0 }}>
-                  {JSON.stringify(liveJob.results, null, 2)}
-                </Box>
-                {liveJob.inference?.note && (
-                  <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-                    {liveJob.inference.note}
+      {jsonViewerOpen && (
+        <Paper
+          sx={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 1400,
+            bgcolor: 'rgba(15, 23, 42, 0.55)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            p: 2,
+          }}
+          onClick={() => setJsonViewerOpen(false)}
+          role="presentation"
+        >
+          <Paper
+            onClick={(e) => e.stopPropagation()}
+            sx={{ width: 'min(1000px, 100%)', maxHeight: 'min(80vh, 900px)', overflow: 'hidden' }}
+          >
+            <Box
+              sx={{
+                px: 2,
+                py: 1.5,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                borderBottom: '1px solid rgba(148,163,184,0.35)',
+              }}
+            >
+              <Box>
+                <Typography variant="subtitle1">{jsonViewerTitle}</Typography>
+                {jsonViewerFilename && (
+                  <Typography variant="caption" color="text.secondary">
+                    {jsonViewerFilename}
                   </Typography>
                 )}
-                {liveJob.status === 'COMPLETED' && !liveJob.registeredModelId && (
-                  <Button
-                    variant="contained"
-                    sx={{ mt: 2 }}
-                    disabled={registering}
-                    onClick={handleRegisterModel}
-                  >
-                    {registering ? 'Registering…' : 'Register trained model for inference'}
-                  </Button>
-                )}
-                {liveJob.registeredModelId && (
-                  <Alert severity="success" sx={{ mt: 2 }}>
-                    Registered as AIModel <code>{liveJob.registeredModelId}</code> — usable in new contracts and
-                    inference flows.
-                  </Alert>
-                )}
-              </AccordionDetails>
-            </Accordion>
-          )}
+              </Box>
+              <Stack direction="row" gap={1} alignItems="center">
+                <Button
+                  size="small"
+                  variant="outlined"
+                  startIcon={<ContentCopyIcon />}
+                  onClick={handleCopyJson}
+                  disabled={!jsonViewerData}
+                >
+                  Copy
+                </Button>
+                <Button
+                  size="small"
+                  variant="contained"
+                  onClick={() => triggerJsonDownload(jsonViewerFilename || 'data.json', jsonViewerData)}
+                  disabled={!jsonViewerData}
+                >
+                  Download
+                </Button>
+                <Button
+                  size="small"
+                  variant="text"
+                  startIcon={<CloseIcon />}
+                  onClick={() => setJsonViewerOpen(false)}
+                >
+                  Close
+                </Button>
+              </Stack>
+            </Box>
+
+            <Box sx={{ p: 2, overflow: 'auto', maxHeight: 'calc(80vh - 70px)' }}>
+              <Box
+                component="pre"
+                sx={{
+                  fontSize: 12,
+                  lineHeight: 1.45,
+                  m: 0,
+                  whiteSpace: 'pre-wrap',
+                  wordBreak: 'break-word',
+                }}
+              >
+                {jsonViewerData ? JSON.stringify(jsonViewerData, null, 2) : 'No data'}
+              </Box>
+            </Box>
+          </Paper>
         </Paper>
       )}
     </Container>

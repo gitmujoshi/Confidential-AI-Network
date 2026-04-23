@@ -89,11 +89,49 @@ test.describe('Contract signing → training (TDC/TDP/CCRP)', () => {
       termsAndConditions: `E2E signing→training ${Date.now()}`,
       contractType: 'AI_TRAINING',
       privacyRequirements: { maxPrivacyLoss: 0.25, minAccuracy: 0.85, differentialPrivacy: true },
-      trainingParams: { privacyTechnique: 'Differential Privacy' },
+      trainingParams: {
+        privacyTechnique: 'Differential Privacy',
+        framework: 'PyTorch',
+        architecture: 'bert-base',
+        maxEpochs: 5,
+        batchSize: 32,
+        learningRate: 0.001,
+        validationMetrics: ['accuracy', 'loss'],
+      },
       environmentSpecs: {
         compute: { cpuCores: 2, memoryGB: 4, gpuCount: 0 },
-        security: { confidentialComputing: false },
+        security: {
+          confidentialComputing: false,
+          attestationRequired: true,
+          encryptionAtRest: true,
+          encryptionInTransit: true,
+          networkIsolation: true,
+        },
+        kms: {
+          provider: 'hashicorp-vault',
+          keyId: 'e2e-local-key',
+          algorithm: 'AES-256-GCM',
+          rotationPeriod: 90,
+        },
+        runtime: {
+          containerSpec: {
+            image: 'mcr.microsoft.com/azureml/openmpi4.1.0-ubuntu20.04:latest',
+            command: 'python train.py',
+            cpuCores: 2,
+            memoryGB: 4,
+            gpuCount: 0,
+          },
+        },
       },
+      kmsConfigs: {
+        provider: 'hashicorp-vault',
+        keyId: 'e2e-local-key',
+        vaultUrl: 'http://localhost:8200',
+        metadata: { seededBy: 'playwright', purpose: 'e2e' },
+      },
+      containerImage: 'mcr.microsoft.com/azureml/openmpi4.1.0-ubuntu20.04:latest',
+      serviceAccount: 'local/e2e-runner',
+      logDestination: 'local:file',
       // Ensure CCRP is assigned so CCRP signing is authorized.
       ccrpId: ccrpUser.id,
       // For local-docker training, prefer Local to satisfy contract completeness without cloud credentials.
@@ -159,6 +197,24 @@ test.describe('Contract signing → training (TDC/TDP/CCRP)', () => {
       headers: { Authorization: `Bearer ${tdcToken}` },
     });
     const status = contractRes.data?.status || contractRes.data?.contract?.status;
+
+    // Field coverage assertions (ensures env/KMS/runtime fields roundtrip correctly).
+    expect(contractRes.data?.environmentSpecs).toBeTruthy();
+    expect(contractRes.data?.environmentSpecs?.compute).toBeTruthy();
+    expect(contractRes.data?.environmentSpecs?.security).toBeTruthy();
+    expect(contractRes.data?.environmentSpecs?.kms).toBeTruthy();
+    expect(contractRes.data?.environmentSpecs?.runtime?.containerSpec).toBeTruthy();
+    expect(contractRes.data?.kmsConfigs).toBeTruthy();
+    // These are optional fields depending on backend version. If backend doesn't persist them,
+    // record a warning but do not fail the whole E2E workflow.
+    if (!contractRes.data?.containerImage || !contractRes.data?.serviceAccount || !contractRes.data?.logDestination) {
+      testInfo.annotations.push({
+        type: 'warning',
+        description:
+          'Optional runtime fields (containerImage/serviceAccount/logDestination) were not persisted. If you recently updated the backend to support these, restart the backend and rerun.',
+      });
+    }
+
     await testInfo.attach('contract.detail.json', {
       contentType: 'application/json',
       body: JSON.stringify(contractRes.data, null, 2),

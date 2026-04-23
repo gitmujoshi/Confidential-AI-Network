@@ -700,6 +700,9 @@ router.post('/ricardian', authenticateToken, async (req, res) => {
       trainingEnvironment,
       complianceSpecs,
       kmsConfigs,
+      containerImage,
+      serviceAccount,
+      logDestination,
       globalDEPAId,
       deploymentPrefix,
       jurisdiction
@@ -843,6 +846,9 @@ router.post('/ricardian', authenticateToken, async (req, res) => {
       environmentSpecs,
       trainingParams,
       kmsConfigs,
+      containerImage,
+      serviceAccount,
+      logDestination,
       // Add global DEPA ID options
       globalDEPAId,
       deploymentPrefix,
