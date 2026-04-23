@@ -134,6 +134,9 @@ private-keys.json
 backend/vault
 backend/vault_*.zip
 
+# Local training artifacts (generated, can be very large)
+backend/local-training/runs/
+
 # Playwright (local runs; keep HTML report out of commits)
 frontend/test-results/
 frontend/playwright-report/

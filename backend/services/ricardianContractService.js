@@ -357,6 +357,31 @@ class RicardianContractService {
 
       console.log(`✅ Contract created with ${contractRecord.datasetCount} datasets stored in JSON field`);
 
+      // Local provenance/SCITT claim (best-effort).
+      try {
+        const { writeLocalScittClaim } = require('./provenanceClaimWriter');
+        await writeLocalScittClaim({
+          contractId: contract.contractId,
+          claimType: 'contract_creation',
+          claimData: {
+            contractId: contract.contractId,
+            contractDepaId: depaId,
+            contractType,
+            tdcId: contract.tdcId,
+            ccrpId: contract.ccrpId || null,
+            ccrpCloudProvider: contract.ccrpCloudProvider || null,
+            datasetCount: contract.datasetCount || null,
+            aiModelCount: Array.isArray(contract.aiModelIds) ? contract.aiModelIds.length : 0,
+            timestamp: new Date().toISOString(),
+            source: 'ricardianContractService.createRicardianContract',
+            note: 'Full contract + datasets live on Contract row; this claim is an index only.',
+          },
+          status: 'SUBMITTED',
+        });
+      } catch (e) {
+        console.warn('⚠️ Failed to write contract_creation SCITT claim:', e.message);
+      }
+
       return {
         success: true,
         contract,

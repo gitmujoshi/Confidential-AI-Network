@@ -12,6 +12,9 @@
  * - TDP: Training Data Provider
  * - CCRP: Confidential Clean Room Provider
  * - CONTRACT: Contract
+ * - DATASET: Dataset
+ * - AIMODEL: Registered or base AI model (provenance)
+ * - TRAININGJOB: Training job run
  */
 
 const { v4: uuidv4 } = require('uuid');
@@ -19,10 +22,19 @@ const { v4: uuidv4 } = require('uuid');
 class DEPAIdService {
   constructor() {
     // Valid entity types for DEPA ID generation
-    this.validEntityTypes = ['TDC', 'TDP', 'CCRP', 'CONTRACT', 'DATASET'];
-    
+    this.validEntityTypes = [
+      'TDC',
+      'TDP',
+      'CCRP',
+      'CONTRACT',
+      'DATASET',
+      'AIMODEL',
+      'TRAININGJOB',
+    ];
+
     // Regex pattern for DEPA ID validation
-    this.depaIdPattern = /^(TDC|TDP|CCRP|CONTRACT|DATASET)-[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    this.depaIdPattern =
+      /^(TDC|TDP|CCRP|CONTRACT|DATASET|AIMODEL|TRAININGJOB)-[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
   }
 
   /**
@@ -75,9 +87,9 @@ class DEPAIdService {
     if (!this.validateDEPAId(depaId)) {
       return null;
     }
-    
-    const match = depaId.match(/^(TDC|TDP|CCRP|CONTRACT)-/);
-    return match ? match[1] : null;
+    const idx = depaId.indexOf('-');
+    if (idx <= 0) return null;
+    return depaId.slice(0, idx).toUpperCase();
   }
 
   /**
@@ -89,9 +101,8 @@ class DEPAIdService {
     if (!this.validateDEPAId(depaId)) {
       return null;
     }
-    
-    const match = depaId.match(/^[A-Z]+-(.+)$/);
-    return match ? match[1] : null;
+    const idx = depaId.indexOf('-');
+    return idx >= 0 ? depaId.slice(idx + 1) : null;
   }
 
   /**
@@ -133,6 +144,16 @@ class DEPAIdService {
    */
   generateContractDEPAId() {
     return this.generateDEPAId('CONTRACT');
+  }
+
+  /** DEPA ID for an AI model row or artifact lineage reference. */
+  generateAIModelDEPAId() {
+    return this.generateDEPAId('AIMODEL');
+  }
+
+  /** DEPA ID for a contract-scoped training job. */
+  generateTrainingJobDEPAId() {
+    return this.generateDEPAId('TRAININGJOB');
   }
 
   /**

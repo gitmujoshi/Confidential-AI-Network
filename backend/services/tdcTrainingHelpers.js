@@ -74,6 +74,113 @@ function buildContainerSpec(contract) {
   };
 }
 
+/**
+ * Metrics from a completed (or in-progress) training run, for provenance / UI.
+ * Omits nested `modelProvenance` if present on `trainingResults`.
+ */
+function pickTrainingRunMetrics(trainingResults) {
+  if (!trainingResults || typeof trainingResults !== 'object') return null;
+  const { modelProvenance: _nested, ...rest } = trainingResults;
+  const pick = {};
+  const keys = [
+    'accuracy',
+    'loss',
+    'epochsCompleted',
+    'artifactUri',
+    'privacyMetrics',
+    'hyperparameters',
+  ];
+  for (const k of keys) {
+    if (rest[k] !== undefined && rest[k] !== null) {
+      pick[k] = rest[k];
+    }
+  }
+  return Object.keys(pick).length > 0 ? pick : null;
+}
+
+/**
+ * Compact, UI/API-friendly provenance for a training job or registered model.
+ * `inputs` is the object from expandContractTrainingInputs (metadata.inputs).
+ * `trainingResults` is optional (e.g. metadata.results): loss, accuracy, epochs, etc.
+ */
+function buildTrainingModelProvenance(inputs, trainingResults) {
+  const trainingMetrics = pickTrainingRunMetrics(trainingResults);
+
+  if (!inputs || typeof inputs !== 'object') {
+    if (!trainingMetrics) return null;
+    return { trainingMetrics };
+  }
+
+  const contract = inputs.contract || {};
+  const selections = Array.isArray(inputs.datasetSelections) ? inputs.datasetSelections : [];
+  const datasets = Array.isArray(inputs.datasets) ? inputs.datasets : [];
+  const models = Array.isArray(inputs.models) ? inputs.models : [];
+
+  const selectionById = new Map(
+    selections.map((s) => [s && s.datasetId, s]).filter(([k]) => k !== undefined && k !== null)
+  );
+
+  const datasetsUsed = datasets.map((d) => {
+    const plain = d && typeof d.get === 'function' ? d.get({ plain: true }) : d;
+    if (!plain || !plain.datasetId) return null;
+    const sel = selectionById.get(plain.datasetId) || {};
+    return {
+      datasetId: plain.datasetId,
+      datasetDepaId: plain.depaId || null,
+      name: plain.name,
+      category: plain.category,
+      recordCount: plain.recordCount,
+      size: plain.size,
+      license: plain.license,
+      individualPrice: sel.individualPrice ?? sel.price ?? undefined,
+      tdpId: sel.tdpId,
+    };
+  }).filter(Boolean);
+
+  const baseModels = models.map((m) => {
+    const plain = m && typeof m.get === 'function' ? m.get({ plain: true }) : m;
+    if (!plain) return null;
+    return {
+      modelId: plain.modelId,
+      modelDepaId: plain.metadata?.depaId || null,
+      dbModelId: plain.id ?? null,
+      name: plain.name,
+      type: plain.type,
+      framework: plain.framework,
+      architecture: plain.architecture,
+      privacyTechnique: plain.privacyTechnique,
+    };
+  }).filter(Boolean);
+
+  const kms = contract.kmsConfigs;
+  const kmsEnabled = Array.isArray(kms)
+    ? kms.length > 0
+    : kms && typeof kms === 'object' && Object.keys(kms).length > 0;
+
+  const out = {
+    contractId: contract.contractId || null,
+    contractDepaId: contract.contractDepaId || null,
+    contractStatus: contract.status || null,
+    tdcId: contract.tdcId ?? null,
+    tdcDepaId: contract.tdcDepaId || null,
+    ccrpId: contract.ccrpId ?? null,
+    ccrpDepaId: contract.ccrpDepaId || null,
+    ccrpCloudProvider: contract.ccrpCloudProvider || null,
+    environmentSpecs: contract.environmentSpecs || null,
+    trainingParams: contract.trainingParams || null,
+    kmsEnabled,
+    datasetsUsed,
+    datasetCount: datasetsUsed.length,
+    baseModels,
+    baseModelCount: baseModels.length,
+    aiModelIdRefs: Array.isArray(inputs.aiModelIds) ? inputs.aiModelIds : [],
+  };
+  if (trainingMetrics) {
+    out.trainingMetrics = trainingMetrics;
+  }
+  return out;
+}
+
 module.exports = {
   slugModelId,
   mapFramework,
@@ -81,4 +188,6 @@ module.exports = {
   mapPrivacyTechnique,
   isSimulationMode,
   buildContainerSpec,
+  buildTrainingModelProvenance,
+  pickTrainingRunMetrics,
 };

@@ -303,6 +303,20 @@ const realApiService = {
     );
     return response.data;
   },
+  /** TDC: JSON bundle for audits (same host path as provenance-report.json next to model.bin when local-docker). */
+  getTdcTrainingProvenanceReport: async (jobId) => {
+    const response = await api.get(
+      `/api/tdc/training/jobs/${encodeURIComponent(jobId)}/provenance-report`
+    );
+    return typeof response.data === 'string' ? JSON.parse(response.data) : response.data;
+  },
+  /** Contract-wide provenance / audit bundle (TDC, CCRP, or AppAdmin on that contract). */
+  getScittProvenanceReport: async (contractId) => {
+    const response = await api.get(
+      `/api/scitt-ccf/provenance-report/${encodeURIComponent(contractId)}`
+    );
+    return response.data?.report ?? response.data;
+  },
 
   // SCITT CCF API Methods
   // Health and Status

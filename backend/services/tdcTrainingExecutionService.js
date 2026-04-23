@@ -9,6 +9,8 @@
 
 const { Op } = require('sequelize');
 const db = require('../models');
+const DEPAIdService = require('./depaIdService');
+const depaIdService = new DEPAIdService();
 const {
   slugModelId,
   mapFramework,
@@ -16,14 +18,15 @@ const {
   mapPrivacyTechnique,
   isSimulationMode,
   buildContainerSpec,
+  buildTrainingModelProvenance,
 } = require('./tdcTrainingHelpers');
 
 async function loadContractForTraining(contractId) {
   return db.Contract.findOne({
     where: { contractId },
     include: [
-      { model: db.User, as: 'tdc', attributes: ['id', 'name', 'email'] },
-      { model: db.User, as: 'ccrp', attributes: ['id', 'name', 'email'], required: false },
+      { model: db.User, as: 'tdc', attributes: ['id', 'name', 'email', 'depaId'] },
+      { model: db.User, as: 'ccrp', attributes: ['id', 'name', 'email', 'depaId'], required: false },
     ],
   });
 }
@@ -47,6 +50,7 @@ async function expandContractTrainingInputs(contract) {
           where: { datasetId: { [Op.in]: datasetIds } },
           attributes: [
             'datasetId',
+            'depaId',
             'name',
             'description',
             'category',
@@ -70,6 +74,7 @@ async function expandContractTrainingInputs(contract) {
             ? { id: { [Op.in]: numericModelIds } }
             : { modelId: { [Op.in]: modelIds.map(String) } },
           attributes: [
+            'id',
             'modelId',
             'name',
             'description',
@@ -92,9 +97,12 @@ async function expandContractTrainingInputs(contract) {
   return {
     contract: {
       contractId: contract.contractId,
+      contractDepaId: contract.depaId || null,
       status: contract.status,
       tdcId: contract.tdcId,
+      tdcDepaId: contract.tdc?.depaId || null,
       ccrpId: contract.ccrpId,
+      ccrpDepaId: contract.ccrp?.depaId || null,
       ccrpCloudProvider: contract.ccrpCloudProvider,
       environmentSpecs: contract.environmentSpecs,
       trainingParams: contract.trainingParams,
@@ -217,6 +225,16 @@ function scheduleSimulation(jobId, contract) {
           learningRate: contract.trainingParams?.learningRate,
         },
       };
+      const provSim = buildTrainingModelProvenance(
+        meta.inputs || null,
+        trainingResults
+      );
+      trainingResults.modelProvenance =
+        provSim && typeof provSim === 'object'
+          ? { ...provSim, trainingJobDepaId: meta.depaId || null }
+          : meta.depaId
+            ? { trainingJobDepaId: meta.depaId }
+            : provSim;
 
       pushPhase('COMPLETED');
       meta.results = trainingResults;
@@ -259,7 +277,9 @@ class TdcTrainingExecutionService {
     if (isSimulationMode()) {
       const jobId = `job-${contract.contractId}-${Date.now()}`;
       const containerSpec = buildContainerSpec(contract);
+      const inputs = await expandContractTrainingInputs(contract);
 
+      const jobDepaId = depaIdService.generateTrainingJobDEPAId();
       await db.TrainingJob.create({
         jobId,
         contractId: contract.contractId,
@@ -273,10 +293,12 @@ class TdcTrainingExecutionService {
         datasets: contract.contractDatasets,
         aiModels: contract.aiModelIds,
         metadata: {
+          depaId: jobDepaId,
           simulation: true,
           progress: 0,
           containerSpec,
           phases: [{ name: 'PENDING', at: new Date().toISOString() }],
+          inputs,
         },
         createdBy: userId,
       });
@@ -291,6 +313,7 @@ class TdcTrainingExecutionService {
       const containerSpec = buildContainerSpec(contract);
       const inputs = await expandContractTrainingInputs(contract);
 
+      const jobDepaId = depaIdService.generateTrainingJobDEPAId();
       await db.TrainingJob.create({
         jobId,
         contractId: contract.contractId,
@@ -304,6 +327,7 @@ class TdcTrainingExecutionService {
         datasets: contract.contractDatasets,
         aiModels: contract.aiModelIds,
         metadata: {
+          depaId: jobDepaId,
           simulation: false,
           progress: 0,
           containerSpec,
@@ -323,6 +347,9 @@ class TdcTrainingExecutionService {
           trainingParams: contract.trainingParams,
         });
       });
+
+      // Intentionally no local `training_started` SCITT row: TrainingJob + API are the source of truth
+      // and a separate claim duplicated training_completed payloads.
 
       return this.getJobPublic(jobId);
     }
@@ -376,8 +403,25 @@ class TdcTrainingExecutionService {
     const envCfg = plain.environmentConfig || {};
     const containerSpec = meta.containerSpec || envCfg.containerSpec || null;
     const trainingCfg = plain.trainingConfig || plain.trainingParams || null;
+    const results = meta.results || plain.results || null;
+    const modelProvenanceBase = buildTrainingModelProvenance(meta.inputs || null, results);
+    const modelProvenance =
+      modelProvenanceBase && typeof modelProvenanceBase === 'object'
+        ? {
+            ...modelProvenanceBase,
+            trainingJobDepaId: meta.depaId || null,
+          }
+        : meta.depaId
+          ? { trainingJobDepaId: meta.depaId }
+          : null;
+    const artifactDownloadUrl =
+      meta?.executionMode === 'local-docker' && meta?.local?.outDir
+        ? `/api/tdc/training/jobs/${encodeURIComponent(String(plain.jobId))}/artifact`
+        : null;
+    const provenanceReportUrl = `/api/tdc/training/jobs/${encodeURIComponent(String(plain.jobId))}/provenance-report`;
     return {
       jobId: plain.jobId,
+      depaId: meta.depaId || null,
       contractId: plain.contractId,
       status: plain.status,
       createdAt: plain.createdAt,
@@ -391,7 +435,10 @@ class TdcTrainingExecutionService {
       environmentSummary: {
         cloudProvider: envCfg.cloudProvider || plain.cloudProvider || null,
       },
-      results: meta.results || plain.results || null,
+      results,
+      modelProvenance,
+      artifactDownloadUrl,
+      provenanceReportUrl,
       phases: meta.phases || [],
       simulation: meta.simulation === true,
       inference: meta.inference || null,
@@ -431,6 +478,9 @@ class TdcTrainingExecutionService {
 
     const results = meta.results || plain.results || {};
     const trainingCfg = plain.trainingConfig || plain.trainingParams || contract.trainingParams || {};
+    const modelProvenance =
+      buildTrainingModelProvenance(meta.inputs || null, results) ||
+      buildTrainingModelProvenance(await expandContractTrainingInputs(contract), results);
     const modelId = body.modelId || slugModelId(jobId);
 
     const existing = await db.AIModel.findOne({ where: { modelId } });
@@ -439,6 +489,8 @@ class TdcTrainingExecutionService {
       err.statusCode = 409;
       throw err;
     }
+
+    const modelDepaId = depaIdService.generateAIModelDEPAId();
 
     const name =
       body.name ||
@@ -456,6 +508,10 @@ class TdcTrainingExecutionService {
       (results && results.artifactUri
         ? `artifact: ${results.artifactUri}`
         : 'see metadata');
+    const provSummary =
+      modelProvenance && modelProvenance.datasetCount != null
+        ? `datasets=${modelProvenance.datasetCount}`
+        : '';
 
     const maxEpochs = parseInt(
       results?.epochsCompleted ?? trainingCfg.maxEpochs ?? 10,
@@ -485,7 +541,9 @@ class TdcTrainingExecutionService {
       description,
       type,
       architecture: String(architecture).slice(0, 255),
-      parameters: String(parameters).slice(0, 255),
+      parameters: String(
+        [parameters, provSummary].filter(Boolean).join(' | ')
+      ).slice(0, 255),
       framework,
       privacyTechnique: mapPrivacyTechnique(trainingCfg),
       validationMetrics:
@@ -497,13 +555,17 @@ class TdcTrainingExecutionService {
       learningRate: Number.isFinite(learningRate) ? learningRate : 0.001,
       isActive: true,
       metadata: {
+        ...(body.metadata && typeof body.metadata === 'object' ? body.metadata : {}),
+        depaId: modelDepaId,
         source: 'tdc_training_job',
         trainingJobId: jobId,
+        trainingJobDepaId: meta.depaId || null,
         contractId: contract.contractId,
+        contractDepaId: contract.depaId || null,
         trainingResults: results,
+        modelProvenance,
         containerSpec: meta.containerSpec || plain.environmentConfig?.containerSpec,
         registeredAt: new Date().toISOString(),
-        ...body.metadata,
       },
     });
 
@@ -514,8 +576,33 @@ class TdcTrainingExecutionService {
     };
     await job.update({ metadata: nextMeta });
 
+    // Provenance claim (best-effort).
+    try {
+      const { writeLocalScittClaim } = require('./provenanceClaimWriter');
+      await writeLocalScittClaim({
+        contractId: contract.contractId,
+        claimType: 'model_registered',
+        claimData: {
+          contractId: contract.contractId,
+          contractDepaId: contract.depaId || null,
+          jobId,
+          trainingJobDepaId: meta.depaId || null,
+          registeredModelId: model.modelId,
+          modelDepaId,
+          timestamp: new Date().toISOString(),
+          source: 'tdcTrainingExecutionService.registerModelFromJob',
+          note: 'Lineage + metrics are on AIModel.metadata.modelProvenance; this claim is an index only.',
+        },
+        status: 'SUBMITTED',
+        stableDedupeKey: jobId,
+      });
+    } catch (e) {
+      console.warn('⚠️ Failed to write model_registered SCITT claim:', e.message);
+    }
+
     return {
       modelId: model.modelId,
+      depaId: modelDepaId,
       id: model.id,
       name: model.name,
       framework: model.framework,

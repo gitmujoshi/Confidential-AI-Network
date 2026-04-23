@@ -498,6 +498,31 @@ router.post('/:contractId/sign', authenticateToken, async (req, res) => {
     // NOTE: TDC signing is not required by the current training runtime gate (it checks status === SIGNED).
     await contract.update(updates);
 
+    // Record a local provenance/SCITT claim for signing (best-effort).
+    // Note: write asynchronously to avoid any transaction visibility edge cases.
+    setImmediate(async () => {
+      try {
+        const { writeLocalScittClaim } = require('../services/provenanceClaimWriter');
+        await writeLocalScittClaim({
+          contractId: contract.contractId,
+          claimType: 'contract_approval',
+          claimData: {
+            contractId: contract.contractId,
+            contractDepaId: contract.depaId || null,
+            partyType,
+            signerUserId: currentUser.id,
+            signerDepaId: currentUser.depaId || null,
+            timestamp: new Date().toISOString(),
+            statusAfter: updates.status || contract.status,
+            source: 'contracts.sign',
+          },
+          status: 'SUBMITTED',
+        });
+      } catch (e) {
+        console.warn('⚠️ Failed to write contract_approval SCITT claim:', e.message);
+      }
+    });
+
     return res.json({
       success: true,
       contractId: contract.contractId,
