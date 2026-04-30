@@ -89,9 +89,37 @@ const steps = [
   'Select Contract Template',
   'Contract Details & Dataset Selection',
   'Configure Environment & CCRP',
-  'Review Legal Document & Smart Contract',
-  'Create Contract'
+  'Review Legal Document & Smart Contract'
 ];
+
+const KeyValue = ({ label, value, mono = false }) => {
+  return (
+    <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '160px 1fr' }, gap: 1, py: 0.75 }}>
+      <Typography
+        variant="overline"
+        sx={{ color: 'text.secondary', letterSpacing: '0.08em', lineHeight: 1.4 }}
+      >
+        {label}
+      </Typography>
+      <Typography
+        variant="body2"
+        sx={{
+          fontWeight: 700,
+          color: 'text.primary',
+          fontFamily: mono ? 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace' : undefined,
+          wordBreak: 'break-word',
+        }}
+      >
+        {value ?? '—'}
+      </Typography>
+    </Box>
+  );
+};
+
+const TabPanel = ({ value, index, children }) => {
+  if (value !== index) return null;
+  return <Box sx={{ mt: 2 }}>{children}</Box>;
+};
 
 function CreateRicardianContract() {
   const navigate = useNavigate();
@@ -103,6 +131,8 @@ function CreateRicardianContract() {
   
   // Component state
   const [activeStep, setActiveStep] = useState(0);
+  const [step1Tab, setStep1Tab] = useState(0);
+  const [step2Tab, setStep2Tab] = useState(0);
   const [selectedTemplate, setSelectedTemplate] = useState(null);
   const [selectedDatasets, setSelectedDatasets] = useState([]); // Array of selected datasets
   const [datasetPrices, setDatasetPrices] = useState({}); // Individual pricing per dataset
@@ -634,9 +664,9 @@ function CreateRicardianContract() {
         privacyRequirements: {
           maxPrivacyLoss: trainingParams.maxPrivacyLoss,
           minAccuracy: trainingParams.minAccuracy,
-          differentialPrivacy: trainingParams.differentialPrivacy,
-          federatedLearning: trainingParams.federatedLearning,
-          secureMultiPartyComputation: trainingParams.secureMultiPartyComputation
+          differentialPrivacy: trainingParams.differentialPrivacy, // { enabled, epsilon, delta }
+          federatedLearning: trainingParams.federatedLearning, // { enabled, communicationRounds }
+          secureMultiPartyComputation: trainingParams.secureMultiPartyComputation, // { enabled }
         }
       };
 
@@ -648,10 +678,29 @@ function CreateRicardianContract() {
       console.log('📝 Preview response:', previewResponse);
       
       if (previewResponse.success) {
-        setLegalDocument(previewResponse.legalDocument);
+        // Normalize backend response shapes:
+        // Some preview endpoints return `{ legalDocument, legalDocumentHash, smartContractData }` (no wrapper),
+        // while others return `{ legalDocument: { legalDocument, metadata } }`.
+        const rawLd = previewResponse.legalDocument;
+        const normalizedLegalDocument =
+          rawLd && typeof rawLd === 'object' && rawLd.metadata && rawLd.legalDocument
+            ? rawLd
+            : {
+                legalDocument: rawLd,
+                metadata: {
+                  contractId:
+                    previewResponse?.smartContractData?.contractId ??
+                    rawLd?.contractId ??
+                    `preview-${Date.now()}`,
+                  legalDocumentHash: previewResponse.legalDocumentHash ?? rawLd?.legalDocumentHash ?? null,
+                  ricardianSignature: rawLd?.ricardianSignature ?? 'preview',
+                },
+              };
+
+        setLegalDocument(normalizedLegalDocument);
         setSmartContractData(previewResponse.smartContractData);
         console.log('✅ Preview data set:', {
-          legalDocument: previewResponse.legalDocument,
+          legalDocument: normalizedLegalDocument,
           smartContractData: previewResponse.smartContractData
         });
         toast.success('Preview generated successfully!', { id: 'preview-generation' });
@@ -725,16 +774,25 @@ function CreateRicardianContract() {
       setContractCreationError(null);
       
       // Prepare contract data for regular contract creation API
+      const selectedModel =
+        selectedAiModels
+          ? (aiModelsResponse?.models || []).find(
+              (m) => m?.depaId === selectedAiModels || String(m?.id) === String(selectedAiModels)
+            )
+          : null;
+
       const contractPayload = {
         termsAndConditions: contractData.termsAndConditions || `Contract for ${selectedDatasets.map(d => d.name).join(', ')} - AI training contract using ${selectedDatasets.length} dataset(s)`,
         price: parseFloat(contractData.price) || 0,
         duration: parseInt(contractData.duration) || 90,
         datasetSelections: selectedDatasets.map(dataset => ({
-          datasetId: dataset.datasetId,
+          // Prefer DEPA ID for dataset selection (backend accepts depaId or datasetId)
+          datasetId: dataset.depaId || dataset.datasetId,
           individualPrice: dataset.price || 0
         })),
         // Fix: Convert single selectedAiModels string to array
-        aiModelIds: selectedAiModels ? [parseInt(selectedAiModels)] : [],
+        // Prefer DEPA ID for model selection (backend accepts depaId or numeric id)
+        aiModelIds: selectedAiModels ? [selectedAiModels] : [],
         // Pass the complete environmentSpecs object
         environmentSpecs: environmentSpecs || {
           infrastructure: {
@@ -763,25 +821,45 @@ function CreateRicardianContract() {
           batchSize: trainingEnvironment?.trainingSpecifications?.training?.hyperparameters?.batchSize || 32,
           learningRate: trainingEnvironment?.trainingSpecifications?.training?.hyperparameters?.learningRate || 0.001,
           // Model specifications
-          modelType: trainingEnvironment?.trainingSpecifications?.modelType || 'Not specified',
-          modelName: 'Training Model', // Default model name
-          framework: trainingEnvironment?.trainingSpecifications?.architecture?.framework || 'Not specified',
-          architecture: trainingEnvironment?.trainingSpecifications?.architecture?.model || 'Not specified',
-          parameters: trainingEnvironment?.trainingSpecifications?.architecture?.parameters || 'Not specified',
+          modelType:
+            selectedModel?.type ||
+            trainingEnvironment?.trainingSpecifications?.modelType ||
+            'Not specified',
+          modelName:
+            selectedModel?.name ||
+            trainingEnvironment?.trainingSpecifications?.modelName ||
+            'Not specified',
+          framework:
+            selectedModel?.framework ||
+            trainingEnvironment?.trainingSpecifications?.architecture?.framework ||
+            'Not specified',
+          architecture:
+            selectedModel?.architecture ||
+            trainingEnvironment?.trainingSpecifications?.architecture?.model ||
+            'Not specified',
+          parameters:
+            selectedModel?.parameters ||
+            trainingEnvironment?.trainingSpecifications?.architecture?.parameters ||
+            'Not specified',
           // Privacy techniques (match backend expectations)
-          privacyTechnique: Array.isArray(trainingEnvironment?.trainingSpecifications?.privacy?.techniques) 
-            ? trainingEnvironment.trainingSpecifications.privacy.techniques.join(', ') 
-            : 'Not specified',
+          privacyTechnique:
+            selectedModel?.privacyTechnique ||
+            (Array.isArray(trainingEnvironment?.trainingSpecifications?.privacy?.techniques)
+              ? trainingEnvironment.trainingSpecifications.privacy.techniques.join(', ')
+              : 'Not specified'),
           // Validation metrics
-          validationMetrics: trainingEnvironment?.trainingSpecifications?.training?.validation?.targetAccuracy 
-            ? [`Target Accuracy: ${trainingEnvironment.trainingSpecifications.training.validation.targetAccuracy}`]
-            : [],
+          validationMetrics:
+            selectedModel?.validationMetrics ||
+            (trainingEnvironment?.trainingSpecifications?.training?.validation?.targetAccuracy
+              ? [`Target Accuracy: ${trainingEnvironment.trainingSpecifications.training.validation.targetAccuracy}`]
+              : []),
           // Privacy parameters
           maxPrivacyLoss: trainingEnvironment?.trainingSpecifications?.privacy?.maxPrivacyLoss || 'Not specified',
           minAccuracy: trainingEnvironment?.trainingSpecifications?.privacy?.minAccuracy || 'Not specified',
-          differentialPrivacy: trainingEnvironment?.trainingSpecifications?.privacy?.differentialPrivacy || null,
-          federatedLearning: trainingEnvironment?.trainingSpecifications?.privacy?.federatedLearning || null,
-          secureMultiPartyComputation: trainingEnvironment?.trainingSpecifications?.privacy?.secureMultiPartyComputation || null,
+          // Use the explicit privacy params from the form (epsilon/delta live here).
+          differentialPrivacy: trainingParams.differentialPrivacy || null,
+          federatedLearning: trainingParams.federatedLearning || null,
+          secureMultiPartyComputation: trainingParams.secureMultiPartyComputation || null,
           // Infrastructure specs from trainingEnvironment
           computeSpecs: {
             cpu: trainingEnvironment?.ccrpPlatform?.infrastructure?.compute?.specifications?.cpu || 'Not specified',
@@ -789,6 +867,14 @@ function CreateRicardianContract() {
             gpu: trainingEnvironment?.ccrpPlatform?.infrastructure?.compute?.specifications?.gpu || 'Not specified',
             storage: trainingEnvironment?.ccrpPlatform?.infrastructure?.compute?.specifications?.storage || 'Not specified'
           }
+        },
+        // Privacy requirements (kept separate from trainingParams; both are persisted into the Ricardian document)
+        privacyRequirements: {
+          maxPrivacyLoss: trainingParams.maxPrivacyLoss,
+          minAccuracy: trainingParams.minAccuracy,
+          differentialPrivacy: trainingParams.differentialPrivacy,
+          federatedLearning: trainingParams.federatedLearning,
+          secureMultiPartyComputation: trainingParams.secureMultiPartyComputation,
         },
         // Add KMS configurations from environmentSpecs
         kmsConfigs: environmentSpecs?.kms || {
@@ -836,7 +922,7 @@ function CreateRicardianContract() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `ricardian-contract-${createdContract.contract.contractId}.json`;
+    a.download = `ricardian-contract-${createdContract?.contract?.contractId ?? createdContract?.contractId ?? 'unknown'}.json`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -853,7 +939,7 @@ function CreateRicardianContract() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `legal-document-${createdContract.contract.contractId}.json`;
+    a.download = `legal-document-${createdContract?.contract?.contractId ?? createdContract?.contractId ?? 'unknown'}.json`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -931,9 +1017,29 @@ function CreateRicardianContract() {
             </Typography>
             
             <Grid container spacing={4}>
+              <Grid item xs={12} md={9}>
+                <Card elevation={0} sx={{ bgcolor: 'transparent', border: 'none', boxShadow: 'none' }}>
+                  <Tabs
+                    value={step1Tab}
+                    onChange={(_, v) => setStep1Tab(v)}
+                    variant="scrollable"
+                    scrollButtons="auto"
+                    sx={{
+                      mb: 2,
+                      '& .MuiTab-root': { textTransform: 'none', fontWeight: 700 },
+                    }}
+                  >
+                    <Tab label="Contract" />
+                    <Tab label="Privacy" />
+                    <Tab label="Datasets" />
+                    <Tab label="Advanced" />
+                  </Tabs>
+                </Card>
+
+                <TabPanel value={step1Tab} index={0}>
               {/* Contract Details Section */}
               <Grid item xs={12}>
-                <Card elevation={2} sx={{ mb: 3 }}>
+                <Card elevation={2} sx={{ mb: 3 }} id="cc-step1-contract">
                   <CardContent sx={{ p: 4 }}>
                     <Typography 
                       variant="h5" 
@@ -949,60 +1055,6 @@ function CreateRicardianContract() {
                     </Typography>
                     
                     <Grid container spacing={3}>
-                      <Grid item xs={12} md={6}>
-                        <FormControl fullWidth>
-                      <InputLabel>AI Models</InputLabel>
-                      
-
-                      
-                      <Select
-                        value={selectedAiModels}
-                        onChange={(e) => setSelectedAiModels(e.target.value)}
-                        label="AI Models"
-                        renderValue={(selected) => {
-                          if (!selected) return 'Select an AI model (optional)';
-                          const model = aiModelsResponse?.models?.find(m => m.id === selected);
-                          return model?.name || selected;
-                        }}
-                      >
-                        <MenuItem value="">
-                          <ListItemText 
-                            primary="No AI Model (Optional)"
-                            secondary="Proceed without selecting an AI model"
-                          />
-                        </MenuItem>
-                        {(aiModelsResponse?.models || []).map((model) => (
-                          <MenuItem key={model.id} value={model.id}>
-                            <ListItemText 
-                              primary={model.name}
-                              secondary={`${model.type} - ${model.architecture}`}
-                            />
-                          </MenuItem>
-                        ))}
-                      </Select>
-                          <Typography variant="caption" color="text.secondary">
-                            Select an AI model to be used in this contract (optional)
-                          </Typography>
-                        </FormControl>
-                      </Grid>
-                      
-                      <Grid item xs={12} md={6}>
-                        <TextField
-                          fullWidth
-                          label="Price (USD)"
-                          type="number"
-                          value={contractData.price}
-                          onChange={(e) => setContractData({ ...contractData, price: e.target.value })}
-                          helperText="Total contract cost in USD"
-                          sx={{ 
-                            '& .MuiInputLabel-root': { 
-                              fontFamily: '"Inter", "Segoe UI", "Helvetica Neue", Arial, sans-serif',
-                              fontWeight: 500 
-                            }
-                          }}
-                        />
-                      </Grid>
-                      
                       <Grid item xs={12} md={6}>
                         <TextField
                           fullWidth
@@ -1037,14 +1089,17 @@ function CreateRicardianContract() {
                           }}
                         />
                       </Grid>
+
                     </Grid>
                   </CardContent>
                 </Card>
               </Grid>
+                </TabPanel>
 
+                <TabPanel value={step1Tab} index={1}>
               {/* Privacy & Accuracy Requirements Section */}
               <Grid item xs={12}>
-                <Card elevation={2} sx={{ mb: 3 }}>
+                <Card elevation={2} sx={{ mb: 3 }} id="cc-step1-privacy">
                   <CardContent sx={{ p: 4 }}>
                     <Typography 
                       variant="h5" 
@@ -1236,10 +1291,12 @@ function CreateRicardianContract() {
                   </CardContent>
                 </Card>
               </Grid>
+                </TabPanel>
 
+                <TabPanel value={step1Tab} index={2}>
               {/* Dataset Selection Section */}
               <Grid item xs={12}>
-                <Card elevation={2}>
+                <Card elevation={2} id="cc-step1-datasets">
                   <CardContent sx={{ p: 4 }}>
                     <Typography 
                       variant="h5" 
@@ -1278,6 +1335,164 @@ function CreateRicardianContract() {
                   </CardContent>
                 </Card>
               </Grid>
+                </TabPanel>
+
+                <TabPanel value={step1Tab} index={3}>
+                  <Grid container spacing={3}>
+                    <Grid item xs={12}>
+                      <Card elevation={2}>
+                        <CardContent sx={{ p: 4 }}>
+                          <Typography variant="h5" sx={{ fontWeight: 600, mb: 2 }}>
+                            Advanced (optional)
+                          </Typography>
+                          <Grid container spacing={2}>
+                            <Grid item xs={12}>
+                              <FormControl fullWidth>
+                                <InputLabel>AI Model (optional)</InputLabel>
+                                <Select
+                                  value={selectedAiModels}
+                                  onChange={(e) => setSelectedAiModels(e.target.value)}
+                                  label="AI Model (optional)"
+                                  renderValue={(selected) => {
+                                    if (!selected) return 'Select an AI model (optional)';
+                                    const model = aiModelsResponse?.models?.find(
+                                      (m) => m.depaId === selected || String(m.id) === String(selected)
+                                    );
+                                    return model?.name || selected;
+                                  }}
+                                >
+                                  <MenuItem value="">
+                                    <ListItemText
+                                      primary="No AI Model"
+                                      secondary="Proceed without selecting an AI model"
+                                    />
+                                  </MenuItem>
+                                  {(aiModelsResponse?.models || []).map((model) => (
+                                    <MenuItem key={model.id} value={model.depaId || model.id}>
+                                      <ListItemText
+                                        primary={model.name}
+                                        secondary={`${model.depaId ? `${model.depaId} • ` : ''}${model.type} - ${model.architecture}`}
+                                      />
+                                    </MenuItem>
+                                  ))}
+                                </Select>
+                                <FormHelperText>
+                                  Selecting a base model helps the platform build a reproducible container spec.
+                                </FormHelperText>
+                              </FormControl>
+                            </Grid>
+
+                            <Grid item xs={12}>
+                              <TextField
+                                fullWidth
+                                label="Override total price (USD) (optional)"
+                                type="number"
+                                value={contractData.price}
+                                onChange={(e) => setContractData({ ...contractData, price: e.target.value })}
+                                helperText="If left blank, total is derived from dataset prices"
+                              />
+                            </Grid>
+                          </Grid>
+                        </CardContent>
+                      </Card>
+                    </Grid>
+                  </Grid>
+                </TabPanel>
+              </Grid>
+
+              {/* Live Summary + what’s missing */}
+              <Grid item xs={12} md={3}>
+                <Box sx={{ position: { md: 'sticky' }, top: { md: 96 }, alignSelf: 'flex-start' }}>
+                  <Card elevation={2} sx={{ mb: 2 }}>
+                    <CardContent>
+                      <Typography variant="h6" sx={{ fontWeight: 700, mb: 1 }}>
+                        Contract summary
+                      </Typography>
+
+                      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 2 }}>
+                        <Chip
+                          size="small"
+                          color={selectedDatasets.length ? 'primary' : 'default'}
+                          label={`Datasets: ${selectedDatasets.length}/3`}
+                        />
+                        <Chip
+                          size="small"
+                          label={`Duration: ${contractData.duration || '—'} days`}
+                          color={contractData.duration ? 'primary' : 'default'}
+                        />
+                        <Chip
+                          size="small"
+                          label={`AI Model: ${selectedAiModels ? 'Selected' : 'Optional'}`}
+                          color={selectedAiModels ? 'primary' : 'default'}
+                        />
+                      </Box>
+
+                      <Typography variant="subtitle2" color="text.secondary">
+                        Estimated total (datasets)
+                      </Typography>
+                      <Typography variant="h5" sx={{ fontWeight: 800, mb: 2 }}>
+                        $
+                        {(() => {
+                          const sum = selectedDatasets.reduce((acc, d) => {
+                            const v = Number(datasetPrices?.[d.id] ?? d.price ?? 0);
+                            return acc + (Number.isFinite(v) ? v : 0);
+                          }, 0);
+                          return sum.toFixed(2);
+                        })()}
+                      </Typography>
+
+                      <Divider sx={{ my: 2 }} />
+
+                      <Typography variant="subtitle2" sx={{ mb: 1 }}>
+                        Privacy
+                      </Typography>
+                      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+                        <Typography variant="body2" color="text.secondary">
+                          DP enabled:{' '}
+                          <strong>{trainingParams?.differentialPrivacy?.enabled ? 'Yes' : 'No'}</strong>
+                        </Typography>
+                        {trainingParams?.differentialPrivacy?.enabled && (
+                          <Typography variant="body2" color="text.secondary">
+                            ε={trainingParams.differentialPrivacy.epsilon ?? '—'} δ={trainingParams.differentialPrivacy.delta ?? '—'}
+                          </Typography>
+                        )}
+                        <Typography variant="body2" color="text.secondary">
+                          Min accuracy: <strong>{Math.round((trainingParams?.minAccuracy ?? 0) * 100)}%</strong>
+                        </Typography>
+                      </Box>
+                    </CardContent>
+                  </Card>
+
+                  {(() => {
+                    const missing = [];
+                    if (!selectedDatasets.length) missing.push('Select at least 1 dataset');
+                    if (!selectedDatasets.every((d) => Number(datasetPrices?.[d.id]) > 0))
+                      missing.push('Set a price for each selected dataset');
+                    if (!contractData.duration) missing.push('Enter duration');
+                    if (!contractData.termsAndConditions) missing.push('Enter terms & conditions');
+                    if (trainingParams?.differentialPrivacy?.enabled) {
+                      if (!(Number(trainingParams?.differentialPrivacy?.epsilon) > 0)) missing.push('DP epsilon');
+                      const delta = Number(trainingParams?.differentialPrivacy?.delta);
+                      if (!(delta > 0 && delta < 1)) missing.push('DP delta');
+                    }
+                    if (!missing.length) return null;
+                    return (
+                      <Alert severity="warning">
+                        <Typography variant="subtitle2" sx={{ mb: 0.5 }}>
+                          Required to continue
+                        </Typography>
+                        <Box component="ul" sx={{ pl: 2, my: 0 }}>
+                          {missing.map((m) => (
+                            <li key={m}>
+                              <Typography variant="body2">{m}</Typography>
+                            </li>
+                          ))}
+                        </Box>
+                      </Alert>
+                    );
+                  })()}
+                </Box>
+              </Grid>
             </Grid>
           </Box>
         );
@@ -1299,590 +1514,297 @@ function CreateRicardianContract() {
             </Typography>
             
             <Grid container spacing={4}>
-              {/* CCRP Selection Section */}
-              <Grid item xs={12}>
-                <Card elevation={2} sx={{ mb: 3 }}>
-                  <CardContent sx={{ p: 4 }}>
-                    <Typography 
-                      variant="h5" 
-                      gutterBottom
-                      sx={{ 
-                        fontWeight: 600,
-                        fontFamily: '"Inter", "Segoe UI", "Helvetica Neue", Arial, sans-serif',
-                        color: 'text.primary',
-                        mb: 3
-                      }}
-                    >
-                      CCRP Selection (Required)
-                    </Typography>
-                    
-                    <Typography 
-                      variant="body1" 
-                      color="text.secondary" 
-                      paragraph
-                      sx={{ 
-                        fontFamily: '"Inter", "Segoe UI", "Helvetica Neue", Arial, sans-serif',
-                        mb: 3
-                      }}
-                    >
-                      All CCRPs are displayed below. Use the cloud provider filter to find CCRPs that support specific cloud services.
-                    </Typography>
-                    
-                    <Grid container spacing={2}>
-                      <Grid item xs={12} md={4}>
-                        <FormControl fullWidth>
-                          <InputLabel>Filter by Cloud Provider</InputLabel>
-                          <Select
-                            value={selectedCloudProvider}
-                            onChange={(e) => setSelectedCloudProvider(e.target.value)}
-                            label="Filter by Cloud Provider"
-                          >
-                            <MenuItem value="">
-                              <em>All Cloud Providers</em>
-                            </MenuItem>
-                            <MenuItem value="AWS">AWS</MenuItem>
-                            <MenuItem value="Azure">Azure</MenuItem>
-                            <MenuItem value="GCP">GCP</MenuItem>
-                            <MenuItem value="OCI">OCI</MenuItem>
-                          </Select>
-                        </FormControl>
-                      </Grid>
-                    </Grid>
-                    
-                    <Box sx={{ mt: 2 }}>
-                      <Typography variant="subtitle2" gutterBottom>
-                        Available CCRPs:
-                      </Typography>
-                      <MultiCCRPSelector
-                        ccrpUsers={availableCcrpUsers}
-                        selectedCcrp={selectedCcrp}
-                        onCcrpToggle={setSelectedCcrp}
-                        selectedCloudProvider={selectedCloudProvider}
-                        onCloudProviderChange={setSelectedCloudProvider}
-                        onCcrpCloudProviderSelect={() => {}}
-                        ccrpCloudProviderSelections={{}}
-                      />
-                    </Box>
-                  </CardContent>
+              <Grid item xs={12} md={8}>
+                <Card elevation={0} sx={{ bgcolor: 'transparent', border: 'none', boxShadow: 'none' }}>
+                  <Tabs
+                    value={step2Tab}
+                    onChange={(_, v) => setStep2Tab(v)}
+                    variant="scrollable"
+                    scrollButtons="auto"
+                    sx={{
+                      mb: 2,
+                      '& .MuiTab-root': { textTransform: 'none', fontWeight: 700 },
+                    }}
+                  >
+                    <Tab label="CCRP" />
+                    <Tab label="Environment" />
+                    <Tab label="KMS" />
+                  </Tabs>
                 </Card>
+
+                <TabPanel value={step2Tab} index={0}>
+                  <Card elevation={2} sx={{ mb: 3 }}>
+                    <CardContent sx={{ p: 4 }}>
+                      <Typography
+                        variant="h5"
+                        gutterBottom
+                        sx={{
+                          fontWeight: 600,
+                          fontFamily: '"Inter", "Segoe UI", "Helvetica Neue", Arial, sans-serif',
+                          color: 'text.primary',
+                          mb: 3,
+                        }}
+                      >
+                        CCRP Selection (Required)
+                      </Typography>
+
+                      <Typography
+                        variant="body1"
+                        color="text.secondary"
+                        paragraph
+                        sx={{
+                          fontFamily: '"Inter", "Segoe UI", "Helvetica Neue", Arial, sans-serif',
+                          mb: 3,
+                        }}
+                      >
+                        All CCRPs are displayed below. Use the cloud provider filter to find CCRPs that support specific cloud services.
+                      </Typography>
+
+                      <Grid container spacing={2}>
+                        <Grid item xs={12} md={4}>
+                          <FormControl fullWidth>
+                            <InputLabel>Filter by Cloud Provider</InputLabel>
+                            <Select
+                              value={selectedCloudProvider}
+                              onChange={(e) => setSelectedCloudProvider(e.target.value)}
+                              label="Filter by Cloud Provider"
+                            >
+                              <MenuItem value="">
+                                <em>All Cloud Providers</em>
+                              </MenuItem>
+                              <MenuItem value="AWS">AWS</MenuItem>
+                              <MenuItem value="Azure">Azure</MenuItem>
+                              <MenuItem value="GCP">GCP</MenuItem>
+                              <MenuItem value="OCI">OCI</MenuItem>
+                            </Select>
+                          </FormControl>
+                        </Grid>
+                      </Grid>
+
+                      <Box sx={{ mt: 2 }}>
+                        <Typography variant="subtitle2" gutterBottom>
+                          Available CCRPs:
+                        </Typography>
+                        <MultiCCRPSelector
+                          ccrpUsers={availableCcrpUsers}
+                          selectedCcrp={selectedCcrp}
+                          onCcrpToggle={setSelectedCcrp}
+                          selectedCloudProvider={selectedCloudProvider}
+                          onCloudProviderChange={setSelectedCloudProvider}
+                          onCcrpCloudProviderSelect={() => {}}
+                          ccrpCloudProviderSelections={{}}
+                        />
+                      </Box>
+                    </CardContent>
+                  </Card>
+                </TabPanel>
+
+                <TabPanel value={step2Tab} index={1}>
+                  <Card elevation={2}>
+                    <CardContent sx={{ p: 4 }}>
+                      <Typography
+                        variant="h5"
+                        gutterBottom
+                        sx={{
+                          fontWeight: 600,
+                          fontFamily: '"Inter", "Segoe UI", "Helvetica Neue", Arial, sans-serif',
+                          color: 'text.primary',
+                          mb: 3,
+                        }}
+                      >
+                        Environment Specifications
+                      </Typography>
+
+                      <Grid container spacing={3}>
+                        <Grid item xs={12} md={6}>
+                          <FormControl fullWidth>
+                            <InputLabel>Environment Type</InputLabel>
+                            <Select
+                              value={environmentSpecs.type}
+                              onChange={(e) => handleEnvironmentSpecChange('type', e.target.value)}
+                              label="Environment Type"
+                            >
+                              <MenuItem value="cloud">Cloud Environment</MenuItem>
+                              <MenuItem value="on-premise">On-Premise</MenuItem>
+                              <MenuItem value="hybrid">Hybrid</MenuItem>
+                            </Select>
+                          </FormControl>
+                        </Grid>
+
+                        <Grid item xs={12} md={6}>
+                          <TextField
+                            fullWidth
+                            label="Instance Type"
+                            value={environmentSpecs.instanceType}
+                            onChange={(e) => handleEnvironmentSpecChange('instanceType', e.target.value)}
+                            placeholder="e.g., t3.large, Standard_D4s_v3"
+                          />
+                        </Grid>
+
+                        <Grid item xs={12} md={6}>
+                          <TextField
+                            fullWidth
+                            label="CPU Requirements"
+                            value={environmentSpecs.cpu}
+                            onChange={(e) => handleEnvironmentSpecChange('cpu', e.target.value)}
+                            placeholder="e.g., 4 cores"
+                          />
+                        </Grid>
+
+                        <Grid item xs={12} md={6}>
+                          <TextField
+                            fullWidth
+                            label="Memory Requirements"
+                            value={environmentSpecs.memory}
+                            onChange={(e) => handleEnvironmentSpecChange('memory', e.target.value)}
+                            placeholder="e.g., 16 GB"
+                          />
+                        </Grid>
+
+                        <Grid item xs={12} md={6}>
+                          <TextField
+                            fullWidth
+                            label="Storage Requirements"
+                            value={environmentSpecs.storage}
+                            onChange={(e) => handleEnvironmentSpecChange('storage', e.target.value)}
+                            placeholder="e.g., 100 GB SSD"
+                          />
+                        </Grid>
+
+                        <Grid item xs={12} md={6}>
+                          <FormControl fullWidth>
+                            <InputLabel>GPU Type</InputLabel>
+                            <Select
+                              value={environmentSpecs.gpu}
+                              onChange={(e) => handleEnvironmentSpecChange('gpu', e.target.value)}
+                              label="GPU Type"
+                            >
+                              <MenuItem value="">None</MenuItem>
+                              <MenuItem value="nvidia-tesla-v100">NVIDIA Tesla V100</MenuItem>
+                              <MenuItem value="nvidia-tesla-t4">NVIDIA Tesla T4</MenuItem>
+                              <MenuItem value="nvidia-a100">NVIDIA A100</MenuItem>
+                              <MenuItem value="nvidia-rtx-3080">NVIDIA RTX 3080</MenuItem>
+                              <MenuItem value="amd-radeon-instinct">AMD Radeon Instinct</MenuItem>
+                            </Select>
+                          </FormControl>
+                        </Grid>
+
+                        <Grid item xs={12}>
+                          <TextField
+                            fullWidth
+                            label="Additional Environment Notes"
+                            value={environmentSpecs.notes}
+                            onChange={(e) => handleEnvironmentSpecChange('notes', e.target.value)}
+                            multiline
+                            rows={3}
+                            placeholder="Any additional environment specifications or requirements..."
+                          />
+                        </Grid>
+                      </Grid>
+                    </CardContent>
+                  </Card>
+                </TabPanel>
+
+                <TabPanel value={step2Tab} index={2}>
+                  <Card elevation={2}>
+                    <CardContent sx={{ p: 4 }}>
+                      <Typography
+                        variant="h5"
+                        gutterBottom
+                        sx={{
+                          fontWeight: 600,
+                          fontFamily: '"Inter", "Segoe UI", "Helvetica Neue", Arial, sans-serif',
+                          color: 'text.primary',
+                          mb: 3,
+                        }}
+                      >
+                        Key Management Service (KMS) Configuration
+                      </Typography>
+
+                      <Grid container spacing={3}>
+                        <Grid item xs={12} md={6}>
+                          <FormControl fullWidth>
+                            <InputLabel>KMS Provider</InputLabel>
+                            <Select
+                              value={environmentSpecs.kms?.provider || ''}
+                              onChange={(e) => handleKmsConfigChange('provider', e.target.value)}
+                              label="KMS Provider"
+                            >
+                              <MenuItem value="">None</MenuItem>
+                              <MenuItem value="aws-kms">AWS KMS</MenuItem>
+                              <MenuItem value="azure-keyvault">Azure Key Vault</MenuItem>
+                              <MenuItem value="gcp-kms">Google Cloud KMS</MenuItem>
+                              <MenuItem value="hashicorp-vault">HashiCorp Vault</MenuItem>
+                              <MenuItem value="custom">Custom KMS</MenuItem>
+                            </Select>
+                          </FormControl>
+                        </Grid>
+
+                        <Grid item xs={12} md={6}>
+                          <TextField
+                            fullWidth
+                            label="Key ID/ARN"
+                            value={environmentSpecs.kms?.keyId || ''}
+                            onChange={(e) => handleKmsConfigChange('keyId', e.target.value)}
+                            placeholder="KMS Key ID or ARN"
+                          />
+                        </Grid>
+
+                        <Grid item xs={12} md={6}>
+                          <TextField
+                            fullWidth
+                            label="Encryption Algorithm"
+                            value={environmentSpecs.kms?.algorithm || ''}
+                            onChange={(e) => handleKmsConfigChange('algorithm', e.target.value)}
+                            placeholder="e.g., AES-256-GCM"
+                          />
+                        </Grid>
+
+                        <Grid item xs={12} md={6}>
+                          <TextField
+                            fullWidth
+                            label="Key Rotation Period (days)"
+                            type="number"
+                            value={environmentSpecs.kms?.rotationPeriod || ''}
+                            onChange={(e) => handleKmsConfigChange('rotationPeriod', e.target.value)}
+                            placeholder="e.g., 90"
+                          />
+                        </Grid>
+                      </Grid>
+                    </CardContent>
+                  </Card>
+                </TabPanel>
               </Grid>
 
-              {/* Environment Specifications Section */}
-              <Grid item xs={12}>
-                <Card elevation={2}>
-                  <CardContent sx={{ p: 4 }}>
-                    <Typography 
-                      variant="h5" 
-                      gutterBottom
-                      sx={{ 
-                        fontWeight: 600,
-                        fontFamily: '"Inter", "Segoe UI", "Helvetica Neue", Arial, sans-serif',
-                        color: 'text.primary',
-                        mb: 3
-                      }}
-                    >
-                      Environment Specifications
-                    </Typography>
-                    
-                    <Grid container spacing={3}>
-                      <Grid item xs={12} md={6}>
-                        <FormControl fullWidth>
-                          <InputLabel>Environment Type</InputLabel>
-                          <Select
-                            value={environmentSpecs.type}
-                            onChange={(e) => handleEnvironmentSpecChange('type', e.target.value)}
-                            label="Environment Type"
-                          >
-                            <MenuItem value="cloud">Cloud Environment</MenuItem>
-                            <MenuItem value="on-premise">On-Premise</MenuItem>
-                            <MenuItem value="hybrid">Hybrid</MenuItem>
-                          </Select>
-                        </FormControl>
-                      </Grid>
-                      
-                      <Grid item xs={12} md={6}>
-                        <TextField
-                          fullWidth
-                          label="Instance Type"
-                          value={environmentSpecs.instanceType}
-                          onChange={(e) => handleEnvironmentSpecChange('instanceType', e.target.value)}
-                          placeholder="e.g., t3.large, Standard_D4s_v3"
-                        />
-                      </Grid>
-                      
-                      <Grid item xs={12} md={6}>
-                        <TextField
-                          fullWidth
-                          label="CPU Requirements"
-                          value={environmentSpecs.cpu}
-                          onChange={(e) => handleEnvironmentSpecChange('cpu', e.target.value)}
-                          placeholder="e.g., 4 cores"
-                        />
-                      </Grid>
-                      
-                      <Grid item xs={12} md={6}>
-                        <TextField
-                          fullWidth
-                          label="Memory Requirements"
-                          value={environmentSpecs.memory}
-                          onChange={(e) => handleEnvironmentSpecChange('memory', e.target.value)}
-                          placeholder="e.g., 16 GB"
-                        />
-                      </Grid>
-                      
-                      <Grid item xs={12} md={6}>
-                        <TextField
-                          fullWidth
-                          label="Storage Requirements"
-                          value={environmentSpecs.storage}
-                          onChange={(e) => handleEnvironmentSpecChange('storage', e.target.value)}
-                          placeholder="e.g., 100 GB SSD"
-                        />
-                      </Grid>
-                      
-                      <Grid item xs={12} md={6}>
-                        <FormControl fullWidth>
-                          <InputLabel>GPU Type</InputLabel>
-                          <Select
-                            value={environmentSpecs.gpu}
-                            onChange={(e) => handleEnvironmentSpecChange('gpu', e.target.value)}
-                            label="GPU Type"
-                          >
-                            <MenuItem value="">None</MenuItem>
-                            <MenuItem value="nvidia-tesla-v100">NVIDIA Tesla V100</MenuItem>
-                            <MenuItem value="nvidia-tesla-t4">NVIDIA Tesla T4</MenuItem>
-                            <MenuItem value="nvidia-a100">NVIDIA A100</MenuItem>
-                            <MenuItem value="nvidia-rtx-3080">NVIDIA RTX 3080</MenuItem>
-                            <MenuItem value="amd-radeon-instinct">AMD Radeon Instinct</MenuItem>
-                          </Select>
-                        </FormControl>
-                      </Grid>
-                      
-                      <Grid item xs={12}>
-                        <TextField
-                          fullWidth
-                          label="Additional Environment Notes"
-                          value={environmentSpecs.notes}
-                          onChange={(e) => handleEnvironmentSpecChange('notes', e.target.value)}
-                          multiline
-                          rows={3}
-                          placeholder="Any additional environment specifications or requirements..."
-                        />
-                      </Grid>
-                    </Grid>
-                    
-                    <Typography 
-                      variant="h5" 
-                      gutterBottom 
-                      sx={{ 
-                        mt: 4, 
-                        fontWeight: 600,
-                        fontFamily: '"Inter", "Segoe UI", "Helvetica Neue", Arial, sans-serif',
-                        color: 'text.primary',
-                        mb: 3
-                      }}
-                    >
-                      Key Management Service (KMS) Configuration
-                    </Typography>
-                    
-                    <Grid container spacing={3}>
-                      <Grid item xs={12} md={6}>
-                        <FormControl fullWidth>
-                          <InputLabel>KMS Provider</InputLabel>
-                          <Select
-                            value={environmentSpecs.kms?.provider || ''}
-                            onChange={(e) => handleKmsConfigChange('provider', e.target.value)}
-                            label="KMS Provider"
-                          >
-                            <MenuItem value="">None</MenuItem>
-                            <MenuItem value="aws-kms">AWS KMS</MenuItem>
-                            <MenuItem value="azure-keyvault">Azure Key Vault</MenuItem>
-                            <MenuItem value="gcp-kms">Google Cloud KMS</MenuItem>
-                            <MenuItem value="hashicorp-vault">HashiCorp Vault</MenuItem>
-                            <MenuItem value="custom">Custom KMS</MenuItem>
-                          </Select>
-                        </FormControl>
-                      </Grid>
-                      
-                      <Grid item xs={12} md={6}>
-                        <TextField
-                          fullWidth
-                          label="Key ID/ARN"
-                          value={environmentSpecs.kms?.keyId || ''}
-                          onChange={(e) => handleKmsConfigChange('keyId', e.target.value)}
-                          placeholder="KMS Key ID or ARN"
-                        />
-                      </Grid>
-                      
-                      <Grid item xs={12} md={6}>
-                        <TextField
-                          fullWidth
-                          label="Encryption Algorithm"
-                          value={environmentSpecs.kms?.algorithm || ''}
-                          onChange={(e) => handleKmsConfigChange('algorithm', e.target.value)}
-                          placeholder="e.g., AES-256-GCM"
-                        />
-                      </Grid>
-                      
-                      <Grid item xs={12} md={6}>
-                        <TextField
-                          fullWidth
-                          label="Key Rotation Period (days)"
-                          type="number"
-                          value={environmentSpecs.kms?.rotationPeriod || ''}
-                          onChange={(e) => handleKmsConfigChange('rotationPeriod', e.target.value)}
-                          placeholder="e.g., 90"
-                        />
-                      </Grid>
-                    </Grid>
-                  </CardContent>
-                </Card>
-              </Grid>
-            </Grid>
-          </Box>
-        );
-
-      case 2:
-        return (
-          <Box>
-            <Typography 
-              variant="h4" 
-              gutterBottom 
-              sx={{ 
-                fontWeight: 600, 
-                fontFamily: '"Inter", "Segoe UI", "Helvetica Neue", Arial, sans-serif',
-                color: 'primary.main',
-                mb: 3
-              }}
-            >
-              Contract Configuration Overview
-            </Typography>
-            
-            <Grid container spacing={3}>
-              <Grid item xs={12}>
-                <Card elevation={2}>
-                  <CardContent sx={{ p: 4 }}>
-                    <Typography 
-                      variant="h5" 
-                      gutterBottom
-                      sx={{ 
-                        fontWeight: 600,
-                        fontFamily: '"Inter", "Segoe UI", "Helvetica Neue", Arial, sans-serif',
-                        color: 'text.primary',
-                        mb: 3
-                      }}
-                    >
-                      Contract Summary
-                    </Typography>
-                    
-                    <Typography 
-                      variant="body1" 
-                      color="text.secondary" 
-                      paragraph
-                      sx={{ 
-                        fontFamily: '"Inter", "Segoe UI", "Helvetica Neue", Arial, sans-serif',
-                        lineHeight: 1.6,
-                        mb: 3
-                      }}
-                    >
-                      You are creating a comprehensive AI training contract that combines legal agreements with technical specifications. 
-                      This contract will define the terms for data usage, privacy requirements, and computational environment setup.
-                    </Typography>
-
-                    <Box component="ul" sx={{ pl: 2, mb: 3 }}>
-                      <Typography component="li" variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-                        ✓ Contract details and terms configured
+              <Grid item xs={12} md={4}>
+                <Box sx={{ position: { md: 'sticky' }, top: { md: 96 }, alignSelf: 'flex-start' }}>
+                  <Card elevation={2} sx={{ mb: 2 }}>
+                    <CardContent>
+                      <Typography variant="h6" sx={{ fontWeight: 700, mb: 1 }}>
+                        Environment summary
                       </Typography>
-                      <Typography component="li" variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-                        ✓ Privacy and accuracy requirements set
+                      <Typography variant="body2" color="text.secondary">
+                        CCRP: <strong>{selectedCcrp ? 'Selected' : '—'}</strong>
                       </Typography>
-                      <Typography component="li" variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-                        ✓ Dataset selection completed
+                      <Typography variant="body2" color="text.secondary">
+                        Cloud provider: <strong>{selectedCloudProvider || environmentSpecs?.kms?.region ? (selectedCloudProvider || '—') : '—'}</strong>
                       </Typography>
-                      <Typography component="li" variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-                        → Next: Environment configuration & CCRP selection
+                      <Typography variant="body2" color="text.secondary">
+                        KMS provider: <strong>{environmentSpecs?.kms?.provider || '—'}</strong>
                       </Typography>
-                    </Box>
-
-                    <Typography 
-                      variant="body2" 
-                      color="primary.main"
-                      sx={{ 
-                        fontWeight: 500,
-                        fontFamily: '"Inter", "Segoe UI", "Helvetica Neue", Arial, sans-serif',
-                      }}
-                    >
-                      Click "Next" to configure the computational environment and optionally select a Confidential Clean Room Provider (CCRP).
-                    </Typography>
-                  </CardContent>
-                </Card>
+                      <Divider sx={{ my: 2 }} />
+                      <Typography variant="body2" color="text.secondary">
+                        Tip: keep this minimal—most fields are optional and can be expanded later.
+                      </Typography>
+                    </CardContent>
+                  </Card>
+                </Box>
               </Grid>
             </Grid>
           </Box>
         );
-
 
       case 3:
-        return (
-          <Box>
-            <Typography 
-              variant="h4" 
-              gutterBottom 
-              sx={{ 
-                fontWeight: 600, 
-                fontFamily: '"Inter", "Segoe UI", "Helvetica Neue", Arial, sans-serif',
-                color: 'primary.main',
-                mb: 3
-              }}
-            >
-              Review Legal Document & Smart Contract
-            </Typography>
-            
-            <Grid container spacing={4}>
-              {/* CCRP Selection Section */}
-              <Grid item xs={12}>
-                <Card elevation={2} sx={{ mb: 3 }}>
-                  <CardContent sx={{ p: 4 }}>
-                    <Typography 
-                      variant="h5" 
-                      gutterBottom
-                      sx={{ 
-                        fontWeight: 600,
-                        fontFamily: '"Inter", "Segoe UI", "Helvetica Neue", Arial, sans-serif',
-                        color: 'text.primary',
-                        mb: 3
-                      }}
-                    >
-                      CCRP Selection (Required)
-                    </Typography>
-                    
-                    <Typography 
-                      variant="body1" 
-                      color="text.secondary" 
-                      paragraph
-                      sx={{ 
-                        fontFamily: '"Inter", "Segoe UI", "Helvetica Neue", Arial, sans-serif',
-                        mb: 3
-                      }}
-                    >
-                      All CCRPs are displayed below. Use the cloud provider filter to find CCRPs that support specific cloud services.
-                    </Typography>
-                    
-                    <Grid container spacing={2}>
-                      <Grid item xs={12} md={4}>
-                        <FormControl fullWidth>
-                          <InputLabel>Filter by Cloud Provider</InputLabel>
-                          <Select
-                            value={selectedCloudProvider}
-                            onChange={(e) => setSelectedCloudProvider(e.target.value)}
-                            label="Filter by Cloud Provider"
-                          >
-                            <MenuItem value="">
-                              <em>All Cloud Providers</em>
-                            </MenuItem>
-                            <MenuItem value="AWS">AWS</MenuItem>
-                            <MenuItem value="Azure">Azure</MenuItem>
-                            <MenuItem value="GCP">GCP</MenuItem>
-                            <MenuItem value="OCI">OCI</MenuItem>
-                          </Select>
-                        </FormControl>
-                      </Grid>
-                    </Grid>
-                    
-                    <Box sx={{ mt: 2 }}>
-                      <Typography variant="subtitle2" gutterBottom>
-                        Available CCRPs:
-                      </Typography>
-                      <MultiCCRPSelector
-                        ccrpUsers={availableCcrpUsers}
-                        selectedCcrp={selectedCcrp}
-                        onCcrpToggle={setSelectedCcrp}
-                        selectedCloudProvider={selectedCloudProvider}
-                        onCloudProviderChange={setSelectedCloudProvider}
-                        onCcrpCloudProviderSelect={() => {}}
-                        ccrpCloudProviderSelections={{}}
-                      />
-                    </Box>
-                  </CardContent>
-                </Card>
-              </Grid>
-
-              {/* Environment Specifications Section */}
-              <Grid item xs={12}>
-                <Card elevation={2}>
-                  <CardContent sx={{ p: 4 }}>
-                    <Typography 
-                      variant="h5" 
-                      gutterBottom
-                      sx={{ 
-                        fontWeight: 600,
-                        fontFamily: '"Inter", "Segoe UI", "Helvetica Neue", Arial, sans-serif',
-                        color: 'text.primary',
-                        mb: 3
-                      }}
-                    >
-                      Environment Specifications
-                    </Typography>
-                    
-                    <Grid container spacing={3}>
-                      <Grid item xs={12} md={6}>
-                        <FormControl fullWidth>
-                          <InputLabel>Environment Type</InputLabel>
-                          <Select
-                            value={environmentSpecs.type}
-                            onChange={(e) => handleEnvironmentSpecChange('type', e.target.value)}
-                            label="Environment Type"
-                          >
-                            <MenuItem value="cloud">Cloud Environment</MenuItem>
-                            <MenuItem value="on-premise">On-Premise</MenuItem>
-                            <MenuItem value="hybrid">Hybrid</MenuItem>
-                          </Select>
-                        </FormControl>
-                      </Grid>
-                      
-                      <Grid item xs={12} md={6}>
-                        <TextField
-                          fullWidth
-                          label="Instance Type"
-                          value={environmentSpecs.instanceType}
-                          onChange={(e) => handleEnvironmentSpecChange('instanceType', e.target.value)}
-                          placeholder="e.g., t3.large, Standard_D4s_v3"
-                        />
-                      </Grid>
-                      
-                      <Grid item xs={12} md={6}>
-                        <TextField
-                          fullWidth
-                          label="CPU Requirements"
-                          value={environmentSpecs.cpu}
-                          onChange={(e) => handleEnvironmentSpecChange('cpu', e.target.value)}
-                          placeholder="e.g., 4 cores"
-                        />
-                      </Grid>
-                      
-                      <Grid item xs={12} md={6}>
-                        <TextField
-                          fullWidth
-                          label="Memory Requirements"
-                          value={environmentSpecs.memory}
-                          onChange={(e) => handleEnvironmentSpecChange('memory', e.target.value)}
-                          placeholder="e.g., 16 GB"
-                        />
-                      </Grid>
-                      
-                      <Grid item xs={12} md={6}>
-                        <TextField
-                          fullWidth
-                          label="Storage Requirements"
-                          value={environmentSpecs.storage}
-                          onChange={(e) => handleEnvironmentSpecChange('storage', e.target.value)}
-                          placeholder="e.g., 100 GB SSD"
-                        />
-                      </Grid>
-                      
-                      <Grid item xs={12} md={6}>
-                        <FormControl fullWidth>
-                          <InputLabel>GPU Type</InputLabel>
-                          <Select
-                            value={environmentSpecs.gpu}
-                            onChange={(e) => handleEnvironmentSpecChange('gpu', e.target.value)}
-                            label="GPU Type"
-                          >
-                            <MenuItem value="">None</MenuItem>
-                            <MenuItem value="nvidia-tesla-v100">NVIDIA Tesla V100</MenuItem>
-                            <MenuItem value="nvidia-tesla-t4">NVIDIA Tesla T4</MenuItem>
-                            <MenuItem value="nvidia-a100">NVIDIA A100</MenuItem>
-                            <MenuItem value="nvidia-rtx-3080">NVIDIA RTX 3080</MenuItem>
-                            <MenuItem value="amd-radeon-instinct">AMD Radeon Instinct</MenuItem>
-                          </Select>
-                        </FormControl>
-                      </Grid>
-                      
-                      <Grid item xs={12}>
-                        <TextField
-                          fullWidth
-                          label="Additional Environment Notes"
-                          value={environmentSpecs.notes}
-                          onChange={(e) => handleEnvironmentSpecChange('notes', e.target.value)}
-                          multiline
-                          rows={3}
-                          placeholder="Any additional environment specifications or requirements..."
-                        />
-                      </Grid>
-                    </Grid>
-                    
-                    <Typography 
-                      variant="h5" 
-                      gutterBottom 
-                      sx={{ 
-                        mt: 4, 
-                        fontWeight: 600,
-                        fontFamily: '"Inter", "Segoe UI", "Helvetica Neue", Arial, sans-serif',
-                        color: 'text.primary',
-                        mb: 3
-                      }}
-                    >
-                      Key Management Service (KMS) Configuration
-                    </Typography>
-                    
-                    <Grid container spacing={3}>
-                      <Grid item xs={12} md={6}>
-                        <FormControl fullWidth>
-                          <InputLabel>KMS Provider</InputLabel>
-                          <Select
-                            value={environmentSpecs.kms?.provider || ''}
-                            onChange={(e) => handleKmsConfigChange('provider', e.target.value)}
-                            label="KMS Provider"
-                          >
-                            <MenuItem value="">None</MenuItem>
-                            <MenuItem value="aws-kms">AWS KMS</MenuItem>
-                            <MenuItem value="azure-keyvault">Azure Key Vault</MenuItem>
-                            <MenuItem value="gcp-kms">Google Cloud KMS</MenuItem>
-                            <MenuItem value="hashicorp-vault">HashiCorp Vault</MenuItem>
-                            <MenuItem value="custom">Custom KMS</MenuItem>
-                          </Select>
-                        </FormControl>
-                      </Grid>
-                      
-                      <Grid item xs={12} md={6}>
-                        <TextField
-                          fullWidth
-                          label="Key ID/ARN"
-                          value={environmentSpecs.kms?.keyId || ''}
-                          onChange={(e) => handleKmsConfigChange('keyId', e.target.value)}
-                          placeholder="KMS Key ID or ARN"
-                        />
-                      </Grid>
-                      
-                      <Grid item xs={12} md={6}>
-                        <TextField
-                          fullWidth
-                          label="Encryption Algorithm"
-                          value={environmentSpecs.kms?.algorithm || ''}
-                          onChange={(e) => handleKmsConfigChange('algorithm', e.target.value)}
-                          placeholder="e.g., AES-256-GCM"
-                        />
-                      </Grid>
-                      
-                      <Grid item xs={12} md={6}>
-                        <TextField
-                          fullWidth
-                          label="Key Rotation Period (days)"
-                          type="number"
-                          value={environmentSpecs.kms?.rotationPeriod || ''}
-                          onChange={(e) => handleKmsConfigChange('rotationPeriod', e.target.value)}
-                          placeholder="e.g., 90"
-                        />
-                      </Grid>
-                    </Grid>
-                  </CardContent>
-                </Card>
-              </Grid>
-            </Grid>
-          </Box>
-        );
-
-      case 4:
         return (
           <Box>
             <Typography variant="h6" gutterBottom>
@@ -1910,15 +1832,17 @@ function CreateRicardianContract() {
                       </Box>
                     ) : legalDocument ? (
                       <Box>
-                        <Typography variant="subtitle1" gutterBottom>
-                          Contract ID: {legalDocument.metadata.contractId}
-                        </Typography>
-                        <Typography variant="body2" color="text.secondary">
-                          Effective Date: {legalDocument.legalDocument.effectiveDate}
-                        </Typography>
-                        <Typography variant="body2" color="text.secondary">
-                          Expiration Date: {legalDocument.legalDocument.expirationDate}
-                        </Typography>
+                        {(() => {
+                          const ld = legalDocument?.legalDocument ?? legalDocument;
+                          const md = legalDocument?.metadata ?? {};
+                          return (
+                            <>
+                              <KeyValue label="Contract ID" value={md.contractId ?? ld?.contractId} mono />
+                              <KeyValue label="Effective date" value={ld?.effectiveDate} />
+                              <KeyValue label="Expiration date" value={ld?.expirationDate} />
+                            </>
+                          );
+                        })()}
                         
                         <Divider sx={{ my: 2 }} />
                         
@@ -1929,13 +1853,23 @@ function CreateRicardianContract() {
                           <ListItem>
                             <ListItemText
                               primary="Data Provider (TDP)"
-                              secondary={legalDocument.legalDocument.parties.dataProvider.name}
+                              secondary={
+                                legalDocument?.legalDocument?.parties?.dataProvider?.name ??
+                                legalDocument?.legalDocument?.parties?.dataProviders?.[0]?.name ??
+                                legalDocument?.legalDocument?.parties?.dataProviders?.[0]?.email ??
+                                legalDocument?.legalDocument?.parties?.dataProvider?.email ??
+                                '—'
+                              }
                             />
                           </ListItem>
                           <ListItem>
                             <ListItemText
                               primary="Model Trainer (TDC)"
-                              secondary={legalDocument.legalDocument.parties.modelTrainer.name}
+                              secondary={
+                                legalDocument?.legalDocument?.parties?.modelTrainer?.name ??
+                                legalDocument?.legalDocument?.parties?.modelTrainer?.email ??
+                                '—'
+                              }
                             />
                           </ListItem>
                         </List>
@@ -1945,17 +1879,24 @@ function CreateRicardianContract() {
                         <Typography variant="subtitle2" gutterBottom>
                           Cryptographic Binding:
                         </Typography>
-                        <Typography variant="body2" color="text.secondary" sx={{ fontFamily: 'monospace', fontSize: '0.8rem' }}>
-                          Hash: {legalDocument.metadata.legalDocumentHash}
-                        </Typography>
-                        <Typography variant="body2" color="text.secondary" sx={{ fontFamily: 'monospace', fontSize: '0.8rem' }}>
-                          Signature: {legalDocument.metadata.ricardianSignature}
-                        </Typography>
+                        <Box
+                          sx={{
+                            mt: 1,
+                            p: 1.5,
+                            borderRadius: 2,
+                            border: '1px solid',
+                            borderColor: 'divider',
+                            bgcolor: 'background.default',
+                          }}
+                        >
+                          <KeyValue label="Hash" value={legalDocument?.metadata?.legalDocumentHash} mono />
+                          <KeyValue label="Signature" value={legalDocument?.metadata?.ricardianSignature} mono />
+                        </Box>
                       </Box>
                     ) : (
                       <Box sx={{ textAlign: 'center', py: 3 }}>
                         <Typography variant="body2" color="text.secondary">
-                          Click "Next" to generate preview
+                          Generate preview to review document details
                         </Typography>
                       </Box>
                     )}
@@ -1983,15 +1924,9 @@ function CreateRicardianContract() {
                       </Box>
                     ) : smartContractData ? (
                       <Box>
-                        <Typography variant="subtitle1" gutterBottom>
-                          Contract Address: {smartContractData.address}
-                        </Typography>
-                        <Typography variant="body2" color="text.secondary">
-                          Network: {smartContractData.network}
-                        </Typography>
-                        <Typography variant="body2" color="text.secondary">
-                          Contract ID: {smartContractData.contractId}
-                        </Typography>
+                        <KeyValue label="Contract address" value={smartContractData.address} mono />
+                        <KeyValue label="Network" value={smartContractData.network} />
+                        <KeyValue label="Contract ID" value={smartContractData.contractId} mono />
                         
                         <Divider sx={{ my: 2 }} />
                         
@@ -2022,7 +1957,7 @@ function CreateRicardianContract() {
                     ) : (
                       <Box sx={{ textAlign: 'center', py: 3 }}>
                         <Typography variant="body2" color="text.secondary">
-                          Click "Next" to generate preview
+                          Generate preview to review smart contract details
                         </Typography>
                       </Box>
                     )}
@@ -2046,7 +1981,7 @@ function CreateRicardianContract() {
                       <Grid container spacing={2}>
                         {(() => {
                           // Convert selectedAiModels to number for comparison
-                          const selectedModelId = parseInt(selectedAiModels);
+                          const selectedModelId = selectedAiModels;
                           const model = aiModelsResponse?.models?.find(m => m.id === selectedModelId);
                           
 
@@ -2216,11 +2151,11 @@ function CreateRicardianContract() {
                       <Grid item xs={12} md={6}>
                         <Typography variant="subtitle2">Contract ID:</Typography>
                         <Typography variant="body2" gutterBottom sx={{ fontFamily: 'monospace' }}>
-                          {createdContract.contract.contractId}
+                          {createdContract?.contract?.contractId ?? createdContract?.contractId ?? '—'}
                         </Typography>
                         <Typography variant="subtitle2">Status:</Typography>
                         <Typography variant="body2" gutterBottom>
-                          {createdContract.contract.status}
+                          {createdContract?.contract?.status ?? createdContract?.status ?? '—'}
                         </Typography>
                         <Typography variant="subtitle2">Smart Contract Address:</Typography>
                         <Typography variant="body2" gutterBottom sx={{ fontFamily: 'monospace' }}>
@@ -2230,11 +2165,11 @@ function CreateRicardianContract() {
                       <Grid item xs={12} md={6}>
                         <Typography variant="subtitle2">Legal Document Hash:</Typography>
                         <Typography variant="body2" gutterBottom sx={{ fontFamily: 'monospace', fontSize: '0.8rem' }}>
-                          {createdContract.contract.legalDocumentHash}
+                          {createdContract?.contract?.legalDocumentHash ?? createdContract?.legalDocumentHash ?? '—'}
                         </Typography>
                         <Typography variant="subtitle2">Contract Signature:</Typography>
                         <Typography variant="body2" gutterBottom sx={{ fontFamily: 'monospace', fontSize: '0.8rem' }}>
-                          {createdContract.contract.ricardianSignature}
+                          {createdContract?.contract?.ricardianSignature ?? createdContract?.ricardianSignature ?? '—'}
                         </Typography>
                       </Grid>
                     </Grid>
@@ -2258,7 +2193,10 @@ function CreateRicardianContract() {
                       </Button>
                       <Button
                         variant="outlined"
-                        onClick={() => navigate(`/contracts/${createdContract.contract.contractId}`)}
+                        onClick={() => {
+                          const id = createdContract?.contract?.contractId ?? createdContract?.contractId;
+                          if (id) navigate(`/contracts/${id}`);
+                        }}
                         startIcon={<VerifiedIcon />}
                       >
                         View in Contracts
@@ -2550,13 +2488,28 @@ function CreateRicardianContract() {
         
         <Box>
           {activeStep === steps.length - 1 && !createdContract ? (
-            <Button
-              variant="contained"
-              onClick={handleCreateContract}
-              disabled={createRicardianContractMutation.isLoading}
-            >
-              {createRicardianContractMutation.isLoading ? 'Creating SCITT CCF Contract...' : 'Create SCITT CCF Contract'}
-            </Button>
+            <>
+              {!legalDocument && !smartContractData ? (
+                <Button
+                  variant="contained"
+                  onClick={generatePreview}
+                  disabled={isGeneratingPreview}
+                  startIcon={isGeneratingPreview ? <CircularProgress size={20} /> : null}
+                >
+                  {isGeneratingPreview ? 'Generating Preview...' : 'Generate Preview'}
+                </Button>
+              ) : (
+                <Button
+                  variant="contained"
+                  onClick={handleCreateContract}
+                  disabled={createRicardianContractMutation.isLoading}
+                >
+                  {createRicardianContractMutation.isLoading
+                    ? 'Creating SCITT CCF Contract...'
+                    : 'Create SCITT CCF Contract'}
+                </Button>
+              )}
+            </>
           ) : activeStep < steps.length - 1 ? (
             <Button
               variant="contained"

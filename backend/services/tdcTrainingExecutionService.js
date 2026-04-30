@@ -143,6 +143,28 @@ function validateTdcCanTrain(contract, userId) {
     err.statusCode = 400;
     throw err;
   }
+
+  // Differential Privacy enforcement (contract-level orchestration)
+  // If DP is enabled in trainingParams, require epsilon/delta so the runtime can enforce it.
+  // (The training container consumes these values via env vars, even if it is a placeholder trainer.)
+  const dp = contract.trainingParams?.differentialPrivacy;
+  const dpEnabled =
+    dp === true ||
+    (dp && typeof dp === 'object' && (dp.enabled === true || dp.enabled === 'true' || dp.enabled === 1 || dp.enabled === '1'));
+  if (dpEnabled) {
+    const epsilon = dp && typeof dp === 'object' ? Number(dp.epsilon) : NaN;
+    const delta = dp && typeof dp === 'object' ? Number(dp.delta) : NaN;
+    if (!Number.isFinite(epsilon) || epsilon <= 0) {
+      const err = new Error('Differential privacy is enabled but epsilon is missing/invalid (trainingParams.differentialPrivacy.epsilon)');
+      err.statusCode = 400;
+      throw err;
+    }
+    if (!Number.isFinite(delta) || delta <= 0 || delta >= 1) {
+      const err = new Error('Differential privacy is enabled but delta is missing/invalid (trainingParams.differentialPrivacy.delta)');
+      err.statusCode = 400;
+      throw err;
+    }
+  }
   if (!contract.ccrpCloudProvider) {
     const err = new Error('Contract is missing cloud provider (ccrpCloudProvider)');
     err.statusCode = 400;
@@ -307,8 +329,16 @@ class TdcTrainingExecutionService {
       return this.getJobPublic(jobId);
     }
 
+    // Prefer local-docker for local development when no execution mode is configured.
+    // The legacy TrainingService path expects Sequelize associations that aren't present in this project
+    // (datasets/aiModels are stored on the Contract row as JSON). In production, deployments can set
+    // TRAINING_EXECUTION_MODE explicitly.
+    const executionMode =
+      process.env.TRAINING_EXECUTION_MODE ||
+      (process.env.NODE_ENV && process.env.NODE_ENV !== 'production' ? 'local-docker' : '');
+
     // Local Docker execution mode (runs training in a separate container on the backend host).
-    if (process.env.TRAINING_EXECUTION_MODE === 'local-docker') {
+    if (executionMode === 'local-docker') {
       const jobId = `job-${contract.contractId}-${Date.now()}`;
       const containerSpec = buildContainerSpec(contract);
       const inputs = await expandContractTrainingInputs(contract);
@@ -554,6 +584,7 @@ class TdcTrainingExecutionService {
       batchSize: Number.isFinite(batchSize) ? batchSize : 32,
       learningRate: Number.isFinite(learningRate) ? learningRate : 0.001,
       isActive: true,
+      depaId: modelDepaId,
       metadata: {
         ...(body.metadata && typeof body.metadata === 'object' ? body.metadata : {}),
         depaId: modelDepaId,

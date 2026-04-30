@@ -109,6 +109,8 @@ router.get('/', async (req, res) => {
         try {
           const models = await db.AIModel.findAll({ where: { id: contract.aiModelIds } });
           modelInfoList = models.map(model => ({
+            modelDepaId: model.depaId || null,
+            modelId: model.modelId,
             modelName: model.name,
             modelType: model.type,
             architecture: model.architecture,
@@ -120,6 +122,19 @@ router.get('/', async (req, res) => {
             batchSize: model.batchSize,
             learningRate: model.learningRate
           }));
+
+          // If trainingParams didn't carry model identity fields, fall back to the selected model.
+          if (modelInfo && modelInfoList.length > 0) {
+            const primary = modelInfoList[0];
+            const missingName = !modelInfo.modelName || modelInfo.modelName === 'Not specified';
+            const missingType = !modelInfo.modelType || modelInfo.modelType === 'Not specified';
+            const missingParams = !modelInfo.parameters || modelInfo.parameters === 'Not specified';
+            if (missingName) modelInfo.modelName = primary.modelName;
+            if (missingType) modelInfo.modelType = primary.modelType;
+            if (missingParams) modelInfo.parameters = primary.parameters;
+            // Provide depaId in modelInfo too for UI convenience.
+            if (!modelInfo.modelDepaId) modelInfo.modelDepaId = primary.modelDepaId;
+          }
         } catch (modelError) {
           console.error('Error fetching AI models:', modelError);
           modelInfoList = [];
@@ -245,6 +260,8 @@ router.get('/user/:userId', async (req, res) => {
         try {
           const models = await db.AIModel.findAll({ where: { id: contract.aiModelIds } });
           modelInfoList = models.map(model => ({
+            modelDepaId: model.depaId || null,
+            modelId: model.modelId,
             modelName: model.name,
             modelType: model.type,
             architecture: model.architecture,
@@ -373,6 +390,8 @@ router.get('/:contractId', async (req, res) => {
       const db = require('../models');
       const models = await db.AIModel.findAll({ where: { id: contract.aiModelIds } });
       modelInfoList = models.map(model => ({
+        modelDepaId: model.depaId || null,
+        modelId: model.modelId,
         modelName: model.name,
         modelType: model.type,
         architecture: model.architecture,
@@ -487,7 +506,12 @@ router.post('/:contractId/sign', authenticateToken, async (req, res) => {
     }
 
     if (partyType === 'CCRP') {
-      if (currentUser.partyType !== 'AppAdmin' && Number(contract.ccrpId) !== Number(currentUser.id)) {
+      // Allow matching either by internal id or by DEPA ID (DEPA-first workflows)
+      if (
+        currentUser.partyType !== 'AppAdmin' &&
+        Number(contract.ccrpId) !== Number(currentUser.id) &&
+        String(currentUser.depaId || '') !== String(req.body?.ccrpDepaId || '')
+      ) {
         return res.status(403).json({ error: 'Only the assigned CCRP can sign this contract' });
       }
       updates.ccrpSigned = true;
@@ -728,8 +752,14 @@ router.post('/ricardian', authenticateToken, async (req, res) => {
       console.log(`🔍 Validating dataset: ${datasetId}`);
 
       // Get dataset and verify it exists
+      // Support dataset lookup by either datasetId (legacy) or depaId (preferred)
       const dataset = await db.Dataset.findOne({
-        where: { datasetId: datasetId },
+        where: {
+          [db.Sequelize.Op.or]: [
+            { datasetId: datasetId },
+            { depaId: datasetId },
+          ],
+        },
         include: [{ model: db.User, as: 'owner', attributes: ['id', 'name', 'email', 'depaId', 'walletAddress', 'did', 'partyType'] }]
       });
 
@@ -760,8 +790,14 @@ router.post('/ricardian', authenticateToken, async (req, res) => {
     // Get CCRP user if provided
     let ccrpUser = null;
     if (ccrpId) {
+      const asNumber = Number.parseInt(ccrpId, 10);
+      const looksNumeric = Number.isFinite(asNumber) && String(ccrpId).trim() === String(asNumber);
+
+      // Prefer DEPA IDs over numeric ids for API clients, but map back to internal user id.
       ccrpUser = await db.User.findOne({
-        where: { id: parseInt(ccrpId), partyType: 'CCRP' }
+        where: looksNumeric
+          ? { id: asNumber, partyType: 'CCRP' }
+          : { depaId: String(ccrpId).trim(), partyType: 'CCRP' }
       });
 
       if (!ccrpUser) {
@@ -772,8 +808,22 @@ router.post('/ricardian', authenticateToken, async (req, res) => {
     // Get AI models if provided
     let aiModels = [];
     if (aiModelIds && Array.isArray(aiModelIds) && aiModelIds.length > 0) {
+      const numericIds = aiModelIds
+        .filter((x) => typeof x === 'number' || (typeof x === 'string' && /^[0-9]+$/.test(x.trim())))
+        .map((x) => parseInt(String(x).trim(), 10))
+        .filter((n) => Number.isFinite(n) && n > 0);
+      const depaIds = aiModelIds
+        .filter((x) => typeof x === 'string' && !/^[0-9]+$/.test(x.trim()))
+        .map((x) => String(x).trim())
+        .filter(Boolean);
+
       aiModels = await db.AIModel.findAll({
-        where: { id: aiModelIds.map(id => parseInt(id)) }
+        where: {
+          [db.Sequelize.Op.or]: [
+            ...(numericIds.length ? [{ id: numericIds }] : []),
+            ...(depaIds.length ? [{ depaId: depaIds }] : []),
+          ],
+        },
       });
     }
 

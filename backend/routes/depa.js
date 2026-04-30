@@ -9,6 +9,9 @@ const express = require('express');
 const router = express.Router();
 const { authenticateToken } = require('../middleware/auth');
 
+/** Default deployment prefix when env is unset (US East production target). */
+const DEFAULT_DEPLOYMENT_PREFIX = 'US-EAST';
+
 /**
  * GET /api/depa/configuration
  * Get current deployment configuration for DEPA ID generation
@@ -17,17 +20,17 @@ const { authenticateToken } = require('../middleware/auth');
 router.get('/configuration', (req, res) => {
   try {
     const config = {
-      deploymentId: process.env.DEPLOYMENT_ID || 'LOCAL',
-      prefix: process.env.DEPLOYMENT_PREFIX || 'LOCAL',
-      region: process.env.DEPLOYMENT_REGION || 'local',
-      country: process.env.DEPLOYMENT_COUNTRY || 'Unknown',
-      jurisdiction: process.env.DEPLOYMENT_JURISDICTION || 'LOCAL',
-      dataResidency: process.env.DEPLOYMENT_DATA_RESIDENCY || 'LOCAL',
+      deploymentId: process.env.DEPLOYMENT_ID || 'US-EAST-PROD-001',
+      prefix: process.env.DEPLOYMENT_PREFIX || DEFAULT_DEPLOYMENT_PREFIX,
+      region: process.env.DEPLOYMENT_REGION || 'us-east-1',
+      country: process.env.DEPLOYMENT_COUNTRY || 'United States',
+      jurisdiction: process.env.DEPLOYMENT_JURISDICTION || 'US-Federal',
+      dataResidency: process.env.DEPLOYMENT_DATA_RESIDENCY || 'US',
       regulatoryFramework: process.env.DEPLOYMENT_REGULATORY_FRAMEWORK?.split(',') || [],
       timezone: process.env.DEPLOYMENT_TIMEZONE || 'UTC',
       currency: process.env.DEPLOYMENT_CURRENCY || 'USD',
       language: process.env.DEPLOYMENT_LANGUAGE || 'en-US',
-      depaIdFormat: `${process.env.DEPLOYMENT_PREFIX || 'LOCAL'}-{ENTITY_TYPE}-{UUID}`,
+      depaIdFormat: `${process.env.DEPLOYMENT_PREFIX || DEFAULT_DEPLOYMENT_PREFIX}-{ENTITY_TYPE}-{UUID}`,
       entityTypes: ['TDC', 'TDP', 'CCRP', 'CONTRACT', 'DATASET']
     };
     
@@ -53,7 +56,7 @@ router.get('/configuration', (req, res) => {
  */
 router.get('/format-explanation', (req, res) => {
   try {
-    const prefix = process.env.DEPLOYMENT_PREFIX || 'LOCAL';
+    const prefix = process.env.DEPLOYMENT_PREFIX || DEFAULT_DEPLOYMENT_PREFIX;
     
     const explanation = {
       format: `${prefix}-{ENTITY_TYPE}-{UUID}`,
@@ -61,7 +64,7 @@ router.get('/format-explanation', (req, res) => {
         {
           name: 'Deployment Prefix',
           value: prefix,
-          description: 'Identifies the deployment instance (e.g., LOCAL, PROD, US-EAST)',
+          description: 'Identifies the deployment instance (e.g., US-EAST, EU-WEST)',
           example: prefix
         },
         {
@@ -108,7 +111,7 @@ router.get('/format-explanation', (req, res) => {
 router.get('/user-info', authenticateToken, (req, res) => {
   try {
     const user = req.user;
-    const prefix = process.env.DEPLOYMENT_PREFIX || 'LOCAL';
+    const prefix = process.env.DEPLOYMENT_PREFIX || DEFAULT_DEPLOYMENT_PREFIX;
     
     const userInfo = {
       userId: user.id,

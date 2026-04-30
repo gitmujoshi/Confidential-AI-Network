@@ -71,7 +71,8 @@ const MultiCCRPSelector = ({
 
   // Get selection status for a CCRP
   const getCcrpStatus = (ccrp) => {
-    const isSelected = selectedCcrp === ccrp.id;
+    const ccrpKey = ccrp.depaId || ccrp.id;
+    const isSelected = selectedCcrp === ccrpKey;
     
     if (isSelected) {
       return { status: 'selected', message: 'Selected' };
@@ -123,7 +124,8 @@ const MultiCCRPSelector = ({
       <Grid container spacing={2}>
         {filteredCcrpUsers.map((ccrp) => {
           const { status, message } = getCcrpStatus(ccrp);
-          const isSelected = selectedCcrp === ccrp.id;
+          const ccrpKey = ccrp.depaId || ccrp.id;
+          const isSelected = selectedCcrp === ccrpKey;
           const isDisabled = status === 'disabled';
           
           return (
@@ -140,7 +142,7 @@ const MultiCCRPSelector = ({
                     boxShadow: 2
                   }
                 }}
-                onClick={() => !disabled && onCcrpToggle(isSelected ? null : ccrp.id)}
+                onClick={() => !disabled && onCcrpToggle(isSelected ? null : ccrpKey)}
               >
                 <CardContent>
                   <Box display="flex" alignItems="flex-start" gap={2}>
@@ -148,7 +150,7 @@ const MultiCCRPSelector = ({
                     <Checkbox
                       checked={isSelected}
                       disabled={isDisabled || disabled}
-                      onChange={() => !isDisabled && !disabled && onCcrpToggle(isSelected ? null : ccrp.id)}
+                      onChange={() => !isDisabled && !disabled && onCcrpToggle(isSelected ? null : ccrpKey)}
                       color="primary"
                       sx={{ mt: 0 }}
                     />
@@ -203,9 +205,10 @@ const MultiCCRPSelector = ({
 
       {/* Selected CCRP Summary - Moved below the list */}
       {selectedCcrp && (() => {
-        const selectedCcrpUser = ccrpUsers.find(u => u.id === parseInt(selectedCcrp) || u.id === selectedCcrp);
+        const selectedCcrpUser = ccrpUsers.find(u => (u.depaId && u.depaId === selectedCcrp) || u.id === selectedCcrp);
         if (!selectedCcrpUser) return null;
         const providers = selectedCcrpUser.cloudProviders || [];
+        const selectedKey = selectedCcrpUser.depaId || selectedCcrpUser.id;
         return (
           <Card sx={{ mt: 3, bgcolor: 'primary.light', color: 'white' }}>
             <CardContent>
@@ -259,9 +262,9 @@ const MultiCCRPSelector = ({
                   <FormControl fullWidth>
                     <InputLabel>Select Cloud Provider</InputLabel>
                     <Select
-                      value={ccrpCloudProviderSelections[selectedCcrpUser.id] || ''}
+                      value={ccrpCloudProviderSelections[selectedKey] || ''}
                       label="Select Cloud Provider"
-                      onChange={e => onCcrpCloudProviderSelect(selectedCcrpUser.id, e.target.value)}
+                      onChange={e => onCcrpCloudProviderSelect(selectedKey, e.target.value)}
                       disabled={disabled}
                     >
                       {providers.map((provider) => (

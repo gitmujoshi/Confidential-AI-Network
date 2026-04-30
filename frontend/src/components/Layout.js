@@ -92,45 +92,69 @@ const Layout = ({ children }) => {
 
   const getRoleColor = (role) => {
     switch (role) {
-      case 'TDP': return 'bg-blue-100 text-blue-800';
-      case 'TDC': return 'bg-green-100 text-green-800';
-      case 'CCRP': return 'bg-purple-100 text-purple-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case 'TDP': return 'info';
+      case 'TDC': return 'success';
+      case 'CCRP': return 'secondary';
+      case 'AppAdmin': return 'warning';
+      default: return 'default';
     }
   };
 
   const drawer = (
-    <div className="h-full bg-white">
+    <Box sx={{ height: '100%', bgcolor: 'background.paper' }}>
       {/* Logo/Brand */}
-      <div className="p-4 border-b border-gray-200">
-        <Typography variant="h6" className="font-bold text-gray-900">
+      <Box
+        sx={{
+          px: 2,
+          py: 2,
+          borderBottom: '1px solid rgba(148,163,184,0.25)',
+          background:
+            'linear-gradient(135deg, rgba(37,99,235,0.10), rgba(124,58,237,0.06) 55%, rgba(255,255,255,0))',
+        }}
+      >
+        <Typography variant="subtitle1" sx={{ fontWeight: 800, letterSpacing: '-0.02em' }}>
           Contract Manager
         </Typography>
-        <Typography variant="caption" className="text-gray-500">
-          Secure & Transparent
+        <Typography variant="caption" color="text.secondary">
+          Secure • Auditable • Role-based
         </Typography>
-      </div>
+      </Box>
 
       {/* Navigation */}
-      <div className="flex-1 overflow-y-auto">
-        <List className="px-2 py-2">
+      <Box sx={{ flex: 1, overflowY: 'auto' }}>
+        <List sx={{ px: 1.25, py: 1.25 }}>
           {navigationItems.map((item) => {
             const isActive = location.pathname === item.path;
             return (
-              <ListItem key={item.text} disablePadding className="mb-1">
+              <ListItem key={item.text} disablePadding sx={{ mb: 0.5 }}>
                 <ListItemButton
                   onClick={() => {
                     navigate(item.path);
                     setMobileOpen(false);
                   }}
-                  className={`rounded-md ${
-                    isActive ? 'bg-blue-50 text-blue-700' : 'hover:bg-gray-50'
-                  }`}
+                  sx={{
+                    borderRadius: 2,
+                    py: 1,
+                    px: 1.25,
+                    border: isActive ? '1px solid rgba(37,99,235,0.25)' : '1px solid transparent',
+                    bgcolor: isActive ? 'rgba(37,99,235,0.08)' : 'transparent',
+                    '&:hover': {
+                      bgcolor: isActive ? 'rgba(37,99,235,0.10)' : 'rgba(148,163,184,0.10)',
+                    },
+                  }}
                 >
-                  <ListItemIcon className={isActive ? 'text-blue-600' : 'text-gray-500'}>
+                  <ListItemIcon sx={{ minWidth: 36, color: isActive ? 'primary.main' : 'text.secondary' }}>
                     {item.icon}
                   </ListItemIcon>
-                  <ListItemText primary={item.text} />
+                  <ListItemText
+                    primary={item.text}
+                    primaryTypographyProps={{
+                      sx: {
+                        fontWeight: isActive ? 700 : 600,
+                        color: isActive ? 'text.primary' : 'text.secondary',
+                      },
+                    }}
+                  />
                   {item.text === 'Notifications' && unreadCount > 0 && (
                     <Badge badgeContent={unreadCount} color="error" />
                   )}
@@ -141,21 +165,21 @@ const Layout = ({ children }) => {
         </List>
 
         {/* Quick Actions */}
-        <div className="px-4 py-4">
-          <Typography variant="subtitle2" className="text-gray-600 mb-3 font-medium">
+        <Box sx={{ px: 2, py: 2 }}>
+          <Typography variant="overline" sx={{ color: 'text.secondary', fontWeight: 700 }}>
             Quick Actions
           </Typography>
-          <div className="space-y-2">
+          <Box sx={{ display: 'grid', gap: 1, mt: 1 }}>
             {/* Only TDC users can create contracts */}
             {isTDC && (
               <Button
-                variant="outlined"
-                startIcon={<Security />}
+                variant="contained"
+                startIcon={<Add />}
                 onClick={() => {
                   navigate('/contracts/create');
                   setMobileOpen(false);
                 }}
-                className="w-full justify-start"
+                fullWidth
                 size="small"
               >
                 Create Contract
@@ -168,28 +192,29 @@ const Layout = ({ children }) => {
                 navigate('/datasets');
                 setMobileOpen(false);
               }}
-              className="w-full justify-start"
+              fullWidth
               size="small"
             >
               {isTDP ? 'My Datasets' : 'Browse Datasets'}
             </Button>
-          </div>
-        </div>
-      </div>
+          </Box>
+        </Box>
+      </Box>
 
       {/* Footer */}
-      <div className="p-4 border-t border-gray-200">
+      <Box sx={{ p: 2, borderTop: '1px solid rgba(148,163,184,0.25)' }}>
         <Button
           size="small"
           onClick={handleLogout}
-          className="text-gray-500 hover:text-red-600"
           startIcon={<Logout />}
           fullWidth
+          color="inherit"
+          sx={{ justifyContent: 'flex-start', color: 'text.secondary', '&:hover': { color: 'error.main' } }}
         >
           Logout
         </Button>
-      </div>
-    </div>
+      </Box>
+    </Box>
   );
 
   const renderUserInfo = () => {
@@ -236,9 +261,11 @@ const Layout = ({ children }) => {
         sx={{
           width: { sm: `calc(100% - ${drawerWidth}px)` },
           ml: { sm: `${drawerWidth}px` },
-          backgroundColor: 'white',
-          color: 'black',
-          boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1)',
+          bgcolor: 'rgba(255,255,255,0.75)',
+          color: 'text.primary',
+          backdropFilter: 'blur(10px)',
+          borderBottom: '1px solid rgba(148,163,184,0.25)',
+          boxShadow: 'none',
         }}
       >
         <Toolbar>
@@ -252,18 +279,17 @@ const Layout = ({ children }) => {
             <MenuIcon />
           </IconButton>
           
-          <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
+          <Typography variant="h6" component="div" sx={{ flexGrow: 1, fontWeight: 800, letterSpacing: '-0.02em' }}>
             {navigationItems.find(item => item.path === location.pathname)?.text || 'Dashboard'}
           </Typography>
 
           {/* User Menu */}
           {currentUser && (
-            <div className="flex items-center space-x-3">
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.25 }}>
               {/* Notifications */}
               <IconButton
                 color="inherit"
                 onClick={() => navigate('/notifications')}
-                className="relative"
               >
                 <Badge badgeContent={unreadCount} color="error">
                   <Notifications />
@@ -273,9 +299,9 @@ const Layout = ({ children }) => {
               {/* User Avatar */}
               <IconButton
                 onClick={() => navigate('/profile')}
-                className="hover:bg-gray-100 rounded-full p-1"
+                sx={{ p: 0.5 }}
               >
-                <Avatar className="w-8 h-8 bg-blue-600">
+                <Avatar sx={{ width: 32, height: 32, bgcolor: 'primary.main' }}>
                   {currentUser.name?.charAt(0) || 'U'}
                 </Avatar>
               </IconButton>
@@ -284,7 +310,8 @@ const Layout = ({ children }) => {
               <Chip
                 label={currentUser.partyType}
                 size="small"
-                className={`${getRoleColor(currentUser.partyType)} text-xs`}
+                color={getRoleColor(currentUser.partyType)}
+                variant="outlined"
               />
 
               {/* DEPA ID */}
@@ -293,8 +320,12 @@ const Layout = ({ children }) => {
                   label={`DEPA: ${currentUser.depaId.split('-')[0]}-${currentUser.depaId.split('-')[1]}`}
                   size="small"
                   variant="outlined"
-                  className="text-xs border-gray-300 text-gray-600"
-                  sx={{ maxWidth: 150, '& .MuiChip-label': { fontSize: '0.7rem' } }}
+                  sx={{
+                    maxWidth: 160,
+                    color: 'text.secondary',
+                    borderColor: 'rgba(148,163,184,0.45)',
+                    '& .MuiChip-label': { fontSize: '0.72rem', fontWeight: 600 },
+                  }}
                   title={currentUser.depaId}
                 />
               )}
@@ -302,8 +333,14 @@ const Layout = ({ children }) => {
               {/* Username */}
               <Typography
                 variant="body2"
-                className="text-gray-600 text-sm font-medium"
-                sx={{ maxWidth: 150, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+                sx={{
+                  maxWidth: 160,
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap',
+                  color: 'text.secondary',
+                  fontWeight: 700,
+                }}
               >
                 {currentUser.name || currentUser.email}
               </Typography>
@@ -311,12 +348,12 @@ const Layout = ({ children }) => {
               {/* Logout Button */}
               <IconButton
                 onClick={handleLogout}
-                className="text-gray-500 hover:text-red-600"
+                sx={{ color: 'text.secondary', '&:hover': { color: 'error.main' } }}
                 title="Logout"
               >
                 <Logout />
               </IconButton>
-            </div>
+            </Box>
           )}
         </Toolbar>
       </AppBar>
@@ -335,7 +372,11 @@ const Layout = ({ children }) => {
           }}
           sx={{
             display: { xs: 'block', sm: 'none' },
-            '& .MuiDrawer-paper': { boxSizing: 'border-box', width: drawerWidth },
+            '& .MuiDrawer-paper': {
+              boxSizing: 'border-box',
+              width: drawerWidth,
+              borderRight: '1px solid rgba(148,163,184,0.25)',
+            },
           }}
         >
           {drawer}
@@ -344,7 +385,11 @@ const Layout = ({ children }) => {
           variant="permanent"
           sx={{
             display: { xs: 'none', sm: 'block' },
-            '& .MuiDrawer-paper': { boxSizing: 'border-box', width: drawerWidth },
+            '& .MuiDrawer-paper': {
+              boxSizing: 'border-box',
+              width: drawerWidth,
+              borderRight: '1px solid rgba(148,163,184,0.25)',
+            },
           }}
           open
         >
@@ -357,7 +402,7 @@ const Layout = ({ children }) => {
         component="main"
         sx={{
           flexGrow: 1,
-          p: 3,
+          p: { xs: 2, sm: 3 },
           width: { sm: `calc(100% - ${drawerWidth}px)` },
           // xs: taller offset so wrapped AppBar + chips do not cover the first row of main content
           marginTop: { xs: '120px', sm: '80px' },

@@ -13,6 +13,8 @@ class ContractValidationService {
   validateContractCreation(data) {
     const errors = [];
     const validated = {};
+    const DEPAIdService = require('./depaIdService');
+    const depaIdService = new DEPAIdService();
 
     try {
       // Validate dataset selections
@@ -42,15 +44,31 @@ class ContractValidationService {
 
       // Validate AI model IDs
       if (data.aiModelIds && Array.isArray(data.aiModelIds)) {
-        validated.aiModelIds = data.aiModelIds.filter(id => id && typeof id === 'number' && id > 0);
+        // Support:
+        // - numeric DB ids (legacy)
+        // - DEPA IDs (preferred): {PREFIX}-AIMODEL-{UUID}
+        validated.aiModelIds = data.aiModelIds
+          .map((id) => (typeof id === 'string' ? id.trim() : id))
+          .filter((id) => {
+            if (!id) return false;
+            if (typeof id === 'number') return id > 0;
+            if (typeof id === 'string') return depaIdService.validateDEPAId(id) && depaIdService.matchesEntityType(id, 'AIMODEL');
+            return false;
+          });
       }
 
       // Validate CCRP ID
       if (data.ccrpId) {
-        if (typeof data.ccrpId !== 'number' || data.ccrpId <= 0) {
-          errors.push('Invalid CCRP ID');
+        // Support either numeric user id (legacy) or DEPA ID (preferred for API clients)
+        if (typeof data.ccrpId === 'number') {
+          if (data.ccrpId <= 0) errors.push('Invalid CCRP ID');
+          else validated.ccrpId = data.ccrpId;
+        } else if (typeof data.ccrpId === 'string') {
+          const trimmed = data.ccrpId.trim();
+          if (!trimmed) errors.push('Invalid CCRP ID');
+          else validated.ccrpId = trimmed;
         } else {
-          validated.ccrpId = data.ccrpId;
+          errors.push('Invalid CCRP ID');
         }
       }
 
@@ -207,16 +225,73 @@ class ContractValidationService {
       validated.minAccuracy = accuracy;
     }
 
+    // Differential privacy can be either:
+    // - boolean (legacy)
+    // - object: { enabled, epsilon, delta, mechanism?, clipNorm? }
     if (privacy.differentialPrivacy !== undefined) {
-      validated.differentialPrivacy = Boolean(privacy.differentialPrivacy);
+      if (typeof privacy.differentialPrivacy === 'boolean') {
+        validated.differentialPrivacy = { enabled: privacy.differentialPrivacy };
+      } else if (privacy.differentialPrivacy && typeof privacy.differentialPrivacy === 'object') {
+        const enabled =
+          privacy.differentialPrivacy.enabled !== undefined
+            ? Boolean(privacy.differentialPrivacy.enabled)
+            : Boolean(privacy.differentialPrivacy);
+        const epsilonRaw = privacy.differentialPrivacy.epsilon;
+        const deltaRaw = privacy.differentialPrivacy.delta;
+        const epsilon = epsilonRaw !== undefined ? Number(epsilonRaw) : undefined;
+        const delta = deltaRaw !== undefined ? Number(deltaRaw) : undefined;
+        if (epsilon !== undefined && (!Number.isFinite(epsilon) || epsilon <= 0)) {
+          throw new ValidationError('differentialPrivacy.epsilon must be a number > 0');
+        }
+        if (delta !== undefined && (!Number.isFinite(delta) || delta <= 0 || delta >= 1)) {
+          throw new ValidationError('differentialPrivacy.delta must be a number in (0, 1)');
+        }
+        validated.differentialPrivacy = {
+          enabled,
+          ...(epsilon !== undefined ? { epsilon } : {}),
+          ...(delta !== undefined ? { delta } : {}),
+          ...(privacy.differentialPrivacy.mechanism ? { mechanism: String(privacy.differentialPrivacy.mechanism) } : {}),
+          ...(privacy.differentialPrivacy.clipNorm !== undefined
+            ? { clipNorm: Number(privacy.differentialPrivacy.clipNorm) }
+            : {}),
+        };
+      } else {
+        validated.differentialPrivacy = { enabled: Boolean(privacy.differentialPrivacy) };
+      }
     }
 
     if (privacy.federatedLearning !== undefined) {
-      validated.federatedLearning = Boolean(privacy.federatedLearning);
+      // Allow boolean or object; keep shape stable for downstream usage.
+      if (typeof privacy.federatedLearning === 'boolean') {
+        validated.federatedLearning = { enabled: privacy.federatedLearning };
+      } else if (privacy.federatedLearning && typeof privacy.federatedLearning === 'object') {
+        validated.federatedLearning = {
+          enabled:
+            privacy.federatedLearning.enabled !== undefined
+              ? Boolean(privacy.federatedLearning.enabled)
+              : Boolean(privacy.federatedLearning),
+          ...(privacy.federatedLearning.communicationRounds !== undefined
+            ? { communicationRounds: Number(privacy.federatedLearning.communicationRounds) }
+            : {}),
+        };
+      } else {
+        validated.federatedLearning = { enabled: Boolean(privacy.federatedLearning) };
+      }
     }
 
     if (privacy.secureMultiPartyComputation !== undefined) {
-      validated.secureMultiPartyComputation = Boolean(privacy.secureMultiPartyComputation);
+      if (typeof privacy.secureMultiPartyComputation === 'boolean') {
+        validated.secureMultiPartyComputation = { enabled: privacy.secureMultiPartyComputation };
+      } else if (privacy.secureMultiPartyComputation && typeof privacy.secureMultiPartyComputation === 'object') {
+        validated.secureMultiPartyComputation = {
+          enabled:
+            privacy.secureMultiPartyComputation.enabled !== undefined
+              ? Boolean(privacy.secureMultiPartyComputation.enabled)
+              : Boolean(privacy.secureMultiPartyComputation),
+        };
+      } else {
+        validated.secureMultiPartyComputation = { enabled: Boolean(privacy.secureMultiPartyComputation) };
+      }
     }
 
     return validated;

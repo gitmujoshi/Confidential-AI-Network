@@ -98,7 +98,7 @@ export default function TDCTraining() {
         const data = await apiService.getTdcTrainingJob(pollJobId);
         if (cancelled) return;
         setLiveJob(data.job);
-        setJobLogs('');
+        // Keep any loaded logs visible while polling; only clear when switching jobs.
         if (data.job?.contractId) await loadJobsForContract(data.job.contractId);
         if (TERMINAL.has(data.job?.status)) {
           setPollJobId(null);

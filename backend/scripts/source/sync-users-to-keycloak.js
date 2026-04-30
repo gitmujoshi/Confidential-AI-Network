@@ -174,8 +174,10 @@ async function syncUsersToKeycloak() {
         const ***REMOVED-KEYCLOAK_DB_PASSWORD***UserId = await createKeycloakUser(token, user);
         console.log(`✅ Created in Keycloak with ID: ${***REMOVED-KEYCLOAK_DB_PASSWORD***UserId}`);
 
-        // Set password (using email as password for simplicity)
-        await setKeycloakUserPassword(token, ***REMOVED-KEYCLOAK_DB_PASSWORD***UserId, user.email);
+        // Set password for synced users.
+        // Default to the standard local/E2E password so UI and Playwright can log in consistently.
+        const defaultPassword = process.env.KEYCLOAK_SYNC_DEFAULT_PASSWORD || 'TestNewPassword123!';
+        await setKeycloakUserPassword(token, ***REMOVED-KEYCLOAK_DB_PASSWORD***UserId, defaultPassword);
         console.log(`✅ Password set for user`);
 
         // Update database with Keycloak user ID
