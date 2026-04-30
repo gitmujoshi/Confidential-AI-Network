@@ -85,6 +85,13 @@ module.exports = (sequelize) => {
       allowNull: true,
       comment: 'Additional model-specific metadata'
     },
+    // DEPA ID (Decentralized Entity Provider Architecture ID) - immutable identifier
+    depaId: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      unique: true,
+      comment: 'System-generated DEPA ID (AIMODEL-<GUID> or {PREFIX}-AIMODEL-<GUID>)'
+    },
     createdAt: {
       type: DataTypes.DATE,
       allowNull: false,
@@ -103,6 +110,15 @@ module.exports = (sequelize) => {
       {
         unique: true,
         fields: ['model_id']
+      },
+      {
+        unique: true,
+        fields: ['depa_id'],
+        where: {
+          depa_id: {
+            [sequelize.Sequelize.Op.ne]: null
+          }
+        }
       },
       {
         fields: ['type']

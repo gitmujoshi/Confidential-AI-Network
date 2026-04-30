@@ -9,6 +9,7 @@
 
 const db = require('../models');
 const crypto = require('crypto');
+const DEPAIdService = require('../services/depaIdService');
 
 // Secure datasets with different security classifications
 const secureDatasets = [
@@ -239,6 +240,7 @@ async function findTDPUser() {
 async function createSecureDataset(datasetInfo, ownerId) {
   try {
     const datasetId = `DATASET-${Date.now()}-${crypto.randomUUID()}`;
+    const depaIdService = new DEPAIdService();
     
     // Check if dataset already exists
     const existingDataset = await db.Dataset.findOne({
@@ -264,7 +266,7 @@ async function createSecureDataset(datasetInfo, ownerId) {
       isActive: true,
       isPublic: datasetInfo.dataClassification === 'PUBLIC',
       confidentialComputingRequired: datasetInfo.secureEnclaveRequired,
-      depaId: `DATASET-${crypto.randomUUID()}`,
+      depaId: depaIdService.generateDEPAId('DATASET'),
       
       // New security fields (using camelCase as they exist in DB)
       dataClassification: datasetInfo.dataClassification,

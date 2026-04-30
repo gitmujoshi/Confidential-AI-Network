@@ -43,6 +43,8 @@ load_centralized_config() {
     export BLOCKCHAIN_ENABLED BLOCKCHAIN_NETWORK BLOCKCHAIN_RPC_URL CONTRACT_ADDRESS
     export SCITT_CCF_ENABLED SCITT_CCF_URL SCITT_CCF_NODE_URL SCITT_CCF_DASHBOARD_URL
     export DID_WEB_DOMAIN DID_WEB_PATH DEPA_ENABLED DEPA_BASE_URL
+    # Ensure DEPA ID prefix is available to the backend/node process
+    export DEPLOYMENT_PREFIX DEPLOYMENT_ID DEPLOYMENT_REGION DEPLOYMENT_COUNTRY DEPLOYMENT_JURISDICTION
     export LOG_LEVEL CORS_ORIGIN RATE_LIMIT_WINDOW_MS RATE_LIMIT_MAX_REQUESTS
     export VAULT_ADDR VAULT_TOKEN
     export REDIS_PORT FRONTEND_HEALTH_URL MAILHOG_SMTP_PORT MAILHOG_WEB_PORT
@@ -113,6 +115,52 @@ fi
 
 echo ""
 echo -e "${BLUE}🚀 Step 4: Starting backend and frontend...${NC}"
+
+# Stop any previously started local processes (this script uses nohup).
+stop_if_running() {
+    local pid_file="$1"
+    local label="$2"
+    if [ -f "$pid_file" ]; then
+        local pid
+        pid="$(cat "$pid_file" 2>/dev/null || true)"
+        if [ -n "$pid" ] && kill -0 "$pid" >/dev/null 2>&1; then
+            echo "   Stopping existing $label (pid $pid)..."
+            kill "$pid" >/dev/null 2>&1 || true
+            # Give it a moment, then force kill if still alive
+            sleep 1
+            if kill -0 "$pid" >/dev/null 2>&1; then
+                kill -9 "$pid" >/dev/null 2>&1 || true
+            fi
+        fi
+        rm -f "$pid_file" >/dev/null 2>&1 || true
+    fi
+}
+
+mkdir -p logs >/dev/null 2>&1 || true
+stop_if_running "logs/backend.pid" "backend"
+stop_if_running "logs/frontend.pid" "frontend"
+
+# Also kill anything currently listening on the ports (covers processes not started by this script).
+kill_port_listener() {
+    local port="$1"
+    local label="$2"
+    if [ -z "$port" ]; then
+        return 0
+    fi
+    local pid
+    pid="$(lsof -t -iTCP:${port} -sTCP:LISTEN 2>/dev/null | head -n 1 || true)"
+    if [ -n "$pid" ]; then
+        echo "   Stopping $label listening on port $port (pid $pid)..."
+        kill "$pid" >/dev/null 2>&1 || true
+        sleep 1
+        if kill -0 "$pid" >/dev/null 2>&1; then
+            kill -9 "$pid" >/dev/null 2>&1 || true
+        fi
+    fi
+}
+
+kill_port_listener "${BACKEND_PORT:-5001}" "backend"
+kill_port_listener "${FRONTEND_PORT:-3000}" "frontend"
 
 # Start backend
 echo "   Starting backend server..."

@@ -1061,6 +1061,12 @@ function ContractDetail() {
                     Model Information
                   </Typography>
                   <Box display="flex" flexDirection="column" gap={1}>
+                    {model.modelDepaId && (
+                      <>
+                        <Typography variant="body2" color="textSecondary">Model DEPA ID</Typography>
+                        <Typography variant="body1" sx={{ fontFamily: 'monospace' }}>{model.modelDepaId}</Typography>
+                      </>
+                    )}
                     <Typography variant="body2" color="textSecondary">Model Name</Typography>
                     <Typography variant="body1">{model.modelName}</Typography>
                     <Typography variant="body2" color="textSecondary">Model Type</Typography>
@@ -1100,6 +1106,12 @@ function ContractDetail() {
                   Model Information
                 </Typography>
                 <Box display="flex" flexDirection="column" gap={1}>
+                  {contract.modelInfo.modelDepaId && (
+                    <>
+                      <Typography variant="body2" color="textSecondary">Model DEPA ID</Typography>
+                      <Typography variant="body1" sx={{ fontFamily: 'monospace' }}>{contract.modelInfo.modelDepaId}</Typography>
+                    </>
+                  )}
                   <Typography variant="body2" color="textSecondary">Model Name</Typography>
                   <Typography variant="body1">{contract.modelInfo.modelName}</Typography>
                   <Typography variant="body2" color="textSecondary">Model Type</Typography>
@@ -2597,7 +2609,7 @@ function ContractDetail() {
         <DialogActions>
           <Button onClick={() => setCcrpDialogOpen(false)}>Cancel</Button>
           <Button 
-            onClick={() => selectCcrpMutation.mutate({ ccrpId: parseInt(selectedCcrp) })}
+            onClick={() => selectCcrpMutation.mutate({ ccrpId: selectedCcrp })}
             disabled={!selectedCcrp || selectCcrpMutation.isLoading}
           >
             Select

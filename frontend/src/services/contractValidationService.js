@@ -48,7 +48,13 @@ class ContractValidationService {
 
       // Validate AI model IDs
       if (data.aiModelIds && Array.isArray(data.aiModelIds)) {
-        const validModelIds = data.aiModelIds.filter(id => id && typeof id === 'number' && id > 0);
+        // Support numeric IDs (legacy) or DEPA IDs (preferred)
+        const validModelIds = data.aiModelIds.filter((id) => {
+          if (!id) return false;
+          if (typeof id === 'number') return id > 0;
+          if (typeof id === 'string') return id.trim().length > 0;
+          return false;
+        });
         if (validModelIds.length === 0) {
           errors.aiModelIds = 'At least one valid AI model must be selected';
         } else {
@@ -58,10 +64,14 @@ class ContractValidationService {
 
       // Validate CCRP ID
       if (data.ccrpId) {
-        if (typeof data.ccrpId !== 'number' || data.ccrpId <= 0) {
+        // Support numeric IDs (legacy) or DEPA IDs (preferred)
+        const ok =
+          (typeof data.ccrpId === 'number' && data.ccrpId > 0) ||
+          (typeof data.ccrpId === 'string' && data.ccrpId.trim().length > 0);
+        if (!ok) {
           errors.ccrpId = 'Invalid CCRP selection';
         } else {
-          validated.ccrpId = data.ccrpId;
+          validated.ccrpId = typeof data.ccrpId === 'string' ? data.ccrpId.trim() : data.ccrpId;
         }
       }
 

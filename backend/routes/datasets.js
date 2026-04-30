@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const db = require('../models');
 const { v4: uuidv4 } = require('uuid');
+const DEPAIdService = require('../services/depaIdService');
 
 // Get all public datasets
 router.get('/public', async (req, res) => {
@@ -361,6 +362,7 @@ router.post('/', async (req, res) => {
     }
 
     // Create dataset
+    const depaIdService = new DEPAIdService();
     const dataset = await db.Dataset.create({
       datasetId,
       name,
@@ -375,7 +377,7 @@ router.post('/', async (req, res) => {
       isPublic: isPublic !== undefined ? isPublic : true,
       confidentialComputingRequired: confidentialComputingRequired !== undefined ? confidentialComputingRequired : false,
       ownerId,
-      depaId: `DATASET-${uuidv4()}`,
+      depaId: depaIdService.generateDEPAId('DATASET'),
       // Security and compliance fields
       data_classification: data_classification || 'INTERNAL',
       secure_enclave_required: secure_enclave_required || false,

@@ -9,6 +9,7 @@
 
 const db = require('../models');
 const crypto = require('crypto');
+const DEPAIdService = require('../services/depaIdService');
 
 // Convert GB to bytes but keep within INTEGER range (max ~2.1 billion)
 const GB_TO_BYTES = 1000000000; // 1GB = 1 billion bytes
@@ -172,6 +173,7 @@ async function findTDPUser(email) {
 async function createDataset(datasetInfo, ownerId, ownerEmail) {
   try {
     const datasetId = `DATASET-${crypto.randomUUID()}`;
+    const depaIdService = new DEPAIdService();
     
     // Check if dataset already exists
     const existingDataset = await db.Dataset.findOne({
@@ -197,7 +199,7 @@ async function createDataset(datasetInfo, ownerId, ownerEmail) {
       isActive: true,
       isPublic: true, // Make them browsable
       confidentialComputingRequired: datasetInfo.confidentialComputingRequired,
-      depaId: `DATASET-${crypto.randomUUID()}`,
+      depaId: depaIdService.generateDEPAId('DATASET'),
       createdAt: new Date(),
       updatedAt: new Date()
     });

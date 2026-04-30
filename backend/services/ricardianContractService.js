@@ -425,7 +425,23 @@ class RicardianContractService {
           contractId: contractData.contractId,
           legalDocumentHash: null, // Will be set after hash creation
           smartContractAddress: null, // Will be set after deployment
-          ricardianSignature: null // Will be set after signature creation
+          ricardianSignature: null, // Will be set after signature creation
+          // Privacy configuration snapshot for auditability (DP budget, federated, SMPC, etc.).
+          privacy: {
+            requirements: contractData.privacyRequirements || null,
+            differentialPrivacy:
+              contractData.trainingParams?.differentialPrivacy ||
+              contractData.privacyRequirements?.differentialPrivacy ||
+              null,
+            federatedLearning:
+              contractData.trainingParams?.federatedLearning ||
+              contractData.privacyRequirements?.federatedLearning ||
+              null,
+            secureMultiPartyComputation:
+              contractData.trainingParams?.secureMultiPartyComputation ||
+              contractData.privacyRequirements?.secureMultiPartyComputation ||
+              null,
+          }
         },
         legalDocument: {
           ...template.ricardianContract.legalDocument,
@@ -467,6 +483,21 @@ class RicardianContractService {
           },
           // Include training specifications if provided
           trainingSpecifications: contractData.trainingEnvironment?.trainingSpecifications || template.ricardianContract.trainingEnvironment?.trainingSpecifications,
+          // Explicit privacy-preserving techniques for this training run.
+          privacyPreservingTechniques: {
+            differentialPrivacy:
+              contractData.trainingParams?.differentialPrivacy ||
+              contractData.privacyRequirements?.differentialPrivacy ||
+              null,
+            federatedLearning:
+              contractData.trainingParams?.federatedLearning ||
+              contractData.privacyRequirements?.federatedLearning ||
+              null,
+            secureMultiPartyComputation:
+              contractData.trainingParams?.secureMultiPartyComputation ||
+              contractData.privacyRequirements?.secureMultiPartyComputation ||
+              null,
+          },
           // Include deployment specifications if provided
           deployment: contractData.trainingEnvironment?.deployment || template.ricardianContract.trainingEnvironment?.deployment
         },
