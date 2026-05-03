@@ -19,9 +19,6 @@ class GlobalDEPAIdService extends DEPAIdService {
   constructor() {
     super(); // Call parent constructor to maintain existing functionality
     
-    // Validate required environment variables
-    this.validateEnvironmentVariables();
-    
     // Global deployment registry
     this.deploymentRegistry = new Map();
     
@@ -38,6 +35,12 @@ class GlobalDEPAIdService extends DEPAIdService {
       currency: process.env.DEPLOYMENT_CURRENCY,
       language: process.env.DEPLOYMENT_LANGUAGE
     };
+
+    // Validate required environment variables (may apply defaults in non-prod)
+    this.validateEnvironmentVariables();
+
+    // Initialize deployment registry
+    this.initializeDeploymentRegistry();
   }
   
   validateEnvironmentVariables() {
@@ -56,7 +59,39 @@ class GlobalDEPAIdService extends DEPAIdService {
     const missingVars = requiredVars.filter(varName => !process.env[varName]);
     
     if (missingVars.length > 0) {
-      throw new Error(`Missing required environment variables: ${missingVars.join(', ')}`);
+      // In production we require explicit deployment metadata.
+      // In tests/dev we fall back to a stable local deployment so the server can boot.
+      if (process.env.NODE_ENV === 'production') {
+        throw new Error(`Missing required environment variables: ${missingVars.join(', ')}`);
+      }
+
+      console.warn(
+        `⚠️ Global DEPA deployment metadata missing (${missingVars.join(', ')}). ` +
+        `Falling back to local defaults (NODE_ENV=${process.env.NODE_ENV || 'undefined'}).`
+      );
+
+      process.env.DEPLOYMENT_ID ||= 'local';
+      process.env.DEPLOYMENT_PREFIX ||= 'LOCAL';
+      process.env.DEPLOYMENT_REGION ||= 'local';
+      process.env.DEPLOYMENT_COUNTRY ||= 'local';
+      process.env.DEPLOYMENT_JURISDICTION ||= 'local';
+      process.env.DEPLOYMENT_DATA_RESIDENCY ||= 'local';
+      process.env.DEPLOYMENT_TIMEZONE ||= 'UTC';
+      process.env.DEPLOYMENT_CURRENCY ||= 'USD';
+      process.env.DEPLOYMENT_LANGUAGE ||= 'en';
+
+      this.currentDeployment = {
+        ...this.currentDeployment,
+        deploymentId: process.env.DEPLOYMENT_ID,
+        prefix: process.env.DEPLOYMENT_PREFIX,
+        region: process.env.DEPLOYMENT_REGION,
+        country: process.env.DEPLOYMENT_COUNTRY,
+        jurisdiction: process.env.DEPLOYMENT_JURISDICTION,
+        dataResidency: process.env.DEPLOYMENT_DATA_RESIDENCY,
+        timezone: process.env.DEPLOYMENT_TIMEZONE,
+        currency: process.env.DEPLOYMENT_CURRENCY,
+        language: process.env.DEPLOYMENT_LANGUAGE
+      };
     }
     
     // Jurisdiction-specific configurations
@@ -87,8 +122,6 @@ class GlobalDEPAIdService extends DEPAIdService {
       }
     };
     
-    // Initialize deployment registry
-    this.initializeDeploymentRegistry();
   }
 
   /**

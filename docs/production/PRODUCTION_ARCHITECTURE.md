@@ -69,6 +69,7 @@ Dependencies:
 - Contract validation and management
 - User management and onboarding
 - API rate limiting and security
+- CAN (parallel workflow): `/api/can/*` namespace (JCS escrow + provenance query + CCR integration)
 
 ### **2. Training Orchestrator Service**
 ```yaml

@@ -46,8 +46,8 @@ class ContractValidationService {
         validated.termsAndConditions = data.termsAndConditions.trim();
       }
 
-      // Validate AI model IDs
-      if (data.aiModelIds && Array.isArray(data.aiModelIds)) {
+      // Validate AI model IDs (optional in UI — empty array means no model)
+      if (data.aiModelIds && Array.isArray(data.aiModelIds) && data.aiModelIds.length > 0) {
         const validModelIds = data.aiModelIds.filter(id => id && typeof id === 'number' && id > 0);
         if (validModelIds.length === 0) {
           errors.aiModelIds = 'At least one valid AI model must be selected';

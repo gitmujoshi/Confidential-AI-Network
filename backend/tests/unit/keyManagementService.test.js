@@ -150,7 +150,8 @@ describe('Key Management Service', () => {
 
       expect(signature).toBeDefined();
       expect(signature.signature).toBeDefined();
-      expect(signature.algorithm).toBe('ECDSA');
+      expect(signature.algorithm).toBe('ECDSA-P256');
+      expect(signature.algorithmFamily).toBe('ECDSA');
       expect(signature.timestamp).toBeDefined();
       expect(typeof signature.signature).toBe('string');
     });
@@ -373,9 +374,10 @@ describe('Key Management Service', () => {
       const info = keyManagementService.getAlgorithmInfo('ECDSA-P256');
       
       expect(info).toBeDefined();
+      expect(info.id).toBe('ECDSA-P256');
       expect(info.name).toBe('ECDSA-P256');
       expect(info.description).toBeDefined();
-      expect(info.name).toBe('ECDSA');
+      expect(info.family).toBe('ECDSA');
       expect(info.namedCurve).toBe('P-256');
     });
 
@@ -383,9 +385,10 @@ describe('Key Management Service', () => {
       const info = keyManagementService.getAlgorithmInfo('RSA-2048');
       
       expect(info).toBeDefined();
+      expect(info.id).toBe('RSA-2048');
       expect(info.name).toBe('RSA-2048');
       expect(info.description).toBeDefined();
-      expect(info.name).toBe('RSA');
+      expect(info.family).toBe('RSA');
       expect(info.modulusLength).toBe(2048);
     });
 

@@ -13,11 +13,11 @@
  */
 
 const request = require('supertest');
-const app = require('./test-server');
-const db = require('../models');
+const testApp = require('../test-server');
+const db = require('../../models');
 const { User, Dataset, Contract } = db;
-const ContractService = require('../services/contractService');
-const ScittCcfService = require('../services/scittCcfService');
+const ContractService = require('../../services/contractService');
+const ScittCcfService = require('../../services/scittCcfService');
 
 describe('Contract State Machine Tests', () => {
   let app, contractService, scittCcfService;
@@ -27,7 +27,7 @@ describe('Contract State Machine Tests', () => {
 
   beforeAll(async () => {
     // Initialize the app
-    app = require('./test-server');
+    app = testApp;
     contractService = new ContractService();
     scittCcfService = new ScittCcfService();
 

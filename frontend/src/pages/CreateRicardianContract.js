@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   Box,
   Grid,
@@ -437,6 +437,54 @@ function CreateRicardianContract() {
     .filter((owner, index, self) => 
       owner && self.findIndex(o => o.id === owner.id) === index
     );
+
+  const selectedModel = useMemo(() => {
+    const id = selectedAiModels ? parseInt(String(selectedAiModels), 10) : NaN;
+    if (!Number.isFinite(id)) return null;
+    return (aiModelsResponse?.models || []).find((m) => m.id === id) || null;
+  }, [selectedAiModels, aiModelsResponse]);
+
+  function inferTaskFromModel(model) {
+    if (!model) return null;
+    const framework = String(model.framework || model.type || '').toLowerCase();
+    const arch = String(model.architecture || '').toLowerCase();
+
+    if (arch.includes('bert') || arch.includes('transformer') || arch.includes('gpt')) return 'text';
+    if (arch.includes('resnet') || arch.includes('cnn') || arch.includes('conv') || arch.includes('vit')) return 'vision';
+    if (framework.includes('sklearn') || framework.includes('xgboost') || framework.includes('lightgbm')) return 'tabular';
+    return null;
+  }
+
+  function inferDatasetKind(dataset) {
+    if (!dataset) return null;
+    if (dataset.modality) return String(dataset.modality).toLowerCase();
+    const category = String(dataset.category || '').toLowerCase();
+    const tags = Array.isArray(dataset.tags) ? dataset.tags.map((t) => String(t).toLowerCase()) : [];
+    const hay = `${category} ${tags.join(' ')}`.trim();
+
+    if (hay.includes('image') || hay.includes('vision') || hay.includes('cifar') || hay.includes('mnist')) return 'vision';
+    if (hay.includes('text') || hay.includes('nlp') || hay.includes('news') || hay.includes('imdb')) return 'text';
+    if (hay.includes('tabular') || hay.includes('table') || hay.includes('csv') || hay.includes('structured')) return 'tabular';
+    return null;
+  }
+
+  const modelTaskType = useMemo(() => inferTaskFromModel(selectedModel), [selectedModel]);
+
+  const compatibleDatasets = useMemo(() => {
+    if (!modelTaskType) return datasets;
+    const filtered = datasets.filter((d) => inferDatasetKind(d) === modelTaskType);
+    // If we can't classify anything (or dataset metadata is missing), don't hard-block dataset selection.
+    return filtered.length > 0 ? filtered : datasets;
+  }, [datasets, modelTaskType]);
+
+  // If the model changes, drop any datasets that are no longer compatible.
+  useEffect(() => {
+    if (!modelTaskType) return;
+    const keep = selectedDatasets.filter((d) => inferDatasetKind(d) === modelTaskType);
+    if (keep.length === selectedDatasets.length) return;
+    setSelectedDatasets(keep);
+    toast.error('Some selected datasets were removed because they are not compatible with the selected AI model type.');
+  }, [modelTaskType]);
 
   // Contract creation mutation - Create contract first, then SCITT CCF claim
   const createRicardianContractMutation = useMutation(
@@ -951,11 +999,13 @@ function CreateRicardianContract() {
                     <Grid container spacing={3}>
                       <Grid item xs={12} md={6}>
                         <FormControl fullWidth>
-                      <InputLabel>AI Models</InputLabel>
+                      <InputLabel id="ricardian-ai-models-label">AI Models</InputLabel>
                       
 
                       
                       <Select
+                        labelId="ricardian-ai-models-label"
+                        id="ricardian-ai-models-select"
                         value={selectedAiModels}
                         onChange={(e) => setSelectedAiModels(e.target.value)}
                         label="AI Models"
@@ -1266,9 +1316,16 @@ function CreateRicardianContract() {
                       Choose 1 to 3 AI training datasets from any Training Data Providers (TDPs).
                       You can select multiple datasets from the same TDP if needed.
                     </Typography>
+
+                    {selectedModel && modelTaskType && (
+                      <Alert severity="info" sx={{ mb: 2 }}>
+                        Filtering datasets for <strong>{modelTaskType}</strong> models based on the selected AI model (
+                        <strong>{selectedModel.name}</strong>).
+                      </Alert>
+                    )}
                     
                     <MultiDatasetSelector
-                      datasets={datasets}
+                      datasets={compatibleDatasets}
                       selectedDatasets={selectedDatasets}
                       datasetPrices={datasetPrices}
                       onDatasetToggle={handleDatasetToggle}

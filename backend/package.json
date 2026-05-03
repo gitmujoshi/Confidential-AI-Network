@@ -13,6 +13,7 @@
     "test": "npm run test:unit && npm run test:integration",
     "test:unit": "jest --config=jest.unit.config.js",
     "test:integration": "jest --config=jest.integration.config.js",
+    "test:integration:contracts": "jest --config=jest.contracts.integration.config.js --runInBand --forceExit",
     "test:unit:watch": "jest --config=jest.unit.config.js --watch",
     "test:integration:watch": "jest --config=jest.integration.config.js --watch",
     "test:unit:coverage": "jest --config=jest.unit.config.js --coverage",
@@ -27,7 +28,10 @@
     "test:login": "curl -X POST http://localhost:5001/api/auth/login -H 'Content-Type: application/json' -d '{\"email\":\"tdc-test@example.com\",\"password\":\"password123\"}'",
     "reset:***REMOVED-KEYCLOAK_DB_PASSWORD***": "docker-compose -f ../docker-compose.***REMOVED-KEYCLOAK_DB_PASSWORD***-persistent.yml down && docker-compose -f ../docker-compose.***REMOVED-KEYCLOAK_DB_PASSWORD***-persistent.yml up -d && sleep 10 && npm run setup",
     "status": "echo '=== Service Status ===' && curl -s http://localhost:8080/health > /dev/null && echo '✅ Keycloak: Running' || echo '❌ Keycloak: Not running' && curl -s http://localhost:5001/health > /dev/null && echo '✅ Backend: Running' || echo '❌ Backend: Not running' && curl -s http://localhost:3000 > /dev/null && echo '✅ Frontend: Running' || echo '❌ Frontend: Not running'",
-    "db:ensure-training-metadata": "node scripts/ensure-training-jobs-metadata.js"
+    "db:ensure-training-metadata": "node scripts/ensure-training-jobs-metadata.js",
+    "db:migrate:test": "sequelize-cli db:migrate --config ./config/database.test.js --env test",
+    "db:reset:test": "node scripts/reset-test-database.js",
+    "seed:demo-catalog": "node scripts/dev/seed-demo-catalog.js"
   },
   "dependencies": {
     "@contract-management/value-objects": "file:../shared/valueObjects",
@@ -56,6 +60,7 @@
   "devDependencies": {
     "jest": "^29.7.0",
     "nodemon": "^3.0.2",
+    "sequelize-cli": "^6.6.5",
     "supertest": "^6.3.3"
   },
   "keywords": [

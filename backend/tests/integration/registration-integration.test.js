@@ -24,10 +24,6 @@ describe('Registration Integration Tests', () => {
     await db.sequelize.sync({ force: true });
   });
 
-  afterAll(async () => {
-    await db.sequelize.close();
-  });
-
   beforeEach(async () => {
     // Clean up users and datasets before each test
     await db.Dataset.destroy({ where: {} });

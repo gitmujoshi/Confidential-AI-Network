@@ -10,11 +10,11 @@
  */
 
 const request = require('supertest');
-const app = require('./test-server');
-const db = require('../models');
+const testApp = require('../test-server');
+const db = require('../../models');
 const { User, Dataset, Contract } = db;
-const ContractService = require('../services/contractService');
-const ScittCcfService = require('../services/scittCcfService');
+const ContractService = require('../../services/contractService');
+const ScittCcfService = require('../../services/scittCcfService');
 
 describe('Multi-TDP Contract Tests', () => {
   let app, contractService, scittCcfService;
@@ -24,7 +24,7 @@ describe('Multi-TDP Contract Tests', () => {
 
   beforeAll(async () => {
     // Initialize the app
-    app = require('./test-server');
+    app = testApp;
     contractService = new ContractService();
     scittCcfService = new ScittCcfService();
 
@@ -113,7 +113,7 @@ describe('Multi-TDP Contract Tests', () => {
       datasetId: 'test-dataset-3',
       name: 'Test Dataset 3',
       description: 'Third test dataset',
-      category: 'Text',
+      category: 'Natural Language Processing',
       size: 500, // Size in MB
       recordCount: 5000,
       price: 500,
@@ -130,7 +130,6 @@ describe('Multi-TDP Contract Tests', () => {
     await db.Contract.destroy({ where: {} });
     await db.Dataset.destroy({ where: {} });
     await db.User.destroy({ where: {} });
-    await db.sequelize.close();
   });
 
   describe('Multi-TDP Contract Creation', () => {

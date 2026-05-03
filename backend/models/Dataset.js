@@ -158,6 +158,35 @@ module.exports = (sequelize, DataTypes) => {
       allowNull: false,
       defaultValue: false,
       comment: 'Whether attestation is required for accessing this dataset'
+    },
+    storageBackend: {
+      type: DataTypes.STRING(32),
+      allowNull: false,
+      defaultValue: 'none',
+      comment: 'none | local (Phase A); future cloud backends'
+    },
+    artifactFileCount: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      defaultValue: 0,
+      field: 'artifact_file_count'
+    },
+    artifactTotalBytes: {
+      type: DataTypes.BIGINT,
+      allowNull: false,
+      defaultValue: 0,
+      field: 'artifact_total_bytes'
+    },
+    contentFormat: {
+      type: DataTypes.STRING(64),
+      allowNull: true,
+      field: 'content_format',
+      comment: 'csv | parquet | image_folder — trainer hint'
+    },
+    artifactsUpdatedAt: {
+      type: DataTypes.DATE,
+      allowNull: true,
+      field: 'artifacts_updated_at'
     }
   }, {
     tableName: 'datasets',

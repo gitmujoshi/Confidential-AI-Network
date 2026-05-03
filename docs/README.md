@@ -10,6 +10,7 @@ This directory contains comprehensive documentation for the Contract Management 
 |----------|---------|----------|
 | **[ARCHITECTURE.md](./ARCHITECTURE.md)** | Complete system architecture with modern diagrams | Developers, Architects |
 | **[USER_GUIDE.md](./USER_GUIDE.md)** | Complete user guide for all user types | End Users |
+| **[ADMIN_GUIDE.md](./ADMIN_GUIDE.md)** | Admin operations across all roles/features | AppAdmins, Ops |
 | **[DEVELOPER_GUIDE.md](./DEVELOPER_GUIDE.md)** | Developer setup and workflow guide | Developers |
 | **[QUICK_START.md](./QUICK_START.md)** | Quick start guide for new users | All Users |
 | **[CONTRACT_SIGNING_OVERVIEW.md](./CONTRACT_SIGNING_OVERVIEW.md)** | Contract signing system overview | All Users |

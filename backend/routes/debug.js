@@ -24,6 +24,13 @@ router.get('/env', (req, res) => {
       nodeUrl: process.env.CCF_NODE_URL,
       platform: process.env.CCF_PLATFORM
     },
+    training: {
+      canLocalTrainingMode: process.env.CAN_LOCAL_TRAINING_MODE || 'simulate',
+      trainingSimulationMode: process.env.TRAINING_SIMULATION_MODE ?? '(unset)',
+      trainingExecutionMode: process.env.TRAINING_EXECUTION_MODE ?? '(unset)',
+      localTrainingImage:
+        process.env.LOCAL_TRAINING_IMAGE || 'contractmanagement/local-trainer:latest'
+    },
     nodeEnv: process.env.NODE_ENV,
     workingDir: process.cwd()
   });

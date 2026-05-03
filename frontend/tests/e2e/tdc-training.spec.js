@@ -33,7 +33,7 @@ test.describe('TDC Training', () => {
     await expect(page.getByRole('heading', { name: /Training & models/i })).toBeVisible({
       timeout: 60000,
     });
-    await expect(page.getByText(/TRAINING_SIMULATION_MODE/i)).toBeVisible();
+    await expect(page.getByText(/TRAINING_EXECUTION_MODE/i)).toBeVisible();
     await expect(page.getByText(/environmentSpecs/i)).toBeVisible();
   });
 

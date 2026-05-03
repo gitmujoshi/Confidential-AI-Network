@@ -229,7 +229,8 @@ const Joi = require('joi');
 
 const validateTrainingJob = (req, res, next) => {
   const schema = Joi.object({
-    contractId: Joi.string().uuid().required(),
+    // Ricardian contract identifiers are string IDs (not UUIDs).
+    contractId: Joi.string().min(1).required(),
     trainingParams: Joi.object({
       epochs: Joi.number().integer().min(1).max(1000).required(),
       batchSize: Joi.number().integer().min(1).max(1024).required(),
@@ -238,7 +239,8 @@ const validateTrainingJob = (req, res, next) => {
     }).required(),
     datasets: Joi.array().items(
       Joi.object({
-        id: Joi.string().uuid().required(),
+        // Dataset identifiers are strings (example: 'e2e-dataset-1').
+        id: Joi.string().min(1).required(),
         name: Joi.string().min(1).max(255).required(),
         size: Joi.number().integer().min(1).required()
       })

@@ -1,4 +1,6 @@
-# Contract Management System User Guide
+# Contract Management System — User Guide
+
+Last updated: 2026-04-30
 
 ## 🎯 Getting Started
 
@@ -16,7 +18,13 @@ This guide helps you use the Contract Management System effectively. The system 
 - **TDC**: Access and request training data
 - **TDP**: Provide and manage training datasets
 - **CCRP**: Provide computing environments
-- **Admin**: System administration and management
+- **AppAdmin**: System administration and management
+
+### **Where to go next**
+- **Training workflows**: `docs/training/USER_TRAINING_GUIDE.md`
+- **Contract signing details**: `docs/CONTRACT_SIGNING_USER_GUIDE.md`
+- **Admin operations**: `docs/ADMIN_GUIDE.md`
+- **CAN (Confidential AI Network) MVP APIs** (for integration teams): `docs/CAN_QUICKSTART.md`
 
 ## 📊 Dashboard Overview
 
@@ -43,6 +51,32 @@ This guide helps you use the Contract Management System effectively. The system 
 - System Health
 - Contract Overview
 - Audit Logs
+
+## ✅ Role-based “happy path” workflows
+
+### **TDC (Training Data Consumer)**
+- **Browse datasets**: Datasets → Catalog → filter/search → open dataset detail
+- **Create a contract**: Contracts → Create → choose template → pick datasets → select CCRP → submit
+- **Sign contract** (if required): Contracts → Pending Signatures → Sign
+- **Run training**: Training → New Job → choose contract + model + parameters → start → monitor progress
+- **Review outputs**: Training → Job Detail → download artifacts + reports (and provenance where enabled)
+
+### **TDP (Training Data Provider)**
+- **Publish datasets**: Datasets → Upload → metadata + classification + access controls → publish
+- **Respond to contract requests**: Contracts → Incoming Requests → review terms → approve/reject
+- **Issue access tokens / approvals** (where applicable): Datasets/Contracts → Access controls → grant access
+- **Monitor usage**: Analytics/Reports → dataset access + revenue + audit trail
+
+### **CCRP (Confidential Clean Room Provider)**
+- **Review contracts for compliance**: Contracts → Review Queue → verify requirements (TEE, residency, policies)
+- **Provision environments**: CCRP/Infrastructure → Environments → provision + monitor
+- **Training ops**: Training/CCRP views → monitor running jobs, resource utilization, and compliance status
+
+### **AppAdmin**
+- **Manage users/roles**: Admin → Users → create/update/disable → role assignment
+- **Monitor health**: Admin → System Health → investigate alerts/logs
+- **Audit & compliance**: Admin → Audit Logs → export/retain evidence
+- **Operational scripts**: see `docs/ADMIN_GUIDE.md` (includes DEPA tooling and CAN operations)
 
 ## 📝 Contract Management
 
@@ -180,7 +214,7 @@ This guide helps you use the Contract Management System effectively. The system 
 
 ---
 
-**Document Version**: 1.0  
-**Last Updated**: 2024-01-XX  
-**For Technical Details**: See TECHNICAL_REFERENCE.md  
-**For System Overview**: See SYSTEM_OVERVIEW.md
+### **Related documents**
+- **System overview**: `docs/SYSTEM_OVERVIEW.md`
+- **Technical reference**: `docs/TECHNICAL_REFERENCE.md`
+- **API reference**: `docs/API_REFERENCE.md`

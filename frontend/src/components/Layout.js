@@ -78,6 +78,7 @@ const Layout = ({ children }) => {
     { text: 'Datasets', icon: <Storage />, path: '/datasets' },
     { text: 'Contracts', icon: <Description />, path: '/contracts' },
     ...(isTDC ? [{ text: 'Training', icon: <Psychology />, path: '/tdc/training' }] : []),
+    ...(isTDC ? [{ text: 'CAN Jobs', icon: <Security />, path: '/can/jobs' }] : []),
     // CCRP-specific menu items (only for CCRP users, not AppAdmin)
     ...(currentUser?.partyType === 'CCRP' ? [
       { text: 'Environments', icon: <Security />, path: '/ccrp/environments' },

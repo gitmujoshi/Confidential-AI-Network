@@ -1,7 +1,52 @@
 const express = require('express');
+const path = require('path');
+const fs = require('fs');
 const router = express.Router();
+const multer = require('multer');
 const db = require('../models');
 const { v4: uuidv4 } = require('uuid');
+const { authenticateToken } = require('../middleware/auth');
+const { persistUploadedFiles } = require('../services/datasetArtifactStorage');
+
+const artifactUpload = multer({
+  storage: multer.diskStorage({
+    destination: (_req, _file, cb) => {
+      const tmp = path.join(__dirname, '../uploads/tmp');
+      fs.mkdirSync(tmp, { recursive: true });
+      cb(null, tmp);
+    },
+    filename: (_req, file, cb) => {
+      cb(null, `${Date.now()}-${Math.random().toString(36).slice(2, 10)}-${file.originalname}`);
+    },
+  }),
+  limits: { fileSize: 128 * 1024 * 1024, files: 40 },
+});
+
+function inferDatasetModality(row) {
+  // Prefer explicit modality if present (future-proof).
+  const meta = row?.metadata && typeof row.metadata === 'object' ? row.metadata : {};
+  const explicit = meta?.modality || meta?.dataType || row?.modality;
+  if (typeof explicit === 'string' && explicit.trim()) return explicit.trim().toLowerCase();
+
+  const category = String(row?.category || '').toLowerCase();
+  if (category.includes('computer vision')) return 'vision';
+  if (category.includes('natural language')) return 'text';
+  if (category.includes('tabular')) return 'tabular';
+  if (category.includes('audio')) return 'audio';
+  if (category.includes('multimodal')) return 'multimodal';
+  return 'unknown';
+}
+
+function withModality(datasetRow) {
+  const plain = datasetRow?.get ? datasetRow.get({ plain: true }) : datasetRow;
+  const artifactCount = Number(plain.artifactFileCount ?? plain.artifact_file_count ?? 0);
+  const storageBackend = plain.storageBackend ?? plain.storage_backend ?? 'none';
+  return {
+    ...plain,
+    modality: inferDatasetModality(plain),
+    physicalTrainingReady: artifactCount > 0 && storageBackend === 'local',
+  };
+}
 
 // Get all public datasets
 router.get('/public', async (req, res) => {
@@ -32,7 +77,7 @@ router.get('/public', async (req, res) => {
     });
 
     res.json({
-      datasets: datasets.rows,
+      datasets: datasets.rows.map(withModality),
       total: datasets.count,
       limit: parseInt(limit),
       offset: parseInt(offset)
@@ -60,7 +105,7 @@ router.get('/owner/:ownerId', async (req, res) => {
     });
 
     res.json({
-      datasets: datasets.rows,
+      datasets: datasets.rows.map(withModality),
       total: datasets.count,
       limit: parseInt(limit),
       offset: parseInt(offset)
@@ -114,7 +159,7 @@ router.get('/search', async (req, res) => {
     });
 
     res.json({
-      datasets: datasets.rows,
+      datasets: datasets.rows.map(withModality),
       total: datasets.count,
       limit: parseInt(limit),
       offset: parseInt(offset)
@@ -281,6 +326,70 @@ router.get('/stats/overview', async (req, res) => {
   }
 });
 
+/**
+ * Upload training artifact files for a dataset (multipart field name: files).
+ * TDP owner or AppAdmin only. Replaces any previous artifacts for this dataset.
+ */
+router.post(
+  '/:datasetId/artifacts',
+  authenticateToken,
+  artifactUpload.array('files', 40),
+  async (req, res) => {
+    try {
+      const { datasetId } = req.params;
+      const localUser = req.user?.localUser;
+      const userId = localUser?.id;
+      const partyType = localUser?.partyType;
+
+      if (!userId) {
+        return res.status(401).json({ error: 'Unauthorized' });
+      }
+
+      const dataset = await db.Dataset.findOne({ where: { datasetId } });
+      if (!dataset) {
+        return res.status(404).json({ error: 'Dataset not found' });
+      }
+
+      const isOwner = dataset.ownerId === userId;
+      const isAppAdmin = partyType === 'AppAdmin';
+      if (!isOwner && !isAppAdmin) {
+        return res.status(403).json({
+          error: 'Only the dataset owner or AppAdmin can upload training files',
+        });
+      }
+
+      if (!req.files?.length) {
+        return res.status(400).json({ error: 'No files uploaded (multipart field name: files)' });
+      }
+
+      const meta = await persistUploadedFiles(datasetId, req.files, {
+        contentFormat: req.body?.contentFormat || req.body?.content_format || null,
+      });
+
+      await dataset.update({
+        storageBackend: meta.storageBackend,
+        artifactFileCount: meta.artifactFileCount,
+        artifactTotalBytes: meta.artifactTotalBytes,
+        contentFormat: meta.contentFormat || dataset.contentFormat,
+        artifactsUpdatedAt: meta.artifactsUpdatedAt,
+      });
+
+      const refreshed = await db.Dataset.findOne({
+        where: { datasetId },
+        include: [{ model: db.User, as: 'owner', attributes: ['id', 'name', 'email'] }],
+      });
+
+      return res.status(201).json({
+        success: true,
+        dataset: withModality(refreshed),
+      });
+    } catch (error) {
+      console.error('Artifact upload failed:', error);
+      return res.status(400).json({ error: error.message || 'Upload failed' });
+    }
+  }
+);
+
 // Get specific dataset
 router.get('/:datasetId', async (req, res) => {
   try {
@@ -297,7 +406,7 @@ router.get('/:datasetId', async (req, res) => {
       return res.status(404).json({ error: 'Dataset not found' });
     }
 
-    res.json(dataset);
+    res.json(withModality(dataset));
   } catch (error) {
     console.error('Error getting dataset:', error);
     res.status(500).json({ error: 'Internal server error' });
@@ -395,7 +504,7 @@ router.post('/', async (req, res) => {
     // Return the created dataset directly (will fetch owner separately if needed)
     res.status(201).json({
       success: true,
-      dataset: dataset
+      dataset: withModality(dataset)
     });
   } catch (error) {
     console.error('Error creating dataset:', error);
@@ -430,7 +539,7 @@ router.put('/:datasetId', async (req, res) => {
 
     res.json({
       success: true,
-      dataset: updatedDataset
+      dataset: withModality(updatedDataset)
     });
   } catch (error) {
     console.error('Error updating dataset:', error);
@@ -493,7 +602,7 @@ router.get('/', async (req, res) => {
     });
 
     res.json({
-      datasets: datasets.rows,
+      datasets: datasets.rows.map(withModality),
       total: datasets.count,
       limit: parseInt(limit),
       offset: parseInt(offset)

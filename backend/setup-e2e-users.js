@@ -140,17 +140,19 @@ async function purgeKeycloakTestUsers() {
     for (const user of E2E_USERS) {
       // Find user by username/email
       const response = await axios.get(
-        `${***REMOVED-KEYCLOAK_DB_PASSWORD***Service.baseURL}/admin/realms/${***REMOVED-KEYCLOAK_DB_PASSWORD***Service.realm}/users?username=${encodeURIComponent(user.email)}`,
+        `${***REMOVED-KEYCLOAK_DB_PASSWORD***Service.baseUrl}/admin/realms/${***REMOVED-KEYCLOAK_DB_PASSWORD***Service.realm}/users?username=${encodeURIComponent(user.email)}`,
         {
-          headers: { 'Authorization': `Bearer ${adminToken}` }
+          headers: { 'Authorization': `Bearer ${adminToken}` },
+          httpsAgent: ***REMOVED-KEYCLOAK_DB_PASSWORD***Service.httpsAgent
         }
       );
       if (Array.isArray(response.data) && response.data.length > 0) {
         for (const found of response.data) {
           await axios.delete(
-            `${***REMOVED-KEYCLOAK_DB_PASSWORD***Service.baseURL}/admin/realms/${***REMOVED-KEYCLOAK_DB_PASSWORD***Service.realm}/users/${found.id}`,
+            `${***REMOVED-KEYCLOAK_DB_PASSWORD***Service.baseUrl}/admin/realms/${***REMOVED-KEYCLOAK_DB_PASSWORD***Service.realm}/users/${found.id}`,
             {
-              headers: { 'Authorization': `Bearer ${adminToken}` }
+              headers: { 'Authorization': `Bearer ${adminToken}` },
+              httpsAgent: ***REMOVED-KEYCLOAK_DB_PASSWORD***Service.httpsAgent
             }
           );
           console.log(`✅ Deleted Keycloak user: ${user.email}`);

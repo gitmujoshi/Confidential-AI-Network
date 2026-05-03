@@ -194,6 +194,25 @@ const realApiService = {
     return response.data;
   },
   createDataset: (data) => api.post('/api/datasets', data),
+  /** Multipart upload for Phase A training files (field name: files). Do not set Content-Type manually. */
+  uploadDatasetArtifacts: async (datasetId, formData, config = {}) => {
+    const response = await api.post(
+      `/api/datasets/${encodeURIComponent(datasetId)}/artifacts`,
+      formData,
+      {
+        ...config,
+        transformRequest: [
+          (data, headers) => {
+            if (typeof FormData !== 'undefined' && data instanceof FormData) {
+              delete headers['Content-Type'];
+            }
+            return data;
+          },
+        ],
+      }
+    );
+    return response.data;
+  },
   updateDataset: (datasetId, data) => api.put(`/api/datasets/${datasetId}`, data),
   deleteDataset: (datasetId) => api.delete(`/api/datasets/${datasetId}`),
   searchDatasets: async (params) => {
@@ -279,6 +298,13 @@ const realApiService = {
     return response.data;
   },
 
+  /** TDC: dataset artifact readiness for local-docker physical training */
+  getTdcTrainingReadiness: async (contractId) => {
+    const response = await api.get(
+      `/api/tdc/training/contracts/${encodeURIComponent(contractId)}/readiness`
+    );
+    return response.data;
+  },
   /** TDC: start training for a signed contract (see backend TRAINING_SIMULATION_MODE) */
   startTdcTraining: async (contractId) => {
     const response = await api.post(
@@ -707,6 +733,9 @@ const mockApiService = {
   getDatasets: () => { throw new Error('Mock API: getDatasets() not implemented for registration testing'); },
   getDataset: () => { throw new Error('Mock API: getDataset() not implemented for registration testing'); },
   createDataset: () => { throw new Error('Mock API: createDataset() not implemented for registration testing'); },
+  uploadDatasetArtifacts: () => {
+    throw new Error('Mock API: uploadDatasetArtifacts() not implemented for registration testing');
+  },
   updateDataset: () => { throw new Error('Mock API: updateDataset() not implemented for registration testing'); },
   deleteDataset: () => { throw new Error('Mock API: deleteDataset() not implemented for registration testing'); },
   searchDatasets: () => { throw new Error('Mock API: searchDatasets() not implemented for registration testing'); },
@@ -720,6 +749,9 @@ const mockApiService = {
   selectCCRP: () => { throw new Error('Mock API: selectCCRP() not implemented for registration testing'); },
   completeContract: () => { throw new Error('Mock API: completeContract() not implemented for registration testing'); },
   cancelContract: () => { throw new Error('Mock API: cancelContract() not implemented for registration testing'); },
+  getTdcTrainingReadiness: () => {
+    throw new Error('Mock API: getTdcTrainingReadiness() not implemented for registration testing');
+  },
   getUsers: () => { throw new Error('Mock API: getUsers() not implemented for registration testing'); },
   getUser: () => { throw new Error('Mock API: getUser() not implemented for registration testing'); },
   getUserByWallet: () => { throw new Error('Mock API: getUserByWallet() not implemented for registration testing'); },

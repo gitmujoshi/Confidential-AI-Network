@@ -124,7 +124,7 @@ const MultiDatasetSelector = ({
                       sx={{ mt: -0.5 }}
                     />
                     <Box sx={{ flex: 1 }}>
-                      <Typography variant="h6" component="div" sx={{ mb: 0.5 }}>
+                      <Typography variant="h6" component="h6" sx={{ mb: 0.5 }}>
                         {dataset.name}
                       </Typography>
                       
@@ -133,6 +133,14 @@ const MultiDatasetSelector = ({
                         <Chip
                           icon={<Security />}
                           label="Confidential Computing Required"
+                          color="warning"
+                          size="small"
+                          sx={{ mb: 1 }}
+                        />
+                      )}
+                      {dataset.physicalTrainingReady === false && (
+                        <Chip
+                          label="No training files yet"
                           color="warning"
                           size="small"
                           sx={{ mb: 1 }}
@@ -157,7 +165,7 @@ const MultiDatasetSelector = ({
                         </Typography>
                       </Box>
                       
-                      <Typography variant="h6" color="primary" sx={{ mb: 1 }}>
+                      <Typography variant="subtitle1" color="primary" component="div" sx={{ mb: 1 }}>
                         ${dataset.price}
                       </Typography>
                       

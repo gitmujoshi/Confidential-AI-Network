@@ -42,6 +42,7 @@ import TDCModelUpload from './pages/TDCModelUpload';
 import TDCTraining from './pages/TDCTraining';
 import EnvironmentMarketplace from './pages/EnvironmentMarketplace';
 import ScittCcfDashboard from './components/ScittCcfDashboard';
+import CANJobs from './pages/CANJobs';
 
 // Protected Route Component
 const ProtectedRoute = ({ children }) => {
@@ -137,6 +138,10 @@ const theme = createTheme({
     secondary: {
       main: '#7c3aed', // violet-600
     },
+    success: { main: '#16a34a' }, // green-600
+    warning: { main: '#f59e0b' }, // amber-500
+    error: { main: '#dc2626' }, // red-600
+    info: { main: '#0ea5e9' }, // sky-500
     background: {
       default: '#f8fafc', // slate-50
       paper: '#ffffff',
@@ -145,10 +150,14 @@ const theme = createTheme({
       primary: '#0f172a', // slate-900
       secondary: '#475569', // slate-600
     },
+    divider: 'rgba(148, 163, 184, 0.35)',
   },
   typography: {
     fontFamily:
       '"Inter", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Apple Color Emoji", "Segoe UI Emoji"',
+    h1: { fontWeight: 800, letterSpacing: '-0.04em' },
+    h2: { fontWeight: 800, letterSpacing: '-0.035em' },
+    h3: { fontWeight: 750, letterSpacing: '-0.03em' },
     h4: {
       fontWeight: 700,
       letterSpacing: '-0.02em',
@@ -164,6 +173,15 @@ const theme = createTheme({
     subtitle1: {
       fontWeight: 600,
     },
+    subtitle2: {
+      fontWeight: 600,
+    },
+    body1: {
+      lineHeight: 1.6,
+    },
+    body2: {
+      lineHeight: 1.55,
+    },
     button: {
       fontWeight: 600,
     },
@@ -171,6 +189,9 @@ const theme = createTheme({
   components: {
     MuiCssBaseline: {
       styleOverrides: {
+        ':root': {
+          colorScheme: 'light',
+        },
         body: {
           backgroundImage:
             'radial-gradient(1200px 600px at 10% 0%, rgba(37, 99, 235, 0.08), transparent 60%), radial-gradient(900px 500px at 90% 10%, rgba(124, 58, 237, 0.06), transparent 55%)',
@@ -178,22 +199,46 @@ const theme = createTheme({
         },
       },
     },
+    MuiAppBar: {
+      styleOverrides: {
+        root: {
+          backgroundColor: 'rgba(255, 255, 255, 0.85)',
+          backdropFilter: 'blur(10px)',
+          borderBottom: '1px solid rgba(148, 163, 184, 0.35)',
+          color: '#0f172a',
+          boxShadow: 'none',
+        },
+      },
+    },
+    MuiToolbar: {
+      styleOverrides: {
+        root: {
+          minHeight: 64,
+        },
+      },
+    },
     MuiCard: {
       styleOverrides: {
         root: {
-          boxShadow: '0 8px 24px rgba(15, 23, 42, 0.06)',
+          boxShadow: '0 10px 30px rgba(15, 23, 42, 0.06)',
           borderRadius: 16,
           border: '1px solid rgba(148, 163, 184, 0.25)',
         },
       },
     },
     MuiButton: {
+      defaultProps: {
+        disableElevation: true,
+      },
       styleOverrides: {
         root: {
           textTransform: 'none',
           borderRadius: 12,
           paddingLeft: 14,
           paddingRight: 14,
+        },
+        containedPrimary: {
+          boxShadow: '0 10px 22px rgba(37, 99, 235, 0.22)',
         },
       },
     },
@@ -204,11 +249,45 @@ const theme = createTheme({
         },
       },
     },
+    MuiDrawer: {
+      styleOverrides: {
+        paper: {
+          borderRight: '1px solid rgba(148, 163, 184, 0.35)',
+          background:
+            'linear-gradient(180deg, rgba(248, 250, 252, 1) 0%, rgba(255, 255, 255, 1) 70%)',
+        },
+      },
+    },
+    MuiListItemButton: {
+      styleOverrides: {
+        root: {
+          borderRadius: 12,
+        },
+      },
+    },
     MuiChip: {
       styleOverrides: {
         root: {
           fontWeight: 600,
           borderRadius: 10,
+        },
+      },
+    },
+    MuiOutlinedInput: {
+      styleOverrides: {
+        root: {
+          borderRadius: 12,
+          backgroundColor: 'rgba(255, 255, 255, 0.9)',
+        },
+        notchedOutline: {
+          borderColor: 'rgba(148, 163, 184, 0.5)',
+        },
+      },
+    },
+    MuiInputLabel: {
+      styleOverrides: {
+        root: {
+          fontWeight: 600,
         },
       },
     },
@@ -445,6 +524,14 @@ function AppRoutes() {
         <ProtectedRoute>
           <Layout>
             <Profile />
+          </Layout>
+        </ProtectedRoute>
+      } />
+
+      <Route path="/can/jobs" element={
+        <ProtectedRoute>
+          <Layout>
+            <CANJobs />
           </Layout>
         </ProtectedRoute>
       } />

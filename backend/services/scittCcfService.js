@@ -24,9 +24,12 @@ const { ContractId, Money, Duration, ValidationError } = require('@contract-mana
 
 class ScittCcfService {
   constructor() {
-    // Validate required environment variables
+    // Default to disabled unless explicitly enabled.
+    this.isEnabled = process.env.SCITT_CCF_ENABLED === 'true';
+
+    // Validate required environment variables (non-prod can auto-disable)
     this.validateEnvironmentVariables();
-    
+
     this.ccfNodeUrl = process.env.CCF_NODE_URL;
     this.teeProvider = this.detectTeeProvider();
     this.isInitialized = false;
@@ -34,6 +37,8 @@ class ScittCcfService {
   }
   
   validateEnvironmentVariables() {
+    if (!this.isEnabled) return;
+
     const requiredVars = [
       'CCF_NODE_URL',
       'CCF_PLATFORM',
@@ -44,7 +49,16 @@ class ScittCcfService {
     const missingVars = requiredVars.filter(varName => !process.env[varName]);
     
     if (missingVars.length > 0) {
-      throw new Error(`Missing required environment variables: ${missingVars.join(', ')}`);
+      if (process.env.NODE_ENV === 'production') {
+        throw new Error(`Missing required environment variables: ${missingVars.join(', ')}`);
+      }
+
+      // In tests/dev, if SCITT isn't configured we simply disable it.
+      this.isEnabled = false;
+      console.warn(
+        `⚠️ SCITT CCF disabled (missing env: ${missingVars.join(', ')}). ` +
+        `Set SCITT_CCF_ENABLED=true and required vars to enable.`
+      );
     }
   }
 
@@ -52,6 +66,8 @@ class ScittCcfService {
    * Initialize the SCITT CCF service
    */
   async initialize() {
+    if (!this.isEnabled) return;
+
     try {
       console.log('🔗 Initializing SCITT CCF service...');
       
@@ -75,6 +91,8 @@ class ScittCcfService {
    * Test connection to SCITT CCF node
    */
   async testConnection() {
+    if (!this.isEnabled) return false;
+
     try {
       const response = await fetch(`${this.ccfNodeUrl}/app/health`, {
         method: 'GET',

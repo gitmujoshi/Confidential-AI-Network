@@ -23,6 +23,9 @@ credentials/
 *.p12
 *.pfx
 
+# Local dataset artifacts (Phase A) — do not commit customer data
+backend/uploads/
+
 # Database
 *.db
 *.sqlite

@@ -2,9 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 
-// Set up test environment before loading any other modules
-const { setTestEnv } = require('../../tests/test-env');
-setTestEnv('integration');
+// Test environment is configured by Jest setup files.
 
 const db = require('../models');
 const BlockchainService = require('../services/blockchainService');
@@ -20,6 +18,11 @@ const dpdpRouter = require('../routes/dpdp');
 const signingRouter = require('../routes/signing');
 const aiModelsRouter = require('../routes/ai-models');
 const scittCcfRouter = require('../routes/scitt-ccf');
+
+// CAN (Confidential AI Network) routers (parallel path)
+const canJcsRouter = require('../routes/can-jcs');
+const canCcrRouter = require('../routes/can-ccr');
+const canProvenanceRouter = require('../routes/can-provenance');
 
 // Import role-specific routes
 const adminRouter = require('../routes/admin');
@@ -83,6 +86,11 @@ app.use('/api/did', didRouter);
 app.use('/api/dpdp', dpdpRouter);
 app.use('/api/signing', signingRouter);
 app.use('/api/scitt-ccf', scittCcfRouter);
+
+// CAN API routes (do not require Keycloak)
+app.use('/api/can/jcs', canJcsRouter);
+app.use('/api/can/ccr', canCcrRouter);
+app.use('/api/can/provenance', canProvenanceRouter);
 
 // Role-specific API routes
 app.use('/api/admin', adminRouter);

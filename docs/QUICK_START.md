@@ -76,6 +76,13 @@ Once the system is running, test with these credentials:
 - **Keycloak Admin**: http://localhost:8080/admin/
 - **Health Check**: http://localhost:5001/health
 
+## 🤝 CAN Quickstart (Optional, parallel workflow)
+
+The repo also includes a **parallel CAN (Confidential AI Network) path** under `/api/can/*` (JCS escrow + provenance + local CCRP execution for dev/testing).
+
+- **Docs**: `CAN_QUICKSTART.md`
+- **UI helper (dev/test)**: after login as TDC, open `/can/jobs` to run: create job → release keys → release job → wait for training.
+
 ### **SCITT CCF URLs (if enabled)**
 - **SCITT CCF Node**: http://localhost:8000
 - **SCITT CCF Governance**: http://localhost:8001

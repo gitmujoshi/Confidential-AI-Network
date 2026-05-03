@@ -4,6 +4,8 @@
 
 This comprehensive guide provides detailed information for users and security administrators of the Contract Management System. The guide covers user roles, workflows, security best practices, and operational procedures for secure system usage.
 
+Last updated: 2026-04-30
+
 ## User Roles and Responsibilities
 
 ### Training Data Provider (TDP)
@@ -106,6 +108,16 @@ System Administrators have the highest level of access and are responsible for o
 - System performance and health monitoring
 - Compliance and audit management
 
+## CAN (Confidential AI Network) principals (integration-facing)
+
+In addition to portal user roles (TDP/TDC/CCRP/AppAdmin), the CAN path introduces **machine principals** used for zero-trust workflows:
+- **Data Provider principal** (key owner for dataset DEK)
+- **Model Owner principal** (key owner for model MEK)
+- **CCR Provider principal** (runs CCR infrastructure)
+- **Consumer principal** (receives encrypted outputs)
+
+In the MVP implementation, CAN principal calls are authenticated via `X-CAN-Principal-Id` header. In production, this will be replaced with **certificate-based challenge/nonce authentication** and short-lived tokens per the CAN design.
+
 ## User Workflows
 
 ### User Registration and Onboarding
@@ -163,6 +175,19 @@ The data access workflow ensures secure and compliant data utilization:
 **Result Management**: Processing results are managed with appropriate security controls and compliance requirements for data protection.
 
 **Access Termination**: Data access is properly terminated with secure cleanup and audit trail maintenance for compliance.
+
+## Security model (what is enforced vs planned)
+
+### Portal workflows (current)
+- Keycloak-backed user authentication (JWT bearer tokens)
+- Role-based access control by party type (TDP/TDC/CCRP/AppAdmin)
+- Audit logging for security-relevant operations
+
+### CAN workflows (parallel MVP)
+- Separate `/api/can/*` endpoints
+- Escrow state machine for dual-key gating (DEK/MEK) and deadline teardown
+- Append-only provenance event stream for job lifecycle events
+- Optional signed webhooks for event delivery (HMAC)
 
 ## Security Best Practices
 

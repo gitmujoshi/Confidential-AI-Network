@@ -6,6 +6,7 @@ Complete API documentation for the Contract Management System. This reference co
 
 1. [Authentication](#authentication)
 2. [User Management](#user-management)
+3. [Confidential AI Network (CAN)](#confidential-ai-network-can)
 3. [SCITT CCF Integration API](#-scitt-ccf-integration-api)
 4. [Contract Management](#contract-management)
 5. [Contract Signing](#-contract-signing)
@@ -27,6 +28,110 @@ http://localhost:5001/api
 ```http
 Authorization: Bearer <access_token>
 Content-Type: application/json
+```
+
+## 🤝 Confidential AI Network (CAN)
+
+CAN APIs are a **separate namespace** under `/api/can/*` for the CAN workflow (JCS + CCR + provenance).
+
+### CAN auth model (dev/test)
+
+CAN uses a **principal identity** separate from Keycloak portal users.
+
+**MVP (dev/test)** uses an HTTP header:
+
+```http
+X-CAN-Principal-Id: did:can:dp:example
+Content-Type: application/json
+```
+
+Notes:
+- This header is **required** for CAN endpoints.
+- In browsers, the backend must allow CORS preflight for `X-CAN-Principal-Id`.
+- Target production design replaces this with certificate-based principal auth + short-lived tokens.
+
+### JCS (Job Coordination Service) — `/api/can/jcs`
+
+#### Create a job
+```http
+POST /can/jcs/jobs
+```
+
+**Body:**
+```json
+{
+  "contractId": "RICARDIAN-...",
+  "ccrProvider": "local"
+}
+```
+
+**Response (shape):**
+```json
+{
+  "success": true,
+  "data": {
+    "job": {
+      "jobId": "uuid",
+      "contractId": "RICARDIAN-...",
+      "escrowState": "OPEN",
+      "escrowDeadline": "2026-04-30T16:00:00.000Z",
+      "ccrProvider": "local",
+      "trainingJobId": null
+    }
+  }
+}
+```
+
+#### Get job status
+```http
+GET /can/jcs/jobs/:jobId
+```
+
+#### Get job attestation bundle (MVP simulated)
+```http
+GET /can/jcs/jobs/:jobId/attestation
+```
+
+#### Signal key release (no key material)
+```http
+POST /can/jcs/jobs/:jobId/key-released
+```
+
+**Body:**
+```json
+{ "keyType": "DEK" }
+```
+
+Valid `keyType`: `DEK` or `MEK`.
+
+#### Release job to CCRP scheduler
+```http
+POST /can/jcs/jobs/:jobId/release
+```
+
+#### SSE job events
+```http
+GET /can/jcs/jobs/:jobId/events
+```
+
+#### Training link (local CCRP)
+```http
+GET /can/jcs/jobs/:jobId/training
+```
+
+### CCR (key delivery namespace) — `/api/can/ccr`
+
+MVP behavior: the endpoint exists to model the CCR side, but **rejects key material** to enforce “platform never sees keys”.
+
+```http
+POST /can/ccr/:ccrSessionId/keys
+```
+
+### Provenance — `/api/can/provenance`
+
+#### Get hash-chained provenance events for a job
+```http
+GET /can/provenance/jobs/:jobId/events
 ```
 
 ### **Login**
