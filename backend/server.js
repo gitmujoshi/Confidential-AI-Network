@@ -54,6 +54,10 @@ const platformEncryptionRouter = require('./routes/platform-encryption');
 const constraintsRouter = require('./routes/constraints');
 const depaRouter = require('./routes/depa');
 const tdcTrainingRouter = require('./routes/tdc-training');
+const canJcsRouter = require('./routes/can-jcs');
+const canCcrRouter = require('./routes/can-ccr');
+const canProvenanceRouter = require('./routes/can-provenance');
+const { CANEscrowSweeper } = require('./services/canEscrowSweeper');
 
 // Import role-specific routes
 const adminRouter = require('./routes/admin');
@@ -100,26 +104,26 @@ const logger = winston.createLogger({
 // Make logger available globally in backend
 module.exports.logger = logger;
 
-// Memory monitoring
-setInterval(() => {
-  const used = process.memoryUsage();
-  const heapUsedMB = Math.round(used.heapUsed / 1024 / 1024);
-  const heapTotalMB = Math.round(used.heapTotal / 1024 / 1024);
-  logger.info(`🧠 [Memory] Heap used: ${heapUsedMB}MB, Total: ${heapTotalMB}MB`);
-  
-  // Warning if memory usage is high
-  if (heapUsedMB > 400) {
-    logger.warn(`⚠️ [Memory] High memory usage: ${heapUsedMB}MB`);
-  }
-}, 30000); // Check every 30 seconds
+// Memory monitoring / GC loops only when running the server entrypoint (not when tests require this module)
+if (require.main === module) {
+  setInterval(() => {
+    const used = process.memoryUsage();
+    const heapUsedMB = Math.round(used.heapUsed / 1024 / 1024);
+    const heapTotalMB = Math.round(used.heapTotal / 1024 / 1024);
+    logger.info(`🧠 [Memory] Heap used: ${heapUsedMB}MB, Total: ${heapTotalMB}MB`);
 
-// Garbage collection hints (if available)
-setInterval(() => {
-  if (global.gc) {
-    global.gc();
-    logger.info('🗑️ [Memory] Garbage collection triggered');
-  }
-}, 60000); // Every minute
+    if (heapUsedMB > 400) {
+      logger.warn(`⚠️ [Memory] High memory usage: ${heapUsedMB}MB`);
+    }
+  }, 30000);
+
+  setInterval(() => {
+    if (global.gc) {
+      global.gc();
+      logger.info('🗑️ [Memory] Garbage collection triggered');
+    }
+  }, 60000);
+}
 
 // Keycloak health check and auto-fix
 async function checkKeycloakHealth() {
@@ -159,7 +163,7 @@ const corsOptions = {
   origin: true, // Allow all origins in development
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin', 'X-CAN-Principal-Id'],
   optionsSuccessStatus: 200 // Some legacy browsers choke on 204
 };
 
@@ -197,6 +201,23 @@ app.use('/api/blockchain', blockchainRouter);
 app.use('/api/constraints', constraintsRouter);
 app.use('/api/depa', depaRouter);
 app.use('/api/tdc/training', tdcTrainingRouter);
+// Confidential AI Network (CAN) parallel path (MVP)
+app.use('/api/can/jcs', canJcsRouter);
+app.use('/api/can/ccr', canCcrRouter);
+app.use('/api/can/provenance', canProvenanceRouter);
+
+// Background escrow sweeper (MVP): enforce CAN deadlines even without API calls
+if (process.env.CAN_ESCROW_SWEEPER_ENABLED !== 'false' && process.env.NODE_ENV !== 'test') {
+  try {
+    const sweeper = new CANEscrowSweeper({
+      intervalMs: parseInt(process.env.CAN_ESCROW_SWEEPER_INTERVAL_MS || '5000', 10)
+    });
+    sweeper.start();
+    logger.info('✅ CAN escrow sweeper started');
+  } catch (e) {
+    logger.warn(`⚠️ CAN escrow sweeper not started: ${e.message}`);
+  }
+}
 
 // Contract template routes
 app.use('/api/contract-templates', contractTemplatesRouter);
@@ -291,6 +312,27 @@ async function initializeServices() {
     await db.sequelize.sync({ force: false });
     console.log('✅ Database schema synced successfully from models');
 
+    // CAN schema bootstrap (idempotent). This avoids local/dev breakage when
+    // migrations haven't been applied yet.
+    try {
+      await db.sequelize.query(
+        "ALTER TABLE can_jcs_jobs ADD COLUMN IF NOT EXISTS \"ccrProvider\" VARCHAR NOT NULL DEFAULT 'local';"
+      );
+      await db.sequelize.query(
+        "ALTER TABLE can_jcs_jobs ADD COLUMN IF NOT EXISTS \"trainingJobId\" VARCHAR;"
+      );
+      // Platform contractId is string; ensure CAN tables use TEXT.
+      await db.sequelize.query(
+        "ALTER TABLE can_jcs_jobs ALTER COLUMN \"contractId\" TYPE TEXT USING \"contractId\"::text;"
+      );
+      await db.sequelize.query(
+        "ALTER TABLE can_ccr_sessions ALTER COLUMN \"contractId\" TYPE TEXT USING \"contractId\"::text;"
+      );
+    } catch (e) {
+      // Ignore if CAN tables don't exist yet; they will be created when CAN is used.
+      logger.warn(`⚠️ CAN schema bootstrap skipped: ${e.message}`);
+    }
+
     // Initialize blockchain service only if enabled
     if (process.env.BLOCKCHAIN_ENABLED !== 'false') {
       console.log('🔗 Initializing blockchain service...');
@@ -333,5 +375,7 @@ process.on('SIGINT', () => {
 // Export app for testing
 module.exports = app;
 
-// Start the application
-initializeServices(); 
+// Start only when executed directly (avoid sync/listen/process.exit on require() from tests/tools)
+if (require.main === module) {
+  initializeServices();
+}

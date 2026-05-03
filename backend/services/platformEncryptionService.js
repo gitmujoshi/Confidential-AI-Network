@@ -47,8 +47,10 @@ class PlatformEncryptionService {
     // Initialize platform keys
     this.initializePlatformKeys();
     
-    // Start key rotation scheduler
-    this.startKeyRotationScheduler();
+    // Avoid open handles in Jest / test runs
+    if (process.env.NODE_ENV !== 'test' && !process.env.JEST_WORKER_ID) {
+      this.startKeyRotationScheduler();
+    }
   }
   
   validateEnvironmentVariables() {

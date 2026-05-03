@@ -50,6 +50,7 @@ export default function TDCTraining() {
   const [jsonViewerFilename, setJsonViewerFilename] = useState('');
   const [jsonViewerData, setJsonViewerData] = useState(null);
   const [jsonViewerLoading, setJsonViewerLoading] = useState(false);
+  const [readinessByContract, setReadinessByContract] = useState({});
 
   const loadContracts = useCallback(async () => {
     if (!currentUser?.id) return;
@@ -88,6 +89,34 @@ export default function TDCTraining() {
       const cid = c.contractId;
       if (cid) loadJobsForContract(cid);
     });
+  }, [contracts]);
+
+  useEffect(() => {
+    let cancelled = false;
+    const signed = contracts.filter((c) => c.status === 'SIGNED');
+    if (signed.length === 0) {
+      setReadinessByContract({});
+      return undefined;
+    }
+    (async () => {
+      const next = {};
+      await Promise.all(
+        signed.map(async (c) => {
+          const cid = c.contractId;
+          if (!cid) return;
+          try {
+            const data = await apiService.getTdcTrainingReadiness(cid);
+            if (data?.readiness) next[cid] = data.readiness;
+          } catch {
+            // ignore per-contract errors (e.g. wrong role in mock env)
+          }
+        })
+      );
+      if (!cancelled) setReadinessByContract(next);
+    })();
+    return () => {
+      cancelled = true;
+    };
   }, [contracts]);
 
   useEffect(() => {
@@ -298,10 +327,9 @@ export default function TDCTraining() {
       </Box>
 
       <Typography variant="body1" color="text.secondary" paragraph>
-        Run training for a <strong>signed</strong> contract. The platform records a{' '}
-        <strong>container spec</strong> (image, CPU/RAM, GPU, command) and training parameters from
-        the contract, then executes a job (simulated by default — see{' '}
-        <code>TRAINING_SIMULATION_MODE</code> on the backend).
+        Run training for a <strong>signed</strong> contract. With{' '}
+        <code>TRAINING_EXECUTION_MODE=local-docker</code> and uploaded dataset files, training uses your CSV data;
+        otherwise the built-in trainer may fall back to demo datasets (see backend logs).
       </Typography>
 
       <Alert severity="info" sx={{ mb: 2 }}>
@@ -320,9 +348,15 @@ export default function TDCTraining() {
         const cid = c.contractId;
         const jobs = jobsByContract[cid] || [];
         const showDetailForThisContract = Boolean(liveJob?.contractId && liveJob.contractId === cid);
+        const readiness = readinessByContract[cid];
         return (
           <Card key={cid} sx={{ mb: 2 }}>
             <CardContent>
+              {readiness?.warning && (
+                <Alert severity="warning" sx={{ mb: 2 }}>
+                  {readiness.warning}
+                </Alert>
+              )}
               <Box display="flex" flexWrap="wrap" justifyContent="space-between" gap={2}>
                 <Box>
                   <Typography variant="h6">{c.title || cid}</Typography>

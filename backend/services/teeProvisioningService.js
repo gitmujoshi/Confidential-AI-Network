@@ -8,15 +8,20 @@
 
 const { v4: uuidv4 } = require('uuid');
 const LocalTEEProvider = require('./localTEEProvider');
-const { AWSProvider, AzureProvider, GCPProvider, OCIProvider } = require('./multiCloudTEEProviders');
+const {
+  AWSProvider: MultiCloudAWSProvider,
+  AzureProvider: MultiCloudAzureProvider,
+  GCPProvider: MultiCloudGCPProvider,
+  OCIProvider: MultiCloudOCIProvider
+} = require('./multiCloudTEEProviders');
 
 class TEEProvisioningService {
   constructor() {
     this.providers = {
-      aws: new AWSProvider(),
-      azure: new AzureProvider(),
-      gcp: new GCPProvider(),
-      oci: new OCIProvider(),
+      aws: new MultiCloudAWSProvider(),
+      azure: new MultiCloudAzureProvider(),
+      gcp: new MultiCloudGCPProvider(),
+      oci: new MultiCloudOCIProvider(),
       local: new LocalTEEProvider()
     };
     

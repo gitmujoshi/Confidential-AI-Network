@@ -439,6 +439,15 @@ function Datasets() {
                       {dataset.description}
                     </Typography>
 
+                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, mb: 1 }}>
+                      <Chip
+                        size="small"
+                        label={dataset.physicalTrainingReady ? 'Training files' : 'Metadata only'}
+                        color={dataset.physicalTrainingReady ? 'success' : 'default'}
+                        variant="outlined"
+                      />
+                    </Box>
+
                     {/* Dataset Metadata */}
                     <Box sx={{ mb: 2 }}>
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
@@ -573,6 +582,13 @@ function Datasets() {
                                   : dataset.description
                                 }
                               </Typography>
+                              <Chip
+                                size="small"
+                                label={dataset.physicalTrainingReady ? 'Training files' : 'Metadata only'}
+                                color={dataset.physicalTrainingReady ? 'success' : 'default'}
+                                variant="outlined"
+                                sx={{ mt: 0.5 }}
+                              />
                             </Box>
                           </TableCell>
                           <TableCell>

@@ -7,6 +7,21 @@ class KeyManagementService {
     this.loadConfiguration();
   }
 
+  getAlgorithmFamily(algorithm) {
+    if (typeof algorithm !== 'string') return 'Unknown';
+    if (algorithm.startsWith('ECDSA')) return 'ECDSA';
+    if (algorithm.startsWith('RSA')) return 'RSA';
+    return 'Unknown';
+  }
+
+  normalizeNamedCurve(namedCurve) {
+    const map = {
+      prime256v1: 'P-256',
+      secp256r1: 'P-256'
+    };
+    return map[namedCurve] || namedCurve;
+  }
+
   /**
    * Load key management configuration from environment variables
    */
@@ -210,7 +225,8 @@ class KeyManagementService {
       
       return {
         signature,
-        algorithm: algorithmConfig.name,
+        algorithm,
+        algorithmFamily: this.getAlgorithmFamily(algorithm),
         hashAlgorithm,
         timestamp: Date.now()
       };
@@ -288,15 +304,21 @@ class KeyManagementService {
    * @returns {Object} Algorithm information
    */
   getAlgorithmInfo(algorithm) {
-    const info = this.keyAlgorithms[algorithm];
-    if (!info) {
+    const config = this.keyAlgorithms[algorithm];
+    if (!config) {
       throw new Error(`Unsupported algorithm: ${algorithm}`);
     }
-    
+
+    const family = this.getAlgorithmFamily(algorithm);
+
     return {
+      id: algorithm,
       name: algorithm,
-      ...info,
-      description: this.getAlgorithmDescription(algorithm)
+      family,
+      nodeName: config.name,
+      description: this.getAlgorithmDescription(algorithm),
+      ...(config.modulusLength ? { modulusLength: config.modulusLength } : {}),
+      ...(config.namedCurve ? { namedCurve: this.normalizeNamedCurve(config.namedCurve) } : {})
     };
   }
 

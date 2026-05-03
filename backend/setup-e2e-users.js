@@ -140,17 +140,19 @@ async function purgeKeycloakTestUsers() {
     for (const user of E2E_USERS) {
       // Find user by username/email
       const response = await axios.get(
-        `${keycloakService.baseURL}/admin/realms/${keycloakService.realm}/users?username=${encodeURIComponent(user.email)}`,
+        `${keycloakService.baseUrl}/admin/realms/${keycloakService.realm}/users?username=${encodeURIComponent(user.email)}`,
         {
-          headers: { 'Authorization': `Bearer ${adminToken}` }
+          headers: { 'Authorization': `Bearer ${adminToken}` },
+          httpsAgent: keycloakService.httpsAgent
         }
       );
       if (Array.isArray(response.data) && response.data.length > 0) {
         for (const found of response.data) {
           await axios.delete(
-            `${keycloakService.baseURL}/admin/realms/${keycloakService.realm}/users/${found.id}`,
+            `${keycloakService.baseUrl}/admin/realms/${keycloakService.realm}/users/${found.id}`,
             {
-              headers: { 'Authorization': `Bearer ${adminToken}` }
+              headers: { 'Authorization': `Bearer ${adminToken}` },
+              httpsAgent: keycloakService.httpsAgent
             }
           );
           console.log(`✅ Deleted Keycloak user: ${user.email}`);

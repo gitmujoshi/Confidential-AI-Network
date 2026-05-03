@@ -20,100 +20,13 @@ const {
   buildContainerSpec,
   buildTrainingModelProvenance,
 } = require('./tdcTrainingHelpers');
-
-async function loadContractForTraining(contractId) {
-  return db.Contract.findOne({
-    where: { contractId },
-    include: [
-      { model: db.User, as: 'tdc', attributes: ['id', 'name', 'email', 'depaId'] },
-      { model: db.User, as: 'ccrp', attributes: ['id', 'name', 'email', 'depaId'], required: false },
-    ],
-  });
-}
-
-async function expandContractTrainingInputs(contract) {
-  const datasetSelections = Array.isArray(contract.contractDatasets) ? contract.contractDatasets : [];
-  const datasetIds = datasetSelections
-    .map((d) => d?.datasetId)
-    .filter((v) => v !== undefined && v !== null && String(v).length > 0);
-
-  const modelIdsRaw = Array.isArray(contract.aiModelIds) ? contract.aiModelIds : [];
-  const modelIds = modelIdsRaw.filter((v) => v !== undefined && v !== null);
-  const numericModelIds = modelIds
-    .map((v) => (typeof v === 'number' ? v : Number(v)))
-    .filter((v) => Number.isFinite(v) && v > 0);
-  const hasNumericModelIds = numericModelIds.length > 0 && numericModelIds.length === modelIds.length;
-
-  const [datasets, models] = await Promise.all([
-    datasetIds.length > 0
-      ? db.Dataset.findAll({
-          where: { datasetId: { [Op.in]: datasetIds } },
-          attributes: [
-            'datasetId',
-            'depaId',
-            'name',
-            'description',
-            'category',
-            'size',
-            'recordCount',
-            'price',
-            'license',
-            'tags',
-            'metadata',
-            'isPublic',
-            'confidentialComputingRequired',
-            'ownerId',
-          ],
-        })
-      : Promise.resolve([]),
-    modelIds.length > 0
-      ? db.AIModel.findAll({
-          // aiModelIds in contracts is stored as DB ids (integers) in the current ricardian creation route.
-          // Fall back to modelId (string) matching only if ids aren't numeric.
-          where: hasNumericModelIds
-            ? { id: { [Op.in]: numericModelIds } }
-            : { modelId: { [Op.in]: modelIds.map(String) } },
-          attributes: [
-            'id',
-            'modelId',
-            'name',
-            'description',
-            'type',
-            'architecture',
-            'parameters',
-            'framework',
-            'privacyTechnique',
-            'validationMetrics',
-            'maxEpochs',
-            'batchSize',
-            'learningRate',
-            'metadata',
-            'isActive',
-          ],
-        })
-      : Promise.resolve([]),
-  ]);
-
-  return {
-    contract: {
-      contractId: contract.contractId,
-      contractDepaId: contract.depaId || null,
-      status: contract.status,
-      tdcId: contract.tdcId,
-      tdcDepaId: contract.tdc?.depaId || null,
-      ccrpId: contract.ccrpId,
-      ccrpDepaId: contract.ccrp?.depaId || null,
-      ccrpCloudProvider: contract.ccrpCloudProvider,
-      environmentSpecs: contract.environmentSpecs,
-      trainingParams: contract.trainingParams,
-      kmsConfigs: contract.kmsConfigs,
-    },
-    datasets: datasets.map((d) => d.get({ plain: true })),
-    models: models.map((m) => m.get({ plain: true })),
-    datasetSelections,
-    aiModelIds: modelIds,
-  };
-}
+const {
+  loadContractForTraining,
+  hydrateContractDatasetsForTraining,
+  expandContractTrainingInputs,
+  shapeInputsForLocalTrainerContainer,
+} = require('./contractTrainingInputsService');
+const { stageDatasetsForLocalJob } = require('./datasetArtifactStaging');
 
 function validateTdcCanTrain(contract, userId) {
   if (!contract) {
@@ -272,12 +185,13 @@ class TdcTrainingExecutionService {
   async startTrainingForContract(contractId, userId) {
     const contract = await loadContractForTraining(contractId);
     validateTdcCanTrain(contract, userId);
+    await hydrateContractDatasetsForTraining(contract);
     await assertNoConcurrentJob(contractId);
 
     if (isSimulationMode()) {
       const jobId = `job-${contract.contractId}-${Date.now()}`;
       const containerSpec = buildContainerSpec(contract);
-      const inputs = await expandContractTrainingInputs(contract);
+      const inputs = shapeInputsForLocalTrainerContainer(await expandContractTrainingInputs(contract));
 
       const jobDepaId = depaIdService.generateTrainingJobDEPAId();
       await db.TrainingJob.create({
@@ -311,7 +225,8 @@ class TdcTrainingExecutionService {
     if (process.env.TRAINING_EXECUTION_MODE === 'local-docker') {
       const jobId = `job-${contract.contractId}-${Date.now()}`;
       const containerSpec = buildContainerSpec(contract);
-      const inputs = await expandContractTrainingInputs(contract);
+      let inputs = shapeInputsForLocalTrainerContainer(await expandContractTrainingInputs(contract));
+      inputs = await stageDatasetsForLocalJob(jobId, inputs);
 
       const jobDepaId = depaIdService.generateTrainingJobDEPAId();
       await db.TrainingJob.create({
@@ -397,6 +312,53 @@ class TdcTrainingExecutionService {
     return this.serializeJob(j);
   }
 
+  /**
+   * UI helper: whether each catalog dataset has uploaded artifacts for physical local-docker training.
+   */
+  async getTrainingReadiness(contractId, userId) {
+    const contract = await loadContractForTraining(contractId);
+    if (!contract || contract.tdcId !== userId) {
+      const err = new Error('Contract not found');
+      err.statusCode = 404;
+      throw err;
+    }
+
+    await hydrateContractDatasetsForTraining(contract);
+    const bundle = await expandContractTrainingInputs(contract);
+    const datasets = bundle.datasets || [];
+
+    const details = datasets.map((d) => ({
+      datasetId: d.datasetId,
+      name: d.name,
+      hasArtifacts: Number(d.artifactFileCount || 0) > 0,
+      artifactFileCount: Number(d.artifactFileCount || 0),
+      contentFormat: d.contentFormat || null,
+    }));
+
+    const physicalTrainingReady =
+      details.length > 0 && details.every((x) => x.hasArtifacts);
+    const missingArtifactDatasetIds = details
+      .filter((x) => !x.hasArtifacts)
+      .map((x) => x.datasetId);
+
+    const localDocker = process.env.TRAINING_EXECUTION_MODE === 'local-docker';
+    const simulation = process.env.TRAINING_SIMULATION_MODE === 'true';
+
+    return {
+      contractId,
+      signed: contract.status === 'SIGNED',
+      physicalTrainingReady,
+      missingArtifactDatasetIds,
+      datasets: details,
+      localDockerMode: localDocker,
+      simulationMode: simulation,
+      warning:
+        localDocker && contract.status === 'SIGNED' && !physicalTrainingReady
+          ? 'Upload training files for every dataset (TDP → dataset detail) or local-docker will fall back to built-in demo data.'
+          : null,
+    };
+  }
+
   serializeJob(job) {
     const plain = job.get ? job.get({ plain: true }) : job;
     const meta = plain.metadata || {};
@@ -462,6 +424,7 @@ class TdcTrainingExecutionService {
       err.statusCode = 403;
       throw err;
     }
+    await hydrateContractDatasetsForTraining(contract);
     if (job.status !== 'COMPLETED') {
       const err = new Error('Training job must be COMPLETED before registering a model');
       err.statusCode = 400;
@@ -478,9 +441,12 @@ class TdcTrainingExecutionService {
 
     const results = meta.results || plain.results || {};
     const trainingCfg = plain.trainingConfig || plain.trainingParams || contract.trainingParams || {};
+    const shapedFallback = shapeInputsForLocalTrainerContainer(
+      await expandContractTrainingInputs(contract)
+    );
     const modelProvenance =
       buildTrainingModelProvenance(meta.inputs || null, results) ||
-      buildTrainingModelProvenance(await expandContractTrainingInputs(contract), results);
+      buildTrainingModelProvenance(shapedFallback, results);
     const modelId = body.modelId || slugModelId(jobId);
 
     const existing = await db.AIModel.findOne({ where: { modelId } });

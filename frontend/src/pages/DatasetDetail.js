@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   Box,
   Typography,
@@ -8,6 +8,7 @@ import {
   Button,
   Chip,
   Alert,
+  AlertTitle,
   CircularProgress,
   Table,
   TableBody,
@@ -23,6 +24,10 @@ import {
   ListItemText,
   IconButton,
   Tooltip,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
 } from '@mui/material';
 import {
   ArrowBack,
@@ -39,25 +44,56 @@ import {
   Visibility,
   Edit,
   Download,
+  Upload,
+  CloudUpload,
 } from '@mui/icons-material';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery } from 'react-query';
 import { useUser } from '../contexts/UserContext';
 import { apiService } from '../services/api';
+import toast from 'react-hot-toast';
 
 function DatasetDetail() {
   const { datasetId } = useParams();
   const navigate = useNavigate();
   const { currentUser } = useUser();
+  const [uploadOpen, setUploadOpen] = useState(false);
+  const [uploadFiles, setUploadFiles] = useState([]);
+  const [uploading, setUploading] = useState(false);
 
   // Fetch dataset details
-  const { data: dataset, isLoading, error } = useQuery(
+  const { data: dataset, isLoading, error, refetch } = useQuery(
     ['dataset', datasetId],
     () => apiService.getDataset(datasetId),
     {
       enabled: !!datasetId,
     }
   );
+
+  const isOwner =
+    currentUser &&
+    dataset &&
+    (currentUser.id === dataset.ownerId || currentUser.id === dataset.owner?.id);
+
+  const handleUploadArtifacts = async () => {
+    if (!dataset?.datasetId || uploadFiles.length === 0) return;
+    setUploading(true);
+    try {
+      const fd = new FormData();
+      uploadFiles.forEach((f) => fd.append('files', f));
+      fd.append('contentFormat', dataset.contentFormat || 'csv');
+      await apiService.uploadDatasetArtifacts(dataset.datasetId, fd);
+      await refetch();
+      setUploadOpen(false);
+      setUploadFiles([]);
+      toast.success('Training files uploaded');
+    } catch (e) {
+      console.error(e);
+      toast.error(e.response?.data?.error || e.message || 'Upload failed');
+    } finally {
+      setUploading(false);
+    }
+  };
 
   if (isLoading) {
     return (
@@ -183,6 +219,38 @@ function DatasetDetail() {
                   />
                 </Grid>
               </Grid>
+
+              <Divider sx={{ my: 2 }} />
+              <Typography variant="h6" gutterBottom>
+                <CloudUpload sx={{ mr: 1, verticalAlign: 'middle' }} />
+                Training artifacts
+              </Typography>
+              {dataset.physicalTrainingReady ? (
+                <Alert severity="success" sx={{ mb: 2 }}>
+                  Ready for physical training (local Docker). Files:{' '}
+                  {dataset.artifactFileCount ?? 0},{' '}
+                  {(Number(dataset.artifactTotalBytes || 0) / (1024 * 1024)).toFixed(2)} MB
+                  {dataset.artifactsUpdatedAt && (
+                    <> · Updated {new Date(dataset.artifactsUpdatedAt).toLocaleString()}</>
+                  )}
+                </Alert>
+              ) : (
+                <Alert severity="warning" sx={{ mb: 2 }}>
+                  <AlertTitle>Not ready for physical training</AlertTitle>
+                  Upload at least one data file (e.g. CSV for tabular) so local-docker jobs use real data
+                  instead of demo loaders.
+                </Alert>
+              )}
+              {isOwner && currentUser?.partyType === 'TDP' && (
+                <Button
+                  variant="outlined"
+                  startIcon={<Upload />}
+                  onClick={() => setUploadOpen(true)}
+                  sx={{ mb: 2 }}
+                >
+                  Add or replace training files
+                </Button>
+              )}
 
               {/* Tags */}
               {dataset.tags && dataset.tags.length > 0 && (
@@ -362,6 +430,36 @@ function DatasetDetail() {
           </Card>
         </Grid>
       </Grid>
+
+      <Dialog open={uploadOpen} onClose={() => !uploading && setUploadOpen(false)} fullWidth maxWidth="sm">
+        <DialogTitle>Upload training files</DialogTitle>
+        <DialogContent>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+            Replaces any previous files for this dataset. Use CSV for tabular (numeric features, integer label in the
+            last column).
+          </Typography>
+          <Button variant="outlined" component="label" startIcon={<Upload />}>
+            Choose files
+            <input
+              type="file"
+              hidden
+              multiple
+              onChange={(e) => setUploadFiles(e.target.files ? Array.from(e.target.files) : [])}
+            />
+          </Button>
+          <Typography variant="caption" display="block" sx={{ mt: 1 }}>
+            {uploadFiles.length} file(s) selected
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setUploadOpen(false)} disabled={uploading}>
+            Cancel
+          </Button>
+          <Button onClick={handleUploadArtifacts} variant="contained" disabled={uploading || uploadFiles.length === 0}>
+            Upload
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 }

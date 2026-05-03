@@ -21,6 +21,15 @@
 
 The Key Management system provides secure generation, storage, and management of digital signing keys for the Contract Management System. It integrates with HashiCorp Vault for secure key storage, Keycloak for authentication and authorization, and supports multiple cryptographic algorithms for different security requirements.
 
+### Scope note (Portal signing keys vs CAN principal keys)
+
+This document covers **portal/user signing keys** (e.g., for contract signing and SCITT CCF signatures) managed via **Keycloak-authenticated** backend APIs and stored in Vault.
+
+It does **not** describe **CAN principal-owned DEK/MEK custody**. For CAN, the system is explicitly designed so the platform **must not generate, hold, or receive** principal-owned encryption keys or plaintext assets; see:
+- `ARCHITECTURE.md` (CAN section)
+- `CAN_GAP_DECISION_MEMO.md`
+- `CAN_QUICKSTART.md`
+
 ### Key Features
 - **Multi-Algorithm Support**: ECDSA-P256, RSA-2048, RSA-4096
 - **Vault Integration**: Secure key storage using HashiCorp Vault

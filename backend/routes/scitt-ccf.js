@@ -28,6 +28,12 @@ async function initializeServices() {
   if (servicesInitialized) return;
   
   try {
+    if (scittCcfService.isEnabled === false) {
+      console.warn('⚠️ SCITT CCF is disabled; skipping service initialization');
+      servicesInitialized = false;
+      return;
+    }
+
     console.log('🔧 Initializing SCITT CCF services...');
     
     // Initialize SCITT CCF service
@@ -48,7 +54,8 @@ async function initializeServices() {
   } catch (error) {
     console.error('❌ Failed to initialize SCITT CCF services:', error.message);
     servicesInitialized = false;
-    throw error;
+    // Do not crash the process if SCITT is unavailable; routes will return 503/500 as appropriate.
+    return;
   }
 }
 

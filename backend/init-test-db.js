@@ -3,35 +3,36 @@
  * Creates the test database schema using Sequelize models
  */
 
-require('dotenv').config({ path: './config.test.env' });
+const path = require('path');
+
+require('dotenv').config({ path: path.join(__dirname, 'config.test.env') });
+require('dotenv').config({ path: path.join(__dirname, '..', 'secrets.env') });
 
 const { sequelize } = require('./models');
 
+async function syncTestSchema() {
+  console.log('🔧 Syncing test database from models...');
+  await sequelize.authenticate();
+  console.log('✅ Database connection successful');
+  console.log('🏗️ Syncing database schema from models...');
+  await sequelize.sync({ force: true });
+  console.log('✅ Database schema synced successfully from models');
+}
+
 async function initTestDatabase() {
   try {
-    console.log('🔧 Initializing test database...');
-    
-    // Test connection
-    await sequelize.authenticate();
-    console.log('✅ Database connection successful');
-    
-    // Sync all models to create tables
-    console.log('🏗️ Syncing database schema from models...');
-    await sequelize.sync({ force: true });
-    console.log('✅ Database schema synced successfully from models');
-    
-    // Verify tables were created
+    await syncTestSchema();
+
     const [results] = await sequelize.query(
       "SELECT table_name FROM information_schema.tables WHERE table_schema = 'public'"
     );
-    
+
     console.log('📋 Created tables:');
-    results.forEach(row => {
+    results.forEach((row) => {
       console.log(`  - ${row.table_name}`);
     });
-    
+
     console.log('✅ Test database initialization completed successfully');
-    
   } catch (error) {
     console.error('❌ Failed to initialize test database:', error.message);
     throw error;
@@ -54,4 +55,4 @@ if (require.main === module) {
     });
 }
 
-module.exports = { initTestDatabase };
+module.exports = { initTestDatabase, syncTestSchema };

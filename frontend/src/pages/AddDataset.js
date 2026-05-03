@@ -27,7 +27,7 @@ import {
   IconButton,
   Paper,
   Stack,
-  Divider
+  Divider,
 } from '@mui/material';
 import {
   ArrowBack,
@@ -74,6 +74,7 @@ const steps = [
   'Privacy & Security',
   'Security & Compliance',
   'Quality & Compliance',
+  'Training files',
   'Review & Submit'
 ];
 
@@ -137,6 +138,8 @@ function AddDataset() {
   });
 
   const [errors, setErrors] = useState({});
+  const [artifactFiles, setArtifactFiles] = useState([]);
+  const [artifactContentFormat, setArtifactContentFormat] = useState('csv');
 
   // Load categories on component mount
   useEffect(() => {
@@ -227,6 +230,8 @@ function AddDataset() {
           newErrors.privacyTechniques = 'At least one privacy technique is required';
         }
         break;
+      case 5: // Training files — optional
+        break;
       default:
         break;
     }
@@ -253,13 +258,14 @@ function AddDataset() {
       // Generate a unique dataset ID
       const datasetId = `DATASET-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
       
+      const sizeMb = parseInt(String(formData.size).replace(/[^\d]/g, ''), 10);
       const datasetData = {
         // Required fields for backend API
         datasetId: datasetId,
         name: formData.name,
         description: formData.description,
         category: formData.category,
-        size: formData.size,
+        size: Number.isFinite(sizeMb) && sizeMb > 0 ? sizeMb : 1,
         recordCount: formData.recordCount || 1000, // Default record count if not provided
         price: parseFloat(formData.pricing) || 0, // Convert pricing to number
         license: formData.license,
@@ -303,10 +309,21 @@ function AddDataset() {
       };
 
       console.log('📤 Sending dataset data:', datasetData);
-      
+
       const response = await apiService.post('/api/datasets', datasetData);
-      console.log('✅ Dataset creation response:', response);
-      
+      const body = response?.data ?? response;
+      const created = body?.dataset ?? body;
+      const catalogDatasetId = created?.datasetId;
+
+      if (artifactFiles.length > 0 && catalogDatasetId) {
+        const fd = new FormData();
+        artifactFiles.forEach((f) => fd.append('files', f));
+        fd.append('contentFormat', artifactContentFormat || 'csv');
+        await apiService.uploadDatasetArtifacts(catalogDatasetId, fd);
+      }
+
+      console.log('✅ Dataset creation response:', body);
+
       toast.success('Dataset created successfully!');
       navigate('/datasets');
     } catch (error) {
@@ -891,6 +908,63 @@ function AddDataset() {
         return (
           <Grid container spacing={3}>
             <Grid item xs={12}>
+              <Alert severity="info" sx={{ mb: 2 }}>
+                <AlertTitle>Training files (recommended)</AlertTitle>
+                Upload real data files so local Docker training (<code>TRAINING_EXECUTION_MODE=local-docker</code>)
+                can train on your CSV instead of built-in demo datasets. Tabular datasets: numeric columns plus an
+                integer label in the <strong>last column</strong>.
+              </Alert>
+            </Grid>
+            <Grid item xs={12} md={6}>
+              <FormControl fullWidth>
+                <InputLabel>Artifact format hint</InputLabel>
+                <Select
+                  value={artifactContentFormat}
+                  label="Artifact format hint"
+                  onChange={(e) => setArtifactContentFormat(e.target.value)}
+                >
+                  <MenuItem value="csv">CSV (tabular)</MenuItem>
+                  <MenuItem value="image_folder">Image folder (future)</MenuItem>
+                  <MenuItem value="parquet">Parquet (future)</MenuItem>
+                </Select>
+                <FormHelperText>Used by the local trainer to pick loaders.</FormHelperText>
+              </FormControl>
+            </Grid>
+            <Grid item xs={12}>
+              <Button variant="outlined" component="label" startIcon={<Upload />}>
+                Choose files
+                <input
+                  type="file"
+                  hidden
+                  multiple
+                  onChange={(e) => {
+                    const list = e.target.files ? Array.from(e.target.files) : [];
+                    setArtifactFiles(list);
+                  }}
+                />
+              </Button>
+              <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+                {artifactFiles.length === 0
+                  ? 'No files selected — you can upload later from the dataset detail page.'
+                  : `${artifactFiles.length} file(s), ${artifactFiles.reduce((s, f) => s + (f.size || 0), 0)} bytes total`}
+              </Typography>
+              {artifactFiles.length > 0 && (
+                <Stack spacing={0.5} sx={{ mt: 1 }}>
+                  {artifactFiles.map((f) => (
+                    <Typography key={f.name + f.size} variant="caption" display="block">
+                      {f.name} ({Math.round((f.size || 0) / 1024)} KB)
+                    </Typography>
+                  ))}
+                </Stack>
+              )}
+            </Grid>
+          </Grid>
+        );
+
+      case 6:
+        return (
+          <Grid container spacing={3}>
+            <Grid item xs={12}>
               <Typography variant="h6" gutterBottom>
                 Dataset Summary
               </Typography>
@@ -909,6 +983,12 @@ function AddDataset() {
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
                   <strong>Format:</strong> {formData.format}
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  <strong>Training files:</strong>{' '}
+                  {artifactFiles.length > 0
+                    ? `${artifactFiles.length} file(s) queued for upload`
+                    : 'None (optional)'}
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
                   <strong>Privacy Techniques:</strong> {formData.privacyTechniques.join(', ')}

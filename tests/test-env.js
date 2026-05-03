@@ -35,15 +35,25 @@ function setTestEnv(mode = 'mock') {
   } else if (mode === 'integration') {
     // Integration mode - use common config with all services enabled
     process.env.DATABASE_URL = `postgresql://${process.env.DB_USER}:${process.env.DB_PASSWORD}@${process.env.DB_HOST}:${process.env.DB_PORT}/${process.env.DB_NAME}_test`;
-    process.env.SCITT_CCF_ENABLED = process.env.SCITT_CCF_ENABLED || 'true';
+    // Default to disabled to keep integration tests runnable without external SCITT.
+    // Tests that require SCITT can explicitly set SCITT_CCF_ENABLED=true.
+    process.env.SCITT_CCF_ENABLED = process.env.SCITT_CCF_ENABLED || 'false';
     process.env.KEYCLOAK_ENABLED = 'true';
     process.env.DB_NAME = `${process.env.DB_NAME}_test`;
     
     // Validate integration-specific variables (using existing config.env variables)
-    const integrationVars = ['SCITT_CCF_URL', 'KEYCLOAK_URL', 'KEYCLOAK_REALM', 'KEYCLOAK_CLIENT_ID', 'KEYCLOAK_ADMIN_USER', 'KEYCLOAK_ADMIN_PASSWORD'];
+    const integrationVars = ['KEYCLOAK_URL', 'KEYCLOAK_REALM', 'KEYCLOAK_CLIENT_ID', 'KEYCLOAK_ADMIN_USER', 'KEYCLOAK_ADMIN_PASSWORD'];
     const missingIntegrationVars = integrationVars.filter(varName => !process.env[varName]);
     if (missingIntegrationVars.length > 0) {
       throw new Error(`Missing required integration test variables: ${missingIntegrationVars.join(', ')}. Please add these to your config.env file.`);
+    }
+
+    if (process.env.SCITT_CCF_ENABLED === 'true') {
+      const scittVars = ['SCITT_CCF_URL'];
+      const missingScittVars = scittVars.filter(varName => !process.env[varName]);
+      if (missingScittVars.length > 0) {
+        throw new Error(`Missing required SCITT integration test variables: ${missingScittVars.join(', ')}. Please add these to your config.env file.`);
+      }
     }
   }
   

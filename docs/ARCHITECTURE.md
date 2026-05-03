@@ -6,6 +6,7 @@ Complete technical architecture documentation for the Contract Management System
 
 1. [System Overview](#system-overview)
 2. [Architecture Components](#architecture-components)
+3. [Confidential AI Network (CAN)](#confidential-ai-network-can)
 3. [SCITT CCF Integration Architecture](#scitt-ccf-integration-architecture)
 4. [Merkle Tree Provenance Architecture](#merkle-tree-provenance-architecture)
 5. [Multi-Cloud TEE Provisioning Architecture](#multi-cloud-tee-provisioning-architecture)
@@ -77,6 +78,65 @@ graph TB
 - **Environment Monitoring**: Real-time CCRP dashboard with metrics and alerts
 - **Secret Management**: HashiCorp Vault
 - **Cloud Providers**: AWS, Azure, GCP, OCI
+
+## 🤝 Confidential AI Network (CAN)
+
+The **Confidential AI Network (CAN)** is a **parallel “CAN path”** implemented alongside the existing portal workflow. It is designed to align with the design doc trust model:
+
+- **Principal-owned keys**: For CAN jobs, the platform **must not generate, hold, or receive** principal-owned **DEK/MEK** or plaintext assets.
+- **Attestation-first**: Key release is intended to be gated by CCR/TEE attestation (MVP uses a simulated bundle).
+- **Escrow + deadline enforcement**: A Job Coordination Service (JCS) manages an escrow state machine with a hard timeout.
+- **Provenance event stream**: CAN emits an append-only, **hash-chained** event log for auditability.
+
+### CAN components (current implementation)
+
+**Backend routes**
+- `backend/routes/can-jcs.js` — JCS endpoints (create job, status, attestation, key release *signals*, release to CCRP, SSE events, training status link)
+- `backend/routes/can-ccr.js` — CCR session key delivery endpoint (MVP rejects key material; only accepts “key released” signals)
+- `backend/routes/can-provenance.js` — provenance event query
+
+**Backend services**
+- `backend/services/canJcsService.js` — escrow state machine + job lifecycle
+- `backend/services/canEscrowSweeper.js` — background sweeper for overdue jobs
+- `backend/services/canProvenanceService.js` — append-only hash-chain events
+- `backend/services/canWebhookDispatcher.js` — best-effort event webhooks (HMAC signed)
+- `backend/services/canLocalCcrpExecutor.js` — triggers local training for `ccrProvider=local` (simulate/docker)
+
+**Backend models / tables**
+- `can_jcs_jobs` — JCS jobs (`jobId`, `contractId` as string, `escrowState`, `escrowDeadline`, `ccrProvider`, `trainingJobId`)
+- `can_jcs_events` — job event stream (for SSE + debugging)
+- `can_ccr_sessions` — CCR session records
+- `can_jcs_attestations` — stored attestation bundles
+- `can_provenance_events` — tamper-evident CAN provenance (hash chained)
+
+### CAN job flow (MVP)
+
+```mermaid
+sequenceDiagram
+    participant TDC as TDC Portal/UI
+    participant JCS as CAN JCS (/api/can/jcs)
+    participant Prov as CAN Provenance
+    participant CCRP as Local CCRP Executor
+
+    TDC->>JCS: POST /jobs { contractId, ccrProvider: local }
+    JCS->>Prov: Append event JOB_CREATED
+    TDC->>JCS: POST /jobs/:jobId/key-released { keyType: DEK } (DP principal)
+    JCS->>Prov: Append event DEK_RELEASED
+    TDC->>JCS: POST /jobs/:jobId/key-released { keyType: MEK } (MO principal)
+    JCS->>Prov: Append event MEK_RELEASED
+    TDC->>JCS: POST /jobs/:jobId/release
+    JCS->>Prov: Append event RELEASED
+    JCS->>CCRP: trigger local training (simulate/docker)
+    CCRP-->>JCS: trainingJobId linked on can_jcs_jobs
+    TDC->>JCS: GET /jobs/:jobId/training (poll)
+```
+
+### Identity/Auth notes (MVP vs target)
+
+- **Portal users** continue to use **Keycloak JWT Bearer tokens**.
+- **CAN principals** are authenticated separately from Keycloak users.
+  - **MVP (dev/test)**: `X-CAN-Principal-Id` header (`backend/middleware/canPrincipalAuth.js`)
+  - **Target**: certificate-based principal auth + short-lived tokens (per design doc)
 
 ## 🧩 Architecture Components
 

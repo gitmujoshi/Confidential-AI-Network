@@ -1295,9 +1295,13 @@ function ContractDetail() {
               </Typography>
               <Box display="flex" gap={2} flexWrap="wrap">
                 {/* TDP Actions */}
-                {isTDP && !isMultiTDPContract && (contract.tdp?.walletAddress === currentUser?.walletAddress || contract.tdp?.did === currentUser?.did) && (
+                {isTDP && !isMultiTDPContract && (
+                  contract.tdp?.id === currentUser?.id ||
+                  contract.tdp?.walletAddress === currentUser?.walletAddress ||
+                  contract.tdp?.did === currentUser?.did
+                ) && (
                   <>
-                    {contract.status === 'PENDING_TDP_APPROVAL' && !contract.tdpSigned && (
+                    {['PENDING_TDP_APPROVAL', 'PENDING_ALL_TDP_APPROVAL'].includes(contract.status) && !contract.tdpSigned && (
                       <Button 
                         variant="contained" 
                         color="primary"
@@ -1350,7 +1354,10 @@ function ContractDetail() {
                 )}
                 
                 {/* CCRP Actions */}
-                {isCCRP && contract.ccrp?.walletAddress === currentUser?.walletAddress && (
+                {isCCRP && (
+                  contract.ccrp?.id === currentUser?.id ||
+                  contract.ccrp?.walletAddress === currentUser?.walletAddress
+                ) && (
                   <>
                     {contract.status === 'PENDING_CCRP_APPROVAL' && contract.ccrpId && !contract.ccrpSigned && (
                       <Button 

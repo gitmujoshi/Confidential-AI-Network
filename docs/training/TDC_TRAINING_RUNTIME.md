@@ -2,6 +2,9 @@
 
 This document describes the **TDC (Training Data Consumer)** training flow implemented in the application: starting jobs from a **signed** contract, monitoring progress, registering a trained artifact as an **`AIModel`**, and related **CCRP** endpoints.
 
+> Note: This doc covers the **portal training runtime** (`/api/tdc/training`, `/tdc/training` UI).
+> The **CAN** training flow is separate and is driven via `/api/can/jcs` (JCS escrow → release → `ccrProvider=local` execution).
+
 ## Prerequisites
 
 - **Backend** running and reachable at `BACKEND_URL` / `BACKEND_PORT` in `config.env` (see `frontend/load-config.js` and Playwright `global-setup.js`).
@@ -92,3 +95,9 @@ curl -X POST "http://localhost:5001/api/tdc/training/contracts/<contractId>/star
 - `backend/services/trainingService.js` — `getTrainingJobs`, `deployTrainingJob`, etc.
 - `frontend/src/pages/TDCTraining.js`
 - `frontend/src/pages/TrainingEnvironment.js` (uses `/api/ccrp/training/...`)
+
+## Related CAN docs
+
+- `CAN_QUICKSTART.md`
+- `ARCHITECTURE.md` (CAN section)
+- `API_REFERENCE.md` (CAN endpoints)

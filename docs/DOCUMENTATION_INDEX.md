@@ -29,6 +29,17 @@ This index provides a structured guide to all Contract Management System documen
 - User management and security
 - Troubleshooting and support
 
+### **2a. Admin Guide**
+**File**: `ADMIN_GUIDE.md`  
+**Audience**: AppAdmins, operators, support teams  
+**Purpose**: Operational procedures across roles/features (IAM, monitoring, scripts, audits)  
+**Content**:
+- User and role management
+- System health and logging
+- Keycloak/IAM operations
+- Compliance/audit evidence
+- CAN (Confidential AI Network) operational notes
+
 ### **3. Technical Reference**
 **File**: `TECHNICAL_REFERENCE.md`  
 **Audience**: Developers, system administrators, technical teams  
@@ -61,6 +72,15 @@ This index provides a structured guide to all Contract Management System documen
 - Cloud API specifications
 - SCITT CCF API specifications
 - Integration examples and guides
+
+### **5a. CAN (Confidential AI Network)**
+**Files**: `CAN_QUICKSTART.md`, `CAN_GAP_DECISION_MEMO.md`, and CAN sections in `ARCHITECTURE.md` / `API_REFERENCE.md`  
+**Audience**: Architects, backend engineers, security reviewers  
+**Purpose**: Parallel CAN workflow (JCS escrow, principal key custody, provenance)  
+**Content**:
+- CAN threat model + non-negotiables
+- `/api/can/*` endpoint surface
+- Local MVP workflow + testing notes
 
 ### **6. Architecture Documentation**
 **Files**: `architecture/` directory  
@@ -115,6 +135,7 @@ This index provides a structured guide to all Contract Management System documen
 - **Setup Guide**: `SETUP.md`
 - **Troubleshooting**: `TROUBLESHOOTING.md`
 - **Testing**: `testing/` directory
+- **Training — Phase A (local artifacts + UI)**: `training/PHASE_A_LOCAL_ARTIFACTS.md` — implementation runbook for physical dataset files and local Docker training
 
 ## 📊 Document Statistics
 

@@ -23,6 +23,28 @@ const notificationService = new NotificationService();
 const { DifferentialPrivacyService } = require('./differentialPrivacyService');
 
 class ContractService {
+  /** TDP id from row or legacy contract_datasets JSON */
+  resolvePrimaryTdpId(contract) {
+    if (!contract) return null;
+    if (contract.tdpId != null) return contract.tdpId;
+    if (contract.primaryTdpId != null) return contract.primaryTdpId;
+    const cds = contract.contractDatasets;
+    if (Array.isArray(cds) && cds.length && cds[0]?.tdpId != null) return cds[0].tdpId;
+    return null;
+  }
+
+  resolvePrimaryDatasetPk(contract) {
+    if (!contract) return null;
+    if (contract.datasetId != null) return contract.datasetId;
+    if (contract.primaryDatasetId != null) return contract.primaryDatasetId;
+    const cds = contract.contractDatasets;
+    if (Array.isArray(cds) && cds.length && cds[0]?.datasetId != null) {
+      const raw = cds[0].datasetId;
+      if (typeof raw === 'number') return raw;
+    }
+    return null;
+  }
+
   constructor() {
     // Define valid state transitions as per UML state diagram
     this.stateTransitions = {
@@ -73,12 +95,43 @@ class ContractService {
         throw new Error('contractDatasets is required and must be an array');
       }
       
-      const contract = await Contract.create({
-        ...contractData,
+      const first = contractData.contractDatasets[0];
+      let resolvedDatasetPk = contractData.datasetId ?? contractData.primaryDatasetId;
+      let resolvedTdpId = contractData.tdpId ?? contractData.primaryTdpId;
+
+      if (first) {
+        if (first.tdpId != null) {
+          resolvedTdpId = resolvedTdpId ?? first.tdpId;
+        }
+        const rawDs = first.datasetId;
+        if (rawDs != null && resolvedDatasetPk == null) {
+          if (typeof rawDs === 'number' || (typeof rawDs === 'string' && /^\d+$/.test(rawDs))) {
+            resolvedDatasetPk = Number(rawDs);
+          } else {
+            const ds = await Dataset.findOne({ where: { datasetId: String(rawDs) } });
+            if (ds) resolvedDatasetPk = ds.id;
+          }
+        }
+      }
+
+      const payload = {};
+      for (const key of Object.keys(Contract.rawAttributes)) {
+        if (contractData[key] !== undefined) {
+          payload[key] = contractData[key];
+        }
+      }
+
+      Object.assign(payload, {
         tdcId,
+        tdpId: resolvedTdpId ?? payload.tdpId,
+        primaryTdpId: contractData.primaryTdpId ?? resolvedTdpId ?? payload.primaryTdpId,
+        datasetId: resolvedDatasetPk ?? payload.datasetId,
+        primaryDatasetId: contractData.primaryDatasetId ?? resolvedDatasetPk ?? payload.primaryDatasetId,
         status: 'DRAFT',
         multiTdpStatus: 'DRAFT'
       });
+
+      const contract = await Contract.create(payload);
 
       console.log(`✅ Contract created with ID: ${contract.contractId}`);
       return contract;
@@ -117,14 +170,16 @@ class ContractService {
         multiTdpStatus: 'PENDING_TDP'
       });
 
-      // Notify TDP
-      await notificationService.createNotification({
-        userId: contract.tdpId,
-        type: 'CONTRACT_PENDING_APPROVAL',
-        title: 'New Contract Requires Your Approval',
-        message: `Contract ${contractId} has been submitted and requires your signature.`,
-        metadata: { contractId, contractType: 'TDP_APPROVAL' }
-      });
+      const notifyTdpId = this.resolvePrimaryTdpId(contract);
+      if (notifyTdpId != null) {
+        await notificationService.createNotification({
+          userId: notifyTdpId,
+          type: 'CONTRACT_PENDING_APPROVAL',
+          title: 'New Contract Requires Your Approval',
+          message: `Contract ${contractId} has been submitted and requires your signature.`,
+          metadata: { contractId, contractType: 'TDP_APPROVAL' }
+        });
+      }
 
       console.log(`✅ Contract ${contractId} submitted for TDP approval`);
       return contract;
@@ -146,8 +201,11 @@ class ContractService {
       console.log(`✍️ TDP ${tdpId} signing contract ${contractId}`);
       
       const contract = await Contract.findOne({
-        where: { contractId, tdpId, status: 'PENDING_TDP' }
+        where: { contractId, status: 'PENDING_TDP' }
       });
+      if (contract && Number(this.resolvePrimaryTdpId(contract)) !== Number(tdpId)) {
+        throw new Error('Contract not found or not in PENDING_TDP state');
+      }
 
       if (!contract) {
         throw new Error('Contract not found or not in PENDING_TDP state');
@@ -210,7 +268,9 @@ class ContractService {
       // Update contract with TDC signature
       await contract.update({
         status: 'PENDING_CCRP',
-        multiTdpStatus: 'PENDING_CCRP'
+        multiTdpStatus: 'PENDING_CCRP',
+        tdcSigned: true,
+        tdcSignedAt: new Date()
       });
 
       // Notify CCRP if present
@@ -273,13 +333,16 @@ class ContractService {
         metadata: { contractId, contractType: 'CONTRACT_READY' }
       });
 
-      await notificationService.createNotification({
-        userId: contract.tdpId,
-        type: 'CONTRACT_SIGNED',
-        title: 'Contract Fully Signed',
-        message: `Contract ${contractId} has been signed by all parties and is ready for execution.`,
-        metadata: { contractId, contractType: 'CONTRACT_READY' }
-      });
+      const tdpNotify = this.resolvePrimaryTdpId(contract);
+      if (tdpNotify != null) {
+        await notificationService.createNotification({
+          userId: tdpNotify,
+          type: 'CONTRACT_SIGNED',
+          title: 'Contract Fully Signed',
+          message: `Contract ${contractId} has been signed by all parties and is ready for execution.`,
+          metadata: { contractId, contractType: 'CONTRACT_READY' }
+        });
+      }
 
       console.log(`✅ CCRP signed contract ${contractId}`);
       return contract;
@@ -317,11 +380,10 @@ class ContractService {
         multiTdpStatus: 'EXECUTING'
       });
 
-      // Notify all parties
-      const parties = [contract.tdcId, contract.tdpId];
+      const parties = [contract.tdcId, this.resolvePrimaryTdpId(contract)];
       if (contract.ccrpId) parties.push(contract.ccrpId);
 
-      for (const partyId of parties) {
+      for (const partyId of parties.filter((id) => id != null)) {
         await notificationService.createNotification({
           userId: partyId,
           type: 'CONTRACT_EXECUTING',
@@ -367,11 +429,10 @@ class ContractService {
         multiTdpStatus: 'COMPLETED'
       });
 
-      // Notify all parties
-      const parties = [contract.tdcId, contract.tdpId];
+      const parties = [contract.tdcId, this.resolvePrimaryTdpId(contract)];
       if (contract.ccrpId) parties.push(contract.ccrpId);
 
-      for (const partyId of parties) {
+      for (const partyId of parties.filter((id) => id != null)) {
         await notificationService.createNotification({
           userId: partyId,
           type: 'CONTRACT_COMPLETED',
@@ -406,6 +467,7 @@ class ContractService {
           [require('../models').Sequelize.Op.or]: [
             { tdcId: userId },
             { tdpId: userId },
+            { primaryTdpId: userId },
             { ccrpId: userId }
           ]
         }
@@ -472,11 +534,10 @@ class ContractService {
         multiTdpStatus: 'FAILED'
       });
 
-      // Notify all parties
-      const parties = [contract.tdcId, contract.tdpId];
+      const parties = [contract.tdcId, this.resolvePrimaryTdpId(contract)];
       if (contract.ccrpId) parties.push(contract.ccrpId);
 
-      for (const partyId of parties) {
+      for (const partyId of parties.filter((id) => id != null)) {
         await notificationService.createNotification({
           userId: partyId,
           type: 'CONTRACT_FAILED',
@@ -524,8 +585,10 @@ class ContractService {
         status: 'DRAFT',
         multiTdpStatus: 'DRAFT',
         tdpSigned: false,
+        tdcSigned: false,
         ccrpSigned: false,
         tdpSignedAt: null,
+        tdcSignedAt: null,
         ccrpSignedAt: null
       });
 
@@ -556,7 +619,9 @@ class ContractService {
       let data;
       switch (dataType) {
         case 'DATASET_STATS':
-          data = await this.getDatasetStatistics(contract.datasetId);
+          data = await this.getDatasetStatistics(
+            this.resolvePrimaryDatasetPk(contract) ?? contract.datasetId
+          );
           break;
         case 'MODEL_METRICS':
           data = await this.getModelMetrics(contract.modelId);

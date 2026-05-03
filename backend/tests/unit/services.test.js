@@ -17,7 +17,7 @@ jest.mock('../../services/keycloakService', () => {
 });
 
 // Mock DIDService to avoid constructor issues
-jest.mock('../services/didService', () => {
+jest.mock('../../services/didService', () => {
   return jest.fn().mockImplementation(() => ({
     resolveDID: jest.fn().mockResolvedValue({ id: 'did:web:example.com' }),
     validateDIDFormat: jest.fn().mockReturnValue(true),
@@ -29,9 +29,9 @@ jest.mock('../services/didService', () => {
 });
 
 // Import services individually to avoid constructor issues
-const BlockchainService = require('../services/blockchainService');
-const DIDService = require('../services/didService');
-const NotificationService = require('../services/notificationService');
+const BlockchainService = require('../../services/blockchainService');
+const DIDService = require('../../services/didService');
+const NotificationService = require('../../services/notificationService');
 
 // Import test server instead of main server
 const app = require('../test-server');

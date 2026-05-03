@@ -56,14 +56,23 @@ async function getKeycloakToken() {
   }
 }
 
+/** Keycloak rejects some punctuation in person names (e.g. parentheses). */
+function sanitizeKeycloakNamePart(part) {
+  if (!part || typeof part !== 'string') return '';
+  const cleaned = part.replace(/[^\p{L}\p{N}\s\-']/gu, ' ').replace(/\s+/g, ' ').trim();
+  return cleaned.slice(0, 50) || '';
+}
+
 // Function to create user in Keycloak
 async function createKeycloakUser(token, userData) {
   try {
+    const rawFirst = userData.name.split(' ')[0] || userData.name;
+    const rawLast = userData.name.split(' ').slice(1).join(' ') || '';
     const keycloakUser = {
       username: userData.email,
       email: userData.email,
-      firstName: userData.name.split(' ')[0] || userData.name,
-      lastName: userData.name.split(' ').slice(1).join(' ') || '',
+      firstName: sanitizeKeycloakNamePart(rawFirst) || sanitizeKeycloakNamePart(userData.name) || 'User',
+      lastName: sanitizeKeycloakNamePart(rawLast) || 'User',
       enabled: true,
       emailVerified: true,
       attributes: {

@@ -165,6 +165,26 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.DATE,
       allowNull: true
     },
+
+    tdpSigned: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: false
+    },
+
+    tdpSignedAt: {
+      type: DataTypes.DATE,
+      allowNull: true
+    },
+
+    tdcSigned: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: false
+    },
+
+    tdcSignedAt: {
+      type: DataTypes.DATE,
+      allowNull: true
+    },
     
     // Foreign key to TDC user (Training Data Consumer - contract initiator)
     tdcId: {
@@ -184,6 +204,48 @@ module.exports = (sequelize, DataTypes) => {
         model: 'users',
         key: 'id'
       }
+    },
+
+    /** Primary TDP (dataset owner) for single-TDP and backward-compatible queries */
+    tdpId: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      references: {
+        model: 'users',
+        key: 'id'
+      },
+      comment: 'Primary Training Data Provider user id'
+    },
+
+    primaryTdpId: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      references: {
+        model: 'users',
+        key: 'id'
+      },
+      comment: 'Same as tdpId for multi-dataset contracts (first TDP)'
+    },
+
+    /** Primary dataset internal id (datasets.id) */
+    datasetId: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      references: {
+        model: 'datasets',
+        key: 'id'
+      },
+      comment: 'Primary dataset row id'
+    },
+
+    primaryDatasetId: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      references: {
+        model: 'datasets',
+        key: 'id'
+      },
+      comment: 'Same as datasetId for multi-dataset contracts'
     },
 
     // Selected cloud provider for this contract
@@ -403,9 +465,15 @@ module.exports = (sequelize, DataTypes) => {
   Contract.associate = (models) => {
     // Contract belongs to TDC (Training Data Consumer)
     Contract.belongsTo(models.User, { foreignKey: 'tdcId', as: 'tdc' });
+
+    Contract.belongsTo(models.User, { foreignKey: 'tdpId', as: 'tdp' });
+    Contract.belongsTo(models.User, { foreignKey: 'primaryTdpId', as: 'primaryTdp' });
     
     // Contract belongs to CCRP (Confidential Clean Room Provider) - optional
     Contract.belongsTo(models.User, { foreignKey: 'ccrpId', as: 'ccrp' });
+
+    Contract.belongsTo(models.Dataset, { foreignKey: 'datasetId', as: 'dataset' });
+    Contract.belongsTo(models.Dataset, { foreignKey: 'primaryDatasetId', as: 'primaryDataset' });
 
     // Note: contractDatasets is stored as JSON field in database, not as association
     

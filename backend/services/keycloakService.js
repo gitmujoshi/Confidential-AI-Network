@@ -4,6 +4,12 @@
 const axios = require('axios');
 const https = require('https');
 
+function sanitizeKeycloakNamePart(part) {
+  if (!part || typeof part !== 'string') return '';
+  const cleaned = part.replace(/[^\p{L}\p{N}\s\-']/gu, ' ').replace(/\s+/g, ' ').trim();
+  return cleaned.slice(0, 50) || '';
+}
+
 class KeycloakService {
   constructor() {
     // Validate required environment variables
@@ -181,11 +187,13 @@ class KeycloakService {
       const password = userData.password || this.generateTemporaryPassword();
       
       // Prepare user data for Keycloak
+      const rawFirst = userData.name?.split(' ')[0] || '';
+      const rawLast = userData.name?.split(' ').slice(1).join(' ') || '';
       const keycloakUserData = {
         username: userData.email,
         email: userData.email,
-        firstName: userData.name?.split(' ')[0] || '',
-        lastName: userData.name?.split(' ').slice(1).join(' ') || '',
+        firstName: sanitizeKeycloakNamePart(rawFirst) || sanitizeKeycloakNamePart(userData.name || '') || 'User',
+        lastName: sanitizeKeycloakNamePart(rawLast) || 'User',
         enabled: true,
         emailVerified: false,
         credentials: [{

@@ -35,6 +35,13 @@ db.Contract = require('./Contract')(sequelize, Sequelize);
 db.Notification = require('./Notification')(sequelize, Sequelize);
 db.AIModel = require('./AIModel')(sequelize, Sequelize);
 
+// CAN (Confidential AI Network) coordination models (parallel path)
+db.CANCcrSession = require('./CANCcrSession')(sequelize, Sequelize);
+db.CANJcsJob = require('./CANJcsJob')(sequelize, Sequelize);
+db.CANJcsAttestation = require('./CANJcsAttestation')(sequelize, Sequelize);
+db.CANJcsEvent = require('./CANJcsEvent')(sequelize, Sequelize);
+db.CANProvenanceEvent = require('./CANProvenanceEvent')(sequelize, Sequelize);
+
 // Import contract template model
 db.ContractTemplate = require('./ContractTemplate')(sequelize, Sequelize);
 

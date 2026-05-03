@@ -25,6 +25,7 @@ The Contract Management System is a blockchain-based platform for secure data sh
 - **Frontend**: React application with modern UI/UX
 - **Database**: PostgreSQL with full data model
 - **Authentication**: Keycloak IAM integration with JWT tokens
+- **Confidential AI Network (CAN)**: Parallel CAN path (`/api/can/*`) with JCS escrow + provenance + principal-owned key custody (platform never sees DEK/MEK)
 - **Blockchain**: Smart contracts with flexible integration modes
 - **DID Support**: Multiple DID methods with enterprise integration
 - **Merkle Tree Provenance**: Cryptographic data lineage tracking
@@ -63,6 +64,8 @@ The Contract Management System is a blockchain-based platform for secure data sh
 - **Email Service**: Notification and verification
 - **Audit Service**: Comprehensive logging
 - **Provenance Tracking Service**: Merkle tree-based data lineage
+- **CAN JCS Service**: escrow state machine + SSE/webhooks + deadline enforcement
+- **CAN Provenance Service**: hash-chained append-only CAN event stream
 - **TEE Provisioning Service**: Multi-cloud trusted execution environments
 - **AI Model Service**: Secure model management and processing
 - **Environment Marketplace Service**: Training environment discovery

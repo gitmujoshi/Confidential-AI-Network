@@ -78,15 +78,44 @@ class NotificationService {
     }
   }
 
-  async createNotification(userId, type, title, message, metadata = {}) {
+  /**
+   * @param {number|object} userIdOrPayload - Recipient user id, or { userId, type, title, message, metadata }
+   */
+  async createNotification(userIdOrPayload, type, title, message, metadata = {}) {
     try {
+      let userId;
+      let resolvedType;
+      let resolvedTitle;
+      let resolvedMessage;
+      let resolvedMeta = metadata;
+
+      if (
+        userIdOrPayload &&
+        typeof userIdOrPayload === 'object' &&
+        !Array.isArray(userIdOrPayload) &&
+        'userId' in userIdOrPayload
+      ) {
+        ({
+          userId,
+          type: resolvedType,
+          title: resolvedTitle,
+          message: resolvedMessage,
+          metadata: resolvedMeta = {},
+        } = userIdOrPayload);
+      } else {
+        userId = userIdOrPayload;
+        resolvedType = type;
+        resolvedTitle = title;
+        resolvedMessage = message;
+      }
+
       const notification = await db.Notification.create({
         userId,
-        type,
-        title,
-        message,
-        metadata,
-        isRead: false
+        type: resolvedType,
+        title: resolvedTitle,
+        message: resolvedMessage,
+        metadata: resolvedMeta,
+        isRead: false,
       });
 
       return notification;

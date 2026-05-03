@@ -29,6 +29,7 @@ The Contract Management System is a comprehensive platform that enables secure, 
 - **Data Encryption**: End-to-end encryption for all sensitive data
 - **Audit Logging**: Comprehensive audit trails for compliance
 - **DPDP Compliance**: Built-in data protection and privacy compliance
+- **Confidential AI Network (CAN)**: Optional “CAN path” for principal-owned key custody + escrow + provenance
 
 ## 🏗️ System Architecture
 
@@ -78,6 +79,20 @@ graph TB
 - **Authentication**: Keycloak with JWT tokens
 - **Storage**: Local file system with encryption
 - **Security**: SCITT CCF for immutable records
+
+## 🤝 Confidential AI Network (CAN) (Parallel workflow)
+
+In addition to the portal-driven contract lifecycle, the system also supports a **CAN workflow** under `/api/can/*` that is designed for a stricter trust model:
+
+- **Platform cannot see principal keys/plaintext** for CAN jobs.
+- **JCS escrow state machine** with a hard deadline and automated expiry.
+- **Tamper-evident provenance** event chain for CAN job lifecycle events.
+- **Local CCRP execution** supported for developer workflows (`ccrProvider=local`).
+
+For details, see:
+- `CAN_QUICKSTART.md`
+- `ARCHITECTURE.md` (CAN section)
+- `API_REFERENCE.md` (CAN endpoints)
 
 ## 🎯 Business Benefits
 
