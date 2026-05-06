@@ -1,3 +1,4 @@
+const { randomUUID } = require('crypto');
 const { test, expect } = require('@playwright/test');
 const axios = require('axios');
 const { getBackendURL } = require('../../load-config');
@@ -189,18 +190,27 @@ test.describe('Full E2E (register → login → contract sign → local training
       await clickNext();
 
       await expect(page.getByRole('heading', { name: 'Contract Details & Dataset Selection' })).toBeVisible();
+      // Avoid picking a stale card from a prior cached list; wait for a fresh datasets fetch.
+      await page
+        .waitForResponse(
+          (r) =>
+            r.url().includes('/api/datasets') &&
+            r.request().method() === 'GET' &&
+            r.ok(),
+          { timeout: 120_000 }
+        )
+        .catch(() => {});
       // Wizard submits aiModelIds; empty/invalid selection triggers client validation.
       const aiModelsCombo = page.getByRole('combobox', { name: /AI Models/i });
       await expect(aiModelsCombo).toBeVisible();
       await aiModelsCombo.click();
       await page.getByRole('option', { name: /No AI Model \(Optional\)/i }).click();
 
-      const datasetCard = page
-        .locator('.MuiCard-root')
-        .filter({ has: page.getByRole('heading', { name: datasetName, exact: true }) })
-        .first();
-      await expect(datasetCard).toBeVisible({ timeout: 20_000 });
-      await datasetCard.click();
+      // Do not use `.MuiCard-root.filter(has: heading)` — the wizard wraps MultiDatasetSelector in an outer
+      // MuiCard that also contains that heading, so `.first()` can match the wrapper and click the wrong target.
+      const datasetTitle = page.getByRole('heading', { name: datasetName, exact: true });
+      await expect(datasetTitle).toBeVisible({ timeout: 20_000 });
+      await datasetTitle.click();
 
       await page.getByLabel('Price (USD)').fill('100');
       await page.getByLabel('Duration (days)').fill('30');
@@ -435,11 +445,14 @@ test.describe('Full E2E (register → login → contract sign → local training
   test('Full flow with new users and local training', async ({ page }, testInfo) => {
     const tdcEmail = uniqueEmail('tdc');
     const tdpEmail = uniqueEmail('tdp');
-    const ccrpEmail = uniqueEmail('ccrp');
+    // IMPORTANT: The contract wizard selects the seeded "CCRP E2E User" deterministically.
+    // Signing must be done by the assigned CCRP, otherwise the backend correctly returns 403.
+    const ccrpEmail = 'ccrp.e2e@test.com';
 
     let tdcTempPassword;
     let tdpTempPassword;
-    let ccrpTempPassword;
+    // Seeded CCRP is ensured by global-setup; it uses the same known password.
+    const ccrpTempPassword = NEW_PASSWORD;
 
     let contractId;
     let canJobId;
@@ -449,7 +462,6 @@ test.describe('Full E2E (register → login → contract sign → local training
     // Register all roles (each registration yields a temp password in the UI success message).
     tdcTempPassword = (await registerUserViaUI(page, { name: 'PW E2E TDC User', email: tdcEmail, partyType: 'TDC' })).tempPassword;
     tdpTempPassword = (await registerUserViaUI(page, { name: 'PW E2E TDP User', email: tdpEmail, partyType: 'TDP' })).tempPassword;
-    ccrpTempPassword = (await registerUserViaUI(page, { name: 'PW E2E CCRP User', email: ccrpEmail, partyType: 'CCRP' })).tempPassword;
 
     await testInfo.attach('registered-users.json', {
       contentType: 'application/json',
@@ -459,52 +471,56 @@ test.describe('Full E2E (register → login → contract sign → local training
         tdpEmail,
         tdpTempPassword,
         ccrpEmail,
-        ccrpTempPassword,
+        ccrpPassword: ccrpTempPassword,
       }, null, 2), 'utf8'),
     });
 
     // First login setup for each role (sets NEW_PASSWORD).
     await completeFirstLoginPasswordViaAPI({ email: tdcEmail, currentPassword: tdcTempPassword, newPassword: NEW_PASSWORD });
     await completeFirstLoginPasswordViaAPI({ email: tdpEmail, currentPassword: tdpTempPassword, newPassword: NEW_PASSWORD });
-    await completeFirstLoginPasswordViaAPI({ email: ccrpEmail, currentPassword: ccrpTempPassword, newPassword: NEW_PASSWORD });
+    // Seeded CCRP is already in the desired password state via global-setup.
 
     await loginViaUI(page, { email: tdpEmail, password: NEW_PASSWORD });
     await expect(page).toHaveURL(/\/dashboard$/, { timeout: 90_000 });
 
-    const datasetName = `PW E2E Dataset ${Date.now()}`;
+    // Globally unique name avoids accidental selection of another run's public dataset card.
+    const datasetName = `PW E2E Dataset ${randomUUID()}`;
     await createDatasetViaUI(page, datasetName);
     await logoutViaUI(page);
+
+    let businessDatasetId;
+    let tdpUserId;
+    await test.step('Resolve registering TDP id + dataset business slug from API', async () => {
+      const { token, user } = await loginViaAPI({ email: tdpEmail, password: NEW_PASSWORD });
+      expect(user?.id, 'login response must include DB user id for TDP').toBeTruthy();
+      tdpUserId = user.id;
+      const res = await axios.get(
+        `${BACKEND_URL}/api/tdp/datasets/${encodeURIComponent(String(tdpUserId))}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      const list = res.data?.datasets || [];
+      const mine = list.find((d) => d.name === datasetName);
+      expect(
+        mine,
+        `TDP ${tdpEmail} (user ${tdpUserId}) must own dataset "${datasetName}" (${list.length} datasets)`
+      ).toBeTruthy();
+      expect(mine.datasetId).toBeTruthy();
+      businessDatasetId = mine.datasetId;
+    });
 
     // TDC creates contract selecting the dataset (and local CCRP).
     await loginViaUI(page, { email: tdcEmail, password: NEW_PASSWORD });
     contractId = await createContractViaUI(page, { datasetName });
     await logoutViaUI(page);
 
-    // Fail fast with a clear contract-shape assertion (403 on /sign means linkage didn't match JWT user).
-    await test.step('Assert contract references registering TDP before API sign', async () => {
-      const { user: tdpUser } = await loginViaAPI({ email: tdpEmail, password: NEW_PASSWORD });
+    await test.step('Contract must bind resolved dataset + TDP before API sign', async () => {
       const { data: row } = await axios.get(
         `${BACKEND_URL}/api/contracts/${encodeURIComponent(contractId)}`
       );
-      const uid = Number(tdpUser.id);
-      const cds = Array.isArray(row?.contractDatasets) ? row.contractDatasets : [];
-      const linked =
-        Number(row?.tdpId) === uid ||
-        Number(row?.primaryTdpId) === uid ||
-        cds.some((d) => Number(d?.tdpId ?? d?.tdp?.id) === uid) ||
-        cds.some(
-          (d) => String(d?.tdpEmail || '').toLowerCase() === String(tdpEmail).toLowerCase()
-        );
-      expect(
-        linked,
-        `Contract must link TDP ${uid} before /sign: ${JSON.stringify({
-          contractId,
-          tdpId: row?.tdpId,
-          primaryDatasetId: row?.primaryDatasetId,
-          datasetId: row?.datasetId,
-          cdsSample: cds[0],
-        })}`
-      ).toBe(true);
+      expect(row?.contractDatasets?.[0]?.datasetId, JSON.stringify({ contractId, row })).toBe(
+        businessDatasetId
+      );
+      expect(Number(row?.tdpId)).toBe(Number(tdpUserId));
     });
 
     // Signing: prefer UI, but the contract detail endpoint is currently unreliable for non-TDC roles.

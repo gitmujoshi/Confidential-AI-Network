@@ -67,6 +67,7 @@ class RicardianContractService {
       individualPrice: selection.individualPrice,
       tdpId: selection.tdpId,
       tdpName: selection.tdpName,
+      tdpEmail: selection.tdpEmail,
       tdp: {
         id: selection.tdpId,
         name: selection.tdpName,
