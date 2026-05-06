@@ -12,7 +12,7 @@ router.get('/dashboard/:userId', authenticateToken, async (req, res) => {
     const currentUserId = req.user.localUser?.id;
     const userPartyType = req.user.localUser?.partyType;
     
-    if (currentUserId !== parseInt(userId) && userPartyType !== 'AppAdmin') {
+    if (Number(currentUserId) !== Number(userId) && userPartyType !== 'AppAdmin') {
       return res.status(403).json({ error: 'Access denied' });
     }
 
@@ -145,7 +145,7 @@ router.get('/datasets/:userId', authenticateToken, async (req, res) => {
     const currentUserId = req.user.localUser?.id;
     const userPartyType = req.user.localUser?.partyType;
     
-    if (currentUserId !== parseInt(userId) && userPartyType !== 'AppAdmin') {
+    if (Number(currentUserId) !== Number(userId) && userPartyType !== 'AppAdmin') {
       return res.status(403).json({ error: 'Access denied' });
     }
 
@@ -172,7 +172,7 @@ router.get('/contracts/:userId', authenticateToken, async (req, res) => {
     const currentUserId = req.user.localUser?.id;
     const userPartyType = req.user.localUser?.partyType;
     
-    if (currentUserId !== parseInt(userId) && userPartyType !== 'AppAdmin') {
+    if (Number(currentUserId) !== Number(userId) && userPartyType !== 'AppAdmin') {
       return res.status(403).json({ error: 'Access denied' });
     }
 
@@ -200,7 +200,7 @@ router.get('/payments/:userId', authenticateToken, async (req, res) => {
     const currentUserId = req.user.localUser?.id;
     const userPartyType = req.user.localUser?.partyType;
     
-    if (currentUserId !== parseInt(userId) && userPartyType !== 'AppAdmin') {
+    if (Number(currentUserId) !== Number(userId) && userPartyType !== 'AppAdmin') {
       return res.status(403).json({ error: 'Access denied' });
     }
 
@@ -261,7 +261,7 @@ router.get('/analytics/:userId', authenticateToken, async (req, res) => {
     const currentUserId = req.user.localUser?.id;
     const userPartyType = req.user.localUser?.partyType;
     
-    if (currentUserId !== parseInt(userId) && userPartyType !== 'AppAdmin') {
+    if (Number(currentUserId) !== Number(userId) && userPartyType !== 'AppAdmin') {
       return res.status(403).json({ error: 'Access denied' });
     }
 
