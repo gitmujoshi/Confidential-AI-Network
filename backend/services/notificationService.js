@@ -125,6 +125,20 @@ class NotificationService {
     }
   }
 
+  /** Human-readable dataset line for Ricardian / multi-dataset contracts (no Sequelize include). */
+  datasetLabelForContract(contract) {
+    const fromRows = (rows) =>
+      (Array.isArray(rows) ? rows : [])
+        .map((d) => d?.datasetName || d?.name)
+        .filter(Boolean);
+    const cd = fromRows(contract.contractDatasets);
+    if (cd.length) return cd.join(', ');
+    const ds = fromRows(contract.datasetSelections);
+    if (ds.length) return ds.join(', ');
+    if (contract.dataset?.name) return contract.dataset.name;
+    return 'your dataset(s)';
+  }
+
   async notifyContractCreated(contract, tdpUser) {
     try {
       const title = 'New Contract Initiated';
@@ -139,12 +153,14 @@ class NotificationService {
         { contractId: contract.contractId }
       );
 
+      const datasetLabel = this.datasetLabelForContract(contract);
+
       // Send email notification
       const emailHtml = `
         <h2>New Contract Initiated</h2>
         <p>A Training Data Consumer has initiated a contract for your dataset.</p>
         <p><strong>Contract ID:</strong> ${contract.contractId}</p>
-        <p><strong>Dataset:</strong> ${contract.dataset.name}</p>
+        <p><strong>Dataset:</strong> ${datasetLabel}</p>
         <p><strong>Price:</strong> $${contract.price}</p>
         <p><strong>Duration:</strong> ${contract.duration} days</p>
         <p>Please review and sign the contract in your dashboard.</p>

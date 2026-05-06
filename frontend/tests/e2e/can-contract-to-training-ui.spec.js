@@ -85,7 +85,8 @@ test.describe('CAN local flow via UI (create contract → training)', () => {
       await cloudProvider.click();
       await page.getByRole('option', { name: /Local \(Docker\)/i }).click();
 
-      await page.getByText('CCRP E2E User').click();
+      // There can be multiple CCRP cards with similar names; click the exact heading to avoid strict-mode violations.
+      await page.getByRole('heading', { name: 'CCRP E2E User', exact: true }).first().click();
 
       // Environment/KMS fields (wizard can validate these; fill to avoid blocking).
       await page.getByLabel('Instance Type').fill('local');

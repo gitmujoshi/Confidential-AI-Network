@@ -408,7 +408,10 @@ function CreateRicardianContract() {
   const [createdContract, setCreatedContract] = useState(null);
 
   // Fetch data
-  const { data: datasetsResponse, isLoading: datasetsLoading } = useQuery('datasets', () => apiService.getDatasets({}, currentUser));
+  const { data: datasetsResponse, isLoading: datasetsLoading } = useQuery(
+    'datasets',
+    () => apiService.getDatasets({ limit: 250, offset: 0 }, currentUser)
+  );
   const { data: aiModelsResponse, isLoading: aiModelsLoading } = useQuery('ai-models', apiService.getAIModels);
   
   // Manual CCRP users fetch to avoid React Query parameter injection
@@ -486,24 +489,35 @@ function CreateRicardianContract() {
     toast.error('Some selected datasets were removed because they are not compatible with the selected AI model type.');
   }, [modelTaskType]);
 
-  // Contract creation mutation - Create contract first, then SCITT CCF claim
+  // SCITT CCF is optional in local/dev: if it isn't configured, we still allow contract creation
+  // (the backend may disable SCITT when required env vars are missing).
+  const { data: scittHealth } = useQuery('scitt-ccf-health', apiService.getScittCcfHealth, {
+    retry: false,
+    staleTime: 30_000,
+  });
+  const scittAvailable =
+    Boolean(scittHealth) &&
+    (scittHealth.scittCcf?.isHealthy === true || scittHealth.scittCcf?.isEnabled === true);
+
+  // Contract creation mutation - Create contract first, then SCITT CCF claim (when available)
   const createRicardianContractMutation = useMutation(
     async (data) => {
       // First create the contract in the regular contracts table
       const contractResponse = await apiService.createRicardianContract(data);
       
       if (contractResponse?.contract?.contractId) {
-        // Then create the SCITT CCF claim using the actual contract ID
-        const scittData = {
-          ...data,
-          contractId: contractResponse.contract.contractId // Use the actual contract ID from the database
-        };
-        
-        const scittResponse = await apiService.createScittCcfContract(scittData);
-        return {
-          ...contractResponse,
-          scittCcf: scittResponse
-        };
+        // Then create the SCITT CCF claim using the actual contract ID (optional)
+        if (scittAvailable) {
+          const scittData = {
+            ...data,
+            contractId: contractResponse.contract.contractId // Use the actual contract ID from the database
+          };
+          const scittResponse = await apiService.createScittCcfContract(scittData);
+          return {
+            ...contractResponse,
+            scittCcf: scittResponse
+          };
+        }
       }
       
       return contractResponse;
@@ -518,12 +532,18 @@ function CreateRicardianContract() {
             contract: {
               contractId: response.contract.contractId,
               claimId: response.scittCcf?.claimId,
-              source: 'SCITT_CCF'
+              source: response.scittCcf ? 'SCITT_CCF' : 'DATABASE'
             },
-            message: response.scittCcf?.message || 'Contract created successfully with SCITT CCF integration!'
+            message: response.scittCcf
+              ? (response.scittCcf?.message || 'Contract created successfully with SCITT CCF integration!')
+              : 'Contract created successfully!'
           });
           queryClient.invalidateQueries('contracts');
-          toast.success('Contract created successfully with SCITT CCF integration!');
+          toast.success(
+            response.scittCcf
+              ? 'Contract created successfully with SCITT CCF integration!'
+              : 'Contract created successfully!'
+          );
           
           // Navigate to the newly created contract detail page
           navigate(`/contracts/${response.contract.contractId}`);
@@ -777,9 +797,10 @@ function CreateRicardianContract() {
         termsAndConditions: contractData.termsAndConditions || `Contract for ${selectedDatasets.map(d => d.name).join(', ')} - AI training contract using ${selectedDatasets.length} dataset(s)`,
         price: parseFloat(contractData.price) || 0,
         duration: parseInt(contractData.duration) || 90,
-        datasetSelections: selectedDatasets.map(dataset => ({
+        datasetSelections: selectedDatasets.map((dataset) => ({
           datasetId: dataset.datasetId,
-          individualPrice: dataset.price || 0
+          // Wizard stores negotiated prices in datasetPrices[dataset.id]; dataset.price is catalog default only.
+          individualPrice: parseFloat(String(datasetPrices[dataset.id] ?? dataset.price ?? '0')),
         })),
         // Fix: Convert single selectedAiModels string to array
         aiModelIds: selectedAiModels ? [parseInt(selectedAiModels)] : [],
@@ -2612,7 +2633,9 @@ function CreateRicardianContract() {
               onClick={handleCreateContract}
               disabled={createRicardianContractMutation.isLoading}
             >
-              {createRicardianContractMutation.isLoading ? 'Creating SCITT CCF Contract...' : 'Create SCITT CCF Contract'}
+              {createRicardianContractMutation.isLoading
+                ? (scittAvailable ? 'Creating SCITT CCF Contract...' : 'Creating Contract...')
+                : (scittAvailable ? 'Create SCITT CCF Contract' : 'Create Contract')}
             </Button>
           ) : activeStep < steps.length - 1 ? (
             <Button

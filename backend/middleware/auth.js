@@ -148,6 +148,7 @@ const authenticateToken = async (req, res, next) => {
               email: user.email,
               partyType: user.partyType,
               walletAddress: user.walletAddress,
+              did: user.did,
               publicKey: user.publicKey,
               description: user.description,
               organization: user.organization,
@@ -210,7 +211,7 @@ const authenticateToken = async (req, res, next) => {
         });
       }
       
-      // Set user context for the request
+      // Set user context for the request (mirror Keycloak shape so routes can use req.user.localUser)
       req.user = {
         id: user.id,
         email: user.email,
@@ -227,7 +228,26 @@ const authenticateToken = async (req, res, next) => {
         profileCompleted: user.profileCompleted,
         emailVerified: user.emailVerified,
         token: token,
-        authType: 'jwt'
+        authType: 'jwt',
+        localUser: {
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          partyType: user.partyType,
+          walletAddress: user.walletAddress,
+          did: user.did,
+          publicKey: user.publicKey,
+          description: user.description,
+          organization: user.organization,
+          phoneNumber: user.phoneNumber,
+          website: user.website,
+          location: user.location,
+          isRegistered: user.isRegistered,
+          onboardingStatus: user.onboardingStatus,
+          profileCompleted: user.profileCompleted,
+          emailVerified: user.emailVerified,
+          depaId: user.depaId,
+        },
       };
       
       console.log('🔑 [auth.js] req.user after JWT validation:', req.user);

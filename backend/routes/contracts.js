@@ -8,6 +8,13 @@ const { authenticateToken } = require('../middleware/auth');
 const ContractValidationService = require('../services/contractValidationService');
 const contractValidationService = new ContractValidationService();
 const crypto = require('crypto');
+const {
+  normalizePartyType,
+  isAppAdminParty,
+  rolesAllowSigning,
+  resolveSigningUser,
+  resolveIsLinkedTdp,
+} = require('../services/contractSigningGate');
 
 /**
  * Enhanced DID signature verification using DID service
@@ -405,7 +412,8 @@ router.get('/:contractId', async (req, res) => {
 router.get('/:contractId/signing-data', authenticateToken, async (req, res) => {
   try {
     const { contractId } = req.params;
-    const partyType = req.user?.localUser?.partyType;
+    const authUser = resolveSigningUser(req);
+    const partyType = authUser?.partyType;
     if (!partyType) {
       return res.status(401).json({ error: 'Unauthorized' });
     }
@@ -437,7 +445,7 @@ router.get('/:contractId/signing-data', authenticateToken, async (req, res) => {
 router.post('/:contractId/sign', authenticateToken, async (req, res) => {
   try {
     const { contractId } = req.params;
-    const currentUser = req.user?.localUser;
+    const currentUser = resolveSigningUser(req);
     if (!currentUser?.id || !currentUser?.partyType) {
       return res.status(401).json({ error: 'Unauthorized' });
     }
@@ -447,10 +455,11 @@ router.post('/:contractId/sign', authenticateToken, async (req, res) => {
       return res.status(400).json({ error: 'Missing required fields: signature, partyType' });
     }
 
-    // Enforce role matches unless AppAdmin.
-    if (currentUser.partyType !== 'AppAdmin' && currentUser.partyType !== partyType) {
+    if (!rolesAllowSigning(currentUser.partyType, partyType)) {
       return res.status(403).json({ error: 'Role mismatch: not authorized to sign as this partyType' });
     }
+
+    const claimedParty = normalizePartyType(partyType);
 
     const contract = await db.Contract.findOne({ where: { contractId } });
     if (!contract) {
@@ -473,10 +482,9 @@ router.post('/:contractId/sign', authenticateToken, async (req, res) => {
 
     const updates = { legalDocument: legal };
 
-    if (partyType === 'TDP') {
-      const datasets = contract.contractDatasets;
-      const isLinkedTdp = Array.isArray(datasets) && datasets.some((d) => Number(d?.tdpId) === Number(currentUser.id));
-      if (currentUser.partyType !== 'AppAdmin' && !isLinkedTdp) {
+    if (claimedParty === 'TDP') {
+      const isLinkedTdp = await resolveIsLinkedTdp(contract, currentUser.id, db, currentUser.email || null);
+      if (!isAppAdminParty(currentUser.partyType) && !isLinkedTdp) {
         return res.status(403).json({ error: 'Only a linked TDP can sign this contract' });
       }
 
@@ -486,8 +494,8 @@ router.post('/:contractId/sign', authenticateToken, async (req, res) => {
       }
     }
 
-    if (partyType === 'CCRP') {
-      if (currentUser.partyType !== 'AppAdmin' && Number(contract.ccrpId) !== Number(currentUser.id)) {
+    if (claimedParty === 'CCRP') {
+      if (!isAppAdminParty(currentUser.partyType) && Number(contract.ccrpId) !== Number(currentUser.id)) {
         return res.status(403).json({ error: 'Only the assigned CCRP can sign this contract' });
       }
       updates.ccrpSigned = true;

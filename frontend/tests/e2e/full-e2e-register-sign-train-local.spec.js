@@ -127,6 +127,10 @@ test.describe('Full E2E (register → login → contract sign → local training
       await dataResidencyCombo.scrollIntoViewIfNeeded();
       await dataResidencyCombo.click();
       await page.getByRole('option').first().click();
+      // Data Residency Select can leave a closing Menu/backdrop in the tree briefly; it still
+      // intercepts clicks on the next combobox (Processing Location). Mirror Privacy Techniques.
+      await page.keyboard.press('Escape');
+      await expect(page.locator('.MuiPopover-root.MuiMenu-root')).toHaveCount(0, { timeout: 5000 });
 
       const processingLocationCombo = page
         .locator('text=Processing Location')
@@ -189,11 +193,14 @@ test.describe('Full E2E (register → login → contract sign → local training
       const aiModelsCombo = page.getByRole('combobox', { name: /AI Models/i });
       await expect(aiModelsCombo).toBeVisible();
       await aiModelsCombo.click();
-      await page.getByRole('option').filter({ hasNotText: /No AI Model/i }).first().click();
+      await page.getByRole('option', { name: /No AI Model \(Optional\)/i }).click();
 
-      const datasetHeading = page.getByRole('heading', { name: datasetName, exact: true });
-      await expect(datasetHeading).toBeVisible({ timeout: 20_000 });
-      await datasetHeading.click();
+      const datasetCard = page
+        .locator('.MuiCard-root')
+        .filter({ has: page.getByRole('heading', { name: datasetName, exact: true }) })
+        .first();
+      await expect(datasetCard).toBeVisible({ timeout: 20_000 });
+      await datasetCard.click();
 
       await page.getByLabel('Price (USD)').fill('100');
       await page.getByLabel('Duration (days)').fill('30');
@@ -206,8 +213,8 @@ test.describe('Full E2E (register → login → contract sign → local training
       await cloudProvider.click();
       await page.getByRole('option', { name: /Local \(Docker\)/i }).click();
 
-      // Prefer the CCRP registered in this flow (avoid clicking unrelated "CCRP" copy).
-      await page.getByRole('heading', { name: /PW E2E CCRP User/i }).click();
+      // Use the globally seeded CCRP (deterministic + guaranteed cloudProviders).
+      await page.getByRole('heading', { name: 'CCRP E2E User', exact: true }).first().click();
 
       await page.getByLabel('Instance Type').fill('local');
       await page.getByLabel('CPU Requirements').fill('2');
@@ -231,9 +238,47 @@ test.describe('Full E2E (register → login → contract sign → local training
       await clickNext();
       await expect(page.locator('body')).toContainText('Create Contract', { timeout: 60_000 });
 
-      const create = page.getByRole('button', { name: /Create SCITT CCF Contract/i }).first();
+      // There is also a sidebar "Create Contract" quick-action button; scope to the main wizard action.
+      const create = page
+        .getByRole('main')
+        .getByRole('button', { name: /^Create( SCITT CCF)? Contract$/i })
+        .first();
       await expect(create).toBeVisible();
+
+      // Only wait for SCITT call if the UI indicates SCITT mode (avoids hanging when SCITT is disabled/unhealthy).
+      const expectsScitt = /SCITT/i.test((await create.innerText().catch(() => '')) || '');
+      // Capture BOTH backend calls so failures include actionable API error details (best practice:
+      // fail on root-cause, not the generic UI toast).
+      const ricardianRespPromise = page.waitForResponse(
+        (r) => r.url().includes('/api/contracts/ricardian') && r.request().method() === 'POST',
+        { timeout: 120_000 }
+      );
+      const scittRespPromise = expectsScitt
+        ? page.waitForResponse(
+            (r) => r.url().includes('/api/scitt-ccf/contracts') && r.request().method() === 'POST',
+            { timeout: 120_000 }
+          )
+        : null;
       await create.click();
+      const ricardianResp = await ricardianRespPromise.catch(() => null);
+      if (ricardianResp && !ricardianResp.ok()) {
+        const body = await ricardianResp.text().catch(() => '');
+        throw new Error(
+          `Contract create (ricardian) failed: HTTP ${ricardianResp.status()} url=${ricardianResp.url()} body=${body}`
+        );
+      }
+      if (!ricardianResp) {
+        throw new Error('Contract create (ricardian) did not produce a POST /api/contracts/ricardian response');
+      }
+      if (scittRespPromise) {
+        const scittResp = await scittRespPromise.catch(() => null);
+        if (scittResp && !scittResp.ok()) {
+          const body = await scittResp.text().catch(() => '');
+          throw new Error(
+            `Contract create (SCITT CCF) failed: HTTP ${scittResp.status()} url=${scittResp.url()} body=${body}`
+          );
+        }
+      }
 
       // Either we navigate to the new contract, or we get an in-page error.
       const errorBox = page.getByText(/Contract Creation Error|Validation failed|Failed to create contract/i).first();
@@ -369,11 +414,18 @@ test.describe('Full E2E (register → login → contract sign → local training
         did: user.did || null,
       };
 
-      const res = await axios.post(
-        `${BACKEND_URL}/api/contracts/${encodeURIComponent(canonicalContractId)}/sign`,
-        signaturePayload,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      let res;
+      try {
+        res = await axios.post(
+          `${BACKEND_URL}/api/contracts/${encodeURIComponent(canonicalContractId)}/sign`,
+          signaturePayload,
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+      } catch (e) {
+        const status = e?.response?.status;
+        const body = e?.response?.data ? JSON.stringify(e.response.data) : '';
+        throw new Error(`API sign failed for ${partyType}: HTTP ${status} body=${body}`);
+      }
       if (res.status !== 200 || !res.data?.success) {
         throw new Error(`API sign failed for ${partyType}: HTTP ${res.status}`);
       }
@@ -427,6 +479,33 @@ test.describe('Full E2E (register → login → contract sign → local training
     await loginViaUI(page, { email: tdcEmail, password: NEW_PASSWORD });
     contractId = await createContractViaUI(page, { datasetName });
     await logoutViaUI(page);
+
+    // Fail fast with a clear contract-shape assertion (403 on /sign means linkage didn't match JWT user).
+    await test.step('Assert contract references registering TDP before API sign', async () => {
+      const { user: tdpUser } = await loginViaAPI({ email: tdpEmail, password: NEW_PASSWORD });
+      const { data: row } = await axios.get(
+        `${BACKEND_URL}/api/contracts/${encodeURIComponent(contractId)}`
+      );
+      const uid = Number(tdpUser.id);
+      const cds = Array.isArray(row?.contractDatasets) ? row.contractDatasets : [];
+      const linked =
+        Number(row?.tdpId) === uid ||
+        Number(row?.primaryTdpId) === uid ||
+        cds.some((d) => Number(d?.tdpId ?? d?.tdp?.id) === uid) ||
+        cds.some(
+          (d) => String(d?.tdpEmail || '').toLowerCase() === String(tdpEmail).toLowerCase()
+        );
+      expect(
+        linked,
+        `Contract must link TDP ${uid} before /sign: ${JSON.stringify({
+          contractId,
+          tdpId: row?.tdpId,
+          primaryDatasetId: row?.primaryDatasetId,
+          datasetId: row?.datasetId,
+          cdsSample: cds[0],
+        })}`
+      ).toBe(true);
+    });
 
     // Signing: prefer UI, but the contract detail endpoint is currently unreliable for non-TDC roles.
     // Use API signing to keep the full E2E flow deterministic.

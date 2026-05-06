@@ -67,17 +67,34 @@ initializeServices().catch(error => {
 // Health and Status Endpoints
 router.get('/health', async (req, res) => {
   try {
-    const health = await healthMonitor.checkScittCcfHealth();
-    res.json({
-      status: 'healthy',
+    // Ensure services are initialized if SCITT is enabled (best effort).
+    if (!servicesInitialized) {
+      await initializeServices();
+    }
+
+    const health = await scittCcfService.getHealthStatus();
+    const isEnabled = Boolean(scittCcfService.isEnabled);
+    const isInitialized = Boolean(scittCcfService.isInitialized);
+    const isHealthy = Boolean(health?.isHealthy);
+
+    res.status(isEnabled && !isHealthy ? 503 : 200).json({
+      status: isEnabled && isHealthy ? 'healthy' : (isEnabled ? 'unhealthy' : 'disabled'),
       timestamp: new Date().toISOString(),
-      scittCcf: health
+      scittCcf: {
+        isEnabled,
+        isInitialized,
+        ...health,
+      },
+      contractRouter: {
+        isInitialized: Boolean(contractRouter.isInitialized),
+      },
     });
   } catch (error) {
     res.status(503).json({
       status: 'unhealthy',
       error: 'SCITT CCF service unavailable',
-      timestamp: new Date().toISOString()
+      message: error.message,
+      timestamp: new Date().toISOString(),
     });
   }
 });
@@ -100,6 +117,13 @@ router.post('/contracts', authenticateToken, async (req, res) => {
     // Ensure services are initialized
     if (!servicesInitialized) {
       await initializeServices();
+    }
+    if (!servicesInitialized) {
+      return res.status(503).json({
+        success: false,
+        error: 'SCITT CCF service unavailable',
+        message: 'Contract Router Service not initialized',
+      });
     }
     
     const contractData = req.body;

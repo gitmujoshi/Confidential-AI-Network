@@ -18,6 +18,7 @@
  */
 
 const db = require('../models');
+const ScittCcfService = require('./scittCcfService');
 
 class SystemHealthMonitor {
   constructor() {
@@ -56,6 +57,10 @@ class SystemHealthMonitor {
       errorRate: 0.1, // 10%
       consecutiveFailures: 3
     };
+
+    // Use a real SCITT CCF probe instead of Math.random() simulation.
+    // SCITT CCF can be disabled automatically in dev/test if env vars are missing.
+    this.scittCcfService = new ScittCcfService();
   }
 
   /**
@@ -197,10 +202,10 @@ class SystemHealthMonitor {
   async checkScittCcfHealth() {
     try {
       const startTime = Date.now();
-      
-      // Simulate SCITT CCF health check (replace with actual implementation)
-      const isHealthy = await this.simulateScittCcfHealthCheck();
+
+      const health = await this.scittCcfService.getHealthStatus();
       const responseTime = Date.now() - startTime;
+      const isHealthy = Boolean(health?.isHealthy);
       
       // Update health status
       const wasHealthy = this.scittCcfHealth.isHealthy;
@@ -209,7 +214,10 @@ class SystemHealthMonitor {
         lastCheck: new Date(),
         metrics: {
           responseTime: responseTime,
-          statusCode: isHealthy ? 200 : 500,
+          statusCode: health?.statusCode ?? (isHealthy ? 200 : 503),
+          isEnabled: this.scittCcfService.isEnabled,
+          isInitialized: health?.isInitialized ?? this.scittCcfService.isInitialized,
+          error: health?.error,
           timestamp: new Date().toISOString()
         },
         uptime: this.calculateUptime('scittCcf'),
@@ -230,7 +238,9 @@ class SystemHealthMonitor {
       // Store health log
       await this.storeHealthLog('scittCcf', isHealthy, responseTime);
       
-      if (!isHealthy) {
+      if (!this.scittCcfService.isEnabled) {
+        console.warn('⚠️  SCITT CCF is disabled (env/config) — health will report unavailable');
+      } else if (!isHealthy) {
         console.warn('⚠️  SCITT CCF system health check failed');
       }
       
@@ -262,16 +272,7 @@ class SystemHealthMonitor {
     return Math.random() > 0.05;
   }
 
-  /**
-   * Simulate SCITT CCF health check (replace with actual implementation)
-   */
-  async simulateScittCcfHealthCheck() {
-    // Simulate network delay
-    await new Promise(resolve => setTimeout(resolve, Math.random() * 500));
-    
-    // Simulate occasional failures (3% failure rate)
-    return Math.random() > 0.03;
-  }
+  // NOTE: simulateScittCcfHealthCheck() removed — health must be deterministic and reflect real SCITT status.
 
   /**
    * Calculate system uptime

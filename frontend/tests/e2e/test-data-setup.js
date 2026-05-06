@@ -61,6 +61,64 @@ async function login({ email, password }) {
   return { accessToken: res.data.accessToken, user: res.data.user };
 }
 
+function normalizedProviderSet(list) {
+  return JSON.stringify([...new Set(list || [])].sort());
+}
+
+/** Upsert-by-modelId so modality-filter tests always have tabular + vision fixtures. */
+async function ensureAiModelExists(backendURL, adminToken, payload) {
+  const mid = payload.modelId;
+  try {
+    await axios.get(`${backendURL}/api/ai-models/${encodeURIComponent(mid)}`);
+    return;
+  } catch (e) {
+    if (e.response?.status !== 404) {
+      console.warn(`⚠️ E2E: probe AI model ${mid}:`, e.response?.status || e.message);
+      return;
+    }
+  }
+  try {
+    await axios.post(`${backendURL}/api/ai-models`, payload, {
+      headers: { Authorization: `Bearer ${adminToken}` },
+    });
+    console.log(`✅ E2E seeded AI model ${mid}`);
+  } catch (e) {
+    const status = e.response?.status;
+    const msg = e.response?.data?.error || e.message || '';
+    if (status === 400 && String(msg).toLowerCase().includes('already')) return;
+    console.warn(`⚠️ E2E: failed to seed AI model ${mid}:`, status || msg);
+  }
+}
+
+/** Every CCRP must include Local so MultiCCRPSelector passes Local (Docker) filter (also merges Azure). */
+async function ensureAllCcrpsAdvertiseLocalDocker(backendURL, adminToken) {
+  try {
+    const res = await axios.get(`${backendURL}/api/users/ccrp`, {
+      headers: { Authorization: `Bearer ${adminToken}` },
+    });
+    const rows = Array.isArray(res.data) ? res.data : [];
+    for (const u of rows) {
+      const existing = Array.isArray(u.cloudProviders) ? u.cloudProviders : [];
+      const merged = [...new Set([...existing, 'Local', 'Azure'])];
+      if (normalizedProviderSet(existing) === normalizedProviderSet(merged)) continue;
+      await axios.put(
+        `${backendURL}/api/users/${u.id}`,
+        {
+          cloudProviders: merged,
+          description: u.description || 'CCRP provider for E2E tests',
+        },
+        { headers: { Authorization: `Bearer ${adminToken}` } }
+      );
+    }
+    console.log(`✅ E2E ensured cloudProviders on ${rows.length} CCRP user(s)`);
+  } catch (err) {
+    console.warn(
+      '⚠️ Failed to backfill CCRP cloudProviders for E2E:',
+      err.response?.status || err.message
+    );
+  }
+}
+
 class E2ETestDataManager {
   async setupTestData() {
     // This user is hard-coded across Playwright specs as a known-good login.
@@ -103,61 +161,39 @@ class E2ETestDataManager {
       password: 'TestNewPassword123!',
     });
 
-    // Ensure CCRP test user advertises at least one cloud provider (for CCRP selection UI).
-    try {
-      const { user: ccrpUser } = await login({
-        email: 'ccrp.e2e@test.com',
-        password: 'TestNewPassword123!',
-      });
+    await ensureAllCcrpsAdvertiseLocalDocker(backendURL, adminToken);
 
-      // Fetch CCRP user record as AppAdmin, then update cloudProviders if missing.
-      const ccrpRecord = await axios.get(`${backendURL}/api/users/${ccrpUser.id}`, {
-        headers: { Authorization: `Bearer ${adminToken}` },
-      });
-
-      const existingProviders = ccrpRecord.data?.cloudProviders;
-      const providers = Array.isArray(existingProviders) && existingProviders.length > 0
-        ? existingProviders
-        : ['Local', 'Azure'];
-
-      await axios.put(`${backendURL}/api/users/${ccrpUser.id}`, {
-        cloudProviders: providers,
-        description: ccrpRecord.data?.description || 'CCRP provider for E2E tests',
-      }, {
-        headers: { Authorization: `Bearer ${adminToken}` },
-      });
-    } catch (err) {
-      // Non-fatal: CCRP UI will still load, but provider filtering may be limited.
-      console.warn('⚠️ Failed to ensure CCRP cloud providers for E2E:', err.response?.status || err.message);
-    }
-
-    // Seed at least one AI model for contract creation and training runtime prerequisites.
-    try {
-      const list = await axios.get(`${backendURL}/api/ai-models?limit=1&offset=0`);
-      const models = list.data?.models || [];
-      if (!Array.isArray(models) || models.length === 0) {
-        await axios.post(`${backendURL}/api/ai-models`, {
-          modelId: 'e2e-model-1',
-          name: 'E2E Base Model',
-          description: 'Seeded model for Playwright E2E tests',
-          type: 'transformer',
-          architecture: 'bert-base',
-          parameters: '110M',
-          framework: 'PyTorch',
-          privacyTechnique: 'differential-privacy',
-          validationMetrics: ['accuracy'],
-          maxEpochs: 3,
-          batchSize: 8,
-          learningRate: 0.0001,
-          metadata: { seededBy: 'playwright' },
-        }, {
-          headers: { Authorization: `Bearer ${adminToken}` },
-        });
-      }
-    } catch (err) {
-      // Non-fatal: some deployments may lock down model creation.
-      console.warn('⚠️ Failed to seed AI model for E2E:', err.response?.status || err.message);
-    }
+    // Deterministic AI fixtures: tabular/text + vision (wizard modality filtering / dropdown tests).
+    await ensureAiModelExists(backendURL, adminToken, {
+      modelId: 'e2e-model-1',
+      name: 'E2E Tabular Model',
+      description: 'Seeded tabular/NLP-style model for Playwright E2E (BERT)',
+      type: 'transformer',
+      architecture: 'bert-base',
+      parameters: '110M',
+      framework: 'PyTorch',
+      privacyTechnique: 'differential-privacy',
+      validationMetrics: ['accuracy'],
+      maxEpochs: 3,
+      batchSize: 8,
+      learningRate: 0.0001,
+      metadata: { seededBy: 'playwright', modalityHint: 'tabular' },
+    });
+    await ensureAiModelExists(backendURL, adminToken, {
+      modelId: 'MODEL-E2E-001',
+      name: 'E2E Test Model 1',
+      description: 'Seeded vision/CNN model for Playwright E2E',
+      type: 'cnn',
+      architecture: 'ResNet-50',
+      parameters: '{"layers":50,"activation":"relu"}',
+      framework: 'TensorFlow',
+      privacyTechnique: 'differential-privacy',
+      validationMetrics: ['accuracy', 'loss'],
+      maxEpochs: 10,
+      batchSize: 32,
+      learningRate: 0.001,
+      metadata: { seededBy: 'playwright', modalityHint: 'vision' },
+    });
     await axios.post(`${backendURL}/api/contract-templates/seed`, {}, {
       headers: { Authorization: `Bearer ${adminToken}` },
     }).catch((err) => {
@@ -182,23 +218,48 @@ class E2ETestDataManager {
       if (err.response?.status !== 404) throw err;
     }
 
+    const catalogDatasetBody = {
+      datasetId,
+      name: 'E2E Sample Dataset',
+      description: 'Seeded dataset for Playwright E2E tests',
+      category: 'Tabular',
+      size: 10,
+      recordCount: 1000,
+      price: 100,
+      license: 'E2E-LICENSE',
+      tags: ['e2e', 'seed'],
+      metadata: { seededBy: 'playwright', modality: 'tabular' },
+      isPublic: true,
+      confidentialComputingRequired: false,
+      ownerId: tdpUser.id,
+    };
+
     if (!datasetExists) {
-      await axios.post(`${backendURL}/api/datasets`, {
-        datasetId,
-        name: 'E2E Sample Dataset',
-        description: 'Seeded dataset for Playwright E2E tests',
-        category: 'Tabular',
-        // Backend model stores `size` as an integer.
-        size: 10,
-        recordCount: 1000,
-        price: 100,
-        license: 'E2E-LICENSE',
-        tags: ['e2e', 'seed'],
-        metadata: { seededBy: 'playwright' },
+      await axios.post(`${backendURL}/api/datasets`, catalogDatasetBody);
+    }
+
+    // Reconcile catalog flags + modality metadata even when the row already existed (fixes stale DBs).
+    try {
+      await axios.put(`${backendURL}/api/datasets/${encodeURIComponent(datasetId)}`, {
+        name: catalogDatasetBody.name,
+        description: catalogDatasetBody.description,
+        category: catalogDatasetBody.category,
+        size: catalogDatasetBody.size,
+        recordCount: catalogDatasetBody.recordCount,
+        price: catalogDatasetBody.price,
+        license: catalogDatasetBody.license,
+        tags: catalogDatasetBody.tags,
+        metadata: catalogDatasetBody.metadata,
         isPublic: true,
+        isActive: true,
         confidentialComputingRequired: false,
-        ownerId: tdpUser.id,
       });
+      console.log('✅ E2E catalog dataset reconciled (public + modality)');
+    } catch (err) {
+      console.warn(
+        '⚠️ E2E catalog dataset reconcile failed:',
+        err.response?.status || err.message
+      );
     }
 
     // Ensure at least one contract exists for the TDC so contract list/detail tests can run.
