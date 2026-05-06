@@ -53,8 +53,15 @@ class ContractRouterService {
    * Create a contract using SCITT CCF
    */
   async createContract(contractData) {
+    // Be robust in web/server contexts: if initialization failed at startup (or races),
+    // attempt to initialize lazily so API calls don't fail with a non-actionable message.
     if (!this.isInitialized) {
-      throw new Error('Contract Router Service not initialized');
+      try {
+        await this.initialize();
+      } catch (e) {
+        const msg = e?.message ? String(e.message) : String(e);
+        throw new Error(`Contract Router Service not initialized: ${msg}`);
+      }
     }
 
     try {

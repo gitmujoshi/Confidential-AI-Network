@@ -334,6 +334,8 @@ router.post('/register', logAuthEvent('REGISTER'), async (req, res) => {
           didVerified,
           didVerificationMethod,
           depaId, // Add DEPA ID
+          // CCRP contract wizard filters providers by this list (MultiCCRPSelector).
+          cloudProviders: partyType === 'CCRP' ? ['Local', 'Azure'] : null,
           isRegistered: true,
           registrationDate: new Date(),
           isActive: true,
