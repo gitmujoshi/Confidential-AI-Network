@@ -10,7 +10,7 @@
 | Fix setup / auth issues | [getting-started/TROUBLESHOOTING.md](getting-started/TROUBLESHOOTING.md) · [guides/SETUP_TROUBLESHOOTING_GUIDE.md](guides/SETUP_TROUBLESHOOTING_GUIDE.md) |
 | Use the product (TDC/TDP/CCRP) | [USER_GUIDE.md](USER_GUIDE.md) · [training/README.md](training/README.md) |
 | Develop or extend the system | [DEVELOPER_GUIDE.md](DEVELOPER_GUIDE.md) · [development/README.md](development/README.md) |
-| Deploy to production / OCI | [deployment/README.md](deployment/README.md) · [production/README.md](production/README.md) |
+| Deploy to production / OCI / Azure | [deployment/README.md](deployment/README.md) · [production/README.md](production/README.md) |
 | Understand architecture | [ARCHITECTURE.md](ARCHITECTURE.md) · [architecture/](architecture/) |
 | Call APIs | [api/API_REFERENCE.md](api/API_REFERENCE.md) · [api/COMPLETE_API_SPECIFICATIONS.md](api/COMPLETE_API_SPECIFICATIONS.md) |
 | Security & IAM | [security/](security/) · [production/OCI_SECURITY_ARCHITECTURE.md](production/OCI_SECURITY_ARCHITECTURE.md) |
@@ -18,7 +18,11 @@
 | **Local stakeholder demo** | [training/LOCAL_DEMO_RUNBOOK.md](training/LOCAL_DEMO_RUNBOOK.md) |
 | **OCI deploy readiness** | [deployment/OCI_READINESS.md](deployment/OCI_READINESS.md) |
 | **OCI IAM / WAF / API GW** | [deployment/OCI_IAM_AND_EDGE_CONFIG.md](deployment/OCI_IAM_AND_EDGE_CONFIG.md) |
+| **SIEM integration** | [production/SIEM_INTEGRATION_FRAMEWORK.md](production/SIEM_INTEGRATION_FRAMEWORK.md) · [deployment/siem/](../deployment/siem/README.md) |
 | **OCI new-env setup runbook** | [production/OCI_SECURITY_ARCHITECTURE.md](production/OCI_SECURITY_ARCHITECTURE.md) (top of doc) |
+| **Azure deploy readiness** | [deployment/AZURE_READINESS.md](deployment/AZURE_READINESS.md) |
+| **Azure IAM / WAF / APIM** | [deployment/AZURE_IAM_AND_EDGE_CONFIG.md](deployment/AZURE_IAM_AND_EDGE_CONFIG.md) |
+| **Azure new-env setup runbook** | [production/AZURE_SECURITY_ARCHITECTURE.md](production/AZURE_SECURITY_ARCHITECTURE.md) (top of doc) |
 
 ---
 
@@ -126,6 +130,7 @@ Index: [features/contract-signing/CONTRACT_SIGNING_INDEX.md](features/contract-s
 | Local dev | [getting-started/QUICK_START.md](getting-started/QUICK_START.md) | `./start-system.sh` |
 | Ubuntu / local VM | [deployment/README.md](deployment/README.md) | `deployment/deploy-to-ubuntu-vm.sh` |
 | OCI (Terraform) | [production/OCI_SECURITY_ARCHITECTURE.md](production/OCI_SECURITY_ARCHITECTURE.md) | [deployment/oci/terraform/](../deployment/oci/terraform/README.md) |
+| Azure (Terraform) | [production/AZURE_SECURITY_ARCHITECTURE.md](production/AZURE_SECURITY_ARCHITECTURE.md) | [deployment/azure/terraform/](../deployment/azure/terraform/README.md) |
 | K8s production | [production/PRODUCTION_DEPLOYMENT_GUIDE.md](production/PRODUCTION_DEPLOYMENT_GUIDE.md) | [deploy/production/](../deploy/production/README.md) |
 
 ---

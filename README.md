@@ -321,6 +321,183 @@ flowchart TB
 | Terraform (OKE, ADB, LB, OCIR) | [deployment/oci/terraform/README.md](deployment/oci/terraform/README.md) |
 | OCI readiness & rollout phases | [docs/deployment/OCI_READINESS.md](docs/deployment/OCI_READINESS.md) |
 
+### Azure Deployment Architecture
+
+For production on **Microsoft Azure**, the system deploys across resource-group-isolated environments (dev, test, staging, prod) with defense-in-depth edge security:
+
+- **Edge**: Azure Front Door WAF → API Management → Application Gateway
+- **Compute**: AKS (Kubernetes) with private worker nodes and ingress
+- **Data**: PostgreSQL Flexible Server (private endpoint), Key Vault, Blob Storage
+- **Shared services**: ACR, Defender for Cloud, Bastion, Log Analytics
+
+**Overview** — major blocks:
+
+```mermaid
+flowchart LR
+  subgraph Users
+    U[TDC · TDP · CCRP]
+    A[Platform admins]
+  end
+
+  subgraph Edge["can-edge-shared"]
+    FD[Front Door WAF]
+    APIM[API Management]
+    AGW[App Gateway]
+  end
+
+  subgraph Workload["can-prod-compute-rg"]
+    AKS[AKS cluster]
+  end
+
+  subgraph Data["can-prod-data-rg"]
+    PG[(PostgreSQL)]
+    KV[(Key Vault)]
+  end
+
+  subgraph Shared["can-shared-services-rg"]
+    ACR[ACR]
+    DFC[Defender for Cloud]
+    B[Bastion]
+  end
+
+  U --> FD --> APIM --> AGW --> AKS
+  AKS --> PG
+  AKS --> KV
+  ACR -. images .-> AKS
+  DFC -. monitors .-> AKS
+  A --> B --> AKS
+```
+
+**Traffic routing** — hostname-based split at Front Door:
+
+```mermaid
+flowchart TB
+  DNS["DNS<br/>app · auth · api · ops"]
+  FD[Front Door WAF]
+
+  DNS --> FD
+
+  FD -->|api.*| APIM[API Management<br/>JWT validation]
+  FD -->|app.* · auth.* · ops.*| AGW[App Gateway<br/>SSO / routing]
+
+  APIM --> AGW
+  AGW --> ING[AKS Ingress]
+  ING --> PODS[Frontend · Backend · Keycloak pods]
+  PODS --> PG[(PostgreSQL private endpoint)]
+```
+
+**Traffic path (production):** DNS → Front Door WAF → APIM (`api.{env}`) or App Gateway (`app.{env}`, `auth.{env}`) → AKS ingress → application pods. Database access uses PostgreSQL private endpoints only.
+
+#### Resource groups
+
+**Level 1** — management groups and shared services:
+
+```mermaid
+flowchart TB
+  Root["Azure Tenant / Management Group"]
+
+  Root --> Plat["can-platform<br/>Policies · diagnostics"]
+  Root --> Svc["can-shared-services-rg<br/>ACR · Terraform state · CI/CD"]
+  Root --> Env["can-{env}<br/>dev · test · staging · prod"]
+
+  style Plat fill:#fce4ec
+  style Svc fill:#e0f2f1
+  style Env fill:#e3f2fd
+```
+
+**Level 2** — repeated pattern per environment:
+
+```mermaid
+flowchart LR
+  Env["can-{env}"]
+
+  Env --> N["{env}-network-rg<br/>VNet · NSGs · App GW"]
+  Env --> C["{env}-compute-rg<br/>AKS · Bastion"]
+  Env --> D["{env}-data-rg<br/>PostgreSQL · Key Vault · Blob"]
+  Env --> O["{env}-ops-rg<br/>Alerts · on-call"]
+
+  style N fill:#e3f2fd
+  style C fill:#f3e5f5
+  style D fill:#fff3e0
+  style O fill:#e8f5e8
+```
+
+#### Identity (Entra ID)
+
+**Enterprise SSO** — workforce login to browser apps:
+
+```mermaid
+flowchart LR
+  IdP["Corporate IdP / Entra ID"]
+  Groups["Role groups<br/>TDC · TDP · CCRP · AppAdmin"]
+  AGW["App Gateway / Easy Auth"]
+
+  IdP --> Groups --> AGW
+
+  AGW --> App["app.{env}"]
+  AGW --> Auth["auth.{env}"]
+  AGW --> Ops["ops.{env}"]
+```
+
+**Application tokens** — API access after SSO:
+
+```mermaid
+flowchart LR
+  SPA["React SPA"]
+  KC["Keycloak<br/>contract-management realm"]
+  APIM["API Management"]
+  API["Backend API"]
+
+  SPA -->|OIDC / PKCE| KC
+  KC -->|Bearer JWT| APIM --> API
+```
+
+#### Network
+
+**Subnet tiers** — top to bottom inside each VNet:
+
+```mermaid
+flowchart TB
+  PUB["Public subnet<br/>App Gateway frontend"]
+  APP["Private app subnet<br/>AKS nodes"]
+  DATA["Private data subnet<br/>PostgreSQL delegated"]
+
+  PUB --> APP --> DATA
+
+  style PUB fill:#ffebee
+  style APP fill:#e8f5e8
+  style DATA fill:#e3f2fd
+```
+
+| Environment | VNet CIDR | AKS service CIDR |
+|-------------|-----------|------------------|
+| dev | `10.10.0.0/16` | `10.96.0.0/16` |
+| test | `10.20.0.0/16` | `10.97.0.0/16` |
+| staging | `10.30.0.0/16` | `10.98.0.0/16` |
+| prod | `10.40.0.0/16` | `10.99.0.0/16` |
+
+#### Azure Policy (data guardrails)
+
+```mermaid
+flowchart TB
+  DC["can-{env}-data-rg"]
+
+  DC --> Pol["Azure Policy + deny assignments"]
+
+  Pol --> P1["✗ Public blob containers"]
+  Pol --> P2["✗ Public IPs on data subnet"]
+  Pol --> P3["✗ Unencrypted storage accounts"]
+  Pol --> P4["✓ Key Vault required for secrets"]
+```
+
+| Topic | Documentation |
+|-------|---------------|
+| Azure security architecture & setup runbook | [docs/production/AZURE_SECURITY_ARCHITECTURE.md](docs/production/AZURE_SECURITY_ARCHITECTURE.md) |
+| Entra ID, Front Door, APIM, WAF | [docs/deployment/AZURE_IAM_AND_EDGE_CONFIG.md](docs/deployment/AZURE_IAM_AND_EDGE_CONFIG.md) |
+| Terraform (AKS, PostgreSQL, ACR) | [deployment/azure/terraform/README.md](deployment/azure/terraform/README.md) |
+| Azure readiness & rollout phases | [docs/deployment/AZURE_READINESS.md](docs/deployment/AZURE_READINESS.md) |
+| Single-VM deploy (simpler) | [deploy/azure/deploy-azure.sh](deploy/azure/deploy-azure.sh) |
+
 ## 🚀 Quick Start
 
 ### **Local Development**
@@ -496,6 +673,7 @@ All documentation is organized under **[docs/README.md](docs/README.md)** (singl
 | Training | [docs/training/](docs/training/README.md) |
 | Deploy (VM / OCI / K8s) | [docs/deployment/README.md](docs/deployment/README.md) |
 | Production / OCI security | [docs/production/](docs/production/README.md) |
+| SIEM integration | [docs/production/SIEM_INTEGRATION_FRAMEWORK.md](docs/production/SIEM_INTEGRATION_FRAMEWORK.md) |
 | Testing & E2E | [docs/testing/](docs/testing/TEST_DATA_FOR_TESTERS.md) · [frontend/tests/e2e/README.md](frontend/tests/e2e/README.md) |
 
 Legacy paths at the repo root and under `docs/` redirect to the locations above.
@@ -536,6 +714,11 @@ Legacy paths at the repo root and under `docs/` redirect to the locations above.
 - **Interactive Setup**: `./deployment/deploy-to-ubuntu-vm.sh` - Step-by-step production deployment
 - **Quick Deployment**: `./deployment/quick-deploy-ubuntu.sh` - One-command deployment
 - **Manual Guide**: `deployment/UBUNTU_VM_DEPLOYMENT_GUIDE.md` - Complete production setup
+
+### **Production Azure Deployment**
+- **AKS + Terraform**: `deployment/azure/terraform/` — Full platform (VNet, AKS, PostgreSQL, ACR)
+- **Quick VM deploy**: `./deploy/azure/deploy-azure.sh` — Single-VM docker-compose via Azure CLI
+- **Security runbook**: [docs/production/AZURE_SECURITY_ARCHITECTURE.md](docs/production/AZURE_SECURITY_ARCHITECTURE.md)
 
 ### **Deployment Features**
 - ✅ **HTTPS/SSL**: Let's Encrypt certificates with Nginx reverse proxy
@@ -700,6 +883,25 @@ Terms and acronyms used throughout this README.
 | **LUKS** | **Linux Unified Key Setup** — disk-encryption format used for files larger than 1 GB with streaming decryption in TEE. |
 | **RSA-2048 / RSA-4096** | RSA key sizes supported for digital signatures and key management. |
 
+### Microsoft Azure
+
+| Term | Definition |
+|------|------------|
+| **ACR** | **Azure Container Registry** — private Docker image repository in `can-shared-services-rg`. |
+| **AKS** | **Azure Kubernetes Service** — managed Kubernetes cluster running application workloads in private subnets. |
+| **APIM** | **API Management** — managed API gateway (`api.{env}`) with JWT validation and rate limits. |
+| **App Gateway** | **Application Gateway** — Layer-7 load balancer with optional WAF for path-based routing to AKS. |
+| **Azure Bastion** | Managed jump host for admin kubectl/SSH — no direct SSH from the internet. |
+| **Azure Policy** | Governance service enforcing guardrails (deny public blobs, require Key Vault) on data resource groups. |
+| **Defender for Cloud** | Microsoft's threat-detection and posture-management service (equivalent to OCI Cloud Guard). |
+| **Entra ID** | **Microsoft Entra ID** (formerly Azure AD) — enterprise SSO, MFA, and conditional access. |
+| **Front Door** | **Azure Front Door** — global CDN and WAF entry point for public hostnames. |
+| **Key Vault** | Azure secrets and key store; HSM-backed in production; integrated via External Secrets Operator. |
+| **Log Analytics** | Centralized log workspace for audit, WAF, APIM, and AKS diagnostics. |
+| **RBAC** | **Role-Based Access Control** — Azure IAM assignments at management group, subscription, or resource group scope. |
+| **Resource group** | Azure resource container for isolation (`can-dev-compute-rg`, `can-prod-data-rg`, etc.). |
+| **VNet** | **Virtual Network** — isolated network per environment with public, app, and data subnet tiers. |
+
 ### Oracle Cloud Infrastructure (OCI)
 
 | Term | Definition |
@@ -763,7 +965,7 @@ Terms and acronyms used throughout this README.
 | **React** | JavaScript UI framework for the SPA frontend (port 3000). |
 | **React Router** | Client-side routing library (v6) for navigation within the SPA. |
 | **Sequelize ORM** | Object-relational mapper used by the Node.js backend for PostgreSQL access. |
-| **SIEM** | **Security Information and Event Management** — centralized log aggregation and alerting (prod). |
+| **SIEM** | **Security Information and Event Management** — centralized log aggregation and alerting; see [SIEM Integration Framework](docs/production/SIEM_INTEGRATION_FRAMEWORK.md). |
 | **SPA** | **Single Page Application** — React frontend loaded once; navigates client-side and obtains tokens via OIDC/PKCE. |
 | **Terraform** | IaC tool provisioning OCI VCN, OKE, ADB, load balancer, and OCIR resources. |
 | **UFW** | **Uncomplicated Firewall** — host-level firewall configured during Ubuntu VM deployment. |

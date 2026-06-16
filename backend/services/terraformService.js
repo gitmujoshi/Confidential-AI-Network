@@ -11,7 +11,7 @@ const path = require('path');
 const { v4: uuidv4 } = require('uuid');
 
 class TerraformService {
-  constructor(workingDir = './deployment/azure/terraform') {
+  constructor(workingDir = './deployment/azure/terraform/environments') {
     this.workingDir = workingDir;
     this.ensureWorkingDir();
   }
