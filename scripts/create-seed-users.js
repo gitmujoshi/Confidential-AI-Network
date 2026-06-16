@@ -216,11 +216,11 @@ async function main() {
   };
   
   fs.writeFileSync(
-    path.join(__dirname, '..', 'seed-users-data.json'),
+    path.join(__dirname, '..', 'fixtures', 'test-data', 'seed-users-data.json'),
     JSON.stringify(userData, null, 2)
   );
   
-  console.log('💾 User data saved to seed-users-data.json');
+  console.log('💾 User data saved to fixtures/test-data/seed-users-data.json');
 }
 
 if (require.main === module) {

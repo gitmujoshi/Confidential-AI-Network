@@ -6,8 +6,8 @@ This guide explains how to use the comprehensive JSON template for contracts in 
 
 ## 📁 Files
 
-- **`contract_template.json`**: JSON Schema template with validation rules
-- **`sample_contract.json`**: Example contract with realistic data
+- **`fixtures/contracts/contract_template.json`**: JSON Schema template with validation rules
+- **`fixtures/contracts/sample_contract.json`**: Example contract with realistic data
 - **`CONTRACT_TEMPLATE_GUIDE.md`**: This documentation
 
 ## 🏗️ Template Structure
