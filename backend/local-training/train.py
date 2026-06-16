@@ -4,7 +4,7 @@ import sys
 import time
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Dict, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 
 def _env(name: str, default: str | None = None) -> str | None:
@@ -18,13 +18,39 @@ def _now_iso() -> str:
     return time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
 
 
-def _safe_read_json(path: Path) -> Optional[dict]:
-    try:
-        if not path.exists():
-            return None
-        return json.loads(path.read_text())
-    except Exception:
+def _first_catalog_model(contract_inputs: Optional[dict]) -> Optional[dict]:
+    if not contract_inputs:
         return None
+    models = contract_inputs.get("models") or []
+    if not models:
+        return None
+    first = models[0]
+    return first if isinstance(first, dict) else None
+
+
+def _resolve_architecture(training_params: dict, catalog_model: Optional[dict]) -> str:
+    arch = training_params.get("architecture")
+    if arch:
+        return str(arch)
+    if catalog_model and catalog_model.get("architecture"):
+        return str(catalog_model["architecture"])
+    return ""
+
+
+def _resolve_hf_model_name(training_params: dict, catalog_model: Optional[dict]) -> str:
+    arch = _resolve_architecture(training_params, catalog_model).strip()
+    if "/" in arch:
+        return arch
+    if catalog_model:
+        meta = catalog_model.get("metadata") or {}
+        if isinstance(meta, dict) and meta.get("huggingfaceModel"):
+            return str(meta["huggingfaceModel"])
+    return "sshleifer/tiny-distilbert-base-cased"
+
+
+def _is_logistic_arch(architecture: str) -> bool:
+    a = (architecture or "").lower()
+    return "logistic" in a or a in ("logreg", "logistic-regression")
 
 
 def _infer_task(training_params: dict) -> str:
@@ -44,14 +70,13 @@ def _infer_task(training_params: dict) -> str:
 
     fw = str(training_params.get("framework") or "").lower()
     arch = str(training_params.get("architecture") or "").lower()
-    if "bert" in arch or "gpt" in arch or "transformer" in arch:
+    if "bert" in arch or "gpt" in arch or "transformer" in arch or "distilbert" in arch:
         return "text"
-    if "resnet" in arch or "cnn" in arch or "conv" in arch:
+    if "resnet" in arch or "cnn" in arch or "conv" in arch or arch in ("tinycnn", "tiny-cnn"):
         return "vision"
     if "xgboost" in fw or "lightgbm" in fw or "sklearn" in fw:
         return "tabular"
 
-    # Default for local testing: tabular is fastest and most reliable.
     return "tabular"
 
 
@@ -60,6 +85,59 @@ def _fast_dev(training_params: dict) -> bool:
     if v is None:
         return True
     return bool(v)
+
+
+def _image_extensions() -> set:
+    return {".jpg", ".jpeg", ".png", ".bmp", ".gif", ".webp"}
+
+
+def _has_imagefolder_layout(root: Path) -> bool:
+    if not root.is_dir():
+        return False
+    exts = _image_extensions()
+    for child in root.iterdir():
+        if not child.is_dir():
+            continue
+        for f in child.iterdir():
+            if f.is_file() and f.suffix.lower() in exts:
+                return True
+    return False
+
+
+def _resolve_imagefolder_dirs(data_dir: Path) -> Tuple[Path, Optional[Path]]:
+    train_dir = data_dir / "train"
+    val_dir = data_dir / "val"
+    if train_dir.is_dir() and _has_imagefolder_layout(train_dir):
+        if val_dir.is_dir() and _has_imagefolder_layout(val_dir):
+            return train_dir, val_dir
+        return train_dir, None
+    if _has_imagefolder_layout(data_dir):
+        return data_dir, None
+    raise FileNotFoundError(
+        f"No ImageFolder layout under {data_dir} (expected class subdirs with images, or train/val/)"
+    )
+
+
+def _find_staged_dataset(contract_inputs: Optional[dict], formats: Tuple[str, ...]) -> Optional[Path]:
+    if not contract_inputs:
+        return None
+    wanted = {f.lower() for f in formats}
+    for ds in contract_inputs.get("datasets") or []:
+        cpath = ds.get("containerDataPath") or ds.get("container_data_path")
+        if not cpath:
+            continue
+        p = Path(cpath)
+        if not p.is_dir():
+            continue
+        staged = ds.get("stagedForTraining") or ds.get("staged_for_training")
+        fmt = str(ds.get("dataFormat") or ds.get("contentFormat") or "").lower()
+        if staged and fmt in wanted:
+            return p
+        if fmt in wanted and _has_imagefolder_layout(p):
+            return p
+        if "csv" in wanted and list(p.glob("*.csv")):
+            return p
+    return None
 
 
 @dataclass
@@ -86,12 +164,9 @@ class TrainResult:
 
 
 def train_tabular_csv_dir(out_dir: Path, data_dir: Path, epochs: int, fast: bool) -> TrainResult:
-    """
-    Train a simple classifier on the first *.csv found under data_dir.
-    Expects numeric feature columns and the last column as integer class labels.
-    """
     import csv
     import pickle
+
     import numpy as np
     from sklearn.linear_model import LogisticRegression
     from sklearn.metrics import accuracy_score, log_loss
@@ -106,7 +181,7 @@ def train_tabular_csv_dir(out_dir: Path, data_dir: Path, epochs: int, fast: bool
     rows_y = []
     with open(path, newline="") as f:
         reader = csv.reader(f)
-        header = next(reader, None)
+        next(reader, None)
         for row in reader:
             if not row:
                 continue
@@ -150,22 +225,21 @@ def train_tabular_csv_dir(out_dir: Path, data_dir: Path, epochs: int, fast: bool
     )
 
 
-def train_tabular_iris(out_dir: Path, epochs: int, fast: bool) -> TrainResult:
-    """
-    Real training on a small open dataset (Iris) using scikit-learn.
-    """
+def train_tabular_iris(
+    out_dir: Path, epochs: int, fast: bool, architecture: str = "logistic-regression"
+) -> TrainResult:
+    import pickle
+
     from sklearn.datasets import load_iris
     from sklearn.linear_model import LogisticRegression
-    from sklearn.model_selection import train_test_split
     from sklearn.metrics import accuracy_score, log_loss
-    import pickle
+    from sklearn.model_selection import train_test_split
 
     data = load_iris()
     X_train, X_test, y_train, y_test = train_test_split(
         data.data, data.target, test_size=0.25, random_state=42, stratify=data.target
     )
 
-    # "epochs" isn't a first-class concept here; use it to scale max_iter a bit.
     max_iter = 80 if fast else 200
     max_iter = max_iter + max(0, epochs - 1) * (40 if fast else 80)
 
@@ -180,53 +254,25 @@ def train_tabular_iris(out_dir: Path, epochs: int, fast: bool) -> TrainResult:
     artifact_path = out_dir / "model.bin"
     artifact_path.write_bytes(pickle.dumps(clf))
 
+    model_label = architecture or "logistic-regression"
     return TrainResult(
         accuracy=acc,
         loss=loss,
         epochsCompleted=epochs,
         artifactUri=f"file://{artifact_path}",
-        extra={"taskType": "tabular", "dataset": "iris", "model": "logistic_regression"},
+        extra={"taskType": "tabular", "dataset": "iris", "model": model_label, "source": "demo_iris"},
     )
 
 
-def train_vision_cifar10_small(out_dir: Path, epochs: int, fast: bool) -> TrainResult:
-    """
-    Real training on CIFAR-10 (downloaded). Uses a tiny CNN for speed.
-    Falls back to torchvision FakeData if CIFAR cannot be downloaded.
-    """
+def _build_vision_model(architecture: str, num_classes: int, fast: bool):
     import torch
     import torch.nn as nn
-    import torch.optim as optim
-    from torch.utils.data import DataLoader, Subset
-    import torchvision
-    from torchvision import transforms
+    import torchvision.models as tv_models
 
-    device = torch.device("cpu")
-    torch.manual_seed(42)
-
-    tfm = transforms.Compose([transforms.ToTensor()])
-    root = Path("/tmp/datasets")
-    root.mkdir(parents=True, exist_ok=True)
-
-    dataset_name = "cifar10"
-    try:
-        train_ds = torchvision.datasets.CIFAR10(root=str(root), train=True, download=True, transform=tfm)
-        test_ds = torchvision.datasets.CIFAR10(root=str(root), train=False, download=True, transform=tfm)
-    except Exception:
-        dataset_name = "fakedata"
-        train_ds = torchvision.datasets.FakeData(size=2000, image_size=(3, 32, 32), num_classes=10, transform=tfm)
-        test_ds = torchvision.datasets.FakeData(size=500, image_size=(3, 32, 32), num_classes=10, transform=tfm)
-
-    # Keep it small for dev/test.
-    if fast:
-        train_ds = Subset(train_ds, list(range(512)))
-        test_ds = Subset(test_ds, list(range(256)))
-
-    train_loader = DataLoader(train_ds, batch_size=64, shuffle=True)
-    test_loader = DataLoader(test_ds, batch_size=128, shuffle=False)
+    arch = (architecture or "tinycnn").lower()
 
     class TinyCNN(nn.Module):
-        def __init__(self):
+        def __init__(self, classes: int):
             super().__init__()
             self.net = nn.Sequential(
                 nn.Conv2d(3, 16, 3, padding=1),
@@ -238,13 +284,50 @@ def train_vision_cifar10_small(out_dir: Path, epochs: int, fast: bool) -> TrainR
                 nn.Flatten(),
                 nn.Linear(32 * 8 * 8, 128),
                 nn.ReLU(),
-                nn.Linear(128, 10),
+                nn.Linear(128, classes),
             )
 
         def forward(self, x):
             return self.net(x)
 
-    model = TinyCNN().to(device)
+    if arch in ("tinycnn", "tiny-cnn") or "tiny" in arch:
+        return TinyCNN(num_classes), "tinycnn", 32
+
+    if "resnet" in arch:
+        use50 = "50" in arch and not fast
+        if use50:
+            backbone = tv_models.resnet50(weights=tv_models.ResNet50_Weights.DEFAULT)
+            label = "resnet50"
+        else:
+            backbone = tv_models.resnet18(weights=tv_models.ResNet18_Weights.DEFAULT)
+            label = "resnet18"
+        in_features = backbone.fc.in_features
+        backbone.fc = nn.Linear(in_features, num_classes)
+        return backbone, label, 224
+
+    return TinyCNN(num_classes), "tinycnn", 32
+
+
+def _run_vision_training(
+    out_dir: Path,
+    train_loader,
+    test_loader,
+    architecture: str,
+    num_classes: int,
+    epochs: int,
+    fast: bool,
+    dataset_label: str,
+    source: str,
+) -> TrainResult:
+    import torch
+    import torch.nn as nn
+    import torch.optim as optim
+
+    device = torch.device("cpu")
+    torch.manual_seed(42)
+
+    model, model_label, _ = _build_vision_model(architecture, num_classes, fast)
+    model = model.to(device)
     criterion = nn.CrossEntropyLoss()
     opt = optim.Adam(model.parameters(), lr=1e-3)
 
@@ -262,7 +345,7 @@ def train_vision_cifar10_small(out_dir: Path, epochs: int, fast: bool) -> TrainR
     model.eval()
     correct = 0
     total = 0
-    losses = []
+    losses: List[float] = []
     with torch.no_grad():
         for xb, yb in test_loader:
             xb, yb = xb.to(device), yb.to(device)
@@ -277,21 +360,138 @@ def train_vision_cifar10_small(out_dir: Path, epochs: int, fast: bool) -> TrainR
     avg_loss = float(sum(losses) / max(1, len(losses)))
 
     artifact_path = out_dir / "model.bin"
-    torch.save({"state_dict": model.state_dict(), "arch": "tinycnn"}, str(artifact_path))
+    torch.save(
+        {"state_dict": model.state_dict(), "arch": model_label, "num_classes": num_classes},
+        str(artifact_path),
+    )
 
     return TrainResult(
         accuracy=acc,
         loss=avg_loss,
         epochsCompleted=epochs,
         artifactUri=f"file://{artifact_path}",
-        extra={"taskType": "vision", "dataset": dataset_name, "model": "tinycnn"},
+        extra={
+            "taskType": "vision",
+            "dataset": dataset_label,
+            "model": model_label,
+            "catalogArchitecture": architecture or None,
+            "source": source,
+        },
     )
 
 
-def train_text_agnews_tiny(out_dir: Path, epochs: int, fast: bool) -> TrainResult:
-    """
-    Real training on AG News (downloaded) using a tiny DistilBERT model for speed.
-    """
+def train_vision_image_folder(
+    out_dir: Path, data_dir: Path, epochs: int, fast: bool, architecture: str
+) -> TrainResult:
+    import torch
+    from torch.utils.data import DataLoader, random_split
+    import torchvision
+    from torchvision import transforms
+    from torchvision.datasets import ImageFolder
+
+    train_root, val_root = _resolve_imagefolder_dirs(data_dir)
+    _, _, image_size = _build_vision_model(architecture, 2, fast)
+
+    tfm = transforms.Compose(
+        [
+            transforms.Resize((image_size, image_size)),
+            transforms.ToTensor(),
+        ]
+    )
+
+    train_ds = ImageFolder(root=str(train_root), transform=tfm)
+    num_classes = len(train_ds.classes)
+    if num_classes < 2:
+        raise ValueError(f"ImageFolder needs at least 2 classes, found {num_classes}")
+
+    if val_root is not None:
+        val_ds = ImageFolder(root=str(val_root), transform=tfm)
+    else:
+        n_val = max(1, int(0.2 * len(train_ds)))
+        n_train = len(train_ds) - n_val
+        train_ds, val_ds = random_split(
+            train_ds, [n_train, n_val], generator=torch.Generator().manual_seed(42)
+        )
+
+    if fast:
+        batch = 16
+    else:
+        batch = 32
+
+    train_loader = DataLoader(train_ds, batch_size=batch, shuffle=True)
+    test_loader = DataLoader(val_ds, batch_size=batch, shuffle=False)
+
+    return _run_vision_training(
+        out_dir=out_dir,
+        train_loader=train_loader,
+        test_loader=test_loader,
+        architecture=architecture,
+        num_classes=num_classes,
+        epochs=epochs,
+        fast=fast,
+        dataset_label=str(data_dir.name),
+        source="artifact_image_folder",
+    )
+
+
+def train_vision_cifar10_small(out_dir: Path, epochs: int, fast: bool, architecture: str) -> TrainResult:
+    import torch
+    from torch.utils.data import DataLoader, Subset
+    import torchvision
+    from torchvision import transforms
+
+    tfm = transforms.Compose([transforms.Resize((32, 32)), transforms.ToTensor()])
+    root = Path("/tmp/datasets")
+    root.mkdir(parents=True, exist_ok=True)
+
+    dataset_name = "cifar10"
+    try:
+        train_ds = torchvision.datasets.CIFAR10(root=str(root), train=True, download=True, transform=tfm)
+        test_ds = torchvision.datasets.CIFAR10(root=str(root), train=False, download=True, transform=tfm)
+    except Exception:
+        dataset_name = "fakedata"
+        train_ds = torchvision.datasets.FakeData(
+            size=2000, image_size=(3, 32, 32), num_classes=10, transform=tfm
+        )
+        test_ds = torchvision.datasets.FakeData(
+            size=500, image_size=(3, 32, 32), num_classes=10, transform=tfm
+        )
+
+    if fast:
+        train_ds = Subset(train_ds, list(range(512)))
+        test_ds = Subset(test_ds, list(range(256)))
+
+    train_loader = DataLoader(train_ds, batch_size=64, shuffle=True)
+    test_loader = DataLoader(test_ds, batch_size=128, shuffle=False)
+
+    arch = architecture or "tinycnn"
+    if "resnet" in arch.lower():
+        return _run_vision_training(
+            out_dir=out_dir,
+            train_loader=train_loader,
+            test_loader=test_loader,
+            architecture=arch,
+            num_classes=10,
+            epochs=epochs,
+            fast=fast,
+            dataset_label=dataset_name,
+            source="demo_cifar10",
+        )
+
+    return _run_vision_training(
+        out_dir=out_dir,
+        train_loader=train_loader,
+        test_loader=test_loader,
+        architecture="tinycnn",
+        num_classes=10,
+        epochs=epochs,
+        fast=fast,
+        dataset_label=dataset_name,
+        source="demo_cifar10",
+    )
+
+
+def train_text_hf(out_dir: Path, epochs: int, fast: bool, model_name: str) -> TrainResult:
     import torch
     from datasets import load_dataset
     from transformers import AutoModelForSequenceClassification, AutoTokenizer
@@ -299,7 +499,7 @@ def train_text_agnews_tiny(out_dir: Path, epochs: int, fast: bool) -> TrainResul
     torch.manual_seed(42)
     device = torch.device("cpu")
 
-    model_name = "sshleifer/tiny-distilbert-base-cased"
+    hf_name = model_name or "sshleifer/tiny-distilbert-base-cased"
     ds = load_dataset("ag_news")
     train_ds = ds["train"]
     test_ds = ds["test"]
@@ -308,8 +508,8 @@ def train_text_agnews_tiny(out_dir: Path, epochs: int, fast: bool) -> TrainResul
         train_ds = train_ds.select(range(256))
         test_ds = test_ds.select(range(256))
 
-    tok = AutoTokenizer.from_pretrained(model_name)
-    model = AutoModelForSequenceClassification.from_pretrained(model_name, num_labels=4).to(device)
+    tok = AutoTokenizer.from_pretrained(hf_name)
+    model = AutoModelForSequenceClassification.from_pretrained(hf_name, num_labels=4).to(device)
 
     def encode(batch):
         return tok(batch["text"], truncation=True, padding="max_length", max_length=128)
@@ -343,7 +543,7 @@ def train_text_agnews_tiny(out_dir: Path, epochs: int, fast: bool) -> TrainResul
     model.eval()
     correct = 0
     total = 0
-    losses = []
+    losses: List[float] = []
     with torch.no_grad():
         for batch in test_loader:
             input_ids = batch["input_ids"].to(device)
@@ -361,7 +561,7 @@ def train_text_agnews_tiny(out_dir: Path, epochs: int, fast: bool) -> TrainResul
 
     artifact_path = out_dir / "model.bin"
     torch.save(
-        {"state_dict": model.state_dict(), "model_name": model_name, "task": "ag_news"},
+        {"state_dict": model.state_dict(), "model_name": hf_name, "task": "ag_news"},
         str(artifact_path),
     )
 
@@ -370,7 +570,13 @@ def train_text_agnews_tiny(out_dir: Path, epochs: int, fast: bool) -> TrainResul
         loss=avg_loss,
         epochsCompleted=epochs,
         artifactUri=f"file://{artifact_path}",
-        extra={"taskType": "text", "dataset": "ag_news", "model": model_name},
+        extra={
+            "taskType": "text",
+            "dataset": "ag_news",
+            "model": hf_name,
+            "catalogArchitecture": model_name,
+            "source": "demo_ag_news",
+        },
     )
 
 
@@ -381,7 +587,6 @@ def main() -> int:
     out_dir = Path(_env("OUTPUT_DIR", "/outputs"))
     out_dir.mkdir(parents=True, exist_ok=True)
 
-    # Load the contract-driven input bundle if present.
     contract_inputs = None
     try:
         p = Path(contract_json_path)
@@ -397,10 +602,13 @@ def main() -> int:
     tp = (contract_inputs.get("contract", {}).get("trainingParams") if contract_inputs else None) or {}
     if not isinstance(tp, dict):
         tp = {}
+
+    catalog_model = _first_catalog_model(contract_inputs)
+    architecture = _resolve_architecture(tp, catalog_model)
+
     fast = _fast_dev(tp)
     task = _infer_task(tp)
 
-    # For dev/test: keep real training fast unless explicitly configured otherwise.
     if fast and max_epochs > 2:
         max_epochs = 1
 
@@ -410,40 +618,49 @@ def main() -> int:
         ds = contract_inputs.get("datasets") or []
         ms = contract_inputs.get("models") or []
         print(f"[trainer] contract inputs loaded: datasets={len(ds)} models={len(ms)}", flush=True)
-    print(f"[trainer] selected task={task} fastDevRun={fast} epochs={max_epochs}", flush=True)
+    if catalog_model:
+        print(
+            f"[trainer] catalog model: name={catalog_model.get('name')} "
+            f"architecture={catalog_model.get('architecture')}",
+            flush=True,
+        )
+    print(
+        f"[trainer] selected task={task} architecture={architecture or '(default)'} "
+        f"fastDevRun={fast} epochs={max_epochs}",
+        flush=True,
+    )
 
     started = time.time()
 
-    # Phase A: contract supplies staged dataset paths under /inputs/datasets/<datasetId>
-    artifact_ds = None
-    if contract_inputs:
-        for ds in contract_inputs.get("datasets") or []:
-            cpath = ds.get("containerDataPath") or ds.get("container_data_path")
-            if not cpath:
-                continue
-            p = Path(cpath)
-            staged = ds.get("stagedForTraining") or ds.get("staged_for_training")
-            fmt = str(ds.get("dataFormat") or ds.get("contentFormat") or "").lower()
-            if p.is_dir() and staged and fmt in ("csv", "tabular"):
-                artifact_ds = p
-                break
-            if p.is_dir() and list(p.glob("*.csv")):
-                artifact_ds = p
-                break
+    staged_tabular = _find_staged_dataset(contract_inputs, ("csv", "tabular"))
+    staged_vision = _find_staged_dataset(contract_inputs, ("image_folder", "images", "vision"))
 
-    if artifact_ds is not None:
+    if staged_tabular is not None:
         res = train_tabular_csv_dir(
-            out_dir=out_dir, data_dir=artifact_ds, epochs=max_epochs, fast=fast
+            out_dir=out_dir, data_dir=staged_tabular, epochs=max_epochs, fast=fast
+        )
+    elif staged_vision is not None:
+        res = train_vision_image_folder(
+            out_dir=out_dir,
+            data_dir=staged_vision,
+            epochs=max_epochs,
+            fast=fast,
+            architecture=architecture,
         )
     elif task == "vision":
-        res = train_vision_cifar10_small(out_dir=out_dir, epochs=max_epochs, fast=fast)
+        res = train_vision_cifar10_small(
+            out_dir=out_dir, epochs=max_epochs, fast=fast, architecture=architecture
+        )
     elif task == "text":
-        res = train_text_agnews_tiny(out_dir=out_dir, epochs=max_epochs, fast=fast)
+        hf_name = _resolve_hf_model_name(tp, catalog_model)
+        res = train_text_hf(out_dir=out_dir, epochs=max_epochs, fast=fast, model_name=hf_name)
     else:
-        res = train_tabular_iris(out_dir=out_dir, epochs=max_epochs, fast=fast)
+        res = train_tabular_iris(
+            out_dir=out_dir, epochs=max_epochs, fast=fast, architecture=architecture
+        )
+
     elapsed_s = round(time.time() - started, 3)
 
-    artifact_path = out_dir / "model.bin"
     metrics = {
         "jobId": job_id,
         "contractId": contract_id,
@@ -469,4 +686,3 @@ if __name__ == "__main__":
     except Exception as e:
         print(f"[trainer] failed: {e}", file=sys.stderr, flush=True)
         raise
-

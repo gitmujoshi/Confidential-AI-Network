@@ -47,6 +47,20 @@ async function globalSetup() {
       console.log(`✅ Contract templates available for E2E: ${templateCount}`);
     }
 
+    try {
+      const debugRes = await axios.get(`${backendURL}/api/debug/env`);
+      const canMode = debugRes.data?.training?.canLocalTrainingMode || 'simulate';
+      if (canMode !== 'docker') {
+        console.warn(
+          `⚠️ CAN_LOCAL_TRAINING_MODE=${canMode} — set CAN_LOCAL_TRAINING_MODE=docker in config.env and restart backend for physical training in full E2E`
+        );
+      } else {
+        console.log('✅ CAN local training mode: docker');
+      }
+    } catch (_) {
+      // debug route optional
+    }
+
     console.log('✅ E2E test environment setup complete with centralized config and test data');
   } catch (error) {
     const msg = error.response?.data || error.message;

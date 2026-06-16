@@ -5,7 +5,7 @@ const { getBackendURL } = require('../../load-config');
 
 test.describe('Full E2E (register → login → contract sign → local training)', () => {
   test.describe.configure({ mode: 'serial' });
-  test.setTimeout(6 * 60 * 1000);
+  test.setTimeout(10 * 60 * 1000);
 
   const BACKEND_URL = getBackendURL();
   const NEW_PASSWORD = 'TestNewPassword123!';
@@ -200,11 +200,16 @@ test.describe('Full E2E (register → login → contract sign → local training
           { timeout: 120_000 }
         )
         .catch(() => {});
-      // Wizard submits aiModelIds; empty/invalid selection triggers client validation.
+      // Select catalog model so contract.aiModelIds drives trainer architecture at runtime.
       const aiModelsCombo = page.getByRole('combobox', { name: /AI Models/i });
       await expect(aiModelsCombo).toBeVisible();
       await aiModelsCombo.click();
-      await page.getByRole('option', { name: /No AI Model \(Optional\)/i }).click();
+      const logregOption = page.getByRole('option', { name: /E2E Logistic Regression/i });
+      if (await logregOption.isVisible().catch(() => false)) {
+        await logregOption.click();
+      } else {
+        await page.getByRole('option', { name: /Logistic Regression/i }).first().click();
+      }
 
       // Do not use `.MuiCard-root.filter(has: heading)` — the wizard wraps MultiDatasetSelector in an outer
       // MuiCard that also contains that heading, so `.first()` can match the wrapper and click the wrong target.
@@ -374,9 +379,24 @@ test.describe('Full E2E (register → login → contract sign → local training
       await page.getByRole('button', { name: /Release Job/i }).click();
       await page.getByRole('button', { name: /Wait for Training/i }).click();
 
-      await expect(page.getByTestId('can-training-status')).toHaveText('COMPLETED', { timeout: 90_000 });
+      await expect(page.getByTestId('can-training-status')).toHaveText('COMPLETED', { timeout: 180_000 });
       await expect(page.getByText('Training results')).toBeVisible();
       trainingResultsJson = await page.getByTestId('can-training-results-json').innerText();
+
+      if (canJobId) {
+        const tjRes = await axios.get(
+          `${BACKEND_URL}/api/can/jcs/jobs/${encodeURIComponent(canJobId)}/training`,
+          { headers: { 'X-CAN-Principal-Id': 'did:can:dp:e2e' } }
+        );
+        const mode = tjRes.data?.data?.metadata?.executionMode;
+        if (mode) {
+          expect(mode).toBe('local-docker');
+        }
+        const artifact = tjRes.data?.data?.metadata?.results?.artifactUri || '';
+        if (artifact) {
+          expect(artifact).toMatch(/^file:/);
+        }
+      }
     });
 
     return { canJobId, trainingResultsJson };

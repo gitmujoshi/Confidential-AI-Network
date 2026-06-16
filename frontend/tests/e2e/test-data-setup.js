@@ -165,6 +165,21 @@ class E2ETestDataManager {
 
     // Deterministic AI fixtures: tabular/text + vision (wizard modality filtering / dropdown tests).
     await ensureAiModelExists(backendURL, adminToken, {
+      modelId: 'e2e-model-tabular-logreg',
+      name: 'E2E Logistic Regression',
+      description: 'Seeded tabular model for full E2E Docker training (logistic regression)',
+      type: 'other',
+      architecture: 'logistic-regression',
+      parameters: 'N/A',
+      framework: 'Other',
+      privacyTechnique: 'none',
+      validationMetrics: ['accuracy', 'loss'],
+      maxEpochs: 2,
+      batchSize: 32,
+      learningRate: 0.001,
+      metadata: { seededBy: 'playwright', modalityHint: 'tabular' },
+    });
+    await ensureAiModelExists(backendURL, adminToken, {
       modelId: 'e2e-model-1',
       name: 'E2E Tabular Model',
       description: 'Seeded tabular/NLP-style model for Playwright E2E (BERT)',
