@@ -597,6 +597,162 @@ docker-compose logs -f
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
+## 📖 Glossary
+
+Terms and acronyms used throughout this README.
+
+### Roles & parties
+
+| Term | Definition |
+|------|------------|
+| **AppAdmin** | Application administrator role with elevated access to system configuration and user management. |
+| **CCRP** | **Confidential Clean Room Provider** — supplies secure compute environments where training runs under contract terms. |
+| **Platform Admins** | Operations staff who manage OCI infrastructure (OKE, networking, Bastion access). |
+| **TDC** | **Training Data Consumer** — organization that requests AI model training on shared datasets under contract. |
+| **TDP** | **Training Data Provider** — organization that owns and provisions training datasets for contracted use. |
+
+### Application & contracts
+
+| Term | Definition |
+|------|------------|
+| **Claims Management** | SCITT CCF component that records and verifies contract-related claims on the ledger. |
+| **Confidential AI Network** | This platform — contract management, confidential computing, and model training orchestration across trusted parties. |
+| **Contract Lifecycle** | End-to-end flow from contract creation, multi-party signing, training execution, to completion. |
+| **Contract Router Service** | Backend service that routes contract operations exclusively to the SCITT CCF ledger. |
+| **Differential Privacy** | Statistical technique that adds controlled noise so analytics and training outputs do not expose individual records. |
+| **Digital Contract Signing** | Cryptographic signing of contracts by TDP, TDC, and CCRP parties before training or data access. |
+| **Ricardian Contract** | Contract that is both human-readable (legal prose) and machine-executable (structured terms the system enforces). |
+| **Role-Based Access** | Authorization model where capabilities depend on assigned roles (TDC, TDP, CCRP, AppAdmin). |
+| **SCITT CCF** | **Supply Chain Integrity, Transparency and Trust — Confidential Consortium Framework** — Microsoft's high-performance confidential ledger used for immutable contract and signature storage. |
+| **SCITT CCF Dashboard** | Frontend view for real-time monitoring of SCITT CCF ledger health and operations. |
+| **SCITT CCF Ledger** | The ledger service (port 8000 locally) that stores tamper-evident contract and attestation records. |
+| **SCITT_CCF_ONLY** | Current deployment mode — all ledger traffic goes to SCITT CCF; legacy blockchain paths are removed. |
+| **Supply Chain Transparency** | Immutable audit trail of contract events, signatures, and training operations on the ledger. |
+| **TEE** | **Trusted Execution Environment** — hardware-isolated enclave (e.g. Intel SGX, AMD SEV) for confidential data processing and decryption during training. |
+| **TRAINING_SIMULATION_MODE** | Default setting that runs training jobs in simulation without provisioning real compute. |
+
+### Standards & frameworks
+
+| Term | Definition |
+|------|------------|
+| **DEPA** | **Data Empowerment and Protection Architecture** — iSPIRT framework for consent-based, accountable data sharing ([depa.world](https://depa.world)). |
+| **IETF SCITT** | Internet Engineering Task Force working group defining standards for supply-chain integrity and transparency ledgers. |
+| **iSPIRT** | Indian Software Products Industry Round Table — policy and architecture body behind DEPA and India Stack. |
+
+### Authentication & identity
+
+| Term | Definition |
+|------|------------|
+| **Bearer JWT** | HTTP `Authorization: Bearer <token>` header carrying a signed JSON Web Token from Keycloak. |
+| **Cloud Gate** | Oracle reverse proxy and SSO layer protecting browser-facing URLs (`app`, `auth`, `ops` hostnames). |
+| **Identity Domain** | OCI IAM service providing per-environment enterprise SSO, MFA, and user lifecycle (`cms-{env}-id`). |
+| **IdP** | **Identity Provider** — corporate directory (Okta, Azure AD) federated into OCI Identity Domains. |
+| **IAM** | **Identity and Access Management** — authentication, authorization, groups, policies, and dynamic groups. |
+| **JWT** | **JSON Web Token** — signed token validated by API Gateway and backend middleware before API access. |
+| **Keycloak** | Open-source IAM server (port 8080 locally) issuing application tokens and managing realm roles. |
+| **MFA** | **Multi-Factor Authentication** — required for staging admins and all production users. |
+| **OIDC** | **OpenID Connect** — protocol used by the SPA to obtain tokens from Keycloak. |
+| **PKCE** | **Proof Key for Code Exchange** — OAuth extension securing public SPA clients without a client secret. |
+| **SAML** | **Security Assertion Markup Language** — federation protocol between corporate IdP and OCI Identity Domain. |
+| **SSO** | **Single Sign-On** — one login session across Cloud Gate–protected applications. |
+
+### Cryptography & encryption
+
+| Term | Definition |
+|------|------------|
+| **AES-NI** | CPU instruction set for hardware-accelerated AES encryption used by LUKS on large files. |
+| **Attestation** | Cryptographic proof that code runs inside a genuine, unmodified TEE before secrets are released. |
+| **ECDSA-P256** | Elliptic-curve digital signature algorithm (NIST P-256) supported for contract and key signing. |
+| **LUKS** | **Linux Unified Key Setup** — disk-encryption format used for files larger than 1 GB with streaming decryption in TEE. |
+| **RSA-2048 / RSA-4096** | RSA key sizes supported for digital signatures and key management. |
+
+### Oracle Cloud Infrastructure (OCI)
+
+| Term | Definition |
+|------|------------|
+| **ADB** | **Autonomous Database** — managed Oracle DB with private endpoint, automatic patching, and TDE. |
+| **API Gateway** | OCI managed service (`api.{env}`) validating JWTs and routing API traffic to the load balancer. |
+| **Autonomous DB** | See **ADB**. |
+| **Bastion** | OCI managed jump host for admin access — no direct SSH/RDP from the internet to nodes. |
+| **CIDR** | **Classless Inter-Domain Routing** notation (e.g. `10.40.0.0/16`) defining IP address ranges per VCN/subnet. |
+| **Cloud Guard** | OCI threat-detection service monitoring compartments for misconfigurations and suspicious activity. |
+| **Compartment** | OCI resource container for isolation and IAM policy scope (`cms-dev`, `cms-prod-data`, etc.). |
+| **DRG** | **Dynamic Routing Gateway** — hub for auditable cross-VCN routing (e.g. staging → shared OCIR). |
+| **Flexible Load Balancer** | OCI LB distributing HTTPS traffic from WAF/Cloud Gate to OKE ingress backends. |
+| **Identity Domain** | See authentication section — OCI-managed SSO domain per environment. |
+| **NAT Gateway** | Allows private subnets to reach the internet for egress (updates, external APIs) without inbound exposure. |
+| **NSG** | **Network Security Group** — stateful virtual firewall (default-deny) attached to subnets or VNICs. |
+| **OCI** | **Oracle Cloud Infrastructure** — cloud platform for production deployment (OKE, ADB, WAF, Vault, etc.). |
+| **OCIR** | **OCI Container Registry** — private Docker image repository in `cms-shared-services`. |
+| **OKE** | **Oracle Kubernetes Engine** — managed Kubernetes cluster running application workloads in private subnets. |
+| **Security Zone** | OCI policy bundle on data compartments that denies public buckets, public compute, and unencrypted DBs. |
+| **Service Gateway** | Private route to OCI services (Object Storage, Logging) without traversing the public internet. |
+| **Tenancy** | Top-level OCI account boundary containing all compartments and resources. |
+| **VCN** | **Virtual Cloud Network** — isolated network per environment with public, DMZ, app, and data subnet tiers. |
+| **Vault** | **OCI Vault** — HSM-backed key and secret store; required for secret creation in Security Zones. |
+| **WAF** | **Web Application Firewall** — edge filter with OWASP CRS, rate limits, and bot management. |
+
+### Networking
+
+| Term | Definition |
+|------|------------|
+| **AD** | **Availability Domain** — isolated data center within an OCI region; subnets span 2+ ADs for resilience. |
+| **DMZ** | **Demilitarized Zone** — optional edge subnet hosting API Gateway and Cloud Gate connectors. |
+| **DNS** | **Domain Name System** — maps `app.{env}`, `auth.{env}`, `api.{env}` hostnames to WAF/LB endpoints. |
+| **Internet Gateway** | VCN component allowing inbound traffic to public subnets (WAF/LB listeners only). |
+| **Ingress** | Kubernetes entry point routing external LB traffic to frontend, backend, and Keycloak pods. |
+| **Pod CIDR** | IP range assigned to Kubernetes pods within an OKE cluster (e.g. `10.247.0.0/16` for prod). |
+| **Private endpoint** | Database network interface reachable only from within the VCN — no public internet access. |
+| **Service CIDR** | Internal Kubernetes service IP range (e.g. `10.99.0.0/16` for prod). |
+| **Subnet** | Subdivision of a VCN CIDR into public, DMZ, private app, or private data tiers. |
+
+### DevOps, infrastructure & tooling
+
+| Term | Definition |
+|------|------------|
+| **Axios** | HTTP client library used by the React frontend with request/response interceptors. |
+| **CI/CD** | **Continuous Integration / Continuous Delivery** — automated build, test, and deploy pipelines pushing images to OCIR. |
+| **Docker / Docker Compose** | Container runtime and multi-service orchestration for local development and VM deployments. |
+| **E2E** | **End-to-end** — browser-level tests (Playwright) exercising full user workflows against a live backend. |
+| **Express.js** | Node.js web framework powering the backend API (port 5001). |
+| **HTTPS / SSL** | Encrypted HTTP; production uses Let's Encrypt certificates terminated at Nginx or WAF. |
+| **IaC** | **Infrastructure as Code** — Terraform modules under `deployment/oci/terraform/`. |
+| **K8s / Kubernetes** | Container orchestration platform; OKE is Oracle's managed Kubernetes offering. |
+| **Let's Encrypt** | Free certificate authority used for HTTPS in Ubuntu VM deployments. |
+| **Material-UI** | React component library used for the frontend UI. |
+| **Nginx** | Reverse proxy serving the React frontend and terminating TLS in VM deployments. |
+| **Node.js** | JavaScript runtime (18+) for the backend server. |
+| **Object Storage** | OCI durable storage for datasets, training artifacts, and Terraform remote state. |
+| **npm** | Node package manager for installing dependencies and running scripts (`npm run status`, etc.). |
+| **Playwright** | Browser automation framework for frontend E2E tests. |
+| **PostgreSQL** | Relational database (port 5432 locally; Autonomous DB in OCI production). |
+| **React** | JavaScript UI framework for the SPA frontend (port 3000). |
+| **React Router** | Client-side routing library (v6) for navigation within the SPA. |
+| **Sequelize ORM** | Object-relational mapper used by the Node.js backend for PostgreSQL access. |
+| **SIEM** | **Security Information and Event Management** — centralized log aggregation and alerting (prod). |
+| **SPA** | **Single Page Application** — React frontend loaded once; navigates client-side and obtains tokens via OIDC/PKCE. |
+| **Terraform** | IaC tool provisioning OCI VCN, OKE, ADB, load balancer, and OCIR resources. |
+| **UFW** | **Uncomplicated Firewall** — host-level firewall configured during Ubuntu VM deployment. |
+| **VirtualBox** | Hypervisor option for running a local VM development environment. |
+
+### Cloud providers & environments
+
+| Term | Definition |
+|------|------------|
+| **AWS** | Amazon Web Services — supported cloud provider for training and infrastructure integration. |
+| **Azure** | Microsoft Azure — supported cloud provider; also a common corporate IdP (Azure AD). |
+| **dev / test / staging / prod** | Four isolated OCI environment tiers with progressively stricter security posture. |
+| **GCP** | Google Cloud Platform — supported cloud provider for multi-cloud deployments. |
+| **Multi-Cloud Support** | Ability to provision training and storage across AWS, Azure, GCP, and OCI. |
+
+### Testing & monitoring
+
+| Term | Definition |
+|------|------------|
+| **Health check** | Endpoint (`/health`, `/api/health`) confirming a service is running and reachable. |
+| **Real-Time Monitoring** | Live dashboards and metrics for system health, SCITT CCF status, and training jobs. |
+| **UAT** | **User Acceptance Testing** — pre-production validation in the staging environment. |
+
 ## 🆘 Support
 
 - **Documentation**: Check the [docs folder](docs/README.md) for comprehensive guides
@@ -605,4 +761,4 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ---
 
-**Built with ❤️ using Microsoft's SCITT CCF Ledger technology** 
+**Inspired by ISPIRT's DEPA** ([https://depa.world](https://depa.world)) 
