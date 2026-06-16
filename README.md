@@ -1,4 +1,4 @@
-# 🚀 Contract Management System
+# 🚀 Confidential AI Network
 
 A comprehensive contract management system with multi-party authentication, **SCITT CCF Ledger integration**, confidential computing capabilities, and **differential privacy implementation**.
 
@@ -111,6 +111,174 @@ flowchart TB
 ```
 
 **Traffic path (production):** DNS → WAF → API Gateway (`api.{env}`) or Cloud Gate (`app.{env}`, `auth.{env}`) → Load Balancer → OKE ingress → application pods. Database access uses Autonomous DB private endpoints only.
+
+#### Compartments
+
+Three-level compartment tree under a dedicated tenancy — one subtree per environment, never mixed in a single compartment:
+
+```mermaid
+flowchart TB
+  Root[Tenancy / Root CMS Compartment]
+
+  Root --> Sec[cms-security-shared<br/>WAF · Cloud Guard · SIEM]
+  Root --> Net[cms-network-shared<br/>DRG · hub VCN · DNS]
+  Root --> Shared[cms-shared-services<br/>OCIR · Terraform state · CI/CD]
+  Root --> IdComp[cms-identity<br/>Identity Domain policies]
+
+  Root --> Dev[cms-dev]
+  Root --> Test[cms-test]
+  Root --> Staging[cms-staging]
+  Root --> Prod[cms-prod]
+
+  Dev --> DevNet[cms-dev-network]
+  Dev --> DevComp[cms-dev-compute]
+  Dev --> DevData[cms-dev-data]
+  Dev --> DevOps[cms-dev-ops]
+
+  Test --> TestNet[cms-test-network]
+  Test --> TestComp[cms-test-compute]
+  Test --> TestData[cms-test-data]
+  Test --> TestOps[cms-test-ops]
+
+  Staging --> StgNet[cms-staging-network]
+  Staging --> StgComp[cms-staging-compute]
+  Staging --> StgData[cms-staging-data]
+  Staging --> StgOps[cms-staging-ops]
+
+  Prod --> ProdNet[cms-prod-network]
+  Prod --> ProdComp[cms-prod-compute]
+  Prod --> ProdData[cms-prod-data]
+  Prod --> ProdOps[cms-prod-ops]
+```
+
+| Compartment | Resources |
+|-------------|-----------|
+| `cms-{env}-network` | VCN, subnets, NSGs, load balancer, service gateway |
+| `cms-{env}-compute` | OKE cluster, node pools, Bastion |
+| `cms-{env}-data` | Autonomous DB, Object Storage, Vault (Security Zone enforced in staging/prod) |
+| `cms-{env}-ops` | Alarms, notifications, on-call integrations |
+
+#### Identity Domains
+
+Separate Identity Domain per environment (`cms-dev-id`, `cms-test-id`, `cms-staging-id`, `cms-prod-id`). Keycloak remains the application authorization source; Identity Domain provides enterprise SSO and MFA.
+
+```mermaid
+flowchart LR
+  subgraph Workforce
+    IdP[Corporate IdP<br/>Okta / Azure AD]
+  end
+
+  subgraph OCI["Per-environment Identity Domain"]
+    ID[cms-env-id<br/>MFA · user lifecycle]
+    Groups[TDC · TDP · CCRP · AppAdmin groups]
+  end
+
+  subgraph Edge
+    CG[Cloud Gate<br/>app · auth · ops URLs]
+  end
+
+  subgraph App
+    KC[Keycloak realm<br/>contract-management]
+    SPA[React frontend]
+    APIGW[API Gateway<br/>JWT validation]
+    API[Backend API]
+  end
+
+  IdP -->|SAML/OIDC| ID
+  ID --> Groups
+  Groups --> CG
+  CG --> SPA
+  CG --> KC
+  SPA -->|OIDC / PKCE| KC
+  KC -->|Bearer JWT| APIGW
+  APIGW --> API
+```
+
+| Environment | Identity Domain | Purpose |
+|-------------|-----------------|---------|
+| dev | `cms-dev-id` | Developer SSO, Keycloak sync testing |
+| test | `cms-test-id` | QA automation, Playwright service accounts |
+| staging | `cms-staging-id` | Pre-prod UAT, partner demos |
+| prod | `cms-prod-id` | Production TDC / TDP / CCRP / AppAdmin users |
+
+#### Network
+
+One isolated VCN per environment with non-overlapping CIDRs. Private worker nodes; no compute in public subnets.
+
+```mermaid
+flowchart TB
+  Internet[Internet]
+
+  subgraph VCN["cms-env VCN (e.g. prod 10.40.0.0/16)"]
+    IGW[Internet Gateway]
+
+    subgraph Public["Public subnets (2+ ADs)"]
+      WAF_LB[WAF / LB listeners only]
+    end
+
+    subgraph DMZ["DMZ / Edge subnets (optional)"]
+      APIGW_N[API Gateway]
+      CG_N[Cloud Gate connector]
+    end
+
+    subgraph AppTier["Private app subnets"]
+      OKE[OKE worker nodes<br/>pod CIDR 10.247.0.0/16]
+    end
+
+    subgraph DataTier["Private data subnets"]
+      ADB[Autonomous DB<br/>private endpoint only]
+    end
+
+    NAT[NAT Gateway]
+    SGW[Service Gateway]
+  end
+
+  Internet --> IGW --> WAF_LB
+  WAF_LB --> DMZ --> AppTier
+  AppTier --> DataTier
+  AppTier -->|egress 0.0.0.0/0| NAT --> Internet
+  AppTier -->|OCI APIs · Object Storage| SGW
+```
+
+| Environment | VCN CIDR | OKE pod CIDR | Service CIDR |
+|-------------|----------|--------------|--------------|
+| dev | `10.10.0.0/16` | `10.244.0.0/16` | `10.96.0.0/16` |
+| test | `10.20.0.0/16` | `10.245.0.0/16` | `10.97.0.0/16` |
+| staging | `10.30.0.0/16` | `10.246.0.0/16` | `10.98.0.0/16` |
+| prod | `10.40.0.0/16` | `10.247.0.0/16` | `10.99.0.0/16` |
+
+NSGs (`nsg-lb-ingress`, `nsg-oke-workers`, `nsg-adb`) use default-deny with explicit allow rules. Admin access via OCI Bastion only — no SSH from the internet.
+
+#### Security Zones
+
+Security Zones apply to `cms-prod-data` and `cms-staging-data` compartments to enforce guardrails at the infrastructure layer:
+
+```mermaid
+flowchart TB
+  subgraph SZ["Security Zone — cms-prod-data / cms-staging-data"]
+    direction TB
+    P1[Deny public Object Storage buckets]
+    P2[Deny compute instances in public subnets]
+    P3[Deny DB systems without encryption]
+    P4[Require Vault for secret creation]
+  end
+
+  subgraph Monitored["Also monitored by Cloud Guard"]
+    CG2[Public bucket ACL changes]
+    CG3[Open security lists · crypto mining]
+    CG4[Overly permissive IAM policies]
+  end
+
+  DataComp[cms-env-data compartment] --> SZ
+  DataComp -.-> Monitored
+```
+
+| Environment | Security Zone | WAF mode | MFA |
+|-------------|---------------|----------|-----|
+| dev | Optional | Log only | Off |
+| test | Optional | Block | Optional |
+| staging | **Required** on data compartment | Block | Admins |
+| prod | **Required** on data compartment | Block + bot mgmt | All users |
 
 | Topic | Documentation |
 |-------|---------------|
