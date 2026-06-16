@@ -1,4 +1,4 @@
-// Main JavaScript for ContractFlow Pro Landing Page
+// Main JavaScript for Confidential AI Network landing page
 document.addEventListener('DOMContentLoaded', function() {
     // Smooth scrolling for navigation links
     document.querySelectorAll('a[href^="#"]').forEach(anchor => {
@@ -85,5 +85,5 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    console.log('ContractFlow Pro landing page loaded successfully!');
+    console.log('Confidential AI Network landing page loaded successfully!');
 });

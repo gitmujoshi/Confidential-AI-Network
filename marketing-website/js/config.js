@@ -1,5 +1,5 @@
 /**
- * Configuration file for ContractFlow Pro Marketing Website
+ * Configuration file for Confidential AI Network marketing website
  * Update these settings as needed
  */
 
@@ -7,7 +7,7 @@ const CONFIG = {
     // Security Settings
     SECURITY: {
         // Password for website access (change this to your desired password)
-        PASSWORD: 'ContractFlow2025!',
+        PASSWORD: 'ConfidentialAI2026!',
         
         // Maximum failed attempts before lockout
         MAX_ATTEMPTS: 3,
@@ -21,14 +21,14 @@ const CONFIG = {
     
     // Website Settings
     WEBSITE: {
-        NAME: 'ContractFlow Pro',
-        DESCRIPTION: 'Enterprise Contract Management System',
+        NAME: 'Confidential AI Network',
+        DESCRIPTION: 'Secure contracting + confidential AI training on protected data',
         VERSION: '3.0'
     },
     
     // Contact Information
     CONTACT: {
-        EMAIL: 'info@contractflowpro.com',
+        EMAIL: 'info@confidentialai.network',
         PHONE: '+1 (555) 123-4567',
         LOCATION: 'San Francisco, CA'
     }

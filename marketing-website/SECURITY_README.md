@@ -1,7 +1,7 @@
 # 🔐 Website Security & Multi-Page Authentication
 
 ## Overview
-The ContractFlow Pro marketing website now uses a secure multi-page authentication system that prevents unauthorized access to sensitive content.
+The Confidential AI Network marketing website now uses a secure multi-page authentication system that prevents unauthorized access to sensitive content.
 
 ## 🚀 How It Works
 
@@ -30,7 +30,7 @@ The ContractFlow Pro marketing website now uses a secure multi-page authenticati
 
 ### Current User Accounts:
 - **Username**: `admin`
-- **Password**: `ContractFlow2025!`
+- **Password**: `ConfidentialAI2026!`
 - **Username**: `jimm`
 - **Password**: `J1mm$tr0ngP@ss2025!`
 
@@ -136,9 +136,9 @@ checkPassword() {
     
     // Support multiple passwords
     const validPasswords = [
-        'ContractFlow2025!',
-        'DemoAccess2025',
-        'Enterprise2025'
+        'ConfidentialAI2026!',
+        'DemoAccess2026',
+        'Enterprise2026'
     ];
     
     if (validPasswords.includes(inputPassword)) {

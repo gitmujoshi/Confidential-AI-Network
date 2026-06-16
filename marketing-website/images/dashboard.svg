@@ -11,7 +11,7 @@
   <circle cx="60" cy="20" r="6" fill="#27ca3f"/>
   
   <!-- Browser Title -->
-  <text x="300" y="25" font-family="Arial, sans-serif" font-size="14" fill="#6c757d" text-anchor="middle">ContractFlow Pro Dashboard</text>
+  <text x="300" y="25" font-family="Arial, sans-serif" font-size="14" fill="#6c757d" text-anchor="middle">Confidential AI Network Dashboard</text>
   
   <!-- Sidebar -->
   <rect x="0" y="40" width="150" height="360" fill="#f8f9fa" stroke="#e9ecef" stroke-width="1"/>

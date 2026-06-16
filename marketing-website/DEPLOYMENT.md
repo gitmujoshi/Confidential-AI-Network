@@ -1,12 +1,12 @@
 # Marketing Website Deployment Guide
 
 ## Overview
-The ContractFlow Pro marketing website is deployed on Vercel with a custom domain.
+The Confidential AI Network marketing website is deployed on Vercel with a custom domain.
 
 ## URLs
 - **Production**: https://responsible-ai.dpi-apps.space
-- **Vercel URL**: https://contractflow-pro-marketing-aar1ymoms.vercel.app
-- **Dashboard**: https://vercel.com/joshimukesh078-gmailcoms-projects/contractflow-pro-marketing
+- **Vercel URL**: https://contractflow-pro-marketing-2pjje6tdf.vercel.app
+- **Dashboard**: https://vercel.com/joshimukesh078-gmailcoms-projects/confidential-ai-network-marketing
 
 ## Quick Deployment
 ```bash

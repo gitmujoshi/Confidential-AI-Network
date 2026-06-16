@@ -1,4 +1,4 @@
-// ContractFlow Pro Marketing Website JavaScript
+// Confidential AI Network marketing website JavaScript
 
 document.addEventListener('DOMContentLoaded', function() {
     
@@ -312,5 +312,5 @@ document.addEventListener('DOMContentLoaded', function() {
         return new bootstrap.Popover(popoverTriggerEl);
     });
 
-    console.log('ContractFlow Pro marketing website initialized successfully!');
+    console.log('Confidential AI Network marketing website initialized successfully!');
 }); 
