@@ -97,11 +97,29 @@ class CANLocalCcrpExecutor {
     const maxEpochs = Math.min(20, Math.max(1, Number(rawEpochs) || 3));
 
     if (mode === 'docker') {
+      const { stageDatasetsForLocalJob } = require('./datasetArtifactStaging');
+      let stagedInputs = inputs;
+      try {
+        stagedInputs = await stageDatasetsForLocalJob(trainingJobId, inputs);
+      } catch (stageErr) {
+        console.warn(
+          `[CANLocalCcrpExecutor] Dataset staging skipped for ${trainingJobId}:`,
+          stageErr.message
+        );
+      }
+      await ensureTrainingJob({
+        trainingJobId,
+        contractId,
+        canJobId,
+        ccrProvider: 'local',
+        inputs: stagedInputs,
+      });
+
       return runLocalDockerTraining({
         jobId: trainingJobId,
         contractId: String(contractId),
         containerSpec: { image: process.env.LOCAL_TRAINING_IMAGE || undefined },
-        trainingParams: { maxEpochs },
+        trainingParams: stagedInputs?.contract?.trainingParams || { maxEpochs },
       });
     }
 

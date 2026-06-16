@@ -27,7 +27,9 @@ Need production? ──no──► getting-started/QUICK_START.md + ./start-syst
 
 | Doc / script | Purpose |
 |--------------|---------|
-| [../production/OCI_SECURITY_ARCHITECTURE.md](../production/OCI_SECURITY_ARCHITECTURE.md) | Security architecture (compartments, WAF, API Gateway, Cloud Gate) |
+| [../production/OCI_SECURITY_ARCHITECTURE.md](../production/OCI_SECURITY_ARCHITECTURE.md) | Security architecture + **step-by-step new OCI env setup** |
+| [OCI_IAM_AND_EDGE_CONFIG.md](OCI_IAM_AND_EDGE_CONFIG.md) | **IAM policies, Cloud Gate, API Gateway, WAF** (implementation reference) |
+| [OCI_READINESS.md](OCI_READINESS.md) | Honest assessment: what is / isn't ready for OCI |
 | [../../deployment/oci/terraform/README.md](../../deployment/oci/terraform/README.md) | Terraform modules (OKE, ADB, LB, OCIR) |
 | [../../deploy/oci/deploy-oci.sh](../../deploy/oci/deploy-oci.sh) | Alternative OCI CLI VM deploy (simpler) |
 

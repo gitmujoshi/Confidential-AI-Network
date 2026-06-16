@@ -15,6 +15,10 @@
 | Call APIs | [api/API_REFERENCE.md](api/API_REFERENCE.md) · [api/COMPLETE_API_SPECIFICATIONS.md](api/COMPLETE_API_SPECIFICATIONS.md) |
 | Security & IAM | [security/](security/) · [production/OCI_SECURITY_ARCHITECTURE.md](production/OCI_SECURITY_ARCHITECTURE.md) |
 | Test (manual / E2E) | [testing/](testing/) · [frontend/tests/e2e/README.md](../frontend/tests/e2e/README.md) |
+| **Local stakeholder demo** | [training/LOCAL_DEMO_RUNBOOK.md](training/LOCAL_DEMO_RUNBOOK.md) |
+| **OCI deploy readiness** | [deployment/OCI_READINESS.md](deployment/OCI_READINESS.md) |
+| **OCI IAM / WAF / API GW** | [deployment/OCI_IAM_AND_EDGE_CONFIG.md](deployment/OCI_IAM_AND_EDGE_CONFIG.md) |
+| **OCI new-env setup runbook** | [production/OCI_SECURITY_ARCHITECTURE.md](production/OCI_SECURITY_ARCHITECTURE.md) (top of doc) |
 
 ---
 

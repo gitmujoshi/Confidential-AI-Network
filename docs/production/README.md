@@ -9,7 +9,8 @@ This directory contains comprehensive production documentation for the AI model 
 ### **Core Documentation**
 - **[Production Deployment Guide](PRODUCTION_DEPLOYMENT_GUIDE.md)** - Complete step-by-step deployment instructions
 - **[Production Architecture](PRODUCTION_ARCHITECTURE.md)** - Detailed architecture overview and design
-- **[OCI Security Architecture](OCI_SECURITY_ARCHITECTURE.md)** - OCI compartments, identity domains, network segmentation (dev/test/staging/prod), WAF, API Gateway, Cloud Gate, Cloud Guard
+- **[OCI Security Architecture](OCI_SECURITY_ARCHITECTURE.md)** - OCI compartments, identity domains, network segmentation (dev/test/staging/prod), WAF, API Gateway, Cloud Gate, Cloud Guard; **step-by-step new-env setup runbook at top**
+- **[OCI IAM & Edge Config](../deployment/OCI_IAM_AND_EDGE_CONFIG.md)** - Full IAM policies, Cloud Gate apps, API Gateway routes/JWT, WAF rules (implementation reference)
 - **[Security Guide](SECURITY_GUIDE.md)** - Comprehensive security implementation
 - **[Monitoring Guide](MONITORING_GUIDE.md)** - Complete monitoring and observability setup
 - **[Troubleshooting Guide](TROUBLESHOOTING_GUIDE.md)** - Troubleshooting procedures and solutions

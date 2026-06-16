@@ -274,7 +274,7 @@ async function main() {
       maxEpochs: 3,
       batchSize: 16,
       learningRate: 0.0002,
-      metadata: { modality: 'text', recommendedDatasets: ['demo-ag-news'] },
+      metadata: { modality: 'text', recommendedDatasets: ['demo-ag-news'], huggingfaceModel: 'sshleifer/tiny-distilbert-base-cased' },
     },
   ];
 
