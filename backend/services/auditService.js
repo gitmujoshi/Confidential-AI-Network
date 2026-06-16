@@ -1,8 +1,20 @@
 const { sequelize } = require('../models');
+const { getSiemIntegrationService } = require('./siem');
 
 class AuditService {
   constructor() {
     this.db = sequelize;
+    this.siem = getSiemIntegrationService();
+  }
+
+  /**
+   * Forward to SIEM providers (non-blocking; failures do not affect audit persistence).
+   */
+  _forwardToSiem(auditLog) {
+    if (!auditLog || !this.siem.isEnabled()) return;
+    this.siem.forwardAuditLog(auditLog).catch((err) => {
+      console.warn('[SIEM] Forward failed:', err.message);
+    });
   }
 
   /**
@@ -20,6 +32,7 @@ class AuditService {
       });
 
       console.log(`📝 Audit event logged: ${eventType} for user ${userId || 'system'}`);
+      this._forwardToSiem(auditLog);
       return auditLog;
     } catch (error) {
       console.error('❌ Error logging audit event:', error);

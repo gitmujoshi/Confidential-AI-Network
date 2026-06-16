@@ -247,6 +247,26 @@ router.get('/audit', authenticateToken, requireAnyAdmin, async (req, res) => {
 });
 
 /**
+ * GET /api/security/siem
+ * SIEM integration status (admin only)
+ */
+router.get('/siem', authenticateToken, requireAnyAdmin, async (req, res) => {
+  try {
+    const { getSiemIntegrationService } = require('../services/siem');
+    res.json({
+      success: true,
+      data: getSiemIntegrationService().status()
+    });
+  } catch (error) {
+    console.error('❌ Error getting SIEM status:', error);
+    res.status(500).json({
+      error: 'Failed to retrieve SIEM status',
+      code: 'SIEM_STATUS_ERROR'
+    });
+  }
+});
+
+/**
  * POST /api/security/block-ip
  * Block IP address (admin only)
  */

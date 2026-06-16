@@ -168,3 +168,7 @@ frontend.port
 .frontend.pid
 .keycloak.pid
 config-backups-*/
+
+# Runtime CCRP Terraform (generated per contract environment)
+deployment/azure/terraform/environments/*
+!deployment/azure/terraform/environments/README.md

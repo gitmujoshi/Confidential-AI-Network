@@ -771,7 +771,7 @@ Apply **Security Zone** to `cms-prod-data` and `cms-staging-data`:
 | Keycloak audit | Logging | 1y prod |
 | App audit (contracts, sign) | App DB + export | per compliance |
 
-Export to enterprise SIEM (Splunk, Sentinel) via **Service Connector Hub**.
+Export to enterprise SIEM (Splunk, Sentinel) via **Service Connector Hub**. Application audit events: [SIEM Integration Framework](SIEM_INTEGRATION_FRAMEWORK.md) + [deployment/siem/](../../deployment/siem/README.md).
 
 ### 9.4 Bastion & admin access
 

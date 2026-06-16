@@ -1,0 +1,30 @@
+# Copy to terraform.tfvars and fill in values
+# az account show --query '{subscriptionId:id, tenantId:tenantId}'
+
+subscription_id = "00000000-0000-0000-0000-000000000000"
+tenant_id       = "00000000-0000-0000-0000-000000000000"
+location        = "eastus"
+
+resource_group_name = "can-dev-compute-rg"
+vnet_cidr           = "10.10.0.0/16"
+cluster_name        = "can-dev-aks"
+environment         = "dev"
+app_domain          = "app.dev.example.com"
+
+node_count = 3
+vm_size    = "Standard_D4s_v5"
+
+db_name     = "contractmanagement"
+db_user     = "canadmin"
+db_password = "CHANGE_ME_STRONG_PASSWORD"
+
+keycloak_admin_username = "admin"
+keycloak_admin_password = "CHANGE_ME_STRONG_PASSWORD"
+
+repository_name = "cancontractmgmt"
+
+project_tags = {
+  Project     = "ConfidentialAINetwork"
+  Environment = "dev"
+  ManagedBy   = "Terraform"
+}

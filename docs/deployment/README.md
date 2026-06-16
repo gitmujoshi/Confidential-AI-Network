@@ -11,6 +11,7 @@ Need production? ──no──► getting-started/QUICK_START.md + ./start-syst
         │
         ├── Single Ubuntu VM / docker-compose ──► deployment/ (repo scripts)
         ├── OCI (OKE, ADB, WAF) ──────────────► deployment/oci/terraform/
+        ├── Azure (AKS, PostgreSQL, Front Door) ► deployment/azure/terraform/
         └── Kubernetes multi-service ─────────► deploy/production/ + docs/production/
 ```
 
@@ -32,6 +33,17 @@ Need production? ──no──► getting-started/QUICK_START.md + ./start-syst
 | [OCI_READINESS.md](OCI_READINESS.md) | Honest assessment: what is / isn't ready for OCI |
 | [../../deployment/oci/terraform/README.md](../../deployment/oci/terraform/README.md) | Terraform modules (OKE, ADB, LB, OCIR) |
 | [../../deploy/oci/deploy-oci.sh](../../deploy/oci/deploy-oci.sh) | Alternative OCI CLI VM deploy (simpler) |
+
+## Microsoft Azure
+
+| Doc / script | Purpose |
+|--------------|---------|
+| [../production/AZURE_SECURITY_ARCHITECTURE.md](../production/AZURE_SECURITY_ARCHITECTURE.md) | Security architecture + **step-by-step new Azure env setup** |
+| [AZURE_IAM_AND_EDGE_CONFIG.md](AZURE_IAM_AND_EDGE_CONFIG.md) | **Entra ID, RBAC, Front Door, APIM, WAF** (implementation reference) |
+| [AZURE_READINESS.md](AZURE_READINESS.md) | Honest assessment: what is / isn't ready for Azure |
+| [../../deployment/azure/terraform/README.md](../../deployment/azure/terraform/README.md) | Terraform modules (AKS, PostgreSQL, ACR) |
+| [../../deploy/azure/deploy-azure.sh](../../deploy/azure/deploy-azure.sh) | Single-VM docker-compose deploy via Azure CLI |
+| [../../backend/AZURE_INTEGRATION_GUIDE.md](../../backend/AZURE_INTEGRATION_GUIDE.md) | CCRP training / confidential computing integration |
 
 ## Kubernetes / production
 
