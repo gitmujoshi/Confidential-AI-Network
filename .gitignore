@@ -131,7 +131,15 @@ private-keys.json
 
 # Backup files
 *.bak
-*.backup RESUME_EXPERIENCE_CONTRACT_MANAGEMENT.md
+*.backup
+
+# Personal resumes / CVs — never commit
+MJResume*
+*Resume*.md
+*Resume*.pdf
+*Resume*.docx
+RESUME_*.md
+RESUME_*.pdf
 
 # Vault binaries (too large for GitHub)
 backend/vault

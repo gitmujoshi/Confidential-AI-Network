@@ -2,6 +2,123 @@
 
 A comprehensive contract management system with multi-party authentication, **SCITT CCF Ledger integration**, confidential computing capabilities, and **differential privacy implementation**.
 
+## 🏗️ Architecture
+
+### Application Architecture
+
+```mermaid
+graph TB
+    subgraph "Frontend Layer"
+        A[React Frontend<br/>Port: 3000]
+        B[SCITT CCF Dashboard<br/>Real-time Monitoring]
+        C[Contract Management UI<br/>Role-based Dashboards]
+    end
+    
+    subgraph "Backend Layer"
+        D[Node.js Backend<br/>Port: 5001]
+        E[Keycloak IAM<br/>Port: 8080]
+        F[Contract Router Service<br/>SCITT CCF Only]
+    end
+    
+    subgraph "SCITT CCF Layer"
+        G[SCITT CCF Service<br/>Ledger Integration]
+        H[TEE Provider<br/>Confidential Computing]
+        I[Claims Management<br/>Contract Operations]
+    end
+    
+    subgraph "Data Layer"
+        J[PostgreSQL<br/>Port: 5432]
+        K[SCITT CCF Ledger<br/>Port: 8000]
+        L[System Health<br/>Monitoring & Metrics]
+    end
+    
+    A --> D
+    B --> D
+    C --> D
+    D --> E
+    D --> F
+    F --> G
+    G --> H
+    G --> I
+    G --> K
+    D --> J
+    D --> L
+    
+    style A fill:#e1f5fe
+    style D fill:#f3e5f5
+    style G fill:#e8f5e8
+    style J fill:#fff3e0
+    style K fill:#fce4ec
+```
+
+### OCI Deployment Architecture
+
+For production on **Oracle Cloud Infrastructure (OCI)**, the system deploys across compartment-isolated environments (dev, test, staging, prod) with defense-in-depth edge security:
+
+- **Edge**: WAF → API Gateway / Cloud Gate → Flexible Load Balancer
+- **Compute**: OKE (Kubernetes) with private worker nodes and ingress
+- **Data**: Autonomous Database (private endpoint), OCI Vault, Object Storage
+- **Shared services**: OCIR, Cloud Guard, Bastion, centralized logging
+
+```mermaid
+flowchart TB
+  subgraph Internet
+    Users[Users / TDC TDP CCRP]
+    Admins[Platform Admins]
+  end
+
+  subgraph DNS["OCI DNS / External DNS"]
+    App_DNS[app.env.example.com]
+    Auth_DNS[auth.env.example.com]
+    Api_DNS[api.env.example.com]
+  end
+
+  subgraph Edge["cms-security-shared / cms-env-network"]
+    WAF[OCI WAF]
+    APIGW[OCI API Gateway]
+    CG[Oracle Cloud Gate]
+    LB[Flexible Load Balancer — private backends]
+  end
+
+  subgraph EnvProd["Compartment: cms-prod"]
+    VCN_P[Prod VCN]
+    OKE_P[OKE Cluster]
+    ADB_P[Autonomous DB — private]
+    Vault_P[OCI Vault]
+  end
+
+  subgraph Shared["Compartment: cms-shared-services"]
+    OCIR[Container Registry]
+    Logging[Logging / Audit]
+    CloudGuard[Cloud Guard]
+    Bastion[OCI Bastion]
+  end
+
+  Users --> App_DNS --> WAF
+  Users --> Auth_DNS --> WAF
+  Users --> Api_DNS --> WAF
+
+  WAF -->|api.* host| APIGW --> LB
+  WAF -->|app.* auth.* ops.*| CG --> LB
+  LB --> OKE_P
+  OKE_P --> ADB_P
+  OKE_P --> Vault_P
+
+  Admins --> Bastion --> OKE_P
+
+  CloudGuard -. monitors .-> EnvProd
+  OCIR --> OKE_P
+```
+
+**Traffic path (production):** DNS → WAF → API Gateway (`api.{env}`) or Cloud Gate (`app.{env}`, `auth.{env}`) → Load Balancer → OKE ingress → application pods. Database access uses Autonomous DB private endpoints only.
+
+| Topic | Documentation |
+|-------|---------------|
+| OCI security architecture & setup runbook | [docs/production/OCI_SECURITY_ARCHITECTURE.md](docs/production/OCI_SECURITY_ARCHITECTURE.md) |
+| IAM, Cloud Gate, API Gateway, WAF | [docs/deployment/OCI_IAM_AND_EDGE_CONFIG.md](docs/deployment/OCI_IAM_AND_EDGE_CONFIG.md) |
+| Terraform (OKE, ADB, LB, OCIR) | [deployment/oci/terraform/README.md](deployment/oci/terraform/README.md) |
+| OCI readiness & rollout phases | [docs/deployment/OCI_READINESS.md](docs/deployment/OCI_READINESS.md) |
+
 ## 🚀 Quick Start
 
 ### **Local Development**
@@ -117,52 +234,6 @@ The system now operates in **SCITT CCF only** mode for simplified architecture:
 - **`SCITT_CCF_ONLY`**: Use only SCITT CCF Ledger (Current)
 - **Legacy Support**: Traditional blockchain support has been removed for cleaner SCITT CCF architecture
 
-## ��️ Architecture
-
-```mermaid
-graph TB
-    subgraph "Frontend Layer"
-        A[React Frontend<br/>Port: 3000]
-        B[SCITT CCF Dashboard<br/>Real-time Monitoring]
-        C[Contract Management UI<br/>Role-based Dashboards]
-    end
-    
-    subgraph "Backend Layer"
-        D[Node.js Backend<br/>Port: 5001]
-        E[Keycloak IAM<br/>Port: 8080]
-        F[Contract Router Service<br/>SCITT CCF Only]
-    end
-    
-    subgraph "SCITT CCF Layer"
-        G[SCITT CCF Service<br/>Ledger Integration]
-        H[TEE Provider<br/>Confidential Computing]
-        I[Claims Management<br/>Contract Operations]
-    end
-    
-    subgraph "Data Layer"
-        J[PostgreSQL<br/>Port: 5432]
-        K[SCITT CCF Ledger<br/>Port: 8000]
-        L[System Health<br/>Monitoring & Metrics]
-    end
-    
-    A --> D
-    B --> D
-    C --> D
-    D --> E
-    D --> F
-    F --> G
-    G --> H
-    G --> I
-    G --> K
-    D --> J
-    D --> L
-    
-    style A fill:#e1f5fe
-    style D fill:#f3e5f5
-    style G fill:#e8f5e8
-    style J fill:#fff3e0
-    style K fill:#fce4ec
-```
 
 ## 🧪 Testing
 

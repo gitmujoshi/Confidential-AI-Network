@@ -940,15 +940,17 @@ Use this checklist for architecture sign-off. For **actionable IAM/edge validati
 
 ## 15. Reference URLs
 
+Oracle documentation URLs change periodically. Verified **2026-06-15** (HTTP 200).
+
 - [OCI Security Guide](https://docs.oracle.com/en-us/iaas/Content/Security/Concepts/security_guide.htm)
-- [OCI Well-Architected Framework — Security](https://docs.oracle.com/en/solutions/oci-well-architected-framework/security-and-compliance.html)
+- [OCI Well-Architected — Security & Compliance pillar](https://docs.oracle.com/en/solutions/oci-best-practices/effective-strategies-security-and-compliance1.html) — full TOC: [OCI Best Practices](https://docs.oracle.com/en/solutions/oci-best-practices/toc.htm)
 - [Cloud Guard](https://docs.oracle.com/en-us/iaas/cloud-guard/home.htm)
 - [OCI WAF](https://docs.oracle.com/en-us/iaas/Content/WAF/home.htm)
 - [API Gateway](https://docs.oracle.com/en-us/iaas/Content/APIGateway/home.htm)
-- [Oracle Cloud Gate](https://docs.oracle.com/en/cloud/paas/access-gateway/)
+- [Oracle App Gateway (Cloud Gate)](https://docs.oracle.com/en-us/iaas/Content/Identity/appgateways/understand-app-gateway.htm) — Cloud Gate runs inside App Gateway for Identity Domain SSO
 - [Identity Domains](https://docs.oracle.com/en-us/iaas/Content/Identity/domains/overview.htm)
-- [OKE Security](https://docs.oracle.com/en-us/iaas/Content/ContEng/Concepts/contengsecurity.htm)
-- [Security Zones](https://docs.oracle.com/en-us/iaas/Content/SecurityZone/home.htm)
+- [Securing Kubernetes Engine (OKE)](https://docs.oracle.com/en-us/iaas/Content/Security/Reference/oke_security.htm) — see also [OKE security best practices](https://docs.oracle.com/en-us/iaas/Content/ContEng/Tasks/contengbestpractices_topic-Security-best-practices.htm)
+- [Security Zones](https://docs.oracle.com/en-us/iaas/Content/security-zone/using/security-zones.htm) — product home: [Security Zones](https://docs.oracle.com/en-us/iaas/security-zone/home.htm)
 - [Bastion](https://docs.oracle.com/en-us/iaas/Content/Bastion/home.htm)
 
 ---
