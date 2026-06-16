@@ -6,49 +6,63 @@ A comprehensive contract management system with multi-party authentication, **SC
 
 ### Application Architecture
 
+**Overview** — four layers, left to right:
+
 ```mermaid
-graph TB
-    subgraph "Frontend Layer"
-        A[React Frontend<br/>Port: 3000]
-        B[SCITT CCF Dashboard<br/>Real-time Monitoring]
-        C[Contract Management UI<br/>Role-based Dashboards]
-    end
-    
-    subgraph "Backend Layer"
-        D[Node.js Backend<br/>Port: 5001]
-        E[Keycloak IAM<br/>Port: 8080]
-        F[Contract Router Service<br/>SCITT CCF Only]
-    end
-    
-    subgraph "SCITT CCF Layer"
-        G[SCITT CCF Service<br/>Ledger Integration]
-        H[TEE Provider<br/>Confidential Computing]
-        I[Claims Management<br/>Contract Operations]
-    end
-    
-    subgraph "Data Layer"
-        J[PostgreSQL<br/>Port: 5432]
-        K[SCITT CCF Ledger<br/>Port: 8000]
-        L[System Health<br/>Monitoring & Metrics]
-    end
-    
-    A --> D
-    B --> D
-    C --> D
-    D --> E
-    D --> F
-    F --> G
-    G --> H
-    G --> I
-    G --> K
-    D --> J
-    D --> L
-    
-    style A fill:#e1f5fe
-    style D fill:#f3e5f5
-    style G fill:#e8f5e8
-    style J fill:#fff3e0
-    style K fill:#fce4ec
+flowchart LR
+  subgraph L1["① Presentation"]
+    UI[React UI<br/>Contract · SCITT dashboards]
+  end
+
+  subgraph L2["② Application"]
+    API[Node.js API :5001]
+    IAM[Keycloak :8080]
+    Router[Contract Router]
+  end
+
+  subgraph L3["③ Confidential ledger"]
+    SCITT[SCITT CCF Service]
+    TEE[TEE Provider]
+  end
+
+  subgraph L4["④ Persistence"]
+    DB[(PostgreSQL :5432)]
+    Ledger[(SCITT Ledger :8000)]
+  end
+
+  UI --> API
+  API --> IAM
+  API --> Router --> SCITT --> TEE
+  SCITT --> Ledger
+  API --> DB
+
+  style L1 fill:#e1f5fe
+  style L2 fill:#f3e5f5
+  style L3 fill:#e8f5e8
+  style L4 fill:#fff3e0
+```
+
+**Request flow** — how a contract operation travels through the stack:
+
+```mermaid
+sequenceDiagram
+  actor User
+  participant UI as React UI
+  participant API as Node.js API
+  participant KC as Keycloak
+  participant CR as Contract Router
+  participant SC as SCITT CCF
+  participant DB as PostgreSQL
+
+  User->>UI: Action (create / sign / train)
+  UI->>KC: Obtain token (OIDC)
+  KC-->>UI: JWT
+  UI->>API: API call + Bearer JWT
+  API->>KC: Validate token
+  API->>CR: Route contract op
+  CR->>SC: Ledger claim
+  API->>DB: Persist state
+  API-->>UI: Response
 ```
 
 ### OCI Deployment Architecture
@@ -60,95 +74,104 @@ For production on **Oracle Cloud Infrastructure (OCI)**, the system deploys acro
 - **Data**: Autonomous Database (private endpoint), OCI Vault, Object Storage
 - **Shared services**: OCIR, Cloud Guard, Bastion, centralized logging
 
+**Overview** — major blocks:
+
+```mermaid
+flowchart LR
+  subgraph Users
+    U[TDC · TDP · CCRP]
+    A[Platform admins]
+  end
+
+  subgraph Edge["Edge (cms-security-shared)"]
+    WAF[WAF]
+    GW[API GW / Cloud Gate]
+    LB[Load Balancer]
+  end
+
+  subgraph Workload["cms-prod-compute"]
+    OKE[OKE cluster]
+  end
+
+  subgraph Data["cms-prod-data"]
+    ADB[(Autonomous DB)]
+    V[(Vault)]
+  end
+
+  subgraph Shared["cms-shared-services"]
+    OCIR[OCIR]
+    CG[Cloud Guard]
+    B[Bastion]
+  end
+
+  U --> WAF --> GW --> LB --> OKE
+  OKE --> ADB
+  OKE --> V
+  OCIR -. images .-> OKE
+  CG -. monitors .-> OKE
+  A --> B --> OKE
+```
+
+**Traffic routing** — hostname-based split at the WAF:
+
 ```mermaid
 flowchart TB
-  subgraph Internet
-    Users[Users / TDC TDP CCRP]
-    Admins[Platform Admins]
-  end
+  DNS["DNS<br/>app · auth · api · ops"]
+  WAF[OCI WAF]
 
-  subgraph DNS["OCI DNS / External DNS"]
-    App_DNS[app.env.example.com]
-    Auth_DNS[auth.env.example.com]
-    Api_DNS[api.env.example.com]
-  end
+  DNS --> WAF
 
-  subgraph Edge["cms-security-shared / cms-env-network"]
-    WAF[OCI WAF]
-    APIGW[OCI API Gateway]
-    CG[Oracle Cloud Gate]
-    LB[Flexible Load Balancer — private backends]
-  end
+  WAF -->|api.*| APIGW[API Gateway<br/>JWT validation]
+  WAF -->|app.* · auth.* · ops.*| CG[Cloud Gate<br/>SSO session]
 
-  subgraph EnvProd["Compartment: cms-prod"]
-    VCN_P[Prod VCN]
-    OKE_P[OKE Cluster]
-    ADB_P[Autonomous DB — private]
-    Vault_P[OCI Vault]
-  end
-
-  subgraph Shared["Compartment: cms-shared-services"]
-    OCIR[Container Registry]
-    Logging[Logging / Audit]
-    CloudGuard[Cloud Guard]
-    Bastion[OCI Bastion]
-  end
-
-  Users --> App_DNS --> WAF
-  Users --> Auth_DNS --> WAF
-  Users --> Api_DNS --> WAF
-
-  WAF -->|api.* host| APIGW --> LB
-  WAF -->|app.* auth.* ops.*| CG --> LB
-  LB --> OKE_P
-  OKE_P --> ADB_P
-  OKE_P --> Vault_P
-
-  Admins --> Bastion --> OKE_P
-
-  CloudGuard -. monitors .-> EnvProd
-  OCIR --> OKE_P
+  APIGW --> LB[Flexible LB]
+  CG --> LB
+  LB --> ING[OKE Ingress]
+  ING --> PODS[Frontend · Backend · Keycloak pods]
+  PODS --> ADB[(ADB private endpoint)]
 ```
 
 **Traffic path (production):** DNS → WAF → API Gateway (`api.{env}`) or Cloud Gate (`app.{env}`, `auth.{env}`) → Load Balancer → OKE ingress → application pods. Database access uses Autonomous DB private endpoints only.
 
 #### Compartments
 
-Three-level compartment tree under a dedicated tenancy — one subtree per environment, never mixed in a single compartment:
+Three-level compartment tree under a dedicated tenancy — one subtree per environment, never mixed in a single compartment.
+
+**Level 1** — tenancy root and shared compartments:
 
 ```mermaid
 flowchart TB
-  Root[Tenancy / Root CMS Compartment]
+  Root["Tenancy / Root CMS"]
 
-  Root --> Sec[cms-security-shared<br/>WAF · Cloud Guard · SIEM]
-  Root --> Net[cms-network-shared<br/>DRG · hub VCN · DNS]
-  Root --> Shared[cms-shared-services<br/>OCIR · Terraform state · CI/CD]
-  Root --> IdComp[cms-identity<br/>Identity Domain policies]
+  Root --> Sec["cms-security-shared<br/>WAF · Cloud Guard · SIEM"]
+  Root --> Net["cms-network-shared<br/>DRG · hub VCN · DNS"]
+  Root --> Svc["cms-shared-services<br/>OCIR · Terraform · CI/CD"]
+  Root --> Id["cms-identity<br/>Identity Domain policies"]
 
-  Root --> Dev[cms-dev]
-  Root --> Test[cms-test]
-  Root --> Staging[cms-staging]
-  Root --> Prod[cms-prod]
+  Root --> Env["cms-{env}<br/>dev · test · staging · prod"]
 
-  Dev --> DevNet[cms-dev-network]
-  Dev --> DevComp[cms-dev-compute]
-  Dev --> DevData[cms-dev-data]
-  Dev --> DevOps[cms-dev-ops]
+  style Sec fill:#fce4ec
+  style Net fill:#e8eaf6
+  style Svc fill:#e0f2f1
+  style Id fill:#fff3e0
+  style Env fill:#e3f2fd
+```
 
-  Test --> TestNet[cms-test-network]
-  Test --> TestComp[cms-test-compute]
-  Test --> TestData[cms-test-data]
-  Test --> TestOps[cms-test-ops]
+**Level 2** — repeated pattern inside each environment (`cms-dev`, `cms-test`, …):
 
-  Staging --> StgNet[cms-staging-network]
-  Staging --> StgComp[cms-staging-compute]
-  Staging --> StgData[cms-staging-data]
-  Staging --> StgOps[cms-staging-ops]
+```mermaid
+flowchart LR
+  Env["cms-{env}"]
 
-  Prod --> ProdNet[cms-prod-network]
-  Prod --> ProdComp[cms-prod-compute]
-  Prod --> ProdData[cms-prod-data]
-  Prod --> ProdOps[cms-prod-ops]
+  Env --> N["{env}-network<br/>VCN · NSGs · LB"]
+  Env --> C["{env}-compute<br/>OKE · Bastion"]
+  Env --> D["{env}-data<br/>ADB · Vault · Object Storage"]
+  Env --> O["{env}-ops<br/>Alarms · on-call"]
+
+  style N fill:#e3f2fd
+  style C fill:#f3e5f5
+  style D fill:#fff3e0
+  style O fill:#e8f5e8
 ```
 
 | Compartment | Resources |
@@ -162,36 +185,33 @@ flowchart TB
 
 Separate Identity Domain per environment (`cms-dev-id`, `cms-test-id`, `cms-staging-id`, `cms-prod-id`). Keycloak remains the application authorization source; Identity Domain provides enterprise SSO and MFA.
 
+**Enterprise SSO** — workforce login to browser apps:
+
 ```mermaid
 flowchart LR
-  subgraph Workforce
-    IdP[Corporate IdP<br/>Okta / Azure AD]
-  end
+  IdP["Corporate IdP<br/>Okta / Azure AD"]
+  ID["Identity Domain<br/>cms-{env}-id"]
+  Groups["Role groups<br/>TDC · TDP · CCRP · AppAdmin"]
+  CG["Cloud Gate"]
 
-  subgraph OCI["Per-environment Identity Domain"]
-    ID[cms-env-id<br/>MFA · user lifecycle]
-    Groups[TDC · TDP · CCRP · AppAdmin groups]
-  end
+  IdP -->|SAML/OIDC| ID --> Groups --> CG
 
-  subgraph Edge
-    CG[Cloud Gate<br/>app · auth · ops URLs]
-  end
+  CG --> App["app.{env}"]
+  CG --> Auth["auth.{env}"]
+  CG --> Ops["ops.{env}"]
+```
 
-  subgraph App
-    KC[Keycloak realm<br/>contract-management]
-    SPA[React frontend]
-    APIGW[API Gateway<br/>JWT validation]
-    API[Backend API]
-  end
+**Application tokens** — API access after SSO:
 
-  IdP -->|SAML/OIDC| ID
-  ID --> Groups
-  Groups --> CG
-  CG --> SPA
-  CG --> KC
+```mermaid
+flowchart LR
+  SPA["React SPA"]
+  KC["Keycloak<br/>contract-management realm"]
+  APIGW["API Gateway"]
+  API["Backend API"]
+
   SPA -->|OIDC / PKCE| KC
-  KC -->|Bearer JWT| APIGW
-  APIGW --> API
+  KC -->|Bearer JWT| APIGW --> API
 ```
 
 | Environment | Identity Domain | Purpose |
@@ -205,39 +225,42 @@ flowchart LR
 
 One isolated VCN per environment with non-overlapping CIDRs. Private worker nodes; no compute in public subnets.
 
+**Subnet tiers** — top to bottom inside each VCN:
+
 ```mermaid
 flowchart TB
-  Internet[Internet]
+  PUB["Public subnets<br/>WAF / LB listeners only"]
+  DMZ["DMZ / Edge<br/>API Gateway · Cloud Gate"]
+  APP["Private app<br/>OKE worker nodes"]
+  DATA["Private data<br/>ADB private endpoint"]
 
-  subgraph VCN["cms-env VCN (e.g. prod 10.40.0.0/16)"]
-    IGW[Internet Gateway]
+  PUB --> DMZ --> APP --> DATA
 
-    subgraph Public["Public subnets (2+ ADs)"]
-      WAF_LB[WAF / LB listeners only]
-    end
+  style PUB fill:#ffebee
+  style DMZ fill:#fff3e0
+  style APP fill:#e8f5e8
+  style DATA fill:#e3f2fd
+```
 
-    subgraph DMZ["DMZ / Edge subnets (optional)"]
-      APIGW_N[API Gateway]
-      CG_N[Cloud Gate connector]
-    end
+**Egress paths** — how private subnets reach the outside world:
 
-    subgraph AppTier["Private app subnets"]
-      OKE[OKE worker nodes<br/>pod CIDR 10.247.0.0/16]
-    end
+```mermaid
+flowchart LR
+  INET[Internet]
+  IGW[Internet Gateway]
+  PUB["Public subnet<br/>WAF / LB inbound"]
+  APP["Private app subnet<br/>OKE workers"]
+  NAT[NAT Gateway]
+  SGW[Service Gateway]
+  OCI["Object Storage · Logging"]
 
-    subgraph DataTier["Private data subnets"]
-      ADB[Autonomous DB<br/>private endpoint only]
-    end
+  INET --> IGW --> PUB
+  APP -->|0.0.0.0/0| NAT --> INET
+  APP -->|OCI APIs| SGW --> OCI
 
-    NAT[NAT Gateway]
-    SGW[Service Gateway]
-  end
-
-  Internet --> IGW --> WAF_LB
-  WAF_LB --> DMZ --> AppTier
-  AppTier --> DataTier
-  AppTier -->|egress 0.0.0.0/0| NAT --> Internet
-  AppTier -->|OCI APIs · Object Storage| SGW
+  style APP fill:#e8f5e8
+  style NAT fill:#f3e5f5
+  style SGW fill:#e3f2fd
 ```
 
 | Environment | VCN CIDR | OKE pod CIDR | Service CIDR |
@@ -251,26 +274,37 @@ NSGs (`nsg-lb-ingress`, `nsg-oke-workers`, `nsg-adb`) use default-deny with expl
 
 #### Security Zones
 
-Security Zones apply to `cms-prod-data` and `cms-staging-data` compartments to enforce guardrails at the infrastructure layer:
+Security Zones apply to `cms-prod-data` and `cms-staging-data` compartments to enforce guardrails at the infrastructure layer.
+
+**Infrastructure guardrails** (Security Zone on data compartment):
 
 ```mermaid
 flowchart TB
-  subgraph SZ["Security Zone — cms-prod-data / cms-staging-data"]
-    direction TB
-    P1[Deny public Object Storage buckets]
-    P2[Deny compute instances in public subnets]
-    P3[Deny DB systems without encryption]
-    P4[Require Vault for secret creation]
-  end
+  DC["cms-{env}-data compartment"]
 
-  subgraph Monitored["Also monitored by Cloud Guard"]
-    CG2[Public bucket ACL changes]
-    CG3[Open security lists · crypto mining]
-    CG4[Overly permissive IAM policies]
-  end
+  DC --> SZ["Security Zone policies"]
 
-  DataComp[cms-env-data compartment] --> SZ
-  DataComp -.-> Monitored
+  SZ --> P1["✗ Public Object Storage buckets"]
+  SZ --> P2["✗ Compute in public subnets"]
+  SZ --> P3["✗ Unencrypted databases"]
+  SZ --> P4["✓ Vault required for secrets"]
+
+  style DC fill:#e3f2fd
+  style SZ fill:#fff3e0
+```
+
+**Threat detection** (Cloud Guard, all environments):
+
+```mermaid
+flowchart TB
+  CG["Cloud Guard"]
+
+  CG --> M1["Public bucket ACL changes"]
+  CG --> M2["Open security lists"]
+  CG --> M3["Crypto-mining activity"]
+  CG --> M4["Overly permissive IAM"]
+
+  style CG fill:#fce4ec
 ```
 
 | Environment | Security Zone | WAF mode | MFA |
