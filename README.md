@@ -23,8 +23,8 @@ npm run test:login
 
 ### **🔧 Configuration & Fixes**
 ```bash
-# ✅ CURRENT - Unified authentication fix (NEW)
-./scripts/fix-auth-unified.sh       # Fix authentication issues
+# ✅ CURRENT - Unified authentication fix
+./fix-auth.sh                       # or ./scripts/fix-auth-unified.sh
 
 # ✅ CURRENT - SSL configuration fix (NEW)
 ./scripts/fix-ssl-inconsistencies.sh # Fix SSL configuration issues
@@ -44,6 +44,18 @@ npm run test:login
 # Local VM development environment
 ./deployment/deploy-to-local-vm.sh
 ```
+
+## 📁 Repository layout
+
+| Path | Purpose |
+|------|---------|
+| `docker/` | Docker Compose stacks and Dockerfiles |
+| `scripts/` | Startup, deploy, SCITT, dev, and utility scripts — see [scripts/README.md](scripts/README.md) |
+| `fixtures/` | Contract templates and test-data JSON samples |
+| `config/examples/` | Example env files (copy to repo root as `config.env`, `.env`, etc.) |
+| `docs/` | Documentation index — [docs/README.md](docs/README.md) |
+
+Root wrappers (`start-system.sh`, `manage-scitt-ccf.sh`, `dev-start.sh`, `fix-auth.sh`) call into `scripts/`.
 
 ## 🔐 LUKS Encryption for Large Files
 

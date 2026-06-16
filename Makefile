@@ -80,7 +80,8 @@ db-migrate: ## Run database migrations
 
 db-reset: ## Reset database (WARNING: This will delete all data)
 	@echo "⚠️ Resetting database..."
-	docker-compose -f docker-compose.dev.yml down -v
+	./dev-start.sh stop
+	docker compose --project-directory . -f docker/docker-compose.dev.yml down -v
 	./dev-start.sh
 
 # Keycloak operations
@@ -112,20 +113,20 @@ test-frontend: ## Run frontend tests
 # Building
 build: ## Build all services
 	@echo "🔨 Building all services..."
-	docker-compose -f docker-compose.dev.yml build
+	docker compose --project-directory . -f docker/docker-compose.dev.yml build
 
 build-backend: ## Build backend service
 	@echo "🔨 Building backend service..."
-	docker-compose -f docker-compose.dev.yml build backend
+	docker compose --project-directory . -f docker/docker-compose.dev.yml build backend
 
 build-frontend: ## Build frontend service
 	@echo "🔨 Building frontend service..."
-	docker-compose -f docker-compose.dev.yml build frontend
+	docker compose --project-directory . -f docker/docker-compose.dev.yml build frontend
 
 # Cleaning
 clean: ## Clean up containers and volumes
 	@echo "🧹 Cleaning up..."
-	docker-compose -f docker-compose.dev.yml down -v --remove-orphans
+	docker compose --project-directory . -f docker/docker-compose.dev.yml down -v --remove-orphans
 	docker system prune -f
 
 clean-logs: ## Clean up log files

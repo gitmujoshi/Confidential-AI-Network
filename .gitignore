@@ -137,9 +137,26 @@ private-keys.json
 backend/vault
 backend/vault_*.zip
 
+# Local TEE attestation outputs
+local-tee/attestations/
+
 # Local training artifacts (generated, can be very large)
 backend/local-training/runs/
+backend/local-training/_smoke_outputs/
+
+# Frontend production build (local)
+frontend/build/
 
 # Playwright (local runs; keep HTML report out of commits)
 frontend/test-results/
 frontend/playwright-report/
+test-results/
+
+# Local runtime artifacts at repo root
+.cache/
+test-data-cache.json
+frontend.port
+.backend.pid
+.frontend.pid
+.***REMOVED-KEYCLOAK_DB_PASSWORD***.pid
+config-backups-*/
