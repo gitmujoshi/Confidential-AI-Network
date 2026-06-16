@@ -1,5 +1,5 @@
 /**
- * Authentication Handler for ContractFlow Pro
+ * Authentication Handler for Confidential AI Network
  * Clean authentication without exposing site content
  */
 
@@ -7,7 +7,7 @@ class AuthHandler {
     constructor() {
         this.credentials = {
             username: 'admin',
-            password: 'ContractFlow2025!'
+            password: 'ConfidentialAI2026!'
         };
         
         // Additional user accounts

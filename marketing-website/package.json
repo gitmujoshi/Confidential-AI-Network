@@ -1,7 +1,7 @@
 {
-  "name": "contractflow-pro-marketing",
+  "name": "confidential-ai-network-marketing",
   "version": "1.0.0",
-  "description": "Marketing website for ContractFlow Pro - Enterprise Contract Management System",
+  "description": "Marketing website for Confidential AI Network - secure contracting and confidential AI training",
   "main": "index.html",
   "scripts": {
     "dev": "serve .",
@@ -17,7 +17,7 @@
     "security",
     "marketing"
   ],
-  "author": "ContractFlow Pro Team",
+  "author": "Confidential AI Network Team",
   "license": "MIT",
   "devDependencies": {
     "serve": "^14.2.0"

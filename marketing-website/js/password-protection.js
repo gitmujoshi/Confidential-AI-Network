@@ -1,12 +1,12 @@
 /**
- * Password Protection System for ContractFlow Pro Marketing Website
+ * Password Protection System for Confidential AI Network marketing website
  * Protects all pages with a secure password gate
  */
 
 class PasswordProtector {
     constructor() {
         // Use config values if available, otherwise use defaults
-        this.password = (window.CONFIG && window.CONFIG.SECURITY.PASSWORD) || 'ContractFlow2025!';
+        this.password = (window.CONFIG && window.CONFIG.SECURITY.PASSWORD) || 'ConfidentialAI2026!';
         this.maxAttempts = (window.CONFIG && window.CONFIG.SECURITY.MAX_ATTEMPTS) || 3;
         this.lockoutDuration = ((window.CONFIG && window.CONFIG.SECURITY.LOCKOUT_DURATION_MINUTES) || 15) * 60 * 1000;
         this.authValidityHours = (window.CONFIG && window.CONFIG.SECURITY.AUTH_VALIDITY_HOURS) || 24;
@@ -79,7 +79,7 @@ class PasswordProtector {
                 <div class="password-container">
                     <div class="password-logo">
                         <i class="fas fa-file-contract fa-3x text-primary mb-3"></i>
-                        <h2 class="text-primary">ContractFlow Pro</h2>
+                        <h2 class="text-primary">Confidential AI Network</h2>
                     </div>
                     
                     <div class="password-form">
@@ -103,7 +103,7 @@ class PasswordProtector {
                         <div class="password-footer">
                             <small class="text-muted">
                                 <i class="fas fa-shield-alt me-1"></i>
-                                Secure access to ContractFlow Pro marketing materials
+                                Secure access to Confidential AI Network materials
                             </small>
                         </div>
                     </div>

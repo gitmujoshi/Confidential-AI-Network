@@ -1,6 +1,6 @@
-# ContractFlow Pro Marketing Website
+# Confidential AI Network Marketing Website
 
-A professional marketing website for the ContractFlow Pro contract management system.
+A professional marketing website for the Confidential AI Network platform.
 
 ## 🚀 Features
 
@@ -251,4 +251,4 @@ This marketing website is licensed under the MIT License.
 
 ---
 
-*Built with ❤️ for the ContractFlow Pro team* 
+*Built with ❤️ for the Confidential AI Network team* 

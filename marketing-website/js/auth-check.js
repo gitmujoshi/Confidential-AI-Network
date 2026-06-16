@@ -1,5 +1,5 @@
 /**
- * Authentication Check for ContractFlow Pro
+ * Authentication Check for Confidential AI Network
  * Redirects unauthenticated users to login page
  */
 

@@ -1,9 +1,9 @@
 #!/bin/bash
 
 # Marketing Website Deployment Script
-# Deploys the ContractFlow Pro marketing website to Vercel
+# Deploys the Confidential AI Network marketing website to Vercel
 
-echo "🚀 Deploying ContractFlow Pro Marketing Website to Vercel..."
+echo "🚀 Deploying Confidential AI Network marketing website to Vercel..."
 
 # Check if we're in the right directory
 if [ ! -f "index.html" ]; then
@@ -26,10 +26,10 @@ if [ $? -eq 0 ]; then
     echo ""
     echo "🌐 Your marketing website is now live at:"
     echo "   https://responsible-ai.dpi-apps.space"
-    echo "   https://contractflow-pro-marketing-aar1ymoms.vercel.app"
+    echo "   https://contractflow-pro-marketing-2pjje6tdf.vercel.app"
     echo ""
     echo "📊 View deployment details at:"
-    echo "   https://vercel.com/joshimukesh078-gmailcoms-projects/contractflow-pro-marketing"
+    echo "   https://vercel.com/joshimukesh078-gmailcoms-projects/confidential-ai-network-marketing"
     echo ""
     echo "🔧 To make changes:"
     echo "   1. Edit the files in this directory"
