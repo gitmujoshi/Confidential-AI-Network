@@ -1,5 +1,7 @@
 # Training Documentation
 
+> **Index:** [../README.md](../README.md) · **Full course:** [TRAINING_COURSE.md](./TRAINING_COURSE.md)
+
 ## 🎓 **Complete Training Documentation for AI Model Training Environment**
 
 This directory contains comprehensive training materials for all user roles in the AI model training environment.

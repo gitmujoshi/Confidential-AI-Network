@@ -197,27 +197,23 @@ npm test -- scitt-ccf-api.test.js
 
 ## 📚 Documentation
 
-### **Core Documentation**
-- **[Quick Start Guide](docs/QUICK_START.md)** - Get up and running quickly
-- **[Developer Guide](docs/DEVELOPER_GUIDE.md)** - Development setup and guidelines
-- **[API Reference](docs/API_REFERENCE.md)** - Complete API documentation
-- **[Architecture Guide](docs/ARCHITECTURE.md)** - System architecture overview
-- **[TDC training runtime](docs/training/TDC_TRAINING_RUNTIME.md)** - TDC/CCRP training APIs, env vars, UI routes
+All documentation is organized under **[docs/README.md](docs/README.md)** (single index).
 
-### **SCITT CCF Documentation**
-- **[SCITT CCF Integration Guide](SCITT_CCF_INTEGRATION_README.md)** - Complete integration guide
-- **[SCITT CCF Migration Design](SCITT_CCF_MIGRATION_DESIGN.md)** - Technical design document
-- **[SCITT CCF Management Script](manage-scitt-ccf.sh)** - Service management script
+| Topic | Link |
+|-------|------|
+| Quick start | [docs/getting-started/QUICK_START.md](docs/getting-started/QUICK_START.md) |
+| Developer guide | [docs/DEVELOPER_GUIDE.md](docs/DEVELOPER_GUIDE.md) |
+| User / admin | [docs/USER_GUIDE.md](docs/USER_GUIDE.md) · [docs/ADMIN_GUIDE.md](docs/ADMIN_GUIDE.md) |
+| Architecture | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) |
+| API | [docs/api/API_REFERENCE.md](docs/api/API_REFERENCE.md) |
+| Contract signing | [docs/features/contract-signing/](docs/features/contract-signing/CONTRACT_SIGNING_INDEX.md) |
+| SCITT CCF | [docs/features/scitt/](docs/features/scitt/SCITT_CCF_INTEGRATION_README.md) |
+| Training | [docs/training/](docs/training/README.md) |
+| Deploy (VM / OCI / K8s) | [docs/deployment/README.md](docs/deployment/README.md) |
+| Production / OCI security | [docs/production/](docs/production/README.md) |
+| Testing & E2E | [docs/testing/](docs/testing/TEST_DATA_FOR_TESTERS.md) · [frontend/tests/e2e/README.md](frontend/tests/e2e/README.md) |
 
-### **Contract Signing Documentation**
-- **[Contract Signing Strategy](docs/CONTRACT_SIGNING_STRATEGY.md)** - Complete contract signing strategy and implementation plan
-- **[Contract Signing Architecture](docs/contract-signing-architecture.md)** - Technical architecture for contract signing
-- **[Contract Signing SCITT Integration](docs/CONTRACT_SIGNING_SCITT_INTEGRATION.md)** - SCITT CCF integration for signatures
-- **[Contract Signing User Guide](docs/CONTRACT_SIGNING_USER_GUIDE.md)** - User guide for contract signing features
-
-### **User Guides**
-- **[Test Data Reference](TEST_DATA_FOR_TESTERS.md)** - Complete test data guide
-- **[Setup Troubleshooting](SETUP_TROUBLESHOOTING_GUIDE.md)** - Common issues and solutions
+Legacy paths at the repo root and under `docs/` redirect to the locations above.
 
 ## 🚀 Features
 
@@ -349,61 +345,6 @@ docker-compose logs -f
 ## 📄 License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 📚 Documentation
-
-Comprehensive documentation is organized in the `docs/` directory:
-
-### 🏗️ Architecture & Design
-- **[AI/ML Training Solution Roadmap](docs/architecture/AI_ML_TRAINING_COMPLETE_SOLUTION_ROADMAP.md)** - Complete solution analysis and roadmap
-- **[Data Model Reference](docs/architecture/DATA_MODEL_REFERENCE.md)** - Database schema and data models
-- **[Decentralized KMS Architecture](docs/architecture/DECENTRALIZED_KMS_ARCHITECTURE.md)** - Key management system design
-- **[Multi-Tenant KMS Architecture](docs/architecture/MULTI_TENANT_KMS_ARCHITECTURE.md)** - Multi-tenant key management
-- **[Current vs Outdated Scripts](docs/architecture/CURRENT_VS_OUTDATED_SCRIPTS.md)** - Script analysis and recommendations
-- **[Centralized Configuration Architecture](docs/architecture/CENTRALIZED_CONFIGURATION_ARCHITECTURE.md)** - Configuration management design
-
-### 🔌 API & Integration
-- **[Complete API Specifications](docs/api/COMPLETE_API_SPECIFICATIONS.md)** - Comprehensive API documentation
-- **[API Endpoint Reference](docs/api/API_ENDPOINT_REFERENCE.md)** - Complete API endpoint reference
-- **[Cloud API Specifications](docs/api/CLOUD_API_SPECIFICATIONS.md)** - Cloud provider API specifications
-- **[SCITT CCF API Specifications](docs/api/SCITT_CCF_API_SPECIFICATIONS.md)** - SCITT CCF integration APIs
-
-### 🔄 Data Flows & Processes
-- **[TDP Encrypted Dataset TEE Flow](docs/flows/TDP_ENCRYPTED_DATASET_TEE_FLOW.md)** - TDP dataset upload and TEE decryption
-- **[TDC Encrypted AI Model TEE Flow](docs/flows/TDC_ENCRYPTED_AI_MODEL_TEE_FLOW.md)** - TDC AI model upload and TEE decryption
-- **[CCRP Environment Offerings Flow](docs/flows/CCRP_ENVIRONMENT_OFFERINGS_CONFIGURATION_FLOW.md)** - CCRP environment setup and configuration
-
-### 🛠️ Implementation Details
-- **[Backend Services Documentation](docs/implementation/BACKEND_SERVICES_DOCUMENTATION.md)** - Complete backend services documentation
-- **[Frontend Components Documentation](docs/implementation/FRONTEND_COMPONENTS_DOCUMENTATION.md)** - Frontend components and architecture
-- **[Contract Management System PRD](docs/implementation/CONTRACT_MANAGEMENT_SYSTEM_PRD.md)** - Product requirements document
-- **[Current System Status](docs/implementation/CURRENT_SYSTEM_STATUS.md)** - Current system status and capabilities
-
-### 📖 Guides & Tutorials
-- **[Developer Guide](docs/guides/DEVELOPER_GUIDE.md)** - Complete developer setup and workflow guide
-- **[Contract Template Guide](docs/guides/CONTRACT_TEMPLATE_GUIDE.md)** - Contract template creation and management
-- **[DEPA Integration Guide](docs/guides/DEPA_INTEGRATION_GUIDE.md)** - DEPA integration procedures
-- **[Setup Troubleshooting Guide](docs/guides/SETUP_TROUBLESHOOTING_GUIDE.md)** - Common setup issues and solutions
-- **[Training Course](docs/guides/TRAINING_COURSE.md)** - Training materials and courses
-
-### 🧪 Testing & Quality Assurance
-- **[Integration Testing Guide](docs/testing/INTEGRATION_TESTING_GUIDE.md)** - Comprehensive testing procedures
-- **[Test Data for Testers](docs/testing/TEST_DATA_FOR_TESTERS.md)** - Test data and user accounts
-- **[Tester Guide for Confidential Computing](docs/testing/TESTER_GUIDE_CONFIDENTIAL_COMPUTING.md)** - Confidential computing testing guide
-
-### 🔒 Security & Compliance
-- **[Security Integration Guide](docs/security/SECURITY_INTEGRATION_GUIDE.md)** - Security implementation and best practices
-- **[Identity and Access Management](docs/security/IDENTITY_AND_ACCESS_MANAGEMENT_DOCUMENTATION.md)** - IAM documentation
-- **[IAM Integration Design](docs/IAM_INTEGRATION_DESIGN.md)** - Complete Keycloak IAM integration design with contract signing
-- **[Key Management Design](docs/KEY_MANAGEMENT_DESIGN.md)** - Digital signing key management system design
-- **[DPDP Compliance Implementation](docs/compliance/DPDP_COMPLIANCE_IMPLEMENTATION.md)** - DPDP 2023 compliance implementation
-
-### 📋 Quick Reference
-- **[Documentation Index](docs/README.md)** - Complete documentation index
-- **[Developer Guide](docs/DEVELOPER_GUIDE.md)** - Development setup and guidelines
-- **[Setup Guide](docs/SETUP.md)** - Detailed setup instructions
-- **[Testing Guide](docs/TESTING.md)** - Testing procedures and guidelines
-- **[Troubleshooting](docs/TROUBLESHOOTING.md)** - Common issues and solutions
 
 ## 🆘 Support
 

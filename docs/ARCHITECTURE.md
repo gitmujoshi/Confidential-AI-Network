@@ -1,5 +1,7 @@
 # 🏗️ System Architecture
 
+> **Documentation map:** Canonical docs live under topic folders — see **[README.md](README.md)**. Deep dives: [architecture/](architecture/), [features/](features/), [security/](security/), [production/](production/).
+
 Complete technical architecture documentation for the Contract Management System. This guide consolidates all architecture and technical design information.
 
 ## 📋 Table of Contents

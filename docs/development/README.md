@@ -7,7 +7,8 @@ This directory contains comprehensive documentation for developers who need to e
 ## 📚 **Documentation Overview**
 
 ### **Core Development Guides**
-- **[Developer Guide](DEVELOPER_GUIDE.md)** - Complete developer documentation
+- **[Developer Guide](../DEVELOPER_GUIDE.md)** - Complete developer documentation (canonical)
+- **[Development workflow](DEVELOPMENT_WORKFLOW.md)** - Day-to-day workflow
 - **[Local Development Setup](LOCAL_DEVELOPMENT_SETUP.md)** - Step-by-step local setup
 - **[Testing Guide](TESTING_GUIDE.md)** - Comprehensive testing strategies
 - **[TDC training runtime](../training/TDC_TRAINING_RUNTIME.md)** - TDC/CCRP training APIs, `TRAINING_SIMULATION_MODE`, Playwright prerequisites
