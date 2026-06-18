@@ -221,7 +221,19 @@ async function main() {
       price: 60,
       license: 'MIT',
       tags: ['demo', 'text', 'nlp', 'classification'],
-      metadata: { modality: 'text', language: 'en', classes: 4 },
+      metadata: {
+        modality: 'text',
+        language: 'en',
+        classes: 4,
+        hfDatasetId: 'ag_news',
+        huggingface: {
+          repoType: 'dataset',
+          repoId: 'ag_news',
+          splitTrain: 'train',
+          splitTest: 'test',
+          sovereignty: 'hub-reference',
+        },
+      },
     },
   ];
 

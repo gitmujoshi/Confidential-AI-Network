@@ -10,7 +10,10 @@ module.exports = {
     '<rootDir>/tests/unit/tdc-training-helpers.test.js',
     '<rootDir>/tests/unit/contract-training-inputs.service.test.js',
     '<rootDir>/tests/unit/contract-signing-gate.test.js',
-    '<rootDir>/tests/unit/siem-integration.test.js'
+    '<rootDir>/tests/unit/siem-integration.test.js',
+    '<rootDir>/tests/unit/huggingface-integration.test.js',
+    '<rootDir>/tests/unit/huggingface-routes.test.js',
+    '<rootDir>/tests/unit/local-docker-training-runner.test.js'
   ],
   collectCoverageFrom: [
     'services/**/*.js',

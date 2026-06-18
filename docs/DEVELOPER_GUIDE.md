@@ -353,6 +353,30 @@ node -e "
 cd ..
 ```
 
+### **Testing Hugging Face & CAN API integrations**
+
+Dev-only Hugging Face Hub wiring and CAN JCS have dedicated test suites (see [integrations/HUGGINGFACE.md](integrations/HUGGINGFACE.md)):
+
+```bash
+# Unit
+cd backend
+npm run test:unit -- --testPathPattern="huggingface|can-|siem"
+
+# Integration (HF + CAN JCS)
+npm run test:integration -- --testPathPattern="huggingface|can-jcs"
+
+# E2E API smoke (backend must be running)
+cd ../frontend
+npm run test:e2e:api
+```
+
+Enable HF routes on the backend for full validate coverage:
+
+```bash
+# config.env or backend/config.test.env
+HUGGINGFACE_INTEGRATION_ENABLED=true
+```
+
 ### **Development Best Practices**
 
 #### **1. Service Initialization**

@@ -14,7 +14,7 @@
 | Understand architecture | [ARCHITECTURE.md](ARCHITECTURE.md) · [architecture/](architecture/) |
 | Call APIs | [api/API_REFERENCE.md](api/API_REFERENCE.md) · [api/COMPLETE_API_SPECIFICATIONS.md](api/COMPLETE_API_SPECIFICATIONS.md) |
 | Security & IAM | [security/](security/) · [production/OCI_SECURITY_ARCHITECTURE.md](production/OCI_SECURITY_ARCHITECTURE.md) |
-| Test (manual / E2E) | [testing/](testing/) · [frontend/tests/e2e/README.md](../frontend/tests/e2e/README.md) |
+| Test (manual / E2E) | [development/TESTING_GUIDE.md](development/TESTING_GUIDE.md) · [testing/E2E_TEST_DOCUMENTATION.md](testing/E2E_TEST_DOCUMENTATION.md) · [frontend/tests/e2e/README.md](../frontend/tests/e2e/README.md) |
 | **Local stakeholder demo** | [training/LOCAL_DEMO_RUNBOOK.md](training/LOCAL_DEMO_RUNBOOK.md) |
 | **OCI deploy readiness** | [deployment/OCI_READINESS.md](deployment/OCI_READINESS.md) |
 | **OCI IAM / WAF / API GW** | [deployment/OCI_IAM_AND_EDGE_CONFIG.md](deployment/OCI_IAM_AND_EDGE_CONFIG.md) |
@@ -23,6 +23,8 @@
 | **Azure deploy readiness** | [deployment/AZURE_READINESS.md](deployment/AZURE_READINESS.md) |
 | **Azure IAM / WAF / APIM** | [deployment/AZURE_IAM_AND_EDGE_CONFIG.md](deployment/AZURE_IAM_AND_EDGE_CONFIG.md) |
 | **Azure new-env setup runbook** | [production/AZURE_SECURITY_ARCHITECTURE.md](production/AZURE_SECURITY_ARCHITECTURE.md) (top of doc) |
+| **Hugging Face (dev catalog)** | [integrations/HUGGINGFACE.md](integrations/HUGGINGFACE.md) |
+| **CAN vs Samyog** | [integrations/SAMYOG_CAN_COMPARISON.md](integrations/SAMYOG_CAN_COMPARISON.md) |
 
 ---
 
@@ -58,6 +60,7 @@ docs/
 ├── training/                 ← role training modules + course
 ├── testing/                  ← QA, test data, E2E notes
 ├── implementation/           ← PRDs, service docs, active design notes
+├── integrations/             ← Hugging Face, external catalog adapters (dev)
 ├── operational/              ← scripts, script manager references
 └── archive/                  ← superseded & historical docs (do not use as canonical)
 ```
@@ -76,7 +79,7 @@ docs/
 ### Developers
 - [DEVELOPER_GUIDE.md](DEVELOPER_GUIDE.md)
 - [development/LOCAL_DEVELOPMENT_SETUP.md](development/LOCAL_DEVELOPMENT_SETUP.md)
-- [development/TESTING_GUIDE.md](development/TESTING_GUIDE.md)
+- [development/TESTING_GUIDE.md](development/TESTING_GUIDE.md) — unit, integration, E2E (incl. HF & CAN API suites)
 - [implementation/BACKEND_SERVICES_DOCUMENTATION.md](implementation/BACKEND_SERVICES_DOCUMENTATION.md)
 - [implementation/FRONTEND_COMPONENTS_DOCUMENTATION.md](implementation/FRONTEND_COMPONENTS_DOCUMENTATION.md)
 

@@ -958,6 +958,37 @@ module.exports = { generateTestReport };
 
 ## 🚀 **Running Tests**
 
+### **Integration-focused suites (current repo)**
+
+These are the actively maintained suites beyond legacy examples in this guide.
+
+| Area | Unit (`backend`) | Integration (`backend`) | E2E API (`frontend`) |
+|------|------------------|-------------------------|----------------------|
+| **Hugging Face (dev)** | `huggingface-integration.test.js`, `huggingface-routes.test.js`, `local-docker-training-runner.test.js`, `contract-training-inputs.service.test.js` | `huggingface.integration.test.js` | `huggingface-api.spec.js` |
+| **CAN JCS** | `can-*.test.js` | `can-jcs.integration.test.js` | `can-jcs-api.spec.js` |
+| **SIEM** | `siem-integration.test.js` | — | — |
+| **TDC training** | `tdc-training-helpers.test.js`, `contract-training-inputs.service.test.js` | — | `tdc-training.spec.js` |
+
+```bash
+# Backend unit (mocks)
+cd backend && npm run test:unit
+cd backend && npm run test:unit -- --testPathPattern="huggingface"
+
+# Backend integration (Postgres test DB)
+cd backend && npm run test:integration
+cd backend && npm run test:integration -- --testPathPattern="huggingface"
+
+# Playwright — full UI
+cd frontend && npm run test:e2e:chromium
+
+# Playwright — backend API only (faster)
+cd frontend && npm run test:e2e:api
+```
+
+**HF / API E2E:** enable `HUGGINGFACE_INTEGRATION_ENABLED=true` on the backend (`config.test.env` or `config.env`) with `NODE_ENV=test` or `development`. See [integrations/HUGGINGFACE.md](../integrations/HUGGINGFACE.md).
+
+**Physical Docker training (opt-in):** `E2E_PHYSICAL_TRAINING=true npm run test:e2e:physical` — see `physical-training-docker.spec.js`.
+
 ### **Test Commands**
 ```bash
 # Run all tests

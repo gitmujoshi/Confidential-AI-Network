@@ -2,7 +2,10 @@ module.exports = {
   testEnvironment: 'node',
   setupFilesAfterEnv: ['<rootDir>/tests/integration/setup.js'],
   /** Default CI/local: CAN JCS path only (needs fewer tables). Run legacy suites via npm run test:integration:contracts */
-  testMatch: ['<rootDir>/tests/integration/can-jcs.integration.test.js'],
+  testMatch: [
+    '<rootDir>/tests/integration/can-jcs.integration.test.js',
+    '<rootDir>/tests/integration/huggingface.integration.test.js',
+  ],
   collectCoverageFrom: [
     'services/**/*.js',
     'models/**/*.js',

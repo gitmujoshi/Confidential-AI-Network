@@ -29,6 +29,38 @@ function safeReadJson(filePath) {
   }
 }
 
+/**
+ * Build docker CLI args for the local trainer container (exported for tests).
+ */
+function buildDockerRunArgs({ jobId, contractId, maxEpochs, image, outDir, inputsDir }) {
+  const args = [
+    'run',
+    '--rm',
+    '--name',
+    `cm-train-${jobId}`.slice(0, 128),
+    '-e',
+    `TRAINING_JOB_ID=${jobId}`,
+    '-e',
+    `CONTRACT_ID=${contractId}`,
+    '-e',
+    `MAX_EPOCHS=${String(maxEpochs)}`,
+    '-e',
+    'CONTRACT_JSON_PATH=/inputs/contract.json',
+  ];
+
+  const hfToken = process.env.HF_TOKEN || process.env.HUGGINGFACE_API_TOKEN;
+  if (hfToken) {
+    args.push('-e', `HF_TOKEN=${hfToken}`);
+  }
+  const hfHubUrl = process.env.HUGGINGFACE_HUB_URL;
+  if (hfHubUrl) {
+    args.push('-e', `HF_ENDPOINT=${hfHubUrl}`);
+  }
+
+  args.push('-v', `${outDir}:/outputs`, '-v', `${inputsDir}:/inputs:ro`, image);
+  return args;
+}
+
 async function updateJob(jobId, patch) {
   // Shallow-merge metadata so we do not drop fields set at job creation (e.g. `inputs`)
   // or by earlier runner updates (`phases`, `local`, etc.).
@@ -82,25 +114,14 @@ async function runLocalDockerTraining({ jobId, contractId, containerSpec, traini
   // Derive maxEpochs for the placeholder trainer; fall back to 5.
   const maxEpochs = trainingParams?.maxEpochs ?? containerSpec?.maxEpochs ?? 5;
 
-  const args = [
-    'run',
-    '--rm',
-    '--name',
-    `cm-train-${jobId}`.slice(0, 128),
-    '-e',
-    `TRAINING_JOB_ID=${jobId}`,
-    '-e',
-    `CONTRACT_ID=${contractId}`,
-    '-e',
-    `MAX_EPOCHS=${String(maxEpochs)}`,
-    '-e',
-    'CONTRACT_JSON_PATH=/inputs/contract.json',
-    '-v',
-    `${outDir}:/outputs`,
-    '-v',
-    `${inputsDir}:/inputs:ro`,
+  const args = buildDockerRunArgs({
+    jobId,
+    contractId,
+    maxEpochs,
     image,
-  ];
+    outDir,
+    inputsDir,
+  });
 
   const child = spawn('docker', args, { stdio: ['ignore', 'pipe', 'pipe'] });
 
@@ -292,5 +313,6 @@ async function runLocalDockerTraining({ jobId, contractId, containerSpec, traini
 
 module.exports = {
   runLocalDockerTraining,
+  buildDockerRunArgs,
 };
 

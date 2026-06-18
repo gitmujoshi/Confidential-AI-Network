@@ -20,6 +20,9 @@ This document describes the **TDC (Training Data Consumer)** training flow imple
 | `TRAINING_SIMULATION_MODE` | Default `false` (or unset): uses the **real execution path** (`TrainingService.triggerTrainingRun`) and therefore requires cloud/CCRP credentials and the DB shape expected by that path. Set to `true` to run a **simulated** training pipeline (no cloud provisioning). |
 | `TRAINING_EXECUTION_MODE` | Optional. Set to `local-docker` to run training in a **separate local Docker container** instead of the cloud/Terraform path. Requires Docker installed and a local trainer image (see below). |
 | `LOCAL_TRAINING_IMAGE` | Optional. Docker image used for `TRAINING_EXECUTION_MODE=local-docker`. Defaults to `contractmanagement/local-trainer:latest`. |
+| `HF_TOKEN` / `HUGGINGFACE_API_TOKEN` | Optional. Passed into the local trainer container for **gated/private** Hugging Face Hub models/datasets. Store in `secrets.env`, not catalog metadata. |
+| `HUGGINGFACE_HUB_URL` | Optional. Custom Hub endpoint; forwarded to the trainer as `HF_ENDPOINT`. |
+| `HUGGINGFACE_INTEGRATION_ENABLED` | Dev/test only. Enables `/api/dev/huggingface` Hub validation routes (not production by default). See [HUGGINGFACE.md](../integrations/HUGGINGFACE.md). |
 | `BACKEND_URL` / `BACKEND_PORT` | API base URL for Node-side calls and Playwright global setup. |
 
 After pulling changes that add `training_jobs.metadata`, ensure the column exists:
@@ -59,6 +62,7 @@ Mounted under **`/api/ccrp`** with authentication. Used by **Training Environmen
 - **Container spec snapshot:** `backend/services/tdcTrainingHelpers.js` — `buildContainerSpec(contract)` merges `trainingParams`, `environmentSpecs.compute`, dataset/model refs.
 - **Simulation:** phases and results stored on `TrainingJob.metadata` (requires `metadata` column on PostgreSQL).
 - **Local Docker execution:** set `TRAINING_EXECUTION_MODE=local-docker` to run a local Python trainer container. The placeholder trainer writes results to `backend/local-training/runs/<jobId>/outputs/metrics.json` on the backend host.
+- **Hugging Face catalog refs (dev):** `contractTrainingInputsService` attaches `huggingface` blocks to datasets/models in `metadata.inputs`; `train.py` loads Hub dataset/model IDs from `contract.json` (fallback: `ag_news` + tiny DistilBERT). See [LOCAL_DEMO_RUNBOOK.md](./LOCAL_DEMO_RUNBOOK.md) NLP track.
 - **Register model:** `POST .../register-model` writes **`AIModel`** with `metadata.source = 'tdc_training_job'` and links `job.metadata.registeredModelId`.
 
 ## Local training runner (Docker)
@@ -91,6 +95,9 @@ curl -X POST "http://localhost:5001/api/tdc/training/contracts/<contractId>/star
 ## Related code
 
 - `backend/services/tdcTrainingExecutionService.js`
+- `backend/services/contractTrainingInputsService.js` — shapes `contract.json` for local Docker (includes HF blocks)
+- `backend/services/localDockerTrainingRunner.js` — mounts inputs, passes `HF_TOKEN` to trainer
+- `backend/services/huggingfaceIntegrationService.js` — dev Hub adapter
 - `backend/routes/tdc-training.js`
 - `backend/services/trainingService.js` — `getTrainingJobs`, `deployTrainingJob`, etc.
 - `frontend/src/pages/TDCTraining.js`
@@ -101,3 +108,8 @@ curl -X POST "http://localhost:5001/api/tdc/training/contracts/<contractId>/star
 - `CAN_QUICKSTART.md`
 - `ARCHITECTURE.md` (CAN section)
 - `API_REFERENCE.md` (CAN endpoints)
+
+## Related integrations
+
+- [HUGGINGFACE.md](../integrations/HUGGINGFACE.md) — dev Hub catalog + `/api/dev/huggingface`
+- [LOCAL_DEMO_RUNBOOK.md](./LOCAL_DEMO_RUNBOOK.md) — stakeholder demo including optional NLP/HF track
