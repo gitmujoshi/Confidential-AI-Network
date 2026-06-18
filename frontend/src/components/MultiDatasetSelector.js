@@ -26,6 +26,8 @@ import {
   Security,
   Lock,
 } from '@mui/icons-material';
+import HuggingfaceHubBadge from './HuggingfaceHubBadge';
+import { extractHfFromDataset } from '../utils/huggingface';
 
 /**
  * MultiDatasetSelector Component
@@ -99,6 +101,7 @@ const MultiDatasetSelector = ({
         {datasets.map((dataset) => {
           const selected = isSelected(dataset);
           const disabled = isDisabled(dataset);
+          const hfRef = extractHfFromDataset(dataset);
           
           return (
             <Grid item xs={12} md={6} lg={4} key={dataset.id}>
@@ -145,6 +148,11 @@ const MultiDatasetSelector = ({
                           size="small"
                           sx={{ mb: 1 }}
                         />
+                      )}
+                      {hfRef && (
+                        <Box sx={{ mb: 1 }}>
+                          <HuggingfaceHubBadge hfRef={hfRef} />
+                        </Box>
                       )}
                       
                       <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>

@@ -159,6 +159,8 @@ frontend/build/
 frontend/test-results/
 frontend/playwright-report/
 test-results/
+e2e-runs/*/
+!e2e-runs/README.md
 
 # Local runtime artifacts at repo root
 .cache/

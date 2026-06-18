@@ -102,6 +102,12 @@ function AddDataset() {
     collectionMethod: '',
     updateFrequency: '',
     retentionPeriod: '',
+
+    // Hugging Face Hub (optional dev catalog pointer)
+    useHuggingfaceRef: false,
+    hfDatasetId: '',
+    hfSplitTrain: 'train',
+    hfSplitTest: 'test',
     
     // Privacy & Security
     privacyTechniques: [],
@@ -285,7 +291,19 @@ function AddDataset() {
           qualityMetrics: formData.qualityMetrics,
           complianceRequirements: formData.complianceRequirements,
           dataGovernance: formData.dataGovernance,
-          contactInfo: formData.contactInfo
+          contactInfo: formData.contactInfo,
+          ...(formData.useHuggingfaceRef && formData.hfDatasetId.trim()
+            ? {
+                hfDatasetId: formData.hfDatasetId.trim(),
+                huggingface: {
+                  repoType: 'dataset',
+                  repoId: formData.hfDatasetId.trim(),
+                  splitTrain: formData.hfSplitTrain.trim() || 'train',
+                  splitTest: formData.hfSplitTest.trim() || 'test',
+                  sovereignty: 'hub-reference',
+                },
+              }
+            : {}),
         },
         isPublic: true,
         confidentialComputingRequired: formData.confidentialComputingRequired,
@@ -496,6 +514,55 @@ function AddDataset() {
                 placeholder="e.g., 1 year, 5 years, Indefinite"
               />
             </Grid>
+
+            <Grid item xs={12}>
+              <Divider sx={{ my: 1 }} />
+              <FormControlLabel
+                control={
+                  <Switch
+                    checked={formData.useHuggingfaceRef}
+                    onChange={(e) => handleInputChange('useHuggingfaceRef', e.target.checked)}
+                  />
+                }
+                label="Link to Hugging Face Hub dataset (dev — local Docker training)"
+              />
+              <Typography variant="caption" color="text.secondary" display="block" sx={{ ml: 4, mb: 1 }}>
+                Catalog pointer only; data stays off-platform unless you upload training files separately.
+              </Typography>
+            </Grid>
+            {formData.useHuggingfaceRef && (
+              <>
+                <Grid item xs={12} sm={6}>
+                  <TextField
+                    fullWidth
+                    label="Hub dataset ID"
+                    value={formData.hfDatasetId}
+                    onChange={(e) => handleInputChange('hfDatasetId', e.target.value)}
+                    placeholder="e.g., ag_news"
+                    required
+                    helperText="Repo id on huggingface.co/datasets/…"
+                  />
+                </Grid>
+                <Grid item xs={12} sm={3}>
+                  <TextField
+                    fullWidth
+                    label="Train split"
+                    value={formData.hfSplitTrain}
+                    onChange={(e) => handleInputChange('hfSplitTrain', e.target.value)}
+                    placeholder="train"
+                  />
+                </Grid>
+                <Grid item xs={12} sm={3}>
+                  <TextField
+                    fullWidth
+                    label="Test split"
+                    value={formData.hfSplitTest}
+                    onChange={(e) => handleInputChange('hfSplitTest', e.target.value)}
+                    placeholder="test"
+                  />
+                </Grid>
+              </>
+            )}
           </Grid>
         );
 

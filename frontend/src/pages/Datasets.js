@@ -47,6 +47,8 @@ import {
 import { useUser } from '../contexts/UserContext';
 import { apiService } from '../services/api';
 import { DATASET_CATEGORIES } from '../config/datasetConstraints';
+import HuggingfaceHubBadge from '../components/HuggingfaceHubBadge';
+import { extractHfFromDataset } from '../utils/huggingface';
 
 function Datasets() {
   const navigate = useNavigate();
@@ -446,6 +448,9 @@ function Datasets() {
                         color={dataset.physicalTrainingReady ? 'success' : 'default'}
                         variant="outlined"
                       />
+                      {extractHfFromDataset(dataset) && (
+                        <HuggingfaceHubBadge hfRef={extractHfFromDataset(dataset)} />
+                      )}
                     </Box>
 
                     {/* Dataset Metadata */}
@@ -582,13 +587,17 @@ function Datasets() {
                                   : dataset.description
                                 }
                               </Typography>
-                              <Chip
-                                size="small"
-                                label={dataset.physicalTrainingReady ? 'Training files' : 'Metadata only'}
-                                color={dataset.physicalTrainingReady ? 'success' : 'default'}
-                                variant="outlined"
-                                sx={{ mt: 0.5 }}
-                              />
+                              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, mt: 0.5 }}>
+                                <Chip
+                                  size="small"
+                                  label={dataset.physicalTrainingReady ? 'Training files' : 'Metadata only'}
+                                  color={dataset.physicalTrainingReady ? 'success' : 'default'}
+                                  variant="outlined"
+                                />
+                                {extractHfFromDataset(dataset) && (
+                                  <HuggingfaceHubBadge hfRef={extractHfFromDataset(dataset)} />
+                                )}
+                              </Box>
                             </Box>
                           </TableCell>
                           <TableCell>
