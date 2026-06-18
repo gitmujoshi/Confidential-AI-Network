@@ -173,14 +173,16 @@ npm run test:integration -- --testPathPattern=huggingface
 
 ### E2E API smoke (`frontend`)
 
-`frontend/tests/e2e/huggingface-api.spec.js` — no browser UI; hits backend only (paired with `can-jcs-api.spec.js`).
+`frontend/tests/e2e/huggingface-api.spec.js` — no browser UI; hits backend only (paired with `can-jcs-api.spec.js` and opt-in `nlp-dp-training-api.spec.js`).
 
 ```bash
 cd frontend
 npm run test:e2e:api
+# NLP + Opacus DP-SGD (local-docker only, opt-in):
+E2E_WAIT_FOR_LOCAL_TRAINING=true npm run test:e2e:nlp-dp
 ```
 
-When integration is disabled on the running backend, gating tests still pass; validate tests skip unless `HUGGINGFACE_INTEGRATION_ENABLED=true`.
+When integration is disabled on the running backend, gating tests still pass; validate tests skip unless `HUGGINGFACE_INTEGRATION_ENABLED=true`. The NLP DP suite additionally requires `TRAINING_EXECUTION_MODE=local-docker`, `TRAINING_SIMULATION_MODE=false`, and a rebuilt `contractmanagement/local-trainer:latest` image.
 
 ## Security notes
 

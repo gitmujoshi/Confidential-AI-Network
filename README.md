@@ -191,7 +191,7 @@ flowchart LR
 
 - **Multi-party Ricardian contracts** — TDP, TDC, CCRP workflows with digital signing
 - **SCITT CCF ledger** — high-throughput, confidential-computing-friendly audit trail
-- **TDC training jobs** — contract-bound training; simulated or local-docker runs; optional model registration ([runtime doc](docs/training/TDC_TRAINING_RUNTIME.md))
+- **TDC training jobs** — contract-bound training; simulated or local-docker runs; optional model registration; NLP local-docker jobs can return **Opacus DP-SGD** `privacyMetrics` on the job detail UI ([runtime doc](docs/training/TDC_TRAINING_RUNTIME.md))
 - **CCRP training console** — deploy and monitor jobs via API and `/ccrp/training-environment`
 - **Encryption** — LUKS for large files, TEE decryption paths, differential privacy support
 - **Multi-cloud** — AWS, Azure, GCP, OCI deployment paths
@@ -206,7 +206,9 @@ flowchart LR
 ```bash
 npm run test:e2e:install
 npm run test:e2e:chromium
-npm run test:e2e:api    # CAN JCS + Hugging Face dev routes
+npm run test:e2e:api    # CAN JCS + Hugging Face + NLP DP API (latter skips unless E2E_WAIT_FOR_LOCAL_TRAINING=true)
+# Opt-in full NLP DP path (API + /tdc/training UI panel):
+E2E_WAIT_FOR_LOCAL_TRAINING=true npm run test:e2e:nlp-dp
 ```
 
 Backend must be healthy at `http://localhost:5001/health`.

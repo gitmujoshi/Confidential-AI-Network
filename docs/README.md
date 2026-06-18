@@ -79,7 +79,7 @@ docs/
 ### Developers
 - [DEVELOPER_GUIDE.md](DEVELOPER_GUIDE.md)
 - [development/LOCAL_DEVELOPMENT_SETUP.md](development/LOCAL_DEVELOPMENT_SETUP.md)
-- [development/TESTING_GUIDE.md](development/TESTING_GUIDE.md) — unit, integration, E2E (incl. HF & CAN API suites)
+- [development/TESTING_GUIDE.md](development/TESTING_GUIDE.md) — unit, integration, E2E (incl. HF, CAN API, opt-in NLP DP)
 - [implementation/BACKEND_SERVICES_DOCUMENTATION.md](implementation/BACKEND_SERVICES_DOCUMENTATION.md)
 - [implementation/FRONTEND_COMPONENTS_DOCUMENTATION.md](implementation/FRONTEND_COMPONENTS_DOCUMENTATION.md)
 
@@ -122,6 +122,8 @@ Index: [features/contract-signing/CONTRACT_SIGNING_INDEX.md](features/contract-s
 
 ### Provenance & encryption
 - [Provenance integration](features/provenance/PROVENANCE_INTEGRATION_GUIDE.md)
+- [Provenance API endpoints](api/API_PROVENANCE_ENDPOINTS.md)
+- [Merkle tree implementation](security/MERKLE_TREE_PROVENANCE_IMPLEMENTATION.md)
 - [LUKS encryption](features/encryption/LUKS_ENCRYPTION_GUIDE.md)
 
 ---

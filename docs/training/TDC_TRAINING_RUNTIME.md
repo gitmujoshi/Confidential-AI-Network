@@ -25,6 +25,8 @@ This document describes the **TDC (Training Data Consumer)** training flow imple
 | `HUGGINGFACE_INTEGRATION_ENABLED` | Dev/test only. Enables `/api/dev/huggingface` Hub validation routes (not production by default). See [HUGGINGFACE.md](../integrations/HUGGINGFACE.md). |
 | `BACKEND_URL` / `BACKEND_PORT` | API base URL for Node-side calls and Playwright global setup. |
 
+**Differential privacy (NLP / local-docker):** when `contract.trainingParams.differentialPrivacy.enabled` is true and the job runs the **text** trainer (`ag_news` + DistilBERT demo), `train.py` applies **Opacus DP-SGD**. Rebuild the trainer image after pulling changes (`opacus` in `backend/local-training/Dockerfile`). Completed jobs surface `results.privacyMetrics` (ε, δ, mechanism) on `TrainingJob.metadata`.
+
 After pulling changes that add `training_jobs.metadata`, ensure the column exists:
 
 ```bash

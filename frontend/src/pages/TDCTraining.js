@@ -31,6 +31,7 @@ import CloseIcon from '@mui/icons-material/Close';
 import { useUser } from '../contexts/UserContext';
 import apiService, { api } from '../services/api';
 import toast from 'react-hot-toast';
+import PrivacyMetricsPanel from '../components/PrivacyMetricsPanel';
 
 const TERMINAL = new Set(['COMPLETED', 'FAILED', 'CANCELLED']);
 
@@ -460,6 +461,13 @@ export default function TDCTraining() {
                       sx={{ mb: 2 }}
                     />
                   )}
+
+                  <PrivacyMetricsPanel
+                    results={liveJob.results}
+                    trainingConfig={liveJob.trainingConfig}
+                    simulation={liveJob.simulation}
+                    status={liveJob.status}
+                  />
 
                   {(TERMINAL.has(liveJob.status) || liveJob.results) && (
                     <Box sx={{ mb: 2 }}>

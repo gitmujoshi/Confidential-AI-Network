@@ -2,6 +2,7 @@ const {
   slugModelId,
   mapFramework,
   mapModelType,
+  extractDpConfigForTrainer,
   mapPrivacyTechnique,
   isSimulationMode,
   buildContainerSpec,
@@ -36,8 +37,29 @@ describe('tdcTrainingHelpers', () => {
     it('returns none when no privacy config', () => {
       expect(mapPrivacyTechnique({})).toBe('none');
     });
-    it('detects differential privacy object', () => {
-      expect(mapPrivacyTechnique({ differentialPrivacy: { epsilon: 1 } })).toBe('differential-privacy');
+    it('detects differential privacy when enabled on contract', () => {
+      expect(mapPrivacyTechnique({ differentialPrivacy: { enabled: true, epsilon: 1 } })).toBe(
+        'differential-privacy'
+      );
+      expect(mapPrivacyTechnique({ differentialPrivacy: { epsilon: 1 } })).toBe('none');
+    });
+  });
+
+  describe('extractDpConfigForTrainer', () => {
+    it('normalizes differentialPrivacy from trainingParams', () => {
+      const cfg = extractDpConfigForTrainer({
+        differentialPrivacy: { enabled: true, epsilon: 0.5, delta: 1e-6, maxGradNorm: 0.8 },
+      });
+      expect(cfg.enabled).toBe(true);
+      expect(cfg.epsilon).toBe(0.5);
+      expect(cfg.delta).toBe(1e-6);
+      expect(cfg.maxGradNorm).toBe(0.8);
+      expect(cfg.mechanism).toBe('dp-sgd');
+    });
+
+    it('infers enabled from privacyTechnique string', () => {
+      const cfg = extractDpConfigForTrainer({ privacyTechnique: 'differential-privacy' });
+      expect(cfg.enabled).toBe(true);
     });
   });
 

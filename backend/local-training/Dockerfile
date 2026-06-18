@@ -11,7 +11,8 @@ RUN python -m pip install --no-cache-dir --upgrade pip \
     scikit-learn==1.5.2 \
     transformers==4.46.3 \
     datasets==3.1.0 \
-    accelerate==1.0.1
+    accelerate==1.0.1 \
+    opacus==1.5.2
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \

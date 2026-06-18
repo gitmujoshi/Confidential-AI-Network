@@ -112,7 +112,8 @@ f1,f2,f3,label
 3. Rebuild trainer image after `train.py` changes
 4. **TDC** contract: dataset **AG News (Demo)** + model **Tiny DistilBERT (Demo)** → train locally
 5. Verify `metrics.json` shows `"dataset": "ag_news"` and `"source": "catalog_hf_reference"` (or `catalog_metadata`)
-6. Dev API: `curl -s http://localhost:5001/api/dev/huggingface/datasets/ag_news | jq`
+6. With **Differential Privacy** enabled on the contract (`trainingParams.differentialPrivacy.enabled`), verify `metrics.json` includes `privacyMetrics` (`technique: differential-privacy`, spent ε, δ)
+7. Dev API: `curl -s http://localhost:5001/api/dev/huggingface/datasets/ag_news | jq`
 
 ---
 
