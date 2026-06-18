@@ -67,11 +67,14 @@ nano terraform.tfvars
 ### 4. Deploy Infrastructure
 
 ```bash
-# Make deployment script executable
-chmod +x deploy.sh
+chmod +x deploy.sh destroy.sh
+./deploy.sh -y --images
+```
 
-# Run deployment
-./deploy.sh
+From repository root:
+
+```bash
+./deployment/deploy-oci.sh terraform -y --images
 ```
 
 ## 📁 File Structure

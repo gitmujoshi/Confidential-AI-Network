@@ -1,39 +1,89 @@
 #!/bin/bash
-# Confidential AI Network - Azure Terraform Deployment Script
+# Confidential AI Network - Azure Terraform deployment (AKS + PostgreSQL + ACR)
 
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "${SCRIPT_DIR}/../../scripts/lib/deploy-common.sh"
+
+CLOUD_NAME="Microsoft Azure"
+
+usage() {
+  print_deploy_usage "$CLOUD_NAME"
+}
+
+set +e
+parse_deploy_args "$@"
+rc=$?
 set -e
+if [ "$rc" = "2" ]; then
+  usage
+  exit 0
+elif [ "$rc" != "0" ]; then
+  usage
+  exit 1
+fi
 
-RED='\033[0;31m'; GREEN='\033[0;32m'; YELLOW='\033[1;33m'; BLUE='\033[0;34m'; NC='\033[0m'
-print_status() { echo -e "${BLUE}[INFO]${NC} $1"; }
-print_success() { echo -e "${GREEN}[SUCCESS]${NC} $1"; }
-print_warning() { echo -e "${YELLOW}[WARNING]${NC} $1"; }
-print_error() { echo -e "${RED}[ERROR]${NC} $1"; }
-
-check_prerequisites() {
-  print_status "Checking prerequisites..."
-  command -v terraform >/dev/null || { print_error "Terraform not installed"; exit 1; }
-  command -v az >/dev/null || { print_warning "Azure CLI not installed"; }
-  az account show >/dev/null 2>&1 || { print_error "Run 'az login' first"; exit 1; }
-  [ -f terraform.tfvars ] || { print_error "Copy terraform.tfvars.example to terraform.tfvars"; exit 1; }
-  print_success "Prerequisites OK"
+REPO_ROOT="$(find_repo_root "$SCRIPT_DIR")" || {
+  print_error "Could not locate repository root"
+  exit 1
 }
 
-main() {
-  echo "=========================================="
-  echo "Confidential AI Network - Azure Deployment"
-  echo "=========================================="
-  check_prerequisites
-  terraform init
-  terraform validate
-  terraform plan -out=tfplan
-  echo ""
-  read -p "Proceed with deployment? (y/N): " -n 1 -r
-  echo ""
-  [[ $REPLY =~ ^[Yy]$ ]] || { print_warning "Cancelled"; exit 0; }
-  terraform apply tfplan
-  print_success "Deployment complete"
-  terraform output next_steps
-  rm -f tfplan
-}
+cd "$SCRIPT_DIR"
 
-main "$@"
+print_header "Confidential AI Network - Azure Deployment"
+
+require_cmd terraform
+require_cmd az "Install: https://learn.microsoft.com/cli/azure/install-azure-cli"
+ensure_tfvars "$SCRIPT_DIR"
+
+print_status "Checking Azure login..."
+az account show >/dev/null 2>&1 || {
+  print_error "Not logged in to Azure. Run: az login"
+  exit 1
+}
+print_success "Azure CLI authenticated as: $(az account show --query name -o tsv)"
+
+terraform_init_validate
+terraform_plan_apply
+
+if [ "$DEPLOY_PLAN_ONLY" = true ]; then
+  exit 0
+fi
+
+RESOURCE_GROUP="$(terraform output -raw resource_group_name)"
+AKS_CLUSTER="$(terraform output -raw aks_cluster_name)"
+REGISTRY_URL="$(terraform output -raw container_registry_url)"
+LB_IP="$(terraform output -raw load_balancer_ip)"
+FRONTEND_URL="$(terraform output -raw frontend_url)"
+BACKEND_URL="$(terraform output -raw backend_url)"
+KEYCLOAK_URL="$(terraform output -raw ***REMOVED-KEYCLOAK_DB_PASSWORD***_url)"
+
+if [ "$DEPLOY_SKIP_KUBECTL" != true ]; then
+  require_cmd kubectl
+  print_status "Configuring kubectl for AKS cluster ${AKS_CLUSTER}..."
+  az aks get-credentials \
+    --resource-group "$RESOURCE_GROUP" \
+    --name "$AKS_CLUSTER" \
+    --overwrite-existing
+  kubectl cluster-info
+  print_success "kubectl configured"
+fi
+
+if [ "$DEPLOY_BUILD_IMAGES" = true ]; then
+  print_status "Logging in to Azure Container Registry..."
+  ACR_NAME="${REGISTRY_URL%%.azurecr.io}"
+  az acr login --name "$ACR_NAME"
+  build_app_images "$REPO_ROOT" "$REGISTRY_URL"
+  if [ "$DEPLOY_SKIP_KUBECTL" != true ]; then
+    restart_k8s_deployments
+    wait_for_k8s_deployments
+  fi
+fi
+
+print_urls_summary "$LB_IP" "$FRONTEND_URL" "$BACKEND_URL" "$KEYCLOAK_URL"
+
+echo "Next steps:"
+terraform output -json next_steps | jq -r '.[]' 2>/dev/null || terraform output next_steps
+echo ""
+print_success "Azure deployment complete"

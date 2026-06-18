@@ -32,7 +32,13 @@ cp terraform.tfvars.example terraform.tfvars
 # Edit subscription_id, tenant_id, db_password, ***REMOVED-KEYCLOAK_DB_PASSWORD***_admin_password
 
 chmod +x deploy.sh destroy.sh
-./deploy.sh
+./deploy.sh -y --images
+```
+
+From repository root:
+
+```bash
+./deployment/deploy-azure.sh terraform -y --images
 ```
 
 ## Configure kubectl
@@ -49,12 +55,18 @@ kubectl get pods -n contract-management
 ```bash
 ACR=$(terraform output -raw container_registry_url)
 az acr login --name ${ACR%%.azurecr.io}
-docker build -t $ACR/backend:latest ../../backend/
-docker build -t $ACR/frontend:latest ../../frontend/
+docker build -t $ACR/backend:latest ../../../backend/
+docker build -t $ACR/frontend:latest ../../../frontend/
 docker push $ACR/backend:latest
 docker push $ACR/frontend:latest
 kubectl rollout restart deployment/backend -n contract-management
 kubectl rollout restart deployment/frontend -n contract-management
+```
+
+Or use the top-level script:
+
+```bash
+./deployment/deploy-azure.sh terraform -y --images
 ```
 
 ## File structure
