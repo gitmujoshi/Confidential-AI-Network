@@ -8,8 +8,15 @@ location        = "eastus"
 resource_group_name = "can-dev-compute-rg"
 vnet_cidr           = "10.10.0.0/16"
 cluster_name        = "can-dev-aks"
-environment         = "dev"
 app_domain          = "app.dev.example.com"
+
+# Environment & versioning (required for production)
+environment         = "dev"          # dev | test | staging | prod
+release_version     = "0.0.0-dev"     # semver → cms-release tag
+image_tag           = ""              # git SHA or semver; empty uses release_version
+tag_owner           = "platform-team"
+data_classification = "internal"
+cost_center         = "TBD"
 
 node_count = 3
 vm_size    = "Standard_D4s_v5"
@@ -23,8 +30,4 @@ db_password = "CHANGE_ME_STRONG_PASSWORD"
 
 repository_name = "cancontractmgmt"
 
-project_tags = {
-  Project     = "ConfidentialAINetwork"
-  Environment = "dev"
-  ManagedBy   = "Terraform"
-}
+project_tags = {}

@@ -5,7 +5,8 @@ resource "oci_core_vcn" "vcn" {
   display_name   = "${var.cluster_name}-vcn"
   dns_label      = "contractmgmt"
   
-  freeform_tags = var.project_tags
+  freeform_tags = var.freeform_tags
+  defined_tags  = var.defined_tags
 }
 
 # Internet Gateway
@@ -14,7 +15,8 @@ resource "oci_core_internet_gateway" "internet_gateway" {
   vcn_id         = oci_core_vcn.vcn.id
   display_name   = "${var.cluster_name}-internet-gateway"
   
-  freeform_tags = var.project_tags
+  freeform_tags = var.freeform_tags
+  defined_tags  = var.defined_tags
 }
 
 # NAT Gateway
@@ -23,7 +25,8 @@ resource "oci_core_nat_gateway" "nat_gateway" {
   vcn_id         = oci_core_vcn.vcn.id
   display_name   = "${var.cluster_name}-nat-gateway"
   
-  freeform_tags = var.project_tags
+  freeform_tags = var.freeform_tags
+  defined_tags  = var.defined_tags
 }
 
 # Service Gateway
@@ -36,7 +39,8 @@ resource "oci_core_service_gateway" "service_gateway" {
     service_id = data.oci_core_services.all_services.services[0].id
   }
   
-  freeform_tags = var.project_tags
+  freeform_tags = var.freeform_tags
+  defined_tags  = var.defined_tags
 }
 
 # Data source for OCI services
@@ -59,7 +63,8 @@ resource "oci_core_subnet" "public_subnet_1" {
   security_list_ids = [oci_core_security_list.public_security_list.id]
   route_table_id    = oci_core_route_table.public_route_table.id
   
-  freeform_tags = var.project_tags
+  freeform_tags = var.freeform_tags
+  defined_tags  = var.defined_tags
 }
 
 # Public Subnet 2 (for load balancer)
@@ -73,7 +78,8 @@ resource "oci_core_subnet" "public_subnet_2" {
   security_list_ids = [oci_core_security_list.public_security_list.id]
   route_table_id    = oci_core_route_table.public_route_table.id
   
-  freeform_tags = var.project_tags
+  freeform_tags = var.freeform_tags
+  defined_tags  = var.defined_tags
 }
 
 # Private Subnet (for OKE nodes and database)
@@ -87,7 +93,8 @@ resource "oci_core_subnet" "private_subnet" {
   security_list_ids = [oci_core_security_list.private_security_list.id]
   route_table_id    = oci_core_route_table.private_route_table.id
   
-  freeform_tags = var.project_tags
+  freeform_tags = var.freeform_tags
+  defined_tags  = var.defined_tags
 }
 
 # Public Route Table
@@ -102,7 +109,8 @@ resource "oci_core_route_table" "public_route_table" {
     network_entity_id = oci_core_internet_gateway.internet_gateway.id
   }
   
-  freeform_tags = var.project_tags
+  freeform_tags = var.freeform_tags
+  defined_tags  = var.defined_tags
 }
 
 # Private Route Table
@@ -123,7 +131,8 @@ resource "oci_core_route_table" "private_route_table" {
     network_entity_id = oci_core_service_gateway.service_gateway.id
   }
   
-  freeform_tags = var.project_tags
+  freeform_tags = var.freeform_tags
+  defined_tags  = var.defined_tags
 }
 
 # Public Security List
@@ -195,7 +204,8 @@ resource "oci_core_security_list" "public_security_list" {
     destination_type = "CIDR_BLOCK"
   }
   
-  freeform_tags = var.project_tags
+  freeform_tags = var.freeform_tags
+  defined_tags  = var.defined_tags
 }
 
 # Private Security List
@@ -268,5 +278,6 @@ resource "oci_core_security_list" "private_security_list" {
     destination_type = "CIDR_BLOCK"
   }
   
-  freeform_tags = var.project_tags
+  freeform_tags = var.freeform_tags
+  defined_tags  = var.defined_tags
 } 

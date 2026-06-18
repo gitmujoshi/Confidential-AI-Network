@@ -101,6 +101,26 @@ output "deployment_status" {
   value       = "Deployment completed successfully"
 }
 
+output "environment" {
+  description = "Deployment environment"
+  value       = var.environment
+}
+
+output "release_version" {
+  description = "Application release version (cms-release)"
+  value       = var.release_version
+}
+
+output "effective_image_tag" {
+  description = "Pinned container image tag used by Kubernetes"
+  value       = local.effective_image_tag
+}
+
+output "resource_tags" {
+  description = "Merged cms-* freeform tags applied to OCI resources"
+  value       = local.resource_freeform_tags
+}
+
 output "next_steps" {
   description = "Next steps after deployment"
   value = [

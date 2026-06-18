@@ -10,7 +10,8 @@ resource "oci_load_balancer" "load_balancer" {
     maximum_bandwidth_in_mbps = 100
   }
   
-  freeform_tags = var.project_tags
+  freeform_tags = var.freeform_tags
+  defined_tags  = var.defined_tags
 }
 
 # Backend Set for Frontend (Port 3000)

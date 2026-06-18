@@ -111,9 +111,49 @@ variable "app_domain" {
 }
 
 variable "environment" {
-  description = "Environment name"
+  description = "Environment name (dev, test, staging, prod)"
   type        = string
   default     = "dev"
+
+  validation {
+    condition     = contains(["dev", "test", "staging", "prod"], lower(var.environment))
+    error_message = "environment must be one of: dev, test, staging, prod."
+  }
+}
+
+variable "release_version" {
+  description = "Application release version (semver), stored in cms-release tag"
+  type        = string
+  default     = "0.0.0-dev"
+}
+
+variable "image_tag" {
+  description = "Container image tag (git SHA or semver). Overrides release_version for pulls."
+  type        = string
+  default     = ""
+}
+
+variable "tag_owner" {
+  description = "Team or group responsible for resources (cms-owner)"
+  type        = string
+  default     = "platform-team"
+}
+
+variable "data_classification" {
+  description = "Data sensitivity label (cms-data-classification)"
+  type        = string
+  default     = "internal"
+
+  validation {
+    condition     = contains(["public", "internal", "confidential", "restricted"], var.data_classification)
+    error_message = "data_classification must be public, internal, confidential, or restricted."
+  }
+}
+
+variable "cost_center" {
+  description = "Cost allocation code (cms-cost-center)"
+  type        = string
+  default     = "TBD"
 }
 
 variable "***REMOVED-KEYCLOAK_DB_PASSWORD***_admin_username" {
@@ -129,11 +169,7 @@ variable "***REMOVED-KEYCLOAK_DB_PASSWORD***_admin_password" {
 }
 
 variable "project_tags" {
-  description = "Tags applied to all resources"
+  description = "Optional extra tags merged onto cms-* standard tags"
   type        = map(string)
-  default = {
-    Project     = "ConfidentialAINetwork"
-    Environment = "dev"
-    ManagedBy   = "Terraform"
-  }
+  default     = {}
 }

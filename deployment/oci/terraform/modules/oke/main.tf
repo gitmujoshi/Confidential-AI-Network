@@ -13,7 +13,8 @@ resource "oci_container_engine_cluster" "oke_cluster" {
     }
   }
   
-  freeform_tags = var.project_tags
+  freeform_tags = var.freeform_tags
+  defined_tags  = var.defined_tags
 }
 
 # Node Pool
@@ -39,7 +40,8 @@ resource "oci_container_engine_node_pool" "oke_node_pool" {
     memory_in_gbs = var.node_memory_in_gbs
   }
   
-  freeform_tags = var.project_tags
+  freeform_tags = var.freeform_tags
+  defined_tags  = var.defined_tags
 }
 
 # Data source for availability domains

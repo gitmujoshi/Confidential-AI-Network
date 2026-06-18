@@ -4,16 +4,17 @@ variable "compartment_id" {
 }
 
 variable "repository_name" {
-  description = "Name of the container registry repository"
+  description = "OCIR repository display name"
   type        = string
 }
 
-variable "project_tags" {
-  description = "Tags to apply to all resources"
-  type        = map(string)
-  default = {
-    Project     = "ContractManagement"
-    Environment = "Production"
-    Owner       = "DevOps"
-  }
-} 
+variable "environment" {
+  description = "Environment name (immutable tags enabled for prod)"
+  type        = string
+}
+
+variable "repository_immutable" {
+  description = "Override OCIR immutable tag policy (defaults to true for prod)"
+  type        = bool
+  default     = null
+}

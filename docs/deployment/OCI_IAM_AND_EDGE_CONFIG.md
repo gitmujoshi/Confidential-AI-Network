@@ -303,7 +303,7 @@ Deny any-user to manage public-ips in compartment cms-prod-compute
 
 ```text
 Allow group cms-cicd-deployers to read repos in tenancy
-  where all { target.resource.tag.cms-environment.value = '{env}', target.resource.tag.cms-project.value = 'contract-management' }
+  where all { target.resource.tag.cms-environment.value = '{env}', target.resource.tag.cms-project.value = 'confidential-ai-network' }
 
 Allow dynamic-group cms-{env}-oke-workloads to use keys in tenancy
   where all { target.resource.tag.cms-environment.value = '{env}', target.resource.tag.cms-data-classification.value != 'restricted' }

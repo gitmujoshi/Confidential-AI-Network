@@ -116,9 +116,62 @@ variable "app_domain" {
 }
 
 variable "environment" {
-  description = "Environment name"
+  description = "Environment name (dev, test, staging, prod)"
   type        = string
-  default     = "production"
+  default     = "dev"
+
+  validation {
+    condition     = contains(["dev", "test", "staging", "prod"], lower(var.environment))
+    error_message = "environment must be one of: dev, test, staging, prod."
+  }
+}
+
+variable "release_version" {
+  description = "Application release version (semver), stored in cms-release tag"
+  type        = string
+  default     = "0.0.0-dev"
+}
+
+variable "image_tag" {
+  description = "Container image tag (git SHA or semver). Overrides release_version for pulls."
+  type        = string
+  default     = ""
+}
+
+variable "tag_owner" {
+  description = "Team or group responsible for resources (cms-owner)"
+  type        = string
+  default     = "platform-team"
+}
+
+variable "data_classification" {
+  description = "Data sensitivity label (cms-data-classification)"
+  type        = string
+  default     = "internal"
+
+  validation {
+    condition     = contains(["public", "internal", "confidential", "restricted"], var.data_classification)
+    error_message = "data_classification must be public, internal, confidential, or restricted."
+  }
+}
+
+variable "cost_center" {
+  description = "Cost allocation code (cms-cost-center)"
+  type        = string
+  default     = "TBD"
+}
+
+variable "defined_tag_namespace" {
+  description = "OCI defined-tag namespace for IAM tag-based policies (leave empty for freeform-only)"
+  type        = string
+  default     = ""
+}
+
+variable "***REMOVED-KEYCLOAK_DB_PASSWORD***_db_password" {
+  description = "Keycloak database password (defaults to db_password when empty)"
+  type        = string
+  sensitive   = true
+  default     = ""
 }
 
 # Keycloak Configuration
@@ -147,13 +200,9 @@ variable "infura_project_id" {
   default     = ""
 }
 
-# Resource Tags
+# Resource Tags — merged with cms-* standard tags in locals.tf; use for overrides only
 variable "project_tags" {
-  description = "Tags to apply to all resources"
+  description = "Optional extra freeform tags merged onto cms-* standard tags"
   type        = map(string)
-  default = {
-    Project     = "ContractManagement"
-    Environment = "Production"
-    Owner       = "DevOps"
-  }
+  default     = {}
 } 

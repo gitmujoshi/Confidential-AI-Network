@@ -10,7 +10,8 @@ resource "oci_database_autonomous_database" "database" {
   license_model           = "LICENSE_INCLUDED"
   admin_password          = var.db_password
   
-  freeform_tags = var.project_tags
+  freeform_tags = var.freeform_tags
+  defined_tags  = var.defined_tags
 }
 
 # Database Wallet

@@ -19,6 +19,8 @@ resource "kubernetes_config_map" "app_config" {
   data = {
     NODE_ENV                    = var.environment
     APP_DOMAIN                  = var.app_domain
+    APP_VERSION                 = var.release_version
+    IMAGE_TAG                   = var.image_tag
     ETHEREUM_NETWORK            = var.ethereum_network
     INFURA_PROJECT_ID           = var.infura_project_id
     KEYCLOAK_ADMIN_USERNAME     = var.***REMOVED-KEYCLOAK_DB_PASSWORD***_admin_username
@@ -408,7 +410,7 @@ resource "kubernetes_deployment" "backend" {
       
       spec {
         container {
-          image = "${var.registry_url}/backend:latest"
+          image = "${var.registry_url}/backend:${var.image_tag}"
           name  = "backend"
           
           env_from {
@@ -499,7 +501,7 @@ resource "kubernetes_deployment" "frontend" {
       
       spec {
         container {
-          image = "${var.registry_url}/frontend:latest"
+          image = "${var.registry_url}/frontend:${var.image_tag}"
           name  = "frontend"
           
           env_from {
