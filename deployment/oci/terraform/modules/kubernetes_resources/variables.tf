@@ -29,6 +29,16 @@ variable "registry_url" {
   type        = string
 }
 
+variable "image_tag" {
+  description = "Pinned container image tag"
+  type        = string
+}
+
+variable "release_version" {
+  description = "Application release version exposed to pods"
+  type        = string
+}
+
 variable "app_domain" {
   description = "Application domain"
   type        = string

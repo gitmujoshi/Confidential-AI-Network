@@ -48,12 +48,5 @@ variable "kubernetes_version" {
   type        = string
 }
 
-variable "project_tags" {
-  description = "Tags to apply to all resources"
-  type        = map(string)
-  default = {
-    Project     = "ContractManagement"
-    Environment = "Production"
-    Owner       = "DevOps"
-  }
+
 } 

@@ -16,6 +16,8 @@ resource "kubernetes_config_map" "app_config" {
   data = {
     NODE_ENV                = var.environment
     APP_DOMAIN              = var.app_domain
+    APP_VERSION             = var.release_version
+    IMAGE_TAG               = var.image_tag
     KEYCLOAK_ADMIN_USERNAME = var.keycloak_admin_username
   }
 }
@@ -73,7 +75,7 @@ resource "kubernetes_deployment" "backend" {
       spec {
         container {
           name  = "backend"
-          image = "${var.registry_url}/backend:latest"
+          image = "${var.registry_url}/backend:${var.image_tag}"
           port { container_port = 5001 }
 
           env_from {
@@ -131,7 +133,7 @@ resource "kubernetes_deployment" "frontend" {
       spec {
         container {
           name  = "frontend"
-          image = "${var.registry_url}/frontend:latest"
+          image = "${var.registry_url}/frontend:${var.image_tag}"
           port { container_port = 3000 }
         }
       }

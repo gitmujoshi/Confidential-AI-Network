@@ -61,6 +61,8 @@ LB_IP="$(terraform output -raw load_balancer_ip)"
 FRONTEND_URL="$(terraform output -raw frontend_url)"
 BACKEND_URL="$(terraform output -raw backend_url)"
 KEYCLOAK_URL="$(terraform output -raw keycloak_url)"
+export DEPLOY_ENV_TAG="$(terraform output -raw environment 2>/dev/null || true)"
+export IMAGE_TAG="${IMAGE_TAG:-$(terraform output -raw effective_image_tag 2>/dev/null || true)}"
 
 if [ "$DEPLOY_SKIP_KUBECTL" != true ]; then
   require_cmd kubectl

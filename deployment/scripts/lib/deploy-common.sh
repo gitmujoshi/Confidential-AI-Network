@@ -171,12 +171,52 @@ terraform_destroy_stack() {
   print_success "Infrastructure destroyed"
 }
 
+resolve_image_tag() {
+  local repo_root="$1"
+
+  if [ -n "${IMAGE_TAG:-}" ]; then
+    echo "$IMAGE_TAG"
+    return 0
+  fi
+
+  if command -v git >/dev/null 2>&1 && git -C "$repo_root" rev-parse --short HEAD >/dev/null 2>&1; then
+    git -C "$repo_root" rev-parse --short HEAD
+    return 0
+  fi
+
+  echo "latest"
+}
+
+push_image_with_aliases() {
+  local registry_url="$1"
+  local component="$2"
+  local source_tag="$3"
+  local env_alias="${DEPLOY_ENV_TAG:-}"
+
+  docker push "${registry_url}/${component}:${source_tag}"
+
+  if [ -n "$env_alias" ] && [ "$source_tag" != "$env_alias" ]; then
+    print_status "Publishing environment alias ${component}:${env_alias}"
+    docker tag "${registry_url}/${component}:${source_tag}" "${registry_url}/${component}:${env_alias}"
+    docker push "${registry_url}/${component}:${env_alias}"
+  fi
+}
+
 build_app_images() {
   local repo_root="$1"
   local registry_url="$2"
-  local tag="${IMAGE_TAG:-latest}"
+  local tag
+  tag="$(resolve_image_tag "$repo_root")"
 
   require_cmd docker "Install Docker: https://docs.docker.com/get-docker/"
+
+  if [ "$tag" = "latest" ] && [ "${DEPLOY_ENV_TAG:-}" = "prod" ]; then
+    print_error "Refusing to push :latest to production. Set IMAGE_TAG or release_version in terraform.tfvars."
+    exit 1
+  fi
+
+  print_status "Using image tag: ${tag}"
+  [ -n "${DEPLOY_ENV_TAG:-}" ] && print_status "Environment alias tag: ${DEPLOY_ENV_TAG}"
 
   print_status "Building backend image..."
   docker build -t "${registry_url}/backend:${tag}" "$repo_root/backend"
@@ -185,10 +225,10 @@ build_app_images() {
   docker build -t "${registry_url}/frontend:${tag}" "$repo_root/frontend"
 
   print_status "Pushing images to ${registry_url}..."
-  docker push "${registry_url}/backend:${tag}"
-  docker push "${registry_url}/frontend:${tag}"
+  push_image_with_aliases "$registry_url" "backend" "$tag"
+  push_image_with_aliases "$registry_url" "frontend" "$tag"
 
-  print_success "Images published to registry"
+  print_success "Images published (tag=${tag}${DEPLOY_ENV_TAG:+, alias=${DEPLOY_ENV_TAG}})"
 }
 
 wait_for_k8s_deployments() {

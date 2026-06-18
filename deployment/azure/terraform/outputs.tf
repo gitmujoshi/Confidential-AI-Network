@@ -43,10 +43,26 @@ output "keycloak_url" {
   value = "http://${module.load_balancer.public_ip_address}:8080"
 }
 
+output "environment" {
+  value = var.environment
+}
+
+output "release_version" {
+  value = var.release_version
+}
+
+output "effective_image_tag" {
+  value = local.effective_image_tag
+}
+
+output "resource_tags" {
+  value = local.resource_tags
+}
+
 output "next_steps" {
   value = [
     "1. az aks get-credentials --resource-group ${module.networking.resource_group_name} --name ${module.aks.cluster_name}",
-    "2. Build and push images to ${module.container_registry.registry_url}",
+    "2. Build and push images: IMAGE_TAG=${local.effective_image_tag} ./deploy.sh --images",
     "3. Configure DNS for ${var.app_domain} → ${module.load_balancer.public_ip_address}",
     "4. Set up Keycloak realm at ${module.load_balancer.public_ip_address}:8080",
     "5. See docs/production/AZURE_SECURITY_ARCHITECTURE.md for edge hardening"

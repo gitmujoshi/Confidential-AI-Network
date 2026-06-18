@@ -880,12 +880,18 @@ Extend Terraform (or OCI Resource Manager stacks) using specs in [OCI IAM & Edge
 **Tagging standard** (required on all resources):
 
 ```yaml
-cms-project: contract-management
+cms-project: confidential-ai-network
 cms-environment: dev | test | staging | prod
 cms-owner: platform-team
 cms-data-classification: public | internal | confidential | restricted
 cms-cost-center: <code>
+cms-release: <semver>          # e.g. 1.2.0
+cms-managed-by: terraform
 ```
+
+**Container images (OCIR):** pin with git SHA or semver; use environment aliases (`staging`, `prod`) for promotion. See [OCI_TAGGING_AND_VERSIONING.md](../deployment/OCI_TAGGING_AND_VERSIONING.md).
+
+Terraform applies these via `deployment/oci/terraform/locals.tf` and `effective_image_tag` for Kubernetes pulls.
 
 ---
 

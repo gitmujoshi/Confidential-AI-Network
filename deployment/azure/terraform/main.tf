@@ -40,7 +40,7 @@ module "networking" {
   location            = var.location
   vnet_cidr           = var.vnet_cidr
   cluster_name        = var.cluster_name
-  project_tags        = var.project_tags
+  project_tags        = local.resource_tags
 }
 
 module "container_registry" {
@@ -49,7 +49,8 @@ module "container_registry" {
   resource_group_name = module.networking.resource_group_name
   location            = var.location
   repository_name     = var.repository_name
-  project_tags        = var.project_tags
+  environment         = var.environment
+  project_tags        = local.resource_tags
 }
 
 module "aks" {
@@ -65,7 +66,7 @@ module "aks" {
   service_cidr        = var.service_cidr
   dns_service_ip      = var.dns_service_ip
   acr_id              = module.container_registry.acr_id
-  project_tags        = var.project_tags
+  project_tags        = local.resource_tags
 }
 
 module "database" {
@@ -80,7 +81,7 @@ module "database" {
   vnet_id             = module.networking.vnet_id
   sku_name            = var.db_sku_name
   storage_mb          = var.db_storage_mb
-  project_tags        = var.project_tags
+  project_tags        = local.resource_tags
 }
 
 module "load_balancer" {
@@ -90,7 +91,7 @@ module "load_balancer" {
   location            = var.location
   lb_name             = var.lb_name
   subnet_id           = module.networking.public_subnet_id
-  project_tags        = var.project_tags
+  project_tags        = local.resource_tags
 }
 
 module "kubernetes_resources" {
@@ -105,6 +106,8 @@ module "kubernetes_resources" {
   db_password             = var.db_password
   lb_ip                   = module.load_balancer.public_ip_address
   registry_url            = module.container_registry.registry_url
+  image_tag               = local.effective_image_tag
+  release_version         = var.release_version
   app_domain              = var.app_domain
   environment             = var.environment
   keycloak_admin_username = var.keycloak_admin_username

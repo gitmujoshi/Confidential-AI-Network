@@ -110,6 +110,17 @@ terraform/
 | `db_password` | Database password | `your-secure-password` |
 | `keycloak_admin_password` | Keycloak admin password | `your-secure-password` |
 
+### Tagging & versioning
+
+| Variable | Example | Notes |
+|----------|---------|-------|
+| `environment` | `dev` | `dev` \| `test` \| `staging` \| `prod` |
+| `release_version` | `1.0.0` | Stored in `cms-release` tag |
+| `image_tag` | `abc1234` | Git SHA; pins K8s image pulls |
+| `defined_tag_namespace` | `cms-tags` | Optional; for IAM tag policies |
+
+See [OCI_TAGGING_AND_VERSIONING.md](../../../docs/deployment/OCI_TAGGING_AND_VERSIONING.md).
+
 ### Optional Variables
 
 | Variable | Default | Description |
@@ -120,6 +131,8 @@ terraform/
 | `node_shape` | `VM.Standard.E4.Flex` | Compute instance shape |
 | `db_size` | `1` | Database size in TB |
 | `app_domain` | `contract-management.example.com` | Application domain |
+
+See [OCI_TAGGING_AND_VERSIONING.md](../../../docs/deployment/OCI_TAGGING_AND_VERSIONING.md) for `cms-*` tags and image versioning.
 
 ## 🏗️ Infrastructure Components
 

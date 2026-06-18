@@ -16,14 +16,4 @@ variable "cluster_name" {
 variable "region" {
   description = "OCI region"
   type        = string
-}
-
-variable "project_tags" {
-  description = "Tags to apply to all resources"
-  type        = map(string)
-  default = {
-    Project     = "ContractManagement"
-    Environment = "Production"
-    Owner       = "DevOps"
-  }
 } 

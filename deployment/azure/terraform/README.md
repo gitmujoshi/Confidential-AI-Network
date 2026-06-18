@@ -114,6 +114,10 @@ For a simpler path without AKS:
 - [Azure Readiness](../../../docs/deployment/AZURE_READINESS.md)
 - [CCRP Azure integration](../../../backend/AZURE_INTEGRATION_GUIDE.md)
 
+## Tagging & versioning
+
+Set `environment`, `release_version`, and optionally `image_tag` in `terraform.tfvars`. See [OCI_TAGGING_AND_VERSIONING.md](../../../docs/deployment/OCI_TAGGING_AND_VERSIONING.md) (same `cms-*` convention applies to Azure tags).
+
 ## Destroy
 
 ```bash

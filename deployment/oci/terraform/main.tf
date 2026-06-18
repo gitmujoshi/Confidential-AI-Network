@@ -46,79 +46,96 @@ data "oci_identity_availability_domains" "ads" {
 }
 
 data "oci_container_engine_cluster" "oke_cluster" {
-  cluster_id = oci_container_engine_cluster.contract_management_cluster.id
+  cluster_id = module.oke.cluster_id
 }
 
 # VCN and Networking
 module "networking" {
   source = "./modules/networking"
-  
+
   compartment_id = var.compartment_id
   vcn_cidr       = var.vcn_cidr
   cluster_name   = var.cluster_name
   region         = var.region
+  freeform_tags  = local.resource_freeform_tags
+  defined_tags   = local.resource_defined_tags
 }
 
 # OKE Cluster
 module "oke" {
   source = "./modules/oke"
-  
+
   compartment_id     = var.compartment_id
   cluster_name       = var.cluster_name
   vcn_id             = module.networking.vcn_id
   subnet_ids         = module.networking.subnet_ids
+  private_subnet_id  = module.networking.private_subnet_id
   node_pool_size     = var.node_pool_size
   node_shape         = var.node_shape
+  node_ocpus         = var.node_ocpus
+  node_memory_in_gbs = var.node_memory_in_gbs
   kubernetes_version = var.kubernetes_version
+  freeform_tags      = local.resource_freeform_tags
+  defined_tags         = local.resource_defined_tags
 }
 
 # Database
 module "database" {
   source = "./modules/database"
-  
+
   compartment_id = var.compartment_id
   subnet_id      = module.networking.private_subnet_id
   db_name        = var.db_name
   db_password    = var.db_password
   db_size        = var.db_size
+  freeform_tags  = local.resource_freeform_tags
+  defined_tags   = local.resource_defined_tags
 }
 
 # Load Balancer
 module "load_balancer" {
   source = "./modules/load_balancer"
-  
+
   compartment_id = var.compartment_id
   subnet_ids     = module.networking.public_subnet_ids
   lb_name        = var.lb_name
+  freeform_tags  = local.resource_freeform_tags
+  defined_tags   = local.resource_defined_tags
 }
 
 # Container Registry
 module "container_registry" {
   source = "./modules/container_registry"
-  
-  compartment_id = var.compartment_id
-  repository_name = var.repository_name
+
+  compartment_id   = var.compartment_id
+  repository_name  = var.repository_name
+  environment      = var.environment
+  freeform_tags    = local.resource_freeform_tags
+  defined_tags     = local.resource_defined_tags
 }
 
 # Kubernetes Resources
 module "kubernetes_resources" {
   source = "./modules/kubernetes_resources"
-  
+
   depends_on = [module.oke]
-  
-  # Database connection
+
   db_host     = module.database.db_host
+  db_port     = module.database.db_port
   db_name     = module.database.db_name
   db_user     = module.database.db_user
-  db_password = module.database.db_password
-  
-  # Load balancer
-  lb_ip = module.load_balancer.lb_ip
-  
-  # Container registry
+  db_password = var.db_password
+
+  lb_ip        = module.load_balancer.lb_ip
   registry_url = module.container_registry.registry_url
-  
-  # Application configuration
-  app_domain = var.app_domain
-  environment = var.environment
-} 
+  image_tag    = local.effective_image_tag
+
+  app_domain              = var.app_domain
+  environment             = var.environment
+  release_version         = var.release_version
+  ethereum_network        = var.ethereum_network
+  infura_project_id       = var.infura_project_id
+  keycloak_admin_username = var.keycloak_admin_username
+  keycloak_admin_password = var.keycloak_admin_password
+  keycloak_db_password    = var.keycloak_db_password != "" ? var.keycloak_db_password : var.db_password
+}
