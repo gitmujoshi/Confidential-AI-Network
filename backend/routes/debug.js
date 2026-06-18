@@ -1,7 +1,26 @@
 const express = require('express');
+const fs = require('fs');
+const path = require('path');
+
 const router = express.Router();
 
+function defaultMlxPythonPath() {
+  return (
+    process.env.LOCAL_MLX_PYTHON ||
+    path.join(__dirname, '..', 'local-training', '.venv-mlx', 'bin', 'python')
+  );
+}
+
+function defaultNativePythonPath() {
+  return (
+    process.env.LOCAL_NATIVE_PYTHON ||
+    path.join(__dirname, '..', 'local-training', '.venv-native', 'bin', 'python')
+  );
+}
+
 router.get('/env', (req, res) => {
+  const mlxPython = defaultMlxPythonPath();
+  const nativePython = defaultNativePythonPath();
   res.json({
     ***REMOVED-KEYCLOAK_DB_PASSWORD***: {
       url: process.env.KEYCLOAK_URL,
@@ -29,7 +48,18 @@ router.get('/env', (req, res) => {
       trainingSimulationMode: process.env.TRAINING_SIMULATION_MODE ?? '(unset)',
       trainingExecutionMode: process.env.TRAINING_EXECUTION_MODE ?? '(unset)',
       localTrainingImage:
-        process.env.LOCAL_TRAINING_IMAGE || 'contractmanagement/local-trainer:latest'
+        process.env.LOCAL_TRAINING_IMAGE || 'contractmanagement/local-trainer:latest',
+      mlx: {
+        appleSilicon: process.platform === 'darwin' && process.arch === 'arm64',
+        pythonPath: mlxPython,
+        venvExists: fs.existsSync(mlxPython),
+      },
+      native: {
+        appleSilicon: process.platform === 'darwin' && process.arch === 'arm64',
+        pythonPath: nativePython,
+        venvExists: fs.existsSync(nativePython),
+        trainerDevice: process.env.LOCAL_NATIVE_TRAINER_DEVICE || process.env.TRAINER_DEVICE || 'auto',
+      },
     },
     huggingface: {
       integrationEnabled: process.env.HUGGINGFACE_INTEGRATION_ENABLED === 'true',

@@ -18,14 +18,16 @@ This document describes the **TDC (Training Data Consumer)** training flow imple
 | Variable | Purpose |
 |----------|---------|
 | `TRAINING_SIMULATION_MODE` | Default `false` (or unset): uses the **real execution path** (`TrainingService.triggerTrainingRun`) and therefore requires cloud/CCRP credentials and the DB shape expected by that path. Set to `true` to run a **simulated** training pipeline (no cloud provisioning). |
-| `TRAINING_EXECUTION_MODE` | Optional. Set to `local-docker` to run training in a **separate local Docker container** instead of the cloud/Terraform path. Requires Docker installed and a local trainer image (see below). |
+| `TRAINING_EXECUTION_MODE` | Optional. `local-docker` — Docker container (cross-platform). **`local-native`** — Apple Silicon host, same `train.py`, PyTorch **MPS** + Opacus DP on CPU ([MLX_MAC_DEV.md](./MLX_MAC_DEV.md)). `local-mlx` — MLX-only experiments (no DP). |
 | `LOCAL_TRAINING_IMAGE` | Optional. Docker image used for `TRAINING_EXECUTION_MODE=local-docker`. Defaults to `contractmanagement/local-trainer:latest`. |
 | `HF_TOKEN` / `HUGGINGFACE_API_TOKEN` | Optional. Passed into the local trainer container for **gated/private** Hugging Face Hub models/datasets. Store in `secrets.env`, not catalog metadata. |
 | `HUGGINGFACE_HUB_URL` | Optional. Custom Hub endpoint; forwarded to the trainer as `HF_ENDPOINT`. |
 | `HUGGINGFACE_INTEGRATION_ENABLED` | Dev/test only. Enables `/api/dev/huggingface` Hub validation routes (not production by default). See [HUGGINGFACE.md](../integrations/HUGGINGFACE.md). |
 | `BACKEND_URL` / `BACKEND_PORT` | API base URL for Node-side calls and Playwright global setup. |
 
-**Differential privacy (NLP / local-docker):** when `contract.trainingParams.differentialPrivacy.enabled` is true and the job runs the **text** trainer (`ag_news` + DistilBERT demo), `train.py` applies **Opacus DP-SGD**. Rebuild the trainer image after pulling changes (`opacus` in `backend/local-training/Dockerfile`). Completed jobs surface `results.privacyMetrics` (ε, δ, mechanism) on `TrainingJob.metadata`.
+| `TRAINER_DEVICE` | Optional (`train.py`). `auto` \| `mps` \| `cpu` \| `cuda`. Native Mac default: MPS when available; CPU for Opacus DP-SGD unless `TRAINER_DP_ON_MPS=true`. |
+
+**Differential privacy (NLP):** when `contract.trainingParams.differentialPrivacy.enabled` is true and the job runs the **text** trainer (`ag_news` + DistilBERT demo), `train.py` applies **Opacus DP-SGD**. Docker: rebuild `contractmanagement/local-trainer:latest`. Native Mac: `scripts/setup-native-venv.sh`. Completed jobs surface `results.privacyMetrics` (ε, δ, mechanism) on `TrainingJob.metadata`.
 
 After pulling changes that add `training_jobs.metadata`, ensure the column exists:
 

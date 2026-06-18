@@ -98,6 +98,71 @@ def _is_logistic_arch(architecture: str) -> bool:
     return "logistic" in a or a in ("logreg", "logistic-regression")
 
 
+def _resolve_torch_device(*, dp_enabled: bool = False):
+    """
+    Pick PyTorch device for host-native runs (MPS on Apple Silicon).
+
+    TRAINER_DEVICE: auto | mps | cpu | cuda
+    TRAINER_DP_ON_MPS: when true, attempt DP-SGD on MPS (experimental; Opacus is CUDA-first).
+    Default auto: MPS for standard training; CPU for DP-SGD (reliable Opacus path).
+    """
+    import torch
+
+    pref = (_env("TRAINER_DEVICE") or "auto").strip().lower()
+
+    def mps_available() -> bool:
+        mps = getattr(torch.backends, "mps", None)
+        return bool(mps and mps.is_available() and mps.is_built())
+
+    if pref == "cpu":
+        return torch.device("cpu")
+    if pref == "cuda":
+        if torch.cuda.is_available():
+            return torch.device("cuda")
+        print("[trainer] TRAINER_DEVICE=cuda requested but CUDA unavailable; using cpu", flush=True)
+        return torch.device("cpu")
+    if pref == "mps":
+        if mps_available():
+            return torch.device("mps")
+        print("[trainer] TRAINER_DEVICE=mps requested but MPS unavailable; using cpu", flush=True)
+        return torch.device("cpu")
+
+    # auto
+    dp_on_mps = str(_env("TRAINER_DP_ON_MPS") or "").lower() in ("1", "true", "yes")
+    if dp_enabled and not dp_on_mps:
+        if mps_available():
+            print(
+                "[trainer] DP-SGD: using cpu for Opacus (set TRAINER_DP_ON_MPS=true to try MPS)",
+                flush=True,
+            )
+        return torch.device("cpu")
+    if mps_available():
+        return torch.device("mps")
+    if torch.cuda.is_available():
+        return torch.device("cuda")
+    return torch.device("cpu")
+
+
+def _load_hf_dataset(repo_id: str, subset: Optional[str], load_kwargs: Dict[str, Any]):
+    """Load Hub dataset with legacy id fallback (newer huggingface_hub clients)."""
+    from datasets import load_dataset
+
+    legacy_map = {"ag_news": "SetFit/ag_news"}
+    candidates = [repo_id]
+    mapped = legacy_map.get(repo_id)
+    if mapped and mapped not in candidates:
+        candidates.append(mapped)
+    last_err = None
+    for name in candidates:
+        try:
+            if subset:
+                return load_dataset(name, subset, **load_kwargs)
+            return load_dataset(name, **load_kwargs)
+        except Exception as e:
+            last_err = e
+    raise last_err  # type: ignore[misc]
+
+
 def _infer_task(training_params: dict) -> str:
     """
     Decide which trainer to run.
@@ -368,7 +433,8 @@ def _run_vision_training(
     import torch.nn as nn
     import torch.optim as optim
 
-    device = torch.device("cpu")
+    device = _resolve_torch_device(dp_enabled=False)
+    print(f"[trainer] vision device={device}", flush=True)
     torch.manual_seed(42)
 
     model, model_label, _ = _build_vision_model(architecture, num_classes, fast)
@@ -583,11 +649,14 @@ def train_text_hf(
     dp_config: Optional[Dict[str, Any]] = None,
 ) -> TrainResult:
     import torch
-    from datasets import load_dataset
     from transformers import AutoModelForSequenceClassification, AutoTokenizer
 
+    dp = dp_config if isinstance(dp_config, dict) else {}
+    dp_enabled = bool(dp.get("enabled"))
+
     torch.manual_seed(42)
-    device = torch.device("cpu")
+    device = _resolve_torch_device(dp_enabled=dp_enabled)
+    print(f"[trainer] text device={device}", flush=True)
 
     hf_name = model_name or "sshleifer/tiny-distilbert-base-cased"
     spec = dataset_spec or _resolve_hf_dataset_spec(None)
@@ -601,9 +670,9 @@ def train_text_hf(
     if revision:
         load_kwargs["revision"] = revision
     if subset:
-        ds = load_dataset(repo_id, subset, **load_kwargs)
+        ds = _load_hf_dataset(repo_id, subset, load_kwargs)
     else:
-        ds = load_dataset(repo_id, **load_kwargs)
+        ds = _load_hf_dataset(repo_id, None, load_kwargs)
 
     train_ds = ds[split_train]
     test_ds = ds[split_test]
@@ -613,7 +682,23 @@ def train_text_hf(
         test_ds = test_ds.select(range(256))
 
     tok = AutoTokenizer.from_pretrained(hf_name)
-    model = AutoModelForSequenceClassification.from_pretrained(hf_name, num_labels=4).to(device)
+    model = AutoModelForSequenceClassification.from_pretrained(
+        hf_name, num_labels=4, ignore_mismatched_sizes=True
+    ).to(device)
+
+    if dp_enabled:
+        import torch.nn as nn
+
+        # Fresh classifier + frozen backbone: Opacus per-sample grads are reliable on the head only.
+        hidden = model.config.hidden_size
+        model.classifier = nn.Linear(hidden, 4)
+        model.classifier.reset_parameters()
+        if hasattr(model, "pre_classifier") and model.pre_classifier is not None:
+            for p in model.pre_classifier.parameters():
+                p.requires_grad = False
+        for name, param in model.named_parameters():
+            param.requires_grad = name.startswith("classifier")
+        print("[trainer] DP-SGD: classifier head only (frozen backbone)", flush=True)
 
     def encode(batch):
         return tok(batch["text"], truncation=True, padding="max_length", max_length=128)
@@ -628,31 +713,24 @@ def train_text_hf(
     train_loader = torch.utils.data.DataLoader(train_enc, batch_size=16, shuffle=True)
     test_loader = torch.utils.data.DataLoader(test_enc, batch_size=32, shuffle=False)
 
-    opt = torch.optim.AdamW(model.parameters(), lr=2e-4)
     loss_fn = torch.nn.CrossEntropyLoss()
 
-    dp = dp_config if isinstance(dp_config, dict) else {}
-    dp_enabled = bool(dp.get("enabled"))
     privacy_engine = None
     dp_target_delta = float(dp.get("delta", 1e-5))
     dp_target_epsilon = float(dp.get("target_epsilon", dp.get("epsilon", 1.0)))
     dp_max_grad_norm = float(dp.get("max_grad_norm", 1.0))
+    noise_multiplier = 1.0
 
     if dp_enabled:
         try:
             from opacus import PrivacyEngine
             from opacus.accountants.utils import get_noise_multiplier
-            from opacus.validators import ModuleValidator
         except ImportError as e:
             raise RuntimeError(
-                "Differential privacy requires opacus in the trainer image. "
-                "Rebuild: docker build -t contractmanagement/local-trainer:latest "
-                "-f backend/local-training/Dockerfile backend/local-training"
+                "Differential privacy requires opacus. "
+                "Docker: rebuild contractmanagement/local-trainer:latest. "
+                "Native Mac: run backend/local-training/scripts/setup-native-venv.sh"
             ) from e
-
-        errors = ModuleValidator.validate(model, strict=False)
-        if errors:
-            model = ModuleValidator.fix(model)
 
         sample_rate = 16 / max(1, len(train_enc))
         epochs_for_budget = max(1, int(epochs))
@@ -666,6 +744,12 @@ def train_text_hf(
         except Exception:
             noise_multiplier = 1.0
 
+    trainable = [p for p in model.parameters() if p.requires_grad]
+    opt = torch.optim.AdamW(trainable if dp_enabled else model.parameters(), lr=2e-4)
+    if dp_enabled:
+        from opacus import PrivacyEngine
+
+        model.train()
         privacy_engine = PrivacyEngine(accountant="rdp", secure_mode=False)
         model, opt, train_loader = privacy_engine.make_private(
             module=model,

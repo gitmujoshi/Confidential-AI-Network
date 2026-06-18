@@ -90,7 +90,7 @@ Follow the links below by topic. OCI and Azure each have a **step-by-step new-en
 
 | Topic | Document |
 |-------|----------|
-| Training workflows (TDC/TDP/CCRP) | [../training/README.md](../training/README.md) |
+| Training workflows (TDC/TDP/CCRP) | [../training/README.md](../training/README.md) · [GLOSSARY.md](../GLOSSARY.md) (training & privacy terms) |
 | System architecture (full stack) | [../ARCHITECTURE.md](../ARCHITECTURE.md) |
 | Hugging Face Hub (dev catalog) | [../integrations/HUGGINGFACE.md](../integrations/HUGGINGFACE.md) |
 | API reference | [../api/API_REFERENCE.md](../api/API_REFERENCE.md) |
@@ -146,4 +146,4 @@ Full procedures and component detail are in the linked guides above.
 
 ---
 
-*Last updated: 2026-06-17*
+*Last updated: 2026-06-18*

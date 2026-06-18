@@ -14,6 +14,8 @@ Complete guide for developers working on the Contract Management System. This gu
 8. [Deployment](#deployment)
 9. [Best Practices](#best-practices)
 
+**Technical vocabulary** (MLX, Opacus, training modes, PETs, …): [GLOSSARY.md](GLOSSARY.md)
+
 ## 🚀 Development Setup
 
 ### **Prerequisites**

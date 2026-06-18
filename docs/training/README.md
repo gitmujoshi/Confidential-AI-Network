@@ -1,6 +1,6 @@
 # Training Documentation
 
-> **Index:** [../README.md](../README.md) · **Full course:** [TRAINING_COURSE.md](./TRAINING_COURSE.md)
+> **Index:** [../README.md](../README.md) · **Full course:** [TRAINING_COURSE.md](./TRAINING_COURSE.md) · **Terms:** [../GLOSSARY.md](../GLOSSARY.md)
 
 ## 🎓 **Complete Training Documentation for AI Model Training Environment**
 
@@ -31,6 +31,7 @@ Our training program is designed to provide:
 - **Focus**: Data consumption, training job management, model access
 - **Runtime (API & UI — current implementation)**: **[TDC_TRAINING_RUNTIME.md](./TDC_TRAINING_RUNTIME.md)** — start training from a signed contract, simulation vs real run, register trained model as `AIModel`, CCRP training routes, **privacy metrics panel** (`results.privacyMetrics` from Opacus DP-SGD on NLP local-docker jobs).
 - **Local stakeholder demo**: **[LOCAL_DEMO_RUNBOOK.md](./LOCAL_DEMO_RUNBOOK.md)** — tabular, vision, and optional **NLP/Hugging Face** track.
+- **Apple Silicon dev**: **[MLX_MAC_DEV.md](./MLX_MAC_DEV.md)** — `local-native` (PyTorch MPS + HF/Opacus) vs `local-mlx` vs Docker.
 - **Key Topics**:
   - Dashboard navigation
   - Dataset browsing and evaluation
