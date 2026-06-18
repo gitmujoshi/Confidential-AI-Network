@@ -47,8 +47,10 @@ async function getNlpDpSkipReason() {
   }
   try {
     const training = await fetchTrainingEnv();
-    if (training.trainingExecutionMode !== 'local-docker') {
-      return `TRAINING_EXECUTION_MODE must be local-docker (current: ${training.trainingExecutionMode})`;
+    const mode = training.trainingExecutionMode;
+    const okMode = mode === 'local-docker' || mode === 'local-native';
+    if (!okMode) {
+      return `TRAINING_EXECUTION_MODE must be local-docker or local-native (current: ${mode})`;
     }
     if (training.trainingSimulationMode === 'true' || training.trainingSimulationMode === true) {
       return 'TRAINING_SIMULATION_MODE must be false for Opacus DP-SGD E2E';

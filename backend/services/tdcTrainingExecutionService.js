@@ -221,6 +221,118 @@ class TdcTrainingExecutionService {
       return this.getJobPublic(jobId);
     }
 
+    // Native PyTorch on Apple Silicon (host venv — same train.py as Docker, MPS + Opacus DP on CPU).
+    if (process.env.TRAINING_EXECUTION_MODE === 'local-native') {
+      const { isAppleSiliconMac, runLocalNativeTraining } = require('./localNativeTrainingRunner');
+      if (!isAppleSiliconMac()) {
+        throw new Error(
+          'TRAINING_EXECUTION_MODE=local-native requires Apple Silicon macOS (arm64). Use local-docker on Linux/CI.'
+        );
+      }
+
+      const jobId = `job-${contract.contractId}-${Date.now()}`;
+      const containerSpec = buildContainerSpec(contract);
+      let inputs = shapeInputsForLocalTrainerContainer(await expandContractTrainingInputs(contract));
+      inputs = await stageDatasetsForLocalJob(jobId, inputs);
+
+      const jobDepaId = depaIdService.generateTrainingJobDEPAId();
+      await db.TrainingJob.create({
+        jobId,
+        contractId: contract.contractId,
+        status: 'PENDING',
+        trainingConfig: contract.trainingParams,
+        environmentConfig: {
+          environmentSpecs: contract.environmentSpecs,
+          cloudProvider: contract.ccrpCloudProvider,
+          containerSpec,
+        },
+        datasets: contract.contractDatasets,
+        aiModels: contract.aiModelIds,
+        metadata: {
+          depaId: jobDepaId,
+          simulation: false,
+          progress: 0,
+          containerSpec,
+          phases: [{ name: 'PENDING', at: new Date().toISOString() }],
+          executionMode: 'local-native',
+          inputs,
+        },
+        createdBy: userId,
+      });
+
+      setImmediate(() => {
+        runLocalNativeTraining({
+          jobId,
+          contractId: contract.contractId,
+          containerSpec,
+          trainingParams: contract.trainingParams,
+        });
+      });
+
+      return this.getJobPublic(jobId);
+    }
+
+    // Native MLX on Apple Silicon (host venv — uses GPU; no Docker).
+    if (process.env.TRAINING_EXECUTION_MODE === 'local-mlx') {
+      const { isAppleSiliconMac, runLocalMlxTraining } = require('./localMlxTrainingRunner');
+      if (!isAppleSiliconMac()) {
+        throw new Error(
+          'TRAINING_EXECUTION_MODE=local-mlx requires Apple Silicon macOS (arm64). Use local-docker on Linux/CI.'
+        );
+      }
+      const dpEnabled =
+        contract.trainingParams?.differentialPrivacy?.enabled === true ||
+        String(contract.trainingParams?.privacyTechnique || '')
+          .toLowerCase()
+          .includes('differential');
+      if (dpEnabled) {
+        throw new Error(
+          'Differential privacy (Opacus) requires TRAINING_EXECUTION_MODE=local-docker. MLX path does not support DP-SGD yet.'
+        );
+      }
+
+      const jobId = `job-${contract.contractId}-${Date.now()}`;
+      const containerSpec = buildContainerSpec(contract);
+      let inputs = shapeInputsForLocalTrainerContainer(await expandContractTrainingInputs(contract));
+      inputs = await stageDatasetsForLocalJob(jobId, inputs);
+
+      const jobDepaId = depaIdService.generateTrainingJobDEPAId();
+      await db.TrainingJob.create({
+        jobId,
+        contractId: contract.contractId,
+        status: 'PENDING',
+        trainingConfig: contract.trainingParams,
+        environmentConfig: {
+          environmentSpecs: contract.environmentSpecs,
+          cloudProvider: contract.ccrpCloudProvider,
+          containerSpec,
+        },
+        datasets: contract.contractDatasets,
+        aiModels: contract.aiModelIds,
+        metadata: {
+          depaId: jobDepaId,
+          simulation: false,
+          progress: 0,
+          containerSpec,
+          phases: [{ name: 'PENDING', at: new Date().toISOString() }],
+          executionMode: 'local-mlx',
+          inputs,
+        },
+        createdBy: userId,
+      });
+
+      setImmediate(() => {
+        runLocalMlxTraining({
+          jobId,
+          contractId: contract.contractId,
+          containerSpec,
+          trainingParams: contract.trainingParams,
+        });
+      });
+
+      return this.getJobPublic(jobId);
+    }
+
     // Local Docker execution mode (runs training in a separate container on the backend host).
     if (process.env.TRAINING_EXECUTION_MODE === 'local-docker') {
       const jobId = `job-${contract.contractId}-${Date.now()}`;

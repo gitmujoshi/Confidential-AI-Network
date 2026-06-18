@@ -11,7 +11,7 @@
 | Use the product (TDC/TDP/CCRP) | [USER_GUIDE.md](USER_GUIDE.md) · [training/README.md](training/README.md) |
 | Develop or extend the system | [DEVELOPER_GUIDE.md](DEVELOPER_GUIDE.md) · [development/README.md](development/README.md) |
 | Deploy to production / OCI / Azure | [deployment/README.md](deployment/README.md) · [production/README.md](production/README.md) |
-| Understand architecture | [ARCHITECTURE.md](ARCHITECTURE.md) · [architecture/](architecture/) |
+| Understand architecture | [ARCHITECTURE.md](ARCHITECTURE.md) · [architecture/](architecture/) · [GLOSSARY.md](GLOSSARY.md) |
 | Call APIs | [api/API_REFERENCE.md](api/API_REFERENCE.md) · [api/COMPLETE_API_SPECIFICATIONS.md](api/COMPLETE_API_SPECIFICATIONS.md) |
 | Security & IAM | [security/](security/) · [production/OCI_SECURITY_ARCHITECTURE.md](production/OCI_SECURITY_ARCHITECTURE.md) |
 | Test (manual / E2E) | [development/TESTING_GUIDE.md](development/TESTING_GUIDE.md) · [testing/E2E_TEST_DOCUMENTATION.md](testing/E2E_TEST_DOCUMENTATION.md) · [frontend/tests/e2e/README.md](../frontend/tests/e2e/README.md) |
@@ -33,6 +33,7 @@
 ```
 docs/
 ├── README.md                 ← you are here
+├── GLOSSARY.md               ← technical vocabulary (MLX, Opacus, training modes, …)
 ├── ARCHITECTURE.md           ← system architecture (hub + deep dive)
 ├── USER_GUIDE.md             ← end-user guide
 ├── ADMIN_GUIDE.md            ← AppAdmin operations

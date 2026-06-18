@@ -151,6 +151,8 @@ local-tee/attestations/
 # Local training artifacts (generated, can be very large)
 backend/local-training/runs/
 backend/local-training/_smoke_outputs/
+backend/local-training/.venv-mlx/
+backend/local-training/.venv-native/
 
 # Frontend production build (local)
 frontend/build/

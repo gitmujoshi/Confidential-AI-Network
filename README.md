@@ -191,7 +191,7 @@ flowchart LR
 
 - **Multi-party Ricardian contracts** — TDP, TDC, CCRP workflows with digital signing
 - **SCITT CCF ledger** — high-throughput, confidential-computing-friendly audit trail
-- **TDC training jobs** — contract-bound training; simulated or local-docker runs; optional model registration; NLP local-docker jobs can return **Opacus DP-SGD** `privacyMetrics` on the job detail UI ([runtime doc](docs/training/TDC_TRAINING_RUNTIME.md))
+- **TDC training jobs** — contract-bound training; `local-docker`, `local-native` (Mac MPS), or `local-mlx`; optional model registration; NLP jobs can return **Opacus DP-SGD** `privacyMetrics` ([runtime doc](docs/training/TDC_TRAINING_RUNTIME.md) · [glossary](docs/GLOSSARY.md))
 - **CCRP training console** — deploy and monitor jobs via API and `/ccrp/training-environment`
 - **Encryption** — LUKS for large files, TEE decryption paths, differential privacy support
 - **Multi-cloud** — AWS, Azure, GCP, OCI deployment paths
@@ -259,8 +259,22 @@ Run `npm run status` and relevant tests before submitting.
 | **SCITT CCF** | Confidential consortium ledger for tamper-evident contract records |
 | **TEE** | Trusted Execution Environment — hardware-isolated enclave for confidential processing |
 | **DEPA** | Data Empowerment and Protection Architecture ([depa.world](https://depa.world)) |
+| **PET** | Privacy-Enhancing Technology (DP, federated learning, secure MPC, etc.) |
+| **Differential privacy (DP)** | Privacy guarantee via ε (epsilon) and δ (delta) budgets on training outputs |
+| **DP-SGD** | Differentially Private SGD — clipped noisy gradients during training |
+| **Opacus** | PyTorch library implementing DP-SGD in our NLP trainer (`train.py`) |
+| **privacyMetrics** | Spent ε, δ, mechanism on completed jobs — TDC **Privacy metrics** panel |
+| **Hugging Face (HF) Hub** | External model/dataset registry; dev catalog references Hub repos |
+| **local-docker** | `TRAINING_EXECUTION_MODE` — `train.py` in Docker (cross-platform, Opacus DP) |
+| **local-native** | Host `train.py` on Apple Silicon — PyTorch **MPS** + same HF/Opacus stack as Docker |
+| **local-mlx** | Host **Apple MLX** trainer on Mac — fast GPU dev, no DP |
+| **MLX** | Apple’s ML framework for Apple Silicon GPU |
+| **MPS** | Metal Performance Shaders — PyTorch GPU backend on macOS |
+| **SIEM** | Security analytics export (Splunk, Sentinel, OCI Logging, webhooks) |
 
-Extended glossary (cloud, IAM, networking, cryptography): see tables in [ARCHITECTURE.md](docs/ARCHITECTURE.md) and [OCI](docs/production/OCI_SECURITY_ARCHITECTURE.md) / [Azure](docs/production/AZURE_SECURITY_ARCHITECTURE.md) security docs.
+**Full glossary** (training modes, LoRA, CAN JCS, KMS, …): [docs/GLOSSARY.md](docs/GLOSSARY.md).
+
+Extended cloud/IAM/networking tables: [ARCHITECTURE.md](docs/ARCHITECTURE.md), [OCI](docs/production/OCI_SECURITY_ARCHITECTURE.md) / [Azure](docs/production/AZURE_SECURITY_ARCHITECTURE.md) security docs.
 
 ---
 
@@ -272,4 +286,4 @@ Extended glossary (cloud, IAM, networking, cryptography): see tables in [ARCHITE
 
 ---
 
-*Last updated: 2026-06-17*
+*Last updated: 2026-06-18*

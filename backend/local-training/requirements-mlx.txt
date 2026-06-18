@@ -1,0 +1,6 @@
+# Native Apple Silicon training (host venv — not used inside Docker).
+# Setup: backend/local-training/scripts/setup-mlx-venv.sh
+mlx>=0.30.0
+mlx-lm>=0.30.0
+numpy>=1.26.4,<2
+datasets>=3.1.0

@@ -13,7 +13,8 @@ module.exports = {
     '<rootDir>/tests/unit/siem-integration.test.js',
     '<rootDir>/tests/unit/huggingface-integration.test.js',
     '<rootDir>/tests/unit/huggingface-routes.test.js',
-    '<rootDir>/tests/unit/local-docker-training-runner.test.js'
+    '<rootDir>/tests/unit/local-docker-training-runner.test.js',
+    '<rootDir>/tests/unit/local-native-training-runner.test.js'
   ],
   collectCoverageFrom: [
     'services/**/*.js',
