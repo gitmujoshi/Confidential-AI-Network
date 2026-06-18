@@ -98,6 +98,24 @@ describe('contractTrainingInputsService.shapeInputsForLocalTrainerContainer', ()
     expect(out.contract.trainingParams.taskType).toBe('text');
   });
 
+  it('preserves differentialPrivacy block on trainingParams for local trainer', () => {
+    const out = shapeInputsForLocalTrainerContainer({
+      contract: {
+        contractId: 'c-dp',
+        trainingParams: {
+          taskType: 'text',
+          differentialPrivacy: { enabled: true, epsilon: 0.3, delta: 1e-5 },
+        },
+      },
+      datasets: [{ category: 'Natural Language Processing', datasetId: 'demo-ag-news' }],
+      models: [],
+      datasetSelections: [],
+      aiModelIds: [],
+    });
+    expect(out.contract.trainingParams.differentialPrivacy.enabled).toBe(true);
+    expect(out.contract.trainingParams.differentialPrivacy.epsilon).toBe(0.3);
+  });
+
   it('uses architecture with slash as model huggingface ref', () => {
     const out = shapeInputsForLocalTrainerContainer({
       contract: { contractId: 'c7', trainingParams: {} },

@@ -536,12 +536,51 @@ def train_vision_cifar10_small(out_dir: Path, epochs: int, fast: bool, architect
     )
 
 
+def _resolve_dp_config(training_params: dict) -> Dict[str, Any]:
+    """Read differential-privacy settings from contract trainingParams."""
+    dp = training_params.get("differentialPrivacy")
+    if not isinstance(dp, dict):
+        dp = {}
+    enabled = bool(dp.get("enabled"))
+    if not enabled:
+        pt = str(training_params.get("privacyTechnique") or "").lower()
+        if "differential" in pt or pt in ("dp", "differential-privacy"):
+            enabled = True
+    try:
+        epsilon = float(dp.get("epsilon", 1.0))
+    except (TypeError, ValueError):
+        epsilon = 1.0
+    try:
+        delta = float(dp.get("delta", 1e-5))
+    except (TypeError, ValueError):
+        delta = 1e-5
+    try:
+        max_grad_norm = float(dp.get("maxGradNorm") or dp.get("clipNorm") or 1.0)
+    except (TypeError, ValueError):
+        max_grad_norm = 1.0
+    if epsilon <= 0:
+        epsilon = 1.0
+    if delta <= 0:
+        delta = 1e-5
+    if max_grad_norm <= 0:
+        max_grad_norm = 1.0
+    return {
+        "enabled": enabled,
+        "epsilon": epsilon,
+        "delta": delta,
+        "max_grad_norm": max_grad_norm,
+        "mechanism": str(dp.get("mechanism") or "dp-sgd").lower(),
+        "target_epsilon": epsilon,
+    }
+
+
 def train_text_hf(
     out_dir: Path,
     epochs: int,
     fast: bool,
     model_name: str,
     dataset_spec: Optional[Dict[str, Any]] = None,
+    dp_config: Optional[Dict[str, Any]] = None,
 ) -> TrainResult:
     import torch
     from datasets import load_dataset
@@ -592,6 +631,55 @@ def train_text_hf(
     opt = torch.optim.AdamW(model.parameters(), lr=2e-4)
     loss_fn = torch.nn.CrossEntropyLoss()
 
+    dp = dp_config if isinstance(dp_config, dict) else {}
+    dp_enabled = bool(dp.get("enabled"))
+    privacy_engine = None
+    dp_target_delta = float(dp.get("delta", 1e-5))
+    dp_target_epsilon = float(dp.get("target_epsilon", dp.get("epsilon", 1.0)))
+    dp_max_grad_norm = float(dp.get("max_grad_norm", 1.0))
+
+    if dp_enabled:
+        try:
+            from opacus import PrivacyEngine
+            from opacus.accountants.utils import get_noise_multiplier
+            from opacus.validators import ModuleValidator
+        except ImportError as e:
+            raise RuntimeError(
+                "Differential privacy requires opacus in the trainer image. "
+                "Rebuild: docker build -t contractmanagement/local-trainer:latest "
+                "-f backend/local-training/Dockerfile backend/local-training"
+            ) from e
+
+        errors = ModuleValidator.validate(model, strict=False)
+        if errors:
+            model = ModuleValidator.fix(model)
+
+        sample_rate = 16 / max(1, len(train_enc))
+        epochs_for_budget = max(1, int(epochs))
+        try:
+            noise_multiplier = get_noise_multiplier(
+                target_epsilon=dp_target_epsilon,
+                target_delta=dp_target_delta,
+                sample_rate=sample_rate,
+                epochs=epochs_for_budget,
+            )
+        except Exception:
+            noise_multiplier = 1.0
+
+        privacy_engine = PrivacyEngine(accountant="rdp", secure_mode=False)
+        model, opt, train_loader = privacy_engine.make_private(
+            module=model,
+            optimizer=opt,
+            data_loader=train_loader,
+            noise_multiplier=noise_multiplier,
+            max_grad_norm=dp_max_grad_norm,
+        )
+        print(
+            f"[trainer] DP-SGD enabled noise_multiplier={noise_multiplier:.4f} "
+            f"target_epsilon={dp_target_epsilon} delta={dp_target_delta}",
+            flush=True,
+        )
+
     epochs = max(1, int(epochs))
     for _ in range(epochs):
         model.train()
@@ -630,19 +718,37 @@ def train_text_hf(
         str(artifact_path),
     )
 
+    extra: Dict[str, Any] = {
+        "taskType": "text",
+        "dataset": repo_id,
+        "model": hf_name,
+        "catalogArchitecture": model_name,
+        "source": spec.get("source") or "demo_ag_news",
+        "huggingfaceDataset": spec,
+    }
+
+    if dp_enabled and privacy_engine is not None:
+        try:
+            spent_epsilon = float(privacy_engine.get_epsilon(dp_target_delta))
+        except Exception:
+            spent_epsilon = dp_target_epsilon
+        extra["privacyEnhancedTraining"] = True
+        extra["privacyMetrics"] = {
+            "technique": "differential-privacy",
+            "mechanism": "dp-sgd",
+            "epsilon": spent_epsilon,
+            "delta": dp_target_delta,
+            "targetEpsilon": dp_target_epsilon,
+            "maxGradNorm": dp_max_grad_norm,
+            "noiseMultiplier": float(noise_multiplier) if dp_enabled else None,
+        }
+
     return TrainResult(
         accuracy=acc,
         loss=avg_loss,
         epochsCompleted=epochs,
         artifactUri=f"file://{artifact_path}",
-        extra={
-            "taskType": "text",
-            "dataset": repo_id,
-            "model": hf_name,
-            "catalogArchitecture": model_name,
-            "source": spec.get("source") or "demo_ag_news",
-            "huggingfaceDataset": spec,
-        },
+        extra=extra,
     )
 
 
@@ -674,6 +780,7 @@ def main() -> int:
 
     fast = _fast_dev(tp)
     task = _infer_task(tp)
+    dp_config = _resolve_dp_config(tp)
 
     if fast and max_epochs > 2:
         max_epochs = 1
@@ -692,7 +799,8 @@ def main() -> int:
         )
     print(
         f"[trainer] selected task={task} architecture={architecture or '(default)'} "
-        f"fastDevRun={fast} epochs={max_epochs}",
+        f"fastDevRun={fast} epochs={max_epochs} "
+        f"dp={'on' if dp_config.get('enabled') else 'off'}",
         flush=True,
     )
 
@@ -726,6 +834,7 @@ def main() -> int:
             fast=fast,
             model_name=hf_name,
             dataset_spec=hf_dataset,
+            dp_config=dp_config if dp_config.get("enabled") else None,
         )
     else:
         res = train_tabular_iris(
@@ -747,6 +856,9 @@ def main() -> int:
         },
         "generatedAt": _now_iso(),
     }
+    if res.extra and res.extra.get("privacyMetrics"):
+        metrics["privacyMetrics"] = res.extra["privacyMetrics"]
+        metrics["privacyEnhancedTraining"] = True
     (out_dir / "metrics.json").write_text(json.dumps(metrics, indent=2))
 
     print("[trainer] completed", flush=True)

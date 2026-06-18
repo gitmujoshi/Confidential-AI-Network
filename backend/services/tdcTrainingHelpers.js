@@ -26,8 +26,38 @@ function mapModelType(architecture) {
   return 'other';
 }
 
+function extractDpConfigForTrainer(trainingParams) {
+  const tp = trainingParams && typeof trainingParams === 'object' ? trainingParams : {};
+  const dp = tp.differentialPrivacy && typeof tp.differentialPrivacy === 'object'
+    ? tp.differentialPrivacy
+    : {};
+  let enabled = Boolean(dp.enabled);
+  if (!enabled) {
+    const pt = String(tp.privacyTechnique || '').toLowerCase();
+    if (pt.includes('differential') || pt === 'dp' || pt === 'differential-privacy') {
+      enabled = true;
+    }
+  }
+  const epsilon = Number(dp.epsilon);
+  const delta = Number(dp.delta);
+  const maxGradNorm = Number(dp.maxGradNorm ?? dp.clipNorm ?? 1.0);
+  return {
+    enabled,
+    epsilon: Number.isFinite(epsilon) && epsilon > 0 ? epsilon : 1.0,
+    delta: Number.isFinite(delta) && delta > 0 ? delta : 1e-5,
+    maxGradNorm: Number.isFinite(maxGradNorm) && maxGradNorm > 0 ? maxGradNorm : 1.0,
+    mechanism: dp.mechanism || 'dp-sgd',
+    targetEpsilon: Number.isFinite(epsilon) && epsilon > 0 ? epsilon : 1.0,
+  };
+}
+
 function mapPrivacyTechnique(tp) {
-  if (tp && typeof tp.differentialPrivacy === 'object' && tp.differentialPrivacy !== null) {
+  if (
+    tp &&
+    typeof tp.differentialPrivacy === 'object' &&
+    tp.differentialPrivacy !== null &&
+    tp.differentialPrivacy.enabled
+  ) {
     return 'differential-privacy';
   }
   const t = tp?.privacyTechnique || tp?.differentialPrivacy;
@@ -185,6 +215,7 @@ module.exports = {
   slugModelId,
   mapFramework,
   mapModelType,
+  extractDpConfigForTrainer,
   mapPrivacyTechnique,
   isSimulationMode,
   buildContainerSpec,

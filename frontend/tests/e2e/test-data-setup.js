@@ -209,6 +209,28 @@ class E2ETestDataManager {
       learningRate: 0.001,
       metadata: { seededBy: 'playwright', modalityHint: 'vision' },
     });
+
+    // NLP + Hugging Face fixtures for differential-privacy local-docker E2E
+    await ensureAiModelExists(backendURL, adminToken, {
+      modelId: 'e2e-model-nlp-distilbert',
+      name: 'E2E Tiny DistilBERT (NLP DP)',
+      description: 'Seeded NLP model for Opacus DP-SGD Playwright E2E',
+      type: 'transformer',
+      architecture: 'sshleifer/tiny-distilbert-base-cased',
+      parameters: '66M',
+      framework: 'PyTorch',
+      privacyTechnique: 'differential-privacy',
+      validationMetrics: ['accuracy', 'loss'],
+      maxEpochs: 1,
+      batchSize: 16,
+      learningRate: 0.0002,
+      metadata: {
+        seededBy: 'playwright',
+        modalityHint: 'text',
+        huggingfaceModel: 'sshleifer/tiny-distilbert-base-cased',
+      },
+    });
+
     await axios.post(`${backendURL}/api/contract-templates/seed`, {}, {
       headers: { Authorization: `Bearer ${adminToken}` },
     }).catch((err) => {
@@ -223,6 +245,54 @@ class E2ETestDataManager {
       email: 'tdp.e2e@test.com',
       password: 'TestNewPassword123!',
     });
+
+    const nlpDatasetId = 'e2e-nlp-ag-news';
+    let nlpDatasetExists = false;
+    try {
+      await axios.get(`${backendURL}/api/datasets/${nlpDatasetId}`);
+      nlpDatasetExists = true;
+    } catch (err) {
+      if (err.response?.status !== 404) throw err;
+    }
+    const nlpDatasetBody = {
+      datasetId: nlpDatasetId,
+      name: 'E2E AG News (NLP DP)',
+      description: 'Seeded NLP dataset with Hugging Face ag_news reference for DP E2E',
+      category: 'Natural Language Processing',
+      size: 120,
+      recordCount: 120000,
+      price: 100,
+      license: 'MIT',
+      tags: ['e2e', 'nlp', 'ag_news', 'differential-privacy'],
+      metadata: {
+        seededBy: 'playwright',
+        modality: 'text',
+        hfDatasetId: 'ag_news',
+        huggingface: {
+          repoType: 'dataset',
+          repoId: 'ag_news',
+          splitTrain: 'train',
+          splitTest: 'test',
+          sovereignty: 'hub-reference',
+        },
+      },
+      isPublic: true,
+      confidentialComputingRequired: false,
+      ownerId: tdpUser.id,
+    };
+    if (!nlpDatasetExists) {
+      await axios.post(`${backendURL}/api/datasets`, nlpDatasetBody);
+    } else {
+      try {
+        await axios.put(`${backendURL}/api/datasets/${encodeURIComponent(nlpDatasetId)}`, {
+          ...nlpDatasetBody,
+          isActive: true,
+        });
+      } catch (err) {
+        console.warn('⚠️ E2E NLP dataset reconcile failed:', err.response?.status || err.message);
+      }
+    }
+    console.log('✅ E2E NLP DP fixtures (e2e-nlp-ag-news, e2e-model-nlp-distilbert)');
 
     const datasetId = 'e2e-dataset-1';
     let datasetExists = false;

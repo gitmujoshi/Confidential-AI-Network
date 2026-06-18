@@ -58,9 +58,19 @@ npm run test:e2e:headed
 - **Path**: `tests/e2e/*.spec.js` (same as `npm run test:e2e`)
 
 ### 5. Backend API smoke (`api`)
-- **Files**: `can-jcs-api.spec.js`, `huggingface-api.spec.js`
-- **Run**: `npm run test:e2e:api` (Chromium, serial — no UI, hits backend only)
+- **Files**: `can-jcs-api.spec.js`, `huggingface-api.spec.js`, `nlp-dp-training-api.spec.js` (opt-in skip unless `E2E_WAIT_FOR_LOCAL_TRAINING=true`)
+- **Run**: `npm run test:e2e:api` (Chromium, serial — mostly backend-only; NLP DP spec skips without local-docker env)
 - **HF note**: Enable `HUGGINGFACE_INTEGRATION_ENABLED=true` on the backend (`config.test.env` or `config.env`) for full HF validate tests; disabled backend still passes gating tests.
+
+### 6. NLP + differential privacy (opt-in)
+- **Files**: `nlp-dp-training-api.spec.js`, `nlp-dp-training-ui.spec.js`
+- **Helper**: `helpers/nlp-dp-training.js` — seeds `e2e-nlp-ag-news` + `e2e-model-nlp-distilbert` via global setup
+- **Run** (requires `TRAINING_EXECUTION_MODE=local-docker`, `TRAINING_SIMULATION_MODE=false`, rebuilt `contractmanagement/local-trainer:latest` with Opacus):
+  ```bash
+  E2E_WAIT_FOR_LOCAL_TRAINING=true npm run test:e2e:nlp-dp
+  ```
+- **API**: asserts `results.privacyMetrics` (ε, δ, `dp-sgd`) on completed job
+- **UI**: `/tdc/training` → **Watch** job → **Privacy metrics** panel (spent ε, target ε, δ)
 
 ## 🔐 Role-Based Access Tests
 

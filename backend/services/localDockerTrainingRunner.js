@@ -114,6 +114,15 @@ async function runLocalDockerTraining({ jobId, contractId, containerSpec, traini
   // Derive maxEpochs for the placeholder trainer; fall back to 5.
   const maxEpochs = trainingParams?.maxEpochs ?? containerSpec?.maxEpochs ?? 5;
 
+  const dpEnabled =
+    trainingParams?.differentialPrivacy?.enabled === true ||
+    String(trainingParams?.privacyTechnique || '').toLowerCase().includes('differential');
+  if (dpEnabled) {
+    console.log(
+      `🔐 Local-docker NLP training with differential privacy (target ε=${trainingParams?.differentialPrivacy?.epsilon ?? 'default'})`
+    );
+  }
+
   const args = buildDockerRunArgs({
     jobId,
     contractId,
@@ -189,6 +198,10 @@ async function runLocalDockerTraining({ jobId, contractId, containerSpec, traini
         ...coreMetrics,
         modelProvenance,
       };
+      if (metrics.privacyMetrics && typeof metrics.privacyMetrics === 'object') {
+        results.privacyMetrics = metrics.privacyMetrics;
+        results.privacyEnhancedTraining = Boolean(metrics.privacyEnhancedTraining);
+      }
 
       if (code === 0) {
         await updateJob(jobId, {

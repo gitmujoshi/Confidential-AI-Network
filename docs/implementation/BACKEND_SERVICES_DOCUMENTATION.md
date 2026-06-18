@@ -90,6 +90,7 @@ async rejectContract(contractId, userId, reason)
 - Data access management
 - Training execution monitoring
 - Result validation
+- **Local-docker NLP path**: when `trainingParams.differentialPrivacy.enabled` is set, `localDockerTrainingRunner` copies `privacyMetrics` (ε, δ, mechanism) from trainer `metrics.json` into `TrainingJob.results` for the TDC UI panel
 
 **Key Methods**:
 ```javascript
