@@ -35,6 +35,7 @@ curl -s http://localhost:5001/api/debug/env | jq .training
 |-------|--------|--------|
 | **Tabular (recommended)** | `demo.csv` — numeric columns + integer label in last column | Fastest; ~1 min training |
 | **Vision (optional)** | Folder `class_a/` and `class_b/` with a few `.png` images each | Uses ResNet18 fine-tune; slower first run (weight download) |
+| **NLP / HF (optional)** | No upload — uses Hub refs from demo catalog | `demo-ag-news` + `demo-model-text-tiny-distilbert`; see [HF integration](../integrations/HUGGINGFACE.md) |
 
 Example tabular CSV:
 
@@ -104,6 +105,15 @@ f1,f2,f3,label
 - Contract **provenance** / SCITT claims (if SCITT enabled)
 - CAN **provenance events** on job
 
+### Optional: NLP track with Hugging Face (5 min)
+
+1. Seed demo catalog: `node backend/scripts/dev/seed-demo-catalog.js`
+2. In `config.env`: `HUGGINGFACE_INTEGRATION_ENABLED=true` (optional Hub API); put `HF_TOKEN` in `secrets.env` for gated org repos
+3. Rebuild trainer image after `train.py` changes
+4. **TDC** contract: dataset **AG News (Demo)** + model **Tiny DistilBERT (Demo)** → train locally
+5. Verify `metrics.json` shows `"dataset": "ag_news"` and `"source": "catalog_hf_reference"` (or `catalog_metadata`)
+6. Dev API: `curl -s http://localhost:5001/api/dev/huggingface/datasets/ag_news | jq`
+
 ---
 
 ## Fallback talking points
@@ -130,4 +140,5 @@ f1,f2,f3,label
 
 - [PHASE_A_LOCAL_ARTIFACTS.md](./PHASE_A_LOCAL_ARTIFACTS.md) — upload & staging design
 - [TDC_TRAINING_RUNTIME.md](./TDC_TRAINING_RUNTIME.md) — env vars and APIs
+- [../integrations/HUGGINGFACE.md](../integrations/HUGGINGFACE.md) — Hub catalog refs (dev)
 - [docs/deployment/README.md](../deployment/README.md) — OCI and production paths

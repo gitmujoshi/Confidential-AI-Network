@@ -6,6 +6,8 @@
 const { Op } = require('sequelize');
 const db = require('../models');
 
+const hfIntegration = require('./huggingfaceIntegrationService');
+
 async function loadContractForTraining(contractId) {
   return db.Contract.findOne({
     where: { contractId },
@@ -213,13 +215,15 @@ function shapeInputsForLocalTrainerContainer(bundle) {
       row.dataFormat = fmt;
     }
     row.hasArtifacts = Number(row.artifactFileCount || 0) > 0;
-    return row;
+    return hfIntegration.attachHfToRow(row, 'dataset');
   });
+
+  const modelsWithHf = models.map((m) => hfIntegration.attachHfToRow(m, 'model'));
 
   return {
     contract: contractBlock,
     datasets: datasetsWithHints,
-    models,
+    models: modelsWithHf,
     datasetSelections: bundle.datasetSelections,
     aiModelIds: bundle.aiModelIds,
   };

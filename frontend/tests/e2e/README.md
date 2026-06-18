@@ -57,6 +57,11 @@ npm run test:e2e:headed
 ### 4. Full E2E (`integration` / `all`)
 - **Path**: `tests/e2e/*.spec.js` (same as `npm run test:e2e`)
 
+### 5. Backend API smoke (`api`)
+- **Files**: `can-jcs-api.spec.js`, `huggingface-api.spec.js`
+- **Run**: `npm run test:e2e:api` (Chromium, serial — no UI, hits backend only)
+- **HF note**: Enable `HUGGINGFACE_INTEGRATION_ENABLED=true` on the backend (`config.test.env` or `config.env`) for full HF validate tests; disabled backend still passes gating tests.
+
 ## 🔐 Role-Based Access Tests
 
 ### Test Users
@@ -135,7 +140,7 @@ Some parts of the contract creation flow (wallet / blockchain signing) are **not
 - **`tdc-training.spec.js`** — TDC user loads **`/tdc/training`**, checks copy; API smoke: unknown contract returns **404** for job list.
 - **`ccrp-training-environment.spec.js`** — CCRP user loads **`/ccrp/training-environment`** (uses **`/api/ccrp/training/...`** in the app).
 
-See **[docs/training/TDC_TRAINING_RUNTIME.md](../../../docs/training/TDC_TRAINING_RUNTIME.md)** for API details.
+See **[docs/integrations/HUGGINGFACE.md](../integrations/HUGGINGFACE.md)** for dev Hub catalog refs and `npm run test:e2e:api`.
 
 ## 📊 Test Reporting
 

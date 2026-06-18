@@ -64,4 +64,48 @@ describe('contractTrainingInputsService.shapeInputsForLocalTrainerContainer', ()
     expect(out.datasets[0].hasArtifacts).toBe(true);
     expect(out.datasets[0].dataFormat).toBe('csv');
   });
+
+  it('attaches huggingface block from dataset metadata', () => {
+    const out = shapeInputsForLocalTrainerContainer({
+      contract: { contractId: 'c5', trainingParams: {} },
+      datasets: [
+        {
+          category: 'Natural Language Processing',
+          datasetId: 'demo-ag-news',
+          metadata: { hfDatasetId: 'ag_news' },
+        },
+      ],
+      models: [
+        {
+          metadata: { huggingfaceModel: 'sshleifer/tiny-distilbert-base-cased' },
+        },
+      ],
+      datasetSelections: [],
+      aiModelIds: [],
+    });
+    expect(out.datasets[0].huggingface.repoId).toBe('ag_news');
+    expect(out.models[0].huggingface.repoId).toBe('sshleifer/tiny-distilbert-base-cased');
+  });
+
+  it('infers text taskType from NLP dataset category', () => {
+    const out = shapeInputsForLocalTrainerContainer({
+      contract: { contractId: 'c6', trainingParams: {} },
+      datasets: [{ category: 'Natural Language Processing', datasetId: 'demo-ag-news' }],
+      models: [],
+      datasetSelections: [],
+      aiModelIds: [],
+    });
+    expect(out.contract.trainingParams.taskType).toBe('text');
+  });
+
+  it('uses architecture with slash as model huggingface ref', () => {
+    const out = shapeInputsForLocalTrainerContainer({
+      contract: { contractId: 'c7', trainingParams: {} },
+      datasets: [],
+      models: [{ architecture: 'sshleifer/tiny-distilbert-base-cased' }],
+      datasetSelections: [],
+      aiModelIds: [],
+    });
+    expect(out.models[0].huggingface.repoId).toBe('sshleifer/tiny-distilbert-base-cased');
+  });
 });

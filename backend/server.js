@@ -57,6 +57,7 @@ const tdcTrainingRouter = require('./routes/tdc-training');
 const canJcsRouter = require('./routes/can-jcs');
 const canCcrRouter = require('./routes/can-ccr');
 const canProvenanceRouter = require('./routes/can-provenance');
+const huggingfaceRouter = require('./routes/huggingface');
 const { CANEscrowSweeper } = require('./services/canEscrowSweeper');
 
 // Import role-specific routes
@@ -205,6 +206,7 @@ app.use('/api/tdc/training', tdcTrainingRouter);
 app.use('/api/can/jcs', canJcsRouter);
 app.use('/api/can/ccr', canCcrRouter);
 app.use('/api/can/provenance', canProvenanceRouter);
+app.use('/api/dev/huggingface', huggingfaceRouter);
 
 // Background escrow sweeper (MVP): enforce CAN deadlines even without API calls
 if (process.env.CAN_ESCROW_SWEEPER_ENABLED !== 'false' && process.env.NODE_ENV !== 'test') {

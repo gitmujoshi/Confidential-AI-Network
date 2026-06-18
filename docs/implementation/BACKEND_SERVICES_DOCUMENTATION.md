@@ -326,6 +326,28 @@ async monitorSystemHealth()
 async handleBackendFailover()
 ```
 
+### Hugging Face Integration Service (dev)
+
+**File:** `backend/services/huggingfaceIntegrationService.js`  
+**Routes:** `/api/dev/huggingface/*` (gated: `HUGGINGFACE_INTEGRATION_ENABLED=true`, non-prod)
+
+**Purpose:** Normalize Hub catalog references on training inputs; optional Hub metadata validation in development.
+
+**Key features:**
+- `attachHfToRow` / `extractFromCatalogRow` for dataset and model catalog rows
+- Dev-only Hub API proxy (`/status`, `/validate`, `/models/:id`, `/datasets/:id`)
+- Enterprise sovereignty mode hints via env (`HUGGINGFACE_SOVEREIGNTY_MODE`, `HUGGINGFACE_ORG_NAMESPACE`)
+
+**Docs:** [integrations/HUGGINGFACE.md](../integrations/HUGGINGFACE.md)
+
+### SIEM Integration Service
+
+**File:** `backend/services/siem/` (canonical events + provider adapters)
+
+**Purpose:** Forward audit/security events to webhook, Splunk HEC, Azure Sentinel, or OCI Logging.
+
+**Docs:** [production/SIEM_INTEGRATION_FRAMEWORK.md](../production/SIEM_INTEGRATION_FRAMEWORK.md)
+
 ## 📋 Compliance Services
 
 ### 12. DPDPService

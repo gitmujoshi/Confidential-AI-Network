@@ -623,17 +623,28 @@ From `frontend/`:
 ```bash
 npm run test:e2e:install    # browsers (once)
 npm run test:e2e:chromium   # fast single-browser run
+npm run test:e2e:api        # backend API smoke (CAN JCS + Hugging Face dev routes)
 ```
 
-The **backend must be up** (`http://localhost:5001/health` or `BACKEND_URL` in `config.env`). Global setup **fails fast** if the API is unreachable (no more silent runs against a dead server).
+The **backend must be up** (`http://localhost:5001/health` or `BACKEND_URL` in `config.env`). Global setup **fails fast** if the API is unreachable.
 
-**Docs:** [frontend/tests/e2e/README.md](frontend/tests/e2e/README.md)
+**Docs:** [frontend/tests/e2e/README.md](frontend/tests/e2e/README.md) · [docs/development/TESTING_GUIDE.md](docs/development/TESTING_GUIDE.md)
 
-**Backend unit (TDC helpers):**
+### **Backend unit & integration**
 
 ```bash
-cd backend && npm run test:unit -- --testPathPattern=tdc-training-helpers
+cd backend
+
+# Unit (mocks) — includes HF, SIEM, CAN, contract-training-inputs
+npm run test:unit
+npm run test:unit -- --testPathPattern="huggingface|local-docker|contract-training"
+
+# Integration (real DB) — CAN JCS + Hugging Face dev API
+npm run test:integration
+npm run test:integration -- --testPathPattern=huggingface
 ```
+
+For HF API tests, set `HUGGINGFACE_INTEGRATION_ENABLED=true` in `backend/config.test.env` or backend `config.env` (`NODE_ENV=test` or `development`).
 
 ### **Updated Test Suites for SCITT CCF**
 
@@ -674,7 +685,9 @@ All documentation is organized under **[docs/README.md](docs/README.md)** (singl
 | Deploy (VM / OCI / K8s) | [docs/deployment/README.md](docs/deployment/README.md) |
 | Production / OCI security | [docs/production/](docs/production/README.md) |
 | SIEM integration | [docs/production/SIEM_INTEGRATION_FRAMEWORK.md](docs/production/SIEM_INTEGRATION_FRAMEWORK.md) |
-| Testing & E2E | [docs/testing/](docs/testing/TEST_DATA_FOR_TESTERS.md) · [frontend/tests/e2e/README.md](frontend/tests/e2e/README.md) |
+| Hugging Face (dev) | [docs/integrations/HUGGINGFACE.md](docs/integrations/HUGGINGFACE.md) |
+| CAN vs Samyog | [docs/integrations/SAMYOG_CAN_COMPARISON.md](docs/integrations/SAMYOG_CAN_COMPARISON.md) |
+| Testing & E2E | [docs/development/TESTING_GUIDE.md](docs/development/TESTING_GUIDE.md) · [frontend/tests/e2e/README.md](frontend/tests/e2e/README.md) |
 
 Legacy paths at the repo root and under `docs/` redirect to the locations above.
 

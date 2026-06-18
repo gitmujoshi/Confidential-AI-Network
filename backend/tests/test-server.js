@@ -23,6 +23,8 @@ const scittCcfRouter = require('../routes/scitt-ccf');
 const canJcsRouter = require('../routes/can-jcs');
 const canCcrRouter = require('../routes/can-ccr');
 const canProvenanceRouter = require('../routes/can-provenance');
+const huggingfaceRouter = require('../routes/huggingface');
+const debugRouter = require('../routes/debug');
 
 // Import role-specific routes
 const adminRouter = require('../routes/admin');
@@ -91,6 +93,8 @@ app.use('/api/scitt-ccf', scittCcfRouter);
 app.use('/api/can/jcs', canJcsRouter);
 app.use('/api/can/ccr', canCcrRouter);
 app.use('/api/can/provenance', canProvenanceRouter);
+app.use('/api/dev/huggingface', huggingfaceRouter);
+app.use('/api/debug', debugRouter);
 
 // Role-specific API routes
 app.use('/api/admin', adminRouter);

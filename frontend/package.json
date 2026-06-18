@@ -51,6 +51,7 @@
     "test:e2e:all": "playwright test tests/e2e",
     "test:e2e:quick": "playwright test tests/e2e --project=chromium --workers=1",
     "test:e2e:physical": "E2E_PHYSICAL_TRAINING=true playwright test tests/e2e/physical-training-docker.spec.js --project=chromium --workers=1",
+    "test:e2e:api": "playwright test tests/e2e/can-jcs-api.spec.js tests/e2e/huggingface-api.spec.js --project=chromium --workers=1",
     "test:e2e:role-based": "playwright test tests/e2e/dashboard.spec.js tests/e2e/system-fixes-validation.spec.js",
     "eject": "react-scripts eject"
   },

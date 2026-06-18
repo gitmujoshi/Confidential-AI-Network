@@ -30,6 +30,7 @@ Our training program is designed to provide:
 - **Duration**: 2-3 hours
 - **Focus**: Data consumption, training job management, model access
 - **Runtime (API & UI — current implementation)**: **[TDC_TRAINING_RUNTIME.md](./TDC_TRAINING_RUNTIME.md)** — start training from a signed contract, simulation vs real run, register trained model as `AIModel`, CCRP training routes.
+- **Local stakeholder demo**: **[LOCAL_DEMO_RUNBOOK.md](./LOCAL_DEMO_RUNBOOK.md)** — tabular, vision, and optional **NLP/Hugging Face** track.
 - **Key Topics**:
   - Dashboard navigation
   - Dataset browsing and evaluation

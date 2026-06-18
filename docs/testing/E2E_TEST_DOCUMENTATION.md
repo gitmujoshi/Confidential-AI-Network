@@ -1,6 +1,24 @@
-# E2E Test Documentation: User Registration and First Login
+# E2E Test Documentation
 
-## Overview
+## Playwright suites (primary)
+
+The main E2E harness lives under **`frontend/tests/e2e/`** (Playwright). See **[frontend/tests/e2e/README.md](../../frontend/tests/e2e/README.md)**.
+
+| Command | Scope |
+|---------|--------|
+| `npm run test:e2e:chromium` | Core UI flows (auth, contracts, dashboard, training) |
+| `npm run test:e2e:api` | Backend API only: `can-jcs-api.spec.js`, `huggingface-api.spec.js` |
+| `npm run test:e2e:physical` | Opt-in real Docker training (`E2E_PHYSICAL_TRAINING=true`) |
+
+**Prerequisites:** backend at `BACKEND_URL` / port 5001; for HF validate tests set `HUGGINGFACE_INTEGRATION_ENABLED=true` on the backend.
+
+---
+
+## Legacy: User Registration and First Login (Mocha)
+
+The section below describes the older **Mocha** runner for registration/first-login. For new work, prefer Playwright under `frontend/tests/e2e/`.
+
+### Overview
 
 This document describes the End-to-End (E2E) test suite for the user registration and first login flow in the Contract Management System. The tests validate the complete user onboarding process from registration through first-time password change.
 

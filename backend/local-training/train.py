@@ -37,6 +37,48 @@ def _resolve_architecture(training_params: dict, catalog_model: Optional[dict]) 
     return ""
 
 
+def _resolve_hf_dataset_spec(contract_inputs: Optional[dict]) -> Dict[str, Any]:
+    """Resolve HF dataset from contract.json dataset rows (dev catalog reference)."""
+    default = {
+        "repo_id": "ag_news",
+        "split_train": "train",
+        "split_test": "test",
+        "subset": None,
+        "revision": None,
+        "source": "demo_ag_news",
+    }
+    if not contract_inputs:
+        return default
+
+    datasets = contract_inputs.get("datasets") or []
+    for row in datasets:
+        if not isinstance(row, dict):
+            continue
+        hf = row.get("huggingface")
+        if isinstance(hf, dict) and hf.get("repoId"):
+            return {
+                "repo_id": str(hf["repoId"]),
+                "split_train": hf.get("splitTrain") or hf.get("split_train") or "train",
+                "split_test": hf.get("splitTest") or hf.get("split_test") or "test",
+                "subset": hf.get("subset"),
+                "revision": hf.get("revision"),
+                "source": "catalog_hf_reference",
+            }
+        meta = row.get("metadata") or {}
+        if isinstance(meta, dict):
+            ds_id = meta.get("hfDatasetId") or meta.get("huggingfaceDataset")
+            if ds_id:
+                return {
+                    "repo_id": str(ds_id),
+                    "split_train": meta.get("splitTrain") or "train",
+                    "split_test": meta.get("splitTest") or "test",
+                    "subset": meta.get("subset"),
+                    "revision": meta.get("revision"),
+                    "source": "catalog_metadata",
+                }
+    return default
+
+
 def _resolve_hf_model_name(training_params: dict, catalog_model: Optional[dict]) -> str:
     arch = _resolve_architecture(training_params, catalog_model).strip()
     if "/" in arch:
@@ -45,6 +87,9 @@ def _resolve_hf_model_name(training_params: dict, catalog_model: Optional[dict])
         meta = catalog_model.get("metadata") or {}
         if isinstance(meta, dict) and meta.get("huggingfaceModel"):
             return str(meta["huggingfaceModel"])
+        hf = catalog_model.get("huggingface")
+        if isinstance(hf, dict) and hf.get("repoId"):
+            return str(hf["repoId"])
     return "sshleifer/tiny-distilbert-base-cased"
 
 
@@ -491,7 +536,13 @@ def train_vision_cifar10_small(out_dir: Path, epochs: int, fast: bool, architect
     )
 
 
-def train_text_hf(out_dir: Path, epochs: int, fast: bool, model_name: str) -> TrainResult:
+def train_text_hf(
+    out_dir: Path,
+    epochs: int,
+    fast: bool,
+    model_name: str,
+    dataset_spec: Optional[Dict[str, Any]] = None,
+) -> TrainResult:
     import torch
     from datasets import load_dataset
     from transformers import AutoModelForSequenceClassification, AutoTokenizer
@@ -500,9 +551,23 @@ def train_text_hf(out_dir: Path, epochs: int, fast: bool, model_name: str) -> Tr
     device = torch.device("cpu")
 
     hf_name = model_name or "sshleifer/tiny-distilbert-base-cased"
-    ds = load_dataset("ag_news")
-    train_ds = ds["train"]
-    test_ds = ds["test"]
+    spec = dataset_spec or _resolve_hf_dataset_spec(None)
+    repo_id = spec.get("repo_id") or "ag_news"
+    split_train = spec.get("split_train") or "train"
+    split_test = spec.get("split_test") or "test"
+    subset = spec.get("subset")
+    revision = spec.get("revision")
+
+    load_kwargs: Dict[str, Any] = {}
+    if revision:
+        load_kwargs["revision"] = revision
+    if subset:
+        ds = load_dataset(repo_id, subset, **load_kwargs)
+    else:
+        ds = load_dataset(repo_id, **load_kwargs)
+
+    train_ds = ds[split_train]
+    test_ds = ds[split_test]
 
     if fast:
         train_ds = train_ds.select(range(256))
@@ -561,7 +626,7 @@ def train_text_hf(out_dir: Path, epochs: int, fast: bool, model_name: str) -> Tr
 
     artifact_path = out_dir / "model.bin"
     torch.save(
-        {"state_dict": model.state_dict(), "model_name": hf_name, "task": "ag_news"},
+        {"state_dict": model.state_dict(), "model_name": hf_name, "task": repo_id},
         str(artifact_path),
     )
 
@@ -572,10 +637,11 @@ def train_text_hf(out_dir: Path, epochs: int, fast: bool, model_name: str) -> Tr
         artifactUri=f"file://{artifact_path}",
         extra={
             "taskType": "text",
-            "dataset": "ag_news",
+            "dataset": repo_id,
             "model": hf_name,
             "catalogArchitecture": model_name,
-            "source": "demo_ag_news",
+            "source": spec.get("source") or "demo_ag_news",
+            "huggingfaceDataset": spec,
         },
     )
 
@@ -653,7 +719,14 @@ def main() -> int:
         )
     elif task == "text":
         hf_name = _resolve_hf_model_name(tp, catalog_model)
-        res = train_text_hf(out_dir=out_dir, epochs=max_epochs, fast=fast, model_name=hf_name)
+        hf_dataset = _resolve_hf_dataset_spec(contract_inputs)
+        res = train_text_hf(
+            out_dir=out_dir,
+            epochs=max_epochs,
+            fast=fast,
+            model_name=hf_name,
+            dataset_spec=hf_dataset,
+        )
     else:
         res = train_tabular_iris(
             out_dir=out_dir, epochs=max_epochs, fast=fast, architecture=architecture

@@ -31,6 +31,12 @@ router.get('/env', (req, res) => {
       localTrainingImage:
         process.env.LOCAL_TRAINING_IMAGE || 'contractmanagement/local-trainer:latest'
     },
+    huggingface: {
+      integrationEnabled: process.env.HUGGINGFACE_INTEGRATION_ENABLED === 'true',
+      tokenConfigured: Boolean(process.env.HF_TOKEN || process.env.HUGGINGFACE_API_TOKEN),
+      orgNamespace: process.env.HUGGINGFACE_ORG_NAMESPACE || '',
+      sovereigntyMode: process.env.HUGGINGFACE_SOVEREIGNTY_MODE || 'dev-catalog-reference',
+    },
     nodeEnv: process.env.NODE_ENV,
     workingDir: process.cwd()
   });
