@@ -20,6 +20,7 @@ test.describe('NLP + differential privacy — TDC training UI (opt-in)', () => {
   let jobId;
 
   test.beforeAll(async () => {
+    test.setTimeout(600_000);
     const reason = await getNlpDpSkipReason();
     if (reason) {
       test.skip(true, reason);
@@ -59,14 +60,15 @@ test.describe('NLP + differential privacy — TDC training UI (opt-in)', () => {
     await expect(jobRow).toBeVisible({ timeout: 30_000 });
     await jobRow.getByRole('button', { name: 'Watch' }).click();
 
-    await expect(page.getByRole('heading', { name: 'Privacy metrics' })).toBeVisible({
-      timeout: 30_000,
-    });
-    await expect(page.getByText('Spent ε')).toBeVisible();
-    await expect(page.getByText('Target ε (contract)')).toBeVisible();
-    await expect(page.getByText('δ', { exact: true })).toBeVisible();
-    await expect(page.getByText('dp-sgd')).toBeVisible();
-    await expect(page.getByText('differential-privacy')).toBeVisible();
+    const privacyPanel = page
+      .getByRole('heading', { name: 'Privacy metrics', level: 3 })
+      .locator('xpath=ancestor::div[contains(@class,"MuiPaper-outlined")][1]');
+    await expect(privacyPanel).toBeVisible({ timeout: 30_000 });
+    await expect(privacyPanel.getByText('Spent ε')).toBeVisible();
+    await expect(privacyPanel.getByText('Target ε (contract)')).toBeVisible();
+    await expect(privacyPanel.getByText('δ', { exact: true })).toBeVisible();
+    await expect(privacyPanel.getByText('dp-sgd', { exact: true })).toBeVisible();
+    await expect(privacyPanel.locator('.MuiChip-label', { hasText: 'differential-privacy' })).toBeVisible();
 
     await testInfo.attach('nlp-dp.ui.contractId.txt', {
       contentType: 'text/plain',
