@@ -1,5 +1,5 @@
 const axios = require('axios');
-const { getBackendURL } = require('../../load-config');
+const { getBackendURL } = require('../../../load-config');
 
 const BACKEND_URL = getBackendURL();
 const PASSWORD = 'TestNewPassword123!';
