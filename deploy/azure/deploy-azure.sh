@@ -14,8 +14,9 @@ PURPLE='\033[0;35m'
 CYAN='\033[0;36m'
 NC='\033[0m' # No Color
 
-# Configuration
-PROJECT_NAME="contract-management"
+# Configuration — set via environment or edit defaults
+PROJECT_NAME="${CAN_PROJECT_NAME:-confidential-ai-network}"
+GITHUB_REPO="${CAN_GITHUB_REPO:-https://github.com/gitmujoshi/Confidential-AI-Network.git}"
 RESOURCE_GROUP="${AZURE_RESOURCE_GROUP:-contract-management-rg}"
 LOCATION="${AZURE_LOCATION:-eastus}"
 VM_SIZE="${AZURE_VM_SIZE:-Standard_D2s_v3}"
@@ -249,14 +250,21 @@ create_virtual_machine() {
 create_database() {
     print_header "Creating Database"
     
+    DB_ADMIN_PASSWORD="${DB_ADMIN_PASSWORD:-}"
+    if [ -z "$DB_ADMIN_PASSWORD" ]; then
+        print_error "Set DB_ADMIN_PASSWORD before creating the database."
+        echo "  export DB_ADMIN_PASSWORD='your-strong-password'"
+        exit 1
+    fi
+
     # Create PostgreSQL Flexible Server
     print_step "Creating PostgreSQL Flexible Server..."
     az postgres flexible-server create \
         --resource-group "$RESOURCE_GROUP" \
         --name "${PROJECT_NAME}-db" \
         --location "$LOCATION" \
-        --admin-user "cmsadmin" \
-        --admin-password "ContractManagement123!" \
+        --admin-user "canadmin" \
+        --admin-password "$DB_ADMIN_PASSWORD" \
         --sku-name "Standard_B1ms" \
         --tier "Burstable" \
         --public-access "0.0.0.0" \
@@ -321,65 +329,46 @@ deploy_application() {
     
     # Create deployment script
     print_step "Creating deployment script..."
-    cat > deploy-app.sh << 'EOF'
+    cat > deploy-app.sh <<EOF
 #!/bin/bash
+set -euo pipefail
 
-# Update system
+GITHUB_REPO="${GITHUB_REPO}"
+
 sudo apt-get update -y
 sudo apt-get upgrade -y
 
-# Install Docker
 curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
-echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+echo "deb [arch=\$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu \$(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
 sudo apt-get update -y
-sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin
+sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin git curl
 sudo systemctl enable docker
 sudo systemctl start docker
 sudo usermod -aG docker azureuser
 
-# Install Node.js
-curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
-sudo apt-get install -y nodejs
+git clone "\${GITHUB_REPO}"
+cd Confidential-AI-Network 2>/dev/null || cd "\$(basename "\${GITHUB_REPO}" .git)"
 
-# Install Git
-sudo apt-get install -y git
-
-# Clone repository
-git clone https://github.com/your-username/ContractManagement.git
-cd ContractManagement
-
-# Create production environment file
-cat > .env << 'ENVEOF'
+cat > .env <<'ENVEOF'
 NODE_ENV=production
-COMPOSE_PROJECT_NAME=contract-management-prod
-
-# Database
+COMPOSE_PROJECT_NAME=confidential-ai-network-prod
 DB_HOST=your-db-host
 DB_PORT=5432
 DB_NAME=contract_management
-DB_USER=cmsadmin
-DB_PASSWORD=ContractManagement123!
-
-# Keycloak
+DB_USER=canadmin
+DB_PASSWORD=CHANGE_ME
 KEYCLOAK_URL=http://localhost:8080
 KEYCLOAK_REALM=contract-management
 KEYCLOAK_CLIENT_ID=contract-management-client
 KEYCLOAK_CLIENT_SECRET=your-client-secret
-
-# API
 API_PORT=5001
 FRONTEND_PORT=3000
 KEYCLOAK_PORT=8080
-
-# SSL
-SSL_CERT_PATH=/etc/ssl/certs/contract-management.crt
-SSL_KEY_PATH=/etc/ssl/private/contract-management.key
+SCITT_CCF_ENABLED=false
 ENVEOF
 
-# Start services
-docker-compose -f docker-compose.prod.yml up -d
+docker compose -f deploy/production/docker-compose.prod.yml up -d --build
 
-# Setup firewall
 sudo ufw allow 22
 sudo ufw allow 80
 sudo ufw allow 443
@@ -388,7 +377,7 @@ sudo ufw allow 5001
 sudo ufw allow 8080
 sudo ufw --force enable
 
-echo "Application deployed successfully!"
+echo "Confidential AI Network VM deployment complete"
 EOF
 
     # Copy deployment script to VM
@@ -436,7 +425,7 @@ display_deployment_info() {
         --query 'publicIps' \
         --output tsv)
     
-    echo -e "${GREEN}🎉 Contract Management System deployed successfully to Azure!${NC}"
+    echo -e "${GREEN}Confidential AI Network deployed to Azure VM${NC}"
     echo ""
     echo -e "${CYAN}📋 Deployment Information:${NC}"
     echo "  Resource Group: $RESOURCE_GROUP"
@@ -494,7 +483,7 @@ cleanup() {
 
 # Main execution
 main() {
-    print_header "Contract Management System - Azure Deployment"
+    print_header "Confidential AI Network - Azure VM Deployment"
     
     # Check prerequisites
     check_prerequisites

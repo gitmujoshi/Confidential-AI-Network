@@ -32,7 +32,8 @@ Need production? ──no──► getting-started/QUICK_START.md + ./start-syst
 | [OCI_IAM_AND_EDGE_CONFIG.md](OCI_IAM_AND_EDGE_CONFIG.md) | **IAM policies, Cloud Gate, API Gateway, WAF** (implementation reference) |
 | [OCI_READINESS.md](OCI_READINESS.md) | Honest assessment: what is / isn't ready for OCI |
 | [../../deployment/oci/terraform/README.md](../../deployment/oci/terraform/README.md) | Terraform modules (OKE, ADB, LB, OCIR) |
-| [../../deploy/oci/deploy-oci.sh](../../deploy/oci/deploy-oci.sh) | Alternative OCI CLI VM deploy (simpler) |
+| [../../deployment/deploy-oci.sh](../../deployment/deploy-oci.sh) | **Entry point**: `terraform` (OKE) or `vm` (single instance) |
+| [../../deploy/oci/deploy-oci.sh](../../deploy/oci/deploy-oci.sh) | OCI CLI VM deploy (simpler path) |
 
 ## Microsoft Azure
 
@@ -42,7 +43,8 @@ Need production? ──no──► getting-started/QUICK_START.md + ./start-syst
 | [AZURE_IAM_AND_EDGE_CONFIG.md](AZURE_IAM_AND_EDGE_CONFIG.md) | **Entra ID, RBAC, Front Door, APIM, WAF** (implementation reference) |
 | [AZURE_READINESS.md](AZURE_READINESS.md) | Honest assessment: what is / isn't ready for Azure |
 | [../../deployment/azure/terraform/README.md](../../deployment/azure/terraform/README.md) | Terraform modules (AKS, PostgreSQL, ACR) |
-| [../../deploy/azure/deploy-azure.sh](../../deploy/azure/deploy-azure.sh) | Single-VM docker-compose deploy via Azure CLI |
+| [../../deployment/deploy-azure.sh](../../deployment/deploy-azure.sh) | **Entry point**: `terraform` (AKS) or `vm` (single VM) |
+| [../../deploy/azure/deploy-azure.sh](../../deploy/azure/deploy-azure.sh) | Azure CLI VM deploy (simpler path) |
 | [../../backend/AZURE_INTEGRATION_GUIDE.md](../../backend/AZURE_INTEGRATION_GUIDE.md) | CCRP training / confidential computing integration |
 
 ## Kubernetes / production

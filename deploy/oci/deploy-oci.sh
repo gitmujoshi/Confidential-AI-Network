@@ -14,8 +14,9 @@ PURPLE='\033[0;35m'
 CYAN='\033[0;36m'
 NC='\033[0m' # No Color
 
-# Configuration
-PROJECT_NAME="contract-management"
+# Configuration — set via environment or edit defaults
+PROJECT_NAME="${CAN_PROJECT_NAME:-confidential-ai-network}"
+GITHUB_REPO="${CAN_GITHUB_REPO:-https://github.com/gitmujoshi/Confidential-AI-Network.git}"
 COMPARTMENT_ID="${OCI_COMPARTMENT_ID:-}"
 REGION="${OCI_REGION:-us-ashburn-1}"
 AVAILABILITY_DOMAIN="${OCI_AVAILABILITY_DOMAIN:-1}"
@@ -226,6 +227,13 @@ create_compute_instance() {
 create_database() {
     print_header "Creating Database"
     
+    DB_ADMIN_PASSWORD="${DB_ADMIN_PASSWORD:-}"
+    if [ -z "$DB_ADMIN_PASSWORD" ]; then
+        print_error "Set DB_ADMIN_PASSWORD before creating Autonomous Database."
+        echo "  export DB_ADMIN_PASSWORD='your-strong-password'"
+        exit 1
+    fi
+
     # Create Autonomous Database
     print_step "Creating Autonomous Database..."
     DB_ID=$(oci db autonomous-database create \
@@ -234,7 +242,7 @@ create_database() {
         --display-name "${PROJECT_NAME}-db" \
         --cpu-core-count 1 \
         --data-storage-size-in-tbs 1 \
-        --admin-password "ContractManagement123!" \
+        --admin-password "$DB_ADMIN_PASSWORD" \
         --db-version "19c" \
         --is-auto-scaling-enabled false \
         --is-dedicated false \
@@ -288,63 +296,43 @@ deploy_application() {
     
     # Create deployment script
     print_step "Creating deployment script..."
-    cat > deploy-app.sh << 'EOF'
+    cat > deploy-app.sh <<EOF
 #!/bin/bash
+set -euo pipefail
 
-# Update system
+GITHUB_REPO="${GITHUB_REPO}"
+
 sudo yum update -y
-
-# Install Docker
-sudo yum install -y yum-utils
+sudo yum install -y yum-utils git curl
 sudo yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
 sudo yum install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin
 sudo systemctl enable docker
 sudo systemctl start docker
 sudo usermod -aG docker opc
 
-# Install Node.js
-curl -fsSL https://rpm.nodesource.com/setup_20.x | sudo bash -
-sudo yum install -y nodejs
+git clone "\${GITHUB_REPO}"
+cd Confidential-AI-Network 2>/dev/null || cd "\$(basename "\${GITHUB_REPO}" .git)"
 
-# Install Git
-sudo yum install -y git
-
-# Clone repository
-git clone https://github.com/your-username/ContractManagement.git
-cd ContractManagement
-
-# Create production environment file
-cat > .env << 'ENVEOF'
+cat > .env <<'ENVEOF'
 NODE_ENV=production
-COMPOSE_PROJECT_NAME=contract-management-prod
-
-# Database
+COMPOSE_PROJECT_NAME=confidential-ai-network-prod
 DB_HOST=your-db-host
 DB_PORT=1521
 DB_NAME=your-db-name
 DB_USER=your-db-user
-DB_PASSWORD=your-db-password
-
-# Keycloak
+DB_PASSWORD=CHANGE_ME
 KEYCLOAK_URL=http://localhost:8080
 KEYCLOAK_REALM=contract-management
 KEYCLOAK_CLIENT_ID=contract-management-client
 KEYCLOAK_CLIENT_SECRET=your-client-secret
-
-# API
 API_PORT=5001
 FRONTEND_PORT=3000
 KEYCLOAK_PORT=8080
-
-# SSL
-SSL_CERT_PATH=/etc/ssl/certs/contract-management.crt
-SSL_KEY_PATH=/etc/ssl/private/contract-management.key
+SCITT_CCF_ENABLED=false
 ENVEOF
 
-# Start services
-docker-compose -f docker-compose.prod.yml up -d
+docker compose -f deploy/production/docker-compose.prod.yml up -d --build
 
-# Setup firewall
 sudo firewall-cmd --permanent --add-port=80/tcp
 sudo firewall-cmd --permanent --add-port=443/tcp
 sudo firewall-cmd --permanent --add-port=3000/tcp
@@ -352,7 +340,7 @@ sudo firewall-cmd --permanent --add-port=5001/tcp
 sudo firewall-cmd --permanent --add-port=8080/tcp
 sudo firewall-cmd --reload
 
-echo "Application deployed successfully!"
+echo "Confidential AI Network VM deployment complete"
 EOF
 
     # Copy deployment script to instance
@@ -384,7 +372,7 @@ setup_ssl() {
 display_deployment_info() {
     print_header "Deployment Complete!"
     
-    echo -e "${GREEN}🎉 Contract Management System deployed successfully to OCI!${NC}"
+    echo -e "${GREEN}Confidential AI Network deployed to OCI compute instance${NC}"
     echo ""
     echo -e "${CYAN}📋 Deployment Information:${NC}"
     echo "  Instance ID: $INSTANCE_ID"
@@ -460,7 +448,7 @@ cleanup() {
 
 # Main execution
 main() {
-    print_header "Contract Management System - OCI Deployment"
+    print_header "Confidential AI Network - OCI VM Deployment"
     
     # Check prerequisites
     check_prerequisites

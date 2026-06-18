@@ -43,12 +43,34 @@ cd deployment/local
 
 ### OCI Deployment
 ```bash
-# Deploy to Oracle Cloud Infrastructure
-cd deployment/oci/terraform
-./deploy.sh
+# Terraform (OKE + ADB + OCIR) — recommended
+./deployment/deploy-oci.sh terraform -y --images
 
-# Destroy infrastructure
-./destroy.sh
+cd deployment/oci/terraform
+cp terraform.tfvars.example terraform.tfvars
+./deploy.sh -y --images
+
+# Single VM (OCI CLI)
+./deployment/deploy-oci.sh vm
+
+# Destroy
+./deployment/deploy-oci.sh destroy -y
+```
+
+### Azure Deployment
+```bash
+# Terraform (AKS + PostgreSQL + ACR) — recommended
+./deployment/deploy-azure.sh terraform -y --images
+
+cd deployment/azure/terraform
+cp terraform.tfvars.example terraform.tfvars
+./deploy.sh -y --images
+
+# Single VM (Azure CLI)
+./deployment/deploy-azure.sh vm
+
+# Destroy
+./deployment/deploy-azure.sh destroy -y
 ```
 
 ### Monitoring
