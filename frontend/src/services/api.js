@@ -572,6 +572,16 @@ const realApiService = {
   // Health check
   healthCheck: () => api.get('/health'),
 
+  // Hugging Face Hub (development / test only)
+  getHuggingfaceDevStatus: async () => {
+    const response = await api.get('/api/dev/huggingface/status');
+    return response.data;
+  },
+  validateHuggingfaceRepo: async (repoType, repoId) => {
+    const response = await api.post('/api/dev/huggingface/validate', { repoType, repoId });
+    return response.data;
+  },
+
   // KMS Configuration
   testKMSConnection: (config) => api.post('/api/enterprise/kms/test', config),
   saveKMSConfiguration: (config) => api.post('/api/enterprise/kms/save', config),

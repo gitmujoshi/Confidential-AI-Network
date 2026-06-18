@@ -52,6 +52,9 @@ import { useQuery } from 'react-query';
 import { useUser } from '../contexts/UserContext';
 import { apiService } from '../services/api';
 import toast from 'react-hot-toast';
+import HuggingfaceCatalogPanel from '../components/HuggingfaceCatalogPanel';
+import HuggingfaceHubBadge from '../components/HuggingfaceHubBadge';
+import { extractHfFromDataset } from '../utils/huggingface';
 
 function DatasetDetail() {
   const { datasetId } = useParams();
@@ -131,6 +134,8 @@ function DatasetDetail() {
     return required ? 'Confidential Computing Required' : 'Standard Processing';
   };
 
+  const hfDatasetRef = extractHfFromDataset(dataset);
+
   return (
     <Box sx={{ pt: 2 }}>
       {/* Header */}
@@ -145,6 +150,11 @@ function DatasetDetail() {
           <Typography variant="body2" color="text.secondary" fontFamily="monospace">
             {dataset.depaId || 'DEPA ID not assigned'}
           </Typography>
+          {hfDatasetRef && (
+            <Box sx={{ mt: 1 }}>
+              <HuggingfaceHubBadge hfRef={hfDatasetRef} />
+            </Box>
+          )}
         </Box>
       </Box>
 
@@ -220,6 +230,13 @@ function DatasetDetail() {
                 </Grid>
               </Grid>
 
+              {hfDatasetRef && (
+                <>
+                  <Divider sx={{ my: 2 }} />
+                  <HuggingfaceCatalogPanel hfRef={hfDatasetRef} />
+                </>
+              )}
+
               <Divider sx={{ my: 2 }} />
               <Typography variant="h6" gutterBottom>
                 <CloudUpload sx={{ mr: 1, verticalAlign: 'middle' }} />
@@ -233,6 +250,16 @@ function DatasetDetail() {
                   {dataset.artifactsUpdatedAt && (
                     <> · Updated {new Date(dataset.artifactsUpdatedAt).toLocaleString()}</>
                   )}
+                  {hfDatasetRef && (
+                    <> · Hub dataset <strong>{hfDatasetRef.repoId}</strong> is also available if files are omitted.</>
+                  )}
+                </Alert>
+              ) : hfDatasetRef ? (
+                <Alert severity="info" sx={{ mb: 2 }}>
+                  <AlertTitle>Hub reference — local Docker training</AlertTitle>
+                  No uploaded files yet. Local-docker jobs can load{' '}
+                  <strong>{hfDatasetRef.repoId}</strong> from the Hugging Face Hub at run time (set{' '}
+                  <code>HF_TOKEN</code> for gated repos).
                 </Alert>
               ) : (
                 <Alert severity="warning" sx={{ mb: 2 }}>

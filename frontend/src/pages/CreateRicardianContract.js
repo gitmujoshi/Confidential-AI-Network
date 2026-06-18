@@ -15,6 +15,7 @@ import {
   Step,
   StepLabel,
   Alert,
+  AlertTitle,
   Divider,
   CircularProgress,
   Chip,
@@ -49,6 +50,8 @@ import { apiService } from '../services/api';
 import toast from 'react-hot-toast';
 import { useUser } from '../contexts/UserContext';
 import MultiDatasetSelector from '../components/MultiDatasetSelector';
+import HuggingfaceHubBadge from '../components/HuggingfaceHubBadge';
+import { extractHfFromDataset, extractHfFromModel } from '../utils/huggingface';
 import MultiCCRPSelector from '../components/MultiCCRPSelector';
 import ContractTemplateSelector from '../components/ContractTemplateSelector';
 import ContractValidationService from '../services/contractValidationService';
@@ -446,6 +449,16 @@ function CreateRicardianContract() {
     if (!Number.isFinite(id)) return null;
     return (aiModelsResponse?.models || []).find((m) => m.id === id) || null;
   }, [selectedAiModels, aiModelsResponse]);
+
+  const selectedModelHfRef = useMemo(() => extractHfFromModel(selectedModel), [selectedModel]);
+
+  const selectedDatasetHfRefs = useMemo(
+    () =>
+      selectedDatasets
+        .map((d) => ({ dataset: d, hfRef: extractHfFromDataset(d) }))
+        .filter((entry) => entry.hfRef),
+    [selectedDatasets]
+  );
 
   function inferTaskFromModel(model) {
     if (!model) return null;
@@ -1042,18 +1055,32 @@ function CreateRicardianContract() {
                             secondary="Proceed without selecting an AI model"
                           />
                         </MenuItem>
-                        {(aiModelsResponse?.models || []).map((model) => (
+                        {(aiModelsResponse?.models || []).map((model) => {
+                          const modelHf = extractHfFromModel(model);
+                          const archLabel = modelHf
+                            ? `${model.type} — Hub: ${modelHf.repoId}`
+                            : `${model.type} - ${model.architecture}`;
+                          return (
                           <MenuItem key={model.id} value={model.id}>
                             <ListItemText 
                               primary={model.name}
-                              secondary={`${model.type} - ${model.architecture}`}
+                              secondary={archLabel}
                             />
                           </MenuItem>
-                        ))}
+                          );
+                        })}
                       </Select>
-                          <Typography variant="caption" color="text.secondary">
+                          <Typography variant="caption" color="text.secondary" display="block">
                             Select an AI model to be used in this contract (optional)
                           </Typography>
+                          {selectedModelHfRef && (
+                            <Box sx={{ mt: 1 }}>
+                              <HuggingfaceHubBadge hfRef={selectedModelHfRef} />
+                              <Typography variant="caption" color="text.secondary" display="block" sx={{ mt: 0.5 }}>
+                                Local Docker training loads this base model from the Hub at job time.
+                              </Typography>
+                            </Box>
+                          )}
                         </FormControl>
                       </Grid>
                       
@@ -1353,6 +1380,29 @@ function CreateRicardianContract() {
                       onPriceChange={handlePriceChange}
                       maxDatasets={3}
                     />
+
+                    {selectedDatasetHfRefs.length > 0 && (
+                      <Alert severity="info" sx={{ mt: 2 }}>
+                        <AlertTitle>Hugging Face Hub references</AlertTitle>
+                        {selectedDatasetHfRefs.length === 1 ? (
+                          <Typography variant="body2">
+                            <strong>{selectedDatasetHfRefs[0].dataset.name}</strong> points to Hub dataset{' '}
+                            <strong>{selectedDatasetHfRefs[0].hfRef.repoId}</strong>. Local-docker training can
+                            download it at run time (no upload required).
+                          </Typography>
+                        ) : (
+                          <Box component="ul" sx={{ m: 0, pl: 2 }}>
+                            {selectedDatasetHfRefs.map(({ dataset, hfRef }) => (
+                              <li key={dataset.id}>
+                                <Typography variant="body2" component="span">
+                                  {dataset.name} → <strong>{hfRef.repoId}</strong>
+                                </Typography>
+                              </li>
+                            ))}
+                          </Box>
+                        )}
+                      </Alert>
+                    )}
                   </CardContent>
                 </Card>
               </Grid>
