@@ -22,7 +22,7 @@ const provenanceService = new ProvenanceTrackingService();
  */
 router.get('/providers',
   requireAuth,
-  requireRole(['CCRP', 'AppAdmin']),
+  requireRole(['TSP', 'AppAdmin']),
   async (req, res) => {
     try {
       console.log('🔍 Getting available TEE providers');
@@ -56,7 +56,7 @@ router.get('/providers',
  */
 router.post('/provision',
   requireAuth,
-  requireRole(['CCRP']),
+  requireRole(['TSP']),
   [
     body('provider').isIn(['aws', 'azure', 'gcp', 'oci', 'local']).withMessage('Invalid provider'),
     body('contractId').isString().notEmpty().withMessage('Contract ID is required'),
@@ -188,7 +188,7 @@ router.post('/provision',
  */
 router.post('/cost-estimate',
   requireAuth,
-  requireRole(['CCRP', 'TDC', 'AppAdmin']),
+  requireRole(['TSP', 'TDC', 'AppAdmin']),
   [
     body('provider').isIn(['aws', 'azure', 'gcp', 'oci', 'local']).withMessage('Invalid provider'),
     body('instanceType').optional().isString().withMessage('Instance type must be a string'),
@@ -384,7 +384,7 @@ router.get('/environments',
  */
 router.delete('/environments/:environmentId',
   requireAuth,
-  requireRole(['CCRP', 'AppAdmin']),
+  requireRole(['TSP', 'AppAdmin']),
   [
     param('environmentId').isString().notEmpty().withMessage('Environment ID is required'),
     body('reason').optional().isString().withMessage('Termination reason must be a string')
@@ -560,7 +560,7 @@ router.post('/environments/:environmentId/verify-attestation',
  */
 router.get('/stats',
   requireAuth,
-  requireRole(['CCRP', 'AppAdmin']),
+  requireRole(['TSP', 'AppAdmin']),
   async (req, res) => {
     try {
       const { user } = req;

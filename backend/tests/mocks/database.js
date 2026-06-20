@@ -198,8 +198,8 @@ const mockDb = {
   // Add any other database properties that might be needed
   AuditLog: mockModels.User, // Reuse mock for other models
   AIModel: mockModels.User,
-  CCRPAzureCredentials: mockModels.User,
-  CCRPCloudCredentials: mockModels.User,
+  TSPAzureCredentials: mockModels.User,
+  TSPCloudCredentials: mockModels.User,
   Consent: mockModels.User,
   ContractTemplate: mockModels.User,
   DataBreach: mockModels.User,

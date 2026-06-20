@@ -69,19 +69,19 @@ describe('BlockchainService Tests', () => {
       expect(contract).toBeDefined(); // null is a valid result
     });
 
-    it('should select CCRP for contract', async () => {
+    it('should select TSP for contract', async () => {
       const result = await blockchainService.selectCCRP('1', '0x3456789012345678901234567890123456789012', 'test-private-key');
       expect(result).toBeDefined();
       expect(result.success).toBe(true);
     });
 
-    it('should sign contract as CCRP', async () => {
+    it('should sign contract as TSP', async () => {
       const result = await blockchainService.signContract('1', 'test-private-key');
       expect(result).toBeDefined();
       expect(result.success).toBe(true);
     });
 
-    it('should verify CCRP signature and contract activation', async () => {
+    it('should verify TSP signature and contract activation', async () => {
       const contract = await blockchainService.getContract('1');
       // In database-only mode, this will return null, which is expected
       expect(contract).toBeDefined(); // null is a valid result
@@ -138,7 +138,7 @@ describe('BlockchainService Tests', () => {
       expect(contracts).toBeDefined(); // null is a valid result
     });
 
-    it('should get CCRP contracts', async () => {
+    it('should get TSP contracts', async () => {
       const contracts = await blockchainService.getPartyContracts('0x3456789012345678901234567890123456789012');
       // In database-only mode, this will return null, which is expected
       expect(contracts).toBeDefined(); // null is a valid result

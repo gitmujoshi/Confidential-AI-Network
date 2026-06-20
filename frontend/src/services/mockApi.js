@@ -44,7 +44,7 @@ const mockUsers = [
     id: 3,
     name: 'Charlie Brown',
     email: 'charlie@example.com',
-    partyType: 'CCRP',
+    partyType: 'TSP',
     walletAddress: '0x90F79bf6EB2c4f870365E785982E1f101E93b906',
     organization: 'Compliance Partners',
     domain: 'compliancepartners.com',
@@ -104,7 +104,7 @@ const mockContracts = [
     datasetName: 'Medical Imaging Dataset',
     tdc: 'Alice Johnson',
     tdp: 'Bob Smith',
-    ccrp: 'Charlie Brown',
+    tsp: 'Charlie Brown',
     status: 'active',
     value: 5000,
     createdAt: '2024-01-20T11:00:00Z',
@@ -117,7 +117,7 @@ const mockContracts = [
     datasetName: 'Financial Transaction Data',
     tdc: 'Alice Johnson',
     tdp: 'Bob Smith',
-    ccrp: 'Charlie Brown',
+    tsp: 'Charlie Brown',
     status: 'pending',
     value: 3500,
     createdAt: '2024-01-22T09:15:00Z'
@@ -444,9 +444,9 @@ export const mockApiService = {
     return { data: { success: true } };
   },
 
-  selectCCRP: async (contractId, data) => {
+  selectTSP: async (contractId, data) => {
     await delay();
-    console.log('🔧 [Mock API] Select CCRP:', contractId, data);
+    console.log('🔧 [Mock API] Select TSP:', contractId, data);
     return { data: { success: true } };
   },
 

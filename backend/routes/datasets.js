@@ -51,7 +51,7 @@ function withModality(datasetRow) {
 // Get all public datasets
 router.get('/public', async (req, res) => {
   try {
-    const { category, confidentialComputingRequired, limit = 10, offset = 0 } = req.query;
+    const { category, domain, confidentialComputingRequired, limit = 10, offset = 0 } = req.query;
 
     const whereClause = {
       isPublic: true,
@@ -60,6 +60,10 @@ router.get('/public', async (req, res) => {
 
     if (category) {
       whereClause.category = category;
+    }
+
+    if (domain) {
+      whereClause.domain = domain;
     }
 
     if (confidentialComputingRequired !== undefined) {

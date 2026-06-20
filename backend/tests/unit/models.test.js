@@ -102,7 +102,7 @@ describe('Database Models Test Suite', () => {
     });
 
     it('should validate partyType enum values', async () => {
-      const validPartyTypes = ['TDP', 'TDC', 'CCRP'];
+      const validPartyTypes = ['TDP', 'TDC', 'TSP'];
 
       for (const partyType of validPartyTypes) {
         const user = await User.create({
@@ -171,7 +171,7 @@ describe('Database Models Test Suite', () => {
     it('should validate status enum values', async () => {
       const validStatuses = [
         'PENDING_TDP',
-        'PENDING_CCRP',
+        'PENDING_TSP',
         'SIGNED',
         'COMPLETED',
         'REJECTED'

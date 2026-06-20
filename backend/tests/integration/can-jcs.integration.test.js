@@ -72,7 +72,7 @@ describe('CAN JCS (integration)', () => {
 
     const rel = await request(app)
       .post(`/api/can/jcs/jobs/${jobId}/release`)
-      .set('X-CAN-Principal-Id', 'did:can:ccrp:integration');
+      .set('X-CAN-Principal-Id', 'did:can:tsp:integration');
     expect(rel.status).toBe(200);
     expect(rel.body.data.job.escrowState).toBe('RELEASED');
 

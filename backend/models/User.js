@@ -2,12 +2,12 @@
  * User Model
  * 
  * This model represents users in the Contract Management System with role-based access control.
- * Users can be one of three types: TDP, TDC, or CCRP, each with different permissions.
+ * Users can be one of three types: TDP, TDC, or TSP, each with different permissions.
  * 
  * User Types:
  * - TDP (Training Data Provider): Dataset owners who can create and manage datasets
  * - TDC (Training Data Consumer): Contract initiators who can create contracts
- * - CCRP (Confidential Clean Room Provider): Runtime environment providers who set up secure environments for data analytics or AI model training based on contracts
+ * - TSP (Tech Service Provider): Runtime environment providers who set up secure environments for data analytics or AI model training based on contracts
  * 
  * Security Features:
  * - Wallet address validation (Ethereum address format)
@@ -17,7 +17,7 @@
  * 
  * Relationships:
  * - Has many datasets (as owner)
- * - Has many contracts (as TDP, TDC, or CCRP)
+ * - Has many contracts (as TDP, TDC, or TSP)
  * - Has many notifications
  */
 module.exports = (sequelize, Sequelize) => {
@@ -51,9 +51,9 @@ module.exports = (sequelize, Sequelize) => {
       comment: 'Public key for cryptographic operations (hex format, optional for enterprise users)'
     },
     
-    // User role in the system (TDP, TDC, CCRP, or AppAdmin)
+    // User role in the system (TDP, TDC, TSP, or AppAdmin)
     partyType: {
-      type: Sequelize.DataTypes.ENUM('TDP', 'TDC', 'CCRP', 'AppAdmin'),
+      type: Sequelize.DataTypes.ENUM('TDP', 'TDC', 'TSP', 'AppAdmin'),
       allowNull: false
     },
     
@@ -234,11 +234,11 @@ module.exports = (sequelize, Sequelize) => {
       comment: 'Expiry date for password reset token'
     },
     
-    // Cloud providers for CCRP users (array of supported providers)
+    // Cloud providers for TSP users (array of supported providers)
     cloudProviders: {
       type: Sequelize.DataTypes.JSONB,
       allowNull: true,
-      comment: 'Array of cloud providers supported by CCRP users (AWS, Azure, GCP, OCI)'
+      comment: 'Array of cloud providers supported by TSP users (AWS, Azure, GCP, OCI)'
     },
     
     // DEPA ID (Decentralized Entity Provider Architecture ID) - immutable identifier
@@ -246,7 +246,7 @@ module.exports = (sequelize, Sequelize) => {
       type: Sequelize.DataTypes.STRING,
       allowNull: true, // Will be set to false after migration
       unique: true,
-      comment: 'System-generated DEPA ID (TDP-<GUID>, TDC-<GUID>, CCRP-<GUID>)'
+      comment: 'System-generated DEPA ID (TDP-<GUID>, TDC-<GUID>, TSP-<GUID>)'
     }
   }, {
     tableName: 'users',
@@ -313,7 +313,7 @@ module.exports = (sequelize, Sequelize) => {
     // User can be involved in contracts as different parties
     // Note: tdpContracts is now handled through many-to-many via contract_datasets table
     User.hasMany(models.Contract, { foreignKey: 'tdcId', as: 'tdcContracts' });
-    User.hasMany(models.Contract, { foreignKey: 'ccrpId', as: 'ccrpContracts' });
+    User.hasMany(models.Contract, { foreignKey: 'tspId', as: 'ccrpContracts' });
     
     // User can receive multiple notifications
     User.hasMany(models.Notification, { foreignKey: 'userId', as: 'notifications' });

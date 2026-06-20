@@ -88,10 +88,10 @@ class TEEAttestationService {
   /**
    * Provision TEE environment
    * @param {Object} provisioningRequest - TEE provisioning request
-   * @param {string} ccrpId - CCRP user ID
+   * @param {string} tspId - TSP user ID
    * @returns {Object} Provisioned TEE information
    */
-  async provisionTEE(provisioningRequest, ccrpId) {
+  async provisionTEE(provisioningRequest, tspId) {
     try {
       const teeId = uuidv4();
       const provisioningId = uuidv4();
@@ -118,7 +118,7 @@ class TEEAttestationService {
       // Create TEE record
       const teeRecord = {
         teeId,
-        ccrpId,
+        tspId,
         provisioningId,
         status: 'PROVISIONED',
         hardwareType: provisioningRequest.hardwareType,
@@ -146,17 +146,17 @@ class TEEAttestationService {
           attestationData,
           verifiedAt: new Date().toISOString()
         },
-        ccrpId
+        tspId
       );
       
       this.auditAttestationOperation('PROVISION_TEE', {
         teeId,
-        ccrpId,
+        tspId,
         hardwareType: provisioningRequest.hardwareType,
         attestationVerified
       });
       
-      logger.info(`🔒 TEE provisioned: ${teeId} for CCRP ${ccrpId}`);
+      logger.info(`🔒 TEE provisioned: ${teeId} for TSP ${tspId}`);
       
       return {
         teeId,
@@ -550,7 +550,7 @@ class TEEAttestationService {
     for (const teeRecord of this.activeTEEs.values()) {
       stats.teesByStatus[teeRecord.status] = (stats.teesByStatus[teeRecord.status] || 0) + 1;
       stats.teesByHardwareType[teeRecord.hardwareType] = (stats.teesByHardwareType[teeRecord.hardwareType] || 0) + 1;
-      stats.teesByCCRP[teeRecord.ccrpId] = (stats.teesByCCRP[teeRecord.ccrpId] || 0) + 1;
+      stats.teesByCCRP[teeRecord.tspId] = (stats.teesByCCRP[teeRecord.tspId] || 0) + 1;
     }
     
     return stats;

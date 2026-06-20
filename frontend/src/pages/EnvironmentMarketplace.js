@@ -2,7 +2,7 @@
  * Environment Marketplace - Frontend Component
  * 
  * Marketplace interface where TDCs can discover and book training environments
- * offered by CCRPs across multiple cloud providers.
+ * offered by TSPs across multiple cloud providers.
  */
 
 import React, { useState, useEffect } from 'react';

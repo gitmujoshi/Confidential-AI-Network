@@ -25,6 +25,10 @@
     "test:tee": "cd tests && npx mocha multi-cloud-tee.test.js --timeout 90000",
     "test:model-upload": "cd tests && npx mocha tdc-model-upload-tee.test.js --timeout 120000",
     "test:monitoring": "cd tests && npx mocha ccrp-environment-monitoring.test.js --timeout 60000",
+    "test:users:jurisdiction": "node scripts/create-jurisdiction-test-users.js",
+    "test:users:india-financial": "node scripts/create-india-financial-test-users.js",
+    "test:users:reset-seed": "node scripts/reset-and-seed-test-data.js",
+    "test:role-crud": "npm run test:role-crud --prefix backend && npm run test:e2e:role-crud --prefix frontend",
     "test": "NODE_ENV=test node -r ./tests/test-env.js ./node_modules/.bin/jest --runInBand --setupFilesAfterEnv=./tests/setup.js"
   },
   "keywords": [

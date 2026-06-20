@@ -75,7 +75,7 @@ const StatusChip = ({ status }) => {
       case 'ACTIVE':
         return 'success';
       case 'PENDING_TDP_APPROVAL':
-      case 'PENDING_CCRP_APPROVAL':
+      case 'PENDING_TSP_APPROVAL':
         return 'warning';
       case 'COMPLETED':
         return 'info';
@@ -91,7 +91,7 @@ const StatusChip = ({ status }) => {
       case 'ACTIVE':
         return <CheckCircle fontSize="small" />;
       case 'PENDING_TDP_APPROVAL':
-      case 'PENDING_CCRP_APPROVAL':
+      case 'PENDING_TSP_APPROVAL':
         return <Pending fontSize="small" />;
       case 'COMPLETED':
         return <CheckCircle fontSize="small" />;
@@ -309,9 +309,9 @@ function ContractDetail() {
   const navigate = useNavigate();
   const location = useLocation();
   const queryClient = useQueryClient();
-  const { currentUser, isAuthenticated, isTDC, isTDP, isCCRP } = useUser();
-  const [ccrpDialogOpen, setCcrpDialogOpen] = useState(false);
-  const [selectedCcrp, setSelectedCcrp] = useState('');
+  const { currentUser, isAuthenticated, isTDC, isTDP, isTSP } = useUser();
+  const [tspDialogOpen, setTspDialogOpen] = useState(false);
+  const [selectedTsp, setSelectedTsp] = useState('');
   const [paymentDialogOpen, setPaymentDialogOpen] = useState(false);
   const [selectedTDP, setSelectedTDP] = useState(null);
   const [paymentAmount, setPaymentAmount] = useState('');
@@ -324,8 +324,8 @@ function ContractDetail() {
   const [editFormData, setEditFormData] = useState({
     duration: '',
     termsAndConditions: '',
-    ccrpId: '',
-    ccrpCloudProvider: ''
+    tspId: '',
+    tspCloudProvider: ''
   });
   const [editLoading, setEditLoading] = useState(false);
   const [editError, setEditError] = useState('');
@@ -419,34 +419,34 @@ function ContractDetail() {
     }
   );
 
-  // Fetch users for CCRP selection
+  // Fetch users for TSP selection
   const { data: users = [] } = useQuery('users', apiService.getUsers);
   
-  // Manual CCRP users fetch to avoid React Query parameter injection
-  const [ccrpUsersResponse, setCcrpUsersResponse] = React.useState(null);
-  const [ccrpLoading, setCcrpLoading] = React.useState(true);
-  const [ccrpError, setCcrpError] = React.useState(null);
+  // Manual TSP users fetch to avoid React Query parameter injection
+  const [tspUsersResponse, setTspUsersResponse] = React.useState(null);
+  const [tspLoading, setTspLoading] = React.useState(true);
+  const [tspError, setTspError] = React.useState(null);
   
   React.useEffect(() => {
-    const fetchCcrpUsers = async () => {
+    const fetchTspUsers = async () => {
       try {
-        setCcrpLoading(true);
-        const response = await apiService.getCCRPUsers();
-        setCcrpUsersResponse(response);
-        setCcrpError(null);
+        setTspLoading(true);
+        const response = await apiService.getTSPUsers();
+        setTspUsersResponse(response);
+        setTspError(null);
       } catch (error) {
-        console.error('❌ CCRP users fetch error:', error);
-        setCcrpError(error);
-        setCcrpUsersResponse(null);
+        console.error('❌ TSP users fetch error:', error);
+        setTspError(error);
+        setTspUsersResponse(null);
       } finally {
-        setCcrpLoading(false);
+        setTspLoading(false);
       }
     };
     
-    fetchCcrpUsers();
+    fetchTspUsers();
   }, []);
   
-  const ccrpUsers = ccrpUsersResponse?.ccrpUsers || [];
+  const tspUsers = tspUsersResponse?.tspUsers || [];
 
   // Mutations
   const signContractMutation = useMutation(
@@ -493,16 +493,16 @@ function ContractDetail() {
     }
   );
 
-  const selectCcrpMutation = useMutation(
-    (data) => apiService.selectCCRP(contractId, data),
+  const selectTspMutation = useMutation(
+    (data) => apiService.selectTSP(contractId, data),
     {
       onSuccess: () => {
         queryClient.invalidateQueries(['contract', contractId]);
-        setCcrpDialogOpen(false);
-        toast.success('CCRP selected successfully');
+        setTspDialogOpen(false);
+        toast.success('TSP selected successfully');
       },
       onError: () => {
-        toast.error('Failed to select CCRP');
+        toast.error('Failed to select TSP');
       },
     }
   );
@@ -645,8 +645,8 @@ function ContractDetail() {
     setEditFormData({
       duration: contract.duration?.toString() || '',
       termsAndConditions: contract.termsAndConditions || '',
-      ccrpId: contract.ccrpId?.toString() || '',
-      ccrpCloudProvider: contract.ccrpCloudProvider || ''
+      tspId: contract.tspId?.toString() || '',
+      tspCloudProvider: contract.tspCloudProvider || ''
     });
     setIsEditMode(true);
     setEditError('');
@@ -657,8 +657,8 @@ function ContractDetail() {
     setEditFormData({
       duration: '',
       termsAndConditions: '',
-      ccrpId: '',
-      ccrpCloudProvider: ''
+      tspId: '',
+      tspCloudProvider: ''
     });
     setEditError('');
   };
@@ -681,12 +681,12 @@ function ContractDetail() {
         updateData.termsAndConditions = editFormData.termsAndConditions;
       }
       
-      if (editFormData.ccrpId !== contract.ccrpId?.toString()) {
-        updateData.ccrpId = editFormData.ccrpId ? parseInt(editFormData.ccrpId) : null;
+      if (editFormData.tspId !== contract.tspId?.toString()) {
+        updateData.tspId = editFormData.tspId ? parseInt(editFormData.tspId) : null;
       }
       
-      if (editFormData.ccrpCloudProvider !== contract.ccrpCloudProvider) {
-        updateData.ccrpCloudProvider = editFormData.ccrpCloudProvider;
+      if (editFormData.tspCloudProvider !== contract.tspCloudProvider) {
+        updateData.tspCloudProvider = editFormData.tspCloudProvider;
       }
 
       // Only update if there are changes
@@ -716,7 +716,7 @@ function ContractDetail() {
                             editableStatuses.includes(contract.multiTdpStatus);
     
     // Cannot edit if any party has signed
-    const hasSignedParties = contract.tdpSigned || contract.ccrpSigned;
+    const hasSignedParties = contract.tdpSigned || contract.tspSigned;
     
     return isEditableStatus && !hasSignedParties;
   };
@@ -758,7 +758,7 @@ function ContractDetail() {
       // Parties
       tdp: contract.tdp,
       tdc: contract.tdc,
-      ccrp: contract.ccrp,
+      tsp: contract.tsp,
       
               // Dataset information
         dataset: displayDatasets[0],
@@ -770,8 +770,8 @@ function ContractDetail() {
       // Signatures and workflow
       tdpSigned: contract.tdpSigned,
       tdpSignedAt: contract.tdpSignedAt,
-      ccrpSigned: contract.ccrpSigned,
-      ccrpSignedAt: contract.ccrpSignedAt,
+      tspSigned: contract.tspSigned,
+      tspSignedAt: contract.tspSignedAt,
       tdpSignatures: contract.tdpSignatures,
       tdpPayments: contract.tdpPayments,
       multiTdpStatus: contract.multiTdpStatus,
@@ -865,11 +865,11 @@ function ContractDetail() {
                     </Typography>
                   </Box>
                   
-                  {/* Global DEPA ID Field */}
+                  {/* DEPA ID Field */}
                   {contract.depaId && (
                     <Box sx={{ mb: 2 }}>
                       <Typography variant="body2" color="textSecondary" fontSize="0.75rem" gutterBottom>
-                        Global DEPA ID
+                        DEPA ID
                       </Typography>
                       <Typography variant="body2" fontFamily="monospace" sx={{ 
                         backgroundColor: 'primary.50', 
@@ -1132,15 +1132,15 @@ function ContractDetail() {
           </Grid>
         )}
 
-        {/* CCRP Detail Card */}
-        {contract.ccrp && (
+        {/* TSP Detail Card */}
+        {contract.tsp && (
           <Grid item xs={12}>
             <Card>
               <CardContent>
                 <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
                   <Typography variant="h6">
                     <Security sx={{ mr: 1, verticalAlign: 'middle' }} />
-                    CCRP (Confidential Clean Room Provider) Details
+                    TSP (Tech Service Provider) Details
                   </Typography>
                   {canEditContract() && (
                     <Button
@@ -1166,7 +1166,7 @@ function ContractDetail() {
                           Provider Name
                         </Typography>
                         <Typography variant="body1" fontWeight="medium">
-                          {contract.ccrp.name}
+                          {contract.tsp.name}
                         </Typography>
                       </Box>
                       
@@ -1175,17 +1175,17 @@ function ContractDetail() {
                           Email
                         </Typography>
                         <Typography variant="body2">
-                          {contract.ccrp.email}
+                          {contract.tsp.email}
                         </Typography>
                       </Box>
                       
-                      {contract.ccrp.description && (
+                      {contract.tsp.description && (
                         <Box>
                           <Typography variant="body2" color="textSecondary">
                             Description
                           </Typography>
                           <Typography variant="body2">
-                            {contract.ccrp.description}
+                            {contract.tsp.description}
                           </Typography>
                         </Box>
                       )}
@@ -1195,7 +1195,7 @@ function ContractDetail() {
                           Wallet Address
                         </Typography>
                         <Typography variant="body2" fontFamily="monospace" fontSize="0.8rem">
-                          {contract.ccrp.walletAddress || 'Not provided'}
+                          {contract.tsp.walletAddress || 'Not provided'}
                         </Typography>
                       </Box>
                       
@@ -1204,13 +1204,13 @@ function ContractDetail() {
                           Signing Status
                         </Typography>
                         <Chip 
-                          label={contract.ccrpSigned ? 'Signed' : 'Pending'} 
-                          color={contract.ccrpSigned ? 'success' : 'warning'}
+                          label={contract.tspSigned ? 'Signed' : 'Pending'} 
+                          color={contract.tspSigned ? 'success' : 'warning'}
                           size="small"
                         />
-                        {contract.ccrpSignedAt && (
+                        {contract.tspSignedAt && (
                           <Typography variant="caption" color="textSecondary" display="block" sx={{ mt: 0.5 }}>
-                            Signed on: {format(new Date(contract.ccrpSignedAt), 'MMM dd, yyyy HH:mm')}
+                            Signed on: {format(new Date(contract.tspSignedAt), 'MMM dd, yyyy HH:mm')}
                           </Typography>
                         )}
                       </Box>
@@ -1219,30 +1219,30 @@ function ContractDetail() {
                   
                   <Grid item xs={12} md={6}>
                     <Typography variant="subtitle1" gutterBottom>
-                      {contract.ccrpCloudProvider ? 'Cloud Provider Selected' : 'Cloud Provider Support'}
+                      {contract.tspCloudProvider ? 'Cloud Provider Selected' : 'Cloud Provider Support'}
                     </Typography>
                     <Box display="flex" flexDirection="column" gap={2}>
-                      {contract.ccrpCloudProvider ? (
+                      {contract.tspCloudProvider ? (
                         <Box>
                           <Typography variant="body2" color="textSecondary" gutterBottom>
                             Selected Cloud Provider
                           </Typography>
                           <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
                             <Chip
-                              label={contract.ccrpCloudProvider}
+                              label={contract.tspCloudProvider}
                               color="success"
                               variant="filled"
                               size="medium"
                             />
                           </Box>
                         </Box>
-                      ) : contract.ccrp.cloudProviders && contract.ccrp.cloudProviders.length > 0 ? (
+                      ) : contract.tsp.cloudProviders && contract.tsp.cloudProviders.length > 0 ? (
                         <Box>
                           <Typography variant="body2" color="textSecondary" gutterBottom>
                             Supported Cloud Providers
                           </Typography>
                           <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-                            {contract.ccrp.cloudProviders.map((provider) => (
+                            {contract.tsp.cloudProviders.map((provider) => (
                               <Chip
                                 key={provider}
                                 label={provider}
@@ -1329,14 +1329,14 @@ function ContractDetail() {
                       </Button>
                     )}
                     
-                    {contract.status === 'PENDING_CCRP_APPROVAL' && !contract.ccrpId && (
+                    {contract.status === 'PENDING_TSP_APPROVAL' && !contract.tspId && (
                       <Button 
                         variant="contained" 
                         color="secondary"
-                        onClick={() => setCcrpDialogOpen(true)}
-                        disabled={selectCcrpMutation.isLoading}
+                        onClick={() => setTspDialogOpen(true)}
+                        disabled={selectTspMutation.isLoading}
                       >
-                        Select CCRP
+                        Select TSP
                       </Button>
                     )}
                     
@@ -1353,20 +1353,20 @@ function ContractDetail() {
                   </>
                 )}
                 
-                {/* CCRP Actions */}
-                {isCCRP && (
-                  contract.ccrp?.id === currentUser?.id ||
-                  contract.ccrp?.walletAddress === currentUser?.walletAddress
+                {/* TSP Actions */}
+                {isTSP && (
+                  contract.tsp?.id === currentUser?.id ||
+                  contract.tsp?.walletAddress === currentUser?.walletAddress
                 ) && (
                   <>
-                    {contract.status === 'PENDING_CCRP_APPROVAL' && contract.ccrpId && !contract.ccrpSigned && (
+                    {contract.status === 'PENDING_TSP_APPROVAL' && contract.tspId && !contract.tspSigned && (
                       <Button 
                         variant="contained" 
                         color="success"
-                        onClick={() => handleSignContract('CCRP')}
+                        onClick={() => handleSignContract('TSP')}
                         disabled={signing}
                       >
-                        {signing ? 'Signing...' : 'Sign Contract as CCRP'}
+                        {signing ? 'Signing...' : 'Sign Contract as TSP'}
                       </Button>
                     )}
                   </>
@@ -2502,13 +2502,13 @@ function ContractDetail() {
                         </Box>
                       )}
                       
-                      {contract.ccrpSignedAt && (
+                      {contract.tspSignedAt && (
                         <Box>
                           <Typography variant="body2" color="textSecondary">
-                            CCRP Signed
+                            TSP Signed
                           </Typography>
                           <Typography variant="body1">
-                            {format(new Date(contract.ccrpSignedAt), 'MMM dd, yyyy HH:mm:ss')}
+                            {format(new Date(contract.tspSignedAt), 'MMM dd, yyyy HH:mm:ss')}
                           </Typography>
                         </Box>
                       )}
@@ -2582,18 +2582,18 @@ function ContractDetail() {
         )}
       </Grid>
 
-      {/* CCRP Selection Dialog */}
-      <Dialog open={ccrpDialogOpen} onClose={() => setCcrpDialogOpen(false)}>
-        <DialogTitle>Select CCRP</DialogTitle>
+      {/* TSP Selection Dialog */}
+      <Dialog open={tspDialogOpen} onClose={() => setTspDialogOpen(false)}>
+        <DialogTitle>Select TSP</DialogTitle>
         <DialogContent>
           <FormControl fullWidth sx={{ mt: 2 }}>
-            <InputLabel>CCRP</InputLabel>
+            <InputLabel>TSP</InputLabel>
             <Select
-              value={selectedCcrp}
-              onChange={(e) => setSelectedCcrp(e.target.value)}
-              label="CCRP"
+              value={selectedTsp}
+              onChange={(e) => setSelectedTsp(e.target.value)}
+              label="TSP"
             >
-              {ccrpUsers.map((user) => (
+              {tspUsers.map((user) => (
                 <MenuItem key={user.id} value={user.id}>
                   {user.name} - {user.email}
                 </MenuItem>
@@ -2602,10 +2602,10 @@ function ContractDetail() {
           </FormControl>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setCcrpDialogOpen(false)}>Cancel</Button>
+          <Button onClick={() => setTspDialogOpen(false)}>Cancel</Button>
           <Button 
-            onClick={() => selectCcrpMutation.mutate({ ccrpId: parseInt(selectedCcrp) })}
-            disabled={!selectedCcrp || selectCcrpMutation.isLoading}
+            onClick={() => selectTspMutation.mutate({ tspId: parseInt(selectedTsp) })}
+            disabled={!selectedTsp || selectTspMutation.isLoading}
           >
             Select
           </Button>

@@ -27,13 +27,13 @@ const testCategories = [
   },
   {
     name: 'Database Model Tests',
-    command: 'npm test -- models/CCRPCloudCredentials.test.js',
-    description: 'Testing CCRPCloudCredentials database model'
+    command: 'npm test -- models/TSPCloudCredentials.test.js',
+    description: 'Testing TSPCloudCredentials database model'
   },
   {
     name: 'Frontend Component Tests',
-    command: 'cd ../frontend && npm test -- CCRPCloudCredentials.test.js',
-    description: 'Testing CCRP Cloud Credentials React component'
+    command: 'cd ../frontend && npm test -- TSPCloudCredentials.test.js',
+    description: 'Testing TSP Cloud Credentials React component'
   },
   {
     name: 'Multi-Cloud Integration Test',

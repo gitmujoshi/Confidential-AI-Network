@@ -1,7 +1,7 @@
 /**
- * CCRP (Confidential Clean Room Provider) Attribute Constraints
+ * TSP (Tech Service Provider) Attribute Constraints
  * 
- * This file defines all the constrained values for CCRP attributes
+ * This file defines all the constrained values for TSP attributes
  * to ensure consistency and prevent invalid data entry.
  */
 

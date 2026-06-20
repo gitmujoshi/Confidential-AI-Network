@@ -72,7 +72,7 @@ class TrainingService {
       where: { contractId },
       include: [
         { model: User, as: 'tdc' },
-        { model: User, as: 'ccrp' },
+        { model: User, as: 'tsp' },
         { model: Dataset, as: 'datasets' },
         { model: AIModel, as: 'aiModels' }
       ]
@@ -94,7 +94,7 @@ class TrainingService {
       throw new Error('Contract missing training parameters');
     }
 
-    if (!contract.ccrpCloudProvider) {
+    if (!contract.tspCloudProvider) {
       throw new Error('Contract missing cloud provider selection');
     }
 
@@ -113,7 +113,7 @@ class TrainingService {
       status: 'PENDING',
       environmentSpecs: contract.environmentSpecs,
       trainingParams: contract.trainingParams,
-      cloudProvider: contract.ccrpCloudProvider,
+      cloudProvider: contract.tspCloudProvider,
       estimatedDuration: this.calculateEstimatedDuration(contract.trainingParams),
       createdBy: contract.tdcId
     });
@@ -130,7 +130,7 @@ class TrainingService {
     console.log(`🏗️ Provisioning environment for contract: ${contract.contractId}`);
     
     const config = {
-      region: this.getDefaultRegion(contract.ccrpCloudProvider),
+      region: this.getDefaultRegion(contract.tspCloudProvider),
       compute: contract.environmentSpecs.compute,
       storage: contract.environmentSpecs.storage,
       network: contract.environmentSpecs.network,
@@ -582,7 +582,7 @@ class TrainingService {
    */
   async notifyTrainingStarted(contract) {
     const parties = [contract.tdcId];
-    if (contract.ccrpId) parties.push(contract.ccrpId);
+    if (contract.tspId) parties.push(contract.tspId);
 
     for (const partyId of parties) {
       await this.notificationService.createNotification({
@@ -601,7 +601,7 @@ class TrainingService {
    */
   async notifyTrainingCompleted(contract) {
     const parties = [contract.tdcId];
-    if (contract.ccrpId) parties.push(contract.ccrpId);
+    if (contract.tspId) parties.push(contract.tspId);
 
     for (const partyId of parties) {
       await this.notificationService.createNotification({
@@ -939,7 +939,7 @@ class TrainingService {
   }
 
   /**
-   * Jobs for contracts where the user is TDC or CCRP (CCRP training console).
+   * Jobs for contracts where the user is TDC or TSP (TSP training console).
    */
   async getTrainingJobs(userId) {
     const { Op } = require('sequelize');
@@ -948,7 +948,7 @@ class TrainingService {
       throw new Error('Invalid user id');
     }
     const contracts = await Contract.findAll({
-      where: { [Op.or]: [{ tdcId: uid }, { ccrpId: uid }] },
+      where: { [Op.or]: [{ tdcId: uid }, { tspId: uid }] },
       attributes: ['contractId'],
     });
     const ids = contracts.map((c) => c.contractId).filter(Boolean);
@@ -967,12 +967,12 @@ class TrainingService {
   }
 
   /**
-   * Manual deploy from CCRP UI (ad-hoc job record; extend with real orchestration later).
+   * Manual deploy from TSP UI (ad-hoc job record; extend with real orchestration later).
    */
   async deployTrainingJob(userId, config = {}) {
     const contractId =
       config.contractId ||
-      `ccrp-manual-${userId}-${Date.now()}`;
+      `tsp-manual-${userId}-${Date.now()}`;
     const jobId = `job-${contractId}-${Date.now()}`;
     const job = await TrainingJob.create({
       jobId,

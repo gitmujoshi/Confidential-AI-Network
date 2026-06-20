@@ -48,7 +48,7 @@ import { useQuery } from 'react-query';
 import { useNavigate } from 'react-router-dom';
 import { apiService } from '../services/api';
 
-const CCRPCard = ({ ccrp, onCCRPClick }) => {
+const TSPCard = ({ tsp, onTSPClick }) => {
   const getStatusColor = (status) => {
     switch (status) {
       case 'ACTIVE': return 'success';
@@ -68,7 +68,7 @@ const CCRPCard = ({ ccrp, onCCRPClick }) => {
           boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
         }
       }}
-      onClick={() => onCCRPClick(ccrp)}
+      onClick={() => onTSPClick(tsp)}
     >
       <CardContent>
         <Box display="flex" alignItems="center" mb={2}>
@@ -77,44 +77,44 @@ const CCRPCard = ({ ccrp, onCCRPClick }) => {
           </Avatar>
           <Box flex={1}>
             <Typography variant="h6" className="font-medium">
-              {ccrp.name}
+              {tsp.name}
             </Typography>
             <Typography variant="body2" color="textSecondary">
-              {ccrp.email}
+              {tsp.email}
             </Typography>
           </Box>
           <Chip 
-            label="CCRP" 
+            label="TSP" 
             color="primary" 
             size="small"
             variant="outlined"
           />
         </Box>
 
-        {ccrp.description && (
+        {tsp.description && (
           <Typography variant="body2" color="textSecondary" mb={2}>
-            {ccrp.description}
+            {tsp.description}
           </Typography>
         )}
 
         <Box display="flex" flexWrap="wrap" gap={1} mb={2}>
-          {ccrp.organization && (
+          {tsp.organization && (
             <Chip
               icon={<Business />}
-              label={ccrp.organization}
+              label={tsp.organization}
               size="small"
               variant="outlined"
             />
           )}
-          {ccrp.location && (
+          {tsp.location && (
             <Chip
               icon={<LocationOn />}
-              label={ccrp.location}
+              label={tsp.location}
               size="small"
               variant="outlined"
             />
           )}
-          {ccrp.website && (
+          {tsp.website && (
             <Chip
               icon={<Language />}
               label="Website"
@@ -122,7 +122,7 @@ const CCRPCard = ({ ccrp, onCCRPClick }) => {
               variant="outlined"
               onClick={(e) => {
                 e.stopPropagation();
-                window.open(ccrp.website, '_blank');
+                window.open(tsp.website, '_blank');
               }}
             />
           )}
@@ -130,11 +130,11 @@ const CCRPCard = ({ ccrp, onCCRPClick }) => {
 
         <Box display="flex" justifyContent="space-between" alignItems="center">
           <Typography variant="caption" color="textSecondary">
-            ID: {ccrp.id}
+            ID: {tsp.id}
           </Typography>
           <Chip
-            label={ccrp.isActive ? 'Active' : 'Inactive'}
-            color={ccrp.isActive ? 'success' : 'error'}
+            label={tsp.isActive ? 'Active' : 'Inactive'}
+            color={tsp.isActive ? 'success' : 'error'}
             size="small"
           />
         </Box>
@@ -143,7 +143,7 @@ const CCRPCard = ({ ccrp, onCCRPClick }) => {
   );
 };
 
-function CCRP() {
+function TSP() {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [viewMode, setViewMode] = useState('grid');
@@ -151,48 +151,48 @@ function CCRP() {
   const [sortOrder, setSortOrder] = useState('asc');
   const navigate = useNavigate();
 
-  // Manual CCRP users fetch to avoid React Query parameter injection
-  const [ccrpUsersResponse, setCcrpUsersResponse] = React.useState(null);
+  // Manual TSP users fetch to avoid React Query parameter injection
+  const [tspUsersResponse, setTspUsersResponse] = React.useState(null);
   const [isLoading, setIsLoading] = React.useState(true);
   const [error, setError] = React.useState(null);
   
-  const fetchCcrpUsers = React.useCallback(async () => {
+  const fetchTspUsers = React.useCallback(async () => {
     try {
       setIsLoading(true);
-      const response = await apiService.getCCRPUsers();
-      setCcrpUsersResponse(response);
+      const response = await apiService.getTSPUsers();
+      setTspUsersResponse(response);
       setError(null);
     } catch (error) {
-      console.error('❌ CCRP users fetch error:', error);
+      console.error('❌ TSP users fetch error:', error);
       setError(error);
-      setCcrpUsersResponse(null);
+      setTspUsersResponse(null);
     } finally {
       setIsLoading(false);
     }
   }, []);
   
   React.useEffect(() => {
-    fetchCcrpUsers();
-  }, [fetchCcrpUsers]);
+    fetchTspUsers();
+  }, [fetchTspUsers]);
   
-  const ccrpUsers = ccrpUsersResponse?.ccrpUsers || [];
+  const tspUsers = tspUsersResponse?.tspUsers || [];
 
-  // Filter CCRP users based on search and status
-  const filteredCCRPs = ccrpUsers.filter(ccrp => {
+  // Filter TSP users based on search and status
+  const filteredTsps = tspUsers.filter(tsp => {
     const matchesSearch = !searchTerm || 
-      ccrp.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      ccrp.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (ccrp.description && ccrp.description.toLowerCase().includes(searchTerm.toLowerCase()));
+      tsp.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      tsp.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (tsp.description && tsp.description.toLowerCase().includes(searchTerm.toLowerCase()));
     
     const matchesStatus = !statusFilter || 
-      (statusFilter === 'active' && ccrp.isActive) ||
-      (statusFilter === 'inactive' && !ccrp.isActive);
+      (statusFilter === 'active' && tsp.isActive) ||
+      (statusFilter === 'inactive' && !tsp.isActive);
     
     return matchesSearch && matchesStatus;
   });
 
   // Sort filtered CCRPs
-  const filteredAndSortedCCRPs = [...filteredCCRPs].sort((a, b) => {
+  const filteredAndSortedTsps = [...filteredTsps].sort((a, b) => {
     let aValue = a[sortBy];
     let bValue = b[sortBy];
     
@@ -208,17 +208,17 @@ function CCRP() {
     }
   });
 
-  const activeCCRPs = ccrpUsers.filter(ccrp => ccrp.isActive);
-  const inactiveCCRPs = ccrpUsers.filter(ccrp => !ccrp.isActive);
+  const activeTsps = tspUsers.filter(tsp => tsp.isActive);
+  const inactiveTsps = tspUsers.filter(tsp => !tsp.isActive);
 
-  const handleCCRPClick = (ccrp) => {
-    // Navigate to CCRP profile or details page
-    navigate(`/profile/${ccrp.id}`);
+  const handleTSPClick = (tsp) => {
+    // Navigate to TSP profile or details page
+    navigate(`/profile/${tsp.id}`);
   };
 
   const handleRefresh = async () => {
     try {
-      await fetchCcrpUsers();
+      await fetchTspUsers();
     } catch (error) {
       console.error('Manual refresh failed:', error);
     }
@@ -234,7 +234,7 @@ function CCRP() {
     return (
       <Box textAlign="center" py={4}>
         <Typography variant="h6" color="textSecondary">
-          Loading CCRP providers...
+          Loading TSP providers...
         </Typography>
       </Box>
     );
@@ -244,7 +244,7 @@ function CCRP() {
     return (
       <Box textAlign="center" py={4}>
         <Typography variant="h6" color="error">
-          Error loading CCRP providers: {error.message}
+          Error loading TSP providers: {error.message}
         </Typography>
       </Box>
     );
@@ -254,7 +254,7 @@ function CCRP() {
     <Box>
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
         <Typography variant="h4" gutterBottom>
-          Confidential Clean Room Providers
+          Tech Service Providers
         </Typography>
         <Button
           variant="outlined"
@@ -274,9 +274,9 @@ function CCRP() {
               <Box display="flex" alignItems="center">
                 <Security sx={{ mr: 2, color: 'purple.main' }} />
                 <Box>
-                  <Typography variant="h4">{ccrpUsers.length}</Typography>
+                  <Typography variant="h4">{tspUsers.length}</Typography>
                   <Typography variant="body2" color="textSecondary">
-                    Total CCRP Providers
+                    Total TSP Providers
                   </Typography>
                 </Box>
               </Box>
@@ -289,7 +289,7 @@ function CCRP() {
               <Box display="flex" alignItems="center">
                 <Security sx={{ mr: 2, color: 'success.main' }} />
                 <Box>
-                  <Typography variant="h4">{activeCCRPs.length}</Typography>
+                  <Typography variant="h4">{activeTsps.length}</Typography>
                   <Typography variant="body2" color="textSecondary">
                     Active Providers
                   </Typography>
@@ -304,7 +304,7 @@ function CCRP() {
               <Box display="flex" alignItems="center">
                 <Security sx={{ mr: 2, color: 'error.main' }} />
                 <Box>
-                  <Typography variant="h4">{inactiveCCRPs.length}</Typography>
+                  <Typography variant="h4">{inactiveTsps.length}</Typography>
                   <Typography variant="body2" color="textSecondary">
                     Inactive Providers
                   </Typography>
@@ -336,7 +336,7 @@ function CCRP() {
             <Grid item xs={12} md={4}>
               <TextField
                 fullWidth
-                placeholder="Search CCRP providers..."
+                placeholder="Search TSP providers..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 InputProps={{
@@ -370,25 +370,25 @@ function CCRP() {
             </Grid>
             <Grid item xs={12} md={2}>
               <Typography variant="body2" color="textSecondary">
-                {filteredAndSortedCCRPs.length} providers
+                {filteredAndSortedTsps.length} providers
               </Typography>
             </Grid>
           </Grid>
         </CardContent>
       </Card>
 
-      {/* CCRP Grid View */}
+      {/* TSP Grid View */}
       {viewMode === 'grid' && (
         <Grid container spacing={3}>
-          {filteredAndSortedCCRPs.map((ccrp) => (
-            <Grid item xs={12} sm={6} md={4} key={ccrp.id}>
-              <CCRPCard ccrp={ccrp} onCCRPClick={handleCCRPClick} />
+          {filteredAndSortedTsps.map((tsp) => (
+            <Grid item xs={12} sm={6} md={4} key={tsp.id}>
+              <TSPCard tsp={tsp} onTSPClick={handleTSPClick} />
             </Grid>
           ))}
         </Grid>
       )}
 
-      {/* CCRP Table View */}
+      {/* TSP Table View */}
       {viewMode === 'table' && (
         <Card>
           <CardContent>
@@ -422,12 +422,12 @@ function CCRP() {
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {filteredAndSortedCCRPs.map((ccrp) => (
+                  {filteredAndSortedTsps.map((tsp) => (
                     <TableRow 
-                      key={ccrp.id}
+                      key={tsp.id}
                       hover
                       sx={{ cursor: 'pointer' }}
-                      onClick={() => handleCCRPClick(ccrp)}
+                      onClick={() => handleTSPClick(tsp)}
                     >
                       <TableCell>
                         <Box display="flex" alignItems="center" gap={1}>
@@ -441,35 +441,35 @@ function CCRP() {
                             <Security />
                           </Avatar>
                           <Typography variant="body2" fontWeight="medium">
-                            {ccrp.name}
+                            {tsp.name}
                           </Typography>
                         </Box>
                       </TableCell>
                       <TableCell>
                         <Typography variant="body2">
-                          {ccrp.email}
+                          {tsp.email}
                         </Typography>
                       </TableCell>
                       <TableCell>
                         <Typography variant="body2" color="textSecondary">
-                          {ccrp.organization || 'N/A'}
+                          {tsp.organization || 'N/A'}
                         </Typography>
                       </TableCell>
                       <TableCell>
                         <Typography variant="body2" color="textSecondary">
-                          {ccrp.location || 'N/A'}
+                          {tsp.location || 'N/A'}
                         </Typography>
                       </TableCell>
                       <TableCell>
                         <Typography variant="body2" color="textSecondary" sx={{ maxWidth: 200 }}>
-                          {ccrp.description || 'No description'}
+                          {tsp.description || 'No description'}
                         </Typography>
                       </TableCell>
                       <TableCell>
                         <Chip 
-                          label={ccrp.isActive ? 'Active' : 'Inactive'} 
+                          label={tsp.isActive ? 'Active' : 'Inactive'} 
                           size="small"
-                          color={ccrp.isActive ? 'success' : 'error'}
+                          color={tsp.isActive ? 'success' : 'error'}
                         />
                       </TableCell>
                       <TableCell>
@@ -477,7 +477,7 @@ function CCRP() {
                           size="small"
                           onClick={(e) => {
                             e.stopPropagation();
-                            handleCCRPClick(ccrp);
+                            handleTSPClick(tsp);
                           }}
                         >
                           <Visibility />
@@ -492,10 +492,10 @@ function CCRP() {
         </Card>
       )}
 
-      {filteredAndSortedCCRPs.length === 0 && (
+      {filteredAndSortedTsps.length === 0 && (
         <Box textAlign="center" py={4}>
           <Typography variant="h6" color="textSecondary">
-            No CCRP providers found
+            No TSP providers found
           </Typography>
           <Typography variant="body2" color="textSecondary">
             Try adjusting your search or filter criteria
@@ -506,4 +506,4 @@ function CCRP() {
   );
 }
 
-export default CCRP; 
+export default TSP; 

@@ -95,7 +95,7 @@ describe('tdcTrainingHelpers', () => {
         environmentSpecs: { compute: { gpuCount: 1 } },
         contractDatasets: [{ datasetId: 'd1' }],
         aiModelIds: [1, 2],
-        ccrpCloudProvider: 'Azure',
+        tspCloudProvider: 'Azure',
       });
       expect(spec.image).toBe('my/image:tag');
       expect(spec.cpuCores).toBe(4);

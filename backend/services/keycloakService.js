@@ -338,12 +338,13 @@ class KeycloakService {
    * Get all users from Keycloak
    * @returns {Promise<Array>} - Array of users
    */
-  async getUsers() {
+  async getUsers(options = {}) {
     try {
       const adminToken = await this.getAdminToken();
+      const max = options.max || 500;
       
       const response = await axios.get(
-        `${this.baseUrl}/admin/realms/${this.realm}/users`,
+        `${this.baseUrl}/admin/realms/${this.realm}/users?max=${max}`,
         {
           headers: {
             'Authorization': `Bearer ${adminToken}`,

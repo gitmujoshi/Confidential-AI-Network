@@ -6,7 +6,7 @@
  * This script creates complete test data using APIs for all roles:
  * - TDP with datasets for ML Training
  * - TDC with initial training models
- * - CCRP with training environments
+ * - TSP with training environments
  * - AppAdmin for system management
  * 
  * Uses common config.env and API endpoints only
@@ -52,7 +52,7 @@ class ComprehensiveTestDataCreator {
       // 4. Create contracts via TDC users
       await this.createTestContracts();
       
-      // 5. Create training environments via CCRP users
+      // 5. Create training environments via TSP users
       await this.createTestTrainingEnvironments();
       
       // 6. Create training jobs
@@ -104,9 +104,9 @@ class ComprehensiveTestDataCreator {
       },
       {
         name: 'Carol Davis',
-        email: 'carol@ccrp.com',
+        email: 'carol@tsp.com',
         password: 'password123',
-        partyType: 'CCRP',
+        partyType: 'TSP',
         organization: 'SecureCompute Solutions',
         description: 'Confidential computing infrastructure provider',
         phoneNumber: '+1-555-0103',
@@ -456,7 +456,7 @@ class ComprehensiveTestDataCreator {
           durationUnit: 'DAYS'
         },
         termsAndConditions: 'This contract governs the use of healthcare data for AI model training. All data must be processed in secure enclaves with continuous attestation. Models trained must comply with HIPAA and GDPR regulations.',
-        ccrpId: this.testUsers.CCRP[0].id,
+        tspId: this.testUsers.TSP[0].id,
         contractType: 'AI_TRAINING',
         environmentSpecs: {
           computeRequirements: {
@@ -518,7 +518,7 @@ class ComprehensiveTestDataCreator {
           durationUnit: 'DAYS'
         },
         termsAndConditions: 'This contract governs the use of financial transaction data for fraud detection model training. All processing must occur in secure enclaves with continuous monitoring and audit trails.',
-        ccrpId: this.testUsers.CCRP[0].id,
+        tspId: this.testUsers.TSP[0].id,
         contractType: 'AI_TRAINING',
         environmentSpecs: {
           computeRequirements: {
@@ -597,7 +597,7 @@ class ComprehensiveTestDataCreator {
   }
 
   async createTestTrainingEnvironments() {
-    console.log('🏗️ Creating test training environments via CCRP users...');
+    console.log('🏗️ Creating test training environments via TSP users...');
     
     const contractIds = Object.keys(this.testContracts);
     if (contractIds.length === 0) {
@@ -663,11 +663,11 @@ class ComprehensiveTestDataCreator {
     ];
 
     for (const envData of environments) {
-      const ccrpUser = this.testUsers.CCRP[0];
-      const authToken = this.authTokens[ccrpUser.email];
+      const tspUser = this.testUsers.TSP[0];
+      const authToken = this.authTokens[tspUser.email];
       
       if (!authToken) {
-        console.log(`  ⚠️ No auth token for CCRP user ${ccrpUser.email}, skipping environment`);
+        console.log(`  ⚠️ No auth token for TSP user ${tspUser.email}, skipping environment`);
         continue;
       }
 
@@ -830,7 +830,7 @@ class ComprehensiveTestDataCreator {
         type: 'WARNING',
         title: 'Training Environment Provisioning',
         message: 'Your training environment is being provisioned. This may take 10-15 minutes. You will be notified when it\'s ready.',
-        userId: this.testUsers.CCRP[0].id
+        userId: this.testUsers.TSP[0].id
       },
       {
         type: 'ERROR',
@@ -890,7 +890,7 @@ class ComprehensiveTestDataCreator {
     console.log('========================');
     console.log('TDP User: alice@tdp.com / password123');
     console.log('TDC User: bob@tdc.com / password123');
-    console.log('CCRP User: carol@ccrp.com / password123');
+    console.log('TSP User: carol@tsp.com / password123');
     console.log('Admin User: david@admin.com / password123');
     
     console.log('\n🚀 Ready to test the application with comprehensive data!');

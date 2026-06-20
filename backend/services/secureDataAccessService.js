@@ -347,7 +347,7 @@ class SecureDataAccessService {
     const rbac = {
       TDP: ['read_own_datasets', 'write_own_datasets'],
       TDC: ['read_contract_datasets', 'execute_training'],
-      CCRP: ['manage_environment', 'monitor_training', 'access_all_datasets']
+      TSP: ['manage_environment', 'monitor_training', 'access_all_datasets']
     };
     
     accessConfig.accessControl = rbac;
@@ -569,7 +569,7 @@ class SecureDataAccessService {
     const permissions = {
       TDP: ['read_own_datasets', 'write_own_datasets'],
       TDC: ['read_contract_datasets', 'execute_training'],
-      CCRP: ['manage_environment', 'monitor_training', 'access_all_datasets']
+      TSP: ['manage_environment', 'monitor_training', 'access_all_datasets']
     };
     
     const userPermissions = permissions[userRole] || [];

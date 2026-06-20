@@ -48,7 +48,7 @@ describe('Contract Management System - Core Test Suite', () => {
       status: 'PENDING_TDP_APPROVAL',
       tdpId: testUser.id,
       tdcId: testUser.id,
-      ccrpId: testUser.id,
+      tspId: testUser.id,
       datasetId: testDataset.id,
       contractDatasets: [{
         datasetId: testDataset.datasetId,
@@ -136,7 +136,7 @@ describe('Contract Management System - Core Test Suite', () => {
           status: 'PENDING_TDP_APPROVAL',
           tdpId: testUser.id,
           tdcId: testUser.id,
-          ccrpId: testUser.id,
+          tspId: testUser.id,
           datasetId: testDataset.id,
           contractDatasets: [{
             datasetId: testDataset.datasetId,
@@ -160,7 +160,7 @@ describe('Contract Management System - Core Test Suite', () => {
         expect(contract.status).toBe(contractData.status);
         expect(contract.tdpId).toBe(contractData.tdpId);
         expect(contract.tdcId).toBe(contractData.tdcId);
-        expect(contract.ccrpId).toBe(contractData.ccrpId);
+        expect(contract.tspId).toBe(contractData.tspId);
         expect(contract.datasetId).toBe(contractData.datasetId);
         expect(contract.id).toBeDefined();
         expect(contract.createdAt).toBeDefined();
@@ -176,7 +176,7 @@ describe('Contract Management System - Core Test Suite', () => {
           status: 'INVALID_STATUS',
           tdpId: testUser.id,
           tdcId: testUser.id,
-          ccrpId: testUser.id,
+          tspId: testUser.id,
           datasetId: testDataset.id
         };
 
@@ -312,7 +312,7 @@ describe('Contract Management System - Core Test Suite', () => {
           description: 'Contract created via API test',
           tdpId: testUser.id,
           tdcId: testUser.id,
-          ccrpId: testUser.id
+          tspId: testUser.id
         };
 
         const response = await request(app)
@@ -442,7 +442,7 @@ describe('Contract Management System - Core Test Suite', () => {
         status: 'INVALID_STATUS',
         tdpId: testUser.id,
         tdcId: testUser.id,
-        ccrpId: testUser.id
+        tspId: testUser.id
       };
 
       const response = await request(app)

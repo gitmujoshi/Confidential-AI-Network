@@ -52,7 +52,7 @@ import { useUser } from '../contexts/UserContext';
 import MultiDatasetSelector from '../components/MultiDatasetSelector';
 import HuggingfaceHubBadge from '../components/HuggingfaceHubBadge';
 import { extractHfFromDataset, extractHfFromModel } from '../utils/huggingface';
-import MultiCCRPSelector from '../components/MultiCCRPSelector';
+import MultiTSPSelector from '../components/MultiTSPSelector';
 import ContractTemplateSelector from '../components/ContractTemplateSelector';
 import ContractValidationService from '../services/contractValidationService';
 
@@ -72,7 +72,7 @@ import ContractValidationService from '../services/contractValidationService';
  * 
  * Role-Based Access Control:
  * - ONLY TDC users can access this component
- * - TDP and CCRP users will see access denied message
+ * - TDP and TSP users will see access denied message
  * 
  * Workflow:
  * 1. TDC selects contract type and dataset
@@ -91,7 +91,7 @@ import ContractValidationService from '../services/contractValidationService';
 const steps = [
   'Select Contract Template',
   'Contract Details & Dataset Selection',
-  'Configure Environment & CCRP',
+  'Configure Environment & TSP',
   'Review Legal Document & Smart Contract',
   'Create Contract'
 ];
@@ -109,8 +109,8 @@ function CreateRicardianContract() {
   const [selectedTemplate, setSelectedTemplate] = useState(null);
   const [selectedDatasets, setSelectedDatasets] = useState([]); // Array of selected datasets
   const [datasetPrices, setDatasetPrices] = useState({}); // Individual pricing per dataset
-  const [selectedCcrp, setSelectedCcrp] = useState('');
-  const [selectedCcrpCloudProviders, setSelectedCcrpCloudProviders] = useState({}); // { [ccrpId]: provider }
+  const [selectedTsp, setSelectedTsp] = useState('');
+  const [selectedTspCloudProviders, setSelectedTspCloudProviders] = useState({}); // { [tspId]: provider }
   const [selectedAiModels, setSelectedAiModels] = useState(''); // Single selected AI model ID
   const [selectedCloudProvider, setSelectedCloudProvider] = useState(''); // Add cloud provider filter
   const [contractData, setContractData] = useState({
@@ -150,57 +150,57 @@ function CreateRicardianContract() {
   });
 
 
-  // State for CCRP users
-  const [availableCcrpUsers, setAvailableCcrpUsers] = useState([]);
+  // State for TSP users
+  const [availableTspUsers, setAvailableTspUsers] = useState([]);
 
-  // Load CCRP users when user is authenticated
+  // Load TSP users when user is authenticated
   useEffect(() => {
-    const loadCcrpUsers = async () => {
+    const loadTspUsers = async () => {
       if (!isAuthenticated) {
-        console.log('⏳ User not authenticated yet, skipping CCRP loading...');
+        console.log('⏳ User not authenticated yet, skipping TSP loading...');
         return;
       }
 
       try {
-        console.log('🔍 Loading CCRP users...');
-        // Try /api/users/ccrp first (available to all authenticated users)
-        let ccrpResponse;
+        console.log('🔍 Loading TSP users...');
+        // Try /api/users/tsp first (available to all authenticated users)
+        let tspResponse;
         try {
-          ccrpResponse = await apiService.get('/api/users/ccrp');
-          console.log('📊 CCRP Response from /api/users/ccrp:', ccrpResponse);
-          if (ccrpResponse.data && Array.isArray(ccrpResponse.data)) {
-            console.log('✅ CCRP Users loaded:', ccrpResponse.data.length, 'users');
-            setAvailableCcrpUsers(ccrpResponse.data);
+          tspResponse = await apiService.get('/api/users/tsp');
+          console.log('📊 TSP Response from /api/users/tsp:', tspResponse);
+          if (tspResponse.data && Array.isArray(tspResponse.data)) {
+            console.log('✅ TSP Users loaded:', tspResponse.data.length, 'users');
+            setAvailableTspUsers(tspResponse.data);
           } else {
-            console.warn('⚠️ CCRP Response data is not an array:', ccrpResponse.data);
-            setAvailableCcrpUsers([]);
+            console.warn('⚠️ TSP Response data is not an array:', tspResponse.data);
+            setAvailableTspUsers([]);
           }
-        } catch (ccrpError) {
-          console.warn('⚠️ /api/users/ccrp failed, trying /api/ccrp/all:', ccrpError.response?.data);
-          // Fallback to /api/ccrp/all
+        } catch (tspError) {
+          console.warn('⚠️ /api/users/tsp failed, trying /api/tsp/all:', tspError.response?.data);
+          // Fallback to /api/tsp/all
           try {
-            ccrpResponse = await apiService.get('/api/ccrp/all');
-            console.log('📊 CCRP Response from /api/ccrp/all:', ccrpResponse);
-            if (ccrpResponse.data && ccrpResponse.data.ccrpUsers && Array.isArray(ccrpResponse.data.ccrpUsers)) {
-              console.log('✅ CCRP Users loaded from /api/ccrp/all:', ccrpResponse.data.ccrpUsers.length, 'users');
-              setAvailableCcrpUsers(ccrpResponse.data.ccrpUsers);
+            tspResponse = await apiService.get('/api/tsp/all');
+            console.log('📊 TSP Response from /api/tsp/all:', tspResponse);
+            if (tspResponse.data && tspResponse.data.tspUsers && Array.isArray(tspResponse.data.tspUsers)) {
+              console.log('✅ TSP Users loaded from /api/tsp/all:', tspResponse.data.tspUsers.length, 'users');
+              setAvailableTspUsers(tspResponse.data.tspUsers);
             } else {
-              console.warn('⚠️ CCRP /all Response data.ccrpUsers is not an array:', ccrpResponse.data);
-              setAvailableCcrpUsers([]);
+              console.warn('⚠️ TSP /all Response data.tspUsers is not an array:', tspResponse.data);
+              setAvailableTspUsers([]);
             }
           } catch (allError) {
-            console.error('❌ Both CCRP endpoints failed:', allError);
+            console.error('❌ Both TSP endpoints failed:', allError);
             console.error('Error details:', allError.response?.data);
-            setAvailableCcrpUsers([]);
+            setAvailableTspUsers([]);
           }
         }
       } catch (generalError) {
-        console.error('❌ Failed to load CCRP users:', generalError);
-        setAvailableCcrpUsers([]);
+        console.error('❌ Failed to load TSP users:', generalError);
+        setAvailableTspUsers([]);
       }
     };
 
-    loadCcrpUsers();
+    loadTspUsers();
   }, [isAuthenticated]);
 
   // Handler functions for environment specs
@@ -223,7 +223,7 @@ function CreateRicardianContract() {
 
   // Add comprehensive training environment specifications
   const [trainingEnvironment, setTrainingEnvironment] = useState({
-    ccrpPlatform: {
+    tspPlatform: {
       provider: '',
       platform: 'PRIVATE_CLOUD',
       infrastructure: {
@@ -417,24 +417,24 @@ function CreateRicardianContract() {
   );
   const { data: aiModelsResponse, isLoading: aiModelsLoading } = useQuery('ai-models', apiService.getAIModels);
   
-  // Manual CCRP users fetch to avoid React Query parameter injection
-  const [ccrpUsersResponse, setCcrpUsersResponse] = React.useState(null);
+  // Manual TSP users fetch to avoid React Query parameter injection
+  const [tspUsersResponse, setTspUsersResponse] = React.useState(null);
   
   React.useEffect(() => {
-    const fetchCcrpUsers = async () => {
+    const fetchTspUsers = async () => {
       try {
-        const response = await apiService.getCCRPUsers();
-        setCcrpUsersResponse(response);
+        const response = await apiService.getTSPUsers();
+        setTspUsersResponse(response);
       } catch (error) {
-        console.error('❌ CCRP users fetch error:', error);
-        setCcrpUsersResponse(null);
+        console.error('❌ TSP users fetch error:', error);
+        setTspUsersResponse(null);
       }
     };
     
-    fetchCcrpUsers();
+    fetchTspUsers();
   }, []);
   
-  const ccrpUsers = ccrpUsersResponse?.ccrpUsers || [];
+  const tspUsers = tspUsersResponse?.tspUsers || [];
   
   // Get datasets and extract unique TDP users from dataset owners
   const datasets = datasetsResponse?.datasets || [];
@@ -467,7 +467,16 @@ function CreateRicardianContract() {
 
     if (arch.includes('bert') || arch.includes('transformer') || arch.includes('gpt')) return 'text';
     if (arch.includes('resnet') || arch.includes('cnn') || arch.includes('conv') || arch.includes('vit')) return 'vision';
-    if (framework.includes('sklearn') || framework.includes('xgboost') || framework.includes('lightgbm')) return 'tabular';
+    if (
+      framework.includes('sklearn') ||
+      framework.includes('xgboost') ||
+      framework.includes('lightgbm') ||
+      framework === 'other' ||
+      arch.includes('logistic') ||
+      arch.includes('regression')
+    ) {
+      return 'tabular';
+    }
     return null;
   }
 
@@ -806,6 +815,13 @@ function CreateRicardianContract() {
       setContractCreationError(null);
       
       // Prepare contract data for regular contract creation API
+      const parsedTspId = selectedTsp ? parseInt(String(selectedTsp), 10) : null;
+      const selectedTspUser = availableTspUsers.find(
+        (u) => String(u.id) === String(selectedTsp)
+      );
+      const resolvedTspCloudProvider =
+        selectedTspUser?.cloudProviders?.[0] || selectedCloudProvider || null;
+      const parsedModelId = selectedAiModels ? parseInt(String(selectedAiModels), 10) : NaN;
       const contractPayload = {
         termsAndConditions: contractData.termsAndConditions || `Contract for ${selectedDatasets.map(d => d.name).join(', ')} - AI training contract using ${selectedDatasets.length} dataset(s)`,
         price: parseFloat(contractData.price) || 0,
@@ -816,7 +832,7 @@ function CreateRicardianContract() {
           individualPrice: parseFloat(String(datasetPrices[dataset.id] ?? dataset.price ?? '0')),
         })),
         // Fix: Convert single selectedAiModels string to array
-        aiModelIds: selectedAiModels ? [parseInt(selectedAiModels)] : [],
+        aiModelIds: Number.isFinite(parsedModelId) ? [parsedModelId] : [],
         // Pass the complete environmentSpecs object
         environmentSpecs: environmentSpecs || {
           infrastructure: {
@@ -866,10 +882,10 @@ function CreateRicardianContract() {
           secureMultiPartyComputation: trainingEnvironment?.trainingSpecifications?.privacy?.secureMultiPartyComputation || null,
           // Infrastructure specs from trainingEnvironment
           computeSpecs: {
-            cpu: trainingEnvironment?.ccrpPlatform?.infrastructure?.compute?.specifications?.cpu || 'Not specified',
-            memory: trainingEnvironment?.ccrpPlatform?.infrastructure?.compute?.specifications?.memory || 'Not specified',
-            gpu: trainingEnvironment?.ccrpPlatform?.infrastructure?.compute?.specifications?.gpu || 'Not specified',
-            storage: trainingEnvironment?.ccrpPlatform?.infrastructure?.compute?.specifications?.storage || 'Not specified'
+            cpu: trainingEnvironment?.tspPlatform?.infrastructure?.compute?.specifications?.cpu || 'Not specified',
+            memory: trainingEnvironment?.tspPlatform?.infrastructure?.compute?.specifications?.memory || 'Not specified',
+            gpu: trainingEnvironment?.tspPlatform?.infrastructure?.compute?.specifications?.gpu || 'Not specified',
+            storage: trainingEnvironment?.tspPlatform?.infrastructure?.compute?.specifications?.storage || 'Not specified'
           }
         },
         // Add KMS configurations from environmentSpecs
@@ -878,8 +894,9 @@ function CreateRicardianContract() {
           keyName: 'training-data-key',
           region: 'eastus'
         },
-        // Add CCRP ID if selected
-        ccrpId: selectedCcrp || null
+        // Add TSP ID if selected
+        tspId: Number.isFinite(parsedTspId) ? parsedTspId : null,
+        tspCloudProvider: resolvedTspCloudProvider,
       };
 
       // Validate contract data using Value Objects
@@ -1423,11 +1440,11 @@ function CreateRicardianContract() {
                 mb: 3
               }}
             >
-              Configure Environment & CCRP
+              Configure Environment & TSP
             </Typography>
             
             <Grid container spacing={4}>
-              {/* CCRP Selection Section */}
+              {/* TSP Selection Section */}
               <Grid item xs={12}>
                 <Card elevation={2} sx={{ mb: 3 }}>
                   <CardContent sx={{ p: 4 }}>
@@ -1441,7 +1458,7 @@ function CreateRicardianContract() {
                         mb: 3
                       }}
                     >
-                      CCRP Selection (Required)
+                      TSP Selection (Required)
                     </Typography>
                     
                     <Typography 
@@ -1453,7 +1470,7 @@ function CreateRicardianContract() {
                         mb: 3
                       }}
                     >
-                      All CCRPs are displayed below. Use the cloud provider filter to find CCRPs that support specific cloud services.
+                      All TSPs are displayed below. Use the cloud provider filter to find providers that support specific cloud services.
                     </Typography>
                     
                     <Grid container spacing={2}>
@@ -1479,16 +1496,16 @@ function CreateRicardianContract() {
                     
                     <Box sx={{ mt: 2 }}>
                       <Typography variant="subtitle2" gutterBottom>
-                        Available CCRPs:
+                        Available TSPs:
                       </Typography>
-                      <MultiCCRPSelector
-                        ccrpUsers={availableCcrpUsers}
-                        selectedCcrp={selectedCcrp}
-                        onCcrpToggle={setSelectedCcrp}
+                      <MultiTSPSelector
+                        tspUsers={availableTspUsers}
+                        selectedTsp={selectedTsp}
+                        onTspToggle={setSelectedTsp}
                         selectedCloudProvider={selectedCloudProvider}
                         onCloudProviderChange={setSelectedCloudProvider}
-                        onCcrpCloudProviderSelect={() => {}}
-                        ccrpCloudProviderSelections={{}}
+                        onTspCloudProviderSelect={() => {}}
+                        tspCloudProviderSelections={{}}
                       />
                     </Box>
                   </CardContent>
@@ -1728,7 +1745,7 @@ function CreateRicardianContract() {
                         ✓ Dataset selection completed
                       </Typography>
                       <Typography component="li" variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-                        → Next: Environment configuration & CCRP selection
+                        → Next: Environment configuration & TSP selection
                       </Typography>
                     </Box>
 
@@ -1740,7 +1757,7 @@ function CreateRicardianContract() {
                         fontFamily: '"Inter", "Segoe UI", "Helvetica Neue", Arial, sans-serif',
                       }}
                     >
-                      Click "Next" to configure the computational environment and optionally select a Confidential Clean Room Provider (CCRP).
+                      Click "Next" to configure the computational environment and optionally select a Tech Service Provider (TSP).
                     </Typography>
                   </CardContent>
                 </Card>
@@ -1767,7 +1784,7 @@ function CreateRicardianContract() {
             </Typography>
             
             <Grid container spacing={4}>
-              {/* CCRP Selection Section */}
+              {/* TSP Selection Section */}
               <Grid item xs={12}>
                 <Card elevation={2} sx={{ mb: 3 }}>
                   <CardContent sx={{ p: 4 }}>
@@ -1781,7 +1798,7 @@ function CreateRicardianContract() {
                         mb: 3
                       }}
                     >
-                      CCRP Selection (Required)
+                      TSP Selection (Required)
                     </Typography>
                     
                     <Typography 
@@ -1793,7 +1810,7 @@ function CreateRicardianContract() {
                         mb: 3
                       }}
                     >
-                      All CCRPs are displayed below. Use the cloud provider filter to find CCRPs that support specific cloud services.
+                      All TSPs are displayed below. Use the cloud provider filter to find providers that support specific cloud services.
                     </Typography>
                     
                     <Grid container spacing={2}>
@@ -1819,16 +1836,16 @@ function CreateRicardianContract() {
                     
                     <Box sx={{ mt: 2 }}>
                       <Typography variant="subtitle2" gutterBottom>
-                        Available CCRPs:
+                        Available TSPs:
                       </Typography>
-                      <MultiCCRPSelector
-                        ccrpUsers={availableCcrpUsers}
-                        selectedCcrp={selectedCcrp}
-                        onCcrpToggle={setSelectedCcrp}
+                      <MultiTSPSelector
+                        tspUsers={availableTspUsers}
+                        selectedTsp={selectedTsp}
+                        onTspToggle={setSelectedTsp}
                         selectedCloudProvider={selectedCloudProvider}
                         onCloudProviderChange={setSelectedCloudProvider}
-                        onCcrpCloudProviderSelect={() => {}}
-                        ccrpCloudProviderSelections={{}}
+                        onTspCloudProviderSelect={() => {}}
+                        tspCloudProviderSelections={{}}
                       />
                     </Box>
                   </CardContent>
@@ -2601,9 +2618,9 @@ function CreateRicardianContract() {
                       {contractData.duration} days
                     </Typography>
                     
-                    <Typography variant="subtitle2">CCRP:</Typography>
+                    <Typography variant="subtitle2">TSP:</Typography>
                     <Typography variant="body2" gutterBottom>
-                      {selectedCcrp ? ccrpUsers.find(c => c.id === parseInt(selectedCcrp))?.name : 'None selected'}
+                      {selectedTsp ? tspUsers.find(c => c.id === parseInt(selectedTsp))?.name : 'None selected'}
                     </Typography>
                     
                     <Typography variant="subtitle2">Environment:</Typography>

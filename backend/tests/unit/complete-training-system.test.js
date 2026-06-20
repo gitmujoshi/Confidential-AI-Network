@@ -526,7 +526,7 @@ describe('Complete Training System Tests', () => {
         parties: [
           { role: 'TDP', userId: testUser.id },
           { role: 'TDC', userId: testUser.id },
-          { role: 'CCRP', userId: testUser.id }
+          { role: 'TSP', userId: testUser.id }
         ]
       };
 

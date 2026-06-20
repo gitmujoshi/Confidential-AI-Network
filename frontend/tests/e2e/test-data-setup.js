@@ -90,7 +90,7 @@ async function ensureAiModelExists(backendURL, adminToken, payload) {
   }
 }
 
-/** Every CCRP must include Local so MultiCCRPSelector passes Local (Docker) filter (also merges Azure). */
+/** Every CCRP must advertise Local for E2E local-training specs (single provider only). */
 async function ensureAllCcrpsAdvertiseLocalDocker(backendURL, adminToken) {
   try {
     const res = await axios.get(`${backendURL}/api/users/ccrp`, {
@@ -99,12 +99,12 @@ async function ensureAllCcrpsAdvertiseLocalDocker(backendURL, adminToken) {
     const rows = Array.isArray(res.data) ? res.data : [];
     for (const u of rows) {
       const existing = Array.isArray(u.cloudProviders) ? u.cloudProviders : [];
-      const merged = [...new Set([...existing, 'Local', 'Azure'])];
-      if (normalizedProviderSet(existing) === normalizedProviderSet(merged)) continue;
+      const target = ['Local'];
+      if (normalizedProviderSet(existing) === normalizedProviderSet(target)) continue;
       await axios.put(
         `${backendURL}/api/users/${u.id}`,
         {
-          cloudProviders: merged,
+          cloudProviders: target,
           description: u.description || 'CCRP provider for E2E tests',
         },
         { headers: { Authorization: `Bearer ${adminToken}` } }

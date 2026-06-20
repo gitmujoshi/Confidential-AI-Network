@@ -194,7 +194,7 @@ class ContractTests {
       duration: 30,
       termsAndConditions: 'Test terms and conditions',
       contractType: 'AI_TRAINING',
-      ccrpId: 1,
+      tspId: 1,
       privacyRequirements: {
         maxPrivacyLoss: 0.1,
         minAccuracy: 0.85,

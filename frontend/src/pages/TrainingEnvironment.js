@@ -127,19 +127,19 @@ const TrainingEnvironment = () => {
       setLoading(true);
       
       // Load training jobs
-      const jobsResponse = await apiService.get(`/api/ccrp/training/jobs/${currentUser.id}`);
+      const jobsResponse = await apiService.get(`/api/tsp/training/jobs/${currentUser.id}`);
       if (jobsResponse.data.success) {
         setTrainingJobs(jobsResponse.data.jobs);
       }
       
       // Load containers
-      const containersResponse = await apiService.get(`/api/ccrp/training/containers/${currentUser.id}`);
+      const containersResponse = await apiService.get(`/api/tsp/training/containers/${currentUser.id}`);
       if (containersResponse.data.success) {
         setContainers(containersResponse.data.containers);
       }
       
       // Load environments
-      const environmentsResponse = await apiService.get(`/api/ccrp/infrastructure/environments/${currentUser.id}`);
+      const environmentsResponse = await apiService.get(`/api/tsp/infrastructure/environments/${currentUser.id}`);
       if (environmentsResponse.data.success) {
         setEnvironments(environmentsResponse.data.environments.filter(env => env.status === 'RUNNING'));
       }
@@ -170,7 +170,7 @@ const TrainingEnvironment = () => {
       setError('');
       setSuccess('');
 
-      const response = await apiService.post(`/api/ccrp/training/deploy/${currentUser.id}`, {
+      const response = await apiService.post(`/api/tsp/training/deploy/${currentUser.id}`, {
         config: deployConfig
       });
 
@@ -191,7 +191,7 @@ const TrainingEnvironment = () => {
 
   const handleStopJob = async (jobId) => {
     try {
-      const response = await apiService.post(`/api/ccrp/training/jobs/${jobId}/stop`);
+      const response = await apiService.post(`/api/tsp/training/jobs/${jobId}/stop`);
       if (response.data.success) {
         toast.success('Training job stopped successfully!');
         loadData(); // Refresh the list
@@ -208,7 +208,7 @@ const TrainingEnvironment = () => {
     }
 
     try {
-      const response = await apiService.delete(`/api/ccrp/training/jobs/${jobId}`);
+      const response = await apiService.delete(`/api/tsp/training/jobs/${jobId}`);
       if (response.data.success) {
         toast.success('Training job deleted successfully!');
         loadData(); // Refresh the list
@@ -226,7 +226,7 @@ const TrainingEnvironment = () => {
 
   const handleViewLogs = async (jobId) => {
     try {
-      const response = await apiService.get(`/api/ccrp/training/jobs/${jobId}/logs`);
+      const response = await apiService.get(`/api/tsp/training/jobs/${jobId}/logs`);
       if (response.data.success) {
         setLogs(response.data.logs);
         setLogsDialogOpen(true);

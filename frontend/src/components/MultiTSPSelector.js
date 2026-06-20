@@ -28,32 +28,32 @@ import {
 } from '@mui/icons-material';
 
 /**
- * MultiCCRPSelector Component
+ * MultiTSPSelector Component
  * 
- * A reusable component for selecting CCRP providers with cloud provider filtering.
+ * A reusable component for selecting TSP providers with cloud provider filtering.
  * Supports filtering by cloud provider and visual selection interface.
  * 
  * Props:
- * - ccrpUsers: Array of available CCRP users
- * - selectedCcrp: Currently selected CCRP ID
+ * - tspUsers: Array of available TSP users
+ * - selectedTsp: Currently selected TSP ID
  * - selectedCloudProvider: Currently selected cloud provider filter
- * - onCcrpToggle: Function called when CCRP is selected/deselected
+ * - onTspToggle: Function called when TSP is selected/deselected
  * - onCloudProviderChange: Function called when cloud provider filter changes
  * - disabled: Whether the selector is disabled
  */
 
-const MultiCCRPSelector = ({
-  ccrpUsers = [],
-  selectedCcrp = '',
+const MultiTSPSelector = ({
+  tspUsers = [],
+  selectedTsp = '',
   selectedCloudProvider = '',
-  onCcrpToggle,
+  onTspToggle,
   onCloudProviderChange,
-  onCcrpCloudProviderSelect, // new callback
-  ccrpCloudProviderSelections = {}, // { [ccrpId]: provider }
+  onTspCloudProviderSelect, // new callback
+  tspCloudProviderSelections = {}, // { [tspId]: provider }
   disabled = false
 }) => {
-  // Filter CCRP users by cloud provider
-  const filteredCcrpUsers = ccrpUsers.filter(user => 
+  // Filter TSP users by cloud provider
+  const filteredTspUsers = tspUsers.filter(user => 
     !selectedCloudProvider || user.cloudProviders?.includes(selectedCloudProvider)
   );
 
@@ -69,9 +69,9 @@ const MultiCCRPSelector = ({
     }
   };
 
-  // Get selection status for a CCRP
-  const getCcrpStatus = (ccrp) => {
-    const isSelected = selectedCcrp === ccrp.id;
+  // Get selection status for a TSP
+  const getTspStatus = (tsp) => {
+    const isSelected = String(selectedTsp) === String(tsp.id);
     
     if (isSelected) {
       return { status: 'selected', message: 'Selected' };
@@ -89,7 +89,7 @@ const MultiCCRPSelector = ({
             Cloud Provider Filter
           </Typography>
           <Typography variant="body2" color="textSecondary" paragraph>
-            Filter CCRP providers by the cloud platforms they support
+            Filter TSP providers by the cloud platforms they support
           </Typography>
           <FormControl fullWidth>
             <InputLabel>Cloud Provider</InputLabel>
@@ -112,22 +112,22 @@ const MultiCCRPSelector = ({
         </CardContent>
       </Card>
 
-      {/* Available CCRP Providers */}
-      {!selectedCcrp && (
+      {/* Available TSP Providers */}
+      {!selectedTsp && (
         <Alert severity="info" sx={{ mb: 3 }}>
-          <AlertTitle>No CCRP Selected</AlertTitle>
-          Select a CCRP provider to handle confidential computing environments for your contract (optional).
+          <AlertTitle>No TSP Selected</AlertTitle>
+          Select a TSP provider to handle confidential computing environments for your contract (optional).
         </Alert>
       )}
       
       <Grid container spacing={2}>
-        {filteredCcrpUsers.map((ccrp) => {
-          const { status, message } = getCcrpStatus(ccrp);
-          const isSelected = selectedCcrp === ccrp.id;
+        {filteredTspUsers.map((tsp) => {
+          const { status, message } = getTspStatus(tsp);
+          const isSelected = String(selectedTsp) === String(tsp.id);
           const isDisabled = status === 'disabled';
           
           return (
-            <Grid item xs={12} sm={6} md={4} key={ccrp.id}>
+            <Grid item xs={12} sm={6} md={4} key={tsp.id}>
               <Card 
                 sx={{ 
                   border: isSelected ? 2 : 1,
@@ -140,7 +140,7 @@ const MultiCCRPSelector = ({
                     boxShadow: 2
                   }
                 }}
-                onClick={() => !disabled && onCcrpToggle(isSelected ? null : ccrp.id)}
+                onClick={() => !disabled && onTspToggle(isSelected ? null : tsp.id)}
               >
                 <CardContent>
                   <Box display="flex" alignItems="flex-start" gap={2}>
@@ -148,16 +148,16 @@ const MultiCCRPSelector = ({
                     <Checkbox
                       checked={isSelected}
                       disabled={isDisabled || disabled}
-                      onChange={() => !isDisabled && !disabled && onCcrpToggle(isSelected ? null : ccrp.id)}
+                      onChange={() => !isDisabled && !disabled && onTspToggle(isSelected ? null : tsp.id)}
                       color="primary"
                       sx={{ mt: 0 }}
                     />
                     
-                    {/* CCRP content */}
+                    {/* TSP content */}
                     <Box sx={{ flexGrow: 1 }}>
                       <Box display="flex" justifyContent="space-between" alignItems="flex-start" mb={1}>
                         <Typography variant="h6" gutterBottom>
-                          {ccrp.name}
+                          {tsp.name}
                         </Typography>
                         {isSelected && (
                           <Chip label="Selected" color="primary" size="small" />
@@ -165,31 +165,26 @@ const MultiCCRPSelector = ({
                       </Box>
                       
                       <Typography variant="body2" color="textSecondary" paragraph>
-                        {ccrp.description || 'Confidential computing environment provider'}
+                        {tsp.description || 'Confidential computing environment provider'}
                       </Typography>
                       
                       <Typography variant="body2" color="textSecondary" paragraph>
-                        {ccrp.email}
+                        {tsp.email}
                       </Typography>
                       
-                      {/* Cloud Providers */}
-                      {ccrp.cloudProviders && ccrp.cloudProviders.length > 0 && (
+                      {/* Cloud Provider */}
+                      {tsp.cloudProviders?.[0] && (
                         <Box sx={{ mt: 2 }}>
                           <Typography variant="body2" fontWeight="medium" gutterBottom>
-                            Supported Cloud Providers:
+                            Cloud Provider:
                           </Typography>
-                          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-                            {ccrp.cloudProviders.map((provider) => (
-                              <Chip
-                                key={provider}
-                                icon={<Cloud />}
-                                label={provider}
-                                color={getProviderColor(provider)}
-                                variant="outlined"
-                                size="small"
-                              />
-                            ))}
-                          </Box>
+                          <Chip
+                            icon={<Cloud />}
+                            label={tsp.cloudProviders[0]}
+                            color={getProviderColor(tsp.cloudProviders[0])}
+                            variant="outlined"
+                            size="small"
+                          />
                         </Box>
                       )}
                     </Box>
@@ -201,16 +196,16 @@ const MultiCCRPSelector = ({
         })}
       </Grid>
 
-      {/* Selected CCRP Summary - Moved below the list */}
-      {selectedCcrp && (() => {
-        const selectedCcrpUser = ccrpUsers.find(u => u.id === parseInt(selectedCcrp) || u.id === selectedCcrp);
-        if (!selectedCcrpUser) return null;
-        const providers = selectedCcrpUser.cloudProviders || [];
+      {/* Selected TSP Summary - Moved below the list */}
+      {selectedTsp && (() => {
+        const selectedTspUser = tspUsers.find(u => u.id === parseInt(selectedTsp) || u.id === selectedTsp);
+        if (!selectedTspUser) return null;
+        const provider = selectedTspUser.cloudProviders?.[0];
         return (
           <Card sx={{ mt: 3, bgcolor: 'primary.light', color: 'white' }}>
             <CardContent>
               <Typography variant="h6" gutterBottom>
-                Selected CCRP Provider
+                Selected TSP Provider
               </Typography>
               <Typography variant="body2" sx={{ mb: 2, opacity: 0.9 }}>
                 Your chosen confidential computing environment provider
@@ -222,29 +217,25 @@ const MultiCCRPSelector = ({
                   </ListItemIcon>
                   <Box sx={{ flexGrow: 1 }}>
                     <Typography variant="body2" fontWeight="medium">
-                      {selectedCcrpUser.name}
+                      {selectedTspUser.name}
                     </Typography>
                     <Typography variant="caption" display="block">
-                      {selectedCcrpUser.email}
+                      {selectedTspUser.email}
                     </Typography>
-                    {providers.length > 0 && (
+                    {provider && (
                       <Box sx={{ mt: 1 }}>
-                        {providers.map((provider) => (
-                          <Chip
-                            key={provider}
-                            label={provider}
-                            color={getProviderColor(provider)}
-                            size="small"
-                            sx={{ mr: 0.5, mb: 0.5 }}
-                          />
-                        ))}
+                        <Chip
+                          label={provider}
+                          color={getProviderColor(provider)}
+                          size="small"
+                        />
                       </Box>
                     )}
                   </Box>
                   <ListItemSecondaryAction>
                     <IconButton 
                       edge="end" 
-                      onClick={() => onCcrpToggle(null)}
+                      onClick={() => onTspToggle(null)}
                       sx={{ color: 'white' }}
                       disabled={disabled}
                     >
@@ -253,36 +244,18 @@ const MultiCCRPSelector = ({
                   </ListItemSecondaryAction>
                 </ListItem>
               </List>
-              {/* Cloud provider selection if multiple */}
-              {providers.length > 1 && (
-                <Box sx={{ mt: 2 }}>
-                  <FormControl fullWidth>
-                    <InputLabel>Select Cloud Provider</InputLabel>
-                    <Select
-                      value={ccrpCloudProviderSelections[selectedCcrpUser.id] || ''}
-                      label="Select Cloud Provider"
-                      onChange={e => onCcrpCloudProviderSelect(selectedCcrpUser.id, e.target.value)}
-                      disabled={disabled}
-                    >
-                      {providers.map((provider) => (
-                        <MenuItem key={provider} value={provider}>{provider}</MenuItem>
-                      ))}
-                    </Select>
-                  </FormControl>
-                </Box>
-              )}
             </CardContent>
           </Card>
         );
       })()}
 
-      {/* No CCRP providers available */}
-      {filteredCcrpUsers.length === 0 && (
+      {/* No TSP providers available */}
+      {filteredTspUsers.length === 0 && (
         <Alert severity="warning" sx={{ mt: 2 }}>
-          <AlertTitle>No CCRP Providers Available</AlertTitle>
+          <AlertTitle>No TSP Providers Available</AlertTitle>
           {selectedCloudProvider 
-            ? `No CCRP providers found supporting ${selectedCloudProvider}. Try selecting a different cloud provider.`
-            : 'No CCRP providers are currently available.'
+            ? `No TSP providers found supporting ${selectedCloudProvider}. Try selecting a different cloud provider.`
+            : 'No TSP providers are currently available.'
           }
         </Alert>
       )}
@@ -290,4 +263,4 @@ const MultiCCRPSelector = ({
   );
 };
 
-export default MultiCCRPSelector; 
+export default MultiTSPSelector; 

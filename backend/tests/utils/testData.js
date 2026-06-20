@@ -37,7 +37,7 @@ async function createTestContract(contractData = {}) {
     termsAndConditions: 'Test terms and conditions',
     tdpId: (await createTestUser()).id,
     tdcId: (await createTestUser()).id,
-    ccrpId: (await createTestUser()).id,
+    tspId: (await createTestUser()).id,
     datasetId: (await createTestDataset()).id
   };
   

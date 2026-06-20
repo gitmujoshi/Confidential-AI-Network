@@ -1,0 +1,265 @@
+{
+  "generatedAt": "2026-06-19T15:54:32.934Z",
+  "backendUrl": "http://localhost:5001",
+  "password": "TestNewPassword123!",
+  "deployments": [
+    {
+      "key": "local",
+      "deploymentPrefix": "LOCAL",
+      "jurisdiction": null,
+      "region": "local",
+      "country": "Local Dev"
+    },
+    {
+      "key": "us-east",
+      "deploymentPrefix": "US-EAST",
+      "jurisdiction": "US-Federal",
+      "region": "us-east-1",
+      "country": "United States"
+    },
+    {
+      "key": "eu-west",
+      "deploymentPrefix": "EU-WEST",
+      "jurisdiction": "EU-GDPR",
+      "region": "eu-west-1",
+      "country": "European Union"
+    },
+    {
+      "key": "ap-se",
+      "deploymentPrefix": "AP-SE",
+      "jurisdiction": "AP-Singapore",
+      "region": "ap-southeast-1",
+      "country": "Singapore"
+    },
+    {
+      "key": "ca-central",
+      "deploymentPrefix": "CA-CENTRAL",
+      "jurisdiction": "CA-Federal",
+      "region": "ca-central-1",
+      "country": "Canada"
+    }
+  ],
+  "totals": {
+    "created": 20,
+    "exists": 0,
+    "failed": 0,
+    "total": 20
+  },
+  "users": [
+    {
+      "status": "created",
+      "email": "tdp.local@jurisdiction-test.com",
+      "partyType": "TDP",
+      "deploymentKey": "local",
+      "jurisdiction": null,
+      "deploymentPrefix": "LOCAL",
+      "depaId": "LOCAL-TDP-e93f278c-a1f6-48e2-b17c-2a3f8ed07374",
+      "userId": 1
+    },
+    {
+      "status": "created",
+      "email": "tdc.local@jurisdiction-test.com",
+      "partyType": "TDC",
+      "deploymentKey": "local",
+      "jurisdiction": null,
+      "deploymentPrefix": "LOCAL",
+      "depaId": "LOCAL-TDC-c1816f63-46a8-4ba8-8e19-b7ee2e7f3347",
+      "userId": 2
+    },
+    {
+      "status": "created",
+      "email": "tsp.local@jurisdiction-test.com",
+      "partyType": "TSP",
+      "deploymentKey": "local",
+      "jurisdiction": null,
+      "deploymentPrefix": "LOCAL",
+      "depaId": "LOCAL-TSP-d28d142c-9e91-4e58-b61a-718661bd9505",
+      "userId": 3,
+      "cloudProviders": [
+        "Local"
+      ]
+    },
+    {
+      "status": "created",
+      "email": "appadmin.local@jurisdiction-test.com",
+      "partyType": "AppAdmin",
+      "deploymentKey": "local",
+      "jurisdiction": null,
+      "deploymentPrefix": "LOCAL",
+      "depaId": "LOCAL-TDC-75df95c9-21be-450f-b943-c597ac21bd51",
+      "userId": 4
+    },
+    {
+      "status": "created",
+      "email": "tdp.us-east@jurisdiction-test.com",
+      "partyType": "TDP",
+      "deploymentKey": "us-east",
+      "jurisdiction": "US-Federal",
+      "deploymentPrefix": "US-EAST",
+      "depaId": "US-EAST-TDP-e03e0e7f-1f85-49e8-a085-1198e4fffc54",
+      "userId": 5
+    },
+    {
+      "status": "created",
+      "email": "tdc.us-east@jurisdiction-test.com",
+      "partyType": "TDC",
+      "deploymentKey": "us-east",
+      "jurisdiction": "US-Federal",
+      "deploymentPrefix": "US-EAST",
+      "depaId": "US-EAST-TDC-9d7a8f1c-ddbb-40ba-8f78-f813dd17adda",
+      "userId": 6
+    },
+    {
+      "status": "created",
+      "email": "tsp.us-east@jurisdiction-test.com",
+      "partyType": "TSP",
+      "deploymentKey": "us-east",
+      "jurisdiction": "US-Federal",
+      "deploymentPrefix": "US-EAST",
+      "depaId": "US-EAST-TSP-f5a77700-62da-4440-b264-f17f9508d3c3",
+      "userId": 7,
+      "cloudProviders": [
+        "AWS"
+      ]
+    },
+    {
+      "status": "created",
+      "email": "appadmin.us-east@jurisdiction-test.com",
+      "partyType": "AppAdmin",
+      "deploymentKey": "us-east",
+      "jurisdiction": "US-Federal",
+      "deploymentPrefix": "US-EAST",
+      "depaId": "US-EAST-TDC-a52229b3-20c7-4e0a-8ee0-7a7a2a1aaa37",
+      "userId": 8
+    },
+    {
+      "status": "created",
+      "email": "tdp.eu-west@jurisdiction-test.com",
+      "partyType": "TDP",
+      "deploymentKey": "eu-west",
+      "jurisdiction": "EU-GDPR",
+      "deploymentPrefix": "EU-WEST",
+      "depaId": "EU-WEST-TDP-e86780a6-e11e-425e-85d6-5fc303ff3870",
+      "userId": 9
+    },
+    {
+      "status": "created",
+      "email": "tdc.eu-west@jurisdiction-test.com",
+      "partyType": "TDC",
+      "deploymentKey": "eu-west",
+      "jurisdiction": "EU-GDPR",
+      "deploymentPrefix": "EU-WEST",
+      "depaId": "EU-WEST-TDC-dab82f04-7619-4c78-b371-6dfb91236334",
+      "userId": 10
+    },
+    {
+      "status": "created",
+      "email": "tsp.eu-west@jurisdiction-test.com",
+      "partyType": "TSP",
+      "deploymentKey": "eu-west",
+      "jurisdiction": "EU-GDPR",
+      "deploymentPrefix": "EU-WEST",
+      "depaId": "EU-WEST-TSP-fc0abbc5-c538-4f4e-b337-48724dc64586",
+      "userId": 11,
+      "cloudProviders": [
+        "Azure"
+      ]
+    },
+    {
+      "status": "created",
+      "email": "appadmin.eu-west@jurisdiction-test.com",
+      "partyType": "AppAdmin",
+      "deploymentKey": "eu-west",
+      "jurisdiction": "EU-GDPR",
+      "deploymentPrefix": "EU-WEST",
+      "depaId": "EU-WEST-TDC-2e638c8b-ab9a-4d61-82c0-3c6358dff0e8",
+      "userId": 12
+    },
+    {
+      "status": "created",
+      "email": "tdp.ap-se@jurisdiction-test.com",
+      "partyType": "TDP",
+      "deploymentKey": "ap-se",
+      "jurisdiction": "AP-Singapore",
+      "deploymentPrefix": "AP-SE",
+      "depaId": "AP-SE-TDP-fd1dc91e-f143-4ec6-abb6-91d286068497",
+      "userId": 13
+    },
+    {
+      "status": "created",
+      "email": "tdc.ap-se@jurisdiction-test.com",
+      "partyType": "TDC",
+      "deploymentKey": "ap-se",
+      "jurisdiction": "AP-Singapore",
+      "deploymentPrefix": "AP-SE",
+      "depaId": "AP-SE-TDC-385e1c3a-f126-4821-9df1-e9878aaaa6ce",
+      "userId": 14
+    },
+    {
+      "status": "created",
+      "email": "tsp.ap-se@jurisdiction-test.com",
+      "partyType": "TSP",
+      "deploymentKey": "ap-se",
+      "jurisdiction": "AP-Singapore",
+      "deploymentPrefix": "AP-SE",
+      "depaId": "AP-SE-TSP-0f617f3f-0408-4d0e-83cb-ae4b3a6215ab",
+      "userId": 15,
+      "cloudProviders": [
+        "AWS"
+      ]
+    },
+    {
+      "status": "created",
+      "email": "appadmin.ap-se@jurisdiction-test.com",
+      "partyType": "AppAdmin",
+      "deploymentKey": "ap-se",
+      "jurisdiction": "AP-Singapore",
+      "deploymentPrefix": "AP-SE",
+      "depaId": "AP-SE-TDC-d9ab91d3-bb77-4ac4-8d02-e567cd600582",
+      "userId": 16
+    },
+    {
+      "status": "created",
+      "email": "tdp.ca-central@jurisdiction-test.com",
+      "partyType": "TDP",
+      "deploymentKey": "ca-central",
+      "jurisdiction": "CA-Federal",
+      "deploymentPrefix": "CA-CENTRAL",
+      "depaId": "CA-CENTRAL-TDP-8e29514a-0d7b-49a5-9714-5d7c922e97ae",
+      "userId": 17
+    },
+    {
+      "status": "created",
+      "email": "tdc.ca-central@jurisdiction-test.com",
+      "partyType": "TDC",
+      "deploymentKey": "ca-central",
+      "jurisdiction": "CA-Federal",
+      "deploymentPrefix": "CA-CENTRAL",
+      "depaId": "CA-CENTRAL-TDC-e4ffa273-4d97-4466-b6b6-a2f97e3a88f1",
+      "userId": 18
+    },
+    {
+      "status": "created",
+      "email": "tsp.ca-central@jurisdiction-test.com",
+      "partyType": "TSP",
+      "deploymentKey": "ca-central",
+      "jurisdiction": "CA-Federal",
+      "deploymentPrefix": "CA-CENTRAL",
+      "depaId": "CA-CENTRAL-TSP-3328d53d-c404-4e07-978c-b890587666ed",
+      "userId": 19,
+      "cloudProviders": [
+        "Azure"
+      ]
+    },
+    {
+      "status": "created",
+      "email": "appadmin.ca-central@jurisdiction-test.com",
+      "partyType": "AppAdmin",
+      "deploymentKey": "ca-central",
+      "jurisdiction": "CA-Federal",
+      "deploymentPrefix": "CA-CENTRAL",
+      "depaId": "CA-CENTRAL-TDC-5c630131-5320-4342-a0f1-fd4fe044b449",
+      "userId": 20
+    }
+  ]
+}

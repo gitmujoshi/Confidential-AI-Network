@@ -52,7 +52,7 @@ describe('SCITT CCF API Endpoint Tests', () => {
         description: 'Test contract created via SCITT CCF',
         tdpId: 2,
         tdcId: 5,
-        ccrpId: 7,
+        tspId: 7,
         datasetId: 1,
         price: 5000,
         duration: 90,

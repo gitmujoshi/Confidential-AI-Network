@@ -50,8 +50,8 @@ class ContractService {
     this.stateTransitions = {
       'DRAFT': ['PENDING_TDP', 'REJECTED'],
       'PENDING_TDP': ['PENDING_TDC', 'PENDING_TDP', 'REJECTED'],
-      'PENDING_TDC': ['PENDING_CCRP', 'PENDING_TDC', 'REJECTED'],
-      'PENDING_CCRP': ['SIGNED', 'PENDING_CCRP', 'REJECTED'],
+      'PENDING_TDC': ['PENDING_TSP', 'PENDING_TDC', 'REJECTED'],
+      'PENDING_TSP': ['SIGNED', 'PENDING_TSP', 'REJECTED'],
       'SIGNED': ['EXECUTING', 'COMPLETED'],
       'EXECUTING': ['COMPLETED', 'FAILED'],
       'REJECTED': ['DRAFT'],
@@ -261,25 +261,25 @@ class ContractService {
       }
 
       // Validate transition
-      if (!this.validateStateTransition('PENDING_TDC', 'PENDING_CCRP')) {
-        throw new Error('Invalid state transition: PENDING_TDC → PENDING_CCRP');
+      if (!this.validateStateTransition('PENDING_TDC', 'PENDING_TSP')) {
+        throw new Error('Invalid state transition: PENDING_TDC → PENDING_TSP');
       }
 
       // Update contract with TDC signature
       await contract.update({
-        status: 'PENDING_CCRP',
-        multiTdpStatus: 'PENDING_CCRP',
+        status: 'PENDING_TSP',
+        multiTdpStatus: 'PENDING_TSP',
         tdcSigned: true,
         tdcSignedAt: new Date()
       });
 
-      // Notify CCRP if present
-      if (contract.ccrpId) {
+      // Notify TSP if present
+      if (contract.tspId) {
         await notificationService.createNotification({
-          userId: contract.ccrpId,
-          type: 'CONTRACT_PENDING_CCRP',
-          title: 'Contract Requires CCRP Approval',
-          message: `Contract ${contractId} has been signed by all parties and requires CCRP approval.`,
+          userId: contract.tspId,
+          type: 'CONTRACT_PENDING_TSP',
+          title: 'Contract Requires TSP Approval',
+          message: `Contract ${contractId} has been signed by all parties and requires TSP approval.`,
           metadata: { contractId, contractType: 'CCRP_APPROVAL' }
         });
       }
@@ -293,35 +293,35 @@ class ContractService {
   }
 
   /**
-   * CCRP signs contract (PendingCCRP → Signed)
+   * TSP signs contract (PendingCCRP → Signed)
    * @param {string} contractId - Contract ID
-   * @param {number} ccrpId - CCRP user ID
+   * @param {number} tspId - TSP user ID
    * @param {Object} signatureData - Signature data
    * @returns {Object} - Updated contract
    */
-  async ccrpSignContract(contractId, ccrpId, signatureData) {
+  async ccrpSignContract(contractId, tspId, signatureData) {
     try {
-      console.log(`✍️ CCRP ${ccrpId} signing contract ${contractId}`);
+      console.log(`✍️ TSP ${tspId} signing contract ${contractId}`);
       
       const contract = await Contract.findOne({
-        where: { contractId, ccrpId, status: 'PENDING_CCRP' }
+        where: { contractId, tspId, status: 'PENDING_TSP' }
       });
 
       if (!contract) {
-        throw new Error('Contract not found or not in PENDING_CCRP state');
+        throw new Error('Contract not found or not in PENDING_TSP state');
       }
 
       // Validate transition
-      if (!this.validateStateTransition('PENDING_CCRP', 'SIGNED')) {
-        throw new Error('Invalid state transition: PENDING_CCRP → SIGNED');
+      if (!this.validateStateTransition('PENDING_TSP', 'SIGNED')) {
+        throw new Error('Invalid state transition: PENDING_TSP → SIGNED');
       }
 
-      // Update contract with CCRP signature
+      // Update contract with TSP signature
       await contract.update({
         status: 'SIGNED',
         multiTdpStatus: 'SIGNED',
-        ccrpSigned: true,
-        ccrpSignedAt: new Date()
+        tspSigned: true,
+        tspSignedAt: new Date()
       });
 
       // Notify all parties
@@ -344,10 +344,10 @@ class ContractService {
         });
       }
 
-      console.log(`✅ CCRP signed contract ${contractId}`);
+      console.log(`✅ TSP signed contract ${contractId}`);
       return contract;
     } catch (error) {
-      console.error('❌ Error with CCRP contract signing:', error);
+      console.error('❌ Error with TSP contract signing:', error);
       throw error;
     }
   }
@@ -381,7 +381,7 @@ class ContractService {
       });
 
       const parties = [contract.tdcId, this.resolvePrimaryTdpId(contract)];
-      if (contract.ccrpId) parties.push(contract.ccrpId);
+      if (contract.tspId) parties.push(contract.tspId);
 
       for (const partyId of parties.filter((id) => id != null)) {
         await notificationService.createNotification({
@@ -430,7 +430,7 @@ class ContractService {
       });
 
       const parties = [contract.tdcId, this.resolvePrimaryTdpId(contract)];
-      if (contract.ccrpId) parties.push(contract.ccrpId);
+      if (contract.tspId) parties.push(contract.tspId);
 
       for (const partyId of parties.filter((id) => id != null)) {
         await notificationService.createNotification({
@@ -468,7 +468,7 @@ class ContractService {
             { tdcId: userId },
             { tdpId: userId },
             { primaryTdpId: userId },
-            { ccrpId: userId }
+            { tspId: userId }
           ]
         }
       });
@@ -535,7 +535,7 @@ class ContractService {
       });
 
       const parties = [contract.tdcId, this.resolvePrimaryTdpId(contract)];
-      if (contract.ccrpId) parties.push(contract.ccrpId);
+      if (contract.tspId) parties.push(contract.tspId);
 
       for (const partyId of parties.filter((id) => id != null)) {
         await notificationService.createNotification({
@@ -586,10 +586,10 @@ class ContractService {
         multiTdpStatus: 'DRAFT',
         tdpSigned: false,
         tdcSigned: false,
-        ccrpSigned: false,
+        tspSigned: false,
         tdpSignedAt: null,
         tdcSignedAt: null,
-        ccrpSignedAt: null
+        tspSignedAt: null
       });
 
       console.log(`✅ Contract ${contractId} resubmitted as DRAFT`);
@@ -904,7 +904,7 @@ class ContractService {
           },
           { 
             model: db.User, 
-            as: 'ccrp', 
+            as: 'tsp', 
             attributes: ['id', 'name', 'email', 'depaId', 'walletAddress', 'did'],
             required: false
           }
@@ -1036,7 +1036,7 @@ class ContractService {
         include: [
           { model: User, as: 'tdp', attributes: ['id', 'name', 'email', 'depaId'] },
           { model: User, as: 'tdc', attributes: ['id', 'name', 'email', 'depaId'] },
-          { model: User, as: 'ccrp', attributes: ['id', 'name', 'email', 'depaId'] }
+          { model: User, as: 'tsp', attributes: ['id', 'name', 'email', 'depaId'] }
         ],
         order: [['createdAt', 'DESC']]
       });
@@ -1064,9 +1064,9 @@ class ContractService {
         validNextStates,
         canEdit: contract.status === 'DRAFT',
         canSubmit: contract.status === 'DRAFT',
-        canSign: ['PENDING_TDP', 'PENDING_TDC', 'PENDING_CCRP'].includes(contract.status),
+        canSign: ['PENDING_TDP', 'PENDING_TDC', 'PENDING_TSP'].includes(contract.status),
         canExecute: contract.status === 'SIGNED',
-        canReject: ['PENDING_TDP', 'PENDING_TDC', 'PENDING_CCRP'].includes(contract.status),
+        canReject: ['PENDING_TDP', 'PENDING_TDC', 'PENDING_TSP'].includes(contract.status),
         canResubmit: ['REJECTED', 'FAILED'].includes(contract.status)
       };
     } catch (error) {

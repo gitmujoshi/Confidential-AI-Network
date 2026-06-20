@@ -56,8 +56,8 @@ function validateTdcCanTrain(contract, userId) {
     err.statusCode = 400;
     throw err;
   }
-  if (!contract.ccrpCloudProvider) {
-    const err = new Error('Contract is missing cloud provider (ccrpCloudProvider)');
+  if (!contract.tspCloudProvider) {
+    const err = new Error('Contract is missing cloud provider (tspCloudProvider)');
     err.statusCode = 400;
     throw err;
   }
@@ -201,7 +201,7 @@ class TdcTrainingExecutionService {
         trainingConfig: contract.trainingParams,
         environmentConfig: {
           environmentSpecs: contract.environmentSpecs,
-          cloudProvider: contract.ccrpCloudProvider,
+          cloudProvider: contract.tspCloudProvider,
           containerSpec,
         },
         datasets: contract.contractDatasets,
@@ -243,7 +243,7 @@ class TdcTrainingExecutionService {
         trainingConfig: contract.trainingParams,
         environmentConfig: {
           environmentSpecs: contract.environmentSpecs,
-          cloudProvider: contract.ccrpCloudProvider,
+          cloudProvider: contract.tspCloudProvider,
           containerSpec,
         },
         datasets: contract.contractDatasets,
@@ -304,7 +304,7 @@ class TdcTrainingExecutionService {
         trainingConfig: contract.trainingParams,
         environmentConfig: {
           environmentSpecs: contract.environmentSpecs,
-          cloudProvider: contract.ccrpCloudProvider,
+          cloudProvider: contract.tspCloudProvider,
           containerSpec,
         },
         datasets: contract.contractDatasets,
@@ -348,7 +348,7 @@ class TdcTrainingExecutionService {
         trainingConfig: contract.trainingParams,
         environmentConfig: {
           environmentSpecs: contract.environmentSpecs,
-          cloudProvider: contract.ccrpCloudProvider,
+          cloudProvider: contract.tspCloudProvider,
           containerSpec,
         },
         datasets: contract.contractDatasets,

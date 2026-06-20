@@ -456,7 +456,7 @@ router.get('/nodes/:nodeId',
  */
 router.get('/sessions',
   requireAuth,
-  requireRole(['AppAdmin', 'TDP', 'TDC', 'CCRP']),
+  requireRole(['AppAdmin', 'TDP', 'TDC', 'TSP']),
   [
     query('contractId').optional().isString().withMessage('Contract ID must be a string'),
     query('jobId').optional().isString().withMessage('Job ID must be a string'),

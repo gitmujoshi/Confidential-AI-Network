@@ -298,7 +298,7 @@ class ConstraintsService {
    */
   async getVMSizesByProvider(cloudProvider) {
     try {
-      const data = await this.getConstraints('ccrp');
+      const data = await this.getConstraints('tsp');
       const vmSizeField = data.fields?.find(field => field.fieldKey === 'vm_size');
       
       if (!vmSizeField || !vmSizeField.values) {

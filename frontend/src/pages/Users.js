@@ -56,7 +56,7 @@ const UserCard = ({ user, onUserClick }) => {
         return <Business />;
       case 'TDC':
         return <Person />;
-      case 'CCRP':
+      case 'TSP':
         return <Security />;
       default:
         return <Person />;
@@ -69,7 +69,7 @@ const UserCard = ({ user, onUserClick }) => {
         return 'primary';
       case 'TDC':
         return 'secondary';
-      case 'CCRP':
+      case 'TSP':
         return 'success';
       default:
         return 'default';
@@ -186,7 +186,7 @@ function Users() {
 
   const tdpUsers = users.filter(user => user.partyType === 'TDP');
   const tdcUsers = users.filter(user => user.partyType === 'TDC');
-  const ccrpUsers = users.filter(user => user.partyType === 'CCRP');
+  const tspUsers = users.filter(user => user.partyType === 'TSP');
 
   const navigate = useNavigate();
 
@@ -222,7 +222,7 @@ function Users() {
         return <Business />;
       case 'TDC':
         return <Person />;
-      case 'CCRP':
+      case 'TSP':
         return <Security />;
       default:
         return <Person />;
@@ -235,7 +235,7 @@ function Users() {
         return 'primary';
       case 'TDC':
         return 'secondary';
-      case 'CCRP':
+      case 'TSP':
         return 'success';
       default:
         return 'default';
@@ -327,9 +327,9 @@ function Users() {
               <Box display="flex" alignItems="center">
                 <Security sx={{ mr: 2, color: 'success.main' }} />
                 <Box>
-                  <Typography variant="h4">{ccrpUsers.length}</Typography>
+                  <Typography variant="h4">{tspUsers.length}</Typography>
                   <Typography variant="body2" color="textSecondary">
-                    Confidential Clean Room Providers
+                    Tech Service Providers
                   </Typography>
                 </Box>
               </Box>
@@ -353,7 +353,7 @@ function Users() {
                   <MenuItem value="">All Party Types</MenuItem>
                   <MenuItem value="TDP">Training Data Providers</MenuItem>
                   <MenuItem value="TDC">Training Data Consumers</MenuItem>
-                  <MenuItem value="CCRP">Confidential Clean Room Providers</MenuItem>
+                  <MenuItem value="TSP">Tech Service Providers</MenuItem>
                 </Select>
               </FormControl>
             </Grid>

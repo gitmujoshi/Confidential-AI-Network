@@ -391,11 +391,11 @@ const TDPDashboard = () => {
                               </Typography>
                             </Box>
                             
-                            {/* Global DEPA ID Field */}
+                            {/* DEPA ID Field */}
                             {contract.depaId && (
                               <Box>
                                 <Typography variant="caption" color="textSecondary" display="block">
-                                  Global DEPA ID
+                                  DEPA ID
                                 </Typography>
                                 <Typography variant="caption" fontFamily="monospace" sx={{ 
                                   backgroundColor: 'primary.50', 

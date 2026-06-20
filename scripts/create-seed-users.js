@@ -60,10 +60,10 @@ const testUsers = [
   },
   {
     name: 'Carol Williams',
-    email: 'carol@ccrp.com',
+    email: 'carol@tsp.com',
     password: 'password123',
-    partyType: 'CCRP',
-    role: 'CCRP'
+    partyType: 'TSP',
+    role: 'TSP'
   },
   {
     name: 'David Admin',

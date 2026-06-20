@@ -234,7 +234,7 @@ router.get('/claims', authenticateToken, async (req, res) => {
 
 /**
  * Full provenance / audit bundle for a contract (for reviews, not raw scitt_claims alone).
- * Same access pattern as listing claims: TDC/CCRP on the contract, or AppAdmin.
+ * Same access pattern as listing claims: TDC/TSP on the contract, or AppAdmin.
  */
 router.get('/provenance-report/:contractId', authenticateToken, async (req, res) => {
   try {

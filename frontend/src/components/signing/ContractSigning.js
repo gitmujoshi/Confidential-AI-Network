@@ -180,7 +180,7 @@ const ContractSigning = ({ contractId, onSigningComplete }) => {
                     <ListItemIcon><Person /></ListItemIcon>
                     <ListItemText 
                       primary="Parties" 
-                      secondary={`TDC: ${contract.tdc?.name}, CCRP: ${contract.ccrp?.name}`} 
+                      secondary={`TDC: ${contract.tdc?.name}, TSP: ${contract.tsp?.name}`} 
                     />
                   </ListItem>
                   <ListItem>

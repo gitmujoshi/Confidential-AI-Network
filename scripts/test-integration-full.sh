@@ -123,9 +123,9 @@ run_test "TDC User Registration" "curl -s -X POST '/api/auth/register' \
     -d '{\"name\": \"Test TDC\", \"email\": \"test-tdc@example.com\", \"partyType\": \"TDC\", \"organization\": \"Test Org\"}' \
     | grep -q 'success.*true'"
 
-run_test "CCRP User Registration" "curl -s -X POST '/api/auth/register' \
+run_test "TSP User Registration" "curl -s -X POST '/api/auth/register' \
     -H 'Content-Type: application/json' \
-    -d '{\"name\": \"Test CCRP\", \"email\": \"test-ccrp@example.com\", \"partyType\": \"CCRP\", \"organization\": \"Test Org\"}' \
+    -d '{\"name\": \"Test TSP\", \"email\": \"test-tsp@example.com\", \"partyType\": \"TSP\", \"organization\": \"Test Org\"}' \
     | grep -q 'success.*true'"
 
 echo -e "\n${BLUE}🔍 Step 4: API Endpoint Tests${NC}"

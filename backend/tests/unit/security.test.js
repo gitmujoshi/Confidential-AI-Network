@@ -48,7 +48,7 @@ describe('Security Test Suite', () => {
       modelId: 'SECURITY-MODEL-001',
       tdpId: testUser.id,
       tdcId: testUser.id,
-      ccrpId: testUser.id,
+      tspId: testUser.id,
       datasetId: testDataset.id,
       contractDatasets: [{
         datasetId: testDataset.datasetId,
@@ -338,7 +338,7 @@ describe('Security Test Suite', () => {
       it('should enforce TDP-only dataset creation', async () => {
         const nonTdpUsers = [
           { email: 'tdc-dataset@example.com', partyType: 'TDC' },
-          { email: 'ccrp-dataset@example.com', partyType: 'CCRP' }
+          { email: 'tsp-dataset@example.com', partyType: 'TSP' }
         ];
 
         for (const userData of nonTdpUsers) {
@@ -375,10 +375,10 @@ describe('Security Test Suite', () => {
           partyType: 'TDP'
         });
 
-        const ccrpUser = await User.create({
-          email: 'ccrp-sign@example.com',
-          name: 'CCRP Sign User',
-          partyType: 'CCRP'
+        const tspUser = await User.create({
+          email: 'tsp-sign@example.com',
+          name: 'TSP Sign User',
+          partyType: 'TSP'
         });
 
         const tdpToken = jwt.sign(
@@ -388,7 +388,7 @@ describe('Security Test Suite', () => {
         );
 
         const ccrpToken = jwt.sign(
-          { userId: ccrpUser.id, role: ccrpUser.partyType },
+          { userId: tspUser.id, role: tspUser.partyType },
           process.env.JWT_SECRET || 'test-secret',
           { expiresIn: '1h' }
         );
@@ -403,7 +403,7 @@ describe('Security Test Suite', () => {
           modelId: 'ROLE-SIGN-MODEL-001',
           tdpId: tdpUser.id,
           tdcId: tdpUser.id,
-          ccrpId: ccrpUser.id,
+          tspId: tspUser.id,
           datasetId: testDataset.id
         });
 
@@ -415,7 +415,7 @@ describe('Security Test Suite', () => {
 
         expect(tdpSignResponse.body.success).toBe(true);
 
-        // CCRP should be able to sign after TDP
+        // TSP should be able to sign after TDP
         const ccrpSignResponse = await request(app)
           .post(`/api/contracts/${contract.id}/sign`)
           .set('Authorization', `Bearer ${ccrpToken}`)
@@ -512,7 +512,7 @@ describe('Security Test Suite', () => {
               modelId: 'XSS-MODEL-001',
               tdpId: testUser.id,
               tdcId: testUser.id,
-              ccrpId: testUser.id,
+              tspId: testUser.id,
               datasetId: testDataset.id
             })
             .expect(400);
@@ -545,7 +545,7 @@ describe('Security Test Suite', () => {
               modelId: 'INVALID-NUMERIC-MODEL-001',
               tdpId: testUser.id,
               tdcId: testUser.id,
-              ccrpId: testUser.id,
+              tspId: testUser.id,
               datasetId: testDataset.id
             })
             .expect(400);

@@ -1,19 +1,20 @@
 const express = require('express');
 const router = express.Router();
-const { User, Contract, Notification, CCRPAzureCredentials } = require('../models');
+const { User, Contract, Notification, TSPAzureCredentials } = require('../models');
 const { authenticateToken } = require('../middleware/auth');
+const { normalizeTspCloudProviders } = require('../utils/tspCloudProviders');
 const { Op } = require('sequelize');
-const CCRPAzureCredentialsService = require('../services/ccrpAzureCredentialsService');
+const TSPAzureCredentialsService = require('../services/tspAzureCredentialsService');
 const InfrastructureService = require('../services/infrastructureService');
 const TrainingService = require('../services/trainingService');
 
-// CCRP dashboard data
+// TSP dashboard data
 router.get('/dashboard/:userId', authenticateToken, async (req, res) => {
   try {
     const { userId } = req.params;
     
     // Debug logging
-    console.log('🔍 [CCRP Dashboard] Request details:', {
+    console.log('🔍 [TSP Dashboard] Request details:', {
       requestedUserId: userId,
       currentUserId: req.user.localUser?.id,
       userPartyType: req.user.localUser?.partyType,
@@ -26,7 +27,7 @@ router.get('/dashboard/:userId', authenticateToken, async (req, res) => {
     const userPartyType = req.user.localUser?.partyType;
     
     if (currentUserId !== parseInt(userId) && userPartyType !== 'AppAdmin') {
-      console.log('❌ [CCRP Dashboard] Access denied:', {
+      console.log('❌ [TSP Dashboard] Access denied:', {
         currentUserId,
         requestedUserId: parseInt(userId),
         userPartyType,
@@ -35,27 +36,27 @@ router.get('/dashboard/:userId', authenticateToken, async (req, res) => {
       return res.status(403).json({ error: 'Access denied' });
     }
 
-    console.log('✅ [CCRP Dashboard] Access granted for user:', userId);
+    console.log('✅ [TSP Dashboard] Access granted for user:', userId);
 
-    // Check if user is a CCRP
-    if (userPartyType !== 'CCRP' && userPartyType !== 'AppAdmin') {
-      console.log('❌ [CCRP Dashboard] User is not CCRP:', userPartyType);
+    // Check if user is a TSP
+    if (userPartyType !== 'TSP' && userPartyType !== 'AppAdmin') {
+      console.log('❌ [TSP Dashboard] User is not TSP:', userPartyType);
       return res.status(403).json({ 
-        error: 'Access denied. Only CCRP users can access this dashboard.',
+        error: 'Access denied. Only TSP users can access this dashboard.',
         code: 'INSUFFICIENT_PERMISSIONS'
       });
     }
 
-    // Get contracts where this user is CCRP
+    // Get contracts where this user is TSP
     let contracts;
     try {
       contracts = await Contract.findAll({
-        where: { ccrpId: userId },
+        where: { tspId: userId },
         order: [['createdAt', 'DESC']]
       });
-      console.log('📊 [CCRP Dashboard] Contracts found:', contracts.length);
+      console.log('📊 [TSP Dashboard] Contracts found:', contracts.length);
     } catch (dbError) {
-      console.error('❌ [CCRP Dashboard] Database error:', dbError);
+      console.error('❌ [TSP Dashboard] Database error:', dbError);
       return res.status(500).json({ 
         error: 'Database error while fetching contracts',
         details: dbError.message
@@ -74,7 +75,7 @@ router.get('/dashboard/:userId', authenticateToken, async (req, res) => {
         createdAt: contract.createdAt
       }));
 
-    console.log('📊 [CCRP Dashboard] Environments created:', environments.length);
+    console.log('📊 [TSP Dashboard] Environments created:', environments.length);
 
     // Mock resource utilization (in real implementation, this would come from monitoring service)
     const resources = {
@@ -115,13 +116,13 @@ router.get('/dashboard/:userId', authenticateToken, async (req, res) => {
       limit: 10
     });
 
-    // Get CCRP user info including cloud providers
-    const ccrpUser = await User.findByPk(userId, {
+    // Get TSP user info including cloud providers
+    const tspUser = await User.findByPk(userId, {
       attributes: ['id', 'name', 'email', 'cloudProviders', 'description']
     });
 
     res.json({
-      user: ccrpUser,
+      user: tspUser,
       environments: environments.map(env => ({
         id: env.id,
         name: env.name,
@@ -156,17 +157,17 @@ router.get('/dashboard/:userId', authenticateToken, async (req, res) => {
       }))
     });
   } catch (error) {
-    console.error('❌ [CCRP Dashboard] Error details:', {
+    console.error('❌ [TSP Dashboard] Error details:', {
       message: error.message,
       stack: error.stack,
       name: error.name
     });
-    console.error('CCRP dashboard error:', error);
-    res.status(500).json({ error: 'Failed to load CCRP dashboard data' });
+    console.error('TSP dashboard error:', error);
+    res.status(500).json({ error: 'Failed to load TSP dashboard data' });
   }
 });
 
-// Get CCRP's environments
+// Get TSP's environments
 router.get('/environments/:userId', authenticateToken, async (req, res) => {
   try {
     const { userId } = req.params;
@@ -178,7 +179,7 @@ router.get('/environments/:userId', authenticateToken, async (req, res) => {
     }
 
     const contracts = await Contract.findAll({
-      where: { ccrpId: userId },
+      where: { tspId: userId },
       include: [
         { model: User, as: 'tdp', attributes: ['name'] },
         { model: User, as: 'tdc', attributes: ['name'] }
@@ -201,12 +202,12 @@ router.get('/environments/:userId', authenticateToken, async (req, res) => {
 
     res.json({ environments });
   } catch (error) {
-    console.error('CCRP environments error:', error);
+    console.error('TSP environments error:', error);
     res.status(500).json({ error: 'Failed to load environments' });
   }
 });
 
-// Get CCRP's contracts
+// Get TSP's contracts
 router.get('/contracts/:userId', authenticateToken, async (req, res) => {
   try {
     const { userId } = req.params;
@@ -218,7 +219,7 @@ router.get('/contracts/:userId', authenticateToken, async (req, res) => {
     }
 
     const contracts = await Contract.findAll({
-      where: { ccrpId: userId },
+      where: { tspId: userId },
       include: [
         { model: User, as: 'tdp', attributes: ['name', 'email'] },
         { model: User, as: 'tdc', attributes: ['name', 'email'] }
@@ -228,12 +229,12 @@ router.get('/contracts/:userId', authenticateToken, async (req, res) => {
 
     res.json({ contracts });
   } catch (error) {
-    console.error('CCRP contracts error:', error);
+    console.error('TSP contracts error:', error);
     res.status(500).json({ error: 'Failed to load contracts' });
   }
 });
 
-// Get CCRP's resources
+// Get TSP's resources
 router.get('/resources/:userId', authenticateToken, async (req, res) => {
   try {
     const { userId } = req.params;
@@ -257,12 +258,12 @@ router.get('/resources/:userId', authenticateToken, async (req, res) => {
 
     res.json({ resources });
   } catch (error) {
-    console.error('CCRP resources error:', error);
+    console.error('TSP resources error:', error);
     res.status(500).json({ error: 'Failed to load resources' });
   }
 });
 
-// Get CCRP's attestation data
+// Get TSP's attestation data
 router.get('/attestation/:userId', authenticateToken, async (req, res) => {
   try {
     const { userId } = req.params;
@@ -274,7 +275,7 @@ router.get('/attestation/:userId', authenticateToken, async (req, res) => {
     }
 
     const contracts = await Contract.findAll({
-      where: { ccrpId: userId },
+      where: { tspId: userId },
       order: [['createdAt', 'DESC']]
     });
 
@@ -295,12 +296,12 @@ router.get('/attestation/:userId', authenticateToken, async (req, res) => {
 
     res.json({ attestation });
   } catch (error) {
-    console.error('CCRP attestation error:', error);
+    console.error('TSP attestation error:', error);
     res.status(500).json({ error: 'Failed to load attestation data' });
   }
 });
 
-// Get CCRP's cloud providers
+// Get TSP's cloud providers
 router.get('/cloud-providers/:userId', authenticateToken, async (req, res) => {
   try {
     const { userId } = req.params;
@@ -316,7 +317,7 @@ router.get('/cloud-providers/:userId', authenticateToken, async (req, res) => {
     });
 
     if (!user) {
-      return res.status(404).json({ error: 'CCRP user not found' });
+      return res.status(404).json({ error: 'TSP user not found' });
     }
 
     res.json({ 
@@ -324,12 +325,12 @@ router.get('/cloud-providers/:userId', authenticateToken, async (req, res) => {
       description: user.description 
     });
   } catch (error) {
-    console.error('CCRP cloud providers error:', error);
+    console.error('TSP cloud providers error:', error);
     res.status(500).json({ error: 'Failed to load cloud providers' });
   }
 });
 
-// Update CCRP's cloud providers
+// Update TSP's cloud providers
 router.put('/cloud-providers/:userId', authenticateToken, async (req, res) => {
   try {
     const { userId } = req.params;
@@ -343,28 +344,22 @@ router.put('/cloud-providers/:userId', authenticateToken, async (req, res) => {
 
     const user = await User.findByPk(userId);
     if (!user) {
-      return res.status(404).json({ error: 'CCRP user not found' });
+      return res.status(404).json({ error: 'TSP user not found' });
     }
 
-    // Validate cloud providers
-    const validProviders = ['Local', 'AWS', 'Azure', 'GCP', 'OCI'];
-    if (cloudProviders && !Array.isArray(cloudProviders)) {
-      return res.status(400).json({ error: 'cloudProviders must be an array' });
-    }
+    const updatePayload = {
+      description: description !== undefined ? description : user.description,
+    };
 
-    if (cloudProviders) {
-      const invalidProviders = cloudProviders.filter(p => !validProviders.includes(p));
-      if (invalidProviders.length > 0) {
-        return res.status(400).json({ 
-          error: `Invalid cloud providers: ${invalidProviders.join(', ')}. Valid providers: ${validProviders.join(', ')}` 
-        });
+    if (cloudProviders !== undefined) {
+      const normalized = normalizeTspCloudProviders(cloudProviders);
+      if (!normalized.ok) {
+        return res.status(400).json({ error: normalized.error });
       }
+      updatePayload.cloudProviders = normalized.value;
     }
 
-    await user.update({
-      cloudProviders: cloudProviders || [],
-      description: description || user.description
-    });
+    await user.update(updatePayload);
 
     res.json({ 
       message: 'Cloud providers updated successfully',
@@ -372,16 +367,16 @@ router.put('/cloud-providers/:userId', authenticateToken, async (req, res) => {
       description: user.description
     });
   } catch (error) {
-    console.error('CCRP cloud providers update error:', error);
+    console.error('TSP cloud providers update error:', error);
     res.status(500).json({ error: 'Failed to update cloud providers' });
   }
 });
 
-// Get all CCRP users with cloud provider filtering
+// Get all TSP users with cloud provider filtering
 router.get('/all', authenticateToken, async (req, res) => {
   try {
-    console.log('🔍 CCRP /all endpoint - Query params:', req.query);
-    console.log('🔍 CCRP /all endpoint - User:', req.user);
+    console.log('🔍 TSP /all endpoint - Query params:', req.query);
+    console.log('🔍 TSP /all endpoint - User:', req.user);
     
     const { cloudProvider } = req.query;
     
@@ -390,7 +385,7 @@ router.get('/all', authenticateToken, async (req, res) => {
       return res.status(403).json({ error: 'Access denied' });
     }
 
-    let whereClause = { partyType: 'CCRP', isActive: true };
+    let whereClause = { partyType: 'TSP', isActive: true };
     
     // Filter by cloud provider if specified
     if (cloudProvider) {
@@ -399,14 +394,14 @@ router.get('/all', authenticateToken, async (req, res) => {
       };
     }
 
-    const ccrpUsers = await User.findAll({
+    const tspUsers = await User.findAll({
       where: whereClause,
       attributes: ['id', 'name', 'email', 'cloudProviders', 'description'],
       order: [['name', 'ASC']]
     });
 
     res.json({ 
-      ccrpUsers: ccrpUsers.map(user => ({
+      tspUsers: tspUsers.map(user => ({
         id: user.id,
         name: user.name,
         email: user.email,
@@ -415,8 +410,8 @@ router.get('/all', authenticateToken, async (req, res) => {
       }))
     });
   } catch (error) {
-    console.error('Get all CCRP users error:', error);
-    res.status(500).json({ error: 'Failed to load CCRP users' });
+    console.error('Get all TSP users error:', error);
+    res.status(500).json({ error: 'Failed to load TSP users' });
   }
 });
 
@@ -433,7 +428,7 @@ router.get('/azure-credentials/:userId', authenticateToken, async (req, res) => 
       return res.status(403).json({ error: 'Access denied' });
     }
 
-    const ccrpService = new CCRPAzureCredentialsService();
+    const ccrpService = new TSPAzureCredentialsService();
     const credentials = await ccrpService.getCredentials(userId);
     
     res.json({
@@ -482,7 +477,7 @@ router.post('/azure-credentials/:userId', authenticateToken, async (req, res) =>
       return res.status(403).json({ error: 'Access denied' });
     }
 
-    const ccrpService = new CCRPAzureCredentialsService();
+    const ccrpService = new TSPAzureCredentialsService();
     const result = await ccrpService.createOrUpdateCredentials(userId, credentials, config);
     
     res.json({
@@ -507,7 +502,7 @@ router.post('/azure-credentials/:userId/validate', authenticateToken, async (req
       return res.status(403).json({ error: 'Access denied' });
     }
 
-    const ccrpService = new CCRPAzureCredentialsService();
+    const ccrpService = new TSPAzureCredentialsService();
     const credentials = await ccrpService.getCredentials(userId);
     await ccrpService.validateCredentials(credentials.id);
     
@@ -533,7 +528,7 @@ router.post('/azure-credentials/:userId/test', authenticateToken, async (req, re
       return res.status(403).json({ error: 'Access denied' });
     }
 
-    const ccrpService = new CCRPAzureCredentialsService();
+    const ccrpService = new TSPAzureCredentialsService();
     const results = await ccrpService.testAzureConnectivity(userId);
     
     res.json({
@@ -766,10 +761,10 @@ router.post('/infrastructure/terraform/provision/:userId', authenticateToken, as
     const { userId } = req.params;
     const { contractId, config } = req.body;
     
-    // Verify user is CCRP
+    // Verify user is TSP
     const user = await User.findByPk(userId);
-    if (!user || user.partyType !== 'CCRP') {
-      return res.status(403).json({ error: 'Access denied. CCRP role required.' });
+    if (!user || user.partyType !== 'TSP') {
+      return res.status(403).json({ error: 'Access denied. TSP role required.' });
     }
 
     const InfrastructureService = require('../services/infrastructureService');

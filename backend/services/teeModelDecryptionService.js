@@ -535,7 +535,7 @@ class TEEModelDecryptionService {
         // Check if user is authorized for this contract
         const isAuthorized = contract.tdcId === userId || 
                            contract.tdpId === userId || 
-                           contract.ccrpId === userId;
+                           contract.tspId === userId;
 
         if (!isAuthorized) {
           return {

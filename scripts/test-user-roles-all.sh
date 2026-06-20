@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Test All User Roles Script
-# Tests functionality for TDP, TDC, CCRP, and Admin users
+# Tests functionality for TDP, TDC, TSP, and Admin users
 
 set -e
 
@@ -28,7 +28,7 @@ NC='\033[0m'
 
 echo -e "${BLUE}👥 Testing All User Roles${NC}"
 echo "=============================="
-echo "Testing functionality for TDP, TDC, CCRP, and Admin users"
+echo "Testing functionality for TDP, TDC, TSP, and Admin users"
 echo ""
 
 # Test results tracking
@@ -67,7 +67,7 @@ test_user_role() {
             "TDC")
                 test_tdc_capabilities "$token"
                 ;;
-            "CCRP")
+            "TSP")
                 test_ccrp_capabilities "$token"
                 ;;
             "Admin")
@@ -151,18 +151,18 @@ test_tdc_capabilities() {
     fi
 }
 
-# Test CCRP capabilities
+# Test TSP capabilities
 test_ccrp_capabilities() {
     local token="$1"
     
-    echo "  Testing CCRP capabilities..."
+    echo "  Testing TSP capabilities..."
     
     # Test training environment creation
     ((TOTAL_TESTS++))
     local env_response=$(curl -s -X POST "/api/training-environments" \
         -H "Content-Type: application/json" \
         -H "Authorization: Bearer ${token}" \
-        -d '{"name": "Test Environment", "description": "Test environment for CCRP", "environmentType": "DEDICATED"}' 2>/dev/null || echo "FAILED")
+        -d '{"name": "Test Environment", "description": "Test environment for TSP", "environmentType": "DEDICATED"}' 2>/dev/null || echo "FAILED")
     
     if echo "$env_response" | grep -q "id\|success"; then
         echo -e "    ${GREEN}✅ Training environment creation successful${NC}"
@@ -224,7 +224,7 @@ echo -e "${BLUE}🔍 Testing User Roles${NC}"
 # Test each user role using common test data
 test_user_role "TDP" "$TDP_USER_EMAIL" "$TDP_USER_PASSWORD" "dataset_management"
 test_user_role "TDC" "$TDC_USER_EMAIL" "$TDC_USER_PASSWORD" "model_management"
-test_user_role "CCRP" "$CCRP_USER_EMAIL" "$CCRP_USER_PASSWORD" "environment_management"
+test_user_role "TSP" "$CCRP_USER_EMAIL" "$CCRP_USER_PASSWORD" "environment_management"
 test_user_role "Admin" "$ADMIN_USER_EMAIL" "$ADMIN_USER_PASSWORD" "system_management"
 
 echo -e "\n${GREEN}🎉 User Role Testing Completed!${NC}"

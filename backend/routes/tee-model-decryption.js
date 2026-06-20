@@ -20,7 +20,7 @@ const teeDecryptionService = new TEEModelDecryptionService();
  */
 router.post('/models/decrypt/session',
   requireAuth,
-  requireRole(['TDC', 'TDP', 'CCRP']),
+  requireRole(['TDC', 'TDP', 'TSP']),
   [
     body('modelId').isString().notEmpty().withMessage('Model ID is required'),
     body('teeEnvironmentId').isString().notEmpty().withMessage('TEE environment ID is required'),
@@ -332,7 +332,7 @@ router.get('/models/decrypt/sessions',
  */
 router.post('/environments/:environmentId/verify',
   requireAuth,
-  requireRole(['TDC', 'TDP', 'CCRP', 'AppAdmin']),
+  requireRole(['TDC', 'TDP', 'TSP', 'AppAdmin']),
   [
     param('environmentId').isString().notEmpty().withMessage('Environment ID is required')
   ],

@@ -230,7 +230,7 @@ class KeycloakAutoFix {
 
   async createRoles(token) {
     console.log('👥 Creating roles...');
-    const roles = ['TDP', 'TDC', 'CCRP', 'ADMIN'];
+    const roles = ['TDP', 'TDC', 'TSP', 'ADMIN'];
     
     for (const role of roles) {
       try {
@@ -474,7 +474,7 @@ main() {
         print_status "Available test users:"
         echo "   TDC: tdc-test@example.com / password123"
         echo "   TDP: tdp-test@example.com / password123"
-        echo "   CCRP: ccrp-test@example.com / password123"
+        echo "   TSP: tsp-test@example.com / password123"
         echo "   AppAdmin: appadmin-test@example.com / password123"
         
         if [ "$SCITT_CCF_ENABLED" = "true" ]; then

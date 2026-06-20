@@ -28,7 +28,7 @@ router.get('/configuration', (req, res) => {
       currency: process.env.DEPLOYMENT_CURRENCY || 'USD',
       language: process.env.DEPLOYMENT_LANGUAGE || 'en-US',
       depaIdFormat: `${process.env.DEPLOYMENT_PREFIX || 'LOCAL'}-{ENTITY_TYPE}-{UUID}`,
-      entityTypes: ['TDC', 'TDP', 'CCRP', 'CONTRACT', 'DATASET']
+      entityTypes: ['TDC', 'TDP', 'TSP', 'CONTRACT', 'DATASET']
     };
     
     res.json({ 
@@ -67,8 +67,8 @@ router.get('/format-explanation', (req, res) => {
         {
           name: 'Entity Type',
           value: '{ENTITY_TYPE}',
-          description: 'Type of entity (TDC, TDP, CCRP, CONTRACT, DATASET)',
-          examples: ['TDC', 'TDP', 'CCRP', 'CONTRACT', 'DATASET']
+          description: 'Type of entity (TDC, TDP, TSP, CONTRACT, DATASET)',
+          examples: ['TDC', 'TDP', 'TSP', 'CONTRACT', 'DATASET']
         },
         {
           name: 'UUID',
@@ -80,7 +80,7 @@ router.get('/format-explanation', (req, res) => {
       examples: [
         `${prefix}-TDC-8f4e2a1b-3c4d-5e6f-7a8b-9c0d1e2f3a4b`,
         `${prefix}-TDP-9a1b2c3d-4e5f-6a7b-8c9d-0e1f2a3b4c5d`,
-        `${prefix}-CCRP-1b2c3d4e-5f6a-7b8c-9d0e-1f2a3b4c5d6e`,
+        `${prefix}-TSP-1b2c3d4e-5f6a-7b8c-9d0e-1f2a3b4c5d6e`,
         `${prefix}-CONTRACT-2c3d4e5f-6a7b-8c9d-0e1f-2a3b4c5d6e7f`,
         `${prefix}-DATASET-3d4e5f6a-7b8c-9d0e-1f2a-3b4c5d6e7f8a`
       ]

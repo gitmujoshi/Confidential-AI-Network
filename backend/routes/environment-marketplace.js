@@ -15,12 +15,12 @@ const EnvironmentMarketplaceService = require('../services/environmentMarketplac
 const marketplaceService = new EnvironmentMarketplaceService();
 
 /**
- * Create a new marketplace offering (CCRP only)
+ * Create a new marketplace offering (TSP only)
  * POST /api/marketplace/offerings
  */
 router.post('/offerings',
   requireAuth,
-  requireRole(['CCRP', 'AppAdmin']),
+  requireRole(['TSP', 'AppAdmin']),
   [
     body('title').isString().isLength({ min: 5, max: 100 }).withMessage('Title must be 5-100 characters'),
     body('description').isString().isLength({ min: 20, max: 1000 }).withMessage('Description must be 20-1000 characters'),
@@ -48,7 +48,7 @@ router.post('/offerings',
       const { user } = req;
       const offeringData = {
         ...req.body,
-        ccrpId: user.id
+        tspId: user.id
       };
 
       const offering = await marketplaceService.createMarketplaceOffering(offeringData);
@@ -174,12 +174,12 @@ router.get('/offerings/:offeringId',
 );
 
 /**
- * Update marketplace offering (CCRP only - own offerings)
+ * Update marketplace offering (TSP only - own offerings)
  * PUT /api/marketplace/offerings/:offeringId
  */
 router.put('/offerings/:offeringId',
   requireAuth,
-  requireRole(['CCRP', 'AppAdmin']),
+  requireRole(['TSP', 'AppAdmin']),
   [
     param('offeringId').isString().notEmpty().withMessage('Offering ID is required'),
     body('title').optional().isString().isLength({ min: 5, max: 100 }).withMessage('Title must be 5-100 characters'),
@@ -205,7 +205,7 @@ router.put('/offerings/:offeringId',
       // Get existing offering to check ownership
       const existingOffering = await marketplaceService.getMarketplaceOffering(offeringId);
       
-      if (existingOffering.ccrpId !== user.id && user.role !== 'AppAdmin') {
+      if (existingOffering.tspId !== user.id && user.role !== 'AppAdmin') {
         return res.status(403).json({
           success: false,
           message: 'Access denied: You can only update your own offerings'
@@ -322,7 +322,7 @@ router.get('/bookings',
       const allBookings = Array.from(marketplaceService.bookingRequests?.values() || []);
       let userBookings = allBookings.filter(booking => 
         booking.tdcId === user.id || 
-        (user.role === 'CCRP' && marketplaceService.marketplaceOfferings.get(booking.offeringId)?.ccrpId === user.id)
+        (user.role === 'TSP' && marketplaceService.marketplaceOfferings.get(booking.offeringId)?.tspId === user.id)
       );
 
       // Apply status filter
@@ -393,7 +393,7 @@ router.get('/categories',
 router.get('/stats',
   requireAuth,
   [
-    query('ccrpId').optional().isString().withMessage('CCRP ID must be a string')
+    query('tspId').optional().isString().withMessage('TSP ID must be a string')
   ],
   async (req, res) => {
     try {
@@ -407,10 +407,10 @@ router.get('/stats',
       }
 
       const { user } = req;
-      const { ccrpId } = req.query;
+      const { tspId } = req.query;
 
-      // If CCRP user, only show their stats unless they're admin
-      const targetCcrpId = user.role === 'CCRP' && !ccrpId ? user.id : ccrpId;
+      // If TSP user, only show their stats unless they're admin
+      const targetCcrpId = user.role === 'TSP' && !tspId ? user.id : tspId;
 
       const stats = await marketplaceService.getMarketplaceStatistics(targetCcrpId);
 
@@ -432,12 +432,12 @@ router.get('/stats',
 );
 
 /**
- * Get user's marketplace offerings (CCRP only)
+ * Get user's marketplace offerings (TSP only)
  * GET /api/marketplace/my-offerings
  */
 router.get('/my-offerings',
   requireAuth,
-  requireRole(['CCRP', 'AppAdmin']),
+  requireRole(['TSP', 'AppAdmin']),
   [
     query('status').optional().isIn(['ACTIVE', 'INACTIVE', 'SUSPENDED']).withMessage('Invalid status'),
     query('page').optional().isInt({ min: 1 }).withMessage('Page must be positive'),
@@ -461,7 +461,7 @@ router.get('/my-offerings',
       const allOfferings = Array.from(marketplaceService.marketplaceOfferings.values());
       let userOfferings = user.role === 'AppAdmin' 
         ? allOfferings 
-        : allOfferings.filter(offering => offering.ccrpId === user.id);
+        : allOfferings.filter(offering => offering.tspId === user.id);
 
       // Apply status filter
       if (status) {

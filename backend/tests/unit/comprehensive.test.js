@@ -352,10 +352,10 @@ describe('Comprehensive Test Suite', () => {
       const updateResponse = await request(app)
         .put(`/api/contracts/${contractId}`)
         .set('Authorization', `Bearer ${authToken}`)
-        .send({ status: 'PENDING_CCRP_APPROVAL' })
+        .send({ status: 'PENDING_TSP_APPROVAL' })
         .expect(200);
 
-      expect(updateResponse.body.contract.status).toBe('PENDING_CCRP_APPROVAL');
+      expect(updateResponse.body.contract.status).toBe('PENDING_TSP_APPROVAL');
 
       // 3. Sign contract
       const signResponse = await request(app)

@@ -240,12 +240,12 @@ describe('SCITT CCF Contract Signing Integration Tests', () => {
   describe('Multiple Signatures', () => {
     test('should handle multiple signatures for same contract', async () => {
       const tdcUser = testData.users.find(u => u.partyType === 'TDC');
-      const ccrpUser = testData.users.find(u => u.partyType === 'CCRP');
+      const tspUser = testData.users.find(u => u.partyType === 'TSP');
       const tdcKey = testData.keys.find(k => k.userId === tdcUser.id);
-      const ccrpKey = testData.keys.find(k => k.userId === ccrpUser.id);
+      const ccrpKey = testData.keys.find(k => k.userId === tspUser.id);
       
       const tdcToken = await generateAuthToken(tdcUser);
-      const ccrpToken = await generateAuthToken(ccrpUser);
+      const ccrpToken = await generateAuthToken(tspUser);
       
       const contractHash = generateTestHash(testContract.contractId);
 
@@ -260,7 +260,7 @@ describe('SCITT CCF Contract Signing Integration Tests', () => {
         })
         .expect(200);
 
-      // CCRP signs second
+      // TSP signs second
       const ccrpResponse = await request(app)
         .post('/api/signing/sign')
         .set('Authorization', `Bearer ${ccrpToken}`)
@@ -282,18 +282,18 @@ describe('SCITT CCF Contract Signing Integration Tests', () => {
       expect(tdcClaim).toBeDefined();
       expect(ccrpClaim).toBeDefined();
       expect(tdcClaim.claimData.signer).toBe(tdcUser.depaId);
-      expect(ccrpClaim.claimData.signer).toBe(ccrpUser.depaId);
+      expect(ccrpClaim.claimData.signer).toBe(tspUser.depaId);
     });
 
     test('should retrieve all signatures for contract', async () => {
       // Create multiple signatures
       const tdcUser = testData.users.find(u => u.partyType === 'TDC');
-      const ccrpUser = testData.users.find(u => u.partyType === 'CCRP');
+      const tspUser = testData.users.find(u => u.partyType === 'TSP');
       const tdcKey = testData.keys.find(k => k.userId === tdcUser.id);
-      const ccrpKey = testData.keys.find(k => k.userId === ccrpUser.id);
+      const ccrpKey = testData.keys.find(k => k.userId === tspUser.id);
       
       const tdcToken = await generateAuthToken(tdcUser);
-      const ccrpToken = await generateAuthToken(ccrpUser);
+      const ccrpToken = await generateAuthToken(tspUser);
       
       const contractHash = generateTestHash(testContract.contractId);
 
@@ -331,7 +331,7 @@ describe('SCITT CCF Contract Signing Integration Tests', () => {
       const signatures = response.body.signatures;
       const signers = signatures.map(s => s.signer.depaId);
       expect(signers).toContain(tdcUser.depaId);
-      expect(signers).toContain(ccrpUser.depaId);
+      expect(signers).toContain(tspUser.depaId);
     });
   });
 

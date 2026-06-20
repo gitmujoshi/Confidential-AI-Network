@@ -45,10 +45,10 @@ const testUsers = [
     name: 'TDC Test User'
   },
   {
-    email: 'ccrp-test@example.com',
+    email: 'tsp-test@example.com',
     password: 'TestPassword123!',
-    partyType: 'CCRP',
-    name: 'CCRP Test User'
+    partyType: 'TSP',
+    name: 'TSP Test User'
   },
   {
     email: 'admin-test@example.com',
@@ -70,10 +70,10 @@ const testUsers = [
     name: 'TDC Test User (alt)'
   },
   {
-    email: 'ccrp-test@example.com',
+    email: 'tsp-test@example.com',
     password: 'password123',
-    partyType: 'CCRP',
-    name: 'CCRP Test User (alt)'
+    partyType: 'TSP',
+    name: 'TSP Test User (alt)'
   },
   {
     email: 'admin-test@example.com',

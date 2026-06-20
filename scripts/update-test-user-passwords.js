@@ -36,7 +36,7 @@ function log(message, color = 'reset') {
 const testUserEmails = [
   'tdp-test@example.com',
   'tdc-test@example.com',
-  'ccrp-test@example.com',
+  'tsp-test@example.com',
   'admin-test@example.com'
 ];
 

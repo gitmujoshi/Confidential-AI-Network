@@ -42,14 +42,14 @@ class SigningService {
       "alg": "ES256"
     };
 
-    // CCRP DID private key (using same key for demo purposes)
+    // TSP DID private key (using same key for demo purposes)
     const ccrpPrivateJwk = {
       "kty": "EC",
       "crv": "P-256",
       "x": "cX0djDmWUVv4tLG-Cd8VwPJYuTVtpMu4wV4iN72AyP8",
       "y": "CawDUFlpd4ARJx27No2r_lRN1uQ5wlPqvBoMQgXiZmM",
       "d": "Dv8-a8gAsOZVUoRHdKtSnwJlXieayah2k40bct30ZB0",
-      "kid": "ccrp-privacyfirst-computing-key",
+      "kid": "tsp-privacyfirst-computing-key",
       "alg": "ES256"
     };
 
@@ -65,7 +65,7 @@ class SigningService {
       }
     });
 
-    // Add CCRP DID
+    // Add TSP DID
     this.enterpriseKeys.set('did:web:privacyfirst-computing.com', {
       privateJwk: ccrpPrivateJwk,
       publicJwk: {
@@ -73,7 +73,7 @@ class SigningService {
         "crv": "P-256",
         "x": "cX0djDmWUVv4tLG-Cd8VwPJYuTVtpMu4wV4iN72AyP8",
         "y": "CawDUFlpd4ARJx27No2r_lRN1uQ5wlPqvBoMQgXiZmM",
-        "kid": "ccrp-privacyfirst-computing-key",
+        "kid": "tsp-privacyfirst-computing-key",
         "alg": "ES256"
       }
     });

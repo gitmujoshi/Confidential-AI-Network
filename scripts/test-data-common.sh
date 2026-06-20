@@ -70,7 +70,7 @@ create_fresh_test_data() {
     # Create test contracts
     create_test_contracts_via_api
     
-    # Create test environments for CCRP users
+    # Create test environments for TSP users
     create_test_environments_via_api
     
     # Cache the test data
@@ -123,24 +123,24 @@ create_test_users_via_api() {
         echo -e "${RED}❌ Failed to create TDC user${NC}"
     fi
     
-    # CCRP User
+    # TSP User
     local ccrp_response=$(curl -s -X POST "${BACKEND_URL}/api/auth/register" \
         -H "Content-Type: application/json" \
         -d '{
-            "name": "CCRP Test User",
-            "email": "ccrp.test@example.com",
-            "partyType": "CCRP",
-            "organization": "CCRP Test Organization",
-            "description": "Test CCRP user for all test suites"
+            "name": "TSP Test User",
+            "email": "tsp.test@example.com",
+            "partyType": "TSP",
+            "organization": "TSP Test Organization",
+            "description": "Test TSP user for all test suites"
         }')
     
     if echo "$ccrp_response" | grep -q '"success":true'; then
         local ccrp_password=$(echo "$ccrp_response" | grep -o '"password":"[^"]*"' | cut -d'"' -f4)
-        TEST_USERS["ccrp"]="ccrp.test@example.com"
-        TEST_USER_CREDENTIALS["ccrp"]="$ccrp_password"
-        echo -e "${GREEN}✅ CCRP user created: ccrp.test@example.com${NC}"
+        TEST_USERS["tsp"]="tsp.test@example.com"
+        TEST_USER_CREDENTIALS["tsp"]="$ccrp_password"
+        echo -e "${GREEN}✅ TSP user created: tsp.test@example.com${NC}"
     else
-        echo -e "${RED}❌ Failed to create CCRP user${NC}"
+        echo -e "${RED}❌ Failed to create TSP user${NC}"
     fi
     
     # Admin User
@@ -393,9 +393,9 @@ create_test_contracts_via_api() {
 create_test_environments_via_api() {
     echo -e "${BLUE}🏗️ Creating test environments...${NC}"
     
-    local ccrp_token=$(get_user_token "ccrp")
+    local ccrp_token=$(get_user_token "tsp")
     if [ -z "$ccrp_token" ]; then
-        echo -e "${RED}❌ Cannot create environments without CCRP user token${NC}"
+        echo -e "${RED}❌ Cannot create environments without TSP user token${NC}"
         return 1
     fi
     
@@ -441,13 +441,13 @@ cache_test_data() {
     "users": {
         "tdp": "${TEST_USERS[tdp]}",
         "tdc": "${TEST_USERS[tdc]}",
-        "ccrp": "${TEST_USERS[ccrp]}",
+        "tsp": "${TEST_USERS[tsp]}",
         "admin": "${TEST_USERS[admin]}"
     },
     "credentials": {
         "tdp": "${TEST_USER_CREDENTIALS[tdp]}",
         "tdc": "${TEST_USER_CREDENTIALS[tdc]}",
-        "ccrp": "${TEST_USER_CREDENTIALS[ccrp]}",
+        "tsp": "${TEST_USER_CREDENTIALS[tsp]}",
         "admin": "${TEST_USER_CREDENTIALS[admin]}"
     },
     "datasets": {
@@ -481,13 +481,13 @@ load_cached_test_data() {
     # Load user data
     TEST_USERS["tdp"]=$(jq -r '.users.tdp' test-data-cache.json)
     TEST_USERS["tdc"]=$(jq -r '.users.tdc' test-data-cache.json)
-    TEST_USERS["ccrp"]=$(jq -r '.users.ccrp' test-data-cache.json)
+    TEST_USERS["tsp"]=$(jq -r '.users.tsp' test-data-cache.json)
     TEST_USERS["admin"]=$(jq -r '.users.admin' test-data-cache.json)
     
     # Load credentials
     TEST_USER_CREDENTIALS["tdp"]=$(jq -r '.credentials.tdp' test-data-cache.json)
     TEST_USER_CREDENTIALS["tdc"]=$(jq -r '.credentials.tdc' test-data-cache.json)
-    TEST_USER_CREDENTIALS["ccrp"]=$(jq -r '.credentials.ccrp' test-data-cache.json)
+    TEST_USER_CREDENTIALS["tsp"]=$(jq -r '.credentials.tsp' test-data-cache.json)
     TEST_USER_CREDENTIALS["admin"]=$(jq -r '.credentials.admin' test-data-cache.json)
     
     # Load datasets
@@ -550,7 +550,7 @@ show_test_data_summary() {
     echo -e "${GREEN}👥 Users:${NC}"
     echo "  TDP: ${TEST_USERS[tdp]}"
     echo "  TDC: ${TEST_USERS[tdc]}"
-    echo "  CCRP: ${TEST_USERS[ccrp]}"
+    echo "  TSP: ${TEST_USERS[tsp]}"
     echo "  Admin: ${TEST_USERS[admin]}"
     echo ""
     echo -e "${GREEN}📊 Datasets:${NC}"

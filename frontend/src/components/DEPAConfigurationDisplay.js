@@ -105,62 +105,28 @@ const DEPAConfigurationDisplay = ({
 
         {/* User DEPA ID (if available) */}
         {user?.depaId && (
-          <Box sx={{ mb: 2 }}>
-            <Typography variant="body2" color="text.secondary" gutterBottom>
-              <strong>Your DEPA ID:</strong>
-            </Typography>
-            <Paper 
-              elevation={1} 
-              sx={{ 
-                p: 2, 
-                bgcolor: 'grey.50', 
-                border: '1px solid', 
-                borderColor: 'grey.300',
-                borderRadius: 1
+          <Box sx={{ mb: compact ? 0 : 2 }}>
+            {!compact && (
+              <Typography variant="body2" color="text.secondary" gutterBottom>
+                <strong>DEPA ID</strong>
+              </Typography>
+            )}
+            <Typography
+              variant="body1"
+              sx={{
+                fontFamily: 'monospace',
+                fontSize: compact ? '0.9rem' : '1rem',
+                wordBreak: 'break-all',
+                color: 'text.primary',
               }}
             >
-              <Typography 
-                variant="body1" 
-                sx={{ 
-                  fontFamily: 'monospace', 
-                  fontSize: compact ? '0.9rem' : '1rem',
-                  wordBreak: 'break-all',
-                  color: 'text.primary'
-                }}
-              >
-                {user.depaId}
-              </Typography>
-            </Paper>
-          </Box>
-        )}
-
-        {/* Compact View */}
-        {compact && (
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
-            <Chip 
-              label={config.prefix} 
-              size="small" 
-              variant="outlined"
-              color="primary"
-              icon={<PublicIcon />}
-            />
-            <Typography variant="caption" color="text.secondary">
-              {config.region}, {config.country}
+              {user.depaId}
             </Typography>
-            <Chip 
-              label={config.jurisdiction} 
-              size="small" 
-              variant="outlined"
-              color="secondary"
-            />
           </Box>
         )}
 
-        {/* Expanded View - Always show for registration page */}
-        {!compact && (
-          <Box sx={{ mt: 2 }}>
-              {/* Deployment Configuration */}
-              {showDeploymentInfo && (
+        {/* Expanded deployment details (registration / admin only) */}
+        {!compact && showDeploymentInfo && config && (
                 <Box sx={{ mb: 3 }}>
                   <Typography variant="subtitle2" gutterBottom sx={{ display: 'flex', alignItems: 'center' }}>
                     <BusinessIcon sx={{ mr: 1, fontSize: '1rem' }} />
@@ -197,8 +163,6 @@ const DEPAConfigurationDisplay = ({
                     </Grid>
                   </Grid>
                 </Box>
-              )}
-            </Box>
         )}
       </CardContent>
     </Card>

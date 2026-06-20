@@ -43,7 +43,7 @@ const drawerWidth = 240;
 const Layout = ({ children }) => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { currentUser, isAuthenticated, isTDC, isTDP, isCCRP, deploymentStatus, isGlobalDEPAId, deploymentInfo, clearAuthData } = useUser();
+  const { currentUser, isAuthenticated, isTDC, isTDP, isTSP, deploymentStatus, isGlobalDEPAId, deploymentInfo, clearAuthData } = useUser();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [anchorEl, setAnchorEl] = useState(null);
 
@@ -79,11 +79,11 @@ const Layout = ({ children }) => {
     { text: 'Contracts', icon: <Description />, path: '/contracts' },
     ...(isTDC ? [{ text: 'Training', icon: <Psychology />, path: '/tdc/training' }] : []),
     ...(isTDC ? [{ text: 'CAN Jobs', icon: <Security />, path: '/can/jobs' }] : []),
-    // CCRP-specific menu items (only for CCRP users, not AppAdmin)
-    ...(currentUser?.partyType === 'CCRP' ? [
-      { text: 'Environments', icon: <Security />, path: '/ccrp/environments' },
-      { text: 'Infrastructure', icon: <Security />, path: '/ccrp/infrastructure' },
-      { text: 'Cloud Credentials', icon: <Security />, path: '/ccrp/cloud-credentials' },
+    // TSP-specific menu items (only for TSP users, not AppAdmin)
+    ...(currentUser?.partyType === 'TSP' || currentUser?.partyType === 'CCRP' ? [
+      { text: 'Environments', icon: <Security />, path: '/tsp/environments' },
+      { text: 'Infrastructure', icon: <Security />, path: '/tsp/infrastructure' },
+      { text: 'Cloud Credentials', icon: <Security />, path: '/tsp/cloud-credentials' },
     ] : []),
     // Only show Users menu for AppAdmin
     ...(currentUser?.partyType === 'AppAdmin' ? [{ text: 'Users', icon: <People />, path: '/admin/users' }] : []),
@@ -95,7 +95,7 @@ const Layout = ({ children }) => {
     switch (role) {
       case 'TDP': return 'bg-blue-100 text-blue-800';
       case 'TDC': return 'bg-green-100 text-green-800';
-      case 'CCRP': return 'bg-purple-100 text-purple-800';
+      case 'TSP': return 'bg-purple-100 text-purple-800';
       default: return 'bg-gray-100 text-gray-800';
     }
   };
@@ -210,19 +210,9 @@ const Layout = ({ children }) => {
           </Typography>
           {/* Global DEPA ID Information */}
           {currentUser.depaId && (
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-              <Typography variant="caption" color="text.secondary" noWrap>
-                {isGlobalDEPAId ? '🌍' : '🆔'} {currentUser.depaId}
-              </Typography>
-              {isGlobalDEPAId && deploymentInfo && (
-                <Chip
-                  label={deploymentInfo.deploymentPrefix}
-                  size="small"
-                  variant="outlined"
-                  sx={{ height: 16, fontSize: '0.6rem' }}
-                />
-              )}
-            </Box>
+            <Typography variant="caption" color="text.secondary" noWrap sx={{ fontFamily: 'monospace' }}>
+              {currentUser.depaId}
+            </Typography>
           )}
         </Box>
       </Box>

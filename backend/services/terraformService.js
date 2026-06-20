@@ -689,7 +689,7 @@ variable "tags" {
     Environment = "Training"
     Project     = "ContractManagement"
     ManagedBy   = "Terraform"
-    CreatedBy   = "CCRP"
+    CreatedBy   = "TSP"
   }
 }`;
   }
@@ -916,7 +916,7 @@ echo "VM Index: ${vm_index}"`;
    */
   buildProviderConfig(azureConfig = null) {
     if (azureConfig) {
-      // Use CCRP-specific Azure configuration
+      // Use TSP-specific Azure configuration
       return `provider "azurerm" {
   features {}
   

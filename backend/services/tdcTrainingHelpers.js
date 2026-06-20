@@ -100,7 +100,7 @@ function buildContainerSpec(contract) {
     datasetRefs: Array.isArray(contract.contractDatasets) ? contract.contractDatasets : [],
     modelRefs: Array.isArray(contract.aiModelIds) ? contract.aiModelIds : [],
     logDestination: contract.logDestination || null,
-    cloudProvider: contract.ccrpCloudProvider || null,
+    cloudProvider: contract.tspCloudProvider || null,
   };
 }
 
@@ -193,9 +193,9 @@ function buildTrainingModelProvenance(inputs, trainingResults) {
     contractStatus: contract.status || null,
     tdcId: contract.tdcId ?? null,
     tdcDepaId: contract.tdcDepaId || null,
-    ccrpId: contract.ccrpId ?? null,
+    tspId: contract.tspId ?? null,
     ccrpDepaId: contract.ccrpDepaId || null,
-    ccrpCloudProvider: contract.ccrpCloudProvider || null,
+    tspCloudProvider: contract.tspCloudProvider || null,
     environmentSpecs: contract.environmentSpecs || null,
     trainingParams: contract.trainingParams || null,
     kmsEnabled,

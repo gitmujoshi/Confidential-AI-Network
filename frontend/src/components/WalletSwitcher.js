@@ -35,8 +35,8 @@ const testWallets = [
     description: 'Training Data Consumer - Can browse datasets and create contracts'
   },
   {
-    name: 'CCRP Provider 1',
-    role: 'CCRP',
+    name: 'TSP Provider 1',
+    role: 'TSP',
     address: '0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC',
     privateKey: process.env.REACT_APP_CCRP_PRIVATE_KEY || '0x0000000000000000000000000000000000000000000000000000000000000000',
     description: 'Contract Compliance & Risk Provider - Can review and sign contracts'

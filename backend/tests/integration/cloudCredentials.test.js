@@ -2,7 +2,7 @@ const request = require('supertest');
 const app = require('../../server');
 const { Sequelize } = require('sequelize');
 const SecretManager = require('../../services/secretManager');
-const CCRPCloudCredentials = require('../../models/CCRPCloudCredentials');
+const TSPCloudCredentials = require('../../models/TSPCloudCredentials');
 
 // Mock the secret manager
 jest.mock('../../services/secretManager');
@@ -30,11 +30,11 @@ describe('Cloud Credentials API Integration Tests', () => {
     // Create test user
     const { User } = require('../../models');
     const testUser = await User.create({
-      email: 'test-ccrp@example.com',
+      email: 'test-tsp@example.com',
       password_hash: 'hashed-password',
-      party_type: 'CCRP',
+      party_type: 'TSP',
       iam_user_id: 'test-iam-id',
-      iam_username: 'test-ccrp'
+      iam_username: 'test-tsp'
     });
     testUserId = testUser.id;
 
@@ -46,7 +46,7 @@ describe('Cloud Credentials API Integration Tests', () => {
       { expiresIn: '1h' }
     );
     ccrpToken = jwt.sign(
-      { id: testUserId, email: 'test-ccrp@example.com', partyType: 'CCRP' },
+      { id: testUserId, email: 'test-tsp@example.com', partyType: 'TSP' },
       process.env.JWT_SECRET || 'test-secret',
       { expiresIn: '1h' }
     );
@@ -67,16 +67,16 @@ describe('Cloud Credentials API Integration Tests', () => {
 
   beforeEach(async () => {
     // Clear test data
-    await CCRPCloudCredentials.destroy({ where: {} });
+    await TSPCloudCredentials.destroy({ where: {} });
     
     // Reset mocks
     jest.clearAllMocks();
   });
 
-  describe('GET /api/ccrp/cloud-credentials', () => {
+  describe('GET /api/tsp/cloud-credentials', () => {
     test('should return empty list when no credentials exist', async () => {
       const response = await request(app)
-        .get('/api/ccrp/cloud-credentials')
+        .get('/api/tsp/cloud-credentials')
         .set('Authorization', `Bearer ${ccrpToken}`);
 
       expect(response.status).toBe(200);
@@ -86,8 +86,8 @@ describe('Cloud Credentials API Integration Tests', () => {
 
     test('should return user credentials', async () => {
       // Create test credential
-      await CCRPCloudCredentials.create({
-        ccrpUserId: testUserId,
+      await TSPCloudCredentials.create({
+        tspUserId: testUserId,
         cloudProvider: 'AZURE',
         secretName: 'test-azure-credentials',
         secretManager: 'VAULT',
@@ -97,7 +97,7 @@ describe('Cloud Credentials API Integration Tests', () => {
       });
 
       const response = await request(app)
-        .get('/api/ccrp/cloud-credentials')
+        .get('/api/tsp/cloud-credentials')
         .set('Authorization', `Bearer ${ccrpToken}`);
 
       expect(response.status).toBe(200);
@@ -109,12 +109,12 @@ describe('Cloud Credentials API Integration Tests', () => {
 
     test('should require authentication', async () => {
       const response = await request(app)
-        .get('/api/ccrp/cloud-credentials');
+        .get('/api/tsp/cloud-credentials');
 
       expect(response.status).toBe(401);
     });
 
-    test('should require CCRP or AppAdmin role', async () => {
+    test('should require TSP or AppAdmin role', async () => {
       const tdpToken = require('jsonwebtoken').sign(
         { id: 2, email: 'tdp@example.com', partyType: 'TDP' },
         process.env.JWT_SECRET || 'test-secret',
@@ -122,14 +122,14 @@ describe('Cloud Credentials API Integration Tests', () => {
       );
 
       const response = await request(app)
-        .get('/api/ccrp/cloud-credentials')
+        .get('/api/tsp/cloud-credentials')
         .set('Authorization', `Bearer ${tdpToken}`);
 
       expect(response.status).toBe(403);
     });
   });
 
-  describe('POST /api/ccrp/cloud-credentials', () => {
+  describe('POST /api/tsp/cloud-credentials', () => {
     test('should create new Azure credential', async () => {
       const mockSecretManager = {
         storeCredentials: jest.fn().mockResolvedValue({})
@@ -151,7 +151,7 @@ describe('Cloud Credentials API Integration Tests', () => {
       };
 
       const response = await request(app)
-        .post('/api/ccrp/cloud-credentials')
+        .post('/api/tsp/cloud-credentials')
         .set('Authorization', `Bearer ${ccrpToken}`)
         .send(credentialData);
 
@@ -187,7 +187,7 @@ describe('Cloud Credentials API Integration Tests', () => {
       };
 
       const response = await request(app)
-        .post('/api/ccrp/cloud-credentials')
+        .post('/api/tsp/cloud-credentials')
         .set('Authorization', `Bearer ${ccrpToken}`)
         .send(credentialData);
 
@@ -203,7 +203,7 @@ describe('Cloud Credentials API Integration Tests', () => {
       };
 
       const response = await request(app)
-        .post('/api/ccrp/cloud-credentials')
+        .post('/api/tsp/cloud-credentials')
         .set('Authorization', `Bearer ${ccrpToken}`)
         .send(credentialData);
 
@@ -225,7 +225,7 @@ describe('Cloud Credentials API Integration Tests', () => {
       };
 
       const response = await request(app)
-        .post('/api/ccrp/cloud-credentials')
+        .post('/api/tsp/cloud-credentials')
         .set('Authorization', `Bearer ${ccrpToken}`)
         .send(credentialData);
 
@@ -234,11 +234,11 @@ describe('Cloud Credentials API Integration Tests', () => {
     });
   });
 
-  describe('PUT /api/ccrp/cloud-credentials/:id', () => {
+  describe('PUT /api/tsp/cloud-credentials/:id', () => {
     test('should update existing credential', async () => {
       // Create test credential
-      const credential = await CCRPCloudCredentials.create({
-        ccrpUserId: testUserId,
+      const credential = await TSPCloudCredentials.create({
+        tspUserId: testUserId,
         cloudProvider: 'AZURE',
         secretName: 'test-azure-credentials',
         secretManager: 'VAULT',
@@ -252,7 +252,7 @@ describe('Cloud Credentials API Integration Tests', () => {
       };
 
       const response = await request(app)
-        .put(`/api/ccrp/cloud-credentials/${credential.id}`)
+        .put(`/api/tsp/cloud-credentials/${credential.id}`)
         .set('Authorization', `Bearer ${ccrpToken}`)
         .send(updateData);
 
@@ -263,15 +263,15 @@ describe('Cloud Credentials API Integration Tests', () => {
 
     test('should not allow updating other user credentials', async () => {
       // Create credential for different user
-      const otherCredential = await CCRPCloudCredentials.create({
-        ccrpUserId: testUserId + 1,
+      const otherCredential = await TSPCloudCredentials.create({
+        tspUserId: testUserId + 1,
         cloudProvider: 'AZURE',
         secretName: 'other-user-credentials',
         secretManager: 'VAULT'
       });
 
       const response = await request(app)
-        .put(`/api/ccrp/cloud-credentials/${otherCredential.id}`)
+        .put(`/api/tsp/cloud-credentials/${otherCredential.id}`)
         .set('Authorization', `Bearer ${ccrpToken}`)
         .send({ defaultLocation: 'westus' });
 
@@ -279,11 +279,11 @@ describe('Cloud Credentials API Integration Tests', () => {
     });
   });
 
-  describe('DELETE /api/ccrp/cloud-credentials/:id', () => {
+  describe('DELETE /api/tsp/cloud-credentials/:id', () => {
     test('should delete credential', async () => {
       // Create test credential
-      const credential = await CCRPCloudCredentials.create({
-        ccrpUserId: testUserId,
+      const credential = await TSPCloudCredentials.create({
+        tspUserId: testUserId,
         cloudProvider: 'AZURE',
         secretName: 'test-azure-credentials',
         secretManager: 'VAULT'
@@ -295,7 +295,7 @@ describe('Cloud Credentials API Integration Tests', () => {
       SecretManager.mockImplementation(() => mockSecretManager);
 
       const response = await request(app)
-        .delete(`/api/ccrp/cloud-credentials/${credential.id}`)
+        .delete(`/api/tsp/cloud-credentials/${credential.id}`)
         .set('Authorization', `Bearer ${ccrpToken}`);
 
       expect(response.status).toBe(200);
@@ -305,32 +305,32 @@ describe('Cloud Credentials API Integration Tests', () => {
       );
 
       // Verify credential is deleted
-      const deletedCredential = await CCRPCloudCredentials.findByPk(credential.id);
+      const deletedCredential = await TSPCloudCredentials.findByPk(credential.id);
       expect(deletedCredential).toBeNull();
     });
 
     test('should not allow deleting other user credentials', async () => {
       // Create credential for different user
-      const otherCredential = await CCRPCloudCredentials.create({
-        ccrpUserId: testUserId + 1,
+      const otherCredential = await TSPCloudCredentials.create({
+        tspUserId: testUserId + 1,
         cloudProvider: 'AZURE',
         secretName: 'other-user-credentials',
         secretManager: 'VAULT'
       });
 
       const response = await request(app)
-        .delete(`/api/ccrp/cloud-credentials/${otherCredential.id}`)
+        .delete(`/api/tsp/cloud-credentials/${otherCredential.id}`)
         .set('Authorization', `Bearer ${ccrpToken}`);
 
       expect(response.status).toBe(404);
     });
   });
 
-  describe('POST /api/ccrp/cloud-credentials/:id/validate', () => {
+  describe('POST /api/tsp/cloud-credentials/:id/validate', () => {
     test('should validate credential successfully', async () => {
       // Create test credential
-      const credential = await CCRPCloudCredentials.create({
-        ccrpUserId: testUserId,
+      const credential = await TSPCloudCredentials.create({
+        tspUserId: testUserId,
         cloudProvider: 'AZURE',
         secretName: 'test-azure-credentials',
         secretManager: 'VAULT'
@@ -345,7 +345,7 @@ describe('Cloud Credentials API Integration Tests', () => {
       SecretManager.mockImplementation(() => mockSecretManager);
 
       const response = await request(app)
-        .post(`/api/ccrp/cloud-credentials/${credential.id}/validate`)
+        .post(`/api/tsp/cloud-credentials/${credential.id}/validate`)
         .set('Authorization', `Bearer ${ccrpToken}`);
 
       expect(response.status).toBe(200);
@@ -358,8 +358,8 @@ describe('Cloud Credentials API Integration Tests', () => {
 
     test('should handle validation errors', async () => {
       // Create test credential
-      const credential = await CCRPCloudCredentials.create({
-        ccrpUserId: testUserId,
+      const credential = await TSPCloudCredentials.create({
+        tspUserId: testUserId,
         cloudProvider: 'AZURE',
         secretName: 'test-azure-credentials',
         secretManager: 'VAULT'
@@ -371,7 +371,7 @@ describe('Cloud Credentials API Integration Tests', () => {
       SecretManager.mockImplementation(() => mockSecretManager);
 
       const response = await request(app)
-        .post(`/api/ccrp/cloud-credentials/${credential.id}/validate`)
+        .post(`/api/tsp/cloud-credentials/${credential.id}/validate`)
         .set('Authorization', `Bearer ${ccrpToken}`);
 
       expect(response.status).toBe(500);

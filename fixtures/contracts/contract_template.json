@@ -49,7 +49,7 @@
       "type": "string",
       "enum": [
         "PENDING_TDP_APPROVAL",
-        "PENDING_CCRP_APPROVAL", 
+        "PENDING_TSP_APPROVAL", 
         "ACTIVE",
         "TRAINING_IN_PROGRESS",
         "COMPLETED",
@@ -163,9 +163,9 @@
           },
           "required": ["id", "name", "email", "partyType"]
         },
-        "ccrp": {
+        "tsp": {
           "type": ["object", "null"],
-          "description": "Confidential Clean Room Provider (optional)",
+          "description": "Tech Service Provider (optional)",
           "properties": {
             "id": {
               "type": "integer",
@@ -174,14 +174,14 @@
             },
             "name": {
               "type": "string",
-              "description": "Full name of the CCRP",
+              "description": "Full name of the TSP",
               "example": "Secure Analytics LLC"
             },
             "email": {
               "type": "string",
               "format": "email",
-              "description": "Email address of the CCRP",
-              "example": "ccrp@secureanalytics.com"
+              "description": "Email address of the TSP",
+              "example": "tsp@secureanalytics.com"
             },
             "walletAddress": {
               "type": ["string", "null"],
@@ -196,9 +196,9 @@
             },
             "partyType": {
               "type": "string",
-              "enum": ["CCRP"],
-              "description": "Party type - always CCRP for this role",
-              "example": "CCRP"
+              "enum": ["TSP"],
+              "description": "Party type - always TSP for this role",
+              "example": "TSP"
             },
             "organization": {
               "type": "string",
@@ -302,14 +302,14 @@
           },
           "required": ["cloudProvider", "kmsProvider", "storageProvider", "region"]
         },
-        "ccrp": {
+        "tsp": {
           "type": "object",
-          "description": "CCRP infrastructure configuration",
+          "description": "TSP infrastructure configuration",
           "properties": {
             "cloudProvider": {
               "type": "string",
               "enum": ["MULTI_CLOUD", "AWS", "AZURE", "GCP", "ON_PREMISES"],
-              "description": "Cloud provider strategy for CCRP",
+              "description": "Cloud provider strategy for TSP",
               "example": "MULTI_CLOUD"
             },
             "supportedClouds": {

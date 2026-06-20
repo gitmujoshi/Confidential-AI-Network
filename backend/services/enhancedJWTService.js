@@ -6,7 +6,7 @@
  * 
  * Features:
  * - Multi-purpose JWT tokens (authentication, data access, TEE attestation)
- * - Role-based access control (TDP, TDC, CCRP, AppAdmin)
+ * - Role-based access control (TDP, TDC, TSP, AppAdmin)
  * - Token lifecycle management (creation, validation, refresh, revocation)
  * - Integration with platform encryption workflow
  * - Audit logging for all token operations
@@ -36,7 +36,7 @@ class EnhancedJWTService {
       rolePermissions: {
         TDP: ['upload_data', 'manage_datasets', 'view_own_data'],
         TDC: ['request_data', 'create_contracts', 'execute_training', 'view_own_contracts'],
-        CCRP: ['provision_tee', 'manage_environments', 'monitor_training', 'view_own_environments'],
+        TSP: ['provision_tee', 'manage_environments', 'monitor_training', 'view_own_environments'],
         AppAdmin: ['manage_users', 'view_all_data', 'manage_system', 'audit_logs']
       },
       
@@ -220,17 +220,17 @@ class EnhancedJWTService {
   }
 
   /**
-   * Create TEE attestation token for CCRP
+   * Create TEE attestation token for TSP
    * @param {Object} teeInfo - TEE information
-   * @param {string} ccrpId - CCRP user ID
+   * @param {string} tspId - TSP user ID
    * @returns {string} TEE attestation token
    */
-  async createTEEAttestationToken(teeInfo, ccrpId) {
+  async createTEEAttestationToken(teeInfo, tspId) {
     try {
       const tokenId = uuidv4();
       
       const payload = {
-        sub: ccrpId,
+        sub: tspId,
         teeId: teeInfo.teeId,
         tokenType: this.tokenConfig.tokenTypes.TEE_ATTESTATION,
         jti: tokenId,
@@ -253,7 +253,7 @@ class EnhancedJWTService {
 
       // Track active token
       this.activeTokens.set(tokenId, {
-        userId: ccrpId,
+        userId: tspId,
         teeId: teeInfo.teeId,
         tokenType: 'tee_attestation',
         createdAt: new Date(),
@@ -261,12 +261,12 @@ class EnhancedJWTService {
       });
 
       this.auditTokenOperation('CREATE_TEE_ATTESTATION_TOKEN', {
-        ccrpId: ccrpId,
+        tspId: tspId,
         teeId: teeInfo.teeId,
         tokenId: tokenId
       });
 
-      logger.info(`🎫 TEE attestation token created for CCRP ${ccrpId}, TEE ${teeInfo.teeId}`);
+      logger.info(`🎫 TEE attestation token created for TSP ${tspId}, TEE ${teeInfo.teeId}`);
       return token;
       
     } catch (error) {
@@ -279,16 +279,16 @@ class EnhancedJWTService {
    * Create training execution token
    * @param {Object} trainingRequest - Training request details
    * @param {string} tdcId - TDC user ID
-   * @param {string} ccrpId - CCRP user ID
+   * @param {string} tspId - TSP user ID
    * @returns {string} Training execution token
    */
-  async createTrainingExecutionToken(trainingRequest, tdcId, ccrpId) {
+  async createTrainingExecutionToken(trainingRequest, tdcId, tspId) {
     try {
       const tokenId = uuidv4();
       
       const payload = {
         sub: tdcId,
-        ccrpId: ccrpId,
+        tspId: tspId,
         trainingJobId: trainingRequest.trainingJobId,
         tokenType: this.tokenConfig.tokenTypes.TRAINING_EXECUTION,
         jti: tokenId,
@@ -313,7 +313,7 @@ class EnhancedJWTService {
       // Track active token
       this.activeTokens.set(tokenId, {
         userId: tdcId,
-        ccrpId: ccrpId,
+        tspId: tspId,
         trainingJobId: trainingRequest.trainingJobId,
         tokenType: 'training_execution',
         createdAt: new Date(),
@@ -322,7 +322,7 @@ class EnhancedJWTService {
 
       this.auditTokenOperation('CREATE_TRAINING_EXECUTION_TOKEN', {
         tdcId: tdcId,
-        ccrpId: ccrpId,
+        tspId: tspId,
         trainingJobId: trainingRequest.trainingJobId,
         tokenId: tokenId
       });

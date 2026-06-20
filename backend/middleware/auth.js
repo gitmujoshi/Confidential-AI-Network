@@ -11,6 +11,7 @@
  */
 
 const logger = require('../utils/logger');
+const { normalizePartyType } = require('../utils/partyTypes');
 
 /**
  * - Error handling
@@ -138,15 +139,16 @@ const authenticateToken = async (req, res, next) => {
           await user.update({ lastLoginAt: new Date() });
 
           // Attach user information to request
+          const normalizedPartyType = normalizePartyType(user.partyType);
           req.user = {
             ...userInfo,
-            id: userInfo.dbUserId || user.id, // Use dbUserId if available, fallback to local user id
-            partyType: user.partyType,
+            id: userInfo.dbUserId || user.id,
+            partyType: normalizedPartyType,
             localUser: {
               id: user.id,
               name: user.name,
               email: user.email,
-              partyType: user.partyType,
+              partyType: normalizedPartyType,
               walletAddress: user.walletAddress,
               did: user.did,
               publicKey: user.publicKey,
@@ -216,7 +218,7 @@ const authenticateToken = async (req, res, next) => {
         id: user.id,
         email: user.email,
         name: user.name,
-        partyType: user.partyType,
+        partyType: normalizePartyType(user.partyType),
         organization: user.organization,
         walletAddress: user.walletAddress,
         publicKey: user.publicKey,
@@ -233,7 +235,7 @@ const authenticateToken = async (req, res, next) => {
           id: user.id,
           name: user.name,
           email: user.email,
-          partyType: user.partyType,
+          partyType: normalizePartyType(user.partyType),
           walletAddress: user.walletAddress,
           did: user.did,
           publicKey: user.publicKey,
@@ -284,13 +286,16 @@ const requireRole = (roles) => {
     }
 
     const userRoles = req.user.roles || [];
-    const userPartyType = req.user.partyType;
+    const userPartyType = normalizePartyType(req.user.partyType);
     logger.info(`🔐 Role check - Required: ${JSON.stringify(roles)}, User roles: ${JSON.stringify(userRoles)}, Party type: ${userPartyType}`);
+    const expandedRoles = Array.isArray(roles) ? roles : [roles];
+    const legacyRoles = expandedRoles.flatMap((role) =>
+      role === 'TSP' ? ['TSP', 'CCRP'] : [role]
+    );
     
-    // Check if user has any of the required roles
-    const hasRole = Array.isArray(roles) 
-      ? roles.some(role => userRoles.includes(role) || userPartyType === role)
-      : userRoles.includes(roles) || userPartyType === roles;
+    const hasRole = legacyRoles.some(
+      (role) => userRoles.includes(role) || userPartyType === normalizePartyType(role)
+    );
 
     if (!hasRole) {
       return res.status(403).json({ 
@@ -316,9 +321,9 @@ const requireTDP = requireRole('TDP');
 const requireTDC = requireRole('TDC');
 
 /**
- * Require CCRP role
+ * Require TSP role
  */
-const requireCCRP = requireRole('CCRP');
+const requireTSP = requireRole('TSP');
 
 /**
  * Require admin role
@@ -580,7 +585,7 @@ module.exports = {
   requireRole,
   requireTDP,
   requireTDC,
-  requireCCRP,
+  requireTSP,
   requireAdmin,
   requireAppAdmin,
   requireAnyAdmin,

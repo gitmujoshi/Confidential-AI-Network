@@ -1,14 +1,14 @@
 /**
- * CCRP Azure Credentials Service
+ * TSP Azure Credentials Service
  * 
  * This service manages Azure credentials for CCRPs and integrates them with contract provisioning.
  * It handles credential storage, validation, and retrieval for contract-specific Azure deployments.
  */
 
-const { CCRPAzureCredentials, User } = require('../models');
+const { TSPAzureCredentials, User } = require('../models');
 const crypto = require('crypto');
 
-class CCRPAzureCredentialsService {
+class TSPAzureCredentialsService {
   constructor() {
     this.encryptionKey = process.env.ENCRYPTION_KEY;
     if (!this.encryptionKey) {
@@ -17,8 +17,8 @@ class CCRPAzureCredentialsService {
   }
 
   /**
-   * Create or update Azure credentials for a CCRP
-   * @param {number} ccrpUserId - CCRP user ID
+   * Create or update Azure credentials for a TSP
+   * @param {number} tspUserId - TSP user ID
    * @param {Object} credentials - Azure credentials
    * @param {string} credentials.subscriptionId - Azure subscription ID
    * @param {string} credentials.tenantId - Azure tenant ID
@@ -28,24 +28,24 @@ class CCRPAzureCredentialsService {
    * @param {Object} config - Default configuration
    * @returns {Object} Created/updated credentials
    */
-  async createOrUpdateCredentials(ccrpUserId, credentials, config = {}) {
+  async createOrUpdateCredentials(tspUserId, credentials, config = {}) {
     try {
-      console.log(`🔐 Creating/updating Azure credentials for CCRP: ${ccrpUserId}`);
+      console.log(`🔐 Creating/updating Azure credentials for TSP: ${tspUserId}`);
 
-      // Validate CCRP user
-      const ccrpUser = await User.findOne({
-        where: { id: ccrpUserId, partyType: 'CCRP' }
+      // Validate TSP user
+      const tspUser = await User.findOne({
+        where: { id: tspUserId, partyType: 'TSP' }
       });
 
-      if (!ccrpUser) {
-        throw new Error('CCRP user not found');
+      if (!tspUser) {
+        throw new Error('TSP user not found');
       }
 
       // Check if credentials already exist
-      const existingCredentials = await CCRPAzureCredentials.findByCCRP(ccrpUserId);
+      const existingCredentials = await TSPAzureCredentials.findByCCRP(tspUserId);
 
       const credentialData = {
-        ccrpUserId,
+        tspUserId,
         subscriptionId: credentials.subscriptionId,
         tenantId: credentials.tenantId,
         clientId: credentials.clientId,
@@ -66,18 +66,18 @@ class CCRPAzureCredentialsService {
         alertThreshold: config.alertThreshold || 0.8,
         isActive: true,
         validationStatus: 'PENDING',
-        createdBy: ccrpUserId
+        createdBy: tspUserId
       };
 
       let result;
       if (existingCredentials) {
         // Update existing credentials
         result = await existingCredentials.update(credentialData);
-        console.log(`✅ Updated Azure credentials for CCRP: ${ccrpUserId}`);
+        console.log(`✅ Updated Azure credentials for TSP: ${tspUserId}`);
       } else {
         // Create new credentials
-        result = await CCRPAzureCredentials.create(credentialData);
-        console.log(`✅ Created Azure credentials for CCRP: ${ccrpUserId}`);
+        result = await TSPAzureCredentials.create(credentialData);
+        console.log(`✅ Created Azure credentials for TSP: ${tspUserId}`);
       }
 
       // Validate credentials
@@ -91,16 +91,16 @@ class CCRPAzureCredentialsService {
   }
 
   /**
-   * Get Azure credentials for a CCRP
-   * @param {number} ccrpUserId - CCRP user ID
+   * Get Azure credentials for a TSP
+   * @param {number} tspUserId - TSP user ID
    * @returns {Object} Azure credentials
    */
-  async getCredentials(ccrpUserId) {
+  async getCredentials(tspUserId) {
     try {
-      const credentials = await CCRPAzureCredentials.findByCCRP(ccrpUserId);
+      const credentials = await TSPAzureCredentials.findByCCRP(tspUserId);
       
       if (!credentials) {
-        throw new Error('Azure credentials not found for this CCRP');
+        throw new Error('Azure credentials not found for this TSP');
       }
 
       if (!credentials.isActive) {
@@ -121,7 +121,7 @@ class CCRPAzureCredentialsService {
    */
   async validateCredentials(credentialId) {
     try {
-      const credentials = await CCRPAzureCredentials.findByPk(credentialId);
+      const credentials = await TSPAzureCredentials.findByPk(credentialId);
       
       if (!credentials) {
         throw new Error('Credentials not found');
@@ -183,7 +183,7 @@ class CCRPAzureCredentialsService {
       const contract = await Contract.findOne({
         where: { contractId },
         include: [
-          { model: User, as: 'ccrp' }
+          { model: User, as: 'tsp' }
         ]
       });
 
@@ -191,22 +191,22 @@ class CCRPAzureCredentialsService {
         throw new Error('Contract not found');
       }
 
-      if (!contract.ccrpId) {
-        throw new Error('Contract has no CCRP assigned');
+      if (!contract.tspId) {
+        throw new Error('Contract has no TSP assigned');
       }
 
-      if (contract.ccrpCloudProvider !== 'Azure') {
+      if (contract.tspCloudProvider !== 'Azure') {
         throw new Error('Contract is not configured for Azure');
       }
 
-      // Get CCRP credentials
-      const credentials = await this.getCredentials(contract.ccrpId);
+      // Get TSP credentials
+      const credentials = await this.getCredentials(contract.tspId);
 
-      // Build configuration from contract-specific settings and CCRP defaults
+      // Build configuration from contract-specific settings and TSP defaults
       const config = {
         subscription: {
-          id: contract.ccrpAzureSubscriptionId || credentials.subscriptionId,
-          tenantId: contract.ccrpAzureTenantId || credentials.tenantId
+          id: contract.tspAzureSubscriptionId || credentials.subscriptionId,
+          tenantId: contract.tspAzureTenantId || credentials.tenantId
         },
         auth: {
           clientId: credentials.clientId,
@@ -214,11 +214,11 @@ class CCRPAzureCredentialsService {
           authMethod: credentials.authMethod
         },
         defaults: {
-          location: contract.ccrpAzureLocation || credentials.defaultLocation,
-          resourceGroupPrefix: contract.ccrpAzureResourceGroupPrefix || credentials.defaultResourceGroupPrefix,
-          vmSize: contract.ccrpAzureVMSize || credentials.defaultVMSize,
-          storageSku: contract.ccrpAzureStorageSku || credentials.defaultStorageSku,
-          databaseSku: contract.ccrpAzureDatabaseSku || credentials.defaultDatabaseSku
+          location: contract.tspAzureLocation || credentials.defaultLocation,
+          resourceGroupPrefix: contract.tspAzureResourceGroupPrefix || credentials.defaultResourceGroupPrefix,
+          vmSize: contract.tspAzureVMSize || credentials.defaultVMSize,
+          storageSku: contract.tspAzureStorageSku || credentials.defaultStorageSku,
+          databaseSku: contract.tspAzureDatabaseSku || credentials.defaultDatabaseSku
         },
         network: {
           vnetAddressSpace: credentials.vnetAddressSpace,
@@ -226,14 +226,14 @@ class CCRPAzureCredentialsService {
           publicSubnetPrefix: credentials.publicSubnetPrefix
         },
         security: {
-          enableEncryption: contract.ccrpAzureEnableEncryption !== false && credentials.enableEncryption,
+          enableEncryption: contract.tspAzureEnableEncryption !== false && credentials.enableEncryption,
           enableKeyVault: credentials.enableKeyVault
         },
         monitoring: {
-          enableMonitoring: contract.ccrpAzureEnableMonitoring !== false && credentials.enableMonitoring
+          enableMonitoring: contract.tspAzureEnableMonitoring !== false && credentials.enableMonitoring
         },
         cost: {
-          budgetLimit: contract.ccrpAzureBudgetLimit || credentials.budgetLimit,
+          budgetLimit: contract.tspAzureBudgetLimit || credentials.budgetLimit,
           alertThreshold: credentials.alertThreshold
         }
       };
@@ -247,7 +247,7 @@ class CCRPAzureCredentialsService {
   }
 
   /**
-   * Update contract with CCRP Azure configuration
+   * Update contract with TSP Azure configuration
    * @param {string} contractId - Contract ID
    * @param {Object} azureConfig - Azure configuration
    * @returns {Object} Updated contract
@@ -259,28 +259,28 @@ class CCRPAzureCredentialsService {
       const updateData = {};
       
       if (azureConfig.subscription) {
-        updateData.ccrpAzureSubscriptionId = azureConfig.subscription.id;
-        updateData.ccrpAzureTenantId = azureConfig.subscription.tenantId;
+        updateData.tspAzureSubscriptionId = azureConfig.subscription.id;
+        updateData.tspAzureTenantId = azureConfig.subscription.tenantId;
       }
       
       if (azureConfig.defaults) {
-        updateData.ccrpAzureLocation = azureConfig.defaults.location;
-        updateData.ccrpAzureResourceGroupPrefix = azureConfig.defaults.resourceGroupPrefix;
-        updateData.ccrpAzureVMSize = azureConfig.defaults.vmSize;
-        updateData.ccrpAzureStorageSku = azureConfig.defaults.storageSku;
-        updateData.ccrpAzureDatabaseSku = azureConfig.defaults.databaseSku;
+        updateData.tspAzureLocation = azureConfig.defaults.location;
+        updateData.tspAzureResourceGroupPrefix = azureConfig.defaults.resourceGroupPrefix;
+        updateData.tspAzureVMSize = azureConfig.defaults.vmSize;
+        updateData.tspAzureStorageSku = azureConfig.defaults.storageSku;
+        updateData.tspAzureDatabaseSku = azureConfig.defaults.databaseSku;
       }
       
       if (azureConfig.security) {
-        updateData.ccrpAzureEnableEncryption = azureConfig.security.enableEncryption;
+        updateData.tspAzureEnableEncryption = azureConfig.security.enableEncryption;
       }
       
       if (azureConfig.monitoring) {
-        updateData.ccrpAzureEnableMonitoring = azureConfig.monitoring.enableMonitoring;
+        updateData.tspAzureEnableMonitoring = azureConfig.monitoring.enableMonitoring;
       }
       
       if (azureConfig.cost) {
-        updateData.ccrpAzureBudgetLimit = azureConfig.cost.budgetLimit;
+        updateData.tspAzureBudgetLimit = azureConfig.cost.budgetLimit;
       }
 
       const contract = await Contract.findOne({ where: { contractId } });
@@ -305,10 +305,10 @@ class CCRPAzureCredentialsService {
   async listCCRPsWithCredentials() {
     try {
       const ccrps = await User.findAll({
-        where: { partyType: 'CCRP' },
+        where: { partyType: 'TSP' },
         include: [
           {
-            model: CCRPAzureCredentials,
+            model: TSPAzureCredentials,
             as: 'azureCredentials',
             where: { isActive: true },
             required: false
@@ -316,13 +316,13 @@ class CCRPAzureCredentialsService {
         ]
       });
 
-      return ccrps.map(ccrp => ({
-        id: ccrp.id,
-        name: ccrp.name,
-        email: ccrp.email,
-        hasCredentials: !!ccrp.azureCredentials,
-        validationStatus: ccrp.azureCredentials?.validationStatus || 'NONE',
-        lastValidated: ccrp.azureCredentials?.lastValidated
+      return ccrps.map(tsp => ({
+        id: tsp.id,
+        name: tsp.name,
+        email: tsp.email,
+        hasCredentials: !!tsp.azureCredentials,
+        validationStatus: tsp.azureCredentials?.validationStatus || 'NONE',
+        lastValidated: tsp.azureCredentials?.lastValidated
       }));
     } catch (error) {
       console.error(`❌ Error listing CCRPs with credentials: ${error.message}`);
@@ -331,21 +331,21 @@ class CCRPAzureCredentialsService {
   }
 
   /**
-   * Delete Azure credentials for a CCRP
-   * @param {number} ccrpUserId - CCRP user ID
+   * Delete Azure credentials for a TSP
+   * @param {number} tspUserId - TSP user ID
    * @returns {boolean} Deletion result
    */
-  async deleteCredentials(ccrpUserId) {
+  async deleteCredentials(tspUserId) {
     try {
-      const credentials = await CCRPAzureCredentials.findByCCRP(ccrpUserId);
+      const credentials = await TSPAzureCredentials.findByCCRP(tspUserId);
       
       if (!credentials) {
-        throw new Error('Azure credentials not found for this CCRP');
+        throw new Error('Azure credentials not found for this TSP');
       }
 
       await credentials.update({ isActive: false });
       
-      console.log(`✅ Azure credentials deactivated for CCRP: ${ccrpUserId}`);
+      console.log(`✅ Azure credentials deactivated for TSP: ${tspUserId}`);
       return true;
     } catch (error) {
       console.error(`❌ Error deleting Azure credentials: ${error.message}`);
@@ -354,13 +354,13 @@ class CCRPAzureCredentialsService {
   }
 
   /**
-   * Test Azure connectivity for a CCRP
-   * @param {number} ccrpUserId - CCRP user ID
+   * Test Azure connectivity for a TSP
+   * @param {number} tspUserId - TSP user ID
    * @returns {Object} Test results
    */
-  async testAzureConnectivity(ccrpUserId) {
+  async testAzureConnectivity(tspUserId) {
     try {
-      const credentials = await this.getCredentials(ccrpUserId);
+      const credentials = await this.getCredentials(tspUserId);
       
       // Set environment variables for testing
       const originalEnv = {
@@ -416,4 +416,4 @@ class CCRPAzureCredentialsService {
   }
 }
 
-module.exports = CCRPAzureCredentialsService; 
+module.exports = TSPAzureCredentialsService; 

@@ -12,7 +12,7 @@
  * - Graceful fallback to database-only mode when blockchain unavailable
  * - Mock blockchain results for testing and development
  * - Health monitoring and status reporting
- * - Support for contract creation, signing, and CCRP selection
+ * - Support for contract creation, signing, and TSP selection
  * 
  * @author Contract Management System
  * @version 2.0.0
@@ -318,14 +318,14 @@ class BlockchainService {
   }
 
   async selectCCRP(contractId, ccrpAddress, privateKey) {
-    // If blockchain is not available, create a mock CCRP selection result
+    // If blockchain is not available, create a mock TSP selection result
     if (!this.blockchainAvailable) {
-      console.warn('⚠️  Blockchain not available, creating mock CCRP selection result');
+      console.warn('⚠️  Blockchain not available, creating mock TSP selection result');
       
       return {
         success: true,
         transactionHash: `MOCK_CCRP_TX_${Date.now()}_${contractId}`,
-        message: 'CCRP selected successfully (mock blockchain)',
+        message: 'TSP selected successfully (mock blockchain)',
         mode: this.mode,
         warning: 'Blockchain not available - using database-only mode'
       };
@@ -349,19 +349,19 @@ class BlockchainService {
       return {
         success: true,
         transactionHash: tx.hash,
-        message: 'CCRP selected successfully',
+        message: 'TSP selected successfully',
         mode: this.mode
       };
     } catch (error) {
-      console.error('❌ Error selecting CCRP on blockchain:', error);
+      console.error('❌ Error selecting TSP on blockchain:', error);
       
       // Fallback to mock result if blockchain fails
-      console.warn('⚠️  Falling back to mock CCRP selection result due to blockchain error');
+      console.warn('⚠️  Falling back to mock TSP selection result due to blockchain error');
       
       return {
         success: true,
         transactionHash: `FALLBACK_CCRP_TX_${Date.now()}_${contractId}`,
-        message: 'CCRP selected successfully (fallback mode)',
+        message: 'TSP selected successfully (fallback mode)',
         mode: 'DATABASE_ONLY',
         warning: 'Blockchain operation failed - using database-only mode',
         originalError: error.message
@@ -431,9 +431,9 @@ class BlockchainService {
       status: this.getContractStatusString(contract.status),
       createdAt: new Date(parseInt(contract.createdAt) * 1000),
       tdpSignedAt: contract.tdpSignedAt > 0 ? new Date(parseInt(contract.tdpSignedAt) * 1000) : null,
-      ccrpSignedAt: contract.ccrpSignedAt > 0 ? new Date(parseInt(contract.ccrpSignedAt) * 1000) : null,
+      tspSignedAt: contract.tspSignedAt > 0 ? new Date(parseInt(contract.tspSignedAt) * 1000) : null,
       tdpSigned: contract.tdpSigned,
-      ccrpSigned: contract.ccrpSigned
+      tspSigned: contract.tspSigned
     };
   }
 
@@ -449,19 +449,19 @@ class BlockchainService {
   }
 
   getPartyTypeEnum(partyType) {
-    const types = { 'TDP': 0, 'TDC': 1, 'CCRP': 2 };
+    const types = { 'TDP': 0, 'TDC': 1, 'TSP': 2 };
     return types[partyType] || 0;
   }
 
   getPartyTypeString(partyTypeEnum) {
-    const types = ['TDP', 'TDC', 'CCRP'];
+    const types = ['TDP', 'TDC', 'TSP'];
     return types[partyTypeEnum] || 'UNKNOWN';
   }
 
   getContractStatusString(statusEnum) {
     const statuses = [
       'PENDING_TDP',
-      'PENDING_CCRP',
+      'PENDING_TSP',
       'SIGNED',
       'COMPLETED',
       'REJECTED'

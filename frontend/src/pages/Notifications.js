@@ -44,7 +44,7 @@ const NotificationItem = ({ notification, onMarkAsRead, onDelete }) => {
         return <CheckCircle color="info" />;
       case 'CONTRACT_CANCELLED':
         return <Error color="error" />;
-      case 'CCRP_SELECTED':
+      case 'TSP_SELECTED':
         return <Person color="secondary" />;
       default:
         return <NotificationsIcon />;
@@ -61,7 +61,7 @@ const NotificationItem = ({ notification, onMarkAsRead, onDelete }) => {
         return 'info';
       case 'CONTRACT_CANCELLED':
         return 'error';
-      case 'CCRP_SELECTED':
+      case 'TSP_SELECTED':
         return 'secondary';
       default:
         return 'default';

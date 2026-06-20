@@ -37,8 +37,8 @@ describe('contractSigningGate', () => {
       expect(rolesAllowSigning('TDP', 'tdp')).toBe(true);
     });
     test('mismatch fails unless AppAdmin actor', () => {
-      expect(rolesAllowSigning('TDP', 'CCRP')).toBe(false);
-      expect(rolesAllowSigning('AppAdmin', 'CCRP')).toBe(true);
+      expect(rolesAllowSigning('TDP', 'TSP')).toBe(false);
+      expect(rolesAllowSigning('AppAdmin', 'TSP')).toBe(true);
     });
   });
 
@@ -72,8 +72,8 @@ describe('contractSigningGate', () => {
       const req = {
         user: {
           id: 20,
-          partyType: 'CCRP',
-          email: 'ccrp@test.com',
+          partyType: 'TSP',
+          email: 'tsp@test.com',
           walletAddress: null,
           did: null,
           depaId: 'DEPA-C',
@@ -81,8 +81,8 @@ describe('contractSigningGate', () => {
       };
       expect(resolveSigningUser(req)).toEqual({
         id: 20,
-        partyType: 'CCRP',
-        email: 'ccrp@test.com',
+        partyType: 'TSP',
+        email: 'tsp@test.com',
         walletAddress: null,
         did: null,
         depaId: 'DEPA-C',

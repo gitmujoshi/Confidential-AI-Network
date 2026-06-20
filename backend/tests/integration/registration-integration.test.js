@@ -196,7 +196,7 @@ describe('Registration Integration Tests', () => {
       const userData = {
         email: 'db-fail@test.com',
         name: 'DB Fail User',
-        partyType: 'CCRP'
+        partyType: 'TSP'
       };
 
       // Mock Keycloak service to succeed

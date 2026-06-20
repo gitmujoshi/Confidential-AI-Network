@@ -155,7 +155,7 @@ show_category_help() {
             echo "  --via-apis          - Create data via APIs only"
             echo "  --tdp-only          - Create TDP test data only"
             echo "  --tdc-only          - Create TDC test data only"
-            echo "  --ccrp-only         - Create CCRP test data only"
+            echo "  --tsp-only         - Create TSP test data only"
             echo ""
             echo -e "${YELLOW}Integration Test Options:${NC}"
             echo "  --full              - Full integration test suite"
@@ -488,7 +488,7 @@ handle_test() {
                     --via-apis) via_apis_mode=true ;;
                     --tdp-only) tdp_only=true ;;
                     --tdc-only) tdc_only=true ;;
-                    --ccrp-only) ccrp_only=true ;;
+                    --tsp-only) ccrp_only=true ;;
                 esac
             done
             
@@ -502,8 +502,8 @@ handle_test() {
                 print_status $BLUE "Creating TDC test data..."
                 ./scripts/create-tdc-test-data.sh
             elif [ "$ccrp_only" = true ]; then
-                print_status $BLUE "Creating CCRP test data..."
-                ./scripts/create-ccrp-test-data.sh
+                print_status $BLUE "Creating TSP test data..."
+                ./scripts/create-tsp-test-data.sh
             else
                 print_status $BLUE "Creating basic test data via registration API..."
                 BACKEND_URL="$BACKEND_URL" KEYCLOAK_URL="$KEYCLOAK_URL" FRONTEND_URL="$FRONTEND_URL" node scripts/create-test-data-via-registration-api.js
@@ -555,7 +555,7 @@ handle_test() {
                 case $opt in
                     --tdp) tdp_test=true ;;
                     --tdc) tdc_test=true ;;
-                    --ccrp) ccrp_test=true ;;
+                    --tsp) ccrp_test=true ;;
                     --admin) admin_test=true ;;
                 esac
             done
@@ -567,8 +567,8 @@ handle_test() {
                 print_status $BLUE "Testing TDC user functionality..."
                 ./scripts/test-tdc-user.sh
             elif [ "$ccrp_test" = true ]; then
-                print_status $BLUE "Testing CCRP user functionality..."
-                ./scripts/test-ccrp-user.sh
+                print_status $BLUE "Testing TSP user functionality..."
+                ./scripts/test-tsp-user.sh
             elif [ "$admin_test" = true ]; then
                 print_status $BLUE "Testing Admin user functionality..."
                 ./scripts/test-admin-user.sh

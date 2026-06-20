@@ -2,7 +2,7 @@
  * Centralized Constraints Configuration
  * 
  * This file exports all constraint configurations for the Contract Management System
- * including datasets, contracts, CCRP, and TDC attributes.
+ * including datasets, contracts, TSP, and TDC attributes.
  */
 
 // Dataset constraints
@@ -11,8 +11,8 @@ export * from './datasetConstraints';
 // Contract constraints
 export * from './contractConstraints';
 
-// CCRP constraints
-export * from './ccrpConstraints';
+// TSP constraints
+export * from './tspConstraints';
 
 // TDC constraints
 export * from './tdcConstraints';
@@ -23,7 +23,7 @@ export const CONSTRAINT_UTILS = {
   getConstraintCategories: () => [
     'datasets',
     'contracts', 
-    'ccrp',
+    'tsp',
     'tdc'
   ],
   
@@ -32,7 +32,7 @@ export const CONSTRAINT_UTILS = {
     const constraints = {
       datasets: () => import('./datasetConstraints'),
       contracts: () => import('./contractConstraints'),
-      ccrp: () => import('./ccrpConstraints'),
+      tsp: () => import('./tspConstraints'),
       tdc: () => import('./tdcConstraints')
     };
     
@@ -56,6 +56,6 @@ export const CONSTRAINT_UTILS = {
 export default {
   datasets: () => import('./datasetConstraints'),
   contracts: () => import('./contractConstraints'),
-  ccrp: () => import('./ccrpConstraints'),
+  tsp: () => import('./tspConstraints'),
   tdc: () => import('./tdcConstraints')
 };

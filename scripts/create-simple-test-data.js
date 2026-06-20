@@ -60,7 +60,7 @@ class SimpleTestDataCreator {
     const users = [
       { email: 'alice@tdp.com', password: 'password123', partyType: 'TDP' },
       { email: 'bob@tdc.com', password: 'password123', partyType: 'TDC' },
-      { email: 'carol@ccrp.com', password: 'password123', partyType: 'CCRP' },
+      { email: 'carol@tsp.com', password: 'password123', partyType: 'TSP' },
       { email: 'david@admin.com', password: 'password123', partyType: 'AppAdmin' }
     ];
 
@@ -241,7 +241,7 @@ class SimpleTestDataCreator {
           durationUnit: 'DAYS'
         },
         termsAndConditions: 'This contract governs the use of healthcare data for AI model training. All data must be processed in secure enclaves with continuous attestation.',
-        ccrpId: this.testUsers.CCRP?.email ? 'existing' : null,
+        tspId: this.testUsers.TSP?.email ? 'existing' : null,
         contractType: 'AI_TRAINING',
         environmentSpecs: {
           computeRequirements: {
@@ -323,7 +323,7 @@ class SimpleTestDataCreator {
     console.log('========================');
     console.log('TDP User: alice@tdp.com / password123');
     console.log('TDC User: bob@tdc.com / password123');
-    console.log('CCRP User: carol@ccrp.com / password123');
+    console.log('TSP User: carol@tsp.com / password123');
     console.log('Admin User: david@admin.com / password123');
     
     console.log('\n🚀 Ready to test the application!');

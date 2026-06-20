@@ -3,7 +3,7 @@ import { useUser } from '../../contexts/UserContext';
 import AdminDashboard from '../../pages/dashboards/AdminDashboard';
 import TDPDashboard from '../../pages/dashboards/TDPDashboard';
 import TDCDashboard from '../../pages/dashboards/TDCDashboard';
-import CCRPDashboard from '../../pages/dashboards/CCRPDashboard';
+import TSPDashboard from '../../pages/dashboards/TSPDashboard';
 
 const DashboardSelector = () => {
   const { currentUser } = useUser();
@@ -35,8 +35,8 @@ const DashboardSelector = () => {
       partyType = 'TDP';
     } else if (currentUser.email?.includes('tdc')) {
       partyType = 'TDC';
-    } else if (currentUser.email?.includes('ccrp')) {
-      partyType = 'CCRP';
+    } else if (currentUser.email?.includes('tsp') || currentUser.email?.includes('ccrp')) {
+      partyType = 'TSP';
     } else if (currentUser.email?.includes('admin')) {
       partyType = 'AppAdmin';
     }
@@ -52,8 +52,9 @@ const DashboardSelector = () => {
       return <TDPDashboard />;
     case 'TDC':
       return <TDCDashboard />;
+    case 'TSP':
     case 'CCRP':
-      return <CCRPDashboard />;
+      return <TSPDashboard />;
     default:
       // Fallback to a generic dashboard with debugging info
       return (

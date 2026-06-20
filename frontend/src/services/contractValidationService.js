@@ -56,12 +56,13 @@ class ContractValidationService {
         }
       }
 
-      // Validate CCRP ID
-      if (data.ccrpId) {
-        if (typeof data.ccrpId !== 'number' || data.ccrpId <= 0) {
-          errors.ccrpId = 'Invalid CCRP selection';
+      // Validate TSP ID
+      if (data.tspId != null && data.tspId !== '') {
+        const tspId = parseInt(String(data.tspId), 10);
+        if (!Number.isFinite(tspId) || tspId <= 0) {
+          errors.tspId = 'Invalid TSP selection';
         } else {
-          validated.ccrpId = data.ccrpId;
+          validated.tspId = tspId;
         }
       }
 

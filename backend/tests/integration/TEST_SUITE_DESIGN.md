@@ -236,7 +236,7 @@ class TestScenarioManager {
 
 **Scenario Types**:
 - **Minimal**: Single TDP user, basic setup
-- **Contract**: TDP, TDC, CCRP users + dataset + AI model
+- **Contract**: TDP, TDC, TSP users + dataset + AI model
 - **Comprehensive**: All user types + multiple datasets + AI models + notifications
 - **Custom**: User-defined scenarios
 
@@ -369,7 +369,7 @@ class TestHelpers {
 ### Scenario 2: Contract Test Scenario
 
 **Purpose**: Contract-related functionality testing  
-**Components**: TDP, TDC, CCRP users + dataset + AI model  
+**Components**: TDP, TDC, TSP users + dataset + AI model  
 **Use Cases**: Contract creation, approval workflows, multi-party interactions  
 **Data Created**:
 ```javascript
@@ -377,14 +377,14 @@ class TestHelpers {
   users: {
     tdpUser: { /* TDP user data */ },
     tdcUser: { /* TDC user data */ },
-    ccrpUser: { /* CCRP user data */ }
+    tspUser: { /* TSP user data */ }
   },
   dataset: { /* Dataset owned by TDP */ },
   aiModel: { /* AI model for training */ },
   notification: { /* System notification */ },
   getTdpToken: () => 'tdp-jwt-token',
   getTdcToken: () => 'tdc-jwt-token',
-  getCcrpToken: () => 'ccrp-jwt-token'
+  getCcrpToken: () => 'tsp-jwt-token'
 }
 ```
 

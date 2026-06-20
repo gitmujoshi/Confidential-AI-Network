@@ -17,7 +17,7 @@ source scripts/load-config.sh
 # Test User Data (from registration API) - Using new test users with common password
 TDP_USER_EMAIL="tdp-test@example.com"
 TDC_USER_EMAIL="tdc-test@example.com"
-CCRP_USER_EMAIL="ccrp-test@example.com"
+CCRP_USER_EMAIL="tsp-test@example.com"
 ADMIN_USER_EMAIL="admin-test@example.com"
 
 TDP_USER_PASSWORD="TestPassword123!"
@@ -76,7 +76,7 @@ create_fresh_test_data() {
     # Create test contracts
     create_test_contracts_via_api
     
-    # Create test environments for CCRP users
+    # Create test environments for TSP users
     create_test_environments_via_api
     
     # Cache the test data
@@ -127,23 +127,23 @@ create_test_users_via_api() {
         echo -e "${RED}❌ Failed to create TDC user${NC}"
     fi
     
-    # CCRP User
+    # TSP User
     local ccrp_response=$(curl -s -X POST "${BACKEND_URL}/api/auth/register" \
         -H "Content-Type: application/json" \
         -d '{
-            "name": "CCRP Test User",
-            "email": "ccrp.test@example.com",
-            "partyType": "CCRP",
-            "organization": "CCRP Test Organization",
-            "description": "Test CCRP user for all test suites"
+            "name": "TSP Test User",
+            "email": "tsp.test@example.com",
+            "partyType": "TSP",
+            "organization": "TSP Test Organization",
+            "description": "Test TSP user for all test suites"
         }')
     
     if echo "$ccrp_response" | grep -q '"success":true'; then
-        CCRP_USER_EMAIL="ccrp.test@example.com"
+        CCRP_USER_EMAIL="tsp.test@example.com"
         CCRP_USER_PASSWORD=$(echo "$ccrp_response" | grep -o '"password":"[^"]*"' | cut -d'"' -f4)
-        echo -e "${GREEN}✅ CCRP user created: $CCRP_USER_EMAIL${NC}"
+        echo -e "${GREEN}✅ TSP user created: $CCRP_USER_EMAIL${NC}"
     else
-        echo -e "${RED}❌ Failed to create CCRP user${NC}"
+        echo -e "${RED}❌ Failed to create TSP user${NC}"
     fi
     
     # Admin User
@@ -181,7 +181,7 @@ get_user_token() {
             email="$TDC_USER_EMAIL"
             password="$TDC_USER_PASSWORD"
             ;;
-        "ccrp")
+        "tsp")
             email="$CCRP_USER_EMAIL"
             password="$CCRP_USER_PASSWORD"
             ;;
@@ -214,7 +214,7 @@ get_user_token() {
                 return 0
             fi
             ;;
-        "ccrp")
+        "tsp")
             if [ -n "$CCRP_USER_TOKEN" ]; then
                 echo "$CCRP_USER_TOKEN"
                 return 0
@@ -240,7 +240,7 @@ get_user_token() {
         case "$user_type" in
             "tdp") TDP_USER_TOKEN="$token" ;;
             "tdc") TDC_USER_TOKEN="$token" ;;
-            "ccrp") CCRP_USER_TOKEN="$token" ;;
+            "tsp") CCRP_USER_TOKEN="$token" ;;
             "admin") ADMIN_USER_TOKEN="$token" ;;
         esac
         
@@ -443,9 +443,9 @@ create_test_contracts_via_api() {
 create_test_environments_via_api() {
     echo -e "${BLUE}🏗️ Creating test environments...${NC}"
     
-    local ccrp_token=$(get_user_token "ccrp")
+    local ccrp_token=$(get_user_token "tsp")
     if [ -z "$ccrp_token" ]; then
-        echo -e "${RED}❌ Cannot create environments without CCRP user token${NC}"
+        echo -e "${RED}❌ Cannot create environments without TSP user token${NC}"
         return 1
     fi
     
@@ -490,13 +490,13 @@ cache_test_data() {
     "users": {
         "tdp": "$TDP_USER_EMAIL",
         "tdc": "$TDC_USER_EMAIL",
-        "ccrp": "$CCRP_USER_EMAIL",
+        "tsp": "$CCRP_USER_EMAIL",
         "admin": "$ADMIN_USER_EMAIL"
     },
     "credentials": {
         "tdp": "$TDP_USER_PASSWORD",
         "tdc": "$TDC_USER_PASSWORD",
-        "ccrp": "$CCRP_USER_PASSWORD",
+        "tsp": "$CCRP_USER_PASSWORD",
         "admin": "$ADMIN_USER_PASSWORD"
     },
     "datasets": {
@@ -530,13 +530,13 @@ load_cached_test_data() {
     # Load user data
     TDP_USER_EMAIL=$(jq -r '.users.tdp' test-data-cache.json)
     TDC_USER_EMAIL=$(jq -r '.users.tdc' test-data-cache.json)
-    CCRP_USER_EMAIL=$(jq -r '.users.ccrp' test-data-cache.json)
+    CCRP_USER_EMAIL=$(jq -r '.users.tsp' test-data-cache.json)
     ADMIN_USER_EMAIL=$(jq -r '.users.admin' test-data-cache.json)
     
     # Load credentials
     TDP_USER_PASSWORD=$(jq -r '.credentials.tdp' test-data-cache.json)
     TDC_USER_PASSWORD=$(jq -r '.credentials.tdc' test-data-cache.json)
-    CCRP_USER_PASSWORD=$(jq -r '.credentials.ccrp' test-data-cache.json)
+    CCRP_USER_PASSWORD=$(jq -r '.credentials.tsp' test-data-cache.json)
     ADMIN_USER_PASSWORD=$(jq -r '.credentials.admin' test-data-cache.json)
     
     # Load datasets
@@ -562,7 +562,7 @@ get_test_user_email() {
     case "$user_type" in
         "tdp") echo "$TDP_USER_EMAIL" ;;
         "tdc") echo "$TDC_USER_EMAIL" ;;
-        "ccrp") echo "$CCRP_USER_EMAIL" ;;
+        "tsp") echo "$CCRP_USER_EMAIL" ;;
         "admin") echo "$ADMIN_USER_EMAIL" ;;
         *) echo "" ;;
     esac
@@ -574,7 +574,7 @@ get_test_user_password() {
     case "$user_type" in
         "tdp") echo "$TDP_USER_PASSWORD" ;;
         "tdc") echo "$TDC_USER_PASSWORD" ;;
-        "ccrp") echo "$CCRP_USER_PASSWORD" ;;
+        "tsp") echo "$CCRP_USER_PASSWORD" ;;
         "admin") echo "$ADMIN_USER_PASSWORD" ;;
         *) echo "" ;;
     esac
@@ -625,7 +625,7 @@ show_test_data_summary() {
     echo -e "${GREEN}👥 Users:${NC}"
     echo "  TDP: $TDP_USER_EMAIL"
     echo "  TDC: $TDC_USER_EMAIL"
-    echo "  CCRP: $CCRP_USER_EMAIL"
+    echo "  TSP: $CCRP_USER_EMAIL"
     echo "  Admin: $ADMIN_USER_EMAIL"
     echo ""
     echo -e "${GREEN}📊 Datasets:${NC}"

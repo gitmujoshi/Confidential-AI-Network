@@ -34,20 +34,20 @@ import {
 import { useUser } from '../../contexts/UserContext';
 import { apiService } from '../../services/api';
 import CloudProviderManager from '../../components/CloudProviderManager';
-import CCRPEnvironmentMonitoring from '../../components/CCRPEnvironmentMonitoring';
+import TSPEnvironmentMonitoring from '../../components/TSPEnvironmentMonitoring';
 
-const CCRPDashboard = () => {
+const TSPDashboard = () => {
   const navigate = useNavigate();
   const { currentUser: user, isInitializing } = useUser();
 
   // Debug logging
-  console.log('🔍 [CCRPDashboard] Current user:', user);
+  console.log('🔍 [TSPDashboard] Current user:', user);
 
-  // Fetch CCRP dashboard data
+  // Fetch TSP dashboard data
   const { data: dashboardData, isLoading, error } = useQuery(
-    ['ccrpDashboard', user?.id],
+    ['tspDashboard', user?.id],
     async () => {
-      console.log('🔍 [CCRPDashboard] Fetching dashboard for user ID:', user?.id);
+      console.log('🔍 [TSPDashboard] Fetching dashboard for user ID:', user?.id);
       // Use available endpoints for now
       const [environmentsRes, contractsRes] = await Promise.all([
         apiService.get('/api/infrastructure/environments'),
@@ -69,7 +69,7 @@ const CCRPDashboard = () => {
     }
   );
 
-  const ccrpUser = dashboardData?.user || {};
+  const tspUser = dashboardData?.user || {};
   const environments = dashboardData?.environments || [];
   const contracts = dashboardData?.activeContracts || [];
   const resources = dashboardData?.resourceUtilization || {};
@@ -114,7 +114,7 @@ const CCRPDashboard = () => {
       <Box sx={{ width: '100%' }}>
         <LinearProgress />
         <Typography sx={{ mt: 2 }}>
-          {isInitializing ? 'Initializing user session...' : 'Loading CCRP dashboard...'}
+          {isInitializing ? 'Initializing user session...' : 'Loading TSP dashboard...'}
         </Typography>
       </Box>
     );
@@ -123,7 +123,7 @@ const CCRPDashboard = () => {
   if (error) {
     return (
       <Box sx={{ color: 'error.main' }}>
-        Error loading CCRP dashboard: {error.message}
+        Error loading TSP dashboard: {error.message}
       </Box>
     );
   }
@@ -145,7 +145,7 @@ const CCRPDashboard = () => {
       <div className="flex justify-between items-center">
         <div>
           <Typography variant="h4" className="font-bold text-gray-900 mb-2">
-            Welcome to Your CCRP Dashboard
+            Welcome to Your TSP Dashboard
           </Typography>
           <Typography variant="body1" className="text-gray-600 mb-2">
             Provide secure computing environments for AI training. Monitor secure data processing 
@@ -156,21 +156,21 @@ const CCRPDashboard = () => {
           <Button
             variant="contained"
             startIcon={<Settings />}
-            onClick={() => navigate('/ccrp/infrastructure')}
+            onClick={() => navigate('/tsp/infrastructure')}
           >
             Infrastructure
           </Button>
           <Button
             variant="outlined"
             startIcon={<Security />}
-                          onClick={() => navigate('/ccrp/cloud-credentials')}
+                          onClick={() => navigate('/tsp/cloud-credentials')}
           >
             Azure Credentials
           </Button>
           <Button
             variant="outlined"
             startIcon={<PlayArrow />}
-            onClick={() => navigate('/ccrp/training-environment')}
+            onClick={() => navigate('/tsp/training-environment')}
           >
             Training Environment
           </Button>
@@ -291,8 +291,8 @@ const CCRPDashboard = () => {
         <Grid item xs={12} md={6}>
           <CloudProviderManager 
             userId={user.id}
-            currentProviders={ccrpUser.cloudProviders || []}
-            description={ccrpUser.description || ''}
+            currentProviders={tspUser.cloudProviders || []}
+            description={tspUser.description || ''}
           />
         </Grid>
       </Grid>
@@ -342,7 +342,7 @@ const CCRPDashboard = () => {
               <Button
                 variant="outlined"
                 startIcon={<Assessment />}
-                onClick={() => navigate('/ccrp/resources')}
+                onClick={() => navigate('/tsp/resources')}
                 size="small"
               >
                 Detailed Monitoring
@@ -389,7 +389,7 @@ const CCRPDashboard = () => {
               <Button
                 variant="outlined"
                 startIcon={<Verified />}
-                onClick={() => navigate('/ccrp/attestation')}
+                onClick={() => navigate('/tsp/attestation')}
                 size="small"
               >
                 Manage Attestations
@@ -433,7 +433,7 @@ const CCRPDashboard = () => {
                         <TableCell>
                           <Button
                             size="small"
-                            onClick={() => navigate(`/ccrp/environments/${env.id}`)}
+                            onClick={() => navigate(`/tsp/environments/${env.id}`)}
                           >
                             Manage
                           </Button>
@@ -486,11 +486,11 @@ const CCRPDashboard = () => {
                               </Typography>
                             </Box>
                             
-                            {/* Global DEPA ID Field */}
+                            {/* DEPA ID Field */}
                             {contract.depaId && (
                               <Box>
                                 <Typography variant="caption" color="textSecondary" display="block">
-                                  Global DEPA ID
+                                  DEPA ID
                                 </Typography>
                                 <Typography variant="caption" fontFamily="monospace" sx={{ 
                                   backgroundColor: 'primary.50', 
@@ -518,7 +518,7 @@ const CCRPDashboard = () => {
                         <TableCell>
                           <Button
                             size="small"
-                            onClick={() => navigate(`/ccrp/contracts/${contract.id}`)}
+                            onClick={() => navigate(`/tsp/contracts/${contract.id}`)}
                           >
                             Monitor
                           </Button>
@@ -543,35 +543,35 @@ const CCRPDashboard = () => {
             <Button
               variant="contained"
               startIcon={<Settings />}
-              onClick={() => navigate('/ccrp/environments/create')}
+              onClick={() => navigate('/tsp/environments/create')}
             >
               Create Environment
             </Button>
             <Button
               variant="contained"
               startIcon={<Description />}
-              onClick={() => navigate('/ccrp/contracts')}
+              onClick={() => navigate('/tsp/contracts')}
             >
               Monitor Contracts
             </Button>
             <Button
               variant="contained"
               startIcon={<Verified />}
-              onClick={() => navigate('/ccrp/attestation')}
+              onClick={() => navigate('/tsp/attestation')}
             >
               Manage Attestations
             </Button>
             <Button
               variant="contained"
               startIcon={<Assessment />}
-              onClick={() => navigate('/ccrp/analytics')}
+              onClick={() => navigate('/tsp/analytics')}
             >
               Performance Analytics
             </Button>
             <Button
               variant="contained"
               startIcon={<Security />}
-              onClick={() => navigate('/ccrp/security')}
+              onClick={() => navigate('/tsp/security')}
             >
               Security Settings
             </Button>
@@ -582,11 +582,11 @@ const CCRPDashboard = () => {
       {/* Environment Monitoring Section */}
       <Card sx={{ mt: 3 }}>
         <CardContent>
-          <CCRPEnvironmentMonitoring />
+          <TSPEnvironmentMonitoring />
         </CardContent>
       </Card>
     </div>
   );
 };
 
-export default CCRPDashboard; 
+export default TSPDashboard; 

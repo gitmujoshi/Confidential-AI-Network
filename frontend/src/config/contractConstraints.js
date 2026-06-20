@@ -35,12 +35,12 @@ export const CONTRACT_STATUSES = [
     icon: '✍️',
     canEdit: false,
     canSign: true,
-    nextStatus: ['PENDING_CCRP', 'REJECTED']
+    nextStatus: ['PENDING_TSP', 'REJECTED']
   },
   {
-    value: 'PENDING_CCRP',
-    label: 'Pending CCRP Signature',
-    description: 'Waiting for CCRP to sign the contract',
+    value: 'PENDING_TSP',
+    label: 'Pending TSP Signature',
+    description: 'Waiting for TSP to sign the contract',
     color: '#9C27B0',
     icon: '🏢',
     canEdit: false,
@@ -148,7 +148,7 @@ export const CONTRACT_TYPES = [
     icon: '🤖',
     requiresDatasets: true,
     requiresModels: true,
-    requiresCCRP: true
+    requiresTSP: true
   },
   {
     value: 'DATA_ANALYTICS',
@@ -157,7 +157,7 @@ export const CONTRACT_TYPES = [
     icon: '📊',
     requiresDatasets: true,
     requiresModels: false,
-    requiresCCRP: true
+    requiresTSP: true
   },
   {
     value: 'RESEARCH_COLLABORATION',
@@ -166,7 +166,7 @@ export const CONTRACT_TYPES = [
     icon: '🔬',
     requiresDatasets: true,
     requiresModels: false,
-    requiresCCRP: false
+    requiresTSP: false
   },
   {
     value: 'DATA_SHARING',
@@ -175,7 +175,7 @@ export const CONTRACT_TYPES = [
     icon: '📤',
     requiresDatasets: true,
     requiresModels: false,
-    requiresCCRP: false
+    requiresTSP: false
   }
 ];
 

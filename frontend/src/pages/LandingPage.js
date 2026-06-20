@@ -89,7 +89,7 @@ const LandingPage = () => {
     {
       icon: <PublicIcon sx={{ fontSize: 40, color: 'primary.main' }} />,
       title: 'Multi-party Collaboration',
-      description: 'Secure collaboration between TDCs, TDPs, and CCRPs with role-based access control.'
+      description: 'Secure collaboration between TDCs, TDPs, and TSPs with role-based access control.'
     },
     {
       icon: <LocationIcon sx={{ fontSize: 40, color: 'primary.main' }} />,
@@ -143,7 +143,7 @@ const LandingPage = () => {
               Secure Contract Management
             </Typography>
             <Typography variant="h5" color="text.secondary" paragraph sx={{ mb: 4 }}>
-              Privacy-compliant contract management with DEPA ID integration and SCITT CCF Ledger for TDCs, TDPs, and CCRPs
+              Privacy-compliant contract management with DEPA ID integration and SCITT CCF Ledger for TDCs, TDPs, and TSPs
             </Typography>
             <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
               <Button
@@ -305,7 +305,7 @@ const LandingPage = () => {
               <Typography variant="body2" color="text.secondary" paragraph>
                 This ensures privacy compliance and provides a standardized way to identify 
                 Training Data Consumers (TDCs), Training Data Providers (TDPs), and 
-                Confidential Clean Room Providers (CCRPs).
+                Tech Service Providers (TSPs).
               </Typography>
               <Typography variant="body2" color="text.secondary" paragraph>
                 <strong>SCITT CCF Ledger:</strong> All contracts are executed on a tamper-proof 

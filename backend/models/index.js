@@ -58,8 +58,8 @@ db.Grievance = require('./Grievance')(sequelize, Sequelize);
 db.DataBreach = require('./DataBreach')(sequelize, Sequelize);
 db.AuditLog = require('./AuditLog')(sequelize, Sequelize);
 
-// Import CCRP Azure credentials model
-db.CCRPAzureCredentials = require('./CCRPAzureCredentials')(sequelize, Sequelize);
+// Import TSP Azure credentials model
+db.TSPAzureCredentials = require('./TSPAzureCredentials')(sequelize, Sequelize);
 
 // Import SCITT CCF models
 db.ScittClaim = require('./ScittClaim')(sequelize, Sequelize);
@@ -104,9 +104,9 @@ db.ConstraintValue = ConstraintValue;
 // Note: Most associations are defined in the individual model files to avoid conflicts
 // Only keep associations that are not defined elsewhere and are truly cross-cutting
 
-// CCRP Azure credentials associations (not defined in User model)
-db.User.hasOne(db.CCRPAzureCredentials, { foreignKey: 'ccrpUserId', as: 'azureCredentials' });
-db.CCRPAzureCredentials.belongsTo(db.User, { foreignKey: 'ccrpUserId', as: 'ccrp' });
+// TSP Azure credentials associations (not defined in User model)
+db.User.hasOne(db.TSPAzureCredentials, { foreignKey: 'tspUserId', as: 'azureCredentials' });
+db.TSPAzureCredentials.belongsTo(db.User, { foreignKey: 'tspUserId', as: 'tsp' });
 
 // Constraint management associations
 db.ConstraintCategory.hasMany(db.ConstraintField, { foreignKey: 'categoryId', as: 'fields' });

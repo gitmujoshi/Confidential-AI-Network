@@ -35,7 +35,7 @@ describe('Performance Test Suite', () => {
       const user = await User.create({
         email: `perf-user-${i}@example.com`,
         name: `Performance User ${i}`,
-        partyType: i % 3 === 0 ? 'TDP' : i % 3 === 1 ? 'TDC' : 'CCRP',
+        partyType: i % 3 === 0 ? 'TDP' : i % 3 === 1 ? 'TDC' : 'TSP',
         publicKey: `public-key-${i}`,
         did: `did:web:github.com:perfuser${i}`,
         didVerified: true
@@ -71,14 +71,14 @@ describe('Performance Test Suite', () => {
     for (let i = 1; i <= 100; i++) {
       const contract = await Contract.create({
         contractId: `PERF-CONTRACT-${i.toString().padStart(3, '0')}`,
-        status: i % 5 === 0 ? 'ACTIVE' : i % 5 === 1 ? 'PENDING_TDP_APPROVAL' : i % 5 === 2 ? 'PENDING_CCRP_SIGNATURE' : i % 5 === 3 ? 'COMPLETED' : 'CANCELLED',
+        status: i % 5 === 0 ? 'ACTIVE' : i % 5 === 1 ? 'PENDING_TDP_APPROVAL' : i % 5 === 2 ? 'PENDING_TSP_SIGNATURE' : i % 5 === 3 ? 'COMPLETED' : 'CANCELLED',
         price: 100.00 + (i * 10),
         duration: 30 + (i % 60),
         termsAndConditions: `Performance contract ${i} terms and conditions`,
         modelId: `PERF-MODEL-${i.toString().padStart(3, '0')}`,
         tdpId: testUsers[i % testUsers.length].id,
         tdcId: testUsers[(i + 1) % testUsers.length].id,
-        ccrpId: testUsers[(i + 2) % testUsers.length].id,
+        tspId: testUsers[(i + 2) % testUsers.length].id,
         datasetId: testDatasets[i % testDatasets.length].id
       });
       testContracts.push(contract);
@@ -237,7 +237,7 @@ describe('Performance Test Suite', () => {
             modelId: 'MIXED-MODEL-001',
             tdpId: testUsers[0].id,
             tdcId: testUsers[1].id,
-            ccrpId: testUsers[2].id,
+            tspId: testUsers[2].id,
             datasetId: testDatasets[0].id
           }),
         
