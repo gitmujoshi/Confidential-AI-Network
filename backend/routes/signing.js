@@ -273,7 +273,7 @@ router.post('/sign', authenticateToken, async (req, res) => {
     const contract = await Contract.findByPk(contractId, {
       include: [
         { model: User, as: 'tdc', attributes: ['id', 'name', 'email'] },
-        { model: User, as: 'ccrp', attributes: ['id', 'name', 'email'] }
+        { model: User, as: 'tsp', attributes: ['id', 'name', 'email'] }
       ]
     });
 
@@ -298,7 +298,7 @@ router.post('/sign', authenticateToken, async (req, res) => {
 
     // Check if user is authorized to sign this contract
     const isAuthorized = contract.tdcId === userId || 
-                        contract.ccrpId === userId || 
+                        contract.tspId === userId || 
                         req.user.localUser?.partyType === 'AppAdmin';
 
     if (!isAuthorized) {
@@ -522,7 +522,7 @@ router.get('/contracts/:contractId/signatures', authenticateToken, async (req, r
     }
 
     const isAuthorized = contract.tdcId === userId || 
-                        contract.ccrpId === userId || 
+                        contract.tspId === userId || 
                         req.user.localUser?.partyType === 'AppAdmin';
 
     if (!isAuthorized) {

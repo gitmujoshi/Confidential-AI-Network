@@ -122,13 +122,13 @@ async function createTestUsers() {
       }
     },
     {
-      type: 'ccrp',
+      type: 'tsp',
       data: {
-        name: 'CCRP Test User',
-        email: 'ccrp.test@example.com',
-        partyType: 'CCRP',
-        organization: 'CCRP Test Organization',
-        description: 'Test CCRP user for all test suites'
+        name: 'TSP Test User',
+        email: 'tsp.test@example.com',
+        partyType: 'TSP',
+        organization: 'TSP Test Organization',
+        description: 'Test TSP user for all test suites'
       }
     },
     {
@@ -385,9 +385,9 @@ async function createTestContracts() {
 async function createTestEnvironments() {
   log('🏗️ Creating test environments...', 'blue');
   
-  const ccrpToken = await getUserToken('ccrp');
+  const ccrpToken = await getUserToken('tsp');
   if (!ccrpToken) {
-    log('❌ Cannot create environments without CCRP user token', 'red');
+    log('❌ Cannot create environments without TSP user token', 'red');
     return;
   }
   

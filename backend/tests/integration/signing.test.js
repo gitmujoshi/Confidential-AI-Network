@@ -188,7 +188,7 @@ describe('Contract Signing Integration Tests', () => {
       });
 
       test('should not delete other user keys', async () => {
-        const otherUser = testData.users.find(u => u.partyType === 'CCRP');
+        const otherUser = testData.users.find(u => u.partyType === 'TSP');
         const otherUserKey = await UserKey.create({
           userId: otherUser.id,
           keyId: 'OTHER_USER_KEY',
@@ -221,7 +221,7 @@ describe('Contract Signing Integration Tests', () => {
       });
 
       test('should not export other user keys', async () => {
-        const otherUser = testData.users.find(u => u.partyType === 'CCRP');
+        const otherUser = testData.users.find(u => u.partyType === 'TSP');
         const otherUserKey = testData.keys.find(k => k.userId === otherUser.id);
 
         const response = await request(app)

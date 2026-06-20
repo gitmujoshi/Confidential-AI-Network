@@ -65,7 +65,7 @@ global.testUtils = {
     name: 'Test Contract',
     description: 'Test contract description',
     tdcId: 1,
-    ccrpId: 2,
+    tspId: 2,
     status: 'PENDING_SIGNATURES',
     contractData: {
       price: 1000,

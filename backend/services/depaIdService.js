@@ -10,7 +10,7 @@
  * Entity Types:
  * - TDC: Training Data Consumer
  * - TDP: Training Data Provider
- * - CCRP: Confidential Clean Room Provider
+ * - TSP: Tech Service Provider
  * - CONTRACT: Contract
  * - DATASET: Dataset
  * - AIMODEL: Registered or base AI model (provenance)
@@ -27,7 +27,7 @@ class DEPAIdService {
     this.validEntityTypes = [
       'TDC',
       'TDP',
-      'CCRP',
+      'TSP',
       'CONTRACT',
       'DATASET',
       'AIMODEL',
@@ -39,14 +39,14 @@ class DEPAIdService {
     // - legacy: {ENTITY_TYPE}-{UUID}
     // - prefixed: {PREFIX}-{ENTITY_TYPE}-{UUID}  (e.g. LOCAL-TDC-...)
     this.depaIdPatternLegacy =
-      /^(TDC|TDP|CCRP|CONTRACT|DATASET|AIMODEL|TRAININGJOB)-[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+      /^(TDC|TDP|TSP|CONTRACT|DATASET|AIMODEL|TRAININGJOB)-[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
     this.depaIdPatternPrefixed =
-      /^([A-Z0-9][A-Z0-9_-]{0,31})-(TDC|TDP|CCRP|CONTRACT|DATASET|AIMODEL|TRAININGJOB)-[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+      /^([A-Z0-9][A-Z0-9_-]{0,31})-(TDC|TDP|TSP|CONTRACT|DATASET|AIMODEL|TRAININGJOB)-[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
   }
 
   /**
    * Generate a new DEPA ID for the specified entity type
-   * @param {string} entityType - The entity type (TDC, TDP, CCRP, CONTRACT, DATASET)
+   * @param {string} entityType - The entity type (TDC, TDP, TSP, CONTRACT, DATASET)
    * @returns {string} The generated DEPA ID
    * @throws {Error} If entity type is invalid
    */
@@ -143,7 +143,7 @@ class DEPAIdService {
     const partyTypeMap = {
       'TDC': 'TDC',
       'TDP': 'TDP',
-      'CCRP': 'CCRP',
+      'TSP': 'TSP',
       'AppAdmin': 'TDC' // AppAdmin gets TDC DEPA ID for consistency
     };
 

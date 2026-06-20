@@ -45,22 +45,22 @@ class ContractValidationService {
         validated.aiModelIds = data.aiModelIds.filter(id => id && typeof id === 'number' && id > 0);
       }
 
-      // Validate CCRP ID
-      if (data.ccrpId) {
-        if (typeof data.ccrpId !== 'number' || data.ccrpId <= 0) {
-          errors.push('Invalid CCRP ID');
+      // Validate TSP ID
+      if (data.tspId) {
+        if (typeof data.tspId !== 'number' || data.tspId <= 0) {
+          errors.push('Invalid TSP ID');
         } else {
-          validated.ccrpId = data.ccrpId;
+          validated.tspId = data.tspId;
         }
       }
 
-      // Validate CCRP cloud provider (optional, but required for training completeness when CCRP is selected)
-      if (data.ccrpCloudProvider !== undefined && data.ccrpCloudProvider !== null && data.ccrpCloudProvider !== '') {
+      // Validate TSP cloud provider (optional, but required for training completeness when TSP is selected)
+      if (data.tspCloudProvider !== undefined && data.tspCloudProvider !== null && data.tspCloudProvider !== '') {
         const validProviders = ['Local', 'AWS', 'Azure', 'GCP', 'OCI'];
-        if (typeof data.ccrpCloudProvider !== 'string' || !validProviders.includes(data.ccrpCloudProvider)) {
-          errors.push(`Invalid ccrpCloudProvider. Must be one of: ${validProviders.join(', ')}`);
+        if (typeof data.tspCloudProvider !== 'string' || !validProviders.includes(data.tspCloudProvider)) {
+          errors.push(`Invalid tspCloudProvider. Must be one of: ${validProviders.join(', ')}`);
         } else {
-          validated.ccrpCloudProvider = data.ccrpCloudProvider;
+          validated.tspCloudProvider = data.tspCloudProvider;
         }
       }
 
@@ -116,7 +116,7 @@ class ContractValidationService {
         validated.kmsConfigs = data.kmsConfigs;
       }
 
-      // Optional execution/runtime fields (used by CCRP runtimes and audits)
+      // Optional execution/runtime fields (used by TSP runtimes and audits)
       if (data.containerImage !== undefined && data.containerImage !== null) {
         if (typeof data.containerImage !== 'string') {
           errors.push('Invalid containerImage (must be a string)');

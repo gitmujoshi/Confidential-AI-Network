@@ -29,13 +29,13 @@
       "partyType": "TDC",
       "organization": "AI Training Incorporated"
     },
-    "ccrp": {
+    "tsp": {
       "id": 3,
       "name": "Secure Analytics LLC",
-      "email": "ccrp@secureanalytics.com",
+      "email": "tsp@secureanalytics.com",
       "walletAddress": "0x9876543210fedcba9876543210fedcba98765432",
       "did": "did:web:secureanalytics.com:user:789",
-      "partyType": "CCRP",
+      "partyType": "TSP",
       "organization": "Secure Analytics LLC",
       "signed": false,
       "signedAt": null
@@ -98,13 +98,13 @@
       },
       {
         "name": "Data Transfer",
-        "description": "TDP transfers dataset to CCRP secure environment",
+        "description": "TDP transfers dataset to TSP secure environment",
         "dueDate": "2024-01-16",
         "completed": false
       },
       {
         "name": "Model Training",
-        "description": "TDC trains model in CCRP secure environment",
+        "description": "TDC trains model in TSP secure environment",
         "dueDate": "2024-01-25",
         "completed": false
       },
@@ -122,7 +122,7 @@
       }
     ]
   },
-  "termsAndConditions": "This contract governs the sharing of customer behavior data for machine learning model training. The TDP (Acme Data Corp) will provide the specified dataset to the TDC (AI Training Inc) for the purpose of training a customer churn prediction model. The CCRP (Secure Analytics LLC) will provide a secure environment for data processing and model training. All parties agree to maintain data confidentiality and comply with applicable data protection regulations including the DPDP Act 2023. The contract duration is 30 days from the date of activation. Payment of $10,000 USD is due upfront upon contract activation. The TDC may use the trained model for commercial purposes but may not redistribute the original dataset. The CCRP will ensure secure data handling and provide audit trails for compliance purposes. Data will be retained for 90 days after project completion and then securely deleted. All parties agree to maintain appropriate security measures including encryption at rest and in transit, access controls, and audit logging.",
+  "termsAndConditions": "This contract governs the sharing of customer behavior data for machine learning model training. The TDP (Acme Data Corp) will provide the specified dataset to the TDC (AI Training Inc) for the purpose of training a customer churn prediction model. The TSP (Secure Analytics LLC) will provide a secure environment for data processing and model training. All parties agree to maintain data confidentiality and comply with applicable data protection regulations including the DPDP Act 2023. The contract duration is 30 days from the date of activation. Payment of $10,000 USD is due upfront upon contract activation. The TDC may use the trained model for commercial purposes but may not redistribute the original dataset. The TSP will ensure secure data handling and provide audit trails for compliance purposes. Data will be retained for 90 days after project completion and then securely deleted. All parties agree to maintain appropriate security measures including encryption at rest and in transit, access controls, and audit logging.",
   "dataProcessing": {
     "purpose": "Machine learning model training for customer churn prediction",
     "dataTypes": ["customer-behavior", "purchase-history", "demographics", "engagement-metrics"],
@@ -167,9 +167,9 @@
       },
       {
         "type": "CCRP_SELECTED",
-        "message": "Secure Analytics LLC has been selected as CCRP for contract CONTRACT-1705312200000",
+        "message": "Secure Analytics LLC has been selected as TSP for contract CONTRACT-1705312200000",
         "timestamp": "2024-01-15T10:32:00.000Z",
-        "recipient": "ccrp@secureanalytics.com"
+        "recipient": "tsp@secureanalytics.com"
       }
     ]
   },
@@ -181,7 +181,7 @@
     "version": 1,
     "changes": [
       {
-        "field": "ccrpId",
+        "field": "tspId",
         "oldValue": null,
         "newValue": "3",
         "changedBy": "tdc@aitraining.com",

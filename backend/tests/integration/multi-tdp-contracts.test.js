@@ -18,7 +18,7 @@ const ScittCcfService = require('../../services/scittCcfService');
 
 describe('Multi-TDP Contract Tests', () => {
   let app, contractService, scittCcfService;
-  let tdcUser, tdpUser1, tdpUser2, tdpUser3, ccrpUser;
+  let tdcUser, tdpUser1, tdpUser2, tdpUser3, tspUser;
   let testDataset1, testDataset2, testDataset3;
   let multiTdpContract;
 
@@ -71,10 +71,10 @@ describe('Multi-TDP Contract Tests', () => {
       isRegistered: true
     });
 
-    ccrpUser = await db.User.create({
-      name: 'Test CCRP',
-      email: 'ccrp@test.com',
-      partyType: 'CCRP',
+    tspUser = await db.User.create({
+      name: 'Test TSP',
+      email: 'tsp@test.com',
+      partyType: 'TSP',
       walletAddress: '0x4444444444444444444444444444444444444444',
       isActive: true,
       isRegistered: true
@@ -279,10 +279,10 @@ describe('Multi-TDP Contract Tests', () => {
 
     test('should reject signing by non-party TDP', async () => {
       const signData = {
-        tdpId: ccrpUser.id, // CCRP trying to sign as TDP
+        tdpId: tspUser.id, // TSP trying to sign as TDP
         signatureType: 'WALLET',
         signedTransaction: 'mock-signed-transaction',
-        userWalletAddress: ccrpUser.walletAddress
+        userWalletAddress: tspUser.walletAddress
       };
 
       const response = await request(app)
@@ -421,7 +421,7 @@ describe('Multi-TDP Contract Tests', () => {
         ],
         duration: 30,
         termsAndConditions: 'Complete flow test',
-        ccrpId: ccrpUser.id
+        tspId: tspUser.id
       };
 
       const createResponse = await request(app)

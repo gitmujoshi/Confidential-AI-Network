@@ -335,7 +335,7 @@ export default function TDCTraining() {
 
       <Alert severity="info" sx={{ mb: 2 }}>
         Requirements: <code>environmentSpecs</code>, <code>trainingParams</code>,{' '}
-        <code>ccrpCloudProvider</code>, non-empty <code>contractDatasets</code> and{' '}
+        <code>tspCloudProvider</code>, non-empty <code>contractDatasets</code> and{' '}
         <code>aiModelIds</code> on the contract.
       </Alert>
 

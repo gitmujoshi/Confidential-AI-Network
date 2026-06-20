@@ -16,9 +16,9 @@
     },
     {
       "name": "Carol Williams",
-      "email": "carol@ccrp.com",
-      "partyType": "CCRP",
-      "role": "CCRP"
+      "email": "carol@tsp.com",
+      "partyType": "TSP",
+      "role": "TSP"
     },
     {
       "name": "David Admin",
@@ -49,7 +49,7 @@
       "success": true
     },
     {
-      "email": "carol@ccrp.com",
+      "email": "carol@tsp.com",
       "success": true
     },
     {

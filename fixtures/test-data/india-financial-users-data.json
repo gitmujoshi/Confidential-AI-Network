@@ -1,0 +1,449 @@
+{
+  "generatedAt": "2026-06-19T15:54:42.669Z",
+  "seedMethod": "api-only",
+  "backendUrl": "http://localhost:5001",
+  "password": "TestNewPassword123!",
+  "deployment": {
+    "deploymentPrefix": "IN-MUM",
+    "jurisdiction": "IN-DPDPA",
+    "region": "ap-south-1",
+    "country": "India"
+  },
+  "scenario": "Indian banks, insurers, NBFCs, and card issuers pooling synthetic data for consortium ML (lending, fraud, insurance, card offers).",
+  "totals": {
+    "usersCreated": 13,
+    "usersExisted": 0,
+    "usersFailed": 0,
+    "datasetsCreated": 12,
+    "datasetsExisted": 0,
+    "datasetsFailed": 0,
+    "modelsCreated": 11,
+    "modelsExisted": 0,
+    "modelsFailed": 0
+  },
+  "users": [
+    {
+      "status": "created",
+      "email": "appadmin.in-fin-trust@in-fintech-test.com",
+      "partyType": "AppAdmin",
+      "slug": "in-fin-trust",
+      "useCase": "platform",
+      "organization": "India Financial Data Trust Platform",
+      "depaId": "IN-MUM-TDC-217c8e88-c9fe-4c29-a827-06f81b31e534",
+      "userId": 21,
+      "cloudProviders": null,
+      "error": null
+    },
+    {
+      "status": "created",
+      "email": "tdp.hdfc@in-fintech-test.com",
+      "partyType": "TDP",
+      "slug": "hdfc",
+      "useCase": "lending",
+      "organization": "HDFC Bank Ltd.",
+      "depaId": "IN-MUM-TDP-0d5c6b33-e30e-442e-bde2-992d65430177",
+      "userId": 22,
+      "cloudProviders": null,
+      "error": null
+    },
+    {
+      "status": "created",
+      "email": "tdp.sbi@in-fintech-test.com",
+      "partyType": "TDP",
+      "slug": "sbi",
+      "useCase": "fraud",
+      "organization": "State Bank of India",
+      "depaId": "IN-MUM-TDP-09dca3d8-b743-44ad-b451-26df13d774eb",
+      "userId": 23,
+      "cloudProviders": null,
+      "error": null
+    },
+    {
+      "status": "created",
+      "email": "tdp.icici-insurance@in-fintech-test.com",
+      "partyType": "TDP",
+      "slug": "icici-insurance",
+      "useCase": "insurance",
+      "organization": "ICICI Lombard General Insurance",
+      "depaId": "IN-MUM-TDP-84f6cf20-d075-4b6f-9809-6e1f7d681f38",
+      "userId": 24,
+      "cloudProviders": null,
+      "error": null
+    },
+    {
+      "status": "created",
+      "email": "tdp.axis-cards@in-fintech-test.com",
+      "partyType": "TDP",
+      "slug": "axis-cards",
+      "useCase": "credit-cards",
+      "organization": "Axis Bank Ltd.",
+      "depaId": "IN-MUM-TDP-56480344-1f4f-4281-a382-8c3e0494879d",
+      "userId": 25,
+      "cloudProviders": null,
+      "error": null
+    },
+    {
+      "status": "created",
+      "email": "tdp.bajaj-finance@in-fintech-test.com",
+      "partyType": "TDP",
+      "slug": "bajaj-finance",
+      "useCase": "lending",
+      "organization": "Bajaj Finance Ltd.",
+      "depaId": "IN-MUM-TDP-867f67e1-768c-44ea-b772-8fc465d96127",
+      "userId": 26,
+      "cloudProviders": null,
+      "error": null
+    },
+    {
+      "status": "created",
+      "email": "tdp.lic@in-fintech-test.com",
+      "partyType": "TDP",
+      "slug": "lic",
+      "useCase": "insurance",
+      "organization": "Life Insurance Corporation of India",
+      "depaId": "IN-MUM-TDP-4acb4c2f-5690-4588-9d17-fbd013da9ad9",
+      "userId": 27,
+      "cloudProviders": null,
+      "error": null
+    },
+    {
+      "status": "created",
+      "email": "tdc.finai-consortium@in-fintech-test.com",
+      "partyType": "TDC",
+      "slug": "finai-consortium",
+      "useCase": "fraud",
+      "organization": "India FinAI Consortium",
+      "depaId": "IN-MUM-TDC-75428d0e-0219-4fda-8fb1-df6c936daec1",
+      "userId": 28,
+      "cloudProviders": null,
+      "error": null
+    },
+    {
+      "status": "created",
+      "email": "tdc.lending-pool@in-fintech-test.com",
+      "partyType": "TDC",
+      "slug": "lending-pool",
+      "useCase": "lending",
+      "organization": "National Lending Risk Pool (NLRP)",
+      "depaId": "IN-MUM-TDC-d14f3521-c563-4237-9514-da23a749542e",
+      "userId": 29,
+      "cloudProviders": null,
+      "error": null
+    },
+    {
+      "status": "created",
+      "email": "tdc.insurtech-pool@in-fintech-test.com",
+      "partyType": "TDC",
+      "slug": "insurtech-pool",
+      "useCase": "insurance",
+      "organization": "InsurTech Analytics Pool",
+      "depaId": "IN-MUM-TDC-3f82c37a-589a-44ae-93b9-911189ba9876",
+      "userId": 30,
+      "cloudProviders": null,
+      "error": null
+    },
+    {
+      "status": "created",
+      "email": "tdc.card-offers-coop@in-fintech-test.com",
+      "partyType": "TDC",
+      "slug": "card-offers-coop",
+      "useCase": "credit-cards",
+      "organization": "Card Offers Cooperative",
+      "depaId": "IN-MUM-TDC-5cd59504-66a9-4370-b882-0e032f07cbd4",
+      "userId": 31,
+      "cloudProviders": null,
+      "error": null
+    },
+    {
+      "status": "created",
+      "email": "tsp.yotta@in-fintech-test.com",
+      "partyType": "TSP",
+      "slug": "yotta",
+      "organization": "Yotta Data Services (Mumbai)",
+      "depaId": "IN-MUM-TSP-215bc3d2-1b0f-4625-9a92-2286482a774c",
+      "userId": 32,
+      "cloudProviders": [
+        "OCI"
+      ],
+      "error": null
+    },
+    {
+      "status": "created",
+      "email": "tsp.esds@in-fintech-test.com",
+      "partyType": "TSP",
+      "slug": "esds",
+      "organization": "ESDS Software Solution Pvt Ltd",
+      "depaId": "IN-MUM-TSP-1622a46f-f44a-471a-a31e-f2be4130bf3d",
+      "userId": 33,
+      "cloudProviders": [
+        "Azure"
+      ],
+      "error": null
+    }
+  ],
+  "datasets": [
+    {
+      "status": "created",
+      "datasetId": "in-fin-hdfc-retail-loans",
+      "ownerEmail": "tdp.hdfc@in-fintech-test.com",
+      "useCase": "lending"
+    },
+    {
+      "status": "created",
+      "datasetId": "in-fin-hdfc-kyc-features",
+      "ownerEmail": "tdp.hdfc@in-fintech-test.com",
+      "useCase": "lending"
+    },
+    {
+      "status": "created",
+      "datasetId": "in-fin-sbi-transactions",
+      "ownerEmail": "tdp.sbi@in-fintech-test.com",
+      "useCase": "fraud"
+    },
+    {
+      "status": "created",
+      "datasetId": "in-fin-sbi-merchant-risk",
+      "ownerEmail": "tdp.sbi@in-fintech-test.com",
+      "useCase": "fraud"
+    },
+    {
+      "status": "created",
+      "datasetId": "in-fin-icici-motor-claims",
+      "ownerEmail": "tdp.icici-insurance@in-fintech-test.com",
+      "useCase": "insurance"
+    },
+    {
+      "status": "created",
+      "datasetId": "in-fin-icici-health-claims",
+      "ownerEmail": "tdp.icici-insurance@in-fintech-test.com",
+      "useCase": "insurance"
+    },
+    {
+      "status": "created",
+      "datasetId": "in-fin-axis-card-spend",
+      "ownerEmail": "tdp.axis-cards@in-fintech-test.com",
+      "useCase": "credit-cards"
+    },
+    {
+      "status": "created",
+      "datasetId": "in-fin-axis-rewards-spend",
+      "ownerEmail": "tdp.axis-cards@in-fintech-test.com",
+      "useCase": "credit-cards"
+    },
+    {
+      "status": "created",
+      "datasetId": "in-fin-bajaj-nbfc-emi",
+      "ownerEmail": "tdp.bajaj-finance@in-fintech-test.com",
+      "useCase": "lending"
+    },
+    {
+      "status": "created",
+      "datasetId": "in-fin-bajaj-collections",
+      "ownerEmail": "tdp.bajaj-finance@in-fintech-test.com",
+      "useCase": "lending"
+    },
+    {
+      "status": "created",
+      "datasetId": "in-fin-lic-life-risk",
+      "ownerEmail": "tdp.lic@in-fintech-test.com",
+      "useCase": "insurance"
+    },
+    {
+      "status": "created",
+      "datasetId": "in-fin-lic-annuity-risk",
+      "ownerEmail": "tdp.lic@in-fintech-test.com",
+      "useCase": "insurance"
+    }
+  ],
+  "models": [
+    {
+      "status": "created",
+      "modelId": "in-fin-model-credit-logreg",
+      "useCase": "lending",
+      "name": "Consortium Credit Score (Logistic Regression)",
+      "compatibleDatasetIds": [
+        "in-fin-hdfc-retail-loans",
+        "in-fin-hdfc-kyc-features",
+        "in-fin-bajaj-nbfc-emi"
+      ]
+    },
+    {
+      "status": "created",
+      "modelId": "in-fin-model-affordability-logreg",
+      "useCase": "lending",
+      "name": "Affordability & EMI Stress Model",
+      "compatibleDatasetIds": [
+        "in-fin-hdfc-kyc-features",
+        "in-fin-bajaj-collections",
+        "in-fin-bajaj-nbfc-emi"
+      ]
+    },
+    {
+      "status": "created",
+      "modelId": "in-fin-model-collections-logreg",
+      "useCase": "lending",
+      "name": "NBFC Collections Recovery Model",
+      "compatibleDatasetIds": [
+        "in-fin-bajaj-collections",
+        "in-fin-bajaj-nbfc-emi"
+      ]
+    },
+    {
+      "status": "created",
+      "modelId": "in-fin-model-fraud-logreg",
+      "useCase": "fraud",
+      "name": "Cross-Bank Transaction Fraud Detector",
+      "compatibleDatasetIds": [
+        "in-fin-sbi-transactions",
+        "in-fin-sbi-merchant-risk",
+        "in-fin-hdfc-kyc-features"
+      ]
+    },
+    {
+      "status": "created",
+      "modelId": "in-fin-model-aml-gbm",
+      "useCase": "fraud",
+      "name": "AML Mule-Account Risk Model",
+      "compatibleDatasetIds": [
+        "in-fin-sbi-transactions",
+        "in-fin-sbi-merchant-risk"
+      ]
+    },
+    {
+      "status": "created",
+      "modelId": "in-fin-model-claims-fraud-logreg",
+      "useCase": "insurance",
+      "name": "Insurance Claims Fraud Classifier",
+      "compatibleDatasetIds": [
+        "in-fin-icici-motor-claims",
+        "in-fin-icici-health-claims"
+      ]
+    },
+    {
+      "status": "created",
+      "modelId": "in-fin-model-motor-premium-logreg",
+      "useCase": "insurance",
+      "name": "Motor Premium Pricing Model",
+      "compatibleDatasetIds": [
+        "in-fin-icici-motor-claims"
+      ]
+    },
+    {
+      "status": "created",
+      "modelId": "in-fin-model-life-underwriting-logreg",
+      "useCase": "insurance",
+      "name": "Life Underwriting Risk Model",
+      "compatibleDatasetIds": [
+        "in-fin-lic-life-risk",
+        "in-fin-lic-annuity-risk"
+      ]
+    },
+    {
+      "status": "created",
+      "modelId": "in-fin-model-mortality-logreg",
+      "useCase": "insurance",
+      "name": "Mortality & Longevity Actuarial Model",
+      "compatibleDatasetIds": [
+        "in-fin-lic-life-risk",
+        "in-fin-lic-annuity-risk"
+      ]
+    },
+    {
+      "status": "created",
+      "modelId": "in-fin-model-card-offer-logreg",
+      "useCase": "credit-cards",
+      "name": "Credit Card Offer Response Model",
+      "compatibleDatasetIds": [
+        "in-fin-axis-card-spend",
+        "in-fin-axis-rewards-spend"
+      ]
+    },
+    {
+      "status": "created",
+      "modelId": "in-fin-model-card-churn-logreg",
+      "useCase": "credit-cards",
+      "name": "Credit Card Churn Predictor",
+      "compatibleDatasetIds": [
+        "in-fin-axis-card-spend",
+        "in-fin-axis-rewards-spend"
+      ]
+    }
+  ],
+  "suggestedContracts": [
+    {
+      "name": "Cross-bank fraud consortium",
+      "tdc": "tdc.finai-consortium@in-fintech-test.com",
+      "tdps": [
+        "tdp.sbi@in-fintech-test.com",
+        "tdp.hdfc@in-fintech-test.com"
+      ],
+      "tsp": "tsp.yotta@in-fintech-test.com",
+      "datasets": [
+        "in-fin-sbi-transactions",
+        "in-fin-sbi-merchant-risk",
+        "in-fin-hdfc-kyc-features"
+      ],
+      "aiModelIds": [
+        "in-fin-model-fraud-logreg",
+        "in-fin-model-aml-gbm"
+      ]
+    },
+    {
+      "name": "National lending risk pool",
+      "tdc": "tdc.lending-pool@in-fintech-test.com",
+      "tdps": [
+        "tdp.hdfc@in-fintech-test.com",
+        "tdp.bajaj-finance@in-fintech-test.com"
+      ],
+      "tsp": "tsp.esds@in-fintech-test.com",
+      "datasets": [
+        "in-fin-hdfc-retail-loans",
+        "in-fin-hdfc-kyc-features",
+        "in-fin-bajaj-nbfc-emi",
+        "in-fin-bajaj-collections"
+      ],
+      "aiModelIds": [
+        "in-fin-model-credit-logreg",
+        "in-fin-model-affordability-logreg",
+        "in-fin-model-collections-logreg"
+      ]
+    },
+    {
+      "name": "Insurance pricing & claims fraud",
+      "tdc": "tdc.insurtech-pool@in-fintech-test.com",
+      "tdps": [
+        "tdp.icici-insurance@in-fintech-test.com",
+        "tdp.lic@in-fintech-test.com"
+      ],
+      "tsp": "tsp.yotta@in-fintech-test.com",
+      "datasets": [
+        "in-fin-icici-motor-claims",
+        "in-fin-icici-health-claims",
+        "in-fin-lic-life-risk",
+        "in-fin-lic-annuity-risk"
+      ],
+      "aiModelIds": [
+        "in-fin-model-claims-fraud-logreg",
+        "in-fin-model-motor-premium-logreg",
+        "in-fin-model-life-underwriting-logreg",
+        "in-fin-model-mortality-logreg"
+      ]
+    },
+    {
+      "name": "Card offers cooperative",
+      "tdc": "tdc.card-offers-coop@in-fintech-test.com",
+      "tdps": [
+        "tdp.axis-cards@in-fintech-test.com"
+      ],
+      "tsp": "tsp.esds@in-fintech-test.com",
+      "datasets": [
+        "in-fin-axis-card-spend",
+        "in-fin-axis-rewards-spend"
+      ],
+      "aiModelIds": [
+        "in-fin-model-card-offer-logreg",
+        "in-fin-model-card-churn-logreg"
+      ]
+    }
+  ]
+}

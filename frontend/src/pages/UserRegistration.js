@@ -564,7 +564,7 @@ const UserRegistration = () => {
                  >
                    <MenuItem value="TDP">Training Data Provider (TDP)</MenuItem>
                    <MenuItem value="TDC">Training Data Consumer (TDC)</MenuItem>
-                   <MenuItem value="CCRP">Confidential Clean Room Provider (CCRP)</MenuItem>
+                   <MenuItem value="TSP">Tech Service Provider (TSP)</MenuItem>
                  </Select>
               </FormControl>
             </Grid>

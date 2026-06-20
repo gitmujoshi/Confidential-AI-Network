@@ -13,7 +13,7 @@ async function loadContractForTraining(contractId) {
     where: { contractId },
     include: [
       { model: db.User, as: 'tdc', attributes: ['id', 'name', 'email', 'depaId'] },
-      { model: db.User, as: 'ccrp', attributes: ['id', 'name', 'email', 'depaId'], required: false },
+      { model: db.User, as: 'tsp', attributes: ['id', 'name', 'email', 'depaId'], required: false },
     ],
   });
 }
@@ -160,9 +160,9 @@ async function expandContractTrainingInputs(contract) {
       status: contract.status,
       tdcId: contract.tdcId,
       tdcDepaId: contract.tdc?.depaId || null,
-      ccrpId: contract.ccrpId,
-      ccrpDepaId: contract.ccrp?.depaId || null,
-      ccrpCloudProvider: contract.ccrpCloudProvider,
+      tspId: contract.tspId,
+      ccrpDepaId: contract.tsp?.depaId || null,
+      tspCloudProvider: contract.tspCloudProvider,
       environmentSpecs: contract.environmentSpecs,
       trainingParams: contract.trainingParams,
       kmsConfigs: contract.kmsConfigs,

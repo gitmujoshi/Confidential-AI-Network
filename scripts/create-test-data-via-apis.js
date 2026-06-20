@@ -88,10 +88,10 @@ const testUsers = [
   },
   {
     username: 'secure_ccrp',
-    email: 'secure@ccrp.com',
+    email: 'secure@tsp.com',
     firstName: 'Secure Compute',
     lastName: 'Solutions',
-    role: 'CCRP',
+    role: 'TSP',
     organization: 'Secure Compute Solutions',
     walletAddress: '0x6666666666666666666666666666666666666666'
   }

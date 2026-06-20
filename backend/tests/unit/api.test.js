@@ -47,7 +47,7 @@ describe('API Endpoints Test Suite', () => {
       termsAndConditions: 'Standard terms for API testing',
       tdpId: testUser.id,
       tdcId: testUser.id,
-      ccrpId: testUser.id,
+      tspId: testUser.id,
       datasetId: testDataset.id,
       primaryDatasetId: testDataset.id,
       primaryTdpId: testUser.id,
@@ -454,7 +454,7 @@ describe('API Endpoints Test Suite', () => {
           modelId: 'MODEL-002',
           tdpId: testUser.id,
           tdcId: testUser.id,
-          ccrpId: testUser.id,
+          tspId: testUser.id,
           datasetId: testDataset.id
         };
 
@@ -493,7 +493,7 @@ describe('API Endpoints Test Suite', () => {
           modelId: 'MODEL-001',
           tdpId: testUser.id,
           tdcId: testUser.id,
-          ccrpId: testUser.id,
+          tspId: testUser.id,
           datasetId: testDataset.id
         };
 
@@ -986,7 +986,7 @@ describe('API Endpoints Test Suite', () => {
         modelId: 'MODEL-001',
         tdpId: testUser.id,
         tdcId: testUser.id,
-        ccrpId: testUser.id,
+        tspId: testUser.id,
         datasetId: 99999 // Non-existent dataset
       };
 

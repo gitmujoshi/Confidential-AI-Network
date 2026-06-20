@@ -8,7 +8,7 @@
  * 1. DRAFT: Contract created by TDC, can be edited
  * 2. PENDING_TDP: Waiting for all TDPs to sign
  * 3. PENDING_TDC: Waiting for TDC signature
- * 4. PENDING_CCRP: Waiting for CCRP signature
+ * 4. PENDING_TSP: Waiting for TSP signature
  * 5. SIGNED: All parties signed, ready for execution
  * 6. EXECUTING: Contract being executed
  * 7. COMPLETED: Contract fulfilled successfully
@@ -25,7 +25,7 @@
  * Parties:
  * - TDP (Training Data Provider): Dataset owner, auto-signs when contract created
  * - TDC (Training Data Consumer): Contract initiator, signs to finalize
- * - CCRP (Confidential Clean Room Provider): Runtime environment provider who sets up secure environments for data analytics or AI model training based on contracts
+ * - TSP (Tech Service Provider): Runtime environment provider who sets up secure environments for data analytics or AI model training based on contracts
  * 
  * Security Features:
  * - Blockchain contract ID tracking
@@ -73,8 +73,10 @@ module.exports = (sequelize, DataTypes) => {
         'PENDING_TDP',              // Waiting for all TDPs to sign
         'PENDING_TDP_APPROVAL',     // Waiting for TDP approval (legacy)
         'PENDING_TDC',              // Waiting for TDC signature  
-        'PENDING_CCRP',             // Waiting for CCRP signature
-        'PENDING_CCRP_APPROVAL',    // Waiting for CCRP approval (legacy)
+        'PENDING_TSP',              // Waiting for TSP signature
+        'PENDING_TSP_APPROVAL',     // Waiting for TSP approval (legacy)
+        'PENDING_CCRP',             // Legacy DB value (maps to PENDING_TSP)
+        'PENDING_CCRP_APPROVAL',    // Legacy DB value
         'SIGNED',                   // All parties signed, ready for execution
         'EXECUTING',                // Contract being executed
         'COMPLETED',                // Contract fulfilled successfully
@@ -122,12 +124,12 @@ module.exports = (sequelize, DataTypes) => {
       comment: 'Complete legal document with terms, parties, and signatures'
     },
     
-    // Environment Specifications for CCRP
+    // Environment Specifications for TSP
     environmentSpecs: {
       field: 'environmentspecs',
       type: DataTypes.JSONB,
       allowNull: true,
-      comment: 'CCRP environment specifications including compute, security, and KMS config'
+      comment: 'TSP environment specifications including compute, security, and KMS config'
     },
     
     // Training Parameters
@@ -154,15 +156,16 @@ module.exports = (sequelize, DataTypes) => {
       comment: 'Multi-KMS provider configurations for data decryption'
     },
 
-    // CCRP signature status
-    ccrpSigned: {
+    // TSP signature status
+    tspSigned: {
       type: DataTypes.BOOLEAN,
+      field: 'ccrp_signed',
       defaultValue: false
     },
     
-    // Timestamp when CCRP signed (manual review and sign)
-    ccrpSignedAt: {
+    tspSignedAt: {
       type: DataTypes.DATE,
+      field: 'ccrp_signed_at',
       allowNull: true
     },
 
@@ -196,9 +199,10 @@ module.exports = (sequelize, DataTypes) => {
       }
     },
     
-    // Foreign key to CCRP user (Confidential Clean Room Provider - optional)
-    ccrpId: {
+    // Foreign key to TSP user (Tech Service Provider - optional)
+    tspId: {
       type: DataTypes.INTEGER,
+      field: 'ccrp_id',
       allowNull: true,
       references: {
         model: 'users',
@@ -249,76 +253,86 @@ module.exports = (sequelize, DataTypes) => {
     },
 
     // Selected cloud provider for this contract
-    ccrpCloudProvider: {
+    tspCloudProvider: {
       type: DataTypes.STRING,
+      field: 'ccrp_cloud_provider',
       allowNull: true,
       comment: 'Selected cloud provider for this contract (AWS, GCP, Azure, OCI)'
     },
     
-    // CCRP Azure Configuration (for Azure contracts)
-    ccrpAzureSubscriptionId: {
+    tspAzureSubscriptionId: {
       type: DataTypes.STRING,
+      field: 'ccrp_azure_subscription_id',
       allowNull: true,
-      comment: 'Azure subscription ID for this contract (from CCRP credentials)'
+      comment: 'Azure subscription ID for this contract (from TSP credentials)'
     },
     
-    ccrpAzureTenantId: {
+    tspAzureTenantId: {
       type: DataTypes.STRING,
+      field: 'ccrp_azure_tenant_id',
       allowNull: true,
-      comment: 'Azure tenant ID for this contract (from CCRP credentials)'
+      comment: 'Azure tenant ID for this contract (from TSP credentials)'
     },
     
-    ccrpAzureLocation: {
+    tspAzureLocation: {
       type: DataTypes.STRING,
+      field: 'ccrp_azure_location',
       allowNull: true,
       defaultValue: 'eastus',
       comment: 'Azure region for this contract deployment'
     },
     
-    ccrpAzureResourceGroupPrefix: {
+    tspAzureResourceGroupPrefix: {
       type: DataTypes.STRING,
+      field: 'ccrp_azure_resource_group_prefix',
       allowNull: true,
       defaultValue: 'training',
       comment: 'Resource group prefix for this contract'
     },
     
-    ccrpAzureVMSize: {
+    tspAzureVMSize: {
       type: DataTypes.STRING,
+      field: 'ccrp_azure_v_m_size',
       allowNull: true,
       defaultValue: 'Standard_D2s_v3',
       comment: 'VM size for compute instances'
     },
     
-    ccrpAzureStorageSku: {
+    tspAzureStorageSku: {
       type: DataTypes.STRING,
+      field: 'ccrp_azure_storage_sku',
       allowNull: true,
       defaultValue: 'Standard_LRS',
       comment: 'Storage account SKU'
     },
     
-    ccrpAzureDatabaseSku: {
+    tspAzureDatabaseSku: {
       type: DataTypes.STRING,
+      field: 'ccrp_azure_database_sku',
       allowNull: true,
       defaultValue: 'Basic',
       comment: 'Database SKU'
     },
     
-    ccrpAzureEnableEncryption: {
+    tspAzureEnableEncryption: {
       type: DataTypes.BOOLEAN,
+      field: 'ccrp_azure_enable_encryption',
       allowNull: true,
       defaultValue: true,
       comment: 'Enable encryption for this contract'
     },
     
-    ccrpAzureEnableMonitoring: {
+    tspAzureEnableMonitoring: {
       type: DataTypes.BOOLEAN,
+      field: 'ccrp_azure_enable_monitoring',
       allowNull: true,
       defaultValue: true,
       comment: 'Enable monitoring for this contract'
     },
     
-    ccrpAzureBudgetLimit: {
+    tspAzureBudgetLimit: {
       type: DataTypes.DECIMAL(10, 2),
+      field: 'ccrp_azure_budget_limit',
       allowNull: true,
       comment: 'Monthly budget limit for this contract'
     },
@@ -361,7 +375,7 @@ module.exports = (sequelize, DataTypes) => {
         'PENDING_TDP',              // Waiting for all TDPs to sign
         'PENDING_ALL_TDP_APPROVAL', // Waiting for all TDP approvals (legacy)
         'PENDING_TDC',              // Waiting for TDC signature
-        'PENDING_CCRP',             // Waiting for CCRP signature
+        'PENDING_TSP',             // Waiting for TSP signature
         'SIGNED',                   // All parties signed, ready for execution
         'EXECUTING',                // Contract being executed
         'COMPLETED',                // Contract fulfilled successfully
@@ -444,7 +458,7 @@ module.exports = (sequelize, DataTypes) => {
         fields: ['tdc_id']          // Fast TDC contract queries
       },
       {
-        fields: ['ccrp_id']         // Fast CCRP contract queries
+        fields: ['ccrp_id']         // Fast TSP contract queries
       },
       {
         fields: ['depa_id']               // Fast DEPA ID lookups
@@ -469,8 +483,8 @@ module.exports = (sequelize, DataTypes) => {
     Contract.belongsTo(models.User, { foreignKey: 'tdpId', as: 'tdp' });
     Contract.belongsTo(models.User, { foreignKey: 'primaryTdpId', as: 'primaryTdp' });
     
-    // Contract belongs to CCRP (Confidential Clean Room Provider) - optional
-    Contract.belongsTo(models.User, { foreignKey: 'ccrpId', as: 'ccrp' });
+    // Contract belongs to TSP (Tech Service Provider) - optional
+    Contract.belongsTo(models.User, { foreignKey: 'tspId', as: 'tsp' });
 
     Contract.belongsTo(models.Dataset, { foreignKey: 'datasetId', as: 'dataset' });
     Contract.belongsTo(models.Dataset, { foreignKey: 'primaryDatasetId', as: 'primaryDataset' });

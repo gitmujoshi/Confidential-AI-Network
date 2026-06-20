@@ -578,7 +578,7 @@ const GlobalDeploymentManagement = () => {
                   >
                     <MenuItem value="TDC">Training Data Consumer (TDC)</MenuItem>
                     <MenuItem value="TDP">Training Data Provider (TDP)</MenuItem>
-                    <MenuItem value="CCRP">Confidential Clean Room Provider (CCRP)</MenuItem>
+                    <MenuItem value="TSP">Tech Service Provider (TSP)</MenuItem>
                     <MenuItem value="CONTRACT">Contract</MenuItem>
                   </Select>
                 </FormControl>

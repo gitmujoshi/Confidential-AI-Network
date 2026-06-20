@@ -21,7 +21,7 @@ test_scripts=(
     "test-integration-full.sh"
     "test-tdp-user.sh"
     "test-tdc-user.sh"
-    "test-ccrp-user.sh"
+    "test-tsp-user.sh"
     "test-admin-user.sh"
     "test-user-roles-all.sh"
     "test-datasets-comprehensive.sh"

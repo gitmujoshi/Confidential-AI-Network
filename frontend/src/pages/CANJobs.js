@@ -34,7 +34,7 @@ export default function CANJobs() {
     () => ({
       dp: 'did:can:dp:ui',
       mo: 'did:can:mo:ui',
-      ccrp: 'did:can:ccrp:ui',
+      tsp: 'did:can:tsp:ui',
     }),
     []
   );
@@ -98,8 +98,8 @@ export default function CANJobs() {
     setBusy(true);
     setLastError('');
     try {
-      await canPost(`/api/can/jcs/jobs/${jobId}/release`, {}, principalIds.ccrp);
-      toast.success('Job released to local CCRP');
+      await canPost(`/api/can/jcs/jobs/${jobId}/release`, {}, principalIds.tsp);
+      toast.success('Job released to local TSP');
     } catch (e) {
       const msg = e?.response?.data?.error || e.message;
       setLastError(String(msg));
@@ -146,7 +146,7 @@ export default function CANJobs() {
   return (
     <Box sx={{ maxWidth: 980, mx: 'auto', p: 2 }}>
       <Typography variant="h4" sx={{ mb: 2 }}>
-        CAN Jobs (Local CCRP)
+        CAN Jobs (Local TSP)
       </Typography>
       <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
         UI helper for local end-to-end testing of CAN: create job → release keys → run local training → verify status.
@@ -174,7 +174,7 @@ export default function CANJobs() {
                 Release MEK (MO)
               </Button>
               <Button variant="outlined" onClick={handleReleaseJob} disabled={busy || !jobId}>
-                Release Job (CCRP)
+                Release Job (TSP)
               </Button>
               <Button variant="outlined" onClick={handlePollTraining} disabled={busy || !jobId}>
                 Wait for Training

@@ -119,6 +119,12 @@ class GlobalDEPAIdService extends DEPAIdService {
         encryptionStandards: ['AES-256', 'FIPS-140-2'],
         auditRequirements: ['PIPEDA', 'ISO-27001'],
         depaIdFormat: 'CA-[REGION]-[ENTITY_TYPE]-[GUID]'
+      },
+      'IN-DPDPA': {
+        dataResidency: 'India',
+        encryptionStandards: ['AES-256', 'RBI-Cyber-Framework'],
+        auditRequirements: ['DPDPA', 'RBI', 'IRDAI', 'ISO-27001'],
+        depaIdFormat: 'IN-[REGION]-[ENTITY_TYPE]-[GUID]'
       }
     };
     
@@ -181,7 +187,8 @@ class GlobalDEPAIdService extends DEPAIdService {
     const partyTypeMap = {
       'TDC': 'TDC',
       'TDP': 'TDP',
-      'CCRP': 'CCRP',
+      'TSP': 'TSP',
+      'CCRP': 'TSP',
       'AppAdmin': 'TDC'
     };
 
@@ -292,29 +299,57 @@ class GlobalDEPAIdService extends DEPAIdService {
   }
 
   /**
+   * Map user party type to DEPA entity type (for ID generation).
+   * @param {string} partyType - TDP | TDC | TSP | AppAdmin
+   * @returns {string}
+   */
+  partyTypeToEntityType(partyType) {
+    const normalized = partyType === 'CCRP' ? 'TSP' : partyType;
+    const map = {
+      TDC: 'TDC',
+      TDP: 'TDP',
+      TSP: 'TSP',
+      AppAdmin: 'TDC',
+    };
+    const entityType = map[normalized];
+    if (!entityType) {
+      throw new Error(`Invalid party type: ${partyType}`);
+    }
+    return entityType;
+  }
+
+  /**
    * Generate jurisdiction-compliant DEPA ID
    * @param {string} entityType - Entity type
    * @param {string} jurisdiction - Jurisdiction code
+   * @param {Object} [options] - Optional { deploymentPrefix, region }
    * @returns {string} Jurisdiction-compliant DEPA ID
    */
-  generateJurisdictionCompliantDEPAId(entityType, jurisdiction) {
+  generateJurisdictionCompliantDEPAId(entityType, jurisdiction, options = {}) {
     try {
       const config = this.jurisdictionConfigs[jurisdiction];
       if (!config) {
         throw new Error(`Unsupported jurisdiction: ${jurisdiction}`);
       }
-      
+
+      if (!entityType || !this.validEntityTypes.includes(entityType)) {
+        throw new Error(`Invalid entity type for jurisdiction DEPA ID: ${entityType}`);
+      }
+
       const guid = uuidv4();
-      const region = this.currentDeployment.region;
-      
-      // Use jurisdiction-specific format
+      const prefix = options.deploymentPrefix || this.currentDeployment.prefix;
+      const region =
+        options.region ||
+        (prefix && String(prefix).includes('-') ? String(prefix).split('-').slice(1).join('-') : null) ||
+        this.currentDeployment.region;
+
       const depaId = config.depaIdFormat
         .replace('[REGION]', region)
         .replace('[ENTITY_TYPE]', entityType)
         .replace('[GUID]', guid);
-      
+
       console.log(`✅ Generated jurisdiction-compliant DEPA ID: ${depaId} for ${jurisdiction}`);
-      
+
       return depaId;
     } catch (error) {
       console.error(`❌ Error generating jurisdiction-compliant DEPA ID:`, error.message);

@@ -185,7 +185,7 @@ const realApiService = {
       return response.data;
     }
     
-    // TDC and CCRP users see public datasets
+    // TDC and TSP users see public datasets
     const response = await api.get('/api/datasets/public', { params });
     return response.data;
   },
@@ -285,8 +285,8 @@ const realApiService = {
     const response = await api.get(`/api/contracts/${contractId}/payment-summary`);
     return response.data;
   },
-  selectCCRP: async (contractId, data) => {
-    const response = await api.post(`/api/contracts/${contractId}/select-ccrp`, data);
+  selectTSP: async (contractId, data) => {
+    const response = await api.post(`/api/contracts/${contractId}/select-tsp`, data);
     return response.data;
   },
   completeContract: async (contractId, data) => {
@@ -342,7 +342,7 @@ const realApiService = {
     );
     return typeof response.data === 'string' ? JSON.parse(response.data) : response.data;
   },
-  /** Contract-wide provenance / audit bundle (TDC, CCRP, or AppAdmin on that contract). */
+  /** Contract-wide provenance / audit bundle (TDC, TSP, or AppAdmin on that contract). */
   getScittProvenanceReport: async (contractId) => {
     const response = await api.get(
       `/api/scitt-ccf/provenance-report/${encodeURIComponent(contractId)}`
@@ -497,9 +497,9 @@ const realApiService = {
     const response = await api.get('/api/users/public');
     return response.data;
   },
-  getCCRPUsers: async (cloudProvider = null) => {
+  getTSPUsers: async (cloudProvider = null) => {
     // Create a clean URL with only the parameters we want
-    let url = '/api/ccrp/all';
+    let url = '/api/tsp/all';
     if (cloudProvider) {
       url += `?cloudProvider=${encodeURIComponent(cloudProvider)}`;
     }
@@ -676,7 +676,7 @@ const mockApiService = {
         currency: 'MOCK',
         language: 'en-MOCK',
         depaIdFormat: 'MOCK-{ENTITY_TYPE}-{UUID}',
-        entityTypes: ['TDC', 'TDP', 'CCRP', 'CONTRACT', 'DATASET']
+        entityTypes: ['TDC', 'TDP', 'TSP', 'CONTRACT', 'DATASET']
       }
     };
   },
@@ -696,8 +696,8 @@ const mockApiService = {
           {
             name: 'Entity Type',
             value: '{ENTITY_TYPE}',
-            description: 'Type of entity (TDC, TDP, CCRP, CONTRACT, DATASET)',
-            examples: ['TDC', 'TDP', 'CCRP', 'CONTRACT', 'DATASET']
+            description: 'Type of entity (TDC, TDP, TSP, CONTRACT, DATASET)',
+            examples: ['TDC', 'TDP', 'TSP', 'CONTRACT', 'DATASET']
           },
           {
             name: 'UUID',
@@ -709,7 +709,7 @@ const mockApiService = {
         examples: [
           'MOCK-TDC-8f4e2a1b-3c4d-5e6f-7a8b-9c0d1e2f3a4b',
           'MOCK-TDP-9a1b2c3d-4e5f-6a7b-8c9d-0e1f2a3b4c5d',
-          'MOCK-CCRP-1b2c3d4e-5f6a-7b8c-9d0e-1f2a3b4c5d6e'
+          'MOCK-TSP-1b2c3d4e-5f6a-7b8c-9d0e-1f2a3b4c5d6e'
         ]
       }
     };
@@ -756,7 +756,7 @@ const mockApiService = {
   createContract: () => { throw new Error('Mock API: createContract() not implemented for registration testing'); },
   getContractSigningData: () => { throw new Error('Mock API: getContractSigningData() not implemented for registration testing'); },
   signContract: () => { throw new Error('Mock API: signContract() not implemented for registration testing'); },
-  selectCCRP: () => { throw new Error('Mock API: selectCCRP() not implemented for registration testing'); },
+  selectTSP: () => { throw new Error('Mock API: selectTSP() not implemented for registration testing'); },
   completeContract: () => { throw new Error('Mock API: completeContract() not implemented for registration testing'); },
   cancelContract: () => { throw new Error('Mock API: cancelContract() not implemented for registration testing'); },
   getTdcTrainingReadiness: () => {

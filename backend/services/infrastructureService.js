@@ -33,7 +33,7 @@ class InfrastructureService {
         include: [
           { model: db.User, as: 'tdp' },
           { model: db.User, as: 'tdc' },
-          { model: db.User, as: 'ccrp' },
+          { model: db.User, as: 'tsp' },
           { model: db.Dataset, as: 'dataset' }
         ]
       });
@@ -42,21 +42,21 @@ class InfrastructureService {
         throw new Error('Contract not found');
       }
 
-      if (!contract.ccrpCloudProvider) {
+      if (!contract.tspCloudProvider) {
         throw new Error('No cloud provider selected for this contract');
       }
 
-      // Get CCRP-specific Azure configuration if using Azure
+      // Get TSP-specific Azure configuration if using Azure
       let azureConfig = null;
-      if (contract.ccrpCloudProvider === 'Azure') {
-        const CCRPAzureCredentialsService = require('./ccrpAzureCredentialsService');
-        const ccrpCredentialsService = new CCRPAzureCredentialsService();
+      if (contract.tspCloudProvider === 'Azure') {
+        const TSPAzureCredentialsService = require('./tspAzureCredentialsService');
+        const ccrpCredentialsService = new TSPAzureCredentialsService();
         
         try {
           azureConfig = await ccrpCredentialsService.getContractAzureConfig(contractId);
-          console.log(`✅ Retrieved CCRP Azure configuration for contract: ${contractId}`);
+          console.log(`✅ Retrieved TSP Azure configuration for contract: ${contractId}`);
         } catch (error) {
-          console.error(`❌ Error getting CCRP Azure config: ${error.message}`);
+          console.error(`❌ Error getting TSP Azure config: ${error.message}`);
           throw new Error(`Azure configuration not available: ${error.message}`);
         }
       }
@@ -68,8 +68,8 @@ class InfrastructureService {
       const trainingEnvironment = await db.TrainingEnvironment.create({
         contractId,
         environmentId,
-        cloudProvider: contract.ccrpCloudProvider,
-        region: config.region || this.getDefaultRegion(contract.ccrpCloudProvider),
+        cloudProvider: contract.tspCloudProvider,
+        region: config.region || this.getDefaultRegion(contract.tspCloudProvider),
         status: 'PENDING',
         infrastructureConfig: this.buildInfrastructureConfig(contract, config),
         securityConfig: this.buildSecurityConfig(contract, config),
@@ -80,16 +80,16 @@ class InfrastructureService {
 
       // Get the appropriate cloud provider
       let provider;
-      if (contract.ccrpCloudProvider === 'Azure' && azureConfig) {
-        // Create Azure provider with CCRP-specific configuration
+      if (contract.tspCloudProvider === 'Azure' && azureConfig) {
+        // Create Azure provider with TSP-specific configuration
         const AzureProvider = require('./providers/azureProvider');
         provider = new AzureProvider(azureConfig);
       } else {
-        provider = this.providers[contract.ccrpCloudProvider];
+        provider = this.providers[contract.tspCloudProvider];
       }
       
       if (!provider) {
-        throw new Error(`Unsupported cloud provider: ${contract.ccrpCloudProvider}`);
+        throw new Error(`Unsupported cloud provider: ${contract.tspCloudProvider}`);
       }
 
       // Update status to provisioning
@@ -147,7 +147,7 @@ class InfrastructureService {
         include: [
           { model: db.User, as: 'tdp' },
           { model: db.User, as: 'tdc' },
-          { model: db.User, as: 'ccrp' },
+          { model: db.User, as: 'tsp' },
           { model: db.Dataset, as: 'dataset' }
         ]
       });
@@ -156,21 +156,21 @@ class InfrastructureService {
         throw new Error('Contract not found');
       }
 
-      if (!contract.ccrpCloudProvider) {
+      if (!contract.tspCloudProvider) {
         throw new Error('No cloud provider selected for this contract');
       }
 
-      // Get CCRP-specific Azure configuration if using Azure
+      // Get TSP-specific Azure configuration if using Azure
       let azureConfig = null;
-      if (contract.ccrpCloudProvider === 'Azure') {
-        const CCRPAzureCredentialsService = require('./ccrpAzureCredentialsService');
-        const ccrpCredentialsService = new CCRPAzureCredentialsService();
+      if (contract.tspCloudProvider === 'Azure') {
+        const TSPAzureCredentialsService = require('./tspAzureCredentialsService');
+        const ccrpCredentialsService = new TSPAzureCredentialsService();
         
         try {
           azureConfig = await ccrpCredentialsService.getContractAzureConfig(contractId);
-          console.log(`✅ Retrieved CCRP Azure configuration for contract: ${contractId}`);
+          console.log(`✅ Retrieved TSP Azure configuration for contract: ${contractId}`);
         } catch (error) {
-          console.error(`❌ Error getting CCRP Azure config: ${error.message}`);
+          console.error(`❌ Error getting TSP Azure config: ${error.message}`);
           throw new Error(`Azure configuration not available: ${error.message}`);
         }
       }
@@ -182,8 +182,8 @@ class InfrastructureService {
       const trainingEnvironment = await db.TrainingEnvironment.create({
         contractId,
         environmentId,
-        cloudProvider: contract.ccrpCloudProvider,
-        region: config.region || this.getDefaultRegion(contract.ccrpCloudProvider),
+        cloudProvider: contract.tspCloudProvider,
+        region: config.region || this.getDefaultRegion(contract.tspCloudProvider),
         status: 'PENDING',
         infrastructureConfig: this.buildInfrastructureConfig(contract, config),
         securityConfig: this.buildSecurityConfig(contract, config),
@@ -436,12 +436,12 @@ class InfrastructureService {
       totalDatasets: contractDatasets.length,
       confidentialComputingDatasets: contractDatasets.filter(d => d.confidentialComputingRequired === true).length,
       hasConfidentialComputingDatasets,
-      cloudProvider: contract.ccrpCloudProvider
+      cloudProvider: contract.tspCloudProvider
     });
 
     const baseConfig = {
       compute: {
-        instanceType: config.compute?.instanceType || this.getDefaultInstanceType(contract.ccrpCloudProvider),
+        instanceType: config.compute?.instanceType || this.getDefaultInstanceType(contract.tspCloudProvider),
         cpuCores: config.compute?.cpuCores || 4,
         memoryGB: config.compute?.memoryGB || 16,
         gpuEnabled: config.compute?.gpuEnabled || false,
@@ -495,7 +495,7 @@ class InfrastructureService {
         compute: {
           ...baseConfig.compute,
           // Enhanced compute for confidential computing
-          instanceType: this.getConfidentialComputingInstanceType(contract.ccrpCloudProvider),
+          instanceType: this.getConfidentialComputingInstanceType(contract.tspCloudProvider),
           cpuCores: Math.max(baseConfig.compute.cpuCores, 8),
           memoryGB: Math.max(baseConfig.compute.memoryGB, 32),
           gpuEnabled: true, // Often needed for ML workloads
@@ -745,21 +745,21 @@ class InfrastructureService {
     let estimatedCost = 0;
     
     // Compute costs
-    const computeCost = this.getComputeCost(contract.ccrpCloudProvider, infrastructureConfig.compute);
+    const computeCost = this.getComputeCost(contract.tspCloudProvider, infrastructureConfig.compute);
     
     // Storage costs
-    const storageCost = this.getStorageCost(contract.ccrpCloudProvider, infrastructureConfig.storage);
+    const storageCost = this.getStorageCost(contract.tspCloudProvider, infrastructureConfig.storage);
     
     // Network costs
-    const networkCost = this.getNetworkCost(contract.ccrpCloudProvider, infrastructureConfig.network);
+    const networkCost = this.getNetworkCost(contract.tspCloudProvider, infrastructureConfig.network);
     
     // Database costs
     const databaseCost = infrastructureConfig.database.enabled ? 
-      this.getDatabaseCost(contract.ccrpCloudProvider, infrastructureConfig.database) : 0;
+      this.getDatabaseCost(contract.tspCloudProvider, infrastructureConfig.database) : 0;
     
     // ML service costs
     const mlCost = infrastructureConfig.mlServices.gpuEnabled ?
-      this.getMLServiceCost(contract.ccrpCloudProvider, infrastructureConfig.mlServices) : 0;
+      this.getMLServiceCost(contract.tspCloudProvider, infrastructureConfig.mlServices) : 0;
     
     estimatedCost = computeCost + storageCost + networkCost + databaseCost + mlCost;
     

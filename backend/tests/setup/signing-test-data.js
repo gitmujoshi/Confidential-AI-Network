@@ -143,9 +143,9 @@ class SigningTestDataSetup {
         firstLogin: false
       },
       {
-        name: 'Test CCRP User',
-        email: 'ccrp@test-signing.com',
-        partyType: 'CCRP',
+        name: 'Test TSP User',
+        email: 'tsp@test-signing.com',
+        partyType: 'TSP',
         depaId: 'TEST_CCRP_001',
         isActive: true,
         firstLogin: false
@@ -174,15 +174,15 @@ class SigningTestDataSetup {
     console.log('📄 Creating test contracts...');
     
     const tdcUser = this.testUsers.find(u => u.partyType === 'TDC');
-    const ccrpUser = this.testUsers.find(u => u.partyType === 'CCRP');
+    const tspUser = this.testUsers.find(u => u.partyType === 'TSP');
     
     const testContractData = [
       {
         contractId: 'TEST_CONTRACT_001',
         name: 'Test Contract 1 - Pending Signatures',
-        description: 'A test contract that needs both TDC and CCRP signatures',
+        description: 'A test contract that needs both TDC and TSP signatures',
         tdcId: tdcUser.id,
-        ccrpId: ccrpUser.id,
+        tspId: tspUser.id,
         status: 'PENDING_SIGNATURES',
         contractData: {
           price: 1000,
@@ -195,10 +195,10 @@ class SigningTestDataSetup {
       {
         contractId: 'TEST_CONTRACT_002',
         name: 'Test Contract 2 - Partially Signed',
-        description: 'A test contract with TDC signature but missing CCRP signature',
+        description: 'A test contract with TDC signature but missing TSP signature',
         tdcId: tdcUser.id,
-        ccrpId: ccrpUser.id,
-        status: 'PENDING_CCRP_SIGNATURE',
+        tspId: tspUser.id,
+        status: 'PENDING_TSP_SIGNATURE',
         contractData: {
           price: 2000,
           duration: 60,
@@ -212,7 +212,7 @@ class SigningTestDataSetup {
         name: 'Test Contract 3 - Fully Signed',
         description: 'A test contract with all required signatures',
         tdcId: tdcUser.id,
-        ccrpId: ccrpUser.id,
+        tspId: tspUser.id,
         status: 'FULLY_SIGNED',
         contractData: {
           price: 3000,
@@ -278,7 +278,7 @@ class SigningTestDataSetup {
     console.log('📋 Creating test SCITT CCF claims...');
     
     const tdcUser = this.testUsers.find(u => u.partyType === 'TDC');
-    const ccrpUser = this.testUsers.find(u => u.partyType === 'CCRP');
+    const tspUser = this.testUsers.find(u => u.partyType === 'TSP');
     const partiallySignedContract = this.testContracts.find(c => c.contractId === 'TEST_CONTRACT_002');
     const fullySignedContract = this.testContracts.find(c => c.contractId === 'TEST_CONTRACT_003');
     
@@ -316,7 +316,7 @@ class SigningTestDataSetup {
     // Create both signatures for fully signed contract
     if (fullySignedContract) {
       const tdcKey = this.testKeys.find(k => k.userId === tdcUser.id);
-      const ccrpKey = this.testKeys.find(k => k.userId === ccrpUser.id);
+      const ccrpKey = this.testKeys.find(k => k.userId === tspUser.id);
       
       // TDC signature
       if (tdcKey) {
@@ -346,14 +346,14 @@ class SigningTestDataSetup {
         this.testClaims.push(tdcClaim);
       }
       
-      // CCRP signature
+      // TSP signature
       if (ccrpKey) {
         const ccrpSignatureClaim = {
           type: 'contract_signature',
           data: {
             contractId: fullySignedContract.contractId,
-            signer: ccrpUser.depaId,
-            signerRole: 'CCRP',
+            signer: tspUser.depaId,
+            signerRole: 'TSP',
             signature: this.generateTestSignature(),
             algorithm: ccrpKey.keyType,
             timestamp: Date.now() - 86400000, // 1 day ago

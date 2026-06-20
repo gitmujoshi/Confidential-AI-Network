@@ -11,7 +11,7 @@ Canonical definitions for terms used across CAN documentation, code, and UI. For
 | **CAN** | **Confidential AI Network** — this multi-party contract and training platform. |
 | **TDC** | **Training Data Consumer** — organization that contracts to train models on a TDP’s data. |
 | **TDP** | **Training Data Provider** — organization that publishes datasets and approves use under contract. |
-| **CCRP** | **Confidential Clean Room Provider** — hosts isolated training environments (TEE, private cloud, or local Docker). |
+| **TSP** | **Tech Service Provider** — hosts isolated training environments (TEE, private cloud, or local Docker). Samyog/DEPA term; replaces legacy **CCRP**. |
 | **AppAdmin** | Platform administrator (users, health, configuration). |
 | **DEPA** | [Data Empowerment and Protection Architecture](https://depa.world) — India’s consent and data-governance framework; CAN aligns with DEPA-style multi-party data sharing. |
 | **Ricardian contract** | Human-readable legal terms bound to machine-enforceable structure (datasets, training params, privacy, CCRP). |

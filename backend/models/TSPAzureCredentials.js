@@ -11,12 +11,12 @@
  * - Multi-cloud support (AWS, Azure, GCP, OCI)
  * 
  * Relationships:
- * - Belongs to User (CCRP)
+ * - Belongs to User (TSP)
  * - Referenced by Contracts for infrastructure provisioning
  */
 
 module.exports = (sequelize, DataTypes) => {
-  const CCRPAzureCredentials = sequelize.define('CCRPAzureCredentials', {
+  const TSPAzureCredentials = sequelize.define('TSPAzureCredentials', {
     // Primary key
     id: {
       type: DataTypes.INTEGER,
@@ -24,15 +24,16 @@ module.exports = (sequelize, DataTypes) => {
       autoIncrement: true
     },
     
-    // Reference to CCRP user
-    ccrpUserId: {
+    // Reference to TSP user
+    tspUserId: {
       type: DataTypes.INTEGER,
+      field: 'ccrpUserId',
       allowNull: false,
       references: {
         model: 'users',
         key: 'id'
       },
-      comment: 'Reference to CCRP user'
+      comment: 'Reference to TSP user'
     },
     
     // Cloud Provider Configuration
@@ -247,7 +248,7 @@ module.exports = (sequelize, DataTypes) => {
   });
 
   // Instance methods
-  CCRPAzureCredentials.prototype.validateCredentials = async function() {
+  TSPAzureCredentials.prototype.validateCredentials = async function() {
     try {
       // This would now call the appropriate cloud provider's validation
       const secretManager = require('../services/secretManager');
@@ -274,7 +275,7 @@ module.exports = (sequelize, DataTypes) => {
     }
   };
 
-  CCRPAzureCredentials.prototype.getCloudConfig = function() {
+  TSPAzureCredentials.prototype.getCloudConfig = function() {
     return {
       cloudProvider: this.cloudProvider,
       subscription: {
@@ -315,26 +316,26 @@ module.exports = (sequelize, DataTypes) => {
   };
 
   // Class methods
-  CCRPAzureCredentials.findByCCRP = async function(ccrpUserId) {
+  TSPAzureCredentials.findByCCRP = async function(tspUserId) {
     return await this.findAll({
       where: {
-        ccrpUserId,
+        tspUserId,
         isActive: true
       }
     });
   };
 
-  CCRPAzureCredentials.findByCCRPAndProvider = async function(ccrpUserId, cloudProvider) {
+  TSPAzureCredentials.findByCCRPAndProvider = async function(tspUserId, cloudProvider) {
     return await this.findOne({
       where: {
-        ccrpUserId,
+        tspUserId,
         cloudProvider,
         isActive: true
       }
     });
   };
 
-  CCRPAzureCredentials.findValidCredentials = async function() {
+  TSPAzureCredentials.findValidCredentials = async function() {
     return await this.findAll({
       where: {
         isActive: true,
@@ -343,5 +344,5 @@ module.exports = (sequelize, DataTypes) => {
     });
   };
 
-  return CCRPAzureCredentials;
+  return TSPAzureCredentials;
 }; 

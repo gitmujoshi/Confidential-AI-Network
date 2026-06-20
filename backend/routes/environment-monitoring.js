@@ -1,7 +1,7 @@
 /**
  * Environment Monitoring API Routes
  * 
- * Provides real-time monitoring and management capabilities for CCRP environments
+ * Provides real-time monitoring and management capabilities for TSP environments
  * including resource usage, security metrics, and environment actions.
  */
 
@@ -24,7 +24,7 @@ const provenanceService = new ProvenanceTrackingService();
  */
 router.get('/environments/:environmentId/metrics',
   requireAuth,
-  requireRole(['CCRP', 'AppAdmin']),
+  requireRole(['TSP', 'AppAdmin']),
   [
     param('environmentId').isString().notEmpty().withMessage('Environment ID is required'),
     query('timeRange').optional().isIn(['1h', '24h', '7d', '30d']).withMessage('Invalid time range'),
@@ -87,7 +87,7 @@ router.get('/environments/:environmentId/metrics',
  */
 router.post('/environments/:environmentId/actions/:action',
   requireAuth,
-  requireRole(['CCRP', 'AppAdmin']),
+  requireRole(['TSP', 'AppAdmin']),
   [
     param('environmentId').isString().notEmpty().withMessage('Environment ID is required'),
     param('action').isIn(['start', 'stop', 'restart', 'configure', 'scale']).withMessage('Invalid action'),
@@ -227,7 +227,7 @@ router.post('/environments/:environmentId/actions/:action',
  */
 router.get('/environments/:environmentId/security',
   requireAuth,
-  requireRole(['CCRP', 'AppAdmin']),
+  requireRole(['TSP', 'AppAdmin']),
   [
     param('environmentId').isString().notEmpty().withMessage('Environment ID is required')
   ],
@@ -312,7 +312,7 @@ router.get('/environments/:environmentId/security',
  */
 router.get('/environments/:environmentId/usage-history',
   requireAuth,
-  requireRole(['CCRP', 'AppAdmin']),
+  requireRole(['TSP', 'AppAdmin']),
   [
     param('environmentId').isString().notEmpty().withMessage('Environment ID is required'),
     query('timeRange').optional().isIn(['1h', '6h', '24h', '7d', '30d']).withMessage('Invalid time range'),
@@ -374,7 +374,7 @@ router.get('/environments/:environmentId/usage-history',
  */
 router.get('/environments/monitoring/dashboard',
   requireAuth,
-  requireRole(['CCRP', 'AppAdmin']),
+  requireRole(['TSP', 'AppAdmin']),
   [
     query('userId').optional().isString().withMessage('User ID must be a string')
   ],

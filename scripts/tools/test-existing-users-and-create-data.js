@@ -41,9 +41,9 @@ const testUsers = [
   { email: 'tdc.healthcare@example.com', password: 'TestPassword123!', partyType: 'TDC' },
   { email: 'tdc.fintech@example.com', password: 'TestPassword123!', partyType: 'TDC' },
   { email: 'tdc.language@example.com', password: 'TestPassword123!', partyType: 'TDC' },
-  { email: 'ccrp.securecloud@example.com', password: 'TestPassword123!', partyType: 'CCRP' },
-  { email: 'ccrp.trustedai@example.com', password: 'TestPassword123!', partyType: 'CCRP' },
-  { email: 'ccrp.privacyfirst@example.com', password: 'TestPassword123!', partyType: 'CCRP' },
+  { email: 'tsp.securecloud@example.com', password: 'TestPassword123!', partyType: 'TSP' },
+  { email: 'tsp.trustedai@example.com', password: 'TestPassword123!', partyType: 'TSP' },
+  { email: 'tsp.privacyfirst@example.com', password: 'TestPassword123!', partyType: 'TSP' },
   { email: 'admin.system@example.com', password: '2|8Y1C#T$GGJ', partyType: 'AppAdmin' },
   // Try with password123 as fallback
   { email: 'tdp.medical@example.com', password: 'password123', partyType: 'TDP' },
@@ -52,9 +52,9 @@ const testUsers = [
   { email: 'tdc.healthcare@example.com', password: 'password123', partyType: 'TDC' },
   { email: 'tdc.fintech@example.com', password: 'password123', partyType: 'TDC' },
   { email: 'tdc.language@example.com', password: 'password123', partyType: 'TDC' },
-  { email: 'ccrp.securecloud@example.com', password: 'password123', partyType: 'CCRP' },
-  { email: 'ccrp.trustedai@example.com', password: 'password123', partyType: 'CCRP' },
-  { email: 'ccrp.privacyfirst@example.com', password: 'password123', partyType: 'CCRP' }
+  { email: 'tsp.securecloud@example.com', password: 'password123', partyType: 'TSP' },
+  { email: 'tsp.trustedai@example.com', password: 'password123', partyType: 'TSP' },
+  { email: 'tsp.privacyfirst@example.com', password: 'password123', partyType: 'TSP' }
 ];
 
 // Store successful logins
@@ -228,13 +228,13 @@ async function createAIModel(user, accessToken) {
 }
 
 async function createEnvironment(user, accessToken) {
-  if (user.partyType !== 'CCRP') {
+  if (user.partyType !== 'TSP') {
     log(`⏭️ Skipping environment creation for ${user.partyType} user`, 'yellow');
-    return { success: true, message: 'Not a CCRP user' };
+    return { success: true, message: 'Not a TSP user' };
   }
   
   try {
-    log(`🏗️ Creating environment for CCRP user: ${user.email}`, 'blue');
+    log(`🏗️ Creating environment for TSP user: ${user.email}`, 'blue');
     
     const environmentData = {
       name: `Test Environment - ${user.user?.name || user.email}`,
@@ -323,7 +323,7 @@ async function main() {
       } else if (user.partyType === 'TDC') {
         const result = await createAIModel(user, user.accessToken);
         if (result.success) dataResults.aiModels++;
-      } else if (user.partyType === 'CCRP') {
+      } else if (user.partyType === 'TSP') {
         const result = await createEnvironment(user, user.accessToken);
         if (result.success) dataResults.environments++;
       }

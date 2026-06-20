@@ -10,7 +10,7 @@ const app = require('../test-server');
 process.env.TEST_MODE = 'mock';
 
 describe('Mock Integration Test Suite', () => {
-  let tdpUser, tdcUser, ccrpUser, tdpToken, tdcToken, ccrpToken, testDataset, testContract;
+  let tdpUser, tdcUser, tspUser, tdpToken, tdcToken, ccrpToken, testDataset, testContract;
 
   beforeAll(async () => {
     // Setup test database
@@ -55,9 +55,9 @@ describe('Mock Integration Test Suite', () => {
     };
 
     const ccrpData = {
-      email: 'mock-ccrp@example.com',
-      name: 'Mock CCRP User',
-      partyType: 'CCRP',
+      email: 'mock-tsp@example.com',
+      name: 'Mock TSP User',
+      partyType: 'TSP',
       password: 'Password123'
     };
 
@@ -79,13 +79,13 @@ describe('Mock Integration Test Suite', () => {
     tdcUser = tdcResponse.body.user;
     tdcToken = tdcResponse.body.token;
 
-    // Register CCRP
+    // Register TSP
     const ccrpResponse = await request(app)
       .post('/api/auth/register')
       .send(ccrpData)
       .expect(201);
 
-    ccrpUser = ccrpResponse.body.user;
+    tspUser = ccrpResponse.body.user;
     ccrpToken = ccrpResponse.body.token;
   }
 
@@ -238,7 +238,7 @@ describe('Mock Integration Test Suite', () => {
         contractId: 'MOCK-CONTRACT-001',
         tdpId: tdpUser.id,
         tdcId: tdcUser.id,
-        ccrpId: ccrpUser.id,
+        tspId: tspUser.id,
         price: 100.00,
         duration: 30
       };
@@ -404,7 +404,7 @@ describe('Mock Integration Test Suite', () => {
       const contractData = {
         tdpId: tdpUser.id,
         tdcId: tdcUser.id,
-        ccrpId: ccrpUser.id,
+        tspId: tspUser.id,
         datasetId: testDataset.id,
         price: 100.00,
         duration: 30,
@@ -473,7 +473,7 @@ describe('Mock Integration Test Suite', () => {
         modelId: 'mock-model-001',
         tdpId: tdpUser.id,
         tdcId: tdcUser.id,
-        ccrpId: ccrpUser.id,
+        tspId: tspUser.id,
         datasetId: testDataset.id
       };
 
@@ -494,11 +494,11 @@ describe('Mock Integration Test Suite', () => {
 
       expect(tdpSignResponse.body.signed).toBe(true);
 
-      // Step 3: CCRP signs (mocked blockchain)
+      // Step 3: TSP signs (mocked blockchain)
       const ccrpSignResponse = await request(app)
         .post(`/api/contracts/${contractId}/sign`)
         .set('Authorization', `Bearer ${ccrpToken}`)
-        .send({ partyType: 'CCRP' })
+        .send({ partyType: 'TSP' })
         .expect(200);
 
       expect(ccrpSignResponse.body.signed).toBe(true);
@@ -507,7 +507,7 @@ describe('Mock Integration Test Suite', () => {
       const finalContract = await Contract.findByPk(contractId);
       expect(finalContract.status).toBe('ACTIVE');
       expect(finalContract.tdpSigned).toBe(true);
-      expect(finalContract.ccrpSigned).toBe(true);
+      expect(finalContract.tspSigned).toBe(true);
 
       // Step 5: Verify notifications were created
       const notifications = await Notification.findAll({
@@ -552,7 +552,7 @@ describe('Mock Integration Test Suite', () => {
           modelId: 'mock-model-001',
           tdpId: tdpUser.id,
           tdcId: tdcUser.id,
-          ccrpId: ccrpUser.id,
+          tspId: tspUser.id,
           datasetId: testDataset.id
         };
 
@@ -583,7 +583,7 @@ describe('Mock Integration Test Suite', () => {
           modelId: 'mock-model-001',
           tdpId: tdpUser.id,
           tdcId: tdcUser.id,
-          ccrpId: ccrpUser.id,
+          tspId: tspUser.id,
           datasetId: testDataset.id
         };
 

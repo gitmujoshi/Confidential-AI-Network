@@ -13,8 +13,12 @@ const RoleProtectedRoute = ({ children, allowedRoles, fallbackPath = '/dashboard
     return <Navigate to="/login" replace />;
   }
   
-  // Check if user has required role
-  if (user && !allowedRoles.includes(user.partyType)) {
+  // Check if user has required role (accept legacy CCRP as TSP)
+  const effectivePartyType = user?.partyType === 'CCRP' ? 'TSP' : user?.partyType;
+  const roleAllowed = allowedRoles.some(
+    (role) => role === effectivePartyType || (role === 'TSP' && user?.partyType === 'CCRP')
+  );
+  if (user && !roleAllowed) {
     return (
       <Box
         sx={{

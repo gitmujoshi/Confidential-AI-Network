@@ -83,7 +83,7 @@ class TestScenarioManager {
         return scenario.notification;
       case 'token':
         if (!identifier) {
-          throw new Error('Token identifier required (tdp, tdc, ccrp)');
+          throw new Error('Token identifier required (tdp, tdc, tsp)');
         }
         return scenario[`get${identifier.charAt(0).toUpperCase() + identifier.slice(1)}Token`]();
       default:
@@ -276,7 +276,7 @@ class TestScenarioManager {
       await this.dataFactory.initialize();
       
       // Create all user types
-      const { tdpUser, tdcUser, ccrpUser } = await this.dataFactory.createContractParties();
+      const { tdpUser, tdcUser, tspUser } = await this.dataFactory.createContractParties();
       
       // Create multiple datasets
       const dataset1 = await this.dataFactory.createDataset(tdpUser.id, {
@@ -314,14 +314,14 @@ class TestScenarioManager {
       });
       
       this.currentScenario = {
-        users: { tdpUser, tdcUser, ccrpUser },
+        users: { tdpUser, tdcUser, tspUser },
         datasets: [dataset1, dataset2],
         aiModels: [aiModel1, aiModel2],
         notifications: [notification1, notification2],
         // Helper methods
         getTdpToken: () => tdpUser.token,
         getTdcToken: () => tdcUser.token,
-        getCcrpToken: () => ccrpUser.token,
+        getCcrpToken: () => tspUser.token,
         getPrimaryDataset: () => dataset1,
         getSecondaryDataset: () => dataset2,
         getPrimaryAIModel: () => aiModel1,

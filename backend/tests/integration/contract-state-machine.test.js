@@ -21,7 +21,7 @@ const ScittCcfService = require('../../services/scittCcfService');
 
 describe('Contract State Machine Tests', () => {
   let app, contractService, scittCcfService;
-  let tdcUser, tdpUser, ccrpUser;
+  let tdcUser, tdpUser, tspUser;
   let testDataset;
   let testContract;
 
@@ -48,10 +48,10 @@ describe('Contract State Machine Tests', () => {
       isActive: true
     });
 
-    ccrpUser = await User.create({
-      name: 'Test CCRP',
-      email: 'ccrp@test.com',
-      partyType: 'CCRP',
+    tspUser = await User.create({
+      name: 'Test TSP',
+      email: 'tsp@test.com',
+      partyType: 'TSP',
       isRegistered: true,
       isActive: true
     });
@@ -86,8 +86,8 @@ describe('Contract State Machine Tests', () => {
     if (tdpUser) {
       await User.destroy({ where: { id: tdpUser.id } });
     }
-    if (ccrpUser) {
-      await User.destroy({ where: { id: ccrpUser.id } });
+    if (tspUser) {
+      await User.destroy({ where: { id: tspUser.id } });
     }
   });
 
@@ -96,8 +96,8 @@ describe('Contract State Machine Tests', () => {
       // Test valid transitions
       expect(contractService.validateStateTransition('DRAFT', 'PENDING_TDP')).toBe(true);
       expect(contractService.validateStateTransition('PENDING_TDP', 'PENDING_TDC')).toBe(true);
-      expect(contractService.validateStateTransition('PENDING_TDC', 'PENDING_CCRP')).toBe(true);
-      expect(contractService.validateStateTransition('PENDING_CCRP', 'SIGNED')).toBe(true);
+      expect(contractService.validateStateTransition('PENDING_TDC', 'PENDING_TSP')).toBe(true);
+      expect(contractService.validateStateTransition('PENDING_TSP', 'SIGNED')).toBe(true);
       expect(contractService.validateStateTransition('SIGNED', 'EXECUTING')).toBe(true);
       expect(contractService.validateStateTransition('EXECUTING', 'COMPLETED')).toBe(true);
       expect(contractService.validateStateTransition('REJECTED', 'DRAFT')).toBe(true);
@@ -234,8 +234,8 @@ describe('Contract State Machine Tests', () => {
         signatureData
       );
       
-      expect(updatedContract.status).toBe('PENDING_CCRP');
-      expect(updatedContract.multiTdpStatus).toBe('PENDING_CCRP');
+      expect(updatedContract.status).toBe('PENDING_TSP');
+      expect(updatedContract.multiTdpStatus).toBe('PENDING_TSP');
     });
 
     it('should reject TDC signing from non-TDC user', async () => {
@@ -248,35 +248,35 @@ describe('Contract State Machine Tests', () => {
     });
   });
 
-  describe('CCRP Contract Signing (PendingCCRP → Signed)', () => {
-    it('should allow CCRP to sign contract', async () => {
-      // First, update contract to include CCRP
-      await testContract.update({ ccrpId: ccrpUser.id });
+  describe('TSP Contract Signing (PendingCCRP → Signed)', () => {
+    it('should allow TSP to sign contract', async () => {
+      // First, update contract to include TSP
+      await testContract.update({ tspId: tspUser.id });
 
       const signatureData = {
-        signature: 'test-ccrp-signature',
-        message: 'Sign contract TEST-CONTRACT-001 as CCRP',
-        did: 'did:web:test.com:user:ccrp'
+        signature: 'test-tsp-signature',
+        message: 'Sign contract TEST-CONTRACT-001 as TSP',
+        did: 'did:web:test.com:user:tsp'
       };
 
       const updatedContract = await contractService.ccrpSignContract(
         testContract.contractId, 
-        ccrpUser.id, 
+        tspUser.id, 
         signatureData
       );
       
       expect(updatedContract.status).toBe('SIGNED');
       expect(updatedContract.multiTdpStatus).toBe('SIGNED');
-      expect(updatedContract.ccrpSigned).toBe(true);
-      expect(updatedContract.ccrpSignedAt).not.toBeNull();
+      expect(updatedContract.tspSigned).toBe(true);
+      expect(updatedContract.tspSignedAt).not.toBeNull();
     });
 
-    it('should reject CCRP signing from non-CCRP user', async () => {
+    it('should reject TSP signing from non-TSP user', async () => {
       try {
         await contractService.ccrpSignContract(testContract.contractId, tdcUser.id, {});
         fail('Should have thrown an error');
       } catch (error) {
-        expect(error.message).toContain('Contract not found or not in PENDING_CCRP state');
+        expect(error.message).toContain('Contract not found or not in PENDING_TSP state');
       }
     });
   });
@@ -431,7 +431,7 @@ describe('Contract State Machine Tests', () => {
       expect(resubmittedContract.multiTdpStatus).toBe('DRAFT');
       expect(resubmittedContract.price).toBe(120.00);
       expect(resubmittedContract.tdpSigned).toBe(false);
-      expect(resubmittedContract.ccrpSigned).toBe(false);
+      expect(resubmittedContract.tspSigned).toBe(false);
 
       // Cleanup
       await resubmittedContract.destroy();
@@ -636,10 +636,10 @@ describe('Contract State Machine Tests', () => {
       // TDC signs
       await contractService.tdcSignContract(hybridContract.contractId, tdcUser.id, {});
       updatedContract = await contractService.getContract(hybridContract.contractId);
-      expect(updatedContract.status).toBe('PENDING_CCRP');
+      expect(updatedContract.status).toBe('PENDING_TSP');
 
-      // CCRP signs
-      await contractService.ccrpSignContract(hybridContract.contractId, ccrpUser.id, {});
+      // TSP signs
+      await contractService.ccrpSignContract(hybridContract.contractId, tspUser.id, {});
       updatedContract = await contractService.getContract(hybridContract.contractId);
       expect(updatedContract.status).toBe('SIGNED');
 

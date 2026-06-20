@@ -74,19 +74,20 @@ router.post('/register', logAuthEvent('REGISTER'), async (req, res) => {
       });
     }
 
-    // Validate party type
-    if (!['TDP', 'TDC', 'CCRP', 'AppAdmin'].includes(partyType)) {
+    // Validate party type (accept legacy CCRP alias)
+    const normalizedPartyType = partyType === 'CCRP' ? 'TSP' : partyType;
+    if (!['TDP', 'TDC', 'TSP', 'AppAdmin'].includes(normalizedPartyType)) {
       return res.status(400).json({
         error: 'Invalid party type',
         code: 'INVALID_PARTY_TYPE',
         details: {
-          valid: ['TDP', 'TDC', 'CCRP', 'AppAdmin'],
+          valid: ['TDP', 'TDC', 'TSP', 'AppAdmin'],
           provided: partyType
         }
       });
     }
     
-    // All party types (TDP, TDC, CCRP) are enterprise users and don't require wallet fields
+    // All party types (TDP, TDC, TSP) are enterprise users and don't require wallet fields
     const isEnterprise = true; // All supported party types are enterprise users
     
         // For now, we don't require wallet fields for any party type
@@ -249,7 +250,7 @@ router.post('/register', logAuthEvent('REGISTER'), async (req, res) => {
             email: email,
             name: name,
             password: password, // Pass the password to Keycloak
-            partyType: partyType,
+            partyType: normalizedPartyType,
             organization: organization || '',
             phoneNumber: phoneNumber || '',
             website: website || '',
@@ -291,14 +292,14 @@ router.post('/register', logAuthEvent('REGISTER'), async (req, res) => {
           const globalDEPAIdService = new GlobalDEPAIdService();
           
           if (jurisdiction) {
-            // Generate jurisdiction-compliant DEPA ID
             depaId = globalDEPAIdService.generateJurisdictionCompliantDEPAId(
-              globalDEPAIdService.getEntityType(partyType), 
-              jurisdiction
+              globalDEPAIdService.partyTypeToEntityType(normalizedPartyType),
+              jurisdiction,
+              { deploymentPrefix }
             );
           } else {
             // Generate standard global DEPA ID
-            depaId = globalDEPAIdService.generateGlobalUserDEPAId(partyType, deploymentPrefix);
+            depaId = globalDEPAIdService.generateGlobalUserDEPAId(normalizedPartyType, deploymentPrefix);
           }
           
           console.log(`✅ Generated Global DEPA ID: ${depaId}`);
@@ -306,7 +307,7 @@ router.post('/register', logAuthEvent('REGISTER'), async (req, res) => {
           // Use standard DEPA ID service for backward compatibility
           const DEPAIdService = require('../services/depaIdService');
           const depaIdService = new DEPAIdService();
-          depaId = depaIdService.generateUserDEPAId(partyType);
+          depaId = depaIdService.generateUserDEPAId(normalizedPartyType);
           
           console.log(`✅ Generated Standard DEPA ID: ${depaId}`);
         }
@@ -320,7 +321,7 @@ router.post('/register', logAuthEvent('REGISTER'), async (req, res) => {
         dbUser = await db.User.create({
           walletAddress: isEnterprise ? null : walletAddress?.toLowerCase(),
           publicKey: resolvedPublicKey || publicKey || null, // Use resolved public key from DID, fallback to provided
-          partyType,
+          partyType: normalizedPartyType,
           name,
           email: email.toLowerCase(),
           password: hashedPassword, // Store hashed password
@@ -334,8 +335,8 @@ router.post('/register', logAuthEvent('REGISTER'), async (req, res) => {
           didVerified,
           didVerificationMethod,
           depaId, // Add DEPA ID
-          // CCRP contract wizard filters providers by this list (MultiCCRPSelector).
-          cloudProviders: partyType === 'CCRP' ? ['Local', 'Azure'] : null,
+          // TSP contract wizard filters providers by this list (MultiTSPSelector).
+          cloudProviders: normalizedPartyType === 'TSP' ? ['Local'] : null,
           isRegistered: true,
           registrationDate: new Date(),
           isActive: true,
@@ -359,7 +360,7 @@ router.post('/register', logAuthEvent('REGISTER'), async (req, res) => {
         userId: dbUser.id,
         type: 'USER_REGISTERED',
         title: 'Welcome to Contract Management',
-        message: `Welcome ${name}! Your account has been successfully registered as a ${partyType}. Please complete your profile and verify your email.`,
+        message: `Welcome ${name}! Your account has been successfully registered as a ${normalizedPartyType}. Please complete your profile and verify your email.`,
         isRead: false,
         metadata: {
           partyType,

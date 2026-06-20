@@ -180,8 +180,8 @@ class NotificationService {
       
       // Notify all parties involved
       const parties = [contract.tdp, contract.tdc];
-      if (contract.ccrp) {
-        parties.push(contract.ccrp);
+      if (contract.tsp) {
+        parties.push(contract.tsp);
       }
 
       for (const party of parties) {
@@ -209,13 +209,13 @@ class NotificationService {
     }
   }
 
-  async notifyCCRPSelected(contract, ccrpUser) {
+  async notifyCCRPSelected(contract, tspUser) {
     try {
-      const title = 'CCRP Selected for Contract';
-      const message = `You have been selected as the CCRP for contract ${contract.contractId}`;
+      const title = 'TSP Selected for Contract';
+      const message = `You have been selected as the TSP for contract ${contract.contractId}`;
       
       await this.createNotification(
-        ccrpUser.id,
+        tspUser.id,
         'CCRP_SELECTED',
         title,
         message,
@@ -223,17 +223,17 @@ class NotificationService {
       );
 
       const emailHtml = `
-        <h2>CCRP Selection</h2>
-        <p>You have been selected as the Confidential Clean Room Provider for contract ${contract.contractId}.</p>
+        <h2>TSP Selection</h2>
+        <p>You have been selected as the Tech Service Provider for contract ${contract.contractId}.</p>
         <p><strong>Dataset:</strong> ${contract.dataset.name}</p>
         <p><strong>Model:</strong> ${contract.modelId}</p>
         <p>Please review and sign the contract in your dashboard.</p>
         <p><a href="${process.env.FRONTEND_URL}/contracts/${contract.contractId}">View Contract</a></p>
       `;
 
-      await this.sendEmail(ccrpUser.email, title, emailHtml);
+      await this.sendEmail(tspUser.email, title, emailHtml);
     } catch (error) {
-      console.error('Error notifying CCRP selection:', error);
+      console.error('Error notifying TSP selection:', error);
     }
   }
 
@@ -242,7 +242,7 @@ class NotificationService {
       const title = 'Contract Completed';
       const message = `Contract ${contract.contractId} has been completed successfully`;
       
-      const parties = [contract.tdp, contract.tdc, contract.ccrp];
+      const parties = [contract.tdp, contract.tdc, contract.tsp];
 
       for (const party of parties) {
         await this.createNotification(
@@ -274,8 +274,8 @@ class NotificationService {
       const message = `Contract ${contract.contractId} has been cancelled by ${cancelledBy.name}`;
       
       const parties = [contract.tdp, contract.tdc];
-      if (contract.ccrp) {
-        parties.push(contract.ccrp);
+      if (contract.tsp) {
+        parties.push(contract.tsp);
       }
 
       for (const party of parties) {
@@ -423,13 +423,13 @@ class NotificationService {
     }
   }
 
-  async notifyCCRPApprovalRequired(contract, ccrpUser) {
+  async notifyCCRPApprovalRequired(contract, tspUser) {
     try {
-      const title = 'CCRP Approval Required';
-      const message = `All TDPs have signed the contract. CCRP approval is now required.`;
+      const title = 'TSP Approval Required';
+      const message = `All TDPs have signed the contract. TSP approval is now required.`;
       
       await this.createNotification(
-        ccrpUser.id,
+        tspUser.id,
         'CCRP_APPROVAL_REQUIRED',
         title,
         message,
@@ -437,7 +437,7 @@ class NotificationService {
       );
 
       const emailHtml = `
-        <h2>CCRP Approval Required</h2>
+        <h2>TSP Approval Required</h2>
         <p>All Training Data Providers have signed the contract ${contract.contractId}.</p>
         <p><strong>Total Price:</strong> $${contract.totalPrice}</p>
         <p><strong>Dataset Count:</strong> ${contract.datasetCount}</p>
@@ -445,9 +445,9 @@ class NotificationService {
         <p><a href="${process.env.FRONTEND_URL}/contracts/${contract.contractId}">View Contract</a></p>
       `;
 
-      await this.sendEmail(ccrpUser.email, title, emailHtml);
+      await this.sendEmail(tspUser.email, title, emailHtml);
     } catch (error) {
-      console.error('Error notifying CCRP approval required:', error);
+      console.error('Error notifying TSP approval required:', error);
     }
   }
 

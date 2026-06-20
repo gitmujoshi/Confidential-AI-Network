@@ -59,7 +59,7 @@ const StatusChip = ({ status }) => {
       case 'ACTIVE':
         return 'success';
       case 'PENDING_TDP_APPROVAL':
-      case 'PENDING_CCRP_APPROVAL':
+      case 'PENDING_TSP_APPROVAL':
         return 'warning';
       case 'COMPLETED':
         return 'info';
@@ -75,7 +75,7 @@ const StatusChip = ({ status }) => {
       case 'ACTIVE':
         return <CheckCircle fontSize="small" />;
       case 'PENDING_TDP_APPROVAL':
-      case 'PENDING_CCRP_APPROVAL':
+      case 'PENDING_TSP_APPROVAL':
         return <Pending fontSize="small" />;
       case 'COMPLETED':
         return <CheckCircle fontSize="small" />;
@@ -121,11 +121,11 @@ const ContractCard = ({ contract, onView, onEdit, onDelete, onDownloadContract, 
               </Typography>
             </Box>
             
-            {/* Global DEPA ID Field */}
+            {/* DEPA ID Field */}
             {contract.depaId && (
               <Box>
                 <Typography variant="body2" color="textSecondary" fontSize="0.75rem" gutterBottom>
-                  Global DEPA ID
+                  DEPA ID
                 </Typography>
                 <Typography variant="body2" fontFamily="monospace" sx={{ 
                   backgroundColor: 'primary.50', 
@@ -159,9 +159,9 @@ const ContractCard = ({ contract, onView, onEdit, onDelete, onDownloadContract, 
               <Typography variant="body2" fontSize="0.75rem">
                 <strong>TDC:</strong> {contract.tdc?.name}
               </Typography>
-              {contract.ccrp && (
+              {contract.tsp && (
                 <Typography variant="body2" fontSize="0.75rem">
-                  <strong>CCRP:</strong> {contract.ccrp?.name}
+                  <strong>TSP:</strong> {contract.tsp?.name}
                 </Typography>
               )}
             </Box>
@@ -203,9 +203,9 @@ const ContractCard = ({ contract, onView, onEdit, onDelete, onDownloadContract, 
               <Typography variant="body2" fontSize="0.75rem">
                 <strong>TDC:</strong> {contract.tdc?.name}
               </Typography>
-              {contract.ccrp && (
+              {contract.tsp && (
                 <Typography variant="body2" fontSize="0.75rem">
-                  <strong>CCRP:</strong> {contract.ccrp?.name}
+                  <strong>TSP:</strong> {contract.tsp?.name}
                 </Typography>
               )}
             </Box>
@@ -278,11 +278,11 @@ const ContractRow = ({ contract, onView, onEdit, onDelete, onDownloadContract, o
             </Typography>
           </Box>
           
-          {/* Global DEPA ID Field */}
+          {/* DEPA ID Field */}
           {contract.depaId && (
             <Box>
               <Typography variant="caption" color="textSecondary" display="block">
-                Global DEPA ID
+                DEPA ID
               </Typography>
               <Typography variant="caption" fontFamily="monospace" sx={{ 
                 backgroundColor: 'primary.50', 
@@ -323,9 +323,9 @@ const ContractRow = ({ contract, onView, onEdit, onDelete, onDownloadContract, o
               <Typography variant="body2" fontSize="0.75rem">
                 TDC: {contract.tdc?.name}
               </Typography>
-              {contract.ccrp && (
+              {contract.tsp && (
                 <Typography variant="body2" fontSize="0.75rem">
-                  CCRP: {contract.ccrp?.name}
+                  TSP: {contract.tsp?.name}
                 </Typography>
               )}
             </>
@@ -341,9 +341,9 @@ const ContractRow = ({ contract, onView, onEdit, onDelete, onDownloadContract, o
               <Typography variant="body2" fontSize="0.75rem">
                 TDC: {contract.tdc?.name}
               </Typography>
-              {contract.ccrp && (
+              {contract.tsp && (
                 <Typography variant="body2" fontSize="0.75rem">
-                  CCRP: {contract.ccrp?.name}
+                  TSP: {contract.tsp?.name}
                 </Typography>
               )}
             </>
@@ -538,7 +538,7 @@ function Contracts() {
       const contractData = {
         // Contract Identifiers
         contractId: completeContract.contractId, // Ricardian Contract ID
-        globalDEPAId: completeContract.depaId, // Global DEPA ID for jurisdictional compliance
+        globalDEPAId: completeContract.depaId, // DEPA ID for jurisdictional compliance
         
         // Contract Status
         status: completeContract.status,
@@ -552,7 +552,7 @@ function Contracts() {
         // Parties
         tdp: completeContract.tdp,
         tdc: completeContract.tdc,
-        ccrp: completeContract.ccrp,
+        tsp: completeContract.tsp,
         
         // Dataset information
         dataset: completeContract.dataset,
@@ -564,8 +564,8 @@ function Contracts() {
         // Signatures and workflow
         tdpSigned: completeContract.tdpSigned,
         tdpSignedAt: completeContract.tdpSignedAt,
-        ccrpSigned: completeContract.ccrpSigned,
-        ccrpSignedAt: completeContract.ccrpSignedAt,
+        tspSigned: completeContract.tspSigned,
+        tspSignedAt: completeContract.tspSignedAt,
         tdpSignatures: completeContract.tdpSignatures,
         tdpPayments: completeContract.tdpPayments,
         multiTdpStatus: completeContract.multiTdpStatus,
@@ -719,7 +719,7 @@ function Contracts() {
                   >
                     <MenuItem value="">All Statuses</MenuItem>
                     <MenuItem value="PENDING_TDP_APPROVAL">Pending TDP Approval</MenuItem>
-                    <MenuItem value="PENDING_CCRP_APPROVAL">Pending CCRP Approval</MenuItem>
+                    <MenuItem value="PENDING_TSP_APPROVAL">Pending TSP Approval</MenuItem>
                     <MenuItem value="ACTIVE">Active</MenuItem>
                     <MenuItem value="COMPLETED">Completed</MenuItem>
                     <MenuItem value="CANCELLED">Cancelled</MenuItem>
@@ -905,11 +905,11 @@ function Contracts() {
                     </Typography>
                   </Box>
                   
-                  {/* Global DEPA ID Field */}
+                  {/* DEPA ID Field */}
                   {selectedContract.depaId && (
                     <Box>
                       <Typography variant="body2" color="textSecondary" fontSize="0.75rem" gutterBottom>
-                        Global DEPA ID
+                        DEPA ID
                       </Typography>
                       <Typography variant="body2" fontFamily="monospace" sx={{ 
                         backgroundColor: 'primary.50', 
@@ -989,11 +989,11 @@ function Contracts() {
                         <strong>TDC:</strong> {selectedContract.tdc?.name} ({selectedContract.tdc?.email})
                       </Typography>
                     </Box>
-                    {selectedContract.ccrp && (
+                    {selectedContract.tsp && (
                       <Box display="flex" alignItems="center" gap={1}>
                         <Person fontSize="small" />
                         <Typography variant="body2">
-                          <strong>CCRP:</strong> {selectedContract.ccrp?.name} ({selectedContract.ccrp?.email})
+                          <strong>TSP:</strong> {selectedContract.tsp?.name} ({selectedContract.tsp?.email})
                         </Typography>
                       </Box>
                     )}
@@ -1029,13 +1029,13 @@ function Contracts() {
                   </Grid>
                 )}
                 
-                {selectedContract.ccrpSignedAt && (
+                {selectedContract.tspSignedAt && (
                   <Grid item xs={12} md={6}>
                     <Typography variant="body2" color="textSecondary" gutterBottom>
-                      <strong>CCRP Signed:</strong>
+                      <strong>TSP Signed:</strong>
                     </Typography>
                     <Typography variant="body2">
-                      {format(new Date(selectedContract.ccrpSignedAt), 'MMM dd, yyyy HH:mm')}
+                      {format(new Date(selectedContract.tspSignedAt), 'MMM dd, yyyy HH:mm')}
                     </Typography>
                   </Grid>
                 )}

@@ -4,7 +4,7 @@
  * Comprehensive Test Data Creator
  * 
  * This script creates all necessary test data including:
- * - Users (TDP, TDC, CCRP, AppAdmin)
+ * - Users (TDP, TDC, TSP, AppAdmin)
  * - Contracts
  * - Datasets
  * - Training environments
@@ -122,9 +122,9 @@ class TestDataCreator {
       },
       {
         name: 'Carol Davis',
-        email: 'carol@ccrp.com',
+        email: 'carol@tsp.com',
         password: 'password123',
-        partyType: 'CCRP',
+        partyType: 'TSP',
         organization: 'SecureCompute Solutions',
         phoneNumber: '+1-555-0103',
         location: 'Austin, TX',
@@ -333,7 +333,7 @@ class TestDataCreator {
         description: 'Contract for training AI models on healthcare patient data',
         tdpId: this.testUsers.TDP[0].id,
         tdcId: this.testUsers.TDC[0].id,
-        ccrpId: this.testUsers.CCRP[0].id,
+        tspId: this.testUsers.TSP[0].id,
         status: 'ACTIVE',
         contractType: 'AI_TRAINING',
         dataUsage: 'MODEL_TRAINING',
@@ -354,7 +354,7 @@ class TestDataCreator {
         description: 'Contract for developing fraud detection models using banking data',
         tdpId: this.testUsers.TDP[1].id,
         tdcId: this.testUsers.TDC[1].id,
-        ccrpId: this.testUsers.CCRP[0].id,
+        tspId: this.testUsers.TSP[0].id,
         status: 'PENDING',
         contractType: 'AI_TRAINING',
         dataUsage: 'MODEL_TRAINING',
@@ -375,7 +375,7 @@ class TestDataCreator {
         description: 'Contract for building recommendation systems using customer data',
         tdpId: this.testUsers.TDP[0].id,
         tdcId: this.testUsers.TDC[0].id,
-        ccrpId: this.testUsers.CCRP[0].id,
+        tspId: this.testUsers.TSP[0].id,
         status: 'DRAFT',
         contractType: 'AI_TRAINING',
         dataUsage: 'MODEL_TRAINING',
@@ -400,7 +400,7 @@ class TestDataCreator {
           description: contractData.description,
           tdpId: contractData.tdpId,
           tdcId: contractData.tdcId,
-          ccrpId: contractData.ccrpId,
+          tspId: contractData.tspId,
           status: contractData.status,
           contractType: contractData.contractType,
           dataUsage: contractData.dataUsage,
@@ -645,7 +645,7 @@ class TestDataCreator {
   async createTestSigningKeys() {
     console.log('🔐 Creating test signing keys...');
     
-    for (const userType of ['TDP', 'TDC', 'CCRP']) {
+    for (const userType of ['TDP', 'TDC', 'TSP']) {
       if (this.testUsers[userType]) {
         for (const user of this.testUsers[userType]) {
           try {
@@ -727,7 +727,7 @@ class TestDataCreator {
         type: 'WARNING',
         title: 'Training Environment Provisioning',
         message: 'Your training environment is being provisioned. This may take 10-15 minutes.',
-        userId: this.testUsers.CCRP[0].id
+        userId: this.testUsers.TSP[0].id
       },
       {
         type: 'ERROR',
@@ -783,7 +783,7 @@ class TestDataCreator {
         userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36'
       },
       {
-        userId: this.testUsers.CCRP[0].id,
+        userId: this.testUsers.TSP[0].id,
         action: 'ENVIRONMENT_PROVISIONED',
         resourceType: 'TRAINING_ENVIRONMENT',
         resourceId: Object.keys(this.testEnvironments)[0],
@@ -989,7 +989,7 @@ class TestDataCreator {
     console.log('========================');
     console.log('TDP User: alice@tdp.com / password123');
     console.log('TDC User: bob@tdc.com / password123');
-    console.log('CCRP User: carol@ccrp.com / password123');
+    console.log('TSP User: carol@tsp.com / password123');
     console.log('Admin User: david@admin.com / password123');
     
     console.log('\n🚀 Ready to test the application!');

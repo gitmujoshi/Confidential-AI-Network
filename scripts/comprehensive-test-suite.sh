@@ -380,13 +380,13 @@ main() {
     # Create test users
     create_test_user "Medical Data Provider" "tdp.medical@example.com" "TDP" "Medical Data Corp" "Leading provider of healthcare datasets"
     create_test_user "Healthcare AI Company" "tdc.healthcare@example.com" "TDC" "AI Healthcare Solutions" "AI company specializing in healthcare analytics"
-    create_test_user "Secure Cloud Provider" "ccrp.secure@example.com" "CCRP" "SecureCloud Inc" "Secure cloud infrastructure provider"
+    create_test_user "Secure Cloud Provider" "tsp.secure@example.com" "TSP" "SecureCloud Inc" "Secure cloud infrastructure provider"
     create_test_user "System Administrator" "admin@contractmanagement.com" "AppAdmin" "Contract Management System" "System administrator"
     
     # Authenticate users
     TDP_TOKEN=$(authenticate_user "tdp.medical@example.com" "password123")
     TDC_TOKEN=$(authenticate_user "tdc.healthcare@example.com" "password123")
-    CCRP_TOKEN=$(authenticate_user "ccrp.secure@example.com" "password123")
+    CCRP_TOKEN=$(authenticate_user "tsp.secure@example.com" "password123")
     ADMIN_TOKEN=$(authenticate_user "admin@contractmanagement.com" "password123")
     
     # Step 3: TDP Workflow - Create Datasets
@@ -399,8 +399,8 @@ main() {
     MODEL_ID=$(create_ai_model "Healthcare Diagnosis Model" "AI model for healthcare diagnosis assistance" "$TDC_TOKEN")
     MODEL_ID2=$(create_ai_model "Patient Risk Assessment" "Model for assessing patient risk factors" "$TDC_TOKEN")
     
-    # Step 5: CCRP Workflow - Create Environment Offerings
-    print_header "CCRP Workflow - Environment Offerings"
+    # Step 5: TSP Workflow - Create Environment Offerings
+    print_header "TSP Workflow - Environment Offerings"
     ENVIRONMENT_ID=$(create_environment_offering "Secure Healthcare Cloud" "HIPAA-compliant secure cloud environment" "$CCRP_TOKEN")
     ENVIRONMENT_ID2=$(create_environment_offering "Research Computing Environment" "High-performance computing for research" "$CCRP_TOKEN")
     

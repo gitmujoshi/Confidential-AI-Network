@@ -180,13 +180,13 @@ class TestDataFactory {
         description: 'Test data consumer for integration testing'
       });
 
-      const ccrpUser = await this.createUser('CCRP', {
+      const tspUser = await this.createUser('TSP', {
         organization: 'Test Computing Resource Provider',
         description: 'Test computing resource provider for integration testing'
       });
 
-      console.log('✅ Created contract parties: TDP, TDC, CCRP');
-      return { tdpUser, tdcUser, ccrpUser };
+      console.log('✅ Created contract parties: TDP, TDC, TSP');
+      return { tdpUser, tdcUser, tspUser };
     } catch (error) {
       console.error('❌ Failed to create contract parties:', error.message);
       throw error;
@@ -316,7 +316,7 @@ class TestDataFactory {
       console.log('🏗️ Creating complete contract test scenario...');
       
       // Create contract parties
-      const { tdpUser, tdcUser, ccrpUser } = await this.createContractParties();
+      const { tdpUser, tdcUser, tspUser } = await this.createContractParties();
       
       // Create test dataset owned by TDP
       const dataset = await this.createDataset(tdpUser.id, {
@@ -338,14 +338,14 @@ class TestDataFactory {
       });
       
       const scenario = {
-        users: { tdpUser, tdcUser, ccrpUser },
+        users: { tdpUser, tdcUser, tspUser },
         dataset,
         aiModel,
         notification,
         // Helper methods for common operations
         getTdpToken: () => tdpUser.token,
         getTdcToken: () => tdcUser.token,
-        getCcrpToken: () => ccrpUser.token
+        getCcrpToken: () => tspUser.token
       };
       
       console.log('✅ Contract test scenario created successfully');

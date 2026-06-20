@@ -73,13 +73,13 @@ const tdpToken = scenario.getTdpToken();
 ```
 
 #### 2. Contract Scenario (`createContractTestScenario()`)
-- Creates TDP, TDC, CCRP users
+- Creates TDP, TDC, TSP users
 - Creates test dataset and AI model
 - Perfect for contract-related tests
 
 ```javascript
 const scenario = await scenarioManager.createContractTestScenario();
-const { tdpUser, tdcUser, ccrpUser, dataset, aiModel } = scenario;
+const { tdpUser, tdcUser, tspUser, dataset, aiModel } = scenario;
 const tdcToken = scenario.getTdcToken();
 ```
 
@@ -348,7 +348,7 @@ The system provides detailed logging:
 🏗️ Creating comprehensive test scenario...
 ✅ Created test user: tdp-123456@test.example.com (TDP)
 ✅ Created test user: tdc-123456@test.example.com (TDC)
-✅ Created test user: ccrp-123456@test.example.com (CCRP)
+✅ Created test user: tsp-123456@test.example.com (TSP)
 ✅ Created test dataset: TEST-DATASET-123456
 ✅ Created test AI model: test-model-123456
 ✅ Contract test scenario created successfully

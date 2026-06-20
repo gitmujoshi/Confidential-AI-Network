@@ -438,7 +438,7 @@ export const UserProvider = ({ children }) => {
 
   const isTDC = currentUser?.partyType === 'TDC';
   const isTDP = currentUser?.partyType === 'TDP';
-  const isCCRP = currentUser?.partyType === 'CCRP';
+  const isTSP = currentUser?.partyType === 'TSP' || currentUser?.partyType === 'CCRP';
 
 
 
@@ -462,7 +462,7 @@ export const UserProvider = ({ children }) => {
   //   isAuthenticated: !!currentUser,
   //   isTDC,
   //   isTDP,
-  //   isCCRP
+  //   isTSP
   // });
 
   // Function to set user manually (for email/password login)
@@ -488,7 +488,7 @@ export const UserProvider = ({ children }) => {
       setTimeout(() => {
         queryClient.invalidateQueries(['tdpDashboard']);
         queryClient.invalidateQueries(['tdcDashboard']);
-        queryClient.invalidateQueries(['ccrpDashboard']);
+        queryClient.invalidateQueries(['tspDashboard']);
         queryClient.invalidateQueries(['adminDashboard']);
         queryClient.invalidateQueries(['contracts']); // Also invalidate contracts
         queryClient.invalidateQueries(['notifications']); // Invalidate notifications
@@ -574,7 +574,7 @@ export const UserProvider = ({ children }) => {
     checkTokenAuth, // Add token auth check
     isTDC,
     isTDP,
-    isCCRP,
+    isTSP,
     isAuthenticated: !!currentUser,
     refreshAuth, // Add refreshAuth function
     clearAuthData, // Add clearAuthData function

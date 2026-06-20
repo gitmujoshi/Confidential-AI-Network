@@ -95,11 +95,11 @@ create_user \
     "HealthAI Inc" \
     "Healthcare AI company looking for medical datasets for model training"
 
-# Create CCRP (Confidential Clean Room Provider) user
+# Create TSP (Tech Service Provider) user
 create_user \
     "Secure Cloud Provider" \
-    "ccrp.secure@example.com" \
-    "CCRP" \
+    "tsp.secure@example.com" \
+    "TSP" \
     "SecureCloud Ltd" \
     "Confidential clean room provider offering secure environments for data analytics"
 
@@ -281,14 +281,14 @@ create_contract \
     "Contract for sharing medical datasets for AI training in secure environment" \
     "tdp.medical@example.com" \
     "tdc.healthcare@example.com" \
-    "ccrp.secure@example.com"
+    "tsp.secure@example.com"
 
 create_contract \
     "Healthcare Analytics Partnership" \
     "Partnership agreement for healthcare data analytics project" \
     "tdp.medical@example.com" \
     "tdc.healthcare@example.com" \
-    "ccrp.secure@example.com"
+    "tsp.secure@example.com"
 
 echo -e "\n${BLUE}🧪 Step 7: Testing authentication...${NC}"
 
@@ -313,7 +313,7 @@ test_login() {
 
 test_login "tdp.medical@example.com" "TDP"
 test_login "tdc.healthcare@example.com" "TDC"
-test_login "ccrp.secure@example.com" "CCRP"
+test_login "tsp.secure@example.com" "TSP"
 test_login "admin@contractmanagement.com" "AppAdmin"
 
 echo -e "\n${GREEN}🎉 Test data creation completed!${NC}"
@@ -328,7 +328,7 @@ echo ""
 echo -e "${BLUE}🔗 Test Users:${NC}"
 echo "  TDP: tdp.medical@example.com (password: password123)"
 echo "  TDC: tdc.healthcare@example.com (password: password123)"
-echo "  CCRP: ccrp.secure@example.com (password: password123)"
+echo "  TSP: tsp.secure@example.com (password: password123)"
 echo "  Admin: admin@contractmanagement.com (password: password123)"
 echo ""
 echo -e "${BLUE}🌐 Access URLs:${NC}"

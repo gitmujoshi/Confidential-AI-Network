@@ -113,7 +113,7 @@ class TrainingOrchestrationService {
       }
       
       // Validate all required parties are present
-      const requiredParties = ['TDP', 'TDC', 'CCRP'];
+      const requiredParties = ['TDP', 'TDC', 'TSP'];
       const presentParties = contract.parties.map(p => p.role);
       const missingParties = requiredParties.filter(role => !presentParties.includes(role));
       

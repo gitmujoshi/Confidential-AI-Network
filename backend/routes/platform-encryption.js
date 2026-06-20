@@ -170,12 +170,12 @@ router.post('/create-data-access-token', authenticateToken, requireRole(['TDP'])
 /**
  * @route POST /api/platform-encryption/provision-tee
  * @desc Provision TEE environment
- * @access CCRP only
+ * @access TSP only
  */
-router.post('/provision-tee', authenticateToken, requireRole(['CCRP']), async (req, res) => {
+router.post('/provision-tee', authenticateToken, requireRole(['TSP']), async (req, res) => {
   try {
     const { hardwareType, resourceRequirements } = req.body;
-    const ccrpId = req.user.id;
+    const tspId = req.user.id;
     
     if (!hardwareType) {
       return res.status(400).json({
@@ -187,10 +187,10 @@ router.post('/provision-tee', authenticateToken, requireRole(['CCRP']), async (r
     
     const teeInfo = await teeAttestationService.provisionTEE(
       { hardwareType, resourceRequirements },
-      ccrpId
+      tspId
     );
     
-    logger.info(`TEE provisioned for CCRP ${ccrpId}: ${teeInfo.teeId}`);
+    logger.info(`TEE provisioned for TSP ${tspId}: ${teeInfo.teeId}`);
     
     res.json({
       success: true,
@@ -210,9 +210,9 @@ router.post('/provision-tee', authenticateToken, requireRole(['CCRP']), async (r
 /**
  * @route POST /api/platform-encryption/verify-tee-attestation
  * @desc Verify TEE attestation
- * @access CCRP only
+ * @access TSP only
  */
-router.post('/verify-tee-attestation', authenticateToken, requireRole(['CCRP']), async (req, res) => {
+router.post('/verify-tee-attestation', authenticateToken, requireRole(['TSP']), async (req, res) => {
   try {
     const { attestationToken } = req.body;
     
@@ -383,9 +383,9 @@ router.get('/active-tokens', authenticateToken, async (req, res) => {
 /**
  * @route GET /api/platform-encryption/tee-health/:teeId
  * @desc Get TEE health status
- * @access CCRP only
+ * @access TSP only
  */
-router.get('/tee-health/:teeId', authenticateToken, requireRole(['CCRP']), async (req, res) => {
+router.get('/tee-health/:teeId', authenticateToken, requireRole(['TSP']), async (req, res) => {
   try {
     const { teeId } = req.params;
     const healthStatus = await teeAttestationService.monitorTEEHealth(teeId);
@@ -408,16 +408,16 @@ router.get('/tee-health/:teeId', authenticateToken, requireRole(['CCRP']), async
 /**
  * @route DELETE /api/platform-encryption/tee/:teeId
  * @desc Decommission TEE
- * @access CCRP only
+ * @access TSP only
  */
-router.delete('/tee/:teeId', authenticateToken, requireRole(['CCRP']), async (req, res) => {
+router.delete('/tee/:teeId', authenticateToken, requireRole(['TSP']), async (req, res) => {
   try {
     const { teeId } = req.params;
     const { reason } = req.body;
     
     await teeAttestationService.decommissionTEE(teeId, reason);
     
-    logger.info(`TEE ${teeId} decommissioned by CCRP ${req.user.id}`);
+    logger.info(`TEE ${teeId} decommissioned by TSP ${req.user.id}`);
     
     res.json({
       success: true,

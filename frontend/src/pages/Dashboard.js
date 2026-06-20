@@ -434,7 +434,7 @@ const Dashboard = () => {
                 <Grid item xs={12} sm={6} md={3}>
                   <div className="text-center p-4 bg-orange-50 rounded-lg">
                     <Typography variant="h4" className="font-bold text-orange-600">
-                      {users.filter(u => u.partyType === 'CCRP').length}
+                      {users.filter(u => u.partyType === 'TSP').length}
                     </Typography>
                     <Typography variant="body2" className="text-gray-600">
                       CCR Providers

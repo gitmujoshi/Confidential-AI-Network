@@ -237,7 +237,7 @@ class ScittCcfService {
         contractId: contractData.contractId,
         tdc: contractData.tdcAddress,
         tdp: contractData.tdpAddress,
-        ccrp: contractData.ccrpAddress,
+        tsp: contractData.ccrpAddress,
         datasetId: contractData.datasetId,
         price: contractData.price,
         duration: contractData.duration,
@@ -428,10 +428,10 @@ class ScittCcfService {
     }
     
     const tdpApproved = approvalClaims.some(c => c.data.partyType === 'TDP');
-    const ccrpApproved = approvalClaims.some(c => c.data.partyType === 'CCRP');
+    const ccrpApproved = approvalClaims.some(c => c.data.partyType === 'TSP');
     
     let status = 'PENDING_TDP_APPROVAL';
-    if (tdpApproved) status = 'PENDING_CCRP_APPROVAL';
+    if (tdpApproved) status = 'PENDING_TSP_APPROVAL';
     if (tdpApproved && ccrpApproved) status = 'ACTIVE';
     if (completionClaim) status = 'COMPLETED';
     
@@ -448,7 +448,7 @@ class ScittCcfService {
   }
 
   /**
-   * Sign a contract (approve as TDP or CCRP)
+   * Sign a contract (approve as TDP or TSP)
    */
   async signContract(contractId, signerAddress, partyType) {
     try {
@@ -715,12 +715,12 @@ class ScittCcfService {
   async listClaims(userId) {
     try {
       // scitt_claims does not have a userId column. Claims are linked to contracts by contractId.
-      // List claims for contracts where the user participates (TDP/TDC/CCRP).
+      // List claims for contracts where the user participates (TDP/TDC/TSP).
       const contracts = await db.Contract.findAll({
         where: {
           [Op.or]: [
             { tdcId: userId },
-            { ccrpId: userId },
+            { tspId: userId },
           ],
         },
         attributes: ['contractId'],
@@ -756,7 +756,7 @@ class ScittCcfService {
         where: { 
           [Op.or]: [
             { tdcId: userId },
-            { ccrpId: userId }
+            { tspId: userId }
           ]
         },
         order: [['createdAt', 'DESC']]

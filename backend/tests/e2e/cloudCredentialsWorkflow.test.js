@@ -30,11 +30,11 @@ describe('Cloud Credentials E2E Workflow Tests', () => {
     // Create test user
     const { User } = require('../../models');
     const testUser = await User.create({
-      email: 'e2e-ccrp@example.com',
+      email: 'e2e-tsp@example.com',
       password_hash: 'hashed-password',
-      party_type: 'CCRP',
-      iam_user_id: 'e2e-ccrp-iam-id',
-      iam_username: 'e2e-ccrp'
+      party_type: 'TSP',
+      iam_user_id: 'e2e-tsp-iam-id',
+      iam_username: 'e2e-tsp'
     });
     testUserId = testUser.id;
 
@@ -46,7 +46,7 @@ describe('Cloud Credentials E2E Workflow Tests', () => {
       { expiresIn: '1h' }
     );
     ccrpToken = jwt.sign(
-      { id: testUserId, email: 'e2e-ccrp@example.com', partyType: 'CCRP' },
+      { id: testUserId, email: 'e2e-tsp@example.com', partyType: 'TSP' },
       process.env.JWT_SECRET || 'test-secret',
       { expiresIn: '1h' }
     );
@@ -67,8 +67,8 @@ describe('Cloud Credentials E2E Workflow Tests', () => {
 
   beforeEach(async () => {
     // Clear test data
-    const { CCRPCloudCredentials } = require('../../models');
-    await CCRPCloudCredentials.destroy({ where: {} });
+    const { TSPCloudCredentials } = require('../../models');
+    await TSPCloudCredentials.destroy({ where: {} });
     
     // Reset mocks
     jest.clearAllMocks();
@@ -78,7 +78,7 @@ describe('Cloud Credentials E2E Workflow Tests', () => {
     test('should complete full Azure credentials workflow', async () => {
       // Step 1: Check initial state (no credentials)
       let response = await request(app)
-        .get('/api/ccrp/cloud-credentials')
+        .get('/api/tsp/cloud-credentials')
         .set('Authorization', `Bearer ${ccrpToken}`);
 
       expect(response.status).toBe(200);
@@ -119,7 +119,7 @@ describe('Cloud Credentials E2E Workflow Tests', () => {
       };
 
       response = await request(app)
-        .post('/api/ccrp/cloud-credentials')
+        .post('/api/tsp/cloud-credentials')
         .set('Authorization', `Bearer ${ccrpToken}`)
         .send(azureCredentialData);
 
@@ -140,7 +140,7 @@ describe('Cloud Credentials E2E Workflow Tests', () => {
 
       // Step 4: List credentials (should now show the new credential)
       response = await request(app)
-        .get('/api/ccrp/cloud-credentials')
+        .get('/api/tsp/cloud-credentials')
         .set('Authorization', `Bearer ${ccrpToken}`);
 
       expect(response.status).toBe(200);
@@ -150,7 +150,7 @@ describe('Cloud Credentials E2E Workflow Tests', () => {
 
       // Step 5: Validate credentials
       response = await request(app)
-        .post(`/api/ccrp/cloud-credentials/${testCredentialId}/validate`)
+        .post(`/api/tsp/cloud-credentials/${testCredentialId}/validate`)
         .set('Authorization', `Bearer ${ccrpToken}`);
 
       expect(response.status).toBe(200);
@@ -168,7 +168,7 @@ describe('Cloud Credentials E2E Workflow Tests', () => {
       };
 
       response = await request(app)
-        .put(`/api/ccrp/cloud-credentials/${testCredentialId}`)
+        .put(`/api/tsp/cloud-credentials/${testCredentialId}`)
         .set('Authorization', `Bearer ${ccrpToken}`)
         .send(updateData);
 
@@ -214,7 +214,7 @@ describe('Cloud Credentials E2E Workflow Tests', () => {
 
       // Step 9: Delete credential
       response = await request(app)
-        .delete(`/api/ccrp/cloud-credentials/${testCredentialId}`)
+        .delete(`/api/tsp/cloud-credentials/${testCredentialId}`)
         .set('Authorization', `Bearer ${ccrpToken}`);
 
       expect(response.status).toBe(200);
@@ -225,7 +225,7 @@ describe('Cloud Credentials E2E Workflow Tests', () => {
 
       // Step 10: Verify credential is deleted
       response = await request(app)
-        .get('/api/ccrp/cloud-credentials')
+        .get('/api/tsp/cloud-credentials')
         .set('Authorization', `Bearer ${ccrpToken}`);
 
       expect(response.status).toBe(200);
@@ -259,7 +259,7 @@ describe('Cloud Credentials E2E Workflow Tests', () => {
       };
 
       let response = await request(app)
-        .post('/api/ccrp/cloud-credentials')
+        .post('/api/tsp/cloud-credentials')
         .set('Authorization', `Bearer ${ccrpToken}`)
         .send(awsCredentialData);
 
@@ -268,7 +268,7 @@ describe('Cloud Credentials E2E Workflow Tests', () => {
 
       // Step 2: Validate AWS credentials
       response = await request(app)
-        .post(`/api/ccrp/cloud-credentials/${awsCredentialId}/validate`)
+        .post(`/api/tsp/cloud-credentials/${awsCredentialId}/validate`)
         .set('Authorization', `Bearer ${ccrpToken}`);
 
       expect(response.status).toBe(200);
@@ -308,7 +308,7 @@ describe('Cloud Credentials E2E Workflow Tests', () => {
 
       // Step 5: Clean up
       response = await request(app)
-        .delete(`/api/ccrp/cloud-credentials/${awsCredentialId}`)
+        .delete(`/api/tsp/cloud-credentials/${awsCredentialId}`)
         .set('Authorization', `Bearer ${ccrpToken}`);
 
       expect(response.status).toBe(200);
@@ -339,7 +339,7 @@ describe('Cloud Credentials E2E Workflow Tests', () => {
       };
 
       let response = await request(app)
-        .post('/api/ccrp/cloud-credentials')
+        .post('/api/tsp/cloud-credentials')
         .set('Authorization', `Bearer ${ccrpToken}`)
         .send(gcpCredentialData);
 
@@ -348,7 +348,7 @@ describe('Cloud Credentials E2E Workflow Tests', () => {
 
       // Step 2: Validate GCP credentials
       response = await request(app)
-        .post(`/api/ccrp/cloud-credentials/${gcpCredentialId}/validate`)
+        .post(`/api/tsp/cloud-credentials/${gcpCredentialId}/validate`)
         .set('Authorization', `Bearer ${ccrpToken}`);
 
       expect(response.status).toBe(200);
@@ -386,7 +386,7 @@ describe('Cloud Credentials E2E Workflow Tests', () => {
 
       // Step 5: Clean up
       response = await request(app)
-        .delete(`/api/ccrp/cloud-credentials/${gcpCredentialId}`)
+        .delete(`/api/tsp/cloud-credentials/${gcpCredentialId}`)
         .set('Authorization', `Bearer ${ccrpToken}`);
 
       expect(response.status).toBe(200);
@@ -413,7 +413,7 @@ describe('Cloud Credentials E2E Workflow Tests', () => {
       };
 
       let response = await request(app)
-        .post('/api/ccrp/cloud-credentials')
+        .post('/api/tsp/cloud-credentials')
         .set('Authorization', `Bearer ${ccrpToken}`)
         .send(azureCredential);
 
@@ -431,7 +431,7 @@ describe('Cloud Credentials E2E Workflow Tests', () => {
       };
 
       response = await request(app)
-        .post('/api/ccrp/cloud-credentials')
+        .post('/api/tsp/cloud-credentials')
         .set('Authorization', `Bearer ${ccrpToken}`)
         .send(awsCredential);
 
@@ -449,7 +449,7 @@ describe('Cloud Credentials E2E Workflow Tests', () => {
       };
 
       response = await request(app)
-        .post('/api/ccrp/cloud-credentials')
+        .post('/api/tsp/cloud-credentials')
         .set('Authorization', `Bearer ${ccrpToken}`)
         .send(gcpCredential);
 
@@ -458,7 +458,7 @@ describe('Cloud Credentials E2E Workflow Tests', () => {
 
       // List all credentials
       response = await request(app)
-        .get('/api/ccrp/cloud-credentials')
+        .get('/api/tsp/cloud-credentials')
         .set('Authorization', `Bearer ${ccrpToken}`);
 
       expect(response.status).toBe(200);
@@ -470,13 +470,13 @@ describe('Cloud Credentials E2E Workflow Tests', () => {
       // Validate all credentials
       await Promise.all([
         request(app)
-          .post(`/api/ccrp/cloud-credentials/${azureId}/validate`)
+          .post(`/api/tsp/cloud-credentials/${azureId}/validate`)
           .set('Authorization', `Bearer ${ccrpToken}`),
         request(app)
-          .post(`/api/ccrp/cloud-credentials/${awsId}/validate`)
+          .post(`/api/tsp/cloud-credentials/${awsId}/validate`)
           .set('Authorization', `Bearer ${ccrpToken}`),
         request(app)
-          .post(`/api/ccrp/cloud-credentials/${gcpId}/validate`)
+          .post(`/api/tsp/cloud-credentials/${gcpId}/validate`)
           .set('Authorization', `Bearer ${ccrpToken}`)
       ]);
 
@@ -503,19 +503,19 @@ describe('Cloud Credentials E2E Workflow Tests', () => {
       // Clean up all credentials
       await Promise.all([
         request(app)
-          .delete(`/api/ccrp/cloud-credentials/${azureId}`)
+          .delete(`/api/tsp/cloud-credentials/${azureId}`)
           .set('Authorization', `Bearer ${ccrpToken}`),
         request(app)
-          .delete(`/api/ccrp/cloud-credentials/${awsId}`)
+          .delete(`/api/tsp/cloud-credentials/${awsId}`)
           .set('Authorization', `Bearer ${ccrpToken}`),
         request(app)
-          .delete(`/api/ccrp/cloud-credentials/${gcpId}`)
+          .delete(`/api/tsp/cloud-credentials/${gcpId}`)
           .set('Authorization', `Bearer ${ccrpToken}`)
       ]);
 
       // Verify all credentials are deleted
       response = await request(app)
-        .get('/api/ccrp/cloud-credentials')
+        .get('/api/tsp/cloud-credentials')
         .set('Authorization', `Bearer ${ccrpToken}`);
 
       expect(response.status).toBe(200);
@@ -533,7 +533,7 @@ describe('Cloud Credentials E2E Workflow Tests', () => {
       };
 
       const response = await request(app)
-        .post('/api/ccrp/cloud-credentials')
+        .post('/api/tsp/cloud-credentials')
         .set('Authorization', `Bearer ${ccrpToken}`)
         .send(invalidCredential);
 
@@ -554,7 +554,7 @@ describe('Cloud Credentials E2E Workflow Tests', () => {
       };
 
       const response = await request(app)
-        .post('/api/ccrp/cloud-credentials')
+        .post('/api/tsp/cloud-credentials')
         .set('Authorization', `Bearer ${ccrpToken}`)
         .send(credentialData);
 
@@ -563,7 +563,7 @@ describe('Cloud Credentials E2E Workflow Tests', () => {
 
     test('should handle authentication errors', async () => {
       const response = await request(app)
-        .get('/api/ccrp/cloud-credentials');
+        .get('/api/tsp/cloud-credentials');
 
       expect(response.status).toBe(401);
     });
@@ -576,7 +576,7 @@ describe('Cloud Credentials E2E Workflow Tests', () => {
       );
 
       const response = await request(app)
-        .get('/api/ccrp/cloud-credentials')
+        .get('/api/tsp/cloud-credentials')
         .set('Authorization', `Bearer ${tdpToken}`);
 
       expect(response.status).toBe(403);
@@ -584,7 +584,7 @@ describe('Cloud Credentials E2E Workflow Tests', () => {
 
     test('should handle non-existent credential operations', async () => {
       const response = await request(app)
-        .get('/api/ccrp/cloud-credentials/999999')
+        .get('/api/tsp/cloud-credentials/999999')
         .set('Authorization', `Bearer ${ccrpToken}`);
 
       expect(response.status).toBe(404);
@@ -612,7 +612,7 @@ describe('Cloud Credentials E2E Workflow Tests', () => {
         };
 
         return request(app)
-          .post('/api/ccrp/cloud-credentials')
+          .post('/api/tsp/cloud-credentials')
           .set('Authorization', `Bearer ${ccrpToken}`)
           .send(credentialData);
       });
@@ -627,7 +627,7 @@ describe('Cloud Credentials E2E Workflow Tests', () => {
 
       // List all credentials
       const listResponse = await request(app)
-        .get('/api/ccrp/cloud-credentials')
+        .get('/api/tsp/cloud-credentials')
         .set('Authorization', `Bearer ${ccrpToken}`);
 
       expect(listResponse.status).toBe(200);
@@ -636,7 +636,7 @@ describe('Cloud Credentials E2E Workflow Tests', () => {
       // Clean up
       const deletePromises = responses.map(response => 
         request(app)
-          .delete(`/api/ccrp/cloud-credentials/${response.body.id}`)
+          .delete(`/api/tsp/cloud-credentials/${response.body.id}`)
           .set('Authorization', `Bearer ${ccrpToken}`)
       );
 

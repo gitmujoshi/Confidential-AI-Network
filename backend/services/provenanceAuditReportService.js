@@ -9,12 +9,12 @@ function pickContractAuditFields(plainContract) {
     status: plainContract.status,
     depaId: plainContract.depaId,
     tdcDepaId: plainContract.tdc?.depaId ?? null,
-    ccrpDepaId: plainContract.ccrp?.depaId ?? null,
+    ccrpDepaId: plainContract.tsp?.depaId ?? null,
     legalDocumentHash: plainContract.legalDocumentHash,
     ricardianSignature: plainContract.ricardianSignature,
     tdcId: plainContract.tdcId,
-    ccrpId: plainContract.ccrpId,
-    ccrpCloudProvider: plainContract.ccrpCloudProvider,
+    tspId: plainContract.tspId,
+    tspCloudProvider: plainContract.tspCloudProvider,
     environmentSpecs: plainContract.environmentSpecs,
     trainingParams: plainContract.trainingParams,
     aiModelIds: plainContract.aiModelIds,
@@ -43,7 +43,7 @@ async function buildJobTrainingProvenanceBundle(jobId) {
     where: { contractId: String(jobRow.contractId) },
     include: [
       { model: db.User, as: 'tdc', attributes: ['id', 'depaId'] },
-      { model: db.User, as: 'ccrp', attributes: ['id', 'depaId'], required: false },
+      { model: db.User, as: 'tsp', attributes: ['id', 'depaId'], required: false },
     ],
   });
   const trainingSvc = new TdcTrainingExecutionService();
@@ -85,14 +85,14 @@ async function buildProvenanceAuditReport(contractId, userId, { partyType } = {}
       ? { contractId: String(contractId) }
       : {
           contractId: String(contractId),
-          [Op.or]: [{ tdcId: userId }, { ccrpId: userId }],
+          [Op.or]: [{ tdcId: userId }, { tspId: userId }],
         };
 
   const contract = await db.Contract.findOne({
     where,
     include: [
       { model: db.User, as: 'tdc', attributes: ['id', 'depaId'] },
-      { model: db.User, as: 'ccrp', attributes: ['id', 'depaId'], required: false },
+      { model: db.User, as: 'tsp', attributes: ['id', 'depaId'], required: false },
     ],
   });
   if (!contract) {

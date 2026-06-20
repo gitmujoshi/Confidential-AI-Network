@@ -25,7 +25,7 @@ echo ""
 echo -e "${YELLOW}🔍 Current Test Data Configuration:${NC}"
 echo "  TDP User: $TDP_USER_EMAIL"
 echo "  TDC User: $TDC_USER_EMAIL"
-echo "  CCRP User: $CCRP_USER_EMAIL"
+echo "  TSP User: $CCRP_USER_EMAIL"
 echo "  Admin User: $ADMIN_USER_EMAIL"
 echo ""
 

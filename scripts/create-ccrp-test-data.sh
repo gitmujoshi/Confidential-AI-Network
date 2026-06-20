@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# Create CCRP (Confidential Clean Room Provider) Test Data Script
-# This script creates comprehensive test data specifically for CCRP users
+# Create TSP (Tech Service Provider) Test Data Script
+# This script creates comprehensive test data specifically for TSP users
 # Uses APIs only, following project best practices
 
 set -e
@@ -22,9 +22,9 @@ YELLOW='\033[1;33m'
 RED='\033[0;31m'
 NC='\033[0m'
 
-echo -e "${BLUE}🏗️ Creating CCRP Test Data for Contract Management System${NC}"
+echo -e "${BLUE}🏗️ Creating TSP Test Data for Contract Management System${NC}"
 echo "=============================================================="
-echo "Creating comprehensive test data for Confidential Clean Room Providers"
+echo "Creating comprehensive test data for Tech Service Providers"
 echo ""
 
 # Check if backend is running
@@ -47,7 +47,7 @@ else
     exit 1
 fi
 
-# Function to create a CCRP user via registration API
+# Function to create a TSP user via registration API
 create_ccrp_user() {
     local name="$1"
     local email="$2"
@@ -55,27 +55,27 @@ create_ccrp_user() {
     local description="$4"
     local specialization="$5"
     
-    echo "  Creating CCRP user: ${name}..."
+    echo "  Creating TSP user: ${name}..."
     
     local response=$(curl -s -X POST "http://localhost:${PORT}/api/auth/register" \
         -H "Content-Type: application/json" \
         -d "{
             \"name\": \"${name}\",
             \"email\": \"${email}\",
-            \"partyType\": \"CCRP\",
+            \"partyType\": \"TSP\",
             \"organization\": \"${organization}\",
             \"description\": \"${description}\",
             \"specialization\": \"${specialization}\"
         }" 2>/dev/null || echo "FAILED")
     
     if echo "$response" | grep -q "success.*true"; then
-        echo -e "  CCRP User: ${GREEN}✅ Created successfully${NC}"
+        echo -e "  TSP User: ${GREEN}✅ Created successfully${NC}"
         return 0
     elif echo "$response" | grep -q "already registered\|already exists"; then
-        echo -e "  CCRP User: ${YELLOW}⚠️ Already exists${NC}"
+        echo -e "  TSP User: ${YELLOW}⚠️ Already exists${NC}"
         return 0
     else
-        echo -e "  CCRP User: ${RED}❌ Failed${NC}"
+        echo -e "  TSP User: ${RED}❌ Failed${NC}"
         echo "    Response: $response"
         return 1
     fi
@@ -223,36 +223,36 @@ create_data_processing_service() {
     fi
 }
 
-echo -e "\n${BLUE}👥 Step 3: Creating CCRP users...${NC}"
+echo -e "\n${BLUE}👥 Step 3: Creating TSP users...${NC}"
 
-# Create Secure Cloud CCRP user
+# Create Secure Cloud TSP user
 create_ccrp_user \
     "Secure Cloud Solutions" \
-    "secure@ccrp.com" \
+    "secure@tsp.com" \
     "Secure Cloud Solutions Inc" \
     "Leading provider of confidential computing and secure cloud environments for sensitive data processing" \
     "Confidential Computing, Secure Cloud, Data Privacy"
 
-# Create Enterprise Security CCRP user
+# Create Enterprise Security TSP user
 create_ccrp_user \
     "Enterprise Security Labs" \
-    "enterprise@ccrp.com" \
+    "enterprise@tsp.com" \
     "Enterprise Security Laboratories" \
     "Enterprise-grade security solutions for confidential data processing and AI training" \
     "Enterprise Security, Data Protection, Compliance"
 
-# Create Research Computing CCRP user
+# Create Research Computing TSP user
 create_ccrp_user \
     "Research Computing Center" \
-    "research@ccrp.com" \
+    "research@tsp.com" \
     "Research Computing Center" \
     "Academic and research-focused confidential computing environments for scientific data processing" \
     "Research Computing, Academic, Scientific Data"
 
-# Create Government Cloud CCRP user
+# Create Government Cloud TSP user
 create_ccrp_user \
     "Government Cloud Services" \
-    "government@ccrp.com" \
+    "government@tsp.com" \
     "Government Cloud Services" \
     "Government-grade secure computing environments for sensitive data processing and AI training" \
     "Government Security, Classified Data, Compliance"
@@ -263,7 +263,7 @@ echo -e "\n${BLUE}🏗️ Step 4: Creating training environments...${NC}"
 create_training_environment \
     "Healthcare AI Training Lab" \
     "Secure environment for healthcare AI model training with HIPAA compliance" \
-    "secure@ccrp.com" \
+    "secure@tsp.com" \
     "DEDICATED" \
     "50 users" \
     "MAXIMUM" \
@@ -273,7 +273,7 @@ create_training_environment \
 create_training_environment \
     "Financial Data Processing Center" \
     "High-security environment for financial data processing and risk modeling" \
-    "secure@ccrp.com" \
+    "secure@tsp.com" \
     "SHARED" \
     "100 users" \
     "HIGH" \
@@ -283,7 +283,7 @@ create_training_environment \
 create_training_environment \
     "Multi-Tenant Research Environment" \
     "Flexible research environment supporting multiple concurrent projects" \
-    "secure@ccrp.com" \
+    "secure@tsp.com" \
     "MULTI_TENANT" \
     "200 users" \
     "MEDIUM" \
@@ -294,7 +294,7 @@ create_training_environment \
 create_training_environment \
     "Enterprise AI Training Facility" \
     "Enterprise-grade AI training environment with maximum security and compliance" \
-    "enterprise@ccrp.com" \
+    "enterprise@tsp.com" \
     "DEDICATED" \
     "25 users" \
     "MAXIMUM" \
@@ -304,7 +304,7 @@ create_training_environment \
 create_training_environment \
     "Compliance Testing Lab" \
     "Specialized environment for testing AI models against regulatory requirements" \
-    "enterprise@ccrp.com" \
+    "enterprise@tsp.com" \
     "DEDICATED" \
     "15 users" \
     "HIGH" \
@@ -315,7 +315,7 @@ create_training_environment \
 create_training_environment \
     "Academic Research Environment" \
     "Cost-effective environment for academic research and educational purposes" \
-    "research@ccrp.com" \
+    "research@tsp.com" \
     "SHARED" \
     "500 users" \
     "MEDIUM" \
@@ -325,7 +325,7 @@ create_training_environment \
 create_training_environment \
     "Scientific Computing Cluster" \
     "High-performance computing environment for scientific data analysis" \
-    "research@ccrp.com" \
+    "research@tsp.com" \
     "DEDICATED" \
     "30 users" \
     "HIGH" \
@@ -336,7 +336,7 @@ create_training_environment \
 create_training_environment \
     "Classified Data Processing Center" \
     "Government-grade secure environment for classified data processing" \
-    "government@ccrp.com" \
+    "government@tsp.com" \
     "DEDICATED" \
     "10 users" \
     "MAXIMUM" \
@@ -349,7 +349,7 @@ echo -e "\n${BLUE}💻 Step 5: Creating compute resources...${NC}"
 create_compute_resource \
     "GPU Training Cluster" \
     "High-performance GPU cluster for AI model training" \
-    "secure@ccrp.com" \
+    "secure@tsp.com" \
     "GPU_CLUSTER" \
     "8x NVIDIA A100 GPUs, 256GB RAM, 2TB SSD" \
     40.00
@@ -357,7 +357,7 @@ create_compute_resource \
 create_compute_resource \
     "CPU Processing Farm" \
     "High-performance CPU cluster for data processing" \
-    "secure@ccrp.com" \
+    "secure@tsp.com" \
     "CPU_CLUSTER" \
     "64x Intel Xeon cores, 512GB RAM, 10TB SSD" \
     20.00
@@ -365,7 +365,7 @@ create_compute_resource \
 create_compute_resource \
     "Memory-Optimized Server" \
     "High-memory server for large dataset processing" \
-    "secure@ccrp.com" \
+    "secure@tsp.com" \
     "MEMORY_OPTIMIZED" \
     "32x Intel Xeon cores, 1TB RAM, 5TB SSD" \
     30.00
@@ -374,7 +374,7 @@ create_compute_resource \
 create_compute_resource \
     "Enterprise GPU Server" \
     "Enterprise-grade GPU server with maximum security" \
-    "enterprise@ccrp.com" \
+    "enterprise@tsp.com" \
     "ENTERPRISE_GPU" \
     "4x NVIDIA V100 GPUs, 128GB RAM, 1TB SSD, Hardware Security Module" \
     60.00
@@ -382,7 +382,7 @@ create_compute_resource \
 create_compute_resource \
     "Compliance Testing Server" \
     "Dedicated server for compliance testing and validation" \
-    "enterprise@ccrp.com" \
+    "enterprise@tsp.com" \
     "COMPLIANCE_SERVER" \
     "16x Intel Xeon cores, 64GB RAM, 2TB SSD, Audit logging" \
     25.00
@@ -391,7 +391,7 @@ create_compute_resource \
 create_compute_resource \
     "Research GPU Cluster" \
     "Cost-effective GPU cluster for academic research" \
-    "research@ccrp.com" \
+    "research@tsp.com" \
     "RESEARCH_GPU" \
     "4x NVIDIA RTX 3090 GPUs, 64GB RAM, 1TB SSD" \
     15.00
@@ -399,7 +399,7 @@ create_compute_resource \
 create_compute_resource \
     "HPC Compute Node" \
     "High-performance computing node for scientific calculations" \
-    "research@ccrp.com" \
+    "research@tsp.com" \
     "HPC_NODE" \
     "32x AMD EPYC cores, 128GB RAM, 2TB NVMe SSD" \
     12.00
@@ -408,7 +408,7 @@ create_compute_resource \
 create_compute_resource \
     "Classified Processing Server" \
     "Government-grade server for classified data processing" \
-    "government@ccrp.com" \
+    "government@tsp.com" \
     "CLASSIFIED_SERVER" \
     "16x Intel Xeon cores, 64GB RAM, 1TB SSD, Air-gapped network" \
     80.00
@@ -419,7 +419,7 @@ echo -e "\n${BLUE}⚙️ Step 6: Creating data processing services...${NC}"
 create_data_processing_service \
     "Secure Data Anonymization" \
     "Advanced data anonymization service with privacy-preserving techniques" \
-    "secure@ccrp.com" \
+    "secure@tsp.com" \
     "ANONYMIZATION" \
     "Differential privacy, k-anonymity, l-diversity, t-closeness" \
     2.50
@@ -427,7 +427,7 @@ create_data_processing_service \
 create_data_processing_service \
     "Encrypted Data Processing" \
     "Homomorphic encryption service for processing encrypted data" \
-    "secure@ccrp.com" \
+    "secure@tsp.com" \
     "ENCRYPTED_PROCESSING" \
     "Homomorphic encryption, secure multi-party computation" \
     5.00
@@ -435,7 +435,7 @@ create_data_processing_service \
 create_data_processing_service \
     "Real-time Data Streaming" \
     "High-throughput real-time data processing and streaming service" \
-    "secure@ccrp.com" \
+    "secure@tsp.com" \
     "STREAMING" \
     "Apache Kafka, Apache Spark, real-time analytics" \
     1.50
@@ -444,7 +444,7 @@ create_data_processing_service \
 create_data_processing_service \
     "Enterprise Data Governance" \
     "Comprehensive data governance and compliance processing service" \
-    "enterprise@ccrp.com" \
+    "enterprise@tsp.com" \
     "GOVERNANCE" \
     "Data lineage, compliance monitoring, audit trails, policy enforcement" \
     4.00
@@ -452,7 +452,7 @@ create_data_processing_service \
 create_data_processing_service \
     "Advanced Analytics Engine" \
     "Enterprise-grade analytics engine with machine learning capabilities" \
-    "enterprise@ccrp.com" \
+    "enterprise@tsp.com" \
     "ANALYTICS" \
     "Machine learning, statistical analysis, predictive modeling" \
     3.50
@@ -461,7 +461,7 @@ create_data_processing_service \
 create_data_processing_service \
     "Scientific Data Processing" \
     "Specialized service for scientific data processing and analysis" \
-    "research@ccrp.com" \
+    "research@tsp.com" \
     "SCIENTIFIC" \
     "Scientific libraries, data visualization, statistical analysis" \
     1.00
@@ -469,7 +469,7 @@ create_data_processing_service \
 create_data_processing_service \
     "Research Collaboration Platform" \
     "Collaborative data processing platform for research teams" \
-    "research@ccrp.com" \
+    "research@tsp.com" \
     "COLLABORATION" \
     "Version control, collaboration tools, documentation, sharing" \
     0.75
@@ -478,45 +478,45 @@ create_data_processing_service \
 create_data_processing_service \
     "Classified Data Processing" \
     "Government-grade secure data processing for classified information" \
-    "government@ccrp.com" \
+    "government@tsp.com" \
     "CLASSIFIED" \
     "Air-gapped processing, security clearance, audit logging" \
     10.00
 
-echo -e "\n${BLUE}🧪 Step 7: Testing CCRP user authentication...${NC}"
+echo -e "\n${BLUE}🧪 Step 7: Testing TSP user authentication...${NC}"
 
-# Test login for each CCRP user
+# Test login for each TSP user
 test_ccrp_login() {
     local email="$1"
     local organization="$2"
     
-    echo "  Testing login for CCRP: ${organization}..."
+    echo "  Testing login for TSP: ${organization}..."
     
     local login_response=$(curl -s -X POST "http://localhost:${PORT}/api/auth/login" \
         -H "Content-Type: application/json" \
         -d "{\"email\": \"${email}\", \"password\": \"password123\"}" 2>/dev/null || echo "FAILED")
     
     if echo "$login_response" | grep -q "accessToken"; then
-        echo -e "  CCRP Login: ${GREEN}✅ Success${NC}"
+        echo -e "  TSP Login: ${GREEN}✅ Success${NC}"
     else
-        echo -e "  CCRP Login: ${RED}❌ Failed${NC}"
+        echo -e "  TSP Login: ${RED}❌ Failed${NC}"
         echo "    Response: $login_response"
     fi
 }
 
-test_ccrp_login "secure@ccrp.com" "Secure Cloud Solutions"
-test_ccrp_login "enterprise@ccrp.com" "Enterprise Security Labs"
-test_ccrp_login "research@ccrp.com" "Research Computing Center"
-test_ccrp_login "government@ccrp.com" "Government Cloud Services"
+test_ccrp_login "secure@tsp.com" "Secure Cloud Solutions"
+test_ccrp_login "enterprise@tsp.com" "Enterprise Security Labs"
+test_ccrp_login "research@tsp.com" "Research Computing Center"
+test_ccrp_login "government@tsp.com" "Government Cloud Services"
 
-echo -e "\n${BLUE}📋 Step 8: Testing environment access for CCRP users...${NC}"
+echo -e "\n${BLUE}📋 Step 8: Testing environment access for TSP users...${NC}"
 
-# Test environment listing for CCRP users
+# Test environment listing for TSP users
 test_environment_access() {
     local email="$1"
     local organization="$2"
     
-    echo "  Testing environment access for CCRP: ${organization}..."
+    echo "  Testing environment access for TSP: ${organization}..."
     
     local login_response=$(curl -s -X POST "http://localhost:${PORT}/api/auth/login" \
         -H "Content-Type: application/json" \
@@ -538,24 +538,24 @@ test_environment_access() {
     fi
 }
 
-test_environment_access "secure@ccrp.com" "Secure Cloud Solutions"
-test_environment_access "enterprise@ccrp.com" "Enterprise Security Labs"
+test_environment_access "secure@tsp.com" "Secure Cloud Solutions"
+test_environment_access "enterprise@tsp.com" "Enterprise Security Labs"
 
-echo -e "\n${GREEN}🎉 CCRP test data creation completed!${NC}"
+echo -e "\n${GREEN}🎉 TSP test data creation completed!${NC}"
 echo ""
 echo -e "${BLUE}📋 Summary:${NC}"
-echo "  ✅ CCRP users created via registration API"
-echo "  ✅ Training environments created for each CCRP"
+echo "  ✅ TSP users created via registration API"
+echo "  ✅ Training environments created for each TSP"
 echo "  ✅ Compute resources created"
 echo "  ✅ Data processing services created"
-echo "  ✅ Authentication tested for all CCRP users"
+echo "  ✅ Authentication tested for all TSP users"
 echo "  ✅ Environment access tested"
 echo ""
-echo -e "${BLUE}🔗 CCRP Test Users:${NC}"
-echo "  Secure Cloud: secure@ccrp.com (password: password123)"
-echo "  Enterprise Security: enterprise@ccrp.com (password: password123)"
-echo "  Research Computing: research@ccrp.com (password: password123)"
-echo "  Government Cloud: government@ccrp.com (password: password123)"
+echo -e "${BLUE}🔗 TSP Test Users:${NC}"
+echo "  Secure Cloud: secure@tsp.com (password: password123)"
+echo "  Enterprise Security: enterprise@tsp.com (password: password123)"
+echo "  Research Computing: research@tsp.com (password: password123)"
+echo "  Government Cloud: government@tsp.com (password: password123)"
 echo ""
 echo -e "${BLUE}🏗️ Training Environments Created:${NC}"
 echo "  • Secure Cloud: 3 environments (Healthcare, Financial, Multi-Tenant)"
@@ -580,4 +580,4 @@ echo "  Frontend: http://localhost:${FRONTEND_PORT}"
 echo "  Backend API: http://localhost:${PORT}/api"
 echo "  Keycloak Admin: ${KEYCLOAK_URL}/admin"
 echo ""
-echo -e "${GREEN}CCRP users can now provide secure training environments and services!${NC}"
+echo -e "${GREEN}TSP users can now provide secure training environments and services!${NC}"

@@ -30,7 +30,7 @@ const debugRouter = require('../routes/debug');
 const adminRouter = require('../routes/admin');
 const tdpRouter = require('../routes/tdp');
 const tdcRouter = require('../routes/tdc');
-const ccrpRouter = require('../routes/ccrp');
+const tspRouter = require('../routes/tsp');
 
 // Import infrastructure routes
 const infrastructureRouter = require('../routes/infrastructure');
@@ -100,7 +100,7 @@ app.use('/api/debug', debugRouter);
 app.use('/api/admin', adminRouter);
 app.use('/api/tdp', tdpRouter);
 app.use('/api/tdc', tdcRouter);
-app.use('/api/ccrp', ccrpRouter);
+app.use('/api/tsp', tspRouter);
 
 // Infrastructure API routes
 app.use('/api/infrastructure', infrastructureRouter);

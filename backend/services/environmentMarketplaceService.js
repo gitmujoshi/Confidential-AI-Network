@@ -72,7 +72,7 @@ class EnvironmentMarketplaceService {
 
       const offering = {
         id: offeringId,
-        ccrpId: offeringData.ccrpId,
+        tspId: offeringData.tspId,
         title: offeringData.title,
         description: offeringData.description,
         category: offeringData.category,
@@ -305,21 +305,21 @@ class EnvironmentMarketplaceService {
 
   /**
    * Get marketplace statistics and analytics
-   * @param {string} ccrpId - CCRP ID (optional, for provider-specific stats)
+   * @param {string} tspId - TSP ID (optional, for provider-specific stats)
    * @returns {Object} Marketplace statistics
    */
-  async getMarketplaceStatistics(ccrpId = null) {
+  async getMarketplaceStatistics(tspId = null) {
     try {
       const offerings = Array.from(this.marketplaceOfferings.values());
-      const filteredOfferings = ccrpId ? 
-        offerings.filter(o => o.ccrpId === ccrpId) : 
+      const filteredOfferings = tspId ? 
+        offerings.filter(o => o.tspId === tspId) : 
         offerings;
 
       const stats = {
         overview: {
           totalOfferings: filteredOfferings.length,
           activeOfferings: filteredOfferings.filter(o => o.metadata.status === 'ACTIVE').length,
-          totalProviders: new Set(filteredOfferings.map(o => o.ccrpId)).size,
+          totalProviders: new Set(filteredOfferings.map(o => o.tspId)).size,
           totalViews: filteredOfferings.reduce((sum, o) => sum + o.metadata.views, 0),
           totalBookings: filteredOfferings.reduce((sum, o) => sum + o.metadata.bookings, 0)
         },

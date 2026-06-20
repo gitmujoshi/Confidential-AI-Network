@@ -21,7 +21,7 @@ import Contracts from './pages/Contracts';
 import ContractDetail from './pages/ContractDetail';
 import CreateRicardianContract from './pages/CreateRicardianContract';
 import Users from './pages/Users';
-import CCRP from './pages/CCRP';
+import TSP from './pages/TSP';
 import Notifications from './pages/Notifications';
 import UserRegistration from './pages/UserRegistration';
 import Login from './pages/Login';
@@ -34,8 +34,8 @@ import Profile from './pages/Profile';
 import TestContracts from './pages/TestContracts';
 import DirectTest from './pages/DirectTest';
 import RoleProtectedRoute from './components/RoleProtectedRoute';
-import CCRPAzureCredentials from './pages/CCRPAzureCredentials';
-import CCRPCloudCredentials from './pages/CCRPCloudCredentials';
+import TSPAzureCredentials from './pages/TSPAzureCredentials';
+import TSPCloudCredentials from './pages/TSPCloudCredentials';
 import InfrastructureProvisioning from './pages/InfrastructureProvisioning';
 import TrainingEnvironment from './pages/TrainingEnvironment';
 import TDCModelUpload from './pages/TDCModelUpload';
@@ -418,25 +418,28 @@ function AppRoutes() {
         </RoleProtectedRoute>
       } />
       
-      {/* CCRP Routes */}
-      <Route path="/ccrp/*" element={
-        <RoleProtectedRoute allowedRoles={['CCRP', 'AppAdmin']}>
+      {/* Legacy CCRP URLs → TSP */}
+      <Route path="/ccrp/*" element={<Navigate to="/tsp" replace />} />
+      
+      {/* TSP Routes */}
+      <Route path="/tsp/*" element={
+        <RoleProtectedRoute allowedRoles={['TSP', 'AppAdmin']}>
           <Layout>
             <Routes>
-              <Route path="/" element={<Navigate to="/ccrp/dashboard" replace />} />
+              <Route path="/" element={<Navigate to="/tsp/dashboard" replace />} />
               <Route path="/dashboard" element={<DashboardSelector />} />
-              <Route path="/environments" element={<div>CCRP Environments</div>} />
-              <Route path="/environments/:envId" element={<div>CCRP Environment Details</div>} />
-              <Route path="/azure-credentials" element={<CCRPAzureCredentials />} />
-              <Route path="/cloud-credentials" element={<CCRPCloudCredentials />} />
+              <Route path="/environments" element={<div>TSP Environments</div>} />
+              <Route path="/environments/:envId" element={<div>TSP Environment Details</div>} />
+              <Route path="/azure-credentials" element={<TSPAzureCredentials />} />
+              <Route path="/cloud-credentials" element={<TSPCloudCredentials />} />
               <Route path="/infrastructure" element={<InfrastructureProvisioning />} />
               <Route path="/training-environment" element={<TrainingEnvironment />} />
               <Route path="/contracts" element={<Contracts />} />
               <Route path="/contracts/:contractId" element={<ContractDetail />} />
-              <Route path="/attestation" element={<div>CCRP Attestation</div>} />
-              <Route path="/resources" element={<div>CCRP Resources</div>} />
-              <Route path="/analytics" element={<div>CCRP Analytics</div>} />
-              <Route path="/security" element={<div>CCRP Security</div>} />
+              <Route path="/attestation" element={<div>TSP Attestation</div>} />
+              <Route path="/resources" element={<div>TSP Resources</div>} />
+              <Route path="/analytics" element={<div>TSP Analytics</div>} />
+              <Route path="/security" element={<div>TSP Security</div>} />
             </Routes>
           </Layout>
         </RoleProtectedRoute>
@@ -492,10 +495,10 @@ function AppRoutes() {
           </Layout>
         </RoleProtectedRoute>
       } />
-      <Route path="/ccrp" element={
-        <RoleProtectedRoute allowedRoles={['CCRP', 'AppAdmin']}>
+      <Route path="/tsp" element={
+        <RoleProtectedRoute allowedRoles={['TSP', 'AppAdmin']}>
           <Layout>
-            <CCRP />
+            <TSP />
           </Layout>
         </RoleProtectedRoute>
       } />

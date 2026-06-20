@@ -2,7 +2,7 @@
  * Constraint Category Model
  * 
  * This model represents different categories of constraints in the system
- * (e.g., datasets, contracts, ccrp, tdc) that can be managed by admins.
+ * (e.g., datasets, contracts, tsp, tdc) that can be managed by admins.
  */
 module.exports = (sequelize, DataTypes) => {
   const ConstraintCategory = sequelize.define('ConstraintCategory', {
@@ -12,7 +12,7 @@ module.exports = (sequelize, DataTypes) => {
       autoIncrement: true
     },
     
-    // Category identifier (e.g., 'datasets', 'contracts', 'ccrp', 'tdc')
+    // Category identifier (e.g., 'datasets', 'contracts', 'tsp', 'tdc')
     categoryKey: {
       type: DataTypes.STRING,
       allowNull: false,

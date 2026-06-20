@@ -28,7 +28,7 @@ function contractPartyAccessOr(userId) {
   return {
     [db.Sequelize.Op.or]: [
       { tdcId: numericUserId },
-      { ccrpId: numericUserId },
+      { tspId: numericUserId },
       tdpDatasetInvolvementWhere(numericUserId)
     ]
   };
@@ -39,7 +39,7 @@ function userCanAccessContractRow(contract, user) {
   if (user.partyType === 'AppAdmin') return true;
 
   const uid = user.id;
-  if (contract.tdcId === uid || contract.ccrpId === uid) return true;
+  if (contract.tdcId === uid || contract.tspId === uid) return true;
 
   const datasetsText =
     contract.contractDatasets != null
@@ -78,7 +78,7 @@ router.post('/environments', authenticateToken, async (req, res) => {
       where: { contractId },
       include: [
         { model: db.User, as: 'tdc' },
-        { model: db.User, as: 'ccrp' }
+        { model: db.User, as: 'tsp' }
       ]
     });
 
@@ -86,9 +86,9 @@ router.post('/environments', authenticateToken, async (req, res) => {
       return res.status(404).json({ error: 'Contract not found' });
     }
 
-    // Only CCRP can create environments for their contracts
-    if (req.user.localUser.partyType !== 'CCRP' || contract.ccrpId !== req.user.localUser.id) {
-      return res.status(403).json({ error: 'Only CCRP can create training environments for their contracts' });
+    // Only TSP can create environments for their contracts
+    if (req.user.localUser.partyType !== 'TSP' || contract.tspId !== req.user.localUser.id) {
+      return res.status(403).json({ error: 'Only TSP can create training environments for their contracts' });
     }
 
     // Check if environment already exists
@@ -139,7 +139,7 @@ router.get('/environments', authenticateToken, async (req, res) => {
         as: 'contract',
         include: [
           { model: db.User, as: 'tdc', attributes: ['id', 'name', 'email'] },
-          { model: db.User, as: 'ccrp', attributes: ['id', 'name', 'email'] }
+          { model: db.User, as: 'tsp', attributes: ['id', 'name', 'email'] }
         ]
       },
       { model: db.EnvironmentResource, as: 'resources' },
@@ -195,7 +195,7 @@ router.get('/environments', authenticateToken, async (req, res) => {
             title: env.contract.title,
             status: env.contract.status,
             tdc: env.contract.tdc,
-            ccrp: env.contract.ccrp
+            tsp: env.contract.tsp
           } : null,
           resources: env.resources,
           costs: env.costs,
@@ -271,7 +271,7 @@ router.get('/contracts/:contractId/environments', authenticateToken, async (req,
       where: { contractId },
       include: [
         { model: db.User, as: 'tdc' },
-        { model: db.User, as: 'ccrp' }
+        { model: db.User, as: 'tsp' }
       ]
     });
 
@@ -489,7 +489,7 @@ router.get('/environments/provider/:provider', authenticateToken, async (req, re
         required: true,
         include: [
           { model: db.User, as: 'tdc', attributes: ['id', 'name', 'email'] },
-          { model: db.User, as: 'ccrp', attributes: ['id', 'name', 'email'] }
+          { model: db.User, as: 'tsp', attributes: ['id', 'name', 'email'] }
         ]
       }],
       limit: parseInt(limit),
@@ -556,9 +556,9 @@ router.put('/environments/:environmentId', authenticateToken, async (req, res) =
       return res.status(404).json({ error: 'Contract not found' });
     }
 
-    // Only CCRP can update environments for their contracts
-    if (req.user.localUser.partyType !== 'CCRP' || contract.ccrpId !== req.user.localUser.id) {
-      return res.status(403).json({ error: 'Only CCRP can update training environments for their contracts' });
+    // Only TSP can update environments for their contracts
+    if (req.user.localUser.partyType !== 'TSP' || contract.tspId !== req.user.localUser.id) {
+      return res.status(403).json({ error: 'Only TSP can update training environments for their contracts' });
     }
 
     // Update environment configuration
@@ -601,9 +601,9 @@ router.delete('/environments/:environmentId', authenticateToken, async (req, res
       return res.status(404).json({ error: 'Contract not found' });
     }
 
-    // Only CCRP can destroy environments for their contracts
-    if (req.user.localUser.partyType !== 'CCRP' || contract.ccrpId !== req.user.localUser.id) {
-      return res.status(403).json({ error: 'Only CCRP can destroy training environments for their contracts' });
+    // Only TSP can destroy environments for their contracts
+    if (req.user.localUser.partyType !== 'TSP' || contract.tspId !== req.user.localUser.id) {
+      return res.status(403).json({ error: 'Only TSP can destroy training environments for their contracts' });
     }
 
     // Destroy environment
@@ -637,7 +637,7 @@ router.post('/estimate-cost', authenticateToken, async (req, res) => {
       where: { contractId },
       include: [
         { model: db.User, as: 'tdc' },
-        { model: db.User, as: 'ccrp' }
+        { model: db.User, as: 'tsp' }
       ]
     });
 

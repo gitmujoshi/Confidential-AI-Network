@@ -45,9 +45,9 @@ async function verifyDIDSignature(did, message, signature) {
  * 
  * This module handles all contract-related operations including:
  * - Ricardian contract creation with legal document binding
- * - Contract signing (TDP auto-sign, CCRP manual sign)
+ * - Contract signing (TDP auto-sign, TSP manual sign)
  * - Contract status updates
- * - CCRP selection
+ * - TSP selection
  * - Ricardian contract verification
  * 
  * Security Features:
@@ -72,7 +72,7 @@ router.get('/', async (req, res) => {
       where: whereClause,
       include: [
         { model: db.User, as: 'tdc', attributes: ['id', 'name', 'email', 'walletAddress'] },
-        { model: db.User, as: 'ccrp', attributes: ['id', 'name', 'email', 'walletAddress', 'cloudProviders', 'description'] }
+        { model: db.User, as: 'tsp', attributes: ['id', 'name', 'email', 'walletAddress', 'cloudProviders', 'description'] }
       ],
       order: [['createdAt', 'DESC']],
       limit: parseInt(limit),
@@ -174,24 +174,32 @@ router.get('/user/:userId', async (req, res) => {
     } else {
       // Regular users: only contracts where they are a party.
       //
-      // NOTE: `tdpId` is not a first-class DB column on `contracts` in the current schema.
-      // TDP involvement is represented inside the JSONB `contract_datasets` payload.
+      // TDP involvement: `tdp_id` / `primary_tdp_id` columns plus JSONB `contract_datasets`.
       const partyFilters = [];
 
       if (user.partyType === 'TDC') {
         partyFilters.push({ tdcId: numericUserId });
       }
 
-      if (user.partyType === 'CCRP') {
-        partyFilters.push({ ccrpId: numericUserId });
+      if (user.partyType === 'TSP') {
+        partyFilters.push({ tspId: numericUserId });
       }
 
       if (user.partyType === 'TDP') {
+        partyFilters.push({ tdpId: numericUserId });
+        partyFilters.push({ primaryTdpId: numericUserId });
         partyFilters.push(
           db.Sequelize.where(
             db.Sequelize.cast(db.Sequelize.col('contract_datasets'), 'text'),
             'ILIKE',
             `%"tdpId":${numericUserId}%`
+          )
+        );
+        partyFilters.push(
+          db.Sequelize.where(
+            db.Sequelize.cast(db.Sequelize.col('contract_datasets'), 'text'),
+            'ILIKE',
+            `%"tdpId": ${numericUserId}%`
           )
         );
       }
@@ -208,7 +216,7 @@ router.get('/user/:userId', async (req, res) => {
       where: whereClause,
       include: [
         { model: db.User, as: 'tdc', attributes: ['id', 'name', 'email', 'walletAddress'] },
-        { model: db.User, as: 'ccrp', attributes: ['id', 'name', 'email', 'walletAddress', 'cloudProviders', 'description'] }
+        { model: db.User, as: 'tsp', attributes: ['id', 'name', 'email', 'walletAddress', 'cloudProviders', 'description'] }
       ],
       order: [['createdAt', 'DESC']],
       limit: parseInt(limit),
@@ -441,7 +449,7 @@ router.get('/:contractId/signing-data', authenticateToken, async (req, res) => {
   }
 });
 
-// Sign contract as a party (TDP/CCRP/TDC)
+// Sign contract as a party (TDP/TSP/TDC)
 router.post('/:contractId/sign', authenticateToken, async (req, res) => {
   try {
     const { contractId } = req.params;
@@ -488,18 +496,18 @@ router.post('/:contractId/sign', authenticateToken, async (req, res) => {
         return res.status(403).json({ error: 'Only a linked TDP can sign this contract' });
       }
 
-      // Advance to CCRP approval stage for legacy workflow.
+      // Advance to TSP approval stage for legacy workflow.
       if (contract.status === 'PENDING_TDP_APPROVAL' || contract.status === 'PENDING_TDP') {
-        updates.status = 'PENDING_CCRP_APPROVAL';
+        updates.status = 'PENDING_TSP_APPROVAL';
       }
     }
 
-    if (claimedParty === 'CCRP') {
-      if (!isAppAdminParty(currentUser.partyType) && Number(contract.ccrpId) !== Number(currentUser.id)) {
-        return res.status(403).json({ error: 'Only the assigned CCRP can sign this contract' });
+    if (claimedParty === 'TSP') {
+      if (!isAppAdminParty(currentUser.partyType) && Number(contract.tspId) !== Number(currentUser.id)) {
+        return res.status(403).json({ error: 'Only the assigned TSP can sign this contract' });
       }
-      updates.ccrpSigned = true;
-      updates.ccrpSignedAt = new Date();
+      updates.tspSigned = true;
+      updates.tspSignedAt = new Date();
       updates.status = 'SIGNED';
     }
 
@@ -535,8 +543,8 @@ router.post('/:contractId/sign', authenticateToken, async (req, res) => {
       success: true,
       contractId: contract.contractId,
       status: contract.status,
-      ccrpSigned: contract.ccrpSigned,
-      ccrpSignedAt: contract.ccrpSignedAt,
+      tspSigned: contract.tspSigned,
+      tspSignedAt: contract.tspSignedAt,
     });
   } catch (error) {
     console.error('Error signing contract:', error);
@@ -613,7 +621,7 @@ router.post('/ricardian/preview', authenticateToken, async (req, res) => {
       termsAndConditions,
       tdp: dataset.owner,
       tdc: req.user.localUser,
-      ccrp: null,
+      tsp: null,
       environmentSpecs: environmentSpecs || {},
       trainingParams: trainingParams || {},
       kmsConfigs: kmsConfigs || {}
@@ -671,7 +679,7 @@ router.post('/ricardian/preview', authenticateToken, async (req, res) => {
  * Security:
  * - Only TDC users can create contracts
  * - TDP must be registered and own the dataset
- * - CCRP must be registered (if selected)
+ * - TSP must be registered (if selected)
  * - Authentication handled via JWT token
  * - Cryptographic binding ensures integrity
  */
@@ -699,8 +707,8 @@ router.post('/ricardian', authenticateToken, async (req, res) => {
       aiModelIds,
       duration,
       termsAndConditions,
-      ccrpId,
-      ccrpCloudProvider,
+      tspId,
+      tspCloudProvider,
       contractType,
       environmentSpecs,
       trainingParams,
@@ -765,15 +773,15 @@ router.post('/ricardian', authenticateToken, async (req, res) => {
 
     console.log(`✅ All datasets validated. Total TDPs: ${tdpIds.size}`);
 
-    // Get CCRP user if provided
-    let ccrpUser = null;
-    if (ccrpId) {
-      ccrpUser = await db.User.findOne({
-        where: { id: parseInt(ccrpId), partyType: 'CCRP' }
+    // Get TSP user if provided
+    let tspUser = null;
+    if (tspId) {
+      tspUser = await db.User.findOne({
+        where: { id: parseInt(tspId), partyType: 'TSP' }
       });
 
-      if (!ccrpUser) {
-        return res.status(404).json({ error: 'CCRP not found' });
+      if (!tspUser) {
+        return res.status(404).json({ error: 'TSP not found' });
       }
     }
 
@@ -799,8 +807,8 @@ router.post('/ricardian', authenticateToken, async (req, res) => {
       tdpId: Array.from(tdpIds)[0], // Use first TDP as primary (for backward compatibility)
       primaryTdpId: Array.from(tdpIds)[0], // Primary TDP for backward compatibility
       tdcId: tdcUser.id,
-      ccrpId: ccrpUser?.id,
-      ccrpCloudProvider: ccrpCloudProvider || null,
+      tspId: tspUser?.id,
+      tspCloudProvider: tspCloudProvider || null,
       datasetId: validatedDatasets[0].dataset.id, // Use first dataset as primary (for backward compatibility)
       primaryDatasetId: validatedDatasets[0].dataset.id, // Primary dataset for backward compatibility
       aiModelIds: aiModels.map(model => model.id),
@@ -845,11 +853,11 @@ router.post('/ricardian', authenticateToken, async (req, res) => {
         blockchainAddress: tdcUser.walletAddress,
         did: tdcUser.did
       },
-      ccrp: ccrpUser ? {
-        name: ccrpUser.name,
-        email: ccrpUser.email,
-        blockchainAddress: ccrpUser.walletAddress,
-        did: ccrpUser.did
+      tsp: tspUser ? {
+        name: tspUser.name,
+        email: tspUser.email,
+        blockchainAddress: tspUser.walletAddress,
+        did: tspUser.did
       } : null,
       environmentSpecs,
       trainingParams,

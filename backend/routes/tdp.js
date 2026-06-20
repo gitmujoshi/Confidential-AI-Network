@@ -27,7 +27,7 @@ router.get('/dashboard/:userId', authenticateToken, async (req, res) => {
       where: { tdpId: userId },
       include: [
         { model: User, as: 'tdc', attributes: ['name', 'email'] },
-        { model: User, as: 'ccrp', attributes: ['name', 'email'] }
+        { model: User, as: 'tsp', attributes: ['name', 'email'] }
       ],
       order: [['createdAt', 'DESC']]
     });
@@ -180,7 +180,7 @@ router.get('/contracts/:userId', authenticateToken, async (req, res) => {
       where: { tdpId: userId },
       include: [
         { model: User, as: 'tdc', attributes: ['name', 'email'] },
-        { model: User, as: 'ccrp', attributes: ['name', 'email'] }
+        { model: User, as: 'tsp', attributes: ['name', 'email'] }
       ],
       order: [['createdAt', 'DESC']]
     });

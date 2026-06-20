@@ -101,7 +101,7 @@ node tests/run-signing-tests.js --coverage
 
 The test suite includes a comprehensive test data setup system (`setup/signing-test-data.js`) that creates:
 
-- **Test Users**: TDC, TDP, CCRP, and Admin users
+- **Test Users**: TDC, TDP, TSP, and Admin users
 - **Test Contracts**: Various contract states (pending, partially signed, fully signed)
 - **Test Keys**: Multiple key types for each user
 - **Test Claims**: SCITT CCF signature claims

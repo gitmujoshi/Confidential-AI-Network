@@ -21,7 +21,7 @@ router.get('/dashboard', authenticateToken, async (req, res) => {
     const contracts = await Contract.findAll({
       include: [
         { model: User, as: 'tdc', attributes: ['name', 'email'] },
-        { model: User, as: 'ccrp', attributes: ['name', 'email'] }
+        { model: User, as: 'tsp', attributes: ['name', 'email'] }
       ],
       order: [['createdAt', 'DESC']]
     });
@@ -133,7 +133,7 @@ router.get('/contracts', authenticateToken, async (req, res) => {
     const contracts = await Contract.findAll({
       include: [
         { model: User, as: 'tdc', attributes: ['name', 'email'] },
-        { model: User, as: 'ccrp', attributes: ['name', 'email'] }
+        { model: User, as: 'tsp', attributes: ['name', 'email'] }
       ],
       order: [['createdAt', 'DESC']]
     });

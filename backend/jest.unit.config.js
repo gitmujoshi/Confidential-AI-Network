@@ -14,7 +14,9 @@ module.exports = {
     '<rootDir>/tests/unit/huggingface-integration.test.js',
     '<rootDir>/tests/unit/huggingface-routes.test.js',
     '<rootDir>/tests/unit/local-docker-training-runner.test.js',
-    '<rootDir>/tests/unit/local-native-training-runner.test.js'
+    '<rootDir>/tests/unit/local-native-training-runner.test.js',
+    '<rootDir>/tests/unit/tsp-cloud-providers.test.js',
+    '<rootDir>/tests/unit/role-crud.unit.test.js'
   ],
   collectCoverageFrom: [
     'services/**/*.js',

@@ -133,7 +133,8 @@ class KeycloakSetup {
       console.log('\n3️⃣ Creating roles...');
       await this.createRole('TDP', 'Training Data Provider - Can create and manage datasets');
       await this.createRole('TDC', 'Training Data Consumer - Can create contracts');
-      await this.createRole('CCRP', 'Confidential Clean Room Provider - Can review and sign contracts');
+      await this.createRole('TSP', 'Tech Service Provider — hosts confidential compute / clean room environments');
+      await this.createRole('CCRP', 'Legacy alias for TSP (deprecated)');
       await this.createRole('ADMIN', 'System Administrator - Full access to all features');
 
       // Step 4: Create frontend client
@@ -171,7 +172,7 @@ class KeycloakSetup {
       console.log('   Realm: contract-management');
       console.log('   Frontend Client: contract-management-frontend');
       console.log('   Backend Client: contract-management-backend');
-      console.log('   Roles: TDP, TDC, CCRP, ADMIN');
+      console.log('   Roles: TDP, TDC, TSP, ADMIN');
       console.log('\n🔗 Access URLs:');
       console.log(`   Keycloak Admin: ${this.baseURL}/admin/`);
       console.log(`   Login: ${this.baseURL}/realms/contract-management/protocol/openid-connect/auth`);

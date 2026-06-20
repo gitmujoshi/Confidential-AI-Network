@@ -74,7 +74,7 @@ import { useUser } from '../contexts/UserContext';
 import { apiService } from '../services/api';
 import toast from 'react-hot-toast';
 
-const CCRPCloudCredentials = () => {
+const TSPCloudCredentials = () => {
   const { currentUser } = useUser();
   const [loading, setLoading] = useState(false);
   const [validating, setValidating] = useState(false);
@@ -142,7 +142,7 @@ const CCRPCloudCredentials = () => {
   const loadCredentials = async () => {
     try {
       setLoading(true);
-      const response = await apiService.get('/api/ccrp/cloud-credentials');
+      const response = await apiService.get('/api/tsp/cloud-credentials');
       setCredentials(response.data);
     } catch (error) {
       console.error('Error loading credentials:', error);
@@ -186,7 +186,7 @@ const CCRPCloudCredentials = () => {
   const handleDeleteCredential = async (credentialId) => {
     if (window.confirm('Are you sure you want to delete this credential?')) {
       try {
-        await apiService.delete(`/api/ccrp/cloud-credentials/${credentialId}`);
+        await apiService.delete(`/api/tsp/cloud-credentials/${credentialId}`);
         toast.success('Credential deleted successfully');
         loadCredentials();
       } catch (error) {
@@ -202,14 +202,14 @@ const CCRPCloudCredentials = () => {
       
       const credentialData = {
         ...formData,
-        ccrpUserId: currentUser.id
+        tspUserId: currentUser.id
       };
 
       if (dialogMode === 'add') {
-        await apiService.post('/api/ccrp/cloud-credentials', credentialData);
+        await apiService.post('/api/tsp/cloud-credentials', credentialData);
         toast.success('Credential added successfully');
       } else {
-        await apiService.put(`/api/ccrp/cloud-credentials/${selectedCredential.id}`, credentialData);
+        await apiService.put(`/api/tsp/cloud-credentials/${selectedCredential.id}`, credentialData);
         toast.success('Credential updated successfully');
       }
 
@@ -226,7 +226,7 @@ const CCRPCloudCredentials = () => {
   const handleValidateCredential = async (credential) => {
     try {
       setValidating(true);
-      await apiService.post(`/api/ccrp/cloud-credentials/${credential.id}/validate`);
+      await apiService.post(`/api/tsp/cloud-credentials/${credential.id}/validate`);
       toast.success('Credential validated successfully');
       loadCredentials();
     } catch (error) {
@@ -314,12 +314,12 @@ const CCRPCloudCredentials = () => {
     }
   };
 
-  if (!currentUser || currentUser.partyType !== 'CCRP') {
+  if (!currentUser || currentUser.partyType !== 'TSP') {
     return (
       <Container maxWidth="lg">
         <Alert severity="warning">
           <AlertTitle>Access Restricted</AlertTitle>
-          This page is only available for CCRP (Confidential Clean Room Provider) users.
+          This page is only available for TSP (Tech Service Provider) users.
         </Alert>
       </Container>
     );
@@ -558,4 +558,4 @@ const CCRPCloudCredentials = () => {
   );
 };
 
-export default CCRPCloudCredentials; 
+export default TSPCloudCredentials; 

@@ -239,27 +239,27 @@ const testUsers = [
     role: 'TDC'
   },
   
-  // CCRP Users (Confidential Clean Room Providers)
+  // TSP Users (Tech Service Providers)
   {
     name: 'Carol Williams',
-    email: 'carol@ccrp.com',
+    email: 'carol@tsp.com',
     password: 'password123',
-    partyType: 'CCRP',
-    role: 'CCRP'
+    partyType: 'TSP',
+    role: 'TSP'
   },
   {
     name: 'Ivy Taylor',
     email: 'ivy@ccrp2.com',
     password: 'password123',
-    partyType: 'CCRP',
-    role: 'CCRP'
+    partyType: 'TSP',
+    role: 'TSP'
   },
   {
     name: 'Jack Anderson',
     email: 'jack@ccrp3.com',
     password: 'password123',
-    partyType: 'CCRP',
-    role: 'CCRP'
+    partyType: 'TSP',
+    role: 'TSP'
   }
 ];
 

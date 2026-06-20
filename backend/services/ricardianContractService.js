@@ -123,7 +123,7 @@ class RicardianContractService {
                 blockchainAddress: "",
                 did: ""
               },
-              ccrp: {
+              tsp: {
                 name: "",
                 email: "",
                 blockchainAddress: "",
@@ -147,7 +147,7 @@ class RicardianContractService {
           },
           trainingEnvironment: {
             ccrpPlatform: {
-              provider: "Default CCRP Provider",
+              provider: "Default TSP Provider",
               securityLevel: 9,
               attestationRequired: true
             }
@@ -314,8 +314,8 @@ class RicardianContractService {
         tdpId: contractData.tdpId,
         primaryTdpId: contractData.primaryTdpId,
         tdcId: contractData.tdcId,
-        ccrpId: contractData.ccrpId,
-        ccrpCloudProvider: contractData.ccrpCloudProvider,
+        tspId: contractData.tspId,
+        tspCloudProvider: contractData.tspCloudProvider,
         datasetId: contractData.datasetId,
         primaryDatasetId: contractData.primaryDatasetId,
         modelId: contractData.modelId,
@@ -332,7 +332,7 @@ class RicardianContractService {
         status: 'PENDING_TDP_APPROVAL',
         multiTdpStatus: 'PENDING_ALL_TDP_APPROVAL',
         tdpSigned: false,
-        ccrpSigned: false,
+        tspSigned: false,
         // Add aiModelIds if present
         aiModelIds: contractData.aiModelIds || null,
         // Add training parameters if present
@@ -373,8 +373,8 @@ class RicardianContractService {
             contractDepaId: depaId,
             contractType,
             tdcId: contract.tdcId,
-            ccrpId: contract.ccrpId || null,
-            ccrpCloudProvider: contract.ccrpCloudProvider || null,
+            tspId: contract.tspId || null,
+            tspCloudProvider: contract.tspCloudProvider || null,
             datasetCount: contract.datasetCount || null,
             aiModelCount: Array.isArray(contract.aiModelIds) ? contract.aiModelIds.length : 0,
             timestamp: new Date().toISOString(),
@@ -447,12 +447,12 @@ class RicardianContractService {
               blockchainAddress: contractData.tdc?.blockchainAddress || '0x0000000000000000000000000000000000000000',
               did: contractData.tdc?.did || 'did:unknown:tdc'
             },
-            ccrp: contractData.ccrp ? {
-              ...template.ricardianContract.legalDocument.parties.ccrp,
-              name: contractData.ccrp.name,
-              email: contractData.ccrp.email,
-              blockchainAddress: contractData.ccrp.blockchainAddress,
-              did: contractData.ccrp.did
+            tsp: contractData.tsp ? {
+              ...template.ricardianContract.legalDocument.parties.tsp,
+              name: contractData.tsp.name,
+              email: contractData.tsp.email,
+              blockchainAddress: contractData.tsp.blockchainAddress,
+              did: contractData.tsp.did
             } : null
           },
           terms: this.updateTermsWithContractData(template.ricardianContract.legalDocument.terms, contractData)
@@ -464,7 +464,7 @@ class RicardianContractService {
           ccrpPlatform: {
             ...template.ricardianContract.trainingEnvironment.ccrpPlatform,
             ...(contractData.trainingEnvironment?.ccrpPlatform || {}),
-            provider: contractData.ccrp?.name || contractData.trainingEnvironment?.ccrpPlatform?.provider || 'Default CCRP Provider'
+            provider: contractData.tsp?.name || contractData.trainingEnvironment?.ccrpPlatform?.provider || 'Default TSP Provider'
           },
           // Include training specifications if provided
           trainingSpecifications: contractData.trainingEnvironment?.trainingSpecifications || template.ricardianContract.trainingEnvironment?.trainingSpecifications,
@@ -498,7 +498,7 @@ class RicardianContractService {
             {
               trigger: 'CONTRACT_ACTIVATION',
               action: 'PROVISION_ENVIRONMENT',
-              description: 'CCRP automatically provisions secure training environment',
+              description: 'TSP automatically provisions secure training environment',
               status: 'PENDING',
               estimatedDuration: '2 hours'
             }

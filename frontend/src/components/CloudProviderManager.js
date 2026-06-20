@@ -12,14 +12,14 @@ import {
   DialogActions,
   FormControl,
   FormLabel,
-  Checkbox,
-  FormGroup,
+  RadioGroup,
+  FormControlLabel,
+  Radio,
   Alert,
   IconButton,
   Tooltip
 } from '@mui/material';
 import {
-  Add as AddIcon,
   Edit as EditIcon,
   Cloud as CloudIcon
 } from '@mui/icons-material';
@@ -29,9 +29,13 @@ import toast from 'react-hot-toast';
 
 const CloudProviderManager = ({ userId, currentProviders = [], description = '' }) => {
   const [open, setOpen] = useState(false);
-  const [selectedProviders, setSelectedProviders] = useState(currentProviders);
+  const [selectedProvider, setSelectedProvider] = useState(currentProviders[0] || '');
   const [newDescription, setNewDescription] = useState(description);
   const queryClient = useQueryClient();
+
+  useEffect(() => {
+    setSelectedProvider(currentProviders[0] || '');
+  }, [currentProviders]);
 
   const availableProviders = [
     { value: 'Local', label: 'Local (Docker)', description: 'Local training execution (no cloud)' },
@@ -42,33 +46,29 @@ const CloudProviderManager = ({ userId, currentProviders = [], description = '' 
   ];
 
   const updateProvidersMutation = useMutation(
-    (data) => apiService.put(`/api/ccrp/cloud-providers/${userId}`, data),
+    (data) => apiService.put(`/api/tsp/cloud-providers/${userId}`, data),
     {
       onSuccess: () => {
-        queryClient.invalidateQueries('ccrpDashboard');
-        toast.success('Cloud providers updated successfully!');
+        queryClient.invalidateQueries('tspDashboard');
+        toast.success('Cloud provider updated successfully!');
         setOpen(false);
       },
       onError: (error) => {
-        const errorMsg = error.response?.data?.error || 'Failed to update cloud providers';
+        const errorMsg = error.response?.data?.error || 'Failed to update cloud provider';
         toast.error(errorMsg);
       }
     }
   );
 
   const handleSave = () => {
+    if (!selectedProvider) {
+      toast.error('Select a cloud provider');
+      return;
+    }
     updateProvidersMutation.mutate({
-      cloudProviders: selectedProviders,
+      cloudProviders: [selectedProvider],
       description: newDescription
     });
-  };
-
-  const handleProviderToggle = (provider) => {
-    setSelectedProviders(prev => 
-      prev.includes(provider)
-        ? prev.filter(p => p !== provider)
-        : [...prev, provider]
-    );
   };
 
   const getProviderColor = (provider) => {
@@ -82,36 +82,35 @@ const CloudProviderManager = ({ userId, currentProviders = [], description = '' 
     }
   };
 
+  const activeProvider = currentProviders[0] || null;
+
   return (
     <>
       <Card>
         <CardContent>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
             <Typography variant="h6" className="font-medium">
-              Cloud Providers
+              Cloud Provider
             </Typography>
-            <Tooltip title="Edit cloud providers">
+            <Tooltip title="Edit cloud provider">
               <IconButton onClick={() => setOpen(true)} color="primary">
                 <EditIcon />
               </IconButton>
             </Tooltip>
           </Box>
 
-          {currentProviders.length > 0 ? (
+          {activeProvider ? (
             <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 2 }}>
-              {currentProviders.map((provider) => (
-                <Chip
-                  key={provider}
-                  icon={<CloudIcon />}
-                  label={provider}
-                  color={getProviderColor(provider)}
-                  variant="outlined"
-                />
-              ))}
+              <Chip
+                icon={<CloudIcon />}
+                label={activeProvider}
+                color={getProviderColor(activeProvider)}
+                variant="outlined"
+              />
             </Box>
           ) : (
             <Alert severity="info" sx={{ mb: 2 }}>
-              No cloud providers configured. Click edit to add providers.
+              No cloud provider configured. Click edit to select your platform.
             </Alert>
           )}
 
@@ -127,35 +126,39 @@ const CloudProviderManager = ({ userId, currentProviders = [], description = '' 
         <DialogTitle>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
             <CloudIcon />
-            Manage Cloud Providers
+            Manage Cloud Provider
           </Box>
         </DialogTitle>
         <DialogContent>
           <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-            Select the cloud providers you support for confidential computing environments.
+            Select the single cloud platform you operate for confidential computing (TSP/TSP).
           </Typography>
 
           <FormControl component="fieldset" fullWidth>
             <FormLabel component="legend">Available Cloud Providers</FormLabel>
-            <FormGroup>
+            <RadioGroup
+              value={selectedProvider}
+              onChange={(e) => setSelectedProvider(e.target.value)}
+            >
               {availableProviders.map((provider) => (
-                <Box key={provider.value} sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                  <Checkbox
-                    checked={selectedProviders.includes(provider.value)}
-                    onChange={() => handleProviderToggle(provider.value)}
-                    color="primary"
-                  />
-                  <Box sx={{ ml: 1 }}>
-                    <Typography variant="body1" className="font-medium">
-                      {provider.label}
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      {provider.description}
-                    </Typography>
-                  </Box>
-                </Box>
+                <FormControlLabel
+                  key={provider.value}
+                  value={provider.value}
+                  control={<Radio color="primary" />}
+                  label={
+                    <Box>
+                      <Typography variant="body1" className="font-medium">
+                        {provider.label}
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        {provider.description}
+                      </Typography>
+                    </Box>
+                  }
+                  sx={{ alignItems: 'flex-start', mb: 1 }}
+                />
               ))}
-            </FormGroup>
+            </RadioGroup>
           </FormControl>
 
           <Box sx={{ mt: 3 }}>
@@ -165,7 +168,7 @@ const CloudProviderManager = ({ userId, currentProviders = [], description = '' 
             <textarea
               value={newDescription}
               onChange={(e) => setNewDescription(e.target.value)}
-              placeholder="Describe your cloud provider expertise..."
+              placeholder="Describe your confidential computing environment..."
               style={{
                 width: '100%',
                 minHeight: '80px',
@@ -183,7 +186,7 @@ const CloudProviderManager = ({ userId, currentProviders = [], description = '' 
           <Button 
             onClick={handleSave} 
             variant="contained"
-            disabled={updateProvidersMutation.isLoading}
+            disabled={updateProvidersMutation.isLoading || !selectedProvider}
           >
             {updateProvidersMutation.isLoading ? 'Saving...' : 'Save Changes'}
           </Button>
@@ -193,4 +196,4 @@ const CloudProviderManager = ({ userId, currentProviders = [], description = '' 
   );
 };
 
-export default CloudProviderManager; 
+export default CloudProviderManager;

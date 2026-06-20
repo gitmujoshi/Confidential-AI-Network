@@ -83,7 +83,7 @@ ChartJS.register(
   Legend
 );
 
-const CCRPEnvironmentMonitoring = () => {
+const TSPEnvironmentMonitoring = () => {
   const { currentUser } = useUser();
   const queryClient = useQueryClient();
   
@@ -97,9 +97,9 @@ const CCRPEnvironmentMonitoring = () => {
 
   // Fetch environments data
   const { data: environmentsData, isLoading: environmentsLoading, refetch: refetchEnvironments } = useQuery(
-    ['ccrpEnvironments', currentUser?.id],
+    ['tspEnvironments', currentUser?.id],
     async () => {
-      const response = await apiService.get(`/api/ccrp/infrastructure/environments/${currentUser.id}`);
+      const response = await apiService.get(`/api/tsp/infrastructure/environments/${currentUser.id}`);
       return response.data;
     },
     {
@@ -136,7 +136,7 @@ const CCRPEnvironmentMonitoring = () => {
     {
       onSuccess: (data, variables) => {
         toast.success(`Environment ${variables.action} completed successfully`);
-        queryClient.invalidateQueries('ccrpEnvironments');
+        queryClient.invalidateQueries('tspEnvironments');
         setActionDialogOpen(false);
       },
       onError: (error) => {
@@ -689,4 +689,4 @@ const CCRPEnvironmentMonitoring = () => {
   );
 };
 
-export default CCRPEnvironmentMonitoring;
+export default TSPEnvironmentMonitoring;

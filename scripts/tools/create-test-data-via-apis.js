@@ -80,22 +80,22 @@ const testUsers = [
   },
   {
     name: 'SecureCloud Confidential Computing',
-    email: 'ccrp.securecloud@example.com',
-    partyType: 'CCRP',
+    email: 'tsp.securecloud@example.com',
+    partyType: 'TSP',
     organization: 'SecureCloud Confidential Computing',
     description: 'Secure cloud infrastructure for confidential computing'
   },
   {
     name: 'TrustedAI Environment Provider',
-    email: 'ccrp.trustedai@example.com',
-    partyType: 'CCRP',
+    email: 'tsp.trustedai@example.com',
+    partyType: 'TSP',
     organization: 'TrustedAI Environment Provider',
     description: 'Trusted AI training environments with security guarantees'
   },
   {
     name: 'PrivacyFirst Computing Solutions',
-    email: 'ccrp.privacyfirst@example.com',
-    partyType: 'CCRP',
+    email: 'tsp.privacyfirst@example.com',
+    partyType: 'TSP',
     organization: 'PrivacyFirst Computing Solutions',
     description: 'Privacy-first computing infrastructure and services'
   },
@@ -319,13 +319,13 @@ async function createAIModel(user, accessToken) {
 }
 
 async function createEnvironment(user, accessToken) {
-  if (user.partyType !== 'CCRP') {
+  if (user.partyType !== 'TSP') {
     log(`⏭️ Skipping environment creation for ${user.partyType} user`, 'yellow');
-    return { success: true, message: 'Not a CCRP user' };
+    return { success: true, message: 'Not a TSP user' };
   }
   
   try {
-    log(`🏗️ Creating environment for CCRP user: ${user.email}`, 'blue');
+    log(`🏗️ Creating environment for TSP user: ${user.email}`, 'blue');
     
     const environmentData = {
       name: `Secure Environment - ${user.organization}`,
@@ -361,9 +361,9 @@ async function createEnvironment(user, accessToken) {
   }
 }
 
-async function createContract(tdpUser, tdcUser, ccrpUser, accessToken) {
+async function createContract(tdpUser, tdcUser, tspUser, accessToken) {
   try {
-    log(`📋 Creating contract between TDP, TDC, and CCRP`, 'blue');
+    log(`📋 Creating contract between TDP, TDC, and TSP`, 'blue');
     
     const contractData = {
       title: `Data Sharing Agreement - ${tdpUser.organization} & ${tdcUser.organization}`,
@@ -371,7 +371,7 @@ async function createContract(tdpUser, tdcUser, ccrpUser, accessToken) {
       parties: [
         { type: 'TDP', userId: tdpUser.id, organization: tdpUser.organization },
         { type: 'TDC', userId: tdcUser.id, organization: tdcUser.organization },
-        { type: 'CCRP', userId: ccrpUser.id, organization: ccrpUser.organization }
+        { type: 'TSP', userId: tspUser.id, organization: tspUser.organization }
       ],
       terms: {
         dataUsage: 'AI_MODEL_TRAINING',
@@ -442,7 +442,7 @@ async function createTestData() {
           await createDataset(user, user.accessToken);
         } else if (user.partyType === 'TDC') {
           await createAIModel(user, user.accessToken);
-        } else if (user.partyType === 'CCRP') {
+        } else if (user.partyType === 'TSP') {
           await createEnvironment(user, user.accessToken);
         }
       }
@@ -452,11 +452,11 @@ async function createTestData() {
     log('\n🔍 Step 4: Creating contracts...', 'blue');
     const tdpUsers = loggedInUsers.filter(u => u.partyType === 'TDP');
     const tdcUsers = loggedInUsers.filter(u => u.partyType === 'TDC');
-    const ccrpUsers = loggedInUsers.filter(u => u.partyType === 'CCRP');
+    const tspUsers = loggedInUsers.filter(u => u.partyType === 'TSP');
     
-    if (tdpUsers.length > 0 && tdcUsers.length > 0 && ccrpUsers.length > 0) {
+    if (tdpUsers.length > 0 && tdcUsers.length > 0 && tspUsers.length > 0) {
       // Create a contract using the first user of each type
-      await createContract(tdpUsers[0], tdcUsers[0], ccrpUsers[0], tdpUsers[0].accessToken);
+      await createContract(tdpUsers[0], tdcUsers[0], tspUsers[0], tdpUsers[0].accessToken);
     }
     
     // Step 5: Summary

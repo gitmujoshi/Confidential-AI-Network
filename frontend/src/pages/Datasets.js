@@ -171,6 +171,16 @@ function Datasets() {
     }
   };
 
+  // Resolve industry domain (column or metadata fallback for finance consortium datasets)
+  const resolveDatasetDomain = (dataset) => {
+    if (dataset?.domain) return dataset.domain;
+    const sector = dataset?.metadata?.sector;
+    if (['banking', 'nbfc', 'cards', 'insurance', 'life-insurance'].includes(sector)) {
+      return 'Finance';
+    }
+    return null;
+  };
+
   // Filter and sort datasets
   const filteredAndSortedDatasets = datasets
     .filter(dataset => {
@@ -179,7 +189,7 @@ function Datasets() {
         dataset.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
         (dataset.tags && dataset.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase())));
       const matchesCategory = !selectedCategory || dataset.category === selectedCategory;
-      const matchesDomain = !selectedDomain || dataset.domain === selectedDomain;
+      const matchesDomain = !selectedDomain || resolveDatasetDomain(dataset) === selectedDomain;
       return matchesSearch && matchesCategory && matchesDomain;
     })
     .sort((a, b) => {
@@ -424,10 +434,10 @@ function Datasets() {
                       </Box>
                       
                       {/* Domain Badge */}
-                      {dataset.domain && (
+                      {resolveDatasetDomain(dataset) && (
                         <Chip
-                          icon={<span>{getDomainIcon(dataset.domain)}</span>}
-                          label={dataset.domain}
+                          icon={<span>{getDomainIcon(resolveDatasetDomain(dataset))}</span>}
+                          label={resolveDatasetDomain(dataset)}
                           color="primary"
                           size="small"
                           sx={{ mb: 1 }}

@@ -52,12 +52,12 @@ const testUsers = [
     description: 'Test TDC user created via registration API'
   },
   {
-    name: 'CCRP Test User',
-    email: 'ccrp-test@example.com',
+    name: 'TSP Test User',
+    email: 'tsp-test@example.com',
     password: COMMON_TEST_PASSWORD,
-    partyType: 'CCRP',
-    organization: 'CCRP Test Organization',
-    description: 'Test CCRP user created via registration API'
+    partyType: 'TSP',
+    organization: 'TSP Test Organization',
+    description: 'Test TSP user created via registration API'
   },
   {
     name: 'Admin Test User',

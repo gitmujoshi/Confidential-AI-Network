@@ -8,6 +8,9 @@
 const express = require('express');
 const router = express.Router();
 const { authenticateToken, logAuthEvent } = require('../middleware/auth');
+const { normalizeTspCloudProviders } = require('../utils/tspCloudProviders');
+const { isTspPartyType } = require('../utils/partyTypes');
+const { Op } = require('sequelize');
 const db = require('../models');
 
 /**
@@ -49,34 +52,35 @@ router.get('/', authenticateToken, logAuthEvent('GET_ALL_USERS'), async (req, re
   }
 });
 
-/**
- * GET /api/users/ccrp
- * Get all CCRP users (available to all authenticated users)
- */
-router.get('/ccrp', authenticateToken, logAuthEvent('GET_CCRP_USERS'), async (req, res) => {
+async function listActiveTspUsers(_req, res) {
   try {
-    const ccrpUsers = await db.User.findAll({
-      where: { 
-        partyType: 'CCRP',
-        isActive: true 
+    const tspUsers = await db.User.findAll({
+      where: {
+        partyType: { [Op.in]: ['TSP', 'CCRP'] },
+        isActive: true,
       },
       attributes: [
         'id', 'name', 'email', 'partyType', 'organization', 'description',
-        'website', 'location', 'did', 'walletAddress', 'isActive', 'cloudProviders'
+        'website', 'location', 'did', 'walletAddress', 'isActive', 'cloudProviders',
       ],
-      order: [['name', 'ASC']]
+      order: [['name', 'ASC']],
     });
-
-    res.json(ccrpUsers);
-
+    res.json(tspUsers);
   } catch (error) {
-    console.error('❌ Get CCRP users error:', error);
+    console.error('❌ Get TSP users error:', error);
     res.status(500).json({
       error: 'Internal server error',
-      code: 'INTERNAL_ERROR'
+      code: 'INTERNAL_ERROR',
     });
   }
-});
+}
+
+/**
+ * GET /api/users/tsp
+ * Get all TSP users (available to all authenticated users)
+ */
+router.get('/tsp', authenticateToken, logAuthEvent('GET_TSP_USERS'), listActiveTspUsers);
+router.get('/ccrp', authenticateToken, logAuthEvent('GET_TSP_USERS_LEGACY'), listActiveTspUsers);
 
 /**
  * GET /api/users/wallet/:walletAddress
@@ -210,6 +214,23 @@ router.put('/:id', authenticateToken, logAuthEvent('UPDATE_USER_BY_ID'), async (
       if (updateData.hasOwnProperty(field)) {
         filteredUpdateData[field] = updateData[field];
       }
+    }
+
+    if (filteredUpdateData.cloudProviders !== undefined) {
+      if (!isTspPartyType(userToUpdate.partyType)) {
+        return res.status(400).json({
+          error: 'cloudProviders can only be set for TSP users',
+          code: 'INVALID_PARTY_TYPE',
+        });
+      }
+      const normalized = normalizeTspCloudProviders(filteredUpdateData.cloudProviders);
+      if (!normalized.ok) {
+        return res.status(400).json({
+          error: normalized.error,
+          code: 'INVALID_CLOUD_PROVIDERS',
+        });
+      }
+      filteredUpdateData.cloudProviders = normalized.value;
     }
 
     // Update the user

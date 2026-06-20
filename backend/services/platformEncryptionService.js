@@ -14,7 +14,7 @@
  * Workflow:
  * 1. TDP uploads encrypted data with platform-managed keys
  * 2. TDC requests data access via JWT tokens
- * 3. CCRP provisions TEE with hardware attestation
+ * 3. TSP provisions TEE with hardware attestation
  * 4. Data is decrypted only within verified TEE
  * 5. Training results are encrypted before transmission
  */
@@ -368,14 +368,14 @@ class PlatformEncryptionService {
   /**
    * Create TEE attestation token
    * @param {Object} teeInfo - TEE information
-   * @param {string} ccrpId - CCRP user ID
+   * @param {string} tspId - TSP user ID
    * @returns {string} Attestation token
    */
-  async createTEEAttestationToken(teeInfo, ccrpId) {
+  async createTEEAttestationToken(teeInfo, tspId) {
     try {
       const attestationPayload = {
         teeId: teeInfo.teeId,
-        ccrpId,
+        tspId,
         attestationData: teeInfo.attestationData,
         hardwareInfo: teeInfo.hardwareInfo,
         iat: Math.floor(Date.now() / 1000),
@@ -389,7 +389,7 @@ class PlatformEncryptionService {
         expiresIn: '24h' // Attestation tokens valid for 24 hours
       });
 
-      logger.info(`🔒 TEE attestation token created for CCRP ${ccrpId}`);
+      logger.info(`🔒 TEE attestation token created for TSP ${tspId}`);
       return token;
       
     } catch (error) {

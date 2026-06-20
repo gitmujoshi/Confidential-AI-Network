@@ -383,7 +383,7 @@ const MockRegistry = {
         this.selectCCRP = jest.fn().mockResolvedValue({
           success: true,
           transactionHash: 'MOCK_CCRP_TX_HASH',
-          message: 'CCRP selected successfully (mock)'
+          message: 'TSP selected successfully (mock)'
         });
         this.getContract = jest.fn().mockResolvedValue({
           contractId: '1',
@@ -398,7 +398,7 @@ const MockRegistry = {
           status: 'PENDING_TDP_APPROVAL',
           createdAt: new Date(),
           tdpSigned: false,
-          ccrpSigned: false
+          tspSigned: false
         });
         this.healthCheck = jest.fn().mockResolvedValue({
           blockchainEnabled: false,

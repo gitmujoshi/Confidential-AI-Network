@@ -25,10 +25,10 @@ const testUsers = [
         emailVerified: true
     },
     {
-        email: 'ccrp-test@example.com',
+        email: 'tsp-test@example.com',
         password: 'password123',
-        name: 'CCRP Test User',
-        partyType: 'CCRP',
+        name: 'TSP Test User',
+        partyType: 'TSP',
         organization: 'Secure Compute Solutions',
         isActive: true,
         isRegistered: true,

@@ -1,5 +1,5 @@
 /**
- * CCRP Cloud Credentials Model
+ * TSP Cloud Credentials Model
  * 
  * This model stores cloud provider credentials and configurations for CCRPs.
  * Sensitive credentials are stored in external secret management systems.
@@ -11,30 +11,31 @@
  * - Multi-cloud support (AWS, Azure, GCP, OCI)
  * 
  * Relationships:
- * - Belongs to User (CCRP)
+ * - Belongs to User (TSP)
  * - Referenced by Contract (for training environment)
  * 
- * @module models/CCRPCloudCredentials
+ * @module models/TSPCloudCredentials
  */
 
 module.exports = (sequelize, DataTypes) => {
-  const CCRPCloudCredentials = sequelize.define('CCRPCloudCredentials', {
+  const TSPCloudCredentials = sequelize.define('TSPCloudCredentials', {
     id: {
       type: DataTypes.INTEGER,
       primaryKey: true,
       autoIncrement: true
     },
     
-    // Foreign Key to CCRP User
-    ccrpUserId: {
+    // Foreign Key to TSP User
+    tspUserId: {
       type: DataTypes.INTEGER,
+      field: 'ccrpUserId',
       allowNull: false,
       references: {
         model: 'users',
         key: 'id'
       },
       onDelete: 'CASCADE',
-      comment: 'Reference to CCRP user'
+      comment: 'Reference to TSP user'
     },
     
     // Cloud Provider Configuration
@@ -238,7 +239,7 @@ module.exports = (sequelize, DataTypes) => {
   });
 
   // Instance methods
-  CCRPCloudCredentials.prototype.validateCredentials = async function() {
+  TSPCloudCredentials.prototype.validateCredentials = async function() {
     try {
       // This would now call the appropriate cloud provider's validation
       const secretManager = require('../services/secretManager');
@@ -263,7 +264,7 @@ module.exports = (sequelize, DataTypes) => {
     }
   };
 
-  CCRPCloudCredentials.prototype.getCloudConfig = function() {
+  TSPCloudCredentials.prototype.getCloudConfig = function() {
     return {
       cloudProvider: this.cloudProvider,
       subscription: {
@@ -300,26 +301,26 @@ module.exports = (sequelize, DataTypes) => {
   };
 
   // Class methods
-  CCRPCloudCredentials.findByCCRP = async function(ccrpUserId) {
+  TSPCloudCredentials.findByCCRP = async function(tspUserId) {
     return await this.findAll({
       where: {
-        ccrpUserId,
+        tspUserId,
         isActive: true
       }
     });
   };
 
-  CCRPCloudCredentials.findByCCRPAndProvider = async function(ccrpUserId, cloudProvider) {
+  TSPCloudCredentials.findByCCRPAndProvider = async function(tspUserId, cloudProvider) {
     return await this.findOne({
       where: {
-        ccrpUserId,
+        tspUserId,
         cloudProvider,
         isActive: true
       }
     });
   };
 
-  CCRPCloudCredentials.findValidCredentials = async function() {
+  TSPCloudCredentials.findValidCredentials = async function() {
     return await this.findAll({
       where: {
         isActive: true,
@@ -329,17 +330,17 @@ module.exports = (sequelize, DataTypes) => {
   };
 
   // Associations
-  CCRPCloudCredentials.associate = function(models) {
-    CCRPCloudCredentials.belongsTo(models.User, {
-      foreignKey: 'ccrpUserId',
-      as: 'ccrpUser'
+  TSPCloudCredentials.associate = function(models) {
+    TSPCloudCredentials.belongsTo(models.User, {
+      foreignKey: 'tspUserId',
+      as: 'tspUser'
     });
     
-    CCRPCloudCredentials.belongsTo(models.User, {
+    TSPCloudCredentials.belongsTo(models.User, {
       foreignKey: 'createdBy',
       as: 'creator'
     });
   };
 
-  return CCRPCloudCredentials;
+  return TSPCloudCredentials;
 }; 

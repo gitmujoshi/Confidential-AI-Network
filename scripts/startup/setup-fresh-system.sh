@@ -116,7 +116,7 @@ async function setupKeycloak() {
     
     // Create roles
     console.log('👥 Creating roles...');
-    const roles = ['TDP', 'TDC', 'CCRP', 'ADMIN'];
+    const roles = ['TDP', 'TDC', 'TSP', 'ADMIN'];
     for (const role of roles) {
       try {
         await axiosInstance.post(`${KEYCLOAK_BASE_URL}/admin/realms/contract-management/roles`, {
@@ -292,8 +292,8 @@ INSERT INTO users (name, email, party_type, organization, wallet_address, is_act
 ('Retail Insights Ltd', 'retail@tdp.com', 'TDP', 'Retail Insights Limited', '0x3333333333333333333333333333333333333333', true),
 ('AI Research Institute', 'research@tdc.com', 'TDC', 'AI Research Institute', '0x4444444444444444444444444444444444444444', true),
 ('Tech Startup Co', 'tech@tdc.com', 'TDC', 'Tech Startup Company', '0x5555555555555555555555555555555555555555', true),
-('Secure Compute Solutions', 'secure@ccrp.com', 'CCRP', 'Secure Compute Solutions', '0x6666666666666666666666666666666666666666', true),
-('Privacy First Computing', 'privacy@ccrp.com', 'CCRP', 'Privacy First Computing', '0x7777777777777777777777777777777777777777', true)
+('Secure Compute Solutions', 'secure@tsp.com', 'TSP', 'Secure Compute Solutions', '0x6666666666666666666666666666666666666666', true),
+('Privacy First Computing', 'privacy@tsp.com', 'TSP', 'Privacy First Computing', '0x7777777777777777777777777777777777777777', true)
 ON CONFLICT (email) DO NOTHING;" > /dev/null 2>&1
 echo "✅ Test users created"
 

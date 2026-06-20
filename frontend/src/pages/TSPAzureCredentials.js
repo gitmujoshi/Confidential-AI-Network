@@ -3,12 +3,12 @@ import { useNavigate } from 'react-router-dom';
 import { Container, Typography, Box, Alert, AlertTitle } from '@mui/material';
 import { Security } from '@mui/icons-material';
 
-const CCRPAzureCredentials = () => {
+const TSPAzureCredentials = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
     // Redirect to the new multi-cloud credentials page
-    navigate('/ccrp-cloud-credentials');
+    navigate('/tsp-cloud-credentials');
   }, [navigate]);
 
   return (
@@ -27,4 +27,4 @@ const CCRPAzureCredentials = () => {
   );
 };
 
-export default CCRPAzureCredentials;
+export default TSPAzureCredentials;

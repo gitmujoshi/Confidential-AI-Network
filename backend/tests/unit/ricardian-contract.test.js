@@ -35,9 +35,9 @@ describe('Ricardian Contract Enhanced Functionality', () => {
     });
 
     testCcrpUser = await db.User.create({
-      name: 'Test CCRP User',
-      email: 'test-ccrp@example.com',
-      partyType: 'CCRP',
+      name: 'Test TSP User',
+      email: 'test-tsp@example.com',
+      partyType: 'TSP',
       isActive: true
     });
 
@@ -115,7 +115,7 @@ describe('Ricardian Contract Enhanced Functionality', () => {
         ],
         duration: 90,
         termsAndConditions: 'Test terms and conditions',
-        ccrpId: testCcrpUser.id,
+        tspId: testCcrpUser.id,
         aiModelIds: [testAiModel.id],
         privacyRequirements: {
           maxPrivacyLoss: 0.1,
@@ -138,7 +138,7 @@ describe('Ricardian Contract Enhanced Functionality', () => {
         },
         trainingEnvironment: {
           ccrpPlatform: {
-            provider: 'Test CCRP Provider',
+            provider: 'Test TSP Provider',
             platform: 'PRIVATE_CLOUD',
             infrastructure: {
               compute: {
@@ -309,7 +309,7 @@ describe('Ricardian Contract Enhanced Functionality', () => {
         ],
         duration: 30,
         termsAndConditions: 'Default test',
-        ccrpId: testCcrpUser.id
+        tspId: testCcrpUser.id
       };
       const res = await request(app)
         .post('/api/contracts/ricardian')
@@ -384,7 +384,7 @@ describe('Ricardian Contract Enhanced Functionality', () => {
         termsAndConditions: 'Multi-dataset test',
         trainingEnvironment: {
           ccrpPlatform: {
-            provider: 'Test CCRP Provider'
+            provider: 'Test TSP Provider'
           }
         }
       };

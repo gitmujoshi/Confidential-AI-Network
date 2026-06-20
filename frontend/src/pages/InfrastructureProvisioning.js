@@ -117,7 +117,7 @@ const InfrastructureProvisioning = () => {
   const loadEnvironments = async () => {
     try {
       setLoading(true);
-      const response = await apiService.get(`/api/ccrp/infrastructure/environments/${currentUser.id}`);
+      const response = await apiService.get(`/api/tsp/infrastructure/environments/${currentUser.id}`);
       if (response.data.success) {
         setEnvironments(response.data.environments);
       }
@@ -135,7 +135,7 @@ const InfrastructureProvisioning = () => {
       setError('');
       setSuccess('');
 
-      const response = await apiService.post(`/api/ccrp/infrastructure/provision/${currentUser.id}`, {
+      const response = await apiService.post(`/api/tsp/infrastructure/provision/${currentUser.id}`, {
         config: provisionConfig
       });
 
@@ -161,7 +161,7 @@ const InfrastructureProvisioning = () => {
 
     try {
       setLoading(true);
-      const response = await apiService.delete(`/api/ccrp/infrastructure/environments/${environmentId}`);
+      const response = await apiService.delete(`/api/tsp/infrastructure/environments/${environmentId}`);
       
       if (response.data.success) {
         toast.success('Environment destroyed successfully!');
@@ -182,7 +182,7 @@ const InfrastructureProvisioning = () => {
 
   const handleViewLogs = async (environmentId) => {
     try {
-      const response = await apiService.get(`/api/ccrp/infrastructure/environments/${environmentId}/logs`);
+      const response = await apiService.get(`/api/tsp/infrastructure/environments/${environmentId}/logs`);
       if (response.data.success) {
         setLogs(response.data.logs);
         setLogsDialogOpen(true);
