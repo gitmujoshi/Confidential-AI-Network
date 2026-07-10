@@ -15,6 +15,7 @@
 
 const db = require('../models');
 const crypto = require('crypto');
+const DEPAIdService = require('../services/depaIdService');
 
 // Healthcare Datasets with HIPAA Compliance
 const healthcareDatasets = [
@@ -348,6 +349,7 @@ const allDatasets = [
 async function findOrCreateTDP(email, name, organization, specialization) {
   try {
     let tdp = await db.User.findOne({ where: { email } });
+    const depaIdService = new DEPAIdService();
     
     if (!tdp) {
       console.log(`📝 Creating TDP: ${name}`);
@@ -361,7 +363,7 @@ async function findOrCreateTDP(email, name, organization, specialization) {
         website: `https://${organization.toLowerCase().replace(/\s+/g, '')}.com`,
         location: 'United States',
         isActive: true,
-        depaId: `TDP-${crypto.randomUUID()}`,
+        depaId: depaIdService.generateUserDEPAId('TDP'),
         did: `did:web:${organization.toLowerCase().replace(/\s+/g, '')}.com:user:${email.split('@')[0]}`,
         walletAddress: `0x${crypto.randomBytes(20).toString('hex')}`,
         // Add compliance certifications
@@ -386,6 +388,7 @@ async function findOrCreateTDP(email, name, organization, specialization) {
 async function createDataset(datasetInfo, ownerId) {
   try {
     const datasetId = `DATASET-${crypto.randomUUID()}`;
+    const depaIdService = new DEPAIdService();
     
     // Check if dataset already exists
     const existingDataset = await db.Dataset.findOne({
@@ -422,7 +425,7 @@ async function createDataset(datasetInfo, ownerId) {
       usageTerms: datasetInfo.usageTerms,
       
       // DEPA ID
-      depaId: `DATASET-${crypto.randomUUID()}`,
+      depaId: depaIdService.generateDEPAId('DATASET'),
       
       // Metadata
       createdAt: new Date(),
