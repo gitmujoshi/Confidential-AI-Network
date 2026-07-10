@@ -419,27 +419,17 @@ class KeycloakService {
       const adminToken = await this.getAdminToken();
       const max = options.max || 500;
       
-<<<<<<< HEAD
       const response = await axios.get(
         `${this.baseUrl}/admin/realms/${this.realm}/users?max=${max}`,
         {
           headers: {
             'Authorization': `Bearer ${adminToken}`,
             'Content-Type': 'application/json'
-          }
+          },
+          httpsAgent: this.httpsAgent
         }
       );
       
-=======
-      const response = await axios.get(`${this.baseUrl}/admin/realms/${this.realm}/users`, {
-        headers: {
-          Authorization: `Bearer ${adminToken}`,
-          'Content-Type': 'application/json',
-        },
-        httpsAgent: this.httpsAgent,
-      });
-
->>>>>>> origin/feature/model-training-environment
       return response.data;
     } catch (error) {
       console.error('Error getting users:', error.response?.data || error.message);
