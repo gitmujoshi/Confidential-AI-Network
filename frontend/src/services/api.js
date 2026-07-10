@@ -51,6 +51,16 @@ api.interceptors.response.use(
     });
     
     if (error.response?.status === 401) {
+      const path =
+        typeof window !== 'undefined' ? window.location.pathname : '';
+      const isPublicPath =
+        path === '/' ||
+        path.startsWith('/login') ||
+        path.startsWith('/register') ||
+        path.startsWith('/forgot-password') ||
+        path.startsWith('/reset-password') ||
+        path.startsWith('/first-login');
+
       // Check if this is a refresh request to avoid infinite loops
       if (error.config?.url?.includes('/auth/refresh')) {
         console.log('🔐 [API] Refresh token failed, clearing auth tokens');
@@ -59,8 +69,8 @@ api.interceptors.response.use(
         localStorage.removeItem('user');
         localStorage.removeItem('currentUser');
         
-        // Only redirect if we're not already on the login page
-        if (!window.location.pathname.includes('/login')) {
+        // Only redirect if we're not on a public page
+        if (!isPublicPath && typeof window !== 'undefined' && !window.location.pathname.includes('/login')) {
           window.location.href = '/login';
         }
         return Promise.reject(error);
@@ -95,8 +105,8 @@ api.interceptors.response.use(
           localStorage.removeItem('user');
           localStorage.removeItem('currentUser');
           
-          // Only redirect if we're not already on the login page
-          if (!window.location.pathname.includes('/login')) {
+          // Only redirect if we're not on a public page
+          if (!isPublicPath && typeof window !== 'undefined' && !window.location.pathname.includes('/login')) {
             window.location.href = '/login';
           }
         }
@@ -108,8 +118,8 @@ api.interceptors.response.use(
         localStorage.removeItem('user');
         localStorage.removeItem('currentUser');
         
-        // Only redirect if we're not already on the login page
-        if (!window.location.pathname.includes('/login')) {
+        // Only redirect if we're not on a public page
+        if (!isPublicPath && typeof window !== 'undefined' && !window.location.pathname.includes('/login')) {
           window.location.href = '/login';
         }
       }
@@ -323,7 +333,7 @@ const realApiService = {
     return response.data;
   },
   getTdcTrainingJobLogs: async (jobId) => {
-    const response = await api.get(`/api/tdc/training/jobs/${encodeURIComponent(jobId)}/logs`, {
+    const response = await api.get(`/api/tdc/training/jobs/${encodeURIComponent(jobId)}/logs?full=1`, {
       responseType: 'text',
     });
     return response.data;

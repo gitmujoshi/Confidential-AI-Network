@@ -108,12 +108,14 @@ async function runLocalDockerTraining({ jobId, contractId, containerSpec, traini
 
   const image =
     process.env.LOCAL_TRAINING_IMAGE ||
-    containerSpec?.image ||
+    // Local-docker runner expects the repo's training image (writes /outputs/metrics.json + model.bin).
+    // Using arbitrary containerSpec images (e.g. generic AzureML base images) will not produce artifacts.
     'contractmanagement/local-trainer:latest';
 
   // Derive maxEpochs for the placeholder trainer; fall back to 5.
   const maxEpochs = trainingParams?.maxEpochs ?? containerSpec?.maxEpochs ?? 5;
 
+<<<<<<< HEAD
   const dpEnabled =
     trainingParams?.differentialPrivacy?.enabled === true ||
     String(trainingParams?.privacyTechnique || '').toLowerCase().includes('differential');
@@ -127,6 +129,48 @@ async function runLocalDockerTraining({ jobId, contractId, containerSpec, traini
     jobId,
     contractId,
     maxEpochs,
+=======
+  // Differential privacy orchestration: pass explicit env vars to the container.
+  // Trainers can rely on env vars without needing to parse contract.json.
+  const dp = trainingParams?.differentialPrivacy;
+  const dpEnabled = dp === true || (dp && typeof dp === 'object' && Boolean(dp.enabled));
+  const dpEpsilon = dpEnabled && dp && typeof dp === 'object' ? dp.epsilon : undefined;
+  const dpDelta = dpEnabled && dp && typeof dp === 'object' ? dp.delta : undefined;
+  const dpMechanism = dpEnabled && dp && typeof dp === 'object' ? dp.mechanism : undefined;
+  const dpClipNorm = dpEnabled && dp && typeof dp === 'object' ? dp.clipNorm : undefined;
+
+  const args = [
+    'run',
+    '--rm',
+    '--name',
+    `cm-train-${jobId}`.slice(0, 128),
+    '-e',
+    `TRAINING_JOB_ID=${jobId}`,
+    '-e',
+    `CONTRACT_ID=${contractId}`,
+    '-e',
+    `MAX_EPOCHS=${String(maxEpochs)}`,
+    '-e',
+    'CONTRACT_JSON_PATH=/inputs/contract.json',
+    ...(dpEnabled
+      ? [
+          '-e',
+          'DP_ENABLED=1',
+          '-e',
+          `DP_EPSILON=${String(dpEpsilon)}`,
+          '-e',
+          `DP_DELTA=${String(dpDelta)}`,
+          ...(dpMechanism ? ['-e', `DP_MECHANISM=${String(dpMechanism)}`] : []),
+          ...(dpClipNorm !== undefined && dpClipNorm !== null
+            ? ['-e', `DP_CLIP_NORM=${String(dpClipNorm)}`]
+            : []),
+        ]
+      : ['-e', 'DP_ENABLED=0']),
+    '-v',
+    `${outDir}:/outputs`,
+    '-v',
+    `${inputsDir}:/inputs:ro`,
+>>>>>>> origin/feature/model-training-environment
     image,
     outDir,
     inputsDir,

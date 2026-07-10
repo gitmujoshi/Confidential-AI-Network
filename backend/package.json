@@ -10,6 +10,9 @@
     "start:full": "npm run setup && npm start",
     "***REMOVED-KEYCLOAK_DB_PASSWORD***:setup": "node setup-***REMOVED-KEYCLOAK_DB_PASSWORD***-persistent.js",
     "***REMOVED-KEYCLOAK_DB_PASSWORD***:sync": "node scripts/source/sync-users-to-***REMOVED-KEYCLOAK_DB_PASSWORD***.js",
+    "***REMOVED-KEYCLOAK_DB_PASSWORD***:cleanup-orphans": "node scripts/source/cleanup-orphaned-***REMOVED-KEYCLOAK_DB_PASSWORD***-users.js",
+    "***REMOVED-KEYCLOAK_DB_PASSWORD***:cleanup-orphans:execute": "node scripts/source/cleanup-orphaned-***REMOVED-KEYCLOAK_DB_PASSWORD***-users.js --execute",
+    "***REMOVED-KEYCLOAK_DB_PASSWORD***:resync": "node scripts/source/cleanup-orphaned-***REMOVED-KEYCLOAK_DB_PASSWORD***-users.js --execute && node scripts/source/sync-users-to-***REMOVED-KEYCLOAK_DB_PASSWORD***.js",
     "test": "npm run test:unit && npm run test:integration",
     "test:unit": "jest --config=jest.unit.config.js",
     "test:integration": "jest --config=jest.integration.config.js",
@@ -34,7 +37,11 @@
     "db:ensure-training-metadata": "node scripts/ensure-training-jobs-metadata.js",
     "db:migrate:test": "sequelize-cli db:migrate --config ./config/database.test.js --env test",
     "db:reset:test": "node scripts/reset-test-database.js",
-    "seed:demo-catalog": "node scripts/dev/seed-demo-catalog.js"
+    "seed:demo-catalog": "node scripts/dev/seed-demo-catalog.js",
+    "db:purge-local-depa-reseed": "node scripts/dev/purge-local-depa-reseed.js",
+    "db:purge-local-depa-reseed:dry": "node scripts/dev/purge-local-depa-reseed.js --dry-run",
+    "db:purge-legacy-depa-reseed": "node scripts/dev/purge-legacy-depa-reseed.js",
+    "db:purge-legacy-depa-reseed:dry": "node scripts/dev/purge-legacy-depa-reseed.js --dry-run"
   },
   "dependencies": {
     "@contract-management/value-objects": "file:../shared/valueObjects",

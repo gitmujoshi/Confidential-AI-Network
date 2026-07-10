@@ -871,6 +871,13 @@ def main() -> int:
 
     print(f"[trainer] starting job={job_id} contract={contract_id}", flush=True)
     print(f"[trainer] writing outputs to {out_dir}", flush=True)
+    dp_enabled = _env("DP_ENABLED", "0")
+    if dp_enabled in ("1", "true", "True", "yes", "YES"):
+        print(
+            f"[trainer] differential_privacy enabled epsilon={_env('DP_EPSILON')} delta={_env('DP_DELTA')} "
+            f"mechanism={_env('DP_MECHANISM')} clip_norm={_env('DP_CLIP_NORM')}",
+            flush=True,
+        )
     if contract_inputs:
         ds = contract_inputs.get("datasets") or []
         ms = contract_inputs.get("models") or []

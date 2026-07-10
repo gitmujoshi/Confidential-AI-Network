@@ -164,9 +164,20 @@ router.get(
         return res.status(404).json({ success: false, error: 'Log file not found' });
       }
 
-      // Basic safeguard: cap response size (last ~200KB).
+      // Default: return tail bytes (to keep UI responsive). Clients can request full logs via `?full=1`.
+      // Safety: cap full response to avoid huge payloads.
       const stat = fs.statSync(logPath);
-      const maxBytes = 200 * 1024;
+      const full = String(req.query?.full || '').toLowerCase();
+      const wantFull = full === '1' || full === 'true' || full === 'yes';
+
+      const tailBytesRaw = req.query?.tailBytes ?? req.query?.tail_bytes ?? null;
+      const tailBytes = tailBytesRaw ? Math.max(0, parseInt(String(tailBytesRaw), 10) || 0) : 200 * 1024;
+
+      // Full logs are needed for E2E artifacts. Keep a safety cap, but higher than typical docker logs.
+      const maxFullBytes = 25 * 1024 * 1024; // 25MB
+      const maxTailBytes = 2 * 1024 * 1024; // 2MB
+
+      const maxBytes = wantFull ? maxFullBytes : Math.min(tailBytes, maxTailBytes);
       const start = stat.size > maxBytes ? stat.size - maxBytes : 0;
       const buf = Buffer.alloc(stat.size - start);
       const fd = fs.openSync(logPath, 'r');
@@ -176,6 +187,9 @@ router.get(
         fs.closeSync(fd);
       }
 
+      // Signal truncation to clients if we hit the cap.
+      res.setHeader('X-Log-Truncated', start > 0 ? '1' : '0');
+      res.setHeader('X-Log-Bytes', String(stat.size));
       return res.type('text/plain').send(buf.toString('utf8'));
     } catch (err) {
       return handleError(res, err);

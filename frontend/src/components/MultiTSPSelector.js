@@ -71,7 +71,8 @@ const MultiTSPSelector = ({
 
   // Get selection status for a TSP
   const getTspStatus = (tsp) => {
-    const isSelected = String(selectedTsp) === String(tsp.id);
+    const tspKey = tsp.depaId || tsp.id;
+    const isSelected = String(selectedTsp) === String(tspKey);
     
     if (isSelected) {
       return { status: 'selected', message: 'Selected' };
@@ -123,7 +124,8 @@ const MultiTSPSelector = ({
       <Grid container spacing={2}>
         {filteredTspUsers.map((tsp) => {
           const { status, message } = getTspStatus(tsp);
-          const isSelected = String(selectedTsp) === String(tsp.id);
+          const tspKey = tsp.depaId || tsp.id;
+          const isSelected = String(selectedTsp) === String(tspKey);
           const isDisabled = status === 'disabled';
           
           return (
@@ -140,7 +142,7 @@ const MultiTSPSelector = ({
                     boxShadow: 2
                   }
                 }}
-                onClick={() => !disabled && onTspToggle(isSelected ? null : tsp.id)}
+                onClick={() => !disabled && onTspToggle(isSelected ? null : tspKey)}
               >
                 <CardContent>
                   <Box display="flex" alignItems="flex-start" gap={2}>
@@ -148,7 +150,7 @@ const MultiTSPSelector = ({
                     <Checkbox
                       checked={isSelected}
                       disabled={isDisabled || disabled}
-                      onChange={() => !isDisabled && !disabled && onTspToggle(isSelected ? null : tsp.id)}
+                      onChange={() => !isDisabled && !disabled && onTspToggle(isSelected ? null : tspKey)}
                       color="primary"
                       sx={{ mt: 0 }}
                     />
@@ -198,9 +200,10 @@ const MultiTSPSelector = ({
 
       {/* Selected TSP Summary - Moved below the list */}
       {selectedTsp && (() => {
-        const selectedTspUser = tspUsers.find(u => u.id === parseInt(selectedTsp) || u.id === selectedTsp);
+        const selectedTspUser = tspUsers.find(u => (u.depaId && u.depaId === selectedTsp) || u.id === parseInt(selectedTsp) || u.id === selectedTsp);
         if (!selectedTspUser) return null;
-        const provider = selectedTspUser.cloudProviders?.[0];
+        const providers = selectedTspUser.cloudProviders || [];
+        const selectedKey = selectedTspUser.depaId || selectedTspUser.id;
         return (
           <Card sx={{ mt: 3, bgcolor: 'primary.light', color: 'white' }}>
             <CardContent>
@@ -222,13 +225,17 @@ const MultiTSPSelector = ({
                     <Typography variant="caption" display="block">
                       {selectedTspUser.email}
                     </Typography>
-                    {provider && (
+                    {providers.length > 0 && (
                       <Box sx={{ mt: 1 }}>
-                        <Chip
-                          label={provider}
-                          color={getProviderColor(provider)}
-                          size="small"
-                        />
+                        {providers.map(provider => (
+                          <Chip
+                            key={provider}
+                            label={provider}
+                            color={getProviderColor(provider)}
+                            size="small"
+                            sx={{ mr: 0.5 }}
+                          />
+                        ))}
                       </Box>
                     )}
                   </Box>
@@ -244,6 +251,24 @@ const MultiTSPSelector = ({
                   </ListItemSecondaryAction>
                 </ListItem>
               </List>
+              {/* Cloud provider selection if multiple */}
+              {providers.length > 1 && (
+                <Box sx={{ mt: 2 }}>
+                  <FormControl fullWidth>
+                    <InputLabel>Select Cloud Provider</InputLabel>
+                    <Select
+                      value={tspCloudProviderSelections[selectedKey] || ''}
+                      label="Select Cloud Provider"
+                      onChange={e => onTspCloudProviderSelect(selectedKey, e.target.value)}
+                      disabled={disabled}
+                    >
+                      {providers.map((provider) => (
+                        <MenuItem key={provider} value={provider}>{provider}</MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                </Box>
+              )}
             </CardContent>
           </Card>
         );
