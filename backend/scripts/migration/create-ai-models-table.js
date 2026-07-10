@@ -1,5 +1,7 @@
 const { Sequelize } = require('sequelize');
-require('dotenv').config({ path: './config.env' });
+const path = require('path');
+require('dotenv').config({ path: path.resolve(__dirname, '../../../config.env') });
+const DEPAIdService = require('../../services/depaIdService');
 
 const sequelize = new Sequelize(
   process.env.DB_NAME,
@@ -16,6 +18,7 @@ const sequelize = new Sequelize(
 async function createAIModelsTable() {
   try {
     console.log('🤖 Creating AI models table...');
+    const depaIdService = new DEPAIdService();
     
     // Create the AI models table
     await sequelize.query(`
@@ -35,6 +38,7 @@ async function createAIModelsTable() {
         "learningRate" DECIMAL(10,6) NOT NULL,
         "isActive" BOOLEAN DEFAULT true,
         metadata JSONB,
+        depa_id VARCHAR(255),
         "createdAt" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
         "updatedAt" TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
       );
@@ -45,6 +49,7 @@ async function createAIModelsTable() {
       CREATE INDEX IF NOT EXISTS idx_ai_models_type ON ai_models(type);
       CREATE INDEX IF NOT EXISTS idx_ai_models_framework ON ai_models(framework);
       CREATE INDEX IF NOT EXISTS idx_ai_models_is_active ON ai_models("isActive");
+      CREATE UNIQUE INDEX IF NOT EXISTS idx_ai_models_depa_id ON ai_models(depa_id) WHERE depa_id IS NOT NULL;
     `);
     
     console.log('✅ AI models table created successfully');
@@ -67,13 +72,14 @@ async function createAIModelsTable() {
     };
     
     await sequelize.query(`
-      INSERT INTO ai_models ("modelId", name, description, type, architecture, parameters, framework, "privacyTechnique", "validationMetrics", "maxEpochs", "batchSize", "learningRate", "isActive", "createdAt", "updatedAt")
-      VALUES (:modelId, :name, :description, :type, :architecture, :parameters, :framework, :privacyTechnique, :validationMetrics::jsonb, :maxEpochs, :batchSize, :learningRate, :isActive, NOW(), NOW())
+      INSERT INTO ai_models ("modelId", name, description, type, architecture, parameters, framework, "privacyTechnique", "validationMetrics", "maxEpochs", "batchSize", "learningRate", "isActive", depa_id, "createdAt", "updatedAt")
+      VALUES (:modelId, :name, :description, :type, :architecture, :parameters, :framework, :privacyTechnique, :validationMetrics::jsonb, :maxEpochs, :batchSize, :learningRate, :isActive, :depaId, NOW(), NOW())
       ON CONFLICT ("modelId") DO NOTHING
     `, {
       replacements: {
         ...sampleModel,
-        validationMetrics: JSON.stringify(sampleModel.validationMetrics)
+        validationMetrics: JSON.stringify(sampleModel.validationMetrics),
+        depaId: depaIdService.generateDEPAId('AIMODEL'),
       }
     });
     

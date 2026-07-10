@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const db = require('../models');
 const { authenticateToken } = require('../middleware/auth');
+const DEPAIdService = require('../services/depaIdService');
 
 // Get all AI models
 router.get('/', async (req, res) => {
@@ -93,6 +94,7 @@ router.post('/', authenticateToken, async (req, res) => {
     }
 
     // Create AI model
+    const depaIdService = new DEPAIdService();
     const model = await db.AIModel.create({
       modelId,
       name,
@@ -106,7 +108,8 @@ router.post('/', authenticateToken, async (req, res) => {
       maxEpochs,
       batchSize,
       learningRate,
-      metadata: metadata || {}
+      metadata: metadata || {},
+      depaId: depaIdService.generateDEPAId('AIMODEL')
     });
 
     res.status(201).json({

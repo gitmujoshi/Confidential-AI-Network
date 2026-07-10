@@ -147,31 +147,53 @@ class KeycloakService {
    * @param {string} newPassword - New password
    * @returns {Promise<boolean>} - Success status
    */
-  async updateUserPassword(userId, newPassword) {
+  /**
+   * @param {boolean} temporary - When true, Keycloak marks password as must-change (first login flow).
+   */
+  async updateUserPassword(userId, newPassword, temporary = false) {
     try {
       const adminToken = await this.getAdminToken();
-      
+
       await axios.put(
         `${this.baseUrl}/admin/realms/${this.realm}/users/${userId}/reset-password`,
         {
           type: 'password',
           value: newPassword,
-          temporary: false
+          temporary: Boolean(temporary),
         },
         {
           headers: {
-            'Authorization': `Bearer ${adminToken}`,
-            'Content-Type': 'application/json'
+            Authorization: `Bearer ${adminToken}`,
+            'Content-Type': 'application/json',
           },
-          httpsAgent: this.httpsAgent
+          httpsAgent: this.httpsAgent,
         }
       );
-      
+
       return true;
     } catch (error) {
       console.error('Error updating user password:', error.response?.data || error.message);
       throw new Error(`Failed to update password: ${error.response?.data?.errorMessage || error.message}`);
     }
+  }
+
+  /**
+   * Find Keycloak users by exact email (admin API).
+   * @returns {Promise<Array<{ id: string, email?: string, username?: string }>>}
+   */
+  async findUsersByEmail(email, adminToken) {
+    const enc = encodeURIComponent(String(email || '').toLowerCase());
+    const response = await axios.get(
+      `${this.baseUrl}/admin/realms/${this.realm}/users?email=${enc}&exact=true`,
+      {
+        headers: {
+          Authorization: `Bearer ${adminToken}`,
+          'Content-Type': 'application/json',
+        },
+        httpsAgent: this.httpsAgent,
+      }
+    );
+    return Array.isArray(response.data) ? response.data : [];
   }
 
   /**
@@ -249,6 +271,62 @@ class KeycloakService {
         email: userData.email
       };
     } catch (error) {
+      const status = error.response?.status;
+      const errMsg = String(error.response?.data?.errorMessage || error.message || '');
+      const conflict =
+        status === 409 ||
+        /already exists|user exists|same (username|email)/i.test(errMsg);
+
+      if (conflict) {
+        try {
+          const adminToken = await this.getAdminToken();
+          let matches = await this.findUsersByEmail(userData.email, adminToken);
+          if (!matches.length) {
+            const u = encodeURIComponent(String(userData.email || '').toLowerCase());
+            const byUsername = await axios.get(
+              `${this.baseUrl}/admin/realms/${this.realm}/users?username=${u}&exact=true`,
+              {
+                headers: {
+                  Authorization: `Bearer ${adminToken}`,
+                  'Content-Type': 'application/json',
+                },
+                httpsAgent: this.httpsAgent,
+              }
+            );
+            matches = Array.isArray(byUsername.data) ? byUsername.data : [];
+          }
+          if (!matches.length) {
+            console.error('Error creating user in Keycloak (409) but no user found by email/username:', userData.email);
+            throw error;
+          }
+          const existingId = matches[0].id;
+          const password = userData.password || this.generateTemporaryPassword();
+          const useTemporaryCredential = !userData.password;
+
+          console.log(`ℹ️ Keycloak user already exists for ${userData.email}; reusing id ${existingId} (DB re-link / dev reset).`);
+          await this.updateUserPassword(existingId, password, useTemporaryCredential);
+
+          try {
+            const removed = await this.removeRequiredAction(existingId, 'UPDATE_PASSWORD');
+            if (removed) {
+              console.log(`✅ Removed UPDATE_PASSWORD requirement for existing user: ${userData.email}`);
+            }
+          } catch (e) {
+            console.warn(`⚠️ Failed to remove UPDATE_PASSWORD for existing user: ${e.message}`);
+          }
+
+          return {
+            keycloakUserId: existingId,
+            temporaryPassword: password,
+            username: userData.email,
+            email: userData.email,
+          };
+        } catch (inner) {
+          console.error('Error resolving duplicate Keycloak user:', inner.response?.data || inner.message);
+          throw new Error(`Failed to create user in Keycloak: ${errMsg || inner.message}`);
+        }
+      }
+
       console.error('Error creating user in Keycloak:', error.response?.data || error.message);
       throw new Error(`Failed to create user in Keycloak: ${error.response?.data?.errorMessage || error.message}`);
     }
@@ -317,15 +395,13 @@ class KeycloakService {
     try {
       const adminToken = await this.getAdminToken();
       
-      await axios.delete(
-        `${this.baseUrl}/admin/realms/${this.realm}/users/${userId}`,
-        {
-          headers: {
-            'Authorization': `Bearer ${adminToken}`,
-            'Content-Type': 'application/json'
-          }
-        }
-      );
+      await axios.delete(`${this.baseUrl}/admin/realms/${this.realm}/users/${userId}`, {
+        headers: {
+          Authorization: `Bearer ${adminToken}`,
+          'Content-Type': 'application/json',
+        },
+        httpsAgent: this.httpsAgent,
+      });
       
       return true;
     } catch (error) {
@@ -343,6 +419,7 @@ class KeycloakService {
       const adminToken = await this.getAdminToken();
       const max = options.max || 500;
       
+<<<<<<< HEAD
       const response = await axios.get(
         `${this.baseUrl}/admin/realms/${this.realm}/users?max=${max}`,
         {
@@ -353,11 +430,49 @@ class KeycloakService {
         }
       );
       
+=======
+      const response = await axios.get(`${this.baseUrl}/admin/realms/${this.realm}/users`, {
+        headers: {
+          Authorization: `Bearer ${adminToken}`,
+          'Content-Type': 'application/json',
+        },
+        httpsAgent: this.httpsAgent,
+      });
+
+>>>>>>> origin/feature/model-training-environment
       return response.data;
     } catch (error) {
       console.error('Error getting users:', error.response?.data || error.message);
       return [];
     }
+  }
+
+  /**
+   * List all realm users (paginated admin API).
+   * @returns {Promise<Array<object>>}
+   */
+  async listRealmUsersPaginated() {
+    const adminToken = await this.getAdminToken();
+    const all = [];
+    let first = 0;
+    const max = 100;
+    while (true) {
+      const response = await axios.get(
+        `${this.baseUrl}/admin/realms/${this.realm}/users?first=${first}&max=${max}`,
+        {
+          headers: {
+            Authorization: `Bearer ${adminToken}`,
+            'Content-Type': 'application/json',
+          },
+          httpsAgent: this.httpsAgent,
+        }
+      );
+      const batch = Array.isArray(response.data) ? response.data : [];
+      all.push(...batch);
+      if (batch.length < max) break;
+      first += max;
+    }
+    return all;
   }
 
   /**

@@ -9,6 +9,7 @@
 
 const db = require('../models');
 const crypto = require('crypto');
+const DEPAIdService = require('../services/depaIdService');
 
 // Valid categories from database enum
 const VALID_CATEGORIES = ['Computer Vision', 'Natural Language Processing', 'Audio', 'Tabular', 'Multimodal'];
@@ -182,6 +183,7 @@ async function findTDPUser(email) {
 async function createDataset(datasetInfo, ownerId, ownerEmail) {
   try {
     const datasetId = `DATASET-${crypto.randomUUID()}`;
+    const depaIdService = new DEPAIdService();
     
     // Check if dataset already exists
     const existingDataset = await db.Dataset.findOne({
@@ -207,7 +209,7 @@ async function createDataset(datasetInfo, ownerId, ownerEmail) {
       isActive: true,
       isPublic: true, // Make them browsable
       confidentialComputingRequired: datasetInfo.confidentialComputingRequired,
-      depaId: `DATASET-${crypto.randomUUID()}`,
+      depaId: depaIdService.generateDEPAId('DATASET'),
       createdAt: new Date(),
       updatedAt: new Date()
     });

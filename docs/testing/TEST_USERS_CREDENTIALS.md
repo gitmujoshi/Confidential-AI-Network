@@ -17,7 +17,16 @@ This file lists **test users we have actually verified can log in** against the 
 
 | Party | Email | Password | Notes | Status |
 |------|-------|----------|-------|--------|
-| TDP | tdp.medical.2025-09-05t20-39-55@test.com | O-?@4+n47!jA | Was missing from DB; re-registered and completed first-login password | ✅ Login OK |
+| TDP | tdp.medical.2025-09-05t20-39-55@test.com | O-?@4+n47!jA | Re-created after DB/Keycloak purge | ✅ Login OK |
+
+### E2E default users (used by Playwright global setup)
+
+| Party | Email | Password | Notes | Status |
+|------|-------|----------|-------|--------|
+| TDC | tdc.healthcare.2025-09-05t20-39-55@test.com | TestNewPassword123! | Primary E2E TDC | ✅ Login OK |
+| TDP | tdp.e2e@test.com | TestNewPassword123! | E2E TDP (dataset owner) | ✅ Login OK |
+| CCRP | ccrp.e2e@test.com | TestNewPassword123! | E2E CCRP | ✅ Login OK |
+| AppAdmin | appadmin.e2e@test.com | TestNewPassword123! | E2E AppAdmin for admin-only routes | ✅ Login OK |
 
 ## ❌ Known non-working credentials
 
@@ -43,4 +52,4 @@ curl -X POST http://localhost:5001/api/auth/login \
 If login returns `USER_NOT_FOUND`, it usually means the user is **missing from the local DB** even if Keycloak is running.
 
 - Recreate via API: `POST /api/auth/register`
-- Or bulk sync to Keycloak (backend): `cd backend && npm run keycloak:sync`
+- Or re-sync IAM to match DB (backend): `cd backend && npm run keycloak:resync`

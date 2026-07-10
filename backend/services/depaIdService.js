@@ -21,7 +21,7 @@ const { v4: uuidv4 } = require('uuid');
 
 class DEPAIdService {
   constructor() {
-    this.deploymentPrefix = (process.env.DEPLOYMENT_PREFIX || 'LOCAL').toString().trim() || 'LOCAL';
+    this.deploymentPrefix = (process.env.DEPLOYMENT_PREFIX || 'US-EAST').toString().trim() || 'US-EAST';
 
     // Valid entity types for DEPA ID generation
     this.validEntityTypes = [
@@ -37,7 +37,7 @@ class DEPAIdService {
     // Regex pattern for DEPA ID validation
     // Support both:
     // - legacy: {ENTITY_TYPE}-{UUID}
-    // - prefixed: {PREFIX}-{ENTITY_TYPE}-{UUID}  (e.g. LOCAL-TDC-...)
+    // - prefixed: {PREFIX}-{ENTITY_TYPE}-{UUID}  (e.g. US-EAST-TDC-...)
     this.depaIdPatternLegacy =
       /^(TDC|TDP|TSP|CONTRACT|DATASET|AIMODEL|TRAININGJOB)-[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
     this.depaIdPatternPrefixed =

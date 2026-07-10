@@ -42,7 +42,7 @@
     "test:e2e:headed": "playwright test --headed",
     "test:e2e:debug": "playwright test --debug",
     "test:e2e:install": "playwright install",
-    "test:e2e:report": "playwright show-report",
+    "test:e2e:report": "playwright show-report test-results/html-report",
     "test:e2e:chromium": "playwright test tests/e2e --project=chromium",
     "test:e2e:auth": "playwright test tests/e2e/auth.spec.js",
     "test:e2e:core": "playwright test tests/e2e/auth.spec.js tests/e2e/contracts.spec.js tests/e2e/dashboard.spec.js tests/e2e/tdc-training.spec.js",

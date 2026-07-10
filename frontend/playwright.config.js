@@ -16,9 +16,14 @@ module.exports = defineConfig({
   /* One worker by default: E2E hits one backend/Keycloak; parallel files caused 401s and order-dependent failures. Override: PW_WORKERS=4 */
   workers:
     process.env.PW_WORKERS !== undefined ? parseInt(process.env.PW_WORKERS, 10) || 1 : 1,
+  // Put *all* per-test artifacts under test-results so they don't get "lost" between runs.
+  // Keep the HTML report in a sibling folder to avoid Playwright's safety clash.
+  outputDir: 'test-results/artifacts',
+  preserveOutput: 'always',
+
   /* Reporter to use. See https://playwright.dev/docs/test-reporters */
   reporter: [
-    ['html'],
+    ['html', { outputFolder: 'test-results/html-report', open: 'never' }],
     ['json', { outputFile: 'test-results/e2e-results.json' }],
     ['junit', { outputFile: 'test-results/e2e-results.xml' }]
   ],
