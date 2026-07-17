@@ -9,9 +9,9 @@ try {
 
 const axios = require('axios');
 const db = require('./models');
-const KeycloakService = require('./services/***REMOVED-KEYCLOAK_DB_PASSWORD***Service');
+const KeycloakService = require('./services/keycloakService');
 
-const ***REMOVED-KEYCLOAK_DB_PASSWORD***Service = new KeycloakService();
+const keycloakService = new KeycloakService();
 
 // E2E Test Users Configuration
 const E2E_USERS = [
@@ -136,23 +136,23 @@ async function purgeExistingUsers() {
 async function purgeKeycloakTestUsers() {
   console.log('🧹 Purging existing test users from Keycloak...');
   try {
-    const adminToken = await ***REMOVED-KEYCLOAK_DB_PASSWORD***Service.getAdminToken();
+    const adminToken = await keycloakService.getAdminToken();
     for (const user of E2E_USERS) {
       // Find user by username/email
       const response = await axios.get(
-        `${***REMOVED-KEYCLOAK_DB_PASSWORD***Service.baseUrl}/admin/realms/${***REMOVED-KEYCLOAK_DB_PASSWORD***Service.realm}/users?username=${encodeURIComponent(user.email)}`,
+        `${keycloakService.baseUrl}/admin/realms/${keycloakService.realm}/users?username=${encodeURIComponent(user.email)}`,
         {
           headers: { 'Authorization': `Bearer ${adminToken}` },
-          httpsAgent: ***REMOVED-KEYCLOAK_DB_PASSWORD***Service.httpsAgent
+          httpsAgent: keycloakService.httpsAgent
         }
       );
       if (Array.isArray(response.data) && response.data.length > 0) {
         for (const found of response.data) {
           await axios.delete(
-            `${***REMOVED-KEYCLOAK_DB_PASSWORD***Service.baseUrl}/admin/realms/${***REMOVED-KEYCLOAK_DB_PASSWORD***Service.realm}/users/${found.id}`,
+            `${keycloakService.baseUrl}/admin/realms/${keycloakService.realm}/users/${found.id}`,
             {
               headers: { 'Authorization': `Bearer ${adminToken}` },
-              httpsAgent: ***REMOVED-KEYCLOAK_DB_PASSWORD***Service.httpsAgent
+              httpsAgent: keycloakService.httpsAgent
             }
           );
           console.log(`✅ Deleted Keycloak user: ${user.email}`);

@@ -1,6 +1,6 @@
 # Training Documentation
 
-> **Index:** [../README.md](../README.md) · **Full course:** [TRAINING_COURSE.md](./TRAINING_COURSE.md) · **Terms:** [../GLOSSARY.md](../GLOSSARY.md)
+> **Index:** [../README.md](../README.md) · **Full E2E lifecycle:** [../guides/PARTICIPANT_ONBOARDING_AND_E2E_LIFECYCLE.md](../guides/PARTICIPANT_ONBOARDING_AND_E2E_LIFECYCLE.md) · **Full course:** [TRAINING_COURSE.md](./TRAINING_COURSE.md) · **Terms:** [../GLOSSARY.md](../GLOSSARY.md)
 
 ## 🎓 **Complete Training Documentation for AI Model Training Environment**
 

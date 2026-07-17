@@ -184,7 +184,7 @@ function getTestConfig() {
   return {
     backend: process.env.BACKEND_URL,
     frontend: process.env.FRONTEND_URL,
-    ***REMOVED-KEYCLOAK_DB_PASSWORD***: process.env.KEYCLOAK_URL,
+    keycloak: process.env.KEYCLOAK_URL,
     database: {
       host: process.env.DB_HOST,
       port: parseInt(process.env.DB_PORT),

@@ -95,7 +95,7 @@ spec:
   - hosts:
     - your-domain.com
     - api.your-domain.com
-    - ***REMOVED-KEYCLOAK_DB_PASSWORD***.your-domain.com
+    - keycloak.your-domain.com
 ```
 
 ## 📊 Monitoring & Observability
@@ -177,17 +177,17 @@ kubectl logs -f deployment/backend -n contract-management
 kubectl logs -f deployment/frontend -n contract-management
 
 # View database logs
-kubectl logs -f deployment/***REMOVED-DB_PASSWORD*** -n contract-management
+kubectl logs -f deployment/postgres -n contract-management
 ```
 
 ### Database Backup
 
 ```bash
 # Create backup
-kubectl exec deployment/***REMOVED-DB_PASSWORD*** -n contract-management -- pg_dump -U ***REMOVED-DB_PASSWORD*** contract_management > backup.sql
+kubectl exec deployment/postgres -n contract-management -- pg_dump -U postgres contract_management > backup.sql
 
 # Restore backup
-kubectl exec -i deployment/***REMOVED-DB_PASSWORD*** -n contract-management -- psql -U ***REMOVED-DB_PASSWORD*** contract_management < backup.sql
+kubectl exec -i deployment/postgres -n contract-management -- psql -U postgres contract_management < backup.sql
 ```
 
 ### Updates
@@ -220,7 +220,7 @@ To remove the entire deployment:
 
 2. **Database connection issues**
    ```bash
-   kubectl exec deployment/***REMOVED-DB_PASSWORD*** -n contract-management -- psql -U ***REMOVED-DB_PASSWORD*** -c "\l"
+   kubectl exec deployment/postgres -n contract-management -- psql -U postgres -c "\l"
    ```
 
 3. **Ingress not working**
@@ -244,7 +244,7 @@ To remove the entire deployment:
 
 2. **Slow database queries**
    ```bash
-   kubectl exec deployment/***REMOVED-DB_PASSWORD*** -n contract-management -- psql -U ***REMOVED-DB_PASSWORD*** -c "SELECT * FROM pg_stat_activity;"
+   kubectl exec deployment/postgres -n contract-management -- psql -U postgres -c "SELECT * FROM pg_stat_activity;"
    ```
 
 ## 📈 Production Considerations
@@ -290,7 +290,7 @@ kubectl port-forward service/frontend-service 3000:3000 -n contract-management
 
 # Execute commands in pods
 kubectl exec -it deployment/backend -n contract-management -- /bin/sh
-kubectl exec -it deployment/***REMOVED-DB_PASSWORD*** -n contract-management -- psql -U ***REMOVED-DB_PASSWORD***
+kubectl exec -it deployment/postgres -n contract-management -- psql -U postgres
 
 # View events
 kubectl get events -n contract-management --sort-by='.lastTimestamp'
@@ -302,4 +302,4 @@ kubectl get events -n contract-management --sort-by='.lastTimestamp'
 - [Helm Charts](https://helm.sh/docs/)
 - [Prometheus Monitoring](https://prometheus.io/docs/)
 - [Grafana Dashboards](https://grafana.com/docs/)
-- [Keycloak Documentation](https://www.***REMOVED-KEYCLOAK_DB_PASSWORD***.org/documentation) 
+- [Keycloak Documentation](https://www.keycloak.org/documentation) 

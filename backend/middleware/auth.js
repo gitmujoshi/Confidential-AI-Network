@@ -17,8 +17,8 @@ const { normalizePartyType } = require('../utils/partyTypes');
  * - Error handling
  */
 
-const KeycloakService = require('../services/***REMOVED-KEYCLOAK_DB_PASSWORD***Service');
-const ***REMOVED-KEYCLOAK_DB_PASSWORD***Service = new KeycloakService();
+const KeycloakService = require('../services/keycloakService');
+const keycloakService = new KeycloakService();
 const db = require('../models');
 const axios = require('axios');
 const tokenBlacklist = require('../tokenBlacklist');
@@ -52,8 +52,8 @@ const authenticateToken = async (req, res, next) => {
     if (process.env.KEYCLOAK_ENABLED === 'true') {
       console.log('🔍 [auth.js] Starting Keycloak validation...');
       try {
-        console.log('🔍 [auth.js] Calling ***REMOVED-KEYCLOAK_DB_PASSWORD***Service.validateToken...');
-        const validationResult = await ***REMOVED-KEYCLOAK_DB_PASSWORD***Service.validateToken(token);
+        console.log('🔍 [auth.js] Calling keycloakService.validateToken...');
+        const validationResult = await keycloakService.validateToken(token);
         console.log('🔍 [auth.js] Validation result:', validationResult);
         
         if (validationResult.valid) {
@@ -72,9 +72,9 @@ const authenticateToken = async (req, res, next) => {
           // Use only Keycloak username to match with database iamUsername
           // Fallback to email if username is not available
           const userInfo = validationResult.user || validationResult.payload || {};
-          const ***REMOVED-KEYCLOAK_DB_PASSWORD***Username = userInfo.username || userInfo.email || userInfo.preferred_username;
+          const keycloakUsername = userInfo.username || userInfo.email || userInfo.preferred_username;
           
-          if (!***REMOVED-KEYCLOAK_DB_PASSWORD***Username) {
+          if (!keycloakUsername) {
             return res.status(404).json({ 
               error: 'User not found in local database',
               code: 'USER_NOT_FOUND',
@@ -86,17 +86,17 @@ const authenticateToken = async (req, res, next) => {
           let user = null;
           
           console.log('🔍 [auth.js] Looking for user with:', {
-            ***REMOVED-KEYCLOAK_DB_PASSWORD***Username,
+            keycloakUsername,
             userInfoEmail: userInfo.email,
             userInfoSub: userInfo.sub
           });
           
           // Try to find user by iamUsername first
-          if (***REMOVED-KEYCLOAK_DB_PASSWORD***Username) {
-            console.log('🔍 [auth.js] Trying to find user by iamUsername:', ***REMOVED-KEYCLOAK_DB_PASSWORD***Username);
+          if (keycloakUsername) {
+            console.log('🔍 [auth.js] Trying to find user by iamUsername:', keycloakUsername);
             user = await db.User.findOne({ 
               where: { 
-                iamUsername: ***REMOVED-KEYCLOAK_DB_PASSWORD***Username,
+                iamUsername: keycloakUsername,
                 isActive: true 
               } 
             });
@@ -164,7 +164,7 @@ const authenticateToken = async (req, res, next) => {
               depaId: user.depaId
             },
             token: token,
-            authType: '***REMOVED-KEYCLOAK_DB_PASSWORD***'
+            authType: 'keycloak'
           };
 
           // Debug logging
@@ -180,8 +180,8 @@ const authenticateToken = async (req, res, next) => {
             details: validationResult.error
           });
         }
-      } catch (***REMOVED-KEYCLOAK_DB_PASSWORD***Error) {
-        console.error('❌ Keycloak validation failed:', ***REMOVED-KEYCLOAK_DB_PASSWORD***Error);
+      } catch (keycloakError) {
+        console.error('❌ Keycloak validation failed:', keycloakError);
         return res.status(401).json({ 
           error: 'Invalid or expired token',
           code: 'TOKEN_INVALID',
@@ -362,7 +362,7 @@ const optionalAuth = async (req, res, next) => {
 
     // Validate token with Keycloak
     try {
-      const validationResult = await ***REMOVED-KEYCLOAK_DB_PASSWORD***Service.validateToken(token);
+      const validationResult = await keycloakService.validateToken(token);
       
       if (!validationResult.valid) {
         // Invalid token, continue without authentication
@@ -418,8 +418,8 @@ const optionalAuth = async (req, res, next) => {
       } else {
         req.user = null;
       }
-    } catch (***REMOVED-KEYCLOAK_DB_PASSWORD***Error) {
-      console.error('❌ Keycloak validation failed in optional auth:', ***REMOVED-KEYCLOAK_DB_PASSWORD***Error);
+    } catch (keycloakError) {
+      console.error('❌ Keycloak validation failed in optional auth:', keycloakError);
       req.user = null;
     }
 

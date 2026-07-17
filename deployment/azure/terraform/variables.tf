@@ -156,13 +156,13 @@ variable "cost_center" {
   default     = "TBD"
 }
 
-variable "***REMOVED-KEYCLOAK_DB_PASSWORD***_admin_username" {
+variable "keycloak_admin_username" {
   description = "Keycloak admin username"
   type        = string
   default     = "admin"
 }
 
-variable "***REMOVED-KEYCLOAK_DB_PASSWORD***_admin_password" {
+variable "keycloak_admin_password" {
   description = "Keycloak admin password"
   type        = string
   sensitive   = true

@@ -110,10 +110,10 @@ start_database() {
             log "Starting PostgreSQL container..."
             docker run --name contract-management-db \
                 -e POSTGRES_DB=${DB_NAME:-contract_management_dev} \
-                -e POSTGRES_USER=${DB_USER:-***REMOVED-DB_PASSWORD***} \
+                -e POSTGRES_USER=${DB_USER:-postgres} \
                 -e POSTGRES_PASSWORD=${DB_PASSWORD:-password} \
                 -p ${DB_PORT:-5432}:5432 \
-                -d ***REMOVED-DB_PASSWORD***:13
+                -d postgres:13
             
             # Wait for database to be ready
             log "Waiting for database to be ready..."

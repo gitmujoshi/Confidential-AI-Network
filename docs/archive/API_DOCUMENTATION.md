@@ -74,7 +74,7 @@ Register a new user with support for both `did:ethr` and `did:web` methods, incl
       "region": "eastus"
     }
   },
-  "***REMOVED-KEYCLOAK_DB_PASSWORD***Success": true
+  "keycloakSuccess": true
 }
 ```
 

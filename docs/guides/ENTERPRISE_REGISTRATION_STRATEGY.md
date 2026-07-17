@@ -1424,40 +1424,40 @@ services:
     image: contract-management:latest
     environment:
       - NODE_ENV=production
-      - DATABASE_URL=***REMOVED-DB_PASSWORD***ql://user:pass@db:5432/contracts
+      - DATABASE_URL=postgresql://user:pass@db:5432/contracts
       - REDIS_URL=redis://redis:6379
-      - KEYCLOAK_URL=https://***REMOVED-KEYCLOAK_DB_PASSWORD***.example.com
+      - KEYCLOAK_URL=https://keycloak.example.com
       - HSM_URL=https://hsm.example.com
     ports:
       - "3000:3000"
     depends_on:
       - db
       - redis
-      - ***REMOVED-KEYCLOAK_DB_PASSWORD***
+      - keycloak
 
   db:
-    image: ***REMOVED-DB_PASSWORD***:14
+    image: postgres:14
     environment:
       - POSTGRES_DB=contracts
       - POSTGRES_USER=user
       - POSTGRES_PASSWORD=pass
     volumes:
-      - ***REMOVED-DB_PASSWORD***_data:/var/lib/***REMOVED-DB_PASSWORD***ql/data
+      - postgres_data:/var/lib/postgresql/data
 
   redis:
     image: redis:7-alpine
     volumes:
       - redis_data:/data
 
-  ***REMOVED-KEYCLOAK_DB_PASSWORD***:
-    image: quay.io/***REMOVED-KEYCLOAK_DB_PASSWORD***/***REMOVED-KEYCLOAK_DB_PASSWORD***:22
+  keycloak:
+    image: quay.io/keycloak/keycloak:22
     environment:
       - KEYCLOAK_ADMIN=admin
       - KEYCLOAK_ADMIN_PASSWORD=admin
     command: start-dev
 
 volumes:
-  ***REMOVED-DB_PASSWORD***_data:
+  postgres_data:
   redis_data:
 ```
 

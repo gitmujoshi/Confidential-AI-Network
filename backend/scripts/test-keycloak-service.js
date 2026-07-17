@@ -5,18 +5,18 @@
  * This script tests the Keycloak service to see what's failing
  */
 
-const KeycloakService = require('../services/***REMOVED-KEYCLOAK_DB_PASSWORD***Service');
+const KeycloakService = require('../services/keycloakService');
 
 async function testKeycloakService() {
   try {
     console.log('🔍 Testing Keycloak Service...\n');
     
-    const ***REMOVED-KEYCLOAK_DB_PASSWORD***Service = new KeycloakService();
+    const keycloakService = new KeycloakService();
     
     // Test 1: Get admin token
     console.log('1️⃣ Testing admin token retrieval...');
     try {
-      const adminToken = await ***REMOVED-KEYCLOAK_DB_PASSWORD***Service.getAdminToken();
+      const adminToken = await keycloakService.getAdminToken();
       console.log('✅ Admin token retrieved successfully');
       console.log('   Token length:', adminToken.length);
     } catch (error) {
@@ -35,16 +35,16 @@ async function testKeycloakService() {
         organization: 'Test Org'
       };
       
-      const result = await ***REMOVED-KEYCLOAK_DB_PASSWORD***Service.createUser(userData);
+      const result = await keycloakService.createUser(userData);
       console.log('✅ User created successfully in Keycloak');
-      console.log('   Keycloak User ID:', result.***REMOVED-KEYCLOAK_DB_PASSWORD***UserId);
+      console.log('   Keycloak User ID:', result.keycloakUserId);
       console.log('   Username:', result.username);
       console.log('   Temporary Password:', result.temporaryPassword);
       
       // Test 3: Try to authenticate the user
       console.log('\n3️⃣ Testing user authentication...');
       try {
-        const authResult = await ***REMOVED-KEYCLOAK_DB_PASSWORD***Service.authenticateUserWithPassword(
+        const authResult = await keycloakService.authenticateUserWithPassword(
           'test@example.com', 
           result.temporaryPassword
         );

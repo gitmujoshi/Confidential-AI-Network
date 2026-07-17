@@ -1032,10 +1032,10 @@ jobs:
     runs-on: ubuntu-latest
     
     services:
-      ***REMOVED-DB_PASSWORD***:
-        image: ***REMOVED-DB_PASSWORD***:13
+      postgres:
+        image: postgres:13
         env:
-          POSTGRES_PASSWORD: ***REMOVED-DB_PASSWORD***
+          POSTGRES_PASSWORD: postgres
           POSTGRES_DB: contract_management_test
         options: >-
           --health-cmd pg_isready

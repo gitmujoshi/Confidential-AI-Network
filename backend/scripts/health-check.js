@@ -13,7 +13,7 @@ const { Sequelize } = require('sequelize');
 
 // Configuration
 const SERVICES = {
-  ***REMOVED-KEYCLOAK_DB_PASSWORD***: { url: 'http://localhost:8080', name: 'Keycloak' },
+  keycloak: { url: 'http://localhost:8080', name: 'Keycloak' },
   backend: { url: '${BACKEND_URL:-http://localhost:5001}/health', name: 'Backend API' },
   frontend: { url: '${FRONTEND_URL:-http://localhost:3000}', name: 'Frontend' },
   database: { name: 'PostgreSQL Database' }
@@ -107,7 +107,7 @@ async function checkKeycloakConfiguration() {
 async function getKeycloakAdminToken() {
   try {
     const response = await axios.post('http://localhost:8080/realms/master/protocol/openid-connect/token', 
-      'grant_type=password&client_id=admin-cli&username=admin&password=***REMOVED-KEYCLOAK_ADMIN_PASSWORD***',
+      'grant_type=password&client_id=admin-cli&username=admin&password=admin123',
       { headers: { 'Content-Type': 'application/x-www-form-urlencoded' } }
     );
     return response.data.access_token;
@@ -218,7 +218,7 @@ async function runHealthCheck() {
   const results = {
     services: {},
     database: false,
-    ***REMOVED-KEYCLOAK_DB_PASSWORD***: false,
+    keycloak: false,
     userSync: false,
     authentication: false
   };
@@ -235,7 +235,7 @@ async function runHealthCheck() {
   
   // Check Keycloak configuration
   console.log(`\n${colors.bold}🔐 Keycloak Configuration:${colors.reset}`);
-  results.***REMOVED-KEYCLOAK_DB_PASSWORD*** = await checkKeycloakConfiguration();
+  results.keycloak = await checkKeycloakConfiguration();
   
   // Check user synchronization
   console.log(`\n${colors.bold}👥 User Synchronization:${colors.reset}`);
@@ -268,7 +268,7 @@ async function runHealthCheck() {
     logError('Database has issues');
   }
   
-  if (results.***REMOVED-KEYCLOAK_DB_PASSWORD***) {
+  if (results.keycloak) {
     logSuccess('Keycloak is properly configured');
   } else {
     logError('Keycloak configuration issues detected');

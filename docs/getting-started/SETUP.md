@@ -284,7 +284,7 @@ Users are automatically synced from the database to Keycloak:
 
 ```bash
 # Manual user sync (if needed)
-node backend/scripts/source/sync-users-to-***REMOVED-KEYCLOAK_DB_PASSWORD***.js
+node backend/scripts/source/sync-users-to-keycloak.js
 ```
 
 ### **Test Users**
@@ -308,8 +308,8 @@ The system includes pre-configured test users:
 DB_HOST=localhost
 DB_PORT=5432
 DB_NAME=contract_management
-DB_USER=***REMOVED-DB_PASSWORD***
-DB_PASSWORD=***REMOVED-DB_PASSWORD***
+DB_USER=postgres
+DB_PASSWORD=postgres
 
 # Keycloak
 KEYCLOAK_URL=http://localhost:8080
@@ -338,35 +338,35 @@ REACT_APP_KEYCLOAK_CLIENT_ID=contract-management-frontend
 
 ### **Docker Configuration**
 
-#### **Keycloak Persistent Setup** (`docker-compose.***REMOVED-KEYCLOAK_DB_PASSWORD***-persistent.yml`)
+#### **Keycloak Persistent Setup** (`docker-compose.keycloak-persistent.yml`)
 ```yaml
 version: '3.8'
 services:
-  ***REMOVED-KEYCLOAK_DB_PASSWORD***:
-    image: quay.io/***REMOVED-KEYCLOAK_DB_PASSWORD***/***REMOVED-KEYCLOAK_DB_PASSWORD***:latest
+  keycloak:
+    image: quay.io/keycloak/keycloak:latest
     ports:
       - "8080:8080"
     environment:
       KEYCLOAK_ADMIN: admin
-      KEYCLOAK_ADMIN_PASSWORD: ***REMOVED-KEYCLOAK_ADMIN_PASSWORD***
-      KC_DB: ***REMOVED-DB_PASSWORD***
-      KC_DB_URL: jdbc:***REMOVED-DB_PASSWORD***ql://***REMOVED-DB_PASSWORD***:5432/***REMOVED-KEYCLOAK_DB_PASSWORD***
+      KEYCLOAK_ADMIN_PASSWORD: admin123
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://postgres:5432/keycloak
     volumes:
-      - ./***REMOVED-KEYCLOAK_DB_PASSWORD***-data:/opt/***REMOVED-KEYCLOAK_DB_PASSWORD***/data
+      - ./keycloak-data:/opt/keycloak/data
     depends_on:
-      - ***REMOVED-DB_PASSWORD***
+      - postgres
 
-  ***REMOVED-DB_PASSWORD***:
-    image: ***REMOVED-DB_PASSWORD***:13
+  postgres:
+    image: postgres:13
     environment:
-      POSTGRES_DB: ***REMOVED-KEYCLOAK_DB_PASSWORD***
-      POSTGRES_USER: ***REMOVED-KEYCLOAK_DB_PASSWORD***
+      POSTGRES_DB: keycloak
+      POSTGRES_USER: keycloak
       POSTGRES_PASSWORD: password
     volumes:
-      - ***REMOVED-KEYCLOAK_DB_PASSWORD***_db_data:/var/lib/***REMOVED-DB_PASSWORD***ql/data
+      - keycloak_db_data:/var/lib/postgresql/data
 
 volumes:
-  ***REMOVED-KEYCLOAK_DB_PASSWORD***_db_data:
+  keycloak_db_data:
 ```
 
 ## 🧪 Testing
@@ -385,7 +385,7 @@ Expected response:
   "timestamp": "2025-08-03T21:52:36.235Z",
   "services": {
     "database": "connected",
-    "***REMOVED-KEYCLOAK_DB_PASSWORD***": "connected",
+    "keycloak": "connected",
     "blockchain": "connected"
   }
 }
@@ -460,7 +460,7 @@ npm run status
 #### **Test Data Verification**
 ```bash
 # Check if test data exists
-docker exec ***REMOVED-DB_PASSWORD***-app psql -U ***REMOVED-DB_PASSWORD*** -d contract_management -c "SELECT COUNT(*) FROM users;"
+docker exec postgres-app psql -U postgres -d contract_management -c "SELECT COUNT(*) FROM users;"
 
 # Expected results:
 # - 8 users (TDP, TDC, CCRP, Admin)
@@ -470,7 +470,7 @@ docker exec ***REMOVED-DB_PASSWORD***-app psql -U ***REMOVED-DB_PASSWORD*** -d c
 # - 3 sample contracts
 
 # Verify specific test data
-docker exec ***REMOVED-DB_PASSWORD***-app psql -U ***REMOVED-DB_PASSWORD*** -d contract_management -c "SELECT name, party_type, depa_id FROM users ORDER BY party_type;"
+docker exec postgres-app psql -U postgres -d contract_management -c "SELECT name, party_type, depa_id FROM users ORDER BY party_type;"
 ```
 
 ## 🚨 Troubleshooting
@@ -486,7 +486,7 @@ docker exec ***REMOVED-DB_PASSWORD***-app psql -U ***REMOVED-DB_PASSWORD*** -d c
 ./fix-auth.sh
 
 # Manual Keycloak fix
-cd backend && node auto-fix-***REMOVED-KEYCLOAK_DB_PASSWORD***.js
+cd backend && node auto-fix-keycloak.js
 ```
 
 #### **2. Backend Won't Start**
@@ -510,11 +510,11 @@ cd backend && node server.js
 **Solution**:
 ```bash
 # Restart Keycloak
-docker-compose -f docker-compose.***REMOVED-KEYCLOAK_DB_PASSWORD***-persistent.yml restart
+docker-compose -f docker-compose.keycloak-persistent.yml restart
 
 # Reset Keycloak completely
-docker-compose -f docker-compose.***REMOVED-KEYCLOAK_DB_PASSWORD***-persistent.yml down
-docker-compose -f docker-compose.***REMOVED-KEYCLOAK_DB_PASSWORD***-persistent.yml up -d
+docker-compose -f docker-compose.keycloak-persistent.yml down
+docker-compose -f docker-compose.keycloak-persistent.yml up -d
 ```
 
 #### **4. Database Issues**
@@ -523,10 +523,10 @@ docker-compose -f docker-compose.***REMOVED-KEYCLOAK_DB_PASSWORD***-persistent.y
 **Solution**:
 ```bash
 # Check PostgreSQL
-docker ps | grep ***REMOVED-DB_PASSWORD***
+docker ps | grep postgres
 
 # Restart database
-docker-compose -f docker-compose.***REMOVED-KEYCLOAK_DB_PASSWORD***-persistent.yml restart ***REMOVED-DB_PASSWORD***
+docker-compose -f docker-compose.keycloak-persistent.yml restart postgres
 ```
 
 #### **5. Environment Issues**
@@ -538,7 +538,7 @@ docker-compose -f docker-compose.***REMOVED-KEYCLOAK_DB_PASSWORD***-persistent.y
 diff backend/.env backend/config.env
 
 # Sync environment files
-cd backend && node auto-fix-***REMOVED-KEYCLOAK_DB_PASSWORD***.js
+cd backend && node auto-fix-keycloak.js
 ```
 
 ### **Debugging Commands**
@@ -554,10 +554,10 @@ npm run status
 tail -f logs/backend.log
 
 # Keycloak logs
-docker logs ***REMOVED-KEYCLOAK_DB_PASSWORD***-cms
+docker logs keycloak-cms
 
 # PostgreSQL logs
-docker logs ***REMOVED-DB_PASSWORD***-***REMOVED-KEYCLOAK_DB_PASSWORD***
+docker logs postgres-keycloak
 ```
 
 #### **Test Individual Components**
@@ -578,18 +578,18 @@ curl -s http://localhost:5001/health
 
 #### **Backup Keycloak Configuration**
 ```bash
-./deployment/local/backup-***REMOVED-KEYCLOAK_DB_PASSWORD***.sh
+./deployment/local/backup-keycloak.sh
 ```
 
 #### **Restore Keycloak Configuration**
 ```bash
-./deployment/local/restore-***REMOVED-KEYCLOAK_DB_PASSWORD***.sh
+./deployment/local/restore-keycloak.sh
 ```
 
 #### **Update Environment Files**
 ```bash
 # Sync .env and config.env
-cd backend && node auto-fix-***REMOVED-KEYCLOAK_DB_PASSWORD***.js
+cd backend && node auto-fix-keycloak.js
 ```
 
 ### **Performance Monitoring**
@@ -606,7 +606,7 @@ docker stats
 #### **Database Performance**
 ```bash
 # Check PostgreSQL connections
-docker exec ***REMOVED-DB_PASSWORD***-***REMOVED-KEYCLOAK_DB_PASSWORD*** psql -U ***REMOVED-KEYCLOAK_DB_PASSWORD*** -d ***REMOVED-KEYCLOAK_DB_PASSWORD*** -c "SELECT count(*) FROM pg_stat_activity;"
+docker exec postgres-keycloak psql -U keycloak -d keycloak -c "SELECT count(*) FROM pg_stat_activity;"
 ```
 
 ## 📚 Related Documentation

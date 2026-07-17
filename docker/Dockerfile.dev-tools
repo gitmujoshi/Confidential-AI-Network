@@ -9,7 +9,7 @@ RUN apk add --no-cache \
     vim \
     nano \
     htop \
-    ***REMOVED-DB_PASSWORD***ql-client \
+    postgresql-client \
     docker-cli \
     docker-compose \
     jq \

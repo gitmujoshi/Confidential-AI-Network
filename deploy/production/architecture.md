@@ -190,7 +190,7 @@ NODE_ENV=production
 DB_HOST=172.20.1.50
 DB_PORT=5432
 DB_NAME=contract_management
-DB_USER=***REMOVED-DB_PASSWORD***
+DB_USER=postgres
 DB_PASSWORD=secure_password
 KEYCLOAK_URL=http://172.20.1.40:8080
 KEYCLOAK_REALM=contract-management
@@ -204,15 +204,15 @@ REDIS_URL=redis://172.20.1.30:6379
 ```bash
 KEYCLOAK_ADMIN=admin
 KEYCLOAK_ADMIN_PASSWORD=secure_admin_password
-KC_DB_URL=jdbc:***REMOVED-DB_PASSWORD***ql://172.20.1.60:5432/***REMOVED-KEYCLOAK_DB_PASSWORD***
-KC_DB_USERNAME=***REMOVED-KEYCLOAK_DB_PASSWORD***
-KC_DB_PASSWORD=***REMOVED-KEYCLOAK_DB_PASSWORD***_password
+KC_DB_URL=jdbc:postgresql://172.20.1.60:5432/keycloak
+KC_DB_USERNAME=keycloak
+KC_DB_PASSWORD=keycloak_password
 ```
 
 ### Database VMs
 ```bash
 POSTGRES_DB=contract_management
-POSTGRES_USER=***REMOVED-DB_PASSWORD***
+POSTGRES_USER=postgres
 POSTGRES_PASSWORD=secure_password
 ```
 

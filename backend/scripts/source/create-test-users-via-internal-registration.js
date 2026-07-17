@@ -11,8 +11,8 @@
  */
 
 const db = require('../models');
-const KeycloakService = require('../services/***REMOVED-KEYCLOAK_DB_PASSWORD***Service');
-const ***REMOVED-KEYCLOAK_DB_PASSWORD***Service = new KeycloakService();
+const KeycloakService = require('../services/keycloakService');
+const keycloakService = new KeycloakService();
 const bcrypt = require('bcryptjs');
 
 const testUsers = [
@@ -188,18 +188,18 @@ async function createTestUsersViaInternalRegistration() {
         const did = `did:web:${domain}:user:${userData.email.split('@')[0]}`;
 
         // Generate temporary password
-        const temporaryPassword = ***REMOVED-KEYCLOAK_DB_PASSWORD***Service.generateTemporaryPassword();
+        const temporaryPassword = keycloakService.generateTemporaryPassword();
 
         // Start database transaction
         const transaction = await db.sequelize.transaction();
 
         try {
           // Try to create user in Keycloak first
-          let ***REMOVED-KEYCLOAK_DB_PASSWORD***Result = null;
-          let ***REMOVED-KEYCLOAK_DB_PASSWORD***Success = false;
+          let keycloakResult = null;
+          let keycloakSuccess = false;
           
           try {
-            ***REMOVED-KEYCLOAK_DB_PASSWORD***Result = await ***REMOVED-KEYCLOAK_DB_PASSWORD***Service.createUser({
+            keycloakResult = await keycloakService.createUser({
               email: userData.email,
               name: userData.name,
               walletAddress: userData.walletAddress,
@@ -210,10 +210,10 @@ async function createTestUsersViaInternalRegistration() {
               website: userData.website,
               location: userData.location
             });
-            ***REMOVED-KEYCLOAK_DB_PASSWORD***Success = true;
+            keycloakSuccess = true;
             console.log('   ✅ Keycloak user created successfully');
-          } catch (***REMOVED-KEYCLOAK_DB_PASSWORD***Error) {
-            console.log('   ⚠️ Failed to create user in Keycloak:', ***REMOVED-KEYCLOAK_DB_PASSWORD***Error.message);
+          } catch (keycloakError) {
+            console.log('   ⚠️ Failed to create user in Keycloak:', keycloakError.message);
             // Continue with database creation
           }
 
@@ -239,7 +239,7 @@ async function createTestUsersViaInternalRegistration() {
             onboardingStatus: 'IN_PROGRESS',
             profileCompleted: false,
             emailVerified: false,
-            iamUserId: ***REMOVED-KEYCLOAK_DB_PASSWORD***Result?.***REMOVED-KEYCLOAK_DB_PASSWORD***UserId || null,
+            iamUserId: keycloakResult?.keycloakUserId || null,
             iamUsername: userData.email
           }, { transaction });
 
@@ -256,7 +256,7 @@ async function createTestUsersViaInternalRegistration() {
               onboardingStatus: 'IN_PROGRESS',
               did: did,
               didSource: 'SYSTEM_GENERATED',
-              iamIntegrated: ***REMOVED-KEYCLOAK_DB_PASSWORD***Success
+              iamIntegrated: keycloakSuccess
             }
           }, { transaction });
 
@@ -267,7 +267,7 @@ async function createTestUsersViaInternalRegistration() {
             email: userData.email,
             name: userData.name,
             partyType: userData.partyType,
-            ***REMOVED-KEYCLOAK_DB_PASSWORD***Success: ***REMOVED-KEYCLOAK_DB_PASSWORD***Success,
+            keycloakSuccess: keycloakSuccess,
             temporaryPassword: temporaryPassword
           });
 
@@ -297,7 +297,7 @@ async function createTestUsersViaInternalRegistration() {
       createdUsers.forEach((user, index) => {
         console.log(`${index + 1}. ${user.email} (${user.partyType})`);
         console.log(`   Password: ${user.temporaryPassword}`);
-        console.log(`   Keycloak: ${user.***REMOVED-KEYCLOAK_DB_PASSWORD***Success ? '✅' : '❌'}`);
+        console.log(`   Keycloak: ${user.keycloakSuccess ? '✅' : '❌'}`);
       });
     }
 

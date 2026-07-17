@@ -125,7 +125,7 @@ check_dev_resources() {
     done
     
     # Check PID files
-    local pid_files=(".backend.pid" ".frontend.pid" ".hardhat.pid" ".***REMOVED-KEYCLOAK_DB_PASSWORD***.pid")
+    local pid_files=(".backend.pid" ".frontend.pid" ".hardhat.pid" ".keycloak.pid")
     for pid_file in "${pid_files[@]}"; do
         if [ -f "$pid_file" ]; then
             local pid=$(cat "$pid_file")

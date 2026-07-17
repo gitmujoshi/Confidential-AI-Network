@@ -8,7 +8,7 @@
  * 
  * Usage:
  * const config = require('./scripts/config-loader');
- * console.log(config.***REMOVED-KEYCLOAK_DB_PASSWORD***.url);
+ * console.log(config.keycloak.url);
  */
 
 const fs = require('fs');
@@ -175,8 +175,8 @@ class ConfigLoader {
   getDocker() {
     return {
       network: this.get('DOCKER_NETWORK'),
-      ***REMOVED-KEYCLOAK_DB_PASSWORD***Port: parseInt(this.get('DOCKER_KEYCLOAK_PORT')),
-      ***REMOVED-DB_PASSWORD***Port: parseInt(this.get('DOCKER_POSTGRES_PORT')),
+      keycloakPort: parseInt(this.get('DOCKER_KEYCLOAK_PORT')),
+      postgresPort: parseInt(this.get('DOCKER_POSTGRES_PORT')),
       backendPort: parseInt(this.get('DOCKER_BACKEND_PORT')),
       frontendPort: parseInt(this.get('DOCKER_FRONTEND_PORT'))
     };
@@ -252,7 +252,7 @@ class ConfigLoader {
   getTesting() {
     return {
       dbName: this.get('TEST_DB_NAME'),
-      ***REMOVED-KEYCLOAK_DB_PASSWORD***Realm: this.get('TEST_KEYCLOAK_REALM'),
+      keycloakRealm: this.get('TEST_KEYCLOAK_REALM'),
       testMode: this.get('TEST_MODE') === 'true'
     };
   }

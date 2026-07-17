@@ -421,7 +421,7 @@ npm run test:coverage
 #### **Required Variables**
 ```bash
 # Database Configuration
-DATABASE_URL=***REMOVED-DB_PASSWORD***ql://user:password@localhost:5432/contract_management
+DATABASE_URL=postgresql://user:password@localhost:5432/contract_management
 
 # Authentication
 JWT_SECRET=your-jwt-secret

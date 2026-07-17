@@ -47,8 +47,8 @@ deployment/local/
 ├── emergency-stop.sh        # Emergency stop
 ├── status.sh                # System status
 ├── cleanup-memory.sh        # Memory cleanup
-├── backup-***REMOVED-KEYCLOAK_DB_PASSWORD***.sh       # Keycloak backup
-└── restore-***REMOVED-KEYCLOAK_DB_PASSWORD***.sh      # Keycloak restore
+├── backup-keycloak.sh       # Keycloak backup
+└── restore-keycloak.sh      # Keycloak restore
 ```
 
 #### Testing Scripts (15 scripts)
@@ -74,14 +74,14 @@ deployment/
 #### Keycloak Management (8 scripts)
 ```
 deployment/
-├── setup-***REMOVED-KEYCLOAK_DB_PASSWORD***-https.sh  # HTTPS Keycloak setup
-├── start-***REMOVED-KEYCLOAK_DB_PASSWORD***-https.sh  # Start HTTPS Keycloak
-├── stop-***REMOVED-KEYCLOAK_DB_PASSWORD***-https.sh   # Stop HTTPS Keycloak
-├── status-***REMOVED-KEYCLOAK_DB_PASSWORD***-https.sh # Keycloak status
-├── fix-***REMOVED-KEYCLOAK_DB_PASSWORD***-client-config.sh
-├── fix-***REMOVED-KEYCLOAK_DB_PASSWORD***-client.js
-├── generate-***REMOVED-KEYCLOAK_DB_PASSWORD***-certs.sh
-└── set-***REMOVED-KEYCLOAK_DB_PASSWORD***-user-passwords.sh
+├── setup-keycloak-https.sh  # HTTPS Keycloak setup
+├── start-keycloak-https.sh  # Start HTTPS Keycloak
+├── stop-keycloak-https.sh   # Stop HTTPS Keycloak
+├── status-keycloak-https.sh # Keycloak status
+├── fix-keycloak-client-config.sh
+├── fix-keycloak-client.js
+├── generate-keycloak-certs.sh
+└── set-keycloak-user-passwords.sh
 ```
 
 #### Monitoring (3 scripts)
@@ -109,9 +109,9 @@ backend/scripts/source/
 #### Keycloak Setup (6 scripts)
 ```
 backend/
-├── setup-***REMOVED-KEYCLOAK_DB_PASSWORD***.js        # Keycloak setup
-├── setup-***REMOVED-KEYCLOAK_DB_PASSWORD***-simple.js
-├── setup-***REMOVED-KEYCLOAK_DB_PASSWORD***-persistent.sh
+├── setup-keycloak.js        # Keycloak setup
+├── setup-keycloak-simple.js
+├── setup-keycloak-persistent.sh
 ├── configure-email-dev.js
 └── scripts/source/setupKeycloak.js
 ```
@@ -216,7 +216,7 @@ scripts/
 - `start-system.sh`
 - `manage-services.sh`
 - `deployment/local/start-services.sh`
-- `backend/setup-***REMOVED-KEYCLOAK_DB_PASSWORD***.js`
+- `backend/setup-keycloak.js`
 
 ### **Low Complexity** (Single purpose)
 - `deployment/test-basic-apis-simple.sh`
@@ -227,10 +227,10 @@ scripts/
 
 ### **Duplicate Functionality**
 1. **Multiple Keycloak Setup Scripts**:
-   - `backend/setup-***REMOVED-KEYCLOAK_DB_PASSWORD***.js`
-   - `backend/setup-***REMOVED-KEYCLOAK_DB_PASSWORD***-simple.js`
-   - `backend/setup-***REMOVED-KEYCLOAK_DB_PASSWORD***-persistent.sh`
-   - `deployment/setup-***REMOVED-KEYCLOAK_DB_PASSWORD***-https.sh`
+   - `backend/setup-keycloak.js`
+   - `backend/setup-keycloak-simple.js`
+   - `backend/setup-keycloak-persistent.sh`
+   - `deployment/setup-keycloak-https.sh`
 
 2. **Multiple Service Start Scripts**:
    - `start-system.sh`

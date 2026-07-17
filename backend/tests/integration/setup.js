@@ -25,7 +25,7 @@ global.testTracker = {
   createdKeycloakUsers: [],
   createdDatabaseUsers: [],
   testMode: 'integration',
-  ***REMOVED-KEYCLOAK_DB_PASSWORD***Service: null,
+  keycloakService: null,
   scittCcfService: null
 };
 
@@ -67,9 +67,9 @@ beforeAll(async () => {
 
   // Initialize real Keycloak service for integration tests
   try {
-    const KeycloakService = require('../../services/***REMOVED-KEYCLOAK_DB_PASSWORD***Service');
-    global.testTracker.***REMOVED-KEYCLOAK_DB_PASSWORD***Service = new KeycloakService();
-    await global.testTracker.***REMOVED-KEYCLOAK_DB_PASSWORD***Service.getAdminToken();
+    const KeycloakService = require('../../services/keycloakService');
+    global.testTracker.keycloakService = new KeycloakService();
+    await global.testTracker.keycloakService.getAdminToken();
     console.log('✅ Keycloak service initialized for integration tests');
   } catch (error) {
     console.warn('⚠️ Keycloak service not available, some tests may fail');
@@ -90,12 +90,12 @@ beforeAll(async () => {
 // Global test teardown for integration tests
 afterAll(async () => {
   // Clean up Keycloak test users
-  if (global.testTracker.***REMOVED-KEYCLOAK_DB_PASSWORD***Service) {
+  if (global.testTracker.keycloakService) {
     try {
       console.log('🧹 Cleaning up Keycloak test users...');
       for (const userId of global.testTracker.createdKeycloakUsers) {
         try {
-          await global.testTracker.***REMOVED-KEYCLOAK_DB_PASSWORD***Service.deleteUser(userId);
+          await global.testTracker.keycloakService.deleteUser(userId);
           console.log(`✅ Deleted Keycloak user: ${userId}`);
         } catch (error) {
           console.warn(`⚠️ Failed to delete Keycloak user ${userId}:`, error.message);

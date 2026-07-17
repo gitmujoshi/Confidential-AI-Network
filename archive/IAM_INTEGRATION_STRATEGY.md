@@ -554,7 +554,7 @@ const registerEnterpriseOrganization = async (orgData) => {
 #### **Keycloak Enterprise Configuration for did:web**
 ```javascript
 // Keycloak realm configuration for enterprise did:web support
-const ***REMOVED-KEYCLOAK_DB_PASSWORD***EnterpriseConfig = {
+const keycloakEnterpriseConfig = {
   realm: 'contract-management-enterprise',
   'auth-server-url': process.env.KEYCLOAK_URL || 'http://localhost:8080',
   'ssl-required': 'external',
@@ -699,40 +699,40 @@ const authenticateEnterpriseUser = async (req, res, next) => {
 # docker-compose.yml for Keycloak
 version: '3.8'
 services:
-  ***REMOVED-KEYCLOAK_DB_PASSWORD***:
-    image: quay.io/***REMOVED-KEYCLOAK_DB_PASSWORD***/***REMOVED-KEYCLOAK_DB_PASSWORD***:latest
+  keycloak:
+    image: quay.io/keycloak/keycloak:latest
     environment:
       KEYCLOAK_ADMIN: admin
       KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
-      KC_DB: ***REMOVED-DB_PASSWORD***
-      KC_DB_URL: jdbc:***REMOVED-DB_PASSWORD***ql://***REMOVED-DB_PASSWORD***:5432/***REMOVED-KEYCLOAK_DB_PASSWORD***
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://postgres:5432/keycloak
       KC_HOSTNAME: localhost
       KC_HTTP_ENABLED: true
     ports:
       - "8080:8080"
     depends_on:
-      - ***REMOVED-DB_PASSWORD***
+      - postgres
     volumes:
-      - ./***REMOVED-KEYCLOAK_DB_PASSWORD***/themes:/opt/***REMOVED-KEYCLOAK_DB_PASSWORD***/themes
-      - ./***REMOVED-KEYCLOAK_DB_PASSWORD***/providers:/opt/***REMOVED-KEYCLOAK_DB_PASSWORD***/providers
+      - ./keycloak/themes:/opt/keycloak/themes
+      - ./keycloak/providers:/opt/keycloak/providers
   
-  ***REMOVED-DB_PASSWORD***:
-    image: ***REMOVED-DB_PASSWORD***:13
+  postgres:
+    image: postgres:13
     environment:
-      POSTGRES_DB: ***REMOVED-KEYCLOAK_DB_PASSWORD***
-      POSTGRES_USER: ***REMOVED-KEYCLOAK_DB_PASSWORD***
+      POSTGRES_DB: keycloak
+      POSTGRES_USER: keycloak
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     volumes:
-      - ***REMOVED-DB_PASSWORD***_data:/var/lib/***REMOVED-DB_PASSWORD***ql/data
+      - postgres_data:/var/lib/postgresql/data
 
 volumes:
-  ***REMOVED-DB_PASSWORD***_data:
+  postgres_data:
 ```
 
 #### **Step 2: Keycloak Configuration**
 ```javascript
 // Keycloak configuration
-const ***REMOVED-KEYCLOAK_DB_PASSWORD***Config = {
+const keycloakConfig = {
   realm: 'contract-management',
   'auth-server-url': process.env.KEYCLOAK_URL || 'http://localhost:8080',
   'ssl-required': 'external',
@@ -823,10 +823,10 @@ const authenticateDID = async (req, res, next) => {
 
 #### **Step 4: Frontend Integration**
 ```javascript
-import Keycloak from '***REMOVED-KEYCLOAK_DB_PASSWORD***-js';
+import Keycloak from 'keycloak-js';
 import { createDID, signWithDID } from './didService';
 
-const ***REMOVED-KEYCLOAK_DB_PASSWORD*** = new Keycloak({
+const keycloak = new Keycloak({
   url: process.env.REACT_APP_KEYCLOAK_URL,
   realm: 'contract-management',
   clientId: 'contract-management-frontend'
@@ -838,7 +838,7 @@ export const UserProvider = ({ children }) => {
   const [did, setDid] = useState(null);
 
   useEffect(() => {
-    ***REMOVED-KEYCLOAK_DB_PASSWORD***.init({
+    keycloak.init({
       onLoad: 'check-sso',
       silentCheckSsoRedirectUri: window.location.origin + '/silent-check-sso.html'
     }).then((authenticated) => {
@@ -851,7 +851,7 @@ export const UserProvider = ({ children }) => {
 
   const loadUserProfile = async () => {
     try {
-      const profile = await ***REMOVED-KEYCLOAK_DB_PASSWORD***.loadUserProfile();
+      const profile = await keycloak.loadUserProfile();
       const user = await mapKeycloakProfileToUser(profile);
       setUser(user);
       
@@ -886,8 +886,8 @@ export const UserProvider = ({ children }) => {
       user,
       did,
       signContractWithDID,
-      login: ***REMOVED-KEYCLOAK_DB_PASSWORD***.login,
-      logout: ***REMOVED-KEYCLOAK_DB_PASSWORD***.logout
+      login: keycloak.login,
+      logout: keycloak.logout
     }}>
       {children}
     </UserContext.Provider>
@@ -905,7 +905,7 @@ ALTER TABLE users ADD COLUMN did_method VARCHAR(20) DEFAULT 'ethr';
 ALTER TABLE users ADD COLUMN organization_domain VARCHAR(255);
 ALTER TABLE users ADD COLUMN organization_name VARCHAR(255);
 ALTER TABLE users ADD COLUMN iam_user_id VARCHAR(255);
-ALTER TABLE users ADD COLUMN identity_provider VARCHAR(50) DEFAULT '***REMOVED-KEYCLOAK_DB_PASSWORD***';
+ALTER TABLE users ADD COLUMN identity_provider VARCHAR(50) DEFAULT 'keycloak';
 ALTER TABLE users ADD COLUMN external_id VARCHAR(255);
 ALTER TABLE users ADD COLUMN last_sso_login TIMESTAMP;
 ALTER TABLE users ADD COLUMN sso_enabled BOOLEAN DEFAULT false;
@@ -1134,7 +1134,7 @@ DID_RESOLUTION_TIMEOUT=10000
 DID_CACHE_TTL=3600
 
 # Enterprise IAM Configuration
-KEYCLOAK_URL=https://***REMOVED-KEYCLOAK_DB_PASSWORD***.company.com
+KEYCLOAK_URL=https://keycloak.company.com
 KEYCLOAK_ADMIN_PASSWORD=secure_password
 KEYCLOAK_REALM=contract-management-enterprise
 
@@ -1156,26 +1156,26 @@ AUDIT_LOG_ENABLED=true
 # docker-compose.enterprise.yml
 version: '3.8'
 services:
-  ***REMOVED-KEYCLOAK_DB_PASSWORD***:
-    image: quay.io/***REMOVED-KEYCLOAK_DB_PASSWORD***/***REMOVED-KEYCLOAK_DB_PASSWORD***:latest
+  keycloak:
+    image: quay.io/keycloak/keycloak:latest
     environment:
       KEYCLOAK_ADMIN: admin
       KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
-      KC_DB: ***REMOVED-DB_PASSWORD***
-      KC_DB_URL: jdbc:***REMOVED-DB_PASSWORD***ql://***REMOVED-DB_PASSWORD***:5432/***REMOVED-KEYCLOAK_DB_PASSWORD***
-      KC_HOSTNAME: ***REMOVED-KEYCLOAK_DB_PASSWORD***.company.com
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://postgres:5432/keycloak
+      KC_HOSTNAME: keycloak.company.com
       KC_HTTP_ENABLED: false
       KC_HTTPS_ENABLED: true
-      KC_HTTPS_CERTIFICATE_FILE: /opt/***REMOVED-KEYCLOAK_DB_PASSWORD***/certs/tls.crt
-      KC_HTTPS_CERTIFICATE_KEY_FILE: /opt/***REMOVED-KEYCLOAK_DB_PASSWORD***/certs/tls.key
+      KC_HTTPS_CERTIFICATE_FILE: /opt/keycloak/certs/tls.crt
+      KC_HTTPS_CERTIFICATE_KEY_FILE: /opt/keycloak/certs/tls.key
     ports:
       - "8443:8443"
     volumes:
-      - ./***REMOVED-KEYCLOAK_DB_PASSWORD***/certs:/opt/***REMOVED-KEYCLOAK_DB_PASSWORD***/certs
-      - ./***REMOVED-KEYCLOAK_DB_PASSWORD***/themes:/opt/***REMOVED-KEYCLOAK_DB_PASSWORD***/themes
-      - ./***REMOVED-KEYCLOAK_DB_PASSWORD***/providers:/opt/***REMOVED-KEYCLOAK_DB_PASSWORD***/providers
+      - ./keycloak/certs:/opt/keycloak/certs
+      - ./keycloak/themes:/opt/keycloak/themes
+      - ./keycloak/providers:/opt/keycloak/providers
     depends_on:
-      - ***REMOVED-DB_PASSWORD***
+      - postgres
 
   backend:
     build: .
@@ -1189,8 +1189,8 @@ services:
     ports:
       - "3000:3000"
     depends_on:
-      - ***REMOVED-DB_PASSWORD***
-      - ***REMOVED-KEYCLOAK_DB_PASSWORD***
+      - postgres
+      - keycloak
 
   frontend:
     build: ./frontend
@@ -1206,19 +1206,19 @@ services:
     depends_on:
       - backend
 
-  ***REMOVED-DB_PASSWORD***:
-    image: ***REMOVED-DB_PASSWORD***:13
+  postgres:
+    image: postgres:13
     environment:
       POSTGRES_DB: contract_management
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     volumes:
-      - ***REMOVED-DB_PASSWORD***_data:/var/lib/***REMOVED-DB_PASSWORD***ql/data
+      - postgres_data:/var/lib/postgresql/data
     ports:
       - "5432:5432"
 
 volumes:
-  ***REMOVED-DB_PASSWORD***_data:
+  postgres_data:
 ```
 
 ### **Phase 1: DID Infrastructure (4-6 weeks)**
@@ -1349,7 +1349,7 @@ describe('Contract Signing Flow', () => {
 ### **Tools and Libraries**
 - [Veramo Framework](https://veramo.io/)
 - [DIDKit](https://github.com/spruceid/didkit)
-- [Keycloak Documentation](https://www.***REMOVED-KEYCLOAK_DB_PASSWORD***.org/docs/latest/)
+- [Keycloak Documentation](https://www.keycloak.org/docs/latest/)
 - [did-jwt Library](https://github.com/decentralized-identity/did-jwt)
 
 ## 🆘 **Support and Maintenance**

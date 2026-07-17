@@ -39,7 +39,7 @@ output "backend_url" {
   value = "http://${module.load_balancer.public_ip_address}:5001"
 }
 
-output "***REMOVED-KEYCLOAK_DB_PASSWORD***_url" {
+output "keycloak_url" {
   value = "http://${module.load_balancer.public_ip_address}:8080"
 }
 

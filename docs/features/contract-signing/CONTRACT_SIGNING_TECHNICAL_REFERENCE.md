@@ -437,7 +437,7 @@ await SigningTestDataSetup.cleanup();
 #### **Required Variables**
 ```bash
 # Database Configuration
-DATABASE_URL=***REMOVED-DB_PASSWORD***ql://user:password@localhost:5432/contract_management
+DATABASE_URL=postgresql://user:password@localhost:5432/contract_management
 
 # SCITT CCF Configuration
 CCF_NODE_URL=http://localhost:8000

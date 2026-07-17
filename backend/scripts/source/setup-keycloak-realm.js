@@ -5,7 +5,7 @@
  * It creates the realm, roles, groups, and initial users.
  * 
  * Usage:
- * node scripts/setup-***REMOVED-KEYCLOAK_DB_PASSWORD***-realm.js
+ * node scripts/setup-keycloak-realm.js
  */
 
 const axios = require('axios');
@@ -14,7 +14,7 @@ const axios = require('axios');
 const KEYCLOAK_BASE_URL = 'http://localhost:8080';
 const KEYCLOAK_REALM = 'contract-management';
 const KEYCLOAK_ADMIN_USERNAME = 'admin';
-const KEYCLOAK_ADMIN_PASSWORD = '***REMOVED-KEYCLOAK_ADMIN_PASSWORD***';
+const KEYCLOAK_ADMIN_PASSWORD = 'admin123';
 
 // Function to get Keycloak admin token
 async function getKeycloakToken() {

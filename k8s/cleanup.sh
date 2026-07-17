@@ -23,7 +23,7 @@ kubectl delete -f backend-deployment.yaml --ignore-not-found=true
 
 # Delete Keycloak
 echo "🔐 Deleting Keycloak..."
-kubectl delete -f ***REMOVED-KEYCLOAK_DB_PASSWORD***-deployment.yaml --ignore-not-found=true
+kubectl delete -f keycloak-deployment.yaml --ignore-not-found=true
 
 # Delete blockchain
 echo "⛓️ Deleting blockchain..."
@@ -31,11 +31,11 @@ kubectl delete -f blockchain-deployment.yaml --ignore-not-found=true
 
 # Delete database
 echo "🗄️ Deleting PostgreSQL..."
-kubectl delete -f ***REMOVED-DB_PASSWORD***-deployment.yaml --ignore-not-found=true
+kubectl delete -f postgres-deployment.yaml --ignore-not-found=true
 
 # Delete storage
 echo "💾 Deleting persistent storage..."
-kubectl delete -f ***REMOVED-DB_PASSWORD***-persistent-volume.yaml --ignore-not-found=true
+kubectl delete -f postgres-persistent-volume.yaml --ignore-not-found=true
 
 # Delete ConfigMap and Secrets
 echo "🔧 Deleting ConfigMap and Secrets..."

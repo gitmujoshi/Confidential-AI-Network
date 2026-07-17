@@ -195,8 +195,8 @@ FRONTEND_URL=http://localhost:3000
 BACKEND_URL=http://localhost:5001
 
 # Generate strong passwords
-KEYCLOAK_ADMIN_PASSWORD=***REMOVED-KEYCLOAK_ADMIN_PASSWORD***
-POSTGRES_PASSWORD=***REMOVED-DB_PASSWORD***123
+KEYCLOAK_ADMIN_PASSWORD=admin123
+POSTGRES_PASSWORD=postgres123
 JWT_SECRET=your_local_jwt_secret_here
 ```
 
@@ -213,25 +213,25 @@ nano docker-compose.local.yml
 ```yaml
 version: '3.8'
 services:
-  ***REMOVED-DB_PASSWORD***-app:
+  postgres-app:
     environment:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     ports:
       - "5432:5432"  # Expose PostgreSQL port
     volumes:
-      - ***REMOVED-DB_PASSWORD***_app_data:/var/lib/***REMOVED-DB_PASSWORD***ql/data
+      - postgres_app_data:/var/lib/postgresql/data
     restart: unless-stopped
 
-  ***REMOVED-DB_PASSWORD***-***REMOVED-KEYCLOAK_DB_PASSWORD***:
+  postgres-keycloak:
     environment:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     ports:
       - "5433:5432"  # Different port for Keycloak DB
     volumes:
-      - ***REMOVED-DB_PASSWORD***_***REMOVED-KEYCLOAK_DB_PASSWORD***_data:/var/lib/***REMOVED-DB_PASSWORD***ql/data
+      - postgres_keycloak_data:/var/lib/postgresql/data
     restart: unless-stopped
 
-  ***REMOVED-KEYCLOAK_DB_PASSWORD***:
+  keycloak:
     environment:
       KC_HOSTNAME: localhost
       KC_HOSTNAME_PORT: 8443
@@ -258,26 +258,26 @@ services:
     restart: unless-stopped
 
 volumes:
-  ***REMOVED-DB_PASSWORD***_app_data:
-  ***REMOVED-DB_PASSWORD***_***REMOVED-KEYCLOAK_DB_PASSWORD***_data:
-  ***REMOVED-KEYCLOAK_DB_PASSWORD***_data:
+  postgres_app_data:
+  postgres_keycloak_data:
+  keycloak_data:
 ```
 
 ### **Step 8: Generate Keycloak Certificates**
 ```bash
 # Create directory for Keycloak certificates
-mkdir -p deployment/***REMOVED-KEYCLOAK_DB_PASSWORD***-certs
+mkdir -p deployment/keycloak-certs
 
 # Generate self-signed certificate for localhost
 sudo openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
-  -keyout deployment/***REMOVED-KEYCLOAK_DB_PASSWORD***-certs/***REMOVED-KEYCLOAK_DB_PASSWORD***.key \
-  -out deployment/***REMOVED-KEYCLOAK_DB_PASSWORD***-certs/***REMOVED-KEYCLOAK_DB_PASSWORD***.crt \
+  -keyout deployment/keycloak-certs/keycloak.key \
+  -out deployment/keycloak-certs/keycloak.crt \
   -subj "/C=US/ST=State/L=City/O=Organization/CN=localhost"
 
 # Set permissions
-sudo chown -R $USER:$USER deployment/***REMOVED-KEYCLOAK_DB_PASSWORD***-certs
-chmod 600 deployment/***REMOVED-KEYCLOAK_DB_PASSWORD***-certs/***REMOVED-KEYCLOAK_DB_PASSWORD***.key
-chmod 644 deployment/***REMOVED-KEYCLOAK_DB_PASSWORD***-certs/***REMOVED-KEYCLOAK_DB_PASSWORD***.crt
+sudo chown -R $USER:$USER deployment/keycloak-certs
+chmod 600 deployment/keycloak-certs/keycloak.key
+chmod 644 deployment/keycloak-certs/keycloak.crt
 ```
 
 ### **Step 9: Install Dependencies**
@@ -307,15 +307,15 @@ docker-compose -f docker-compose.local.yml logs -f
 ### **Step 11: Configure Keycloak**
 ```bash
 # Wait for Keycloak to start (check logs)
-docker-compose -f docker-compose.local.yml logs ***REMOVED-KEYCLOAK_DB_PASSWORD***
+docker-compose -f docker-compose.local.yml logs keycloak
 
 # Run Keycloak configuration
 cd deployment
-if [ -f "configure-***REMOVED-KEYCLOAK_DB_PASSWORD***-https.js" ]; then
+if [ -f "configure-keycloak-https.js" ]; then
     # Update for localhost
-    sed -i "s|https://localhost:8443|https://localhost:8443|g" configure-***REMOVED-KEYCLOAK_DB_PASSWORD***-https.js
-    sed -i "s|***REMOVED-KEYCLOAK_ADMIN_PASSWORD***|***REMOVED-KEYCLOAK_ADMIN_PASSWORD***|g" configure-***REMOVED-KEYCLOAK_DB_PASSWORD***-https.js
-    node configure-***REMOVED-KEYCLOAK_DB_PASSWORD***-https.js
+    sed -i "s|https://localhost:8443|https://localhost:8443|g" configure-keycloak-https.js
+    sed -i "s|admin123|admin123|g" configure-keycloak-https.js
+    node configure-keycloak-https.js
 fi
 cd ..
 ```
@@ -389,10 +389,10 @@ docker-compose -f docker-compose.local.yml up -d
 ### **Database Access**
 ```bash
 # Access application database
-docker exec -it ***REMOVED-DB_PASSWORD***-app psql -U ***REMOVED-DB_PASSWORD*** -d contract_management
+docker exec -it postgres-app psql -U postgres -d contract_management
 
 # Access Keycloak database
-docker exec -it ***REMOVED-DB_PASSWORD***-***REMOVED-KEYCLOAK_DB_PASSWORD*** psql -U ***REMOVED-DB_PASSWORD*** -d ***REMOVED-KEYCLOAK_DB_PASSWORD***
+docker exec -it postgres-keycloak psql -U postgres -d keycloak
 ```
 
 ## 🚨 **Troubleshooting**
@@ -415,17 +415,17 @@ docker exec -it ***REMOVED-DB_PASSWORD***-***REMOVED-KEYCLOAK_DB_PASSWORD*** psq
 3. **Keycloak SSL issues**
    ```bash
    # Check Keycloak logs
-   docker-compose -f docker-compose.local.yml logs ***REMOVED-KEYCLOAK_DB_PASSWORD***
+   docker-compose -f docker-compose.local.yml logs keycloak
    
    # Verify certificates
-   ls -la deployment/***REMOVED-KEYCLOAK_DB_PASSWORD***-certs/
+   ls -la deployment/keycloak-certs/
    ```
 
 4. **Database connection errors**
    ```bash
    # Check database status
-   docker exec ***REMOVED-DB_PASSWORD***-app psql -U ***REMOVED-DB_PASSWORD*** -c "SELECT version();"
-   docker exec ***REMOVED-DB_PASSWORD***-***REMOVED-KEYCLOAK_DB_PASSWORD*** psql -U ***REMOVED-DB_PASSWORD*** -c "SELECT version();"
+   docker exec postgres-app psql -U postgres -c "SELECT version();"
+   docker exec postgres-keycloak psql -U postgres -c "SELECT version();"
    ```
 
 ### **Performance Optimization**

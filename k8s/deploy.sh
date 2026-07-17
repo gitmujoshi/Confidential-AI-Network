@@ -16,15 +16,15 @@ kubectl apply -f secrets.yaml
 
 # Create storage
 echo "💾 Creating persistent storage..."
-kubectl apply -f ***REMOVED-DB_PASSWORD***-persistent-volume.yaml
+kubectl apply -f postgres-persistent-volume.yaml
 
 # Deploy database
 echo "🗄️ Deploying PostgreSQL..."
-kubectl apply -f ***REMOVED-DB_PASSWORD***-deployment.yaml
+kubectl apply -f postgres-deployment.yaml
 
 # Wait for database to be ready
 echo "⏳ Waiting for PostgreSQL to be ready..."
-kubectl wait --for=condition=ready pod -l app=***REMOVED-DB_PASSWORD*** -n contract-management --timeout=300s
+kubectl wait --for=condition=ready pod -l app=postgres -n contract-management --timeout=300s
 
 # Deploy blockchain
 echo "⛓️ Deploying blockchain node..."
@@ -32,11 +32,11 @@ kubectl apply -f blockchain-deployment.yaml
 
 # Deploy Keycloak
 echo "🔐 Deploying Keycloak IAM..."
-kubectl apply -f ***REMOVED-KEYCLOAK_DB_PASSWORD***-deployment.yaml
+kubectl apply -f keycloak-deployment.yaml
 
 # Wait for Keycloak to be ready
 echo "⏳ Waiting for Keycloak to be ready..."
-kubectl wait --for=condition=ready pod -l app=***REMOVED-KEYCLOAK_DB_PASSWORD*** -n contract-management --timeout=300s
+kubectl wait --for=condition=ready pod -l app=keycloak -n contract-management --timeout=300s
 
 # Deploy backend
 echo "🔧 Deploying backend API..."
@@ -59,7 +59,7 @@ echo ""
 echo "📋 Service URLs:"
 echo "  Frontend: https://contract-management.example.com"
 echo "  API: https://api.contract-management.example.com"
-echo "  Keycloak: https://***REMOVED-KEYCLOAK_DB_PASSWORD***.contract-management.example.com"
+echo "  Keycloak: https://keycloak.contract-management.example.com"
 echo ""
 echo "🔍 Check deployment status:"
 echo "  kubectl get pods -n contract-management"

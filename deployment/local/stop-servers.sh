@@ -94,11 +94,11 @@ kill_blockchain() {
 }
 
 # Function to stop Keycloak (via docker-compose)
-kill_***REMOVED-KEYCLOAK_DB_PASSWORD***() {
+kill_keycloak() {
     if [ -f "docker-compose.iam.yml" ]; then
         echo -e "${BLUE}🛑 Stopping Keycloak (IAM) service via Docker Compose...${NC}"
-        docker-compose -f docker-compose.iam.yml stop ***REMOVED-KEYCLOAK_DB_PASSWORD***
-        docker-compose -f docker-compose.iam.yml rm -f ***REMOVED-KEYCLOAK_DB_PASSWORD***
+        docker-compose -f docker-compose.iam.yml stop keycloak
+        docker-compose -f docker-compose.iam.yml rm -f keycloak
         echo -e "${GREEN}✅ Keycloak stopped${NC}"
     else
         echo -e "${YELLOW}ℹ️  docker-compose.iam.yml not found, skipping Keycloak stop${NC}"
@@ -121,7 +121,7 @@ main() {
     kill_by_pid_file "backend.pid" "Backend"
     kill_by_pid_file "frontend.pid" "Frontend"
     kill_blockchain
-    kill_***REMOVED-KEYCLOAK_DB_PASSWORD***
+    kill_keycloak
     
     # Remove port file
     rm -f frontend.port

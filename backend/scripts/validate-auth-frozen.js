@@ -15,8 +15,8 @@ const FROZEN_SIGNATURES = {
   'middleware/auth.js': [
     '🔒 FROZEN AUTHENTICATION LOGIC - DO NOT MODIFY',
     'Use only Keycloak username to match with database iamUsername',
-    'const ***REMOVED-KEYCLOAK_DB_PASSWORD***Username = validationResult.user.username;',
-    'iamUsername: ***REMOVED-KEYCLOAK_DB_PASSWORD***Username,',
+    'const keycloakUsername = validationResult.user.username;',
+    'iamUsername: keycloakUsername,',
     'USER_NOT_FOUND'
   ]
 };

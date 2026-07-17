@@ -12,9 +12,9 @@ The Contract Management System is now running with **SCITT CCF as the primary bl
 - **Frontend**: ✅ Running (Port 3000)
 
 ### **🗄️ PostgreSQL Databases**
-- **Main App Database**: ✅ Running (Port 5432) - `***REMOVED-DB_PASSWORD***ql://***REMOVED-DB_PASSWORD***:***REMOVED-DB_PASSWORD***@localhost:5432/contract_management`
-- **Keycloak Database**: ✅ Running (Port 5433) - `***REMOVED-DB_PASSWORD***ql://***REMOVED-KEYCLOAK_DB_PASSWORD***:***REMOVED-KEYCLOAK_DB_PASSWORD***@localhost:5433/***REMOVED-KEYCLOAK_DB_PASSWORD***`
-- **SCITT CCF Database**: ✅ Running (Port 5434) - `***REMOVED-DB_PASSWORD***ql://scitt_user:scitt_pass@localhost:5434/scitt_ccf_dev`
+- **Main App Database**: ✅ Running (Port 5432) - `postgresql://postgres:postgres@localhost:5432/contract_management`
+- **Keycloak Database**: ✅ Running (Port 5433) - `postgresql://keycloak:keycloak@localhost:5433/keycloak`
+- **SCITT CCF Database**: ✅ Running (Port 5434) - `postgresql://scitt_user:scitt_pass@localhost:5434/scitt_ccf_dev`
 
 ### **⛓️ SCITT CCF Blockchain Services**
 - **SCITT CCF Node**: ✅ Running (Port 8000) - Main blockchain/ledger node
@@ -61,7 +61,7 @@ cd deployment/local
 ## 📋 **Test Data Available**
 
 ### **Users:**
-- **AppAdmin**: `admin@contractmanagement.com` (admin/***REMOVED-KEYCLOAK_ADMIN_PASSWORD***)
+- **AppAdmin**: `admin@contractmanagement.com` (admin/admin123)
 - **TDP Users**: Healthcare, Financial, Retail data providers
 - **TDC Users**: AI Research Institute, Tech Startup
 - **CCRP Users**: Secure Compute Solutions, Privacy First Computing

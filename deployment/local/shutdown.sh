@@ -48,7 +48,7 @@ show_help() {
     echo "  --frontend, -f      Stop only frontend"
     echo "  --backend, -b       Stop only backend"
     echo "  --blockchain, -c    Stop only blockchain"
-    echo "  --***REMOVED-KEYCLOAK_DB_PASSWORD***, -k      Stop only Keycloak"
+    echo "  --keycloak, -k      Stop only Keycloak"
     echo "  --force, --kill     Force kill all processes"
     echo "  --clean             Clean up all files and processes"
     echo "  --help, -h          Show this help message"
@@ -173,9 +173,9 @@ stop_docker_containers() {
     print_status "Stopping Docker containers..."
     
     # Stop Keycloak container
-    if docker ps | grep -q "***REMOVED-KEYCLOAK_DB_PASSWORD***"; then
-        docker stop $(docker ps -q --filter "name=***REMOVED-KEYCLOAK_DB_PASSWORD***") 2>/dev/null || true
-        docker rm $(docker ps -aq --filter "name=***REMOVED-KEYCLOAK_DB_PASSWORD***") 2>/dev/null || true
+    if docker ps | grep -q "keycloak"; then
+        docker stop $(docker ps -q --filter "name=keycloak") 2>/dev/null || true
+        docker rm $(docker ps -aq --filter "name=keycloak") 2>/dev/null || true
         print_success "Keycloak Docker container stopped"
     fi
     
@@ -251,16 +251,16 @@ stop_blockchain() {
 }
 
 # Function to stop Keycloak
-stop_***REMOVED-KEYCLOAK_DB_PASSWORD***() {
+stop_keycloak() {
     print_header "Stopping Keycloak"
     
     # Stop by PID file
-    kill_by_pid_file "***REMOVED-KEYCLOAK_DB_PASSWORD***.pid" "Keycloak" "$FORCE_MODE"
-    kill_by_pid_file ".***REMOVED-KEYCLOAK_DB_PASSWORD***.pid" "Keycloak" "$FORCE_MODE"
+    kill_by_pid_file "keycloak.pid" "Keycloak" "$FORCE_MODE"
+    kill_by_pid_file ".keycloak.pid" "Keycloak" "$FORCE_MODE"
     
     # Stop by process name
-    kill_processes "***REMOVED-KEYCLOAK_DB_PASSWORD***" "Keycloak server" "$FORCE_MODE"
-    kill_processes "java.****REMOVED-KEYCLOAK_DB_PASSWORD***" "Keycloak Java process" "$FORCE_MODE"
+    kill_processes "keycloak" "Keycloak server" "$FORCE_MODE"
+    kill_processes "java.*keycloak" "Keycloak Java process" "$FORCE_MODE"
     
     # Stop by port
     kill_port 8080 "Keycloak" "$FORCE_MODE"
@@ -276,12 +276,12 @@ cleanup_files() {
     
     # Remove PID files
     rm -f *.pid .*.pid
-    rm -f frontend.pid backend.pid blockchain.pid ***REMOVED-KEYCLOAK_DB_PASSWORD***.pid
-    rm -f .frontend.pid .backend.pid .hardhat.pid .***REMOVED-KEYCLOAK_DB_PASSWORD***.pid
+    rm -f frontend.pid backend.pid blockchain.pid keycloak.pid
+    rm -f .frontend.pid .backend.pid .hardhat.pid .keycloak.pid
     
     # Remove log files
     rm -f *.log
-    rm -f backend.log frontend.log blockchain.log ***REMOVED-KEYCLOAK_DB_PASSWORD***.log
+    rm -f backend.log frontend.log blockchain.log keycloak.log
     
     # Remove port files
     rm -f frontend.port
@@ -315,7 +315,7 @@ check_remaining_processes() {
         "Frontend:react-scripts:3000"
         "Backend:node.*server:5000"
         "Blockchain:hardhat:8545"
-        "Keycloak:***REMOVED-KEYCLOAK_DB_PASSWORD***:8080"
+        "Keycloak:keycloak:8080"
     )
     
     for service in "${services[@]}"; do
@@ -378,7 +378,7 @@ main() {
     local stop_frontend_flag=false
     local stop_backend_flag=false
     local stop_blockchain_flag=false
-    local stop_***REMOVED-KEYCLOAK_DB_PASSWORD***_flag=false
+    local stop_keycloak_flag=false
     local stop_servers_flag=false
     local stop_services_flag=false
     local stop_all_flag=true
@@ -415,8 +415,8 @@ main() {
                 stop_all_flag=false
                 shift
                 ;;
-            --***REMOVED-KEYCLOAK_DB_PASSWORD***|-k)
-                stop_***REMOVED-KEYCLOAK_DB_PASSWORD***_flag=true
+            --keycloak|-k)
+                stop_keycloak_flag=true
                 stop_all_flag=false
                 shift
                 ;;
@@ -449,13 +449,13 @@ main() {
         stop_frontend_flag=true
         stop_backend_flag=true
         stop_blockchain_flag=true
-        stop_***REMOVED-KEYCLOAK_DB_PASSWORD***_flag=true
+        stop_keycloak_flag=true
     elif [ "$stop_servers_flag" = true ]; then
         stop_frontend_flag=true
         stop_backend_flag=true
         stop_blockchain_flag=true
     elif [ "$stop_services_flag" = true ]; then
-        stop_***REMOVED-KEYCLOAK_DB_PASSWORD***_flag=true
+        stop_keycloak_flag=true
     fi
     
     # Execute shutdown based on flags
@@ -471,8 +471,8 @@ main() {
         stop_blockchain
     fi
     
-    if [ "$stop_***REMOVED-KEYCLOAK_DB_PASSWORD***_flag" = true ]; then
-        stop_***REMOVED-KEYCLOAK_DB_PASSWORD***
+    if [ "$stop_keycloak_flag" = true ]; then
+        stop_keycloak
     fi
     
     # Cleanup if requested

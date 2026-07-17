@@ -167,7 +167,7 @@ variable "defined_tag_namespace" {
   default     = ""
 }
 
-variable "***REMOVED-KEYCLOAK_DB_PASSWORD***_db_password" {
+variable "keycloak_db_password" {
   description = "Keycloak database password (defaults to db_password when empty)"
   type        = string
   sensitive   = true
@@ -175,13 +175,13 @@ variable "***REMOVED-KEYCLOAK_DB_PASSWORD***_db_password" {
 }
 
 # Keycloak Configuration
-variable "***REMOVED-KEYCLOAK_DB_PASSWORD***_admin_username" {
+variable "keycloak_admin_username" {
   description = "Keycloak admin username"
   type        = string
   default     = "admin"
 }
 
-variable "***REMOVED-KEYCLOAK_DB_PASSWORD***_admin_password" {
+variable "keycloak_admin_password" {
   description = "Keycloak admin password"
   type        = string
   sensitive   = true

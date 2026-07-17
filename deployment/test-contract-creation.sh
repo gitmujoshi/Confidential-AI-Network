@@ -36,7 +36,7 @@ echo -e "${GREEN}✅ Backend is running${NC}"
 echo -e "\n${BLUE}🔐 Testing Admin Authentication${NC}"
 ADMIN_RESPONSE=$(curl -s -X POST http://localhost:5001/api/auth/login \
     -H "Content-Type: application/json" \
-    -d '{"email":"admin@contractmanagement.com","password":"***REMOVED-KEYCLOAK_ADMIN_PASSWORD***"}')
+    -d '{"email":"admin@contractmanagement.com","password":"admin123"}')
 
 if echo "$ADMIN_RESPONSE" | grep -q "accessToken"; then
     ADMIN_TOKEN=$(echo "$ADMIN_RESPONSE" | jq -r '.accessToken')

@@ -51,7 +51,7 @@ docker network prune -f > /dev/null 2>&1 || true
 
 # Remove test volumes (optional - uncomment if you want to remove data)
 # print_status "Removing test volumes..."
-# docker volume rm contract-management_***REMOVED-DB_PASSWORD***_test_data 2>/dev/null || true
+# docker volume rm contract-management_postgres_test_data 2>/dev/null || true
 
 print_success "Integration Test Environment stopped successfully!"
 echo ""

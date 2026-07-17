@@ -313,8 +313,8 @@
 <li>PostgreSQL database (port 5433)</li></p><p><li>Keycloak server (port 8081)</li></p><p><li>Ganache blockchain (port 8546)</li></p><p><li>Hardhat node (port 8547)</li></p><p>### 2. Run Integration Tests</p><p><pre><code class="language-bash"># Run integration tests</p><p>npm run test:integration</p><p># Or manually:</p><p>npx jest tests/integration.test.js --verbose --timeout=60000
 </code></pre></p><p>### 3. Stop the Environment</p><p><pre><code class="language-bash"># Stop all services</p><p>npm run test:integration:teardown</p><p># Or manually:</p><p>./scripts/stop-integration-test-env.sh
 </code></pre></p><p>### 4. Run Complete Integration Test Suite</p><p><pre><code class="language-bash"># Start environment, run tests, and stop environment</p><p>npm run test:integration:full
-</code></pre></p><p>## Service Configuration</p><p>### Database (PostgreSQL)</p><p><li><strong>URL</strong>: <code>***REMOVED-DB_PASSWORD***ql://testuser:testpass@localhost:5433/contract_management_test</code></li></p><p><li><strong>Port</strong>: 5433</li></p><p><li><strong>Database</strong>: <code>contract_management_test</code></li></p><p><li><strong>User</strong>: <code>testuser</code></li></p><p><li><strong>Password</strong>: <code>testpass</code></li>
-</p><p>### Keycloak</p><p><li><strong>URL</strong>: <code>http://localhost:8081</code></li></p><p><li><strong>Admin</strong>: <code>admin</code></li></p><p><li><strong>Password</strong>: <code>***REMOVED-KEYCLOAK_ADMIN_PASSWORD***</code></li></p><p><li><strong>Realm</strong>: <code>contract-management-test</code></li></p><p><li><strong>Client ID</strong>: <code>backend-test</code></li>
+</code></pre></p><p>## Service Configuration</p><p>### Database (PostgreSQL)</p><p><li><strong>URL</strong>: <code>postgresql://testuser:testpass@localhost:5433/contract_management_test</code></li></p><p><li><strong>Port</strong>: 5433</li></p><p><li><strong>Database</strong>: <code>contract_management_test</code></li></p><p><li><strong>User</strong>: <code>testuser</code></li></p><p><li><strong>Password</strong>: <code>testpass</code></li>
+</p><p>### Keycloak</p><p><li><strong>URL</strong>: <code>http://localhost:8081</code></li></p><p><li><strong>Admin</strong>: <code>admin</code></li></p><p><li><strong>Password</strong>: <code>admin123</code></li></p><p><li><strong>Realm</strong>: <code>contract-management-test</code></li></p><p><li><strong>Client ID</strong>: <code>backend-test</code></li>
 </p><p>### Blockchain (Ganache)</p><p><li><strong>URL</strong>: <code>http://localhost:8546</code></li></p><p><li><strong>Network ID</strong>: 1337</li></p><p><li><strong>Accounts</strong>: 10 pre-funded accounts</li></p><p><li><strong>Mnemonic</strong>: <code>test test test test test test test test test test test junk</code></li>
 </p><p>### Blockchain (Hardhat)</p><p><li><strong>URL</strong>: <code>http://localhost:8547</code></li></p><p><li><strong>Network ID</strong>: 31337</li></p><p><li><strong>Accounts</strong>: 20 pre-funded accounts</li>
 </p><p>## Test Accounts</p>The integration tests use these pre-funded accounts:</p><p>### Private Keys</p><p><pre><code class="language-javascript">TDP:  '0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80'
@@ -341,7 +341,7 @@ ADMIN: '0x90F79bf6EB2c4f870365E785982E1f101E93b906'
    - Datasets endpoint
    - Contracts endpoint</p><p><li><strong>End-to-End Flow</strong></li></p><p>   - Complete contract lifecycle
    - Status transitions
-   - Data persistence</p><p>## Environment Variables</p>The integration tests use these environment variables (configured in <code>tests/integration-env.js</code>):</p><p><pre><code class="language-javascript">DATABASE_URL: '***REMOVED-DB_PASSWORD***ql://testuser:testpass@localhost:5433/contract_management_test'
+   - Data persistence</p><p>## Environment Variables</p>The integration tests use these environment variables (configured in <code>tests/integration-env.js</code>):</p><p><pre><code class="language-javascript">DATABASE_URL: 'postgresql://testuser:testpass@localhost:5433/contract_management_test'
 KEYCLOAK_URL: 'http://localhost:8081'
 BLOCKCHAIN_URL: 'http://localhost:8546' // or 8547 for Hardhat
 BLOCKCHAIN_ENABLED: 'true'
@@ -361,7 +361,7 @@ JWT_SECRET: 'integration-test-secret-key-for-jwt-signing'
    # Check service logs
    docker-compose -f docker-compose.test.yml logs
    </code></pre></p><p><li><strong>Database connection issues</strong></li></p><p>   <pre><code class="language-bash">   # Test database connection
-   psql ***REMOVED-DB_PASSWORD***ql://testuser:testpass@localhost:5433/contract_management_test
+   psql postgresql://testuser:testpass@localhost:5433/contract_management_test
    </code></pre></p><p><li><strong>Keycloak connection issues</strong></li></p><p>   <pre><code class="language-bash">   # Test Keycloak health
    curl http://localhost:8081/health/ready
    </code></pre></p><p><li><strong>Blockchain connection issues</strong></li></p><p>   <pre><code class="language-bash">   # Test Ganache
@@ -370,7 +370,7 @@ JWT_SECRET: 'integration-test-secret-key-for-jwt-signing'
      http://localhost:8546
    </code></pre></p><p>### Debug Mode</p>Run tests with verbose output:
 <pre><code class="language-bash">npm run test:integration -- --verbose
-</code></pre></p><p>### Manual Service Checks</p><p><pre><code class="language-bash"># Check PostgreSQL</p><p>docker-compose -f docker-compose.test.yml exec ***REMOVED-DB_PASSWORD***-test pg_isready -U testuser -d contract_management_test</p><p># Check Keycloak</p><p>curl -f http://localhost:8081/health/ready</p><p># Check Ganache</p><p>curl -f -X POST -H "Content-Type: application/json" \
+</code></pre></p><p>### Manual Service Checks</p><p><pre><code class="language-bash"># Check PostgreSQL</p><p>docker-compose -f docker-compose.test.yml exec postgres-test pg_isready -U testuser -d contract_management_test</p><p># Check Keycloak</p><p>curl -f http://localhost:8081/health/ready</p><p># Check Ganache</p><p>curl -f -X POST -H "Content-Type: application/json" \
   --data '{"jsonrpc":"2.0","method":"eth_blockNumber","params":[],"id":1}' \
   http://localhost:8546
 </code></pre></p><p>## Advanced Configuration</p><p>### Using Different Blockchain Networks</p>Edit <code>tests/integration-env.js</code> to switch between Ganache and Hardhat:</p><p><pre><code class="language-javascript">// For Ganache

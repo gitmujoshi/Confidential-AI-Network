@@ -52,4 +52,4 @@ curl -X POST http://localhost:5001/api/auth/login \
 If login returns `USER_NOT_FOUND`, it usually means the user is **missing from the local DB** even if Keycloak is running.
 
 - Recreate via API: `POST /api/auth/register`
-- Or re-sync IAM to match DB (backend): `cd backend && npm run ***REMOVED-KEYCLOAK_DB_PASSWORD***:resync`
+- Or re-sync IAM to match DB (backend): `cd backend && npm run keycloak:resync`

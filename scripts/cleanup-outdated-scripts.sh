@@ -31,7 +31,7 @@ OUTDATED_SCRIPTS=(
     "cleanup-old-scripts.sh"
     "check-user-sync.js"
     "create-test-users.js"
-    "generate-***REMOVED-KEYCLOAK_DB_PASSWORD***-certs.sh"
+    "generate-keycloak-certs.sh"
     "generate-private-key.js"
     "test-es256-signing.js"
     "test-ui-scitt-ccf.sh"
@@ -42,8 +42,8 @@ OUTDATED_DOCKER_COMPOSE=(
     "docker-compose.dev.yml"
     "docker-compose.fresh-setup.yml"
     "docker-compose.https.yml"
-    "docker-compose.***REMOVED-KEYCLOAK_DB_PASSWORD***-https.yml"
-    "docker-compose.***REMOVED-KEYCLOAK_DB_PASSWORD***-persistent.yml"
+    "docker-compose.keycloak-https.yml"
+    "docker-compose.keycloak-persistent.yml"
     "docker-compose.backend.yml"
     "docker-compose.test.yml"
     "docker-compose.scitt-ccf-isolated.yml"
@@ -51,11 +51,11 @@ OUTDATED_DOCKER_COMPOSE=(
 
 # List of outdated backend scripts to remove
 OUTDATED_BACKEND_SCRIPTS=(
-    "backend/setup-***REMOVED-KEYCLOAK_DB_PASSWORD***-simple.js"
-    "backend/fix-***REMOVED-KEYCLOAK_DB_PASSWORD***-client.js"
-    "backend/list-***REMOVED-KEYCLOAK_DB_PASSWORD***-users.js"
+    "backend/setup-keycloak-simple.js"
+    "backend/fix-keycloak-client.js"
+    "backend/list-keycloak-users.js"
     "backend/get-client-secret.js"
-    "backend/sync-appadmin-from-***REMOVED-KEYCLOAK_DB_PASSWORD***.js"
+    "backend/sync-appadmin-from-keycloak.js"
 )
 
 # Function to check if file exists and remove it
@@ -169,7 +169,7 @@ show_current_scripts() {
     echo ""
     
     echo "🐳 Docker Compose:"
-    echo "  docker-compose.***REMOVED-KEYCLOAK_DB_PASSWORD***-dev.yml     # Keycloak development"
+    echo "  docker-compose.keycloak-dev.yml     # Keycloak development"
     echo "  docker-compose.scitt-ccf-dev.yml    # SCITT CCF development"
     echo "  docker-compose.main.yml             # Production setup"
     echo ""
@@ -251,7 +251,7 @@ EOF
 - \`./build-system.sh\` - Build system
 
 ### Docker Compose
-- \`docker-compose.***REMOVED-KEYCLOAK_DB_PASSWORD***-dev.yml\` - Keycloak development
+- \`docker-compose.keycloak-dev.yml\` - Keycloak development
 - \`docker-compose.scitt-ccf-dev.yml\` - SCITT CCF development
 - \`docker-compose.main.yml\` - Production setup
 

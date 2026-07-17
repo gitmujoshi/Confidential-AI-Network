@@ -36,7 +36,7 @@ backend/scripts/
 - `setupKeycloak.js` - Keycloak configuration
 - `createSampleData.js` - Sample data creation
 - `list-all-users.js` - User listing utilities
-- `sync-db-users-to-***REMOVED-KEYCLOAK_DB_PASSWORD***.js` - User synchronization
+- `sync-db-users-to-keycloak.js` - User synchronization
 
 **Usage**:
 ```bash
@@ -48,7 +48,7 @@ node scripts/source/[script-name].js
 
 **Examples**:
 - `test-enhanced-did-signing.js` - DID signing tests
-- `test-***REMOVED-KEYCLOAK_DB_PASSWORD***-auth.js` - Authentication tests
+- `test-keycloak-auth.js` - Authentication tests
 - `test-contract-creation.js` - Contract creation tests
 - `test-report.html` - Test reports
 
@@ -63,7 +63,7 @@ node scripts/test/[test-name].js
 **Examples**:
 - `add-cloud-provider-support.js` - Cloud provider schema updates
 - `addDIDFields.js` - DID field additions
-- `fix-***REMOVED-KEYCLOAK_DB_PASSWORD***-integration.js` - Keycloak fixes
+- `fix-keycloak-integration.js` - Keycloak fixes
 - `updateUserModel.js` - User model updates
 
 **Usage**:

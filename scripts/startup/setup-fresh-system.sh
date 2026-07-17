@@ -37,14 +37,14 @@ sleep 20
 
 # Step 2: Test database connections
 print_status "Step 2: Testing database connections..."
-if docker exec ***REMOVED-DB_PASSWORD***-app psql -U ***REMOVED-DB_PASSWORD*** -d contract_management -c "SELECT 'App DB OK' as status;" > /dev/null 2>&1; then
+if docker exec postgres-app psql -U postgres -d contract_management -c "SELECT 'App DB OK' as status;" > /dev/null 2>&1; then
     print_success "Application database connection OK"
 else
     print_error "Application database connection failed"
     exit 1
 fi
 
-if docker exec ***REMOVED-DB_PASSWORD***-***REMOVED-KEYCLOAK_DB_PASSWORD*** psql -U ***REMOVED-KEYCLOAK_DB_PASSWORD*** -d ***REMOVED-KEYCLOAK_DB_PASSWORD*** -c "SELECT 'Keycloak DB OK' as status;" > /dev/null 2>&1; then
+if docker exec postgres-keycloak psql -U keycloak -d keycloak -c "SELECT 'Keycloak DB OK' as status;" > /dev/null 2>&1; then
     print_success "Keycloak database connection OK"
 else
     print_error "Keycloak database connection failed"
@@ -56,7 +56,7 @@ print_status "Step 3: Setting up Keycloak configuration..."
 cd backend
 
 # Create a simple Keycloak setup script that works with the current setup
-cat > setup-***REMOVED-KEYCLOAK_DB_PASSWORD***-simple.js << 'EOF'
+cat > setup-keycloak-simple.js << 'EOF'
 const axios = require('axios');
 
 // Configure axios to ignore SSL certificate verification
@@ -78,7 +78,7 @@ async function setupKeycloak() {
     const tokenResponse = await axiosInstance.post(`${KEYCLOAK_BASE_URL}/realms/master/protocol/openid-connect/token`, 
       new URLSearchParams({
         username: 'admin',
-        password: '***REMOVED-KEYCLOAK_ADMIN_PASSWORD***',
+        password: 'admin123',
         grant_type: 'password',
         client_id: 'admin-cli'
       }), {
@@ -177,7 +177,7 @@ setupKeycloak();
 EOF
 
 # Run the Keycloak setup
-if node setup-***REMOVED-KEYCLOAK_DB_PASSWORD***-simple.js; then
+if node setup-keycloak-simple.js; then
     print_success "Keycloak setup completed"
 else
     print_warning "Keycloak setup had issues, continuing..."
@@ -189,7 +189,7 @@ print_status "Step 4: Running database migrations..."
 echo "🔧 Creating database tables..."
 
 # Users table
-docker exec ***REMOVED-DB_PASSWORD***-app psql -U ***REMOVED-DB_PASSWORD*** -d contract_management -c "
+docker exec postgres-app psql -U postgres -d contract_management -c "
 CREATE TABLE IF NOT EXISTS users (
   id SERIAL PRIMARY KEY,
   name VARCHAR(255) NOT NULL,
@@ -204,7 +204,7 @@ CREATE TABLE IF NOT EXISTS users (
 echo "✅ Users table created"
 
 # Datasets table
-docker exec ***REMOVED-DB_PASSWORD***-app psql -U ***REMOVED-DB_PASSWORD*** -d contract_management -c "
+docker exec postgres-app psql -U postgres -d contract_management -c "
 CREATE TABLE IF NOT EXISTS datasets (
   id SERIAL PRIMARY KEY,
   name VARCHAR(255) NOT NULL,
@@ -223,7 +223,7 @@ CREATE TABLE IF NOT EXISTS datasets (
 echo "✅ Datasets table created"
 
 # AI Models table
-docker exec ***REMOVED-DB_PASSWORD***-app psql -U ***REMOVED-DB_PASSWORD*** -d contract_management -c "
+docker exec postgres-app psql -U postgres -d contract_management -c "
 CREATE TABLE IF NOT EXISTS ai_models (
   id SERIAL PRIMARY KEY,
   name VARCHAR(255) NOT NULL,
@@ -241,7 +241,7 @@ CREATE TABLE IF NOT EXISTS ai_models (
 echo "✅ AI Models table created"
 
 # Contract Templates table
-docker exec ***REMOVED-DB_PASSWORD***-app psql -U ***REMOVED-DB_PASSWORD*** -d contract_management -c "
+docker exec postgres-app psql -U postgres -d contract_management -c "
 CREATE TABLE IF NOT EXISTS contract_templates (
   id SERIAL PRIMARY KEY,
   template_id VARCHAR(255) UNIQUE NOT NULL,
@@ -257,7 +257,7 @@ CREATE TABLE IF NOT EXISTS contract_templates (
 echo "✅ Contract Templates table created"
 
 # Contracts table
-docker exec ***REMOVED-DB_PASSWORD***-app psql -U ***REMOVED-DB_PASSWORD*** -d contract_management -c "
+docker exec postgres-app psql -U postgres -d contract_management -c "
 CREATE TABLE IF NOT EXISTS contracts (
   id SERIAL PRIMARY KEY,
   contract_id VARCHAR(255) UNIQUE NOT NULL,
@@ -284,7 +284,7 @@ echo "🔧 Creating test data directly in database..."
 
 # Create test users
 echo "👥 Creating test users..."
-docker exec ***REMOVED-DB_PASSWORD***-app psql -U ***REMOVED-DB_PASSWORD*** -d contract_management -c "
+docker exec postgres-app psql -U postgres -d contract_management -c "
 INSERT INTO users (name, email, party_type, organization, wallet_address, is_active) VALUES
 ('System Administrator', 'admin@contractmanagement.com', 'ADMIN', 'Contract Management System', '0x1234567890123456789012345678901234567890', true),
 ('Healthcare Data Corp', 'healthcare@tdp.com', 'TDP', 'Healthcare Data Corporation', '0x1111111111111111111111111111111111111111', true),
@@ -299,7 +299,7 @@ echo "✅ Test users created"
 
 # Create contract templates
 echo "📋 Creating contract templates..."
-docker exec ***REMOVED-DB_PASSWORD***-app psql -U ***REMOVED-DB_PASSWORD*** -d contract_management -c "
+docker exec postgres-app psql -U postgres -d contract_management -c "
 INSERT INTO contract_templates (template_id, name, description, terms, is_active, contract_type) VALUES
 ('TEMPLATE-001', 'Standard AI Training Contract', 'Standard contract template for AI model training', 'Standard terms and conditions for AI training contracts', true, 'AI_TRAINING'),
 ('TEMPLATE-002', 'Healthcare Data Contract', 'Specialized contract for healthcare data usage', 'Healthcare-specific terms with HIPAA compliance', true, 'HEALTHCARE'),
@@ -309,7 +309,7 @@ echo "✅ Contract templates created"
 
 # Create datasets for TDP users
 echo "📊 Creating datasets..."
-docker exec ***REMOVED-DB_PASSWORD***-app psql -U ***REMOVED-DB_PASSWORD*** -d contract_management -c "
+docker exec postgres-app psql -U postgres -d contract_management -c "
 INSERT INTO datasets (name, description, data_type, size, record_count, confidentiality, price, user_id, metadata) 
 SELECT 
   'Medical Imaging Dataset',
@@ -324,7 +324,7 @@ SELECT
 FROM users u WHERE u.email = 'healthcare@tdp.com'
 ON CONFLICT (name, user_id) DO NOTHING;" > /dev/null 2>&1
 
-docker exec ***REMOVED-DB_PASSWORD***-app psql -U ***REMOVED-DB_PASSWORD*** -d contract_management -c "
+docker exec postgres-app psql -U postgres -d contract_management -c "
 INSERT INTO datasets (name, description, data_type, size, record_count, confidentiality, price, user_id, metadata) 
 SELECT 
   'Patient Records Dataset',
@@ -339,7 +339,7 @@ SELECT
 FROM users u WHERE u.email = 'healthcare@tdp.com'
 ON CONFLICT (name, user_id) DO NOTHING;" > /dev/null 2>&1
 
-docker exec ***REMOVED-DB_PASSWORD***-app psql -U ***REMOVED-DB_PASSWORD*** -d contract_management -c "
+docker exec postgres-app psql -U postgres -d contract_management -c "
 INSERT INTO datasets (name, description, data_type, size, record_count, confidentiality, price, user_id, metadata) 
 SELECT 
   'Stock Market Data',
@@ -354,7 +354,7 @@ SELECT
 FROM users u WHERE u.email = 'finance@tdp.com'
 ON CONFLICT (name, user_id) DO NOTHING;" > /dev/null 2>&1
 
-docker exec ***REMOVED-DB_PASSWORD***-app psql -U ***REMOVED-DB_PASSWORD*** -d contract_management -c "
+docker exec postgres-app psql -U postgres -d contract_management -c "
 INSERT INTO datasets (name, description, data_type, size, record_count, confidentiality, price, user_id, metadata) 
 SELECT 
   'Customer Behavior Data',
@@ -373,7 +373,7 @@ echo "✅ Datasets created"
 
 # Create AI models for TDC users
 echo "🤖 Creating AI models..."
-docker exec ***REMOVED-DB_PASSWORD***-app psql -U ***REMOVED-DB_PASSWORD*** -d contract_management -c "
+docker exec postgres-app psql -U postgres -d contract_management -c "
 INSERT INTO ai_models (name, description, model_type, architecture, accuracy, price, user_id, metadata) 
 SELECT 
   'Medical AI Model',
@@ -387,7 +387,7 @@ SELECT
 FROM users u WHERE u.email = 'research@tdc.com'
 ON CONFLICT (name, user_id) DO NOTHING;" > /dev/null 2>&1
 
-docker exec ***REMOVED-DB_PASSWORD***-app psql -U ***REMOVED-DB_PASSWORD*** -d contract_management -c "
+docker exec postgres-app psql -U postgres -d contract_management -c "
 INSERT INTO ai_models (name, description, model_type, architecture, accuracy, price, user_id, metadata) 
 SELECT 
   'Financial Prediction Model',
@@ -401,7 +401,7 @@ SELECT
 FROM users u WHERE u.email = 'research@tdc.com'
 ON CONFLICT (name, user_id) DO NOTHING;" > /dev/null 2>&1
 
-docker exec ***REMOVED-DB_PASSWORD***-app psql -U ***REMOVED-DB_PASSWORD*** -d contract_management -c "
+docker exec postgres-app psql -U postgres -d contract_management -c "
 INSERT INTO ai_models (name, description, model_type, architecture, accuracy, price, user_id, metadata) 
 SELECT 
   'Customer Segmentation Model',

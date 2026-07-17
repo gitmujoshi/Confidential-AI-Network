@@ -10,11 +10,11 @@ This document provides a comprehensive overview of all deployment scripts availa
 
 | Script | Purpose | Usage | Status |
 |--------|---------|-------|---------|
-| `setup-***REMOVED-KEYCLOAK_DB_PASSWORD***-https.sh` | Complete HTTPS Keycloak setup with SSL certificates | `./deployment/setup-***REMOVED-KEYCLOAK_DB_PASSWORD***-https.sh` | ✅ Ready |
-| `fix-***REMOVED-KEYCLOAK_DB_PASSWORD***-client-config.sh` | Fix Keycloak client configuration for backend authentication | `./deployment/fix-***REMOVED-KEYCLOAK_DB_PASSWORD***-client-config.sh` | ✅ Ready |
-| `start-***REMOVED-KEYCLOAK_DB_PASSWORD***-https.sh` | Start Keycloak HTTPS service | `./deployment/start-***REMOVED-KEYCLOAK_DB_PASSWORD***-https.sh` | ✅ Ready |
-| `stop-***REMOVED-KEYCLOAK_DB_PASSWORD***-https.sh` | Stop Keycloak HTTPS service | `./deployment/stop-***REMOVED-KEYCLOAK_DB_PASSWORD***-https.sh` | ✅ Ready |
-| `status-***REMOVED-KEYCLOAK_DB_PASSWORD***-https.sh` | Check Keycloak HTTPS status | `./deployment/status-***REMOVED-KEYCLOAK_DB_PASSWORD***-https.sh` | ✅ Ready |
+| `setup-keycloak-https.sh` | Complete HTTPS Keycloak setup with SSL certificates | `./deployment/setup-keycloak-https.sh` | ✅ Ready |
+| `fix-keycloak-client-config.sh` | Fix Keycloak client configuration for backend authentication | `./deployment/fix-keycloak-client-config.sh` | ✅ Ready |
+| `start-keycloak-https.sh` | Start Keycloak HTTPS service | `./deployment/start-keycloak-https.sh` | ✅ Ready |
+| `stop-keycloak-https.sh` | Stop Keycloak HTTPS service | `./deployment/stop-keycloak-https.sh` | ✅ Ready |
+| `status-keycloak-https.sh` | Check Keycloak HTTPS status | `./deployment/status-keycloak-https.sh` | ✅ Ready |
 
 ### 🚀 Complete Environment Management Scripts
 
@@ -60,10 +60,10 @@ This document provides a comprehensive overview of all deployment scripts availa
 ### 2. Individual Service Setup
 ```bash
 # Setup just Keycloak HTTPS IAM
-./deployment/setup-***REMOVED-KEYCLOAK_DB_PASSWORD***-https.sh
+./deployment/setup-keycloak-https.sh
 
 # Fix Keycloak client configuration (if authentication issues)
-./deployment/fix-***REMOVED-KEYCLOAK_DB_PASSWORD***-client-config.sh
+./deployment/fix-keycloak-client-config.sh
 
 # Start local services
 ./deployment/local/start-services.sh
@@ -75,8 +75,8 @@ This document provides a comprehensive overview of all deployment scripts availa
 ./deployment/deployment-status.sh
 
 # Start/Stop Keycloak
-./deployment/start-***REMOVED-KEYCLOAK_DB_PASSWORD***-https.sh
-./deployment/stop-***REMOVED-KEYCLOAK_DB_PASSWORD***-https.sh
+./deployment/start-keycloak-https.sh
+./deployment/stop-keycloak-https.sh
 
 # Start/Stop local services
 ./deployment/local/start-services.sh
@@ -101,7 +101,7 @@ This document provides a comprehensive overview of all deployment scripts availa
 #### 1. Keycloak Authentication Failed
 ```bash
 # Fix Keycloak client configuration
-./deployment/fix-***REMOVED-KEYCLOAK_DB_PASSWORD***-client-config.sh
+./deployment/fix-keycloak-client-config.sh
 
 # Restart backend after fix
 cd backend && npm run dev
@@ -110,10 +110,10 @@ cd backend && npm run dev
 #### 2. Database Connection Issues
 ```bash
 # Check if main PostgreSQL is running
-docker ps | grep ***REMOVED-DB_PASSWORD***-app
+docker ps | grep postgres-app
 
 # Start main database if needed
-docker-compose -f docker-compose.main.yml up -d ***REMOVED-DB_PASSWORD***-app
+docker-compose -f docker-compose.main.yml up -d postgres-app
 ```
 
 #### 3. Service Port Conflicts
@@ -131,7 +131,7 @@ docker-compose -f docker-compose.main.yml up -d ***REMOVED-DB_PASSWORD***-app
 ./deployment/deployment-status.sh
 
 # Keycloak specific health check
-./deployment/status-***REMOVED-KEYCLOAK_DB_PASSWORD***-https.sh
+./deployment/status-keycloak-https.sh
 
 # Local services health check
 ./deployment/local/status.sh
@@ -267,7 +267,7 @@ docker-compose -f docker-compose.main.yml up -d ***REMOVED-DB_PASSWORD***-app
 # 2. Identify the issue
 
 # 3. Run appropriate fix script
-./deployment/fix-***REMOVED-KEYCLOAK_DB_PASSWORD***-client-config.sh
+./deployment/fix-keycloak-client-config.sh
 
 # 4. Verify the fix
 ./deployment/deployment-status.sh

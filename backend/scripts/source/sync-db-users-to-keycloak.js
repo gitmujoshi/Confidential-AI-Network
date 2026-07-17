@@ -5,7 +5,7 @@
  * with the correct roles and attributes. It only adds/updates users, no removals.
  * 
  * Usage:
- * node scripts/sync-db-users-to-***REMOVED-KEYCLOAK_DB_PASSWORD***.js
+ * node scripts/sync-db-users-to-keycloak.js
  */
 
 const { Sequelize } = require('sequelize');
@@ -20,7 +20,7 @@ const sequelize = new Sequelize(
   {
     host: process.env.DB_HOST,
     port: process.env.DB_PORT,
-    dialect: '***REMOVED-DB_PASSWORD***',
+    dialect: 'postgres',
     logging: false
   }
 );
@@ -28,7 +28,7 @@ const sequelize = new Sequelize(
 // Keycloak configuration
 const KEYCLOAK_BASE_URL = 'http://localhost:8080';
 const ADMIN_USERNAME = 'admin';
-const ADMIN_PASSWORD = '***REMOVED-KEYCLOAK_ADMIN_PASSWORD***';
+const ADMIN_PASSWORD = 'admin123';
 const REALM_NAME = 'contract-management';
 
 class DatabaseToKeycloakSync {
@@ -115,8 +115,8 @@ class DatabaseToKeycloakSync {
   /**
    * Check if user exists in Keycloak
    */
-  findKeycloakUser(***REMOVED-KEYCLOAK_DB_PASSWORD***Users, email) {
-    return ***REMOVED-KEYCLOAK_DB_PASSWORD***Users.find(user => user.email === email);
+  findKeycloakUser(keycloakUsers, email) {
+    return keycloakUsers.find(user => user.email === email);
   }
 
   /**
@@ -129,7 +129,7 @@ class DatabaseToKeycloakSync {
       const firstName = dbUser.name.split(' ')[0] || dbUser.name;
       const lastName = dbUser.name.split(' ').slice(1).join(' ') || '';
       
-      const ***REMOVED-KEYCLOAK_DB_PASSWORD***User = {
+      const keycloakUser = {
         username: dbUser.email,
         email: dbUser.email,
         firstName: firstName,
@@ -153,7 +153,7 @@ class DatabaseToKeycloakSync {
         realmRoles: [dbUser.partyType] // Assign role based on partyType
       };
 
-      await axios.post(`${this.baseURL}/admin/realms/${REALM_NAME}/users`, ***REMOVED-KEYCLOAK_DB_PASSWORD***User, {
+      await axios.post(`${this.baseURL}/admin/realms/${REALM_NAME}/users`, keycloakUser, {
         headers: {
           'Authorization': `Bearer ${this.accessToken}`,
           'Content-Type': 'application/json'
@@ -176,7 +176,7 @@ class DatabaseToKeycloakSync {
   /**
    * Update existing user in Keycloak
    */
-  async updateKeycloakUser(***REMOVED-KEYCLOAK_DB_PASSWORD***User, dbUser) {
+  async updateKeycloakUser(keycloakUser, dbUser) {
     try {
       console.log(`🔄 Updating user in Keycloak: ${dbUser.email}`);
       
@@ -184,14 +184,14 @@ class DatabaseToKeycloakSync {
       const lastName = dbUser.name.split(' ').slice(1).join(' ') || '';
       
       const updatedUser = {
-        ...***REMOVED-KEYCLOAK_DB_PASSWORD***User,
+        ...keycloakUser,
         firstName: firstName,
         lastName: lastName,
         enabled: dbUser.isActive,
         emailVerified: true,
         requiredActions: [], // Remove any required actions
         attributes: {
-          ...***REMOVED-KEYCLOAK_DB_PASSWORD***User.attributes,
+          ...keycloakUser.attributes,
           walletAddress: [dbUser.walletAddress || ''],
           partyType: [dbUser.partyType || 'TDC'],
           publicKey: [dbUser.publicKey || ''],
@@ -201,7 +201,7 @@ class DatabaseToKeycloakSync {
         }
       };
 
-      await axios.put(`${this.baseURL}/admin/realms/${REALM_NAME}/users/${***REMOVED-KEYCLOAK_DB_PASSWORD***User.id}`, updatedUser, {
+      await axios.put(`${this.baseURL}/admin/realms/${REALM_NAME}/users/${keycloakUser.id}`, updatedUser, {
         headers: {
           'Authorization': `Bearer ${this.accessToken}`,
           'Content-Type': 'application/json'
@@ -219,12 +219,12 @@ class DatabaseToKeycloakSync {
   /**
    * Update user roles in Keycloak
    */
-  async updateUserRoles(***REMOVED-KEYCLOAK_DB_PASSWORD***User, dbUser) {
+  async updateUserRoles(keycloakUser, dbUser) {
     try {
       console.log(`🎭 Updating roles for user: ${dbUser.email}`);
       
       // Get current roles
-      const rolesResponse = await axios.get(`${this.baseURL}/admin/realms/${REALM_NAME}/users/${***REMOVED-KEYCLOAK_DB_PASSWORD***User.id}/role-mappings/realm`, {
+      const rolesResponse = await axios.get(`${this.baseURL}/admin/realms/${REALM_NAME}/users/${keycloakUser.id}/role-mappings/realm`, {
         headers: {
           'Authorization': `Bearer ${this.accessToken}`,
           'Content-Type': 'application/json'
@@ -247,7 +247,7 @@ class DatabaseToKeycloakSync {
         });
 
         // Assign the role
-        await axios.post(`${this.baseURL}/admin/realms/${REALM_NAME}/users/${***REMOVED-KEYCLOAK_DB_PASSWORD***User.id}/role-mappings/realm`, [roleResponse.data], {
+        await axios.post(`${this.baseURL}/admin/realms/${REALM_NAME}/users/${keycloakUser.id}/role-mappings/realm`, [roleResponse.data], {
           headers: {
             'Authorization': `Bearer ${this.accessToken}`,
             'Content-Type': 'application/json'
@@ -278,7 +278,7 @@ class DatabaseToKeycloakSync {
       
       // Get users from both sources
       const dbUsers = await this.getDatabaseUsers();
-      const ***REMOVED-KEYCLOAK_DB_PASSWORD***Users = await this.getKeycloakUsers();
+      const keycloakUsers = await this.getKeycloakUsers();
       
       let created = 0;
       let updated = 0;
@@ -289,9 +289,9 @@ class DatabaseToKeycloakSync {
       
       for (const dbUser of dbUsers) {
         try {
-          const ***REMOVED-KEYCLOAK_DB_PASSWORD***User = this.findKeycloakUser(***REMOVED-KEYCLOAK_DB_PASSWORD***Users, dbUser.email);
+          const keycloakUser = this.findKeycloakUser(keycloakUsers, dbUser.email);
           
-          if (!***REMOVED-KEYCLOAK_DB_PASSWORD***User) {
+          if (!keycloakUser) {
             // User doesn't exist in Keycloak, create them
             const success = await this.createKeycloakUser(dbUser);
             if (success) {
@@ -301,7 +301,7 @@ class DatabaseToKeycloakSync {
             }
           } else {
             // User exists, update them
-            const success = await this.updateKeycloakUser(***REMOVED-KEYCLOAK_DB_PASSWORD***User, dbUser);
+            const success = await this.updateKeycloakUser(keycloakUser, dbUser);
             if (success) {
               updated++;
             } else {
@@ -309,7 +309,7 @@ class DatabaseToKeycloakSync {
             }
             
             // Update roles
-            const roleSuccess = await this.updateUserRoles(***REMOVED-KEYCLOAK_DB_PASSWORD***User, dbUser);
+            const roleSuccess = await this.updateUserRoles(keycloakUser, dbUser);
             if (roleSuccess) {
               roleUpdated++;
             }

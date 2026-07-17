@@ -49,9 +49,9 @@ services:
     networks:
       - cms-network
 
-  scitt-ccf-***REMOVED-DB_PASSWORD***:
-    image: ***REMOVED-DB_PASSWORD***:15
-    container_name: scitt-ccf-***REMOVED-DB_PASSWORD***-dev
+  scitt-ccf-postgres:
+    image: postgres:15
+    container_name: scitt-ccf-postgres-dev
     environment:
       POSTGRES_DB: scitt_ccf_dev
       POSTGRES_USER: scitt_user
@@ -59,7 +59,7 @@ services:
     ports:
       - "5434:5432"
     volumes:
-      - ./deployment/scitt-ccf-data:/var/lib/***REMOVED-DB_PASSWORD***ql/data
+      - ./deployment/scitt-ccf-data:/var/lib/postgresql/data
     networks:
       - cms-network
     healthcheck:

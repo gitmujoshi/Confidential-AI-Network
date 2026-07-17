@@ -142,13 +142,13 @@ spec:
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: ***REMOVED-KEYCLOAK_DB_PASSWORD***-config
+  name: keycloak-config
 data:
-  ***REMOVED-KEYCLOAK_DB_PASSWORD***.conf: |
+  keycloak.conf: |
     # Database
-    db=***REMOVED-DB_PASSWORD***
-    db-url=jdbc:***REMOVED-DB_PASSWORD***ql://***REMOVED-DB_PASSWORD***ql.training-environment.svc.cluster.local:5432/***REMOVED-KEYCLOAK_DB_PASSWORD***
-    db-username=***REMOVED-KEYCLOAK_DB_PASSWORD***
+    db=postgres
+    db-url=jdbc:postgresql://postgresql.training-environment.svc.cluster.local:5432/keycloak
+    db-username=keycloak
     db-password=${KEYCLOAK_DB_PASSWORD}
     
     # Security

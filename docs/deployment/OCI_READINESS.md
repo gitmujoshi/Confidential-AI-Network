@@ -52,7 +52,7 @@ Assessment of whether the Contract Management System is ready to deploy to **Ora
 
 - Terraform K8s resources target a **generic** deployment; images, tags, and health probes must be built and pushed to **OCIR**
 - **Autonomous DB** vs app’s PostgreSQL-specific migrations/Sequelize — verify compatibility and connection wallet
-- **Keycloak** realm export, HTTPS, and persistent identity store differ from local `docker-compose.***REMOVED-KEYCLOAK_DB_PASSWORD***-*.yml`
+- **Keycloak** realm export, HTTPS, and persistent identity store differ from local `docker-compose.keycloak-*.yml`
 - **Environment sync:** `config.env` / `secrets.env` patterns need OCI Vault + K8s Secrets mapping
 
 ### 2. SCITT CCF (enabled in local `config.env`)

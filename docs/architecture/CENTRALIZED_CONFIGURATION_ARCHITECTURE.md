@@ -11,13 +11,13 @@ This document describes the centralized configuration architecture that solves t
 The system had **93 files** with different configurations:
 
 ```javascript
-// auto-fix-***REMOVED-KEYCLOAK_DB_PASSWORD***.js
+// auto-fix-keycloak.js
 this.baseUrl = process.env.KEYCLOAK_URL || 'http://localhost:8080';
 
-// sync-users-to-***REMOVED-KEYCLOAK_DB_PASSWORD***.js  
+// sync-users-to-keycloak.js  
 const KEYCLOAK_BASE_URL = 'https://localhost:8443';
 
-// setup-***REMOVED-KEYCLOAK_DB_PASSWORD***-realm.js
+// setup-keycloak-realm.js
 const KEYCLOAK_BASE_URL = 'http://localhost:8080';
 ```
 
@@ -80,7 +80,7 @@ graph TB
 KEYCLOAK_URL=https://localhost:8443
 KEYCLOAK_REALM=contract-management
 KEYCLOAK_ADMIN_USER=admin
-KEYCLOAK_ADMIN_PASSWORD=***REMOVED-KEYCLOAK_ADMIN_PASSWORD***
+KEYCLOAK_ADMIN_PASSWORD=admin123
 KEYCLOAK_CLIENT_ID=contract-management-frontend
 KEYCLOAK_CLIENT_SECRET=
 KEYCLOAK_ENABLED=true
@@ -89,15 +89,15 @@ KEYCLOAK_ENABLED=true
 DB_HOST=localhost
 DB_PORT=5433
 DB_NAME=contract_management
-DB_USER=***REMOVED-DB_PASSWORD***
-DB_PASSWORD=***REMOVED-DB_PASSWORD***
+DB_USER=postgres
+DB_PASSWORD=postgres
 DB_SSL=false
 
 # BACKEND CONFIGURATION
 BACKEND_PORT=5001
 BACKEND_HOST=localhost
 NODE_ENV=development
-JWT_SECRET=***REMOVED-JWT_SECRET***
+JWT_SECRET=<jwt-secret>
 JWT_EXPIRES_IN=24h
 ```
 
@@ -159,7 +159,7 @@ SYSTEM_ENV=development
 KEYCLOAK_URL=https://localhost:8443
 KEYCLOAK_REALM=contract-management
 KEYCLOAK_ADMIN_USER=admin
-KEYCLOAK_ADMIN_PASSWORD=***REMOVED-KEYCLOAK_ADMIN_PASSWORD***
+KEYCLOAK_ADMIN_PASSWORD=admin123
 KEYCLOAK_CLIENT_ID=contract-management-frontend
 KEYCLOAK_CLIENT_SECRET=
 KEYCLOAK_ENABLED=true
@@ -170,8 +170,8 @@ KEYCLOAK_ENABLED=true
 DB_HOST=localhost
 DB_PORT=5433
 DB_NAME=contract_management
-DB_USER=***REMOVED-DB_PASSWORD***
-DB_PASSWORD=***REMOVED-DB_PASSWORD***
+DB_USER=postgres
+DB_PASSWORD=postgres
 DB_SSL=false
 ```
 
@@ -180,7 +180,7 @@ DB_SSL=false
 BACKEND_PORT=5001
 BACKEND_HOST=localhost
 NODE_ENV=development
-JWT_SECRET=***REMOVED-JWT_SECRET***
+JWT_SECRET=<jwt-secret>
 JWT_EXPIRES_IN=24h
 ```
 
@@ -232,7 +232,7 @@ EMAIL_ENABLED=false
 EMAIL_HOST=smtp.gmail.com
 EMAIL_PORT=587
 EMAIL_USER=your-email@gmail.com
-EMAIL_PASS=***REMOVED-EMAIL_PASS***
+EMAIL_PASS=<email-app-password>
 EMAIL_FROM=your-email@gmail.com
 ```
 
@@ -311,7 +311,7 @@ validate() {
 #### **4. Categorized Access**
 ```javascript
 // Get specific configuration categories
-const ***REMOVED-KEYCLOAK_DB_PASSWORD*** = config.getKeycloak();
+const keycloak = config.getKeycloak();
 const database = config.getDatabase();
 const backend = config.getBackend();
 const frontend = config.getFrontend();
@@ -329,16 +329,16 @@ const deployment = config.getDeployment();
 
 ### **1. In Backend Services**
 ```javascript
-// backend/services/***REMOVED-KEYCLOAK_DB_PASSWORD***Service.js
+// backend/services/keycloakService.js
 const config = require('../scripts/config-loader');
 
 class KeycloakService {
   constructor() {
-    this.***REMOVED-KEYCLOAK_DB_PASSWORD*** = config.getKeycloak();
-    this.baseUrl = this.***REMOVED-KEYCLOAK_DB_PASSWORD***.url;
-    this.realm = this.***REMOVED-KEYCLOAK_DB_PASSWORD***.realm;
-    this.adminUser = this.***REMOVED-KEYCLOAK_DB_PASSWORD***.adminUser;
-    this.adminPassword = this.***REMOVED-KEYCLOAK_DB_PASSWORD***.adminPassword;
+    this.keycloak = config.getKeycloak();
+    this.baseUrl = this.keycloak.url;
+    this.realm = this.keycloak.realm;
+    this.adminUser = this.keycloak.adminUser;
+    this.adminPassword = this.keycloak.adminPassword;
   }
 }
 ```
@@ -350,14 +350,14 @@ load_config() {
     CONFIG_OUTPUT=$(node -e "
         const config = require('./scripts/config-loader');
         console.log(JSON.stringify({
-            ***REMOVED-KEYCLOAK_DB_PASSWORD***: config.getKeycloak(),
+            keycloak: config.getKeycloak(),
             database: config.getDatabase(),
             backend: config.getBackend()
         }));
     ")
     
-    KEYCLOAK_URL=$(echo "$CONFIG_OUTPUT" | jq -r '.***REMOVED-KEYCLOAK_DB_PASSWORD***.url')
-    KEYCLOAK_REALM=$(echo "$CONFIG_OUTPUT" | jq -r '.***REMOVED-KEYCLOAK_DB_PASSWORD***.realm')
+    KEYCLOAK_URL=$(echo "$CONFIG_OUTPUT" | jq -r '.keycloak.url')
+    KEYCLOAK_REALM=$(echo "$CONFIG_OUTPUT" | jq -r '.keycloak.realm')
     # ... all other configs
 }
 ```
@@ -379,13 +379,13 @@ load_config() {
 
 ### **4. In Docker Compose**
 ```yaml
-# docker-compose.***REMOVED-KEYCLOAK_DB_PASSWORD***-dev.yml
+# docker-compose.keycloak-dev.yml
 services:
-  ***REMOVED-KEYCLOAK_DB_PASSWORD***:
+  keycloak:
     environment:
       KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN_USER}
       KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
-      KC_DB_URL: jdbc:***REMOVED-DB_PASSWORD***ql://***REMOVED-DB_PASSWORD***:5432/***REMOVED-KEYCLOAK_DB_PASSWORD***
+      KC_DB_URL: jdbc:postgresql://postgres:5432/keycloak
     ports:
       - "${DOCKER_KEYCLOAK_PORT}:8443"
 ```
@@ -427,7 +427,7 @@ services:
 ### **Phase 2: Update Existing Scripts**
 1. 🔄 Update `fix-auth.sh` to use centralized config
 2. 🔄 Update `fix-database-setup.sh` to use centralized config
-3. 🔄 Update `fix-***REMOVED-KEYCLOAK_DB_PASSWORD***.sh` to use centralized config
+3. 🔄 Update `fix-keycloak.sh` to use centralized config
 
 ### **Phase 3: Update Services**
 1. 🔄 Update backend services to use centralized config
@@ -445,7 +445,7 @@ services:
 ```javascript
 // ✅ Good
 const config = require('./scripts/config-loader');
-const ***REMOVED-KEYCLOAK_DB_PASSWORD*** = config.getKeycloak();
+const keycloak = config.getKeycloak();
 
 // ❌ Bad
 const KEYCLOAK_URL = 'https://localhost:8443';
@@ -458,14 +458,14 @@ const config = require('./scripts/config-loader');
 config.validate(); // Throws error if required configs missing
 
 // ❌ Bad
-const ***REMOVED-KEYCLOAK_DB_PASSWORD*** = config.getKeycloak();
+const keycloak = config.getKeycloak();
 // No validation - might fail at runtime
 ```
 
 ### **3. Use Environment Overrides**
 ```bash
 # ✅ Good
-export KEYCLOAK_URL=https://production.***REMOVED-KEYCLOAK_DB_PASSWORD***.com
+export KEYCLOAK_URL=https://production.keycloak.com
 node server.js
 
 # ❌ Bad
@@ -475,13 +475,13 @@ node server.js
 ### **4. Categorize Access**
 ```javascript
 // ✅ Good
-const ***REMOVED-KEYCLOAK_DB_PASSWORD*** = config.getKeycloak();
+const keycloak = config.getKeycloak();
 const database = config.getDatabase();
 
 // ❌ Bad
-const ***REMOVED-KEYCLOAK_DB_PASSWORD***Url = config.get('KEYCLOAK_URL');
-const ***REMOVED-KEYCLOAK_DB_PASSWORD***Realm = config.get('KEYCLOAK_REALM');
-// ... repeat for all ***REMOVED-KEYCLOAK_DB_PASSWORD*** configs
+const keycloakUrl = config.get('KEYCLOAK_URL');
+const keycloakRealm = config.get('KEYCLOAK_REALM');
+// ... repeat for all keycloak configs
 ```
 
 ## 📋 **Configuration Checklist**

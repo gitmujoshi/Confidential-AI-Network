@@ -29,7 +29,7 @@ else
 fi
 
 # Check if we're in the right directory
-if [ ! -f "docker-compose.***REMOVED-KEYCLOAK_DB_PASSWORD***-dev.yml" ]; then
+if [ ! -f "docker-compose.keycloak-dev.yml" ]; then
     echo -e "${RED}❌ Please run this script from the project root directory${NC}"
     exit 1
 fi
@@ -63,7 +63,7 @@ echo -e "${GREEN}✅ SCITT CCF services stopped${NC}"
 
 # Step 4: Stop Keycloak and Database
 echo -e "${BLUE}🔐 Step 4: Stopping Keycloak and Database...${NC}"
-docker-compose -f docker-compose.***REMOVED-KEYCLOAK_DB_PASSWORD***-dev.yml down 2>/dev/null || true
+docker-compose -f docker-compose.keycloak-dev.yml down 2>/dev/null || true
 echo -e "${GREEN}✅ Keycloak and Database stopped${NC}"
 
 # Step 5: Clean up any remaining processes

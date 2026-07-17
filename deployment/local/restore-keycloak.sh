@@ -36,17 +36,17 @@ PROJECT_ROOT="$(dirname "$(dirname "$SCRIPT_DIR")")"
 if [ $# -eq 0 ]; then
     echo "Usage: $0 <backup_name>"
     echo "Available backups:"
-    ls -1 "$PROJECT_ROOT/***REMOVED-KEYCLOAK_DB_PASSWORD***-backups" 2>/dev/null || echo "No backups found"
+    ls -1 "$PROJECT_ROOT/keycloak-backups" 2>/dev/null || echo "No backups found"
     exit 1
 fi
 
 BACKUP_NAME=$1
-BACKUP_PATH="$PROJECT_ROOT/***REMOVED-KEYCLOAK_DB_PASSWORD***-backups/$BACKUP_NAME"
+BACKUP_PATH="$PROJECT_ROOT/keycloak-backups/$BACKUP_NAME"
 
 if [ ! -d "$BACKUP_PATH" ]; then
     print_error "Backup '$BACKUP_NAME' not found"
     echo "Available backups:"
-    ls -1 "$PROJECT_ROOT/***REMOVED-KEYCLOAK_DB_PASSWORD***-backups" 2>/dev/null || echo "No backups found"
+    ls -1 "$PROJECT_ROOT/keycloak-backups" 2>/dev/null || echo "No backups found"
     exit 1
 fi
 
@@ -56,13 +56,13 @@ echo "🔄 Restoring Keycloak from backup: $BACKUP_NAME"
 get_admin_token() {
     local response=$(curl -k -s -X POST "${KEYCLOAK_URL:-https://localhost:8443}/realms/master/protocol/openid-connect/token" \
         -H "Content-Type: application/x-www-form-urlencoded" \
-        -d "grant_type=password&client_id=admin-cli&username=${KEYCLOAK_ADMIN_USER:-admin}&password=${KEYCLOAK_ADMIN_PASSWORD:-***REMOVED-KEYCLOAK_ADMIN_PASSWORD***}")
+        -d "grant_type=password&client_id=admin-cli&username=${KEYCLOAK_ADMIN_USER:-admin}&password=${KEYCLOAK_ADMIN_PASSWORD:-admin123}")
     
     echo "$response" | grep -o '"access_token":"[^"]*"' | cut -d'"' -f4
 }
 
 # Function to wait for Keycloak to be ready
-wait_for_***REMOVED-KEYCLOAK_DB_PASSWORD***() {
+wait_for_keycloak() {
     print_status "Waiting for Keycloak to be ready..."
     local max_attempts=30
     local attempt=1
@@ -155,7 +155,7 @@ import_users() {
 }
 
 # Main restore function
-restore_***REMOVED-KEYCLOAK_DB_PASSWORD***() {
+restore_keycloak() {
     # Check if Keycloak is running
     if ! curl -k -s "${KEYCLOAK_URL:-https://localhost:8443}/realms/master" >/dev/null 2>&1; then
         print_error "Keycloak is not running. Please start Keycloak first."
@@ -189,8 +189,8 @@ restore_***REMOVED-KEYCLOAK_DB_PASSWORD***() {
     # Restore persistent data if available
     if [ -d "$BACKUP_PATH/data" ]; then
         print_status "Restoring persistent data..."
-        rm -rf "$PROJECT_ROOT/***REMOVED-KEYCLOAK_DB_PASSWORD***-data"
-        cp -r "$BACKUP_PATH/data" "$PROJECT_ROOT/***REMOVED-KEYCLOAK_DB_PASSWORD***-data"
+        rm -rf "$PROJECT_ROOT/keycloak-data"
+        cp -r "$BACKUP_PATH/data" "$PROJECT_ROOT/keycloak-data"
         print_success "Persistent data restored"
     else
         print_warning "No persistent data found in backup"
@@ -202,4 +202,4 @@ restore_***REMOVED-KEYCLOAK_DB_PASSWORD***() {
 }
 
 # Run restore
-restore_***REMOVED-KEYCLOAK_DB_PASSWORD*** 
+restore_keycloak 

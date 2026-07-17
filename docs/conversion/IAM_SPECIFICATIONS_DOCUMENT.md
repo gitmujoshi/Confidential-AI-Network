@@ -117,7 +117,7 @@ JWT_EXPIRES_IN=24h
 
 ### 2. Keycloak Integration
 
-**Implementation Location**: `backend/services/***REMOVED-KEYCLOAK_DB_PASSWORD***Service.js`
+**Implementation Location**: `backend/services/keycloakService.js`
 
 **Features**:
 - Enterprise SSO integration
@@ -1154,7 +1154,7 @@ JWT_SECRET=your-super-secret-jwt-key-here
 JWT_EXPIRES_IN=24h
 
 # Keycloak
-KEYCLOAK_URL=https://***REMOVED-KEYCLOAK_DB_PASSWORD***.company.com
+KEYCLOAK_URL=https://keycloak.company.com
 KEYCLOAK_REALM=contract-management
 KEYCLOAK_CLIENT_ID=contract-management-frontend
 KEYCLOAK_CLIENT_SECRET=your_client_secret_here

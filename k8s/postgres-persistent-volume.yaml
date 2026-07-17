@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: PersistentVolume
 metadata:
-  name: ***REMOVED-DB_PASSWORD***-pv
+  name: postgres-pv
   namespace: contract-management
 spec:
   capacity:
@@ -11,12 +11,12 @@ spec:
   persistentVolumeReclaimPolicy: Retain
   storageClassName: local-storage
   hostPath:
-    path: /data/***REMOVED-DB_PASSWORD***
+    path: /data/postgres
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: ***REMOVED-DB_PASSWORD***-pvc
+  name: postgres-pvc
   namespace: contract-management
 spec:
   accessModes:

@@ -6,7 +6,7 @@
  * 
  * Prerequisites:
  * - Keycloak running on http://localhost:8080
- * - Admin credentials: admin/***REMOVED-KEYCLOAK_ADMIN_PASSWORD***
+ * - Admin credentials: admin/admin123
  * 
  * Usage:
  * node scripts/setupKeycloak.js
@@ -19,7 +19,7 @@ const path = require('path');
 // Keycloak configuration
 const KEYCLOAK_BASE_URL = 'http://localhost:8080';
 const ADMIN_USERNAME = 'admin';
-const ADMIN_PASSWORD = '***REMOVED-KEYCLOAK_ADMIN_PASSWORD***';
+const ADMIN_PASSWORD = 'admin123';
 const REALM_NAME = 'contract-management';
 
 // Client configurations

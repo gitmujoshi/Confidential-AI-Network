@@ -18,8 +18,8 @@
 
 const express = require('express');
 const router = express.Router();
-const KeycloakService = require('../services/***REMOVED-KEYCLOAK_DB_PASSWORD***Service');
-const ***REMOVED-KEYCLOAK_DB_PASSWORD***Service = new KeycloakService();
+const KeycloakService = require('../services/keycloakService');
+const keycloakService = new KeycloakService();
 const db = require('../models');
 const tokenBlacklist = require('../tokenBlacklist');
 const { 
@@ -231,8 +231,8 @@ router.post('/register', logAuthEvent('REGISTER'), async (req, res) => {
     }
 
     // --- TRANSACTION-BASED USER CREATION ---
-    let ***REMOVED-KEYCLOAK_DB_PASSWORD***Result = null;
-    let ***REMOVED-KEYCLOAK_DB_PASSWORD***Success = false;
+    let keycloakResult = null;
+    let keycloakSuccess = false;
 
     let dbUser = null;
     let dbSuccess = false;
@@ -245,7 +245,7 @@ router.post('/register', logAuthEvent('REGISTER'), async (req, res) => {
       if (process.env.KEYCLOAK_ENABLED === 'true') {
         try {
           console.log('🔐 Creating user in Keycloak...');
-          ***REMOVED-KEYCLOAK_DB_PASSWORD***Result = await ***REMOVED-KEYCLOAK_DB_PASSWORD***Service.createUser({
+          keycloakResult = await keycloakService.createUser({
             username: email,
             email: email,
             name: name,
@@ -257,11 +257,11 @@ router.post('/register', logAuthEvent('REGISTER'), async (req, res) => {
             location: location || '',
             walletAddress: walletAddress || null
           });
-          ***REMOVED-KEYCLOAK_DB_PASSWORD***Success = true;
+          keycloakSuccess = true;
           console.log('✅ Keycloak user created successfully:', {
-            ***REMOVED-KEYCLOAK_DB_PASSWORD***UserId: ***REMOVED-KEYCLOAK_DB_PASSWORD***Result.***REMOVED-KEYCLOAK_DB_PASSWORD***UserId,
-            username: ***REMOVED-KEYCLOAK_DB_PASSWORD***Result.username,
-            email: ***REMOVED-KEYCLOAK_DB_PASSWORD***Result.email
+            keycloakUserId: keycloakResult.keycloakUserId,
+            username: keycloakResult.username,
+            email: keycloakResult.email
           });
         } catch (kcError) {
           console.error('❌ Keycloak user creation failed:', kcError);
@@ -343,8 +343,8 @@ router.post('/register', logAuthEvent('REGISTER'), async (req, res) => {
           onboardingStatus: 'IN_PROGRESS',
           profileCompleted: false,
           emailVerified: false,
-          iamUserId: ***REMOVED-KEYCLOAK_DB_PASSWORD***Result.***REMOVED-KEYCLOAK_DB_PASSWORD***UserId,
-          iamUsername: ***REMOVED-KEYCLOAK_DB_PASSWORD***Result.username,
+          iamUserId: keycloakResult.keycloakUserId,
+          iamUsername: keycloakResult.username,
           firstLogin: !password // Set firstLogin to true if no password was provided (temporary password generated)
         }, { transaction });
         dbSuccess = true;
@@ -368,13 +368,13 @@ router.post('/register', logAuthEvent('REGISTER'), async (req, res) => {
           onboardingStatus: 'IN_PROGRESS',
           did: did,
           didSource: didSource,
-          iamIntegrated: ***REMOVED-KEYCLOAK_DB_PASSWORD***Success
+          iamIntegrated: keycloakSuccess
         }
       }, { transaction });
 
       // Step 4: Commit transaction if everything succeeded
       await transaction.commit();
-      console.log(`✅ User registered successfully: ${dbUser.id} (Keycloak: ${***REMOVED-KEYCLOAK_DB_PASSWORD***Result?.***REMOVED-KEYCLOAK_DB_PASSWORD***UserId})`);
+      console.log(`✅ User registered successfully: ${dbUser.id} (Keycloak: ${keycloakResult?.keycloakUserId})`);
 
     } catch (transactionError) {
       // Rollback transaction on any unexpected error
@@ -386,7 +386,7 @@ router.post('/register', logAuthEvent('REGISTER'), async (req, res) => {
         code: 'TRANSACTION_FAILED',
         details: {
           db: false,
-          ***REMOVED-KEYCLOAK_DB_PASSWORD***: false,
+          keycloak: false,
           blockchain: false,
           note: 'An unexpected error occurred during registration. Please try again.'
         },
@@ -415,7 +415,7 @@ router.post('/register', logAuthEvent('REGISTER'), async (req, res) => {
 
     // --- TRIGGER EMAIL VERIFICATION (after successful transaction) ---
     try {
-      await ***REMOVED-KEYCLOAK_DB_PASSWORD***Service.sendEmailVerification(***REMOVED-KEYCLOAK_DB_PASSWORD***Result.***REMOVED-KEYCLOAK_DB_PASSWORD***UserId);
+      await keycloakService.sendEmailVerification(keycloakResult.keycloakUserId);
     } catch (emailError) {
       console.warn('⚠️ Failed to trigger Keycloak email verification:', emailError.message);
     }
@@ -425,7 +425,7 @@ router.post('/register', logAuthEvent('REGISTER'), async (req, res) => {
       success: true,
       details: {
         db: dbSuccess,
-        ***REMOVED-KEYCLOAK_DB_PASSWORD***: ***REMOVED-KEYCLOAK_DB_PASSWORD***Success,
+        keycloak: keycloakSuccess,
         blockchain: blockchainSuccess,
         note: isKeycloakEnabled ? blockchainNote : 'Registration successful without IAM integration. You can enable Keycloak later for enhanced authentication features.'
       },
@@ -454,7 +454,7 @@ router.post('/register', logAuthEvent('REGISTER'), async (req, res) => {
         note: 'Use these credentials to log in. This is the password you provided during registration.'
       } : {
         email: dbUser.email,
-        password: ***REMOVED-KEYCLOAK_DB_PASSWORD***Result.temporaryPassword,
+        password: keycloakResult.temporaryPassword,
         note: 'Use these credentials to log in. This is a temporary password that should be changed on first login.'
       },
       nextSteps: [
@@ -593,7 +593,7 @@ router.post('/login', logAuthEvent('LOGIN'), async (req, res) => {
       }
       
       // Use iamUsername for Keycloak authentication
-      const tokenResponse = await ***REMOVED-KEYCLOAK_DB_PASSWORD***Service.authenticateUserWithPassword(user.iamUsername, password);
+      const tokenResponse = await keycloakService.authenticateUserWithPassword(user.iamUsername, password);
       
       // Update last login timestamp in local DB
       await user.update({ lastLoginAt: new Date() });
@@ -714,7 +714,7 @@ router.post('/refresh', async (req, res) => {
     // Try Keycloak token refresh first
     if (process.env.KEYCLOAK_ENABLED === 'true') {
       try {
-        const tokenResponse = await ***REMOVED-KEYCLOAK_DB_PASSWORD***Service.refreshToken(refreshToken);
+        const tokenResponse = await keycloakService.refreshToken(refreshToken);
         
         return res.json({
           message: 'Token refreshed successfully',
@@ -823,12 +823,12 @@ router.post('/first-login-password', logAuthEvent('FIRST_LOGIN_PASSWORD'), async
       console.log('🔐 [First-Login] Using admin API to update password for first-login user:', user.email);
       
       // Update password in Keycloak using admin API
-      await ***REMOVED-KEYCLOAK_DB_PASSWORD***Service.updateUserPassword(user.iamUserId, newPassword);
+      await keycloakService.updateUserPassword(user.iamUserId, newPassword);
       console.log('🔐 [First-Login] Password updated in Keycloak successfully');
       
       // Remove any required actions (like UPDATE_PASSWORD) since user has set their password
       try {
-        await ***REMOVED-KEYCLOAK_DB_PASSWORD***Service.removeRequiredAction(user.iamUserId, 'UPDATE_PASSWORD');
+        await keycloakService.removeRequiredAction(user.iamUserId, 'UPDATE_PASSWORD');
         console.log('🔐 [First-Login] Removed UPDATE_PASSWORD required action');
       } catch (actionError) {
         console.warn('⚠️ [First-Login] Could not remove required action:', actionError.message);
@@ -906,10 +906,10 @@ router.post('/update-password', authenticateToken, logAuthEvent('UPDATE_PASSWORD
 
     try {
       // Verify current password with Keycloak
-      await ***REMOVED-KEYCLOAK_DB_PASSWORD***Service.authenticateUserWithPassword(localUser.email, currentPassword);
+      await keycloakService.authenticateUserWithPassword(localUser.email, currentPassword);
       
       // Update password in Keycloak
-      await ***REMOVED-KEYCLOAK_DB_PASSWORD***Service.updateUserPassword(localUser.iamUserId, newPassword);
+      await keycloakService.updateUserPassword(localUser.iamUserId, newPassword);
       
       // Clear first login flag if this was a first-time password change
       if (localUser.firstLogin) {
@@ -1013,7 +1013,7 @@ router.put('/profile', authenticateToken, logAuthEvent('UPDATE_PROFILE'), async 
     // Update user in Keycloak if IAM user exists
     if (localUser.iamUserId) {
       try {
-        await ***REMOVED-KEYCLOAK_DB_PASSWORD***Service.updateUser(localUser.iamUserId, {
+        await keycloakService.updateUser(localUser.iamUserId, {
           name: localUser.name,
           attributes: {
             walletAddress: [localUser.walletAddress],
@@ -1026,8 +1026,8 @@ router.put('/profile', authenticateToken, logAuthEvent('UPDATE_PROFILE'), async 
             profileCompleted: ['true']
           }
         });
-      } catch (***REMOVED-KEYCLOAK_DB_PASSWORD***Error) {
-        console.error('❌ Failed to update Keycloak user:', ***REMOVED-KEYCLOAK_DB_PASSWORD***Error);
+      } catch (keycloakError) {
+        console.error('❌ Failed to update Keycloak user:', keycloakError);
         // Continue with local update even if Keycloak fails
       }
     }
@@ -1074,12 +1074,12 @@ router.post('/verify-email', authenticateToken, logAuthEvent('SEND_EMAIL_VERIFIC
     }
 
     // Send email verification (with fallback support)
-    const result = await ***REMOVED-KEYCLOAK_DB_PASSWORD***Service.sendEmailVerification(localUser.iamUserId);
+    const result = await keycloakService.sendEmailVerification(localUser.iamUserId);
 
     res.json({
       message: result.message || 'Email verification sent successfully',
       email: localUser.email,
-      method: result.method || '***REMOVED-KEYCLOAK_DB_PASSWORD***'
+      method: result.method || 'keycloak'
     });
 
   } catch (error) {
@@ -1167,13 +1167,13 @@ router.get('/onboarding-status', authenticateToken, logAuthEvent('GET_ONBOARDING
   try {
     const localUser = req.user.localUser;
 
-    let ***REMOVED-KEYCLOAK_DB_PASSWORD***Status = null;
+    let keycloakStatus = null;
     if (localUser.iamUserId) {
       try {
-        const statusResult = await ***REMOVED-KEYCLOAK_DB_PASSWORD***Service.getOnboardingStatus(localUser.iamUserId);
-        ***REMOVED-KEYCLOAK_DB_PASSWORD***Status = statusResult;
-      } catch (***REMOVED-KEYCLOAK_DB_PASSWORD***Error) {
-        console.error('❌ Failed to get Keycloak onboarding status:', ***REMOVED-KEYCLOAK_DB_PASSWORD***Error);
+        const statusResult = await keycloakService.getOnboardingStatus(localUser.iamUserId);
+        keycloakStatus = statusResult;
+      } catch (keycloakError) {
+        console.error('❌ Failed to get Keycloak onboarding status:', keycloakError);
       }
     }
 
@@ -1183,8 +1183,8 @@ router.get('/onboarding-status', authenticateToken, logAuthEvent('GET_ONBOARDING
         profileCompleted: localUser.profileCompleted,
         emailVerified: localUser.emailVerified
       },
-      ***REMOVED-KEYCLOAK_DB_PASSWORD***Status: ***REMOVED-KEYCLOAK_DB_PASSWORD***Status,
-      nextSteps: getNextSteps(localUser, ***REMOVED-KEYCLOAK_DB_PASSWORD***Status)
+      keycloakStatus: keycloakStatus,
+      nextSteps: getNextSteps(localUser, keycloakStatus)
     });
 
   } catch (error) {
@@ -1220,14 +1220,14 @@ router.post('/complete-onboarding', authenticateToken, logAuthEvent('COMPLETE_ON
     // Update Keycloak if IAM user exists
     if (localUser.iamUserId) {
       try {
-        await ***REMOVED-KEYCLOAK_DB_PASSWORD***Service.updateUser(localUser.iamUserId, {
+        await keycloakService.updateUser(localUser.iamUserId, {
           attributes: {
             onboardingCompleted: ['true'],
             onboardingCompletedAt: [new Date().toISOString()]
           }
         });
-      } catch (***REMOVED-KEYCLOAK_DB_PASSWORD***Error) {
-        console.error('❌ Failed to update Keycloak onboarding status:', ***REMOVED-KEYCLOAK_DB_PASSWORD***Error);
+      } catch (keycloakError) {
+        console.error('❌ Failed to update Keycloak onboarding status:', keycloakError);
       }
     }
 
@@ -1568,11 +1568,11 @@ router.post('/forgot-password', logAuthEvent('FORGOT_PASSWORD'), async (req, res
     let emailSent = false;
     if (user.iamUserId) {
       try {
-        await ***REMOVED-KEYCLOAK_DB_PASSWORD***Service.sendPasswordResetEmail(user.iamUserId);
+        await keycloakService.sendPasswordResetEmail(user.iamUserId);
         emailSent = true;
         console.log('✅ Password reset email sent via Keycloak');
-      } catch (***REMOVED-KEYCLOAK_DB_PASSWORD***Error) {
-        console.warn('⚠️ Failed to send password reset via Keycloak:', ***REMOVED-KEYCLOAK_DB_PASSWORD***Error.message);
+      } catch (keycloakError) {
+        console.warn('⚠️ Failed to send password reset via Keycloak:', keycloakError.message);
       }
     }
 
@@ -1671,14 +1671,14 @@ router.post('/reset-password', logAuthEvent('RESET_PASSWORD'), async (req, res) 
     }
 
     // Update password in Keycloak if IAM user exists
-    let ***REMOVED-KEYCLOAK_DB_PASSWORD***Updated = false;
+    let keycloakUpdated = false;
     if (user.iamUserId) {
       try {
-        await ***REMOVED-KEYCLOAK_DB_PASSWORD***Service.updateUserPassword(user.iamUserId, newPassword);
-        ***REMOVED-KEYCLOAK_DB_PASSWORD***Updated = true;
+        await keycloakService.updateUserPassword(user.iamUserId, newPassword);
+        keycloakUpdated = true;
         console.log('✅ Password updated in Keycloak');
-      } catch (***REMOVED-KEYCLOAK_DB_PASSWORD***Error) {
-        console.error('❌ Failed to update password in Keycloak:', ***REMOVED-KEYCLOAK_DB_PASSWORD***Error.message);
+      } catch (keycloakError) {
+        console.error('❌ Failed to update password in Keycloak:', keycloakError.message);
         // Continue with local update even if Keycloak fails
       }
     }
@@ -1699,14 +1699,14 @@ router.post('/reset-password', logAuthEvent('RESET_PASSWORD'), async (req, res) 
       isRead: false,
       metadata: {
         resetTime: new Date().toISOString(),
-        ***REMOVED-KEYCLOAK_DB_PASSWORD***Updated: ***REMOVED-KEYCLOAK_DB_PASSWORD***Updated
+        keycloakUpdated: keycloakUpdated
       }
     });
 
     res.json({
       success: true,
       message: 'Password reset successfully',
-      note: ***REMOVED-KEYCLOAK_DB_PASSWORD***Updated ? 'Password updated in both local system and IAM' : 'Password updated in local system only'
+      note: keycloakUpdated ? 'Password updated in both local system and IAM' : 'Password updated in local system only'
     });
 
   } catch (error) {
@@ -1779,7 +1779,7 @@ router.get('/verify-reset-token/:token', logAuthEvent('VERIFY_RESET_TOKEN'), asy
 /**
  * Helper function to determine next steps for onboarding
  */
-function getNextSteps(localUser, ***REMOVED-KEYCLOAK_DB_PASSWORD***Status) {
+function getNextSteps(localUser, keycloakStatus) {
   const steps = [];
 
   if (!localUser.emailVerified) {

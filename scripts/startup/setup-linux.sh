@@ -147,7 +147,7 @@ install_docker() {
 }
 
 # Function to install PostgreSQL (if not using Docker)
-install_***REMOVED-DB_PASSWORD***ql() {
+install_postgresql() {
     print_header "Installing PostgreSQL (Optional - Docker recommended)"
     
     if command_exists psql; then
@@ -156,11 +156,11 @@ install_***REMOVED-DB_PASSWORD***ql() {
     fi
     
     print_step "Installing PostgreSQL..."
-    sudo apt-get install -y ***REMOVED-DB_PASSWORD***ql ***REMOVED-DB_PASSWORD***ql-contrib
+    sudo apt-get install -y postgresql postgresql-contrib
     
     print_step "Starting PostgreSQL service..."
-    sudo systemctl enable ***REMOVED-DB_PASSWORD***ql
-    sudo systemctl start ***REMOVED-DB_PASSWORD***ql
+    sudo systemctl enable postgresql
+    sudo systemctl start postgresql
     
     print_success "PostgreSQL installed"
 }
@@ -225,7 +225,7 @@ setup_systemd_services() {
     sudo tee /etc/systemd/system/contract-management-backend.service > /dev/null <<EOF
 [Unit]
 Description=Contract Management System Backend
-After=network.target ***REMOVED-DB_PASSWORD***ql.service docker.service
+After=network.target postgresql.service docker.service
 Requires=docker.service
 
 [Service]
@@ -280,59 +280,59 @@ setup_docker_services() {
 version: '3.8'
 
 services:
-  ***REMOVED-DB_PASSWORD***-app:
-    image: ***REMOVED-DB_PASSWORD***:15
-    container_name: ***REMOVED-DB_PASSWORD***-app
+  postgres-app:
+    image: postgres:15
+    container_name: postgres-app
     environment:
       POSTGRES_DB: contract_management
-      POSTGRES_USER: ***REMOVED-DB_PASSWORD***
-      POSTGRES_PASSWORD: ***REMOVED-DB_PASSWORD***
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
     ports:
       - "5432:5432"
     volumes:
-      - ***REMOVED-DB_PASSWORD***_app_data:/var/lib/***REMOVED-DB_PASSWORD***ql/data
+      - postgres_app_data:/var/lib/postgresql/data
     restart: unless-stopped
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ***REMOVED-DB_PASSWORD***"]
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 30s
       timeout: 10s
       retries: 3
 
-  ***REMOVED-DB_PASSWORD***-***REMOVED-KEYCLOAK_DB_PASSWORD***:
-    image: ***REMOVED-DB_PASSWORD***:15
-    container_name: ***REMOVED-DB_PASSWORD***-***REMOVED-KEYCLOAK_DB_PASSWORD***
+  postgres-keycloak:
+    image: postgres:15
+    container_name: postgres-keycloak
     environment:
-      POSTGRES_DB: ***REMOVED-KEYCLOAK_DB_PASSWORD***
-      POSTGRES_USER: ***REMOVED-KEYCLOAK_DB_PASSWORD***
-      POSTGRES_PASSWORD: ***REMOVED-KEYCLOAK_DB_PASSWORD***
+      POSTGRES_DB: keycloak
+      POSTGRES_USER: keycloak
+      POSTGRES_PASSWORD: keycloak
     ports:
       - "5433:5432"
     volumes:
-      - ***REMOVED-DB_PASSWORD***_***REMOVED-KEYCLOAK_DB_PASSWORD***_data:/var/lib/***REMOVED-DB_PASSWORD***ql/data
+      - postgres_keycloak_data:/var/lib/postgresql/data
     restart: unless-stopped
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ***REMOVED-KEYCLOAK_DB_PASSWORD***"]
+      test: ["CMD-SHELL", "pg_isready -U keycloak"]
       interval: 30s
       timeout: 10s
       retries: 3
 
-  ***REMOVED-KEYCLOAK_DB_PASSWORD***:
-    image: quay.io/***REMOVED-KEYCLOAK_DB_PASSWORD***/***REMOVED-KEYCLOAK_DB_PASSWORD***:23.0
-    container_name: ***REMOVED-KEYCLOAK_DB_PASSWORD***
+  keycloak:
+    image: quay.io/keycloak/keycloak:23.0
+    container_name: keycloak
     environment:
       KEYCLOAK_ADMIN: admin
-      KEYCLOAK_ADMIN_PASSWORD: ***REMOVED-KEYCLOAK_ADMIN_PASSWORD***
-      KC_DB: ***REMOVED-DB_PASSWORD***
-      KC_DB_URL: jdbc:***REMOVED-DB_PASSWORD***ql://***REMOVED-DB_PASSWORD***-***REMOVED-KEYCLOAK_DB_PASSWORD***:5432/***REMOVED-KEYCLOAK_DB_PASSWORD***
-      KC_DB_USERNAME: ***REMOVED-KEYCLOAK_DB_PASSWORD***
-      KC_DB_PASSWORD: ***REMOVED-KEYCLOAK_DB_PASSWORD***
+      KEYCLOAK_ADMIN_PASSWORD: admin123
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://postgres-keycloak:5432/keycloak
+      KC_DB_USERNAME: keycloak
+      KC_DB_PASSWORD: keycloak
       KC_HOSTNAME_STRICT: false
       KC_HOSTNAME_STRICT_HTTPS: false
       KC_HTTP_ENABLED: true
     ports:
       - "8080:8080"
     depends_on:
-      ***REMOVED-DB_PASSWORD***-***REMOVED-KEYCLOAK_DB_PASSWORD***:
+      postgres-keycloak:
         condition: service_healthy
     restart: unless-stopped
     command: start-dev
@@ -343,8 +343,8 @@ services:
       retries: 5
 
 volumes:
-  ***REMOVED-DB_PASSWORD***_app_data:
-  ***REMOVED-DB_PASSWORD***_***REMOVED-KEYCLOAK_DB_PASSWORD***_data:
+  postgres_app_data:
+  postgres_keycloak_data:
 EOF
 
     print_success "Docker services configured"
@@ -493,7 +493,7 @@ run_initial_setup() {
     
     print_step "Setting up Keycloak..."
     cd backend
-    node setup-***REMOVED-KEYCLOAK_DB_PASSWORD***-simple.js
+    node setup-keycloak-simple.js
     cd ..
     
     print_step "Running database migrations..."
@@ -552,7 +552,7 @@ main() {
     install_system_dependencies
     install_nodejs
     install_docker
-    install_***REMOVED-DB_PASSWORD***ql
+    install_postgresql
     
     # Setup environment
     setup_project_environment

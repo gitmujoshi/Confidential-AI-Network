@@ -151,7 +151,7 @@ kubectl apply -f k8s/local-deployment-minikube.yaml
 
 ### 4. Wait for Pods
 ```bash
-kubectl wait --for=condition=ready pod -l app=***REMOVED-DB_PASSWORD*** -n contract-management --timeout=300s
+kubectl wait --for=condition=ready pod -l app=postgres -n contract-management --timeout=300s
 kubectl wait --for=condition=ready pod -l app=blockchain -n contract-management --timeout=300s
 kubectl wait --for=condition=ready pod -l app=backend -n contract-management --timeout=300s
 kubectl wait --for=condition=ready pod -l app=frontend -n contract-management --timeout=300s
@@ -176,7 +176,7 @@ kubectl logs -f deployment/frontend -n contract-management
 kubectl logs -f deployment/blockchain -n contract-management
 
 # Database logs
-kubectl logs -f deployment/***REMOVED-DB_PASSWORD*** -n contract-management
+kubectl logs -f deployment/postgres -n contract-management
 ```
 
 ### Port Forwarding (if services don't work)
@@ -197,7 +197,7 @@ kubectl port-forward service/blockchain-service 8545:8545 -n contract-management
 kubectl exec -it deployment/backend -n contract-management -- /bin/sh
 
 # Database pod
-kubectl exec -it deployment/***REMOVED-DB_PASSWORD*** -n contract-management -- psql -U ***REMOVED-DB_PASSWORD***
+kubectl exec -it deployment/postgres -n contract-management -- psql -U postgres
 ```
 
 ## 🧹 Cleanup
@@ -216,7 +216,7 @@ kubectl delete -f k8s/local-deployment.yaml
 kubectl delete storageclass local-storage
 
 # Remove data directory
-rm -rf /tmp/***REMOVED-DB_PASSWORD***-data
+rm -rf /tmp/postgres-data
 ```
 
 ### Complete Reset
@@ -252,7 +252,7 @@ kind create cluster
 3. **Storage issues**
    ```bash
    kubectl get pv,pvc -n contract-management
-   kubectl describe pvc ***REMOVED-DB_PASSWORD***-pvc -n contract-management
+   kubectl describe pvc postgres-pvc -n contract-management
    ```
 
 4. **Image pull errors**

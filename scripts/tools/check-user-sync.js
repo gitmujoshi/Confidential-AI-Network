@@ -4,7 +4,7 @@ const axios = require('axios');
 async function getKeycloakToken() {
     try {
         const response = await axios.post('http://localhost:8080/realms/master/protocol/openid-connect/token', 
-            'grant_type=password&client_id=admin-cli&username=admin&password=***REMOVED-KEYCLOAK_ADMIN_PASSWORD***',
+            'grant_type=password&client_id=admin-cli&username=admin&password=admin123',
             {
                 headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
             }
@@ -61,16 +61,16 @@ async function checkUserSync() {
         return;
     }
 
-    const ***REMOVED-KEYCLOAK_DB_PASSWORD***Users = await getKeycloakUsers(token);
+    const keycloakUsers = await getKeycloakUsers(token);
     const databaseUsers = await getDatabaseUsers();
 
-    console.log(`📊 Keycloak users: ${***REMOVED-KEYCLOAK_DB_PASSWORD***Users.length}`);
+    console.log(`📊 Keycloak users: ${keycloakUsers.length}`);
     console.log(`📊 Database users: ${databaseUsers.length}\n`);
 
     // Create maps for easy comparison
-    const ***REMOVED-KEYCLOAK_DB_PASSWORD***Map = new Map();
-    ***REMOVED-KEYCLOAK_DB_PASSWORD***Users.forEach(user => {
-        ***REMOVED-KEYCLOAK_DB_PASSWORD***Map.set(user.email, user);
+    const keycloakMap = new Map();
+    keycloakUsers.forEach(user => {
+        keycloakMap.set(user.email, user);
     });
 
     const databaseMap = new Map();
@@ -86,15 +86,15 @@ async function checkUserSync() {
 
     // Check database users against Keycloak
     databaseUsers.forEach(dbUser => {
-        const ***REMOVED-KEYCLOAK_DB_PASSWORD***User = ***REMOVED-KEYCLOAK_DB_PASSWORD***Map.get(dbUser.email);
-        if (***REMOVED-KEYCLOAK_DB_PASSWORD***User) {
+        const keycloakUser = keycloakMap.get(dbUser.email);
+        if (keycloakUser) {
             // Check if iamUserId is set correctly
-            if (dbUser.iamUserId === ***REMOVED-KEYCLOAK_DB_PASSWORD***User.id) {
+            if (dbUser.iamUserId === keycloakUser.id) {
                 inSync.push({
                     email: dbUser.email,
                     name: dbUser.name,
                     partyType: dbUser.partyType,
-                    ***REMOVED-KEYCLOAK_DB_PASSWORD***Id: ***REMOVED-KEYCLOAK_DB_PASSWORD***User.id,
+                    keycloakId: keycloakUser.id,
                     databaseId: dbUser.id
                 });
             } else {
@@ -102,7 +102,7 @@ async function checkUserSync() {
                     email: dbUser.email,
                     name: dbUser.name,
                     partyType: dbUser.partyType,
-                    ***REMOVED-KEYCLOAK_DB_PASSWORD***Id: ***REMOVED-KEYCLOAK_DB_PASSWORD***User.id,
+                    keycloakId: keycloakUser.id,
                     databaseId: dbUser.id,
                     databaseIamUserId: dbUser.iamUserId
                 });
@@ -113,9 +113,9 @@ async function checkUserSync() {
     });
 
     // Check for users only in Keycloak
-    ***REMOVED-KEYCLOAK_DB_PASSWORD***Users.forEach(***REMOVED-KEYCLOAK_DB_PASSWORD***User => {
-        if (!databaseMap.has(***REMOVED-KEYCLOAK_DB_PASSWORD***User.email)) {
-            onlyInKeycloak.push(***REMOVED-KEYCLOAK_DB_PASSWORD***User);
+    keycloakUsers.forEach(keycloakUser => {
+        if (!databaseMap.has(keycloakUser.email)) {
+            onlyInKeycloak.push(keycloakUser);
         }
     });
 
@@ -125,7 +125,7 @@ async function checkUserSync() {
         console.log('   None');
     } else {
         inSync.forEach(user => {
-            console.log(`   - ${user.email} (${user.partyType}) - DB:${user.databaseId}, KC:${user.***REMOVED-KEYCLOAK_DB_PASSWORD***Id}`);
+            console.log(`   - ${user.email} (${user.partyType}) - DB:${user.databaseId}, KC:${user.keycloakId}`);
         });
     }
 
@@ -134,7 +134,7 @@ async function checkUserSync() {
         console.log('   None');
     } else {
         outOfSync.forEach(user => {
-            console.log(`   - ${user.email} (${user.partyType}) - DB:${user.databaseId}, KC:${user.***REMOVED-KEYCLOAK_DB_PASSWORD***Id}, DB iamUserId: ${user.databaseIamUserId}`);
+            console.log(`   - ${user.email} (${user.partyType}) - DB:${user.databaseId}, KC:${user.keycloakId}, DB iamUserId: ${user.databaseIamUserId}`);
         });
     }
 

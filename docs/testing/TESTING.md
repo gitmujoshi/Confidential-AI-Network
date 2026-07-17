@@ -134,7 +134,7 @@ Ensure the test environment is properly set up:
 
 ```bash
 # Check if test data exists
-docker exec ***REMOVED-DB_PASSWORD***-app psql -U ***REMOVED-DB_PASSWORD*** -d contract_management -c "SELECT COUNT(*) FROM users;"
+docker exec postgres-app psql -U postgres -d contract_management -c "SELECT COUNT(*) FROM users;"
 
 # Expected results:
 # - 8 users (TDP, TDC, CCRP, Admin)
@@ -219,16 +219,16 @@ The test suites use comprehensive test data created by `create-test-data.js`:
 
 ```bash
 # Check user count
-docker exec ***REMOVED-DB_PASSWORD***-app psql -U ***REMOVED-DB_PASSWORD*** -d contract_management -c "SELECT party_type, COUNT(*) FROM users GROUP BY party_type;"
+docker exec postgres-app psql -U postgres -d contract_management -c "SELECT party_type, COUNT(*) FROM users GROUP BY party_type;"
 
 # Check dataset count
-docker exec ***REMOVED-DB_PASSWORD***-app psql -U ***REMOVED-DB_PASSWORD*** -d contract_management -c "SELECT COUNT(*) FROM datasets;"
+docker exec postgres-app psql -U postgres -d contract_management -c "SELECT COUNT(*) FROM datasets;"
 
 # Check AI model count
-docker exec ***REMOVED-DB_PASSWORD***-app psql -U ***REMOVED-DB_PASSWORD*** -d contract_management -c "SELECT COUNT(*) FROM ai_models;"
+docker exec postgres-app psql -U postgres -d contract_management -c "SELECT COUNT(*) FROM ai_models;"
 
 # Check contract count
-docker exec ***REMOVED-DB_PASSWORD***-app psql -U ***REMOVED-DB_PASSWORD*** -d contract_management -c "SELECT COUNT(*) FROM contracts;"
+docker exec postgres-app psql -U postgres -d contract_management -c "SELECT COUNT(*) FROM contracts;"
 ```
 
 ### **Recreating Test Data**
@@ -260,7 +260,7 @@ BLOCKCHAIN_ENABLED=true
 KEYCLOAK_ENABLED=true
 
 # Test database
-DATABASE_URL=***REMOVED-DB_PASSWORD***ql://***REMOVED-DB_PASSWORD***:***REMOVED-DB_PASSWORD***@localhost:5432/contract_management_test
+DATABASE_URL=postgresql://postgres:postgres@localhost:5432/contract_management_test
 
 # Test SCITT CCF
 CCF_NODE_URL=http://localhost:8000
@@ -367,7 +367,7 @@ ls -la backend/tests/scitt-ccf*.test.js
 cat .env.scitt-ccf
 
 # Verify test data exists
-docker exec ***REMOVED-DB_PASSWORD***-app psql -U ***REMOVED-DB_PASSWORD*** -d contract_management -c "SELECT COUNT(*) FROM users;"
+docker exec postgres-app psql -U postgres -d contract_management -c "SELECT COUNT(*) FROM users;"
 
 # Recreate test data if needed
 docker exec cms-backend node /app/create-test-data.js
@@ -388,13 +388,13 @@ docker exec cms-backend node /app/create-test-data.js
 #### **Database Connection Issues**
 ```bash
 # Check database connection
-docker exec ***REMOVED-DB_PASSWORD***-app psql -U ***REMOVED-DB_PASSWORD*** -d contract_management -c "SELECT 1;"
+docker exec postgres-app psql -U postgres -d contract_management -c "SELECT 1;"
 
 # Restart database
-docker-compose restart ***REMOVED-DB_PASSWORD***-app
+docker-compose restart postgres-app
 
 # Check database logs
-docker logs ***REMOVED-DB_PASSWORD***-app
+docker logs postgres-app
 ```
 
 ### **Test Debugging**

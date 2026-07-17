@@ -13,9 +13,9 @@ kubectl delete -f k8s/local-deployment.yaml --ignore-not-found=true
 echo "💾 Deleting storage class..."
 kubectl delete storageclass local-storage --ignore-not-found=true
 
-# Remove ***REMOVED-DB_PASSWORD*** data directory
-echo "📁 Removing ***REMOVED-DB_PASSWORD*** data directory..."
-rm -rf /tmp/***REMOVED-DB_PASSWORD***-data
+# Remove postgres data directory
+echo "📁 Removing postgres data directory..."
+rm -rf /tmp/postgres-data
 
 echo "✅ Cleanup completed successfully!"
 echo ""

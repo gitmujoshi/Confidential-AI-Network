@@ -189,6 +189,6 @@ Content-Type: application/json
 ---
 
 ## References
-- [Keycloak Documentation](https://www.***REMOVED-KEYCLOAK_DB_PASSWORD***.org/docs/latest/)
+- [Keycloak Documentation](https://www.keycloak.org/docs/latest/)
 - [OpenID Connect Spec](https://openid.net/specs/openid-connect-core-1_0.html)
 - [Sequelize ORM](https://sequelize.org/) 

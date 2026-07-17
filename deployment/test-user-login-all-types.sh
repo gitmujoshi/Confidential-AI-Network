@@ -36,7 +36,7 @@ echo -e "${GREEN}✅ Backend is running${NC}"
 echo -e "\n${BLUE}🔐 Testing Admin Authentication${NC}"
 ADMIN_RESPONSE=$(curl -s -X POST http://localhost:5001/api/auth/login \
     -H "Content-Type: application/json" \
-    -d '{"email":"admin@contractmanagement.com","password":"***REMOVED-KEYCLOAK_ADMIN_PASSWORD***"}')
+    -d '{"email":"admin@contractmanagement.com","password":"admin123"}')
 
 if echo "$ADMIN_RESPONSE" | grep -q "accessToken"; then
     ADMIN_TOKEN=$(echo "$ADMIN_RESPONSE" | jq -r '.accessToken')
@@ -163,7 +163,7 @@ echo -e "\n${PURPLE}👑 Testing AppAdmin User${NC}"
 echo "================================"
 
 # Test AppAdmin User
-if test_user_login "admin@contractmanagement.com" "***REMOVED-KEYCLOAK_ADMIN_PASSWORD***" "AppAdmin" "Admin User"; then
+if test_user_login "admin@contractmanagement.com" "admin123" "AppAdmin" "Admin User"; then
     APPADMIN_SUCCESS=$((APPADMIN_SUCCESS + 1))
 fi
 
@@ -248,7 +248,7 @@ echo ""
 echo -e "${PURPLE}👑 AppAdmin:${NC}"
 echo "  ✅ Successful: $APPADMIN_SUCCESS/1 users"
 echo "  📧 Tested Users:"
-echo "    - admin@contractmanagement.com (***REMOVED-KEYCLOAK_ADMIN_PASSWORD***)"
+echo "    - admin@contractmanagement.com (admin123)"
 echo ""
 
 # Overall success rate

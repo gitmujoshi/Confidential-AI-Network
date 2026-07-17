@@ -1,21 +1,21 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: ***REMOVED-DB_PASSWORD***
+  name: postgres
   namespace: contract-management
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: ***REMOVED-DB_PASSWORD***
+      app: postgres
   template:
     metadata:
       labels:
-        app: ***REMOVED-DB_PASSWORD***
+        app: postgres
     spec:
       containers:
-      - name: ***REMOVED-DB_PASSWORD***
-        image: ***REMOVED-DB_PASSWORD***:15
+      - name: postgres
+        image: postgres:15
         ports:
         - containerPort: 5432
         env:
@@ -35,21 +35,21 @@ spec:
               name: contract-management-secrets
               key: DB_PASSWORD
         volumeMounts:
-        - name: ***REMOVED-DB_PASSWORD***-storage
-          mountPath: /var/lib/***REMOVED-DB_PASSWORD***ql/data
+        - name: postgres-storage
+          mountPath: /var/lib/postgresql/data
       volumes:
-      - name: ***REMOVED-DB_PASSWORD***-storage
+      - name: postgres-storage
         persistentVolumeClaim:
-          claimName: ***REMOVED-DB_PASSWORD***-pvc
+          claimName: postgres-pvc
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: ***REMOVED-DB_PASSWORD***-service
+  name: postgres-service
   namespace: contract-management
 spec:
   selector:
-    app: ***REMOVED-DB_PASSWORD***
+    app: postgres
   ports:
   - port: 5432
     targetPort: 5432

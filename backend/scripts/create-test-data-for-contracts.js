@@ -18,10 +18,10 @@ const https = require('https');
 // Configuration
 const CONFIG = {
   backendUrl: '${BACKEND_URL:-http://localhost:5001}',
-  ***REMOVED-KEYCLOAK_DB_PASSWORD***Url: '${KEYCLOAK_URL:-https://localhost:8443}',
-  ***REMOVED-KEYCLOAK_DB_PASSWORD***Realm: 'contract-management',
+  keycloakUrl: '${KEYCLOAK_URL:-https://localhost:8443}',
+  keycloakRealm: 'contract-management',
   adminUsername: 'admin@contractmanagement.com',
-  adminPassword: '***REMOVED-KEYCLOAK_ADMIN_PASSWORD***'
+  adminPassword: 'admin123'
 };
 
 // HTTPS agent for self-signed certificates

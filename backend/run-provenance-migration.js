@@ -4,12 +4,12 @@ require('dotenv').config({ path: '../config.env' });
 // Database connection
 const sequelize = new Sequelize(
   process.env.DB_NAME || 'contract_management',
-  process.env.DB_USER || '***REMOVED-DB_PASSWORD***',
+  process.env.DB_USER || 'postgres',
   process.env.DB_PASSWORD || '',
   {
     host: process.env.DB_HOST || 'localhost',
     port: process.env.DB_PORT || 5432,
-    dialect: '***REMOVED-DB_PASSWORD***',
+    dialect: 'postgres',
     logging: false
   }
 );

@@ -34,7 +34,7 @@ async function getKeycloakToken() {
   try {
     if (!KEYCLOAK_ADMIN_PASSWORD) {
       throw new Error(
-        'Missing KEYCLOAK_ADMIN_PASSWORD. Set it in secrets.env (or environment) before running ***REMOVED-KEYCLOAK_DB_PASSWORD***:sync.'
+        'Missing KEYCLOAK_ADMIN_PASSWORD. Set it in secrets.env (or environment) before running keycloak:sync.'
       );
     }
     const response = await axiosInstance.post(`${KEYCLOAK_BASE_URL}/realms/master/protocol/openid-connect/token`, 
@@ -68,7 +68,7 @@ async function createKeycloakUser(token, userData) {
   try {
     const rawFirst = userData.name.split(' ')[0] || userData.name;
     const rawLast = userData.name.split(' ').slice(1).join(' ') || '';
-    const ***REMOVED-KEYCLOAK_DB_PASSWORD***User = {
+    const keycloakUser = {
       username: userData.email,
       email: userData.email,
       firstName: sanitizeKeycloakNamePart(rawFirst) || sanitizeKeycloakNamePart(userData.name) || 'User',
@@ -83,7 +83,7 @@ async function createKeycloakUser(token, userData) {
 
     const response = await axiosInstance.post(
       `${KEYCLOAK_BASE_URL}/admin/realms/${KEYCLOAK_REALM}/users`,
-      ***REMOVED-KEYCLOAK_DB_PASSWORD***User,
+      keycloakUser,
       {
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -180,18 +180,18 @@ async function syncUsersToKeycloak() {
         console.log(`🔄 Syncing user: ${user.name} (${user.email})`);
         
         // Create user in Keycloak
-        const ***REMOVED-KEYCLOAK_DB_PASSWORD***UserId = await createKeycloakUser(token, user);
-        console.log(`✅ Created in Keycloak with ID: ${***REMOVED-KEYCLOAK_DB_PASSWORD***UserId}`);
+        const keycloakUserId = await createKeycloakUser(token, user);
+        console.log(`✅ Created in Keycloak with ID: ${keycloakUserId}`);
 
         // Set password for synced users.
         // Default to the standard local/E2E password so UI and Playwright can log in consistently.
         const defaultPassword = process.env.KEYCLOAK_SYNC_DEFAULT_PASSWORD || 'TestNewPassword123!';
-        await setKeycloakUserPassword(token, ***REMOVED-KEYCLOAK_DB_PASSWORD***UserId, defaultPassword);
+        await setKeycloakUserPassword(token, keycloakUserId, defaultPassword);
         console.log(`✅ Password set for user`);
 
         // Update database with Keycloak user ID
         await user.update({
-          iamUserId: ***REMOVED-KEYCLOAK_DB_PASSWORD***UserId,
+          iamUserId: keycloakUserId,
           iamUsername: user.email
         });
         console.log(`✅ Updated database with Keycloak ID`);

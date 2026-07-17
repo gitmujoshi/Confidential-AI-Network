@@ -19,7 +19,7 @@ global.testTracker = {
   createdKeycloakUsers: [],
   createdDatabaseUsers: [],
   testMode: process.env.TEST_MODE || 'mock', // 'mock' or 'integration'
-  ***REMOVED-KEYCLOAK_DB_PASSWORD***Service: null,
+  keycloakService: null,
   scittCcfService: null
 };
 
@@ -46,9 +46,9 @@ beforeAll(async () => {
 
     // Initialize Keycloak service for integration tests
     try {
-      const KeycloakService = require('../services/***REMOVED-KEYCLOAK_DB_PASSWORD***Service');
-      global.testTracker.***REMOVED-KEYCLOAK_DB_PASSWORD***Service = new KeycloakService();
-      await global.testTracker.***REMOVED-KEYCLOAK_DB_PASSWORD***Service.getAdminToken();
+      const KeycloakService = require('../services/keycloakService');
+      global.testTracker.keycloakService = new KeycloakService();
+      await global.testTracker.keycloakService.getAdminToken();
       console.log('✅ Keycloak service initialized for integration tests');
     } catch (error) {
       console.warn('⚠️ Keycloak service not available, falling back to mock mode');
@@ -72,12 +72,12 @@ beforeAll(async () => {
 // Global test teardown
 afterAll(async () => {
   // Clean up Keycloak test users
-  if (global.testTracker.testMode === 'integration' && global.testTracker.***REMOVED-KEYCLOAK_DB_PASSWORD***Service) {
+  if (global.testTracker.testMode === 'integration' && global.testTracker.keycloakService) {
     try {
       console.log('🧹 Cleaning up Keycloak test users...');
       for (const userId of global.testTracker.createdKeycloakUsers) {
         try {
-          await global.testTracker.***REMOVED-KEYCLOAK_DB_PASSWORD***Service.deleteUser(userId);
+          await global.testTracker.keycloakService.deleteUser(userId);
           console.log(`✅ Deleted Keycloak user: ${userId}`);
         } catch (error) {
           console.warn(`⚠️ Failed to delete Keycloak user ${userId}:`, error.message);
@@ -148,8 +148,8 @@ expect.extend({
   },
   
   toBeValidKeycloakUserId(received) {
-    const ***REMOVED-KEYCLOAK_DB_PASSWORD***IdRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-    const pass = ***REMOVED-KEYCLOAK_DB_PASSWORD***IdRegex.test(received);
+    const keycloakIdRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    const pass = keycloakIdRegex.test(received);
     
     if (pass) {
       return {

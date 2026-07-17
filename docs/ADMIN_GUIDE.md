@@ -50,8 +50,8 @@ Useful commands:
 
 ```bash
 ./fix-auth.sh
-cd backend && node auto-fix-***REMOVED-KEYCLOAK_DB_PASSWORD***.js
-npm run ***REMOVED-KEYCLOAK_DB_PASSWORD***:sync
+cd backend && node auto-fix-keycloak.js
+npm run keycloak:sync
 ```
 
 ## 📝 Contracts and signing (admin view)

@@ -16,7 +16,7 @@ const scriptCategories = {
     // Production and utility scripts
     'setupDatabase.js',
     'setupKeycloak.js',
-    'setup-***REMOVED-KEYCLOAK_DB_PASSWORD***-realm.js',
+    'setup-keycloak-realm.js',
     'setup-comprehensive-db.js',
     'setup-test-database.js',
     'setup-users-with-github-dids.js',
@@ -68,11 +68,11 @@ const scriptCategories = {
     'set-tdp-passwords.js',
     'register-appadmin.js',
     'add-appadmin-role.js',
-    'sync-db-users-to-***REMOVED-KEYCLOAK_DB_PASSWORD***.js',
-    'sync-user-passwords-to-***REMOVED-KEYCLOAK_DB_PASSWORD***.js',
-    'sync-appadmin-from-***REMOVED-KEYCLOAK_DB_PASSWORD***.js',
-    'get-***REMOVED-KEYCLOAK_DB_PASSWORD***-client-secret.js',
-    'configure-***REMOVED-KEYCLOAK_DB_PASSWORD***-token-mapper.js',
+    'sync-db-users-to-keycloak.js',
+    'sync-user-passwords-to-keycloak.js',
+    'sync-appadmin-from-keycloak.js',
+    'get-keycloak-client-secret.js',
+    'configure-keycloak-token-mapper.js',
     'configure-email-dev.js',
     'create-tdc-user.js',
     'create-tdp-user-and-datasets.js',
@@ -84,7 +84,7 @@ const scriptCategories = {
     'update-contract-status-enum.js',
     'updateTestUserPublicKeys.js',
     'remove-modelid-from-contracts.js',
-    'cleanup-orphaned-***REMOVED-KEYCLOAK_DB_PASSWORD***-users.js',
+    'cleanup-orphaned-keycloak-users.js',
     'disable-rate-limits.js',
     'toggle-blockchain-mode.js',
     'start-integration-test-env.sh',
@@ -94,7 +94,7 @@ const scriptCategories = {
   test: [
     // Test scripts
     'test-enhanced-did-signing.js',
-    'test-***REMOVED-KEYCLOAK_DB_PASSWORD***-auth.js',
+    'test-keycloak-auth.js',
     'test-blockchain-fallback.js',
     'test-ccrp-selection.js',
     'test-contracts-fix.js',
@@ -150,12 +150,12 @@ const scriptCategories = {
     'addPublicKeyColumn.js',
     'create-ai-models-table.js',
     'assign-did-to-tdp.js',
-    'fix-***REMOVED-KEYCLOAK_DB_PASSWORD***-client-permissions.js',
-    'fix-***REMOVED-KEYCLOAK_DB_PASSWORD***-client.js',
-    'fix-***REMOVED-KEYCLOAK_DB_PASSWORD***-integration.js',
-    'fix-***REMOVED-KEYCLOAK_DB_PASSWORD***-users.js',
-    'quick-***REMOVED-KEYCLOAK_DB_PASSWORD***-fix.js',
-    'reset-***REMOVED-KEYCLOAK_DB_PASSWORD***-admin.js'
+    'fix-keycloak-client-permissions.js',
+    'fix-keycloak-client.js',
+    'fix-keycloak-integration.js',
+    'fix-keycloak-users.js',
+    'quick-keycloak-fix.js',
+    'reset-keycloak-admin.js'
   ],
   
   debug: [

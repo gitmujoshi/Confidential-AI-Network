@@ -137,7 +137,7 @@ async function validateTestEnvironment() {
     console.log('=====================================');
     console.log(`Backend URL: ${config.backend}`);
     console.log(`Frontend URL: ${config.frontend}`);
-    console.log(`Keycloak URL: ${config.***REMOVED-KEYCLOAK_DB_PASSWORD***}`);
+    console.log(`Keycloak URL: ${config.keycloak}`);
     console.log(`Database: ${config.database.host}:${config.database.port}/${config.database.name}`);
     console.log(`Test Timeout: ${config.timeout}ms`);
     console.log(`Verbose Mode: ${config.verbose}`);

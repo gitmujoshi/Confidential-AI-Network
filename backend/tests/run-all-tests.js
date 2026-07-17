@@ -32,7 +32,7 @@ const testSuites = {
       TEST_MODE: 'mock',
       NODE_ENV: 'test',
       JWT_SECRET: 'test-secret-key',
-      DATABASE_URL: '***REMOVED-DB_PASSWORD***ql://mukeshjoshi@localhost:5432/contract_management_test',
+      DATABASE_URL: 'postgresql://mukeshjoshi@localhost:5432/contract_management_test',
       BLOCKCHAIN_ENABLED: 'false',
       KEYCLOAK_ENABLED: 'false',
       SCITT_CCF_ENABLED: 'false'
@@ -55,7 +55,7 @@ const testSuites = {
       TEST_MODE: 'integration',
       NODE_ENV: 'test',
       JWT_SECRET: 'test-secret-key',
-      DATABASE_URL: '***REMOVED-DB_PASSWORD***ql://mukeshjoshi@localhost:5432/contract_management_test',
+      DATABASE_URL: 'postgresql://mukeshjoshi@localhost:5432/contract_management_test',
       BLOCKCHAIN_ENABLED: 'true',
       KEYCLOAK_ENABLED: 'true',
       KEYCLOAK_URL: 'http://localhost:8080',
@@ -85,7 +85,7 @@ const testSuites = {
       TEST_MODE: 'integration',
       NODE_ENV: 'test',
       JWT_SECRET: 'test-secret-key',
-      DATABASE_URL: '***REMOVED-DB_PASSWORD***ql://mukeshjoshi@localhost:5432/contract_management_test',
+      DATABASE_URL: 'postgresql://mukeshjoshi@localhost:5432/contract_management_test',
       BLOCKCHAIN_ENABLED: 'true',
       KEYCLOAK_ENABLED: 'true',
       SCITT_CCF_ENABLED: 'true',
@@ -123,7 +123,7 @@ const testSuites = {
       TEST_MODE: 'auto', // Will automatically choose based on service availability
       NODE_ENV: 'test',
       JWT_SECRET: 'test-secret-key',
-      DATABASE_URL: '***REMOVED-DB_PASSWORD***ql://mukeshjoshi@localhost:5432/contract_management_test',
+      DATABASE_URL: 'postgresql://mukeshjoshi@localhost:5432/contract_management_test',
       BLOCKCHAIN_ENABLED: 'auto',
       KEYCLOAK_ENABLED: 'auto',
       SCITT_CCF_ENABLED: 'auto'

@@ -52,9 +52,9 @@ logs-frontend: ## View frontend logs
 	@echo "📋 Viewing frontend logs..."
 	./dev-start.sh logs frontend
 
-logs-***REMOVED-KEYCLOAK_DB_PASSWORD***: ## View Keycloak logs
+logs-keycloak: ## View Keycloak logs
 	@echo "📋 Viewing Keycloak logs..."
-	./dev-start.sh logs ***REMOVED-KEYCLOAK_DB_PASSWORD***
+	./dev-start.sh logs keycloak
 
 # Development tools
 shell: ## Access development tools container
@@ -72,7 +72,7 @@ shell-frontend: ## Access frontend container shell
 # Database operations
 db-shell: ## Access database shell
 	@echo "🗄️ Opening database shell..."
-	docker exec -it ***REMOVED-DB_PASSWORD***-app-dev psql -U ***REMOVED-DB_PASSWORD*** -d contract_management
+	docker exec -it postgres-app-dev psql -U postgres -d contract_management
 
 db-migrate: ## Run database migrations
 	@echo "🗄️ Running database migrations..."
@@ -85,15 +85,15 @@ db-reset: ## Reset database (WARNING: This will delete all data)
 	./dev-start.sh
 
 # Keycloak operations
-***REMOVED-KEYCLOAK_DB_PASSWORD***-setup: ## Setup Keycloak
+keycloak-setup: ## Setup Keycloak
 	@echo "🔐 Setting up Keycloak..."
-	docker exec backend-dev node setup-***REMOVED-KEYCLOAK_DB_PASSWORD***-simple.js
+	docker exec backend-dev node setup-keycloak-simple.js
 
-***REMOVED-KEYCLOAK_DB_PASSWORD***-admin: ## Open Keycloak admin console
+keycloak-admin: ## Open Keycloak admin console
 	@echo "🔐 Opening Keycloak admin console..."
 	@echo "URL: http://localhost:8080"
 	@echo "Username: admin"
-	@echo "Password: ***REMOVED-KEYCLOAK_ADMIN_PASSWORD***"
+	@echo "Password: admin123"
 	@if command -v open >/dev/null 2>&1; then open http://localhost:8080; fi
 
 # Testing
@@ -188,7 +188,7 @@ monitor: ## Monitor resource usage
 # Backup
 backup: ## Backup database
 	@echo "💾 Backing up database..."
-	docker exec ***REMOVED-DB_PASSWORD***-app-dev pg_dump -U ***REMOVED-DB_PASSWORD*** contract_management > backup_$(shell date +%Y%m%d_%H%M%S).sql
+	docker exec postgres-app-dev pg_dump -U postgres contract_management > backup_$(shell date +%Y%m%d_%H%M%S).sql
 
 # Quick development workflow
 dev: setup start ## Quick development setup and start

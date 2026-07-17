@@ -159,7 +159,7 @@ const costEstimate = await awsProvider.estimateCosts(requirements);
 ```bash
 VAULT_ADDR=http://localhost:8200
 VAULT_TOKEN=dev-token-12345
-DATABASE_URL=***REMOVED-DB_PASSWORD***ql://username:password@localhost:5432/contract_management
+DATABASE_URL=postgresql://username:password@localhost:5432/contract_management
 JWT_SECRET=your-jwt-secret
 ```
 
@@ -330,7 +330,7 @@ const metrics = {
 ./setup-vault-dev.sh
 
 # Restart database
-brew services restart ***REMOVED-DB_PASSWORD***ql
+brew services restart postgresql
 
 # Clear application cache
 rm -rf node_modules/.cache
@@ -345,7 +345,7 @@ npm run migrate:reset
 tail -f backend/logs/app.log
 
 # Database logs
-tail -f /usr/local/var/log/***REMOVED-DB_PASSWORD***ql.log
+tail -f /usr/local/var/log/postgresql.log
 
 # Vault logs
 tail -f vault.log

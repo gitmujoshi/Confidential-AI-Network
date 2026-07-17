@@ -1174,7 +1174,7 @@ backend/
 │   ├── notificationService.js # Email and in-app notifications
 │   ├── didWebService.js       # DID:web management
 │   ├── didEthrService.js      # DID:ethr management
-│   ├── ***REMOVED-KEYCLOAK_DB_PASSWORD***Service.js     # Keycloak IAM integration
+│   ├── keycloakService.js     # Keycloak IAM integration
 │   ├── ldapService.js         # LDAP/AD integration
 │   └── enterpriseService.js   # Enterprise user management
 ├── models/

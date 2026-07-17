@@ -111,7 +111,7 @@ INFURA_PROJECT_ID=your_infura_project_id
 PRIVATE_KEY=your_private_key
 
 # Database Configuration
-DATABASE_URL=***REMOVED-DB_PASSWORD***ql://username:password@localhost:5432/iam_db
+DATABASE_URL=postgresql://username:password@localhost:5432/iam_db
 REDIS_URL=redis://localhost:6379
 
 # JWT Configuration

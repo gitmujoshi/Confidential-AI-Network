@@ -157,12 +157,12 @@ class AWSProvider {
   async getDatabaseTypes() {
     return [
       { name: 'RDS MySQL', value: 'mysql' },
-      { name: 'RDS PostgreSQL', value: '***REMOVED-DB_PASSWORD***ql' },
+      { name: 'RDS PostgreSQL', value: 'postgresql' },
       { name: 'RDS MariaDB', value: 'mariadb' },
       { name: 'RDS Oracle', value: 'oracle' },
       { name: 'RDS SQL Server', value: 'sqlserver' },
       { name: 'Aurora MySQL', value: 'aurora-mysql' },
-      { name: 'Aurora PostgreSQL', value: 'aurora-***REMOVED-DB_PASSWORD***ql' },
+      { name: 'Aurora PostgreSQL', value: 'aurora-postgresql' },
       { name: 'DynamoDB', value: 'dynamodb' }
     ];
   }

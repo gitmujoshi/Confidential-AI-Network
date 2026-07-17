@@ -107,13 +107,13 @@ class StartupValidator {
     
     // Validate Keycloak
     try {
-      const ***REMOVED-KEYCLOAK_DB_PASSWORD***Url = process.env.KEYCLOAK_URL;
-      if (!***REMOVED-KEYCLOAK_DB_PASSWORD***Url) {
+      const keycloakUrl = process.env.KEYCLOAK_URL;
+      if (!keycloakUrl) {
         this.errors.push('KEYCLOAK_URL environment variable is not set');
         return;
       }
       
-      const response = await axios.get(`${***REMOVED-KEYCLOAK_DB_PASSWORD***Url}/health`, { 
+      const response = await axios.get(`${keycloakUrl}/health`, { 
         timeout: 5000,
         validateStatus: () => true // Accept any status code
       });

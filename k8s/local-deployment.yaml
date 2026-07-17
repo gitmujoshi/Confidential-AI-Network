@@ -13,17 +13,17 @@ metadata:
   namespace: contract-management
 data:
   # Database Configuration
-  DB_HOST: "***REMOVED-DB_PASSWORD***-service"
+  DB_HOST: "postgres-service"
   DB_PORT: "5432"
   DB_NAME: "contract_management"
-  DB_USER: "***REMOVED-DB_PASSWORD***"
+  DB_USER: "postgres"
   
   # Blockchain Configuration
   BLOCKCHAIN_URL: "http://blockchain-service:8545"
   CONTRACT_ADDRESS: "0x5FbDB2315678afecb367f032d93F642f64180aa3"
   
   # IAM (Keycloak) Configuration
-  KEYCLOAK_URL: "http://***REMOVED-KEYCLOAK_DB_PASSWORD***-service:8080"
+  KEYCLOAK_URL: "http://keycloak-service:8080"
   KEYCLOAK_REALM: "contract-management"
   KEYCLOAK_CLIENT_ID: "contract-management-client"
   
@@ -56,7 +56,7 @@ data:
 apiVersion: v1
 kind: PersistentVolume
 metadata:
-  name: ***REMOVED-DB_PASSWORD***-pv
+  name: postgres-pv
   namespace: contract-management
 spec:
   capacity:
@@ -66,12 +66,12 @@ spec:
   persistentVolumeReclaimPolicy: Retain
   storageClassName: local-storage
   hostPath:
-    path: /tmp/***REMOVED-DB_PASSWORD***-data
+    path: /tmp/postgres-data
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: ***REMOVED-DB_PASSWORD***-pvc
+  name: postgres-pvc
   namespace: contract-management
 spec:
   accessModes:
@@ -84,21 +84,21 @@ spec:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: ***REMOVED-DB_PASSWORD***
+  name: postgres
   namespace: contract-management
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: ***REMOVED-DB_PASSWORD***
+      app: postgres
   template:
     metadata:
       labels:
-        app: ***REMOVED-DB_PASSWORD***
+        app: postgres
     spec:
       containers:
-      - name: ***REMOVED-DB_PASSWORD***
-        image: ***REMOVED-DB_PASSWORD***:15
+      - name: postgres
+        image: postgres:15
         ports:
         - containerPort: 5432
         env:
@@ -118,21 +118,21 @@ spec:
               name: contract-management-secrets
               key: DB_PASSWORD
         volumeMounts:
-        - name: ***REMOVED-DB_PASSWORD***-storage
-          mountPath: /var/lib/***REMOVED-DB_PASSWORD***ql/data
+        - name: postgres-storage
+          mountPath: /var/lib/postgresql/data
       volumes:
-      - name: ***REMOVED-DB_PASSWORD***-storage
+      - name: postgres-storage
         persistentVolumeClaim:
-          claimName: ***REMOVED-DB_PASSWORD***-pvc
+          claimName: postgres-pvc
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: ***REMOVED-DB_PASSWORD***-service
+  name: postgres-service
   namespace: contract-management
 spec:
   selector:
-    app: ***REMOVED-DB_PASSWORD***
+    app: postgres
   ports:
   - port: 5432
     targetPort: 5432

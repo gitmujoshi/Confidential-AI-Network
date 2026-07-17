@@ -40,7 +40,7 @@ ADMIN_RESPONSE=$(curl -s -X POST http://localhost:5001/api/auth/login \
     -H "Content-Type: application/json" \
     -d '{
         "email": "admin@contractmanagement.com",
-        "password": "***REMOVED-KEYCLOAK_ADMIN_PASSWORD***"
+        "password": "admin123"
     }')
 
 if echo "$ADMIN_RESPONSE" | grep -q "accessToken"; then

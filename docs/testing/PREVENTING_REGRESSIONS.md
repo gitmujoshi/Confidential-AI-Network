@@ -76,7 +76,7 @@ Fixes:
 **Problem:** Database users not linked to Keycloak users.
 
 **Solution:**
-- `create-***REMOVED-KEYCLOAK_DB_PASSWORD***-users.js` ensures all users exist in both places
+- `create-keycloak-users.js` ensures all users exist in both places
 - Health check validates `iamUserId` and `iamUsername` are set
 
 ### 3. Configuration Drift
@@ -84,7 +84,7 @@ Fixes:
 **Problem:** Keycloak realm/client configuration gets reset.
 
 **Solution:**
-- `setup-***REMOVED-KEYCLOAK_DB_PASSWORD***-realm.js` recreates proper configuration
+- `setup-keycloak-realm.js` recreates proper configuration
 - Health check validates realm and client exist
 
 ### 4. Silent Failures
@@ -118,7 +118,7 @@ Fixes:
 
 1. **Check what's running:**
    ```bash
-   ps aux | grep -E "(node|***REMOVED-KEYCLOAK_DB_PASSWORD***|docker)"
+   ps aux | grep -E "(node|keycloak|docker)"
    ```
 
 2. **Restart everything:**
@@ -170,13 +170,13 @@ Always available for testing:
 
 1. **Keycloak not responding**
    ```bash
-   docker ps | grep ***REMOVED-KEYCLOAK_DB_PASSWORD***
-   docker restart ***REMOVED-KEYCLOAK_DB_PASSWORD***-cms
+   docker ps | grep keycloak
+   docker restart keycloak-cms
    ```
 
 2. **Database connection failed**
    ```bash
-   brew services restart ***REMOVED-DB_PASSWORD***ql
+   brew services restart postgresql
    ```
 
 3. **Users not synced**

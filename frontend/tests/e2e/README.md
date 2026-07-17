@@ -116,7 +116,7 @@ Some parts of the contract creation flow (wallet / blockchain signing) are **not
 
 ### Prereqs
 - Backend + Keycloak running (and healthy): start via `./start-system.sh`
-- Ensure test users exist / are synced: `npm run ***REMOVED-KEYCLOAK_DB_PASSWORD***:sync`
+- Ensure test users exist / are synced: `npm run keycloak:sync`
 - Decide training mode:
   - **Real execution**: `TRAINING_SIMULATION_MODE=false` (default when unset)
   - **Demo-only** (no cloud provisioning): `TRAINING_SIMULATION_MODE=true`

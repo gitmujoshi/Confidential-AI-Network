@@ -654,10 +654,10 @@ VALUES (
 -- GRANT PERMISSIONS
 -- =====================================================
 
--- Grant all privileges to ***REMOVED-DB_PASSWORD*** user
-GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO ***REMOVED-DB_PASSWORD***;
-GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO ***REMOVED-DB_PASSWORD***;
-GRANT ALL PRIVILEGES ON ALL FUNCTIONS IN SCHEMA public TO ***REMOVED-DB_PASSWORD***;
+-- Grant all privileges to postgres user
+GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO postgres;
+GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO postgres;
+GRANT ALL PRIVILEGES ON ALL FUNCTIONS IN SCHEMA public TO postgres;
 
 -- =====================================================
 -- COMPLETION MESSAGE

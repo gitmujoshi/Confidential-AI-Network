@@ -25,7 +25,7 @@ async function testDatabaseConnection() {
     {
       host: process.env.DB_HOST,
       port: process.env.DB_PORT,
-      dialect: '***REMOVED-DB_PASSWORD***',
+      dialect: 'postgres',
       logging: false,
       dialectOptions: {
         family: 4 // Force IPv4

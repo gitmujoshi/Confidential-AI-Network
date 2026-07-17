@@ -53,20 +53,20 @@ KEYCLOAK_REALM=contract-management
 KEYCLOAK_CLIENT_ID=contract-management-frontend
 KEYCLOAK_CLIENT_SECRET=
 KEYCLOAK_ADMIN_USER=admin
-KEYCLOAK_ADMIN_PASSWORD=***REMOVED-KEYCLOAK_ADMIN_PASSWORD***
+KEYCLOAK_ADMIN_PASSWORD=admin123
 KEYCLOAK_ENABLED=true
 ```
 
 ### **3. Docker Compose with Persistence**
 
-The new `docker-compose.***REMOVED-KEYCLOAK_DB_PASSWORD***-persistent.yml`:
+The new `docker-compose.keycloak-persistent.yml`:
 - Uses persistent volumes for Keycloak data
 - Maintains configuration across restarts
 - Includes PostgreSQL for Keycloak database
 
 ### **4. Automated Setup Script**
 
-The `setup-***REMOVED-KEYCLOAK_DB_PASSWORD***-persistent.sh` script:
+The `setup-keycloak-persistent.sh` script:
 - Checks if realm exists before creating
 - Checks if clients exist before creating
 - Updates both environment files
@@ -111,7 +111,7 @@ The `setup-***REMOVED-KEYCLOAK_DB_PASSWORD***-persistent.sh` script:
 ### **Issue: "Realm not found"**
 **Solution:** Keycloak container was reset, run setup
 ```bash
-cd backend && ./setup-***REMOVED-KEYCLOAK_DB_PASSWORD***-persistent.sh
+cd backend && ./setup-keycloak-persistent.sh
 ```
 
 ### **Issue: Environment variables not loaded**
@@ -123,7 +123,7 @@ diff backend/.env backend/config.env
 ### **Issue: Users not synced**
 **Solution:** Run user sync
 ```bash
-cd backend && node scripts/source/sync-users-to-***REMOVED-KEYCLOAK_DB_PASSWORD***.js
+cd backend && node scripts/source/sync-users-to-keycloak.js
 ```
 
 ## 📋 **Quick Commands**
@@ -135,7 +135,7 @@ cd backend && node scripts/source/sync-users-to-***REMOVED-KEYCLOAK_DB_PASSWORD*
 
 ### **Just Keycloak Setup:**
 ```bash
-cd backend && ./setup-***REMOVED-KEYCLOAK_DB_PASSWORD***-persistent.sh
+cd backend && ./setup-keycloak-persistent.sh
 ```
 
 ### **Test Authentication:**
@@ -198,7 +198,7 @@ If something breaks:
 1. **Stop all services:**
    ```bash
    pkill -f "node server.js"
-   docker-compose -f docker-compose.***REMOVED-KEYCLOAK_DB_PASSWORD***-persistent.yml down
+   docker-compose -f docker-compose.keycloak-persistent.yml down
    ```
 
 2. **Start fresh:**

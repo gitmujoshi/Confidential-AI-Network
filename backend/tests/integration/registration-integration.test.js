@@ -16,7 +16,7 @@ process.env.TEST_MODE = 'mock';
 // Import mocked services from the registry
 const MockRegistry = require('../mocks/registry');
 
-const ***REMOVED-KEYCLOAK_DB_PASSWORD***Service = new MockRegistry.serviceConstructors.KeycloakService();
+const keycloakService = new MockRegistry.serviceConstructors.KeycloakService();
 
 describe('Registration Integration Tests', () => {
   beforeAll(async () => {
@@ -41,9 +41,9 @@ describe('Registration Integration Tests', () => {
       };
 
       // Mock Keycloak service to return success
-      const originalCreateUser = ***REMOVED-KEYCLOAK_DB_PASSWORD***Service.createUser;
-      ***REMOVED-KEYCLOAK_DB_PASSWORD***Service.createUser = jest.fn().mockResolvedValue({
-        ***REMOVED-KEYCLOAK_DB_PASSWORD***UserId: 'test-***REMOVED-KEYCLOAK_DB_PASSWORD***-id-123',
+      const originalCreateUser = keycloakService.createUser;
+      keycloakService.createUser = jest.fn().mockResolvedValue({
+        keycloakUserId: 'test-keycloak-id-123',
         temporaryPassword: 'tempPass123'
       });
 
@@ -52,7 +52,7 @@ describe('Registration Integration Tests', () => {
       
       try {
         // Step 1: Create user in Keycloak
-        const ***REMOVED-KEYCLOAK_DB_PASSWORD***Result = await ***REMOVED-KEYCLOAK_DB_PASSWORD***Service.createUser({
+        const keycloakResult = await keycloakService.createUser({
           email: userData.email,
           name: userData.name,
           walletAddress: null,
@@ -86,7 +86,7 @@ describe('Registration Integration Tests', () => {
           onboardingStatus: 'IN_PROGRESS',
           profileCompleted: false,
           emailVerified: false,
-          iamUserId: ***REMOVED-KEYCLOAK_DB_PASSWORD***Result.***REMOVED-KEYCLOAK_DB_PASSWORD***UserId,
+          iamUserId: keycloakResult.keycloakUserId,
           iamUsername: userData.email
         }, { transaction });
 
@@ -115,7 +115,7 @@ describe('Registration Integration Tests', () => {
           where: { email: userData.email.toLowerCase() }
         });
         expect(createdUser).toBeDefined();
-        expect(createdUser.iamUserId).toBe('test-***REMOVED-KEYCLOAK_DB_PASSWORD***-id-123');
+        expect(createdUser.iamUserId).toBe('test-keycloak-id-123');
         expect(createdUser.iamUsername).toBe(userData.email);
         expect(createdUser.isRegistered).toBe(true);
         expect(createdUser.isActive).toBe(true);
@@ -128,7 +128,7 @@ describe('Registration Integration Tests', () => {
         expect(notification.type).toBe('USER_REGISTERED');
 
         // Verify Keycloak was called
-        expect(***REMOVED-KEYCLOAK_DB_PASSWORD***Service.createUser).toHaveBeenCalled();
+        expect(keycloakService.createUser).toHaveBeenCalled();
 
       } catch (error) {
         await transaction.rollback();
@@ -136,19 +136,19 @@ describe('Registration Integration Tests', () => {
       }
 
       // Restore original method
-      ***REMOVED-KEYCLOAK_DB_PASSWORD***Service.createUser = originalCreateUser;
+      keycloakService.createUser = originalCreateUser;
     });
 
     it('should NOT create user in database when Keycloak creation fails', async () => {
       const userData = {
-        email: '***REMOVED-KEYCLOAK_DB_PASSWORD***-fail@test.com',
+        email: 'keycloak-fail@test.com',
         name: 'Keycloak Fail User',
         partyType: 'TDP'
       };
 
       // Mock Keycloak service to fail
-      const originalCreateUser = ***REMOVED-KEYCLOAK_DB_PASSWORD***Service.createUser;
-      ***REMOVED-KEYCLOAK_DB_PASSWORD***Service.createUser = jest.fn().mockRejectedValue(
+      const originalCreateUser = keycloakService.createUser;
+      keycloakService.createUser = jest.fn().mockRejectedValue(
         new Error('Keycloak connection failed')
       );
 
@@ -157,7 +157,7 @@ describe('Registration Integration Tests', () => {
       
       try {
         // Step 1: Try to create user in Keycloak (should fail)
-        await ***REMOVED-KEYCLOAK_DB_PASSWORD***Service.createUser({
+        await keycloakService.createUser({
           email: userData.email,
           name: userData.name,
           walletAddress: null,
@@ -172,9 +172,9 @@ describe('Registration Integration Tests', () => {
         // This should not be reached
         expect(true).toBe(false);
 
-      } catch (***REMOVED-KEYCLOAK_DB_PASSWORD***Error) {
+      } catch (keycloakError) {
         // Verify Keycloak error
-        expect(***REMOVED-KEYCLOAK_DB_PASSWORD***Error.message).toBe('Keycloak connection failed');
+        expect(keycloakError.message).toBe('Keycloak connection failed');
 
         // Verify NO user was created in database
         const dbUser = await db.User.findOne({
@@ -183,13 +183,13 @@ describe('Registration Integration Tests', () => {
         expect(dbUser).toBeNull();
 
         // Verify Keycloak was called
-        expect(***REMOVED-KEYCLOAK_DB_PASSWORD***Service.createUser).toHaveBeenCalled();
+        expect(keycloakService.createUser).toHaveBeenCalled();
 
         await transaction.rollback();
       }
 
       // Restore original method
-      ***REMOVED-KEYCLOAK_DB_PASSWORD***Service.createUser = originalCreateUser;
+      keycloakService.createUser = originalCreateUser;
     });
 
     it('should delete orphaned Keycloak user when database creation fails', async () => {
@@ -200,14 +200,14 @@ describe('Registration Integration Tests', () => {
       };
 
       // Mock Keycloak service to succeed
-      const originalCreateUser = ***REMOVED-KEYCLOAK_DB_PASSWORD***Service.createUser;
-      const originalDeleteUser = ***REMOVED-KEYCLOAK_DB_PASSWORD***Service.deleteUser;
+      const originalCreateUser = keycloakService.createUser;
+      const originalDeleteUser = keycloakService.deleteUser;
       
-      ***REMOVED-KEYCLOAK_DB_PASSWORD***Service.createUser = jest.fn().mockResolvedValue({
-        ***REMOVED-KEYCLOAK_DB_PASSWORD***UserId: 'test-***REMOVED-KEYCLOAK_DB_PASSWORD***-id-789',
+      keycloakService.createUser = jest.fn().mockResolvedValue({
+        keycloakUserId: 'test-keycloak-id-789',
         temporaryPassword: 'tempPass789'
       });
-      ***REMOVED-KEYCLOAK_DB_PASSWORD***Service.deleteUser = jest.fn().mockResolvedValue(true);
+      keycloakService.deleteUser = jest.fn().mockResolvedValue(true);
 
       // Mock database to fail on user creation
       const originalUserCreate = db.User.create;
@@ -219,7 +219,7 @@ describe('Registration Integration Tests', () => {
       
       try {
         // Step 1: Create user in Keycloak (should succeed)
-        const ***REMOVED-KEYCLOAK_DB_PASSWORD***Result = await ***REMOVED-KEYCLOAK_DB_PASSWORD***Service.createUser({
+        const keycloakResult = await keycloakService.createUser({
           email: userData.email,
           name: userData.name,
           walletAddress: null,
@@ -253,7 +253,7 @@ describe('Registration Integration Tests', () => {
           onboardingStatus: 'IN_PROGRESS',
           profileCompleted: false,
           emailVerified: false,
-          iamUserId: ***REMOVED-KEYCLOAK_DB_PASSWORD***Result.***REMOVED-KEYCLOAK_DB_PASSWORD***UserId,
+          iamUserId: keycloakResult.keycloakUserId,
           iamUsername: userData.email
         }, { transaction });
 
@@ -265,7 +265,7 @@ describe('Registration Integration Tests', () => {
         expect(dbError.message).toBe('Database constraint violation');
 
               // Verify Keycloak delete was called to clean up orphaned user
-      expect(***REMOVED-KEYCLOAK_DB_PASSWORD***Service.deleteUser).toHaveBeenCalled();
+      expect(keycloakService.deleteUser).toHaveBeenCalled();
 
         // Verify NO user was created in database
         const dbUser = await db.User.findOne({
@@ -277,8 +277,8 @@ describe('Registration Integration Tests', () => {
       }
 
       // Restore original methods
-      ***REMOVED-KEYCLOAK_DB_PASSWORD***Service.createUser = originalCreateUser;
-      ***REMOVED-KEYCLOAK_DB_PASSWORD***Service.deleteUser = originalDeleteUser;
+      keycloakService.createUser = originalCreateUser;
+      keycloakService.deleteUser = originalDeleteUser;
       db.User.create = originalUserCreate;
     });
 
@@ -290,16 +290,16 @@ describe('Registration Integration Tests', () => {
       };
 
       // Mock Keycloak to succeed for first registration
-      const originalCreateUser = ***REMOVED-KEYCLOAK_DB_PASSWORD***Service.createUser;
-      ***REMOVED-KEYCLOAK_DB_PASSWORD***Service.createUser = jest.fn().mockResolvedValue({
-        ***REMOVED-KEYCLOAK_DB_PASSWORD***UserId: 'test-***REMOVED-KEYCLOAK_DB_PASSWORD***-id-duplicate',
+      const originalCreateUser = keycloakService.createUser;
+      keycloakService.createUser = jest.fn().mockResolvedValue({
+        keycloakUserId: 'test-keycloak-id-duplicate',
         temporaryPassword: 'tempPassDuplicate'
       });
 
       // First registration should succeed
       const transaction1 = await db.sequelize.transaction();
       try {
-        const ***REMOVED-KEYCLOAK_DB_PASSWORD***Result = await ***REMOVED-KEYCLOAK_DB_PASSWORD***Service.createUser({
+        const keycloakResult = await keycloakService.createUser({
           email: userData.email,
           name: userData.name,
           walletAddress: null,
@@ -332,7 +332,7 @@ describe('Registration Integration Tests', () => {
           onboardingStatus: 'IN_PROGRESS',
           profileCompleted: false,
           emailVerified: false,
-          iamUserId: ***REMOVED-KEYCLOAK_DB_PASSWORD***Result.***REMOVED-KEYCLOAK_DB_PASSWORD***UserId,
+          iamUserId: keycloakResult.keycloakUserId,
           iamUsername: userData.email
         }, { transaction: transaction1 });
 
@@ -341,7 +341,7 @@ describe('Registration Integration Tests', () => {
         // Second registration with same email should fail
         const transaction2 = await db.sequelize.transaction();
         try {
-          await ***REMOVED-KEYCLOAK_DB_PASSWORD***Service.createUser({
+          await keycloakService.createUser({
             email: userData.email,
             name: userData.name,
             walletAddress: null,
@@ -368,7 +368,7 @@ describe('Registration Integration Tests', () => {
       }
 
       // Restore original method
-      ***REMOVED-KEYCLOAK_DB_PASSWORD***Service.createUser = originalCreateUser;
+      keycloakService.createUser = originalCreateUser;
     });
   });
 }); 

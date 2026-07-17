@@ -35,12 +35,12 @@
 - Use `./start-system.sh` for full system startup
 - Use `npm run status` to check system health
 - Use `npm run test:login` to test authentication
-- Use `cd backend && node auto-fix-***REMOVED-KEYCLOAK_DB_PASSWORD***.js` for Keycloak issues
+- Use `cd backend && node auto-fix-keycloak.js` for Keycloak issues
 
 ## 🚨 Common Issues & Solutions
 - "Invalid client credentials" → Run `./fix-auth.sh`
-- "Realm not found" → Run `cd backend && node auto-fix-***REMOVED-KEYCLOAK_DB_PASSWORD***.js`
-- "User not synced" → Run `npm run ***REMOVED-KEYCLOAK_DB_PASSWORD***:sync`
+- "Realm not found" → Run `cd backend && node auto-fix-keycloak.js`
+- "User not synced" → Run `npm run keycloak:sync`
 - Backend won't start → Check port usage and restart
 - Environment issues → Sync .env and config.env files
 

@@ -16,8 +16,8 @@ echo "=============================="
 
 # Check Docker services
 echo -e "${BLUE}🐳 Docker Services:${NC}"
-if docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}" | grep -E "(***REMOVED-DB_PASSWORD***-***REMOVED-KEYCLOAK_DB_PASSWORD***|***REMOVED-KEYCLOAK_DB_PASSWORD***)" >/dev/null; then
-    docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}" | grep -E "(***REMOVED-DB_PASSWORD***-***REMOVED-KEYCLOAK_DB_PASSWORD***|***REMOVED-KEYCLOAK_DB_PASSWORD***)"
+if docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}" | grep -E "(postgres-keycloak|keycloak)" >/dev/null; then
+    docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}" | grep -E "(postgres-keycloak|keycloak)"
 else
     echo -e "${RED}❌ No Keycloak services running${NC}"
 fi
@@ -43,10 +43,10 @@ else
 fi
 
 echo -e "\n${BLUE}🔗 Quick Access:${NC}"
-echo "  Keycloak Admin: https://localhost:8443/admin (admin/***REMOVED-KEYCLOAK_ADMIN_PASSWORD***)"
+echo "  Keycloak Admin: https://localhost:8443/admin (admin/admin123)"
 echo "  Keycloak Health: https://localhost:8443/health"
 
 echo -e "\n${BLUE}📋 Commands:${NC}"
-echo "  Start: ./deployment/start-***REMOVED-KEYCLOAK_DB_PASSWORD***-https.sh"
-echo "  Stop: ./deployment/stop-***REMOVED-KEYCLOAK_DB_PASSWORD***-https.sh"
-echo "  Status: ./deployment/status-***REMOVED-KEYCLOAK_DB_PASSWORD***-https.sh"
+echo "  Start: ./deployment/start-keycloak-https.sh"
+echo "  Stop: ./deployment/stop-keycloak-https.sh"
+echo "  Status: ./deployment/status-keycloak-https.sh"

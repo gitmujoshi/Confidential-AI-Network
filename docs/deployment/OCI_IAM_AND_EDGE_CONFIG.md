@@ -86,7 +86,7 @@ Map corporate IdP groups → Identity Domain groups → Cloud Gate / optional Ke
 | `contract-management-client` | Confidential | Backend service account |
 | `contract-management-api-gateway` | Bearer-only | API Gateway JWT validation audience (optional) |
 
-Store `KEYCLOAK_CLIENT_SECRET` in Vault secret `cms-{env}-***REMOVED-KEYCLOAK_DB_PASSWORD***-client-secret`.
+Store `KEYCLOAK_CLIENT_SECRET` in Vault secret `cms-{env}-keycloak-client-secret`.
 
 ---
 
@@ -318,7 +318,7 @@ Allow dynamic-group cms-{env}-oke-workloads to use keys in tenancy
 | `cms-ingress` | `ingress-nginx` | `ingress-nginx` chart defaults | LB → ingress only |
 | `cms-app` | `backend-sa` | read secrets (ESO synced) | No cluster-admin |
 | `cms-app` | `frontend-sa` | minimal | No API access |
-| `cms-iam` | `***REMOVED-KEYCLOAK_DB_PASSWORD***-sa` | read secrets | DB creds from Vault |
+| `cms-iam` | `keycloak-sa` | read secrets | DB creds from Vault |
 | `cms-data` | `redis-sa` | minimal | Internal only |
 | `cms-training` | `training-job-sa` | create Jobs, read ConfigMaps | Workload Identity → Object Storage |
 | `cms-ops` | `prometheus-sa` | `prometheus-operator` defaults | Scrape internal targets |
@@ -336,8 +336,8 @@ Cloud Gate protects **browser-facing** traffic. API Gateway handles **machine / 
 | Hostname | Cloud Gate app | Upstream (private LB backend set) | TLS |
 |----------|----------------|-------------------------------------|-----|
 | `app.{env}.example.com` | `cms-frontend-{env}` | OKE ingress → frontend:3000 | Terminated at WAF + CG |
-| `auth.{env}.example.com` | `cms-***REMOVED-KEYCLOAK_DB_PASSWORD***-{env}` | OKE ingress → ***REMOVED-KEYCLOAK_DB_PASSWORD***:8080 | Terminated at WAF + CG |
-| `auth.{env}.example.com/admin/*` | `cms-***REMOVED-KEYCLOAK_DB_PASSWORD***-admin-{env}` | Same Keycloak upstream | MFA + IP allowlist |
+| `auth.{env}.example.com` | `cms-keycloak-{env}` | OKE ingress → keycloak:8080 | Terminated at WAF + CG |
+| `auth.{env}.example.com/admin/*` | `cms-keycloak-admin-{env}` | Same Keycloak upstream | MFA + IP allowlist |
 | `ops.{env}.example.com` | `cms-grafana-{env}` | OKE ingress → grafana | Identity Domain `platform-admins` only |
 
 **Do not** put `api.{env}.example.com` behind Cloud Gate — route it to **API Gateway** (§10).
@@ -382,10 +382,10 @@ headers_to_upstream:
   - X-Forwarded-Groups
 ```
 
-#### App: `cms-***REMOVED-KEYCLOAK_DB_PASSWORD***-{env}` (user realm paths)
+#### App: `cms-keycloak-{env}` (user realm paths)
 
 ```yaml
-name: cms-***REMOVED-KEYCLOAK_DB_PASSWORD***-prod
+name: cms-keycloak-prod
 type: OIDC
 identity_domain: cms-prod-id
 upstream_url: https://<private-lb-hostname>/realms/
@@ -397,10 +397,10 @@ groups_allowed:
   - cms-prod-all-users
 ```
 
-#### App: `cms-***REMOVED-KEYCLOAK_DB_PASSWORD***-admin-{env}`
+#### App: `cms-keycloak-admin-{env}`
 
 ```yaml
-name: cms-***REMOVED-KEYCLOAK_DB_PASSWORD***-admin-prod
+name: cms-keycloak-admin-prod
 type: OIDC
 identity_domain: cms-prod-id
 upstream_url: https://<private-lb-hostname>/admin/
@@ -675,7 +675,7 @@ Internet
    ├── host api.prod.example.com ──► API Gateway cms-api-gw-prod ──► private LB ──► backend:5001
    │
    └── host app.prod.example.com ──► Cloud Gate ──► private LB ──► frontend:3000
-       host auth.prod.example.com ──► Cloud Gate ──► private LB ──► ***REMOVED-KEYCLOAK_DB_PASSWORD***:8080
+       host auth.prod.example.com ──► Cloud Gate ──► private LB ──► keycloak:8080
 ```
 
 - Terminate TLS at **WAF** (recommended) or LB — single cert per hostname.

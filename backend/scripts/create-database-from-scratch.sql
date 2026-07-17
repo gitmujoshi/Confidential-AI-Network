@@ -7,7 +7,7 @@
 --
 -- IMPORTANT: Run this script on a fresh PostgreSQL database
 -- Database: contract_management
--- User: ***REMOVED-DB_PASSWORD*** (or your preferred user)
+-- User: postgres (or your preferred user)
 --
 -- Author: Contract Management System Team
 -- Version: 1.0.0
@@ -663,10 +663,10 @@ VALUES (
 -- GRANT PERMISSIONS
 -- =====================================================
 
--- Grant all privileges to ***REMOVED-DB_PASSWORD*** user (adjust as needed for your setup)
-GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO ***REMOVED-DB_PASSWORD***;
-GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO ***REMOVED-DB_PASSWORD***;
-GRANT ALL PRIVILEGES ON ALL FUNCTIONS IN SCHEMA public TO ***REMOVED-DB_PASSWORD***;
+-- Grant all privileges to postgres user (adjust as needed for your setup)
+GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO postgres;
+GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO postgres;
+GRANT ALL PRIVILEGES ON ALL FUNCTIONS IN SCHEMA public TO postgres;
 
 -- =====================================================
 -- VERIFICATION QUERIES

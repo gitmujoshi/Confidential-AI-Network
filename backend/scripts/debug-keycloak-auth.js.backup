@@ -10,8 +10,8 @@ const axios = require('axios');
 const https = require('https');
 
 const CONFIG = {
-  ***REMOVED-KEYCLOAK_DB_PASSWORD***Url: 'https://localhost:8443',
-  ***REMOVED-KEYCLOAK_DB_PASSWORD***Realm: 'contract-management',
+  keycloakUrl: 'https://localhost:8443',
+  keycloakRealm: 'contract-management',
   clientId: 'contract-management-client',
   clientSecret: '',
   username: 'tdp.medical@example.com',
@@ -26,7 +26,7 @@ const httpsAgent = new https.Agent({
 async function testDirectKeycloakAuth() {
   console.log('🔐 Testing Direct Keycloak Authentication...');
   console.log('===========================================');
-  console.log(`URL: ${CONFIG.***REMOVED-KEYCLOAK_DB_PASSWORD***Url}/realms/${CONFIG.***REMOVED-KEYCLOAK_DB_PASSWORD***Realm}/protocol/openid-connect/token`);
+  console.log(`URL: ${CONFIG.keycloakUrl}/realms/${CONFIG.keycloakRealm}/protocol/openid-connect/token`);
   console.log(`Client ID: ${CONFIG.clientId}`);
   console.log(`Username: ${CONFIG.username}`);
   console.log(`Password: ${CONFIG.password}`);
@@ -50,7 +50,7 @@ async function testDirectKeycloakAuth() {
     console.log('');
     
     const response = await axios.post(
-      `${CONFIG.***REMOVED-KEYCLOAK_DB_PASSWORD***Url}/realms/${CONFIG.***REMOVED-KEYCLOAK_DB_PASSWORD***Realm}/protocol/openid-connect/token`,
+      `${CONFIG.keycloakUrl}/realms/${CONFIG.keycloakRealm}/protocol/openid-connect/token`,
       requestBody,
       {
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -130,23 +130,23 @@ async function main() {
   
   try {
     // Test 1: Direct Keycloak authentication
-    const ***REMOVED-KEYCLOAK_DB_PASSWORD***Success = await testDirectKeycloakAuth();
+    const keycloakSuccess = await testDirectKeycloakAuth();
     
     // Test 2: Backend login API
     const backendSuccess = await testBackendLogin();
     
     console.log('\n📊 Debug Summary:');
     console.log('==================');
-    console.log(`🔐 Direct Keycloak Auth: ${***REMOVED-KEYCLOAK_DB_PASSWORD***Success ? '✅ SUCCESS' : '❌ FAILED'}`);
+    console.log(`🔐 Direct Keycloak Auth: ${keycloakSuccess ? '✅ SUCCESS' : '❌ FAILED'}`);
     console.log(`🌐 Backend Login API: ${backendSuccess ? '✅ SUCCESS' : '❌ FAILED'}`);
     
-    if (***REMOVED-KEYCLOAK_DB_PASSWORD***Success && !backendSuccess) {
+    if (keycloakSuccess && !backendSuccess) {
       console.log('\n💡 Analysis: Keycloak works directly but backend fails');
       console.log('   This suggests an issue in the backend KeycloakService or configuration');
-    } else if (!***REMOVED-KEYCLOAK_DB_PASSWORD***Success) {
+    } else if (!keycloakSuccess) {
       console.log('\n💡 Analysis: Keycloak authentication fails directly');
       console.log('   This suggests a Keycloak client configuration issue');
-    } else if (***REMOVED-KEYCLOAK_DB_PASSWORD***Success && backendSuccess) {
+    } else if (keycloakSuccess && backendSuccess) {
       console.log('\n🎉 Everything is working!');
     }
     

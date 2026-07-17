@@ -532,10 +532,10 @@ const trackProvenanceMetrics = (req, res, next) => {
 #### **1. Database Connection Issues**
 ```bash
 # Check database connectivity
-psql -h localhost -p 5432 -U ***REMOVED-DB_PASSWORD*** -d contract_management -c "SELECT 1;"
+psql -h localhost -p 5432 -U postgres -d contract_management -c "SELECT 1;"
 
 # Check provenance tables exist
-psql -h localhost -p 5432 -U ***REMOVED-DB_PASSWORD*** -d contract_management -c "\dt *provenance*"
+psql -h localhost -p 5432 -U postgres -d contract_management -c "\dt *provenance*"
 ```
 
 #### **2. Merkle Tree Integrity Issues**

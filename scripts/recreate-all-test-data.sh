@@ -55,7 +55,7 @@ if [ -f "scripts/clean-database.js" ]; then
 else
     # Fallback: direct database cleanup
     echo "Cleaning database directly..."
-    psql -h localhost -p 5432 -U ***REMOVED-DB_PASSWORD*** -d contract_management -c "
+    psql -h localhost -p 5432 -U postgres -d contract_management -c "
         DELETE FROM training_jobs;
         DELETE FROM training_environments;
         DELETE FROM contracts;
@@ -107,7 +107,7 @@ if [ -z "$ADMIN_TOKEN" ] || [ "$ADMIN_TOKEN" = "null" ]; then
     echo "Trying alternative method..."
     ADMIN_TOKEN=$(curl -s -X POST "$KEYCLOAK_URL/realms/master/protocol/openid-connect/token" \
         -H "Content-Type: application/x-www-form-urlencoded" \
-        -d "grant_type=password&client_id=admin-cli&username=admin&password=***REMOVED-KEYCLOAK_ADMIN_PASSWORD***" \
+        -d "grant_type=password&client_id=admin-cli&username=admin&password=admin123" \
         -k | jq -r '.access_token' 2>/dev/null || echo "")
 fi
 
@@ -181,14 +181,14 @@ const testUsers = [
   {
     name: 'System Admin',
     email: 'admin@contractmanagement.com',
-    password: '***REMOVED-KEYCLOAK_ADMIN_PASSWORD***',
+    password: 'admin123',
     partyType: 'TDP',
     role: 'AppAdmin'
   },
   {
     name: 'Test Admin',
     email: 'testadmin@contractmanagement.com',
-    password: '***REMOVED-KEYCLOAK_ADMIN_PASSWORD***',
+    password: 'admin123',
     partyType: 'TDP',
     role: 'AppAdmin'
   },
@@ -441,7 +441,7 @@ if [ -f "deployment/local/status.sh" ]; then
     
     # Update the login test to use admin@contractmanagement.com
     sed -i '' 's/admin@contractmanagement.com/admin@contractmanagement.com/g' deployment/local/status.sh
-    sed -i '' 's/***REMOVED-KEYCLOAK_ADMIN_PASSWORD***/***REMOVED-KEYCLOAK_ADMIN_PASSWORD***/g' deployment/local/status.sh
+    sed -i '' 's/admin123/admin123/g' deployment/local/status.sh
     
     echo -e "${GREEN}✅ System status script updated${NC}"
 else

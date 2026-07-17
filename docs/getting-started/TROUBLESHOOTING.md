@@ -10,7 +10,7 @@ Complete troubleshooting guide for the Contract Management System. This guide co
 4. [Backend Issues](#backend-issues)
 5. [Frontend Issues](#frontend-issues)
 6. [Database Issues](#database-issues)
-7. [Keycloak Issues](#***REMOVED-KEYCLOAK_DB_PASSWORD***-issues)
+7. [Keycloak Issues](#keycloak-issues)
 8. [Differential Privacy Issues](#differential-privacy-issues)
 9. [Network Issues](#network-issues)
 10. [Performance Issues](#performance-issues)
@@ -72,10 +72,10 @@ This will check:
 |-------|-----------|---------|
 | Authentication fails | Run auto-fix | `./fix-auth.sh` |
 | Backend won't start | Kill and restart | `pkill -f "node server.js" && cd backend && node server.js` |
-| Keycloak issues | Reset Keycloak | `npm run reset:***REMOVED-KEYCLOAK_DB_PASSWORD***` |
+| Keycloak issues | Reset Keycloak | `npm run reset:keycloak` |
 | SCITT CCF issues | Check status | `./manage-scitt-ccf.sh status` |
 | SCITT CCF won't start | Restart services | `./manage-scitt-ccf.sh restart` |
-| Database issues | Restart PostgreSQL | `docker-compose restart ***REMOVED-DB_PASSWORD***` |
+| Database issues | Restart PostgreSQL | `docker-compose restart postgres` |
 | Frontend blank | Clear cache | `Ctrl+F5` or `Cmd+Shift+R` |
 
 ## 🔐 Authentication Issues
@@ -106,10 +106,10 @@ Error authenticating user: {
 **Manual Fix:**
 ```bash
 # Run Keycloak auto-fix
-cd backend && node auto-fix-***REMOVED-KEYCLOAK_DB_PASSWORD***.js
+cd backend && node auto-fix-keycloak.js
 
 # Or reset Keycloak completely
-npm run reset:***REMOVED-KEYCLOAK_DB_PASSWORD***
+npm run reset:keycloak
 ```
 
 **Detailed Fix:**
@@ -118,7 +118,7 @@ npm run reset:***REMOVED-KEYCLOAK_DB_PASSWORD***
 curl -s http://localhost:8080/health
 
 # Check Keycloak logs
-docker logs ***REMOVED-KEYCLOAK_DB_PASSWORD***-cms
+docker logs keycloak-cms
 
 # Test Keycloak authentication directly
 curl -X POST http://localhost:8080/realms/contract-management/protocol/openid-connect/token \
@@ -390,7 +390,7 @@ node -e "
 cd ..
 
 # Check existing tables
-psql -h localhost -U ***REMOVED-DB_PASSWORD*** -d contract_management -c "\dt"
+psql -h localhost -U postgres -d contract_management -c "\dt"
 
 # Run migration manually
 cd backend
@@ -401,7 +401,7 @@ cd ..
 **Schema Fix:**
 ```bash
 # Check table structure
-psql -h localhost -U ***REMOVED-DB_PASSWORD*** -d contract_management -c "
+psql -h localhost -U postgres -d contract_management -c "
   SELECT table_name, column_name, data_type 
   FROM information_schema.columns 
   WHERE table_name IN ('scitt_claims', 'system_health_log')
@@ -409,7 +409,7 @@ psql -h localhost -U ***REMOVED-DB_PASSWORD*** -d contract_management -c "
 "
 
 # Check contract table enhancements
-psql -h localhost -U ***REMOVED-DB_PASSWORD*** -d contract_management -c "
+psql -h localhost -U postgres -d contract_management -c "
   SELECT column_name, data_type, is_nullable
   FROM information_schema.columns 
   WHERE table_name = 'contracts' 
@@ -450,7 +450,7 @@ npm test -- --verbose --testPathPattern="scitt-ccf"
 cat .env.scitt-ccf
 
 # Verify test data exists
-docker exec ***REMOVED-DB_PASSWORD***-app psql -U ***REMOVED-DB_PASSWORD*** -d contract_management -c "SELECT COUNT(*) FROM users;"
+docker exec postgres-app psql -U postgres -d contract_management -c "SELECT COUNT(*) FROM users;"
 
 # Recreate test data if needed
 docker exec cms-backend node /app/create-test-data.js
@@ -604,13 +604,13 @@ SequelizeConnectionError
 **Check PostgreSQL:**
 ```bash
 # Check if PostgreSQL is running
-docker ps | grep ***REMOVED-DB_PASSWORD***
+docker ps | grep postgres
 
 # Restart PostgreSQL
-docker-compose -f docker-compose.***REMOVED-KEYCLOAK_DB_PASSWORD***-persistent.yml restart ***REMOVED-DB_PASSWORD***
+docker-compose -f docker-compose.keycloak-persistent.yml restart postgres
 
 # Check database connection
-psql -h localhost -U ***REMOVED-DB_PASSWORD*** -d contract_management -c "SELECT 1;"
+psql -h localhost -U postgres -d contract_management -c "SELECT 1;"
 ```
 
 **Reset database:**
@@ -634,7 +634,7 @@ Environment variables missing
 diff backend/.env backend/config.env
 
 # Sync environment files
-cd backend && node auto-fix-***REMOVED-KEYCLOAK_DB_PASSWORD***.js
+cd backend && node auto-fix-keycloak.js
 ```
 
 **Update environment:**
@@ -730,19 +730,19 @@ Cannot connect to PostgreSQL
 **Check PostgreSQL container:**
 ```bash
 # Check if container is running
-docker ps | grep ***REMOVED-DB_PASSWORD***
+docker ps | grep postgres
 
 # Check container logs
-docker logs ***REMOVED-DB_PASSWORD***-***REMOVED-KEYCLOAK_DB_PASSWORD***
+docker logs postgres-keycloak
 
 # Restart container
-docker-compose -f docker-compose.***REMOVED-KEYCLOAK_DB_PASSWORD***-persistent.yml restart ***REMOVED-DB_PASSWORD***
+docker-compose -f docker-compose.keycloak-persistent.yml restart postgres
 ```
 
 **Check database credentials:**
 ```bash
 # Test connection
-psql -h localhost -U ***REMOVED-DB_PASSWORD*** -d contract_management
+psql -h localhost -U postgres -d contract_management
 
 # Check environment variables
 echo $DB_HOST $DB_PORT $DB_NAME $DB_USER
@@ -786,13 +786,13 @@ cd backend && npx sequelize-cli db:migrate:status
 ```bash
 cd backend && node scripts/source/create-e2e-users-direct.js
 cd backend && node scripts/source/create-tdp-datasets.js
-cd backend && node scripts/source/sync-users-to-***REMOVED-KEYCLOAK_DB_PASSWORD***.js
+cd backend && node scripts/source/sync-users-to-keycloak.js
 ```
 
 **Check database tables:**
 ```bash
-psql -h localhost -U ***REMOVED-DB_PASSWORD*** -d contract_management -c "\dt"
-psql -h localhost -U ***REMOVED-DB_PASSWORD*** -d contract_management -c "SELECT * FROM users LIMIT 5;"
+psql -h localhost -U postgres -d contract_management -c "\dt"
+psql -h localhost -U postgres -d contract_management -c "SELECT * FROM users LIMIT 5;"
 ```
 
 ## 🔑 Keycloak Issues
@@ -814,13 +814,13 @@ lsof -i :8080
 
 **Restart Keycloak:**
 ```bash
-docker-compose -f docker-compose.***REMOVED-KEYCLOAK_DB_PASSWORD***-persistent.yml restart ***REMOVED-KEYCLOAK_DB_PASSWORD***
+docker-compose -f docker-compose.keycloak-persistent.yml restart keycloak
 ```
 
 **Reset Keycloak completely:**
 ```bash
-docker-compose -f docker-compose.***REMOVED-KEYCLOAK_DB_PASSWORD***-persistent.yml down
-docker-compose -f docker-compose.***REMOVED-KEYCLOAK_DB_PASSWORD***-persistent.yml up -d
+docker-compose -f docker-compose.keycloak-persistent.yml down
+docker-compose -f docker-compose.keycloak-persistent.yml up -d
 ```
 
 ### **Keycloak Configuration Issues**
@@ -836,7 +836,7 @@ Invalid configuration
 
 **Run setup script:**
 ```bash
-./backend/setup-***REMOVED-KEYCLOAK_DB_PASSWORD***-persistent.sh
+./backend/setup-keycloak-persistent.sh
 ```
 
 **Check Keycloak health:**
@@ -846,7 +846,7 @@ curl -s http://localhost:8080/health
 
 **Access Keycloak admin:**
 - Open: http://localhost:8080/admin/
-- Login: admin / ***REMOVED-KEYCLOAK_ADMIN_PASSWORD***
+- Login: admin / admin123
 - Check realm and client configuration
 
 ### **User Sync Issues**
@@ -861,13 +861,13 @@ Missing users in Keycloak
 
 **Sync users manually:**
 ```bash
-cd backend && node scripts/source/sync-users-to-***REMOVED-KEYCLOAK_DB_PASSWORD***.js
+cd backend && node scripts/source/sync-users-to-keycloak.js
 ```
 
 **Check user sync status:**
 ```bash
 # Check database users
-psql -h localhost -U ***REMOVED-DB_PASSWORD*** -d contract_management -c "SELECT email, iamUserId FROM users;"
+psql -h localhost -U postgres -d contract_management -c "SELECT email, iamUserId FROM users;"
 
 # Check Keycloak users
 curl -X GET http://localhost:8080/admin/realms/contract-management/users \
@@ -960,10 +960,10 @@ df -h
 **Optimize database:**
 ```bash
 # Check slow queries
-psql -h localhost -U ***REMOVED-DB_PASSWORD*** -d contract_management -c "SELECT * FROM pg_stat_activity WHERE state = 'active';"
+psql -h localhost -U postgres -d contract_management -c "SELECT * FROM pg_stat_activity WHERE state = 'active';"
 
 # Add indexes
-psql -h localhost -U ***REMOVED-DB_PASSWORD*** -d contract_management -c "CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);"
+psql -h localhost -U postgres -d contract_management -c "CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);"
 ```
 
 **Restart services:**
@@ -1041,7 +1041,7 @@ cd backend && npm run dev
 cd backend && npm run db:reset
 
 # Reset Keycloak
-npm run reset:***REMOVED-KEYCLOAK_DB_PASSWORD***
+npm run reset:keycloak
 
 # Recreate test data
 node scripts/source/create-e2e-users-direct.js
@@ -1110,7 +1110,7 @@ npm run test:login
 
 # View logs
 tail -f logs/backend.log
-docker logs -f ***REMOVED-KEYCLOAK_DB_PASSWORD***-cms
+docker logs -f keycloak-cms
 ```
 
 ### **Support Channels**

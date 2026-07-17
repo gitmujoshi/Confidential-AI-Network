@@ -132,11 +132,11 @@ API Gateway → Health Checks → Both Services → Aggregated Status
 ```bash
 # Main App
 MAIN_APP_PORT=5001
-MAIN_DB_URL=***REMOVED-DB_PASSWORD***ql://user:pass@localhost:5432/main_app
+MAIN_DB_URL=postgresql://user:pass@localhost:5432/main_app
 
 # SCITT CCF
 SCITT_CCF_PORT=9000
-SCITT_DB_URL=***REMOVED-DB_PASSWORD***ql://user:pass@localhost:5433/scitt_ccf
+SCITT_DB_URL=postgresql://user:pass@localhost:5433/scitt_ccf
 SCITT_CCF_ENABLED=true
 
 # API Gateway

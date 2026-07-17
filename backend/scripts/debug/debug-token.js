@@ -1,5 +1,5 @@
 require('dotenv').config({ path: './config.env' });
-const KeycloakService = require('./services/***REMOVED-KEYCLOAK_DB_PASSWORD***Service');
+const KeycloakService = require('./services/keycloakService');
 
 async function debugToken() {
   try {
@@ -11,8 +11,8 @@ async function debugToken() {
     console.log('- KEYCLOAK_REALM:', process.env.KEYCLOAK_REALM);
     console.log('- KEYCLOAK_CLIENT_ID:', process.env.KEYCLOAK_CLIENT_ID);
     
-    const ***REMOVED-KEYCLOAK_DB_PASSWORD***Service = new KeycloakService();
-    console.log('KeycloakService config:', ***REMOVED-KEYCLOAK_DB_PASSWORD***Service.config);
+    const keycloakService = new KeycloakService();
+    console.log('KeycloakService config:', keycloakService.config);
     
     // Decode token to see its structure
     const jwt = require('jsonwebtoken');
@@ -20,7 +20,7 @@ async function debugToken() {
     console.log('\nToken payload:', JSON.stringify(decoded, null, 2));
     
     console.log('\nTesting validation...');
-    const result = await ***REMOVED-KEYCLOAK_DB_PASSWORD***Service.validateToken(token);
+    const result = await keycloakService.validateToken(token);
     console.log('Validation result:', result);
     
   } catch (error) {

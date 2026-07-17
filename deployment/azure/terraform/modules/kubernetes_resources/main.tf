@@ -18,7 +18,7 @@ resource "kubernetes_config_map" "app_config" {
     APP_DOMAIN              = var.app_domain
     APP_VERSION             = var.release_version
     IMAGE_TAG               = var.image_tag
-    KEYCLOAK_ADMIN_USERNAME = var.***REMOVED-KEYCLOAK_DB_PASSWORD***_admin_username
+    KEYCLOAK_ADMIN_USERNAME = var.keycloak_admin_username
   }
 }
 
@@ -39,15 +39,15 @@ resource "kubernetes_secret" "db_secret" {
   type = "Opaque"
 }
 
-resource "kubernetes_secret" "***REMOVED-KEYCLOAK_DB_PASSWORD***_secret" {
+resource "kubernetes_secret" "keycloak_secret" {
   metadata {
-    name      = "***REMOVED-KEYCLOAK_DB_PASSWORD***-secret"
+    name      = "keycloak-secret"
     namespace = kubernetes_namespace.app.metadata[0].name
   }
 
   data = {
-    KEYCLOAK_ADMIN_USERNAME = base64encode(var.***REMOVED-KEYCLOAK_DB_PASSWORD***_admin_username)
-    KEYCLOAK_ADMIN_PASSWORD = base64encode(var.***REMOVED-KEYCLOAK_DB_PASSWORD***_admin_password)
+    KEYCLOAK_ADMIN_USERNAME = base64encode(var.keycloak_admin_username)
+    KEYCLOAK_ADMIN_PASSWORD = base64encode(var.keycloak_admin_password)
   }
 
   type = "Opaque"

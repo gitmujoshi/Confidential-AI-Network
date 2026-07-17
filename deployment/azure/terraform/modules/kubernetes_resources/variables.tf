@@ -9,5 +9,5 @@ variable "image_tag" { type = string }
 variable "release_version" { type = string }
 variable "app_domain" { type = string }
 variable "environment" { type = string }
-variable "***REMOVED-KEYCLOAK_DB_PASSWORD***_admin_username" { type = string }
-variable "***REMOVED-KEYCLOAK_DB_PASSWORD***_admin_password" { type = string, sensitive = true }
+variable "keycloak_admin_username" { type = string }
+variable "keycloak_admin_password" { type = string, sensitive = true }

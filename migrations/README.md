@@ -18,11 +18,11 @@
 
 ## Keycloak Setup
 - Keycloak realm and client configuration is stored in:
-  - `deployment/***REMOVED-KEYCLOAK_DB_PASSWORD***-config/***REMOVED-KEYCLOAK_DB_PASSWORD***-config.json`
-  - `deployment/***REMOVED-KEYCLOAK_DB_PASSWORD***-config/realm-export.json`
+  - `deployment/keycloak-config/keycloak-config.json`
+  - `deployment/keycloak-config/realm-export.json`
 - To set up Keycloak:
   1. Import the realm using the above files.
-  2. Sync users using backend scripts (see `backend/setup-***REMOVED-KEYCLOAK_DB_PASSWORD***.js`).
+  2. Sync users using backend scripts (see `backend/setup-keycloak.js`).
 
 ## Blockchain Setup
 - Smart contracts are deployed using SCITT CCF:

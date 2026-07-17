@@ -77,7 +77,7 @@ async function debugKeycloakAuth() {
       
       try {
         // Try to authenticate directly with Keycloak using the same method
-        const ***REMOVED-KEYCLOAK_DB_PASSWORD***Url = process.env.KEYCLOAK_URL || config.***REMOVED-KEYCLOAK_DB_PASSWORD***;
+        const keycloakUrl = process.env.KEYCLOAK_URL || config.keycloak;
         const realm = process.env.KEYCLOAK_REALM || 'contract-management';
         const clientId = process.env.KEYCLOAK_CLIENT_ID || 'contract-management-client';
         const clientSecret = process.env.KEYCLOAK_CLIENT_SECRET;
@@ -95,14 +95,14 @@ async function debugKeycloakAuth() {
         }
         
         console.log('🔗 Keycloak Auth Attempt:');
-        console.log(`   URL: ${***REMOVED-KEYCLOAK_DB_PASSWORD***Url}/realms/${realm}/protocol/openid-connect/token`);
+        console.log(`   URL: ${keycloakUrl}/realms/${realm}/protocol/openid-connect/token`);
         console.log(`   Username: ${user.iamUsername}`);
         console.log(`   Password: ${tempPassword}`);
         console.log(`   Client ID: ${clientId}`);
         console.log(`   Has Client Secret: ${!!clientSecret}`);
         
         const directKeycloakResponse = await axios.post(
-          `${***REMOVED-KEYCLOAK_DB_PASSWORD***Url}/realms/${realm}/protocol/openid-connect/token`,
+          `${keycloakUrl}/realms/${realm}/protocol/openid-connect/token`,
           requestBody,
           {
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -116,12 +116,12 @@ async function debugKeycloakAuth() {
         console.log(`   Access Token: ${directKeycloakResponse.data.access_token ? 'Present' : 'Missing'}`);
         console.log(`   Token Type: ${directKeycloakResponse.data.token_type}`);
         
-      } catch (***REMOVED-KEYCLOAK_DB_PASSWORD***Error) {
+      } catch (keycloakError) {
         console.log('❌ Direct Keycloak authentication failed!');
         console.log('📋 Keycloak Error Details:');
-        console.log(`   Status: ${***REMOVED-KEYCLOAK_DB_PASSWORD***Error.response?.status}`);
-        console.log(`   Error: ${***REMOVED-KEYCLOAK_DB_PASSWORD***Error.response?.data?.error}`);
-        console.log(`   Description: ${***REMOVED-KEYCLOAK_DB_PASSWORD***Error.response?.data?.error_description}`);
+        console.log(`   Status: ${keycloakError.response?.status}`);
+        console.log(`   Error: ${keycloakError.response?.data?.error}`);
+        console.log(`   Description: ${keycloakError.response?.data?.error_description}`);
         
         // Step 5: Check if user exists in Keycloak with admin token
         console.log('\n🔍 Step 5: Checking user existence in Keycloak...');
@@ -129,8 +129,8 @@ async function debugKeycloakAuth() {
         try {
           // Get admin token first
           const adminTokenResponse = await axios.post(
-            `${***REMOVED-KEYCLOAK_DB_PASSWORD***Url}/realms/master/protocol/openid-connect/token`,
-            `grant_type=password&client_id=admin-cli&username=${process.env.KEYCLOAK_ADMIN_USER || 'admin'}&password=${process.env.KEYCLOAK_ADMIN_PASSWORD || '***REMOVED-KEYCLOAK_ADMIN_PASSWORD***'}`,
+            `${keycloakUrl}/realms/master/protocol/openid-connect/token`,
+            `grant_type=password&client_id=admin-cli&username=${process.env.KEYCLOAK_ADMIN_USER || 'admin'}&password=${process.env.KEYCLOAK_ADMIN_PASSWORD || 'admin123'}`,
             {
               headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
               httpsAgent: process.env.NODE_TLS_REJECT_UNAUTHORIZED === '0' ? 
@@ -142,7 +142,7 @@ async function debugKeycloakAuth() {
           
           // Check if user exists
           const userCheckResponse = await axios.get(
-            `${***REMOVED-KEYCLOAK_DB_PASSWORD***Url}/admin/realms/${realm}/users/${user.iamUserId}`,
+            `${keycloakUrl}/admin/realms/${realm}/users/${user.iamUserId}`,
             {
               headers: {
                 'Authorization': `Bearer ${adminToken}`,

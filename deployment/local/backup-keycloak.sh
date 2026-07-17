@@ -35,12 +35,12 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(dirname "$(dirname "$SCRIPT_DIR")")"
 
 # Create backup directory
-BACKUP_DIR="$PROJECT_ROOT/***REMOVED-KEYCLOAK_DB_PASSWORD***-backups"
+BACKUP_DIR="$PROJECT_ROOT/keycloak-backups"
 mkdir -p "$BACKUP_DIR"
 
 # Create timestamp for backup
 TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
-BACKUP_NAME="***REMOVED-KEYCLOAK_DB_PASSWORD***_backup_$TIMESTAMP"
+BACKUP_NAME="keycloak_backup_$TIMESTAMP"
 BACKUP_PATH="$BACKUP_DIR/$BACKUP_NAME"
 
 print_status "Creating backup: $BACKUP_NAME"
@@ -49,7 +49,7 @@ print_status "Creating backup: $BACKUP_NAME"
 get_admin_token() {
     local response=$(curl -k -s -X POST "${KEYCLOAK_URL:-https://localhost:8443}/realms/master/protocol/openid-connect/token" \
         -H "Content-Type: application/x-www-form-urlencoded" \
-        -d "grant_type=password&client_id=admin-cli&username=${KEYCLOAK_ADMIN_USER:-admin}&password=${KEYCLOAK_ADMIN_PASSWORD:-***REMOVED-KEYCLOAK_ADMIN_PASSWORD***}")
+        -d "grant_type=password&client_id=admin-cli&username=${KEYCLOAK_ADMIN_USER:-admin}&password=${KEYCLOAK_ADMIN_PASSWORD:-admin123}")
     
     echo "$response" | grep -o '"access_token":"[^"]*"' | cut -d'"' -f4
 }
@@ -96,7 +96,7 @@ export_users() {
 }
 
 # Main backup function
-backup_***REMOVED-KEYCLOAK_DB_PASSWORD***() {
+backup_keycloak() {
     # Check if Keycloak is running
     if ! curl -k -s "${KEYCLOAK_URL:-https://localhost:8443}/realms/master" >/dev/null 2>&1; then
         print_error "Keycloak is not running. Please start Keycloak first."
@@ -122,9 +122,9 @@ backup_***REMOVED-KEYCLOAK_DB_PASSWORD***() {
     export_users "$admin_token" "contract-management" "$BACKUP_PATH/users.json"
     
     # Copy persistent data directory
-    if [ -d "$PROJECT_ROOT/***REMOVED-KEYCLOAK_DB_PASSWORD***-data" ]; then
+    if [ -d "$PROJECT_ROOT/keycloak-data" ]; then
         print_status "Copying persistent data..."
-        cp -r "$PROJECT_ROOT/***REMOVED-KEYCLOAK_DB_PASSWORD***-data" "$BACKUP_PATH/data"
+        cp -r "$PROJECT_ROOT/keycloak-data" "$BACKUP_PATH/data"
         print_success "Persistent data backed up"
     else
         print_warning "No persistent data directory found"
@@ -144,9 +144,9 @@ Files:
 
 To restore this backup:
 1. Stop Keycloak
-2. Copy data/ to ***REMOVED-KEYCLOAK_DB_PASSWORD***-data/
+2. Copy data/ to keycloak-data/
 3. Restart Keycloak
-4. Run: ./restore-***REMOVED-KEYCLOAK_DB_PASSWORD***.sh $BACKUP_NAME
+4. Run: ./restore-keycloak.sh $BACKUP_NAME
 EOF
     
     print_success "Backup completed successfully!"
@@ -155,4 +155,4 @@ EOF
 }
 
 # Run backup
-backup_***REMOVED-KEYCLOAK_DB_PASSWORD*** 
+backup_keycloak 

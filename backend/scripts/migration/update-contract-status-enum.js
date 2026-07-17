@@ -2,11 +2,11 @@ const { Sequelize } = require('sequelize');
 
 async function updateContractStatusEnum() {
   const sequelize = new Sequelize({
-    dialect: '***REMOVED-DB_PASSWORD***',
+    dialect: 'postgres',
     host: process.env.DB_HOST || 'localhost',
     port: process.env.DB_PORT || 5432,
-    username: process.env.DB_USER || '***REMOVED-DB_PASSWORD***',
-    password: process.env.DB_PASSWORD || '***REMOVED-DB_PASSWORD***',
+    username: process.env.DB_USER || 'postgres',
+    password: process.env.DB_PASSWORD || 'postgres',
     database: process.env.DB_NAME || 'contract_management',
     logging: false
   });

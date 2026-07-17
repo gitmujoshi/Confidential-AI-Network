@@ -34,7 +34,7 @@ load_config() {
     CONFIG_OUTPUT=$(node -e "
         const config = require('./scripts/config-loader');
         console.log(JSON.stringify({
-            ***REMOVED-KEYCLOAK_DB_PASSWORD***: config.getKeycloak(),
+            keycloak: config.getKeycloak(),
             database: config.getDatabase(),
             backend: config.getBackend(),
             docker: config.getDocker(),
@@ -48,11 +48,11 @@ load_config() {
     fi
     
     # Parse configuration
-    KEYCLOAK_URL=$(echo "$CONFIG_OUTPUT" | jq -r '.***REMOVED-KEYCLOAK_DB_PASSWORD***.url')
-    KEYCLOAK_REALM=$(echo "$CONFIG_OUTPUT" | jq -r '.***REMOVED-KEYCLOAK_DB_PASSWORD***.realm')
-    KEYCLOAK_ADMIN_USER=$(echo "$CONFIG_OUTPUT" | jq -r '.***REMOVED-KEYCLOAK_DB_PASSWORD***.adminUser')
-    KEYCLOAK_ADMIN_PASSWORD=$(echo "$CONFIG_OUTPUT" | jq -r '.***REMOVED-KEYCLOAK_DB_PASSWORD***.adminPassword')
-    KEYCLOAK_CLIENT_ID=$(echo "$CONFIG_OUTPUT" | jq -r '.***REMOVED-KEYCLOAK_DB_PASSWORD***.clientId')
+    KEYCLOAK_URL=$(echo "$CONFIG_OUTPUT" | jq -r '.keycloak.url')
+    KEYCLOAK_REALM=$(echo "$CONFIG_OUTPUT" | jq -r '.keycloak.realm')
+    KEYCLOAK_ADMIN_USER=$(echo "$CONFIG_OUTPUT" | jq -r '.keycloak.adminUser')
+    KEYCLOAK_ADMIN_PASSWORD=$(echo "$CONFIG_OUTPUT" | jq -r '.keycloak.adminPassword')
+    KEYCLOAK_CLIENT_ID=$(echo "$CONFIG_OUTPUT" | jq -r '.keycloak.clientId')
     
     DB_HOST=$(echo "$CONFIG_OUTPUT" | jq -r '.database.host')
     DB_PORT=$(echo "$CONFIG_OUTPUT" | jq -r '.database.port')
@@ -63,8 +63,8 @@ load_config() {
     BACKEND_PORT=$(echo "$CONFIG_OUTPUT" | jq -r '.backend.port')
     BACKEND_HOST=$(echo "$CONFIG_OUTPUT" | jq -r '.backend.host')
     
-    DOCKER_KEYCLOAK_PORT=$(echo "$CONFIG_OUTPUT" | jq -r '.docker.***REMOVED-KEYCLOAK_DB_PASSWORD***Port')
-    DOCKER_POSTGRES_PORT=$(echo "$CONFIG_OUTPUT" | jq -r '.docker.***REMOVED-DB_PASSWORD***Port')
+    DOCKER_KEYCLOAK_PORT=$(echo "$CONFIG_OUTPUT" | jq -r '.docker.keycloakPort')
+    DOCKER_POSTGRES_PORT=$(echo "$CONFIG_OUTPUT" | jq -r '.docker.postgresPort')
     
     SCITT_CCF_ENABLED=$(echo "$CONFIG_OUTPUT" | jq -r '.scittCcf.enabled')
     SCITT_CCF_URL=$(echo "$CONFIG_OUTPUT" | jq -r '.scittCcf.url')
@@ -115,12 +115,12 @@ wait_for_service() {
 }
 
 # Function to start Keycloak
-start_***REMOVED-KEYCLOAK_DB_PASSWORD***() {
+start_keycloak() {
     print_status "Starting Keycloak..."
     
     if ! check_service "Keycloak" "$DOCKER_KEYCLOAK_PORT" "$KEYCLOAK_URL/realms/master"; then
         print_status "Starting Keycloak container..."
-        docker-compose -f docker-compose.***REMOVED-KEYCLOAK_DB_PASSWORD***-dev.yml up -d ***REMOVED-KEYCLOAK_DB_PASSWORD*** ***REMOVED-DB_PASSWORD***
+        docker-compose -f docker-compose.keycloak-dev.yml up -d keycloak postgres
         
         print_status "Waiting for Keycloak to start..."
         wait_for_service "Keycloak" "$DOCKER_KEYCLOAK_PORT" "$KEYCLOAK_URL/realms/master"
@@ -150,25 +150,25 @@ start_scitt_ccf() {
 }
 
 # Function to fix Keycloak configuration
-fix_***REMOVED-KEYCLOAK_DB_PASSWORD***_config() {
+fix_keycloak_config() {
     print_status "Fixing Keycloak configuration..."
     
     cd backend
     
     # Create a temporary script that uses centralized config
-    cat > temp-fix-***REMOVED-KEYCLOAK_DB_PASSWORD***.js << EOF
+    cat > temp-fix-keycloak.js << EOF
 const config = require('../scripts/config-loader');
 const axios = require('axios');
 
 class KeycloakAutoFix {
   constructor() {
-    this.***REMOVED-KEYCLOAK_DB_PASSWORD*** = config.getKeycloak();
+    this.keycloak = config.getKeycloak();
   }
 
   async getAdminToken() {
     try {
-      const response = await axios.post(\`\${this.***REMOVED-KEYCLOAK_DB_PASSWORD***.url}/realms/master/protocol/openid-connect/token\`,
-        \`grant_type=password&client_id=admin-cli&username=\${this.***REMOVED-KEYCLOAK_DB_PASSWORD***.adminUser}&password=\${this.***REMOVED-KEYCLOAK_DB_PASSWORD***.adminPassword}\`,
+      const response = await axios.post(\`\${this.keycloak.url}/realms/master/protocol/openid-connect/token\`,
+        \`grant_type=password&client_id=admin-cli&username=\${this.keycloak.adminUser}&password=\${this.keycloak.adminPassword}\`,
         { headers: { 'Content-Type': 'application/x-www-form-urlencoded' } }
       );
       return response.data.access_token;
@@ -179,7 +179,7 @@ class KeycloakAutoFix {
 
   async checkRealmExists(token) {
     try {
-      const response = await axios.get(\`\${this.***REMOVED-KEYCLOAK_DB_PASSWORD***.url}/admin/realms/\${this.***REMOVED-KEYCLOAK_DB_PASSWORD***.realm}\`, {
+      const response = await axios.get(\`\${this.keycloak.url}/admin/realms/\${this.keycloak.realm}\`, {
         headers: { 'Authorization': \`Bearer \${token}\` }
       });
       return response.status === 200;
@@ -190,8 +190,8 @@ class KeycloakAutoFix {
 
   async createRealm(token) {
     console.log('📝 Creating realm...');
-    await axios.post(\`\${this.***REMOVED-KEYCLOAK_DB_PASSWORD***.url}/admin/realms\`, {
-      realm: this.***REMOVED-KEYCLOAK_DB_PASSWORD***.realm,
+    await axios.post(\`\${this.keycloak.url}/admin/realms\`, {
+      realm: this.keycloak.realm,
       enabled: true,
       displayName: 'Contract Management System'
     }, {
@@ -202,7 +202,7 @@ class KeycloakAutoFix {
 
   async checkClientExists(token, clientId) {
     try {
-      const response = await axios.get(\`\${this.***REMOVED-KEYCLOAK_DB_PASSWORD***.url}/admin/realms/\${this.***REMOVED-KEYCLOAK_DB_PASSWORD***.realm}/clients\`, {
+      const response = await axios.get(\`\${this.keycloak.url}/admin/realms/\${this.keycloak.realm}/clients\`, {
         headers: { 'Authorization': \`Bearer \${token}\` }
       });
       return response.data.some(client => client.clientId === clientId);
@@ -213,8 +213,8 @@ class KeycloakAutoFix {
 
   async createFrontendClient(token) {
     console.log('🌐 Creating frontend client...');
-    await axios.post(\`\${this.***REMOVED-KEYCLOAK_DB_PASSWORD***.url}/admin/realms/\${this.***REMOVED-KEYCLOAK_DB_PASSWORD***.realm}/clients\`, {
-      clientId: this.***REMOVED-KEYCLOAK_DB_PASSWORD***.clientId,
+    await axios.post(\`\${this.keycloak.url}/admin/realms/\${this.keycloak.realm}/clients\`, {
+      clientId: this.keycloak.clientId,
       enabled: true,
       publicClient: true,
       standardFlowEnabled: true,
@@ -234,7 +234,7 @@ class KeycloakAutoFix {
     
     for (const role of roles) {
       try {
-        await axios.post(\`\${this.***REMOVED-KEYCLOAK_DB_PASSWORD***.url}/admin/realms/\${this.***REMOVED-KEYCLOAK_DB_PASSWORD***.realm}/roles\`, {
+        await axios.post(\`\${this.keycloak.url}/admin/realms/\${this.keycloak.realm}/roles\`, {
           name: role,
           description: \`\${role} role\`
         }, {
@@ -265,7 +265,7 @@ class KeycloakAutoFix {
         console.log('✅ Realm exists');
       }
       
-      const frontendExists = await this.checkClientExists(token, this.***REMOVED-KEYCLOAK_DB_PASSWORD***.clientId);
+      const frontendExists = await this.checkClientExists(token, this.keycloak.clientId);
       if (!frontendExists) {
         await this.createFrontendClient(token);
       } else {
@@ -287,8 +287,8 @@ const autoFix = new KeycloakAutoFix();
 autoFix.run().catch(console.error);
 EOF
 
-    node temp-fix-***REMOVED-KEYCLOAK_DB_PASSWORD***.js
-    rm temp-fix-***REMOVED-KEYCLOAK_DB_PASSWORD***.js
+    node temp-fix-keycloak.js
+    rm temp-fix-keycloak.js
     
     cd ..
     print_success "Keycloak configuration fixed"
@@ -306,7 +306,7 @@ const config = require('../scripts/config-loader');
 const axios = require('axios');
 const { User } = require('./models');
 
-const ***REMOVED-KEYCLOAK_DB_PASSWORD*** = config.getKeycloak();
+const keycloak = config.getKeycloak();
 
 // Configure axios to ignore SSL certificate verification for self-signed certs
 const httpsAgent = new (require('https').Agent)({
@@ -319,10 +319,10 @@ const axiosInstance = axios.create({
 
 async function getKeycloakToken() {
   try {
-    const response = await axiosInstance.post(\`\${***REMOVED-KEYCLOAK_DB_PASSWORD***.url}/realms/master/protocol/openid-connect/token\`, 
+    const response = await axiosInstance.post(\`\${keycloak.url}/realms/master/protocol/openid-connect/token\`, 
       new URLSearchParams({
-        username: ***REMOVED-KEYCLOAK_DB_PASSWORD***.adminUser,
-        password: ***REMOVED-KEYCLOAK_DB_PASSWORD***.adminPassword,
+        username: keycloak.adminUser,
+        password: keycloak.adminPassword,
         grant_type: 'password',
         client_id: 'admin-cli'
       }), {
@@ -349,7 +349,7 @@ async function syncUsersToKeycloak() {
       try {
         // Check if user exists in Keycloak
         const usersResponse = await axiosInstance.get(
-          \`\${***REMOVED-KEYCLOAK_DB_PASSWORD***.url}/admin/realms/\${***REMOVED-KEYCLOAK_DB_PASSWORD***.realm}/users?username=\${encodeURIComponent(user.email)}\`,
+          \`\${keycloak.url}/admin/realms/\${keycloak.realm}/users?username=\${encodeURIComponent(user.email)}\`,
           {
             headers: {
               'Authorization': \`Bearer \${token}\`
@@ -361,7 +361,7 @@ async function syncUsersToKeycloak() {
           console.log(\`✅ User \${user.email} already exists in Keycloak\`);
         } else {
           // Create user in Keycloak
-          const ***REMOVED-KEYCLOAK_DB_PASSWORD***User = {
+          const keycloakUser = {
             username: user.email,
             email: user.email,
             firstName: user.name.split(' ')[0] || user.name,
@@ -375,8 +375,8 @@ async function syncUsersToKeycloak() {
           };
           
           await axiosInstance.post(
-            \`\${***REMOVED-KEYCLOAK_DB_PASSWORD***.url}/admin/realms/\${***REMOVED-KEYCLOAK_DB_PASSWORD***.realm}/users\`,
-            ***REMOVED-KEYCLOAK_DB_PASSWORD***User,
+            \`\${keycloak.url}/admin/realms/\${keycloak.realm}/users\`,
+            keycloakUser,
             {
               headers: {
                 'Authorization': \`Bearer \${token}\`,
@@ -453,13 +453,13 @@ main() {
     load_config
     
     # Step 1: Start Keycloak
-    start_***REMOVED-KEYCLOAK_DB_PASSWORD***
+    start_keycloak
     
     # Step 2: Start SCITT CCF if enabled
     start_scitt_ccf
     
     # Step 3: Fix Keycloak configuration
-    fix_***REMOVED-KEYCLOAK_DB_PASSWORD***_config
+    fix_keycloak_config
     
     # Step 4: Sync users
     sync_users

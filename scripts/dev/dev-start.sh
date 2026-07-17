@@ -88,8 +88,8 @@ wait_for_services() {
     
     # Wait for databases
     print_status "Waiting for PostgreSQL databases..."
-    timeout 60 bash -c 'until docker exec ***REMOVED-DB_PASSWORD***-app-dev pg_isready -U ***REMOVED-DB_PASSWORD***; do sleep 2; done'
-    timeout 60 bash -c 'until docker exec ***REMOVED-DB_PASSWORD***-***REMOVED-KEYCLOAK_DB_PASSWORD***-dev pg_isready -U ***REMOVED-KEYCLOAK_DB_PASSWORD***; do sleep 2; done'
+    timeout 60 bash -c 'until docker exec postgres-app-dev pg_isready -U postgres; do sleep 2; done'
+    timeout 60 bash -c 'until docker exec postgres-keycloak-dev pg_isready -U keycloak; do sleep 2; done'
     
     # Wait for Keycloak
     print_status "Waiting for Keycloak..."
@@ -107,14 +107,14 @@ wait_for_services() {
 }
 
 # Function to setup Keycloak
-setup_***REMOVED-KEYCLOAK_DB_PASSWORD***() {
+setup_keycloak() {
     print_step "Setting up Keycloak..."
     
     # Wait a bit more for Keycloak to be fully ready
     sleep 10
     
     # Run Keycloak setup
-    docker exec backend-dev node setup-***REMOVED-KEYCLOAK_DB_PASSWORD***-simple.js || print_warning "Keycloak setup failed, but continuing..."
+    docker exec backend-dev node setup-keycloak-simple.js || print_warning "Keycloak setup failed, but continuing..."
     
     print_success "Keycloak setup completed"
 }
@@ -150,8 +150,8 @@ display_service_info() {
     echo -e "${CYAN}🐳 Container Names:${NC}"
     echo "  Frontend:     frontend-dev"
     echo "  Backend:      backend-dev"
-    echo "  Keycloak:     ***REMOVED-KEYCLOAK_DB_PASSWORD***-dev"
-    echo "  PostgreSQL:   ***REMOVED-DB_PASSWORD***-app-dev, ***REMOVED-DB_PASSWORD***-***REMOVED-KEYCLOAK_DB_PASSWORD***-dev"
+    echo "  Keycloak:     keycloak-dev"
+    echo "  PostgreSQL:   postgres-app-dev, postgres-keycloak-dev"
     echo "  Dev Tools:    dev-tools"
     echo ""
     echo -e "${YELLOW}⚠️  Development Notes:${NC}"
@@ -193,7 +193,7 @@ main() {
     wait_for_services
     
     # Setup services
-    setup_***REMOVED-KEYCLOAK_DB_PASSWORD***
+    setup_keycloak
     run_migrations
     
     # Display information

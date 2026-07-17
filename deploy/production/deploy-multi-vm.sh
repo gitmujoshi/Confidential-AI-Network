@@ -25,9 +25,9 @@ VM_SPECS=(
     "load-balancer:2:4:20"
     "frontend:2:4:20"
     "backend:4:8:50"
-    "***REMOVED-KEYCLOAK_DB_PASSWORD***:2:4:20"
+    "keycloak:2:4:20"
     "database:4:16:100"
-    "***REMOVED-KEYCLOAK_DB_PASSWORD***-db:2:8:50"
+    "keycloak-db:2:8:50"
     "scitt:4:8:50"
     "scitt-db:2:8:50"
 )
@@ -633,7 +633,7 @@ EOF
     # Create service-specific deployment scripts
     create_frontend_deploy_script
     create_backend_deploy_script
-    create_***REMOVED-KEYCLOAK_DB_PASSWORD***_deploy_script
+    create_keycloak_deploy_script
     create_database_deploy_script
     create_scitt_deploy_script
     create_load_balancer_deploy_script
@@ -685,7 +685,7 @@ NODE_ENV=production
 DB_HOST=172.20.1.50
 DB_PORT=5432
 DB_NAME=contract_management
-DB_USER=***REMOVED-DB_PASSWORD***
+DB_USER=postgres
 DB_PASSWORD=secure_password
 KEYCLOAK_URL=http://172.20.1.40:8080
 KEYCLOAK_REALM=contract-management
@@ -703,8 +703,8 @@ EOF
 }
 
 # Function to create Keycloak deployment script
-create_***REMOVED-KEYCLOAK_DB_PASSWORD***_deploy_script() {
-    cat > deploy-***REMOVED-KEYCLOAK_DB_PASSWORD***.sh << 'EOF'
+create_keycloak_deploy_script() {
+    cat > deploy-keycloak.sh << 'EOF'
 #!/bin/bash
 
 # Keycloak deployment script
@@ -717,13 +717,13 @@ cd ContractManagement
 cat > .env << 'ENVEOF'
 KEYCLOAK_ADMIN=admin
 KEYCLOAK_ADMIN_PASSWORD=secure_admin_password
-KC_DB_URL=jdbc:***REMOVED-DB_PASSWORD***ql://172.20.1.60:5432/***REMOVED-KEYCLOAK_DB_PASSWORD***
-KC_DB_USERNAME=***REMOVED-KEYCLOAK_DB_PASSWORD***
-KC_DB_PASSWORD=***REMOVED-KEYCLOAK_DB_PASSWORD***_password
+KC_DB_URL=jdbc:postgresql://172.20.1.60:5432/keycloak
+KC_DB_USERNAME=keycloak
+KC_DB_PASSWORD=keycloak_password
 ENVEOF
 
 # Build and start Keycloak
-docker-compose -f deploy/production/docker-compose.prod.yml up -d ***REMOVED-KEYCLOAK_DB_PASSWORD***
+docker-compose -f deploy/production/docker-compose.prod.yml up -d keycloak
 
 echo "Keycloak deployed successfully!"
 EOF
@@ -743,12 +743,12 @@ cd ContractManagement
 # Create production environment file
 cat > .env << 'ENVEOF'
 POSTGRES_DB=contract_management
-POSTGRES_USER=***REMOVED-DB_PASSWORD***
+POSTGRES_USER=postgres
 POSTGRES_PASSWORD=secure_password
 ENVEOF
 
 # Build and start database
-docker-compose -f deploy/production/docker-compose.prod.yml up -d ***REMOVED-DB_PASSWORD***-app
+docker-compose -f deploy/production/docker-compose.prod.yml up -d postgres-app
 
 # Run migrations
 cd backend
@@ -777,7 +777,7 @@ SCITT_DB_PASSWORD=scitt_password
 ENVEOF
 
 # Build and start SCITT services
-docker-compose -f deploy/production/docker-compose.prod.yml up -d scitt-ccf-node scitt-ccf-monitor scitt-ccf-dashboard scitt-ccf-***REMOVED-DB_PASSWORD***
+docker-compose -f deploy/production/docker-compose.prod.yml up -d scitt-ccf-node scitt-ccf-monitor scitt-ccf-dashboard scitt-ccf-postgres
 
 echo "SCITT CCF deployed successfully!"
 EOF

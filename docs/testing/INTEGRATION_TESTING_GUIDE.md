@@ -63,7 +63,7 @@ npm run test:integration:full
 ## Service Configuration
 
 ### Database (PostgreSQL)
-- **URL**: `***REMOVED-DB_PASSWORD***ql://testuser:testpass@localhost:5433/contract_management_test`
+- **URL**: `postgresql://testuser:testpass@localhost:5433/contract_management_test`
 - **Port**: 5433
 - **Database**: `contract_management_test`
 - **User**: `testuser`
@@ -72,7 +72,7 @@ npm run test:integration:full
 ### Keycloak
 - **URL**: `http://localhost:8081`
 - **Admin**: `admin`
-- **Password**: `***REMOVED-KEYCLOAK_ADMIN_PASSWORD***`
+- **Password**: `admin123`
 - **Realm**: `contract-management-test`
 - **Client ID**: `backend-test`
 
@@ -150,7 +150,7 @@ ADMIN: '0x90F79bf6EB2c4f870365E785982E1f101E93b906'
 The integration tests use these environment variables (configured in `tests/integration-env.js`):
 
 ```javascript
-DATABASE_URL: '***REMOVED-DB_PASSWORD***ql://testuser:testpass@localhost:5433/contract_management_test'
+DATABASE_URL: 'postgresql://testuser:testpass@localhost:5433/contract_management_test'
 KEYCLOAK_URL: 'http://localhost:8081'
 BLOCKCHAIN_URL: 'http://localhost:8546' // or 8547 for Hardhat
 BLOCKCHAIN_ENABLED: 'true'
@@ -190,7 +190,7 @@ JWT_SECRET: 'integration-test-secret-key-for-jwt-signing'
 4. **Database connection issues**
    ```bash
    # Test database connection
-   psql ***REMOVED-DB_PASSWORD***ql://testuser:testpass@localhost:5433/contract_management_test
+   psql postgresql://testuser:testpass@localhost:5433/contract_management_test
    ```
 
 5. **Keycloak connection issues**
@@ -218,7 +218,7 @@ npm run test:integration -- --verbose
 
 ```bash
 # Check PostgreSQL
-docker-compose -f docker-compose.test.yml exec ***REMOVED-DB_PASSWORD***-test pg_isready -U testuser -d contract_management_test
+docker-compose -f docker-compose.test.yml exec postgres-test pg_isready -U testuser -d contract_management_test
 
 # Check Keycloak
 curl -f http://localhost:8081/health/ready

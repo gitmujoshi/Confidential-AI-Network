@@ -92,10 +92,10 @@ BLOCKCHAIN_ENABLED=false
 2. **Database Connection Issues**
    ```bash
    # Check PostgreSQL status
-   brew services list | grep ***REMOVED-DB_PASSWORD***ql
+   brew services list | grep postgresql
    
    # Start PostgreSQL if needed
-   brew services start ***REMOVED-DB_PASSWORD***ql
+   brew services start postgresql
    ```
 
 3. **Node Modules Issues**

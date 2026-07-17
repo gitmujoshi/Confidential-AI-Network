@@ -5,8 +5,8 @@
 
 set -e
 
-CERT_DIR="./deployment/***REMOVED-KEYCLOAK_DB_PASSWORD***-certs"
-KEYCLOAK_CONF_DIR="./deployment/***REMOVED-KEYCLOAK_DB_PASSWORD***-config"
+CERT_DIR="./deployment/keycloak-certs"
+KEYCLOAK_CONF_DIR="./deployment/keycloak-config"
 
 echo "🔐 Generating SSL certificates for Keycloak..."
 
@@ -42,4 +42,4 @@ echo "🔒 Note: These are self-signed certificates for development only."
 echo "   For production, use proper CA-signed certificates."
 echo ""
 echo "🚀 You can now restart Keycloak with:"
-echo "   docker-compose -f docker-compose.main.yml restart ***REMOVED-KEYCLOAK_DB_PASSWORD***"
+echo "   docker-compose -f docker-compose.main.yml restart keycloak"

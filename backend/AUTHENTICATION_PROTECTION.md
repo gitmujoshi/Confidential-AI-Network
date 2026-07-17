@@ -59,8 +59,8 @@ npm run validate-auth
 📁 Checking: middleware/auth.js
   ✅ Found signature: "🔒 FROZEN AUTHENTICATION LOGIC - DO NOT MODIFY"
   ✅ Found signature: "Use only Keycloak username to match with database iamUsername"
-  ✅ Found signature: "const ***REMOVED-KEYCLOAK_DB_PASSWORD***Username = validationResult.user.username;"
-  ✅ Found signature: "iamUsername: ***REMOVED-KEYCLOAK_DB_PASSWORD***Username,"
+  ✅ Found signature: "const keycloakUsername = validationResult.user.username;"
+  ✅ Found signature: "iamUsername: keycloakUsername,"
   ✅ Found signature: "USER_NOT_FOUND"
   ✅ middleware/auth.js - AUTHENTICATION LOGIC FROZEN
 

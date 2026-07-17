@@ -19,7 +19,7 @@ function setupMocks() {
   jest.mock('../../services/didService', () => {
     return jest.fn().mockImplementation(() => new MockRegistry.serviceConstructors.DIDService());
   });
-  jest.mock('../../services/***REMOVED-KEYCLOAK_DB_PASSWORD***Service', () => {
+  jest.mock('../../services/keycloakService', () => {
     return jest.fn().mockImplementation(() => new MockRegistry.serviceConstructors.KeycloakService());
   });
   jest.mock('../../services/blockchainService', () => {

@@ -29,7 +29,7 @@ This document provides comprehensive information about the test data available f
 ### 1. Access the System
 - **Frontend**: http://localhost:3000
 - **Backend API**: http://localhost:5001/api
-- **Keycloak Admin**: http://localhost:8080 (admin/***REMOVED-KEYCLOAK_ADMIN_PASSWORD***)
+- **Keycloak Admin**: http://localhost:8080 (admin/admin123)
 - **SCITT CCF Dashboard**: http://localhost:8082
 
 ### 2. Login Credentials

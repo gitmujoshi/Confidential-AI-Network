@@ -30,7 +30,7 @@ function configureEmailDev() {
   console.log('      SMTP_HOST=smtp.gmail.com');
   console.log('      SMTP_PORT=587');
   console.log('      SMTP_USER=your-email@gmail.com');
-  console.log('      SMTP_PASS=***REMOVED-EMAIL_PASS***');
+  console.log('      SMTP_PASS=<email-app-password>');
   console.log('      FROM_EMAIL=your-email@gmail.com\n');
 
   console.log('Option 2: Use a test email service');

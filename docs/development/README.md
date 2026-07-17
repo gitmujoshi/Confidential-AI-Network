@@ -245,7 +245,7 @@ npm start
 ### **Database Debugging**
 ```bash
 # Connect to database
-psql -h localhost -U ***REMOVED-DB_PASSWORD*** -d contract_management_dev
+psql -h localhost -U postgres -d contract_management_dev
 
 # Check database logs
 docker logs contract-management-db
@@ -273,14 +273,14 @@ PORT=3002 npm start
 #### **Database Connection Issues**
 ```bash
 # Check if database is running
-docker ps | grep ***REMOVED-DB_PASSWORD***
-brew services list | grep ***REMOVED-DB_PASSWORD***
+docker ps | grep postgres
+brew services list | grep postgres
 
 # Check database logs
 docker logs contract-management-db
 
 # Test database connection
-psql -h localhost -U ***REMOVED-DB_PASSWORD*** -d contract_management_dev -c "SELECT 1;"
+psql -h localhost -U postgres -d contract_management_dev -c "SELECT 1;"
 ```
 
 #### **Dependency Issues**

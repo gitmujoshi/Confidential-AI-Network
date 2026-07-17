@@ -4,7 +4,7 @@
  * This script retrieves the client secret for the backend client from Keycloak.
  * 
  * Usage:
- * node scripts/get-***REMOVED-KEYCLOAK_DB_PASSWORD***-client-secret.js
+ * node scripts/get-keycloak-client-secret.js
  */
 
 const axios = require('axios');
@@ -12,7 +12,7 @@ const axios = require('axios');
 // Keycloak configuration
 const KEYCLOAK_BASE_URL = 'http://localhost:8080';
 const ADMIN_USERNAME = 'admin';
-const ADMIN_PASSWORD = '***REMOVED-KEYCLOAK_ADMIN_PASSWORD***';
+const ADMIN_PASSWORD = 'admin123';
 const REALM_NAME = 'contract-management';
 const CLIENT_ID = 'contract-management-backend';
 

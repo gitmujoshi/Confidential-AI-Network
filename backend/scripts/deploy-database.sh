@@ -17,15 +17,15 @@
 # Examples:
 # ./deploy-database.sh                                    # Uses defaults
 # ./deploy-database.sh contract_management                # Custom database name
-# ./deploy-database.sh contract_management ***REMOVED-DB_PASSWORD***       # Custom database and user
-# ./deploy-database.sh contract_management ***REMOVED-DB_PASSWORD*** localhost 5432  # Full custom
+# ./deploy-database.sh contract_management postgres       # Custom database and user
+# ./deploy-database.sh contract_management postgres localhost 5432  # Full custom
 # =====================================================
 
 set -e
 
 # Default values
 DB_NAME=${1:-"contract_management"}
-DB_USER=${2:-"***REMOVED-DB_PASSWORD***"}
+DB_USER=${2:-"postgres"}
 DB_HOST=${3:-"localhost"}
 DB_PORT=${4:-"5432"}
 
@@ -77,7 +77,7 @@ check_prerequisites() {
 test_connection() {
     print_status "Testing database connection..."
     
-    if psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "***REMOVED-DB_PASSWORD***" -c "SELECT 1;" &> /dev/null; then
+    if psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "postgres" -c "SELECT 1;" &> /dev/null; then
         print_success "Database connection successful"
     else
         print_error "Cannot connect to database. Please check your credentials and connection."
@@ -85,7 +85,7 @@ test_connection() {
         echo "  Host: $DB_HOST"
         echo "  Port: $DB_PORT"
         echo "  User: $DB_USER"
-        echo "  Database: ***REMOVED-DB_PASSWORD*** (for connection test)"
+        echo "  Database: postgres (for connection test)"
         exit 1
     fi
 }
@@ -94,10 +94,10 @@ test_connection() {
 create_database() {
     print_status "Creating database '$DB_NAME' if it doesn't exist..."
     
-    if psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "***REMOVED-DB_PASSWORD***" -c "SELECT 1 FROM pg_database WHERE datname = '$DB_NAME';" | grep -q 1; then
+    if psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "postgres" -c "SELECT 1 FROM pg_database WHERE datname = '$DB_NAME';" | grep -q 1; then
         print_warning "Database '$DB_NAME' already exists"
     else
-        psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "***REMOVED-DB_PASSWORD***" -c "CREATE DATABASE \"$DB_NAME\";"
+        psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "postgres" -c "CREATE DATABASE \"$DB_NAME\";"
         print_success "Database '$DB_NAME' created successfully"
     fi
 }

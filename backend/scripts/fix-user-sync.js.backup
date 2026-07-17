@@ -12,11 +12,11 @@ const { User } = require('../models');
 const https = require('https');
 
 const CONFIG = {
-  ***REMOVED-KEYCLOAK_DB_PASSWORD***Url: 'https://localhost:8443',
-  ***REMOVED-KEYCLOAK_DB_PASSWORD***Realm: 'contract-management',
+  keycloakUrl: 'https://localhost:8443',
+  keycloakRealm: 'contract-management',
   backendUrl: 'http://localhost:5001',
   adminUsername: 'admin',
-  adminPassword: '***REMOVED-KEYCLOAK_ADMIN_PASSWORD***'
+  adminPassword: 'admin123'
 };
 
 // Configure axios to handle HTTPS with self-signed certificates
@@ -31,7 +31,7 @@ const testUsers = [
     partyType: 'TDP',
     organization: 'MedData Solutions Inc.',
     description: 'Medical data provider specializing in healthcare datasets',
-    ***REMOVED-KEYCLOAK_DB_PASSWORD***Id: '9af98024-5bf9-4e58-840b-3e3acf3fa2a5'
+    keycloakId: '9af98024-5bf9-4e58-840b-3e3acf3fa2a5'
   },
   {
     email: 'tdp.nlp@example.com',
@@ -39,7 +39,7 @@ const testUsers = [
     partyType: 'TDP',
     organization: 'NLP Research Foundation',
     description: 'Natural language processing research data provider',
-    ***REMOVED-KEYCLOAK_DB_PASSWORD***Id: '77f19f04-f8ab-4cf2-918a-679d0807f0a8'
+    keycloakId: '77f19f04-f8ab-4cf2-918a-679d0807f0a8'
   },
   {
     email: 'tdp.autodrive@example.com',
@@ -47,7 +47,7 @@ const testUsers = [
     partyType: 'TDP',
     organization: 'AutoDrive Technologies',
     description: 'Autonomous driving data and model provider',
-    ***REMOVED-KEYCLOAK_DB_PASSWORD***Id: '1052753a-aab5-4242-b9a9-994c11f2784e'
+    keycloakId: '1052753a-aab5-4242-b9a9-994c11f2784e'
   },
   {
     email: 'tdc.healthcare@example.com',
@@ -55,7 +55,7 @@ const testUsers = [
     partyType: 'TDC',
     organization: 'AI Healthcare Innovations',
     description: 'Healthcare AI model training and analytics',
-    ***REMOVED-KEYCLOAK_DB_PASSWORD***Id: '6c0be390-03ae-46d5-8629-0a9c4963478a'
+    keycloakId: '6c0be390-03ae-46d5-8629-0a9c4963478a'
   },
   {
     email: 'tdc.fintech@example.com',
@@ -63,7 +63,7 @@ const testUsers = [
     partyType: 'TDC',
     organization: 'FinTech Analytics Corp',
     description: 'Financial technology data analytics',
-    ***REMOVED-KEYCLOAK_DB_PASSWORD***Id: '4cc466f2-104a-4aa2-bf30-e3036171ed2b'
+    keycloakId: '4cc466f2-104a-4aa2-bf30-e3036171ed2b'
   },
   {
     email: 'tdc.language@example.com',
@@ -71,7 +71,7 @@ const testUsers = [
     partyType: 'TDC',
     organization: 'Language AI Labs',
     description: 'Language model training and research',
-    ***REMOVED-KEYCLOAK_DB_PASSWORD***Id: '4e1f298d-a43c-446f-9220-96e4e9699dec'
+    keycloakId: '4e1f298d-a43c-446f-9220-96e4e9699dec'
   },
   {
     email: 'ccrp.securecloud@example.com',
@@ -79,7 +79,7 @@ const testUsers = [
     partyType: 'CCRP',
     organization: 'SecureCloud Confidential Computing',
     description: 'Secure cloud infrastructure for confidential computing',
-    ***REMOVED-KEYCLOAK_DB_PASSWORD***Id: 'b84dbd34-3a67-44ae-9477-bfc8ec2a6a73'
+    keycloakId: 'b84dbd34-3a67-44ae-9477-bfc8ec2a6a73'
   },
   {
     email: 'ccrp.trustedai@example.com',
@@ -87,7 +87,7 @@ const testUsers = [
     partyType: 'CCRP',
     organization: 'TrustedAI Environment Provider',
     description: 'Trusted AI training environment provider',
-    ***REMOVED-KEYCLOAK_DB_PASSWORD***Id: 'c8bd1d7f-4821-4e8d-969b-7c7f8ef5ef81'
+    keycloakId: 'c8bd1d7f-4821-4e8d-969b-7c7f8ef5ef81'
   },
   {
     email: 'ccrp.privacyfirst@example.com',
@@ -95,7 +95,7 @@ const testUsers = [
     partyType: 'CCRP',
     organization: 'PrivacyFirst Computing Solutions',
     description: 'Privacy-first computing solutions provider',
-    ***REMOVED-KEYCLOAK_DB_PASSWORD***Id: 'ba903c93-b9e5-49af-babd-bd9dde9ce535'
+    keycloakId: 'ba903c93-b9e5-49af-babd-bd9dde9ce535'
   }
 ];
 
@@ -103,7 +103,7 @@ async function getAdminToken() {
   try {
     console.log('🔑 Getting admin token...');
     const response = await axios.post(
-      `${CONFIG.***REMOVED-KEYCLOAK_DB_PASSWORD***Url}/realms/master/protocol/openid-connect/token`,
+      `${CONFIG.keycloakUrl}/realms/master/protocol/openid-connect/token`,
       `grant_type=password&client_id=admin-cli&username=${CONFIG.adminUsername}&password=${CONFIG.adminPassword}`,
       {
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -118,11 +118,11 @@ async function getAdminToken() {
   }
 }
 
-async function setUserPassword(***REMOVED-KEYCLOAK_DB_PASSWORD***UserId, password, adminToken) {
+async function setUserPassword(keycloakUserId, password, adminToken) {
   try {
-    console.log(`   🔐 Setting password for user ${***REMOVED-KEYCLOAK_DB_PASSWORD***UserId}...`);
+    console.log(`   🔐 Setting password for user ${keycloakUserId}...`);
     const response = await axios.put(
-      `${CONFIG.***REMOVED-KEYCLOAK_DB_PASSWORD***Url}/admin/realms/${CONFIG.***REMOVED-KEYCLOAK_DB_PASSWORD***Realm}/users/${***REMOVED-KEYCLOAK_DB_PASSWORD***UserId}/reset-password`,
+      `${CONFIG.keycloakUrl}/admin/realms/${CONFIG.keycloakRealm}/users/${keycloakUserId}/reset-password`,
       {
         type: 'password',
         value: password,
@@ -136,10 +136,10 @@ async function setUserPassword(***REMOVED-KEYCLOAK_DB_PASSWORD***UserId, passwor
         httpsAgent: httpsAgent
       }
     );
-    console.log(`   ✅ Password set successfully for user ${***REMOVED-KEYCLOAK_DB_PASSWORD***UserId}`);
+    console.log(`   ✅ Password set successfully for user ${keycloakUserId}`);
     return true;
   } catch (error) {
-    console.error(`   ❌ Failed to set password for user ${***REMOVED-KEYCLOAK_DB_PASSWORD***UserId}:`, error.response?.data || error.message);
+    console.error(`   ❌ Failed to set password for user ${keycloakUserId}:`, error.response?.data || error.message);
     return false;
   }
 }
@@ -178,7 +178,7 @@ async function createDatabaseUser(userData) {
       isRegistered: true,
       registrationDate: new Date(),
       isActive: true,
-      iamUserId: userData.***REMOVED-KEYCLOAK_DB_PASSWORD***Id,
+      iamUserId: userData.keycloakId,
       iamUsername: userData.email,
       depaId: depaId
     });
@@ -235,7 +235,7 @@ async function main() {
       
       try {
         // Set password in Keycloak
-        const passwordSet = await setUserPassword(userData.***REMOVED-KEYCLOAK_DB_PASSWORD***Id, 'password123', adminToken);
+        const passwordSet = await setUserPassword(userData.keycloakId, 'password123', adminToken);
         
         if (passwordSet) {
           // Create database user

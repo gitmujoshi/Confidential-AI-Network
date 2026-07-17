@@ -16,7 +16,7 @@ docker compose --project-directory . -f docker/docker-compose.dev.yml up -d   # 
 |------|---------|
 | `docker-compose.dev.yml` | Local development (Postgres, Keycloak, backend, frontend, dev-tools) |
 | `docker-compose.main.yml` | Production-style stack |
-| `docker-compose.***REMOVED-KEYCLOAK_DB_PASSWORD***-*.yml` | Keycloak variants (HTTP, HTTPS, persistent) |
+| `docker-compose.keycloak-*.yml` | Keycloak variants (HTTP, HTTPS, persistent) |
 | `docker-compose.scitt-ccf-*.yml` | SCITT CCF services |
 | `docker-compose.test.yml` | Integration test environment |
 | `Dockerfile.dev-tools` | Dev-tools sidecar image |

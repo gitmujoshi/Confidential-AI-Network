@@ -61,7 +61,7 @@ async function migrateCcrpToTsp() {
   `);
 
   console.log('✅ CCRP → TSP migration complete');
-  console.log('ℹ️  Re-run Keycloak role sync if roles still use CCRP (setup-***REMOVED-KEYCLOAK_DB_PASSWORD*** creates TSP role).');
+  console.log('ℹ️  Re-run Keycloak role sync if roles still use CCRP (setup-keycloak creates TSP role).');
 }
 
 if (require.main === module) {

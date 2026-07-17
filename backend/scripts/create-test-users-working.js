@@ -11,11 +11,11 @@ const { User } = require('../models');
 
 // Configuration
 const CONFIG = {
-  ***REMOVED-KEYCLOAK_DB_PASSWORD***Url: '${KEYCLOAK_URL:-https://localhost:8443}',
-  ***REMOVED-KEYCLOAK_DB_PASSWORD***Realm: 'contract-management',
+  keycloakUrl: '${KEYCLOAK_URL:-https://localhost:8443}',
+  keycloakRealm: 'contract-management',
   backendUrl: '${BACKEND_URL:-http://localhost:5001}',
   adminUsername: 'admin',
-  adminPassword: '***REMOVED-KEYCLOAK_ADMIN_PASSWORD***'
+  adminPassword: 'admin123'
 };
 
 // Test users configuration
@@ -91,7 +91,7 @@ const testUsers = [
 async function getAdminToken() {
   try {
     const response = await axios.post(
-      `${CONFIG.***REMOVED-KEYCLOAK_DB_PASSWORD***Url}/realms/master/protocol/openid-connect/token`,
+      `${CONFIG.keycloakUrl}/realms/master/protocol/openid-connect/token`,
       `grant_type=password&client_id=admin-cli&username=${CONFIG.adminUsername}&password=${CONFIG.adminPassword}`,
       {
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -109,7 +109,7 @@ async function getAdminToken() {
  */
 async function createKeycloakUser(userData, adminToken) {
   try {
-    const ***REMOVED-KEYCLOAK_DB_PASSWORD***UserData = {
+    const keycloakUserData = {
       username: userData.email,
       email: userData.email,
       firstName: userData.name.split(' ')[0] || '',
@@ -129,8 +129,8 @@ async function createKeycloakUser(userData, adminToken) {
     };
 
     const response = await axios.post(
-      `${CONFIG.***REMOVED-KEYCLOAK_DB_PASSWORD***Url}/admin/realms/${CONFIG.***REMOVED-KEYCLOAK_DB_PASSWORD***Realm}/users`,
-      ***REMOVED-KEYCLOAK_DB_PASSWORD***UserData,
+      `${CONFIG.keycloakUrl}/admin/realms/${CONFIG.keycloakRealm}/users`,
+      keycloakUserData,
       {
         headers: {
           'Authorization': `Bearer ${adminToken}`,
@@ -153,7 +153,7 @@ async function createKeycloakUser(userData, adminToken) {
 /**
  * Create user in database
  */
-async function createDatabaseUser(userData, ***REMOVED-KEYCLOAK_DB_PASSWORD***UserId) {
+async function createDatabaseUser(userData, keycloakUserId) {
   try {
     // Generate DEPA ID
     const DEPAIdService = require('../services/depaIdService');
@@ -186,7 +186,7 @@ async function createDatabaseUser(userData, ***REMOVED-KEYCLOAK_DB_PASSWORD***Us
       onboardingStatus: 'IN_PROGRESS',
       profileCompleted: false,
       emailVerified: false,
-      iamUserId: ***REMOVED-KEYCLOAK_DB_PASSWORD***UserId,
+      iamUserId: keycloakUserId,
       iamUsername: userData.email
     });
 
@@ -241,12 +241,12 @@ async function main() {
         
         // Step 1: Create user in Keycloak
         console.log('   🔐 Creating in Keycloak...');
-        const ***REMOVED-KEYCLOAK_DB_PASSWORD***UserId = await createKeycloakUser(userData, adminToken);
-        console.log(`   ✅ Keycloak user created: ${***REMOVED-KEYCLOAK_DB_PASSWORD***UserId}`);
+        const keycloakUserId = await createKeycloakUser(userData, adminToken);
+        console.log(`   ✅ Keycloak user created: ${keycloakUserId}`);
         
         // Step 2: Create user in database
         console.log('   🗄️ Creating in database...');
-        const dbUser = await createDatabaseUser(userData, ***REMOVED-KEYCLOAK_DB_PASSWORD***UserId);
+        const dbUser = await createDatabaseUser(userData, keycloakUserId);
         console.log(`   ✅ Database user created: ${dbUser.id}`);
         
         // Step 3: Test login
@@ -258,7 +258,7 @@ async function main() {
           results.created.push({
             email: userData.email,
             partyType: userData.partyType,
-            ***REMOVED-KEYCLOAK_DB_PASSWORD***UserId,
+            keycloakUserId,
             dbUserId: dbUser.id,
             loginWorking: true
           });
@@ -267,7 +267,7 @@ async function main() {
           results.created.push({
             email: userData.email,
             partyType: userData.partyType,
-            ***REMOVED-KEYCLOAK_DB_PASSWORD***UserId,
+            keycloakUserId,
             dbUserId: dbUser.id,
             loginWorking: false,
             loginError: loginResult.error

@@ -31,7 +31,7 @@ helm repo update
 helm install prometheus prometheus-community/kube-prometheus-stack \
   --namespace monitoring \
   --create-namespace \
-  --set grafana.adminPassword=***REMOVED-KEYCLOAK_ADMIN_PASSWORD*** \
+  --set grafana.adminPassword=admin123 \
   --set prometheus.prometheusSpec.retention=30d \
   --set prometheus.prometheusSpec.storageSpec.volumeClaimTemplate.spec.resources.requests.storage=100Gi \
   --set alertmanager.alertmanagerSpec.storage.volumeClaimTemplate.spec.resources.requests.storage=10Gi
@@ -635,12 +635,12 @@ kubectl apply -f monitoring/jaeger-config.yaml -n tracing
 ```bash
 # Import dashboards
 curl -X POST \
-  http://admin:***REMOVED-KEYCLOAK_ADMIN_PASSWORD***@grafana.monitoring.svc.cluster.local:3000/api/dashboards/db \
+  http://admin:admin123@grafana.monitoring.svc.cluster.local:3000/api/dashboards/db \
   -H 'Content-Type: application/json' \
   -d @monitoring/dashboards/ai-training-overview.json
 
 curl -X POST \
-  http://admin:***REMOVED-KEYCLOAK_ADMIN_PASSWORD***@grafana.monitoring.svc.cluster.local:3000/api/dashboards/db \
+  http://admin:admin123@grafana.monitoring.svc.cluster.local:3000/api/dashboards/db \
   -H 'Content-Type: application/json' \
   -d @monitoring/dashboards/training-performance.json
 ```
@@ -682,7 +682,7 @@ kubectl port-forward svc/prometheus-server 9090:80 -n monitoring
 
 # Check Grafana
 kubectl port-forward svc/prometheus-grafana 3000:80 -n monitoring
-# Open http://localhost:3000 (admin/***REMOVED-KEYCLOAK_ADMIN_PASSWORD***)
+# Open http://localhost:3000 (admin/admin123)
 
 # Check Elasticsearch
 kubectl port-forward svc/elasticsearch-master 9200:9200 -n logging

@@ -177,13 +177,13 @@ start_blockchain() {
 }
 
 # Function to start Keycloak (via docker-compose)
-start_***REMOVED-KEYCLOAK_DB_PASSWORD***() {
+start_keycloak() {
     echo -e "${BLUE}🗝️  Starting Keycloak (IAM) service...${NC}"
     if [ ! -f "docker-compose.iam.yml" ]; then
         echo -e "${YELLOW}ℹ️  docker-compose.iam.yml not found, skipping Keycloak startup${NC}"
         return 0
     fi
-    docker-compose -f docker-compose.iam.yml up -d ***REMOVED-KEYCLOAK_DB_PASSWORD***
+    docker-compose -f docker-compose.iam.yml up -d keycloak
     if [ $? -eq 0 ]; then
         echo -e "${GREEN}✅ Keycloak started via Docker Compose${NC}"
         # Wait for Keycloak to be ready (port 8080)
@@ -264,7 +264,7 @@ main() {
     fi
     # Start Keycloak if requested or by default
     if [[ "$WITH_KEYCLOAK" == "1" ]]; then
-        start_***REMOVED-KEYCLOAK_DB_PASSWORD***
+        start_keycloak
     fi
     
     # Start backend first
@@ -308,7 +308,7 @@ for arg in "$@"; do
         --with-blockchain)
             WITH_BLOCKCHAIN=1
             ;;
-        --with-***REMOVED-KEYCLOAK_DB_PASSWORD***)
+        --with-keycloak)
             WITH_KEYCLOAK=1
             ;;
         --status)
@@ -323,7 +323,7 @@ for arg in "$@"; do
             echo "Usage: $0 [OPTION]"
             echo "Options:"
             echo "  --with-blockchain   Start blockchain service"
-            echo "  --with-***REMOVED-KEYCLOAK_DB_PASSWORD***     Start Keycloak (IAM) service"
+            echo "  --with-keycloak     Start Keycloak (IAM) service"
             echo "  --status           Show service status"
             echo "  --logs             Show recent logs"
             echo "  --help, -h         Show this help message"

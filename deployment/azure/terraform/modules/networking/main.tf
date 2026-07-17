@@ -33,7 +33,7 @@ resource "azurerm_subnet" "data" {
   address_prefixes     = [cidrsubnet(var.vnet_cidr, 8, 11)]
 
   delegation {
-    name = "***REMOVED-DB_PASSWORD***-delegation"
+    name = "postgres-delegation"
     service_delegation {
       name = "Microsoft.DBforPostgreSQL/flexibleServers"
       actions = [

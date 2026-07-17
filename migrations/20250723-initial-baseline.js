@@ -1,6 +1,6 @@
 // Migration: Initial Baseline (v1.0.0)
 // This migration creates the users, contracts, datasets, and notifications tables as per the v1.0.0 baseline.
-// Keycloak baseline: see deployment/***REMOVED-KEYCLOAK_DB_PASSWORD***-config/realm-export.json
+// Keycloak baseline: see deployment/keycloak-config/realm-export.json
 // Blockchain baseline: see blockchain/scripts/deploy.js
 
 'use strict';

@@ -12,7 +12,7 @@ spec:
   - hosts:
     - contract-management.example.com
     - api.contract-management.example.com
-    - ***REMOVED-KEYCLOAK_DB_PASSWORD***.contract-management.example.com
+    - keycloak.contract-management.example.com
     secretName: contract-management-tls
   rules:
   - host: contract-management.example.com
@@ -35,13 +35,13 @@ spec:
             name: backend-service
             port:
               number: 5000
-  - host: ***REMOVED-KEYCLOAK_DB_PASSWORD***.contract-management.example.com
+  - host: keycloak.contract-management.example.com
     http:
       paths:
       - path: /
         pathType: Prefix
         backend:
           service:
-            name: ***REMOVED-KEYCLOAK_DB_PASSWORD***-service
+            name: keycloak-service
             port:
               number: 8080 

@@ -6,7 +6,7 @@
  * 
  * Prerequisites:
  * - Keycloak running on http://localhost:8080
- * - Admin credentials: admin/***REMOVED-KEYCLOAK_ADMIN_PASSWORD***
+ * - Admin credentials: admin/admin123
  * 
  * Usage:
  * node scripts/setupKeycloak.js
@@ -19,7 +19,7 @@ const path = require('path');
 // Keycloak configuration
 const KEYCLOAK_BASE_URL = 'http://localhost:8080';
 const ADMIN_USERNAME = 'admin';
-const ADMIN_PASSWORD = '***REMOVED-KEYCLOAK_ADMIN_PASSWORD***';
+const ADMIN_PASSWORD = 'admin123';
 const REALM_NAME = 'contract-management';
 
 // Client configurations
@@ -342,7 +342,7 @@ class KeycloakSetup {
         credentials: [
           {
             type: 'password',
-            value: '***REMOVED-KEYCLOAK_ADMIN_PASSWORD***',
+            value: 'admin123',
             temporary: false
           }
         ],
@@ -443,7 +443,7 @@ class KeycloakSetup {
       console.log('📋 Access Information:');
       console.log(`   Admin Console: ${this.baseURL}/admin`);
       console.log(`   Realm: ${REALM_NAME}`);
-      console.log(`   Admin User: admin/***REMOVED-KEYCLOAK_ADMIN_PASSWORD***`);
+      console.log(`   Admin User: admin/admin123`);
       console.log(`   Backend Client Secret: ${clientSecret}`);
       console.log('');
       console.log('🔗 Frontend Configuration:');
@@ -456,24 +456,24 @@ class KeycloakSetup {
 
       // Save configuration to file
       const config = {
-        ***REMOVED-KEYCLOAK_DB_PASSWORD***Url: this.baseURL,
+        keycloakUrl: this.baseURL,
         realm: REALM_NAME,
         frontendClient: FRONTEND_CLIENT.clientId,
         backendClient: BACKEND_CLIENT.clientId,
         backendClientSecret: clientSecret,
         adminUser: {
           username: 'admin',
-          password: '***REMOVED-KEYCLOAK_ADMIN_PASSWORD***'
+          password: 'admin123'
         }
       };
 
       fs.writeFileSync(
-        path.join(__dirname, '../***REMOVED-KEYCLOAK_DB_PASSWORD***-config/***REMOVED-KEYCLOAK_DB_PASSWORD***-config.json'),
+        path.join(__dirname, '../keycloak-config/keycloak-config.json'),
         JSON.stringify(config, null, 2)
       );
 
       console.log('');
-      console.log('💾 Configuration saved to: ***REMOVED-KEYCLOAK_DB_PASSWORD***-config/***REMOVED-KEYCLOAK_DB_PASSWORD***-config.json');
+      console.log('💾 Configuration saved to: keycloak-config/keycloak-config.json');
 
     } catch (error) {
       console.error('❌ Setup failed:', error.message);

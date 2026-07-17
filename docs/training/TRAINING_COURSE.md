@@ -632,12 +632,12 @@ class DIDService {
 
 #### Keycloak Configuration
 ```javascript
-// ***REMOVED-KEYCLOAK_DB_PASSWORD***Service.js
-const Keycloak = require('***REMOVED-KEYCLOAK_DB_PASSWORD***-connect');
+// keycloakService.js
+const Keycloak = require('keycloak-connect');
 
 class KeycloakService {
   constructor() {
-    this.***REMOVED-KEYCLOAK_DB_PASSWORD*** = new Keycloak({}, {
+    this.keycloak = new Keycloak({}, {
       realm: 'contract-management',
       'auth-server-url': process.env.KEYCLOAK_URL,
       'ssl-required': 'external',
@@ -1167,7 +1167,7 @@ Build a complete contract management workflow including:
 - [Hardhat](https://hardhat.org/) - Ethereum development environment
 - [Sequelize](https://sequelize.org/) - Database ORM
 - [Material-UI](https://mui.com/) - React UI framework
-- [Keycloak](https://www.***REMOVED-KEYCLOAK_DB_PASSWORD***.org/) - Identity management
+- [Keycloak](https://www.keycloak.org/) - Identity management
 
 ### Community
 - [Ethereum Stack Exchange](https://ethereum.stackexchange.com/)

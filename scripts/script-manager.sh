@@ -44,7 +44,7 @@ show_help() {
     echo ""
     echo -e "${YELLOW}Categories:${NC}"
     echo "  system     - System management (start, stop, restart, status)"
-    echo "  setup      - Setup and installation (fresh, dev, ***REMOVED-KEYCLOAK_DB_PASSWORD***, database)"
+    echo "  setup      - Setup and installation (fresh, dev, keycloak, database)"
     echo "  test       - Testing (apis, contracts, ai-models, e2e)"
     echo "  deploy     - Deployment (local, cloud, k8s)"
     echo "  config     - Configuration management"
@@ -100,7 +100,7 @@ show_category_help() {
             echo -e "${YELLOW}Commands:${NC}"
             echo "  fresh               - Fresh system setup"
             echo "  dev                 - Development environment setup"
-            echo "  ***REMOVED-KEYCLOAK_DB_PASSWORD*** [OPTIONS]  - Keycloak setup"
+            echo "  keycloak [OPTIONS]  - Keycloak setup"
             echo "  database [OPTIONS]  - Database setup"
             echo "  dependencies        - Install dependencies"
             echo ""
@@ -116,7 +116,7 @@ show_category_help() {
             echo ""
             echo -e "${YELLOW}Examples:${NC}"
             echo "  $0 setup fresh"
-            echo "  $0 setup ***REMOVED-KEYCLOAK_DB_PASSWORD*** --https"
+            echo "  $0 setup keycloak --https"
             echo "  $0 setup database --test"
             ;;
         test)
@@ -334,7 +334,7 @@ handle_setup() {
             print_status $BLUE "🛠️ Development environment setup..."
             ./dev-setup.sh
             ;;
-        ***REMOVED-KEYCLOAK_DB_PASSWORD***)
+        keycloak)
             print_status $BLUE "🔐 Keycloak setup..."
             
             local http_mode=false
@@ -350,11 +350,11 @@ handle_setup() {
             done
             
             if [ "$https_mode" = true ]; then
-                ./deployment/setup-***REMOVED-KEYCLOAK_DB_PASSWORD***-https.sh
+                ./deployment/setup-keycloak-https.sh
             elif [ "$persistent_mode" = true ]; then
-                ./backend/setup-***REMOVED-KEYCLOAK_DB_PASSWORD***-persistent.sh
+                ./backend/setup-keycloak-persistent.sh
             else
-                ./backend/setup-***REMOVED-KEYCLOAK_DB_PASSWORD***.js
+                ./backend/setup-keycloak.js
             fi
             ;;
         database)

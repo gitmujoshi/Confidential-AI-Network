@@ -3,8 +3,8 @@ const axios = require('axios');
 const testUsers = [
   { id: 27, name: "Test User", email: "test@example.com", partyType: "TDP", password: "Test123!" },
   { id: 31, name: "New User", email: "newuser@example.com", partyType: "TDC", password: "Test123!" },
-  { id: 32, name: "Test Keycloak User", email: "test***REMOVED-KEYCLOAK_DB_PASSWORD***@example.com", partyType: "TDP", password: "Test123!" },
-  { id: 33, name: "Test Keycloak User 2", email: "test***REMOVED-KEYCLOAK_DB_PASSWORD***2@example.com", partyType: "TDP", password: "Test123!" },
+  { id: 32, name: "Test Keycloak User", email: "testkeycloak@example.com", partyType: "TDP", password: "Test123!" },
+  { id: 33, name: "Test Keycloak User 2", email: "testkeycloak2@example.com", partyType: "TDP", password: "Test123!" },
   { id: 34, name: "Test Email User", email: "testemail@example.com", partyType: "TDP", password: "Test123!" },
   { id: 35, name: "Email Test User", email: "emailtest@example.com", partyType: "TDP", password: "Test123!" },
   { id: 36, name: "Final Email Test", email: "finalemailtest@example.com", partyType: "TDP", password: "Test123!" },

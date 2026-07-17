@@ -20,7 +20,7 @@ PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
 echo -e "${BLUE}🚀 Contract Management System - Complete Environment Setup${NC}"
 echo "================================================================"
 echo "This script will set up the complete environment using deployment scripts:"
-echo "✅ Keycloak HTTPS IAM setup (via setup-***REMOVED-KEYCLOAK_DB_PASSWORD***-https.sh)"
+echo "✅ Keycloak HTTPS IAM setup (via setup-keycloak-https.sh)"
 echo "✅ SCITT CCF services (via docker-compose)"
 echo "✅ Backend and frontend services"
 echo "✅ Complete IAM integration testing"
@@ -48,12 +48,12 @@ echo -e "${GREEN}✅ All prerequisites are met${NC}"
 
 # Step 1: Setup Keycloak HTTPS IAM
 echo -e "${BLUE}🔐 Step 1: Setting up Keycloak HTTPS IAM...${NC}"
-echo "Using deployment script: ./deployment/setup-***REMOVED-KEYCLOAK_DB_PASSWORD***-https.sh"
+echo "Using deployment script: ./deployment/setup-keycloak-https.sh"
 
-if [ -f "$PROJECT_ROOT/deployment/setup-***REMOVED-KEYCLOAK_DB_PASSWORD***-https.sh" ]; then
+if [ -f "$PROJECT_ROOT/deployment/setup-keycloak-https.sh" ]; then
     echo "Running Keycloak HTTPS setup..."
     cd "$PROJECT_ROOT"
-    ./deployment/setup-***REMOVED-KEYCLOAK_DB_PASSWORD***-https.sh
+    ./deployment/setup-keycloak-https.sh
     echo -e "${GREEN}✅ Keycloak HTTPS IAM setup completed${NC}"
 else
     echo -e "${RED}❌ Keycloak setup script not found${NC}"
@@ -62,17 +62,17 @@ fi
 
 # Step 1.5: Start main PostgreSQL database (required for backend)
 echo -e "${BLUE}🗄️ Step 1.5: Starting main PostgreSQL database...${NC}"
-echo "Using docker-compose: docker-compose -f docker-compose.main.yml up -d ***REMOVED-DB_PASSWORD***-app"
+echo "Using docker-compose: docker-compose -f docker-compose.main.yml up -d postgres-app"
 
 cd "$PROJECT_ROOT"
-docker-compose -f docker-compose.main.yml up -d ***REMOVED-DB_PASSWORD***-app
+docker-compose -f docker-compose.main.yml up -d postgres-app
 
 # Wait for main database to be ready
 echo "⏳ Waiting for main database to be ready..."
 max_attempts=30
 attempt=1
 while [ $attempt -le $max_attempts ]; do
-    if docker ps --format "{{.Names}}: {{.Status}}" | grep -q "***REMOVED-DB_PASSWORD***-app.*healthy"; then
+    if docker ps --format "{{.Names}}: {{.Status}}" | grep -q "postgres-app.*healthy"; then
         echo -e " ${GREEN}✅ Main database is healthy!${NC}"
         break
     fi
@@ -89,9 +89,9 @@ fi
 
 # Step 1.6: Fix Keycloak client configuration for backend authentication
 echo -e "${BLUE}🔧 Step 1.6: Fixing Keycloak client configuration...${NC}"
-if [ -f "$PROJECT_ROOT/deployment/fix-***REMOVED-KEYCLOAK_DB_PASSWORD***-client-config.sh" ]; then
-    echo "Using deployment script: ./deployment/fix-***REMOVED-KEYCLOAK_DB_PASSWORD***-client-config.sh"
-    ./deployment/fix-***REMOVED-KEYCLOAK_DB_PASSWORD***-client-config.sh
+if [ -f "$PROJECT_ROOT/deployment/fix-keycloak-client-config.sh" ]; then
+    echo "Using deployment script: ./deployment/fix-keycloak-client-config.sh"
+    ./deployment/fix-keycloak-client-config.sh
     echo -e "${GREEN}✅ Keycloak client configuration fixed${NC}"
 else
     echo -e "${RED}❌ Keycloak client fix script not found${NC}"
@@ -158,7 +158,7 @@ echo -e "${BLUE}🧪 Testing IAM integration...${NC}"
 # Test login with Keycloak
 LOGIN_RESPONSE=$(curl -s -X POST http://localhost:5001/api/auth/login \
     -H "Content-Type: application/json" \
-    -d '{"email":"admin@contractmanagement.com","password":"***REMOVED-KEYCLOAK_ADMIN_PASSWORD***"}')
+    -d '{"email":"admin@contractmanagement.com","password":"admin123"}')
 
 if echo "$LOGIN_RESPONSE" | grep -q "accessToken"; then
     echo -e "${GREEN}✅ IAM integration working - Login successful${NC}"
@@ -190,8 +190,8 @@ echo "======================================================"
 
 # Check Docker services
 echo -e "${BLUE}🐳 Docker Services:${NC}"
-if docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}" | grep -E "(***REMOVED-DB_PASSWORD***|***REMOVED-KEYCLOAK_DB_PASSWORD***|scitt)" >/dev/null; then
-    docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}" | grep -E "(***REMOVED-DB_PASSWORD***|***REMOVED-KEYCLOAK_DB_PASSWORD***|scitt)"
+if docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}" | grep -E "(postgres|keycloak|scitt)" >/dev/null; then
+    docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}" | grep -E "(postgres|keycloak|scitt)"
 else
     echo -e "${RED}❌ No Docker services running${NC}"
 fi
@@ -238,7 +238,7 @@ fi
 echo -e "\n${BLUE}🧪 IAM Integration Test:${NC}"
 LOGIN_RESPONSE=$(curl -s -X POST http://localhost:5001/api/auth/login \
     -H "Content-Type: application/json" \
-    -d '{"email":"admin@contractmanagement.com","password":"***REMOVED-KEYCLOAK_ADMIN_PASSWORD***"}' 2>/dev/null || echo "FAILED")
+    -d '{"email":"admin@contractmanagement.com","password":"admin123"}' 2>/dev/null || echo "FAILED")
 
 if echo "$LOGIN_RESPONSE" | grep -q "accessToken"; then
     echo -e "  Login Test: ${GREEN}✅ Success${NC}"
@@ -250,14 +250,14 @@ fi
 echo -e "\n${BLUE}🔗 Quick Access:${NC}"
 echo "  Frontend: http://localhost:3000"
 echo "  Backend API: http://localhost:5001/api"
-echo "  Keycloak Admin: https://localhost:8443/admin (admin/***REMOVED-KEYCLOAK_ADMIN_PASSWORD***)"
+echo "  Keycloak Admin: https://localhost:8443/admin (admin/admin123)"
 echo "  SCITT CCF Dashboard: http://localhost:8082"
 
 echo -e "\n${BLUE}📋 Commands:${NC}"
 echo "  Status: ./deployment/status-complete.sh"
 echo "  Stop: ./deployment/stop-complete.sh"
 echo "  Restart: ./deployment/restart-complete.sh"
-echo "  Keycloak Status: ./deployment/status-***REMOVED-KEYCLOAK_DB_PASSWORD***-https.sh"
+echo "  Keycloak Status: ./deployment/status-keycloak-https.sh"
 EOF
 
 chmod +x "$PROJECT_ROOT/deployment/status-complete.sh"
@@ -279,12 +279,12 @@ pkill -f "node.*frontend" 2>/dev/null || true
 pkill -f "npm.*start" 2>/dev/null || true
 
 # Stop Keycloak using deployment script
-if [ -f "./deployment/stop-***REMOVED-KEYCLOAK_DB_PASSWORD***-https.sh" ]; then
+if [ -f "./deployment/stop-keycloak-https.sh" ]; then
     echo "🛑 Stopping Keycloak using deployment script..."
-    ./deployment/stop-***REMOVED-KEYCLOAK_DB_PASSWORD***-https.sh
+    ./deployment/stop-keycloak-https.sh
 else
     echo "⚠️ Keycloak stop script not found, stopping manually..."
-    docker-compose -f docker-compose.***REMOVED-KEYCLOAK_DB_PASSWORD***-https.yml down 2>/dev/null || true
+    docker-compose -f docker-compose.keycloak-https.yml down 2>/dev/null || true
 fi
 
 # Stop SCITT CCF services
@@ -341,21 +341,21 @@ echo ""
 echo -e "${BLUE}🔗 Access Points:${NC}"
 echo "Frontend: http://localhost:3000"
 echo "Backend API: http://localhost:5001/api"
-echo "Keycloak Admin: https://localhost:8443/admin (admin/***REMOVED-KEYCLOAK_ADMIN_PASSWORD***)"
+echo "Keycloak Admin: https://localhost:8443/admin (admin/admin123)"
 echo "SCITT CCF Dashboard: http://localhost:8082"
 echo ""
 echo -e "${BLUE}📋 Management Commands:${NC}"
 echo "Status: ./deployment/status-complete.sh"
 echo "Stop: ./deployment/stop-complete.sh"
 echo "Restart: ./deployment/restart-complete.sh"
-echo "Keycloak Status: ./deployment/status-***REMOVED-KEYCLOAK_DB_PASSWORD***-https.sh"
+echo "Keycloak Status: ./deployment/status-keycloak-https.sh"
 echo ""
 echo -e "${BLUE}🧪 IAM Integration Status:${NC}"
 echo "✅ HTTPS Keycloak running on port 8443"
 echo "✅ Realm 'contract-management' configured"
 echo "✅ Client 'contract-management-client' created"
 echo "✅ Roles: TDP, TDC, CCRP, AppAdmin"
-echo "✅ Admin user: admin@contractmanagement.com / ***REMOVED-KEYCLOAK_ADMIN_PASSWORD***"
+echo "✅ Admin user: admin@contractmanagement.com / admin123"
 echo ""
 echo -e "${GREEN}🚀 Next steps:${NC}"
 echo "1. Test login through your application"
@@ -363,6 +363,6 @@ echo "2. Verify IAM integration is working"
 echo "3. Use deployment scripts for all future operations"
 echo ""
 echo -e "${YELLOW}⚠️  Important: Always use deployment scripts to setup and manage services${NC}"
-echo "   - Keycloak: ./deployment/setup-***REMOVED-KEYCLOAK_DB_PASSWORD***-https.sh"
+echo "   - Keycloak: ./deployment/setup-keycloak-https.sh"
 echo "   - Complete System: ./deployment/setup-complete-environment.sh"
 echo "   - Status: ./deployment/status-complete.sh"

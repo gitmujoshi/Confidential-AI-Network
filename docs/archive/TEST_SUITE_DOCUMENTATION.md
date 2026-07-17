@@ -315,10 +315,10 @@ const { Sequelize } = require('sequelize');
 
 // Setup test database
 const sequelize = new Sequelize({
-  dialect: '***REMOVED-DB_PASSWORD***',
+  dialect: 'postgres',
   host: process.env.DB_HOST || 'localhost',
   port: process.env.DB_PORT || 5432,
-  username: process.env.DB_USER || '***REMOVED-DB_PASSWORD***',
+  username: process.env.DB_USER || 'postgres',
   password: process.env.DB_PASSWORD || 'password',
   database: process.env.DB_NAME || 'contract_management_test',
   logging: false
@@ -365,8 +365,8 @@ jobs:
   test:
     runs-on: ubuntu-latest
     services:
-      ***REMOVED-DB_PASSWORD***:
-        image: ***REMOVED-DB_PASSWORD***:14
+      postgres:
+        image: postgres:14
         env:
           POSTGRES_PASSWORD: password
         options: >-

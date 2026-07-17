@@ -103,14 +103,14 @@ sed -i "s|KC_HOSTNAME:.*|KC_HOSTNAME: $DOMAIN|g" docker-compose.prod.yml
 sed -i "s|restart:.*|restart: unless-stopped|g" docker-compose.prod.yml
 
 # Generate Keycloak certs
-mkdir -p deployment/***REMOVED-KEYCLOAK_DB_PASSWORD***-certs
+mkdir -p deployment/keycloak-certs
 sudo openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
-  -keyout deployment/***REMOVED-KEYCLOAK_DB_PASSWORD***-certs/***REMOVED-KEYCLOAK_DB_PASSWORD***.key \
-  -out deployment/***REMOVED-KEYCLOAK_DB_PASSWORD***-certs/***REMOVED-KEYCLOAK_DB_PASSWORD***.crt \
+  -keyout deployment/keycloak-certs/keycloak.key \
+  -out deployment/keycloak-certs/keycloak.crt \
   -subj "/C=US/ST=State/L=City/O=Organization/CN=$DOMAIN"
-sudo chown -R $USER:$USER deployment/***REMOVED-KEYCLOAK_DB_PASSWORD***-certs
-chmod 600 deployment/***REMOVED-KEYCLOAK_DB_PASSWORD***-certs/***REMOVED-KEYCLOAK_DB_PASSWORD***.key
-chmod 644 deployment/***REMOVED-KEYCLOAK_DB_PASSWORD***-certs/***REMOVED-KEYCLOAK_DB_PASSWORD***.crt
+sudo chown -R $USER:$USER deployment/keycloak-certs
+chmod 600 deployment/keycloak-certs/keycloak.key
+chmod 644 deployment/keycloak-certs/keycloak.crt
 
 # Install dependencies
 cd backend && npm install --production && cd ..
@@ -124,10 +124,10 @@ echo "Waiting for Keycloak to start..."
 sleep 60
 
 cd deployment
-if [ -f "configure-***REMOVED-KEYCLOAK_DB_PASSWORD***-https.js" ]; then
-    sed -i "s|https://localhost:8443|https://$DOMAIN:8443|g" configure-***REMOVED-KEYCLOAK_DB_PASSWORD***-https.js
-    sed -i "s|***REMOVED-KEYCLOAK_ADMIN_PASSWORD***|$KEYCLOAK_PASS|g" configure-***REMOVED-KEYCLOAK_DB_PASSWORD***-https.js
-    node configure-***REMOVED-KEYCLOAK_DB_PASSWORD***-https.js
+if [ -f "configure-keycloak-https.js" ]; then
+    sed -i "s|https://localhost:8443|https://$DOMAIN:8443|g" configure-keycloak-https.js
+    sed -i "s|admin123|$KEYCLOAK_PASS|g" configure-keycloak-https.js
+    node configure-keycloak-https.js
 fi
 cd ..
 
@@ -144,7 +144,7 @@ echo "Frontend: https://$DOMAIN"
 echo "Backend: https://$DOMAIN/api"
 echo "Keycloak: https://$DOMAIN:8443"
 echo "Keycloak Admin: admin / $KEYCLOAK_PASS"
-echo "PostgreSQL: ***REMOVED-DB_PASSWORD*** / $POSTGRES_PASS"
+echo "PostgreSQL: postgres / $POSTGRES_PASS"
 echo ""
 echo "Check services: docker-compose -f docker-compose.prod.yml ps"
 echo "View logs: docker-compose -f docker-compose.prod.yml logs -f"

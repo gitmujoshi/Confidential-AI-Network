@@ -155,12 +155,12 @@ COMPOSE_PROJECT_NAME=contract-management-dev
 
 # Database
 POSTGRES_DB=contract_management
-POSTGRES_USER=***REMOVED-DB_PASSWORD***
-POSTGRES_PASSWORD=***REMOVED-DB_PASSWORD***
+POSTGRES_USER=postgres
+POSTGRES_PASSWORD=postgres
 
 # Keycloak
 KEYCLOAK_ADMIN=admin
-KEYCLOAK_ADMIN_PASSWORD=***REMOVED-KEYCLOAK_ADMIN_PASSWORD***
+KEYCLOAK_ADMIN_PASSWORD=admin123
 
 # API
 API_PORT=5001
@@ -346,7 +346,7 @@ create_dev_docs() {
 ### Database Operations
 ```bash
 # Access database
-docker exec -it ***REMOVED-DB_PASSWORD***-app-dev psql -U ***REMOVED-DB_PASSWORD*** -d contract_management
+docker exec -it postgres-app-dev psql -U postgres -d contract_management
 
 # Run migrations
 docker exec backend-dev node run-migrations.js
@@ -361,10 +361,10 @@ run_compose "docker-compose.dev.yml" down -v
 # Access Keycloak admin
 # URL: \${KEYCLOAK_URL:-https://localhost:8443}
 # Username: admin
-# Password: ***REMOVED-KEYCLOAK_ADMIN_PASSWORD***
+# Password: admin123
 
 # Setup Keycloak
-docker exec backend-dev node setup-***REMOVED-KEYCLOAK_DB_PASSWORD***-simple.js
+docker exec backend-dev node setup-keycloak-simple.js
 ```
 
 ## Project Structure
@@ -392,11 +392,11 @@ docker exec backend-dev node setup-***REMOVED-KEYCLOAK_DB_PASSWORD***-simple.js
 
 3. **Database connection issues**
    - Wait for services to fully start
-   - Check logs: `run_compose "docker-compose.dev.yml" logs ***REMOVED-DB_PASSWORD***-app`
+   - Check logs: `run_compose "docker-compose.dev.yml" logs postgres-app`
 
 4. **Keycloak issues**
    - Wait for Keycloak to be ready
-   - Check logs: `run_compose "docker-compose.dev.yml" logs ***REMOVED-KEYCLOAK_DB_PASSWORD***`
+   - Check logs: `run_compose "docker-compose.dev.yml" logs keycloak`
 
 ### Getting Help
 

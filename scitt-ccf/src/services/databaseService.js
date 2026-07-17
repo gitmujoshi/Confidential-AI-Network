@@ -4,10 +4,10 @@ let sequelize = null;
 
 async function initializeDatabase() {
   try {
-    const databaseUrl = process.env.DATABASE_URL || '***REMOVED-DB_PASSWORD***ql://scitt_user:scitt_pass@scitt-ccf-***REMOVED-DB_PASSWORD***:5432/scitt_ccf';
+    const databaseUrl = process.env.DATABASE_URL || 'postgresql://scitt_user:scitt_pass@scitt-ccf-postgres:5432/scitt_ccf';
     
     sequelize = new Sequelize(databaseUrl, {
-      dialect: '***REMOVED-DB_PASSWORD***',
+      dialect: 'postgres',
       logging: process.env.NODE_ENV === 'development' ? console.log : false,
       pool: {
         max: 10,

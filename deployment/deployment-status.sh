@@ -24,12 +24,12 @@ fi
 # Check deployment scripts availability
 echo -e "${BLUE}📋 Deployment Scripts Status:${NC}"
 scripts=(
-    "setup-***REMOVED-KEYCLOAK_DB_PASSWORD***-https.sh:Keycloak HTTPS Setup"
-    "fix-***REMOVED-KEYCLOAK_DB_PASSWORD***-client-config.sh:Keycloak Client Fix"
+    "setup-keycloak-https.sh:Keycloak HTTPS Setup"
+    "fix-keycloak-client-config.sh:Keycloak Client Fix"
     "setup-complete-environment.sh:Complete Environment Setup"
-    "start-***REMOVED-KEYCLOAK_DB_PASSWORD***-https.sh:Start Keycloak"
-    "stop-***REMOVED-KEYCLOAK_DB_PASSWORD***-https.sh:Stop Keycloak"
-    "status-***REMOVED-KEYCLOAK_DB_PASSWORD***-https.sh:Keycloak Status"
+    "start-keycloak-https.sh:Start Keycloak"
+    "stop-keycloak-https.sh:Stop Keycloak"
+    "status-keycloak-https.sh:Keycloak Status"
     "local/start-services.sh:Start Local Services"
     "local/stop-services.sh:Stop Local Services"
     "local/status.sh:Local Services Status"
@@ -50,8 +50,8 @@ done
 
 # Check Docker services
 echo -e "\n${BLUE}🐳 Docker Services:${NC}"
-if docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}" | grep -E "(***REMOVED-DB_PASSWORD***|***REMOVED-KEYCLOAK_DB_PASSWORD***|scitt)" >/dev/null; then
-    docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}" | grep -E "(***REMOVED-DB_PASSWORD***|***REMOVED-KEYCLOAK_DB_PASSWORD***|scitt)"
+if docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}" | grep -E "(postgres|keycloak|scitt)" >/dev/null; then
+    docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}" | grep -E "(postgres|keycloak|scitt)"
 else
     echo -e "${RED}❌ No Docker services running${NC}"
 fi
@@ -153,22 +153,22 @@ fi
 echo -e "\n${BLUE}🔗 Quick Access:${NC}"
 echo "  Frontend: http://localhost:3000"
 echo "  Backend API: http://localhost:5001/api"
-echo "  Keycloak Admin: https://localhost:8443/admin (admin/***REMOVED-KEYCLOAK_ADMIN_PASSWORD***)"
+echo "  Keycloak Admin: https://localhost:8443/admin (admin/admin123)"
 echo "  SCITT CCF Node: http://localhost:8000"
 echo "  SCITT CCF Dashboard: http://localhost:8082"
 
 echo -e "\n${BLUE}📋 Deployment Commands:${NC}"
 echo "  Complete Setup: ./deployment/setup-complete-environment.sh"
-echo "  Keycloak Setup: ./deployment/setup-***REMOVED-KEYCLOAK_DB_PASSWORD***-https.sh"
-echo "  Fix Keycloak Client: ./deployment/fix-***REMOVED-KEYCLOAK_DB_PASSWORD***-client-config.sh"
+echo "  Keycloak Setup: ./deployment/setup-keycloak-https.sh"
+echo "  Fix Keycloak Client: ./deployment/fix-keycloak-client-config.sh"
 echo "  Start Services: ./deployment/local/start-services.sh"
 echo "  Stop Services: ./deployment/local/stop-services.sh"
 echo "  Status: ./deployment/deployment-status.sh"
 
 echo -e "\n${BLUE}🔧 Troubleshooting Commands:${NC}"
-echo "  Keycloak Status: ./deployment/status-***REMOVED-KEYCLOAK_DB_PASSWORD***-https.sh"
+echo "  Keycloak Status: ./deployment/status-keycloak-https.sh"
 echo "  Local Status: ./deployment/local/status.sh"
-echo "  Fix IAM Issues: ./deployment/fix-***REMOVED-KEYCLOAK_DB_PASSWORD***-client-config.sh"
+echo "  Fix IAM Issues: ./deployment/fix-keycloak-client-config.sh"
 
 echo -e "\n${YELLOW}⚠️  Remember: Always use deployment scripts to manage services${NC}"
 echo "   - Complete Setup: ./deployment/setup-complete-environment.sh"

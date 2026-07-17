@@ -151,7 +151,7 @@ test_service_integration() {
     # Check if all SCITT CCF services are running
     print_status "Checking SCITT CCF services..."
     
-    local services=("scitt-ccf-node-dev" "scitt-ccf-dashboard-dev" "scitt-ccf-monitor-dev" "scitt-ccf-redis-dev" "scitt-ccf-***REMOVED-DB_PASSWORD***-dev")
+    local services=("scitt-ccf-node-dev" "scitt-ccf-dashboard-dev" "scitt-ccf-monitor-dev" "scitt-ccf-redis-dev" "scitt-ccf-postgres-dev")
     
     for service in "${services[@]}"; do
         if docker ps --format "table {{.Names}}" | grep -q "$service"; then

@@ -108,7 +108,7 @@ terraform/
 | `private_key_path` | Path to private key | `~/.oci/oci_api_key.pem` |
 | `compartment_id` | Compartment OCID | `ocid1.compartment.oc1..example` |
 | `db_password` | Database password | `your-secure-password` |
-| `***REMOVED-KEYCLOAK_DB_PASSWORD***_admin_password` | Keycloak admin password | `your-secure-password` |
+| `keycloak_admin_password` | Keycloak admin password | `your-secure-password` |
 
 ### Tagging & versioning
 

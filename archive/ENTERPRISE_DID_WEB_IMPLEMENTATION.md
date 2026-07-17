@@ -329,7 +329,7 @@ DID_RESOLUTION_TIMEOUT=10000
 DID_CACHE_TTL=3600
 
 # Enterprise IAM Configuration
-KEYCLOAK_URL=https://***REMOVED-KEYCLOAK_DB_PASSWORD***.yourdomain.com
+KEYCLOAK_URL=https://keycloak.yourdomain.com
 KEYCLOAK_ADMIN_PASSWORD=secure_password
 KEYCLOAK_REALM=contract-management-enterprise
 
@@ -420,7 +420,7 @@ const validateEnterpriseDID = async (did) => {
 ### 1. Keycloak Configuration
 ```javascript
 // Keycloak realm configuration for enterprise
-const ***REMOVED-KEYCLOAK_DB_PASSWORD***Config = {
+const keycloakConfig = {
   realm: 'contract-management-enterprise',
   'auth-server-url': process.env.KEYCLOAK_URL,
   'ssl-required': 'external',

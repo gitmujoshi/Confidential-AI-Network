@@ -100,8 +100,8 @@ __tests__/
 *.db
 
 # Keycloak data
-***REMOVED-KEYCLOAK_DB_PASSWORD***-data/
-***REMOVED-KEYCLOAK_DB_PASSWORD***-backups/
+keycloak-data/
+keycloak-backups/
 
 # SSL certificates
 *.pem

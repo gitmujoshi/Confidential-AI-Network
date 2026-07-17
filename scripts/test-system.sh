@@ -81,7 +81,7 @@ fi
 echo "  Testing authentication..."
 AUTH_RESPONSE=$(curl -s -X POST "http://localhost:${BACKEND_PORT:-5001}/api/auth/login" \
     -H "Content-Type: application/json" \
-    -d '{"email":"admin@contractmanagement.com","password":"***REMOVED-KEYCLOAK_ADMIN_PASSWORD***"}' 2>/dev/null || echo "FAILED")
+    -d '{"email":"admin@contractmanagement.com","password":"admin123"}' 2>/dev/null || echo "FAILED")
 
 if echo "$AUTH_RESPONSE" | grep -q "accessToken\|token"; then
     echo -e "  Authentication: ${GREEN}✅ Working${NC}"

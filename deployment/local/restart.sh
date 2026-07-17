@@ -43,7 +43,7 @@ show_help() {
     echo "  --frontend, -f      Restart only frontend"
     echo "  --backend, -b       Restart only backend"
     echo "  --blockchain, -c    Restart only blockchain"
-    echo "  --***REMOVED-KEYCLOAK_DB_PASSWORD***, -k      Restart only Keycloak"
+    echo "  --keycloak, -k      Restart only Keycloak"
     echo "  --force             Force restart (kill and start)"
     echo "  --clean             Clean restart (clean files and restart)"
     echo "  --help, -h          Show this help message"
@@ -105,8 +105,8 @@ restart_services() {
             cd blockchain && npx hardhat node &
             cd ..
             ;;
-        "***REMOVED-KEYCLOAK_DB_PASSWORD***")
-            docker-compose -f ../utilities/docker-compose.iam.yml up -d ***REMOVED-KEYCLOAK_DB_PASSWORD***
+        "keycloak")
+            docker-compose -f ../utilities/docker-compose.iam.yml up -d keycloak
             ;;
     esac
     
@@ -154,8 +154,8 @@ main() {
                 restart_type="blockchain"
                 shift
                 ;;
-            --***REMOVED-KEYCLOAK_DB_PASSWORD***|-k)
-                restart_type="***REMOVED-KEYCLOAK_DB_PASSWORD***"
+            --keycloak|-k)
+                restart_type="keycloak"
                 shift
                 ;;
             --force)

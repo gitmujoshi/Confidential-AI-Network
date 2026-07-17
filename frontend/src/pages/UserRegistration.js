@@ -96,7 +96,7 @@ const UserRegistration = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-  const [***REMOVED-KEYCLOAK_DB_PASSWORD***Failed, setKeycloakFailed] = useState(false);
+  const [keycloakFailed, setKeycloakFailed] = useState(false);
 
 
   // System status

@@ -146,7 +146,7 @@ VAULT_ADDR=http://localhost:8200
 VAULT_KEYS_PATH=secret/contract-management/keys
 
 # Vault Authentication (secrets.env)
-VAULT_TOKEN=***REMOVED-VAULT_TOKEN***
+VAULT_TOKEN=<vault-token>
 ```
 
 ### Vault Authentication Methods
@@ -1038,11 +1038,11 @@ In enterprise scenarios, signing keys are owned and managed by individual partie
 // User Registration with Enterprise Key Registration
 const registerUserWithEnterpriseKey = async (userData, enterpriseKeyInfo) => {
   // 1. Create user in Keycloak
-  const ***REMOVED-KEYCLOAK_DB_PASSWORD***User = await ***REMOVED-KEYCLOAK_DB_PASSWORD***Service.createUser(userData);
+  const keycloakUser = await keycloakService.createUser(userData);
   
   // 2. Create user in local database
   const localUser = await User.create({
-    ***REMOVED-KEYCLOAK_DB_PASSWORD***Id: ***REMOVED-KEYCLOAK_DB_PASSWORD***User.id,
+    keycloakId: keycloakUser.id,
     name: userData.name,
     email: userData.email,
     partyType: userData.partyType,
@@ -1947,7 +1947,7 @@ CREATE INDEX idx_signing_events_created_at ON signing_events(created_at);
 const authenticateKeyAccess = async (req, res, next) => {
   try {
     const token = req.headers.authorization?.replace('Bearer ', '');
-    const user = await ***REMOVED-KEYCLOAK_DB_PASSWORD***Service.validateToken(token);
+    const user = await keycloakService.validateToken(token);
     
     if (!user.valid) {
       return res.status(401).json({ error: 'Invalid token' });

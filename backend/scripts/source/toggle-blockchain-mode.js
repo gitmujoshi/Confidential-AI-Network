@@ -51,7 +51,7 @@ function writeConfig(configObj) {
     lines.push('');
     
     lines.push('# JWT Configuration');
-    lines.push(`JWT_SECRET=${configObj.JWT_SECRET || '***REMOVED-HARDCODED-JWT***'}`);
+    lines.push(`JWT_SECRET=${configObj.JWT_SECRET || '<jwt-secret>'}`);
     lines.push('');
     
     lines.push('# IAM (Keycloak) Configuration');
@@ -77,7 +77,7 @@ function writeConfig(configObj) {
     
     lines.push('# Security');
     lines.push(`CORS_ORIGIN=${configObj.CORS_ORIGIN || 'http://localhost:3000'}`);
-    lines.push(`SESSION_SECRET=${configObj.SESSION_SECRET || '***REMOVED-HARDCODED-JWT***'}`);
+    lines.push(`SESSION_SECRET=${configObj.SESSION_SECRET || '<jwt-secret>'}`);
     lines.push('');
     
     lines.push('# Blockchain Deployment');

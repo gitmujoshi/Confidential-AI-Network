@@ -215,13 +215,13 @@ sudo /opt/backup-contract-management.sh
 
 3. **Keycloak not starting**
    ```bash
-   docker-compose logs ***REMOVED-KEYCLOAK_DB_PASSWORD***
-   docker exec ***REMOVED-DB_PASSWORD***-***REMOVED-KEYCLOAK_DB_PASSWORD*** psql -U ***REMOVED-DB_PASSWORD*** -c "\l"
+   docker-compose logs keycloak
+   docker exec postgres-keycloak psql -U postgres -c "\l"
    ```
 
 4. **Database connection errors**
    ```bash
-   docker exec ***REMOVED-DB_PASSWORD***-app psql -U ***REMOVED-DB_PASSWORD*** -c "SELECT version();"
+   docker exec postgres-app psql -U postgres -c "SELECT version();"
    ```
 
 ### **Log Locations**

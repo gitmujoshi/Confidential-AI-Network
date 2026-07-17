@@ -1,6 +1,6 @@
 require('dotenv').config({ path: './config.env' });
 const db = require('./models');
-const KeycloakService = require('./services/***REMOVED-KEYCLOAK_DB_PASSWORD***Service');
+const KeycloakService = require('./services/keycloakService');
 
 async function createTDCUser() {
   try {
@@ -34,8 +34,8 @@ async function createTDCUser() {
     console.log('✅ User created in database:', user.id);
 
     // Create user in Keycloak
-    const ***REMOVED-KEYCLOAK_DB_PASSWORD***Service = new KeycloakService();
-    const ***REMOVED-KEYCLOAK_DB_PASSWORD***Result = await ***REMOVED-KEYCLOAK_DB_PASSWORD***Service.createUser({
+    const keycloakService = new KeycloakService();
+    const keycloakResult = await keycloakService.createUser({
       email: userData.email,
       name: userData.name,
       walletAddress: userData.walletAddress,
@@ -49,15 +49,15 @@ async function createTDCUser() {
 
     // Set the password for the user
     const password = 'TdcPass123!';
-    await ***REMOVED-KEYCLOAK_DB_PASSWORD***Service.updateUserPassword(***REMOVED-KEYCLOAK_DB_PASSWORD***Result.***REMOVED-KEYCLOAK_DB_PASSWORD***UserId, password);
+    await keycloakService.updateUserPassword(keycloakResult.keycloakUserId, password);
 
     // Update user with Keycloak ID
     await user.update({
-      iamUserId: ***REMOVED-KEYCLOAK_DB_PASSWORD***Result.***REMOVED-KEYCLOAK_DB_PASSWORD***UserId,
+      iamUserId: keycloakResult.keycloakUserId,
       iamUsername: userData.email
     });
 
-    console.log('✅ User created in Keycloak:', ***REMOVED-KEYCLOAK_DB_PASSWORD***Result.***REMOVED-KEYCLOAK_DB_PASSWORD***UserId);
+    console.log('✅ User created in Keycloak:', keycloakResult.keycloakUserId);
     console.log('✅ TDC user created successfully!');
     console.log('Email:', userData.email);
     console.log('Password: TdcPass123!');

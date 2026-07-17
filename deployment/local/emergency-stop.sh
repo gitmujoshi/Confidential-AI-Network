@@ -34,8 +34,8 @@ emergency_kill() {
     docker stop $(docker ps -q) 2>/dev/null || true
     
     # Remove PID files
-    rm -f *.pid .*.pid frontend.pid backend.pid blockchain.pid ***REMOVED-KEYCLOAK_DB_PASSWORD***.pid
-    rm -f .frontend.pid .backend.pid .hardhat.pid .***REMOVED-KEYCLOAK_DB_PASSWORD***.pid
+    rm -f *.pid .*.pid frontend.pid backend.pid blockchain.pid keycloak.pid
+    rm -f .frontend.pid .backend.pid .hardhat.pid .keycloak.pid
     
     # Remove port files
     rm -f frontend.port

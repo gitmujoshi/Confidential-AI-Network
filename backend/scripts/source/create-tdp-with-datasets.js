@@ -5,8 +5,8 @@
  */
 
 const db = require('../models');
-const KeycloakService = require('../services/***REMOVED-KEYCLOAK_DB_PASSWORD***Service');
-const ***REMOVED-KEYCLOAK_DB_PASSWORD***Service = new KeycloakService();
+const KeycloakService = require('../services/keycloakService');
+const keycloakService = new KeycloakService();
 
 // TDP User Data
 const tdpUser = {
@@ -143,18 +143,18 @@ async function createTDPWithDatasets() {
       const did = `did:web:${domain}:user:${tdpUser.email.split('@')[0]}`;
 
       // Generate temporary password
-      temporaryPassword = ***REMOVED-KEYCLOAK_DB_PASSWORD***Service.generateTemporaryPassword();
+      temporaryPassword = keycloakService.generateTemporaryPassword();
 
       // Start database transaction
       const transaction = await db.sequelize.transaction();
 
       try {
         // Try to create user in Keycloak first
-        let ***REMOVED-KEYCLOAK_DB_PASSWORD***Result = null;
-        let ***REMOVED-KEYCLOAK_DB_PASSWORD***Success = false;
+        let keycloakResult = null;
+        let keycloakSuccess = false;
         
         try {
-          ***REMOVED-KEYCLOAK_DB_PASSWORD***Result = await ***REMOVED-KEYCLOAK_DB_PASSWORD***Service.createUser({
+          keycloakResult = await keycloakService.createUser({
             email: tdpUser.email,
             name: tdpUser.name,
             walletAddress: tdpUser.walletAddress,
@@ -165,10 +165,10 @@ async function createTDPWithDatasets() {
             website: tdpUser.website,
             location: tdpUser.location
           });
-          ***REMOVED-KEYCLOAK_DB_PASSWORD***Success = true;
+          keycloakSuccess = true;
           console.log('✅ Keycloak user created successfully');
-        } catch (***REMOVED-KEYCLOAK_DB_PASSWORD***Error) {
-          console.log('⚠️ Failed to create user in Keycloak:', ***REMOVED-KEYCLOAK_DB_PASSWORD***Error.message);
+        } catch (keycloakError) {
+          console.log('⚠️ Failed to create user in Keycloak:', keycloakError.message);
           // Continue with database creation
         }
 
@@ -194,7 +194,7 @@ async function createTDPWithDatasets() {
           onboardingStatus: 'IN_PROGRESS',
           profileCompleted: false,
           emailVerified: false,
-          iamUserId: ***REMOVED-KEYCLOAK_DB_PASSWORD***Result?.***REMOVED-KEYCLOAK_DB_PASSWORD***UserId || null,
+          iamUserId: keycloakResult?.keycloakUserId || null,
           iamUsername: tdpUser.email
         }, { transaction });
 
@@ -211,7 +211,7 @@ async function createTDPWithDatasets() {
             onboardingStatus: 'IN_PROGRESS',
             did: did,
             didSource: 'SYSTEM_GENERATED',
-            iamIntegrated: ***REMOVED-KEYCLOAK_DB_PASSWORD***Success
+            iamIntegrated: keycloakSuccess
           }
         }, { transaction });
 

@@ -35,7 +35,7 @@ Move from **catalog-only dataset rows** to **real files on disk** that the **loc
 
 ## 3. Prerequisites
 
-- Merge stabilized bug-fix branch; run usual smoke (`./start-system.sh`, `npm run ***REMOVED-KEYCLOAK_DB_PASSWORD***:sync`, login, contract flow).
+- Merge stabilized bug-fix branch; run usual smoke (`./start-system.sh`, `npm run keycloak:sync`, login, contract flow).
 - Docker available on the backend host for local-docker mode.
 - Optional DB migration helper if `training_jobs.metadata` missing: `npm run db:ensure-training-metadata --prefix backend` (see `TDC_TRAINING_RUNTIME.md`).
 

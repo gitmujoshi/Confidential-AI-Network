@@ -80,8 +80,8 @@ Collect OCIDs: **tenancy**, bootstrap **user**, target **compartment** (until co
 2. **Vault** — create vault in `cms-dev-data` (dev) and plan prod vault in `cms-prod-data`; enable HSM for prod.
 3. **Vault secrets** (dev placeholders):
    - `cms-dev-db-password`
-   - `cms-dev-***REMOVED-KEYCLOAK_DB_PASSWORD***-client-secret`
-   - `cms-dev-***REMOVED-KEYCLOAK_DB_PASSWORD***-admin-password`
+   - `cms-dev-keycloak-client-secret`
+   - `cms-dev-keycloak-admin-password`
 4. **Object Storage** — buckets per [OCI IAM & Edge Config §12](../deployment/OCI_IAM_AND_EDGE_CONFIG.md):
    - `cms-terraform-state` (shared)
    - `cms-dev-datasets-*`, `cms-dev-training-outputs-*`, `cms-dev-artifacts-*`
@@ -113,7 +113,7 @@ terraform apply -var-file=terraform.tfvars
 Creates: VCN, public + private subnets, IGW, NAT, Service Gateway, security lists/NSGs.
 
 3. **Apply NSGs** default-deny model — §5.4 (`nsg-lb-ingress`, `nsg-oke-workers`, `nsg-adb`).
-4. **Private DNS** — views for `backend.cms-dev.internal`, `***REMOVED-KEYCLOAK_DB_PASSWORD***.cms-dev.internal` — §5.6.
+4. **Private DNS** — views for `backend.cms-dev.internal`, `keycloak.cms-dev.internal` — §5.6.
 5. **Bastion** — endpoint in `cms-dev-compute`; no SSH from `0.0.0.0/0` — §9.4.
 
 **Exit criteria:** Private subnet routes: `0.0.0.0/0` → NAT; OCI services → Service Gateway; no public IPs on worker subnet.
@@ -195,7 +195,7 @@ docker push <region>.ocir.io/<namespace>/frontend:latest
    - Routes per §10.5; start with `/api/health`, `/api/auth/*`, `/api/contracts/*`
 4. **Cloud Gate** apps — §9:
    - `cms-frontend-dev` → `app.dev.example.com`
-   - `cms-***REMOVED-KEYCLOAK_DB_PASSWORD***-dev` → `auth.dev.example.com`
+   - `cms-keycloak-dev` → `auth.dev.example.com`
 5. **Custom WAF rules** — login rate limit, block `/api/debug` in prod (when promoted).
 
 **Exit criteria:** External `https://api.dev.example.com/api/health` works; `https://app.dev.example.com` shows Cloud Gate login.
@@ -476,7 +476,7 @@ Never embed long-lived API keys in Terraform state or container images.
 | `contract-management-client` | Backend confidential client |
 | API Gateway JWT audience | Keycloak realm `contract-management`; JWKS at `auth.{env}` |
 
-Secrets stored in Vault as `cms-{env}-***REMOVED-KEYCLOAK_DB_PASSWORD***-client-secret`. See [OCI IAM & Edge Config §1.5](../deployment/OCI_IAM_AND_EDGE_CONFIG.md).
+Secrets stored in Vault as `cms-{env}-keycloak-client-secret`. See [OCI IAM & Edge Config §1.5](../deployment/OCI_IAM_AND_EDGE_CONFIG.md).
 
 ---
 
@@ -569,7 +569,7 @@ For egress filtering beyond NAT:
 
 ### 5.6 Private DNS
 
-- **Private DNS view** per VCN: `backend.cms-prod.internal`, `***REMOVED-KEYCLOAK_DB_PASSWORD***.cms-prod.internal`.
+- **Private DNS view** per VCN: `backend.cms-prod.internal`, `keycloak.cms-prod.internal`.
 - Autonomous DB connect strings use **private endpoint** hostnames only.
 - No public A records for database or Redis.
 
@@ -583,7 +583,7 @@ Edge services enforce **defense in depth** before traffic reaches OKE. WAF is th
 Internet → WAF (all hostnames)
             ├── api.{env}.example.com  → API Gateway → private LB → backend:5001
             └── app.{env}.example.com  → Cloud Gate → private LB → frontend:3000
-                auth.{env}.example.com → Cloud Gate → private LB → ***REMOVED-KEYCLOAK_DB_PASSWORD***:8080
+                auth.{env}.example.com → Cloud Gate → private LB → keycloak:8080
                 ops.{env}.example.com  → Cloud Gate → private LB → grafana (admins)
 ```
 
@@ -646,8 +646,8 @@ Cloud Gate protects **browser-facing** apps only. API traffic uses API Gateway (
 | Application | Hostname | Cloud Gate app | Identity Domain group |
 |-------------|----------|----------------|----------------------|
 | React frontend | `app.{env}` | `cms-frontend-{env}` | `cms-{env}-all-users` + role groups |
-| Keycloak (user realm) | `auth.{env}` | `cms-***REMOVED-KEYCLOAK_DB_PASSWORD***-{env}` | All authenticated users |
-| Keycloak admin | `auth.{env}/admin/*` | `cms-***REMOVED-KEYCLOAK_DB_PASSWORD***-admin-{env}` | `cms-{env}-app-admins` + IP allowlist |
+| Keycloak (user realm) | `auth.{env}` | `cms-keycloak-{env}` | All authenticated users |
+| Keycloak admin | `auth.{env}/admin/*` | `cms-keycloak-admin-{env}` | `cms-{env}-app-admins` + IP allowlist |
 | Grafana (ops) | `ops.{env}` | `cms-grafana-{env}` | `cms-{env}-platform-admins` |
 
 **Per-environment posture**

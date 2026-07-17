@@ -20,7 +20,7 @@ All test wallets are pre-configured in the Keycloak IAM system with:
 - **Profile information** including organization details
 
 ### IAM Test Credentials
-- **Keycloak Admin**: admin/***REMOVED-KEYCLOAK_ADMIN_PASSWORD***
+- **Keycloak Admin**: admin/admin123
 - **Realm**: contract-management
 - **Client**: contract-management-client
 - **All test users**: Password is same as email (e.g., hardhat.tdp1@test.com)

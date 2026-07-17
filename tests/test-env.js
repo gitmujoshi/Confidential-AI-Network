@@ -28,13 +28,13 @@ function setTestEnv(mode = 'mock') {
   
   if (mode === 'mock') {
     // Mock mode - use common config but disable external services
-    process.env.DATABASE_URL = `***REMOVED-DB_PASSWORD***ql://${process.env.DB_USER}:${process.env.DB_PASSWORD}@${process.env.DB_HOST}:${process.env.DB_PORT}/${process.env.DB_NAME}_test`;
+    process.env.DATABASE_URL = `postgresql://${process.env.DB_USER}:${process.env.DB_PASSWORD}@${process.env.DB_HOST}:${process.env.DB_PORT}/${process.env.DB_NAME}_test`;
     process.env.SCITT_CCF_ENABLED = 'false';
     process.env.KEYCLOAK_ENABLED = 'false';
     process.env.DB_NAME = `${process.env.DB_NAME}_test`;
   } else if (mode === 'integration') {
     // Integration mode - use common config with all services enabled
-    process.env.DATABASE_URL = `***REMOVED-DB_PASSWORD***ql://${process.env.DB_USER}:${process.env.DB_PASSWORD}@${process.env.DB_HOST}:${process.env.DB_PORT}/${process.env.DB_NAME}_test`;
+    process.env.DATABASE_URL = `postgresql://${process.env.DB_USER}:${process.env.DB_PASSWORD}@${process.env.DB_HOST}:${process.env.DB_PORT}/${process.env.DB_NAME}_test`;
     // Default to disabled to keep integration tests runnable without external SCITT.
     // Tests that require SCITT can explicitly set SCITT_CCF_ENABLED=true.
     process.env.SCITT_CCF_ENABLED = process.env.SCITT_CCF_ENABLED || 'false';

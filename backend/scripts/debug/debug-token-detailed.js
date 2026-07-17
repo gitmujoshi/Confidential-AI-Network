@@ -20,12 +20,12 @@ async function debugTokenDetailed() {
     console.log('\n3. Getting public keys from Keycloak...');
     
     // Try both Keycloak URLs
-    const ***REMOVED-KEYCLOAK_DB_PASSWORD***Urls = [
+    const keycloakUrls = [
       'http://localhost:8080',
       'http://localhost:3000'
     ];
     
-    for (const baseURL of ***REMOVED-KEYCLOAK_DB_PASSWORD***Urls) {
+    for (const baseURL of keycloakUrls) {
       try {
         console.log(`\nTrying ${baseURL}...`);
         const certsResponse = await axios.get(`${baseURL}/realms/contract-management/protocol/openid-connect/certs`);

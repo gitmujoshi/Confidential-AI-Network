@@ -1,11 +1,11 @@
 {
-  "***REMOVED-KEYCLOAK_DB_PASSWORD***Url": "http://localhost:8080",
+  "keycloakUrl": "http://localhost:8080",
   "realm": "contract-management",
   "frontendClient": "contract-management-frontend",
   "backendClient": "contract-management-backend",
   "backendClientSecret": "your-backend-client-secret",
   "adminUser": {
     "username": "admin",
-    "password": "***REMOVED-KEYCLOAK_ADMIN_PASSWORD***"
+    "password": "admin123"
   }
 } 

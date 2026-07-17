@@ -1,8 +1,8 @@
 services:
   # SCITT CCF PostgreSQL Database (Port 5433 - Different from main app)
-  scitt-ccf-***REMOVED-DB_PASSWORD***:
-    image: ***REMOVED-DB_PASSWORD***:15
-    container_name: scitt-ccf-***REMOVED-DB_PASSWORD***
+  scitt-ccf-postgres:
+    image: postgres:15
+    container_name: scitt-ccf-postgres
     ports:
       - "5433:5432"  # Different port to avoid conflicts
     environment:
@@ -11,7 +11,7 @@ services:
       POSTGRES_PASSWORD: scitt_pass
       POSTGRES_INITDB_ARGS: "--encoding=UTF-8 --lc-collate=C --lc-ctype=C"
     volumes:
-      - scitt_***REMOVED-DB_PASSWORD***_data:/var/lib/***REMOVED-DB_PASSWORD***ql/data
+      - scitt_postgres_data:/var/lib/postgresql/data
       - ./scitt-ccf/init:/docker-entrypoint-initdb.d
     networks:
       - scitt-network
@@ -48,12 +48,12 @@ services:
     environment:
       NODE_ENV: development
       PORT: 9000
-      DATABASE_URL: ***REMOVED-DB_PASSWORD***ql://scitt_user:scitt_pass@scitt-ccf-***REMOVED-DB_PASSWORD***:5432/scitt_ccf
+      DATABASE_URL: postgresql://scitt_user:scitt_pass@scitt-ccf-postgres:5432/scitt_ccf
       REDIS_URL: redis://scitt-ccf-redis:6379
       SCITT_CCF_SECRET: scitt_ccf_secret_key_123
       LOG_LEVEL: debug
     depends_on:
-      scitt-ccf-***REMOVED-DB_PASSWORD***:
+      scitt-ccf-postgres:
         condition: service_healthy
       scitt-ccf-redis:
         condition: service_healthy
@@ -104,7 +104,7 @@ services:
     restart: unless-stopped
 
 volumes:
-  scitt_***REMOVED-DB_PASSWORD***_data:
+  scitt_postgres_data:
     driver: local
   scitt_redis_data:
     driver: local

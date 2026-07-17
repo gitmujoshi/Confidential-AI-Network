@@ -26,7 +26,7 @@ fi
 # Check if Keycloak is accessible
 if ! curl -k -s https://localhost:8443/health >/dev/null 2>&1; then
     echo -e "${RED}❌ Keycloak is not accessible. Please start it first.${NC}"
-    echo "Use: ./deployment/setup-***REMOVED-KEYCLOAK_DB_PASSWORD***-https.sh"
+    echo "Use: ./deployment/setup-keycloak-https.sh"
     exit 1
 fi
 
@@ -36,7 +36,7 @@ echo -e "${GREEN}✅ Keycloak is accessible${NC}"
 echo -e "\n${BLUE}🔐 Getting Admin Token${NC}"
 ADMIN_TOKEN=$(curl -k -s -X POST https://localhost:8443/realms/master/protocol/openid-connect/token \
     -H 'Content-Type: application/x-www-form-urlencoded' \
-    -d 'username=admin&password=***REMOVED-KEYCLOAK_ADMIN_PASSWORD***&grant_type=password&client_id=admin-cli' | jq -r '.access_token')
+    -d 'username=admin&password=admin123&grant_type=password&client_id=admin-cli' | jq -r '.access_token')
 
 if [ "$ADMIN_TOKEN" = "null" ] || [ -z "$ADMIN_TOKEN" ]; then
     echo -e "${RED}❌ Failed to get admin token${NC}"
@@ -196,7 +196,7 @@ echo "  - ccrp2@cleanroom.com (ccrp123)"
 echo "  - ccrp3@cleanroom.com (ccrp123)"
 echo ""
 echo -e "${PURPLE}👑 AppAdmin:${NC}"
-echo "  - admin@contractmanagement.com (***REMOVED-KEYCLOAK_ADMIN_PASSWORD***)"
+echo "  - admin@contractmanagement.com (admin123)"
 echo ""
 
 echo -e "${BLUE}🧪 Next Steps:${NC}"

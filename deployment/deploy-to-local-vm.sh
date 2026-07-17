@@ -126,8 +126,8 @@ setup_local_environment() {
     fi
     
     # Generate local passwords
-    KEYCLOAK_PASS="***REMOVED-KEYCLOAK_ADMIN_PASSWORD***"
-    POSTGRES_PASS="***REMOVED-DB_PASSWORD***123"
+    KEYCLOAK_PASS="admin123"
+    POSTGRES_PASS="postgres123"
     JWT_SECRET=$(openssl rand -hex 64)
     
     # Copy and configure environment file
@@ -145,7 +145,7 @@ setup_local_environment() {
     
     print_success "Local environment configured"
     echo "  - Keycloak Admin: admin / $KEYCLOAK_PASS"
-    echo "  - PostgreSQL: ***REMOVED-DB_PASSWORD*** / $POSTGRES_PASS"
+    echo "  - PostgreSQL: postgres / $POSTGRES_PASS"
 }
 
 # Function to create local docker-compose
@@ -170,22 +170,22 @@ create_local_compose() {
 }
 
 # Function to generate Keycloak certificates
-generate_***REMOVED-KEYCLOAK_DB_PASSWORD***_certs() {
+generate_keycloak_certs() {
     print_status "Generating SSL certificates for Keycloak..."
     
     # Create directory for Keycloak certificates
-    mkdir -p deployment/***REMOVED-KEYCLOAK_DB_PASSWORD***-certs
+    mkdir -p deployment/keycloak-certs
     
     # Generate self-signed certificate for localhost
     sudo openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
-      -keyout deployment/***REMOVED-KEYCLOAK_DB_PASSWORD***-certs/***REMOVED-KEYCLOAK_DB_PASSWORD***.key \
-      -out deployment/***REMOVED-KEYCLOAK_DB_PASSWORD***-certs/***REMOVED-KEYCLOAK_DB_PASSWORD***.crt \
+      -keyout deployment/keycloak-certs/keycloak.key \
+      -out deployment/keycloak-certs/keycloak.crt \
       -subj "/C=US/ST=State/L=City/O=Organization/CN=localhost"
     
     # Set permissions
-    sudo chown -R $USER:$USER deployment/***REMOVED-KEYCLOAK_DB_PASSWORD***-certs
-    chmod 600 deployment/***REMOVED-KEYCLOAK_DB_PASSWORD***-certs/***REMOVED-KEYCLOAK_DB_PASSWORD***.key
-    chmod 644 deployment/***REMOVED-KEYCLOAK_DB_PASSWORD***-certs/***REMOVED-KEYCLOAK_DB_PASSWORD***.crt
+    sudo chown -R $USER:$USER deployment/keycloak-certs
+    chmod 600 deployment/keycloak-certs/keycloak.key
+    chmod 644 deployment/keycloak-certs/keycloak.crt
     
     print_success "Keycloak certificates generated successfully"
 }
@@ -224,7 +224,7 @@ start_services() {
 }
 
 # Function to configure Keycloak
-configure_***REMOVED-KEYCLOAK_DB_PASSWORD***() {
+configure_keycloak() {
     print_status "Configuring Keycloak..."
     
     # Wait for Keycloak to start
@@ -236,12 +236,12 @@ configure_***REMOVED-KEYCLOAK_DB_PASSWORD***() {
     
     # Run Keycloak configuration
     cd deployment
-    if [ -f "configure-***REMOVED-KEYCLOAK_DB_PASSWORD***-https.js" ]; then
+    if [ -f "configure-keycloak-https.js" ]; then
         # Update the script with local values
-        sed -i "s|https://localhost:8443|https://localhost:8443|g" configure-***REMOVED-KEYCLOAK_DB_PASSWORD***-https.js
-        sed -i "s|***REMOVED-KEYCLOAK_ADMIN_PASSWORD***|***REMOVED-KEYCLOAK_ADMIN_PASSWORD***|g" configure-***REMOVED-KEYCLOAK_DB_PASSWORD***-https.js
+        sed -i "s|https://localhost:8443|https://localhost:8443|g" configure-keycloak-https.js
+        sed -i "s|admin123|admin123|g" configure-keycloak-https.js
         
-        node configure-***REMOVED-KEYCLOAK_DB_PASSWORD***-https.js
+        node configure-keycloak-https.js
         print_success "Keycloak configured successfully"
     else
         print_warning "Keycloak configuration script not found. Please configure manually."
@@ -301,8 +301,8 @@ display_final_instructions() {
     echo "  - PostgreSQL (Keycloak): localhost:5433"
     echo ""
     echo -e "${BLUE}Default Credentials:${NC}"
-    echo "  - Keycloak Admin: admin / ***REMOVED-KEYCLOAK_ADMIN_PASSWORD***"
-    echo "  - PostgreSQL: ***REMOVED-DB_PASSWORD*** / ***REMOVED-DB_PASSWORD***123"
+    echo "  - Keycloak Admin: admin / admin123"
+    echo "  - PostgreSQL: postgres / postgres123"
     echo ""
     echo -e "${BLUE}Useful Commands:${NC}"
     echo "  - Check services: docker-compose -f docker-compose.local.yml ps"
@@ -355,10 +355,10 @@ main() {
     install_nodejs
     setup_local_environment
     create_local_compose
-    generate_***REMOVED-KEYCLOAK_DB_PASSWORD***_certs
+    generate_keycloak_certs
     install_dependencies
     start_services
-    configure_***REMOVED-KEYCLOAK_DB_PASSWORD***
+    configure_keycloak
     create_test_data
     test_deployment
     

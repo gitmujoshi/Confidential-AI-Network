@@ -3,7 +3,7 @@ echo "⏳ Waiting for PostgreSQL to be healthy..."
 max_attempts=30
 attempt=1
 while [ $attempt -le $max_attempts ]; do
-    if docker ps --format "{{.Names}}: {{.Status}}" | grep -q "***REMOVED-DB_PASSWORD***-***REMOVED-KEYCLOAK_DB_PASSWORD***.*healthy"; then
+    if docker ps --format "{{.Names}}: {{.Status}}" | grep -q "postgres-keycloak.*healthy"; then
         echo -e " ${GREEN}✅ PostgreSQL is healthy!${NC}"
         break
     fi

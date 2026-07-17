@@ -16,7 +16,7 @@ describe('SCITT CCF API Endpoint Tests', () => {
     try {
       const response = await axios.post(`${BASE_URL}/api/auth/login`, {
         email: 'admin@contractmanagement.com',
-        password: '***REMOVED-KEYCLOAK_ADMIN_PASSWORD***'
+        password: 'admin123'
       });
       authToken = response.data.token;
     } catch (error) {

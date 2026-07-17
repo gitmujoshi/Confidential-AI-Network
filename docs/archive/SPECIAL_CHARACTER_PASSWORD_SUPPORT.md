@@ -12,7 +12,7 @@
 
 ### 1. **URL Encoding Fix**
 
-**File**: `backend/services/***REMOVED-KEYCLOAK_DB_PASSWORD***Service.js`
+**File**: `backend/services/keycloakService.js`
 
 **Before**:
 ```javascript
@@ -125,7 +125,7 @@ The system now supports all common special characters:
 ```javascript
 // Special characters are automatically handled
 const password = 'MyC0mpl3x!P@ssw0rd#2024';
-await ***REMOVED-KEYCLOAK_DB_PASSWORD***Service.authenticateUserWithPassword(email, password);
+await keycloakService.authenticateUserWithPassword(email, password);
 ```
 
 ### **For Users**

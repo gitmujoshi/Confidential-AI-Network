@@ -43,9 +43,9 @@ provisioner: kubernetes.io/no-provisioner
 volumeBindingMode: WaitForFirstConsumer
 EOF
 
-# Create ***REMOVED-DB_PASSWORD*** data directory in minikube
-echo "📁 Creating ***REMOVED-DB_PASSWORD*** data directory..."
-minikube ssh "sudo mkdir -p /tmp/***REMOVED-DB_PASSWORD***-data && sudo chmod 777 /tmp/***REMOVED-DB_PASSWORD***-data"
+# Create postgres data directory in minikube
+echo "📁 Creating postgres data directory..."
+minikube ssh "sudo mkdir -p /tmp/postgres-data && sudo chmod 777 /tmp/postgres-data"
 
 # Build Docker images in minikube context
 echo "🐳 Building Docker images..."
@@ -57,7 +57,7 @@ kubectl apply -f k8s/local-deployment.yaml
 
 # Wait for pods to be ready
 echo "⏳ Waiting for pods to be ready..."
-kubectl wait --for=condition=ready pod -l app=***REMOVED-DB_PASSWORD*** -n contract-management --timeout=300s
+kubectl wait --for=condition=ready pod -l app=postgres -n contract-management --timeout=300s
 kubectl wait --for=condition=ready pod -l app=blockchain -n contract-management --timeout=300s
 kubectl wait --for=condition=ready pod -l app=backend -n contract-management --timeout=300s
 kubectl wait --for=condition=ready pod -l app=frontend -n contract-management --timeout=300s

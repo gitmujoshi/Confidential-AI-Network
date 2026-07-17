@@ -129,8 +129,8 @@ deployment.json
 .env.blockchain
 
 # Keycloak
-***REMOVED-KEYCLOAK_DB_PASSWORD***-config/realm-export.json
-***REMOVED-KEYCLOAK_DB_PASSWORD***-config/users.json
+keycloak-config/realm-export.json
+keycloak-config/users.json
 
 # Test wallets and private keys
 test-wallets.json
@@ -181,7 +181,7 @@ test-data-cache.json
 frontend.port
 .backend.pid
 .frontend.pid
-.***REMOVED-KEYCLOAK_DB_PASSWORD***.pid
+.keycloak.pid
 config-backups-*/
 
 # Runtime CCRP Terraform (generated per contract environment)

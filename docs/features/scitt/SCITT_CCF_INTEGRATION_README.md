@@ -537,7 +537,7 @@ docker logs cms-backend
 curl http://localhost:5001/api/scitt-ccf/health
 
 # Check database connection
-docker exec ***REMOVED-DB_PASSWORD***-app psql -U ***REMOVED-DB_PASSWORD*** -d contract_management -c "SELECT COUNT(*) FROM scitt_claims;"
+docker exec postgres-app psql -U postgres -d contract_management -c "SELECT COUNT(*) FROM scitt_claims;"
 ```
 
 ### Debug Mode

@@ -83,7 +83,7 @@ cd "$PROJECT_ROOT"
 
 if command -v docker &> /dev/null; then
     # Start main services
-    docker-compose -f docker-compose.main.yml up -d ***REMOVED-DB_PASSWORD***-app ***REMOVED-DB_PASSWORD***-***REMOVED-KEYCLOAK_DB_PASSWORD*** ***REMOVED-KEYCLOAK_DB_PASSWORD***
+    docker-compose -f docker-compose.main.yml up -d postgres-app postgres-keycloak keycloak
     
     # Wait for main database to be ready
     print_status "Waiting for main database to be ready..."
@@ -118,8 +118,8 @@ fi
 # Step 4: Setup Keycloak Configuration
 print_status "Step 4: Setting up Keycloak configuration..."
 cd "$SCRIPT_DIR"
-if [ -f "setup-***REMOVED-KEYCLOAK_DB_PASSWORD***-persistent.sh" ]; then
-    ./setup-***REMOVED-KEYCLOAK_DB_PASSWORD***-persistent.sh
+if [ -f "setup-keycloak-persistent.sh" ]; then
+    ./setup-keycloak-persistent.sh
     print_success "Keycloak configuration completed"
 else
     print_warning "Keycloak setup script not found, skipping configuration"

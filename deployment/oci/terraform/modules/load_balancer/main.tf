@@ -49,9 +49,9 @@ resource "oci_load_balancer_backend_set" "backend_api_backend_set" {
 }
 
 # Backend Set for Keycloak (Port 8080)
-resource "oci_load_balancer_backend_set" "***REMOVED-KEYCLOAK_DB_PASSWORD***_backend_set" {
+resource "oci_load_balancer_backend_set" "keycloak_backend_set" {
   load_balancer_id = oci_load_balancer.load_balancer.id
-  name             = "***REMOVED-KEYCLOAK_DB_PASSWORD***-backend-set"
+  name             = "keycloak-backend-set"
   policy           = "ROUND_ROBIN"
   
   health_checker {
@@ -84,10 +84,10 @@ resource "oci_load_balancer_listener" "backend_api_listener" {
 }
 
 # Listener for Keycloak (Port 8080)
-resource "oci_load_balancer_listener" "***REMOVED-KEYCLOAK_DB_PASSWORD***_listener" {
+resource "oci_load_balancer_listener" "keycloak_listener" {
   load_balancer_id         = oci_load_balancer.load_balancer.id
-  name                     = "***REMOVED-KEYCLOAK_DB_PASSWORD***-listener"
-  default_backend_set_name = oci_load_balancer_backend_set.***REMOVED-KEYCLOAK_DB_PASSWORD***_backend_set.name
+  name                     = "keycloak-listener"
+  default_backend_set_name = oci_load_balancer_backend_set.keycloak_backend_set.name
   port                     = 8080
   protocol                 = "HTTP"
 } 

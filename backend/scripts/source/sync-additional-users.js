@@ -38,7 +38,7 @@ function logWarning(message) {
 async function getKeycloakAdminToken() {
   try {
     const response = await axios.post('http://localhost:8080/realms/master/protocol/openid-connect/token', 
-      'grant_type=password&client_id=admin-cli&username=admin&password=***REMOVED-KEYCLOAK_ADMIN_PASSWORD***',
+      'grant_type=password&client_id=admin-cli&username=admin&password=admin123',
       { headers: { 'Content-Type': 'application/x-www-form-urlencoded' } }
     );
     return response.data.access_token;
@@ -148,29 +148,29 @@ async function syncAdditionalUsers() {
       
       try {
         // Create user in Keycloak
-        const ***REMOVED-KEYCLOAK_DB_PASSWORD***User = await createUserInKeycloak(user, adminToken);
+        const keycloakUser = await createUserInKeycloak(user, adminToken);
         
-        if (***REMOVED-KEYCLOAK_DB_PASSWORD***User) {
+        if (keycloakUser) {
           logSuccess(`Created user ${user.email} in Keycloak`);
         } else {
           logWarning(`User ${user.email} already exists in Keycloak`);
         }
         
         // Get user from Keycloak to get the ID
-        const ***REMOVED-KEYCLOAK_DB_PASSWORD***UserData = await getUserFromKeycloak(user.email, adminToken);
+        const keycloakUserData = await getUserFromKeycloak(user.email, adminToken);
         
-        if (***REMOVED-KEYCLOAK_DB_PASSWORD***UserData) {
+        if (keycloakUserData) {
           // Assign role
-          await assignRoleToUser(***REMOVED-KEYCLOAK_DB_PASSWORD***UserData.id, user.partyType, adminToken);
+          await assignRoleToUser(keycloakUserData.id, user.partyType, adminToken);
           logSuccess(`Role ${user.partyType} assigned to user`);
           
           // Update database user with Keycloak info
           await user.update({
-            iamUserId: ***REMOVED-KEYCLOAK_DB_PASSWORD***UserData.id,
+            iamUserId: keycloakUserData.id,
             iamUsername: user.email
           });
           
-          logSuccess(`Updated database user ${user.email} with Keycloak ID: ${***REMOVED-KEYCLOAK_DB_PASSWORD***UserData.id}`);
+          logSuccess(`Updated database user ${user.email} with Keycloak ID: ${keycloakUserData.id}`);
         } else {
           logError(`Failed to get user ${user.email} from Keycloak`);
         }

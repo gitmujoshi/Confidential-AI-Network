@@ -1,5 +1,5 @@
 output "db_host" {
-  value = azurerm_***REMOVED-DB_PASSWORD***ql_flexible_server.db.fqdn
+  value = azurerm_postgresql_flexible_server.db.fqdn
 }
 
 output "db_port" {
@@ -7,7 +7,7 @@ output "db_port" {
 }
 
 output "db_name" {
-  value = azurerm_***REMOVED-DB_PASSWORD***ql_flexible_server_database.app.name
+  value = azurerm_postgresql_flexible_server_database.app.name
 }
 
 output "db_user" {

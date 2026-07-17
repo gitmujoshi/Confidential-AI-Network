@@ -22,7 +22,7 @@ router.get('/env', (req, res) => {
   const mlxPython = defaultMlxPythonPath();
   const nativePython = defaultNativePythonPath();
   res.json({
-    ***REMOVED-KEYCLOAK_DB_PASSWORD***: {
+    keycloak: {
       url: process.env.KEYCLOAK_URL,
       realm: process.env.KEYCLOAK_REALM,
       clientId: process.env.KEYCLOAK_CLIENT_ID,

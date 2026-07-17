@@ -145,13 +145,13 @@ The Contract Management System implements a comprehensive Identity and Access Ma
 const transaction = await db.sequelize.transaction();
 try {
   // Step 1: Create in Keycloak
-  const ***REMOVED-KEYCLOAK_DB_PASSWORD***Result = await ***REMOVED-KEYCLOAK_DB_PASSWORD***Service.createUser(userData);
+  const keycloakResult = await keycloakService.createUser(userData);
   
   // Step 2: Create in database
   const dbUser = await db.User.create({
     // ... user data
     depaId: depaIdService.generateUserDEPAId(partyType),
-    iamUserId: ***REMOVED-KEYCLOAK_DB_PASSWORD***Result.***REMOVED-KEYCLOAK_DB_PASSWORD***UserId
+    iamUserId: keycloakResult.keycloakUserId
   }, { transaction });
   
   // Step 3: Create notification
@@ -201,7 +201,7 @@ const isVerified = await didService.verifyDIDOwnership(
 #### 3.1 Keycloak Integration
 ```javascript
 // Keycloak user creation
-const ***REMOVED-KEYCLOAK_DB_PASSWORD***UserData = {
+const keycloakUserData = {
   username: userData.email,
   email: userData.email,
   firstName: userData.name?.split(' ')[0] || '',
@@ -1572,7 +1572,7 @@ const authenticateToken = async (req, res, next) => {
     }
 
     // Validate with Keycloak
-    const validationResult = await ***REMOVED-KEYCLOAK_DB_PASSWORD***Service.validateToken(token);
+    const validationResult = await keycloakService.validateToken(token);
     
     if (validationResult.valid) {
       // Find user by iamUsername
@@ -1587,7 +1587,7 @@ const authenticateToken = async (req, res, next) => {
         ...validationResult.user,
         localUser: user,
         token: token,
-        authType: '***REMOVED-KEYCLOAK_DB_PASSWORD***'
+        authType: 'keycloak'
       };
 
       return next();
@@ -2928,7 +2928,7 @@ KEYCLOAK_REALM=contract-management
 KEYCLOAK_CLIENT_ID=contract-management-backend
 KEYCLOAK_CLIENT_SECRET=your_client_secret_here
 KEYCLOAK_ADMIN_USERNAME=admin
-KEYCLOAK_ADMIN_PASSWORD=***REMOVED-KEYCLOAK_ADMIN_PASSWORD***
+KEYCLOAK_ADMIN_PASSWORD=admin123
 KEYCLOAK_ENABLED=true
 
 # Security

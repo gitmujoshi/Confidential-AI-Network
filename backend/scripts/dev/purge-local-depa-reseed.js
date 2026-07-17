@@ -135,7 +135,7 @@ async function main() {
   });
 
   console.log('✅ Purge + reseed finished.');
-  console.log('ℹ️  If you use Keycloak, re-sync or remove IAM users for deleted rows: npm run ***REMOVED-KEYCLOAK_DB_PASSWORD***:sync --prefix backend');
+  console.log('ℹ️  If you use Keycloak, re-sync or remove IAM users for deleted rows: npm run keycloak:sync --prefix backend');
 }
 
 main()

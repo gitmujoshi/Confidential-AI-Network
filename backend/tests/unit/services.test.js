@@ -4,7 +4,7 @@ const { sequelize } = require('../../models');
 const jwt = require('jsonwebtoken');
 
 // Mock KeycloakService to avoid import issues
-jest.mock('../../services/***REMOVED-KEYCLOAK_DB_PASSWORD***Service', () => {
+jest.mock('../../services/keycloakService', () => {
   return jest.fn().mockImplementation(() => ({
     createUser: jest.fn(),
     updateUser: jest.fn(),

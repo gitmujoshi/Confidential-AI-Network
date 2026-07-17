@@ -135,7 +135,7 @@ module "kubernetes_resources" {
   release_version         = var.release_version
   ethereum_network        = var.ethereum_network
   infura_project_id       = var.infura_project_id
-  ***REMOVED-KEYCLOAK_DB_PASSWORD***_admin_username = var.***REMOVED-KEYCLOAK_DB_PASSWORD***_admin_username
-  ***REMOVED-KEYCLOAK_DB_PASSWORD***_admin_password = var.***REMOVED-KEYCLOAK_DB_PASSWORD***_admin_password
-  ***REMOVED-KEYCLOAK_DB_PASSWORD***_db_password    = var.***REMOVED-KEYCLOAK_DB_PASSWORD***_db_password != "" ? var.***REMOVED-KEYCLOAK_DB_PASSWORD***_db_password : var.db_password
+  keycloak_admin_username = var.keycloak_admin_username
+  keycloak_admin_password = var.keycloak_admin_password
+  keycloak_db_password    = var.keycloak_db_password != "" ? var.keycloak_db_password : var.db_password
 }

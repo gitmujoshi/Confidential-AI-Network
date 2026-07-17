@@ -10,7 +10,7 @@
 
 // Set test environment variables
 process.env.NODE_ENV = 'test';
-process.env.DATABASE_URL = process.env.DATABASE_URL || '***REMOVED-DB_PASSWORD***ql://test:test@localhost:5432/contract_management_test';
+process.env.DATABASE_URL = process.env.DATABASE_URL || 'postgresql://test:test@localhost:5432/contract_management_test';
 process.env.JWT_SECRET = 'test-jwt-secret';
 process.env.CCF_NODE_URL = 'http://localhost:8000';
 process.env.CCF_API_KEY = 'test-api-key';

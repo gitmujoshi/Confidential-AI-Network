@@ -4,7 +4,7 @@ const KEYCLOAK_URL = 'http://localhost:8080';
 const REALM = 'contract-management';
 const CLIENT_ID = 'contract-management-backend';
 const ADMIN_USERNAME = 'admin';
-const ADMIN_PASSWORD = '***REMOVED-KEYCLOAK_ADMIN_PASSWORD***';
+const ADMIN_PASSWORD = 'admin123';
 
 class KeycloakTokenMapper {
   constructor() {

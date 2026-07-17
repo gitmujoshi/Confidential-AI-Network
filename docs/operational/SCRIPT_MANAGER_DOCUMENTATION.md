@@ -73,7 +73,7 @@ Handles system setup, installation, and configuration.
 #### Commands:
 - `fresh` - Fresh system setup
 - `dev` - Development environment setup
-- `***REMOVED-KEYCLOAK_DB_PASSWORD*** [OPTIONS]` - Keycloak setup
+- `keycloak [OPTIONS]` - Keycloak setup
 - `database [OPTIONS]` - Database setup
 - `dependencies` - Install dependencies
 
@@ -93,7 +93,7 @@ Handles system setup, installation, and configuration.
 ./scripts/script-manager.sh setup fresh
 
 # Setup Keycloak with HTTPS
-./scripts/script-manager.sh setup ***REMOVED-KEYCLOAK_DB_PASSWORD*** --https
+./scripts/script-manager.sh setup keycloak --https
 
 # Setup test database
 ./scripts/script-manager.sh setup database --test

@@ -8,8 +8,8 @@ This guide ensures database stability and prevents data loss during system updat
 ### **Current Stable Configuration:**
 ```bash
 # Container Details
-CONTAINER_NAME=***REMOVED-DB_PASSWORD***-cms
-VOLUME_NAME=***REMOVED-DB_PASSWORD***_data
+CONTAINER_NAME=postgres-cms
+VOLUME_NAME=postgres_data
 PORT_MAPPING=5433:5432
 NETWORK=cms-network
 
@@ -17,8 +17,8 @@ NETWORK=cms-network
 DB_HOST=localhost
 DB_PORT=5433
 DB_NAME=contract_management
-DB_USER=***REMOVED-KEYCLOAK_DB_PASSWORD***
-DB_PASSWORD=***REMOVED-KEYCLOAK_DB_PASSWORD***
+DB_USER=keycloak
+DB_PASSWORD=keycloak
 DB_SSL=false
 ```
 
@@ -35,12 +35,12 @@ DB_SSL=false
 ### **Container Configuration:**
 ```yaml
 # DO NOT CHANGE THESE VALUES:
-***REMOVED-DB_PASSWORD***:
-  container_name: ***REMOVED-DB_PASSWORD***-cms  # ❌ DO NOT CHANGE
+postgres:
+  container_name: postgres-cms  # ❌ DO NOT CHANGE
   ports:
     - "5433:5432"              # ❌ DO NOT CHANGE
   volumes:
-    - ***REMOVED-DB_PASSWORD***_data:/var/lib/***REMOVED-DB_PASSWORD***ql/data  # ❌ DO NOT CHANGE
+    - postgres_data:/var/lib/postgresql/data  # ❌ DO NOT CHANGE
 ```
 
 ### **Database Settings:**
@@ -49,8 +49,8 @@ DB_SSL=false
 DB_HOST=localhost              # ❌ DO NOT CHANGE
 DB_PORT=5433                   # ❌ DO NOT CHANGE
 DB_NAME=contract_management    # ❌ DO NOT CHANGE
-DB_USER=***REMOVED-KEYCLOAK_DB_PASSWORD***              # ❌ DO NOT CHANGE
-DB_PASSWORD=***REMOVED-KEYCLOAK_DB_PASSWORD***          # ❌ DO NOT CHANGE
+DB_USER=keycloak              # ❌ DO NOT CHANGE
+DB_PASSWORD=keycloak          # ❌ DO NOT CHANGE
 ```
 
 ## ✅ **Safe Changes:**
@@ -74,7 +74,7 @@ DB_PASSWORD=***REMOVED-KEYCLOAK_DB_PASSWORD***          # ❌ DO NOT CHANGE
 ### **Step 1: Backup Current Data**
 ```bash
 # Backup current database
-docker exec ***REMOVED-DB_PASSWORD***-cms pg_dump -U ***REMOVED-KEYCLOAK_DB_PASSWORD*** contract_management > backup_$(date +%Y%m%d_%H%M%S).sql
+docker exec postgres-cms pg_dump -U keycloak contract_management > backup_$(date +%Y%m%d_%H%M%S).sql
 ```
 
 ### **Step 2: Update Configuration**
@@ -94,7 +94,7 @@ docker exec ***REMOVED-DB_PASSWORD***-cms pg_dump -U ***REMOVED-KEYCLOAK_DB_PASS
 ### **Step 4: Restore Data**
 ```bash
 # Restore data to new database
-docker exec ***REMOVED-DB_PASSWORD***-cms psql -U ***REMOVED-KEYCLOAK_DB_PASSWORD*** -d contract_management < backup_*.sql
+docker exec postgres-cms psql -U keycloak -d contract_management < backup_*.sql
 ```
 
 ## 📋 **Prevention Checklist:**
@@ -127,19 +127,19 @@ docker exec ***REMOVED-DB_PASSWORD***-cms psql -U ***REMOVED-KEYCLOAK_DB_PASSWOR
 ### **Backup Commands:**
 ```bash
 # Create backup
-docker exec ***REMOVED-DB_PASSWORD***-cms pg_dump -U ***REMOVED-KEYCLOAK_DB_PASSWORD*** contract_management > backup.sql
+docker exec postgres-cms pg_dump -U keycloak contract_management > backup.sql
 
 # Restore backup
-docker exec -i ***REMOVED-DB_PASSWORD***-cms psql -U ***REMOVED-KEYCLOAK_DB_PASSWORD*** -d contract_management < backup.sql
+docker exec -i postgres-cms psql -U keycloak -d contract_management < backup.sql
 ```
 
 ## 📊 **Current Status:**
 
 | Component | Status | Volume | Data |
 |-----------|--------|--------|------|
-| *****REMOVED-DB_PASSWORD***-cms** | ✅ Active | `***REMOVED-DB_PASSWORD***_data` | ✅ Persistent |
-| **Keycloak DB** | ✅ Active | `***REMOVED-DB_PASSWORD***_data` | ✅ 17 users, 2 realms |
-| **App DB** | ✅ Active | `***REMOVED-DB_PASSWORD***_data` | ⚠️ Empty (needs migration) |
+| **postgres-cms** | ✅ Active | `postgres_data` | ✅ Persistent |
+| **Keycloak DB** | ✅ Active | `postgres_data` | ✅ 17 users, 2 realms |
+| **App DB** | ✅ Active | `postgres_data` | ⚠️ Empty (needs migration) |
 
 ## 🎯 **Next Steps:**
 

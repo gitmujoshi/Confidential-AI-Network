@@ -285,7 +285,7 @@ const MockRegistry = {
     KeycloakService: class MockKeycloakService {
       constructor() {
         this.createUser = jest.fn().mockResolvedValue({
-          ***REMOVED-KEYCLOAK_DB_PASSWORD***UserId: 'mock-***REMOVED-KEYCLOAK_DB_PASSWORD***-user-id',
+          keycloakUserId: 'mock-keycloak-user-id',
           temporaryPassword: 'mock-temp-password'
         });
         this.updateUser = jest.fn().mockResolvedValue({

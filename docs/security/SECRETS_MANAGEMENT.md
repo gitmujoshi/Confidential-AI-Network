@@ -13,16 +13,16 @@ We use a **separation of concerns** approach where:
 
 The system uses **two separate PostgreSQL instances**:
 
-1. **`***REMOVED-DB_PASSWORD***-app`** (Application Database)
+1. **`postgres-app`** (Application Database)
    - Port: 5432
    - Database: `contract_management`
-   - User: `***REMOVED-DB_PASSWORD***`
+   - User: `postgres`
    - Used by: Backend API, application data
 
-2. **`***REMOVED-DB_PASSWORD***-***REMOVED-KEYCLOAK_DB_PASSWORD***`** (Keycloak Database)
+2. **`postgres-keycloak`** (Keycloak Database)
    - Port: 5433
-   - Database: `***REMOVED-KEYCLOAK_DB_PASSWORD***`
-   - User: `***REMOVED-KEYCLOAK_DB_PASSWORD***`
+   - Database: `keycloak`
+   - User: `keycloak`
    - Used by: Keycloak authentication service
 
 This separation provides:
@@ -46,8 +46,8 @@ graph TB
         end
         
         subgraph "Database Layer"
-            DB_APP[(***REMOVED-DB_PASSWORD***-app<br/>Port: 5432<br/>contract_management)]
-            DB_KC[(***REMOVED-DB_PASSWORD***-***REMOVED-KEYCLOAK_DB_PASSWORD***<br/>Port: 5433<br/>***REMOVED-KEYCLOAK_DB_PASSWORD***)]
+            DB_APP[(postgres-app<br/>Port: 5432<br/>contract_management)]
+            DB_KC[(postgres-keycloak<br/>Port: 5433<br/>keycloak)]
         end
     end
     
@@ -142,20 +142,20 @@ Auto-generated file that combines `config.env` and `secrets.env.local`:
 ### Database Configuration
 ```bash
 # Public (config.env)
-# Application Database (***REMOVED-DB_PASSWORD***-app)
+# Application Database (postgres-app)
 DB_HOST=localhost
 DB_PORT=5432
 DB_NAME=contract_management
-DB_USER=***REMOVED-DB_PASSWORD***
+DB_USER=postgres
 
-# Keycloak Database (***REMOVED-DB_PASSWORD***-***REMOVED-KEYCLOAK_DB_PASSWORD***)
+# Keycloak Database (postgres-keycloak)
 KEYCLOAK_DB_PORT=5433
-KEYCLOAK_DB_NAME=***REMOVED-KEYCLOAK_DB_PASSWORD***
-KEYCLOAK_DB_USER=***REMOVED-KEYCLOAK_DB_PASSWORD***
+KEYCLOAK_DB_NAME=keycloak
+KEYCLOAK_DB_USER=keycloak
 
 # Secrets (secrets.env.local)
 DB_PASSWORD=your-app-db-password
-KEYCLOAK_DB_PASSWORD=your-***REMOVED-KEYCLOAK_DB_PASSWORD***-db-password
+KEYCLOAK_DB_PASSWORD=your-keycloak-db-password
 ```
 
 ### Keycloak Configuration
@@ -294,7 +294,7 @@ If you have existing configuration files:
 4. **Remove secrets from config.env:**
    ```bash
    # Remove lines like:
-   # DB_PASSWORD=***REMOVED-DB_PASSWORD***
+   # DB_PASSWORD=postgres
    # JWT_SECRET=your-secret
    ```
 

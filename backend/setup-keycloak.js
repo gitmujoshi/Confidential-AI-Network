@@ -18,7 +18,7 @@ class KeycloakSetup {
       const response = await axios.post(`${this.baseURL}/realms/master/protocol/openid-connect/token`, 
         new URLSearchParams({
           username: 'admin',
-          password: '***REMOVED-KEYCLOAK_ADMIN_PASSWORD***',
+          password: 'admin123',
           grant_type: 'password',
           client_id: 'admin-cli'
         }), {

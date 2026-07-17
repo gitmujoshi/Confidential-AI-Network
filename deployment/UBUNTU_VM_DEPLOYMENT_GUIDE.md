@@ -160,21 +160,21 @@ nano docker-compose.prod.yml
 ```yaml
 version: '3.8'
 services:
-  ***REMOVED-DB_PASSWORD***-app:
+  postgres-app:
     environment:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     volumes:
-      - ***REMOVED-DB_PASSWORD***_app_data:/var/lib/***REMOVED-DB_PASSWORD***ql/data
+      - postgres_app_data:/var/lib/postgresql/data
     restart: unless-stopped
 
-  ***REMOVED-DB_PASSWORD***-***REMOVED-KEYCLOAK_DB_PASSWORD***:
+  postgres-keycloak:
     environment:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     volumes:
-      - ***REMOVED-DB_PASSWORD***_***REMOVED-KEYCLOAK_DB_PASSWORD***_data:/var/lib/***REMOVED-DB_PASSWORD***ql/data
+      - postgres_keycloak_data:/var/lib/postgresql/data
     restart: unless-stopped
 
-  ***REMOVED-KEYCLOAK_DB_PASSWORD***:
+  keycloak:
     environment:
       KC_HOSTNAME: YOUR_DOMAIN.com
       KC_HOSTNAME_PORT: 8443
@@ -195,9 +195,9 @@ services:
     restart: unless-stopped
 
 volumes:
-  ***REMOVED-DB_PASSWORD***_app_data:
-  ***REMOVED-DB_PASSWORD***_***REMOVED-KEYCLOAK_DB_PASSWORD***_data:
-  ***REMOVED-KEYCLOAK_DB_PASSWORD***_data:
+  postgres_app_data:
+  postgres_keycloak_data:
+  keycloak_data:
 ```
 
 ## 🔐 Step 4: Keycloak HTTPS Configuration
@@ -205,24 +205,24 @@ volumes:
 ### 4.1 Generate SSL Certificates for Keycloak
 ```bash
 # Create directory for Keycloak certificates
-mkdir -p deployment/***REMOVED-KEYCLOAK_DB_PASSWORD***-certs
+mkdir -p deployment/keycloak-certs
 
 # Generate self-signed certificate for Keycloak (or use Let's Encrypt)
 sudo openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
-  -keyout deployment/***REMOVED-KEYCLOAK_DB_PASSWORD***-certs/***REMOVED-KEYCLOAK_DB_PASSWORD***.key \
-  -out deployment/***REMOVED-KEYCLOAK_DB_PASSWORD***-certs/***REMOVED-KEYCLOAK_DB_PASSWORD***.crt \
+  -keyout deployment/keycloak-certs/keycloak.key \
+  -out deployment/keycloak-certs/keycloak.crt \
   -subj "/C=US/ST=State/L=City/O=Organization/CN=YOUR_DOMAIN.com"
 
 # Set permissions
-sudo chown -R $USER:$USER deployment/***REMOVED-KEYCLOAK_DB_PASSWORD***-certs
-chmod 600 deployment/***REMOVED-KEYCLOAK_DB_PASSWORD***-certs/***REMOVED-KEYCLOAK_DB_PASSWORD***.key
-chmod 644 deployment/***REMOVED-KEYCLOAK_DB_PASSWORD***-certs/***REMOVED-KEYCLOAK_DB_PASSWORD***.crt
+sudo chown -R $USER:$USER deployment/keycloak-certs
+chmod 600 deployment/keycloak-certs/keycloak.key
+chmod 644 deployment/keycloak-certs/keycloak.crt
 ```
 
 ### 4.2 Update Keycloak Configuration
 ```bash
 # Create production Keycloak configuration script
-nano deployment/configure-***REMOVED-KEYCLOAK_DB_PASSWORD***-production.js
+nano deployment/configure-keycloak-production.js
 ```
 
 **Production Keycloak configuration:**
@@ -231,7 +231,7 @@ const axios = require('axios');
 const https = require('https');
 
 const config = {
-  ***REMOVED-KEYCLOAK_DB_PASSWORD***Url: 'https://YOUR_DOMAIN.com:8443',
+  keycloakUrl: 'https://YOUR_DOMAIN.com:8443',
   adminUser: 'admin',
   adminPassword: 'your_strong_admin_password',
   realm: 'contract-management',
@@ -270,11 +270,11 @@ docker-compose -f docker-compose.prod.yml logs -f
 ### 5.3 Initialize Keycloak
 ```bash
 # Wait for Keycloak to start (check logs)
-docker-compose -f docker-compose.prod.yml logs ***REMOVED-KEYCLOAK_DB_PASSWORD***
+docker-compose -f docker-compose.prod.yml logs keycloak
 
 # Run Keycloak configuration
 cd deployment
-node configure-***REMOVED-KEYCLOAK_DB_PASSWORD***-production.js
+node configure-keycloak-production.js
 ```
 
 ## 🧪 Step 6: Testing and Verification
@@ -351,11 +351,11 @@ BACKUP_DIR="/opt/backups/$(date +%Y%m%d_%H%M%S)"
 mkdir -p $BACKUP_DIR
 
 # Backup databases
-docker exec ***REMOVED-DB_PASSWORD***-app pg_dump -U ***REMOVED-DB_PASSWORD*** contract_management > $BACKUP_DIR/app_db.sql
-docker exec ***REMOVED-DB_PASSWORD***-***REMOVED-KEYCLOAK_DB_PASSWORD*** pg_dump -U ***REMOVED-DB_PASSWORD*** ***REMOVED-KEYCLOAK_DB_PASSWORD*** > $BACKUP_DIR/***REMOVED-KEYCLOAK_DB_PASSWORD***_db.sql
+docker exec postgres-app pg_dump -U postgres contract_management > $BACKUP_DIR/app_db.sql
+docker exec postgres-keycloak pg_dump -U postgres keycloak > $BACKUP_DIR/keycloak_db.sql
 
 # Backup Keycloak data
-docker cp ***REMOVED-KEYCLOAK_DB_PASSWORD***:/opt/***REMOVED-KEYCLOAK_DB_PASSWORD***/data $BACKUP_DIR/***REMOVED-KEYCLOAK_DB_PASSWORD***_data
+docker cp keycloak:/opt/keycloak/data $BACKUP_DIR/keycloak_data
 
 # Compress backup
 tar -czf $BACKUP_DIR.tar.gz $BACKUP_DIR
@@ -382,13 +382,13 @@ echo "Backup completed: $BACKUP_DIR.tar.gz"
 
 3. **Keycloak not starting**: Check logs and database connectivity
    ```bash
-   docker-compose logs ***REMOVED-KEYCLOAK_DB_PASSWORD***
-   docker exec ***REMOVED-DB_PASSWORD***-***REMOVED-KEYCLOAK_DB_PASSWORD*** psql -U ***REMOVED-DB_PASSWORD*** -c "\l"
+   docker-compose logs keycloak
+   docker exec postgres-keycloak psql -U postgres -c "\l"
    ```
 
 4. **Database connection errors**: Verify environment variables and database status
    ```bash
-   docker exec ***REMOVED-DB_PASSWORD***-app psql -U ***REMOVED-DB_PASSWORD*** -c "SELECT version();"
+   docker exec postgres-app psql -U postgres -c "SELECT version();"
    ```
 
 ### Log Locations
@@ -399,7 +399,7 @@ echo "Backup completed: $BACKUP_DIR.tar.gz"
 ## 📚 Additional Resources
 
 - [Docker Documentation](https://docs.docker.com/)
-- [Keycloak Documentation](https://www.***REMOVED-KEYCLOAK_DB_PASSWORD***.org/documentation)
+- [Keycloak Documentation](https://www.keycloak.org/documentation)
 - [Let's Encrypt Documentation](https://letsencrypt.org/docs/)
 - [Ubuntu Server Guide](https://ubuntu.com/server/docs)
 

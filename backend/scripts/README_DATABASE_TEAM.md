@@ -40,13 +40,13 @@ cd backend/scripts
 ./deploy-database.sh
 
 # Or with custom parameters
-./deploy-database.sh contract_management ***REMOVED-DB_PASSWORD*** localhost 5432
+./deploy-database.sh contract_management postgres localhost 5432
 ```
 
 ### **Option 2: Manual SQL Execution**
 ```bash
 # Connect to PostgreSQL
-psql -h localhost -U ***REMOVED-DB_PASSWORD*** -d ***REMOVED-DB_PASSWORD***
+psql -h localhost -U postgres -d postgres
 
 # Create database
 CREATE DATABASE contract_management;
@@ -76,7 +76,7 @@ CREATE DATABASE contract_management;
 export DB_HOST=localhost
 export DB_PORT=5432
 export DB_NAME=contract_management
-export DB_USER=***REMOVED-DB_PASSWORD***
+export DB_USER=postgres
 export DB_PASSWORD=your_password
 ```
 
@@ -143,16 +143,16 @@ curl -X POST http://localhost:5001/api/auth/register \
 ```bash
 # Error: permission denied to create database
 # Solution: Ensure user has CREATE privileges
-GRANT CREATE ON DATABASE ***REMOVED-DB_PASSWORD*** TO your_user;
+GRANT CREATE ON DATABASE postgres TO your_user;
 ```
 
 #### **2. Connection Failed**
 ```bash
 # Error: could not connect to server
 # Solution: Check PostgreSQL service is running
-sudo systemctl status ***REMOVED-DB_PASSWORD***ql
+sudo systemctl status postgresql
 # or
-brew services list | grep ***REMOVED-DB_PASSWORD***ql
+brew services list | grep postgresql
 ```
 
 #### **3. Schema Execution Failed**
@@ -230,7 +230,7 @@ ORDER BY idx_scan DESC;
 
 ## 📚 **Additional Resources**
 
-- **PostgreSQL Documentation**: https://www.***REMOVED-DB_PASSWORD***ql.org/docs/
+- **PostgreSQL Documentation**: https://www.postgresql.org/docs/
 - **Sequelize Documentation**: https://sequelize.org/
 - **Model Definitions**: `../models/` directory
 - **Application Configuration**: `../config/` directory

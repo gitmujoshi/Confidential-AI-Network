@@ -35,7 +35,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(dirname "$(dirname "$SCRIPT_DIR")")"
 
 # Function to wait for Keycloak to be ready
-wait_for_***REMOVED-KEYCLOAK_DB_PASSWORD***() {
+wait_for_keycloak() {
     print_status "Waiting for Keycloak to be ready..."
     local max_attempts=30
     local attempt=1
@@ -75,17 +75,17 @@ check_realm_exists() {
 get_admin_token() {
     local response=$(curl -k -s -X POST "${KEYCLOAK_URL:-https://localhost:8443}/realms/master/protocol/openid-connect/token" \
         -H "Content-Type: application/x-www-form-urlencoded" \
-        -d "grant_type=password&client_id=admin-cli&username=${KEYCLOAK_ADMIN_USER:-admin}&password=${KEYCLOAK_ADMIN_PASSWORD:-***REMOVED-KEYCLOAK_ADMIN_PASSWORD***}")
+        -d "grant_type=password&client_id=admin-cli&username=${KEYCLOAK_ADMIN_USER:-admin}&password=${KEYCLOAK_ADMIN_PASSWORD:-admin123}")
     
     echo "$response" | grep -o '"access_token":"[^"]*"' | cut -d'"' -f4
 }
 
 # Main setup function
-setup_***REMOVED-KEYCLOAK_DB_PASSWORD***() {
+setup_keycloak() {
     print_status "Setting up Keycloak configuration..."
     
     # Wait for Keycloak to be ready
-    if ! wait_for_***REMOVED-KEYCLOAK_DB_PASSWORD***; then
+    if ! wait_for_keycloak; then
         print_error "Keycloak is not running. Please start Keycloak first."
         exit 1
     fi
@@ -185,8 +185,8 @@ setup_***REMOVED-KEYCLOAK_DB_PASSWORD***() {
     print_status "Realm: contract-management"
     print_status "Admin Console: http://localhost:8080"
     print_status "Admin Username: admin"
-    print_status "Admin Password: ***REMOVED-KEYCLOAK_ADMIN_PASSWORD***"
+    print_status "Admin Password: admin123"
 }
 
 # Run setup
-setup_***REMOVED-KEYCLOAK_DB_PASSWORD*** 
+setup_keycloak 

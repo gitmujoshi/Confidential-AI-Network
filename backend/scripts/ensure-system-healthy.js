@@ -83,7 +83,7 @@ async function ensureKeycloakConfigured() {
   console.log(`\n${colors.bold}🔐 STEP 2: Ensuring Keycloak Configuration${colors.reset}`);
   
   return runCommand(
-    'node scripts/source/setup-***REMOVED-KEYCLOAK_DB_PASSWORD***-realm.js',
+    'node scripts/source/setup-keycloak-realm.js',
     'Setting up Keycloak realm and client'
   );
 }
@@ -92,7 +92,7 @@ async function ensureUsersSynced() {
   console.log(`\n${colors.bold}👥 STEP 3: Ensuring User Synchronization${colors.reset}`);
   
   return runCommand(
-    'node scripts/source/create-***REMOVED-KEYCLOAK_DB_PASSWORD***-users.js',
+    'node scripts/source/create-keycloak-users.js',
     'Creating and syncing users with Keycloak'
   );
 }
@@ -145,7 +145,7 @@ async function finalHealthCheck() {
     console.log(`\n${colors.blue}📋 Quick Reference:${colors.reset}`);
     console.log(`  Frontend: ${FRONTEND_URL:-http://localhost:3000}`);
     console.log(`  Backend API: ${BACKEND_URL:-http://localhost:5001}`);
-    console.log(`  Keycloak Admin: http://localhost:8080 (admin/***REMOVED-KEYCLOAK_ADMIN_PASSWORD***)`);
+    console.log(`  Keycloak Admin: http://localhost:8080 (admin/admin123)`);
     console.log(`\n${colors.blue}🔐 Test Credentials:${colors.reset}`);
     console.log(`  TDC: tdc.healthcare@example.com / password123`);
     console.log(`  TDP: tdp.medical@example.com / password123`);
@@ -175,8 +175,8 @@ async function main() {
     }
     
     // Step 2: Ensure Keycloak is configured
-    const ***REMOVED-KEYCLOAK_DB_PASSWORD***Ok = await ensureKeycloakConfigured();
-    if (!***REMOVED-KEYCLOAK_DB_PASSWORD***Ok) {
+    const keycloakOk = await ensureKeycloakConfigured();
+    if (!keycloakOk) {
       logError('Failed to configure Keycloak. Exiting.');
       process.exit(1);
     }

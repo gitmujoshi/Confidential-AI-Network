@@ -138,20 +138,20 @@ stop_scitt_ccf() {
 }
 
 # Function to stop Keycloak and PostgreSQL
-stop_***REMOVED-KEYCLOAK_DB_PASSWORD***_***REMOVED-DB_PASSWORD***() {
+stop_keycloak_postgres() {
     print_header "Stopping Keycloak and PostgreSQL"
     
-    if [ -f "$(compose_path "docker-compose.***REMOVED-KEYCLOAK_DB_PASSWORD***-persistent.yml")" ]; then
+    if [ -f "$(compose_path "docker-compose.keycloak-persistent.yml")" ]; then
         print_status "Stopping Keycloak and PostgreSQL containers..."
-        run_compose "docker-compose.***REMOVED-KEYCLOAK_DB_PASSWORD***-persistent.yml" down
+        run_compose "docker-compose.keycloak-persistent.yml" down
         
         print_success "Keycloak and PostgreSQL stopped"
     else
         print_warning "Keycloak Docker Compose file not found"
         
         # Try to stop manually
-        docker stop ***REMOVED-KEYCLOAK_DB_PASSWORD***-cms ***REMOVED-DB_PASSWORD***-***REMOVED-KEYCLOAK_DB_PASSWORD*** 2>/dev/null || true
-        docker rm ***REMOVED-KEYCLOAK_DB_PASSWORD***-cms ***REMOVED-DB_PASSWORD***-***REMOVED-KEYCLOAK_DB_PASSWORD*** 2>/dev/null || true
+        docker stop keycloak-cms postgres-keycloak 2>/dev/null || true
+        docker rm keycloak-cms postgres-keycloak 2>/dev/null || true
     fi
 }
 
@@ -259,7 +259,7 @@ show_system_status() {
     
     echo ""
     echo "🔍 Checking Docker containers..."
-    docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}" | grep -E "(***REMOVED-KEYCLOAK_DB_PASSWORD***|***REMOVED-DB_PASSWORD***|scitt|ccf)" || echo "   No relevant Docker containers running"
+    docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}" | grep -E "(keycloak|postgres|scitt|ccf)" || echo "   No relevant Docker containers running"
 }
 
 # Function to show help
@@ -274,7 +274,7 @@ show_help() {
     echo "  --frontend-only     Stop only frontend"
     echo "  --backend-only      Stop only backend"
     echo "  --scitt-ccf-only    Stop only SCITT CCF services"
-    echo "  --***REMOVED-KEYCLOAK_DB_PASSWORD***-only     Stop only Keycloak and PostgreSQL"
+    echo "  --keycloak-only     Stop only Keycloak and PostgreSQL"
     echo "  --blockchain-only   Stop only blockchain services"
     echo "  --help              Show this help message"
     echo ""
@@ -293,7 +293,7 @@ main() {
     local frontend_only=false
     local backend_only=false
     local scitt_ccf_only=false
-    local ***REMOVED-KEYCLOAK_DB_PASSWORD***_only=false
+    local keycloak_only=false
     local blockchain_only=false
     
     # Parse command line arguments
@@ -319,8 +319,8 @@ main() {
                 scitt_ccf_only=true
                 shift
                 ;;
-            --***REMOVED-KEYCLOAK_DB_PASSWORD***-only)
-                ***REMOVED-KEYCLOAK_DB_PASSWORD***_only=true
+            --keycloak-only)
+                keycloak_only=true
                 shift
                 ;;
             --blockchain-only)
@@ -351,8 +351,8 @@ main() {
         stop_backend
     elif [ "$scitt_ccf_only" = true ]; then
         stop_scitt_ccf
-    elif [ "$***REMOVED-KEYCLOAK_DB_PASSWORD***_only" = true ]; then
-        stop_***REMOVED-KEYCLOAK_DB_PASSWORD***_***REMOVED-DB_PASSWORD***
+    elif [ "$keycloak_only" = true ]; then
+        stop_keycloak_postgres
     elif [ "$blockchain_only" = true ]; then
         stop_blockchain
     else
@@ -364,7 +364,7 @@ main() {
         stop_backend
         stop_scitt_ccf
         stop_blockchain
-        stop_***REMOVED-KEYCLOAK_DB_PASSWORD***_***REMOVED-DB_PASSWORD***
+        stop_keycloak_postgres
     fi
     
     # Clean up temporary files

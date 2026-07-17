@@ -7,7 +7,7 @@ WORKDIR /app
 # Install system dependencies
 RUN apk add --no-cache \
     curl \
-    ***REMOVED-DB_PASSWORD***ql-client \
+    postgresql-client \
     && rm -rf /var/cache/apk/*
 
 # Copy package files

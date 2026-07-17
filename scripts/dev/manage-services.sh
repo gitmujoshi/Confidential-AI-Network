@@ -127,8 +127,8 @@ check_status() {
     
     # Check Docker services
     echo "📦 Docker Services:"
-    if docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}" | grep -E "(***REMOVED-DB_PASSWORD***|***REMOVED-KEYCLOAK_DB_PASSWORD***|contract)" > /dev/null 2>&1; then
-        docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}" | grep -E "(***REMOVED-DB_PASSWORD***|***REMOVED-KEYCLOAK_DB_PASSWORD***|contract)"
+    if docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}" | grep -E "(postgres|keycloak|contract)" > /dev/null 2>&1; then
+        docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}" | grep -E "(postgres|keycloak|contract)"
     else
         echo "❌ No Docker services running"
     fi
@@ -211,15 +211,15 @@ show_logs() {
                 print_error "Frontend log file not found"
             fi
             ;;
-        "***REMOVED-KEYCLOAK_DB_PASSWORD***")
-            docker logs -f ***REMOVED-KEYCLOAK_DB_PASSWORD***-cms
+        "keycloak")
+            docker logs -f keycloak-cms
             ;;
-        "***REMOVED-DB_PASSWORD***")
-            docker logs -f ***REMOVED-DB_PASSWORD***
+        "postgres")
+            docker logs -f postgres
             ;;
         *)
             print_error "Unknown service: $service"
-            print_status "Available services: backend, frontend, ***REMOVED-KEYCLOAK_DB_PASSWORD***, ***REMOVED-DB_PASSWORD***"
+            print_status "Available services: backend, frontend, keycloak, postgres"
             ;;
     esac
 }
@@ -235,7 +235,7 @@ show_help() {
     echo "  stop      Stop all services"
     echo "  restart   Restart all services"
     echo "  status    Check service status"
-    echo "  logs      Show service logs (backend|frontend|***REMOVED-KEYCLOAK_DB_PASSWORD***|***REMOVED-DB_PASSWORD***)"
+    echo "  logs      Show service logs (backend|frontend|keycloak|postgres)"
     echo "  help      Show this help message"
     echo ""
     echo "Examples:"
@@ -243,7 +243,7 @@ show_help() {
     echo "  $0 stop                     # Stop all services"
     echo "  $0 status                   # Check service status"
     echo "  $0 logs backend             # Show backend logs"
-    echo "  $0 logs ***REMOVED-KEYCLOAK_DB_PASSWORD***            # Show Keycloak logs"
+    echo "  $0 logs keycloak            # Show Keycloak logs"
 }
 
 # Create logs directory
@@ -265,7 +265,7 @@ case "${1:-help}" in
         ;;
     "logs")
         if [ -z "$2" ]; then
-            print_error "Please specify a service (backend|frontend|***REMOVED-KEYCLOAK_DB_PASSWORD***|***REMOVED-DB_PASSWORD***)"
+            print_error "Please specify a service (backend|frontend|keycloak|postgres)"
             exit 1
         fi
         show_logs "$2"

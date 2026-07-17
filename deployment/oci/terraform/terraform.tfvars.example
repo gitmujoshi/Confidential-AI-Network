@@ -35,8 +35,8 @@ lb_name         = "can-dev-lb"
 repository_name = "confidential-ai-network"
 app_domain      = "app.dev.example.com"
 
-***REMOVED-KEYCLOAK_DB_PASSWORD***_admin_username = "admin"
-***REMOVED-KEYCLOAK_DB_PASSWORD***_admin_password = "CHANGE_ME_STRONG_PASSWORD"
+keycloak_admin_username = "admin"
+keycloak_admin_password = "CHANGE_ME_STRONG_PASSWORD"
 
 ethereum_network  = "goerli"
 infura_project_id = ""

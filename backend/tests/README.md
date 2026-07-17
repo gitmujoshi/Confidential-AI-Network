@@ -129,7 +129,7 @@ Required environment variables for testing:
 
 ```bash
 NODE_ENV=test
-DATABASE_URL=***REMOVED-DB_PASSWORD***ql://test:test@localhost:5432/contract_management_test
+DATABASE_URL=postgresql://test:test@localhost:5432/contract_management_test
 JWT_SECRET=test-jwt-secret
 CCF_NODE_URL=http://localhost:8000
 CCF_API_KEY=test-api-key
@@ -174,7 +174,7 @@ CCF_API_KEY=test-api-key
    npm run status
    
    # Reset test database
-   npm run reset:***REMOVED-KEYCLOAK_DB_PASSWORD***
+   npm run reset:keycloak
    ```
 
 2. **SCITT CCF Service Errors**

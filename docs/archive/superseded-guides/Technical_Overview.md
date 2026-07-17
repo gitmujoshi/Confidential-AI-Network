@@ -80,7 +80,7 @@ graph TB
 - Session management
 
 **Key Files**:
-- `backend/services/***REMOVED-KEYCLOAK_DB_PASSWORD***Service.js`
+- `backend/services/keycloakService.js`
 - `backend/middleware/auth.js`
 - `backend/config.env` (Keycloak configuration)
 
@@ -428,7 +428,7 @@ PORT=5001
 NODE_ENV=development
 
 # Database Configuration
-DATABASE_URL=***REMOVED-DB_PASSWORD***ql://username:password@localhost:5432/contract_management
+DATABASE_URL=postgresql://username:password@localhost:5432/contract_management
 
 # Keycloak Configuration
 KEYCLOAK_URL=http://localhost:8080
@@ -447,7 +447,7 @@ EMAIL_SERVICE=disabled
 SMTP_HOST=smtp.gmail.com
 SMTP_PORT=587
 SMTP_USER=your-email@gmail.com
-SMTP_PASS=***REMOVED-EMAIL_PASS***
+SMTP_PASS=<email-app-password>
 
 # JWT Configuration
 JWT_SECRET=your-jwt-secret
@@ -459,9 +459,9 @@ JWT_EXPIRES_IN=24h
 ```javascript
 const config = {
   apiBaseUrl: process.env.REACT_APP_API_BASE_URL || 'http://localhost:5001/api',
-  ***REMOVED-KEYCLOAK_DB_PASSWORD***Url: process.env.REACT_APP_KEYCLOAK_URL || 'http://localhost:8080',
-  ***REMOVED-KEYCLOAK_DB_PASSWORD***Realm: process.env.REACT_APP_KEYCLOAK_REALM || 'contract-management',
-  ***REMOVED-KEYCLOAK_DB_PASSWORD***ClientId: process.env.REACT_APP_KEYCLOAK_CLIENT_ID || 'contract-management-client'
+  keycloakUrl: process.env.REACT_APP_KEYCLOAK_URL || 'http://localhost:8080',
+  keycloakRealm: process.env.REACT_APP_KEYCLOAK_REALM || 'contract-management',
+  keycloakClientId: process.env.REACT_APP_KEYCLOAK_CLIENT_ID || 'contract-management-client'
 };
 
 export default config;
@@ -764,7 +764,7 @@ cd backend && node -e "const SigningService = require('./services/signingService
 
 ### Official Documentation
 
-- [Keycloak Documentation](https://www.***REMOVED-KEYCLOAK_DB_PASSWORD***.org/docs/latest/)
+- [Keycloak Documentation](https://www.keycloak.org/docs/latest/)
 - [OpenZeppelin Contracts](https://docs.openzeppelin.com/contracts/)
 - [Hardhat Documentation](https://hardhat.org/docs/)
 - [Web3.js Documentation](https://web3js.org/docs/)
@@ -795,7 +795,7 @@ cd backend && node -e "const SigningService = require('./services/signingService
 ### Community Resources
 
 - [Ethereum Stack Exchange](https://ethereum.stackexchange.com/)
-- [Keycloak Community](https://***REMOVED-KEYCLOAK_DB_PASSWORD***.discourse.group/)
+- [Keycloak Community](https://keycloak.discourse.group/)
 - [OpenZeppelin Forum](https://forum.openzeppelin.com/)
 
 ---

@@ -487,7 +487,7 @@ async cleanup() {
 // config.test.env
 TEST_MODE=integration
 NODE_ENV=test
-DATABASE_URL=***REMOVED-DB_PASSWORD***ql://testuser:testpass@localhost:5433/contract_management_test
+DATABASE_URL=postgresql://testuser:testpass@localhost:5433/contract_management_test
 KEYCLOAK_ENABLED=true
 KEYCLOAK_URL=http://localhost:8081
 JWT_SECRET=integration-test-secret-key
@@ -515,8 +515,8 @@ module.exports = {
 ```javascript
 // Docker Compose for test database
 services:
-  ***REMOVED-DB_PASSWORD***-test:
-    image: ***REMOVED-DB_PASSWORD***:15
+  postgres-test:
+    image: postgres:15
     environment:
       POSTGRES_DB: contract_management_test
       POSTGRES_USER: testuser
@@ -942,7 +942,7 @@ module.exports = {
 
 // config.test.env
 TEST_MODE=integration
-DATABASE_URL=***REMOVED-DB_PASSWORD***ql://testuser:testpass@localhost:5433/contract_management_test
+DATABASE_URL=postgresql://testuser:testpass@localhost:5433/contract_management_test
 KEYCLOAK_ENABLED=true
 JWT_SECRET=integration-test-secret-key
 ```

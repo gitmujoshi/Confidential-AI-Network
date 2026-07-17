@@ -509,7 +509,7 @@ CCF_CLAIM_TYPE=contract_signature
 CCF_PROVENANCE_TREE_ID=contract-signatures
 
 # Database Configuration
-DATABASE_URL=***REMOVED-DB_PASSWORD***ql://user:password@localhost:5432/contract_management
+DATABASE_URL=postgresql://user:password@localhost:5432/contract_management
 ```
 
 ## 🧪 Testing Strategy

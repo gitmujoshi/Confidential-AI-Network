@@ -83,15 +83,15 @@ EOF
 print_status $BLUE "🔄 Phase 1: Consolidating Keycloak Setup Scripts..."
 
 # Consolidate Keycloak scripts
-backup_and_remove "backend/setup-***REMOVED-KEYCLOAK_DB_PASSWORD***-simple.js" "Redundant - use setup-***REMOVED-KEYCLOAK_DB_PASSWORD***.js"
-backup_and_remove "deployment/local/setup-***REMOVED-KEYCLOAK_DB_PASSWORD***-persistent.sh" "Redundant - use backend/setup-***REMOVED-KEYCLOAK_DB_PASSWORD***-persistent.sh"
-backup_and_remove "deployment/configure-***REMOVED-KEYCLOAK_DB_PASSWORD***-http.js" "Redundant - use setup-***REMOVED-KEYCLOAK_DB_PASSWORD***.js with --http flag"
+backup_and_remove "backend/setup-keycloak-simple.js" "Redundant - use setup-keycloak.js"
+backup_and_remove "deployment/local/setup-keycloak-persistent.sh" "Redundant - use backend/setup-keycloak-persistent.sh"
+backup_and_remove "deployment/configure-keycloak-http.js" "Redundant - use setup-keycloak.js with --http flag"
 
 # Add deprecation notices to remaining scripts
-create_deprecation_notice "backend/setup-***REMOVED-KEYCLOAK_DB_PASSWORD***.js" "setup ***REMOVED-KEYCLOAK_DB_PASSWORD***"
-create_deprecation_notice "backend/setup-***REMOVED-KEYCLOAK_DB_PASSWORD***-persistent.sh" "setup ***REMOVED-KEYCLOAK_DB_PASSWORD*** --persistent"
-create_deprecation_notice "deployment/setup-***REMOVED-KEYCLOAK_DB_PASSWORD***-https.sh" "setup ***REMOVED-KEYCLOAK_DB_PASSWORD*** --https"
-create_deprecation_notice "deployment/configure-***REMOVED-KEYCLOAK_DB_PASSWORD***-https.js" "setup ***REMOVED-KEYCLOAK_DB_PASSWORD*** --https"
+create_deprecation_notice "backend/setup-keycloak.js" "setup keycloak"
+create_deprecation_notice "backend/setup-keycloak-persistent.sh" "setup keycloak --persistent"
+create_deprecation_notice "deployment/setup-keycloak-https.sh" "setup keycloak --https"
+create_deprecation_notice "deployment/configure-keycloak-https.js" "setup keycloak --https"
 
 print_status $BLUE "🔄 Phase 2: Consolidating Service Management Scripts..."
 
@@ -215,7 +215,7 @@ All system operations are now handled through the Script Manager:
 
 ### **Categories:**
 - `system` - System management (start, stop, restart, status)
-- `setup` - Setup and installation (fresh, dev, ***REMOVED-KEYCLOAK_DB_PASSWORD***, database)
+- `setup` - Setup and installation (fresh, dev, keycloak, database)
 - `test` - Testing (apis, contracts, ai-models, e2e)
 - `deploy` - Deployment (local, cloud, k8s)
 - `config` - Configuration management
@@ -267,7 +267,7 @@ The following scripts have been deprecated but still work (with warnings):
 ### **Setup**
 - `dev-setup.sh` → `./scripts/script-manager.sh setup dev`
 - `setup-fresh-system.sh` → `./scripts/script-manager.sh setup fresh`
-- `backend/setup-***REMOVED-KEYCLOAK_DB_PASSWORD***.js` → `./scripts/script-manager.sh setup ***REMOVED-KEYCLOAK_DB_PASSWORD***`
+- `backend/setup-keycloak.js` → `./scripts/script-manager.sh setup keycloak`
 
 ### **Testing**
 - `deployment/test-basic-apis.sh` → `./scripts/script-manager.sh test apis`
@@ -363,7 +363,7 @@ cat > "SCRIPT_QUICK_REFERENCE.md" << 'EOF'
 ```bash
 ./scripts/script-manager.sh setup fresh
 ./scripts/script-manager.sh setup dev
-./scripts/script-manager.sh setup ***REMOVED-KEYCLOAK_DB_PASSWORD*** [--http|--https|--persistent]
+./scripts/script-manager.sh setup keycloak [--http|--https|--persistent]
 ./scripts/script-manager.sh setup database [--test|--production|--comprehensive]
 ./scripts/script-manager.sh setup dependencies
 ```

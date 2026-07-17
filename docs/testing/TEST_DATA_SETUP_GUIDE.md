@@ -132,7 +132,7 @@ All scripts use the common `config.env` file for configuration:
 DB_HOST=localhost
 DB_PORT=5432
 DB_NAME=contract_management
-DB_USER=***REMOVED-DB_PASSWORD***
+DB_USER=postgres
 DB_PASSWORD=password
 
 # Backend configuration
@@ -192,7 +192,7 @@ If users can't login, they may not be properly synced to Keycloak:
 ./fix-auth.sh
 
 # Or sync users manually
-cd backend && node auto-fix-***REMOVED-KEYCLOAK_DB_PASSWORD***.js
+cd backend && node auto-fix-keycloak.js
 ```
 
 ### Database Issues

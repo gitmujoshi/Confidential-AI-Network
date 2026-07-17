@@ -259,7 +259,7 @@ create_database() {
 
     # Create PostgreSQL Flexible Server
     print_step "Creating PostgreSQL Flexible Server..."
-    az ***REMOVED-DB_PASSWORD*** flexible-server create \
+    az postgres flexible-server create \
         --resource-group "$RESOURCE_GROUP" \
         --name "${PROJECT_NAME}-db" \
         --location "$LOCATION" \
@@ -276,7 +276,7 @@ create_database() {
     
     # Create database
     print_step "Creating database..."
-    az ***REMOVED-DB_PASSWORD*** flexible-server db create \
+    az postgres flexible-server db create \
         --resource-group "$RESOURCE_GROUP" \
         --server-name "${PROJECT_NAME}-db" \
         --database-name "contract_management" \

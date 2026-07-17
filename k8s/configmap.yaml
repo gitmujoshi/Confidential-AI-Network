@@ -5,17 +5,17 @@ metadata:
   namespace: contract-management
 data:
   # Database Configuration
-  DB_HOST: "***REMOVED-DB_PASSWORD***-service"
+  DB_HOST: "postgres-service"
   DB_PORT: "5432"
   DB_NAME: "contract_management"
-  DB_USER: "***REMOVED-DB_PASSWORD***"
+  DB_USER: "postgres"
   
   # Blockchain Configuration
   BLOCKCHAIN_URL: "http://blockchain-service:8545"
   CONTRACT_ADDRESS: "0x5FbDB2315678afecb367f032d93F642f64180aa3"
   
   # IAM (Keycloak) Configuration
-  KEYCLOAK_URL: "http://***REMOVED-KEYCLOAK_DB_PASSWORD***-service:8080"
+  KEYCLOAK_URL: "http://keycloak-service:8080"
   KEYCLOAK_REALM: "contract-management"
   KEYCLOAK_CLIENT_ID: "contract-management-client"
   

@@ -133,7 +133,7 @@ class="toc-section-number">1.5</span> Authentication Methods</a>
 id="toc-jwt-token-authentication"><span
 class="toc-section-number">1.5.1</span> 1. JWT Token
 Authentication</a></li>
-<li><a href="#***REMOVED-KEYCLOAK_DB_PASSWORD***-integration" id="toc-***REMOVED-KEYCLOAK_DB_PASSWORD***-integration"><span
+<li><a href="#keycloak-integration" id="toc-keycloak-integration"><span
 class="toc-section-number">1.5.2</span> 2. Keycloak Integration</a></li>
 <li><a href="#did-based-authentication"
 id="toc-did-based-authentication"><span
@@ -415,10 +415,10 @@ class="sourceCode json"><code class="sourceCode json"><span id="cb1-1"><a href="
 <p><strong>Configuration Parameters</strong>:</p>
 <pre class="env"><code>JWT_SECRET=your-super-secret-jwt-key-here
 JWT_EXPIRES_IN=24h</code></pre>
-<h3 data-number="1.5.2" id="***REMOVED-KEYCLOAK_DB_PASSWORD***-integration"><span
+<h3 data-number="1.5.2" id="keycloak-integration"><span
 class="header-section-number">1.5.2</span> 2. Keycloak Integration</h3>
 <p><strong>Implementation Location</strong>:
-<code>backend/services/***REMOVED-KEYCLOAK_DB_PASSWORD***Service.js</code></p>
+<code>backend/services/keycloakService.js</code></p>
 <p><strong>Features</strong>: - Enterprise SSO integration - User
 federation - Centralized user management - Token introspection - Single
 Sign-On (SSO)</p>
@@ -1493,7 +1493,7 @@ JWT_SECRET=your-super-secret-jwt-key-here
 JWT_EXPIRES_IN=24h
 
 # Keycloak
-KEYCLOAK_URL=https://***REMOVED-KEYCLOAK_DB_PASSWORD***.company.com
+KEYCLOAK_URL=https://keycloak.company.com
 KEYCLOAK_REALM=contract-management
 KEYCLOAK_CLIENT_ID=contract-management-frontend
 KEYCLOAK_CLIENT_SECRET=your_client_secret_here

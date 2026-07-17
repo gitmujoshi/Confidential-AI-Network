@@ -80,7 +80,7 @@
       "credentials": [
         {
           "type": "password",
-          "value": "***REMOVED-KEYCLOAK_ADMIN_PASSWORD***",
+          "value": "admin123",
           "temporary": false
         }
       ],
@@ -215,7 +215,7 @@
     }
   ],
   "components": {
-    "org.***REMOVED-KEYCLOAK_DB_PASSWORD***.services.clientregistration.policy.ClientRegistrationPolicy": [
+    "org.keycloak.services.clientregistration.policy.ClientRegistrationPolicy": [
       {
         "name": "Allowed Client Scopes",
         "providerId": "allowed-client-templates",

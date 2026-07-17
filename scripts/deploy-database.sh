@@ -14,7 +14,7 @@ source ./scripts/load-config.sh
 DB_HOST=${DB_HOST:-localhost}
 DB_PORT=${DB_PORT:-5432}
 DB_NAME=${DB_NAME:-contract_management}
-DB_USER=${DB_USER:-***REMOVED-DB_PASSWORD***}
+DB_USER=${DB_USER:-postgres}
 
 echo "📊 Database: $DB_NAME@$DB_HOST:$DB_PORT"
 echo "👤 User: $DB_USER"
@@ -22,14 +22,14 @@ echo "👤 User: $DB_USER"
 # Function to check if database exists
 check_database_exists() {
     echo "🔍 Checking if database exists..."
-    PGPASSWORD=$DB_PASSWORD psql -h $DB_HOST -p $DB_PORT -U $DB_USER -d ***REMOVED-DB_PASSWORD*** -tAc "SELECT 1 FROM pg_database WHERE datname='$DB_NAME'" | grep -q 1
+    PGPASSWORD=$DB_PASSWORD psql -h $DB_HOST -p $DB_PORT -U $DB_USER -d postgres -tAc "SELECT 1 FROM pg_database WHERE datname='$DB_NAME'" | grep -q 1
 }
 
 # Function to create database if it doesn't exist
 create_database() {
     if ! check_database_exists; then
         echo "📦 Creating database $DB_NAME..."
-        PGPASSWORD=$DB_PASSWORD psql -h $DB_HOST -p $DB_PORT -U $DB_USER -d ***REMOVED-DB_PASSWORD*** -c "CREATE DATABASE $DB_NAME;"
+        PGPASSWORD=$DB_PASSWORD psql -h $DB_HOST -p $DB_PORT -U $DB_USER -d postgres -c "CREATE DATABASE $DB_NAME;"
         echo "✅ Database created successfully"
     else
         echo "✅ Database already exists"

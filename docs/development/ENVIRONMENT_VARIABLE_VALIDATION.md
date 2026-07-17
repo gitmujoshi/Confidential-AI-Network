@@ -134,7 +134,7 @@ DATA_ENCRYPTION_KEY=your-super-secret-data-encryption-key-change-in-production
 The validation script identified 50 warnings for services that still use hardcoded defaults. These are **non-critical** but should be addressed for consistency:
 
 ### **Services with Warnings:**
-- `***REMOVED-KEYCLOAK_DB_PASSWORD***Service.js` - 6 warnings
+- `keycloakService.js` - 6 warnings
 - `scittCcfService.js` - 4 warnings
 - `globalDEPAIdService.js` - 9 warnings
 - `keyManagementService.js` - 5 warnings

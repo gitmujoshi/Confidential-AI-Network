@@ -20,22 +20,22 @@ Based on analysis of 134 setup/management scripts, there are significant redunda
 
 #### **Redundant Scripts:**
 ```
-backend/setup-***REMOVED-KEYCLOAK_DB_PASSWORD***.js              # Full Keycloak setup
-backend/setup-***REMOVED-KEYCLOAK_DB_PASSWORD***-simple.js       # Simplified version (DUPLICATE)
-backend/setup-***REMOVED-KEYCLOAK_DB_PASSWORD***-persistent.sh   # Persistent setup (DUPLICATE)
-deployment/setup-***REMOVED-KEYCLOAK_DB_PASSWORD***-https.sh     # HTTPS setup (DUPLICATE)
-deployment/local/setup-***REMOVED-KEYCLOAK_DB_PASSWORD***-persistent.sh  # Local persistent (DUPLICATE)
-deployment/configure-***REMOVED-KEYCLOAK_DB_PASSWORD***-http.js  # HTTP config (DUPLICATE)
-deployment/configure-***REMOVED-KEYCLOAK_DB_PASSWORD***-https.js # HTTPS config (DUPLICATE)
+backend/setup-keycloak.js              # Full Keycloak setup
+backend/setup-keycloak-simple.js       # Simplified version (DUPLICATE)
+backend/setup-keycloak-persistent.sh   # Persistent setup (DUPLICATE)
+deployment/setup-keycloak-https.sh     # HTTPS setup (DUPLICATE)
+deployment/local/setup-keycloak-persistent.sh  # Local persistent (DUPLICATE)
+deployment/configure-keycloak-http.js  # HTTP config (DUPLICATE)
+deployment/configure-keycloak-https.js # HTTPS config (DUPLICATE)
 ```
 
 #### **Analysis:**
-- **`setup-***REMOVED-KEYCLOAK_DB_PASSWORD***.js`** vs **`setup-***REMOVED-KEYCLOAK_DB_PASSWORD***-simple.js`**: Both do the same thing, just different complexity
-- **`setup-***REMOVED-KEYCLOAK_DB_PASSWORD***-persistent.sh`** vs **`deployment/local/setup-***REMOVED-KEYCLOAK_DB_PASSWORD***-persistent.sh`**: Identical functionality
-- **`configure-***REMOVED-KEYCLOAK_DB_PASSWORD***-http.js`** vs **`configure-***REMOVED-KEYCLOAK_DB_PASSWORD***-https.js`**: Same logic, different protocols
+- **`setup-keycloak.js`** vs **`setup-keycloak-simple.js`**: Both do the same thing, just different complexity
+- **`setup-keycloak-persistent.sh`** vs **`deployment/local/setup-keycloak-persistent.sh`**: Identical functionality
+- **`configure-keycloak-http.js`** vs **`configure-keycloak-https.js`**: Same logic, different protocols
 
 #### **Recommendation:**
-Keep only **`backend/setup-***REMOVED-KEYCLOAK_DB_PASSWORD***.js`** and **`deployment/setup-***REMOVED-KEYCLOAK_DB_PASSWORD***-https.sh`**
+Keep only **`backend/setup-keycloak.js`** and **`deployment/setup-keycloak-https.sh`**
 
 ### 2. **Service Start Scripts** (12 scripts, 8 redundant)
 
@@ -108,15 +108,15 @@ Keep only **`setupDatabase.js`** with parameters for test/production modes
 #### **1. Keycloak Scripts** → **2 scripts**
 ```
 KEEP:
-- backend/setup-***REMOVED-KEYCLOAK_DB_PASSWORD***.js (main setup)
-- deployment/setup-***REMOVED-KEYCLOAK_DB_PASSWORD***-https.sh (HTTPS variant)
+- backend/setup-keycloak.js (main setup)
+- deployment/setup-keycloak-https.sh (HTTPS variant)
 
 REMOVE:
-- backend/setup-***REMOVED-KEYCLOAK_DB_PASSWORD***-simple.js
-- backend/setup-***REMOVED-KEYCLOAK_DB_PASSWORD***-persistent.sh
-- deployment/local/setup-***REMOVED-KEYCLOAK_DB_PASSWORD***-persistent.sh
-- deployment/configure-***REMOVED-KEYCLOAK_DB_PASSWORD***-http.js
-- deployment/configure-***REMOVED-KEYCLOAK_DB_PASSWORD***-https.js
+- backend/setup-keycloak-simple.js
+- backend/setup-keycloak-persistent.sh
+- deployment/local/setup-keycloak-persistent.sh
+- deployment/configure-keycloak-http.js
+- deployment/configure-keycloak-https.js
 ```
 
 #### **2. Service Start Scripts** → **1 script with parameters**

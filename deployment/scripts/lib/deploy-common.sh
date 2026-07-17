@@ -235,7 +235,7 @@ wait_for_k8s_deployments() {
   local timeout="${1:-600}"
 
   print_status "Waiting for deployments in namespace ${K8S_NAMESPACE}..."
-  for deployment in backend frontend ***REMOVED-KEYCLOAK_DB_PASSWORD***; do
+  for deployment in backend frontend keycloak; do
     if kubectl get deployment "$deployment" -n "$K8S_NAMESPACE" >/dev/null 2>&1; then
       kubectl wait --for=condition=available --timeout="${timeout}s" \
         "deployment/${deployment}" -n "$K8S_NAMESPACE" || print_warning "Timed out waiting for ${deployment}"
@@ -258,7 +258,7 @@ print_urls_summary() {
   local lb_ip="$1"
   local frontend_url="$2"
   local backend_url="$3"
-  local ***REMOVED-KEYCLOAK_DB_PASSWORD***_url="$4"
+  local keycloak_url="$4"
 
   echo ""
   print_header "Deployment Summary"
@@ -267,7 +267,7 @@ print_urls_summary() {
   echo "Application URLs:"
   echo "  Frontend:  ${frontend_url}"
   echo "  Backend:   ${backend_url}"
-  echo "  Keycloak:  ${***REMOVED-KEYCLOAK_DB_PASSWORD***_url}"
+  echo "  Keycloak:  ${keycloak_url}"
   echo ""
   echo "Kubernetes:"
   echo "  Namespace: ${K8S_NAMESPACE}"

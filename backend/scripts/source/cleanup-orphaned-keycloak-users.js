@@ -4,10 +4,10 @@
  * (by email or by iam_user_id), so IAM matches Postgres after DB purges / resets.
  *
  * Usage (from repo root or backend/):
- *   node backend/scripts/source/cleanup-orphaned-***REMOVED-KEYCLOAK_DB_PASSWORD***-users.js           # dry-run (default)
- *   node backend/scripts/source/cleanup-orphaned-***REMOVED-KEYCLOAK_DB_PASSWORD***-users.js --execute # delete orphans
+ *   node backend/scripts/source/cleanup-orphaned-keycloak-users.js           # dry-run (default)
+ *   node backend/scripts/source/cleanup-orphaned-keycloak-users.js --execute # delete orphans
  *
- * Or: DRY_RUN=0 node backend/scripts/source/cleanup-orphaned-***REMOVED-KEYCLOAK_DB_PASSWORD***-users.js
+ * Or: DRY_RUN=0 node backend/scripts/source/cleanup-orphaned-keycloak-users.js
  */
 const path = require('path');
 
@@ -19,7 +19,7 @@ try {
 } catch (_) {}
 
 const db = require('../../models');
-const KeycloakService = require('../../services/***REMOVED-KEYCLOAK_DB_PASSWORD***Service');
+const KeycloakService = require('../../services/keycloakService');
 
 function normEmail(s) {
   return String(s || '').trim().toLowerCase();
@@ -45,7 +45,7 @@ function isLinkedToDb(u, localEmails, localIamIds) {
 }
 
 async function main({ dryRun = true } = {}) {
-  const ***REMOVED-KEYCLOAK_DB_PASSWORD*** = new KeycloakService();
+  const keycloak = new KeycloakService();
 
   try {
     await db.sequelize.authenticate();
@@ -61,10 +61,10 @@ async function main({ dryRun = true } = {}) {
 
     console.log(`📋 DB active users: ${localUsers.length} (unique emails: ${localEmails.size})`);
 
-    const ***REMOVED-KEYCLOAK_DB_PASSWORD***Users = await ***REMOVED-KEYCLOAK_DB_PASSWORD***.listRealmUsersPaginated();
-    console.log(`📋 Keycloak realm users fetched: ${***REMOVED-KEYCLOAK_DB_PASSWORD***Users.length}`);
+    const keycloakUsers = await keycloak.listRealmUsersPaginated();
+    console.log(`📋 Keycloak realm users fetched: ${keycloakUsers.length}`);
 
-    const orphans = ***REMOVED-KEYCLOAK_DB_PASSWORD***Users.filter((u) => {
+    const orphans = keycloakUsers.filter((u) => {
       if (isProtectedKeycloakUser(u)) return false;
       if (!u.id) return false;
       return !isLinkedToDb(u, localEmails, localIamIds);
@@ -87,7 +87,7 @@ async function main({ dryRun = true } = {}) {
 
     let deleted = 0;
     for (const u of orphans) {
-      const ok = await ***REMOVED-KEYCLOAK_DB_PASSWORD***.deleteUser(u.id);
+      const ok = await keycloak.deleteUser(u.id);
       if (ok) {
         deleted++;
         console.log(`🗑️  Deleted Keycloak user ${u.email || u.username} (${u.id})`);
@@ -96,7 +96,7 @@ async function main({ dryRun = true } = {}) {
       }
     }
     console.log(`\n✅ Cleanup finished (${deleted}/${orphans.length} deleted).`);
-    console.log('Next: npm run ***REMOVED-KEYCLOAK_DB_PASSWORD***:sync --prefix backend  (ensure DB users exist in Keycloak)');
+    console.log('Next: npm run keycloak:sync --prefix backend  (ensure DB users exist in Keycloak)');
   } catch (err) {
     console.error('❌ Error during Keycloak cleanup:', err.response?.data || err.message);
     process.exitCode = 1;

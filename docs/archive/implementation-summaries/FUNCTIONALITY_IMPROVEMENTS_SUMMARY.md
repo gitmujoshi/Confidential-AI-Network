@@ -124,7 +124,7 @@ FRONTEND_URL=https://your-frontend-domain.com
 ### Keycloak Configuration (Optional)
 For production IAM integration, configure:
 ```env
-KEYCLOAK_URL=https://your-***REMOVED-KEYCLOAK_DB_PASSWORD***-server
+KEYCLOAK_URL=https://your-keycloak-server
 KEYCLOAK_REALM=your-realm
 KEYCLOAK_CLIENT_ID=your-client-id
 KEYCLOAK_CLIENT_SECRET=your-client-secret

@@ -141,7 +141,7 @@ describe('Mock Integration Test Suite', () => {
   describe('Mock Keycloak Integration', () => {
     it('should create mock Keycloak user', async () => {
       const userData = {
-        email: 'mock-***REMOVED-KEYCLOAK_DB_PASSWORD***@example.com',
+        email: 'mock-keycloak@example.com',
         name: 'Mock Keycloak User',
         partyType: 'TDP',
         walletAddress: null,
@@ -153,53 +153,53 @@ describe('Mock Integration Test Suite', () => {
       };
 
       const result = await global.testUtils.createKeycloakUser(userData);
-      expect(result.***REMOVED-KEYCLOAK_DB_PASSWORD***UserId).toBe('mock-***REMOVED-KEYCLOAK_DB_PASSWORD***-user-id');
+      expect(result.keycloakUserId).toBe('mock-keycloak-user-id');
       expect(result.temporaryPassword).toBe('mock-temp-password');
     });
 
     it('should mock Keycloak authentication', async () => {
-      const KeycloakService = require('../services/***REMOVED-KEYCLOAK_DB_PASSWORD***Service');
-      const ***REMOVED-KEYCLOAK_DB_PASSWORD***Service = new KeycloakService();
+      const KeycloakService = require('../services/keycloakService');
+      const keycloakService = new KeycloakService();
 
-      const authResult = await ***REMOVED-KEYCLOAK_DB_PASSWORD***Service.authenticateUser('test@example.com', 'password');
+      const authResult = await keycloakService.authenticateUser('test@example.com', 'password');
       expect(authResult.success).toBe(true);
       expect(authResult.token).toBe('mock-access-token');
       expect(authResult.userInfo.email).toBe('test@example.com');
     });
 
     it('should mock Keycloak token validation', async () => {
-      const KeycloakService = require('../services/***REMOVED-KEYCLOAK_DB_PASSWORD***Service');
-      const ***REMOVED-KEYCLOAK_DB_PASSWORD***Service = new KeycloakService();
+      const KeycloakService = require('../services/keycloakService');
+      const keycloakService = new KeycloakService();
 
-      const validationResult = await ***REMOVED-KEYCLOAK_DB_PASSWORD***Service.validateToken('mock-jwt-token');
+      const validationResult = await keycloakService.validateToken('mock-jwt-token');
       expect(validationResult.valid).toBe(true);
       expect(validationResult.payload.sub).toBe('mock-user-id');
       expect(validationResult.payload.email).toBe('test@example.com');
     });
 
     it('should mock Keycloak user deletion', async () => {
-      const KeycloakService = require('../services/***REMOVED-KEYCLOAK_DB_PASSWORD***Service');
-      const ***REMOVED-KEYCLOAK_DB_PASSWORD***Service = new KeycloakService();
+      const KeycloakService = require('../services/keycloakService');
+      const keycloakService = new KeycloakService();
 
-      const deleteResult = await ***REMOVED-KEYCLOAK_DB_PASSWORD***Service.deleteUser('mock-user-id');
+      const deleteResult = await keycloakService.deleteUser('mock-user-id');
       expect(deleteResult.success).toBe(true);
       expect(deleteResult.message).toBe('User deleted successfully');
     });
 
     it('should mock Keycloak role assignment', async () => {
-      const KeycloakService = require('../services/***REMOVED-KEYCLOAK_DB_PASSWORD***Service');
-      const ***REMOVED-KEYCLOAK_DB_PASSWORD***Service = new KeycloakService();
+      const KeycloakService = require('../services/keycloakService');
+      const keycloakService = new KeycloakService();
 
-      const roleResult = await ***REMOVED-KEYCLOAK_DB_PASSWORD***Service.assignRole('mock-user-id', 'TDP');
+      const roleResult = await keycloakService.assignRole('mock-user-id', 'TDP');
       expect(roleResult.success).toBe(true);
       expect(roleResult.message).toBe('Role assigned successfully');
     });
 
     it('should mock Keycloak user roles retrieval', async () => {
-      const KeycloakService = require('../services/***REMOVED-KEYCLOAK_DB_PASSWORD***Service');
-      const ***REMOVED-KEYCLOAK_DB_PASSWORD***Service = new KeycloakService();
+      const KeycloakService = require('../services/keycloakService');
+      const keycloakService = new KeycloakService();
 
-      const roles = await ***REMOVED-KEYCLOAK_DB_PASSWORD***Service.getUserRoles('mock-user-id');
+      const roles = await keycloakService.getUserRoles('mock-user-id');
       expect(Array.isArray(roles)).toBe(true);
       expect(roles).toContain('TDP');
       expect(roles).toContain('USER');
@@ -518,11 +518,11 @@ describe('Mock Integration Test Suite', () => {
 
     it('should handle mock service failures gracefully', async () => {
       // Mock a service failure
-      const KeycloakService = require('../services/***REMOVED-KEYCLOAK_DB_PASSWORD***Service');
-      const ***REMOVED-KEYCLOAK_DB_PASSWORD***Service = new KeycloakService();
+      const KeycloakService = require('../services/keycloakService');
+      const keycloakService = new KeycloakService();
       
       // Override the mock to simulate failure
-      ***REMOVED-KEYCLOAK_DB_PASSWORD***Service.createUser = jest.fn().mockRejectedValue(
+      keycloakService.createUser = jest.fn().mockRejectedValue(
         new Error('Mock Keycloak connection failed')
       );
 
@@ -532,7 +532,7 @@ describe('Mock Integration Test Suite', () => {
         partyType: 'TDP'
       };
 
-      await expect(***REMOVED-KEYCLOAK_DB_PASSWORD***Service.createUser(userData))
+      await expect(keycloakService.createUser(userData))
         .rejects.toThrow('Mock Keycloak connection failed');
     });
   });

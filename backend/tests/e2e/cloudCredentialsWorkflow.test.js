@@ -15,10 +15,10 @@ describe('Cloud Credentials E2E Workflow Tests', () => {
   beforeAll(async () => {
     // Setup test database
     const sequelize = new Sequelize({
-      dialect: '***REMOVED-DB_PASSWORD***',
+      dialect: 'postgres',
       host: process.env.DB_HOST || 'localhost',
       port: process.env.DB_PORT || 5432,
-      username: process.env.DB_USER || '***REMOVED-DB_PASSWORD***',
+      username: process.env.DB_USER || 'postgres',
       password: process.env.DB_PASSWORD || 'password',
       database: process.env.DB_NAME || 'contract_management_test',
       logging: false
@@ -54,10 +54,10 @@ describe('Cloud Credentials E2E Workflow Tests', () => {
 
   afterAll(async () => {
     const sequelize = new Sequelize({
-      dialect: '***REMOVED-DB_PASSWORD***',
+      dialect: 'postgres',
       host: process.env.DB_HOST || 'localhost',
       port: process.env.DB_PORT || 5432,
-      username: process.env.DB_USER || '***REMOVED-DB_PASSWORD***',
+      username: process.env.DB_USER || 'postgres',
       password: process.env.DB_PASSWORD || 'password',
       database: process.env.DB_NAME || 'contract_management_test',
       logging: false

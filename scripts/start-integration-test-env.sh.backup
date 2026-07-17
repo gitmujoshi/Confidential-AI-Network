@@ -49,18 +49,18 @@ docker compose -f docker-compose.test.yml down --volumes --remove-orphans 2>/dev
 
 # Start the services
 print_status "Starting PostgreSQL database..."
-docker compose -f docker-compose.test.yml up -d ***REMOVED-DB_PASSWORD***-test
+docker compose -f docker-compose.test.yml up -d postgres-test
 
 # Wait for PostgreSQL to be ready
 print_status "Waiting for PostgreSQL to be ready..."
-until docker compose -f docker-compose.test.yml exec -T ***REMOVED-DB_PASSWORD***-test pg_isready -U testuser -d contract_management_test > /dev/null 2>&1; do
+until docker compose -f docker-compose.test.yml exec -T postgres-test pg_isready -U testuser -d contract_management_test > /dev/null 2>&1; do
     sleep 2
 done
 print_success "PostgreSQL is ready!"
 
 # Start Keycloak
 print_status "Starting Keycloak..."
-docker compose -f docker-compose.test.yml up -d ***REMOVED-KEYCLOAK_DB_PASSWORD***-test
+docker compose -f docker-compose.test.yml up -d keycloak-test
 
 # Wait for Keycloak to be ready
 print_status "Waiting for Keycloak to be ready..."
@@ -110,7 +110,7 @@ echo "  Ganache:    http://localhost:8546"
 echo "  Hardhat:    http://localhost:8547"
 echo ""
 echo "Environment Variables:"
-echo "  DATABASE_URL=***REMOVED-DB_PASSWORD***ql://testuser:testpass@localhost:5433/contract_management_test"
+echo "  DATABASE_URL=postgresql://testuser:testpass@localhost:5433/contract_management_test"
 echo "  KEYCLOAK_URL=http://localhost:8081"
 echo "  BLOCKCHAIN_URL=http://localhost:8546 (Ganache) or http://localhost:8547 (Hardhat)"
 echo ""

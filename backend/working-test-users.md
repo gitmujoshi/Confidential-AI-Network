@@ -117,6 +117,6 @@ curl -X POST http://localhost:5001/api/contracts \
 
 If login fails:
 1. Check if user exists in database
-2. Reset password in Keycloak: `node -e "const ***REMOVED-KEYCLOAK_DB_PASSWORD***Service = require('./services/***REMOVED-KEYCLOAK_DB_PASSWORD***Service'); const service = new ***REMOVED-KEYCLOAK_DB_PASSWORD***Service(); service.setUserPasswordByEmail('email@example.com', 'Test123!', false).then(console.log).catch(console.error);"`
+2. Reset password in Keycloak: `node -e "const keycloakService = require('./services/keycloakService'); const service = new keycloakService(); service.setUserPasswordByEmail('email@example.com', 'Test123!', false).then(console.log).catch(console.error);"`
 3. Wait for rate limit to reset (40 seconds)
 4. Try login again 

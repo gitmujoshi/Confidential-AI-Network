@@ -50,7 +50,7 @@ This guide will get you up and running with a local Ubuntu VM running the Contra
 4. **User setup**: 
    - **Name**: `admin`
    - **Username**: `admin`
-   - **Password**: `***REMOVED-KEYCLOAK_ADMIN_PASSWORD***`
+   - **Password**: `admin123`
 5. **Wait for installation** (5 minutes)
 
 ## 🚀 **Option 2: One-Click Deployment (5 minutes)**
@@ -101,8 +101,8 @@ cd ContractManagement
 
 ## 🔐 **Default Credentials**
 
-- **Keycloak Admin**: `admin` / `***REMOVED-KEYCLOAK_ADMIN_PASSWORD***`
-- **PostgreSQL**: `***REMOVED-DB_PASSWORD***` / `***REMOVED-DB_PASSWORD***123`
+- **Keycloak Admin**: `admin` / `admin123`
+- **PostgreSQL**: `postgres` / `postgres123`
 - **Test Users**: Created automatically by the script
 
 ## 🧪 **Test Your Deployment**
@@ -154,10 +154,10 @@ docker-compose -f docker-compose.local.yml up -d
 ### **Database Access**
 ```bash
 # Access application database
-docker exec -it ***REMOVED-DB_PASSWORD***-app psql -U ***REMOVED-DB_PASSWORD*** -d contract_management
+docker exec -it postgres-app psql -U postgres -d contract_management
 
 # Access Keycloak database
-docker exec -it ***REMOVED-DB_PASSWORD***-***REMOVED-KEYCLOAK_DB_PASSWORD*** psql -U ***REMOVED-DB_PASSWORD*** -d ***REMOVED-KEYCLOAK_DB_PASSWORD***
+docker exec -it postgres-keycloak psql -U postgres -d keycloak
 ```
 
 ## 🚨 **Troubleshooting**

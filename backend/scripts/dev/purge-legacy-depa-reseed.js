@@ -171,7 +171,7 @@ async function main() {
   });
 
   console.log('✅ Legacy purge + reseed finished.');
-  console.log('ℹ️  Keycloak: npm run ***REMOVED-KEYCLOAK_DB_PASSWORD***:sync --prefix backend');
+  console.log('ℹ️  Keycloak: npm run keycloak:sync --prefix backend');
 }
 
 main()

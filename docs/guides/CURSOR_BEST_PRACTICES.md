@@ -35,7 +35,7 @@ project/
 │   ├── fix-auth.sh               # Authentication fixes
 │   └── test.sh                   # Testing procedures
 ├── backend/
-│   ├── auto-fix-***REMOVED-KEYCLOAK_DB_PASSWORD***.js      # Auto-fix script
+│   ├── auto-fix-keycloak.js      # Auto-fix script
 │   ├── health-check.js           # Health monitoring
 │   └── test-regression.js        # Regression tests
 └── config/
@@ -212,7 +212,7 @@ npm run test:login
 
 ### **Auto-Detection Scripts**
 ```javascript
-// backend/auto-fix-***REMOVED-KEYCLOAK_DB_PASSWORD***.js
+// backend/auto-fix-keycloak.js
 class KeycloakAutoFix {
   async run() {
     // 1. Check Keycloak health
@@ -308,8 +308,8 @@ npm run test:login
 
 ## Common Issues & Solutions
 1. "Invalid client credentials" → Run `./fix-auth.sh`
-2. "Realm not found" → Run `cd backend && node auto-fix-***REMOVED-KEYCLOAK_DB_PASSWORD***.js`
-3. "User not synced" → Run `npm run ***REMOVED-KEYCLOAK_DB_PASSWORD***:sync`
+2. "Realm not found" → Run `cd backend && node auto-fix-keycloak.js`
+3. "User not synced" → Run `npm run keycloak:sync`
 ```
 
 ### **Documentation Types**
@@ -378,10 +378,10 @@ When Issues Occur:
 ./fix-auth.sh
 
 # Manual Keycloak fix
-cd backend && node auto-fix-***REMOVED-KEYCLOAK_DB_PASSWORD***.js
+cd backend && node auto-fix-keycloak.js
 
 # Reset everything
-npm run reset:***REMOVED-KEYCLOAK_DB_PASSWORD***
+npm run reset:keycloak
 ```
 
 #### **Backend Won't Start**
@@ -402,11 +402,11 @@ cd backend && node server.js
 curl -s http://localhost:8080/health
 
 # Restart Keycloak
-docker-compose -f docker-compose.***REMOVED-KEYCLOAK_DB_PASSWORD***-persistent.yml restart
+docker-compose -f docker-compose.keycloak-persistent.yml restart
 
 # Reset Keycloak completely
-docker-compose -f docker-compose.***REMOVED-KEYCLOAK_DB_PASSWORD***-persistent.yml down
-docker-compose -f docker-compose.***REMOVED-KEYCLOAK_DB_PASSWORD***-persistent.yml up -d
+docker-compose -f docker-compose.keycloak-persistent.yml down
+docker-compose -f docker-compose.keycloak-persistent.yml up -d
 ```
 
 #### **Environment Issues**
@@ -415,7 +415,7 @@ docker-compose -f docker-compose.***REMOVED-KEYCLOAK_DB_PASSWORD***-persistent.y
 diff backend/.env backend/config.env
 
 # Sync environment files
-cd backend && node auto-fix-***REMOVED-KEYCLOAK_DB_PASSWORD***.js
+cd backend && node auto-fix-keycloak.js
 ```
 
 ### **Debugging Commands**

@@ -12,7 +12,7 @@ services:
       NODE_ENV: production
       PORT: 3000
       REACT_APP_API_URL: ${FRONTEND_API_URL:-http://backend-vm:5001}
-      REACT_APP_KEYCLOAK_URL: ${FRONTEND_KEYCLOAK_URL:-http://***REMOVED-KEYCLOAK_DB_PASSWORD***-vm:8080}
+      REACT_APP_KEYCLOAK_URL: ${FRONTEND_KEYCLOAK_URL:-http://keycloak-vm:8080}
       REACT_APP_KEYCLOAK_REALM: contract-management
       REACT_APP_KEYCLOAK_CLIENT_ID: contract-management-frontend
     ports:
@@ -38,9 +38,9 @@ services:
       DB_HOST: ${DB_HOST:-database-vm}
       DB_PORT: 5432
       DB_NAME: contract_management
-      DB_USER: ${DB_USER:-***REMOVED-DB_PASSWORD***}
+      DB_USER: ${DB_USER:-postgres}
       DB_PASSWORD: ${DB_PASSWORD}
-      KEYCLOAK_URL: ${KEYCLOAK_URL:-http://***REMOVED-KEYCLOAK_DB_PASSWORD***-vm:8080}
+      KEYCLOAK_URL: ${KEYCLOAK_URL:-http://keycloak-vm:8080}
       KEYCLOAK_REALM: contract-management
       KEYCLOAK_CLIENT_ID: contract-management-client
       KEYCLOAK_CLIENT_SECRET: ${KEYCLOAK_CLIENT_SECRET}
@@ -67,15 +67,15 @@ services:
       - cms-prod-network
 
   # Keycloak Service (Deploy on Keycloak VM)
-  ***REMOVED-KEYCLOAK_DB_PASSWORD***:
-    image: quay.io/***REMOVED-KEYCLOAK_DB_PASSWORD***/***REMOVED-KEYCLOAK_DB_PASSWORD***:23.0
-    container_name: cms-***REMOVED-KEYCLOAK_DB_PASSWORD***-prod
+  keycloak:
+    image: quay.io/keycloak/keycloak:23.0
+    container_name: cms-keycloak-prod
     environment:
       KEYCLOAK_ADMIN: admin
       KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
-      KC_DB: ***REMOVED-DB_PASSWORD***
-      KC_DB_URL: jdbc:***REMOVED-DB_PASSWORD***ql://${KEYCLOAK_DB_HOST:-***REMOVED-KEYCLOAK_DB_PASSWORD***-db-vm}:5432/***REMOVED-KEYCLOAK_DB_PASSWORD***
-      KC_DB_USERNAME: ***REMOVED-KEYCLOAK_DB_PASSWORD***
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://${KEYCLOAK_DB_HOST:-keycloak-db-vm}:5432/keycloak
+      KC_DB_USERNAME: keycloak
       KC_DB_PASSWORD: ${KEYCLOAK_DB_PASSWORD}
       KC_HOSTNAME_STRICT: false
       KC_HOSTNAME_STRICT_HTTPS: false
@@ -95,22 +95,22 @@ services:
       - cms-prod-network
 
   # Main Application Database (Deploy on Database VM)
-  ***REMOVED-DB_PASSWORD***-app:
-    image: ***REMOVED-DB_PASSWORD***:15
-    container_name: cms-***REMOVED-DB_PASSWORD***-app-prod
+  postgres-app:
+    image: postgres:15
+    container_name: cms-postgres-app-prod
     environment:
       POSTGRES_DB: contract_management
-      POSTGRES_USER: ${DB_USER:-***REMOVED-DB_PASSWORD***}
+      POSTGRES_USER: ${DB_USER:-postgres}
       POSTGRES_PASSWORD: ${DB_PASSWORD}
       POSTGRES_INITDB_ARGS: "--auth-host=scram-sha-256"
     ports:
       - "5432:5432"
     volumes:
-      - ***REMOVED-DB_PASSWORD***_app_data:/var/lib/***REMOVED-DB_PASSWORD***ql/data
+      - postgres_app_data:/var/lib/postgresql/data
       - ./backend/migrations:/docker-entrypoint-initdb.d
     restart: unless-stopped
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-***REMOVED-DB_PASSWORD***} -d contract_management"]
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-postgres} -d contract_management"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -118,21 +118,21 @@ services:
       - cms-prod-network
 
   # Keycloak Database (Deploy on Keycloak Database VM)
-  ***REMOVED-DB_PASSWORD***-***REMOVED-KEYCLOAK_DB_PASSWORD***:
-    image: ***REMOVED-DB_PASSWORD***:15
-    container_name: cms-***REMOVED-DB_PASSWORD***-***REMOVED-KEYCLOAK_DB_PASSWORD***-prod
+  postgres-keycloak:
+    image: postgres:15
+    container_name: cms-postgres-keycloak-prod
     environment:
-      POSTGRES_DB: ***REMOVED-KEYCLOAK_DB_PASSWORD***
-      POSTGRES_USER: ***REMOVED-KEYCLOAK_DB_PASSWORD***
+      POSTGRES_DB: keycloak
+      POSTGRES_USER: keycloak
       POSTGRES_PASSWORD: ${KEYCLOAK_DB_PASSWORD}
       POSTGRES_INITDB_ARGS: "--auth-host=scram-sha-256"
     ports:
       - "5432:5432"
     volumes:
-      - ***REMOVED-DB_PASSWORD***_***REMOVED-KEYCLOAK_DB_PASSWORD***_data:/var/lib/***REMOVED-DB_PASSWORD***ql/data
+      - postgres_keycloak_data:/var/lib/postgresql/data
     restart: unless-stopped
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ***REMOVED-KEYCLOAK_DB_PASSWORD*** -d ***REMOVED-KEYCLOAK_DB_PASSWORD***"]
+      test: ["CMD-SHELL", "pg_isready -U keycloak -d keycloak"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -191,9 +191,9 @@ services:
       - cms-prod-network
 
   # SCITT CCF Database (Deploy on SCITT Database VM)
-  scitt-ccf-***REMOVED-DB_PASSWORD***:
-    image: ***REMOVED-DB_PASSWORD***:15
-    container_name: cms-scitt-***REMOVED-DB_PASSWORD***-prod
+  scitt-ccf-postgres:
+    image: postgres:15
+    container_name: cms-scitt-postgres-prod
     environment:
       POSTGRES_DB: scitt_ccf_prod
       POSTGRES_USER: scitt_user
@@ -202,7 +202,7 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - scitt_ccf_***REMOVED-DB_PASSWORD***_data:/var/lib/***REMOVED-DB_PASSWORD***ql/data
+      - scitt_ccf_postgres_data:/var/lib/postgresql/data
     restart: unless-stopped
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U scitt_user -d scitt_ccf_prod"]
@@ -242,19 +242,19 @@ services:
     depends_on:
       - frontend
       - backend
-      - ***REMOVED-KEYCLOAK_DB_PASSWORD***
+      - keycloak
     restart: unless-stopped
     networks:
       - cms-prod-network
 
 volumes:
-  ***REMOVED-DB_PASSWORD***_app_data:
+  postgres_app_data:
     driver: local
-  ***REMOVED-DB_PASSWORD***_***REMOVED-KEYCLOAK_DB_PASSWORD***_data:
+  postgres_keycloak_data:
     driver: local
   scitt_ccf_data:
     driver: local
-  scitt_ccf_***REMOVED-DB_PASSWORD***_data:
+  scitt_ccf_postgres_data:
     driver: local
   redis_data:
     driver: local

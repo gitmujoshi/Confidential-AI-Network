@@ -46,8 +46,8 @@ docker ps
 **Expected Output:**
 ```
 CONTAINER ID   IMAGE                    PORTS                    NAMES
-abc123...      quay.io/***REMOVED-KEYCLOAK_DB_PASSWORD***/***REMOVED-KEYCLOAK_DB_PASSWORD***:23.0   0.0.0.0:8080-8081->8080-8081/tcp   ***REMOVED-KEYCLOAK_DB_PASSWORD***
-def456...      ***REMOVED-DB_PASSWORD***:15             0.0.0.0:5433->5432/tcp   ***REMOVED-KEYCLOAK_DB_PASSWORD***-db
+abc123...      quay.io/keycloak/keycloak:23.0   0.0.0.0:8080-8081->8080-8081/tcp   keycloak
+def456...      postgres:15             0.0.0.0:5433->5432/tcp   keycloak-db
 ghi789...      redis:7-alpine          0.0.0.0:6379->6379/tcp   iam-redis
 ```
 
@@ -55,11 +55,11 @@ ghi789...      redis:7-alpine          0.0.0.0:6379->6379/tcp   iam-redis
 
 ```bash
 # Wait for Keycloak to be ready (check logs)
-docker logs ***REMOVED-KEYCLOAK_DB_PASSWORD***
+docker logs keycloak
 
 # Run Keycloak setup script
 cd backend
-npm run setup-***REMOVED-KEYCLOAK_DB_PASSWORD***
+npm run setup-keycloak
 ```
 
 **Expected Output:**
@@ -68,7 +68,7 @@ npm run setup-***REMOVED-KEYCLOAK_DB_PASSWORD***
 📋 Configuration:
    Keycloak URL: http://localhost:8080
    Realm: contract-management
-   Admin: admin/***REMOVED-KEYCLOAK_ADMIN_PASSWORD***
+   Admin: admin/admin123
 
 🔐 Getting admin access token...
 ✅ Admin token obtained successfully
@@ -101,10 +101,10 @@ npm run setup-***REMOVED-KEYCLOAK_DB_PASSWORD***
 📋 Access Information:
    Admin Console: http://localhost:8080/admin
    Realm: contract-management
-   Admin User: admin/***REMOVED-KEYCLOAK_ADMIN_PASSWORD***
+   Admin User: admin/admin123
    Backend Client Secret: abc123def456...
 
-💾 Configuration saved to: ***REMOVED-KEYCLOAK_DB_PASSWORD***-config/***REMOVED-KEYCLOAK_DB_PASSWORD***-config.json
+💾 Configuration saved to: keycloak-config/keycloak-config.json
 ```
 
 ### **Step 3: Update Database Schema**
@@ -184,7 +184,7 @@ npm start
 ```bash
 # Test Keycloak admin console
 open http://localhost:8080/admin
-# Login with: admin/***REMOVED-KEYCLOAK_ADMIN_PASSWORD***
+# Login with: admin/admin123
 
 # Test backend health
 curl http://localhost:5001/health
@@ -196,18 +196,18 @@ curl http://localhost:5001/api/auth/onboarding-status
 ## 🔧 **Configuration Files**
 
 ### **Keycloak Configuration**
-Location: `***REMOVED-KEYCLOAK_DB_PASSWORD***-config/***REMOVED-KEYCLOAK_DB_PASSWORD***-config.json`
+Location: `keycloak-config/keycloak-config.json`
 
 ```json
 {
-  "***REMOVED-KEYCLOAK_DB_PASSWORD***Url": "http://localhost:8080",
+  "keycloakUrl": "http://localhost:8080",
   "realm": "contract-management",
   "frontendClient": "contract-management-frontend",
   "backendClient": "contract-management-backend",
   "backendClientSecret": "your-secret-here",
   "adminUser": {
     "username": "admin",
-    "password": "***REMOVED-KEYCLOAK_ADMIN_PASSWORD***"
+    "password": "admin123"
   }
 }
 ```
@@ -223,7 +223,7 @@ KEYCLOAK_FRONTEND_CLIENT=contract-management-frontend
 KEYCLOAK_BACKEND_CLIENT=contract-management-backend
 KEYCLOAK_BACKEND_CLIENT_SECRET=your-secret-here
 KEYCLOAK_ADMIN_USERNAME=admin
-KEYCLOAK_ADMIN_PASSWORD=***REMOVED-KEYCLOAK_ADMIN_PASSWORD***
+KEYCLOAK_ADMIN_PASSWORD=admin123
 ```
 
 ## 🔐 **Authentication Flow**
@@ -353,19 +353,19 @@ curl -H "Authorization: Bearer YOUR_TOKEN" \
 #### **1. Keycloak Connection Failed**
 ```bash
 # Check if Keycloak is running
-docker ps | grep ***REMOVED-KEYCLOAK_DB_PASSWORD***
+docker ps | grep keycloak
 
 # Check Keycloak logs
-docker logs ***REMOVED-KEYCLOAK_DB_PASSWORD***
+docker logs keycloak
 
 # Restart Keycloak
-docker-compose -f docker-compose.iam.yml restart ***REMOVED-KEYCLOAK_DB_PASSWORD***
+docker-compose -f docker-compose.iam.yml restart keycloak
 ```
 
 #### **2. Database Migration Failed**
 ```bash
 # Check database connection
-psql -h localhost -p 5432 -U ***REMOVED-DB_PASSWORD*** -d contract_management
+psql -h localhost -p 5432 -U postgres -d contract_management
 
 # Run migration manually
 cd backend
@@ -396,7 +396,7 @@ curl -X POST http://localhost:5001/api/auth/verify-email \
 Enable debug logging by setting environment variables:
 
 ```env
-DEBUG=***REMOVED-KEYCLOAK_DB_PASSWORD***:*
+DEBUG=keycloak:*
 LOG_LEVEL=debug
 ```
 
@@ -425,7 +425,7 @@ LOG_LEVEL=debug
 
 ## 🔗 **Useful Links**
 
-- **Keycloak Documentation**: https://www.***REMOVED-KEYCLOAK_DB_PASSWORD***.org/documentation
+- **Keycloak Documentation**: https://www.keycloak.org/documentation
 - **OpenID Connect**: https://openid.net/connect/
 - **OAuth 2.0**: https://oauth.net/2/
 - **JWT**: https://jwt.io/
@@ -435,7 +435,7 @@ LOG_LEVEL=debug
 
 For issues and questions:
 1. Check the troubleshooting section above
-2. Review Keycloak logs: `docker logs ***REMOVED-KEYCLOAK_DB_PASSWORD***`
+2. Review Keycloak logs: `docker logs keycloak`
 3. Check backend logs: `npm run dev`
 4. Verify database connectivity
 5. Test individual components

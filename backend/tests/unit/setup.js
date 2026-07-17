@@ -19,7 +19,7 @@ global.testTracker = {
   createdKeycloakUsers: [],
   createdDatabaseUsers: [],
   testMode: 'mock',
-  ***REMOVED-KEYCLOAK_DB_PASSWORD***Service: null,
+  keycloakService: null,
   scittCcfService: null
 };
 

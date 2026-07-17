@@ -64,15 +64,15 @@ echo -e "${BLUE}🔐 Step 1: Starting databases and Keycloak...${NC}"
 
 # Start application database
 echo "   Starting application database..."
-run_compose "docker-compose.dev.yml" up -d ***REMOVED-DB_PASSWORD***-app
+run_compose "docker-compose.dev.yml" up -d postgres-app
 
 # Start Keycloak database and Keycloak
 if [[ "$KEYCLOAK_URL" == https://* ]]; then
     echo "   Starting Keycloak with HTTPS configuration..."
-    run_compose "docker-compose.***REMOVED-KEYCLOAK_DB_PASSWORD***-https.yml" up -d
+    run_compose "docker-compose.keycloak-https.yml" up -d
 else
     echo "   Starting Keycloak with HTTP configuration..."
-    run_compose "docker-compose.***REMOVED-KEYCLOAK_DB_PASSWORD***-dev.yml" up -d
+    run_compose "docker-compose.keycloak-dev.yml" up -d
 fi
 
 # Wait for Keycloak to be ready

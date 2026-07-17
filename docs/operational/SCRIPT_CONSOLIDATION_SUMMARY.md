@@ -23,7 +23,7 @@ Successfully consolidated the Contract Management System's script ecosystem from
 
 **Categories:**
 - `system` - System management (start, stop, restart, status)
-- `setup` - Setup and installation (fresh, dev, ***REMOVED-KEYCLOAK_DB_PASSWORD***, database)
+- `setup` - Setup and installation (fresh, dev, keycloak, database)
 - `test` - Testing (apis, contracts, ai-models, e2e)
 - `deploy` - Deployment (local, cloud, k8s)
 - `config` - Configuration management
@@ -42,12 +42,12 @@ Successfully consolidated the Contract Management System's script ecosystem from
 
 ### **1. Keycloak Scripts** (9 → 2)
 **Removed:**
-- `backend/setup-***REMOVED-KEYCLOAK_DB_PASSWORD***-simple.js`
-- `deployment/local/setup-***REMOVED-KEYCLOAK_DB_PASSWORD***-persistent.sh`
-- `deployment/configure-***REMOVED-KEYCLOAK_DB_PASSWORD***-http.js`
+- `backend/setup-keycloak-simple.js`
+- `deployment/local/setup-keycloak-persistent.sh`
+- `deployment/configure-keycloak-http.js`
 
 **Consolidated into:**
-- `./scripts/script-manager.sh setup ***REMOVED-KEYCLOAK_DB_PASSWORD*** [--http|--https|--persistent]`
+- `./scripts/script-manager.sh setup keycloak [--http|--https|--persistent]`
 
 ### **2. Service Management Scripts** (12 → 1)
 **Removed:**

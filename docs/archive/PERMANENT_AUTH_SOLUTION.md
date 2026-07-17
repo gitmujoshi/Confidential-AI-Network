@@ -27,10 +27,10 @@ This single command:
 - ✅ Tests authentication
 - ✅ Reports status
 
-### **2. Auto-Detection & Fix** (`backend/auto-fix-***REMOVED-KEYCLOAK_DB_PASSWORD***.js`)
+### **2. Auto-Detection & Fix** (`backend/auto-fix-keycloak.js`)
 ```bash
 # Automatically detects and fixes Keycloak issues
-cd backend && node auto-fix-***REMOVED-KEYCLOAK_DB_PASSWORD***.js
+cd backend && node auto-fix-keycloak.js
 ```
 
 This script:
@@ -53,7 +53,7 @@ The backend now:
 npm run start:full
 
 # Just Keycloak setup
-npm run ***REMOVED-KEYCLOAK_DB_PASSWORD***:setup
+npm run keycloak:setup
 
 # Test authentication
 npm run test:login
@@ -62,7 +62,7 @@ npm run test:login
 npm run status
 
 # Reset everything
-npm run reset:***REMOVED-KEYCLOAK_DB_PASSWORD***
+npm run reset:keycloak
 ```
 
 ## 🚀 **How to Use (Never Have Issues Again)**
@@ -120,7 +120,7 @@ npm run start:full
 
 ### **When Keycloak is Reset:**
 ```bash
-cd backend && node auto-fix-***REMOVED-KEYCLOAK_DB_PASSWORD***.js
+cd backend && node auto-fix-keycloak.js
 ```
 
 ### **When Backend Won't Start:**

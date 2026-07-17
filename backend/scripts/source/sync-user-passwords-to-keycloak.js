@@ -6,8 +6,8 @@
  */
 
 const db = require('../models');
-const KeycloakService = require('../services/***REMOVED-KEYCLOAK_DB_PASSWORD***Service');
-const ***REMOVED-KEYCLOAK_DB_PASSWORD***Service = new KeycloakService();
+const KeycloakService = require('../services/keycloakService');
+const keycloakService = new KeycloakService();
 
 const PASSWORD = 'password123';
 
@@ -25,7 +25,7 @@ async function syncPasswordsToKeycloak() {
         continue;
       }
       try {
-        await ***REMOVED-KEYCLOAK_DB_PASSWORD***Service.setUserPasswordByEmail(user.email, PASSWORD);
+        await keycloakService.setUserPasswordByEmail(user.email, PASSWORD);
         console.log(`✅ Password synced for: ${user.email}`);
       } catch (err) {
         console.error(`❌ Failed to sync password for ${user.email}:`, err.message);

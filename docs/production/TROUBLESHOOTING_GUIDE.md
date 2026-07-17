@@ -107,45 +107,45 @@ kubectl logs -n ingress-nginx deployment/ingress-nginx-controller --tail=100
 #### **Database Connection Failed**
 ```bash
 # Check database pod status
-kubectl get pods -n training-environment | grep ***REMOVED-DB_PASSWORD***
+kubectl get pods -n training-environment | grep postgres
 
 # Check database logs
-kubectl logs <***REMOVED-DB_PASSWORD***-pod-name> -n training-environment
+kubectl logs <postgres-pod-name> -n training-environment
 
 # Test database connectivity
-kubectl run ***REMOVED-DB_PASSWORD***-client --image=***REMOVED-DB_PASSWORD***:13 --rm -it -- psql -h ***REMOVED-DB_PASSWORD***ql.training-environment.svc.cluster.local -U ***REMOVED-DB_PASSWORD*** -d contract_management_production
+kubectl run postgres-client --image=postgres:13 --rm -it -- psql -h postgresql.training-environment.svc.cluster.local -U postgres -d contract_management_production
 
 # Common solutions:
 # 1. Check database credentials
 kubectl get secret database-secret -n training-environment -o yaml
 
 # 2. Check database configuration
-kubectl describe configmap ***REMOVED-DB_PASSWORD***ql-config -n training-environment
+kubectl describe configmap postgresql-config -n training-environment
 
 # 3. Restart database
-kubectl rollout restart statefulset ***REMOVED-DB_PASSWORD***ql -n training-environment
+kubectl rollout restart statefulset postgresql -n training-environment
 ```
 
 #### **Database Performance Issues**
 ```bash
 # Check database metrics
-kubectl top pod <***REMOVED-DB_PASSWORD***-pod-name> -n training-environment
+kubectl top pod <postgres-pod-name> -n training-environment
 
 # Check database connections
-kubectl exec -it <***REMOVED-DB_PASSWORD***-pod-name> -n training-environment -- psql -U ***REMOVED-DB_PASSWORD*** -c "SELECT count(*) FROM pg_stat_activity;"
+kubectl exec -it <postgres-pod-name> -n training-environment -- psql -U postgres -c "SELECT count(*) FROM pg_stat_activity;"
 
 # Check slow queries
-kubectl exec -it <***REMOVED-DB_PASSWORD***-pod-name> -n training-environment -- psql -U ***REMOVED-DB_PASSWORD*** -c "SELECT query, mean_time, calls FROM pg_stat_statements ORDER BY mean_time DESC LIMIT 10;"
+kubectl exec -it <postgres-pod-name> -n training-environment -- psql -U postgres -c "SELECT query, mean_time, calls FROM pg_stat_statements ORDER BY mean_time DESC LIMIT 10;"
 
 # Common solutions:
 # 1. Scale database
-kubectl scale statefulset ***REMOVED-DB_PASSWORD***ql --replicas=2 -n training-environment
+kubectl scale statefulset postgresql --replicas=2 -n training-environment
 
 # 2. Optimize database configuration
-kubectl edit configmap ***REMOVED-DB_PASSWORD***ql-config -n training-environment
+kubectl edit configmap postgresql-config -n training-environment
 
 # 3. Check storage performance
-kubectl describe pvc <***REMOVED-DB_PASSWORD***-pvc> -n training-environment
+kubectl describe pvc <postgres-pvc> -n training-environment
 ```
 
 ### **4. Monitoring Issues**
@@ -203,15 +203,15 @@ kubectl rollout restart deployment grafana -n monitoring
 kubectl logs -n training-environment deployment/ai-training-api | grep auth
 
 # Check Keycloak status
-kubectl get pods -n training-environment | grep ***REMOVED-KEYCLOAK_DB_PASSWORD***
-kubectl logs <***REMOVED-KEYCLOAK_DB_PASSWORD***-pod-name> -n training-environment
+kubectl get pods -n training-environment | grep keycloak
+kubectl logs <keycloak-pod-name> -n training-environment
 
 # Check authentication configuration
-kubectl get configmap ***REMOVED-KEYCLOAK_DB_PASSWORD***-config -n training-environment -o yaml
+kubectl get configmap keycloak-config -n training-environment -o yaml
 
 # Common solutions:
 # 1. Check Keycloak connectivity
-kubectl run test-pod --image=busybox --rm -it -- wget -O- http://***REMOVED-KEYCLOAK_DB_PASSWORD***.training-environment.svc.cluster.local:8080/auth/realms/production
+kubectl run test-pod --image=busybox --rm -it -- wget -O- http://keycloak.training-environment.svc.cluster.local:8080/auth/realms/production
 
 # 2. Check JWT configuration
 kubectl get secret auth-secret -n training-environment -o yaml
@@ -299,7 +299,7 @@ kubectl logs -n training-environment deployment/ai-training-api --tail=100 | gre
 
 # Database logs
 echo "🗄️ Database Logs:"
-kubectl logs -n training-environment deployment/***REMOVED-DB_PASSWORD***ql --tail=100 | grep -E "(ERROR|WARN|FATAL)"
+kubectl logs -n training-environment deployment/postgresql --tail=100 | grep -E "(ERROR|WARN|FATAL)"
 
 # Monitoring logs
 echo "📊 Monitoring Logs:"
@@ -335,7 +335,7 @@ kubectl describe pvc <pvc-name> -n training-environment
 
 # Database performance
 echo "🗄️ Database Performance:"
-kubectl exec -it <***REMOVED-DB_PASSWORD***-pod-name> -n training-environment -- psql -U ***REMOVED-DB_PASSWORD*** -c "SELECT * FROM pg_stat_activity;"
+kubectl exec -it <postgres-pod-name> -n training-environment -- psql -U postgres -c "SELECT * FROM pg_stat_activity;"
 ```
 
 ## 🚨 **Emergency Procedures**
@@ -356,13 +356,13 @@ kubectl scale deployment <service-name> --replicas=3 -n training-environment
 ### **2. Database Recovery**
 ```bash
 # Restart database
-kubectl rollout restart statefulset ***REMOVED-DB_PASSWORD***ql -n training-environment
+kubectl rollout restart statefulset postgresql -n training-environment
 
 # Restore from backup
-kubectl run ***REMOVED-DB_PASSWORD***-restore --image=***REMOVED-DB_PASSWORD***:13 --rm -it -- psql -h ***REMOVED-DB_PASSWORD***ql.training-environment.svc.cluster.local -U ***REMOVED-DB_PASSWORD*** -d contract_management_production < backup.sql
+kubectl run postgres-restore --image=postgres:13 --rm -it -- psql -h postgresql.training-environment.svc.cluster.local -U postgres -d contract_management_production < backup.sql
 
 # Check database integrity
-kubectl exec -it <***REMOVED-DB_PASSWORD***-pod-name> -n training-environment -- psql -U ***REMOVED-DB_PASSWORD*** -c "VACUUM ANALYZE;"
+kubectl exec -it <postgres-pod-name> -n training-environment -- psql -U postgres -c "VACUUM ANALYZE;"
 ```
 
 ### **3. Security Incident Response**

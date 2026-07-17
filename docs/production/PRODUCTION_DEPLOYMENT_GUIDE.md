@@ -143,7 +143,7 @@ kubectl create namespace training-environment
 
 # Create secrets
 kubectl create secret generic database-secret \
-  --from-literal=host=***REMOVED-DB_PASSWORD***ql.production.svc.cluster.local \
+  --from-literal=host=postgresql.production.svc.cluster.local \
   --from-literal=password=your-db-password \
   --namespace=training-environment
 
@@ -241,9 +241,9 @@ EOF
 ```bash
 # Deploy PostgreSQL
 helm repo add bitnami https://charts.bitnami.com/bitnami
-helm install ***REMOVED-DB_PASSWORD***ql bitnami/***REMOVED-DB_PASSWORD***ql \
+helm install postgresql bitnami/postgresql \
   --namespace training-environment \
-  --set auth.***REMOVED-DB_PASSWORD***Password=your-db-password \
+  --set auth.postgresPassword=your-db-password \
   --set auth.database=contract_management_production \
   --set primary.persistence.size=100Gi
 
@@ -258,7 +258,7 @@ helm repo add prometheus-community https://prometheus-community.github.io/helm-c
 helm install prometheus prometheus-community/kube-prometheus-stack \
   --namespace monitoring \
   --create-namespace \
-  --set grafana.adminPassword=***REMOVED-KEYCLOAK_ADMIN_PASSWORD***
+  --set grafana.adminPassword=admin123
 
 # Deploy ELK Stack
 helm repo add elastic https://helm.elastic.co
@@ -491,7 +491,7 @@ kubectl apply -f - <<EOF
 apiVersion: batch/v1
 kind: CronJob
 metadata:
-  name: ***REMOVED-DB_PASSWORD***-backup
+  name: postgres-backup
   namespace: training-environment
 spec:
   schedule: "0 2 * * *"
@@ -500,13 +500,13 @@ spec:
       template:
         spec:
           containers:
-          - name: ***REMOVED-DB_PASSWORD***-backup
-            image: ***REMOVED-DB_PASSWORD***:13
+          - name: postgres-backup
+            image: postgres:13
             command:
             - /bin/bash
             - -c
             - |
-              pg_dump -h ***REMOVED-DB_PASSWORD***ql.training-environment.svc.cluster.local -U ***REMOVED-DB_PASSWORD*** contract_management_production > /backup/backup-$(date +%Y%m%d).sql
+              pg_dump -h postgresql.training-environment.svc.cluster.local -U postgres contract_management_production > /backup/backup-$(date +%Y%m%d).sql
               aws s3 cp /backup/backup-$(date +%Y%m%d).sql s3://ai-training-backups/database/
             env:
             - name: PGPASSWORD
@@ -561,7 +561,7 @@ export NODE_ENV=production
 export TEE_MODE=cloud
 export CLOUD_PROVIDER=aws
 export AWS_REGION=us-east-1
-export DB_HOST=***REMOVED-DB_PASSWORD***ql.training-environment.svc.cluster.local
+export DB_HOST=postgresql.training-environment.svc.cluster.local
 export REDIS_HOST=redis.training-environment.svc.cluster.local
 export MONITORING_ENABLED=true
 export PRIVACY_ENABLED=true
@@ -572,7 +572,7 @@ export PROVENANCE_ENABLED=true
 ```bash
 # Store secrets in Vault
 vault kv put secret/ai-training/database \
-  host=***REMOVED-DB_PASSWORD***ql.training-environment.svc.cluster.local \
+  host=postgresql.training-environment.svc.cluster.local \
   password=your-db-password
 
 vault kv put secret/ai-training/redis \

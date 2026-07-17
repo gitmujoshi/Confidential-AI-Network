@@ -33,7 +33,7 @@ Received number of calls:    0
   <file path="/Users/mukeshjoshi/gitprojects/ContractManagement/backend/tests/mock-integration.test.js">
     <testCase name="Mock Integration Test Suite Mock Keycloak Integration should create mock Keycloak user" duration="2"/>
     <testCase name="Mock Integration Test Suite Mock Keycloak Integration should mock Keycloak authentication" duration="1">
-      <failure message="TypeError: ***REMOVED-KEYCLOAK_DB_PASSWORD***Service.authenticateUser is not a function"><![CDATA[TypeError: ***REMOVED-KEYCLOAK_DB_PASSWORD***Service.authenticateUser is not a function
+      <failure message="TypeError: keycloakService.authenticateUser is not a function"><![CDATA[TypeError: keycloakService.authenticateUser is not a function
     at Object.<anonymous> (/Users/mukeshjoshi/gitprojects/ContractManagement/backend/tests/mock-integration.test.js:155:48)
     at Promise.then.completed (/Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/jest-circus/build/utils.js:298:28)
     at new Promise (<anonymous>)
@@ -226,7 +226,7 @@ Received: false
     </testCase>
     <testCase name="Mock Integration Test Suite Mock DPDP Service Integration should generate mock DPDP reports" duration="10">
       <failure message="Error: "><![CDATA[Error: 
-    at Query.run (/Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/dialects/***REMOVED-DB_PASSWORD***/query.js:76:25)
+    at Query.run (/Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/dialects/postgres/query.js:76:25)
     at /Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/sequelize.js:650:28
     at processTicksAndRejections (node:internal/process/task_queues:105:5)
     at PostgresQueryInterface.select (/Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/dialects/abstract/query-interface.js:1001:12)
@@ -995,7 +995,7 @@ Received: undefined
     </testCase>
     <testCase name="API Endpoints Test Suite Ricardian Contract Endpoints should create a Ricardian contract successfully with a real AI model" duration="0">
       <failure message="Error: "><![CDATA[Error: 
-    at Query.run (/Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/dialects/***REMOVED-DB_PASSWORD***/query.js:76:25)
+    at Query.run (/Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/dialects/postgres/query.js:76:25)
     at /Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/sequelize.js:650:28
     at processTicksAndRejections (node:internal/process/task_queues:105:5)
     at PostgresQueryInterface.insert (/Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/dialects/abstract/query-interface.js:795:21)
@@ -1005,7 +1005,7 @@ Received: undefined
     </testCase>
     <testCase name="API Endpoints Test Suite Ricardian Contract Endpoints should fail if modelId does not exist" duration="0">
       <failure message="Error: "><![CDATA[Error: 
-    at Query.run (/Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/dialects/***REMOVED-DB_PASSWORD***/query.js:76:25)
+    at Query.run (/Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/dialects/postgres/query.js:76:25)
     at /Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/sequelize.js:650:28
     at processTicksAndRejections (node:internal/process/task_queues:105:5)
     at PostgresQueryInterface.insert (/Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/dialects/abstract/query-interface.js:795:21)
@@ -1015,7 +1015,7 @@ Received: undefined
     </testCase>
     <testCase name="API Endpoints Test Suite Ricardian Contract Endpoints should fail if dataset does not exist or not owned by TDP" duration="0">
       <failure message="Error: "><![CDATA[Error: 
-    at Query.run (/Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/dialects/***REMOVED-DB_PASSWORD***/query.js:76:25)
+    at Query.run (/Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/dialects/postgres/query.js:76:25)
     at /Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/sequelize.js:650:28
     at processTicksAndRejections (node:internal/process/task_queues:105:5)
     at PostgresQueryInterface.insert (/Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/dialects/abstract/query-interface.js:795:21)
@@ -1025,7 +1025,7 @@ Received: undefined
     </testCase>
     <testCase name="API Endpoints Test Suite Ricardian Contract Endpoints should fail if user is not TDC" duration="0">
       <failure message="Error: "><![CDATA[Error: 
-    at Query.run (/Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/dialects/***REMOVED-DB_PASSWORD***/query.js:76:25)
+    at Query.run (/Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/dialects/postgres/query.js:76:25)
     at /Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/sequelize.js:650:28
     at processTicksAndRejections (node:internal/process/task_queues:105:5)
     at PostgresQueryInterface.insert (/Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/dialects/abstract/query-interface.js:795:21)
@@ -1598,7 +1598,7 @@ Received: 429
   <file path="/Users/mukeshjoshi/gitprojects/ContractManagement/backend/tests/performance.test.js">
     <testCase name="Performance Test Suite Database Performance should handle large dataset queries efficiently" duration="0">
       <failure message="Error: "><![CDATA[Error: 
-    at Query.run (/Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/dialects/***REMOVED-DB_PASSWORD***/query.js:76:25)
+    at Query.run (/Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/dialects/postgres/query.js:76:25)
     at /Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/sequelize.js:650:28
     at processTicksAndRejections (node:internal/process/task_queues:105:5)
     at PostgresQueryInterface.insert (/Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/dialects/abstract/query-interface.js:795:21)
@@ -1609,7 +1609,7 @@ Received: 429
     </testCase>
     <testCase name="Performance Test Suite Database Performance should handle complex contract queries with filters" duration="0">
       <failure message="Error: "><![CDATA[Error: 
-    at Query.run (/Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/dialects/***REMOVED-DB_PASSWORD***/query.js:76:25)
+    at Query.run (/Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/dialects/postgres/query.js:76:25)
     at /Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/sequelize.js:650:28
     at processTicksAndRejections (node:internal/process/task_queues:105:5)
     at PostgresQueryInterface.insert (/Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/dialects/abstract/query-interface.js:795:21)
@@ -1620,7 +1620,7 @@ Received: 429
     </testCase>
     <testCase name="Performance Test Suite Database Performance should handle pagination efficiently" duration="0">
       <failure message="Error: "><![CDATA[Error: 
-    at Query.run (/Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/dialects/***REMOVED-DB_PASSWORD***/query.js:76:25)
+    at Query.run (/Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/dialects/postgres/query.js:76:25)
     at /Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/sequelize.js:650:28
     at processTicksAndRejections (node:internal/process/task_queues:105:5)
     at PostgresQueryInterface.insert (/Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/dialects/abstract/query-interface.js:795:21)
@@ -1631,7 +1631,7 @@ Received: 429
     </testCase>
     <testCase name="Performance Test Suite Database Performance should handle sorting efficiently" duration="0">
       <failure message="Error: "><![CDATA[Error: 
-    at Query.run (/Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/dialects/***REMOVED-DB_PASSWORD***/query.js:76:25)
+    at Query.run (/Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/dialects/postgres/query.js:76:25)
     at /Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/sequelize.js:650:28
     at processTicksAndRejections (node:internal/process/task_queues:105:5)
     at PostgresQueryInterface.insert (/Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/dialects/abstract/query-interface.js:795:21)
@@ -1642,7 +1642,7 @@ Received: 429
     </testCase>
     <testCase name="Performance Test Suite API Performance should handle concurrent user registrations" duration="0">
       <failure message="Error: "><![CDATA[Error: 
-    at Query.run (/Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/dialects/***REMOVED-DB_PASSWORD***/query.js:76:25)
+    at Query.run (/Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/dialects/postgres/query.js:76:25)
     at /Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/sequelize.js:650:28
     at processTicksAndRejections (node:internal/process/task_queues:105:5)
     at PostgresQueryInterface.insert (/Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/dialects/abstract/query-interface.js:795:21)
@@ -1653,7 +1653,7 @@ Received: 429
     </testCase>
     <testCase name="Performance Test Suite API Performance should handle concurrent contract queries" duration="0">
       <failure message="Error: "><![CDATA[Error: 
-    at Query.run (/Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/dialects/***REMOVED-DB_PASSWORD***/query.js:76:25)
+    at Query.run (/Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/dialects/postgres/query.js:76:25)
     at /Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/sequelize.js:650:28
     at processTicksAndRejections (node:internal/process/task_queues:105:5)
     at PostgresQueryInterface.insert (/Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/dialects/abstract/query-interface.js:795:21)
@@ -1664,7 +1664,7 @@ Received: 429
     </testCase>
     <testCase name="Performance Test Suite API Performance should handle mixed workload efficiently" duration="0">
       <failure message="Error: "><![CDATA[Error: 
-    at Query.run (/Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/dialects/***REMOVED-DB_PASSWORD***/query.js:76:25)
+    at Query.run (/Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/dialects/postgres/query.js:76:25)
     at /Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/sequelize.js:650:28
     at processTicksAndRejections (node:internal/process/task_queues:105:5)
     at PostgresQueryInterface.insert (/Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/dialects/abstract/query-interface.js:795:21)
@@ -1675,7 +1675,7 @@ Received: 429
     </testCase>
     <testCase name="Performance Test Suite Memory Usage should not leak memory during repeated operations" duration="0">
       <failure message="Error: "><![CDATA[Error: 
-    at Query.run (/Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/dialects/***REMOVED-DB_PASSWORD***/query.js:76:25)
+    at Query.run (/Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/dialects/postgres/query.js:76:25)
     at /Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/sequelize.js:650:28
     at processTicksAndRejections (node:internal/process/task_queues:105:5)
     at PostgresQueryInterface.insert (/Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/dialects/abstract/query-interface.js:795:21)
@@ -1686,7 +1686,7 @@ Received: 429
     </testCase>
     <testCase name="Performance Test Suite Memory Usage should handle large payloads efficiently" duration="0">
       <failure message="Error: "><![CDATA[Error: 
-    at Query.run (/Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/dialects/***REMOVED-DB_PASSWORD***/query.js:76:25)
+    at Query.run (/Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/dialects/postgres/query.js:76:25)
     at /Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/sequelize.js:650:28
     at processTicksAndRejections (node:internal/process/task_queues:105:5)
     at PostgresQueryInterface.insert (/Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/dialects/abstract/query-interface.js:795:21)
@@ -1697,7 +1697,7 @@ Received: 429
     </testCase>
     <testCase name="Performance Test Suite Response Time Benchmarks should meet response time requirements for common operations" duration="0">
       <failure message="Error: "><![CDATA[Error: 
-    at Query.run (/Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/dialects/***REMOVED-DB_PASSWORD***/query.js:76:25)
+    at Query.run (/Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/dialects/postgres/query.js:76:25)
     at /Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/sequelize.js:650:28
     at processTicksAndRejections (node:internal/process/task_queues:105:5)
     at PostgresQueryInterface.insert (/Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/dialects/abstract/query-interface.js:795:21)
@@ -1708,7 +1708,7 @@ Received: 429
     </testCase>
     <testCase name="Performance Test Suite Response Time Benchmarks should handle authentication efficiently" duration="1">
       <failure message="Error: "><![CDATA[Error: 
-    at Query.run (/Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/dialects/***REMOVED-DB_PASSWORD***/query.js:76:25)
+    at Query.run (/Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/dialects/postgres/query.js:76:25)
     at /Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/sequelize.js:650:28
     at processTicksAndRejections (node:internal/process/task_queues:105:5)
     at PostgresQueryInterface.insert (/Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/dialects/abstract/query-interface.js:795:21)
@@ -1719,7 +1719,7 @@ Received: 429
     </testCase>
     <testCase name="Performance Test Suite Stress Testing should handle high load gracefully" duration="0">
       <failure message="Error: "><![CDATA[Error: 
-    at Query.run (/Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/dialects/***REMOVED-DB_PASSWORD***/query.js:76:25)
+    at Query.run (/Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/dialects/postgres/query.js:76:25)
     at /Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/sequelize.js:650:28
     at processTicksAndRejections (node:internal/process/task_queues:105:5)
     at PostgresQueryInterface.insert (/Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/dialects/abstract/query-interface.js:795:21)
@@ -1730,7 +1730,7 @@ Received: 429
     </testCase>
     <testCase name="Performance Test Suite Stress Testing should handle database connection limits" duration="0">
       <failure message="Error: "><![CDATA[Error: 
-    at Query.run (/Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/dialects/***REMOVED-DB_PASSWORD***/query.js:76:25)
+    at Query.run (/Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/dialects/postgres/query.js:76:25)
     at /Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/sequelize.js:650:28
     at processTicksAndRejections (node:internal/process/task_queues:105:5)
     at PostgresQueryInterface.insert (/Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/dialects/abstract/query-interface.js:795:21)
@@ -1741,7 +1741,7 @@ Received: 429
     </testCase>
     <testCase name="Performance Test Suite Stress Testing should handle memory pressure" duration="0">
       <failure message="Error: "><![CDATA[Error: 
-    at Query.run (/Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/dialects/***REMOVED-DB_PASSWORD***/query.js:76:25)
+    at Query.run (/Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/dialects/postgres/query.js:76:25)
     at /Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/sequelize.js:650:28
     at processTicksAndRejections (node:internal/process/task_queues:105:5)
     at PostgresQueryInterface.insert (/Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/dialects/abstract/query-interface.js:795:21)
@@ -1752,7 +1752,7 @@ Received: 429
     </testCase>
     <testCase name="Performance Test Suite Scalability Testing should scale with data size" duration="0">
       <failure message="Error: "><![CDATA[Error: 
-    at Query.run (/Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/dialects/***REMOVED-DB_PASSWORD***/query.js:76:25)
+    at Query.run (/Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/dialects/postgres/query.js:76:25)
     at /Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/sequelize.js:650:28
     at processTicksAndRejections (node:internal/process/task_queues:105:5)
     at PostgresQueryInterface.insert (/Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/dialects/abstract/query-interface.js:795:21)
@@ -1763,7 +1763,7 @@ Received: 429
     </testCase>
     <testCase name="Performance Test Suite Scalability Testing should handle concurrent users efficiently" duration="0">
       <failure message="Error: "><![CDATA[Error: 
-    at Query.run (/Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/dialects/***REMOVED-DB_PASSWORD***/query.js:76:25)
+    at Query.run (/Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/dialects/postgres/query.js:76:25)
     at /Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/sequelize.js:650:28
     at processTicksAndRejections (node:internal/process/task_queues:105:5)
     at PostgresQueryInterface.insert (/Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/dialects/abstract/query-interface.js:795:21)
@@ -2026,7 +2026,7 @@ Received: undefined
   <file path="/Users/mukeshjoshi/gitprojects/ContractManagement/backend/tests/services.test.js">
     <testCase name="Service Layer Test Suite Blockchain Service Contract Creation should create contract on blockchain" duration="0">
       <failure message="Error: "><![CDATA[Error: 
-    at Query.run (/Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/dialects/***REMOVED-DB_PASSWORD***/query.js:76:25)
+    at Query.run (/Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/dialects/postgres/query.js:76:25)
     at /Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/sequelize.js:650:28
     at processTicksAndRejections (node:internal/process/task_queues:105:5)
     at PostgresQueryInterface.insert (/Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/dialects/abstract/query-interface.js:795:21)
@@ -2036,7 +2036,7 @@ Received: undefined
     </testCase>
     <testCase name="Service Layer Test Suite Blockchain Service Contract Creation should handle blockchain creation gracefully" duration="0">
       <failure message="Error: "><![CDATA[Error: 
-    at Query.run (/Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/dialects/***REMOVED-DB_PASSWORD***/query.js:76:25)
+    at Query.run (/Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/dialects/postgres/query.js:76:25)
     at /Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/sequelize.js:650:28
     at processTicksAndRejections (node:internal/process/task_queues:105:5)
     at PostgresQueryInterface.insert (/Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/dialects/abstract/query-interface.js:795:21)
@@ -2046,7 +2046,7 @@ Received: undefined
     </testCase>
     <testCase name="Service Layer Test Suite Blockchain Service Contract Signing should sign contract on blockchain" duration="0">
       <failure message="Error: "><![CDATA[Error: 
-    at Query.run (/Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/dialects/***REMOVED-DB_PASSWORD***/query.js:76:25)
+    at Query.run (/Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/dialects/postgres/query.js:76:25)
     at /Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/sequelize.js:650:28
     at processTicksAndRejections (node:internal/process/task_queues:105:5)
     at PostgresQueryInterface.insert (/Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/dialects/abstract/query-interface.js:795:21)
@@ -2056,7 +2056,7 @@ Received: undefined
     </testCase>
     <testCase name="Service Layer Test Suite Blockchain Service Contract Signing should handle signing gracefully" duration="0">
       <failure message="Error: "><![CDATA[Error: 
-    at Query.run (/Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/dialects/***REMOVED-DB_PASSWORD***/query.js:76:25)
+    at Query.run (/Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/dialects/postgres/query.js:76:25)
     at /Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/sequelize.js:650:28
     at processTicksAndRejections (node:internal/process/task_queues:105:5)
     at PostgresQueryInterface.insert (/Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/dialects/abstract/query-interface.js:795:21)
@@ -2066,7 +2066,7 @@ Received: undefined
     </testCase>
     <testCase name="Service Layer Test Suite Blockchain Service Contract Verification should get contract from blockchain" duration="0">
       <failure message="Error: "><![CDATA[Error: 
-    at Query.run (/Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/dialects/***REMOVED-DB_PASSWORD***/query.js:76:25)
+    at Query.run (/Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/dialects/postgres/query.js:76:25)
     at /Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/sequelize.js:650:28
     at processTicksAndRejections (node:internal/process/task_queues:105:5)
     at PostgresQueryInterface.insert (/Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/dialects/abstract/query-interface.js:795:21)
@@ -2076,7 +2076,7 @@ Received: undefined
     </testCase>
     <testCase name="Service Layer Test Suite DID Service DID Resolution should resolve web DID" duration="0">
       <failure message="Error: "><![CDATA[Error: 
-    at Query.run (/Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/dialects/***REMOVED-DB_PASSWORD***/query.js:76:25)
+    at Query.run (/Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/dialects/postgres/query.js:76:25)
     at /Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/sequelize.js:650:28
     at processTicksAndRejections (node:internal/process/task_queues:105:5)
     at PostgresQueryInterface.insert (/Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/dialects/abstract/query-interface.js:795:21)
@@ -2086,7 +2086,7 @@ Received: undefined
     </testCase>
     <testCase name="Service Layer Test Suite DID Service DID Resolution should validate DID format" duration="0">
       <failure message="Error: "><![CDATA[Error: 
-    at Query.run (/Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/dialects/***REMOVED-DB_PASSWORD***/query.js:76:25)
+    at Query.run (/Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/dialects/postgres/query.js:76:25)
     at /Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/sequelize.js:650:28
     at processTicksAndRejections (node:internal/process/task_queues:105:5)
     at PostgresQueryInterface.insert (/Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/dialects/abstract/query-interface.js:795:21)
@@ -2096,7 +2096,7 @@ Received: undefined
     </testCase>
     <testCase name="Service Layer Test Suite DID Service DID Resolution should get supported methods" duration="0">
       <failure message="Error: "><![CDATA[Error: 
-    at Query.run (/Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/dialects/***REMOVED-DB_PASSWORD***/query.js:76:25)
+    at Query.run (/Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/dialects/postgres/query.js:76:25)
     at /Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/sequelize.js:650:28
     at processTicksAndRejections (node:internal/process/task_queues:105:5)
     at PostgresQueryInterface.insert (/Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/dialects/abstract/query-interface.js:795:21)
@@ -2106,7 +2106,7 @@ Received: undefined
     </testCase>
     <testCase name="Service Layer Test Suite DID Service DID Health Check should perform health check" duration="0">
       <failure message="Error: "><![CDATA[Error: 
-    at Query.run (/Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/dialects/***REMOVED-DB_PASSWORD***/query.js:76:25)
+    at Query.run (/Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/dialects/postgres/query.js:76:25)
     at /Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/sequelize.js:650:28
     at processTicksAndRejections (node:internal/process/task_queues:105:5)
     at PostgresQueryInterface.insert (/Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/dialects/abstract/query-interface.js:795:21)
@@ -2116,7 +2116,7 @@ Received: undefined
     </testCase>
     <testCase name="Service Layer Test Suite Notification Service Notification Creation should create notification" duration="0">
       <failure message="Error: "><![CDATA[Error: 
-    at Query.run (/Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/dialects/***REMOVED-DB_PASSWORD***/query.js:76:25)
+    at Query.run (/Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/dialects/postgres/query.js:76:25)
     at /Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/sequelize.js:650:28
     at processTicksAndRejections (node:internal/process/task_queues:105:5)
     at PostgresQueryInterface.insert (/Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/dialects/abstract/query-interface.js:795:21)
@@ -2126,7 +2126,7 @@ Received: undefined
     </testCase>
     <testCase name="Service Layer Test Suite Notification Service Notification Retrieval should get user notifications" duration="0">
       <failure message="Error: "><![CDATA[Error: 
-    at Query.run (/Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/dialects/***REMOVED-DB_PASSWORD***/query.js:76:25)
+    at Query.run (/Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/dialects/postgres/query.js:76:25)
     at /Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/sequelize.js:650:28
     at processTicksAndRejections (node:internal/process/task_queues:105:5)
     at PostgresQueryInterface.insert (/Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/dialects/abstract/query-interface.js:795:21)
@@ -2136,7 +2136,7 @@ Received: undefined
     </testCase>
     <testCase name="Service Layer Test Suite Service Integration should handle service interactions" duration="0">
       <failure message="Error: "><![CDATA[Error: 
-    at Query.run (/Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/dialects/***REMOVED-DB_PASSWORD***/query.js:76:25)
+    at Query.run (/Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/dialects/postgres/query.js:76:25)
     at /Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/sequelize.js:650:28
     at processTicksAndRejections (node:internal/process/task_queues:105:5)
     at PostgresQueryInterface.insert (/Users/mukeshjoshi/gitprojects/ContractManagement/backend/node_modules/sequelize/src/dialects/abstract/query-interface.js:795:21)

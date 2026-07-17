@@ -15,7 +15,7 @@ require('./integration-env');
 
 const request = require('supertest');
 const { sequelize } = require('../models');
-const KeycloakService = require('../services/***REMOVED-KEYCLOAK_DB_PASSWORD***Service');
+const KeycloakService = require('../services/keycloakService');
 const BlockchainService = require('../services/blockchainService');
 const { User, Contract, Dataset, AIModel } = require('../models');
 
@@ -24,7 +24,7 @@ const { TEST_PRIVATE_KEYS, TEST_ADDRESSES } = require('./integration-env');
 
 describe('Integration Tests with Real Services', () => {
   let app;
-  let ***REMOVED-KEYCLOAK_DB_PASSWORD***Service;
+  let keycloakService;
   let blockchainService;
   let testUsers = {};
   let testContractId;
@@ -33,7 +33,7 @@ describe('Integration Tests with Real Services', () => {
 
   beforeAll(async () => {
     // Initialize services
-    ***REMOVED-KEYCLOAK_DB_PASSWORD***Service = new KeycloakService();
+    keycloakService = new KeycloakService();
     blockchainService = new BlockchainService();
     
     // Initialize blockchain service
@@ -61,7 +61,7 @@ describe('Integration Tests with Real Services', () => {
     });
 
     test('should connect to Keycloak', async () => {
-      const isConnected = await ***REMOVED-KEYCLOAK_DB_PASSWORD***Service.isConnected();
+      const isConnected = await keycloakService.isConnected();
       expect(isConnected).toBe(true);
     });
 
@@ -79,7 +79,7 @@ describe('Integration Tests with Real Services', () => {
   describe('Keycloak Integration', () => {
     test('should create test realm', async () => {
       const realmName = 'contract-management-test';
-      const result = await ***REMOVED-KEYCLOAK_DB_PASSWORD***Service.createRealm(realmName);
+      const result = await keycloakService.createRealm(realmName);
       expect(result).toBe(true);
     });
 
@@ -91,7 +91,7 @@ describe('Integration Tests with Real Services', () => {
         webOrigins: ['http://localhost:3000']
       };
       
-      const result = await ***REMOVED-KEYCLOAK_DB_PASSWORD***Service.createClient(clientConfig);
+      const result = await keycloakService.createClient(clientConfig);
       expect(result).toBe(true);
     });
 
@@ -118,14 +118,14 @@ describe('Integration Tests with Real Services', () => {
       ];
 
       for (const userData of users) {
-        const result = await ***REMOVED-KEYCLOAK_DB_PASSWORD***Service.createUser(userData);
+        const result = await keycloakService.createUser(userData);
         expect(result).toHaveProperty('id');
         testUsers[userData.role] = result;
       }
     });
 
     test('should authenticate test user', async () => {
-      const authResult = await ***REMOVED-KEYCLOAK_DB_PASSWORD***Service.authenticateUser(
+      const authResult = await keycloakService.authenticateUser(
         'tdp-test@example.com',
         'Password123'
       );

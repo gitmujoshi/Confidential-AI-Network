@@ -83,7 +83,7 @@ TEE_MODE=local
 DB_HOST=localhost
 DB_PORT=5432
 DB_NAME=contract_management_dev
-DB_USER=***REMOVED-DB_PASSWORD***
+DB_USER=postgres
 DB_PASSWORD=your_password
 DB_SSL=false
 
@@ -118,10 +118,10 @@ TEST_MODE=false
 # Start PostgreSQL with Docker
 docker run --name contract-management-db \
   -e POSTGRES_DB=contract_management_dev \
-  -e POSTGRES_USER=***REMOVED-DB_PASSWORD*** \
+  -e POSTGRES_USER=postgres \
   -e POSTGRES_PASSWORD=your_password \
   -p 5432:5432 \
-  -d ***REMOVED-DB_PASSWORD***:13
+  -d postgres:13
 
 # Start Redis with Docker
 docker run --name contract-management-redis \
@@ -132,8 +132,8 @@ docker run --name contract-management-redis \
 #### **2.2 Using Local Installation**
 ```bash
 # Install PostgreSQL (macOS)
-brew install ***REMOVED-DB_PASSWORD***ql
-brew services start ***REMOVED-DB_PASSWORD***ql
+brew install postgresql
+brew services start postgresql
 
 # Create database
 createdb contract_management_dev
@@ -251,16 +251,16 @@ version: '3.8'
 
 services:
   # Database
-  ***REMOVED-DB_PASSWORD***:
-    image: ***REMOVED-DB_PASSWORD***:13
+  postgres:
+    image: postgres:13
     environment:
       POSTGRES_DB: contract_management_dev
-      POSTGRES_USER: ***REMOVED-DB_PASSWORD***
+      POSTGRES_USER: postgres
       POSTGRES_PASSWORD: password
     ports:
       - "5432:5432"
     volumes:
-      - ***REMOVED-DB_PASSWORD***_data:/var/lib/***REMOVED-DB_PASSWORD***ql/data
+      - postgres_data:/var/lib/postgresql/data
       - ./backend/init.sql:/docker-entrypoint-initdb.d/init.sql
 
   # Redis
@@ -280,13 +280,13 @@ services:
       - "3001:3001"
     environment:
       - NODE_ENV=development
-      - DB_HOST=***REMOVED-DB_PASSWORD***
+      - DB_HOST=postgres
       - REDIS_HOST=redis
     volumes:
       - ./backend:/app
       - /app/node_modules
     depends_on:
-      - ***REMOVED-DB_PASSWORD***
+      - postgres
       - redis
 
   # Frontend
@@ -316,7 +316,7 @@ services:
       - backend
 
 volumes:
-  ***REMOVED-DB_PASSWORD***_data:
+  postgres_data:
   redis_data:
 ```
 
@@ -464,7 +464,7 @@ npm start
 ### **Database Debugging**
 ```bash
 # Connect to database
-psql -h localhost -U ***REMOVED-DB_PASSWORD*** -d contract_management_dev
+psql -h localhost -U postgres -d contract_management_dev
 
 # Check database logs
 docker logs contract-management-db
@@ -490,10 +490,10 @@ tail -f logs/*.log
 ### **Database Monitoring**
 ```bash
 # Monitor database connections
-psql -h localhost -U ***REMOVED-DB_PASSWORD*** -d contract_management_dev -c "SELECT * FROM pg_stat_activity;"
+psql -h localhost -U postgres -d contract_management_dev -c "SELECT * FROM pg_stat_activity;"
 
 # Monitor database size
-psql -h localhost -U ***REMOVED-DB_PASSWORD*** -d contract_management_dev -c "SELECT pg_size_pretty(pg_database_size('contract_management_dev'));"
+psql -h localhost -U postgres -d contract_management_dev -c "SELECT pg_size_pretty(pg_database_size('contract_management_dev'));"
 ```
 
 ### **Performance Monitoring**
@@ -529,14 +529,14 @@ PORT=3002 npm start
 #### **Database Connection Issues**
 ```bash
 # Check if database is running
-docker ps | grep ***REMOVED-DB_PASSWORD***
-brew services list | grep ***REMOVED-DB_PASSWORD***
+docker ps | grep postgres
+brew services list | grep postgres
 
 # Check database logs
 docker logs contract-management-db
 
 # Test database connection
-psql -h localhost -U ***REMOVED-DB_PASSWORD*** -d contract_management_dev -c "SELECT 1;"
+psql -h localhost -U postgres -d contract_management_dev -c "SELECT 1;"
 ```
 
 #### **Dependency Issues**
@@ -575,7 +575,7 @@ df -h
 npm run profile
 
 # Check database performance
-psql -h localhost -U ***REMOVED-DB_PASSWORD*** -d contract_management_dev -c "EXPLAIN ANALYZE SELECT * FROM users;"
+psql -h localhost -U postgres -d contract_management_dev -c "EXPLAIN ANALYZE SELECT * FROM users;"
 ```
 
 ## 📚 **Useful Commands**

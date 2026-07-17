@@ -121,7 +121,7 @@ async function checkKeycloakHealth() {
     logger.warn('⚠️ Keycloak health check failed, attempting auto-fix...');
     try {
       const { execSync } = require('child_process');
-      execSync('node auto-fix-***REMOVED-KEYCLOAK_DB_PASSWORD***.js', { cwd: __dirname, stdio: 'inherit' });
+      execSync('node auto-fix-keycloak.js', { cwd: __dirname, stdio: 'inherit' });
       logger.info('✅ Keycloak auto-fix completed');
       return true;
     } catch (fixError) {

@@ -12,10 +12,10 @@ jobs:
     
     services:
       # Start PostgreSQL for tests
-      ***REMOVED-DB_PASSWORD***:
-        image: ***REMOVED-DB_PASSWORD***:13
+      postgres:
+        image: postgres:13
         env:
-          POSTGRES_PASSWORD: ***REMOVED-DB_PASSWORD***
+          POSTGRES_PASSWORD: postgres
           POSTGRES_DB: contract_management_test
         options: >-
           --health-cmd pg_isready
@@ -55,7 +55,7 @@ jobs:
           cd backend
           npm run migrate
         env:
-          DATABASE_URL: ***REMOVED-DB_PASSWORD***ql://***REMOVED-DB_PASSWORD***:***REMOVED-DB_PASSWORD***@localhost:5432/contract_management_test
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/contract_management_test
           NODE_ENV: test
 
       - name: Start backend server
@@ -64,7 +64,7 @@ jobs:
           npm start &
           sleep 30
         env:
-          DATABASE_URL: ***REMOVED-DB_PASSWORD***ql://***REMOVED-DB_PASSWORD***:***REMOVED-DB_PASSWORD***@localhost:5432/contract_management_test
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/contract_management_test
           NODE_ENV: test
           PORT: 5001
           HUGGINGFACE_INTEGRATION_ENABLED: true

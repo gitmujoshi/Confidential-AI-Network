@@ -257,9 +257,9 @@ POST   /api/scitt-ccf/contracts     // Create SCITT CCF contract
 
 ### **Main Services**
 ```yaml
-***REMOVED-DB_PASSWORD***-app:        # Main database (port 5432)
-***REMOVED-DB_PASSWORD***-***REMOVED-KEYCLOAK_DB_PASSWORD***:   # Keycloak database (port 5433)
-***REMOVED-KEYCLOAK_DB_PASSWORD***:            # Authentication service (port 8080)
+postgres-app:        # Main database (port 5432)
+postgres-keycloak:   # Keycloak database (port 5433)
+keycloak:            # Authentication service (port 8080)
 ```
 
 ### **SCITT CCF Services**
@@ -268,7 +268,7 @@ scitt-ccf-node:      # Main ledger (port 8000)
 scitt-ccf-dashboard: # Web interface (port 8082)
 scitt-ccf-monitor:   # Health monitoring (port 8001)
 scitt-ccf-redis:     # Caching (port 6379)
-scitt-ccf-***REMOVED-DB_PASSWORD***:  # SCITT CCF storage (port 5434)
+scitt-ccf-postgres:  # SCITT CCF storage (port 5434)
 ```
 
 ---
@@ -316,7 +316,7 @@ BLOCKCHAIN_ENABLED=false  # Fallback to database mode
 ./manage-scitt-ccf.sh restart  # Restart SCITT CCF services
 
 # Database connection issues
-docker restart ***REMOVED-DB_PASSWORD***-app     # Restart database container
+docker restart postgres-app     # Restart database container
 
 # Port conflicts
 lsof -ti:8080 | xargs kill -9  # Free occupied ports

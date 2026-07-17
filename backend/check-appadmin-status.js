@@ -79,16 +79,16 @@ async function checkAppAdminStatus() {
     // Check Keycloak service status
     console.log('\n4️⃣ Checking Keycloak service...');
     try {
-      const KeycloakService = require('./services/***REMOVED-KEYCLOAK_DB_PASSWORD***Service');
-      const ***REMOVED-KEYCLOAK_DB_PASSWORD***Service = new KeycloakService();
+      const KeycloakService = require('./services/keycloakService');
+      const keycloakService = new KeycloakService();
       
       // Try to get admin token
-      const adminToken = await ***REMOVED-KEYCLOAK_DB_PASSWORD***Service.getAdminToken();
+      const adminToken = await keycloakService.getAdminToken();
       console.log('   ✅ Keycloak admin token obtained successfully');
       
       // List users in Keycloak
       try {
-        const users = await ***REMOVED-KEYCLOAK_DB_PASSWORD***Service.listUsers();
+        const users = await keycloakService.listUsers();
         const appAdminUsersInKeycloak = users.filter(user => 
           user.username?.includes('admin') || 
           user.email?.includes('admin') ||
@@ -107,8 +107,8 @@ async function checkAppAdminStatus() {
         console.log(`   ⚠️ Could not list Keycloak users: ${listError.message}`);
       }
       
-    } catch (***REMOVED-KEYCLOAK_DB_PASSWORD***Error) {
-      console.log(`   ❌ Keycloak service error: ${***REMOVED-KEYCLOAK_DB_PASSWORD***Error.message}`);
+    } catch (keycloakError) {
+      console.log(`   ❌ Keycloak service error: ${keycloakError.message}`);
     }
 
     console.log('\n📋 Summary:');

@@ -20,7 +20,7 @@ deployment/
 │   └── optimize-memory.sh # Memory optimization
 └── utilities/              # Utility scripts and configurations
     ├── docker-compose.iam.yml # IAM services configuration
-    ├── ***REMOVED-KEYCLOAK_DB_PASSWORD***-config/    # Keycloak configuration files
+    ├── keycloak-config/    # Keycloak configuration files
     ├── manage-node-modules.sh # Node modules management
     ├── generateMnemonic.js # Wallet mnemonic generation
     └── setupKeycloak.js    # Keycloak setup automation
@@ -129,7 +129,7 @@ cd deployment/monitoring
 
 #### Configuration Management
 - **`docker-compose.iam.yml`**: IAM services Docker Compose configuration
-- **`***REMOVED-KEYCLOAK_DB_PASSWORD***-config/`**: Keycloak configuration files and setup
+- **`keycloak-config/`**: Keycloak configuration files and setup
 
 #### Development Utilities
 - **`manage-node-modules.sh`**: Node.js modules management and optimization

@@ -55,7 +55,7 @@ async function testRegistrationAPI() {
     // Step 2: Test Keycloak health
     log('\n🔍 Step 2: Testing Keycloak health...', 'blue');
     try {
-      const ***REMOVED-KEYCLOAK_DB_PASSWORD***Response = await axios.get(`${KEYCLOAK_URL}/health`, {
+      const keycloakResponse = await axios.get(`${KEYCLOAK_URL}/health`, {
         httpsAgent: new https.Agent({ rejectUnauthorized: false })
       });
       log('✅ Keycloak is healthy', 'green');
@@ -115,7 +115,7 @@ async function testRegistrationAPI() {
     try {
       const adminTokenResponse = await axios.post(
         `${KEYCLOAK_URL}/realms/master/protocol/openid-connect/token`,
-        'grant_type=password&client_id=admin-cli&username=admin&password=***REMOVED-KEYCLOAK_ADMIN_PASSWORD***',
+        'grant_type=password&client_id=admin-cli&username=admin&password=admin123',
         {
           headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
           httpsAgent: new https.Agent({ rejectUnauthorized: false })

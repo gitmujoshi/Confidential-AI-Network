@@ -2,7 +2,7 @@ const axios = require('axios');
 
 const KEYCLOAK_URL = 'http://localhost:8080';
 const ADMIN_USERNAME = 'admin';
-const ADMIN_PASSWORD = '***REMOVED-KEYCLOAK_ADMIN_PASSWORD***';
+const ADMIN_PASSWORD = 'admin123';
 const REALM_NAME = 'contract-management';
 const CLIENT_ID = 'contract-management-client';
 
@@ -111,7 +111,7 @@ async function configureKeycloak() {
                 emailVerified: true,
                 credentials: [{
                     type: 'password',
-                    value: '***REMOVED-KEYCLOAK_ADMIN_PASSWORD***',
+                    value: 'admin123',
                     temporary: false
                 }]
             }, {

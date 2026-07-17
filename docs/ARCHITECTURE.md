@@ -2350,31 +2350,31 @@ services:
     environment:
       - NODE_ENV=production
     depends_on:
-      - ***REMOVED-DB_PASSWORD***
-      - ***REMOVED-KEYCLOAK_DB_PASSWORD***
+      - postgres
+      - keycloak
   
-  ***REMOVED-DB_PASSWORD***:
-    image: ***REMOVED-DB_PASSWORD***:13
+  postgres:
+    image: postgres:13
     environment:
       - POSTGRES_DB=contract_management
-      - POSTGRES_USER=***REMOVED-DB_PASSWORD***
+      - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=secure_password
     volumes:
-      - ***REMOVED-DB_PASSWORD***_data:/var/lib/***REMOVED-DB_PASSWORD***ql/data
+      - postgres_data:/var/lib/postgresql/data
   
-  ***REMOVED-KEYCLOAK_DB_PASSWORD***:
-    image: quay.io/***REMOVED-KEYCLOAK_DB_PASSWORD***/***REMOVED-KEYCLOAK_DB_PASSWORD***:latest
+  keycloak:
+    image: quay.io/keycloak/keycloak:latest
     ports:
       - "8080:8080"
     environment:
       - KEYCLOAK_ADMIN=admin
       - KEYCLOAK_ADMIN_PASSWORD=secure_password
     volumes:
-      - ***REMOVED-KEYCLOAK_DB_PASSWORD***_data:/opt/***REMOVED-KEYCLOAK_DB_PASSWORD***/data
+      - keycloak_data:/opt/keycloak/data
 
 volumes:
-  ***REMOVED-DB_PASSWORD***_data:
-  ***REMOVED-KEYCLOAK_DB_PASSWORD***_data:
+  postgres_data:
+  keycloak_data:
 ```
 
 ### **Scaling Strategy**

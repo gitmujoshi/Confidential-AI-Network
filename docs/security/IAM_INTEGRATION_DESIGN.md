@@ -4,7 +4,7 @@
 ### 📋 Table of Contents
 1. [Overview](#overview)
 2. [Architecture](#architecture)
-3. [Keycloak Configuration](#***REMOVED-KEYCLOAK_DB_PASSWORD***-configuration)
+3. [Keycloak Configuration](#keycloak-configuration)
 4. [Client Configuration](#client-configuration)
 5. [Service Accounts](#service-accounts)
 6. [User Management](#user-management)
@@ -85,24 +85,24 @@ Health Check: https://localhost:8443/health
 
 # Database
 Database: PostgreSQL 15
-Database Name: ***REMOVED-KEYCLOAK_DB_PASSWORD***
-Database User: ***REMOVED-KEYCLOAK_DB_PASSWORD***
+Database Name: keycloak
+Database User: keycloak
 Database Port: 5433
 
 # SSL/TLS
 SSL: Enabled (Self-signed certificates for development)
-Certificate: /opt/***REMOVED-KEYCLOAK_DB_PASSWORD***/conf/cert.pem
-Private Key: /opt/***REMOVED-KEYCLOAK_DB_PASSWORD***/conf/key.pem
+Certificate: /opt/keycloak/conf/cert.pem
+Private Key: /opt/keycloak/conf/key.pem
 ```
 
 ### Environment Variables
 ```bash
 # Keycloak Server Environment
 KEYCLOAK_ADMIN=admin
-KEYCLOAK_ADMIN_PASSWORD=***REMOVED-KEYCLOAK_ADMIN_PASSWORD***
-KC_DB=***REMOVED-DB_PASSWORD***
-KC_DB_URL=jdbc:***REMOVED-DB_PASSWORD***ql://***REMOVED-DB_PASSWORD***-***REMOVED-KEYCLOAK_DB_PASSWORD***:5432/***REMOVED-KEYCLOAK_DB_PASSWORD***
-KC_DB_USERNAME=***REMOVED-KEYCLOAK_DB_PASSWORD***
+KEYCLOAK_ADMIN_PASSWORD=admin123
+KC_DB=postgres
+KC_DB_URL=jdbc:postgresql://postgres-keycloak:5432/keycloak
+KC_DB_USERNAME=keycloak
 KC_DB_PASSWORD=IWC3fqFn75ANvfbiujlKyR54qPXOaG2EoPxbFXWAkjI
 
 # Application Environment
@@ -110,7 +110,7 @@ KEYCLOAK_ENABLED=true
 KEYCLOAK_URL=https://localhost:8443
 KEYCLOAK_REALM=contract-management
 KEYCLOAK_CLIENT_ID=contract-management-client
-KEYCLOAK_CLIENT_SECRET=***REMOVED-KEYCLOAK_CLIENT_SECRET***
+KEYCLOAK_CLIENT_SECRET=<keycloak-client-secret>
 ```
 
 ---
@@ -206,7 +206,7 @@ The backend uses a service account to authenticate with Keycloak for user manage
   "serviceAccount": {
     "enabled": true,
     "clientId": "contract-management-client",
-    "clientSecret": "***REMOVED-KEYCLOAK_CLIENT_SECRET***",
+    "clientSecret": "<keycloak-client-secret>",
     "roles": [
       "view-users",
       "manage-users",
@@ -504,7 +504,7 @@ const authenticateEnterpriseSigning = async (req, res, next) => {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     
     // Get user from Keycloak
-    const user = await ***REMOVED-KEYCLOAK_DB_PASSWORD***Service.getUserInfo(token);
+    const user = await keycloakService.getUserInfo(token);
     
     // Check enterprise signing permissions
     const canUseEnterpriseSigning = await checkEnterpriseSigningPermissions(user.partyType);
@@ -535,7 +535,7 @@ const authenticateSigning = async (req, res, next) => {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     
     // Get user from Keycloak
-    const user = await ***REMOVED-KEYCLOAK_DB_PASSWORD***Service.getUserInfo(token);
+    const user = await keycloakService.getUserInfo(token);
     
     // Check signing permissions
     const canSign = await checkSigningPermissions(user.partyType, req.body.contractType);
@@ -808,16 +808,16 @@ class KeycloakService {
 ### Frontend Integration
 ```javascript
 // Keycloak.js
-import Keycloak from '***REMOVED-KEYCLOAK_DB_PASSWORD***-js';
+import Keycloak from 'keycloak-js';
 
-const ***REMOVED-KEYCLOAK_DB_PASSWORD*** = new Keycloak({
+const keycloak = new Keycloak({
   url: 'https://localhost:8443',
   realm: 'contract-management',
   clientId: 'contract-management-frontend'
 });
 
 // Initialize Keycloak
-***REMOVED-KEYCLOAK_DB_PASSWORD***.init({
+keycloak.init({
   onLoad: 'check-sso',
   silentCheckSsoRedirectUri: window.location.origin + '/silent-check-sso.html',
   pkceMethod: 'S256'
@@ -835,85 +835,85 @@ const ***REMOVED-KEYCLOAK_DB_PASSWORD*** = new Keycloak({
 
 ### Docker Compose Configuration
 ```yaml
-# docker-compose.***REMOVED-KEYCLOAK_DB_PASSWORD***-https.yml
+# docker-compose.keycloak-https.yml
 version: '3.8'
 services:
-  ***REMOVED-KEYCLOAK_DB_PASSWORD***-cms:
-    image: quay.io/***REMOVED-KEYCLOAK_DB_PASSWORD***/***REMOVED-KEYCLOAK_DB_PASSWORD***:22.0.5
-    container_name: ***REMOVED-KEYCLOAK_DB_PASSWORD***-cms
+  keycloak-cms:
+    image: quay.io/keycloak/keycloak:22.0.5
+    container_name: keycloak-cms
     environment:
       KEYCLOAK_ADMIN: admin
-      KEYCLOAK_ADMIN_PASSWORD: ***REMOVED-KEYCLOAK_ADMIN_PASSWORD***
-      KC_DB: ***REMOVED-DB_PASSWORD***
-      KC_DB_URL: jdbc:***REMOVED-DB_PASSWORD***ql://***REMOVED-DB_PASSWORD***-***REMOVED-KEYCLOAK_DB_PASSWORD***:5432/***REMOVED-KEYCLOAK_DB_PASSWORD***
-      KC_DB_USERNAME: ***REMOVED-KEYCLOAK_DB_PASSWORD***
+      KEYCLOAK_ADMIN_PASSWORD: admin123
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://postgres-keycloak:5432/keycloak
+      KC_DB_USERNAME: keycloak
       KC_DB_PASSWORD: IWC3fqFn75ANvfbiujlKyR54qPXOaG2EoPxbFXWAkjI
       KC_HOSTNAME_STRICT: false
       KC_HOSTNAME_STRICT_HTTPS: false
-      KC_HTTPS_CERTIFICATE_FILE: /opt/***REMOVED-KEYCLOAK_DB_PASSWORD***/conf/cert.pem
-      KC_HTTPS_CERTIFICATE_KEY_FILE: /opt/***REMOVED-KEYCLOAK_DB_PASSWORD***/conf/key.pem
+      KC_HTTPS_CERTIFICATE_FILE: /opt/keycloak/conf/cert.pem
+      KC_HTTPS_CERTIFICATE_KEY_FILE: /opt/keycloak/conf/key.pem
       KC_HTTPS_PORT: 8443
       KC_HEALTH_ENABLED: true
-    command: start-dev --https-port=8443 --https-certificate-file=/opt/***REMOVED-KEYCLOAK_DB_PASSWORD***/conf/cert.pem --https-certificate-key-file=/opt/***REMOVED-KEYCLOAK_DB_PASSWORD***/conf/key.pem --health-enabled=true
+    command: start-dev --https-port=8443 --https-certificate-file=/opt/keycloak/conf/cert.pem --https-certificate-key-file=/opt/keycloak/conf/key.pem --health-enabled=true
     ports:
       - "8443:8443"
     volumes:
-      - ./deployment/***REMOVED-KEYCLOAK_DB_PASSWORD***-certs:/opt/***REMOVED-KEYCLOAK_DB_PASSWORD***/conf:ro
-      - ***REMOVED-KEYCLOAK_DB_PASSWORD***_data:/opt/***REMOVED-KEYCLOAK_DB_PASSWORD***/data
+      - ./deployment/keycloak-certs:/opt/keycloak/conf:ro
+      - keycloak_data:/opt/keycloak/data
     depends_on:
-      ***REMOVED-DB_PASSWORD***-***REMOVED-KEYCLOAK_DB_PASSWORD***:
+      postgres-keycloak:
         condition: service_healthy
     networks:
-      - ***REMOVED-KEYCLOAK_DB_PASSWORD***-network
+      - keycloak-network
 
-  ***REMOVED-DB_PASSWORD***-***REMOVED-KEYCLOAK_DB_PASSWORD***:
-    image: ***REMOVED-DB_PASSWORD***:15
-    container_name: ***REMOVED-DB_PASSWORD***-***REMOVED-KEYCLOAK_DB_PASSWORD***
+  postgres-keycloak:
+    image: postgres:15
+    container_name: postgres-keycloak
     environment:
-      POSTGRES_DB: ***REMOVED-KEYCLOAK_DB_PASSWORD***
-      POSTGRES_USER: ***REMOVED-KEYCLOAK_DB_PASSWORD***
+      POSTGRES_DB: keycloak
+      POSTGRES_USER: keycloak
       POSTGRES_PASSWORD: IWC3fqFn75ANvfbiujlKyR54qPXOaG2EoPxbFXWAkjI
     ports:
       - "5433:5432"
     volumes:
-      - ***REMOVED-DB_PASSWORD***_***REMOVED-KEYCLOAK_DB_PASSWORD***_data:/var/lib/***REMOVED-DB_PASSWORD***ql/data
+      - postgres_keycloak_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ***REMOVED-KEYCLOAK_DB_PASSWORD***"]
+      test: ["CMD-SHELL", "pg_isready -U keycloak"]
       interval: 10s
       timeout: 5s
       retries: 5
     networks:
-      - ***REMOVED-KEYCLOAK_DB_PASSWORD***-network
+      - keycloak-network
 
 volumes:
-  ***REMOVED-KEYCLOAK_DB_PASSWORD***_data:
-  ***REMOVED-DB_PASSWORD***_***REMOVED-KEYCLOAK_DB_PASSWORD***_data:
+  keycloak_data:
+  postgres_keycloak_data:
 
 networks:
-  ***REMOVED-KEYCLOAK_DB_PASSWORD***-network:
+  keycloak-network:
     driver: bridge
 ```
 
 ### SSL Certificate Generation
 ```bash
 #!/bin/bash
-# generate-***REMOVED-KEYCLOAK_DB_PASSWORD***-certs.sh
+# generate-keycloak-certs.sh
 
 # Create certificates directory
-mkdir -p deployment/***REMOVED-KEYCLOAK_DB_PASSWORD***-certs
+mkdir -p deployment/keycloak-certs
 
 # Generate private key
-openssl genrsa -out deployment/***REMOVED-KEYCLOAK_DB_PASSWORD***-certs/key.pem 2048
+openssl genrsa -out deployment/keycloak-certs/key.pem 2048
 
 # Generate certificate signing request
-openssl req -new -key deployment/***REMOVED-KEYCLOAK_DB_PASSWORD***-certs/key.pem -out deployment/***REMOVED-KEYCLOAK_DB_PASSWORD***-certs/cert.csr -subj "/C=US/ST=CA/L=San Francisco/O=Contract Management/CN=localhost"
+openssl req -new -key deployment/keycloak-certs/key.pem -out deployment/keycloak-certs/cert.csr -subj "/C=US/ST=CA/L=San Francisco/O=Contract Management/CN=localhost"
 
 # Generate self-signed certificate
-openssl x509 -req -in deployment/***REMOVED-KEYCLOAK_DB_PASSWORD***-certs/cert.csr -signkey deployment/***REMOVED-KEYCLOAK_DB_PASSWORD***-certs/key.pem -out deployment/***REMOVED-KEYCLOAK_DB_PASSWORD***-certs/cert.pem -days 365
+openssl x509 -req -in deployment/keycloak-certs/cert.csr -signkey deployment/keycloak-certs/key.pem -out deployment/keycloak-certs/cert.pem -days 365
 
 # Set permissions
-chmod 600 deployment/***REMOVED-KEYCLOAK_DB_PASSWORD***-certs/key.pem
-chmod 644 deployment/***REMOVED-KEYCLOAK_DB_PASSWORD***-certs/cert.pem
+chmod 600 deployment/keycloak-certs/key.pem
+chmod 644 deployment/keycloak-certs/cert.pem
 
 echo "SSL certificates generated successfully!"
 ```
@@ -955,7 +955,7 @@ curl -k https://localhost:8443/health
 
 # Check admin access
 curl -k -X POST https://localhost:8443/realms/master/protocol/openid-connect/token \
-  -d 'username=admin&password=***REMOVED-KEYCLOAK_ADMIN_PASSWORD***&grant_type=password&client_id=admin-cli'
+  -d 'username=admin&password=admin123&grant_type=password&client_id=admin-cli'
 
 # List clients
 curl -k -H "Authorization: Bearer $ADMIN_TOKEN" \
@@ -1000,7 +1000,7 @@ curl -k -H "Authorization: Bearer $ADMIN_TOKEN" \
     "handlers": {
       "file": {
         "enabled": true,
-        "path": "/opt/***REMOVED-KEYCLOAK_DB_PASSWORD***/standalone/log/audit.log"
+        "path": "/opt/keycloak/standalone/log/audit.log"
       }
     }
   }
@@ -1013,7 +1013,7 @@ curl -k -H "Authorization: Bearer $ADMIN_TOKEN" \
 GET https://localhost:8443/health
 
 # Database health
-docker exec ***REMOVED-DB_PASSWORD***-***REMOVED-KEYCLOAK_DB_PASSWORD*** pg_isready -U ***REMOVED-KEYCLOAK_DB_PASSWORD***
+docker exec postgres-keycloak pg_isready -U keycloak
 
 # Application health
 curl http://localhost:5001/health
@@ -1062,14 +1062,14 @@ curl http://localhost:5001/health
 ### Backup and Recovery
 ```bash
 # Database backup
-docker exec ***REMOVED-DB_PASSWORD***-***REMOVED-KEYCLOAK_DB_PASSWORD*** pg_dump -U ***REMOVED-KEYCLOAK_DB_PASSWORD*** ***REMOVED-KEYCLOAK_DB_PASSWORD*** > ***REMOVED-KEYCLOAK_DB_PASSWORD***_backup.sql
+docker exec postgres-keycloak pg_dump -U keycloak keycloak > keycloak_backup.sql
 
 # Keycloak data backup
-docker cp ***REMOVED-KEYCLOAK_DB_PASSWORD***-cms:/opt/***REMOVED-KEYCLOAK_DB_PASSWORD***/data ./***REMOVED-KEYCLOAK_DB_PASSWORD***_data_backup
+docker cp keycloak-cms:/opt/keycloak/data ./keycloak_data_backup
 
 # Configuration backup
 cp config.env config.env.backup
-cp -r deployment/***REMOVED-KEYCLOAK_DB_PASSWORD***-certs ./***REMOVED-KEYCLOAK_DB_PASSWORD***-certs-backup
+cp -r deployment/keycloak-certs ./keycloak-certs-backup
 ```
 
 ---
@@ -1077,13 +1077,13 @@ cp -r deployment/***REMOVED-KEYCLOAK_DB_PASSWORD***-certs ./***REMOVED-KEYCLOAK_
 ## 📚 References
 
 ### Documentation
-- [Keycloak Documentation](https://www.***REMOVED-KEYCLOAK_DB_PASSWORD***.org/documentation)
+- [Keycloak Documentation](https://www.keycloak.org/documentation)
 - [OpenID Connect Specification](https://openid.net/specs/openid-connect-core-1_0.html)
 - [OAuth 2.0 Specification](https://tools.ietf.org/html/rfc6749)
 
 ### Tools
-- [Keycloak Admin CLI](https://www.***REMOVED-KEYCLOAK_DB_PASSWORD***.org/docs/latest/server_admin/#the-admin-cli)
-- [Keycloak REST API](https://www.***REMOVED-KEYCLOAK_DB_PASSWORD***.org/docs-api/22.0.5/rest-api/index.html)
+- [Keycloak Admin CLI](https://www.keycloak.org/docs/latest/server_admin/#the-admin-cli)
+- [Keycloak REST API](https://www.keycloak.org/docs-api/22.0.5/rest-api/index.html)
 - [OpenSSL](https://www.openssl.org/docs/)
 
 ---

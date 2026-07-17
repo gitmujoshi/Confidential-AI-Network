@@ -8,6 +8,7 @@
 |------------|--------|
 | Run the app locally | [getting-started/QUICK_START.md](getting-started/QUICK_START.md) |
 | Fix setup / auth issues | [getting-started/TROUBLESHOOTING.md](getting-started/TROUBLESHOOTING.md) · [guides/SETUP_TROUBLESHOOTING_GUIDE.md](guides/SETUP_TROUBLESHOOTING_GUIDE.md) |
+| **Onboard parties & run full E2E lifecycle** | [guides/PARTICIPANT_ONBOARDING_AND_E2E_LIFECYCLE.md](guides/PARTICIPANT_ONBOARDING_AND_E2E_LIFECYCLE.md) |
 | Use the product (TDC/TDP/CCRP) | [USER_GUIDE.md](USER_GUIDE.md) · [training/README.md](training/README.md) |
 | Develop or extend the system | [DEVELOPER_GUIDE.md](DEVELOPER_GUIDE.md) · [development/README.md](development/README.md) |
 | Deploy to production / OCI / Azure | [deployment/README.md](deployment/README.md) · [production/README.md](production/README.md) |
@@ -57,7 +58,7 @@ docs/
 ├── compliance/               ← DPDP and regulatory
 ├── contracts/                ← Ricardian contract templates & KMS providers
 ├── flows/                    ← end-to-end data flows (TDP/TDC/CCRP)
-├── guides/                   ← how-to guides (DEPA, templates, …)
+├── guides/                   ← how-to guides (DEPA, templates, **E2E lifecycle**, …)
 ├── training/                 ← role training modules + course
 ├── testing/                  ← QA, test data, E2E notes
 ├── implementation/           ← PRDs, service docs, active design notes
@@ -71,6 +72,7 @@ docs/
 ## By role
 
 ### End users & trainers
+- [guides/PARTICIPANT_ONBOARDING_AND_E2E_LIFECYCLE.md](guides/PARTICIPANT_ONBOARDING_AND_E2E_LIFECYCLE.md) — **canonical** onboarding, keys, datasets, models, signing, CCR, training, cleanup
 - [USER_GUIDE.md](USER_GUIDE.md)
 - [training/USER_TRAINING_GUIDE.md](training/USER_TRAINING_GUIDE.md)
 - [training/TDC_TRAINING_MODULE.md](training/TDC_TRAINING_MODULE.md) · [TDP](training/TDP_TRAINING_MODULE.md) · [CCRP](training/CCRP_TRAINING_MODULE.md) · [AppAdmin](training/APPADMIN_TRAINING_MODULE.md)

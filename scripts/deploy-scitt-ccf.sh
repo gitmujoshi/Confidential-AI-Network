@@ -109,15 +109,15 @@ wait_for_services() {
     
     local start_time=$(date +%s)
     local scitt_healthy=false
-    local ***REMOVED-DB_PASSWORD***_healthy=false
+    local postgres_healthy=false
     local redis_healthy=false
     
     while [ $(($(date +%s) - start_time)) -lt $TIMEOUT ]; do
         # Check PostgreSQL health
-        if docker-compose -f "$SCITT_COMPOSE_FILE" ps scitt-ccf-***REMOVED-DB_PASSWORD*** | grep -q "healthy"; then
-            if [ "$***REMOVED-DB_PASSWORD***_healthy" = false ]; then
+        if docker-compose -f "$SCITT_COMPOSE_FILE" ps scitt-ccf-postgres | grep -q "healthy"; then
+            if [ "$postgres_healthy" = false ]; then
                 log_success "PostgreSQL is healthy"
-                ***REMOVED-DB_PASSWORD***_healthy=true
+                postgres_healthy=true
             fi
         fi
         
@@ -138,7 +138,7 @@ wait_for_services() {
         fi
         
         # Check if all services are healthy
-        if [ "$***REMOVED-DB_PASSWORD***_healthy" = true ] && [ "$redis_healthy" = true ] && [ "$scitt_healthy" = true ]; then
+        if [ "$postgres_healthy" = true ] && [ "$redis_healthy" = true ] && [ "$scitt_healthy" = true ]; then
             log_success "All SCITT CCF services are healthy!"
             return 0
         fi

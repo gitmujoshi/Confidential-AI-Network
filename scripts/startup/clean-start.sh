@@ -105,8 +105,8 @@ wait_for_service "Keycloak" "8080" "http://localhost:8080/health"
 # Step 3: Setup Keycloak (if needed)
 print_status "Step 3: Setting up Keycloak configuration..."
 cd backend
-if [ -f "setup-***REMOVED-KEYCLOAK_DB_PASSWORD***-simple.js" ]; then
-    node setup-***REMOVED-KEYCLOAK_DB_PASSWORD***-simple.js
+if [ -f "setup-keycloak-simple.js" ]; then
+    node setup-keycloak-simple.js
 else
     print_warning "Keycloak setup script not found, skipping..."
 fi
@@ -172,7 +172,7 @@ echo "🔗 Access URLs:"
 echo "==============="
 echo "  Frontend: http://localhost:3000"
 echo "  Backend API: http://localhost:5001/api"
-echo "  Keycloak Admin: http://localhost:8080 (admin/***REMOVED-KEYCLOAK_ADMIN_PASSWORD***)"
+echo "  Keycloak Admin: http://localhost:8080 (admin/admin123)"
 echo ""
 echo "👤 Test Users:"
 echo "   TDC: tdc-test@example.com / password123"

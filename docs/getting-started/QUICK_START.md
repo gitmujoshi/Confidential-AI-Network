@@ -139,7 +139,7 @@ npm run test:login
 ./manage-scitt-ccf.sh stop
 
 # Stop other services
-docker-compose -f docker-compose.***REMOVED-KEYCLOAK_DB_PASSWORD***-persistent.yml down
+docker-compose -f docker-compose.keycloak-persistent.yml down
 pkill -f "node server.js"
 pkill -f "react-scripts"
 ```
@@ -175,7 +175,7 @@ npm test -- scitt-ccf-api.test.js
 ### **Test Data Verification**
 ```bash
 # Check if test data exists
-docker exec ***REMOVED-DB_PASSWORD***-app psql -U ***REMOVED-DB_PASSWORD*** -d contract_management -c "SELECT COUNT(*) FROM users;"
+docker exec postgres-app psql -U postgres -d contract_management -c "SELECT COUNT(*) FROM users;"
 
 # Expected results:
 # - 8 users (TDP, TDC, CCRP, Admin)
@@ -221,11 +221,11 @@ cd backend && node server.js
 ### **Keycloak Issues**
 ```bash
 # Restart Keycloak
-docker-compose -f docker-compose.***REMOVED-KEYCLOAK_DB_PASSWORD***-persistent.yml restart
+docker-compose -f docker-compose.keycloak-persistent.yml restart
 
 # Reset Keycloak completely
-docker-compose -f docker-compose.***REMOVED-KEYCLOAK_DB_PASSWORD***-persistent.yml down -v
-docker-compose -f docker-compose.***REMOVED-KEYCLOAK_DB_PASSWORD***-persistent.yml up -d
+docker-compose -f docker-compose.keycloak-persistent.yml down -v
+docker-compose -f docker-compose.keycloak-persistent.yml up -d
 ```
 
 ## 🎯 Next Steps

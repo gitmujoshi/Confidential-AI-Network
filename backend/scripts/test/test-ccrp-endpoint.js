@@ -1,7 +1,7 @@
 const axios = require('axios');
 const jwt = require('jsonwebtoken');
 
-const JWT_SECRET = '***REMOVED-HARDCODED-JWT***';
+const JWT_SECRET = '<jwt-secret>';
 
 async function testCCRPEndpoint() {
   try {

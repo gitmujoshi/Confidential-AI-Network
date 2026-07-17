@@ -32,7 +32,7 @@ This document identifies which setup/deployment scripts are **current and recomm
 # ✅ CURRENT - Individual fix scripts (but being replaced)
 ./fix-auth.sh                       # Authentication fix (legacy)
 ./fix-database-setup.sh             # Database setup fix
-./fix-***REMOVED-KEYCLOAK_DB_PASSWORD***.sh                   # Keycloak fix
+./fix-keycloak.sh                   # Keycloak fix
 ```
 
 #### **3. Development Scripts (CURRENT)**
@@ -48,7 +48,7 @@ This document identifies which setup/deployment scripts are **current and recomm
 #### **4. Docker Compose Files (CURRENT)**
 ```bash
 # ✅ CURRENT - Main development
-docker-compose.***REMOVED-KEYCLOAK_DB_PASSWORD***-dev.yml     # Keycloak with persistent storage
+docker-compose.keycloak-dev.yml     # Keycloak with persistent storage
 docker-compose.scitt-ccf-dev.yml    # SCITT CCF development
 
 # ✅ CURRENT - Production
@@ -68,8 +68,8 @@ npm run test                        # Run all tests
 npm run start                       # Start backend
 npm run dev                         # Development mode
 npm run setup                       # Setup Keycloak and sync users
-npm run ***REMOVED-KEYCLOAK_DB_PASSWORD***:setup              # Keycloak setup only
-npm run ***REMOVED-KEYCLOAK_DB_PASSWORD***:sync               # User sync only
+npm run keycloak:setup              # Keycloak setup only
+npm run keycloak:sync               # User sync only
 npm run test:login                  # Test authentication
 npm run status                      # Check service status
 ```
@@ -97,12 +97,12 @@ npm run status                      # Check service status
 
 #### **2. Old Docker Compose Files**
 ```bash
-# ❌ OUTDATED - Use docker-compose.***REMOVED-KEYCLOAK_DB_PASSWORD***-dev.yml instead
+# ❌ OUTDATED - Use docker-compose.keycloak-dev.yml instead
 docker-compose.dev.yml              # Old development setup
 docker-compose.fresh-setup.yml      # Old fresh setup
 docker-compose.https.yml            # Old HTTPS setup
-docker-compose.***REMOVED-KEYCLOAK_DB_PASSWORD***-https.yml   # Old Keycloak HTTPS
-docker-compose.***REMOVED-KEYCLOAK_DB_PASSWORD***-persistent.yml # Replaced by ***REMOVED-KEYCLOAK_DB_PASSWORD***-dev.yml
+docker-compose.keycloak-https.yml   # Old Keycloak HTTPS
+docker-compose.keycloak-persistent.yml # Replaced by keycloak-dev.yml
 docker-compose.backend.yml          # Old backend only
 docker-compose.test.yml             # Old test setup
 docker-compose.scitt-ccf-isolated.yml # Old isolated SCITT CCF
@@ -121,7 +121,7 @@ docker-compose.scitt-ccf-isolated.yml # Old isolated SCITT CCF
 ./cleanup-users.js.backup           # Backup file
 ./check-user-sync.js                # Replaced by unified scripts
 ./create-test-users.js              # Replaced by npm scripts
-./generate-***REMOVED-KEYCLOAK_DB_PASSWORD***-certs.sh        # Replaced by Docker setup
+./generate-keycloak-certs.sh        # Replaced by Docker setup
 ./generate-private-key.js           # Replaced by npm scripts
 ```
 
@@ -130,11 +130,11 @@ docker-compose.scitt-ccf-isolated.yml # Old isolated SCITT CCF
 #### **1. Old Backend Scripts**
 ```bash
 # ❌ OUTDATED - Use npm scripts instead
-backend/setup-***REMOVED-KEYCLOAK_DB_PASSWORD***-simple.js    # Replaced by setup-***REMOVED-KEYCLOAK_DB_PASSWORD***-persistent.js
-backend/fix-***REMOVED-KEYCLOAK_DB_PASSWORD***-client.js      # Replaced by unified fix scripts
-backend/list-***REMOVED-KEYCLOAK_DB_PASSWORD***-users.js      # Replaced by npm scripts
+backend/setup-keycloak-simple.js    # Replaced by setup-keycloak-persistent.js
+backend/fix-keycloak-client.js      # Replaced by unified fix scripts
+backend/list-keycloak-users.js      # Replaced by npm scripts
 backend/get-client-secret.js        # Replaced by npm scripts
-backend/sync-appadmin-from-***REMOVED-KEYCLOAK_DB_PASSWORD***.js # Replaced by sync-users-to-***REMOVED-KEYCLOAK_DB_PASSWORD***.js
+backend/sync-appadmin-from-keycloak.js # Replaced by sync-users-to-keycloak.js
 ```
 
 #### **2. Old Test Scripts**
@@ -157,7 +157,7 @@ backend/sync-appadmin-from-***REMOVED-KEYCLOAK_DB_PASSWORD***.js # Replaced by s
 | `build-system.sh` | Build system | ✅ **CURRENT** |
 | `scripts/config-loader.js` | Centralized config | ✅ **CURRENT** |
 | `scripts/fix-auth-unified.sh` | Unified auth fix | ✅ **CURRENT** |
-| `docker-compose.***REMOVED-KEYCLOAK_DB_PASSWORD***-dev.yml` | Keycloak setup | ✅ **CURRENT** |
+| `docker-compose.keycloak-dev.yml` | Keycloak setup | ✅ **CURRENT** |
 | `docker-compose.scitt-ccf-dev.yml` | SCITT CCF setup | ✅ **CURRENT** |
 | `npm run start` | Backend startup | ✅ **CURRENT** |
 | `npm run setup` | Backend setup | ✅ **CURRENT** |
@@ -171,10 +171,10 @@ backend/sync-appadmin-from-***REMOVED-KEYCLOAK_DB_PASSWORD***.js # Replaced by s
 | `clean-start.sh` | Old startup | `start-system.sh` |
 | `clean-stop.sh` | Old shutdown | `stop-system.sh` |
 | `deploy-ubuntu.sh` | Old deployment | `deployment/` folder |
-| `docker-compose.dev.yml` | Old Docker setup | `docker-compose.***REMOVED-KEYCLOAK_DB_PASSWORD***-dev.yml` |
-| `docker-compose.fresh-setup.yml` | Old fresh setup | `docker-compose.***REMOVED-KEYCLOAK_DB_PASSWORD***-dev.yml` |
+| `docker-compose.dev.yml` | Old Docker setup | `docker-compose.keycloak-dev.yml` |
+| `docker-compose.fresh-setup.yml` | Old fresh setup | `docker-compose.keycloak-dev.yml` |
 | `cleanup-old-scripts.sh` | Old cleanup | Manual cleanup |
-| `check-user-sync.js` | Old user sync | `npm run ***REMOVED-KEYCLOAK_DB_PASSWORD***:sync` |
+| `check-user-sync.js` | Old user sync | `npm run keycloak:sync` |
 | `create-test-users.js` | Old test users | `npm run setup` |
 
 ## 🚀 **Recommended Workflow**
@@ -226,7 +226,7 @@ rm deploy-ubuntu.sh
 rm cleanup-old-scripts.sh
 rm check-user-sync.js
 rm create-test-users.js
-rm generate-***REMOVED-KEYCLOAK_DB_PASSWORD***-certs.sh
+rm generate-keycloak-certs.sh
 rm generate-private-key.js
 rm test-es256-signing.js
 rm test-ui-scitt-ccf.sh
@@ -235,18 +235,18 @@ rm test-ui-scitt-ccf.sh
 rm docker-compose.dev.yml
 rm docker-compose.fresh-setup.yml
 rm docker-compose.https.yml
-rm docker-compose.***REMOVED-KEYCLOAK_DB_PASSWORD***-https.yml
-rm docker-compose.***REMOVED-KEYCLOAK_DB_PASSWORD***-persistent.yml
+rm docker-compose.keycloak-https.yml
+rm docker-compose.keycloak-persistent.yml
 rm docker-compose.backend.yml
 rm docker-compose.test.yml
 rm docker-compose.scitt-ccf-isolated.yml
 
 # Remove outdated backend scripts
-rm backend/setup-***REMOVED-KEYCLOAK_DB_PASSWORD***-simple.js
-rm backend/fix-***REMOVED-KEYCLOAK_DB_PASSWORD***-client.js
-rm backend/list-***REMOVED-KEYCLOAK_DB_PASSWORD***-users.js
+rm backend/setup-keycloak-simple.js
+rm backend/fix-keycloak-client.js
+rm backend/list-keycloak-users.js
 rm backend/get-client-secret.js
-rm backend/sync-appadmin-from-***REMOVED-KEYCLOAK_DB_PASSWORD***.js
+rm backend/sync-appadmin-from-keycloak.js
 ```
 
 ### **Files to Keep**
@@ -263,14 +263,14 @@ scripts/fix-auth-unified.sh
 scripts/fix-ssl-inconsistencies.sh
 
 # Keep current Docker Compose files
-docker-compose.***REMOVED-KEYCLOAK_DB_PASSWORD***-dev.yml
+docker-compose.keycloak-dev.yml
 docker-compose.scitt-ccf-dev.yml
 docker-compose.main.yml
 
 # Keep current fix scripts (until fully replaced)
 fix-auth.sh
 fix-database-setup.sh
-fix-***REMOVED-KEYCLOAK_DB_PASSWORD***.sh
+fix-keycloak.sh
 ```
 
 ## 📋 **Migration Checklist**

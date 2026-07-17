@@ -26,7 +26,7 @@ else
 fi
 
 # Check if we're in the right directory
-if [ ! -f "docker-compose.***REMOVED-KEYCLOAK_DB_PASSWORD***-dev.yml" ]; then
+if [ ! -f "docker-compose.keycloak-dev.yml" ]; then
     echo -e "${RED}❌ Please run this script from the project root directory${NC}"
     exit 1
 fi
@@ -34,7 +34,7 @@ fi
 # Step 1: Start Keycloak with persistent storage
 echo -e "${BLUE}🔐 Step 1: Starting Keycloak with persistent storage...${NC}"
 echo -e "${BLUE}   Using: ${KEYCLOAK_URL} (realm: ${KEYCLOAK_REALM})${NC}"
-docker-compose -f docker-compose.***REMOVED-KEYCLOAK_DB_PASSWORD***-dev.yml up -d
+docker-compose -f docker-compose.keycloak-dev.yml up -d
 
 # Wait for Keycloak to be ready
 echo -e "${BLUE}⏳ Waiting for Keycloak to be ready...${NC}"
@@ -102,7 +102,7 @@ else
 fi
 
 # Check Database
-if docker exec ***REMOVED-DB_PASSWORD***-cms pg_isready -U ***REMOVED-KEYCLOAK_DB_PASSWORD*** >/dev/null 2>&1; then
+if docker exec postgres-cms pg_isready -U keycloak >/dev/null 2>&1; then
     echo -e "${GREEN}✅ PostgreSQL Database is running${NC}"
 else
     echo -e "${RED}❌ PostgreSQL Database not accessible${NC}"

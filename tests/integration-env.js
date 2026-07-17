@@ -3,12 +3,12 @@
 
 const integrationEnv = {
   // Database configuration for integration tests
-  DATABASE_URL: '***REMOVED-DB_PASSWORD***ql://testuser:testpass@localhost:5433/contract_management_test',
+  DATABASE_URL: 'postgresql://testuser:testpass@localhost:5433/contract_management_test',
   
   // Keycloak configuration for integration tests
   KEYCLOAK_URL: 'http://localhost:8081',
   KEYCLOAK_ADMIN: 'admin',
-  KEYCLOAK_ADMIN_PASSWORD: '***REMOVED-KEYCLOAK_ADMIN_PASSWORD***',
+  KEYCLOAK_ADMIN_PASSWORD: 'admin123',
   KEYCLOAK_REALM: 'contract-management-test',
   KEYCLOAK_CLIENT_ID: 'backend-test',
   KEYCLOAK_CLIENT_SECRET: 'test-client-secret',

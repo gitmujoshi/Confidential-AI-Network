@@ -54,15 +54,15 @@ if [ -f "secrets.env" ]; then
 fi
 
 # Check if we're in the right directory
-if [ ! -f "docker-compose.***REMOVED-KEYCLOAK_DB_PASSWORD***-dev.yml" ]; then
+if [ ! -f "docker-compose.keycloak-dev.yml" ]; then
     echo -e "${RED}❌ Please run this script from the project root directory${NC}"
     exit 1
 fi
 
 # Check Docker services
 echo -e "${BLUE}🐳 Docker Services:${NC}"
-if docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}" | grep -E "(***REMOVED-DB_PASSWORD***|***REMOVED-KEYCLOAK_DB_PASSWORD***|scitt)" >/dev/null; then
-    docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}" | grep -E "(***REMOVED-DB_PASSWORD***|***REMOVED-KEYCLOAK_DB_PASSWORD***|scitt)"
+if docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}" | grep -E "(postgres|keycloak|scitt)" >/dev/null; then
+    docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}" | grep -E "(postgres|keycloak|scitt)"
 else
     echo -e "${RED}❌ No Docker services running${NC}"
 fi
@@ -128,7 +128,7 @@ fi
 echo -e "\n${BLUE}🧪 IAM Integration Test (using centralized config):${NC}"
 LOGIN_RESPONSE=$(curl -s -X POST "http://localhost:${BACKEND_PORT}/api/auth/login" \
     -H "Content-Type: application/json" \
-    -d '{"email":"admin@contractmanagement.com","password":"***REMOVED-KEYCLOAK_ADMIN_PASSWORD***"}' 2>/dev/null || echo "FAILED")
+    -d '{"email":"admin@contractmanagement.com","password":"admin123"}' 2>/dev/null || echo "FAILED")
 
 if echo "$LOGIN_RESPONSE" | grep -q "accessToken"; then
     echo -e "  Login Test: ${GREEN}✅ Success${NC}"

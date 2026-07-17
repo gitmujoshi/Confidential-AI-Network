@@ -93,9 +93,9 @@ deploy_with_helm() {
     kubectl create namespace training-environment --dry-run=client -o yaml | kubectl apply -f -
     
     # Deploy PostgreSQL
-    helm upgrade --install ***REMOVED-DB_PASSWORD***ql bitnami/***REMOVED-DB_PASSWORD***ql \
+    helm upgrade --install postgresql bitnami/postgresql \
         --namespace training-environment \
-        --set auth.***REMOVED-DB_PASSWORD***Password=training123 \
+        --set auth.postgresPassword=training123 \
         --set auth.database=contract_management_production \
         --set primary.persistence.size=100Gi \
         --wait
@@ -118,7 +118,7 @@ deploy_with_helm() {
     helm upgrade --install prometheus prometheus-community/kube-prometheus-stack \
         --namespace monitoring \
         --create-namespace \
-        --set grafana.adminPassword=***REMOVED-KEYCLOAK_ADMIN_PASSWORD*** \
+        --set grafana.adminPassword=admin123 \
         --wait
     
     # Deploy ELK Stack
@@ -150,7 +150,7 @@ deploy_application() {
     
     # Create secrets
     kubectl create secret generic database-secret \
-        --from-literal=host=***REMOVED-DB_PASSWORD***ql.training-environment.svc.cluster.local \
+        --from-literal=host=postgresql.training-environment.svc.cluster.local \
         --from-literal=password=training123 \
         --namespace=training-environment \
         --dry-run=client -o yaml | kubectl apply -f -

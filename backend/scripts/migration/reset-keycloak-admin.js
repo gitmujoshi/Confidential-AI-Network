@@ -4,7 +4,7 @@
  * This script helps reset the Keycloak admin password and ensure proper admin access.
  * 
  * Usage:
- * node scripts/reset-***REMOVED-KEYCLOAK_DB_PASSWORD***-admin.js
+ * node scripts/reset-keycloak-admin.js
  */
 
 const axios = require('axios');
@@ -12,7 +12,7 @@ const axios = require('axios');
 // Keycloak configuration
 const KEYCLOAK_BASE_URL = 'http://localhost:8080';
 const ADMIN_USERNAME = 'admin';
-const NEW_ADMIN_PASSWORD = '***REMOVED-KEYCLOAK_ADMIN_PASSWORD***';
+const NEW_ADMIN_PASSWORD = 'admin123';
 
 class KeycloakAdminReset {
   constructor() {
@@ -53,10 +53,10 @@ class KeycloakAdminReset {
   async getAdminToken() {
     // Try common admin passwords
     const commonPasswords = [
-      '***REMOVED-KEYCLOAK_ADMIN_PASSWORD***',
+      'admin123',
       'admin',
       'password',
-      '***REMOVED-KEYCLOAK_DB_PASSWORD***',
+      'keycloak',
       'master'
     ];
 
@@ -172,7 +172,7 @@ class KeycloakAdminReset {
         console.log('   2. Reset the admin password manually');
         console.log('   3. Or restart Keycloak with environment variables:');
         console.log('      KEYCLOAK_ADMIN=admin');
-        console.log('      KEYCLOAK_ADMIN_PASSWORD=***REMOVED-KEYCLOAK_ADMIN_PASSWORD***');
+        console.log('      KEYCLOAK_ADMIN_PASSWORD=admin123');
         return;
       }
 

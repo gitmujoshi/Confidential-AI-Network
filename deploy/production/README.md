@@ -110,12 +110,12 @@ export CLOUD_PROVIDER=aws  # or azure, gcp, oci
 DB_HOST=172.20.1.50
 DB_PORT=5432
 DB_NAME=contract_management
-DB_USER=***REMOVED-DB_PASSWORD***
+DB_USER=postgres
 DB_PASSWORD=secure_password
 
 # Keycloak Database
 KEYCLOAK_DB_HOST=172.20.1.60
-KEYCLOAK_DB_PASSWORD=***REMOVED-KEYCLOAK_DB_PASSWORD***_password
+KEYCLOAK_DB_PASSWORD=keycloak_password
 
 # SCITT Database
 SCITT_DB_PASSWORD=scitt_password

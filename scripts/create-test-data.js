@@ -832,7 +832,7 @@ class TestDataCreator {
         metrics: { uptime: 0.99, lastClaim: 'claim-123' }
       },
       {
-        systemName: '***REMOVED-KEYCLOAK_DB_PASSWORD***',
+        systemName: 'keycloak',
         healthStatus: true,
         responseTime: 200,
         errorMessage: null,

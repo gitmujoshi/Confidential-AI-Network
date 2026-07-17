@@ -53,7 +53,7 @@ Use the **current, recommended scripts** instead of outdated ones:
 
 # ❌ OUTDATED - Use unified scripts instead
 ./fix-auth.sh                       # Replaced by scripts/fix-auth-unified.sh
-./fix-***REMOVED-KEYCLOAK_DB_PASSWORD***.sh                   # Replaced by scripts/fix-auth-unified.sh
+./fix-keycloak.sh                   # Replaced by scripts/fix-auth-unified.sh
 ./fix-database-setup.sh             # Replaced by scripts/fix-auth-unified.sh
 ```
 
@@ -69,7 +69,7 @@ Use the **current, recommended scripts** instead of outdated ones:
 ## 📋 **Step-by-Step Setup Process**
 
 ### Prerequisites
-1. **Start Keycloak**: `docker-compose -f docker-compose.***REMOVED-KEYCLOAK_DB_PASSWORD***-dev.yml up -d`
+1. **Start Keycloak**: `docker-compose -f docker-compose.keycloak-dev.yml up -d`
 2. **Start Backend**: `cd backend && npm start`
 3. **Ensure Database**: PostgreSQL running with `contract_management` database
 
@@ -101,7 +101,7 @@ curl -X POST http://localhost:5001/api/auth/login \
 - **Client Type**: Public (no secret)
 - **Admin Console**: https://localhost:8443
 - **Admin Username**: `admin`
-- **Admin Password**: `***REMOVED-KEYCLOAK_ADMIN_PASSWORD***`
+- **Admin Password**: `admin123`
 
 ### Backend Configuration
 - **URL**: http://localhost:5001
@@ -134,7 +134,7 @@ All users use password: `password123`
 ./clean-start.sh
 ./clean-stop.sh
 ./fix-auth.sh
-./fix-***REMOVED-KEYCLOAK_DB_PASSWORD***.sh
+./fix-keycloak.sh
 ./fix-database-setup.sh
 ```
 
@@ -165,7 +165,7 @@ When login fails, check these in order:
    ```bash
    curl -k -X POST https://localhost:8443/realms/master/protocol/openid-connect/token \
      -H "Content-Type: application/x-www-form-urlencoded" \
-     -d "grant_type=password&client_id=admin-cli&username=admin&password=***REMOVED-KEYCLOAK_ADMIN_PASSWORD***"
+     -d "grant_type=password&client_id=admin-cli&username=admin&password=admin123"
    ```
 
 4. **Does the client exist?**
@@ -215,14 +215,14 @@ If the current recommended scripts don't work:
    ```bash
    # Stop all services
    pkill -f "node server.js"
-   docker-compose -f docker-compose.***REMOVED-KEYCLOAK_DB_PASSWORD***-dev.yml down
+   docker-compose -f docker-compose.keycloak-dev.yml down
    
    # Clear database (if needed)
    dropdb contract_management
    createdb contract_management
    
    # Restart services
-   docker-compose -f docker-compose.***REMOVED-KEYCLOAK_DB_PASSWORD***-dev.yml up -d
+   docker-compose -f docker-compose.keycloak-dev.yml up -d
    cd backend && npm start &
    
    # Run current setup
@@ -235,7 +235,7 @@ If the current recommended scripts don't work:
    tail -f logs/backend.log
    
    # Keycloak logs
-   docker-compose -f docker-compose.***REMOVED-KEYCLOAK_DB_PASSWORD***-dev.yml logs ***REMOVED-KEYCLOAK_DB_PASSWORD***
+   docker-compose -f docker-compose.keycloak-dev.yml logs keycloak
    ```
 
 3. **Manual Verification**:

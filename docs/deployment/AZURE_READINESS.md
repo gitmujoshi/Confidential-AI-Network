@@ -142,7 +142,7 @@ az account set --subscription "<subscription-id>"
 # Platform Terraform
 cd deployment/azure/terraform
 cp terraform.tfvars.example terraform.tfvars
-# Edit subscription_id, location, db_password, ***REMOVED-KEYCLOAK_DB_PASSWORD***_admin_password
+# Edit subscription_id, location, db_password, keycloak_admin_password
 ./deploy.sh
 
 # Or simpler VM path

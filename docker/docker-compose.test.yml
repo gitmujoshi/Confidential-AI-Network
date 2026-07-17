@@ -1,8 +1,8 @@
 services:
   # PostgreSQL Database for testing
-  ***REMOVED-DB_PASSWORD***-test:
-    image: ***REMOVED-DB_PASSWORD***:15
-    container_name: contract-management-***REMOVED-DB_PASSWORD***-test
+  postgres-test:
+    image: postgres:15
+    container_name: contract-management-postgres-test
     environment:
       POSTGRES_DB: contract_management_test
       POSTGRES_USER: testuser
@@ -10,7 +10,7 @@ services:
     ports:
       - "5433:5432"  # Different port to avoid conflicts
     volumes:
-      - ***REMOVED-DB_PASSWORD***_test_data:/var/lib/***REMOVED-DB_PASSWORD***ql/data
+      - postgres_test_data:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U testuser -d contract_management_test"]
       interval: 10s
@@ -18,14 +18,14 @@ services:
       retries: 5
 
   # Keycloak for authentication testing
-  ***REMOVED-KEYCLOAK_DB_PASSWORD***-test:
-    image: quay.io/***REMOVED-KEYCLOAK_DB_PASSWORD***/***REMOVED-KEYCLOAK_DB_PASSWORD***:23.0
-    container_name: contract-management-***REMOVED-KEYCLOAK_DB_PASSWORD***-test
+  keycloak-test:
+    image: quay.io/keycloak/keycloak:23.0
+    container_name: contract-management-keycloak-test
     environment:
       KEYCLOAK_ADMIN: admin
-      KEYCLOAK_ADMIN_PASSWORD: ***REMOVED-KEYCLOAK_ADMIN_PASSWORD***
-      KC_DB: ***REMOVED-DB_PASSWORD***
-      KC_DB_URL: jdbc:***REMOVED-DB_PASSWORD***ql://***REMOVED-DB_PASSWORD***-test:5432/***REMOVED-KEYCLOAK_DB_PASSWORD***_test
+      KEYCLOAK_ADMIN_PASSWORD: admin123
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://postgres-test:5432/keycloak_test
       KC_DB_USERNAME: testuser
       KC_DB_PASSWORD: testpass
       KC_HEALTH_ENABLED: true
@@ -33,7 +33,7 @@ services:
     ports:
       - "8081:8080"  # Different port to avoid conflicts
     depends_on:
-      ***REMOVED-DB_PASSWORD***-test:
+      postgres-test:
         condition: service_healthy
     command: start-dev
     healthcheck:
@@ -70,7 +70,7 @@ services:
         npx hardhat node --host 0.0.0.0 --port 8545
       "
     depends_on:
-      - ***REMOVED-DB_PASSWORD***-test
+      - postgres-test
     healthcheck:
       test: ["CMD", "curl", "-f", "-X", "POST", "-H", "Content-Type: application/json", "--data", '{"jsonrpc":"2.0","method":"eth_blockNumber","params":[],"id":1}', "http://localhost:8545"]
       interval: 10s
@@ -78,4 +78,4 @@ services:
       retries: 5
 
 volumes:
-  ***REMOVED-DB_PASSWORD***_test_data: 
+  postgres_test_data: 

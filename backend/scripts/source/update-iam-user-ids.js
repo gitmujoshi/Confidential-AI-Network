@@ -5,7 +5,7 @@ const { User } = require('../../models');
 const KEYCLOAK_BASE_URL = 'http://localhost:8080';
 const KEYCLOAK_REALM = 'contract-management';
 const KEYCLOAK_ADMIN_USERNAME = 'admin';
-const KEYCLOAK_ADMIN_PASSWORD = '***REMOVED-KEYCLOAK_ADMIN_PASSWORD***';
+const KEYCLOAK_ADMIN_PASSWORD = 'admin123';
 
 // Function to get Keycloak admin token
 async function getKeycloakToken() {
@@ -49,33 +49,33 @@ async function getKeycloakUsers(token) {
 }
 
 // Function to update database users with Keycloak IDs
-async function updateDatabaseUsers(***REMOVED-KEYCLOAK_DB_PASSWORD***Users) {
+async function updateDatabaseUsers(keycloakUsers) {
   console.log('🔄 Updating database users with Keycloak IDs...');
   
   let updatedCount = 0;
   let errorCount = 0;
   
-  for (const ***REMOVED-KEYCLOAK_DB_PASSWORD***User of ***REMOVED-KEYCLOAK_DB_PASSWORD***Users) {
+  for (const keycloakUser of keycloakUsers) {
     try {
       // Find the database user by email (username in Keycloak)
       const dbUser = await User.findOne({
-        where: { email: ***REMOVED-KEYCLOAK_DB_PASSWORD***User.username }
+        where: { email: keycloakUser.username }
       });
       
       if (dbUser) {
         // Update the user with Keycloak ID
         await dbUser.update({
-          iamUserId: ***REMOVED-KEYCLOAK_DB_PASSWORD***User.id,
-          iamUsername: ***REMOVED-KEYCLOAK_DB_PASSWORD***User.username
+          iamUserId: keycloakUser.id,
+          iamUsername: keycloakUser.username
         });
         
-        console.log(`✅ Updated: ${dbUser.name} (${dbUser.email}) with Keycloak ID: ${***REMOVED-KEYCLOAK_DB_PASSWORD***User.id}`);
+        console.log(`✅ Updated: ${dbUser.name} (${dbUser.email}) with Keycloak ID: ${keycloakUser.id}`);
         updatedCount++;
       } else {
-        console.log(`⚠️ No database user found for Keycloak user: ${***REMOVED-KEYCLOAK_DB_PASSWORD***User.username}`);
+        console.log(`⚠️ No database user found for Keycloak user: ${keycloakUser.username}`);
       }
     } catch (error) {
-      console.error(`❌ Failed to update user ${***REMOVED-KEYCLOAK_DB_PASSWORD***User.username}:`, error.message);
+      console.error(`❌ Failed to update user ${keycloakUser.username}:`, error.message);
       errorCount++;
     }
   }
@@ -95,17 +95,17 @@ async function updateIAMUserIDs() {
 
     // Get users from Keycloak
     console.log('📊 Fetching users from Keycloak...');
-    const ***REMOVED-KEYCLOAK_DB_PASSWORD***Users = await getKeycloakUsers(token);
-    console.log(`📋 Found ${***REMOVED-KEYCLOAK_DB_PASSWORD***Users.length} users in Keycloak`);
+    const keycloakUsers = await getKeycloakUsers(token);
+    console.log(`📋 Found ${keycloakUsers.length} users in Keycloak`);
 
     // Update database users
-    const { updatedCount, errorCount } = await updateDatabaseUsers(***REMOVED-KEYCLOAK_DB_PASSWORD***Users);
+    const { updatedCount, errorCount } = await updateDatabaseUsers(keycloakUsers);
 
     // Summary
     console.log('\n📊 Update Summary:');
     console.log(`✅ Successfully updated: ${updatedCount} users`);
     console.log(`❌ Failed to update: ${errorCount} users`);
-    console.log(`📋 Total Keycloak users: ${***REMOVED-KEYCLOAK_DB_PASSWORD***Users.length}`);
+    console.log(`📋 Total Keycloak users: ${keycloakUsers.length}`);
 
     if (errorCount === 0) {
       console.log('🎉 All users updated successfully!');

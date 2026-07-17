@@ -35,7 +35,7 @@ chmod 755 start-system.sh stop-system.sh
 
 # Backend service files - READ-ONLY
 print_status "🔧 Setting backend service files to read-only..." $YELLOW
-chmod 444 backend/services/***REMOVED-KEYCLOAK_DB_PASSWORD***Service.js backend/services/scittCcfService.js
+chmod 444 backend/services/keycloakService.js backend/services/scittCcfService.js
 chmod 444 backend/server.js
 
 # Frontend service files - READ-ONLY

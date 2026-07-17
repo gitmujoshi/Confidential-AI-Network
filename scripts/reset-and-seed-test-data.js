@@ -56,8 +56,8 @@ async function wipeKeycloakUsers() {
   if (/localhost|127\.0\.0\.1/.test(process.env.KEYCLOAK_URL || '')) {
     process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
   }
-  const KeycloakService = require(path.join(ROOT, 'backend/services/***REMOVED-KEYCLOAK_DB_PASSWORD***Service'));
-  const ***REMOVED-KEYCLOAK_DB_PASSWORD*** = new KeycloakService();
+  const KeycloakService = require(path.join(ROOT, 'backend/services/keycloakService'));
+  const keycloak = new KeycloakService();
 
   let deleted = 0;
   let pass = 0;
@@ -65,14 +65,14 @@ async function wipeKeycloakUsers() {
     pass += 1;
     let users = [];
     try {
-      users = await ***REMOVED-KEYCLOAK_DB_PASSWORD***.getUsers({ max: 500 });
+      users = await keycloak.getUsers({ max: 500 });
     } catch (err) {
       console.warn(`⚠️  Could not list Keycloak users: ${err.message}`);
       break;
     }
     if (!users.length) break;
     for (const user of users) {
-      const ok = await ***REMOVED-KEYCLOAK_DB_PASSWORD***.deleteUser(user.id);
+      const ok = await keycloak.deleteUser(user.id);
       if (ok) {
         deleted += 1;
         console.log(`   deleted ${user.email || user.username || user.id}`);
@@ -128,7 +128,7 @@ async function ensureKeycloakRoles() {
   if (SKIP_KEYCLOAK || process.env.KEYCLOAK_ENABLED !== 'true') return;
   console.log('\n🔐 Syncing Keycloak realm roles (TSP, etc.)...');
   try {
-    execSync('node setup-***REMOVED-KEYCLOAK_DB_PASSWORD***.js', {
+    execSync('node setup-keycloak.js', {
       cwd: path.join(ROOT, 'backend'),
       stdio: 'inherit',
       env: process.env,

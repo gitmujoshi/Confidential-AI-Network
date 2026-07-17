@@ -1,14 +1,14 @@
 services:
-  ***REMOVED-KEYCLOAK_DB_PASSWORD***:
-    image: quay.io/***REMOVED-KEYCLOAK_DB_PASSWORD***/***REMOVED-KEYCLOAK_DB_PASSWORD***:latest
-    container_name: ***REMOVED-KEYCLOAK_DB_PASSWORD***-cms
+  keycloak:
+    image: quay.io/keycloak/keycloak:latest
+    container_name: keycloak-cms
     environment:
       KEYCLOAK_ADMIN: admin
-      KEYCLOAK_ADMIN_PASSWORD: ***REMOVED-KEYCLOAK_ADMIN_PASSWORD***
-      KC_DB: ***REMOVED-DB_PASSWORD***
-      KC_DB_URL: jdbc:***REMOVED-DB_PASSWORD***ql://***REMOVED-DB_PASSWORD***:5432/***REMOVED-KEYCLOAK_DB_PASSWORD***
-      KC_DB_USERNAME: ***REMOVED-KEYCLOAK_DB_PASSWORD***
-      KC_DB_PASSWORD: ***REMOVED-KEYCLOAK_DB_PASSWORD***
+      KEYCLOAK_ADMIN_PASSWORD: admin123
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://postgres:5432/keycloak
+      KC_DB_USERNAME: keycloak
+      KC_DB_PASSWORD: keycloak
       KC_HOSTNAME_STRICT: false
       KC_HOSTNAME_STRICT_HTTPS: false
       KC_HTTP_ENABLED: true
@@ -17,31 +17,31 @@ services:
     ports:
       - "8080:8080"
     volumes:
-      - ***REMOVED-KEYCLOAK_DB_PASSWORD***_data:/opt/***REMOVED-KEYCLOAK_DB_PASSWORD***/data
-      - ./***REMOVED-KEYCLOAK_DB_PASSWORD***-config:/opt/***REMOVED-KEYCLOAK_DB_PASSWORD***/conf
+      - keycloak_data:/opt/keycloak/data
+      - ./keycloak-config:/opt/keycloak/conf
     depends_on:
-      - ***REMOVED-DB_PASSWORD***
+      - postgres
     networks:
       - cms-network
 
-  ***REMOVED-DB_PASSWORD***:
-    image: ***REMOVED-DB_PASSWORD***:15
-    container_name: ***REMOVED-DB_PASSWORD***-cms
+  postgres:
+    image: postgres:15
+    container_name: postgres-cms
     environment:
-      POSTGRES_DB: ***REMOVED-KEYCLOAK_DB_PASSWORD***
-      POSTGRES_USER: ***REMOVED-KEYCLOAK_DB_PASSWORD***
-      POSTGRES_PASSWORD: ***REMOVED-KEYCLOAK_DB_PASSWORD***
+      POSTGRES_DB: keycloak
+      POSTGRES_USER: keycloak
+      POSTGRES_PASSWORD: keycloak
     volumes:
-      - ***REMOVED-DB_PASSWORD***_data:/var/lib/***REMOVED-DB_PASSWORD***ql/data
+      - postgres_data:/var/lib/postgresql/data
     ports:
       - "5434:5432"
     networks:
       - cms-network
 
 volumes:
-  ***REMOVED-KEYCLOAK_DB_PASSWORD***_data:
+  keycloak_data:
     driver: local
-  ***REMOVED-DB_PASSWORD***_data:
+  postgres_data:
     driver: local
 
 networks:

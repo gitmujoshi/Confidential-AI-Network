@@ -353,13 +353,13 @@
 const transaction = await db.sequelize.transaction();
 try {
   // Step 1: Create in Keycloak
-  const ***REMOVED-KEYCLOAK_DB_PASSWORD***Result = await ***REMOVED-KEYCLOAK_DB_PASSWORD***Service.createUser(userData);
+  const keycloakResult = await keycloakService.createUser(userData);
   
   // Step 2: Create in database
   const dbUser = await db.User.create({
     // ... user data
     depaId: depaIdService.generateUserDEPAId(partyType),
-    iamUserId: ***REMOVED-KEYCLOAK_DB_PASSWORD***Result.***REMOVED-KEYCLOAK_DB_PASSWORD***UserId
+    iamUserId: keycloakResult.keycloakUserId
   }, { transaction });
   
   // Step 3: Create notification
@@ -394,7 +394,7 @@ const isVerified = await didService.verifyDIDOwnership(
 );
 </code></pre></p><p>### 3. Enterprise Identity Management</p>#### 3.1 Keycloak Integration
 <pre><code class="language-javascript">// Keycloak user creation
-const ***REMOVED-KEYCLOAK_DB_PASSWORD***UserData = {
+const keycloakUserData = {
   username: userData.email,
   email: userData.email,
   firstName: userData.name?.split(' ')[0]</td>|  | '',
@@ -1270,7 +1270,7 @@ AppAdmin",
         code: 'TOKEN_BLACKLISTED'
       });
     }</p><p>    // Validate with Keycloak
-    const validationResult = await ***REMOVED-KEYCLOAK_DB_PASSWORD***Service.validateToken(token);
+    const validationResult = await keycloakService.validateToken(token);
     
     if (validationResult.valid) {
       // Find user by iamUsername
@@ -1283,7 +1283,7 @@ AppAdmin",
         ...validationResult.user,
         localUser: user,
         token: token,
-        authType: '***REMOVED-KEYCLOAK_DB_PASSWORD***'
+        authType: 'keycloak'
       };</p><p>      return next();
     }
   } catch (error) {
@@ -2153,7 +2153,7 @@ KEYCLOAK_REALM=contract-management
 KEYCLOAK_CLIENT_ID=contract-management-backend
 KEYCLOAK_CLIENT_SECRET=your_client_secret_here
 KEYCLOAK_ADMIN_USERNAME=admin
-KEYCLOAK_ADMIN_PASSWORD=***REMOVED-KEYCLOAK_ADMIN_PASSWORD***
+KEYCLOAK_ADMIN_PASSWORD=admin123
 KEYCLOAK_ENABLED=true</p><p># Security</p><p>SESSION_SECRET=your-super-secret-session-key-here
 CORS_ORIGIN=https://app.company.com</p><p># Rate Limiting</p><p>RATE_LIMIT_WINDOW_MS=900000
 RATE_LIMIT_MAX_REQUESTS=100

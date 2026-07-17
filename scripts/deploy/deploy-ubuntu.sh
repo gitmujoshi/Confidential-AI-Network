@@ -83,7 +83,7 @@ fi
 
 # Install PostgreSQL client
 print_status "Installing PostgreSQL client..."
-sudo apt install -y ***REMOVED-DB_PASSWORD***ql-client
+sudo apt install -y postgresql-client
 print_success "PostgreSQL client installed"
 
 # Create application directory
@@ -111,8 +111,8 @@ cat > config.env << 'EOF'
 DB_HOST=localhost
 DB_PORT=5432
 DB_NAME=contract_management
-DB_USER=***REMOVED-DB_PASSWORD***
-DB_PASSWORD=***REMOVED-DB_PASSWORD***123
+DB_USER=postgres
+DB_PASSWORD=postgres123
 
 # Keycloak Configuration
 KEYCLOAK_URL=https://localhost:8443
@@ -120,7 +120,7 @@ KEYCLOAK_REALM=contract-management
 KEYCLOAK_CLIENT_ID=contract-management-client
 KEYCLOAK_CLIENT_SECRET=
 KEYCLOAK_ADMIN_USERNAME=admin
-KEYCLOAK_ADMIN_PASSWORD=***REMOVED-KEYCLOAK_ADMIN_PASSWORD***
+KEYCLOAK_ADMIN_PASSWORD=admin123
 KEYCLOAK_ENABLED=true
 
 # SCITT CCF Configuration
@@ -172,7 +172,7 @@ sleep 30
 echo "🔍 Checking service health..."
 
 # Check PostgreSQL
-if docker exec ***REMOVED-DB_PASSWORD*** pg_isready -U ***REMOVED-DB_PASSWORD*** > /dev/null 2>&1; then
+if docker exec postgres pg_isready -U postgres > /dev/null 2>&1; then
     echo "✅ PostgreSQL is ready"
 else
     echo "❌ PostgreSQL is not ready"
@@ -261,8 +261,8 @@ echo "=================================="
 
 # Check Docker services
 echo "📦 Docker Services:"
-if docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}" | grep -E "(***REMOVED-DB_PASSWORD***|***REMOVED-KEYCLOAK_DB_PASSWORD***|contract)" > /dev/null; then
-    docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}" | grep -E "(***REMOVED-DB_PASSWORD***|***REMOVED-KEYCLOAK_DB_PASSWORD***|contract)"
+if docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}" | grep -E "(postgres|keycloak|contract)" > /dev/null; then
+    docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}" | grep -E "(postgres|keycloak|contract)"
 else
     echo "❌ No Docker services running"
 fi
@@ -404,16 +404,16 @@ run_compose "docker-compose.main.yml" down
 
 ## 🔐 Default Credentials
 
-- **Keycloak Admin**: admin / ***REMOVED-KEYCLOAK_ADMIN_PASSWORD***
-- **Database**: ***REMOVED-DB_PASSWORD*** / ***REMOVED-DB_PASSWORD***123
+- **Keycloak Admin**: admin / admin123
+- **Database**: postgres / postgres123
 
 ## 🛠️ Troubleshooting
 
 ### Check logs:
 ```bash
 # Docker logs
-docker logs ***REMOVED-KEYCLOAK_DB_PASSWORD***-cms
-docker logs ***REMOVED-DB_PASSWORD***
+docker logs keycloak-cms
+docker logs postgres
 
 # Application logs
 tail -f backend/logs/app.log

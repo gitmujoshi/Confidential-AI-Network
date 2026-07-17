@@ -21,6 +21,7 @@ This guide helps you use the Contract Management System effectively. The system 
 - **AppAdmin**: System administration and management
 
 ### **Where to go next**
+- **Full onboarding + E2E lifecycle (canonical)**: [`docs/guides/PARTICIPANT_ONBOARDING_AND_E2E_LIFECYCLE.md`](guides/PARTICIPANT_ONBOARDING_AND_E2E_LIFECYCLE.md)
 - **Training workflows**: `docs/training/USER_TRAINING_GUIDE.md`
 - **Contract signing details**: `docs/CONTRACT_SIGNING_USER_GUIDE.md`
 - **Admin operations**: `docs/ADMIN_GUIDE.md`

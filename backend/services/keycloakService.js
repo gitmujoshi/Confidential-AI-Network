@@ -211,7 +211,7 @@ class KeycloakService {
       // Prepare user data for Keycloak
       const rawFirst = userData.name?.split(' ')[0] || '';
       const rawLast = userData.name?.split(' ').slice(1).join(' ') || '';
-      const ***REMOVED-KEYCLOAK_DB_PASSWORD***UserData = {
+      const keycloakUserData = {
         username: userData.email,
         email: userData.email,
         firstName: sanitizeKeycloakNamePart(rawFirst) || sanitizeKeycloakNamePart(userData.name || '') || 'User',
@@ -235,7 +235,7 @@ class KeycloakService {
 
       const response = await axios.post(
         `${this.baseUrl}/admin/realms/${this.realm}/users`,
-        ***REMOVED-KEYCLOAK_DB_PASSWORD***UserData,
+        keycloakUserData,
         {
           headers: {
             'Authorization': `Bearer ${adminToken}`,
@@ -265,7 +265,7 @@ class KeycloakService {
       }
 
       return {
-        ***REMOVED-KEYCLOAK_DB_PASSWORD***UserId: userId,
+        keycloakUserId: userId,
         temporaryPassword: password, // Return the actual password used
         username: userData.email,
         email: userData.email
@@ -316,7 +316,7 @@ class KeycloakService {
           }
 
           return {
-            ***REMOVED-KEYCLOAK_DB_PASSWORD***UserId: existingId,
+            keycloakUserId: existingId,
             temporaryPassword: password,
             username: userData.email,
             email: userData.email,
@@ -657,15 +657,15 @@ class KeycloakService {
 
       // Extract user information from token with explicit username-to-email mapping
       // Keycloak username attribute should be mapped to email in database
-      const ***REMOVED-KEYCLOAK_DB_PASSWORD***Username = payload.preferred_username || payload.username;
-      const ***REMOVED-KEYCLOAK_DB_PASSWORD***Email = payload.email;
+      const keycloakUsername = payload.preferred_username || payload.username;
+      const keycloakEmail = payload.email;
       
       // Use email if available, otherwise use username (which should be email)
-      const email = ***REMOVED-KEYCLOAK_DB_PASSWORD***Email || ***REMOVED-KEYCLOAK_DB_PASSWORD***Username;
+      const email = keycloakEmail || keycloakUsername;
       
       const userInfo = {
         email: email,
-        username: ***REMOVED-KEYCLOAK_DB_PASSWORD***Username, // Keep original username for reference
+        username: keycloakUsername, // Keep original username for reference
         name: payload.name,
         walletAddress: payload.walletAddress,
         partyType: payload.partyType,

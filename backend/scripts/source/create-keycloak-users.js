@@ -4,7 +4,7 @@
  * This script creates the test users in Keycloak with the correct passwords.
  * 
  * Usage:
- * node scripts/source/create-***REMOVED-KEYCLOAK_DB_PASSWORD***-users.js
+ * node scripts/source/create-keycloak-users.js
  */
 
 const axios = require('axios');
@@ -13,7 +13,7 @@ const axios = require('axios');
 const KEYCLOAK_BASE_URL = 'http://localhost:8080';
 const KEYCLOAK_REALM = 'contract-management';
 const KEYCLOAK_ADMIN_USERNAME = 'admin';
-const KEYCLOAK_ADMIN_PASSWORD = '***REMOVED-KEYCLOAK_ADMIN_PASSWORD***';
+const KEYCLOAK_ADMIN_PASSWORD = 'admin123';
 
 // Test users to create
 const testUsers = [
@@ -174,17 +174,17 @@ async function assignRoleToUser(token, userId, roleName) {
 }
 
 // Function to update database with Keycloak user ID
-async function updateDatabaseUser(email, ***REMOVED-KEYCLOAK_DB_PASSWORD***UserId) {
+async function updateDatabaseUser(email, keycloakUserId) {
   try {
     const { User } = require('../../models');
     
     const user = await User.findOne({ where: { email } });
     if (user) {
       await user.update({
-        iamUserId: ***REMOVED-KEYCLOAK_DB_PASSWORD***UserId,
+        iamUserId: keycloakUserId,
         iamUsername: email
       });
-      console.log(`✅ Updated database user ${email} with Keycloak ID: ${***REMOVED-KEYCLOAK_DB_PASSWORD***UserId}`);
+      console.log(`✅ Updated database user ${email} with Keycloak ID: ${keycloakUserId}`);
     }
   } catch (error) {
     console.error(`❌ Failed to update database user ${email}:`, error.message);
@@ -209,14 +209,14 @@ async function createKeycloakUsers() {
         console.log(`👤 Creating user: ${userData.email} (${userData.partyType})`);
         
         // Create user in Keycloak
-        const ***REMOVED-KEYCLOAK_DB_PASSWORD***UserId = await createKeycloakUser(token, userData);
+        const keycloakUserId = await createKeycloakUser(token, userData);
         
-        if (***REMOVED-KEYCLOAK_DB_PASSWORD***UserId) {
+        if (keycloakUserId) {
           // Assign role
-          await assignRoleToUser(token, ***REMOVED-KEYCLOAK_DB_PASSWORD***UserId, userData.partyType);
+          await assignRoleToUser(token, keycloakUserId, userData.partyType);
           
           // Update database
-          await updateDatabaseUser(userData.email, ***REMOVED-KEYCLOAK_DB_PASSWORD***UserId);
+          await updateDatabaseUser(userData.email, keycloakUserId);
           
           console.log(`✅ User ${userData.email} created successfully`);
           createdCount++;

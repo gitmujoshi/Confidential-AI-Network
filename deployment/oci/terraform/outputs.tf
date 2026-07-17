@@ -74,7 +74,7 @@ output "backend_url" {
   value       = "http://${module.load_balancer.lb_ip}:5000"
 }
 
-output "***REMOVED-KEYCLOAK_DB_PASSWORD***_url" {
+output "keycloak_url" {
   description = "Keycloak admin console URL"
   value       = "http://${module.load_balancer.lb_ip}:8080"
 }

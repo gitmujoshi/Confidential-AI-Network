@@ -8,12 +8,12 @@ const { Sequelize } = require('sequelize');
 // Connect to database
 const sequelize = new Sequelize(
   'contract_management',
-  '***REMOVED-DB_PASSWORD***',
-  '***REMOVED-DB_PASSWORD***',
+  'postgres',
+  'postgres',
   {
     host: 'localhost',
     port: 5432,
-    dialect: '***REMOVED-DB_PASSWORD***',
+    dialect: 'postgres',
     logging: false
   }
 );
@@ -309,12 +309,12 @@ async function displaySummary() {
   try {
     const sequelize = new Sequelize(
       'contract_management',
-      '***REMOVED-DB_PASSWORD***',
-      '***REMOVED-DB_PASSWORD***',
+      'postgres',
+      'postgres',
       {
         host: 'localhost',
         port: 5432,
-        dialect: '***REMOVED-DB_PASSWORD***',
+        dialect: 'postgres',
         logging: false
       }
     );

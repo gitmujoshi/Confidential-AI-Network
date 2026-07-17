@@ -110,6 +110,6 @@ module "kubernetes_resources" {
   release_version         = var.release_version
   app_domain              = var.app_domain
   environment             = var.environment
-  ***REMOVED-KEYCLOAK_DB_PASSWORD***_admin_username = var.***REMOVED-KEYCLOAK_DB_PASSWORD***_admin_username
-  ***REMOVED-KEYCLOAK_DB_PASSWORD***_admin_password = var.***REMOVED-KEYCLOAK_DB_PASSWORD***_admin_password
+  keycloak_admin_username = var.keycloak_admin_username
+  keycloak_admin_password = var.keycloak_admin_password
 }

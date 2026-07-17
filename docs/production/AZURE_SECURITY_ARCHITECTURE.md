@@ -69,8 +69,8 @@ Collect: **subscription ID**, **tenant ID**, bootstrap **service principal** or 
 2. **Key Vault** — create vault in `can-dev-data-rg`; enable purge protection in staging/prod.
 3. **Key Vault secrets** (dev placeholders):
    - `can-dev-db-password`
-   - `can-dev-***REMOVED-KEYCLOAK_DB_PASSWORD***-client-secret`
-   - `can-dev-***REMOVED-KEYCLOAK_DB_PASSWORD***-admin-password`
+   - `can-dev-keycloak-client-secret`
+   - `can-dev-keycloak-admin-password`
 4. **Storage accounts** — Terraform state (`canterraformstate`), datasets, training artifacts per env.
 5. **Log Analytics** — workspace `can-dev-logs`; diagnostic settings on all edge resources.
 6. **Configure Terraform remote state** → Azure Storage backend.
@@ -99,8 +99,8 @@ terraform apply -var-file=terraform.tfvars
 
 Creates: VNet, public + private subnets, NAT Gateway, NSGs, private DNS zones.
 
-3. **Apply NSG default-deny model** — §5.4 (`nsg-appgw-ingress`, `nsg-aks-nodes`, `nsg-***REMOVED-DB_PASSWORD***`).
-4. **Private DNS** — `backend.can-dev.internal`, `***REMOVED-KEYCLOAK_DB_PASSWORD***.can-dev.internal`.
+3. **Apply NSG default-deny model** — §5.4 (`nsg-appgw-ingress`, `nsg-aks-nodes`, `nsg-postgres`).
+4. **Private DNS** — `backend.can-dev.internal`, `keycloak.can-dev.internal`.
 5. **Azure Bastion** — in `can-dev-network-rg`; no SSH from `0.0.0.0/0`.
 
 **Exit criteria:** Private subnet routes `0.0.0.0/0` → NAT; AKS nodes have no public IPs.
@@ -349,7 +349,7 @@ Keycloak remains **application authorization** (roles: TDC, TDP, CCRP, AppAdmin)
 |-----|---------|--------|
 | `nsg-appgw-ingress` | 443 from Front Door / Internet | To AKS ingress |
 | `nsg-aks-nodes` | From App Gateway only | NAT + Azure services |
-| `nsg-***REMOVED-DB_PASSWORD***` | 5432 from AKS subnet only | Deny all |
+| `nsg-postgres` | 5432 from AKS subnet only | Deny all |
 
 ---
 
@@ -476,7 +476,7 @@ Verified **2026-06-16**.
 - [Azure Front Door](https://learn.microsoft.com/azure/frontdoor/)
 - [API Management](https://learn.microsoft.com/azure/api-management/)
 - [Azure Key Vault](https://learn.microsoft.com/azure/key-vault/)
-- [PostgreSQL Flexible Server](https://learn.microsoft.com/azure/***REMOVED-DB_PASSWORD***ql/flexible-server/)
+- [PostgreSQL Flexible Server](https://learn.microsoft.com/azure/postgresql/flexible-server/)
 - [Microsoft Defender for Cloud](https://learn.microsoft.com/azure/defender-for-cloud/)
 - [Azure Bastion](https://learn.microsoft.com/azure/bastion/bastion-overview)
 - [Azure Policy](https://learn.microsoft.com/azure/governance/policy/)

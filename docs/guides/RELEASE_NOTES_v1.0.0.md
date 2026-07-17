@@ -16,8 +16,8 @@ This release marks the **first stable, production-ready baseline** for the Contr
 
 ### **Keycloak (IAM)**
 - **Realm export and configuration:**  
-  - `deployment/***REMOVED-KEYCLOAK_DB_PASSWORD***-config/realm-export.json`  
-  - `deployment/***REMOVED-KEYCLOAK_DB_PASSWORD***-config/***REMOVED-KEYCLOAK_DB_PASSWORD***-config.json`
+  - `deployment/keycloak-config/realm-export.json`  
+  - `deployment/keycloak-config/keycloak-config.json`
 - Ready-to-import for instant IAM setup, including roles and clients.
 
 ### **Blockchain**

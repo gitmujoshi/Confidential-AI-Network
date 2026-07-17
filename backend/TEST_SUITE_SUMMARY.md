@@ -128,7 +128,7 @@ global.testTracker = {
   createdKeycloakUsers: [],    // Track Keycloak users
   createdDatabaseUsers: [],    // Track database users
   testMode: 'mock|integration', // Current test mode
-  ***REMOVED-KEYCLOAK_DB_PASSWORD***Service: null        // Keycloak service instance
+  keycloakService: null        // Keycloak service instance
 };
 ```
 
@@ -144,8 +144,8 @@ const user = await global.testUtils.createTestUser({
 });
 
 // Create Keycloak users (integration mode)
-const ***REMOVED-KEYCLOAK_DB_PASSWORD***User = await global.testUtils.createKeycloakUser({
-  email: '***REMOVED-KEYCLOAK_DB_PASSWORD***@example.com',
+const keycloakUser = await global.testUtils.createKeycloakUser({
+  email: 'keycloak@example.com',
   partyType: 'TDP'
 });
 
@@ -169,7 +169,7 @@ expect(userId).toBeValidUUID();
 expect(email).toBeValidEmail();
 
 // Keycloak user ID validation
-expect(***REMOVED-KEYCLOAK_DB_PASSWORD***UserId).toBeValidKeycloakUserId();
+expect(keycloakUserId).toBeValidKeycloakUserId();
 ```
 
 ## 🚀 Running Tests
@@ -221,7 +221,7 @@ node tests/run-all-tests.js mock --no-coverage
 TEST_MODE=mock|integration|auto
 
 # Database
-DATABASE_URL=***REMOVED-DB_PASSWORD***ql://user:pass@localhost:5432/db
+DATABASE_URL=postgresql://user:pass@localhost:5432/db
 
 # Keycloak (integration mode)
 KEYCLOAK_URL=http://localhost:8080
@@ -378,7 +378,7 @@ describe('Integration Tests', () => {
     const realService = global.testUtils.getKeycloakService();
     const result = await realService.createUser(userData);
     
-    expect(result.***REMOVED-KEYCLOAK_DB_PASSWORD***UserId).toBeValidKeycloakUserId();
+    expect(result.keycloakUserId).toBeValidKeycloakUserId();
   });
 });
 ```
@@ -428,10 +428,10 @@ jobs:
   test:
     runs-on: ubuntu-latest
     services:
-      ***REMOVED-DB_PASSWORD***:
-        image: ***REMOVED-DB_PASSWORD***:13
+      postgres:
+        image: postgres:13
         env:
-          POSTGRES_PASSWORD: ***REMOVED-DB_PASSWORD***
+          POSTGRES_PASSWORD: postgres
         options: >-
           --health-cmd pg_isready
           --health-interval 10s

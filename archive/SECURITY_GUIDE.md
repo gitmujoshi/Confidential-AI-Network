@@ -17,11 +17,11 @@ This document outlines the security vulnerabilities that were found and fixed in
 - **Risk**: Private key exposure could lead to account compromise
 
 #### 2. **Hardcoded Passwords** (HIGH)
-- **Issue**: Keycloak admin password (`***REMOVED-KEYCLOAK_ADMIN_PASSWORD***`) and database passwords were hardcoded
+- **Issue**: Keycloak admin password (`admin123`) and database passwords were hardcoded
 - **Files Affected**:
   - `docker-compose.iam.yml`
   - `scripts/setupKeycloak.js`
-  - `backend/services/***REMOVED-KEYCLOAK_DB_PASSWORD***Service.js`
+  - `backend/services/keycloakService.js`
 - **Fix**: Replaced with environment variables
 - **Risk**: Unauthorized access to IAM system
 
@@ -44,7 +44,7 @@ credentials/
 *.pfx
 .env
 .env.local
-***REMOVED-KEYCLOAK_DB_PASSWORD***-config/realm-export.json
+keycloak-config/realm-export.json
 test-wallets.json
 private-keys.json
 ```
@@ -92,7 +92,7 @@ openssl rand -base64 16
 ```bash
 # Change default admin password
 # Access Keycloak admin console: http://localhost:8080/admin
-# Login: admin/***REMOVED-KEYCLOAK_ADMIN_PASSWORD***
+# Login: admin/admin123
 # Change password immediately
 ```
 

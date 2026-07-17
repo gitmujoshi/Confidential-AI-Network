@@ -53,14 +53,14 @@ async function main() {
 
   const backendUrl = cfg.BACKEND_URL || `http://localhost:${cfg.BACKEND_PORT || 5001}`;
   const frontendUrl = cfg.FRONTEND_URL || `http://localhost:${cfg.FRONTEND_PORT || 3000}`;
-  const ***REMOVED-KEYCLOAK_DB_PASSWORD***Url = cfg.KEYCLOAK_URL || `http://localhost:${cfg.KEYCLOAK_PORT || 8080}`;
+  const keycloakUrl = cfg.KEYCLOAK_URL || `http://localhost:${cfg.KEYCLOAK_PORT || 8080}`;
   const scittEnabled = envBool(cfg.SCITT_CCF_ENABLED);
 
   const checks = [];
   checks.push(checkHttp('backend', `${backendUrl.replace(/\/$/, '')}/health`));
   checks.push(checkHttp('frontend', `${frontendUrl.replace(/\/$/, '')}/`));
   // Keycloak master realm is a simple readiness proxy.
-  checks.push(checkHttp('***REMOVED-KEYCLOAK_DB_PASSWORD***', `${***REMOVED-KEYCLOAK_DB_PASSWORD***Url.replace(/\/$/, '')}/realms/master`, { insecure: true }));
+  checks.push(checkHttp('keycloak', `${keycloakUrl.replace(/\/$/, '')}/realms/master`, { insecure: true }));
 
   if (scittEnabled) {
     const scittNodeUrl = cfg.SCITT_CCF_NODE_URL || cfg.SCITT_CCF_URL;

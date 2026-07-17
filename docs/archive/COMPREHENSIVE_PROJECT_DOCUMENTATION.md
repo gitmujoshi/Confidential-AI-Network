@@ -424,7 +424,7 @@ class ApiService {
 # .env file
 NODE_ENV=development
 PORT=3001
-DATABASE_URL=***REMOVED-DB_PASSWORD***ql://username:password@localhost:5432/contract_management
+DATABASE_URL=postgresql://username:password@localhost:5432/contract_management
 JWT_SECRET=your-jwt-secret
 VAULT_ADDR=http://localhost:8200
 VAULT_TOKEN=dev-token-12345
@@ -469,8 +469,8 @@ services:
       - VAULT_ADDR=${VAULT_ADDR}
       - VAULT_TOKEN=${VAULT_TOKEN}
     depends_on:
-      - ***REMOVED-DB_PASSWORD***
-      - ***REMOVED-KEYCLOAK_DB_PASSWORD***
+      - postgres
+      - keycloak
 
   frontend:
     build: ./frontend
@@ -479,24 +479,24 @@ services:
     environment:
       - REACT_APP_API_URL=${API_URL}
 
-  ***REMOVED-DB_PASSWORD***:
-    image: ***REMOVED-DB_PASSWORD***:14
+  postgres:
+    image: postgres:14
     environment:
       - POSTGRES_DB=contract_management
       - POSTGRES_USER=${DB_USER}
       - POSTGRES_PASSWORD=${DB_PASSWORD}
     volumes:
-      - ***REMOVED-DB_PASSWORD***_data:/var/lib/***REMOVED-DB_PASSWORD***ql/data
+      - postgres_data:/var/lib/postgresql/data
 
-  ***REMOVED-KEYCLOAK_DB_PASSWORD***:
-    image: quay.io/***REMOVED-KEYCLOAK_DB_PASSWORD***/***REMOVED-KEYCLOAK_DB_PASSWORD***:latest
+  keycloak:
+    image: quay.io/keycloak/keycloak:latest
     environment:
       - KEYCLOAK_ADMIN=${KEYCLOAK_ADMIN}
       - KEYCLOAK_ADMIN_PASSWORD=${KEYCLOAK_ADMIN_PASSWORD}
     ports:
       - "8080:8080"
     volumes:
-      - ***REMOVED-KEYCLOAK_DB_PASSWORD***_data:/opt/***REMOVED-KEYCLOAK_DB_PASSWORD***/data
+      - keycloak_data:/opt/keycloak/data
 
   vault:
     image: vault:latest
@@ -507,8 +507,8 @@ services:
     command: vault server -dev -dev-root-token-id=${VAULT_TOKEN}
 
 volumes:
-  ***REMOVED-DB_PASSWORD***_data:
-  ***REMOVED-KEYCLOAK_DB_PASSWORD***_data:
+  postgres_data:
+  keycloak_data:
 ```
 
 #### Kubernetes Deployment
@@ -713,7 +713,7 @@ cp .env.example .env
 #### 4. Database Setup
 ```bash
 # Start PostgreSQL
-brew services start ***REMOVED-DB_PASSWORD***ql
+brew services start postgresql
 
 # Create database
 createdb contract_management
@@ -784,19 +784,19 @@ curl -H "X-Vault-Token: $VAULT_TOKEN" $VAULT_ADDR/v1/sys/health
 #### 2. Database Connection Issues
 ```bash
 # Check PostgreSQL status
-brew services list | grep ***REMOVED-DB_PASSWORD***ql
+brew services list | grep postgresql
 
 # Test database connection
 psql -d contract_management -c "SELECT 1;"
 
 # Check database logs
-tail -f /usr/local/var/log/***REMOVED-DB_PASSWORD***ql.log
+tail -f /usr/local/var/log/postgresql.log
 ```
 
 #### 3. Authentication Issues
 ```bash
 # Check Keycloak status
-docker ps | grep ***REMOVED-KEYCLOAK_DB_PASSWORD***
+docker ps | grep keycloak
 
 # Verify JWT token
 jwt decode <your-token>

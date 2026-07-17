@@ -130,7 +130,7 @@ frontend/
 ./start-system.sh
 
 # Or start individually
-docker-compose -f docker-compose.***REMOVED-KEYCLOAK_DB_PASSWORD***-persistent.yml up -d
+docker-compose -f docker-compose.keycloak-persistent.yml up -d
 ./manage-scitt-ccf.sh start  # If using SCITT CCF
 cd backend && npm run dev
 ```

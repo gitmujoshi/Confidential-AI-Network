@@ -34,7 +34,7 @@
 |-----|------|---------------|
 | `can-{env}-frontend` | SPA (public, PKCE) | `https://app.{env}.example.com/*` |
 | `can-{env}-backend` | Confidential | N/A (client credentials for service-to-service) |
-| `can-{env}-***REMOVED-KEYCLOAK_DB_PASSWORD***-broker` | SAML/OIDC federation | Keycloak broker endpoints |
+| `can-{env}-keycloak-broker` | SAML/OIDC federation | Keycloak broker endpoints |
 
 ---
 
@@ -146,7 +146,7 @@ Role Assignment: (none — no Cluster Admin on prod for can-*-platform-dev)
 | Namespace | Service account | Role |
 |-----------|-----------------|------|
 | `can-app` | `backend-sa` | ConfigMap/Secret read in `can-app` |
-| `can-iam` | `***REMOVED-KEYCLOAK_DB_PASSWORD***-sa` | PVC read/write in `can-iam` |
+| `can-iam` | `keycloak-sa` | PVC read/write in `can-iam` |
 | `can-training` | `training-sa` | Job create in `can-training`; no ingress |
 | `can-ingress` | `ingress-nginx-sa` | ClusterRole for ingress controller |
 
@@ -160,9 +160,9 @@ Workload Identity federation: `can-{env}-aks-identity` → Key Vault, Storage, A
 |------|--------------|------|
 | `/` | `frontend-pool` | 3000 |
 | `/api/*` | `backend-pool` | 5001 |
-| `/auth/*`, `/realms/*` | `***REMOVED-KEYCLOAK_DB_PASSWORD***-pool` | 8080 |
+| `/auth/*`, `/realms/*` | `keycloak-pool` | 8080 |
 
-Health probes: frontend `/`, backend `/api/health`, ***REMOVED-KEYCLOAK_DB_PASSWORD*** `/health/ready`.
+Health probes: frontend `/`, backend `/api/health`, keycloak `/health/ready`.
 
 ---
 

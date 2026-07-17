@@ -23,8 +23,8 @@ resource "kubernetes_config_map" "app_config" {
     IMAGE_TAG                   = var.image_tag
     ETHEREUM_NETWORK            = var.ethereum_network
     INFURA_PROJECT_ID           = var.infura_project_id
-    KEYCLOAK_ADMIN_USERNAME     = var.***REMOVED-KEYCLOAK_DB_PASSWORD***_admin_username
-    KEYCLOAK_ADMIN_PASSWORD     = var.***REMOVED-KEYCLOAK_DB_PASSWORD***_admin_password
+    KEYCLOAK_ADMIN_USERNAME     = var.keycloak_admin_username
+    KEYCLOAK_ADMIN_PASSWORD     = var.keycloak_admin_password
   }
 }
 
@@ -47,25 +47,25 @@ resource "kubernetes_secret" "db_secret" {
 }
 
 # Secret for Keycloak configuration
-resource "kubernetes_secret" "***REMOVED-KEYCLOAK_DB_PASSWORD***_secret" {
+resource "kubernetes_secret" "keycloak_secret" {
   metadata {
-    name      = "***REMOVED-KEYCLOAK_DB_PASSWORD***-secret"
+    name      = "keycloak-secret"
     namespace = kubernetes_namespace.app_namespace.metadata[0].name
   }
   
   data = {
-    KEYCLOAK_ADMIN_USERNAME = base64encode(var.***REMOVED-KEYCLOAK_DB_PASSWORD***_admin_username)
-    KEYCLOAK_ADMIN_PASSWORD = base64encode(var.***REMOVED-KEYCLOAK_DB_PASSWORD***_admin_password)
-    KEYCLOAK_DB_PASSWORD    = base64encode(var.***REMOVED-KEYCLOAK_DB_PASSWORD***_db_password)
+    KEYCLOAK_ADMIN_USERNAME = base64encode(var.keycloak_admin_username)
+    KEYCLOAK_ADMIN_PASSWORD = base64encode(var.keycloak_admin_password)
+    KEYCLOAK_DB_PASSWORD    = base64encode(var.keycloak_db_password)
   }
   
   type = "Opaque"
 }
 
 # Persistent Volume Claim for Keycloak database
-resource "kubernetes_persistent_volume_claim" "***REMOVED-KEYCLOAK_DB_PASSWORD***_db_pvc" {
+resource "kubernetes_persistent_volume_claim" "keycloak_db_pvc" {
   metadata {
-    name      = "***REMOVED-KEYCLOAK_DB_PASSWORD***-db-pvc"
+    name      = "keycloak-db-pvc"
     namespace = kubernetes_namespace.app_namespace.metadata[0].name
   }
   
@@ -99,9 +99,9 @@ resource "kubernetes_persistent_volume_claim" "redis_pvc" {
 }
 
 # Deployment for Keycloak Database
-resource "kubernetes_deployment" "***REMOVED-KEYCLOAK_DB_PASSWORD***_db" {
+resource "kubernetes_deployment" "keycloak_db" {
   metadata {
-    name      = "***REMOVED-KEYCLOAK_DB_PASSWORD***-db"
+    name      = "keycloak-db"
     namespace = kubernetes_namespace.app_namespace.metadata[0].name
   }
   
@@ -110,37 +110,37 @@ resource "kubernetes_deployment" "***REMOVED-KEYCLOAK_DB_PASSWORD***_db" {
     
     selector {
       match_labels = {
-        app = "***REMOVED-KEYCLOAK_DB_PASSWORD***-db"
+        app = "keycloak-db"
       }
     }
     
     template {
       metadata {
         labels = {
-          app = "***REMOVED-KEYCLOAK_DB_PASSWORD***-db"
+          app = "keycloak-db"
         }
       }
       
       spec {
         container {
-          image = "***REMOVED-DB_PASSWORD***:15"
-          name  = "***REMOVED-DB_PASSWORD***"
+          image = "postgres:15"
+          name  = "postgres"
           
           env {
             name  = "POSTGRES_DB"
-            value = "***REMOVED-KEYCLOAK_DB_PASSWORD***"
+            value = "keycloak"
           }
           
           env {
             name  = "POSTGRES_USER"
-            value = "***REMOVED-KEYCLOAK_DB_PASSWORD***"
+            value = "keycloak"
           }
           
           env {
             name = "POSTGRES_PASSWORD"
             value_from {
               secret_key_ref {
-                name = kubernetes_secret.***REMOVED-KEYCLOAK_DB_PASSWORD***_secret.metadata[0].name
+                name = kubernetes_secret.keycloak_secret.metadata[0].name
                 key  = "KEYCLOAK_DB_PASSWORD"
               }
             }
@@ -151,15 +151,15 @@ resource "kubernetes_deployment" "***REMOVED-KEYCLOAK_DB_PASSWORD***_db" {
           }
           
           volume_mount {
-            name       = "***REMOVED-DB_PASSWORD***-storage"
-            mount_path = "/var/lib/***REMOVED-DB_PASSWORD***ql/data"
+            name       = "postgres-storage"
+            mount_path = "/var/lib/postgresql/data"
           }
         }
         
         volume {
-          name = "***REMOVED-DB_PASSWORD***-storage"
+          name = "postgres-storage"
           persistent_volume_claim {
-            claim_name = kubernetes_persistent_volume_claim.***REMOVED-KEYCLOAK_DB_PASSWORD***_db_pvc.metadata[0].name
+            claim_name = kubernetes_persistent_volume_claim.keycloak_db_pvc.metadata[0].name
           }
         }
       }
@@ -168,15 +168,15 @@ resource "kubernetes_deployment" "***REMOVED-KEYCLOAK_DB_PASSWORD***_db" {
 }
 
 # Service for Keycloak Database
-resource "kubernetes_service" "***REMOVED-KEYCLOAK_DB_PASSWORD***_db_service" {
+resource "kubernetes_service" "keycloak_db_service" {
   metadata {
-    name      = "***REMOVED-KEYCLOAK_DB_PASSWORD***-db-service"
+    name      = "keycloak-db-service"
     namespace = kubernetes_namespace.app_namespace.metadata[0].name
   }
   
   spec {
     selector = {
-      app = "***REMOVED-KEYCLOAK_DB_PASSWORD***-db"
+      app = "keycloak-db"
     }
     
     port {
@@ -189,9 +189,9 @@ resource "kubernetes_service" "***REMOVED-KEYCLOAK_DB_PASSWORD***_db_service" {
 }
 
 # Deployment for Keycloak
-resource "kubernetes_deployment" "***REMOVED-KEYCLOAK_DB_PASSWORD***" {
+resource "kubernetes_deployment" "keycloak" {
   metadata {
-    name      = "***REMOVED-KEYCLOAK_DB_PASSWORD***"
+    name      = "keycloak"
     namespace = kubernetes_namespace.app_namespace.metadata[0].name
   }
   
@@ -200,42 +200,42 @@ resource "kubernetes_deployment" "***REMOVED-KEYCLOAK_DB_PASSWORD***" {
     
     selector {
       match_labels = {
-        app = "***REMOVED-KEYCLOAK_DB_PASSWORD***"
+        app = "keycloak"
       }
     }
     
     template {
       metadata {
         labels = {
-          app = "***REMOVED-KEYCLOAK_DB_PASSWORD***"
+          app = "keycloak"
         }
       }
       
       spec {
         container {
-          image = "quay.io/***REMOVED-KEYCLOAK_DB_PASSWORD***/***REMOVED-KEYCLOAK_DB_PASSWORD***:23.0"
-          name  = "***REMOVED-KEYCLOAK_DB_PASSWORD***"
+          image = "quay.io/keycloak/keycloak:23.0"
+          name  = "keycloak"
           
           env {
             name  = "KC_DB"
-            value = "***REMOVED-DB_PASSWORD***"
+            value = "postgres"
           }
           
           env {
             name  = "KC_DB_URL"
-            value = "jdbc:***REMOVED-DB_PASSWORD***ql://***REMOVED-KEYCLOAK_DB_PASSWORD***-db-service:5432/***REMOVED-KEYCLOAK_DB_PASSWORD***"
+            value = "jdbc:postgresql://keycloak-db-service:5432/keycloak"
           }
           
           env {
             name  = "KC_DB_USERNAME"
-            value = "***REMOVED-KEYCLOAK_DB_PASSWORD***"
+            value = "keycloak"
           }
           
           env {
             name = "KC_DB_PASSWORD"
             value_from {
               secret_key_ref {
-                name = kubernetes_secret.***REMOVED-KEYCLOAK_DB_PASSWORD***_secret.metadata[0].name
+                name = kubernetes_secret.keycloak_secret.metadata[0].name
                 key  = "KEYCLOAK_DB_PASSWORD"
               }
             }
@@ -245,7 +245,7 @@ resource "kubernetes_deployment" "***REMOVED-KEYCLOAK_DB_PASSWORD***" {
             name = "KEYCLOAK_ADMIN"
             value_from {
               secret_key_ref {
-                name = kubernetes_secret.***REMOVED-KEYCLOAK_DB_PASSWORD***_secret.metadata[0].name
+                name = kubernetes_secret.keycloak_secret.metadata[0].name
                 key  = "KEYCLOAK_ADMIN_USERNAME"
               }
             }
@@ -255,7 +255,7 @@ resource "kubernetes_deployment" "***REMOVED-KEYCLOAK_DB_PASSWORD***" {
             name = "KEYCLOAK_ADMIN_PASSWORD"
             value_from {
               secret_key_ref {
-                name = kubernetes_secret.***REMOVED-KEYCLOAK_DB_PASSWORD***_secret.metadata[0].name
+                name = kubernetes_secret.keycloak_secret.metadata[0].name
                 key  = "KEYCLOAK_ADMIN_PASSWORD"
               }
             }
@@ -291,19 +291,19 @@ resource "kubernetes_deployment" "***REMOVED-KEYCLOAK_DB_PASSWORD***" {
     }
   }
   
-  depends_on = [kubernetes_deployment.***REMOVED-KEYCLOAK_DB_PASSWORD***_db]
+  depends_on = [kubernetes_deployment.keycloak_db]
 }
 
 # Service for Keycloak
-resource "kubernetes_service" "***REMOVED-KEYCLOAK_DB_PASSWORD***_service" {
+resource "kubernetes_service" "keycloak_service" {
   metadata {
-    name      = "***REMOVED-KEYCLOAK_DB_PASSWORD***-service"
+    name      = "keycloak-service"
     namespace = kubernetes_namespace.app_namespace.metadata[0].name
   }
   
   spec {
     selector = {
-      app = "***REMOVED-KEYCLOAK_DB_PASSWORD***"
+      app = "keycloak"
     }
     
     port {
@@ -517,7 +517,7 @@ resource "kubernetes_deployment" "frontend" {
           
           env {
             name  = "REACT_APP_KEYCLOAK_URL"
-            value = "http://***REMOVED-KEYCLOAK_DB_PASSWORD***-service:8080"
+            value = "http://keycloak-service:8080"
           }
           
           port {

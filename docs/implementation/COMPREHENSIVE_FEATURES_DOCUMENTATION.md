@@ -195,7 +195,7 @@ services:
   scitt-ccf-monitor:     # Health monitoring service
   scitt-ccf-dashboard:   # Web interface
   scitt-ccf-redis:       # Caching and session storage
-  scitt-ccf-***REMOVED-DB_PASSWORD***:    # SCITT CCF data storage
+  scitt-ccf-postgres:    # SCITT CCF data storage
 ```
 
 #### **SCITT CCF Features:**
@@ -593,9 +593,9 @@ GET    /api/blockchain/contracts/:id // Get blockchain contract
 ```yaml
 # Main services (docker-compose.main.yml)
 services:
-  ***REMOVED-DB_PASSWORD***-app:        # Main application database
-  ***REMOVED-DB_PASSWORD***-***REMOVED-KEYCLOAK_DB_PASSWORD***:   # Keycloak database
-  ***REMOVED-KEYCLOAK_DB_PASSWORD***:            # Authentication service
+  postgres-app:        # Main application database
+  postgres-keycloak:   # Keycloak database
+  keycloak:            # Authentication service
 
 # SCITT CCF services (docker-compose.scitt-ccf-dev.yml)
 services:
@@ -603,7 +603,7 @@ services:
   scitt-ccf-monitor:   # Health monitoring
   scitt-ccf-dashboard: # Web interface
   scitt-ccf-redis:     # Caching
-  scitt-ccf-***REMOVED-DB_PASSWORD***:  # SCITT CCF storage
+  scitt-ccf-postgres:  # SCITT CCF storage
 ```
 
 #### **Deployment Scripts:**
@@ -652,7 +652,7 @@ KEYCLOAK_CLIENT_ID=contract-management-client
 GET /health                    // Backend health
 GET /api/blockchain/health    // Blockchain service health
 GET /api/scitt-ccf/health     // SCITT CCF service health
-GET /api/***REMOVED-KEYCLOAK_DB_PASSWORD***/health      // Keycloak service health
+GET /api/keycloak/health      // Keycloak service health
 ```
 
 #### **Performance Metrics:**
@@ -709,8 +709,8 @@ GET /api/system/metrics       // System performance
 ### **🔗 External References:**
 - **SCITT CCF**: [Microsoft SCITT Documentation](https://github.com/microsoft/CCF)
 - **Ethereum**: [Ethereum Developer Documentation](https://ethereum.org/developers/)
-- **Keycloak**: [Keycloak Documentation](https://www.***REMOVED-KEYCLOAK_DB_PASSWORD***.org/documentation)
-- **PostgreSQL JSONB**: [PostgreSQL JSONB Documentation](https://www.***REMOVED-DB_PASSWORD***ql.org/docs/current/datatype-json.html)
+- **Keycloak**: [Keycloak Documentation](https://www.keycloak.org/documentation)
+- **PostgreSQL JSONB**: [PostgreSQL JSONB Documentation](https://www.postgresql.org/docs/current/datatype-json.html)
 
 ### **📞 Support & Contact:**
 - **Development Team**: For technical questions
