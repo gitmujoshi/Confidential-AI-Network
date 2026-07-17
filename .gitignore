@@ -11,9 +11,13 @@ yarn-error.log*
 .env.test.local
 .env.production.local
 
-# Secrets files
+# Secrets files — never commit real secrets
+secrets.env
 secrets.env.local
 *.secrets
+!.env.example
+!secrets.env.example
+!*.env.example
 
 # Secrets and credentials
 secrets/
@@ -22,6 +26,9 @@ credentials/
 *.pem
 *.p12
 *.pfx
+*.p8
+id_rsa*
+*.keystore
 
 # Local dataset artifacts (Phase A) — do not commit customer data
 backend/uploads/
@@ -135,11 +142,15 @@ private-keys.json
 
 # Personal resumes / CVs — never commit
 MJResume*
-*Resume*.md
-*Resume*.pdf
-*Resume*.docx
-RESUME_*.md
-RESUME_*.pdf
+*Resume*
+*resume*
+RESUME_*
+**/resume.md
+**/resume.pdf
+**/resume.docx
+**/resume*.pdf
+**/cv.pdf
+**/CV.pdf
 
 # Vault binaries (too large for GitHub)
 backend/vault
