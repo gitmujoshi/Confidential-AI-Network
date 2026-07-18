@@ -21,11 +21,12 @@ This guide helps you use the Contract Management System effectively. The system 
 - **AppAdmin**: System administration and management
 
 ### **Where to go next**
-- **Full onboarding + E2E lifecycle (canonical)**: [`docs/guides/PARTICIPANT_ONBOARDING_AND_E2E_LIFECYCLE.md`](guides/PARTICIPANT_ONBOARDING_AND_E2E_LIFECYCLE.md)
-- **Training workflows**: `docs/training/USER_TRAINING_GUIDE.md`
-- **Contract signing details**: `docs/CONTRACT_SIGNING_USER_GUIDE.md`
-- **Admin operations**: `docs/ADMIN_GUIDE.md`
-- **CAN (Confidential AI Network) MVP APIs** (for integration teams): `docs/CAN_QUICKSTART.md`
+- **Documentation home**: [README.md](README.md)
+- **Full onboarding + E2E lifecycle (canonical)**: [guides/PARTICIPANT_ONBOARDING_AND_E2E_LIFECYCLE.md](guides/PARTICIPANT_ONBOARDING_AND_E2E_LIFECYCLE.md)
+- **Training workflows**: [training/USER_TRAINING_GUIDE.md](training/USER_TRAINING_GUIDE.md)
+- **Contract signing**: [features/contract-signing/CONTRACT_SIGNING_USER_GUIDE.md](features/contract-signing/CONTRACT_SIGNING_USER_GUIDE.md)
+- **Admin operations**: [ADMIN_GUIDE.md](ADMIN_GUIDE.md)
+- **CAN MVP APIs**: [features/can/CAN_QUICKSTART.md](features/can/CAN_QUICKSTART.md)
 
 ## 📊 Dashboard Overview
 

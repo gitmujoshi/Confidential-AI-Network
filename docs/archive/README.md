@@ -1,20 +1,20 @@
 # Documentation archive
 
-This folder holds **superseded, duplicate, or historical** documentation. Do not use these as the source of truth for current behavior.
+**Not canonical.** Historical, duplicate, or superseded docs only.
 
 ## Structure
 
 | Subfolder | Contents |
 |-----------|----------|
-| [meta-changelogs/](meta-changelogs/) | Documentation/script reorganisation notes (2025) |
-| [implementation-summaries/](implementation-summaries/) | Point-in-time implementation status snapshots |
-| [superseded-guides/](superseded-guides/) | Duplicate indexes, old setup guides, merged IAM/DPDP drafts |
-| [*.md](.) (root of archive) | Legacy API, auth, and secret-management docs from earlier releases |
+| [root-stubs/](root-stubs/) | Former `docs/*.md` redirect stubs (moved 2026-07) |
+| [contract-signing/](contract-signing/) | Old signing plan/strategy/summary/architecture |
+| [implementation-status/](implementation-status/) | Dated status dumps |
+| [implementation-summaries/](implementation-summaries/) | Point-in-time eng summaries |
+| [operational-analysis/](operational-analysis/) | Script inventory / consolidation notes |
+| [conversion/](conversion/) | Word/HTML conversion exports |
+| [superseded-guides/](superseded-guides/) | Older duplicate guides |
+| [meta-changelogs/](meta-changelogs/) | Doc reorg notes |
 
-## Canonical locations today
+## Canonical docs
 
-See **[../README.md](../README.md)** for the current documentation index.
-
-## Repo-root `archive/`
-
-The separate [`../../archive/`](../../archive/) directory at the repository root contains older markdown moved before this consolidation. Prefer `docs/archive/` for new archival moves.
+→ **[../README.md](../README.md)** · style: **[../DOC_STYLE.md](../DOC_STYLE.md)**

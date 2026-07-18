@@ -77,6 +77,7 @@ Full index: **[docs/README.md](docs/README.md)**
 | Run locally | [Quick start](docs/getting-started/QUICK_START.md) |
 | Fix setup / auth | [Troubleshooting](docs/getting-started/TROUBLESHOOTING.md) · `./fix-auth.sh` |
 | Demo to stakeholders | [Local demo runbook](docs/training/LOCAL_DEMO_RUNBOOK.md) |
+| Full party lifecycle (canonical) | [Participant onboarding & E2E](docs/guides/PARTICIPANT_ONBOARDING_AND_E2E_LIFECYCLE.md) |
 | Use the product (roles) | [User guide](docs/USER_GUIDE.md) |
 
 ### Architecture and implementation
