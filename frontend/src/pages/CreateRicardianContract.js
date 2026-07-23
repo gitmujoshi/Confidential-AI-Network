@@ -874,8 +874,13 @@ function CreateRicardianContract() {
           String(u.id) === String(selectedTsp) ||
           (u.depaId != null && String(u.depaId) === String(selectedTsp))
       );
+      const tspSelectionKey = selectedTspUser?.depaId || selectedTspUser?.id || selectedTsp;
       const resolvedTspCloudProvider =
-        selectedTspUser?.cloudProviders?.[0] || selectedCloudProvider || null;
+        selectedTspCloudProviders[tspSelectionKey] ||
+        selectedTspCloudProviders[selectedTspUser?.id] ||
+        selectedTspUser?.cloudProviders?.[0] ||
+        selectedCloudProvider ||
+        null;
       const parsedModelId = selectedAiModels ? parseInt(String(selectedAiModels), 10) : NaN;
       const contractPayload = {
         termsAndConditions: contractData.termsAndConditions || `Contract for ${selectedDatasets.map(d => d.name).join(', ')} - AI training contract using ${selectedDatasets.length} dataset(s)`,
@@ -1546,8 +1551,13 @@ function CreateRicardianContract() {
                         onTspToggle={(tspId) => setSelectedTsp(tspId == null ? '' : String(tspId))}
                         selectedCloudProvider={selectedCloudProvider}
                         onCloudProviderChange={setSelectedCloudProvider}
-                        onTspCloudProviderSelect={() => {}}
-                        tspCloudProviderSelections={{}}
+                        onTspCloudProviderSelect={(tspKey, provider) => {
+                          setSelectedTspCloudProviders((prev) => ({
+                            ...prev,
+                            [tspKey]: provider,
+                          }));
+                        }}
+                        tspCloudProviderSelections={selectedTspCloudProviders}
                       />
                     </Box>
                   </CardContent>

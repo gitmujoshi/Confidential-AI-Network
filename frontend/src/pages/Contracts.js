@@ -45,6 +45,7 @@ import {
   ViewList,
   Description,
   Download,
+  Draw,
 } from '@mui/icons-material';
 import { useQuery } from 'react-query';
 import { useNavigate } from 'react-router-dom';
@@ -96,7 +97,7 @@ const StatusChip = ({ status }) => {
   );
 };
 
-const ContractCard = ({ contract, onView, onEdit, onDelete, onDownloadContract, onDownloadLegalDocument }) => {
+const ContractCard = ({ contract, onView, onEdit, onDelete, onDownloadContract, onDownloadLegalDocument, onSign, canSign }) => {
   // Check if this is a multi-TDP contract
   const isMultiTDPContract = contract?.datasets && contract.datasets.length > 1;
   
@@ -226,6 +227,18 @@ const ContractCard = ({ contract, onView, onEdit, onDelete, onDownloadContract, 
         <Button size="small" onClick={() => onView(contract)}>
           View Details
         </Button>
+        {canSign && (
+          <Button
+            size="small"
+            variant="contained"
+            color="primary"
+            onClick={() => onSign(contract)}
+            startIcon={<Draw />}
+            data-testid="tdp-sign-from-list"
+          >
+            Sign Contract
+          </Button>
+        )}
         <Button size="small" onClick={() => onEdit(contract)} startIcon={<Edit />}>
           Edit
         </Button>
@@ -253,7 +266,7 @@ const ContractCard = ({ contract, onView, onEdit, onDelete, onDownloadContract, 
   );
 };
 
-const ContractRow = ({ contract, onView, onEdit, onDelete, onDownloadContract, onDownloadLegalDocument }) => {
+const ContractRow = ({ contract, onView, onEdit, onDelete, onDownloadContract, onDownloadLegalDocument, onSign, canSign }) => {
   // Check if this is a multi-TDP contract
   const isMultiTDPContract = contract?.datasets && contract.datasets.length > 1;
   
@@ -376,6 +389,18 @@ const ContractRow = ({ contract, onView, onEdit, onDelete, onDownloadContract, o
               <Visibility />
             </IconButton>
           </Tooltip>
+          {canSign && (
+            <Tooltip title="Sign Contract as TDP">
+              <IconButton
+                size="small"
+                color="primary"
+                onClick={() => onSign(contract)}
+                data-testid="tdp-sign-from-list"
+              >
+                <Draw />
+              </IconButton>
+            </Tooltip>
+          )}
           <Tooltip title="Edit Contract">
             <IconButton size="small" onClick={() => onEdit(contract)}>
               <Edit />
@@ -512,6 +537,15 @@ function Contracts() {
     // Navigate to contract detail page with edit mode
     navigate(`/contracts/${contract.contractId}?edit=true`);
   };
+
+  const handleSign = (contract) => {
+    navigate(`/contracts/${contract.contractId}`);
+  };
+
+  const tdpNeedsSignature = (contract) =>
+    currentUser?.partyType === 'TDP' &&
+    ['PENDING_TDP_APPROVAL', 'PENDING_ALL_TDP_APPROVAL', 'PENDING_TDP'].includes(contract.status) &&
+    !contract.tdpSigned;
 
   const handleDelete = (contract) => {
     // Implement delete functionality
@@ -768,6 +802,8 @@ function Contracts() {
                 onDelete={handleDelete}
                 onDownloadContract={saveContractLocally}
                 onDownloadLegalDocument={saveLegalDocument}
+                onSign={handleSign}
+                canSign={tdpNeedsSignature(contract)}
               />
             </Grid>
           ))}
@@ -842,6 +878,8 @@ function Contracts() {
                       onDelete={handleDelete}
                       onDownloadContract={saveContractLocally}
                       onDownloadLegalDocument={saveLegalDocument}
+                      onSign={handleSign}
+                      canSign={tdpNeedsSignature(contract)}
                     />
                   ))}
                 </TableBody>
@@ -1043,6 +1081,20 @@ function Contracts() {
             </DialogContent>
             <DialogActions>
               <Button onClick={() => setViewDialogOpen(false)}>Close</Button>
+              {tdpNeedsSignature(selectedContract) && (
+                <Button
+                  variant="contained"
+                  color="primary"
+                  startIcon={<Draw />}
+                  onClick={() => {
+                    setViewDialogOpen(false);
+                    handleSign(selectedContract);
+                  }}
+                  data-testid="tdp-sign-from-dialog"
+                >
+                  Sign Contract as TDP
+                </Button>
+              )}
               <Button 
                 variant="contained" 
                 onClick={() => {

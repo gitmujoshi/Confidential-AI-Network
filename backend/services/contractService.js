@@ -902,6 +902,12 @@ class ContractService {
             attributes: ['id', 'name', 'email', 'depaId', 'walletAddress', 'did'],
             required: false
           },
+          {
+            model: db.User,
+            as: 'tdp',
+            attributes: ['id', 'name', 'email', 'depaId', 'walletAddress', 'did'],
+            required: false
+          },
           { 
             model: db.User, 
             as: 'tsp', 

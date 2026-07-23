@@ -496,8 +496,11 @@ router.post('/:contractId/sign', authenticateToken, async (req, res) => {
         return res.status(403).json({ error: 'Only a linked TDP can sign this contract' });
       }
 
+      updates.tdpSigned = true;
+      updates.tdpSignedAt = new Date();
+
       // Advance to TSP approval stage for legacy workflow.
-      if (contract.status === 'PENDING_TDP_APPROVAL' || contract.status === 'PENDING_TDP') {
+      if (contract.status === 'PENDING_TDP_APPROVAL' || contract.status === 'PENDING_TDP' || contract.status === 'PENDING_ALL_TDP_APPROVAL') {
         updates.status = 'PENDING_TSP_APPROVAL';
       }
     }
@@ -542,9 +545,11 @@ router.post('/:contractId/sign', authenticateToken, async (req, res) => {
     return res.json({
       success: true,
       contractId: contract.contractId,
-      status: contract.status,
-      tspSigned: contract.tspSigned,
-      tspSignedAt: contract.tspSignedAt,
+      status: updates.status || contract.status,
+      tdpSigned: updates.tdpSigned ?? contract.tdpSigned,
+      tdpSignedAt: updates.tdpSignedAt ?? contract.tdpSignedAt,
+      tspSigned: updates.tspSigned ?? contract.tspSigned,
+      tspSignedAt: updates.tspSignedAt ?? contract.tspSignedAt,
     });
   } catch (error) {
     console.error('Error signing contract:', error);

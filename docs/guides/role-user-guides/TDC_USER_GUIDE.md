@@ -41,33 +41,56 @@ Use **Datasets** to explore the catalog. Open a dataset for modality, size, and 
 
 ![Contracts list](screenshots/tdc/04-contracts.png)
 
-### 5. Create a contract
+### 5. Create contract — Step 1: Select template
 
-From the sidebar **Create contract** (or Contracts → create):
-1. Choose a Ricardian template.
-2. Select dataset(s) and TSP / clean-room provider.
-3. Set privacy / accuracy requirements.
-4. Review and submit for multi-party signing.
+Open **Create contract** from the sidebar.
+The wizard has five steps. Start by choosing a Ricardian **contract template**.
 
-![Create a contract](screenshots/tdc/05-create-contract.png)
+![Create contract — Step 1: Select template](screenshots/tdc/05-create-step-template.png)
 
-### 6. Training
+### 6. Create contract — Step 2: Details & datasets
+
+Set price, duration, terms, and privacy/accuracy requirements.
+Select **1–3 datasets** from Training Data Providers.
+
+![Create contract — Step 2: Details & datasets](screenshots/tdc/06-create-step-details.png)
+
+### 7. Create contract — Step 3: Environment & TSP
+
+Optionally filter and select a **TSP** (clean-room / compute provider).
+Configure environment and KMS settings for the training session.
+
+![Create contract — Step 3: Environment & TSP](screenshots/tdc/07-create-step-environment.png)
+
+### 8. Create contract — Step 4: Review legal & smart contract
+
+Review the generated legal document preview and smart-contract binding before creating the contract.
+
+![Create contract — Step 4: Review legal & smart contract](screenshots/tdc/08-create-step-review.png)
+
+### 9. Create contract — Step 5: Submit
+
+Confirm and click **Create Contract**. The contract enters **PENDING_TDP_APPROVAL** for dataset owners to sign.
+
+![Create contract — Step 5: Submit](screenshots/tdc/09-create-step-submit.png)
+
+### 10. Training
 
 **Training** starts a job against a fully signed contract, monitors progress, and surfaces privacy metrics when differential privacy is enabled.
 
-![Training](screenshots/tdc/06-training.png)
+![Training](screenshots/tdc/10-training.png)
 
-### 7. CAN jobs
+### 11. CAN jobs
 
 **CAN Jobs** tracks confidential job coordination (escrow, attestation signals, release) for clean-room runs.
 
-![CAN jobs](screenshots/tdc/07-can-jobs.png)
+![CAN jobs](screenshots/tdc/11-can-jobs.png)
 
-### 8. Notifications
+### 12. Notifications
 
 **Notifications** surfaces signature requests, training updates, and system alerts.
 
-![Notifications](screenshots/tdc/08-notifications.png)
+![Notifications](screenshots/tdc/12-notifications.png)
 
 ## Related docs
 

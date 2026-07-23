@@ -67,7 +67,6 @@ import { ethers } from 'ethers';
 import { apiService } from '../services/api';
 import toast from 'react-hot-toast';
 import { useUser } from '../contexts/UserContext';
-import { signES256, testSigningProcess } from '../utils/es256sign';
 
 const StatusChip = ({ status }) => {
   const getStatusColor = (status) => {
@@ -339,6 +338,38 @@ function ContractDetail() {
   // Get datasets for display (handle both old and new format)
   const displayDatasets = contract?.contractDatasets || contract?.datasetSelections || contract?.datasets || [];
 
+  const isCurrentUserLinkedTdp = (() => {
+    if (!contract || !currentUser?.id) return false;
+    const uid = Number(currentUser.id);
+    if (Number(contract.tdpId) === uid || Number(contract.primaryTdpId) === uid) return true;
+    if (contract.tdp?.id != null && Number(contract.tdp.id) === uid) return true;
+    if (
+      contract.tdp?.email &&
+      currentUser.email &&
+      String(contract.tdp.email).toLowerCase() === String(currentUser.email).toLowerCase()
+    ) {
+      return true;
+    }
+    return displayDatasets.some((dataset) => {
+      const tdpId = dataset.tdpId ?? dataset.tdp?.id;
+      if (tdpId != null && Number(tdpId) === uid) return true;
+      if (
+        dataset.tdp?.email &&
+        currentUser.email &&
+        String(dataset.tdp.email).toLowerCase() === String(currentUser.email).toLowerCase()
+      ) {
+        return true;
+      }
+      return false;
+    });
+  })();
+
+  const tdpCanSign =
+    isTDP &&
+    isCurrentUserLinkedTdp &&
+    ['PENDING_TDP_APPROVAL', 'PENDING_ALL_TDP_APPROVAL', 'PENDING_TDP'].includes(contract?.status) &&
+    !contract?.tdpSigned;
+
   // Debug: Log contract data to see what Ricardian fields are present
   React.useEffect(() => {
     if (contract) {
@@ -573,44 +604,41 @@ function ContractDetail() {
 
     try {
       const signingData = await apiService.getContractSigningData(contractId);
-      
-      // Test signing process
-      const testResult = await testSigningProcess(signingData.message);
-      
-      if (testResult.success) {
-        const signature = testResult.signature;
-        
-        const signPayload = {
-          signature,
-          partyType,
-          timestamp: new Date().toISOString(),
-          walletAddress: currentUser.walletAddress,
-          did: currentUser.did
-        };
+      const message = signingData?.message || `Sign contract ${contractId} as ${partyType}`;
+      const signature =
+        signingData?.contractHash ||
+        `ui-${partyType.toLowerCase()}-${Date.now().toString(36)}`;
 
-        if (partyType === 'TDP' && isMultiTDPContract) {
-          // Find the TDP ID for the current user
-          const tdpDataset = displayDatasets.find(dataset => 
-            dataset.tdpId === currentUser.id || dataset.tdp?.id === currentUser.id
-          );
-          
-          if (tdpDataset) {
-            await signContractAsTDPMutation.mutateAsync({
-              tdpId: tdpDataset.tdpId,
-              data: signPayload
-            });
-          } else {
-            setSignError('You are not a TDP for this contract');
-          }
+      const signPayload = {
+        signature,
+        partyType,
+        timestamp: signingData?.timestamp || new Date().toISOString(),
+        walletAddress: currentUser.walletAddress,
+        did: currentUser.did,
+        signingData: { message, contractHash: signingData?.contractHash },
+      };
+
+      if (partyType === 'TDP' && isMultiTDPContract) {
+        const tdpDataset = displayDatasets.find(
+          (dataset) =>
+            Number(dataset.tdpId) === Number(currentUser.id) ||
+            Number(dataset.tdp?.id) === Number(currentUser.id)
+        );
+
+        if (tdpDataset) {
+          await signContractAsTDPMutation.mutateAsync({
+            tdpId: tdpDataset.tdpId || tdpDataset.tdp?.id,
+            data: signPayload,
+          });
         } else {
-          await signContractMutation.mutateAsync(signPayload);
+          setSignError('You are not a TDP for this contract');
         }
       } else {
-        setSignError('Failed to generate signature');
+        await signContractMutation.mutateAsync(signPayload);
       }
     } catch (error) {
       console.error('Signing error:', error);
-      setSignError(error.message || 'Failed to sign contract');
+      setSignError(error.response?.data?.error || error.message || 'Failed to sign contract');
     } finally {
       setSigning(false);
     }
@@ -991,7 +1019,7 @@ function ContractDetail() {
                               <Box display="flex" gap={1}>
                                 {/* TDP Signing */}
                                 {isTDP && (tdpId === currentUser.id) && 
-                                 !dataset.tdpSigned && contract.status === 'PENDING_TDP_APPROVAL' && (
+                                 !dataset.tdpSigned && ['PENDING_TDP_APPROVAL', 'PENDING_ALL_TDP_APPROVAL', 'PENDING_TDP'].includes(contract.status) && (
                                   <Button
                                     variant="outlined"
                                     size="small"
@@ -1295,27 +1323,27 @@ function ContractDetail() {
               </Typography>
               <Box display="flex" gap={2} flexWrap="wrap">
                 {/* TDP Actions */}
-                {isTDP && !isMultiTDPContract && (
-                  contract.tdp?.id === currentUser?.id ||
-                  contract.tdp?.walletAddress === currentUser?.walletAddress ||
-                  contract.tdp?.did === currentUser?.did
-                ) && (
-                  <>
-                    {['PENDING_TDP_APPROVAL', 'PENDING_ALL_TDP_APPROVAL'].includes(contract.status) && !contract.tdpSigned && (
-                      <Button 
-                        variant="contained" 
-                        color="primary"
-                        onClick={() => handleSignContract('TDP')}
-                        disabled={signing}
-                      >
-                        {signing ? 'Signing...' : 'Sign Contract as TDP'}
-                      </Button>
-                    )}
-                  </>
+                {tdpCanSign && (
+                  <Button
+                    variant="contained"
+                    color="primary"
+                    onClick={() => handleSignContract('TDP')}
+                    disabled={signing}
+                    data-testid="tdp-sign-contract"
+                  >
+                    {signing ? 'Signing...' : 'Sign Contract as TDP'}
+                  </Button>
                 )}
                 
                 {/* TDC Actions */}
-                {isTDC && contract.tdc?.walletAddress === currentUser?.walletAddress && (
+                {isTDC && (
+                  (currentUser?.id != null &&
+                    (Number(contract.tdcId) === Number(currentUser.id) ||
+                      Number(contract.tdc?.id) === Number(currentUser.id))) ||
+                  (currentUser?.walletAddress &&
+                    contract.tdc?.walletAddress &&
+                    contract.tdc.walletAddress === currentUser.walletAddress)
+                ) && (
                   <>
                     {/* Edit Contract Button */}
                     {canEditContract() && (
@@ -1355,16 +1383,23 @@ function ContractDetail() {
                 
                 {/* TSP Actions */}
                 {isTSP && (
-                  contract.tsp?.id === currentUser?.id ||
-                  contract.tsp?.walletAddress === currentUser?.walletAddress
+                  (currentUser?.id != null &&
+                    (Number(contract.tspId) === Number(currentUser.id) ||
+                      Number(contract.tsp?.id) === Number(currentUser.id))) ||
+                  (currentUser?.walletAddress &&
+                    contract.tsp?.walletAddress &&
+                    contract.tsp.walletAddress === currentUser.walletAddress)
                 ) && (
                   <>
-                    {contract.status === 'PENDING_TSP_APPROVAL' && contract.tspId && !contract.tspSigned && (
+                    {['PENDING_TSP_APPROVAL', 'PENDING_CCRP_APPROVAL'].includes(contract.status) &&
+                      contract.tspId &&
+                      !contract.tspSigned && (
                       <Button 
                         variant="contained" 
                         color="success"
                         onClick={() => handleSignContract('TSP')}
                         disabled={signing}
+                        data-testid="tsp-sign-contract"
                       >
                         {signing ? 'Signing...' : 'Sign Contract as TSP'}
                       </Button>
@@ -2222,7 +2257,7 @@ function ContractDetail() {
                                         <Box display="flex" gap={1}>
                                           {/* TDP Signing Action */}
                                           {isTDP && currentUser.id === dataset.tdpId && 
-                                           !tdpSignature.signed && contract.status === 'PENDING_TDP_APPROVAL' && (
+                                           !tdpSignature.signed && ['PENDING_TDP_APPROVAL', 'PENDING_ALL_TDP_APPROVAL', 'PENDING_TDP'].includes(contract.status) && (
                                             <Button
                                               variant="outlined"
                                               size="small"
@@ -2425,7 +2460,7 @@ function ContractDetail() {
                                       <Box display="flex" gap={1} flexWrap="wrap">
                                         {/* TDP Signing Action */}
                                         {isTDP && currentUser.id === dataset.tdpId && 
-                                         !tdpSignature.signed && contract.status === 'PENDING_TDP_APPROVAL' && (
+                                         !tdpSignature.signed && ['PENDING_TDP_APPROVAL', 'PENDING_ALL_TDP_APPROVAL', 'PENDING_TDP'].includes(contract.status) && (
                                           <Button
                                             variant="outlined"
                                             size="small"

@@ -44,17 +44,25 @@ Use **Add dataset** / upload to publish:
 
 ![Publish a dataset](screenshots/tdp/04-add-dataset.png)
 
-### 5. Contracts
+### 5. Contracts awaiting signature
 
-Review incoming contracts, verify terms for your data, and **sign** when you approve use in a clean room.
+Open **Contracts** to see agreements that use your datasets.
+Pending items show status **PENDING_TDP_APPROVAL**. Use the pen / **Sign Contract** action to open the detail page.
 
-![Contracts](screenshots/tdp/05-contracts.png)
+![Contracts awaiting signature](screenshots/tdp/05-contracts.png)
 
-### 6. Notifications
+### 6. Sign contract as TDP
+
+On **Contract Details**, review terms, datasets, and DEPA IDs.
+Click **Sign Contract as TDP** to approve use of your data. Status moves to **PENDING_TSP_APPROVAL**.
+
+![Sign contract as TDP](screenshots/tdp/06-sign-contract.png)
+
+### 7. Notifications
 
 Watch for signature requests and dataset access events here.
 
-![Notifications](screenshots/tdp/06-notifications.png)
+![Notifications](screenshots/tdp/07-notifications.png)
 
 ## Related docs
 

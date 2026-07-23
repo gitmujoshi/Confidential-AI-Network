@@ -88,17 +88,84 @@ test.describe('Role user guides (screenshot tours)', () => {
     });
 
     await page.goto('/contracts/create');
-    await settle(page, 800);
+    await settle(page, 1000);
+    await expect(page.getByRole('heading', { name: /Create Contract/i })).toBeVisible({ timeout: 60000 });
     steps.push({
-      title: 'Create a contract',
+      title: 'Create contract — Step 1: Select template',
       body: [
-        'From the sidebar **Create contract** (or Contracts → create):',
-        '1. Choose a Ricardian template.',
-        '2. Select dataset(s) and TSP / clean-room provider.',
-        '3. Set privacy / accuracy requirements.',
-        '4. Review and submit for multi-party signing.',
+        'Open **Create contract** from the sidebar.',
+        'The wizard has five steps. Start by choosing a Ricardian **contract template**.',
       ].join('\n'),
-      ...(await captureShot(page, roleKey, '05-create-contract.png')),
+      ...(await captureShot(page, roleKey, '05-create-step-template.png')),
+    });
+
+    const selectTemplate = page.getByRole('button', { name: /Select This Template/i }).first();
+    await expect(selectTemplate).toBeVisible({ timeout: 60000 });
+    await selectTemplate.click();
+    await page.getByRole('button', { name: /^Next$/i }).click();
+    await expect(page.getByText(/Contract Details & Dataset Selection/i).first()).toBeVisible({ timeout: 30000 });
+    steps.push({
+      title: 'Create contract — Step 2: Details & datasets',
+      body: [
+        'Set price, duration, terms, and privacy/accuracy requirements.',
+        'Select **1–3 datasets** from Training Data Providers.',
+      ].join('\n'),
+      ...(await captureShot(page, roleKey, '06-create-step-details.png')),
+    });
+
+    // Ensure required fields so Next can advance.
+    const duration = page.getByLabel(/Duration/i).first();
+    if (await duration.isVisible().catch(() => false)) {
+      const v = await duration.inputValue().catch(() => '');
+      if (!v) await duration.fill('90');
+    }
+    const terms = page.getByLabel(/Terms and Conditions/i).first();
+    if (await terms.isVisible().catch(() => false)) {
+      const v = await terms.inputValue().catch(() => '');
+      if (!v) await terms.fill('E2E user-guide contract terms');
+    }
+    const e2eSample = page.getByRole('heading', { name: 'E2E Sample Dataset', exact: true }).first();
+    const mnist = page.getByRole('heading', { name: /mnist/i }).first();
+    if (await e2eSample.isVisible().catch(() => false)) {
+      await e2eSample.click({ force: true });
+    } else if (await mnist.isVisible().catch(() => false)) {
+      await mnist.click({ force: true });
+    } else {
+      await page.locator('main .MuiCard-root').filter({ hasText: /Dataset|records|Tabular|Vision/i }).first().click({ force: true }).catch(() => {});
+    }
+
+    await page.getByRole('main').getByRole('button', { name: /^Next$/i }).click({ force: true });
+    await expect(page.getByText(/Configure Environment & TSP/i).first()).toBeVisible({ timeout: 60000 });
+    steps.push({
+      title: 'Create contract — Step 3: Environment & TSP',
+      body: [
+        'Optionally filter and select a **TSP** (clean-room / compute provider).',
+        'Configure environment and KMS settings for the training session.',
+      ].join('\n'),
+      ...(await captureShot(page, roleKey, '07-create-step-environment.png')),
+    });
+
+    const tspCard = page.locator('[data-testid^="tsp-card-"]').filter({ hasText: 'ccrp.e2e@test.com' });
+    if (await tspCard.isVisible().catch(() => false)) {
+      await tspCard.click({ force: true });
+    }
+
+    await page.getByRole('main').getByRole('button', { name: /^Next$/i }).click({ force: true });
+    await expect(page.getByText(/Review Legal Document|Smart Contract/i).first()).toBeVisible({ timeout: 90000 });
+    steps.push({
+      title: 'Create contract — Step 4: Review legal & smart contract',
+      body: 'Review the generated legal document preview and smart-contract binding before creating the contract.',
+      ...(await captureShot(page, roleKey, '08-create-step-review.png')),
+    });
+
+    await page.getByRole('main').getByRole('button', { name: /^Next$/i }).click({ force: true });
+    await expect(
+      page.getByRole('main').getByRole('button', { name: /Create (SCITT CCF )?Contract/i })
+    ).toBeVisible({ timeout: 30000 });
+    steps.push({
+      title: 'Create contract — Step 5: Submit',
+      body: 'Confirm and click **Create Contract**. The contract enters **PENDING_TDP_APPROVAL** for dataset owners to sign.',
+      ...(await captureShot(page, roleKey, '09-create-step-submit.png')),
     });
 
     await gotoAndWait(page, '/tdc/training', async (p) => {
@@ -107,7 +174,7 @@ test.describe('Role user guides (screenshot tours)', () => {
     steps.push({
       title: 'Training',
       body: '**Training** starts a job against a fully signed contract, monitors progress, and surfaces privacy metrics when differential privacy is enabled.',
-      ...(await captureShot(page, roleKey, '06-training.png')),
+      ...(await captureShot(page, roleKey, '10-training.png')),
     });
 
     await gotoAndWait(page, '/can/jobs', async (p) => {
@@ -116,7 +183,7 @@ test.describe('Role user guides (screenshot tours)', () => {
     steps.push({
       title: 'CAN jobs',
       body: '**CAN Jobs** tracks confidential job coordination (escrow, attestation signals, release) for clean-room runs.',
-      ...(await captureShot(page, roleKey, '07-can-jobs.png')),
+      ...(await captureShot(page, roleKey, '11-can-jobs.png')),
     });
 
     await gotoAndWait(page, '/notifications', async (p) => {
@@ -125,7 +192,7 @@ test.describe('Role user guides (screenshot tours)', () => {
     steps.push({
       title: 'Notifications',
       body: '**Notifications** surfaces signature requests, training updates, and system alerts.',
-      ...(await captureShot(page, roleKey, '08-notifications.png')),
+      ...(await captureShot(page, roleKey, '12-notifications.png')),
     });
 
     writeGuideFile(roleKey, buildMarkdown({ roleKey, meta: ROLE_META[roleKey], email, steps }));
@@ -170,13 +237,64 @@ test.describe('Role user guides (screenshot tours)', () => {
     });
 
     await gotoAndWait(page, '/contracts', async (p) => {
-      await waitForHeading(p, /Contracts/i);
+      await expect(
+        p.getByRole('main').getByText(/Contracts|My Contracts/i).first()
+      ).toBeVisible({ timeout: 120000 });
     });
     steps.push({
-      title: 'Contracts',
-      body: 'Review incoming contracts, verify terms for your data, and **sign** when you approve use in a clean room.',
+      title: 'Contracts awaiting signature',
+      body: [
+        'Open **Contracts** to see agreements that use your datasets.',
+        'Pending items show status **PENDING_TDP_APPROVAL**. Use the pen / **Sign Contract** action to open the detail page.',
+      ].join('\n'),
       ...(await captureShot(page, roleKey, '05-contracts.png')),
     });
+
+    // Open a pending contract detail so the Sign CTA is visible when available.
+    const signFromList = page.getByTestId('tdp-sign-from-list').first();
+    const viewDetails = page.getByRole('button', { name: /View Details/i }).first();
+    if (await signFromList.isVisible().catch(() => false)) {
+      await signFromList.click();
+    } else if (await viewDetails.isVisible().catch(() => false)) {
+      await viewDetails.click();
+      const fullDetails = page.getByRole('button', { name: /View Full Details|Sign Contract as TDP/i }).first();
+      if (await fullDetails.isVisible().catch(() => false)) {
+        await fullDetails.click();
+      }
+    } else {
+      // Table view: open first visibility icon / row action
+      const eye = page.getByRole('button', { name: /View Details/i }).or(page.locator('[title="View Details"]')).first();
+      if (await eye.isVisible().catch(() => false)) await eye.click();
+      const signDlg = page.getByTestId('tdp-sign-from-dialog');
+      if (await signDlg.isVisible().catch(() => false)) {
+        await signDlg.click();
+      } else {
+        const full = page.getByRole('button', { name: /View Full Details/i });
+        if (await full.isVisible().catch(() => false)) await full.click();
+      }
+    }
+
+    await settle(page, 1000);
+    const signBtn = page.getByTestId('tdp-sign-contract').or(page.getByRole('button', { name: /Sign Contract as TDP/i }));
+    if (await signBtn.first().isVisible().catch(() => false)) {
+      steps.push({
+        title: 'Sign contract as TDP',
+        body: [
+          'On **Contract Details**, review terms, datasets, and DEPA IDs.',
+          'Click **Sign Contract as TDP** to approve use of your data. Status moves to **PENDING_TSP_APPROVAL**.',
+        ].join('\n'),
+        ...(await captureShot(page, roleKey, '06-sign-contract.png')),
+      });
+    } else {
+      steps.push({
+        title: 'Contract detail (signing)',
+        body: [
+          'Open a contract in **PENDING_TDP_APPROVAL** to see **Sign Contract as TDP** in the Actions panel.',
+          'If no pending contracts exist yet, ask a TDC to create one that references your dataset.',
+        ].join('\n'),
+        ...(await captureShot(page, roleKey, '06-sign-contract.png')),
+      });
+    }
 
     await gotoAndWait(page, '/notifications', async (p) => {
       await expect(p.getByRole('main')).toBeVisible();
@@ -184,7 +302,7 @@ test.describe('Role user guides (screenshot tours)', () => {
     steps.push({
       title: 'Notifications',
       body: 'Watch for signature requests and dataset access events here.',
-      ...(await captureShot(page, roleKey, '06-notifications.png')),
+      ...(await captureShot(page, roleKey, '07-notifications.png')),
     });
 
     writeGuideFile(roleKey, buildMarkdown({ roleKey, meta: ROLE_META[roleKey], email, steps }));
