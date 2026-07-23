@@ -37,6 +37,8 @@
     "db:ensure-training-metadata": "node scripts/ensure-training-jobs-metadata.js",
     "db:migrate:test": "sequelize-cli db:migrate --config ./config/database.test.js --env test",
     "db:reset:test": "node scripts/reset-test-database.js",
+    "migrate": "npm run db:reset:test",
+    "migrate:test": "npm run db:reset:test",
     "seed:demo-catalog": "node scripts/dev/seed-demo-catalog.js",
     "db:purge-local-depa-reseed": "node scripts/dev/purge-local-depa-reseed.js",
     "db:purge-local-depa-reseed:dry": "node scripts/dev/purge-local-depa-reseed.js --dry-run",
