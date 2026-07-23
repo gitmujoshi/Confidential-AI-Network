@@ -26,12 +26,14 @@ test.describe('CAN local flow via UI (create contract → training)', () => {
   }
 
   async function clickNext(page) {
-    const next = page.getByRole('button', { name: /next/i }).first();
+    await page.keyboard.press('Escape').catch(() => {});
+    const next = page.getByRole('button', { name: /^next$/i }).last();
     await expect(next).toBeVisible();
-    await next.click();
+    await next.click({ force: true });
   }
 
   test('Create contract in wizard UI, then run CAN job in UI', async ({ page }, testInfo) => {
+    test.setTimeout(5 * 60 * 1000);
     const { token, user } = await login(TDC_EMAIL);
     await seedAuth(page, { token, user });
 
@@ -46,9 +48,9 @@ test.describe('CAN local flow via UI (create contract → training)', () => {
     });
 
     await test.step('Select a contract template', async () => {
-      const firstTemplateHeading = page.locator('h3').first();
+      const firstTemplateHeading = page.locator('main h3').first();
       await expect(firstTemplateHeading).toBeVisible();
-      await firstTemplateHeading.click();
+      await firstTemplateHeading.click({ force: true });
       await clickNext(page);
     });
 
@@ -78,15 +80,28 @@ test.describe('CAN local flow via UI (create contract → training)', () => {
     });
 
     await test.step('Configure environment, select Local CCRP, and fill KMS fields', async () => {
-      await expect(page.getByRole('heading', { name: 'Configure Environment & CCRP' })).toBeVisible();
+      await expect(page.getByRole('heading', { name: /Configure Environment & (TSP|CCRP)/ })).toBeVisible();
 
-      // Pick local CCRP using the cloud provider filter and CCRP card.
-      const cloudProvider = page.getByRole('combobox').nth(1);
-      await cloudProvider.click();
-      await page.getByRole('option', { name: /Local \(Docker\)/i }).click();
+      // Prefer Local filter when present; close any leftover MUI menu before selecting a card.
+      const localFilter = page.getByRole('combobox', { name: /Cloud Provider/i }).last();
+      if (await localFilter.isVisible().catch(() => false)) {
+        await localFilter.click({ force: true });
+        const localOpt = page.getByRole('option', { name: /Local \(Docker\)/i });
+        if (await localOpt.isVisible().catch(() => false)) {
+          await localOpt.click({ force: true });
+        } else {
+          await page.keyboard.press('Escape').catch(() => {});
+        }
+      }
+      await page.keyboard.press('Escape').catch(() => {});
+      await expect(page.locator('.MuiModal-root')).toHaveCount(0, { timeout: 5000 }).catch(() => {});
 
-      // There can be multiple CCRP cards with similar names; click the exact heading to avoid strict-mode violations.
-      await page.getByRole('heading', { name: 'CCRP E2E User', exact: true }).first().click();
+      // Select seeded TSP by email. Card click is select-only (not toggle); assert via test id.
+      const tspCard = page.locator('[data-testid^="tsp-card-"]').filter({ hasText: 'ccrp.e2e@test.com' });
+      await expect(tspCard).toBeVisible({ timeout: 20_000 });
+      await tspCard.click({ force: true });
+      await expect(page.getByTestId('tsp-selected-chip')).toBeVisible({ timeout: 10_000 });
+      await expect(tspCard).toHaveAttribute('data-selected', 'true');
 
       // Environment/KMS fields (wizard can validate these; fill to avoid blocking).
       await page.getByLabel('Instance Type').fill('local');
@@ -108,15 +123,28 @@ test.describe('CAN local flow via UI (create contract → training)', () => {
       await page.getByLabel('Encryption Algorithm').fill('AES-256-GCM');
       await page.getByLabel('Key Rotation Period (days)').fill('90');
 
+      await page.keyboard.press('Escape').catch(() => {});
+      await expect(page.locator('.MuiModal-root')).toHaveCount(0, { timeout: 3000 }).catch(() => {});
       await clickNext(page);
+      await expect(page.getByRole('heading', { name: /Configure Environment & (TSP|CCRP)/ })).toBeHidden({
+        timeout: 30_000,
+      }).catch(() => {});
     });
 
     await test.step('Review and create contract', async () => {
-      await expect(page.getByRole('heading', { name: 'Review Legal Document & Smart Contract' })).toBeVisible();
+      // Env Next advances immediately; if still on env, retry once.
+      const review = page.getByRole('heading', { name: 'Review Legal Document & Smart Contract' });
+      if (!(await review.isVisible().catch(() => false))) {
+        await clickNext(page);
+      }
+      await expect(review).toBeVisible({
+        timeout: 60_000,
+      });
+      await expect(page.getByText(/Contract ID:/i).first()).toBeVisible({ timeout: 120_000 });
       await clickNext(page);
 
-      const create = page.getByRole('button', { name: /create contract/i });
-      await expect(create).toBeVisible();
+      const create = page.getByRole('main').getByRole('button', { name: /create( scitt ccf)? contract/i });
+      await expect(create).toBeVisible({ timeout: 30_000 });
       await create.click();
 
       // Wizard navigates to contract detail.
@@ -128,7 +156,7 @@ test.describe('CAN local flow via UI (create contract → training)', () => {
 
     await test.step('Open CAN Jobs UI and create job for new contract', async () => {
       await page.goto('/can/jobs');
-      await expect(page.getByText('CAN Jobs (Local CCRP)')).toBeVisible();
+      await expect(page.getByText(/CAN Jobs \(Local (TSP|CCRP)\)/)).toBeVisible({ timeout: 30_000 });
       await page.getByLabel('Contract ID').fill(contractId);
       await page.getByRole('button', { name: 'Create CAN Job' }).click();
 

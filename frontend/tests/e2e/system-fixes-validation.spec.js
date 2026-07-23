@@ -48,7 +48,7 @@ test.describe('System Fixes Validation Tests', () => {
   test('should load datasets page and view details work', async ({ page }) => {
     await sidebarButton(page, 'Datasets').click();
     await expect(page).toHaveURL(/\/(admin\/)?datasets/);
-    await expect(page.getByRole('heading', { name: 'Datasets', exact: true })).toBeVisible();
+    await expect(page.getByRole('main').getByRole('heading', { name: 'Datasets', exact: true })).toBeVisible();
 
     // With seeded data, we should always be able to open a dataset details view.
     await page.goto(`/admin/datasets/${SEEDED_DATASET_ID}`);
@@ -87,7 +87,7 @@ test.describe('System Fixes Validation Tests', () => {
   test('should load users page without 500 errors', async ({ page }) => {
     await sidebarButton(page, 'Users').click();
     await expect(page).toHaveURL(/\/(admin\/)?users/);
-    await expect(page.getByRole('heading', { name: 'Users', exact: true })).toBeVisible();
+    await expect(page.getByRole('main').getByRole('heading', { name: 'Users', exact: true })).toBeVisible();
 
     await expect(page.getByText(/Internal Server Error/i)).toHaveCount(0);
     await expect(page.getByText(/HTTP\s*500|status\s*code\s*:\s*500|Error\s*500/i)).toHaveCount(0);

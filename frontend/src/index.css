@@ -1,27 +1,229 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+
+:root {
+  color-scheme: light;
+  --can-ink: #0b1220;
+  --can-muted: #64748b;
+  --can-surface: #f4f6f9;
+  --can-line: rgba(15, 23, 42, 0.08);
+  --can-accent: #0b6bcb;
+  --can-accent-soft: rgba(11, 107, 203, 0.1);
+  --can-success: #0f766e;
+  --can-warning: #b45309;
+  --can-danger: #b91c1c;
+}
 
 body {
   margin: 0;
-  font-family: 'Inter', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI',
-    Roboto, 'Helvetica Neue', Arial, 'Apple Color Emoji', 'Segoe UI Emoji';
+  font-family: 'Plus Jakarta Sans', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+    'Segoe UI', sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background: #f8fafc;
+  background: var(--can-surface);
+  color: var(--can-ink);
 }
 
-code {
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono',
-    'Courier New', monospace;
+code,
+.mono,
+.font-mono,
+.font-monospace {
+  font-family: 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 }
 
 * {
   box-sizing: border-box;
 }
 
-html, body {
+html,
+body,
+#root {
   height: 100%;
 }
 
-#root {
-  height: 100%;
-} 
+@keyframes can-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.can-page-enter {
+  animation: can-fade-up 280ms ease-out;
+}
+
+/*
+ * Compatibility layer for legacy utility classNames (Tailwind/Bootstrap leftovers).
+ * Maps them onto the Confidential AI design tokens so dashboards/dialogs render
+ * consistently without a full rewrite of every page.
+ */
+.flex,
+.d-flex {
+  display: flex;
+}
+.flex-wrap {
+  flex-wrap: wrap;
+}
+.flex-col {
+  flex-direction: column;
+}
+.items-center,
+.align-items-center {
+  align-items: center;
+}
+.align-items-start {
+  align-items: flex-start;
+}
+.justify-between {
+  justify-content: space-between;
+}
+.justify-center {
+  justify-content: center;
+}
+.space-x-3 > :not([hidden]) ~ :not([hidden]) {
+  margin-left: 0.75rem;
+}
+.space-y-6 > :not([hidden]) ~ :not([hidden]) {
+  margin-top: 1.5rem;
+}
+.gap-2 {
+  gap: 0.5rem;
+}
+.gap-3 {
+  gap: 0.75rem;
+}
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  margin-left: -8px;
+  margin-right: -8px;
+}
+.col-md-6 {
+  flex: 0 0 100%;
+  max-width: 100%;
+  padding: 0 8px;
+}
+@media (min-width: 900px) {
+  .col-md-6 {
+    flex: 0 0 50%;
+    max-width: 50%;
+  }
+}
+
+.p-4 {
+  padding: 1rem;
+}
+.px-2 {
+  padding-left: 0.5rem;
+  padding-right: 0.5rem;
+}
+.py-1 {
+  padding-top: 0.25rem;
+  padding-bottom: 0.25rem;
+}
+.py-8 {
+  padding-top: 2rem;
+  padding-bottom: 2rem;
+}
+.mb-0 {
+  margin-bottom: 0;
+}
+.mb-2 {
+  margin-bottom: 0.5rem;
+}
+.mb-3 {
+  margin-bottom: 0.75rem;
+}
+.mb-4 {
+  margin-bottom: 1rem;
+}
+.mt-2 {
+  margin-top: 0.5rem;
+}
+.me-2 {
+  margin-right: 0.5rem;
+}
+.ms-2 {
+  margin-left: 0.5rem;
+}
+
+.rounded {
+  border-radius: 6px;
+}
+.rounded-lg {
+  border-radius: 10px;
+}
+
+.font-bold {
+  font-weight: 700;
+}
+.font-medium {
+  font-weight: 600;
+}
+
+.text-center {
+  text-align: center;
+}
+.text-3xl {
+  font-size: 1.875rem;
+  line-height: 1.2;
+}
+.text-gray-900 {
+  color: var(--can-ink);
+}
+.text-gray-600,
+.text-muted {
+  color: var(--can-muted);
+}
+.text-blue-600 {
+  color: var(--can-accent);
+}
+.text-green-600 {
+  color: var(--can-success);
+}
+.text-orange-600 {
+  color: var(--can-warning);
+}
+.text-red-600 {
+  color: var(--can-danger);
+}
+/* Remap former purple/indigo accents to slate/primary for brand consistency */
+.text-purple-600,
+.text-indigo-600 {
+  color: #334155;
+}
+
+.bg-gray-100 {
+  background-color: #f1f5f9;
+}
+.bg-blue-50 {
+  background-color: var(--can-accent-soft);
+}
+.bg-green-50 {
+  background-color: rgba(15, 118, 110, 0.08);
+}
+.bg-orange-50 {
+  background-color: rgba(180, 83, 9, 0.08);
+}
+.bg-purple-50 {
+  background-color: rgba(51, 65, 85, 0.08);
+}
+
+.h-64 {
+  height: 16rem;
+}
+
+.alert {
+  padding: 0.75rem 1rem;
+  border-radius: 10px;
+  border: 1px solid var(--can-line);
+  background: #fff;
+}
+.alert-info {
+  background: var(--can-accent-soft);
+  border-color: rgba(11, 107, 203, 0.2);
+  color: #08498a;
+}

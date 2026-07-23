@@ -171,6 +171,10 @@ npm run test:e2e          # End-to-end tests only
 npm run test:api          # API tests only
 npm run test:frontend     # Frontend tests only
 
+# From frontend/: regenerate per-role UI user guides + screenshots
+cd frontend && npm run test:e2e:user-guides
+# → docs/guides/role-user-guides/
+
 # Run tests in watch mode
 npm run test:watch
 

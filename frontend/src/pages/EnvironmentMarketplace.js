@@ -215,7 +215,7 @@ const EnvironmentMarketplace = () => {
         </Typography>
 
         {/* Search Bar */}
-        <Paper elevation={2} sx={{ p: 2, mb: 3 }}>
+        <Paper elevation={0} sx={{ p: 2, mb: 3 }}>
           <Grid container spacing={2} alignItems="center">
             <Grid item xs={12} md={6}>
               <TextField
@@ -260,7 +260,7 @@ const EnvironmentMarketplace = () => {
 
         {/* Filters Panel */}
         {showFilters && (
-          <Paper elevation={2} sx={{ p: 3, mb: 3 }}>
+          <Paper elevation={0} sx={{ p: 3, mb: 3 }}>
             <Typography variant="h6" gutterBottom>Filters</Typography>
             <Grid container spacing={3}>
               <Grid item xs={12} md={3}>

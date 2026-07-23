@@ -90,78 +90,72 @@ async function ensureAiModelExists(backendURL, adminToken, payload) {
   }
 }
 
-/** Every CCRP must advertise Local for E2E local-training specs (single provider only). */
-async function ensureAllCcrpsAdvertiseLocalDocker(backendURL, adminToken) {
+/** Only the static seeded TSP must advertise Local for E2E (do not mutate ephemeral CCRPs). */
+async function ensureStaticTspAdvertisesLocalDocker(backendURL, adminToken) {
+  const staticEmail = 'ccrp.e2e@test.com';
   try {
-    const res = await axios.get(`${backendURL}/api/users/ccrp`, {
-      headers: { Authorization: `Bearer ${adminToken}` },
-    });
-    const rows = Array.isArray(res.data) ? res.data : [];
-    for (const u of rows) {
-      const existing = Array.isArray(u.cloudProviders) ? u.cloudProviders : [];
-      const target = ['Local'];
-      if (normalizedProviderSet(existing) === normalizedProviderSet(target)) continue;
-      await axios.put(
-        `${backendURL}/api/users/${u.id}`,
-        {
-          cloudProviders: target,
-          description: u.description || 'CCRP provider for E2E tests',
-        },
-        { headers: { Authorization: `Bearer ${adminToken}` } }
-      );
+    let rows = [];
+    try {
+      const res = await axios.get(`${backendURL}/api/users/tsp`, {
+        headers: { Authorization: `Bearer ${adminToken}` },
+      });
+      rows = Array.isArray(res.data) ? res.data : [];
+    } catch (_) {
+      const res = await axios.get(`${backendURL}/api/users/ccrp`, {
+        headers: { Authorization: `Bearer ${adminToken}` },
+      });
+      rows = Array.isArray(res.data) ? res.data : [];
     }
-    console.log(`✅ E2E ensured cloudProviders on ${rows.length} CCRP user(s)`);
+    const u = rows.find((row) => row.email === staticEmail);
+    if (!u) {
+      console.warn(`⚠️ Static TSP ${staticEmail} not found — run: npm run seed:e2e-users`);
+      return;
+    }
+    const existing = Array.isArray(u.cloudProviders) ? u.cloudProviders : [];
+    const target = ['Local'];
+    if (normalizedProviderSet(existing) === normalizedProviderSet(target)) {
+      console.log(`✅ Static TSP ${staticEmail} already has Local provider`);
+      return;
+    }
+    await axios.put(
+      `${backendURL}/api/users/${u.id}`,
+      {
+        cloudProviders: target,
+        description: u.description || 'Static E2E TSP provider (Local Docker)',
+      },
+      { headers: { Authorization: `Bearer ${adminToken}` } }
+    );
+    console.log(`✅ Ensured Local cloudProviders on static TSP ${staticEmail}`);
   } catch (err) {
     console.warn(
-      '⚠️ Failed to backfill CCRP cloudProviders for E2E:',
+      '⚠️ Failed to set Local provider on static TSP:',
       err.response?.status || err.message
     );
   }
 }
 
 class E2ETestDataManager {
-  async setupTestData() {
-    // This user is hard-coded across Playwright specs as a known-good login.
-    await ensureUser({
-      name: 'TDC Healthcare E2E User',
-      email: 'tdc.healthcare.2025-09-05t20-39-55@test.com',
-      partyType: 'TDC',
-      desiredPassword: 'TestNewPassword123!',
-    });
-
-    // TDP user for dataset ownership.
-    await ensureUser({
-      name: 'TDP E2E User',
-      email: 'tdp.e2e@test.com',
-      partyType: 'TDP',
-      desiredPassword: 'TestNewPassword123!',
-    });
-
-    await ensureUser({
-      name: 'CCRP E2E User',
-      email: 'ccrp.e2e@test.com',
-      partyType: 'CCRP',
-      desiredPassword: 'TestNewPassword123!',
-    });
-
-    // AppAdmin user for admin-route smoke tests.
-    await ensureUser({
-      name: 'AppAdmin E2E User',
-      email: 'appadmin.e2e@test.com',
-      partyType: 'AppAdmin',
-      desiredPassword: 'TestNewPassword123!',
-    });
-
+  /**
+   * Catalog / fixture seed for E2E. Does NOT create users — those are env-setup only
+   * (`npm run seed:e2e-users` / start-system.sh).
+   */
+  async setupCatalogFixtures() {
     const backendURL = getBackendURL();
+    const password = 'TestNewPassword123!';
 
-    // Seed default contract templates (needed for /contracts/create wizard).
-    // Requires authenticated AppAdmin.
-    const { accessToken: adminToken } = await login({
-      email: 'appadmin.e2e@test.com',
-      password: 'TestNewPassword123!',
-    });
+    let adminToken;
+    try {
+      ({ accessToken: adminToken } = await login({
+        email: 'appadmin.e2e@test.com',
+        password,
+      }));
+    } catch (err) {
+      throw new Error(
+        `Static AppAdmin login failed. Seed users during env setup: npm run seed:e2e-users (${err.message})`
+      );
+    }
 
-    await ensureAllCcrpsAdvertiseLocalDocker(backendURL, adminToken);
+    await ensureStaticTspAdvertisesLocalDocker(backendURL, adminToken);
 
     // Deterministic AI fixtures: tabular/text + vision (wizard modality filtering / dropdown tests).
     await ensureAiModelExists(backendURL, adminToken, {
@@ -243,7 +237,7 @@ class E2ETestDataManager {
     // Ensure at least one public dataset exists for contract creation.
     const { user: tdpUser } = await login({
       email: 'tdp.e2e@test.com',
-      password: 'TestNewPassword123!',
+      password,
     });
 
     const nlpDatasetId = 'e2e-nlp-ag-news';
@@ -338,19 +332,17 @@ class E2ETestDataManager {
         isPublic: true,
         isActive: true,
         confidentialComputingRequired: false,
+        ownerId: tdpUser.id,
       });
       console.log('✅ E2E catalog dataset reconciled (public + modality)');
     } catch (err) {
-      console.warn(
-        '⚠️ E2E catalog dataset reconcile failed:',
-        err.response?.status || err.message
-      );
+      console.warn('⚠️ E2E catalog dataset reconcile failed:', err.response?.status || err.message);
     }
 
     // Ensure at least one contract exists for the TDC so contract list/detail tests can run.
     const { user: tdcUser, accessToken: tdcToken } = await login({
       email: 'tdc.healthcare.2025-09-05t20-39-55@test.com',
-      password: 'TestNewPassword123!',
+      password,
     });
 
     let existingContractsTotal = 0;
@@ -358,79 +350,87 @@ class E2ETestDataManager {
       const list = await axios.get(`${backendURL}/api/contracts/user/${tdcUser.id}?limit=1&offset=0`);
       existingContractsTotal = list.data?.total ?? 0;
     } catch (_) {
-      // If listing fails, still attempt creation below (it will error clearly if backend is unhealthy).
+      // If listing fails, still attempt creation below.
     }
 
     if (existingContractsTotal === 0) {
-      await axios.post(`${backendURL}/api/contracts/ricardian`, {
-        datasetSelections: [{ datasetId, individualPrice: 100 }],
-        aiModelIds: ['e2e-model-1'],
-        duration: 30,
-        termsAndConditions: 'E2E seeded contract terms.',
-        contractType: 'AI_TRAINING',
-        ccrpCloudProvider: 'Azure',
-        environmentSpecs: {
-          compute: { cpuCores: 2, memoryGB: 4, gpuCount: 0 },
-          security: {
-            confidentialComputing: false,
-            attestationRequired: true,
-            encryptionAtRest: true,
-            encryptionInTransit: true,
-            networkIsolation: true,
-          },
-          kms: {
-            provider: 'hashicorp-vault',
-            keyId: 'e2e-local-key',
-            algorithm: 'AES-256-GCM',
-            rotationPeriod: 90,
-          },
-          runtime: {
-            containerSpec: {
-              image: 'mcr.microsoft.com/azureml/openmpi4.1.0-ubuntu20.04:latest',
-              command: 'python train.py',
-              cpuCores: 2,
-              memoryGB: 4,
-              gpuCount: 0,
+      await axios.post(
+        `${backendURL}/api/contracts/ricardian`,
+        {
+          datasetSelections: [{ datasetId, individualPrice: 100 }],
+          aiModelIds: ['e2e-model-1'],
+          duration: 30,
+          termsAndConditions: 'E2E seeded contract terms.',
+          contractType: 'AI_TRAINING',
+          ccrpCloudProvider: 'Azure',
+          environmentSpecs: {
+            compute: { cpuCores: 2, memoryGB: 4, gpuCount: 0 },
+            security: {
+              confidentialComputing: false,
+              attestationRequired: true,
+              encryptionAtRest: true,
+              encryptionInTransit: true,
+              networkIsolation: true,
+            },
+            kms: {
+              provider: 'hashicorp-vault',
+              keyId: 'e2e-local-key',
+              algorithm: 'AES-256-GCM',
+              rotationPeriod: 90,
+            },
+            runtime: {
+              containerSpec: {
+                image: 'mcr.microsoft.com/azureml/openmpi4.1.0-ubuntu20.04:latest',
+                command: 'python train.py',
+                cpuCores: 2,
+                memoryGB: 4,
+                gpuCount: 0,
+              },
             },
           },
+          kmsConfigs: {
+            provider: 'hashicorp-vault',
+            keyId: 'e2e-local-key',
+            vaultUrl: 'http://localhost:8200',
+            metadata: { seededBy: 'playwright', purpose: 'e2e' },
+          },
+          containerImage: 'mcr.microsoft.com/azureml/openmpi4.1.0-ubuntu20.04:latest',
+          serviceAccount: 'local/e2e-runner',
+          logDestination: 'local:file',
+          privacyRequirements: {
+            maxPrivacyLoss: 0.25,
+            minAccuracy: 0.85,
+            differentialPrivacy: true,
+          },
+          trainingParams: {
+            privacyTechnique: 'Differential Privacy',
+            framework: 'PyTorch',
+            architecture: 'bert-base',
+            maxEpochs: 5,
+            batchSize: 32,
+            learningRate: 0.001,
+            validationMetrics: ['accuracy', 'loss'],
+          },
         },
-        kmsConfigs: {
-          provider: 'hashicorp-vault',
-          keyId: 'e2e-local-key',
-          vaultUrl: 'http://localhost:8200',
-          metadata: { seededBy: 'playwright', purpose: 'e2e' },
-        },
-        containerImage: 'mcr.microsoft.com/azureml/openmpi4.1.0-ubuntu20.04:latest',
-        serviceAccount: 'local/e2e-runner',
-        logDestination: 'local:file',
-        privacyRequirements: {
-          maxPrivacyLoss: 0.25,
-          minAccuracy: 0.85,
-          differentialPrivacy: true,
-        },
-        trainingParams: {
-          privacyTechnique: 'Differential Privacy',
-          framework: 'PyTorch',
-          architecture: 'bert-base',
-          maxEpochs: 5,
-          batchSize: 32,
-          learningRate: 0.001,
-          validationMetrics: ['accuracy', 'loss'],
-        },
-      }, {
-        headers: { Authorization: `Bearer ${tdcToken}` },
-      });
+        { headers: { Authorization: `Bearer ${tdcToken}` } }
+      );
     }
+  }
+
+  /** @deprecated Use setupCatalogFixtures(); user seed is env-setup only. */
+  async setupTestData() {
+    await this.setupCatalogFixtures();
   }
 
   async cleanupTestData() {
     // Intentionally a no-op.
-    // Deleting users/data requires privileged endpoints and can be disruptive to local dev.
   }
 }
 
 module.exports = {
   E2ETestDataManager,
   getBackendURL,
+  ensureUser,
+  login,
 };
 

@@ -54,12 +54,12 @@ test.describe('Dashboard Tests', () => {
     await expect(main.getByText('Total Contracts', { exact: true })).toBeVisible({ timeout: 120000 });
   });
 
-  test('should display CCRP dashboard correctly', async ({ page }) => {
+  test('should display CCRP/TSP dashboard correctly', async ({ page }) => {
     await seedAuth(page, { email: 'ccrp.e2e@test.com' });
-    await page.goto('/ccrp/dashboard');
+    await page.goto('/tsp/dashboard');
     await expect(page).not.toHaveURL(/.*\/login/);
 
-    await waitForDashboardReady(page, { partyType: 'CCRP', welcomeHeading: /Welcome to Your CCRP Dashboard/i });
+    await waitForDashboardReady(page, { partyType: 'TSP', welcomeHeading: /Welcome to Your (TSP|CCRP) Dashboard/i });
   });
 
   test('should display Admin dashboard correctly', async ({ page }) => {

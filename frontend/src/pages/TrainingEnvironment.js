@@ -303,7 +303,7 @@ const TrainingEnvironment = () => {
 
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
-      <Paper elevation={3} sx={{ p: 4 }}>
+      <Paper elevation={0} sx={{ p: 4 }}>
         <Typography variant="h4" component="h1" gutterBottom align="center">
           Training Environment Management
         </Typography>

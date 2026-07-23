@@ -8,110 +8,89 @@ import {
   Button,
   Typography,
   Alert,
-  Container,
   Paper,
   Accordion,
   AccordionSummary,
   AccordionDetails,
   Link,
+  Stack,
+  Divider,
 } from '@mui/material';
-import { LockOutlined, ExpandMore, Code } from '@mui/icons-material';
+import { ExpandMore, Code, ArrowForward } from '@mui/icons-material';
 
 const Login = () => {
   const navigate = useNavigate();
-  const { setUser, checkTokenAuth, clearAuthData } = useUser();
+  const { setUser } = useUser();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [formData, setFormData] = useState({
     email: '',
-    password: ''
+    password: '',
   });
   const [devResetToken, setDevResetToken] = useState('');
   const [devResetLink, setDevResetLink] = useState('');
   const [devLoading, setDevLoading] = useState(false);
 
-  // Clear stale authentication data on mount
   useEffect(() => {
     const clearStaleTokens = async () => {
       const token = localStorage.getItem('authToken');
       if (token) {
         try {
-          // Try to validate the token using apiService
           const response = await apiService.get('/api/auth/profile');
-          
           if (response.data.user) {
-            // Token is valid, redirect to dashboard
-            console.log('✅ [Login] Valid token found, redirecting to dashboard');
             navigate('/dashboard');
             return;
           }
-        } catch (error) {
-          console.log('🔍 [Login] Token validation failed, clearing stale data');
+        } catch (_) {
+          // stale token
         }
-        
-        // Token is invalid, clear it
-        console.log('🧹 [Login] Clearing invalid authentication data...');
         localStorage.removeItem('authToken');
         localStorage.removeItem('refreshToken');
         localStorage.removeItem('user');
         localStorage.removeItem('currentUser');
         sessionStorage.clear();
       }
-      
-      console.log('🔄 [Login] Ready for fresh login');
     };
-    
     clearStaleTokens();
   }, [navigate]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  // Development: Get reset token for testing
   const handleGetDevResetToken = async () => {
     if (!formData.email.trim()) {
       setError('Please enter an email address first.');
       return;
     }
-
     try {
       setDevLoading(true);
       setError('');
-      
       const response = await apiService.getDevResetToken(formData.email.trim());
-      
       if (response.data.success) {
         const { token, minutesRemaining } = response.data;
         setDevResetToken(token);
         setDevResetLink(`http://localhost:3000/reset-password?token=${token}`);
         setSuccess(`Reset token retrieved! Expires in ${minutesRemaining} minutes.`);
       }
-    } catch (error) {
-      console.error('Dev reset token error:', error);
-      setError('Failed to get reset token: ' + (error.response?.data?.error || error.message));
+    } catch (err) {
+      setError('Failed to get reset token: ' + (err.response?.data?.error || err.message));
     } finally {
       setDevLoading(false);
     }
   };
 
-  // Traditional email/password login
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
     if (!formData.email.trim() || !formData.password) {
       setError('Please fill in all fields.');
       return;
     }
-
     try {
       setLoading(true);
       setError('');
-
-      // Clear any stale authentication data before login
-      console.log('🧹 Clearing stale authentication data...');
       localStorage.removeItem('authToken');
       localStorage.removeItem('refreshToken');
       localStorage.removeItem('user');
@@ -120,123 +99,151 @@ const Login = () => {
 
       const response = await apiService.login({
         email: formData.email.trim(),
-        password: formData.password
+        password: formData.password,
       });
 
-      // Handle both normal login (with accessToken) and first-login (requiresPasswordChange)
       if (response.data.accessToken || response.data.requiresPasswordChange) {
         const { user, accessToken, refreshToken, requiresPasswordChange } = response.data;
-        
-        // Only set tokens if they exist (normal login)
         if (accessToken) {
           localStorage.setItem('authToken', accessToken);
-          if (refreshToken) {
-            localStorage.setItem('refreshToken', refreshToken);
-          }
+          if (refreshToken) localStorage.setItem('refreshToken', refreshToken);
         }
-        
-        // Set user from login response
         setUser(user);
-        console.log('✅ Login successful, user set from login response:', user);
-        
-        // Check if user needs to change password (first login)
         if (requiresPasswordChange) {
-          console.log('🔐 First login detected, redirecting to password change wizard');
           setSuccess('First login detected! Please set your new password...');
-          
           setTimeout(() => {
-            navigate('/first-login', { 
-              state: { 
-                user: user,
-                temporaryPassword: formData.password // Pass temp password for reference
-              }
+            navigate('/first-login', {
+              state: { user, temporaryPassword: formData.password },
             });
           }, 1000);
         } else {
-          setSuccess('Login successful! Redirecting to dashboard...');
-          
-          // Wait for user state to be properly set before navigation
-          setTimeout(() => {
-            // Double-check that user is set in context
-            const currentUser = JSON.parse(localStorage.getItem('currentUser') || 'null');
-            if (currentUser) {
-              console.log('✅ User confirmed in localStorage, navigating to dashboard');
-              navigate('/dashboard');
-            } else {
-              console.log('⚠️ User not in localStorage, navigating anyway');
-              navigate('/dashboard');
-            }
-          }, 1000); // Reduced timeout to 1 second
+          setSuccess('Login successful! Redirecting...');
+          setTimeout(() => navigate('/dashboard'), 800);
         }
       } else {
         setError('Login failed: Invalid response from server.');
       }
-    } catch (error) {
-      console.error('Login error:', error);
-      setError('Login failed: ' + (error.response?.data?.error || error.message));
+    } catch (err) {
+      setError('Login failed: ' + (err.response?.data?.error || err.message));
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <Container component="main" maxWidth="sm">
+    <Box
+      sx={{
+        minHeight: '100vh',
+        display: 'grid',
+        gridTemplateColumns: { xs: '1fr', md: '1.05fr 0.95fr' },
+      }}
+    >
+      {/* Brand panel — Stripe-style split auth */}
       <Box
         sx={{
-          marginTop: 8,
-          display: 'flex',
+          display: { xs: 'none', md: 'flex' },
           flexDirection: 'column',
+          justifyContent: 'space-between',
+          p: 6,
+          color: '#e2e8f0',
+          background:
+            'radial-gradient(900px 500px at 10% 0%, rgba(11,107,203,0.35), transparent 55%), linear-gradient(160deg, #0b1220 0%, #111827 55%, #0b1220 100%)',
+        }}
+      >
+        <Stack direction="row" spacing={1.5} alignItems="center">
+          <Box
+            sx={{
+              width: 40,
+              height: 40,
+              borderRadius: '10px',
+              background: 'linear-gradient(145deg, #0b6bcb, #08498a)',
+              display: 'grid',
+              placeItems: 'center',
+              fontWeight: 800,
+              color: '#fff',
+            }}
+          >
+            CA
+          </Box>
+          <Box>
+            <Typography sx={{ fontWeight: 750, letterSpacing: '-0.02em' }}>
+              Confidential AI Network
+            </Typography>
+            <Typography sx={{ fontSize: '0.8rem', color: '#94a3b8' }}>
+              Secure multi-party contract console
+            </Typography>
+          </Box>
+        </Stack>
+
+        <Box sx={{ maxWidth: 440 }}>
+          <Typography
+            variant="h3"
+            sx={{
+              fontWeight: 750,
+              letterSpacing: '-0.03em',
+              mb: 2,
+              color: '#f8fafc',
+              fontSize: { md: '2.35rem', lg: '2.6rem' },
+            }}
+          >
+            Contracts, provenance, and confidential training — in one place.
+          </Typography>
+          <Typography sx={{ color: '#94a3b8', fontSize: '1.05rem', lineHeight: 1.7 }}>
+            Sign in to manage datasets, negotiate Ricardian contracts, and run
+            privacy-preserving training across TDC, TDP, and TSP roles.
+          </Typography>
+        </Box>
+
+        <Typography sx={{ color: '#64748b', fontSize: '0.8rem' }}>
+          Built for regulated AI collaboration · DEPA · SCITT
+        </Typography>
+      </Box>
+
+      {/* Form panel */}
+      <Box
+        sx={{
+          display: 'flex',
           alignItems: 'center',
+          justifyContent: 'center',
+          p: { xs: 3, sm: 5 },
+          bgcolor: '#f4f6f9',
         }}
       >
         <Paper
-          elevation={3}
+          elevation={0}
           sx={{
-            padding: 4,
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
             width: '100%',
+            maxWidth: 420,
+            p: { xs: 3, sm: 4 },
+            border: '1px solid',
+            borderColor: 'divider',
+            borderRadius: 3,
           }}
         >
-          <Box
-            sx={{
-              width: 56,
-              height: 56,
-              borderRadius: '50%',
-              backgroundColor: 'primary.main',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              marginBottom: 2,
-            }}
-          >
-            <LockOutlined sx={{ color: 'white', fontSize: 28 }} />
-          </Box>
-
-          <Typography component="h1" variant="h4" gutterBottom>
+          <Typography variant="overline" color="text.secondary">
+            Welcome back
+          </Typography>
+          <Typography component="h1" variant="h4" sx={{ mt: 0.5, mb: 0.5, fontWeight: 750 }}>
             Contract Management
           </Typography>
-          <Typography variant="body1" color="text.secondary" gutterBottom>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
             Sign in to your account
           </Typography>
 
           {error && (
-            <Alert severity="error" sx={{ width: '100%', mb: 2 }}>
+            <Alert severity="error" sx={{ mb: 2 }}>
               {error}
             </Alert>
           )}
-
           {success && (
-            <Alert severity="success" sx={{ width: '100%', mb: 2 }}>
+            <Alert severity="success" sx={{ mb: 2 }}>
               {success}
             </Alert>
           )}
 
-          {/* Email/Password Login Form */}
-          <Box component="form" onSubmit={handleSubmit} sx={{ width: '100%' }}>
+          <Box component="form" onSubmit={handleSubmit}>
             <TextField
-              margin="normal"
+              margin="dense"
               fullWidth
               id="email"
               label="Email Address"
@@ -246,9 +253,10 @@ const Login = () => {
               value={formData.email}
               onChange={handleInputChange}
               required
+              sx={{ mb: 1.5 }}
             />
             <TextField
-              margin="normal"
+              margin="dense"
               fullWidth
               name="password"
               label="Password"
@@ -263,64 +271,67 @@ const Login = () => {
               type="submit"
               fullWidth
               variant="contained"
-              sx={{ mt: 3, mb: 2 }}
+              size="large"
+              endIcon={<ArrowForward />}
+              sx={{ mt: 2.5, mb: 1.5, py: 1.15 }}
               disabled={loading}
             >
-              {loading ? 'Signing In...' : 'Sign In'}
+              {loading ? 'Signing in…' : 'Sign In'}
             </Button>
           </Box>
 
-          <Button
-            fullWidth
-            variant="text"
-            onClick={() => {
-              console.log('🔗 [Login] Navigating to registration page...');
-              // Clear any stale tokens before navigating to registration
-              localStorage.removeItem('authToken');
-              localStorage.removeItem('refreshToken');
-              localStorage.removeItem('user');
-              localStorage.removeItem('currentUser');
-              sessionStorage.clear();
-              
-              // Set a flag to indicate intentional navigation to registration
-              sessionStorage.setItem('navigatingToRegistration', 'true');
-              
-              // Use setTimeout to ensure cleanup completes before navigation
-              setTimeout(() => {
-                navigate('/register');
-              }, 100);
-            }}
-            sx={{ mt: 1 }}
+          <Stack
+            direction={{ xs: 'column', sm: 'row' }}
+            justifyContent="space-between"
+            alignItems={{ xs: 'stretch', sm: 'center' }}
+            spacing={1}
+            sx={{ mt: 1.5 }}
           >
-            Don't have an account? Sign Up
-          </Button>
-          
-          <Button
-            fullWidth
-            variant="text"
-            onClick={() => navigate('/forgot-password')}
-            sx={{ mt: 1 }}
-          >
-            Forgot your password?
-          </Button>
+            <Button
+              fullWidth={false}
+              variant="text"
+              onClick={() => navigate('/forgot-password')}
+              sx={{ justifyContent: 'flex-start', color: 'text.secondary', px: 0 }}
+            >
+              Forgot your password?
+            </Button>
+            <Button
+              variant="text"
+              onClick={() => {
+                localStorage.removeItem('authToken');
+                localStorage.removeItem('refreshToken');
+                localStorage.removeItem('user');
+                localStorage.removeItem('currentUser');
+                sessionStorage.clear();
+                sessionStorage.setItem('navigatingToRegistration', 'true');
+                setTimeout(() => navigate('/register'), 100);
+              }}
+              sx={{ fontWeight: 600, px: 0 }}
+            >
+              Don't have an account? Sign Up
+            </Button>
+          </Stack>
 
-          {/* Development Only: Reset Token Feature */}
           {process.env.NODE_ENV === 'development' && (
-            <Accordion sx={{ width: '100%', mt: 2 }}>
-              <AccordionSummary expandIcon={<ExpandMore />}>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                  <Code sx={{ fontSize: 20 }} />
-                  <Typography variant="body2" color="text.secondary">
-                    Development: Get Reset Token
-                  </Typography>
-                </Box>
-              </AccordionSummary>
-              <AccordionDetails>
-                <Box sx={{ width: '100%' }}>
-                  <Typography variant="body2" color="text.secondary" gutterBottom>
-                    For testing password reset without email delivery
-                  </Typography>
-                  
+            <>
+              <Divider sx={{ my: 2.5 }} />
+              <Accordion
+                elevation={0}
+                sx={{
+                  border: '1px solid',
+                  borderColor: 'divider',
+                  '&:before': { display: 'none' },
+                }}
+              >
+                <AccordionSummary expandIcon={<ExpandMore />}>
+                  <Stack direction="row" spacing={1} alignItems="center">
+                    <Code sx={{ fontSize: 18, color: 'text.secondary' }} />
+                    <Typography variant="body2" color="text.secondary">
+                      Dev: reset token
+                    </Typography>
+                  </Stack>
+                </AccordionSummary>
+                <AccordionDetails>
                   <Button
                     fullWidth
                     variant="outlined"
@@ -329,56 +340,35 @@ const Login = () => {
                     disabled={devLoading || !formData.email}
                     sx={{ mb: 2 }}
                   >
-                    {devLoading ? 'Getting Token...' : 'Get Reset Token'}
+                    {devLoading ? 'Getting token…' : 'Get reset token'}
                   </Button>
-
                   {devResetToken && (
-                    <Box sx={{ mt: 2, p: 2, bgcolor: 'grey.50', borderRadius: 1 }}>
-                      <Typography variant="body2" color="text.secondary" gutterBottom>
-                        <strong>Reset Token:</strong>
+                    <Box sx={{ p: 1.5, bgcolor: 'grey.50', borderRadius: 1 }}>
+                      <Typography variant="caption" color="text.secondary" display="block">
+                        Token
                       </Typography>
-                      <Typography 
-                        variant="body2" 
-                        sx={{ 
-                          fontFamily: 'monospace', 
-                          fontSize: '0.75rem',
-                          wordBreak: 'break-all',
-                          bgcolor: 'white',
-                          p: 1,
-                          borderRadius: 0.5,
-                          border: '1px solid #ddd'
-                        }}
+                      <Typography
+                        variant="body2"
+                        className="mono"
+                        sx={{ fontSize: '0.72rem', wordBreak: 'break-all' }}
                       >
                         {devResetToken}
                       </Typography>
-                      
-                      <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
-                        <strong>Complete Reset Link:</strong>
-                      </Typography>
-                      <Link 
-                        href={devResetLink}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        sx={{ 
-                          fontFamily: 'monospace', 
-                          fontSize: '0.75rem',
-                          wordBreak: 'break-all',
-                          display: 'block',
-                          mt: 1
-                        }}
-                      >
-                        {devResetLink}
-                      </Link>
+                      {devResetLink && (
+                        <Link href={devResetLink} variant="caption" sx={{ mt: 1, display: 'inline-block' }}>
+                          Open reset link
+                        </Link>
+                      )}
                     </Box>
                   )}
-                </Box>
-              </AccordionDetails>
-            </Accordion>
+                </AccordionDetails>
+              </Accordion>
+            </>
           )}
         </Paper>
       </Box>
-    </Container>
+    </Box>
   );
 };
 
-export default Login; 
+export default Login;

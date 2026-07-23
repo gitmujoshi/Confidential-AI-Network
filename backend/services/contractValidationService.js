@@ -57,37 +57,31 @@ class ContractValidationService {
           });
       }
 
-<<<<<<< HEAD
-      // Validate TSP ID
-      if (data.tspId) {
-        if (typeof data.tspId !== 'number' || data.tspId <= 0) {
+      // Validate TSP ID (legacy CCRP field accepted as alias)
+      const tspRaw = data.tspId ?? data.ccrpId;
+      if (tspRaw !== undefined && tspRaw !== null && tspRaw !== '') {
+        if (typeof tspRaw === 'number') {
+          if (tspRaw <= 0) errors.push('Invalid TSP ID');
+          else validated.tspId = tspRaw;
+        } else if (typeof tspRaw === 'string') {
+          const trimmed = tspRaw.trim();
+          if (!trimmed) errors.push('Invalid TSP ID');
+          else if (depaIdService.validateDEPAId(trimmed)) validated.tspId = trimmed;
+          else if (/^\d+$/.test(trimmed)) validated.tspId = parseInt(trimmed, 10);
+          else validated.tspId = trimmed;
+        } else {
           errors.push('Invalid TSP ID');
-        } else {
-          validated.tspId = data.tspId;
-=======
-      // Validate CCRP ID
-      if (data.ccrpId) {
-        // Support either numeric user id (legacy) or DEPA ID (preferred for API clients)
-        if (typeof data.ccrpId === 'number') {
-          if (data.ccrpId <= 0) errors.push('Invalid CCRP ID');
-          else validated.ccrpId = data.ccrpId;
-        } else if (typeof data.ccrpId === 'string') {
-          const trimmed = data.ccrpId.trim();
-          if (!trimmed) errors.push('Invalid CCRP ID');
-          else validated.ccrpId = trimmed;
-        } else {
-          errors.push('Invalid CCRP ID');
->>>>>>> origin/feature/model-training-environment
         }
       }
 
-      // Validate TSP cloud provider (optional, but required for training completeness when TSP is selected)
-      if (data.tspCloudProvider !== undefined && data.tspCloudProvider !== null && data.tspCloudProvider !== '') {
+      // Validate TSP cloud provider (optional; legacy ccrpCloudProvider accepted as alias)
+      const tspCloudRaw = data.tspCloudProvider ?? data.ccrpCloudProvider;
+      if (tspCloudRaw !== undefined && tspCloudRaw !== null && tspCloudRaw !== '') {
         const validProviders = ['Local', 'AWS', 'Azure', 'GCP', 'OCI'];
-        if (typeof data.tspCloudProvider !== 'string' || !validProviders.includes(data.tspCloudProvider)) {
+        if (typeof tspCloudRaw !== 'string' || !validProviders.includes(tspCloudRaw)) {
           errors.push(`Invalid tspCloudProvider. Must be one of: ${validProviders.join(', ')}`);
         } else {
-          validated.tspCloudProvider = data.tspCloudProvider;
+          validated.tspCloudProvider = tspCloudRaw;
         }
       }
 

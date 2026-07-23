@@ -13,12 +13,15 @@ function isAppAdminParty(partyType) {
   return normalizePartyType(partyType) === 'APPADMIN';
 }
 
-/** Actor may sign as claimed party unless AppAdmin-only logic applies elsewhere. */
+/** Actor may sign as claimed party unless AppAdmin-only logic applies elsewhere.
+ * Legacy CCRP is treated as TSP for both actor and claimed party types.
+ */
 function rolesAllowSigning(actorPartyType, claimedPartyType) {
   const actorParty = normalizePartyType(actorPartyType);
   const claimedParty = normalizePartyType(claimedPartyType);
   if (actorParty === 'APPADMIN') return true;
-  return actorParty === claimedParty;
+  const canon = (p) => (p === 'CCRP' ? 'TSP' : p);
+  return canon(actorParty) === canon(claimedParty);
 }
 
 /**

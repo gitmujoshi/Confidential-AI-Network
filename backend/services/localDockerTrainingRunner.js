@@ -32,7 +32,7 @@ function safeReadJson(filePath) {
 /**
  * Build docker CLI args for the local trainer container (exported for tests).
  */
-function buildDockerRunArgs({ jobId, contractId, maxEpochs, image, outDir, inputsDir }) {
+function buildDockerRunArgs({ jobId, contractId, maxEpochs, image, outDir, inputsDir, trainingParams }) {
   const args = [
     'run',
     '--rm',
@@ -55,6 +55,25 @@ function buildDockerRunArgs({ jobId, contractId, maxEpochs, image, outDir, input
   const hfHubUrl = process.env.HUGGINGFACE_HUB_URL;
   if (hfHubUrl) {
     args.push('-e', `HF_ENDPOINT=${hfHubUrl}`);
+  }
+
+  const dp = trainingParams?.differentialPrivacy;
+  const dpEnabled =
+    dp === true ||
+    (dp && typeof dp === 'object' && Boolean(dp.enabled)) ||
+    String(trainingParams?.privacyTechnique || '').toLowerCase().includes('differential');
+  if (dpEnabled) {
+    const dpEpsilon = dp && typeof dp === 'object' ? dp.epsilon : undefined;
+    const dpDelta = dp && typeof dp === 'object' ? dp.delta : undefined;
+    const dpMechanism = dp && typeof dp === 'object' ? dp.mechanism : undefined;
+    const dpClipNorm = dp && typeof dp === 'object' ? dp.clipNorm : undefined;
+    args.push('-e', 'DP_ENABLED=1');
+    if (dpEpsilon !== undefined && dpEpsilon !== null) args.push('-e', `DP_EPSILON=${String(dpEpsilon)}`);
+    if (dpDelta !== undefined && dpDelta !== null) args.push('-e', `DP_DELTA=${String(dpDelta)}`);
+    if (dpMechanism) args.push('-e', `DP_MECHANISM=${String(dpMechanism)}`);
+    if (dpClipNorm !== undefined && dpClipNorm !== null) args.push('-e', `DP_CLIP_NORM=${String(dpClipNorm)}`);
+  } else {
+    args.push('-e', 'DP_ENABLED=0');
   }
 
   args.push('-v', `${outDir}:/outputs`, '-v', `${inputsDir}:/inputs:ro`, image);
@@ -115,9 +134,9 @@ async function runLocalDockerTraining({ jobId, contractId, containerSpec, traini
   // Derive maxEpochs for the placeholder trainer; fall back to 5.
   const maxEpochs = trainingParams?.maxEpochs ?? containerSpec?.maxEpochs ?? 5;
 
-<<<<<<< HEAD
   const dpEnabled =
     trainingParams?.differentialPrivacy?.enabled === true ||
+    trainingParams?.differentialPrivacy === true ||
     String(trainingParams?.privacyTechnique || '').toLowerCase().includes('differential');
   if (dpEnabled) {
     console.log(
@@ -129,51 +148,10 @@ async function runLocalDockerTraining({ jobId, contractId, containerSpec, traini
     jobId,
     contractId,
     maxEpochs,
-=======
-  // Differential privacy orchestration: pass explicit env vars to the container.
-  // Trainers can rely on env vars without needing to parse contract.json.
-  const dp = trainingParams?.differentialPrivacy;
-  const dpEnabled = dp === true || (dp && typeof dp === 'object' && Boolean(dp.enabled));
-  const dpEpsilon = dpEnabled && dp && typeof dp === 'object' ? dp.epsilon : undefined;
-  const dpDelta = dpEnabled && dp && typeof dp === 'object' ? dp.delta : undefined;
-  const dpMechanism = dpEnabled && dp && typeof dp === 'object' ? dp.mechanism : undefined;
-  const dpClipNorm = dpEnabled && dp && typeof dp === 'object' ? dp.clipNorm : undefined;
-
-  const args = [
-    'run',
-    '--rm',
-    '--name',
-    `cm-train-${jobId}`.slice(0, 128),
-    '-e',
-    `TRAINING_JOB_ID=${jobId}`,
-    '-e',
-    `CONTRACT_ID=${contractId}`,
-    '-e',
-    `MAX_EPOCHS=${String(maxEpochs)}`,
-    '-e',
-    'CONTRACT_JSON_PATH=/inputs/contract.json',
-    ...(dpEnabled
-      ? [
-          '-e',
-          'DP_ENABLED=1',
-          '-e',
-          `DP_EPSILON=${String(dpEpsilon)}`,
-          '-e',
-          `DP_DELTA=${String(dpDelta)}`,
-          ...(dpMechanism ? ['-e', `DP_MECHANISM=${String(dpMechanism)}`] : []),
-          ...(dpClipNorm !== undefined && dpClipNorm !== null
-            ? ['-e', `DP_CLIP_NORM=${String(dpClipNorm)}`]
-            : []),
-        ]
-      : ['-e', 'DP_ENABLED=0']),
-    '-v',
-    `${outDir}:/outputs`,
-    '-v',
-    `${inputsDir}:/inputs:ro`,
->>>>>>> origin/feature/model-training-environment
     image,
     outDir,
     inputsDir,
+    trainingParams,
   });
 
   const child = spawn('docker', args, { stdio: ['ignore', 'pipe', 'pipe'] });

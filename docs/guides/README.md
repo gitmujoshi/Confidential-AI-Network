@@ -3,6 +3,7 @@
 | Guide | Purpose |
 |-------|---------|
 | [PARTICIPANT_ONBOARDING_AND_E2E_LIFECYCLE.md](PARTICIPANT_ONBOARDING_AND_E2E_LIFECYCLE.md) | **Canonical** full party lifecycle |
+| [role-user-guides/README.md](role-user-guides/README.md) | **Per-role UI guides with screenshots** (Playwright-generated) |
 | [DEPA_INTEGRATION_GUIDE.md](DEPA_INTEGRATION_GUIDE.md) | DEPA alignment |
 | [CONTRACT_TEMPLATE_GUIDE.md](CONTRACT_TEMPLATE_GUIDE.md) | Ricardian templates |
 | [SETUP_TROUBLESHOOTING_GUIDE.md](SETUP_TROUBLESHOOTING_GUIDE.md) | Setup issues (also see [../getting-started/TROUBLESHOOTING.md](../getting-started/TROUBLESHOOTING.md)) |

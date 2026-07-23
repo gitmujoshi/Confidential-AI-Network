@@ -1,0 +1,31 @@
+{
+  "password": "TestNewPassword123!",
+  "users": [
+    {
+      "name": "TDC Healthcare E2E User",
+      "email": "tdc.healthcare.2025-09-05t20-39-55@test.com",
+      "partyType": "TDC",
+      "role": "TDC"
+    },
+    {
+      "name": "TDP E2E User",
+      "email": "tdp.e2e@test.com",
+      "partyType": "TDP",
+      "role": "TDP"
+    },
+    {
+      "name": "CCRP E2E User",
+      "email": "ccrp.e2e@test.com",
+      "partyType": "TSP",
+      "role": "TSP",
+      "legacyPartyType": "CCRP",
+      "cloudProviders": ["Local"]
+    },
+    {
+      "name": "AppAdmin E2E User",
+      "email": "appadmin.e2e@test.com",
+      "partyType": "AppAdmin",
+      "role": "AppAdmin"
+    }
+  ]
+}

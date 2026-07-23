@@ -80,7 +80,15 @@ test.describe('Authentication E2E Tests', () => {
     await expect(page).toHaveURL(/\/dashboard$/);
     await waitForTdcDashboard(page);
 
-    await page.getByTitle('Logout').click({ force: true });
+    // Mobile viewports hide the permanent drawer — open it before Sign out.
+    let logoutBtn = page.locator('[data-testid="logout-button"]').locator('visible=true').first();
+    if (!(await logoutBtn.isVisible().catch(() => false))) {
+      await page.getByRole('button', { name: /open drawer/i }).click();
+      logoutBtn = page.locator('[data-testid="logout-button"]').locator('visible=true').first();
+      await expect(logoutBtn).toBeVisible();
+    }
+    // Mobile Chrome can leave a sibling box intercepting pointer events after drawer open.
+    await logoutBtn.evaluate((el) => el.click());
 
     await expect(page).toHaveURL(/.*login/);
     await expect(page.getByRole('heading', { name: /contract management/i })).toBeVisible();
@@ -112,8 +120,9 @@ test.describe('Authentication E2E Tests', () => {
     await expect(page).toHaveURL(/\/dashboard$/);
     await waitForTdcDashboard(page);
 
-    await expect(page.getByText(/TDC Healthcare E2E User/i)).toBeVisible();
-    await expect(page.getByText(/TDC/i).first()).toBeVisible();
+    // AppBar hides the display name below the `lg` breakpoint; identity still must be present in the DOM.
+    await expect(page.locator('body')).toContainText(/TDC Healthcare E2E User/i);
+    await expect(page.getByRole('heading', { name: /Welcome to Your TDC Dashboard/i })).toBeVisible();
 
     await expect(page.locator('body')).not.toContainText('uitdc@example.com');
     await expect(page.locator('body')).not.toContainText('tdc1-416d70a2@example.com');

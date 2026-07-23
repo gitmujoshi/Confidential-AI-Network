@@ -639,7 +639,7 @@ function CreateRicardianContract() {
   /**
    * Handle next step in the stepper
    */
-  const handleNext = () => {
+  const handleNext = async () => {
     if (activeStep === 0 && !selectedTemplate) {
       toast.error('Please select a contract template before proceeding');
       return;
@@ -657,6 +657,14 @@ function CreateRicardianContract() {
     
     if (activeStep === 2 && !isFormValid()) {
       toast.error('Please fill in all required fields');
+      return;
+    }
+
+    // Advance first, then generate preview on the Review step (case 3 shows a spinner).
+    // Awaiting preview here blocked the UI and raced Playwright clicks.
+    if (activeStep === 2) {
+      setActiveStep((prevStep) => prevStep + 1);
+      void generatePreview();
       return;
     }
     
@@ -680,10 +688,12 @@ function CreateRicardianContract() {
       return false;
     }
 
-    // Check if all selected datasets have prices
-    const allDatasetsHavePrices = selectedDatasets.every(dataset => 
-      datasetPrices[dataset.id] && parseFloat(datasetPrices[dataset.id]) > 0
-    );
+    // Check if all selected datasets have prices (fall back to catalog price)
+    const allDatasetsHavePrices = selectedDatasets.every((dataset) => {
+      const raw = datasetPrices[dataset.id] ?? dataset.price;
+      const n = parseFloat(raw);
+      return Number.isFinite(n) && n > 0;
+    });
 
     if (!allDatasetsHavePrices) {
       return false;
@@ -703,7 +713,7 @@ function CreateRicardianContract() {
   const generatePreview = async () => {
     if (selectedDatasets.length === 0) {
       toast.error('Please select at least one dataset');
-      return;
+      return false;
     }
 
     setIsGeneratingPreview(true);
@@ -738,13 +748,53 @@ function CreateRicardianContract() {
       console.log('📝 Preview response:', previewResponse);
       
       if (previewResponse.success) {
-        setLegalDocument(previewResponse.legalDocument);
-        setSmartContractData(previewResponse.smartContractData);
+        // Normalize multi-TDP preview payload to the shape the Review step renders.
+        const rawLegal = previewResponse.legalDocument || {};
+        const rawSmart = previewResponse.smartContractData || {};
+        const nested = rawLegal.legalDocument && typeof rawLegal.legalDocument === 'object'
+          ? rawLegal.legalDocument
+          : rawLegal;
+        const parties = nested.parties || rawLegal.parties || {};
+        const dataProvider =
+          parties.dataProvider ||
+          (Array.isArray(parties.dataProviders) ? parties.dataProviders[0] : null) ||
+          {};
+        const modelTrainer = parties.modelTrainer || {};
+        const normalizedLegal = {
+          metadata: {
+            contractId:
+              rawLegal.metadata?.contractId ||
+              rawSmart.contractId ||
+              `preview-${Date.now()}`,
+            legalDocumentHash:
+              rawLegal.metadata?.legalDocumentHash ||
+              rawSmart.deploymentData?.legalDocumentHash ||
+              null,
+            ricardianSignature: rawLegal.metadata?.ricardianSignature || null,
+          },
+          legalDocument: {
+            effectiveDate: nested.effectiveDate || rawLegal.effectiveDate,
+            expirationDate: nested.expirationDate || rawLegal.expirationDate,
+            parties: {
+              dataProvider: {
+                name: dataProvider.name || dataProvider.email || 'TDP',
+                email: dataProvider.email || null,
+              },
+              modelTrainer: {
+                name: modelTrainer.name || modelTrainer.email || 'TDC',
+                email: modelTrainer.email || null,
+              },
+            },
+          },
+        };
+        setLegalDocument(normalizedLegal);
+        setSmartContractData(rawSmart);
         console.log('✅ Preview data set:', {
-          legalDocument: previewResponse.legalDocument,
-          smartContractData: previewResponse.smartContractData
+          legalDocument: normalizedLegal,
+          smartContractData: rawSmart
         });
         toast.success('Preview generated successfully!', { id: 'preview-generation' });
+        return true;
       } else {
         throw new Error('Preview generation failed');
       }
@@ -756,6 +806,7 @@ function CreateRicardianContract() {
         status: error.response?.status
       });
       toast.error(`Failed to generate preview: ${error.message}`, { id: 'preview-generation' });
+      return false;
     } finally {
       setIsGeneratingPreview(false);
     }
@@ -815,9 +866,13 @@ function CreateRicardianContract() {
       setContractCreationError(null);
       
       // Prepare contract data for regular contract creation API
-      const parsedTspId = selectedTsp ? parseInt(String(selectedTsp), 10) : null;
+      const parsedTspId = selectedTsp && /^\d+$/.test(String(selectedTsp))
+        ? parseInt(String(selectedTsp), 10)
+        : null;
       const selectedTspUser = availableTspUsers.find(
-        (u) => String(u.id) === String(selectedTsp)
+        (u) =>
+          String(u.id) === String(selectedTsp) ||
+          (u.depaId != null && String(u.depaId) === String(selectedTsp))
       );
       const resolvedTspCloudProvider =
         selectedTspUser?.cloudProviders?.[0] || selectedCloudProvider || null;
@@ -1021,8 +1076,7 @@ function CreateRicardianContract() {
               gutterBottom 
               sx={{ 
                 fontWeight: 600, 
-                fontFamily: '"Inter", "Segoe UI", "Helvetica Neue", Arial, sans-serif',
-                color: 'primary.main',
+                                color: 'primary.main',
                 mb: 3
               }}
             >
@@ -1032,15 +1086,14 @@ function CreateRicardianContract() {
             <Grid container spacing={4}>
               {/* Contract Details Section */}
               <Grid item xs={12}>
-                <Card elevation={2} sx={{ mb: 3 }}>
+                <Card elevation={0} sx={{ mb: 3 }}>
                   <CardContent sx={{ p: 4 }}>
                     <Typography 
                       variant="h5" 
                       gutterBottom
                       sx={{ 
                         fontWeight: 600,
-                        fontFamily: '"Inter", "Segoe UI", "Helvetica Neue", Arial, sans-serif',
-                        color: 'text.primary',
+                                                color: 'text.primary',
                         mb: 3
                       }}
                     >
@@ -1111,8 +1164,7 @@ function CreateRicardianContract() {
                           helperText="Total contract cost in USD"
                           sx={{ 
                             '& .MuiInputLabel-root': { 
-                              fontFamily: '"Inter", "Segoe UI", "Helvetica Neue", Arial, sans-serif',
-                              fontWeight: 500 
+                                                            fontWeight: 500 
                             }
                           }}
                         />
@@ -1128,8 +1180,7 @@ function CreateRicardianContract() {
                           helperText="Contract execution timeline in days"
                           sx={{ 
                             '& .MuiInputLabel-root': { 
-                              fontFamily: '"Inter", "Segoe UI", "Helvetica Neue", Arial, sans-serif',
-                              fontWeight: 500 
+                                                            fontWeight: 500 
                             }
                           }}
                         />
@@ -1146,8 +1197,7 @@ function CreateRicardianContract() {
                           helperText="Legal terms and conditions for the contract"
                           sx={{ 
                             '& .MuiInputLabel-root': { 
-                              fontFamily: '"Inter", "Segoe UI", "Helvetica Neue", Arial, sans-serif',
-                              fontWeight: 500 
+                                                            fontWeight: 500 
                             }
                           }}
                         />
@@ -1159,15 +1209,14 @@ function CreateRicardianContract() {
 
               {/* Privacy & Accuracy Requirements Section */}
               <Grid item xs={12}>
-                <Card elevation={2} sx={{ mb: 3 }}>
+                <Card elevation={0} sx={{ mb: 3 }}>
                   <CardContent sx={{ p: 4 }}>
                     <Typography 
                       variant="h5" 
                       gutterBottom
                       sx={{ 
                         fontWeight: 600,
-                        fontFamily: '"Inter", "Segoe UI", "Helvetica Neue", Arial, sans-serif',
-                        color: 'text.primary',
+                                                color: 'text.primary',
                         mb: 3
                       }}
                     >
@@ -1189,8 +1238,7 @@ function CreateRicardianContract() {
                           helperText="Differential privacy epsilon parameter (0.01-1.0, lower = more private)"
                           sx={{ 
                             '& .MuiInputLabel-root': { 
-                              fontFamily: '"Inter", "Segoe UI", "Helvetica Neue", Arial, sans-serif',
-                              fontWeight: 500 
+                                                            fontWeight: 500 
                             }
                           }}
                         />
@@ -1210,8 +1258,7 @@ function CreateRicardianContract() {
                           helperText="Minimum required model accuracy (50%-99.9%)"
                           sx={{ 
                             '& .MuiInputLabel-root': { 
-                              fontFamily: '"Inter", "Segoe UI", "Helvetica Neue", Arial, sans-serif',
-                              fontWeight: 500 
+                                                            fontWeight: 500 
                             }
                           }}
                         />
@@ -1221,8 +1268,7 @@ function CreateRicardianContract() {
                       <Grid item xs={12} md={4}>
                         <FormControl fullWidth>
                           <InputLabel sx={{ 
-                            fontFamily: '"Inter", "Segoe UI", "Helvetica Neue", Arial, sans-serif',
-                            fontWeight: 500 
+                                                        fontWeight: 500 
                           }}>Privacy Technique</InputLabel>
                       <Select
                         value={trainingParams.differentialPrivacy.enabled ? 'differential-privacy' : 
@@ -1354,15 +1400,14 @@ function CreateRicardianContract() {
 
               {/* Dataset Selection Section */}
               <Grid item xs={12}>
-                <Card elevation={2}>
+                <Card elevation={0}>
                   <CardContent sx={{ p: 4 }}>
                     <Typography 
                       variant="h5" 
                       gutterBottom
                       sx={{ 
                         fontWeight: 600,
-                        fontFamily: '"Inter", "Segoe UI", "Helvetica Neue", Arial, sans-serif',
-                        color: 'text.primary',
+                                                color: 'text.primary',
                         mb: 3
                       }}
                     >
@@ -1374,8 +1419,7 @@ function CreateRicardianContract() {
                       color="text.secondary" 
                       paragraph
                       sx={{ 
-                        fontFamily: '"Inter", "Segoe UI", "Helvetica Neue", Arial, sans-serif',
-                        mb: 3
+                                                mb: 3
                       }}
                     >
                       Choose 1 to 3 AI training datasets from any Training Data Providers (TDPs).
@@ -1435,8 +1479,7 @@ function CreateRicardianContract() {
               gutterBottom 
               sx={{ 
                 fontWeight: 600, 
-                fontFamily: '"Inter", "Segoe UI", "Helvetica Neue", Arial, sans-serif',
-                color: 'primary.main',
+                                color: 'primary.main',
                 mb: 3
               }}
             >
@@ -1446,15 +1489,14 @@ function CreateRicardianContract() {
             <Grid container spacing={4}>
               {/* TSP Selection Section */}
               <Grid item xs={12}>
-                <Card elevation={2} sx={{ mb: 3 }}>
+                <Card elevation={0} sx={{ mb: 3 }}>
                   <CardContent sx={{ p: 4 }}>
                     <Typography 
                       variant="h5" 
                       gutterBottom
                       sx={{ 
                         fontWeight: 600,
-                        fontFamily: '"Inter", "Segoe UI", "Helvetica Neue", Arial, sans-serif',
-                        color: 'text.primary',
+                                                color: 'text.primary',
                         mb: 3
                       }}
                     >
@@ -1466,8 +1508,7 @@ function CreateRicardianContract() {
                       color="text.secondary" 
                       paragraph
                       sx={{ 
-                        fontFamily: '"Inter", "Segoe UI", "Helvetica Neue", Arial, sans-serif',
-                        mb: 3
+                                                mb: 3
                       }}
                     >
                       All TSPs are displayed below. Use the cloud provider filter to find providers that support specific cloud services.
@@ -1485,6 +1526,7 @@ function CreateRicardianContract() {
                             <MenuItem value="">
                               <em>All Cloud Providers</em>
                             </MenuItem>
+                            <MenuItem value="Local">Local (Docker)</MenuItem>
                             <MenuItem value="AWS">AWS</MenuItem>
                             <MenuItem value="Azure">Azure</MenuItem>
                             <MenuItem value="GCP">GCP</MenuItem>
@@ -1501,7 +1543,7 @@ function CreateRicardianContract() {
                       <MultiTSPSelector
                         tspUsers={availableTspUsers}
                         selectedTsp={selectedTsp}
-                        onTspToggle={setSelectedTsp}
+                        onTspToggle={(tspId) => setSelectedTsp(tspId == null ? '' : String(tspId))}
                         selectedCloudProvider={selectedCloudProvider}
                         onCloudProviderChange={setSelectedCloudProvider}
                         onTspCloudProviderSelect={() => {}}
@@ -1514,15 +1556,14 @@ function CreateRicardianContract() {
 
               {/* Environment Specifications Section */}
               <Grid item xs={12}>
-                <Card elevation={2}>
+                <Card elevation={0}>
                   <CardContent sx={{ p: 4 }}>
                     <Typography 
                       variant="h5" 
                       gutterBottom
                       sx={{ 
                         fontWeight: 600,
-                        fontFamily: '"Inter", "Segoe UI", "Helvetica Neue", Arial, sans-serif',
-                        color: 'text.primary',
+                                                color: 'text.primary',
                         mb: 3
                       }}
                     >
@@ -1622,8 +1663,7 @@ function CreateRicardianContract() {
                       sx={{ 
                         mt: 4, 
                         fontWeight: 600,
-                        fontFamily: '"Inter", "Segoe UI", "Helvetica Neue", Arial, sans-serif',
-                        color: 'text.primary',
+                                                color: 'text.primary',
                         mb: 3
                       }}
                     >
@@ -1686,348 +1726,8 @@ function CreateRicardianContract() {
             </Grid>
           </Box>
         );
-
-      case 2:
-        return (
-          <Box>
-            <Typography 
-              variant="h4" 
-              gutterBottom 
-              sx={{ 
-                fontWeight: 600, 
-                fontFamily: '"Inter", "Segoe UI", "Helvetica Neue", Arial, sans-serif',
-                color: 'primary.main',
-                mb: 3
-              }}
-            >
-              Contract Configuration Overview
-            </Typography>
-            
-            <Grid container spacing={3}>
-              <Grid item xs={12}>
-                <Card elevation={2}>
-                  <CardContent sx={{ p: 4 }}>
-                    <Typography 
-                      variant="h5" 
-                      gutterBottom
-                      sx={{ 
-                        fontWeight: 600,
-                        fontFamily: '"Inter", "Segoe UI", "Helvetica Neue", Arial, sans-serif',
-                        color: 'text.primary',
-                        mb: 3
-                      }}
-                    >
-                      Contract Summary
-                    </Typography>
-                    
-                    <Typography 
-                      variant="body1" 
-                      color="text.secondary" 
-                      paragraph
-                      sx={{ 
-                        fontFamily: '"Inter", "Segoe UI", "Helvetica Neue", Arial, sans-serif',
-                        lineHeight: 1.6,
-                        mb: 3
-                      }}
-                    >
-                      You are creating a comprehensive AI training contract that combines legal agreements with technical specifications. 
-                      This contract will define the terms for data usage, privacy requirements, and computational environment setup.
-                    </Typography>
-
-                    <Box component="ul" sx={{ pl: 2, mb: 3 }}>
-                      <Typography component="li" variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-                        ✓ Contract details and terms configured
-                      </Typography>
-                      <Typography component="li" variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-                        ✓ Privacy and accuracy requirements set
-                      </Typography>
-                      <Typography component="li" variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-                        ✓ Dataset selection completed
-                      </Typography>
-                      <Typography component="li" variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-                        → Next: Environment configuration & TSP selection
-                      </Typography>
-                    </Box>
-
-                    <Typography 
-                      variant="body2" 
-                      color="primary.main"
-                      sx={{ 
-                        fontWeight: 500,
-                        fontFamily: '"Inter", "Segoe UI", "Helvetica Neue", Arial, sans-serif',
-                      }}
-                    >
-                      Click "Next" to configure the computational environment and optionally select a Tech Service Provider (TSP).
-                    </Typography>
-                  </CardContent>
-                </Card>
-              </Grid>
-            </Grid>
-          </Box>
-        );
-
 
       case 3:
-        return (
-          <Box>
-            <Typography 
-              variant="h4" 
-              gutterBottom 
-              sx={{ 
-                fontWeight: 600, 
-                fontFamily: '"Inter", "Segoe UI", "Helvetica Neue", Arial, sans-serif',
-                color: 'primary.main',
-                mb: 3
-              }}
-            >
-              Review Legal Document & Smart Contract
-            </Typography>
-            
-            <Grid container spacing={4}>
-              {/* TSP Selection Section */}
-              <Grid item xs={12}>
-                <Card elevation={2} sx={{ mb: 3 }}>
-                  <CardContent sx={{ p: 4 }}>
-                    <Typography 
-                      variant="h5" 
-                      gutterBottom
-                      sx={{ 
-                        fontWeight: 600,
-                        fontFamily: '"Inter", "Segoe UI", "Helvetica Neue", Arial, sans-serif',
-                        color: 'text.primary',
-                        mb: 3
-                      }}
-                    >
-                      TSP Selection (Required)
-                    </Typography>
-                    
-                    <Typography 
-                      variant="body1" 
-                      color="text.secondary" 
-                      paragraph
-                      sx={{ 
-                        fontFamily: '"Inter", "Segoe UI", "Helvetica Neue", Arial, sans-serif',
-                        mb: 3
-                      }}
-                    >
-                      All TSPs are displayed below. Use the cloud provider filter to find providers that support specific cloud services.
-                    </Typography>
-                    
-                    <Grid container spacing={2}>
-                      <Grid item xs={12} md={4}>
-                        <FormControl fullWidth>
-                          <InputLabel>Filter by Cloud Provider</InputLabel>
-                          <Select
-                            value={selectedCloudProvider}
-                            onChange={(e) => setSelectedCloudProvider(e.target.value)}
-                            label="Filter by Cloud Provider"
-                          >
-                            <MenuItem value="">
-                              <em>All Cloud Providers</em>
-                            </MenuItem>
-                            <MenuItem value="AWS">AWS</MenuItem>
-                            <MenuItem value="Azure">Azure</MenuItem>
-                            <MenuItem value="GCP">GCP</MenuItem>
-                            <MenuItem value="OCI">OCI</MenuItem>
-                          </Select>
-                        </FormControl>
-                      </Grid>
-                    </Grid>
-                    
-                    <Box sx={{ mt: 2 }}>
-                      <Typography variant="subtitle2" gutterBottom>
-                        Available TSPs:
-                      </Typography>
-                      <MultiTSPSelector
-                        tspUsers={availableTspUsers}
-                        selectedTsp={selectedTsp}
-                        onTspToggle={setSelectedTsp}
-                        selectedCloudProvider={selectedCloudProvider}
-                        onCloudProviderChange={setSelectedCloudProvider}
-                        onTspCloudProviderSelect={() => {}}
-                        tspCloudProviderSelections={{}}
-                      />
-                    </Box>
-                  </CardContent>
-                </Card>
-              </Grid>
-
-              {/* Environment Specifications Section */}
-              <Grid item xs={12}>
-                <Card elevation={2}>
-                  <CardContent sx={{ p: 4 }}>
-                    <Typography 
-                      variant="h5" 
-                      gutterBottom
-                      sx={{ 
-                        fontWeight: 600,
-                        fontFamily: '"Inter", "Segoe UI", "Helvetica Neue", Arial, sans-serif',
-                        color: 'text.primary',
-                        mb: 3
-                      }}
-                    >
-                      Environment Specifications
-                    </Typography>
-                    
-                    <Grid container spacing={3}>
-                      <Grid item xs={12} md={6}>
-                        <FormControl fullWidth>
-                          <InputLabel>Environment Type</InputLabel>
-                          <Select
-                            value={environmentSpecs.type}
-                            onChange={(e) => handleEnvironmentSpecChange('type', e.target.value)}
-                            label="Environment Type"
-                          >
-                            <MenuItem value="cloud">Cloud Environment</MenuItem>
-                            <MenuItem value="on-premise">On-Premise</MenuItem>
-                            <MenuItem value="hybrid">Hybrid</MenuItem>
-                          </Select>
-                        </FormControl>
-                      </Grid>
-                      
-                      <Grid item xs={12} md={6}>
-                        <TextField
-                          fullWidth
-                          label="Instance Type"
-                          value={environmentSpecs.instanceType}
-                          onChange={(e) => handleEnvironmentSpecChange('instanceType', e.target.value)}
-                          placeholder="e.g., t3.large, Standard_D4s_v3"
-                        />
-                      </Grid>
-                      
-                      <Grid item xs={12} md={6}>
-                        <TextField
-                          fullWidth
-                          label="CPU Requirements"
-                          value={environmentSpecs.cpu}
-                          onChange={(e) => handleEnvironmentSpecChange('cpu', e.target.value)}
-                          placeholder="e.g., 4 cores"
-                        />
-                      </Grid>
-                      
-                      <Grid item xs={12} md={6}>
-                        <TextField
-                          fullWidth
-                          label="Memory Requirements"
-                          value={environmentSpecs.memory}
-                          onChange={(e) => handleEnvironmentSpecChange('memory', e.target.value)}
-                          placeholder="e.g., 16 GB"
-                        />
-                      </Grid>
-                      
-                      <Grid item xs={12} md={6}>
-                        <TextField
-                          fullWidth
-                          label="Storage Requirements"
-                          value={environmentSpecs.storage}
-                          onChange={(e) => handleEnvironmentSpecChange('storage', e.target.value)}
-                          placeholder="e.g., 100 GB SSD"
-                        />
-                      </Grid>
-                      
-                      <Grid item xs={12} md={6}>
-                        <FormControl fullWidth>
-                          <InputLabel>GPU Type</InputLabel>
-                          <Select
-                            value={environmentSpecs.gpu}
-                            onChange={(e) => handleEnvironmentSpecChange('gpu', e.target.value)}
-                            label="GPU Type"
-                          >
-                            <MenuItem value="">None</MenuItem>
-                            <MenuItem value="nvidia-tesla-v100">NVIDIA Tesla V100</MenuItem>
-                            <MenuItem value="nvidia-tesla-t4">NVIDIA Tesla T4</MenuItem>
-                            <MenuItem value="nvidia-a100">NVIDIA A100</MenuItem>
-                            <MenuItem value="nvidia-rtx-3080">NVIDIA RTX 3080</MenuItem>
-                            <MenuItem value="amd-radeon-instinct">AMD Radeon Instinct</MenuItem>
-                          </Select>
-                        </FormControl>
-                      </Grid>
-                      
-                      <Grid item xs={12}>
-                        <TextField
-                          fullWidth
-                          label="Additional Environment Notes"
-                          value={environmentSpecs.notes}
-                          onChange={(e) => handleEnvironmentSpecChange('notes', e.target.value)}
-                          multiline
-                          rows={3}
-                          placeholder="Any additional environment specifications or requirements..."
-                        />
-                      </Grid>
-                    </Grid>
-                    
-                    <Typography 
-                      variant="h5" 
-                      gutterBottom 
-                      sx={{ 
-                        mt: 4, 
-                        fontWeight: 600,
-                        fontFamily: '"Inter", "Segoe UI", "Helvetica Neue", Arial, sans-serif',
-                        color: 'text.primary',
-                        mb: 3
-                      }}
-                    >
-                      Key Management Service (KMS) Configuration
-                    </Typography>
-                    
-                    <Grid container spacing={3}>
-                      <Grid item xs={12} md={6}>
-                        <FormControl fullWidth>
-                          <InputLabel>KMS Provider</InputLabel>
-                          <Select
-                            value={environmentSpecs.kms?.provider || ''}
-                            onChange={(e) => handleKmsConfigChange('provider', e.target.value)}
-                            label="KMS Provider"
-                          >
-                            <MenuItem value="">None</MenuItem>
-                            <MenuItem value="aws-kms">AWS KMS</MenuItem>
-                            <MenuItem value="azure-keyvault">Azure Key Vault</MenuItem>
-                            <MenuItem value="gcp-kms">Google Cloud KMS</MenuItem>
-                            <MenuItem value="hashicorp-vault">HashiCorp Vault</MenuItem>
-                            <MenuItem value="custom">Custom KMS</MenuItem>
-                          </Select>
-                        </FormControl>
-                      </Grid>
-                      
-                      <Grid item xs={12} md={6}>
-                        <TextField
-                          fullWidth
-                          label="Key ID/ARN"
-                          value={environmentSpecs.kms?.keyId || ''}
-                          onChange={(e) => handleKmsConfigChange('keyId', e.target.value)}
-                          placeholder="KMS Key ID or ARN"
-                        />
-                      </Grid>
-                      
-                      <Grid item xs={12} md={6}>
-                        <TextField
-                          fullWidth
-                          label="Encryption Algorithm"
-                          value={environmentSpecs.kms?.algorithm || ''}
-                          onChange={(e) => handleKmsConfigChange('algorithm', e.target.value)}
-                          placeholder="e.g., AES-256-GCM"
-                        />
-                      </Grid>
-                      
-                      <Grid item xs={12} md={6}>
-                        <TextField
-                          fullWidth
-                          label="Key Rotation Period (days)"
-                          type="number"
-                          value={environmentSpecs.kms?.rotationPeriod || ''}
-                          onChange={(e) => handleKmsConfigChange('rotationPeriod', e.target.value)}
-                          placeholder="e.g., 90"
-                        />
-                      </Grid>
-                    </Grid>
-                  </CardContent>
-                </Card>
-              </Grid>
-            </Grid>
-          </Box>
-        );
-
-      case 4:
         return (
           <Box>
             <Typography variant="h6" gutterBottom>
@@ -2191,23 +1891,21 @@ function CreateRicardianContract() {
                       <Grid container spacing={2}>
                         {(() => {
                           // Convert selectedAiModels to number for comparison
-                          const selectedModelId = parseInt(selectedAiModels);
+                          const selectedModelId = parseInt(selectedAiModels, 10);
                           const model = aiModelsResponse?.models?.find(m => m.id === selectedModelId);
-                          
 
-                          
                           if (!selectedAiModels) {
                             return (
                               <Grid item xs={12}>
                                 <Alert severity="info">
                                   <Typography variant="body2">
-                                    No AI model selected. Please go back to Step 3 and select an AI model.
+                                    No AI model selected. Please go back and select an AI model if needed.
                                   </Typography>
                                 </Alert>
                               </Grid>
                             );
                           }
-                          
+
                           if (!model) {
                             return (
                               <Grid item xs={12}>
@@ -2218,12 +1916,11 @@ function CreateRicardianContract() {
                                   <Typography variant="caption" color="textSecondary">
                                     Available models: {aiModelsResponse?.models?.map(m => `${m.name} (ID: ${m.id})`).join(', ') || 'None'}
                                   </Typography>
-
                                 </Alert>
                               </Grid>
                             );
                           }
-                          
+
                           return (
                             <Grid item xs={12} md={6} key={selectedAiModels}>
                               <Card variant="outlined">
@@ -2321,7 +2018,7 @@ function CreateRicardianContract() {
                               </Card>
                             </Grid>
                           );
-                        })}
+                        })()}
                       </Grid>
                     </CardContent>
                   </Card>
@@ -2331,7 +2028,7 @@ function CreateRicardianContract() {
           </Box>
         );
 
-      case 5:
+      case 4:
         return (
           <Box>
             <Typography variant="h6" gutterBottom>

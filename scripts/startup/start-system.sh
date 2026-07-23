@@ -159,6 +159,30 @@ echo $BACKEND_PID > logs/backend.pid
 echo $FRONTEND_PID > logs/frontend.pid
 
 echo ""
+echo -e "${BLUE}🌱 Step 5: Seeding static E2E test users (idempotent)...${NC}"
+BACKEND_HEALTH_URL="${BACKEND_URL:-http://localhost:${BACKEND_PORT:-5001}}/health"
+for i in $(seq 1 60); do
+  if curl -sf "$BACKEND_HEALTH_URL" >/dev/null 2>&1; then
+    echo "   Backend healthy — seeding users"
+    break
+  fi
+  if [ "$i" -eq 60 ]; then
+    echo -e "${YELLOW}⚠️ Backend not healthy yet; skip user seed (run later: npm run seed:e2e-users)${NC}"
+  fi
+  sleep 2
+done
+if curl -sf "$BACKEND_HEALTH_URL" >/dev/null 2>&1; then
+  if ! node scripts/seed-static-e2e-users.js; then
+    echo -e "${YELLOW}⚠️ Static user seed failed — run manually: npm run seed:e2e-users${NC}"
+  fi
+fi
+
+echo ""
 echo -e "${GREEN}✅ System startup completed!${NC}"
 echo ""
 echo -e "${BLUE}🔗 Quick Access:${NC}"
+echo "   Static E2E users (password: TestNewPassword123!):"
+echo "   - tdc.healthcare.2025-09-05t20-39-55@test.com (TDC)"
+echo "   - tdp.e2e@test.com (TDP)"
+echo "   - ccrp.e2e@test.com (TSP)"
+echo "   - appadmin.e2e@test.com (AppAdmin)"

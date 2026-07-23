@@ -1,11 +1,7 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
   Box,
-  Grid,
-  Card,
-  CardContent,
   Typography,
-  Button,
   Chip,
   List,
   ListItem,
@@ -19,215 +15,198 @@ import {
   InputLabel,
   Select,
   MenuItem,
+  Stack,
+  Paper,
 } from '@mui/material';
-import {
-  Remove,
-  Security,
-  Cloud,
-  Add,
-} from '@mui/icons-material';
+import { Remove, Security, Cloud } from '@mui/icons-material';
 
 /**
- * MultiTSPSelector Component
- * 
- * A reusable component for selecting TSP providers with cloud provider filtering.
- * Supports filtering by cloud provider and visual selection interface.
- * 
- * Props:
- * - tspUsers: Array of available TSP users
- * - selectedTsp: Currently selected TSP ID
- * - selectedCloudProvider: Currently selected cloud provider filter
- * - onTspToggle: Function called when TSP is selected/deselected
- * - onCloudProviderChange: Function called when cloud provider filter changes
- * - disabled: Whether the selector is disabled
+ * MultiTSPSelector — Stripe-like selectable provider rows (not nested card stacks).
  */
-
 const MultiTSPSelector = ({
   tspUsers = [],
   selectedTsp = '',
   selectedCloudProvider = '',
   onTspToggle,
   onCloudProviderChange,
-  onTspCloudProviderSelect, // new callback
-  tspCloudProviderSelections = {}, // { [tspId]: provider }
-  disabled = false
+  onTspCloudProviderSelect,
+  tspCloudProviderSelections = {},
+  disabled = false,
 }) => {
-  // Filter TSP users by cloud provider
-  const filteredTspUsers = tspUsers.filter(user => 
-    !selectedCloudProvider || user.cloudProviders?.includes(selectedCloudProvider)
+  const filteredTspUsers = tspUsers.filter(
+    (user) => !selectedCloudProvider || user.cloudProviders?.includes(selectedCloudProvider)
   );
 
-  // Get cloud provider color
   const getProviderColor = (provider) => {
     switch (provider) {
-      case 'Local': return 'default';
-      case 'AWS': return 'warning';
-      case 'Azure': return 'info';
-      case 'GCP': return 'error';
-      case 'OCI': return 'success';
-      default: return 'default';
-    }
-  };
-
-  // Get selection status for a TSP
-  const getTspStatus = (tsp) => {
-    const tspKey = tsp.depaId || tsp.id;
-    const isSelected = String(selectedTsp) === String(tspKey);
-    
-    if (isSelected) {
-      return { status: 'selected', message: 'Selected' };
-    } else {
-      return { status: 'available', message: 'Available' };
+      case 'Local':
+        return 'default';
+      case 'AWS':
+        return 'warning';
+      case 'Azure':
+        return 'info';
+      case 'GCP':
+        return 'error';
+      case 'OCI':
+        return 'success';
+      default:
+        return 'default';
     }
   };
 
   return (
     <Box>
-      {/* Cloud Provider Filter */}
-      <Card sx={{ mb: 3 }}>
-        <CardContent>
-          <Typography variant="h6" gutterBottom>
-            Cloud Provider Filter
-          </Typography>
-          <Typography variant="body2" color="textSecondary" paragraph>
-            Filter TSP providers by the cloud platforms they support
-          </Typography>
-          <FormControl fullWidth>
-            <InputLabel>Cloud Provider</InputLabel>
-            <Select
-              value={selectedCloudProvider}
-              label="Cloud Provider"
-              onChange={(e) => onCloudProviderChange(e.target.value)}
-              disabled={disabled}
-            >
-              <MenuItem value="">
-                <em>All Cloud Providers</em>
-              </MenuItem>
-              <MenuItem value="Local">Local (Docker)</MenuItem>
-              <MenuItem value="AWS">AWS - Amazon Web Services</MenuItem>
-              <MenuItem value="Azure">Azure - Microsoft Azure</MenuItem>
-              <MenuItem value="GCP">GCP - Google Cloud Platform</MenuItem>
-              <MenuItem value="OCI">OCI - Oracle Cloud Infrastructure</MenuItem>
-            </Select>
-          </FormControl>
-        </CardContent>
-      </Card>
+      <FormControl fullWidth size="small" sx={{ mb: 2.5, maxWidth: 360 }}>
+        <InputLabel>Cloud Provider</InputLabel>
+        <Select
+          value={selectedCloudProvider}
+          label="Cloud Provider"
+          onChange={(e) => onCloudProviderChange(e.target.value)}
+          disabled={disabled}
+        >
+          <MenuItem value="">
+            <em>All cloud providers</em>
+          </MenuItem>
+          <MenuItem value="Local">Local (Docker)</MenuItem>
+          <MenuItem value="AWS">AWS</MenuItem>
+          <MenuItem value="Azure">Azure</MenuItem>
+          <MenuItem value="GCP">GCP</MenuItem>
+          <MenuItem value="OCI">OCI</MenuItem>
+        </Select>
+      </FormControl>
 
-      {/* Available TSP Providers */}
       {!selectedTsp && (
-        <Alert severity="info" sx={{ mb: 3 }}>
-          <AlertTitle>No TSP Selected</AlertTitle>
-          Select a TSP provider to handle confidential computing environments for your contract (optional).
+        <Alert severity="info" sx={{ mb: 2 }}>
+          <AlertTitle sx={{ fontWeight: 700 }}>No TSP selected</AlertTitle>
+          Choose a training service provider for confidential compute (optional).
         </Alert>
       )}
-      
-      <Grid container spacing={2}>
+
+      <Stack spacing={1.25}>
         {filteredTspUsers.map((tsp) => {
-          const { status, message } = getTspStatus(tsp);
           const tspKey = tsp.depaId || tsp.id;
           const isSelected = String(selectedTsp) === String(tspKey);
-          const isDisabled = status === 'disabled';
-          
+
           return (
-            <Grid item xs={12} sm={6} md={4} key={tsp.id}>
-              <Card 
-                sx={{ 
-                  border: isSelected ? 2 : 1,
-                  borderColor: isSelected ? 'primary.main' : 'divider',
-                  opacity: isDisabled ? 0.6 : 1,
-                  position: 'relative',
-                  cursor: disabled ? 'default' : 'pointer',
-                  '&:hover': disabled ? {} : {
-                    borderColor: 'primary.main',
-                    boxShadow: 2
-                  }
-                }}
-                onClick={() => !disabled && onTspToggle(isSelected ? null : tspKey)}
-              >
-                <CardContent>
-                  <Box display="flex" alignItems="flex-start" gap={2}>
-                    {/* Checkbox for selection */}
-                    <Checkbox
-                      checked={isSelected}
-                      disabled={isDisabled || disabled}
-                      onChange={() => !isDisabled && !disabled && onTspToggle(isSelected ? null : tspKey)}
-                      color="primary"
-                      sx={{ mt: 0 }}
+            <Paper
+              key={tsp.id}
+              variant="outlined"
+              data-testid={`tsp-card-${tspKey}`}
+              data-tsp-email={tsp.email || ''}
+              data-selected={isSelected ? 'true' : 'false'}
+              onClick={() => !disabled && onTspToggle(tspKey)}
+              sx={{
+                p: 1.75,
+                cursor: disabled ? 'default' : 'pointer',
+                borderColor: isSelected ? 'primary.main' : 'divider',
+                borderWidth: isSelected ? 1.5 : 1,
+                bgcolor: isSelected ? 'rgba(11, 107, 203, 0.04)' : 'background.paper',
+                transition: 'border-color 120ms ease, background-color 120ms ease',
+                '&:hover': disabled
+                  ? {}
+                  : {
+                      borderColor: 'primary.main',
+                      bgcolor: 'rgba(11, 107, 203, 0.03)',
+                    },
+              }}
+            >
+              <Stack direction="row" spacing={1.5} alignItems="flex-start">
+                <Checkbox
+                  checked={isSelected}
+                  disabled={disabled}
+                  onClick={(e) => e.stopPropagation()}
+                  onChange={() => !disabled && onTspToggle(isSelected ? null : tspKey)}
+                  color="primary"
+                  inputProps={{ 'aria-label': `Select TSP ${tsp.name}` }}
+                  sx={{ mt: -0.5, p: 0.5 }}
+                />
+                <Box sx={{ flex: 1, minWidth: 0 }}>
+                  <Stack
+                    direction="row"
+                    justifyContent="space-between"
+                    alignItems="center"
+                    spacing={1}
+                    sx={{ mb: 0.5 }}
+                  >
+                    <Typography variant="subtitle1" sx={{ fontWeight: 700, lineHeight: 1.3 }}>
+                      {tsp.name}
+                    </Typography>
+                    {isSelected && (
+                      <Chip
+                        label="Selected"
+                        color="primary"
+                        size="small"
+                        data-testid="tsp-selected-chip"
+                      />
+                    )}
+                  </Stack>
+                  <Typography variant="body2" color="text.secondary" sx={{ mb: 0.75 }}>
+                    {tsp.description || 'Confidential computing environment provider'}
+                  </Typography>
+                  <Typography
+                    variant="caption"
+                    color="text.secondary"
+                    sx={{ display: 'block', mb: 1, fontFamily: '"IBM Plex Mono", monospace' }}
+                  >
+                    {tsp.email}
+                  </Typography>
+                  {tsp.cloudProviders?.[0] && (
+                    <Chip
+                      icon={<Cloud sx={{ fontSize: '16px !important' }} />}
+                      label={tsp.cloudProviders[0]}
+                      color={getProviderColor(tsp.cloudProviders[0])}
+                      variant="outlined"
+                      size="small"
                     />
-                    
-                    {/* TSP content */}
-                    <Box sx={{ flexGrow: 1 }}>
-                      <Box display="flex" justifyContent="space-between" alignItems="flex-start" mb={1}>
-                        <Typography variant="h6" gutterBottom>
-                          {tsp.name}
-                        </Typography>
-                        {isSelected && (
-                          <Chip label="Selected" color="primary" size="small" />
-                        )}
-                      </Box>
-                      
-                      <Typography variant="body2" color="textSecondary" paragraph>
-                        {tsp.description || 'Confidential computing environment provider'}
-                      </Typography>
-                      
-                      <Typography variant="body2" color="textSecondary" paragraph>
-                        {tsp.email}
-                      </Typography>
-                      
-                      {/* Cloud Provider */}
-                      {tsp.cloudProviders?.[0] && (
-                        <Box sx={{ mt: 2 }}>
-                          <Typography variant="body2" fontWeight="medium" gutterBottom>
-                            Cloud Provider:
-                          </Typography>
-                          <Chip
-                            icon={<Cloud />}
-                            label={tsp.cloudProviders[0]}
-                            color={getProviderColor(tsp.cloudProviders[0])}
-                            variant="outlined"
-                            size="small"
-                          />
-                        </Box>
-                      )}
-                    </Box>
-                  </Box>
-                </CardContent>
-              </Card>
-            </Grid>
+                  )}
+                </Box>
+              </Stack>
+            </Paper>
           );
         })}
-      </Grid>
+      </Stack>
 
-      {/* Selected TSP Summary - Moved below the list */}
-      {selectedTsp && (() => {
-        const selectedTspUser = tspUsers.find(u => (u.depaId && u.depaId === selectedTsp) || u.id === parseInt(selectedTsp) || u.id === selectedTsp);
-        if (!selectedTspUser) return null;
-        const providers = selectedTspUser.cloudProviders || [];
-        const selectedKey = selectedTspUser.depaId || selectedTspUser.id;
-        return (
-          <Card sx={{ mt: 3, bgcolor: 'primary.light', color: 'white' }}>
-            <CardContent>
-              <Typography variant="h6" gutterBottom>
-                Selected TSP Provider
+      {selectedTsp &&
+        (() => {
+          const selectedTspUser = tspUsers.find(
+            (u) =>
+              (u.depaId && u.depaId === selectedTsp) ||
+              u.id === parseInt(selectedTsp, 10) ||
+              u.id === selectedTsp ||
+              String(u.id) === String(selectedTsp)
+          );
+          if (!selectedTspUser) return null;
+          const providers = selectedTspUser.cloudProviders || [];
+          const selectedKey = selectedTspUser.depaId || selectedTspUser.id;
+          return (
+            <Paper
+              variant="outlined"
+              sx={{
+                mt: 2.5,
+                p: 2,
+                bgcolor: '#0b1220',
+                color: '#f8fafc',
+                borderColor: 'transparent',
+              }}
+            >
+              <Typography variant="subtitle2" sx={{ color: '#94a3b8', mb: 0.5 }}>
+                Selected TSP
               </Typography>
-              <Typography variant="body2" sx={{ mb: 2, opacity: 0.9 }}>
-                Your chosen confidential computing environment provider
-              </Typography>
-              <List dense>
-                <ListItem>
-                  <ListItemIcon>
-                    <Security />
+              <List dense disablePadding>
+                <ListItem sx={{ px: 0 }}>
+                  <ListItemIcon sx={{ minWidth: 36, color: '#93c5fd' }}>
+                    <Security fontSize="small" />
                   </ListItemIcon>
-                  <Box sx={{ flexGrow: 1 }}>
-                    <Typography variant="body2" fontWeight="medium">
+                  <Box sx={{ flexGrow: 1, minWidth: 0 }}>
+                    <Typography variant="body2" fontWeight={700}>
                       {selectedTspUser.name}
                     </Typography>
-                    <Typography variant="caption" display="block">
+                    <Typography variant="caption" sx={{ color: '#94a3b8' }} display="block">
                       {selectedTspUser.email}
                     </Typography>
                     {providers.length > 0 && (
                       <Box sx={{ mt: 1 }}>
-                        {providers.map(provider => (
+                        {providers.map((provider) => (
                           <Chip
                             key={provider}
                             label={provider}
@@ -240,52 +219,55 @@ const MultiTSPSelector = ({
                     )}
                   </Box>
                   <ListItemSecondaryAction>
-                    <IconButton 
-                      edge="end" 
+                    <IconButton
+                      edge="end"
                       onClick={() => onTspToggle(null)}
-                      sx={{ color: 'white' }}
+                      sx={{ color: '#cbd5e1' }}
                       disabled={disabled}
+                      aria-label="Clear TSP selection"
                     >
                       <Remove />
                     </IconButton>
                   </ListItemSecondaryAction>
                 </ListItem>
               </List>
-              {/* Cloud provider selection if multiple */}
               {providers.length > 1 && (
-                <Box sx={{ mt: 2 }}>
-                  <FormControl fullWidth>
-                    <InputLabel>Select Cloud Provider</InputLabel>
-                    <Select
-                      value={tspCloudProviderSelections[selectedKey] || ''}
-                      label="Select Cloud Provider"
-                      onChange={e => onTspCloudProviderSelect(selectedKey, e.target.value)}
-                      disabled={disabled}
-                    >
-                      {providers.map((provider) => (
-                        <MenuItem key={provider} value={provider}>{provider}</MenuItem>
-                      ))}
-                    </Select>
-                  </FormControl>
-                </Box>
+                <FormControl fullWidth size="small" sx={{ mt: 1.5 }}>
+                  <InputLabel sx={{ color: '#94a3b8' }}>Select cloud provider</InputLabel>
+                  <Select
+                    value={tspCloudProviderSelections[selectedKey] || ''}
+                    label="Select cloud provider"
+                    onChange={(e) => onTspCloudProviderSelect(selectedKey, e.target.value)}
+                    disabled={disabled}
+                    sx={{
+                      color: '#f8fafc',
+                      '.MuiOutlinedInput-notchedOutline': {
+                        borderColor: 'rgba(148,163,184,0.35)',
+                      },
+                    }}
+                  >
+                    {providers.map((provider) => (
+                      <MenuItem key={provider} value={provider}>
+                        {provider}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
               )}
-            </CardContent>
-          </Card>
-        );
-      })()}
+            </Paper>
+          );
+        })()}
 
-      {/* No TSP providers available */}
       {filteredTspUsers.length === 0 && (
         <Alert severity="warning" sx={{ mt: 2 }}>
-          <AlertTitle>No TSP Providers Available</AlertTitle>
-          {selectedCloudProvider 
-            ? `No TSP providers found supporting ${selectedCloudProvider}. Try selecting a different cloud provider.`
-            : 'No TSP providers are currently available.'
-          }
+          <AlertTitle>No TSP providers available</AlertTitle>
+          {selectedCloudProvider
+            ? `No providers support ${selectedCloudProvider}. Try another filter.`
+            : 'No TSP providers are currently available.'}
         </Alert>
       )}
     </Box>
   );
 };
 
-export default MultiTSPSelector; 
+export default MultiTSPSelector;

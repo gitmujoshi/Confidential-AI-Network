@@ -12,7 +12,7 @@ import {
   Divider,
   AppBar,
   Toolbar,
-  IconButton,
+  Stack,
   useTheme,
   useMediaQuery
 } from '@mui/material';
@@ -22,8 +22,6 @@ import {
   Public as PublicIcon,
   LocationOn as LocationIcon,
   Info as InfoIcon,
-  Login as LoginIcon,
-  PersonAdd as PersonAddIcon,
   ArrowForward as ArrowForwardIcon,
   CheckCircle as CheckCircleIcon
 } from '@mui/icons-material';
@@ -108,68 +106,78 @@ const LandingPage = () => {
   ];
 
   return (
-    <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' }}>
+    <Box
+      sx={{
+        minHeight: '100vh',
+        bgcolor: 'background.default',
+        backgroundImage:
+          'radial-gradient(1000px 480px at 80% -10%, rgba(11,107,203,0.08), transparent 50%)',
+      }}
+    >
       {/* Header */}
-      <AppBar position="static" elevation={0} sx={{ bgcolor: 'white', borderBottom: '1px solid', borderColor: 'divider' }}>
-        <Toolbar>
-          <Typography variant="h6" component="div" sx={{ flexGrow: 1, color: 'text.primary', fontWeight: 'bold' }}>
-            Contract Management System
-          </Typography>
-          <Button
-            color="primary"
-            variant="outlined"
-            startIcon={<LoginIcon />}
-            onClick={handleLogin}
-            sx={{ mr: 2 }}
-          >
-            Login
+      <AppBar position="static" elevation={0} sx={{ bgcolor: 'rgba(255,255,255,0.92)', backdropFilter: 'blur(10px)', borderBottom: '1px solid', borderColor: 'divider' }}>
+        <Toolbar sx={{ gap: 2 }}>
+          <Stack direction="row" spacing={1.25} alignItems="center" sx={{ flexGrow: 1 }}>
+            <Box
+              sx={{
+                width: 32,
+                height: 32,
+                borderRadius: '8px',
+                background: 'linear-gradient(145deg, #0b6bcb, #08498a)',
+                display: 'grid',
+                placeItems: 'center',
+                color: '#fff',
+                fontWeight: 800,
+                fontSize: 12,
+              }}
+            >
+              CA
+            </Box>
+            <Typography variant="h6" sx={{ color: 'text.primary', fontWeight: 750, letterSpacing: '-0.02em' }}>
+              Confidential AI Network
+            </Typography>
+          </Stack>
+          <Button color="inherit" onClick={handleLogin} sx={{ color: 'text.secondary', fontWeight: 600 }}>
+            Sign in
           </Button>
-          <Button
-            color="primary"
-            variant="contained"
-            startIcon={<PersonAddIcon />}
-            onClick={handleSignup}
-          >
-            Sign Up
+          <Button variant="contained" onClick={handleSignup}>
+            Get started
           </Button>
         </Toolbar>
       </AppBar>
 
       {/* Hero Section */}
-      <Container maxWidth="lg" sx={{ py: 8 }}>
-        <Grid container spacing={4} alignItems="center">
+      <Container maxWidth="lg" sx={{ py: { xs: 6, md: 10 } }}>
+        <Grid container spacing={6} alignItems="center">
           <Grid item xs={12} md={6}>
-            <Typography variant="h2" component="h1" gutterBottom sx={{ fontWeight: 'bold', color: 'text.primary' }}>
-              Secure Contract Management
+            <Typography variant="overline" color="primary" sx={{ fontWeight: 700 }}>
+              Multi-party confidential AI
             </Typography>
-            <Typography variant="h5" color="text.secondary" paragraph sx={{ mb: 4 }}>
-              Privacy-compliant contract management with DEPA ID integration and SCITT CCF Ledger for TDCs, TDPs, and TSPs
+            <Typography
+              variant="h2"
+              component="h1"
+              gutterBottom
+              sx={{ fontWeight: 800, letterSpacing: '-0.035em', mt: 1, maxWidth: 560 }}
+            >
+              Confidential AI Network
+            </Typography>
+            <Typography variant="h6" color="text.secondary" paragraph sx={{ mb: 4, fontWeight: 500, lineHeight: 1.6, maxWidth: 520 }}>
+              Negotiate contracts, bind provenance with SCITT, and run privacy-preserving training across TDC, TDP, and TSP roles.
             </Typography>
             <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
-              <Button
-                variant="contained"
-                size="large"
-                endIcon={<ArrowForwardIcon />}
-                onClick={handleSignup}
-                sx={{ px: 4, py: 1.5 }}
-              >
-                Get Started
+              <Button variant="contained" size="large" endIcon={<ArrowForwardIcon />} onClick={handleSignup}>
+                Create account
               </Button>
-              <Button
-                variant="outlined"
-                size="large"
-                onClick={handleLogin}
-                sx={{ px: 4, py: 1.5 }}
-              >
-                Sign In
+              <Button variant="outlined" size="large" onClick={handleLogin}>
+                Sign in
               </Button>
             </Box>
           </Grid>
           <Grid item xs={12} md={6}>
-            <Paper elevation={3} sx={{ p: 3, bgcolor: 'grey.50' }}>
-              <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center' }}>
-                <InfoIcon sx={{ mr: 1, color: 'primary.main' }} />
-                Current Deployment Configuration
+            <Paper variant="outlined" sx={{ p: 3, bgcolor: 'background.paper' }}>
+              <Typography variant="subtitle2" gutterBottom sx={{ display: 'flex', alignItems: 'center', color: 'text.secondary' }}>
+                <InfoIcon sx={{ mr: 1, color: 'primary.main', fontSize: 18 }} />
+                Deployment configuration
               </Typography>
               {depaConfigLoading ? (
                 <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', py: 2 }}>
@@ -185,39 +193,31 @@ const LandingPage = () => {
                 </Box>
               ) : depaConfig ? (
                 <Box>
-                  <Grid container spacing={2} sx={{ mb: 2 }}>
+                  <Grid container spacing={2} sx={{ mb: 2, mt: 0.5 }}>
                     <Grid item xs={6}>
-                      <Typography variant="body2" color="text.secondary">
-                        <strong>Deployment ID:</strong><br />
-                        {depaConfig.deploymentId}
-                      </Typography>
+                      <Typography variant="caption" color="text.secondary">Deployment ID</Typography>
+                      <Typography variant="body2" fontWeight={600}>{depaConfig.deploymentId}</Typography>
                     </Grid>
                     <Grid item xs={6}>
-                      <Typography variant="body2" color="text.secondary">
-                        <strong>Region:</strong><br />
-                        {depaConfig.region}
-                      </Typography>
+                      <Typography variant="caption" color="text.secondary">Region</Typography>
+                      <Typography variant="body2" fontWeight={600}>{depaConfig.region}</Typography>
                     </Grid>
                     <Grid item xs={6}>
-                      <Typography variant="body2" color="text.secondary">
-                        <strong>Country:</strong><br />
-                        {depaConfig.country}
-                      </Typography>
+                      <Typography variant="caption" color="text.secondary">Country</Typography>
+                      <Typography variant="body2" fontWeight={600}>{depaConfig.country}</Typography>
                     </Grid>
                     <Grid item xs={6}>
-                      <Typography variant="body2" color="text.secondary">
-                        <strong>Jurisdiction:</strong><br />
-                        {depaConfig.jurisdiction}
-                      </Typography>
+                      <Typography variant="caption" color="text.secondary">Jurisdiction</Typography>
+                      <Typography variant="body2" fontWeight={600}>{depaConfig.jurisdiction}</Typography>
                     </Grid>
                   </Grid>
                   <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, mb: 2 }}>
                     {depaConfig.regulatoryFramework?.map((framework, index) => (
-                      <Chip key={index} label={framework} size="small" variant="outlined" color="secondary" />
+                      <Chip key={index} label={framework} size="small" variant="outlined" />
                     ))}
                   </Box>
-                  <Typography variant="body2" color="text.secondary">
-                    <strong>DEPA ID Format:</strong> {depaConfig.depaIdFormat}
+                  <Typography variant="caption" color="text.secondary" className="mono">
+                    DEPA format: {depaConfig.depaIdFormat}
                   </Typography>
                 </Box>
               ) : (
@@ -231,20 +231,21 @@ const LandingPage = () => {
       </Container>
 
       {/* Features Section */}
-      <Box sx={{ bgcolor: 'grey.50', py: 8 }}>
+      <Box sx={{ py: 8, borderTop: '1px solid', borderColor: 'divider' }}>
         <Container maxWidth="lg">
-          <Typography variant="h3" component="h2" textAlign="center" gutterBottom sx={{ fontWeight: 'bold', mb: 6 }}>
-            Key Features
+          <Typography variant="h4" component="h2" textAlign="center" gutterBottom sx={{ fontWeight: 750, mb: 1 }}>
+            Built for regulated collaboration
           </Typography>
-          <Grid container spacing={4}>
+          <Typography variant="body1" color="text.secondary" textAlign="center" sx={{ mb: 6, maxWidth: 560, mx: 'auto' }}>
+            Enterprise workflows for identity, contracts, and confidential compute — without the dashboard clutter.
+          </Typography>
+          <Grid container spacing={3}>
             {features.map((feature, index) => (
               <Grid item xs={12} sm={6} md={3} key={index}>
-                <Card elevation={2} sx={{ height: '100%', textAlign: 'center', p: 3 }}>
+                <Card sx={{ height: '100%', p: 1 }}>
                   <CardContent>
-                    <Box sx={{ mb: 2 }}>
-                      {feature.icon}
-                    </Box>
-                    <Typography variant="h6" gutterBottom sx={{ fontWeight: 'bold' }}>
+                    <Box sx={{ mb: 2 }}>{feature.icon}</Box>
+                    <Typography variant="subtitle1" gutterBottom sx={{ fontWeight: 700 }}>
                       {feature.title}
                     </Typography>
                     <Typography variant="body2" color="text.secondary">
@@ -280,7 +281,7 @@ const LandingPage = () => {
             </Box>
           </Grid>
           <Grid item xs={12} md={6}>
-            <Paper elevation={3} sx={{ p: 4, bgcolor: 'primary.50' }}>
+            <Paper elevation={0} sx={{ p: 4, bgcolor: 'primary.50' }}>
               <Typography variant="h5" gutterBottom sx={{ fontWeight: 'bold', color: 'primary.main' }}>
                 DEPA ID & SCITT CCF Ledger
               </Typography>
@@ -340,7 +341,7 @@ const LandingPage = () => {
             <Button
               variant="contained"
               size="large"
-              endIcon={<PersonAddIcon />}
+              endIcon={<ArrowForwardIcon />}
               onClick={handleSignup}
               sx={{ 
                 bgcolor: 'white', 

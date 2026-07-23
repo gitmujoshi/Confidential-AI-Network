@@ -38,27 +38,14 @@ test.describe('Create Contract UI workflow (wizard)', () => {
   test('TDC creates a contract end-to-end via UI wizard', async ({ page }, testInfo) => {
     test.setTimeout(4 * 60 * 1000);
 
-    const runTag = `${Date.now()}-${Math.random().toString(16).slice(2, 8)}`;
-    const email = `tdc.ui.${runTag}@test.com`;
-    console.log(`[ui-contract] runTag=${runTag}`);
+    // Use static env-seeded TDC (npm run seed:e2e-users) — do not register ephemeral users here.
+    const email = 'tdc.healthcare.2025-09-05t20-39-55@test.com';
+    const runTag = `static-${Date.now().toString(36)}`;
+    console.log(`[ui-contract] using static TDC=${email} runTag=${runTag}`);
 
-    // Best-effort register user (if backend supports it).
-    await test.step('TDC registers (best-effort)', async () => {
-      console.log('[ui-contract] step: register');
-      try {
-        await axios.post(`${BACKEND_URL}/api/auth/register`, {
-          name: `TDC UI User ${runTag}`,
-          email,
-          partyType: 'TDC',
-        });
-      } catch (_) {
-        // ignore
-      }
-    });
-
-    const { token, user } = await test.step('TDC authenticates', async () => {
+    const { token, user } = await test.step('TDC authenticates (static seed user)', async () => {
       console.log('[ui-contract] step: login');
-      return login(email).catch(async () => login('tdc.healthcare.2025-09-05t20-39-55@test.com'));
+      return login(email);
     });
     await seedAuth(page, { token, user });
 
@@ -73,17 +60,16 @@ test.describe('Create Contract UI workflow (wizard)', () => {
     await test.step('Select a contract template', async () => {
       console.log('[ui-contract] step: select template');
       // Pick the stable seeded template name if present.
-      const templateCard =
-        page.getByText('Standard Research License').first().locator('xpath=ancestor::div[contains(@class,"MuiCard-root")]').first();
-      if (await templateCard.count()) {
-        await templateCard.click();
+      const templateHeading = page.getByRole('heading', { name: /Standard Research License/i }).first();
+      if (await templateHeading.isVisible().catch(() => false)) {
+        await templateHeading.click({ force: true });
       } else {
-        // Fallback: click the first template card.
-        await page.locator('.MuiCard-root').nth(1).click().catch(() => {});
+        await page.locator('main h3').first().click({ force: true });
       }
       await attachShot(page, testInfo, 'Template selected');
 
-      await page.getByRole('button', { name: /^next$/i }).click();
+      await page.keyboard.press('Escape').catch(() => {});
+      await page.getByRole('main').getByRole('button', { name: /^next$/i }).click({ force: true });
     });
 
     await test.step('Fill contract details', async () => {
@@ -93,11 +79,10 @@ test.describe('Create Contract UI workflow (wizard)', () => {
       await page.getByLabel('Duration (days)').fill('30');
       await page.getByLabel('Terms and Conditions').fill(`UI wizard E2E contract ${runTag}`);
 
-      // Switch to Privacy tab (new UX).
-      await page.getByRole('tab', { name: /^privacy$/i }).click();
+      // Privacy & Accuracy is inline on the details step (no Privacy tab).
       await expect(page.getByText(/privacy & accuracy/i).first()).toBeVisible({ timeout: 120000 });
 
-      // Enable DP with epsilon/delta.
+      // Enable DP with epsilon/delta when those controls exist.
       const dpEnabled = page.getByRole('checkbox', { name: /differential privacy/i }).first();
       if (await dpEnabled.count()) await dpEnabled.check({ force: true }).catch(() => {});
 
@@ -111,30 +96,26 @@ test.describe('Create Contract UI workflow (wizard)', () => {
 
     await test.step('Select a dataset', async () => {
       console.log('[ui-contract] step: select dataset');
-      // Switch to Datasets tab (new UX).
-      await page.getByRole('tab', { name: /^datasets$/i }).click();
+      // Datasets are on the same wizard step as contract details.
       await expect(page.getByText(/select datasets/i).first()).toBeVisible({ timeout: 120000 });
 
-      // Prefer a known seeded dataset that is active; MNIST seed may not be marked active.
-      const preferred =
-        page
-          .getByText('ImageNet-Enhanced')
-          .first()
-          .locator('xpath=ancestor::div[contains(@class,\"MuiCard-root\")]')
-          .first();
-      const fallbackMnist =
-        page.getByText(/mnist/i).first().locator('xpath=ancestor::div[contains(@class,\"MuiCard-root\")]').first();
-
-      if (await preferred.count()) {
-        await preferred.click();
-      } else if (await fallbackMnist.count()) {
-        await fallbackMnist.click();
+      // Prefer deterministic E2E-seeded datasets.
+      const e2eSample = page.getByRole('heading', { name: 'E2E Sample Dataset', exact: true }).first();
+      const mnist = page.getByRole('heading', { name: /mnist/i }).first();
+      if (await e2eSample.isVisible().catch(() => false)) {
+        await e2eSample.click({ force: true });
+      } else if (await mnist.isVisible().catch(() => false)) {
+        await mnist.click({ force: true });
       } else {
-        await page.locator('main .MuiCard-root').nth(2).click().catch(() => {});
+        await page.locator('main .MuiCard-root').nth(1).click({ force: true }).catch(() => {});
       }
       await attachShot(page, testInfo, 'Dataset selected');
 
-      await page.getByRole('button', { name: /^next$/i }).click();
+      await page.keyboard.press('Escape').catch(() => {});
+      await page.getByRole('main').getByRole('button', { name: /^next$/i }).click({ force: true });
+      await expect(
+        page.getByRole('heading', { name: /configure environment/i }).first()
+      ).toBeVisible({ timeout: 120000 });
     });
 
     await test.step('Select CCRP and environment basics', async () => {
@@ -143,25 +124,29 @@ test.describe('Create Contract UI workflow (wizard)', () => {
         page.getByRole('heading', { name: /configure environment/i }).first()
       ).toBeVisible({ timeout: 120000 });
 
-      // Pick a CCRP provider card (first visible).
-      const ccrpCards = page.locator('main').locator('.MuiCard-root').filter({ hasText: 'Supported Cloud Providers' });
-      if (await ccrpCards.count()) {
-        await ccrpCards.first().click();
+      // Prefer seeded TSP card by email (data-testid avoids outer wrapper / summary card ambiguity).
+      const tspCard = page.locator('[data-testid^="tsp-card-"]').filter({ hasText: 'ccrp.e2e@test.com' });
+      if (await tspCard.isVisible().catch(() => false)) {
+        await tspCard.click({ force: true });
+        await expect(page.getByTestId('tsp-selected-chip')).toBeVisible({ timeout: 10_000 });
       } else {
-        // Fallback: click any CCRP name card in the grid.
-        await page.locator('main .MuiCard-root').nth(2).click().catch(() => {});
+        const ccrpHeading = page.getByRole('heading', { name: 'CCRP E2E User', exact: true }).first();
+        if (await ccrpHeading.isVisible().catch(() => false)) {
+          await ccrpHeading.click({ force: true });
+          await expect(page.getByTestId('tsp-selected-chip').or(page.getByText('Selected', { exact: true })).first()).toBeVisible({
+            timeout: 10_000,
+          });
+        } else {
+          await page.locator('main .MuiCard-root').nth(2).click({ force: true }).catch(() => {});
+        }
       }
       await attachShot(page, testInfo, 'CCRP selected');
 
-      await page.getByRole('button', { name: /^next$/i }).click();
-
-      // Some builds have an intermediate "Create Contract" step with no content (step index gap).
-      // If we didn't land on the Review step, click Next once more.
-      const reviewHeading = page.getByRole('heading', { name: /review legal document/i }).first();
-      const nextBtn = page.getByRole('button', { name: /^next$/i });
-      if (!(await reviewHeading.isVisible().catch(() => false)) && (await nextBtn.count().catch(() => 0))) {
-        await nextBtn.click();
-      }
+      await page.keyboard.press('Escape').catch(() => {});
+      await page.getByRole('main').getByRole('button', { name: /^next$/i }).click({ force: true });
+      await expect(
+        page.getByRole('heading', { name: /review legal document/i }).first()
+      ).toBeVisible({ timeout: 120000 });
     });
 
     await test.step('Review and create contract', async () => {
@@ -171,18 +156,7 @@ test.describe('Create Contract UI workflow (wizard)', () => {
       ).toBeVisible({ timeout: 120000 });
       await attachShot(page, testInfo, 'Review step');
 
-      // Generate preview (required before create).
-      const previewBtn = page.getByRole('button', { name: /generate preview/i });
-      await expect(previewBtn, 'Generate Preview button should be visible on review step').toBeVisible({
-        timeout: 120000,
-      });
-      await previewBtn.click();
-      // Toasts are best-effort signals; the real signal is the preview content below.
-      await expect(page.getByText(/preview generated successfully/i))
-        .toBeVisible({ timeout: 30000 })
-        .catch(() => {});
-
-      // Wait for either preview content or a visible preview-generation failure toast/message.
+      // Preview loads on Review; wait for content (or failure).
       const contractIdLine = page.getByText(/contract id/i).first();
       const previewFailed = page
         .getByText(/failed to generate preview/i)
@@ -195,11 +169,18 @@ test.describe('Create Contract UI workflow (wizard)', () => {
       }
       await attachShot(page, testInfo, 'Preview generated');
 
+      // Advance to Create Contract step, then create.
+      await page.keyboard.press('Escape').catch(() => {});
+      const nextBtn = page.getByRole('button', { name: /^next$/i }).last();
+      if (await nextBtn.isVisible().catch(() => false)) {
+        await nextBtn.click({ force: true });
+      }
+
       const createBtn = page.getByRole('button', { name: /create.*contract/i }).last();
       await expect(createBtn).toBeVisible({ timeout: 120000 });
       await attachShot(page, testInfo, 'Ready to create');
 
-      await createBtn.click();
+      await createBtn.click({ force: true });
 
       const errorAlert = page.getByText(/contract creation error/i);
       const creating = page.getByRole('button', { name: /creating.*contract/i }).first();

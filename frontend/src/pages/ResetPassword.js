@@ -99,18 +99,53 @@ const ResetPassword = () => {
 
   if (verifying) {
     return (
+      <Box sx={{ minHeight: '100vh', bgcolor: 'background.default', display: 'flex', alignItems: 'center', py: 4 }}>
+        <Container component="main" maxWidth="sm">
+          <Box
+            sx={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+            }}
+          >
+            <Paper
+              elevation={0}
+              variant="outlined"
+              sx={{
+                padding: 4,
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                width: '100%',
+              }}
+            >
+              <CircularProgress size={60} />
+              <Typography variant="h6" sx={{ mt: 2 }}>
+                Verifying reset link...
+              </Typography>
+            </Paper>
+          </Box>
+        </Container>
+      </Box>
+    );
+  }
+
+  return (
+    <Box sx={{ minHeight: '100vh', bgcolor: 'background.default', display: 'flex', alignItems: 'center', py: 4 }}>
       <Container component="main" maxWidth="sm">
         <Box
           sx={{
-            marginTop: 8,
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
           }}
         >
           <Paper
-            elevation={3}
+            elevation={0}
+            variant="outlined"
             sx={{
+              border: '1px solid',
+              borderColor: 'divider',
               padding: 4,
               display: 'flex',
               flexDirection: 'column',
@@ -118,36 +153,6 @@ const ResetPassword = () => {
               width: '100%',
             }}
           >
-            <CircularProgress size={60} />
-            <Typography variant="h6" sx={{ mt: 2 }}>
-              Verifying reset link...
-            </Typography>
-          </Paper>
-        </Box>
-      </Container>
-    );
-  }
-
-  return (
-    <Container component="main" maxWidth="sm">
-      <Box
-        sx={{
-          marginTop: 8,
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-        }}
-      >
-        <Paper
-          elevation={3}
-          sx={{
-            padding: 4,
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            width: '100%',
-          }}
-        >
           <Box
             sx={{
               width: 56,
@@ -268,6 +273,7 @@ const ResetPassword = () => {
         </Paper>
       </Box>
     </Container>
+    </Box>
   );
 };
 

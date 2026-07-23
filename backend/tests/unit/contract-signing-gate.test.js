@@ -40,6 +40,11 @@ describe('contractSigningGate', () => {
       expect(rolesAllowSigning('TDP', 'TSP')).toBe(false);
       expect(rolesAllowSigning('AppAdmin', 'TSP')).toBe(true);
     });
+    test('legacy CCRP aliases TSP for signing', () => {
+      expect(rolesAllowSigning('TSP', 'CCRP')).toBe(true);
+      expect(rolesAllowSigning('CCRP', 'TSP')).toBe(true);
+      expect(rolesAllowSigning('CCRP', 'CCRP')).toBe(true);
+    });
   });
 
   describe('resolveSigningUser', () => {

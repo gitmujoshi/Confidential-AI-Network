@@ -483,8 +483,9 @@ const UserRegistration = () => {
   };
 
   return (
-    <Container maxWidth="md" sx={{ py: 4 }}>
-      <Paper elevation={3} sx={{ p: 4 }}>
+    <Box sx={{ minHeight: '100vh', bgcolor: 'background.default', py: 4 }}>
+    <Container maxWidth="md">
+      <Paper elevation={0} variant="outlined" sx={{ p: 4 }}>
         <Typography variant="h4" component="h1" gutterBottom align="center">
           User Registration
         </Typography>
@@ -805,6 +806,7 @@ const UserRegistration = () => {
         )}
       </Paper>
     </Container>
+    </Box>
   );
 };
 

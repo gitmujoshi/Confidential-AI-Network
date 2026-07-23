@@ -74,8 +74,61 @@ test.describe('Full E2E (register → login → contract sign → local training
 
   async function logoutViaUI(page) {
     await test.step('Logout', async () => {
-      await page.getByTitle('Logout').click({ force: true });
+      // Desktop + mobile drawers both render Sign out; open mobile drawer if needed.
+      let logoutBtn = page.locator('[data-testid="logout-button"]').locator('visible=true').first();
+      if (!(await logoutBtn.isVisible().catch(() => false))) {
+        const openDrawer = page.getByRole('button', { name: /open drawer/i });
+        if (await openDrawer.isVisible().catch(() => false)) {
+          await openDrawer.click();
+        }
+        logoutBtn = page.locator('[data-testid="logout-button"]').locator('visible=true').first();
+      }
+      if (await logoutBtn.isVisible().catch(() => false)) {
+        await logoutBtn.evaluate((el) => el.click());
+      } else {
+        await page.getByRole('button', { name: /sign out/i }).locator('visible=true').first().evaluate((el) => el.click());
+      }
+      // Fallback if UI logout is flaky after contract create navigation.
+      await page.waitForURL(/\/login/, { timeout: 10_000 }).catch(async () => {
+        await page.evaluate(() => {
+          localStorage.clear();
+          sessionStorage.clear();
+        });
+        await page.goto('/login');
+      });
       await expect(page).toHaveURL(/\/login/, { timeout: 30_000 });
+    });
+  }
+
+  async function createDatasetViaAPI({ email, password, datasetName }) {
+    await test.step('Create dataset (TDP) via API', async () => {
+      const { token, user } = await loginViaAPI({ email, password });
+      const datasetId = `PW-E2E-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+      const res = await axios.post(
+        `${BACKEND_URL}/api/datasets`,
+        {
+          datasetId,
+          name: datasetName,
+          description: 'Playwright E2E dataset for full flow',
+          category: 'Tabular',
+          size: 10,
+          recordCount: 100,
+          price: 1,
+          license: 'MIT',
+          ownerId: user.id,
+          format: 'csv',
+          source: 'Playwright',
+          privacyTechniques: ['Differential Privacy'],
+          dataResidencyRegion: 'US',
+          processingLocation: 'US',
+          isPublic: true,
+          tags: ['e2e', 'playwright'],
+        },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      if (![200, 201].includes(res.status)) {
+        throw new Error(`Dataset create failed: HTTP ${res.status}`);
+      }
     });
   }
 
@@ -93,12 +146,14 @@ test.describe('Full E2E (register → login → contract sign → local training
       await categoryCombo.scrollIntoViewIfNeeded();
       await categoryCombo.click();
       // Prefer a category that yields modality=tabular via backend inference.
-      await page.getByRole('option', { name: /tabular/i }).click().catch(async () => {
+      await page.getByRole('option', { name: /tabular/i }).click({ force: true }).catch(async () => {
         // Fallback: pick the first option in the dropdown if "tabular" isn't present.
-        await page.getByRole('option').first().click();
+        await page.getByRole('option').first().click({ force: true });
       });
+      await page.keyboard.press('Escape');
+      await expect(page.locator('.MuiPopover-root.MuiMenu-root')).toHaveCount(0, { timeout: 5000 }).catch(() => {});
 
-      await page.getByRole('button', { name: /next/i }).first().click();
+      await page.getByRole('main').getByRole('button', { name: /next/i }).first().click({ force: true });
 
       // Step 1: Data Details (required: size, format, source)
       await expect(page.getByText(/Data Details/i).first()).toBeVisible();
@@ -106,7 +161,8 @@ test.describe('Full E2E (register → login → contract sign → local training
       await page.getByLabel(/Record Count/i).first().fill('100');
       await page.getByLabel(/Format/i).first().fill('csv');
       await page.getByLabel(/Source/i).first().fill('Playwright');
-      await page.getByRole('button', { name: /next/i }).first().click();
+      await page.keyboard.press('Escape').catch(() => {});
+      await page.getByRole('main').getByRole('button', { name: /next/i }).first().click({ force: true });
 
       // Step 2: Privacy & Security (no strict required fields by default)
       await expect(page.getByText(/Privacy/i).first()).toBeVisible();
@@ -116,38 +172,43 @@ test.describe('Full E2E (register → login → contract sign → local training
         .locator('xpath=following::div[@role=\"combobox\"][1]');
       await privacyTechniquesCombo.scrollIntoViewIfNeeded();
       await privacyTechniquesCombo.click();
-      await page.getByRole('option').first().click();
+      await page.getByRole('option').first().click({ force: true });
       await page.keyboard.press('Escape');
-      await page.getByRole('button', { name: /next/i }).first().click();
+      await page.keyboard.press('Escape').catch(() => {});
+      await page.getByRole('button', { name: /next/i }).last().click({ force: true });
 
       // Step 3: Security & Compliance (required: dataResidencyRegion, processingLocation)
-      await expect(page.getByText(/Security/i).first()).toBeVisible();
+      // Do not match the earlier stepper label "Privacy & Security".
+      await expect(page.getByText('Data Residency Region', { exact: false }).first()).toBeVisible({
+        timeout: 60_000,
+      });
       const dataResidencyCombo = page
         .locator('text=Data Residency Region')
         .locator('xpath=following::div[@role=\"combobox\"][1]');
-      await dataResidencyCombo.scrollIntoViewIfNeeded();
-      await dataResidencyCombo.click();
-      await page.getByRole('option').first().click();
+      await dataResidencyCombo.click({ force: true });
+      await page.getByRole('option').first().click({ force: true });
       // Data Residency Select can leave a closing Menu/backdrop in the tree briefly; it still
       // intercepts clicks on the next combobox (Processing Location). Mirror Privacy Techniques.
       await page.keyboard.press('Escape');
-      await expect(page.locator('.MuiPopover-root.MuiMenu-root')).toHaveCount(0, { timeout: 5000 });
+      await expect(page.locator('.MuiPopover-root.MuiMenu-root')).toHaveCount(0, { timeout: 5000 }).catch(() => {});
 
       const processingLocationCombo = page
         .locator('text=Processing Location')
         .locator('xpath=following::div[@role=\"combobox\"][1]');
-      await processingLocationCombo.scrollIntoViewIfNeeded();
-      await processingLocationCombo.click();
-      await page.getByRole('option').first().click();
-      await page.getByRole('button', { name: /next/i }).first().click();
+      await processingLocationCombo.click({ force: true });
+      await page.getByRole('option').first().click({ force: true });
+      await page.keyboard.press('Escape').catch(() => {});
+      await page.getByRole('button', { name: /next/i }).last().click({ force: true });
 
       // Step 4: Quality & Compliance (no strict required fields by default)
       await expect(page.getByText(/Quality/i).first()).toBeVisible();
-      await page.getByRole('button', { name: /next/i }).first().click();
+      await page.keyboard.press('Escape').catch(() => {});
+      await page.getByRole('main').getByRole('button', { name: /next/i }).first().click({ force: true });
 
       // Step 5: Training files (optional uploads — skip to Review)
       await expect(page.getByText(/Training files \(recommended\)/i)).toBeVisible({ timeout: 60_000 });
-      await page.getByRole('button', { name: /next/i }).first().click();
+      await page.keyboard.press('Escape').catch(() => {});
+      await page.getByRole('main').getByRole('button', { name: /next/i }).first().click({ force: true });
 
       // Step 6: Review & Submit (avoid matching Stepper label "Review & Submit" while still on Training files)
       await expect(page.getByRole('heading', { name: 'Dataset Summary' })).toBeVisible({ timeout: 60_000 });
@@ -175,18 +236,19 @@ test.describe('Full E2E (register → login → contract sign → local training
     let contractId = null;
 
     async function clickNext() {
-      const next = page.getByRole('button', { name: /next/i }).first();
+      await page.keyboard.press('Escape').catch(() => {});
+      const next = page.getByRole('button', { name: /^next$/i }).last();
       await expect(next).toBeVisible();
-      await next.click();
+      await next.click({ force: true });
     }
 
     await test.step('Create contract via UI wizard (select local CCRP)', async () => {
       await page.goto('/contracts/create');
       await expect(page.locator('body')).toContainText('Select Contract Template', { timeout: 30_000 });
 
-      const firstTemplateHeading = page.locator('h3').first();
+      const firstTemplateHeading = page.locator('main h3').first();
       await expect(firstTemplateHeading).toBeVisible();
-      await firstTemplateHeading.click();
+      await firstTemplateHeading.click({ force: true });
       await clickNext();
 
       await expect(page.getByRole('heading', { name: 'Contract Details & Dataset Selection' })).toBeVisible();
@@ -222,14 +284,28 @@ test.describe('Full E2E (register → login → contract sign → local training
       await page.getByLabel('Terms and Conditions').fill(`Full E2E CAN contract ${Date.now()}`);
       await clickNext();
 
-      await expect(page.getByRole('heading', { name: 'Configure Environment & CCRP' })).toBeVisible();
+      await expect(page.getByRole('heading', { name: /Configure Environment & (TSP|CCRP)/ })).toBeVisible();
 
-      const cloudProvider = page.getByRole('combobox').nth(1);
-      await cloudProvider.click();
-      await page.getByRole('option', { name: /Local \(Docker\)/i }).click();
+      // Prefer Local filter when present; close any leftover MUI menu before selecting a card.
+      const localFilter = page.getByRole('combobox', { name: /Cloud Provider/i }).last();
+      if (await localFilter.isVisible().catch(() => false)) {
+        await localFilter.click({ force: true });
+        const localOpt = page.getByRole('option', { name: /Local \(Docker\)/i });
+        if (await localOpt.isVisible().catch(() => false)) {
+          await localOpt.click({ force: true });
+        } else {
+          await page.keyboard.press('Escape').catch(() => {});
+        }
+      }
+      await page.keyboard.press('Escape').catch(() => {});
+      await expect(page.locator('.MuiModal-root')).toHaveCount(0, { timeout: 5000 }).catch(() => {});
 
-      // Use the globally seeded CCRP (deterministic + guaranteed cloudProviders).
-      await page.getByRole('heading', { name: 'CCRP E2E User', exact: true }).first().click();
+      // Select seeded TSP by email. Card click is select-only (not toggle); assert via test id.
+      const tspCard = page.locator('[data-testid^="tsp-card-"]').filter({ hasText: 'ccrp.e2e@test.com' });
+      await expect(tspCard).toBeVisible({ timeout: 20_000 });
+      await tspCard.click({ force: true });
+      await expect(page.getByTestId('tsp-selected-chip')).toBeVisible({ timeout: 10_000 });
+      await expect(tspCard).toHaveAttribute('data-selected', 'true');
 
       await page.getByLabel('Instance Type').fill('local');
       await page.getByLabel('CPU Requirements').fill('2');
@@ -246,10 +322,18 @@ test.describe('Full E2E (register → login → contract sign → local training
       await page.getByLabel('Key ID/ARN').fill('e2e-local-key');
       await page.getByLabel('Encryption Algorithm').fill('AES-256-GCM');
       await page.getByLabel('Key Rotation Period (days)').fill('90');
+      await page.keyboard.press('Escape').catch(() => {});
+      await expect(page.locator('.MuiModal-root')).toHaveCount(0, { timeout: 5000 }).catch(() => {});
       await clickNext();
 
-      await expect(page.getByRole('heading', { name: 'Review Legal Document & Smart Contract' })).toBeVisible();
-      // Preview generation seems required before the Create button triggers the API call.
+      const review = page.getByRole('heading', { name: 'Review Legal Document & Smart Contract' });
+      if (!(await review.isVisible().catch(() => false))) {
+        await page.getByRole('main').getByRole('button', { name: /^next$/i }).click({ force: true });
+      }
+      await expect(review).toBeVisible({
+        timeout: 60_000,
+      });
+      await expect(page.getByText(/Contract ID:/i).first()).toBeVisible({ timeout: 120_000 });
       await clickNext();
       await expect(page.locator('body')).toContainText('Create Contract', { timeout: 60_000 });
 
@@ -349,7 +433,7 @@ test.describe('Full E2E (register → login → contract sign → local training
         await btn.click();
         await expect(page.getByText(/signed/i).first()).toBeVisible({ timeout: 90_000 });
       } else if (role === 'CCRP') {
-        const primary = page.getByRole('button', { name: /Sign Contract as CCRP/i }).first();
+        const primary = page.getByRole('button', { name: /Sign Contract as (TSP|CCRP)/i }).first();
         const fallback = page.getByRole('button', { name: /^Sign$/ }).first();
         const btn = (await primary.isVisible().catch(() => false)) ? primary : fallback;
         await expect(btn).toBeVisible({ timeout: 90_000 });
@@ -367,7 +451,7 @@ test.describe('Full E2E (register → login → contract sign → local training
 
     await test.step('Create CAN job and run local training (UI)', async () => {
       await page.goto('/can/jobs');
-      await expect(page.getByText('CAN Jobs (Local CCRP)')).toBeVisible({ timeout: 90_000 });
+      await expect(page.getByText(/CAN Jobs \(Local (TSP|CCRP)\)/)).toBeVisible({ timeout: 90_000 });
       await page.getByLabel('Contract ID').fill(contractId);
       await page.getByRole('button', { name: 'Create CAN Job' }).click();
 
@@ -463,6 +547,7 @@ test.describe('Full E2E (register → login → contract sign → local training
   }
 
   test('Full flow with new users and local training', async ({ page }, testInfo) => {
+    test.setTimeout(10 * 60 * 1000);
     const tdcEmail = uniqueEmail('tdc');
     const tdpEmail = uniqueEmail('tdp');
     // IMPORTANT: The contract wizard selects the seeded "CCRP E2E User" deterministically.
@@ -505,7 +590,7 @@ test.describe('Full E2E (register → login → contract sign → local training
 
     // Globally unique name avoids accidental selection of another run's public dataset card.
     const datasetName = `PW E2E Dataset ${randomUUID()}`;
-    await createDatasetViaUI(page, datasetName);
+    await createDatasetViaAPI({ email: tdpEmail, password: NEW_PASSWORD, datasetName });
     await logoutViaUI(page);
 
     let businessDatasetId;

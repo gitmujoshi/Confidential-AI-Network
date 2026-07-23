@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
   AppBar,
   Box,
@@ -12,12 +12,11 @@ import {
   Toolbar,
   Typography,
   Badge,
-  Menu,
-  MenuItem,
-  Divider,
   Button,
   Chip,
   Avatar,
+  Stack,
+  Tooltip,
 } from '@mui/material';
 import {
   Menu as MenuIcon,
@@ -26,112 +25,218 @@ import {
   Description,
   People,
   Notifications,
-  AccountCircle,
   Logout,
-  Add,
-  Business,
   Security,
   Psychology,
+  Business,
+  Add,
+  CloudQueue,
 } from '@mui/icons-material';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useQuery } from 'react-query';
 import { useUser } from '../contexts/UserContext';
 import api from '../services/api';
 
-const drawerWidth = 240;
+const drawerWidth = 268;
+
+const roleChipSx = (role) => {
+  const map = {
+    TDP: { bg: 'rgba(11, 107, 203, 0.12)', color: '#08498a' },
+    TDC: { bg: 'rgba(15, 118, 110, 0.12)', color: '#0f766e' },
+    TSP: { bg: 'rgba(51, 65, 85, 0.14)', color: '#334155' },
+    CCRP: { bg: 'rgba(51, 65, 85, 0.14)', color: '#334155' },
+    AppAdmin: { bg: 'rgba(185, 28, 28, 0.1)', color: '#991b1b' },
+  };
+  const c = map[role] || { bg: 'rgba(100, 116, 139, 0.12)', color: '#475569' };
+  return {
+    bgcolor: c.bg,
+    color: c.color,
+    fontWeight: 700,
+    height: 24,
+    borderRadius: '6px',
+    '& .MuiChip-label': { px: 1 },
+  };
+};
 
 const Layout = ({ children }) => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { currentUser, isAuthenticated, isTDC, isTDP, isTSP, deploymentStatus, isGlobalDEPAId, deploymentInfo, clearAuthData } = useUser();
+  const { currentUser, isTDC, isTDP, clearAuthData } = useUser();
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [anchorEl, setAnchorEl] = useState(null);
 
-  // Fetch notifications
   const { data: notifications = [] } = useQuery(
     ['notifications', currentUser?.id],
-    () => currentUser?.id ? api.get(`/api/notifications/${currentUser.id}`).then(res => res.data.notifications) : Promise.resolve([]),
-    { 
+    () =>
+      currentUser?.id
+        ? api.get(`/api/notifications/${currentUser.id}`).then((res) => res.data.notifications)
+        : Promise.resolve([]),
+    {
       refetchInterval: 30000,
-      enabled: !!currentUser?.id
+      enabled: !!currentUser?.id,
     }
   );
 
-  const unreadCount = notifications.filter(n => !n.isRead).length;
+  const unreadCount = notifications.filter((n) => !n.isRead).length;
 
-  const handleDrawerToggle = () => {
-    setMobileOpen(!mobileOpen);
-  };
+  const navigationItems = useMemo(
+    () => [
+      { text: 'Dashboard', icon: <Dashboard fontSize="small" />, path: '/dashboard' },
+      { text: 'Datasets', icon: <Storage fontSize="small" />, path: '/datasets' },
+      { text: 'Contracts', icon: <Description fontSize="small" />, path: '/contracts' },
+      ...(isTDC
+        ? [
+            { text: 'Training', icon: <Psychology fontSize="small" />, path: '/tdc/training' },
+            { text: 'CAN Jobs', icon: <Security fontSize="small" />, path: '/can/jobs' },
+          ]
+        : []),
+      ...(currentUser?.partyType === 'TSP' || currentUser?.partyType === 'CCRP'
+        ? [
+            {
+              text: 'Environments',
+              icon: <CloudQueue fontSize="small" />,
+              path: '/tsp/environments',
+            },
+            {
+              text: 'Infrastructure',
+              icon: <Security fontSize="small" />,
+              path: '/tsp/infrastructure',
+            },
+            {
+              text: 'Cloud Credentials',
+              icon: <Security fontSize="small" />,
+              path: '/tsp/cloud-credentials',
+            },
+          ]
+        : []),
+      ...(currentUser?.partyType === 'AppAdmin'
+        ? [{ text: 'Users', icon: <People fontSize="small" />, path: '/admin/users' }]
+        : []),
+      {
+        text: 'Notifications',
+        icon: <Notifications fontSize="small" />,
+        path: '/notifications',
+      },
+      {
+        text: 'Enterprise DID',
+        icon: <Business fontSize="small" />,
+        path: '/enterprise-did',
+      },
+    ],
+    [currentUser?.partyType, isTDC]
+  );
+
+  const pageTitle =
+    navigationItems.find((item) => location.pathname === item.path || location.pathname.startsWith(`${item.path}/`))
+      ?.text || 'Dashboard';
+
+  const depaShort = currentUser?.depaId
+    ? `${currentUser.depaId.split('-')[0]}-${currentUser.depaId.split('-')[1] || ''}`.replace(/-$/, '')
+    : null;
 
   const handleLogout = async () => {
-    console.log('🚪 [Layout] Logging out...');
-    
-    // Use the proper UserContext method to clear all auth data
     await clearAuthData();
-    
-    // Navigate to login page
     navigate('/login');
   };
 
-  const navigationItems = [
-    { text: 'Dashboard', icon: <Dashboard />, path: '/dashboard' },
-    { text: 'Datasets', icon: <Storage />, path: '/datasets' },
-    { text: 'Contracts', icon: <Description />, path: '/contracts' },
-    ...(isTDC ? [{ text: 'Training', icon: <Psychology />, path: '/tdc/training' }] : []),
-    ...(isTDC ? [{ text: 'CAN Jobs', icon: <Security />, path: '/can/jobs' }] : []),
-    // TSP-specific menu items (only for TSP users, not AppAdmin)
-    ...(currentUser?.partyType === 'TSP' || currentUser?.partyType === 'CCRP' ? [
-      { text: 'Environments', icon: <Security />, path: '/tsp/environments' },
-      { text: 'Infrastructure', icon: <Security />, path: '/tsp/infrastructure' },
-      { text: 'Cloud Credentials', icon: <Security />, path: '/tsp/cloud-credentials' },
-    ] : []),
-    // Only show Users menu for AppAdmin
-    ...(currentUser?.partyType === 'AppAdmin' ? [{ text: 'Users', icon: <People />, path: '/admin/users' }] : []),
-    { text: 'Notifications', icon: <Notifications />, path: '/notifications' },
-    { text: 'Enterprise DID', icon: <Business />, path: '/enterprise-did' },
-  ];
-
-  const getRoleColor = (role) => {
-    switch (role) {
-      case 'TDP': return 'bg-blue-100 text-blue-800';
-      case 'TDC': return 'bg-green-100 text-green-800';
-      case 'TSP': return 'bg-purple-100 text-purple-800';
-      default: return 'bg-gray-100 text-gray-800';
-    }
+  const go = (path) => {
+    navigate(path);
+    setMobileOpen(false);
   };
 
   const drawer = (
-    <div className="h-full bg-white">
-      {/* Logo/Brand */}
-      <div className="p-4 border-b border-gray-200">
-        <Typography variant="h6" className="font-bold text-gray-900">
-          Contract Manager
-        </Typography>
-        <Typography variant="caption" className="text-gray-500">
-          Secure & Transparent
-        </Typography>
-      </div>
+    <Box
+      sx={{
+        height: '100%',
+        display: 'flex',
+        flexDirection: 'column',
+        bgcolor: '#0b1220',
+        color: '#e2e8f0',
+        overflow: 'hidden',
+      }}
+    >
+      <Box sx={{ px: 2.5, pt: 2.5, pb: 2, flexShrink: 0 }}>
+        <Stack direction="row" spacing={1.5} alignItems="center">
+          <Box
+            sx={{
+              width: 34,
+              height: 34,
+              borderRadius: '9px',
+              background: 'linear-gradient(145deg, #0b6bcb 0%, #08498a 100%)',
+              display: 'grid',
+              placeItems: 'center',
+              fontWeight: 800,
+              fontSize: 13,
+              color: '#fff',
+              letterSpacing: '-0.04em',
+            }}
+          >
+            CA
+          </Box>
+          <Box sx={{ minWidth: 0 }}>
+            <Typography
+              sx={{
+                fontWeight: 750,
+                fontSize: '0.95rem',
+                letterSpacing: '-0.02em',
+                color: '#f8fafc',
+                lineHeight: 1.2,
+              }}
+            >
+              Confidential AI
+            </Typography>
+            <Typography sx={{ fontSize: '0.7rem', color: '#94a3b8', mt: 0.25 }}>
+              Network Console
+            </Typography>
+          </Box>
+        </Stack>
+      </Box>
 
-      {/* Navigation */}
-      <div className="flex-1 overflow-y-auto">
-        <List className="px-2 py-2">
+      <Box sx={{ px: 1.5, pb: 1, flex: 1, minHeight: 0, overflowY: 'auto' }}>
+        <Typography
+          variant="overline"
+          sx={{ px: 1.5, color: '#64748b', display: 'block', mb: 0.5 }}
+        >
+          Navigate
+        </Typography>
+        <List disablePadding>
           {navigationItems.map((item) => {
-            const isActive = location.pathname === item.path;
+            const isActive =
+              location.pathname === item.path || location.pathname.startsWith(`${item.path}/`);
             return (
-              <ListItem key={item.text} disablePadding className="mb-1">
+              <ListItem key={item.text} disablePadding sx={{ mb: 0.25 }}>
                 <ListItemButton
-                  onClick={() => {
-                    navigate(item.path);
-                    setMobileOpen(false);
+                  selected={isActive}
+                  onClick={() => go(item.path)}
+                  sx={{
+                    py: 1,
+                    px: 1.25,
+                    color: isActive ? '#f8fafc' : '#94a3b8',
+                    '&:hover': {
+                      bgcolor: 'rgba(148, 163, 184, 0.08)',
+                      color: '#f1f5f9',
+                    },
+                    '&.Mui-selected': {
+                      bgcolor: 'rgba(11, 107, 203, 0.22)',
+                      color: '#f8fafc',
+                      '&:hover': { bgcolor: 'rgba(11, 107, 203, 0.28)' },
+                    },
                   }}
-                  className={`rounded-md ${
-                    isActive ? 'bg-blue-50 text-blue-700' : 'hover:bg-gray-50'
-                  }`}
                 >
-                  <ListItemIcon className={isActive ? 'text-blue-600' : 'text-gray-500'}>
+                  <ListItemIcon
+                    sx={{
+                      minWidth: 36,
+                      color: isActive ? '#93c5fd' : 'inherit',
+                    }}
+                  >
                     {item.icon}
                   </ListItemIcon>
-                  <ListItemText primary={item.text} />
+                  <ListItemText
+                    primary={item.text}
+                    primaryTypographyProps={{
+                      fontSize: '0.875rem',
+                      fontWeight: isActive ? 650 : 500,
+                    }}
+                  />
                   {item.text === 'Notifications' && unreadCount > 0 && (
                     <Badge badgeContent={unreadCount} color="error" />
                   )}
@@ -140,190 +245,187 @@ const Layout = ({ children }) => {
             );
           })}
         </List>
+      </Box>
 
-        {/* Quick Actions */}
-        <div className="px-4 py-4">
-          <Typography variant="subtitle2" className="text-gray-600 mb-3 font-medium">
-            Quick Actions
+      <Box sx={{ flexShrink: 0, position: 'relative', zIndex: 1, bgcolor: '#0b1220' }}>
+        <Box sx={{ px: 2, pt: 1 }}>
+          <Typography variant="overline" sx={{ color: '#64748b', display: 'block', mb: 1 }}>
+            Quick actions
           </Typography>
-          <div className="space-y-2">
-            {/* Only TDC users can create contracts */}
+          <Stack spacing={1}>
             {isTDC && (
               <Button
-                variant="outlined"
-                startIcon={<Security />}
-                onClick={() => {
-                  navigate('/contracts/create');
-                  setMobileOpen(false);
-                }}
-                className="w-full justify-start"
+                fullWidth
+                variant="contained"
                 size="small"
+                startIcon={<Add />}
+                onClick={() => go('/contracts/create')}
+                sx={{
+                  justifyContent: 'flex-start',
+                  bgcolor: '#0b6bcb',
+                  '&:hover': { bgcolor: '#08498a' },
+                }}
               >
-                Create Contract
+                Create contract
               </Button>
             )}
             <Button
+              fullWidth
               variant="outlined"
-              startIcon={<Storage />}
-              onClick={() => {
-                navigate('/datasets');
-                setMobileOpen(false);
-              }}
-              className="w-full justify-start"
               size="small"
+              startIcon={<Storage />}
+              onClick={() => go('/datasets')}
+              sx={{
+                justifyContent: 'flex-start',
+                color: '#cbd5e1',
+                borderColor: 'rgba(148, 163, 184, 0.28)',
+                '&:hover': {
+                  borderColor: 'rgba(148, 163, 184, 0.5)',
+                  bgcolor: 'rgba(148, 163, 184, 0.06)',
+                },
+              }}
             >
-              {isTDP ? 'My Datasets' : 'Browse Datasets'}
+              {isTDP ? 'My datasets' : 'Browse datasets'}
             </Button>
-          </div>
-        </div>
-      </div>
+          </Stack>
+        </Box>
 
-      {/* Footer */}
-      <div className="p-4 border-t border-gray-200">
-        <Button
-          size="small"
-          onClick={handleLogout}
-          className="text-gray-500 hover:text-red-600"
-          startIcon={<Logout />}
-          fullWidth
-        >
-          Logout
-        </Button>
-      </div>
-    </div>
-  );
-
-  const renderUserInfo = () => {
-    if (!currentUser) return null;
-
-    return (
-      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-        <Avatar sx={{ width: 32, height: 32, bgcolor: 'primary.main' }}>
-          {currentUser.name ? currentUser.name.charAt(0).toUpperCase() : 'U'}
-        </Avatar>
-        <Box sx={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
-          <Typography variant="body2" noWrap>
-            {currentUser.name || 'User'}
-          </Typography>
-          <Typography variant="caption" color="text.secondary" noWrap>
-            {currentUser.partyType || 'User'}
-          </Typography>
-          {/* Global DEPA ID Information */}
-          {currentUser.depaId && (
-            <Typography variant="caption" color="text.secondary" noWrap sx={{ fontFamily: 'monospace' }}>
-              {currentUser.depaId}
-            </Typography>
-          )}
+        <Box sx={{ p: 2, mt: 1, borderTop: '1px solid rgba(148, 163, 184, 0.12)' }}>
+          <Button
+            fullWidth
+            size="small"
+            onClick={handleLogout}
+            startIcon={<Logout fontSize="small" />}
+            title="Logout"
+            data-testid="logout-button"
+            sx={{
+              justifyContent: 'flex-start',
+              color: '#94a3b8',
+              '&:hover': { color: '#fecaca', bgcolor: 'rgba(185, 28, 28, 0.12)' },
+            }}
+          >
+            Sign out
+          </Button>
         </Box>
       </Box>
-    );
-  };
+    </Box>
+  );
 
   return (
-    <Box sx={{ display: 'flex' }}>
-      {/* App Bar */}
+    <Box sx={{ display: 'flex', minHeight: '100%' }}>
       <AppBar
         position="fixed"
         sx={{
           width: { sm: `calc(100% - ${drawerWidth}px)` },
           ml: { sm: `${drawerWidth}px` },
-          backgroundColor: 'white',
-          color: 'black',
-          boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1)',
         }}
       >
-        <Toolbar>
+        <Toolbar sx={{ gap: 1.5, px: { xs: 2, sm: 3 } }}>
           <IconButton
             color="inherit"
             aria-label="open drawer"
             edge="start"
-            onClick={handleDrawerToggle}
-            sx={{ mr: 2, display: { sm: 'none' } }}
+            onClick={() => setMobileOpen((v) => !v)}
+            sx={{ display: { sm: 'none' } }}
           >
             <MenuIcon />
           </IconButton>
-          
-          <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-            {navigationItems.find(item => item.path === location.pathname)?.text || 'Dashboard'}
-          </Typography>
 
-          {/* User Menu */}
+          <Box sx={{ flexGrow: 1, minWidth: 0 }}>
+            <Typography
+              variant="overline"
+              sx={{ display: { xs: 'none', md: 'block' }, color: 'text.secondary', lineHeight: 1 }}
+            >
+              Workspace
+            </Typography>
+            <Typography
+              variant="h6"
+              component="div"
+              noWrap
+              sx={{ fontSize: '1.05rem', fontWeight: 700, letterSpacing: '-0.02em' }}
+            >
+              {pageTitle}
+            </Typography>
+          </Box>
+
           {currentUser && (
-            <div className="flex items-center space-x-3">
-              {/* Notifications */}
-              <IconButton
-                color="inherit"
-                onClick={() => navigate('/notifications')}
-                className="relative"
-              >
-                <Badge badgeContent={unreadCount} color="error">
-                  <Notifications />
-                </Badge>
-              </IconButton>
+            <Stack direction="row" spacing={1} alignItems="center">
+              <Tooltip title="Notifications">
+                <IconButton
+                  onClick={() => navigate('/notifications')}
+                  size="small"
+                  sx={{ color: 'text.secondary' }}
+                >
+                  <Badge badgeContent={unreadCount} color="error">
+                    <Notifications fontSize="small" />
+                  </Badge>
+                </IconButton>
+              </Tooltip>
 
-              {/* User Avatar */}
-              <IconButton
-                onClick={() => navigate('/profile')}
-                className="hover:bg-gray-100 rounded-full p-1"
-              >
-                <Avatar className="w-8 h-8 bg-blue-600">
-                  {currentUser.name?.charAt(0) || 'U'}
-                </Avatar>
-              </IconButton>
-
-              {/* User Role */}
               <Chip
-                label={currentUser.partyType}
+                label={currentUser.partyType || 'User'}
                 size="small"
-                className={`${getRoleColor(currentUser.partyType)} text-xs`}
+                sx={roleChipSx(currentUser.partyType)}
               />
 
-              {/* DEPA ID */}
-              {currentUser.depaId && (
+              {depaShort && (
                 <Chip
-                  label={`DEPA: ${currentUser.depaId.split('-')[0]}-${currentUser.depaId.split('-')[1]}`}
+                  label={depaShort}
                   size="small"
                   variant="outlined"
-                  className="text-xs border-gray-300 text-gray-600"
-                  sx={{ maxWidth: 150, '& .MuiChip-label': { fontSize: '0.7rem' } }}
                   title={currentUser.depaId}
+                  sx={{
+                    display: { xs: 'none', md: 'inline-flex' },
+                    fontFamily: '"IBM Plex Mono", monospace',
+                    fontSize: '0.7rem',
+                    height: 24,
+                    borderColor: 'divider',
+                    color: 'text.secondary',
+                  }}
                 />
               )}
 
-              {/* Username */}
+              <Tooltip title="Profile">
+                <IconButton onClick={() => navigate('/profile')} sx={{ p: 0.5 }}>
+                  <Avatar
+                    sx={{
+                      width: 32,
+                      height: 32,
+                      bgcolor: 'primary.main',
+                      fontSize: '0.85rem',
+                      fontWeight: 700,
+                    }}
+                  >
+                    {(currentUser.name || currentUser.email || 'U').charAt(0).toUpperCase()}
+                  </Avatar>
+                </IconButton>
+              </Tooltip>
+
               <Typography
                 variant="body2"
-                className="text-gray-600 text-sm font-medium"
-                sx={{ maxWidth: 150, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+                sx={{
+                  display: { xs: 'none', lg: 'block' },
+                  maxWidth: 140,
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap',
+                  fontWeight: 600,
+                  color: 'text.primary',
+                }}
               >
                 {currentUser.name || currentUser.email}
               </Typography>
-
-              {/* Logout Button */}
-              <IconButton
-                onClick={handleLogout}
-                className="text-gray-500 hover:text-red-600"
-                title="Logout"
-              >
-                <Logout />
-              </IconButton>
-            </div>
+            </Stack>
           )}
         </Toolbar>
       </AppBar>
 
-      {/* Drawer */}
-      <Box
-        component="nav"
-        sx={{ width: { sm: drawerWidth }, flexShrink: { sm: 0 } }}
-      >
+      <Box component="nav" sx={{ width: { sm: drawerWidth }, flexShrink: { sm: 0 } }}>
         <Drawer
           variant="temporary"
           open={mobileOpen}
-          onClose={handleDrawerToggle}
-          ModalProps={{
-            keepMounted: true,
-          }}
+          onClose={() => setMobileOpen(false)}
+          ModalProps={{ keepMounted: true }}
           sx={{
             display: { xs: 'block', sm: 'none' },
             '& .MuiDrawer-paper': { boxSizing: 'border-box', width: drawerWidth },
@@ -333,32 +435,32 @@ const Layout = ({ children }) => {
         </Drawer>
         <Drawer
           variant="permanent"
+          open
           sx={{
             display: { xs: 'none', sm: 'block' },
             '& .MuiDrawer-paper': { boxSizing: 'border-box', width: drawerWidth },
           }}
-          open
         >
           {drawer}
         </Drawer>
       </Box>
 
-      {/* Main Content */}
       <Box
         component="main"
+        className="can-page-enter"
         sx={{
           flexGrow: 1,
-          p: 3,
           width: { sm: `calc(100% - ${drawerWidth}px)` },
-          // xs: taller offset so wrapped AppBar + chips do not cover the first row of main content
-          marginTop: { xs: '120px', sm: '80px' },
-          minHeight: { xs: 'calc(100vh - 120px)', sm: 'calc(100vh - 80px)' },
+          pt: { xs: 10, sm: 9 },
+          px: { xs: 2, sm: 3, md: 4 },
+          pb: 4,
+          minHeight: '100vh',
         }}
       >
-        {children}
+        <Box sx={{ maxWidth: 1280, mx: 'auto' }}>{children}</Box>
       </Box>
     </Box>
   );
 };
 
-export default Layout; 
+export default Layout;

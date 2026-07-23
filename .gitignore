@@ -92,7 +92,8 @@ dist
 
 # Gatsby files
 .cache/
-public
+# Do not ignore frontend/public (CRA static assets). Ignore only top-level Gatsby public if present.
+/public
 
 # Storybook build outputs
 .out

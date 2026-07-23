@@ -126,6 +126,7 @@ const ForgotPassword = () => {
   };
 
   return (
+    <Box sx={{ minHeight: '100vh', bgcolor: 'background.default', display: 'flex', alignItems: 'center', py: 4 }}>
     <Container component="main" maxWidth="sm">
       <Box
         sx={{
@@ -136,8 +137,10 @@ const ForgotPassword = () => {
         }}
       >
         <Paper
-          elevation={3}
+          elevation={0}
           sx={{
+            border: '1px solid',
+            borderColor: 'divider',
             padding: 4,
             display: 'flex',
             flexDirection: 'column',
@@ -299,6 +302,7 @@ const ForgotPassword = () => {
         </Paper>
       </Box>
     </Container>
+    </Box>
   );
 };
 

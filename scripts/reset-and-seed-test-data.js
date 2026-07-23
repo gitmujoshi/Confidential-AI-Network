@@ -173,6 +173,13 @@ function runSeedScripts() {
     stdio: 'inherit',
     env: process.env,
   });
+
+  console.log('\n🌱 Seeding static Playwright E2E users...');
+  execSync('node scripts/seed-static-e2e-users.js', {
+    cwd: ROOT,
+    stdio: 'inherit',
+    env: process.env,
+  });
 }
 
 async function main() {
@@ -193,11 +200,13 @@ async function main() {
   console.log('Password (all seeded users): TestNewPassword123!');
   console.log('  Jurisdiction: *@jurisdiction-test.com');
   console.log('  India financial: *@in-fintech-test.com');
+  console.log('  Static E2E: see fixtures/test-data/static-e2e-users.json');
   console.log('\nExamples:');
   console.log('  tdc.lending-pool@in-fintech-test.com');
   console.log('  tsp.yotta@in-fintech-test.com');
   console.log('  tdp.hdfc@in-fintech-test.com');
   console.log('  tdc.us-east@jurisdiction-test.com');
+  console.log('  tdc.healthcare.2025-09-05t20-39-55@test.com');
 }
 
 main().catch((err) => {

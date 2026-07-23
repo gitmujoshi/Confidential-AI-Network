@@ -25,7 +25,7 @@ test.describe('CCRP Training Environment', () => {
 
   test.beforeEach(async ({ page }) => {
     await seedCcrpAuth(page);
-    await page.goto('/ccrp/training-environment');
+    await page.goto('/tsp/training-environment');
     await expect(page).not.toHaveURL(/.*\/login/);
   });
 

@@ -18,42 +18,47 @@ class ConfigLoader {
   constructor() {
     this.config = {};
     this.configPath = path.join(__dirname, '..', 'config.env');
+    this.secretsPath = path.join(__dirname, '..', 'secrets.env');
     this.load();
   }
 
   /**
-   * Load configuration from config.env file
+   * Parse KEY=VALUE lines from an env file into this.config.
+   * Later files / overrides win for the same key.
+   */
+  loadEnvFile(filePath, { required = false } = {}) {
+    if (!fs.existsSync(filePath)) {
+      if (required) {
+        throw new Error(`Configuration file not found: ${filePath}`);
+      }
+      return;
+    }
+
+    const configContent = fs.readFileSync(filePath, 'utf8');
+    for (const line of configContent.split('\n')) {
+      const trimmedLine = line.trim();
+      if (!trimmedLine || trimmedLine.startsWith('#')) {
+        continue;
+      }
+
+      const equalIndex = trimmedLine.indexOf('=');
+      if (equalIndex > 0) {
+        const key = trimmedLine.substring(0, equalIndex).trim();
+        const value = trimmedLine.substring(equalIndex + 1).trim();
+        const cleanValue = value.replace(/^["']|["']$/g, '');
+        this.config[key] = cleanValue;
+      }
+    }
+  }
+
+  /**
+   * Load configuration from config.env + secrets.env
    */
   load() {
     try {
-      // Check if config file exists
-      if (!fs.existsSync(this.configPath)) {
-        throw new Error(`Configuration file not found: ${this.configPath}`);
-      }
-
-      // Read and parse the config file
-      const configContent = fs.readFileSync(this.configPath, 'utf8');
-      const lines = configContent.split('\n');
-
-      for (const line of lines) {
-        const trimmedLine = line.trim();
-        
-        // Skip empty lines and comments
-        if (!trimmedLine || trimmedLine.startsWith('#')) {
-          continue;
-        }
-
-        // Parse key=value pairs
-        const equalIndex = trimmedLine.indexOf('=');
-        if (equalIndex > 0) {
-          const key = trimmedLine.substring(0, equalIndex).trim();
-          const value = trimmedLine.substring(equalIndex + 1).trim();
-          
-          // Remove quotes if present
-          const cleanValue = value.replace(/^["']|["']$/g, '');
-          this.config[key] = cleanValue;
-        }
-      }
+      // Non-secret defaults first, then secrets (passwords moved out of config.env)
+      this.loadEnvFile(this.configPath, { required: true });
+      this.loadEnvFile(this.secretsPath, { required: false });
 
       // Override with environment variables if they exist
       this.overrideWithEnvVars();
@@ -61,7 +66,8 @@ class ConfigLoader {
       // Validate required configurations
       this.validate();
 
-      console.log('✅ Configuration loaded successfully');
+      // Use stderr so scripts that parse stdout JSON (e.g. fix-auth) stay valid.
+      console.error('✅ Configuration loaded successfully');
     } catch (error) {
       console.error('❌ Failed to load configuration:', error.message);
       throw error;

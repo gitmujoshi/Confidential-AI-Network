@@ -773,12 +773,17 @@ router.post('/ricardian', authenticateToken, async (req, res) => {
 
     console.log(`✅ All datasets validated. Total TDPs: ${tdpIds.size}`);
 
-    // Get TSP user if provided
+    // Get TSP user if provided (accept numeric id, DEPA id, and legacy CCRP party type)
     let tspUser = null;
-    if (tspId) {
-      tspUser = await db.User.findOne({
-        where: { id: parseInt(tspId), partyType: 'TSP' }
-      });
+    if (tspId !== undefined && tspId !== null && tspId !== '') {
+      const { Op } = db.Sequelize;
+      const tspPartyFilter = { [Op.in]: ['TSP', 'CCRP'] };
+      const where =
+        typeof tspId === 'number' || (typeof tspId === 'string' && /^\d+$/.test(tspId))
+          ? { id: parseInt(tspId, 10), partyType: tspPartyFilter }
+          : { depaId: String(tspId), partyType: tspPartyFilter };
+
+      tspUser = await db.User.findOne({ where });
 
       if (!tspUser) {
         return res.status(404).json({ error: 'TSP not found' });

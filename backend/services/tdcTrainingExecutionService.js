@@ -243,28 +243,19 @@ class TdcTrainingExecutionService {
       return this.getJobPublic(jobId);
     }
 
-<<<<<<< HEAD
+    // Prefer local-docker for local development when no execution mode is configured.
+    const executionMode =
+      process.env.TRAINING_EXECUTION_MODE ||
+      (process.env.NODE_ENV && process.env.NODE_ENV !== 'production' ? 'local-docker' : '');
+
     // Native PyTorch on Apple Silicon (host venv — same train.py as Docker, MPS + Opacus DP on CPU).
-    if (process.env.TRAINING_EXECUTION_MODE === 'local-native') {
+    if (executionMode === 'local-native') {
       const { isAppleSiliconMac, runLocalNativeTraining } = require('./localNativeTrainingRunner');
       if (!isAppleSiliconMac()) {
         throw new Error(
           'TRAINING_EXECUTION_MODE=local-native requires Apple Silicon macOS (arm64). Use local-docker on Linux/CI.'
         );
       }
-
-=======
-    // Prefer local-docker for local development when no execution mode is configured.
-    // The legacy TrainingService path expects Sequelize associations that aren't present in this project
-    // (datasets/aiModels are stored on the Contract row as JSON). In production, deployments can set
-    // TRAINING_EXECUTION_MODE explicitly.
-    const executionMode =
-      process.env.TRAINING_EXECUTION_MODE ||
-      (process.env.NODE_ENV && process.env.NODE_ENV !== 'production' ? 'local-docker' : '');
-
-    // Local Docker execution mode (runs training in a separate container on the backend host).
-    if (executionMode === 'local-docker') {
->>>>>>> origin/feature/model-training-environment
       const jobId = `job-${contract.contractId}-${Date.now()}`;
       const containerSpec = buildContainerSpec(contract);
       let inputs = shapeInputsForLocalTrainerContainer(await expandContractTrainingInputs(contract));
@@ -308,7 +299,7 @@ class TdcTrainingExecutionService {
     }
 
     // Native MLX on Apple Silicon (host venv — uses GPU; no Docker).
-    if (process.env.TRAINING_EXECUTION_MODE === 'local-mlx') {
+    if (executionMode === 'local-mlx') {
       const { isAppleSiliconMac, runLocalMlxTraining } = require('./localMlxTrainingRunner');
       if (!isAppleSiliconMac()) {
         throw new Error(
@@ -369,7 +360,7 @@ class TdcTrainingExecutionService {
     }
 
     // Local Docker execution mode (runs training in a separate container on the backend host).
-    if (process.env.TRAINING_EXECUTION_MODE === 'local-docker') {
+    if (executionMode === 'local-docker') {
       const jobId = `job-${contract.contractId}-${Date.now()}`;
       const containerSpec = buildContainerSpec(contract);
       let inputs = shapeInputsForLocalTrainerContainer(await expandContractTrainingInputs(contract));

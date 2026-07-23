@@ -428,7 +428,7 @@ const FirstLoginWizard = () => {
   return (
     <Container maxWidth="md">
       <Box sx={{ py: 4 }}>
-        <Paper elevation={3} sx={{ overflow: 'hidden' }}>
+        <Paper elevation={0} variant="outlined" sx={{ overflow: 'hidden' }}>
           {/* Progress Stepper */}
           <Box sx={{ px: 3, pt: 3 }}>
             <Stepper activeStep={step} alternativeLabel>
