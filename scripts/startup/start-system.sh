@@ -134,6 +134,9 @@ fi
 echo ""
 echo -e "${BLUE}🚀 Step 4: Starting backend and frontend...${NC}"
 
+# Ensure log/pid directory exists (fresh clones may not have it)
+mkdir -p logs
+
 # Start backend
 echo "   Starting backend server..."
 cd backend
