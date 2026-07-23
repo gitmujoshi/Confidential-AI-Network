@@ -340,34 +340,29 @@ function ContractDetail() {
 
   const isCurrentUserLinkedTdp = (() => {
     if (!contract || !currentUser?.id) return false;
-    const uid = Number(currentUser.id);
-    if (Number(contract.tdpId) === uid || Number(contract.primaryTdpId) === uid) return true;
-    if (contract.tdp?.id != null && Number(contract.tdp.id) === uid) return true;
-    if (
-      contract.tdp?.email &&
-      currentUser.email &&
-      String(contract.tdp.email).toLowerCase() === String(currentUser.email).toLowerCase()
-    ) {
+    const uid = String(currentUser.id);
+    const email = currentUser.email ? String(currentUser.email).toLowerCase() : '';
+    if (contract.tdpId != null && String(contract.tdpId) === uid) return true;
+    if (contract.primaryTdpId != null && String(contract.primaryTdpId) === uid) return true;
+    if (contract.tdp?.id != null && String(contract.tdp.id) === uid) return true;
+    if (email && contract.tdp?.email && String(contract.tdp.email).toLowerCase() === email) {
       return true;
     }
     return displayDatasets.some((dataset) => {
       const tdpId = dataset.tdpId ?? dataset.tdp?.id;
-      if (tdpId != null && Number(tdpId) === uid) return true;
-      if (
-        dataset.tdp?.email &&
-        currentUser.email &&
-        String(dataset.tdp.email).toLowerCase() === String(currentUser.email).toLowerCase()
-      ) {
+      if (tdpId != null && String(tdpId) === uid) return true;
+      if (email && dataset.tdp?.email && String(dataset.tdp.email).toLowerCase() === email) {
         return true;
       }
       return false;
     });
   })();
 
+  const tdpPendingStatuses = ['PENDING_TDP_APPROVAL', 'PENDING_ALL_TDP_APPROVAL', 'PENDING_TDP'];
   const tdpCanSign =
-    isTDP &&
+    Boolean(isTDP) &&
     isCurrentUserLinkedTdp &&
-    ['PENDING_TDP_APPROVAL', 'PENDING_ALL_TDP_APPROVAL', 'PENDING_TDP'].includes(contract?.status) &&
+    tdpPendingStatuses.includes(contract?.status) &&
     !contract?.tdpSigned;
 
   // Debug: Log contract data to see what Ricardian fields are present
@@ -1019,7 +1014,7 @@ function ContractDetail() {
                               <Box display="flex" gap={1}>
                                 {/* TDP Signing */}
                                 {isTDP && (tdpId === currentUser.id) && 
-                                 !dataset.tdpSigned && ['PENDING_TDP_APPROVAL', 'PENDING_ALL_TDP_APPROVAL', 'PENDING_TDP'].includes(contract.status) && (
+                                 !dataset.tdpSigned && tdpPendingStatuses.includes(contract.status) && (
                                   <Button
                                     variant="outlined"
                                     size="small"
@@ -1322,8 +1317,8 @@ function ContractDetail() {
                 Actions
               </Typography>
               <Box display="flex" gap={2} flexWrap="wrap">
-                {/* TDP Actions */}
-                {tdpCanSign && (
+                {/* TDP Actions — keep visible whenever this TDP still needs to sign */}
+                {tdpCanSign ? (
                   <Button
                     variant="contained"
                     color="primary"
@@ -1333,7 +1328,7 @@ function ContractDetail() {
                   >
                     {signing ? 'Signing...' : 'Sign Contract as TDP'}
                   </Button>
-                )}
+                ) : null}
                 
                 {/* TDC Actions */}
                 {isTDC && (
@@ -2257,7 +2252,7 @@ function ContractDetail() {
                                         <Box display="flex" gap={1}>
                                           {/* TDP Signing Action */}
                                           {isTDP && currentUser.id === dataset.tdpId && 
-                                           !tdpSignature.signed && ['PENDING_TDP_APPROVAL', 'PENDING_ALL_TDP_APPROVAL', 'PENDING_TDP'].includes(contract.status) && (
+                                           !tdpSignature.signed && tdpPendingStatuses.includes(contract.status) && (
                                             <Button
                                               variant="outlined"
                                               size="small"
@@ -2460,7 +2455,7 @@ function ContractDetail() {
                                       <Box display="flex" gap={1} flexWrap="wrap">
                                         {/* TDP Signing Action */}
                                         {isTDP && currentUser.id === dataset.tdpId && 
-                                         !tdpSignature.signed && ['PENDING_TDP_APPROVAL', 'PENDING_ALL_TDP_APPROVAL', 'PENDING_TDP'].includes(contract.status) && (
+                                         !tdpSignature.signed && tdpPendingStatuses.includes(contract.status) && (
                                           <Button
                                             variant="outlined"
                                             size="small"

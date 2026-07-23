@@ -54,7 +54,8 @@ Pending items show status **PENDING_TDP_APPROVAL**. Use the pen / **Sign Contrac
 ### 6. Sign contract as TDP
 
 On **Contract Details**, review terms, datasets, and DEPA IDs.
-Click **Sign Contract as TDP** to approve use of your data. Status moves to **PENDING_TSP_APPROVAL**.
+Use **Sign Contract as TDP** in the Actions panel (or **Sign** next to your dataset row).
+After you sign, status moves to **PENDING_TSP_APPROVAL** for the clean-room provider.
 
 ![Sign contract as TDP](screenshots/tdp/06-sign-contract.png)
 

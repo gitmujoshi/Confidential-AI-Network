@@ -281,7 +281,8 @@ test.describe('Role user guides (screenshot tours)', () => {
         title: 'Sign contract as TDP',
         body: [
           'On **Contract Details**, review terms, datasets, and DEPA IDs.',
-          'Click **Sign Contract as TDP** to approve use of your data. Status moves to **PENDING_TSP_APPROVAL**.',
+          'Use **Sign Contract as TDP** in the Actions panel (or **Sign** next to your dataset row).',
+          'After you sign, status moves to **PENDING_TSP_APPROVAL** for the clean-room provider.',
         ].join('\n'),
         ...(await captureShot(page, roleKey, '06-sign-contract.png')),
       });
@@ -289,7 +290,8 @@ test.describe('Role user guides (screenshot tours)', () => {
       steps.push({
         title: 'Contract detail (signing)',
         body: [
-          'Open a contract in **PENDING_TDP_APPROVAL** to see **Sign Contract as TDP** in the Actions panel.',
+          'Open a contract in **PENDING_TDP_APPROVAL** to see **Sign Contract as TDP** in Actions,',
+          'or **Sign** on your dataset row under Multi-TDP status.',
           'If no pending contracts exist yet, ask a TDC to create one that references your dataset.',
         ].join('\n'),
         ...(await captureShot(page, roleKey, '06-sign-contract.png')),
@@ -397,7 +399,7 @@ test.describe('Role user guides (screenshot tours)', () => {
     });
 
     await gotoAndWait(page, '/admin/users', async (p) => {
-      await waitForHeading(p, /Users/i);
+      await expect(p.getByRole('main').getByText(/^Users$/i).first()).toBeVisible({ timeout: 120000 });
     });
     steps.push({
       title: 'Users',
@@ -406,7 +408,7 @@ test.describe('Role user guides (screenshot tours)', () => {
     });
 
     await gotoAndWait(page, '/contracts', async (p) => {
-      await waitForHeading(p, /Contracts/i);
+      await expect(p.getByRole('main').getByText(/Contracts/i).first()).toBeVisible({ timeout: 120000 });
     });
     steps.push({
       title: 'Contracts overview',
@@ -415,7 +417,7 @@ test.describe('Role user guides (screenshot tours)', () => {
     });
 
     await gotoAndWait(page, '/datasets', async (p) => {
-      await waitForHeading(p, /Datasets/i);
+      await expect(p.getByRole('main').getByText(/Datasets/i).first()).toBeVisible({ timeout: 120000 });
     });
     steps.push({
       title: 'Datasets overview',
