@@ -62,17 +62,34 @@ fi
 echo ""
 echo -e "${BLUE}🔐 Step 1: Starting databases and Keycloak...${NC}"
 
-# Start application database
+# Start application database (reuse existing postgres-app-dev if present)
 echo "   Starting application database..."
-run_compose "docker-compose.dev.yml" up -d postgres-app
+if ! ensure_compose_service "docker-compose.dev.yml" "postgres-app" "postgres-app-dev"; then
+    echo -e "${RED}❌ Application database failed to start${NC}"
+    exit 1
+fi
 
-# Start Keycloak database and Keycloak
+# Start Keycloak database and Keycloak (reuse existing named containers)
 if [[ "$KEYCLOAK_URL" == https://* ]]; then
     echo "   Starting Keycloak with HTTPS configuration..."
-    run_compose "docker-compose.keycloak-https.yml" up -d
+    if ! ensure_compose_service "docker-compose.keycloak-https.yml" "postgres-keycloak" "postgres-keycloak"; then
+        echo -e "${RED}❌ Keycloak database failed to start${NC}"
+        exit 1
+    fi
+    if ! ensure_compose_service "docker-compose.keycloak-https.yml" "keycloak" "keycloak-cms"; then
+        echo -e "${RED}❌ Keycloak failed to start${NC}"
+        exit 1
+    fi
 else
     echo "   Starting Keycloak with HTTP configuration..."
-    run_compose "docker-compose.keycloak-dev.yml" up -d
+    if ! ensure_compose_service "docker-compose.keycloak-dev.yml" "postgres" "postgres-cms"; then
+        echo -e "${RED}❌ Keycloak database failed to start${NC}"
+        exit 1
+    fi
+    if ! ensure_compose_service "docker-compose.keycloak-dev.yml" "keycloak" "keycloak-cms"; then
+        echo -e "${RED}❌ Keycloak failed to start${NC}"
+        exit 1
+    fi
 fi
 
 # Wait for Keycloak to be ready
