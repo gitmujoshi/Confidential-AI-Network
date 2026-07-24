@@ -24,6 +24,7 @@ This guide helps you use the Contract Management System effectively. The system 
 - **Documentation home**: [README.md](README.md)
 - **Per-role UI guides (with screenshots)**: [guides/role-user-guides/README.md](guides/role-user-guides/README.md)
 - **Screenshot E2E lifecycle (onboard → sign → train)**: [guides/lifecycle-user-guide/LIFECYCLE_USER_GUIDE.md](guides/lifecycle-user-guide/LIFECYCLE_USER_GUIDE.md)
+- **Screenshot multi-model contracts (tabular / NLP+DP / vision)**: [guides/multi-model-user-guide/MULTI_MODEL_USER_GUIDE.md](guides/multi-model-user-guide/MULTI_MODEL_USER_GUIDE.md)
 - **Full onboarding + E2E lifecycle (canonical text)**: [guides/PARTICIPANT_ONBOARDING_AND_E2E_LIFECYCLE.md](guides/PARTICIPANT_ONBOARDING_AND_E2E_LIFECYCLE.md)
 - **Training workflows**: [training/USER_TRAINING_GUIDE.md](training/USER_TRAINING_GUIDE.md)
 - **Contract signing**: [features/contract-signing/CONTRACT_SIGNING_USER_GUIDE.md](features/contract-signing/CONTRACT_SIGNING_USER_GUIDE.md)

@@ -6,7 +6,7 @@
  *   - Static E2E users (fixtures/test-data/static-e2e-users.json)
  *   - Jurisdiction seed users (*@jurisdiction-test.com)
  *   - India financial seed users (*@in-fintech-test.com)
- *   - Seed datasets (e2e-dataset-1, e2e-nlp-ag-news, in-fin-*)
+ *   - Seed datasets (e2e-dataset-1, e2e-nlp-ag-news, e2e-vision-cifar, in-fin-*)
  *   - Seed AI models (playwright / india-financial-api)
  *   - Contract templates
  *   - Cloud credentials owned by kept users
@@ -51,7 +51,7 @@ const STATIC_USERS = JSON.parse(
   fs.readFileSync(path.join(ROOT, 'fixtures/test-data/static-e2e-users.json'), 'utf8')
 ).users.map((u) => String(u.email).toLowerCase());
 
-const KEEP_DATASET_IDS = new Set(['e2e-dataset-1', 'e2e-nlp-ag-news']);
+const KEEP_DATASET_IDS = new Set(['e2e-dataset-1', 'e2e-nlp-ag-news', 'e2e-vision-cifar']);
 
 function isSeedUserEmail(email) {
   const e = String(email || '').toLowerCase();
@@ -169,7 +169,9 @@ async function cleanupDatabase() {
            'e2e-model-tabular-logreg',
            'e2e-model-1',
            'MODEL-E2E-001',
-           'e2e-model-nlp-distilbert'
+           'e2e-model-nlp-distilbert',
+           'e2e-model-rnn-lstm',
+           'e2e-model-gan-demo'
          )
        )
     RETURNING model_id

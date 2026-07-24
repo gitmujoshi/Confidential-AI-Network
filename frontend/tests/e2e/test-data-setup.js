@@ -225,6 +225,38 @@ class E2ETestDataManager {
       },
     });
 
+    // Catalog-only types for multi-model guide (create/sign coverage; no dedicated local trainer yet).
+    await ensureAiModelExists(backendURL, adminToken, {
+      modelId: 'e2e-model-rnn-lstm',
+      name: 'E2E LSTM (RNN catalog)',
+      description: 'Seeded RNN catalog model for multi-model E2E signing coverage',
+      type: 'rnn',
+      architecture: 'lstm',
+      parameters: 'N/A',
+      framework: 'PyTorch',
+      privacyTechnique: 'none',
+      validationMetrics: ['accuracy', 'loss'],
+      maxEpochs: 1,
+      batchSize: 32,
+      learningRate: 0.001,
+      metadata: { seededBy: 'playwright', modalityHint: 'tabular', catalogOnly: true },
+    });
+    await ensureAiModelExists(backendURL, adminToken, {
+      modelId: 'e2e-model-gan-demo',
+      name: 'E2E DCGAN (GAN catalog)',
+      description: 'Seeded GAN catalog model for multi-model E2E signing coverage',
+      type: 'gan',
+      architecture: 'dcgan',
+      parameters: 'N/A',
+      framework: 'PyTorch',
+      privacyTechnique: 'none',
+      validationMetrics: ['accuracy', 'loss'],
+      maxEpochs: 1,
+      batchSize: 32,
+      learningRate: 0.0002,
+      metadata: { seededBy: 'playwright', modalityHint: 'vision', catalogOnly: true },
+    });
+
     await axios.post(`${backendURL}/api/contract-templates/seed`, {}, {
       headers: { Authorization: `Bearer ${adminToken}` },
     }).catch((err) => {
@@ -287,6 +319,48 @@ class E2ETestDataManager {
       }
     }
     console.log('✅ E2E NLP DP fixtures (e2e-nlp-ag-news, e2e-model-nlp-distilbert)');
+
+    // Vision dataset for CNN / CIFAR local-docker multi-model track
+    const visionDatasetId = 'e2e-vision-cifar';
+    let visionExists = false;
+    try {
+      await axios.get(`${backendURL}/api/datasets/${visionDatasetId}`);
+      visionExists = true;
+    } catch (err) {
+      if (err.response?.status !== 404) throw err;
+    }
+    const visionDatasetBody = {
+      datasetId: visionDatasetId,
+      name: 'E2E CIFAR Vision (CNN)',
+      description: 'Seeded vision dataset for ResNet/CIFAR local-docker multi-model E2E',
+      category: 'Computer Vision',
+      size: 50,
+      recordCount: 50000,
+      price: 100,
+      license: 'MIT',
+      tags: ['e2e', 'vision', 'cifar', 'cnn'],
+      metadata: {
+        seededBy: 'playwright',
+        modality: 'vision',
+        demoDataset: 'cifar10-small',
+      },
+      isPublic: true,
+      confidentialComputingRequired: false,
+      ownerId: tdpUser.id,
+    };
+    if (!visionExists) {
+      await axios.post(`${backendURL}/api/datasets`, visionDatasetBody);
+    } else {
+      try {
+        await axios.put(`${backendURL}/api/datasets/${encodeURIComponent(visionDatasetId)}`, {
+          ...visionDatasetBody,
+          isActive: true,
+        });
+      } catch (err) {
+        console.warn('⚠️ E2E vision dataset reconcile failed:', err.response?.status || err.message);
+      }
+    }
+    console.log('✅ E2E vision fixture (e2e-vision-cifar, MODEL-E2E-001)');
 
     const datasetId = 'e2e-dataset-1';
     let datasetExists = false;

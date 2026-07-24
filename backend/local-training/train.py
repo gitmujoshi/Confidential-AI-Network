@@ -555,27 +555,39 @@ def train_vision_cifar10_small(out_dir: Path, epochs: int, fast: bool, architect
     root = Path("/tmp/datasets")
     root.mkdir(parents=True, exist_ok=True)
 
-    dataset_name = "cifar10"
-    try:
-        train_ds = torchvision.datasets.CIFAR10(root=str(root), train=True, download=True, transform=tfm)
-        test_ds = torchvision.datasets.CIFAR10(root=str(root), train=False, download=True, transform=tfm)
-    except Exception:
+    # fastDevRun: synthetic images only — skip ~170MB CIFAR-10 download (E2E / demos).
+    if fast:
         dataset_name = "fakedata"
         train_ds = torchvision.datasets.FakeData(
-            size=2000, image_size=(3, 32, 32), num_classes=10, transform=tfm
+            size=512, image_size=(3, 32, 32), num_classes=10, transform=tfm
         )
         test_ds = torchvision.datasets.FakeData(
-            size=500, image_size=(3, 32, 32), num_classes=10, transform=tfm
+            size=256, image_size=(3, 32, 32), num_classes=10, transform=tfm
         )
-
-    if fast:
-        train_ds = Subset(train_ds, list(range(512)))
-        test_ds = Subset(test_ds, list(range(256)))
+    else:
+        dataset_name = "cifar10"
+        try:
+            train_ds = torchvision.datasets.CIFAR10(root=str(root), train=True, download=True, transform=tfm)
+            test_ds = torchvision.datasets.CIFAR10(root=str(root), train=False, download=True, transform=tfm)
+        except Exception:
+            dataset_name = "fakedata"
+            train_ds = torchvision.datasets.FakeData(
+                size=2000, image_size=(3, 32, 32), num_classes=10, transform=tfm
+            )
+            test_ds = torchvision.datasets.FakeData(
+                size=500, image_size=(3, 32, 32), num_classes=10, transform=tfm
+            )
+            train_ds = Subset(train_ds, list(range(min(512, len(train_ds)))))
+            test_ds = Subset(test_ds, list(range(min(256, len(test_ds)))))
 
     train_loader = DataLoader(train_ds, batch_size=64, shuffle=True)
     test_loader = DataLoader(test_ds, batch_size=128, shuffle=False)
 
     arch = architecture or "tinycnn"
+    # Avoid downloading torchvision ResNet weights during fastDevRun E2E.
+    if fast and "resnet" in arch.lower():
+        arch = "tinycnn"
+
     if "resnet" in arch.lower():
         return _run_vision_training(
             out_dir=out_dir,
@@ -598,7 +610,7 @@ def train_vision_cifar10_small(out_dir: Path, epochs: int, fast: bool, architect
         epochs=epochs,
         fast=fast,
         dataset_label=dataset_name,
-        source="demo_cifar10",
+        source="demo_cifar10" if dataset_name == "cifar10" else "demo_fakedata",
     )
 
 

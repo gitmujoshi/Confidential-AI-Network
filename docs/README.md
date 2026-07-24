@@ -21,6 +21,7 @@
 |------|-----|
 | **Full party lifecycle** (onboard → sign → train → cleanup) | [guides/PARTICIPANT_ONBOARDING_AND_E2E_LIFECYCLE.md](guides/PARTICIPANT_ONBOARDING_AND_E2E_LIFECYCLE.md) |
 | **Screenshot E2E lifecycle** (onboard → sign → train → provenance) | [guides/lifecycle-user-guide/LIFECYCLE_USER_GUIDE.md](guides/lifecycle-user-guide/LIFECYCLE_USER_GUIDE.md) |
+| **Screenshot multi-model training** (one contract per model type) | [guides/multi-model-user-guide/MULTI_MODEL_USER_GUIDE.md](guides/multi-model-user-guide/MULTI_MODEL_USER_GUIDE.md) |
 | Use the product UI (TDP / TDC / TSP) | [USER_GUIDE.md](USER_GUIDE.md) |
 | Sign contracts | [features/contract-signing/CONTRACT_SIGNING_USER_GUIDE.md](features/contract-signing/CONTRACT_SIGNING_USER_GUIDE.md) |
 | Fix auth / Keycloak | [getting-started/TROUBLESHOOTING.md](getting-started/TROUBLESHOOTING.md) · `./fix-auth.sh` |

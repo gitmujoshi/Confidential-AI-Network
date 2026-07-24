@@ -281,7 +281,9 @@ module.exports = {
   getNlpDpSkipReason,
   assertLocalDockerMode,
   buildNlpDpContractPayload,
+  signContractAsParties,
   createSignedNlpDpContractAndTrain,
   waitForJobToFinish,
   assertPrivacyMetrics,
+  resolveNumericModelId,
 };

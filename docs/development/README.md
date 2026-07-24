@@ -178,6 +178,9 @@ cd frontend && npm run test:e2e:user-guides
 cd frontend && npm run test:e2e:lifecycle-guide
 # → docs/guides/lifecycle-user-guide/ (onboard → sign → train → provenance/logs)
 
+cd frontend && npm run test:e2e:multi-model-guide
+# → docs/guides/multi-model-user-guide/ (tabular / NLP+DP / vision + catalog RNN/GAN)
+
 # Run tests in watch mode
 npm run test:watch
 
