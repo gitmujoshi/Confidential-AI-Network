@@ -345,6 +345,29 @@ const realApiService = {
     );
     return response.data;
   },
+  listTdcInferenceDeployments: async () => {
+    const response = await api.get('/api/tdc/inference/deployments');
+    return response.data;
+  },
+  deployTdcInferenceModel: async (modelId) => {
+    const response = await api.post(
+      `/api/tdc/inference/models/${encodeURIComponent(modelId)}/deploy`
+    );
+    return response.data;
+  },
+  undeployTdcInferenceModel: async (modelId) => {
+    const response = await api.post(
+      `/api/tdc/inference/models/${encodeURIComponent(modelId)}/undeploy`
+    );
+    return response.data;
+  },
+  predictTdcInference: async (modelId, input) => {
+    const response = await api.post(
+      `/api/tdc/inference/models/${encodeURIComponent(modelId)}/predict`,
+      { input }
+    );
+    return response.data;
+  },
   /** TDC: JSON bundle for audits (same host path as provenance-report.json next to model.bin when local-docker). */
   getTdcTrainingProvenanceReport: async (jobId) => {
     const response = await api.get(

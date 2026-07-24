@@ -40,6 +40,7 @@ import InfrastructureProvisioning from './pages/InfrastructureProvisioning';
 import TrainingEnvironment from './pages/TrainingEnvironment';
 import TDCModelUpload from './pages/TDCModelUpload';
 import TDCTraining from './pages/TDCTraining';
+import TDCInference from './pages/TDCInference';
 import EnvironmentMarketplace from './pages/EnvironmentMarketplace';
 import ScittCcfDashboard from './components/ScittCcfDashboard';
 import CANJobs from './pages/CANJobs';
@@ -539,6 +540,7 @@ function AppRoutes() {
               <Route path="/contracts" element={<Contracts />} />
               <Route path="/contracts/:contractId" element={<ContractDetail />} />
               <Route path="/training" element={<TDCTraining />} />
+              <Route path="/inference" element={<TDCInference />} />
               <Route path="/payments" element={<div>TDC Payments</div>} />
             </Routes>
           </Layout>

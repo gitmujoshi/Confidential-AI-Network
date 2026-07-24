@@ -46,6 +46,7 @@ export default function TDCTraining() {
   const [jobLogs, setJobLogs] = useState('');
   const [logsLoading, setLogsLoading] = useState(false);
   const [registering, setRegistering] = useState(false);
+  const [deploying, setDeploying] = useState(false);
   const [jsonViewerOpen, setJsonViewerOpen] = useState(false);
   const [jsonViewerTitle, setJsonViewerTitle] = useState('');
   const [jsonViewerFilename, setJsonViewerFilename] = useState('');
@@ -289,6 +290,21 @@ export default function TDCTraining() {
       toast.error(msg);
     } finally {
       setRegistering(false);
+    }
+  };
+
+  const handleDeployInference = async () => {
+    if (!liveJob?.registeredModelId) return;
+    setDeploying(true);
+    try {
+      const data = await apiService.deployTdcInferenceModel(liveJob.registeredModelId);
+      toast.success(`Deployed ${data.modelId} for inference`);
+      const refreshed = await apiService.getTdcTrainingJob(liveJob.jobId);
+      setLiveJob(refreshed.job);
+    } catch (e) {
+      toast.error(e.response?.data?.error || e.message || 'Deploy failed');
+    } finally {
+      setDeploying(false);
     }
   };
 
@@ -584,6 +600,31 @@ export default function TDCTraining() {
                             Registered as AIModel <code>{liveJob.registeredModelId}</code> — usable in new contracts and
                             inference flows.
                           </Alert>
+                        )}
+                        {liveJob.registeredModelId && liveJob.inferenceDeployment?.status !== 'DEPLOYED' && (
+                          <Button
+                            variant="contained"
+                            color="secondary"
+                            sx={{ mt: 2 }}
+                            disabled={deploying}
+                            onClick={handleDeployInference}
+                          >
+                            {deploying ? 'Deploying…' : 'Deploy for inference'}
+                          </Button>
+                        )}
+                        {liveJob.inferenceDeployment?.status === 'DEPLOYED' && (
+                          <Stack direction="row" spacing={1} sx={{ mt: 2 }} alignItems="center">
+                            <Alert severity="info" sx={{ flex: 1 }}>
+                              Inference deployed ({liveJob.inferenceDeployment.taskType}). Open the app to try predictions.
+                            </Alert>
+                            <Button
+                              component={Link}
+                              to={`/tdc/inference?modelId=${encodeURIComponent(liveJob.registeredModelId)}`}
+                              variant="outlined"
+                            >
+                              Open inference app
+                            </Button>
+                          </Stack>
                         )}
                       </AccordionDetails>
                     </Accordion>

@@ -29,7 +29,7 @@ Our training program is designed to provide:
 - **Module**: `TDC_TRAINING_MODULE.md`
 - **Duration**: 2-3 hours
 - **Focus**: Data consumption, training job management, model access
-- **Runtime (API & UI — current implementation)**: **[TDC_TRAINING_RUNTIME.md](./TDC_TRAINING_RUNTIME.md)** — start training from a signed contract, simulation vs real run, register trained model as `AIModel`, CCRP training routes, **privacy metrics panel** (`results.privacyMetrics` from Opacus DP-SGD on NLP local-docker jobs).
+- **Runtime (API & UI — current implementation)**: **[TDC_TRAINING_RUNTIME.md](./TDC_TRAINING_RUNTIME.md)** — start training from a signed contract, simulation vs real run, register trained model as `AIModel`, **deploy for local inference** + Inference app (`/tdc/inference`), CCRP training routes, **privacy metrics panel** (`results.privacyMetrics` from Opacus DP-SGD on NLP local-docker jobs).
 - **Local stakeholder demo**: **[LOCAL_DEMO_RUNBOOK.md](./LOCAL_DEMO_RUNBOOK.md)** — tabular, vision, and optional **NLP/Hugging Face** track.
 - **Apple Silicon dev**: **[MLX_MAC_DEV.md](./MLX_MAC_DEV.md)** — `local-native` (PyTorch MPS + HF/Opacus) vs `local-mlx` vs Docker.
 - **Key Topics**:

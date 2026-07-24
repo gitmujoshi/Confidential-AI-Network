@@ -58,8 +58,8 @@ npm run test:e2e:headed
 - **Path**: `tests/e2e/*.spec.js` (same as `npm run test:e2e`)
 
 ### 5. Backend API smoke (`api`)
-- **Files**: `can-jcs-api.spec.js`, `huggingface-api.spec.js`, `nlp-dp-training-api.spec.js` (opt-in skip unless `E2E_WAIT_FOR_LOCAL_TRAINING=true`)
-- **Run**: `npm run test:e2e:api` (Chromium, serial — mostly backend-only; NLP DP spec skips without local-docker env)
+- **Files**: `can-jcs-api.spec.js`, `huggingface-api.spec.js`, `nlp-dp-training-api.spec.js`, `inference-deploy-api.spec.js` (opt-in skip unless `E2E_WAIT_FOR_LOCAL_TRAINING=true`)
+- **Run**: `npm run test:e2e:api` (Chromium, serial — mostly backend-only; NLP DP + inference specs skip without local-docker env)
 - **HF note**: Enable `HUGGINGFACE_INTEGRATION_ENABLED=true` on the backend (`config.test.env` or `config.env`) for full HF validate tests; disabled backend still passes gating tests.
 
 ### 6. NLP + differential privacy (opt-in)
@@ -72,7 +72,17 @@ npm run test:e2e:headed
 - **API**: asserts `results.privacyMetrics` (ε, δ, `dp-sgd`) on completed job
 - **UI**: `/tdc/training` → **Watch** job → **Privacy metrics** panel (spent ε, target ε, δ)
 
-### 7. Screenshot guides
+### 7. Inference deploy + predict (opt-in)
+- **Files**: `inference-deploy-api.spec.js`, `inference-deploy-ui.spec.js`
+- **Helper**: `helpers/inference-e2e.js` — tabular local train → register → deploy → predict
+- **Run** (same local-docker prerequisites; trainer image must include `infer.py`):
+  ```bash
+  E2E_WAIT_FOR_LOCAL_TRAINING=true BACKEND_URL=http://127.0.0.1:5001 npm run test:e2e:inference
+  ```
+- **API**: register → deploy → predict (`setosa`) → list deployments → undeploy; reject predict when not deployed
+- **UI**: Training **Deploy for inference** → **Open inference app** → **Run prediction**
+
+### 8. Screenshot guides
 - **Lifecycle**: `npm run test:e2e:lifecycle-guide` → `docs/guides/lifecycle-user-guide/`
 - **Multi-model** (one contract per catalog type; train tabular / text+DP / vision):  
   `npm run test:e2e:multi-model-guide` → `docs/guides/multi-model-user-guide/`

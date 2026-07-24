@@ -54,6 +54,7 @@ const platformEncryptionRouter = require('./routes/platform-encryption');
 const constraintsRouter = require('./routes/constraints');
 const depaRouter = require('./routes/depa');
 const tdcTrainingRouter = require('./routes/tdc-training');
+const tdcInferenceRouter = require('./routes/tdc-inference');
 const canJcsRouter = require('./routes/can-jcs');
 const canCcrRouter = require('./routes/can-ccr');
 const canProvenanceRouter = require('./routes/can-provenance');
@@ -202,6 +203,7 @@ app.use('/api/blockchain', blockchainRouter);
 app.use('/api/constraints', constraintsRouter);
 app.use('/api/depa', depaRouter);
 app.use('/api/tdc/training', tdcTrainingRouter);
+app.use('/api/tdc/inference', tdcInferenceRouter);
 // Confidential AI Network (CAN) parallel path (MVP)
 app.use('/api/can/jcs', canJcsRouter);
 app.use('/api/can/ccr', canCcrRouter);

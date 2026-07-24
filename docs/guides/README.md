@@ -3,7 +3,7 @@
 | Guide | Purpose |
 |-------|---------|
 | [PARTICIPANT_ONBOARDING_AND_E2E_LIFECYCLE.md](PARTICIPANT_ONBOARDING_AND_E2E_LIFECYCLE.md) | **Canonical** full party lifecycle (text) |
-| [lifecycle-user-guide/LIFECYCLE_USER_GUIDE.md](lifecycle-user-guide/LIFECYCLE_USER_GUIDE.md) | **Screenshot E2E lifecycle** (onboard → sign → train → provenance/logs) |
+| [lifecycle-user-guide/LIFECYCLE_USER_GUIDE.md](lifecycle-user-guide/LIFECYCLE_USER_GUIDE.md) | **Screenshot E2E lifecycle** (onboard → sign → train → provenance → register/deploy/predict) |
 | [multi-model-user-guide/MULTI_MODEL_USER_GUIDE.md](multi-model-user-guide/MULTI_MODEL_USER_GUIDE.md) | **Screenshot multi-model contracts** (tabular / NLP+DP / vision + catalog RNN/GAN) |
 | [role-user-guides/README.md](role-user-guides/README.md) | **Per-role UI guides with screenshots** (Playwright-generated) |
 | [DEPA_INTEGRATION_GUIDE.md](DEPA_INTEGRATION_GUIDE.md) | DEPA alignment |

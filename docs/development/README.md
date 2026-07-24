@@ -181,6 +181,9 @@ cd frontend && npm run test:e2e:lifecycle-guide
 cd frontend && npm run test:e2e:multi-model-guide
 # → docs/guides/multi-model-user-guide/ (tabular / NLP+DP / vision + catalog RNN/GAN)
 
+# Opt-in local inference (register → deploy → predict)
+cd frontend && E2E_WAIT_FOR_LOCAL_TRAINING=true BACKEND_URL=http://127.0.0.1:5001 npm run test:e2e:inference
+
 # Run tests in watch mode
 npm run test:watch
 

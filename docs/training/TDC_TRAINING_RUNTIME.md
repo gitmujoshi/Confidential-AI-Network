@@ -46,11 +46,35 @@ All routes require **Bearer** token and **TDC** role.
 | `GET` | `/jobs/:jobId` | Job detail (container spec, params, results, `registeredModelId`). |
 | `POST` | `/jobs/:jobId/register-model` | After **COMPLETED**, create an **`ai_models`** row from job results (optional body: `name`, `description`, `modelId`, `metadata`). |
 
+## Inference API (`/api/tdc/inference`)
+
+Local MVP: deploy a registered training artifact and run predictions via `infer.py` (same Docker image as training, or host Python when `INFERENCE_EXECUTION_MODE=host`).
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `GET` | `/deployments` | List models the TDC has deployed for inference. |
+| `POST` | `/models/:modelId/deploy` | Mark registered model as **DEPLOYED** (requires local `model.bin` from the training run). |
+| `POST` | `/models/:modelId/undeploy` | Mark undeployed. |
+| `POST` | `/models/:modelId/predict` | Body `{ "input": { ... } }` — tabular `features`, text `text`, vision `{ "demo": true }` or `imageBase64`. |
+
+**UI:** `/tdc/inference` (sidebar **Inference**). Training page shows **Deploy for inference** after register, then **Open inference app**.
+
+### E2E (opt-in)
+
+```bash
+# Backend + frontend up; local-docker trainer image includes infer.py
+cd frontend
+E2E_WAIT_FOR_LOCAL_TRAINING=true BACKEND_URL=http://127.0.0.1:5001 npm run test:e2e:inference
+```
+
+Specs: `inference-deploy-api.spec.js`, `inference-deploy-ui.spec.js` (see `frontend/tests/e2e/README.md`).
+
 ## TDC UI
 
 - **Route:** `/tdc/training` (TDC sidebar: **Training**).
 - Shows signed contracts, **Start training**, job list, live job detail (container spec, training params, results).
 - **Register trained model for inference** appears when the job is **COMPLETED** and not yet registered.
+- **Deploy for inference** appears after registration; opens the **Inference app** (`/tdc/inference`) for try-it predictions.
 
 ## CCRP training API (`/api/ccrp/training/...`)
 

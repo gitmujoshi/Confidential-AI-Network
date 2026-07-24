@@ -7,7 +7,9 @@ The main E2E harness lives under **`frontend/tests/e2e/`** (Playwright). See **[
 | Command | Scope |
 |---------|--------|
 | `npm run test:e2e:chromium` | Core UI flows (auth, contracts, dashboard, training) |
-| `npm run test:e2e:api` | Backend API only: `can-jcs-api.spec.js`, `huggingface-api.spec.js` |
+| `npm run test:e2e:api` | Backend API: CAN/JCS, Hugging Face, NLP DP (opt-in), inference deploy (opt-in) |
+| `npm run test:e2e:nlp-dp` | Opt-in NLP + Opacus DP-SGD (`E2E_WAIT_FOR_LOCAL_TRAINING=true`) |
+| `npm run test:e2e:inference` | Opt-in register → deploy → predict (`E2E_WAIT_FOR_LOCAL_TRAINING=true`) |
 | `npm run test:e2e:physical` | Opt-in real Docker training (`E2E_PHYSICAL_TRAINING=true`) |
 
 **Prerequisites:** backend at `BACKEND_URL` / port 5001; for HF validate tests set `HUGGINGFACE_INTEGRATION_ENABLED=true` on the backend.

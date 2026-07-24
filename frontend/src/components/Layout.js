@@ -28,6 +28,7 @@ import {
   Logout,
   Security,
   Psychology,
+  Biotech,
   Business,
   Add,
   CloudQueue,
@@ -86,6 +87,7 @@ const Layout = ({ children }) => {
       ...(isTDC
         ? [
             { text: 'Training', icon: <Psychology fontSize="small" />, path: '/tdc/training' },
+            { text: 'Inference', icon: <Biotech fontSize="small" />, path: '/tdc/inference' },
             { text: 'CAN Jobs', icon: <Security fontSize="small" />, path: '/can/jobs' },
           ]
         : []),

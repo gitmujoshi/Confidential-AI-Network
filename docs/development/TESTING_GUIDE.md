@@ -967,7 +967,7 @@ These are the actively maintained suites beyond legacy examples in this guide.
 | **Hugging Face (dev)** | `huggingface-integration.test.js`, `huggingface-routes.test.js`, `local-docker-training-runner.test.js`, `contract-training-inputs.service.test.js` | `huggingface.integration.test.js` | `huggingface-api.spec.js` |
 | **CAN JCS** | `can-*.test.js` | `can-jcs.integration.test.js` | `can-jcs-api.spec.js` |
 | **SIEM** | `siem-integration.test.js` | — | — |
-| **TDC training** | `tdc-training-helpers.test.js`, `contract-training-inputs.service.test.js` | — | `tdc-training.spec.js`, `nlp-dp-training-api.spec.js` (opt-in), `nlp-dp-training-ui.spec.js` (opt-in) |
+| **TDC training** | `tdc-training-helpers.test.js`, `contract-training-inputs.service.test.js` | — | `tdc-training.spec.js`, `nlp-dp-training-api.spec.js` (opt-in), `nlp-dp-training-ui.spec.js` (opt-in), `inference-deploy-api.spec.js` (opt-in), `inference-deploy-ui.spec.js` (opt-in) |
 
 ```bash
 # Backend unit (mocks)
@@ -990,6 +990,13 @@ cd frontend && npm run test:e2e:api
 **Physical Docker training (opt-in):** `E2E_PHYSICAL_TRAINING=true npm run test:e2e:physical` — see `physical-training-docker.spec.js`.
 
 **NLP + differential privacy (opt-in):** requires `E2E_WAIT_FOR_LOCAL_TRAINING=true`, `TRAINING_EXECUTION_MODE=local-docker`, `TRAINING_SIMULATION_MODE=false`, and rebuilt `contractmanagement/local-trainer:latest` (Opacus). Run `npm run test:e2e:nlp-dp` or include API spec via `npm run test:e2e:api` (skips when env not set). See [training/LOCAL_DEMO_RUNBOOK.md](../training/LOCAL_DEMO_RUNBOOK.md).
+
+**Inference deploy + predict (opt-in):** same local-docker flags; trainer image must include `infer.py`. Run:
+```bash
+cd frontend
+E2E_WAIT_FOR_LOCAL_TRAINING=true BACKEND_URL=http://127.0.0.1:5001 npm run test:e2e:inference
+```
+Covers register → deploy → predict (tabular iris) via API and Training/Inference UI. See [training/TDC_TRAINING_RUNTIME.md](../training/TDC_TRAINING_RUNTIME.md) and [frontend/tests/e2e/README.md](../../frontend/tests/e2e/README.md).
 
 ### **Test Commands**
 ```bash

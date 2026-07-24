@@ -28,8 +28,8 @@ test.describe('Lifecycle user guide (screenshot tour)', () => {
     await page.setViewportSize({ width: 1440, height: 900 });
   });
 
-  test('Onboard → create → sign → train → provenance/logs', async ({ page }) => {
-    test.setTimeout(15 * 60 * 1000);
+  test('Onboard → create → sign → train → provenance → inference', async ({ page }) => {
+    test.setTimeout(20 * 60 * 1000);
     const steps = [];
     const ts = Date.now();
     const tdcEmail = `lifecycle.tdc.${ts}@test.com`;
@@ -463,6 +463,75 @@ test.describe('Lifecycle user guide (screenshot tour)', () => {
       title: 'TDC views training run logs',
       body: '**View logs** shows trainer/runner output (framework, architecture, DP flags) captured for the local-docker job.',
       ...(await captureShot(page, '19-tdc-training-logs.png')),
+    });
+
+    // --- Register → Deploy → Predict ---
+    const resultsAccordion = page.getByText(/Results & artifact/i).first();
+    await resultsAccordion.scrollIntoViewIfNeeded().catch(() => {});
+    // Ensure Results section is expanded (defaultExpanded, but click if register not visible yet).
+    const registerBtn = page.getByRole('button', { name: /Register trained model for inference/i });
+    if (!(await registerBtn.isVisible().catch(() => false))) {
+      await resultsAccordion.click().catch(() => {});
+    }
+    await expect(registerBtn).toBeVisible({ timeout: 60000 });
+    steps.push({
+      title: 'Register trained model for inference',
+      body: [
+        'On the completed job, expand **Results & artifact** and click **Register trained model for inference**.',
+        'This creates an **AIModel** catalog row from the training artifact (usable in new contracts and inference).',
+      ].join('\n'),
+      ...(await captureShot(page, '20-tdc-register-model.png')),
+    });
+    await registerBtn.click();
+    await expect(page.getByText(/Registered as AIModel/i).first()).toBeVisible({ timeout: 90000 });
+
+    const deployBtn = page.getByRole('button', { name: /Deploy for inference/i });
+    await expect(deployBtn).toBeVisible({ timeout: 60000 });
+    steps.push({
+      title: 'Deploy model for inference',
+      body: [
+        'Click **Deploy for inference** to mark the registered model as **DEPLOYED** for local prediction.',
+        'The platform points at the job’s `model.bin` artifact and records task type (here: **text**).',
+      ].join('\n'),
+      ...(await captureShot(page, '21-tdc-deploy-inference.png')),
+    });
+    await deployBtn.click();
+    await expect(page.getByText(/Inference deployed/i).first()).toBeVisible({ timeout: 90000 });
+    const openInfer = page.getByRole('link', { name: /Open inference app/i });
+    await expect(openInfer).toBeVisible({ timeout: 30000 });
+    steps.push({
+      title: 'Inference deployed — open app',
+      body: 'After deploy, open the **Inference app** from the training job detail (or the TDC sidebar **Inference** item).',
+      ...(await captureShot(page, '22-tdc-inference-deployed.png')),
+    });
+    await openInfer.click();
+    await expect(page.getByRole('heading', { name: /Inference app/i })).toBeVisible({ timeout: 60000 });
+    await expect(page.getByLabel(/Deployed model/i).or(page.getByText(/Request JSON/i)).first()).toBeVisible({
+      timeout: 60000,
+    });
+    steps.push({
+      title: 'Inference app — request ready',
+      body: [
+        'The Inference app lists deployed models and pre-fills an example JSON request.',
+        'For this NLP tour the example is a short news headline (`{ "text": "..." }`).',
+      ].join('\n'),
+      ...(await captureShot(page, '23-tdc-inference-app.png')),
+    });
+
+    await page.getByRole('button', { name: /Run prediction/i }).click();
+    // Text DistilBERT cold start in Docker can take ~15–60s.
+    await expect(page.getByText(/Label:/i).or(page.getByText(/setosa|World|Sports|Business|Sci\/Tech/i)).first()).toBeVisible({
+      timeout: 300000,
+    });
+    // Prefer the result card heading area
+    await expect(page.getByText(/Label:/i)).toBeVisible({ timeout: 30000 });
+    steps.push({
+      title: 'Inference app — prediction result',
+      body: [
+        '**Run prediction** calls the local inferencer (`infer.py` via Docker) against the trained DistilBERT artifact.',
+        'The result shows the predicted AG News class label (World / Sports / Business / Sci/Tech) and probabilities.',
+      ].join('\n'),
+      ...(await captureShot(page, '24-tdc-inference-predict.png')),
     });
 
     const out = writeGuide(steps);

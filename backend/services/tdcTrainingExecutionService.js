@@ -410,7 +410,7 @@ class TdcTrainingExecutionService {
     const TrainingService = require('./trainingService');
     const trainingService = new TrainingService();
     const run = await trainingService.triggerTrainingRun(contractId);
-    return this.serializeJob(run);
+    return await this.serializeJob(run);
   }
 
   async listJobsForContract(contractId, userId) {
@@ -432,7 +432,7 @@ class TdcTrainingExecutionService {
       } catch (_) {
         // best-effort reconcile
       }
-      out.push(this.serializeJob(j));
+      out.push(await this.serializeJob(j));
     }
     return out;
   }
@@ -458,7 +458,7 @@ class TdcTrainingExecutionService {
     } catch (_) {
       // best-effort
     }
-    return this.serializeJob(job);
+    return await this.serializeJob(job);
   }
 
   async getJobPublic(jobId) {
@@ -476,7 +476,7 @@ class TdcTrainingExecutionService {
     } catch (_) {
       // best-effort
     }
-    return this.serializeJob(j);
+    return await this.serializeJob(j);
   }
 
   /**
@@ -526,7 +526,7 @@ class TdcTrainingExecutionService {
     };
   }
 
-  serializeJob(job) {
+  async serializeJob(job) {
     const plain = job.get ? job.get({ plain: true }) : job;
     const meta = plain.metadata || {};
     const envCfg = plain.environmentConfig || {};
@@ -548,6 +548,15 @@ class TdcTrainingExecutionService {
         ? `/api/tdc/training/jobs/${encodeURIComponent(String(plain.jobId))}/artifact`
         : null;
     const provenanceReportUrl = `/api/tdc/training/jobs/${encodeURIComponent(String(plain.jobId))}/provenance-report`;
+    let inferenceDeployment = null;
+    if (meta.registeredModelId) {
+      try {
+        const registered = await db.AIModel.findOne({ where: { modelId: meta.registeredModelId } });
+        inferenceDeployment = registered?.metadata?.inference || null;
+      } catch (_) {
+        inferenceDeployment = null;
+      }
+    }
     return {
       jobId: plain.jobId,
       depaId: meta.depaId || null,
@@ -572,6 +581,7 @@ class TdcTrainingExecutionService {
       simulation: meta.simulation === true,
       inference: meta.inference || null,
       registeredModelId: meta.registeredModelId || null,
+      inferenceDeployment,
     };
   }
 

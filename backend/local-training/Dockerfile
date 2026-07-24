@@ -21,6 +21,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     EPOCH_SLEEP_SECONDS=0.6
 
 COPY train.py /app/train.py
+COPY infer.py /app/infer.py
 
 VOLUME ["/outputs"]
 
