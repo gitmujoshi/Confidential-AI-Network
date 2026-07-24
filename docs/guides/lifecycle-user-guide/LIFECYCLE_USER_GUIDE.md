@@ -5,7 +5,7 @@
 
 This guide walks through the full multi-party happy path in the local stack:
 
-1. Onboard **TDC**, **TDP**, and **TSP/CCRP** participants
+1. **Enterprise-register** **TDC**, **TDP**, and **TSP/CCRP** (User Type = Enterprise + organization)
 2. TDP publishes a dataset
 3. TDC creates a Ricardian contract
 4. TDP and TSP are notified, review, and sign
@@ -15,29 +15,32 @@ This guide walks through the full multi-party happy path in the local stack:
 
 | Role | Notes |
 |---|---|
-| TDC / TDP / TSP | Fresh users registered during the guide run (emails in screenshots) |
+| TDC / TDP / TSP | Fresh **enterprise** users registered during the guide run (emails + orgs in screenshots) |
+| Registration mode | **User Type = Enterprise** (organization field required in the UI tour) |
 | Password after first login | `TestNewPassword123!` |
 | Local compute | TSP is configured with **Local** cloud provider for `TRAINING_EXECUTION_MODE=local-docker` |
 
 ## Happy path
 
-### 1. Onboard TDC (register)
+### 1. Enterprise onboard TDC
 
-Each participant starts at **User Registration**. Select party type **TDC (Training Data Consumer)**, then register.
+Open **User Registration** and set **User Type** to **Enterprise**.
+Choose role **TDC (Training Data Consumer)**, enter the organization name, public key, and register.
 
-![Onboard TDC (register)](screenshots/01-onboard-tdc-register.png)
+![Enterprise onboard TDC](screenshots/01-onboard-tdc-register.png)
 
 ### 2. TDC first login dashboard
 
-After first-login password setup, the TDC lands on their dashboard and can browse datasets / create contracts.
+After first-login password setup, the enterprise TDC lands on their dashboard and can browse datasets / create contracts.
 
 ![TDC first login dashboard](screenshots/02-onboard-tdc-dashboard.png)
 
-### 3. Onboard TDP (register)
+### 3. Enterprise onboard TDP
 
-Register a **TDP (Training Data Provider)** who will publish datasets and sign contracts that use them.
+Register an enterprise **TDP (Training Data Provider)** with organization details.
+This party publishes datasets and signs contracts that use them.
 
-![Onboard TDP (register)](screenshots/03-onboard-tdp-register.png)
+![Enterprise onboard TDP](screenshots/03-onboard-tdp-register.png)
 
 ### 4. TDP first login dashboard
 
@@ -51,15 +54,16 @@ The TDP publishes a catalog dataset. TDCs can select it when creating a Ricardia
 
 ![TDP publishes a dataset](screenshots/05-tdp-dataset-published.png)
 
-### 6. Onboard TSP / CCRP (register)
+### 6. Enterprise onboard TSP / CCRP
 
-Register a **TSP** (Tech Service Provider; also called CCRP in older docs) who hosts the training environment and co-signs the contract.
+Register an enterprise **TSP** (Tech Service Provider; also called CCRP in older docs).
+This party hosts the training environment and co-signs the contract.
 
-![Onboard TSP / CCRP (register)](screenshots/06-onboard-tsp-register.png)
+![Enterprise onboard TSP / CCRP](screenshots/06-onboard-tsp-register.png)
 
 ### 7. TSP Local cloud readiness
 
-Configure the TSP with a **Local** provider so contracts can run with `TRAINING_EXECUTION_MODE=local-docker` in this environment.
+Configure the enterprise TSP with a **Local** provider so contracts can run with `TRAINING_EXECUTION_MODE=local-docker` in this environment.
 
 ![TSP Local cloud readiness](screenshots/07-onboard-tsp-local.png)
 

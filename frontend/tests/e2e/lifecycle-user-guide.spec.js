@@ -35,16 +35,36 @@ test.describe('Lifecycle user guide (screenshot tour)', () => {
     const tdpEmail = `lifecycle.tdp.${ts}@test.com`;
     const tspEmail = `lifecycle.tsp.${ts}@test.com`;
     const datasetName = `Lifecycle Dataset ${ts}`;
+    const orgs = {
+      TDC: 'Lifecycle Health AI Consortium',
+      TDP: 'Lifecycle Data Bank Corp',
+      TSP: 'Lifecycle Clean Room Compute',
+    };
 
-    async function registerViaUI({ name, email, partyType }) {
+    async function selectMui(labelText, optionName) {
+      const control = page.locator('.MuiFormControl-root').filter({ hasText: labelText }).first();
+      await control.getByRole('combobox').click();
+      await page.getByRole('option', { name: optionName }).click();
+    }
+
+    async function registerEnterpriseViaUI({ name, email, partyType, organization }) {
       await page.goto('/register');
       await expect(page.getByRole('heading', { name: 'User Registration', exact: true })).toBeVisible();
+
+      // User Type → Enterprise (exposes Organization and enterprise DID path).
+      await selectMui('User Type', /^Enterprise$/i);
+
       await page.getByLabel('Full Name').fill(name);
       await page.getByLabel('Email').fill(email);
-      await page.getByRole('combobox').nth(1).click();
-      await page.getByRole('option', { name: new RegExp(`\\(${partyType}\\)`, 'i') }).click();
+
+      await selectMui('Role', new RegExp(`\\(${partyType}\\)`, 'i'));
+
+      const orgField = page.getByLabel('Organization');
+      await expect(orgField).toBeVisible({ timeout: 10000 });
+      await orgField.fill(organization);
+
       await page.getByLabel('Public Key').fill('0x' + 'b'.repeat(64));
-      await settle(page, 300);
+      await settle(page, 400);
       return page;
     }
 
@@ -61,11 +81,19 @@ test.describe('Lifecycle user guide (screenshot tour)', () => {
       return match[1];
     }
 
-    // --- 1–3 Onboard participants ---
-    await registerViaUI({ name: 'Lifecycle TDC', email: tdcEmail, partyType: 'TDC' });
+    // --- 1–3 Onboard participants (Enterprise registration) ---
+    await registerEnterpriseViaUI({
+      name: 'Lifecycle TDC Admin',
+      email: tdcEmail,
+      partyType: 'TDC',
+      organization: orgs.TDC,
+    });
     steps.push({
-      title: 'Onboard TDC (register)',
-      body: 'Each participant starts at **User Registration**. Select party type **TDC (Training Data Consumer)**, then register.',
+      title: 'Enterprise onboard TDC',
+      body: [
+        'Open **User Registration** and set **User Type** to **Enterprise**.',
+        'Choose role **TDC (Training Data Consumer)**, enter the organization name, public key, and register.',
+      ].join('\n'),
       ...(await captureShot(page, '01-onboard-tdc-register.png')),
     });
     const tdcTemp = await submitRegistration();
@@ -76,15 +104,23 @@ test.describe('Lifecycle user guide (screenshot tour)', () => {
     });
     steps.push({
       title: 'TDC first login dashboard',
-      body: 'After first-login password setup, the TDC lands on their dashboard and can browse datasets / create contracts.',
+      body: 'After first-login password setup, the enterprise TDC lands on their dashboard and can browse datasets / create contracts.',
       ...(await captureShot(page, '02-onboard-tdc-dashboard.png')),
     });
     await logoutViaUI(page);
 
-    await registerViaUI({ name: 'Lifecycle TDP', email: tdpEmail, partyType: 'TDP' });
+    await registerEnterpriseViaUI({
+      name: 'Lifecycle TDP Admin',
+      email: tdpEmail,
+      partyType: 'TDP',
+      organization: orgs.TDP,
+    });
     steps.push({
-      title: 'Onboard TDP (register)',
-      body: 'Register a **TDP (Training Data Provider)** who will publish datasets and sign contracts that use them.',
+      title: 'Enterprise onboard TDP',
+      body: [
+        'Register an enterprise **TDP (Training Data Provider)** with organization details.',
+        'This party publishes datasets and signs contracts that use them.',
+      ].join('\n'),
       ...(await captureShot(page, '03-onboard-tdp-register.png')),
     });
     const tdpTemp = await submitRegistration();
@@ -142,10 +178,18 @@ test.describe('Lifecycle user guide (screenshot tour)', () => {
     });
     await logoutViaUI(page);
 
-    await registerViaUI({ name: 'Lifecycle TSP', email: tspEmail, partyType: 'TSP' });
+    await registerEnterpriseViaUI({
+      name: 'Lifecycle TSP Admin',
+      email: tspEmail,
+      partyType: 'TSP',
+      organization: orgs.TSP,
+    });
     steps.push({
-      title: 'Onboard TSP / CCRP (register)',
-      body: 'Register a **TSP** (Tech Service Provider; also called CCRP in older docs) who hosts the training environment and co-signs the contract.',
+      title: 'Enterprise onboard TSP / CCRP',
+      body: [
+        'Register an enterprise **TSP** (Tech Service Provider; also called CCRP in older docs).',
+        'This party hosts the training environment and co-signs the contract.',
+      ].join('\n'),
       ...(await captureShot(page, '06-onboard-tsp-register.png')),
     });
     const tspTemp = await submitRegistration();
@@ -156,7 +200,7 @@ test.describe('Lifecycle user guide (screenshot tour)', () => {
     await expect(page.getByRole('main')).toBeVisible({ timeout: 60000 });
     steps.push({
       title: 'TSP Local cloud readiness',
-      body: 'Configure the TSP with a **Local** provider so contracts can run with `TRAINING_EXECUTION_MODE=local-docker` in this environment.',
+      body: 'Configure the enterprise TSP with a **Local** provider so contracts can run with `TRAINING_EXECUTION_MODE=local-docker` in this environment.',
       ...(await captureShot(page, '07-onboard-tsp-local.png')),
     });
     await logoutViaUI(page);
