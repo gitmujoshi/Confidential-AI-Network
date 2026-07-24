@@ -175,6 +175,9 @@ npm run test:frontend     # Frontend tests only
 cd frontend && npm run test:e2e:user-guides
 # → docs/guides/role-user-guides/
 
+cd frontend && npm run test:e2e:lifecycle-guide
+# → docs/guides/lifecycle-user-guide/ (onboard → sign → train → provenance/logs)
+
 # Run tests in watch mode
 npm run test:watch
 

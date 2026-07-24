@@ -21,4 +21,6 @@ npm run test:e2e:user-guides
 
 Screenshots land in `screenshots/<role>/`. Markdown files in this folder are overwritten on each run.
 
+Also see the cross-role screenshot tour: [Lifecycle user guide](../lifecycle-user-guide/LIFECYCLE_USER_GUIDE.md) (`npm run test:e2e:lifecycle-guide`).
+
 ← [Guides index](../README.md)

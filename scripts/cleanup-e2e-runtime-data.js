@@ -67,6 +67,7 @@ function isEphemeralUserEmail(email) {
   if (!e || isSeedUserEmail(e)) return false;
   return (
     e.startsWith('pw-e2e') ||
+    e.startsWith('lifecycle.') ||
     e.includes('@example.com') ||
     /^tdc\.e2e\.\d+/i.test(e) ||
     /^tdp\.e2e\.\d+/i.test(e) ||
