@@ -6,8 +6,8 @@
 This guide walks through the full multi-party happy path in the local stack:
 
 1. **Enterprise-register** **TDC**, **TDP**, and **TSP/CCRP** (User Type = Enterprise + organization)
-2. TDP publishes a dataset
-3. TDC creates a Ricardian contract
+2. TDP publishes an NLP dataset (Hugging Face `ag_news` reference)
+3. TDC creates a Ricardian contract with **PyTorch** / **Tiny DistilBERT** and **differential privacy (DP-SGD)**
 4. TDP and TSP are notified, review, and sign
 5. TDC views the **SIGNED** contract, runs local-docker training, and inspects **logs** + **provenance**
 
@@ -19,6 +19,18 @@ This guide walks through the full multi-party happy path in the local stack:
 | Registration mode | **User Type = Enterprise** (organization field required in the UI tour) |
 | Password after first login | `TestNewPassword123!` |
 | Local compute | TSP is configured with **Local** cloud provider for `TRAINING_EXECUTION_MODE=local-docker` |
+
+## Training configuration used in this tour
+
+| Field | Value |
+|---|---|
+| Task / modality | Text classification (`taskType: text`) |
+| Model | `E2E Tiny DistilBERT (NLP DP)` (`e2e-model-nlp-distilbert`) |
+| Architecture | `sshleifer/tiny-distilbert-base-cased` |
+| Framework | PyTorch |
+| Privacy | Differential privacy — DP-SGD (`ε=0.5`, `δ=1e-5`, `maxGradNorm=1.0`) |
+| Hyperparameters | `maxEpochs=1`, `batchSize=16`, `learningRate=2e-4`, `fastDevRun=true` |
+| Dataset | Lifecycle TDP NLP catalog row with Hugging Face `ag_news` reference |
 
 ## Happy path
 
@@ -48,11 +60,12 @@ The TDP dashboard is the home for datasets and incoming signature requests.
 
 ![TDP first login dashboard](screenshots/04-onboard-tdp-dashboard.png)
 
-### 5. TDP publishes a dataset
+### 5. TDP publishes an NLP dataset
 
-The TDP publishes a catalog dataset. TDCs can select it when creating a Ricardian contract.
+The TDP publishes a **text / NLP** catalog dataset backed by the well-known Hugging Face **`ag_news`** reference.
+TDCs select this dataset when creating a privacy-preserving training contract.
 
-![TDP publishes a dataset](screenshots/05-tdp-dataset-published.png)
+![TDP publishes an NLP dataset](screenshots/05-tdp-dataset-published.png)
 
 ### 6. Enterprise onboard TSP / CCRP
 
@@ -67,11 +80,12 @@ Configure the enterprise TSP with a **Local** provider so contracts can run with
 
 ![TSP Local cloud readiness](screenshots/07-onboard-tsp-local.png)
 
-### 8. TDC creates contract — details & dataset
+### 8. TDC creates contract — NLP model & dataset
 
-The TDC selects the TDP dataset, AI model, price, duration, and terms.
+The TDC selects the TDP **AG News** NLP dataset and the catalog model **Tiny DistilBERT (NLP DP)**.
+Contract terms reference **PyTorch** training with **differential privacy (DP-SGD)**.
 
-![TDC creates contract — details & dataset](screenshots/08-tdc-create-details.png)
+![TDC creates contract — NLP model & dataset](screenshots/08-tdc-create-details.png)
 
 ### 9. TDC creates contract — select TSP
 
@@ -122,21 +136,22 @@ On **Training**, the TDC starts a job for the signed contract (`TRAINING_EXECUTI
 
 ![TDC starts training](screenshots/16-tdc-training-ready.png)
 
-### 17. Training completed
+### 17. Training completed (PyTorch + DP-SGD)
 
-When the local trainer finishes, the job status is **COMPLETED** with metrics and artifact actions.
+When the local trainer finishes, the job status is **COMPLETED**.
+For this tour the run uses **PyTorch** / **Tiny DistilBERT** with **differential privacy (DP-SGD)** metrics when available.
 
-![Training completed](screenshots/17-tdc-training-completed.png)
+![Training completed (PyTorch + DP-SGD)](screenshots/17-tdc-training-completed.png)
 
 ### 18. TDC views provenance report
 
-**View job provenance** opens the host/API provenance bundle for the completed run (inputs, metrics, artifacts).
+**View job provenance** opens the host/API provenance bundle (datasets, model architecture, privacy metrics, artifacts).
 
 ![TDC views provenance report](screenshots/18-tdc-provenance.png)
 
 ### 19. TDC views training run logs
 
-**View logs** shows trainer/runner output captured for the local-docker job.
+**View logs** shows trainer/runner output (framework, architecture, DP flags) captured for the local-docker job.
 
 ![TDC views training run logs](screenshots/19-tdc-training-logs.png)
 

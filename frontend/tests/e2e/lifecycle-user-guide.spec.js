@@ -18,6 +18,7 @@ const {
   loginViaAPI,
   writeGuide,
 } = require('./helpers/lifecycle-user-guide');
+const { NLP_MODEL_ID, buildNlpDpContractPayload } = require('./helpers/nlp-dp-training');
 
 test.describe('Lifecycle user guide (screenshot tour)', () => {
   test.describe.configure({ mode: 'serial' });
@@ -34,7 +35,7 @@ test.describe('Lifecycle user guide (screenshot tour)', () => {
     const tdcEmail = `lifecycle.tdc.${ts}@test.com`;
     const tdpEmail = `lifecycle.tdp.${ts}@test.com`;
     const tspEmail = `lifecycle.tsp.${ts}@test.com`;
-    const datasetName = `Lifecycle Dataset ${ts}`;
+    const datasetName = `Lifecycle AG News NLP ${ts}`;
     const orgs = {
       TDC: 'Lifecycle Health AI Consortium',
       TDP: 'Lifecycle Data Bank Corp',
@@ -148,21 +149,33 @@ test.describe('Lifecycle user guide (screenshot tour)', () => {
     }
 
     // Prefer API dataset create for reliability, then show list in UI.
+    // NLP + Hugging Face ag_news reference so local-docker training uses a well-known text task.
     const { token: tdpToken, user: tdpUser } = await loginViaAPI({ email: tdpEmail });
-    const datasetId = `LIFECYCLE-${ts}`;
+    const datasetId = `LIFECYCLE-NLP-${ts}`;
     await axios.post(
       `${BACKEND_URL}/api/datasets`,
       {
         datasetId,
         name: datasetName,
-        description: 'Lifecycle guide dataset',
-        category: 'Tabular',
-        size: 10,
-        recordCount: 100,
-        price: 50,
+        description: 'Lifecycle NLP dataset with Hugging Face ag_news reference for DP-SGD training',
+        category: 'Natural Language Processing',
+        size: 120,
+        recordCount: 120000,
+        price: 100,
         license: 'MIT',
-        tags: ['lifecycle', 'e2e'],
-        metadata: { seededBy: 'lifecycle-guide', modality: 'tabular' },
+        tags: ['lifecycle', 'e2e', 'nlp', 'ag_news', 'differential-privacy'],
+        metadata: {
+          seededBy: 'lifecycle-guide',
+          modality: 'text',
+          hfDatasetId: 'ag_news',
+          huggingface: {
+            repoType: 'dataset',
+            repoId: 'ag_news',
+            splitTrain: 'train',
+            splitTest: 'test',
+            sovereignty: 'hub-reference',
+          },
+        },
         isPublic: true,
         confidentialComputingRequired: false,
         ownerId: tdpUser.id,
@@ -172,8 +185,11 @@ test.describe('Lifecycle user guide (screenshot tour)', () => {
     await page.goto('/datasets');
     await expect(page.getByText(datasetName, { exact: false }).first()).toBeVisible({ timeout: 60000 });
     steps.push({
-      title: 'TDP publishes a dataset',
-      body: 'The TDP publishes a catalog dataset. TDCs can select it when creating a Ricardian contract.',
+      title: 'TDP publishes an NLP dataset',
+      body: [
+        'The TDP publishes a **text / NLP** catalog dataset backed by the well-known Hugging Face **`ag_news`** reference.',
+        'TDCs select this dataset when creating a privacy-preserving training contract.',
+      ].join('\n'),
       ...(await captureShot(page, '05-tdp-dataset-published.png')),
     });
     await logoutViaUI(page);
@@ -220,8 +236,8 @@ test.describe('Lifecycle user guide (screenshot tour)', () => {
     const aiModelsCombo = page.getByRole('combobox', { name: /AI Models/i });
     if (await aiModelsCombo.isVisible().catch(() => false)) {
       await aiModelsCombo.click();
-      const logreg = page.getByRole('option', { name: /E2E Logistic Regression/i });
-      if (await logreg.isVisible().catch(() => false)) await logreg.click();
+      const distilbert = page.getByRole('option', { name: /Tiny DistilBERT|DistilBERT|NLP DP/i });
+      if (await distilbert.isVisible().catch(() => false)) await distilbert.click();
       else await page.getByRole('option').first().click();
     }
 
@@ -231,13 +247,20 @@ test.describe('Lifecycle user guide (screenshot tour)', () => {
     const duration = page.getByLabel(/Duration/i).first();
     if (await duration.isVisible().catch(() => false)) await duration.fill('30');
     const terms = page.getByLabel(/Terms and Conditions/i).first();
-    if (await terms.isVisible().catch(() => false)) await terms.fill('Lifecycle guide contract terms');
+    if (await terms.isVisible().catch(() => false)) {
+      await terms.fill(
+        'Lifecycle NLP DP contract: PyTorch Tiny DistilBERT with DP-SGD (epsilon 0.5, delta 1e-5).'
+      );
+    }
     const price = page.getByLabel(/Price/i).first();
     if (await price.isVisible().catch(() => false)) await price.fill('100');
 
     steps.push({
-      title: 'TDC creates contract — details & dataset',
-      body: 'The TDC selects the TDP dataset, AI model, price, duration, and terms.',
+      title: 'TDC creates contract — NLP model & dataset',
+      body: [
+        'The TDC selects the TDP **AG News** NLP dataset and the catalog model **Tiny DistilBERT (NLP DP)**.',
+        'Contract terms reference **PyTorch** training with **differential privacy (DP-SGD)**.',
+      ].join('\n'),
       ...(await captureShot(page, '08-tdc-create-details.png')),
     });
 
@@ -272,64 +295,37 @@ test.describe('Lifecycle user guide (screenshot tour)', () => {
     const list = models.data?.models || models.data?.data || models.data || [];
     const model =
       (Array.isArray(list) &&
-        list.find((m) => m.modelId === 'e2e-model-tabular-logreg' || /logistic/i.test(m.name || ''))) ||
+        list.find(
+          (m) =>
+            m.modelId === NLP_MODEL_ID ||
+            /distilbert|nlp dp/i.test(`${m.modelId || ''} ${m.name || ''}`)
+        )) ||
       null;
-    if (!model?.id) throw new Error('E2E logistic regression model not found for lifecycle contract');
+    if (!model?.id) {
+      throw new Error(
+        `NLP DistilBERT model ${NLP_MODEL_ID} not found — run Playwright global-setup catalog seed`
+      );
+    }
 
-    const create = await axios.post(
-      `${BACKEND_URL}/api/contracts/ricardian`,
-      {
-        datasetSelections: [{ datasetId, individualPrice: 100 }],
-        aiModelIds: [model.id],
-        duration: 30,
-        termsAndConditions: `Lifecycle guide contract ${ts}`,
-        contractType: 'AI_TRAINING',
-        privacyRequirements: { maxPrivacyLoss: 0.5, minAccuracy: 0.7, differentialPrivacy: false },
-        trainingParams: {
-          taskType: 'tabular',
-          framework: 'Other',
-          architecture: 'logistic-regression',
-          maxEpochs: 1,
-          batchSize: 32,
-          learningRate: 0.001,
-          validationMetrics: ['accuracy', 'loss'],
-        },
-        environmentSpecs: {
-          compute: { cpuCores: 2, memoryGB: 4, gpuCount: 0 },
-          security: {
-            confidentialComputing: false,
-            attestationRequired: false,
-            encryptionAtRest: true,
-            encryptionInTransit: true,
-            networkIsolation: true,
-          },
-          kms: {
-            provider: 'hashicorp-vault',
-            keyId: 'lifecycle-local-key',
-            algorithm: 'AES-256-GCM',
-            rotationPeriod: 90,
-          },
-          runtime: {
-            containerSpec: {
-              image: 'contractmanagement/local-trainer:latest',
-              command: 'python train.py',
-              cpuCores: 2,
-              memoryGB: 4,
-              gpuCount: 0,
-            },
-          },
-        },
-        kmsConfigs: {
-          provider: 'hashicorp-vault',
-          keyId: 'lifecycle-local-key',
-          vaultUrl: 'http://localhost:8200',
-        },
-        containerImage: 'contractmanagement/local-trainer:latest',
-        ccrpId: tspUser.id,
-        ccrpCloudProvider: 'Local',
-      },
-      { headers: { Authorization: `Bearer ${tdcTokenCreate}` } }
-    );
+    // Well-known PyTorch + Tiny DistilBERT + DP-SGD parameters (same shape as NLP DP E2E).
+    const payload = buildNlpDpContractPayload({
+      aiModelIds: [model.id],
+      ccrpUserId: tspUser.id,
+    });
+    payload.datasetSelections = [{ datasetId, individualPrice: 100 }];
+    payload.termsAndConditions = `Lifecycle NLP DP contract ${ts}: PyTorch Tiny DistilBERT, DP-SGD ε=0.5 δ=1e-5`;
+    payload.kmsConfigs = {
+      ...payload.kmsConfigs,
+      keyId: 'lifecycle-nlp-dp-key',
+      metadata: { seededBy: 'lifecycle-guide-nlp-dp' },
+    };
+    if (payload.environmentSpecs?.kms) {
+      payload.environmentSpecs.kms.keyId = 'lifecycle-nlp-dp-key';
+    }
+
+    const create = await axios.post(`${BACKEND_URL}/api/contracts/ricardian`, payload, {
+      headers: { Authorization: `Bearer ${tdcTokenCreate}` },
+    });
     const contractId = create.data?.contract?.contractId;
     expect(contractId).toBeTruthy();
     await logoutViaUI(page);
@@ -438,9 +434,15 @@ test.describe('Lifecycle user guide (screenshot tour)', () => {
     await card.getByRole('button', { name: /View details/i }).first().click();
     await settle(page, 800);
     await expect(page.getByText(/COMPLETED/i).first()).toBeVisible({ timeout: 60000 });
+    await expect(page.getByText(/differential privacy|privacy metrics|epsilon|DP/i).first()).toBeVisible({
+      timeout: 30000,
+    }).catch(() => {});
     steps.push({
-      title: 'Training completed',
-      body: 'When the local trainer finishes, the job status is **COMPLETED** with metrics and artifact actions.',
+      title: 'Training completed (PyTorch + DP-SGD)',
+      body: [
+        'When the local trainer finishes, the job status is **COMPLETED**.',
+        'For this tour the run uses **PyTorch** / **Tiny DistilBERT** with **differential privacy (DP-SGD)** metrics when available.',
+      ].join('\n'),
       ...(await captureShot(page, '17-tdc-training-completed.png')),
     });
 
@@ -448,7 +450,7 @@ test.describe('Lifecycle user guide (screenshot tour)', () => {
     await expect(page.getByText(/Job provenance \(JSON\)/i)).toBeVisible({ timeout: 60000 });
     steps.push({
       title: 'TDC views provenance report',
-      body: '**View job provenance** opens the host/API provenance bundle for the completed run (inputs, metrics, artifacts).',
+      body: '**View job provenance** opens the host/API provenance bundle (datasets, model architecture, privacy metrics, artifacts).',
       ...(await captureShot(page, '18-tdc-provenance.png')),
     });
     await page.getByRole('button', { name: /^Close$/i }).click();
@@ -459,7 +461,7 @@ test.describe('Lifecycle user guide (screenshot tour)', () => {
     await page.getByText(/^Job logs$/i).scrollIntoViewIfNeeded().catch(() => {});
     steps.push({
       title: 'TDC views training run logs',
-      body: '**View logs** shows trainer/runner output captured for the local-docker job.',
+      body: '**View logs** shows trainer/runner output (framework, architecture, DP flags) captured for the local-docker job.',
       ...(await captureShot(page, '19-tdc-training-logs.png')),
     });
 
