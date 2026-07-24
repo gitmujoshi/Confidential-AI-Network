@@ -18,6 +18,7 @@ const {
   writeGuideFile,
   writeIndex,
   settle,
+  prepareSignedContractWithLocalTraining,
 } = require('./helpers/role-user-guide');
 
 test.describe('Role user guides (screenshot tours)', () => {
@@ -168,13 +169,78 @@ test.describe('Role user guides (screenshot tours)', () => {
       ...(await captureShot(page, roleKey, '09-create-step-submit.png')),
     });
 
+    // Real local demo: TDP + TSP sign, then TRAINING_EXECUTION_MODE=local-docker run.
+    test.setTimeout(12 * 60 * 1000);
+    const trained = await prepareSignedContractWithLocalTraining();
+    const { contractId } = trained;
+
+    await gotoAndWait(page, `/tdc/contracts/${encodeURIComponent(contractId)}`, async (p) => {
+      await expect(p.getByText(/SIGNED/i).first()).toBeVisible({ timeout: 120000 });
+    });
+    // Prefer the signatures / status area for the guide.
+    await page.getByText(/Signature|Signed|TDP|TSP/i).first().scrollIntoViewIfNeeded().catch(() => {});
+    steps.push({
+      title: 'Signed contract (all participants)',
+      body: [
+        'After **TDP** and **TSP** both sign, the contract reaches **SIGNED**.',
+        'Only signed contracts can start training.',
+      ].join('\n'),
+      ...(await captureShot(page, roleKey, '10-signed-contract.png')),
+    });
+
     await gotoAndWait(page, '/tdc/training', async (p) => {
       await waitForHeading(p, /Training/i);
+      await expect(p.getByText(contractId, { exact: false }).first()).toBeVisible({ timeout: 120000 });
+    });
+    // Open the completed local job so privacy metrics / results are visible.
+    const contractCard = page.locator('.MuiCard-root').filter({ hasText: contractId }).first();
+    await expect(contractCard).toBeVisible({ timeout: 60000 });
+    const viewBtn = contractCard.getByRole('button', { name: /View details/i }).first();
+    await expect(viewBtn).toBeVisible({ timeout: 60000 });
+    await viewBtn.click();
+    await settle(page, 800);
+    await expect(page.getByText(/COMPLETED/i).first()).toBeVisible({ timeout: 60000 });
+    await expect(page.getByRole('button', { name: /View job provenance/i })).toBeVisible({ timeout: 60000 });
+    steps.push({
+      title: 'Local training execution',
+      body: [
+        'On **Training**, start a job for a signed contract. With `TRAINING_EXECUTION_MODE=local-docker`, the backend runs the trainer image on your machine (not simulated).',
+        'Completed jobs show progress, privacy metrics (when differential privacy is enabled), and artifact actions.',
+      ].join('\n'),
+      ...(await captureShot(page, roleKey, '11-training-completed.png')),
+    });
+
+    // Provenance report overlay (actual JSON from the completed local-docker run).
+    await page.getByRole('button', { name: /View job provenance/i }).click();
+    await expect(page.getByText(/Job provenance \(JSON\)/i)).toBeVisible({ timeout: 60000 });
+    await expect(page.locator('pre').filter({ hasText: /jobId|contractId|provenance/i }).first()).toBeVisible({
+      timeout: 60000,
     });
     steps.push({
-      title: 'Training',
-      body: '**Training** starts a job against a fully signed contract, monitors progress, and surfaces privacy metrics when differential privacy is enabled.',
-      ...(await captureShot(page, roleKey, '10-training.png')),
+      title: 'Training provenance report',
+      body: [
+        'Open **View job provenance** on a completed job to inspect the host/API provenance report (datasets, models, privacy metrics, artifact paths).',
+        'The same JSON is also available via the training provenance API and, for local-docker, as `provenance-report.json` next to `metrics.json`.',
+      ].join('\n'),
+      ...(await captureShot(page, roleKey, '12-training-provenance.png')),
+    });
+    await page.getByRole('button', { name: /^Close$/i }).click();
+    await expect(page.getByText(/Job provenance \(JSON\)/i)).toBeHidden({ timeout: 30000 });
+
+    // Trainer / runner logs for the same job.
+    await page.getByRole('button', { name: /^View logs$/i }).click();
+    await expect(page.getByText(/^Job logs$/i)).toBeVisible({ timeout: 60000 });
+    await expect(page.locator('pre').filter({ hasText: /trainer|TRAINING_JOB|contract=/i }).first()).toBeVisible({
+      timeout: 60000,
+    });
+    await page.getByText(/^Job logs$/i).scrollIntoViewIfNeeded().catch(() => {});
+    steps.push({
+      title: 'Training run logs',
+      body: [
+        'Use **View logs** to read the trainer/runner output for the job (container stdout/stderr captured by the local-docker runner).',
+        'This confirms the run executed against the signed contract inputs rather than a simulated placeholder.',
+      ].join('\n'),
+      ...(await captureShot(page, roleKey, '13-training-logs.png')),
     });
 
     await gotoAndWait(page, '/can/jobs', async (p) => {
@@ -183,7 +249,7 @@ test.describe('Role user guides (screenshot tours)', () => {
     steps.push({
       title: 'CAN jobs',
       body: '**CAN Jobs** tracks confidential job coordination (escrow, attestation signals, release) for clean-room runs.',
-      ...(await captureShot(page, roleKey, '11-can-jobs.png')),
+      ...(await captureShot(page, roleKey, '14-can-jobs.png')),
     });
 
     await gotoAndWait(page, '/notifications', async (p) => {
@@ -192,7 +258,7 @@ test.describe('Role user guides (screenshot tours)', () => {
     steps.push({
       title: 'Notifications',
       body: '**Notifications** surfaces signature requests, training updates, and system alerts.',
-      ...(await captureShot(page, roleKey, '12-notifications.png')),
+      ...(await captureShot(page, roleKey, '15-notifications.png')),
     });
 
     writeGuideFile(roleKey, buildMarkdown({ roleKey, meta: ROLE_META[roleKey], email, steps }));

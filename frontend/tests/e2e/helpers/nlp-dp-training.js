@@ -163,19 +163,25 @@ async function signContractAsParties({ contractId, tdpToken, ccrpToken, tdcToken
     headers: { Authorization: `Bearer ${tdcToken}` },
   });
 
-  await axios
-    .post(
-      signUrl,
-      { signature: 'e2e-nlp-dp-placeholder', partyType: 'TDP', signingData },
-      { headers: { Authorization: `Bearer ${tdpToken}` } }
-    )
-    .catch(() => {});
-
-  await axios.post(
+  // TDP must sign first (PENDING_TDP_APPROVAL → PENDING_TSP_APPROVAL), then TSP.
+  // Seeded CCRP E2E user is partyType TSP; both CCRP and TSP party labels are accepted.
+  const tdpSign = await axios.post(
     signUrl,
-    { signature: 'e2e-nlp-dp-placeholder', partyType: 'CCRP', signingData },
+    { signature: 'e2e-nlp-dp-placeholder', partyType: 'TDP', signingData },
+    { headers: { Authorization: `Bearer ${tdpToken}` } }
+  );
+  if (!tdpSign.data?.success) {
+    throw new Error(`TDP sign failed: ${JSON.stringify(tdpSign.data)}`);
+  }
+
+  const tspSign = await axios.post(
+    signUrl,
+    { signature: 'e2e-nlp-dp-placeholder', partyType: 'TSP', signingData },
     { headers: { Authorization: `Bearer ${ccrpToken}` } }
   );
+  if (!tspSign.data?.success) {
+    throw new Error(`TSP sign failed: ${JSON.stringify(tspSign.data)}`);
+  }
 }
 
 async function waitForJobToFinish({ contractId, jobId, token, timeoutMs = 300000 }) {
@@ -271,6 +277,7 @@ module.exports = {
   NLP_MODEL_ID,
   login,
   seedAuth,
+  fetchTrainingEnv,
   getNlpDpSkipReason,
   assertLocalDockerMode,
   buildNlpDpContractPayload,

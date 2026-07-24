@@ -1,0 +1,16 @@
+{
+  "watch": ["."],
+  "ext": "js,json",
+  "ignore": [
+    "local-training/runs/**",
+    "local-training/.venv*/**",
+    "uploads/**",
+    "logs/**",
+    "tmp/**",
+    "coverage/**",
+    "node_modules/**",
+    "tests/**",
+    "*.log"
+  ],
+  "delay": 500
+}

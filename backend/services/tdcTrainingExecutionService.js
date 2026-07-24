@@ -421,7 +421,20 @@ class TdcTrainingExecutionService {
       where: { contractId },
       order: [['createdAt', 'DESC']],
     });
-    return jobs.map((j) => this.serializeJob(j));
+    const { reconcileLocalDockerJobIfNeeded } = require('./localDockerTrainingRunner');
+    const out = [];
+    for (const j of jobs) {
+      try {
+        const changed = await reconcileLocalDockerJobIfNeeded(j);
+        if (changed) {
+          await j.reload();
+        }
+      } catch (_) {
+        // best-effort reconcile
+      }
+      out.push(this.serializeJob(j));
+    }
+    return out;
   }
 
   async getJobForUser(jobId, userId) {
@@ -437,6 +450,14 @@ class TdcTrainingExecutionService {
       err.statusCode = 403;
       throw err;
     }
+    try {
+      const { reconcileLocalDockerJobIfNeeded } = require('./localDockerTrainingRunner');
+      if (await reconcileLocalDockerJobIfNeeded(job)) {
+        await job.reload();
+      }
+    } catch (_) {
+      // best-effort
+    }
     return this.serializeJob(job);
   }
 
@@ -446,6 +467,14 @@ class TdcTrainingExecutionService {
       const err = new Error('Training job not found');
       err.statusCode = 404;
       throw err;
+    }
+    try {
+      const { reconcileLocalDockerJobIfNeeded } = require('./localDockerTrainingRunner');
+      if (await reconcileLocalDockerJobIfNeeded(j)) {
+        await j.reload();
+      }
+    } catch (_) {
+      // best-effort
     }
     return this.serializeJob(j);
   }

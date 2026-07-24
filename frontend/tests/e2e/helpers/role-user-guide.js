@@ -13,7 +13,7 @@ const ROLE_META = {
     title: 'TDC User Guide — Training Data Consumer',
     shortName: 'TDC',
     summary:
-      'As a Training Data Consumer you browse datasets, create and sign Ricardian contracts, run training (portal or CAN), and review outputs.',
+      'As a Training Data Consumer you browse datasets, create Ricardian contracts, wait for TDP+TSP signatures, run local-docker (or CAN) training, and review outputs.',
   },
   TDP: {
     file: 'TDP_USER_GUIDE.md',
@@ -207,6 +207,36 @@ function writeIndex(generatedRoles) {
   return out;
 }
 
+/**
+ * Create a contract signed by TDP + TSP and run local-docker training to completion.
+ * Used by the TDC screenshot guide so the docs show a real SIGNED + trained example.
+ */
+async function prepareSignedContractWithLocalTraining() {
+  const {
+    createSignedNlpDpContractAndTrain,
+    fetchTrainingEnv,
+  } = require('./nlp-dp-training');
+
+  const training = await fetchTrainingEnv();
+  const mode = training.trainingExecutionMode;
+  if (mode !== 'local-docker' && mode !== 'local-native') {
+    throw new Error(
+      `TDC guide needs TRAINING_EXECUTION_MODE=local-docker (or local-native); current: ${mode}`
+    );
+  }
+  if (training.trainingSimulationMode === true || training.trainingSimulationMode === 'true') {
+    throw new Error('TDC guide needs TRAINING_SIMULATION_MODE=false for real local execution');
+  }
+
+  const result = await createSignedNlpDpContractAndTrain();
+  if (!result?.job || result.job.status !== 'COMPLETED') {
+    throw new Error(
+      `Local training did not complete (status: ${result?.job?.status || 'unknown'}) for ${result?.contractId}`
+    );
+  }
+  return result;
+}
+
 module.exports = {
   ROLE_META,
   GUIDE_ROOT,
@@ -222,4 +252,5 @@ module.exports = {
   writeGuideFile,
   writeIndex,
   settle,
+  prepareSignedContractWithLocalTraining,
 };

@@ -28,6 +28,7 @@
     "test:users:jurisdiction": "node scripts/create-jurisdiction-test-users.js",
     "test:users:india-financial": "node scripts/create-india-financial-test-users.js",
     "test:users:reset-seed": "node scripts/reset-and-seed-test-data.js",
+    "cleanup:e2e-data": "node scripts/cleanup-e2e-runtime-data.js",
     "seed:e2e-users": "node scripts/seed-static-e2e-users.js",
     "test:role-crud": "npm run test:role-crud --prefix backend && npm run test:e2e:role-crud --prefix frontend",
     "test": "NODE_ENV=test node -r ./tests/test-env.js ./node_modules/.bin/jest --runInBand --setupFilesAfterEnv=./tests/setup.js"

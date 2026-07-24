@@ -92,6 +92,162 @@ async function updateJob(jobId, patch) {
   await db.TrainingJob.update(patch, { where: { jobId } });
 }
 
+function localPathsForJob(jobId, meta = {}) {
+  const local = meta.local || {};
+  const runDir = local.runDir || path.join(runsRoot(), jobId);
+  const outDir = local.outDir || path.join(runDir, 'outputs');
+  const inputsDir = local.inputsDir || path.join(runDir, 'inputs');
+  const contractJsonPath = local.contractJsonPath || path.join(inputsDir, 'contract.json');
+  const logFile = local.logFile || path.join(runDir, 'runner.log');
+  const image = local.image || process.env.LOCAL_TRAINING_IMAGE || 'contractmanagement/local-trainer:latest';
+  return { runDir, outDir, inputsDir, contractJsonPath, logFile, image };
+}
+
+/**
+ * Finalize a local-docker job from on-disk metrics when the docker close handler was lost
+ * (e.g. nodemon/backend restart while the container finished successfully).
+ * Returns true if the job row was updated.
+ */
+async function finalizeLocalDockerJobFromDisk(jobId, { exitCode = 0 } = {}) {
+  const job = await db.TrainingJob.findOne({ where: { jobId } });
+  if (!job) return false;
+  const plain = job.get ? job.get({ plain: true }) : job;
+  if (!['PENDING', 'PROVISIONING', 'RUNNING'].includes(plain.status)) {
+    return false;
+  }
+  const meta = plain.metadata || {};
+  if (meta.executionMode && meta.executionMode !== 'local-docker') {
+    return false;
+  }
+
+  const { outDir, inputsDir, contractJsonPath, logFile, image } = localPathsForJob(jobId, meta);
+  const metricsPath = path.join(outDir, 'metrics.json');
+  const metrics = safeReadJson(metricsPath);
+  if (!metrics && exitCode === 0) {
+    return false;
+  }
+
+  const containerSpec = meta.containerSpec || null;
+  const inputs = meta.inputs || null;
+  const trainingJobDepaId = meta.depaId || null;
+  const contractId = plain.contractId;
+  const coreMetrics = {
+    accuracy: metrics?.accuracy,
+    loss: metrics?.loss,
+    epochsCompleted: metrics?.epochsCompleted,
+    artifactUri: metrics?.artifactUri || `file://${path.join(outDir, 'model.bin')}`,
+  };
+  const provBase = buildTrainingModelProvenance(inputs, coreMetrics);
+  const modelProvenance =
+    provBase && typeof provBase === 'object'
+      ? { ...provBase, trainingJobDepaId }
+      : trainingJobDepaId
+        ? { trainingJobDepaId }
+        : null;
+  const results = {
+    ...coreMetrics,
+    modelProvenance,
+  };
+  if (metrics?.privacyMetrics && typeof metrics.privacyMetrics === 'object') {
+    results.privacyMetrics = metrics.privacyMetrics;
+    results.privacyEnhancedTraining = Boolean(metrics.privacyEnhancedTraining);
+  }
+
+  const localMeta = { outDir, inputsDir, contractJsonPath, logFile, image };
+  const code = exitCode;
+
+  if (code === 0) {
+    await updateJob(jobId, {
+      status: 'COMPLETED',
+      completedAt: new Date(),
+      errorMessage: null,
+      metadata: {
+        executionMode: 'local-docker',
+        progress: 100,
+        containerSpec,
+        results,
+        phases: [
+          { name: 'PROVISIONING', at: new Date().toISOString() },
+          { name: 'RUNNING', at: new Date().toISOString() },
+          { name: 'COMPLETED', at: new Date().toISOString() },
+        ],
+        local: localMeta,
+      },
+    });
+
+    try {
+      const bundle = await buildJobTrainingProvenanceBundle(jobId);
+      fs.writeFileSync(
+        path.join(outDir, 'provenance-report.json'),
+        JSON.stringify(bundle, null, 2),
+        'utf8'
+      );
+    } catch (e) {
+      console.warn('⚠️ Failed to write provenance-report.json:', e.message);
+    }
+
+    try {
+      await writeLocalScittClaim({
+        contractId,
+        claimType: 'training_completed',
+        claimData: {
+          contractId,
+          contractDepaId: modelProvenance?.contractDepaId ?? null,
+          jobId,
+          trainingJobDepaId,
+          executionMode: 'local-docker',
+          modelProvenance,
+          artifactPath: path.join(outDir, 'model.bin'),
+          metricsPath,
+          timestamp: new Date().toISOString(),
+          source: 'localDockerTrainingRunner',
+          note:
+            'Raw metrics and artifact download are on TrainingJob.metadata.results; no duplicate results blob here.',
+        },
+        status: 'SUBMITTED',
+        stableDedupeKey: jobId,
+      });
+    } catch (_) {
+      // ignore
+    }
+    return true;
+  }
+
+  await updateJob(jobId, {
+    status: 'FAILED',
+    failedAt: new Date(),
+    errorMessage: `Local docker training exited with code ${code}`,
+    metadata: {
+      executionMode: 'local-docker',
+      progress: 0,
+      containerSpec,
+      results,
+      phases: [
+        { name: 'PROVISIONING', at: new Date().toISOString() },
+        { name: 'RUNNING', at: new Date().toISOString() },
+        { name: 'FAILED', at: new Date().toISOString() },
+      ],
+      local: localMeta,
+    },
+  });
+  return true;
+}
+
+/**
+ * If a RUNNING/PROVISIONING local-docker job already has metrics on disk, mark it complete.
+ * Safe to call from job list/get (idempotent).
+ */
+async function reconcileLocalDockerJobIfNeeded(jobOrPlain) {
+  const plain = jobOrPlain?.get ? jobOrPlain.get({ plain: true }) : jobOrPlain;
+  if (!plain?.jobId) return false;
+  if (!['PENDING', 'PROVISIONING', 'RUNNING'].includes(plain.status)) return false;
+  const meta = plain.metadata || {};
+  if (meta.executionMode && meta.executionMode !== 'local-docker') return false;
+  const { outDir } = localPathsForJob(plain.jobId, meta);
+  if (!fs.existsSync(path.join(outDir, 'metrics.json'))) return false;
+  return finalizeLocalDockerJobFromDisk(plain.jobId, { exitCode: 0 });
+}
+
 /**
  * Launch a local Docker container to execute training.
  *
@@ -190,150 +346,9 @@ async function runLocalDockerTraining({ jobId, contractId, containerSpec, traini
 
   child.on('close', async (code) => {
     try {
-      const metricsPath = path.join(outDir, 'metrics.json');
-      const metrics = safeReadJson(metricsPath) || {};
-
-      let inputs = null;
-      let trainingJobDepaId = null;
-      try {
-        const jrow = await db.TrainingJob.findOne({ where: { jobId } });
-        const plain = jrow?.get ? jrow.get({ plain: true }) : jrow;
-        inputs = plain?.metadata?.inputs || null;
-        trainingJobDepaId = plain?.metadata?.depaId || null;
-      } catch (_) {
-        // ignore
-      }
-      const coreMetrics = {
-        accuracy: metrics.accuracy,
-        loss: metrics.loss,
-        epochsCompleted: metrics.epochsCompleted,
-        artifactUri: metrics.artifactUri || `file://${path.join(outDir, 'model.bin')}`,
-      };
-      const provBase = buildTrainingModelProvenance(inputs, coreMetrics);
-      const modelProvenance =
-        provBase && typeof provBase === 'object'
-          ? { ...provBase, trainingJobDepaId }
-          : trainingJobDepaId
-            ? { trainingJobDepaId }
-            : null;
-      const results = {
-        ...coreMetrics,
-        modelProvenance,
-      };
-      if (metrics.privacyMetrics && typeof metrics.privacyMetrics === 'object') {
-        results.privacyMetrics = metrics.privacyMetrics;
-        results.privacyEnhancedTraining = Boolean(metrics.privacyEnhancedTraining);
-      }
-
-      if (code === 0) {
-        await updateJob(jobId, {
-          status: 'COMPLETED',
-          completedAt: new Date(),
-          errorMessage: null,
-          metadata: {
-            executionMode: 'local-docker',
-            progress: 100,
-            containerSpec,
-            results,
-            phases: [
-              { name: 'PROVISIONING', at: new Date().toISOString() },
-              { name: 'RUNNING', at: new Date().toISOString() },
-              { name: 'COMPLETED', at: new Date().toISOString() },
-            ],
-            local: { outDir, inputsDir, contractJsonPath, logFile, image },
-          },
-        });
-
-        try {
-          const bundle = await buildJobTrainingProvenanceBundle(jobId);
-          fs.writeFileSync(
-            path.join(outDir, 'provenance-report.json'),
-            JSON.stringify(bundle, null, 2),
-            'utf8'
-          );
-        } catch (e) {
-          console.warn('⚠️ Failed to write provenance-report.json:', e.message);
-        }
-
-        // Provenance claim (best-effort).
-        try {
-          await writeLocalScittClaim({
-            contractId,
-            claimType: 'training_completed',
-            claimData: {
-              contractId,
-              contractDepaId: modelProvenance?.contractDepaId ?? null,
-              jobId,
-              trainingJobDepaId,
-              executionMode: 'local-docker',
-              modelProvenance,
-              artifactPath: path.join(outDir, 'model.bin'),
-              metricsPath,
-              timestamp: new Date().toISOString(),
-              source: 'localDockerTrainingRunner',
-              note:
-                'Raw metrics and artifact download are on TrainingJob.metadata.results; no duplicate results blob here.',
-            },
-            status: 'SUBMITTED',
-            stableDedupeKey: jobId,
-          });
-        } catch (_) {
-          // ignore
-        }
-      } else {
-        await updateJob(jobId, {
-          status: 'FAILED',
-          failedAt: new Date(),
-          errorMessage: `Local docker training exited with code ${code}`,
-          metadata: {
-            executionMode: 'local-docker',
-            progress: 0,
-            containerSpec,
-            results,
-            phases: [
-              { name: 'PROVISIONING', at: new Date().toISOString() },
-              { name: 'RUNNING', at: new Date().toISOString() },
-              { name: 'FAILED', at: new Date().toISOString() },
-            ],
-            local: { outDir, inputsDir, contractJsonPath, logFile, image },
-          },
-        });
-
-        try {
-          const bundle = await buildJobTrainingProvenanceBundle(jobId);
-          fs.writeFileSync(
-            path.join(outDir, 'provenance-report.json'),
-            JSON.stringify(bundle, null, 2),
-            'utf8'
-          );
-        } catch (e) {
-          console.warn('⚠️ Failed to write provenance-report.json:', e.message);
-        }
-
-        try {
-          await writeLocalScittClaim({
-            contractId,
-            claimType: 'training_failed',
-            claimData: {
-              contractId,
-              contractDepaId: modelProvenance?.contractDepaId ?? null,
-              jobId,
-              trainingJobDepaId,
-              executionMode: 'local-docker',
-              exitCode: code,
-              modelProvenance,
-              logFile,
-              timestamp: new Date().toISOString(),
-              source: 'localDockerTrainingRunner',
-              note: 'Partial metrics (if any) are inside modelProvenance.trainingMetrics; TrainingJob row has full metadata.',
-            },
-            status: 'FAILED',
-            stableDedupeKey: jobId,
-          });
-        } catch (_) {
-          // ignore
-        }
-      }
+      await finalizeLocalDockerJobFromDisk(jobId, { exitCode: code == null ? 1 : code });
+    } catch (e) {
+      console.error(`❌ Failed to finalize local-docker job ${jobId}:`, e.message);
     } finally {
       try {
         logStream.end();
@@ -343,11 +358,31 @@ async function runLocalDockerTraining({ jobId, contractId, containerSpec, traini
     }
   });
 
+  child.on('error', async (err) => {
+    console.error(`❌ docker spawn failed for ${jobId}:`, err.message);
+    try {
+      await updateJob(jobId, {
+        status: 'FAILED',
+        failedAt: new Date(),
+        errorMessage: `Local docker spawn failed: ${err.message}`,
+        metadata: {
+          executionMode: 'local-docker',
+          progress: 0,
+          local: { runDir, outDir, inputsDir, contractJsonPath, logFile, image },
+        },
+      });
+    } catch (_) {
+      // ignore
+    }
+  });
+
   return { runDir, outDir, logFile, image };
 }
 
 module.exports = {
   runLocalDockerTraining,
   buildDockerRunArgs,
+  finalizeLocalDockerJobFromDisk,
+  reconcileLocalDockerJobIfNeeded,
 };
 
