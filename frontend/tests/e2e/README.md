@@ -64,13 +64,14 @@ npm run test:e2e:headed
 
 ### 6. NLP + differential privacy (opt-in)
 - **Files**: `nlp-dp-training-api.spec.js`, `nlp-dp-training-ui.spec.js`
-- **Helper**: `helpers/nlp-dp-training.js` — seeds `e2e-nlp-ag-news` + `e2e-model-nlp-distilbert` via global setup
+- **Helper**: `helpers/nlp-dp-training.js` — seeds `e2e-nlp-ag-news` + `e2e-model-nlp-distilbert` (+ quality `e2e-model-nlp-distilbert-quality`) via global setup
 - **Run** (requires `TRAINING_EXECUTION_MODE=local-docker`, `TRAINING_SIMULATION_MODE=false`, rebuilt `contractmanagement/local-trainer:latest` with Opacus):
   ```bash
   E2E_WAIT_FOR_LOCAL_TRAINING=true npm run test:e2e:nlp-dp
   ```
 - **API**: asserts `results.privacyMetrics` (ε, δ, `dp-sgd`) on completed job
 - **UI**: `/tdc/training` → **Watch** job → **Privacy metrics** panel (spent ε, target ε, δ)
+- **Quality vs fast**: NLP DP E2E stays on the **fast** tiny DistilBERT profile. Lifecycle guide defaults to **quality** (`distilbert-base-uncased`, `trainSubsetSize=2000`) so AG News inference labels are meaningful; override with `LIFECYCLE_DEMO_QUALITY=false`.
 
 ### 7. Inference deploy + predict (opt-in)
 - **Files**: `inference-deploy-api.spec.js`, `inference-deploy-ui.spec.js`
@@ -83,7 +84,7 @@ npm run test:e2e:headed
 - **UI**: Training **Deploy for inference** → **Open inference app** → **Run prediction**
 
 ### 8. Screenshot guides
-- **Lifecycle**: `npm run test:e2e:lifecycle-guide` → `docs/guides/lifecycle-user-guide/`
+- **Lifecycle**: `npm run test:e2e:lifecycle-guide` → `docs/guides/lifecycle-user-guide/` (quality DistilBERT + DP by default; `LIFECYCLE_DEMO_QUALITY=false` for tiny/fast)
 - **Multi-model** (one contract per catalog type; train tabular / text+DP / vision):  
   `npm run test:e2e:multi-model-guide` → `docs/guides/multi-model-user-guide/`
 - **Per-role**: `npm run test:e2e:user-guides` → `docs/guides/role-user-guides/`

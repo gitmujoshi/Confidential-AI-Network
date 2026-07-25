@@ -12,6 +12,15 @@ const USERS = {
 
 const NLP_DATASET_ID = 'e2e-nlp-ag-news';
 const NLP_MODEL_ID = 'e2e-model-nlp-distilbert';
+/** Quality demo catalog model — real DistilBERT (not tiny) for meaningful AG News labels. */
+const NLP_QUALITY_MODEL_ID = 'e2e-model-nlp-distilbert-quality';
+
+/** Lifecycle / showcase demos default to quality; set LIFECYCLE_DEMO_QUALITY=false for fast path. */
+function useNlpQualityDemo() {
+  const v = process.env.LIFECYCLE_DEMO_QUALITY;
+  if (v === 'false' || v === '0') return false;
+  return true;
+}
 
 async function login(email) {
   const res = await axios.post(`${BACKEND_URL}/api/auth/login`, { email, password: PASSWORD });
@@ -110,6 +119,7 @@ function buildNlpDpContractPayload({ aiModelIds, ccrpUserId }) {
       },
       framework: 'PyTorch',
       architecture: 'sshleifer/tiny-distilbert-base-cased',
+      demoProfile: 'fast',
       maxEpochs: 1,
       fastDevRun: true,
       batchSize: 16,
@@ -149,6 +159,75 @@ function buildNlpDpContractPayload({ aiModelIds, ccrpUserId }) {
     },
     containerImage: 'contractmanagement/local-trainer:latest',
     serviceAccount: 'local/e2e-nlp-dp',
+    logDestination: 'local:file',
+    ccrpId: ccrpUserId,
+    ccrpCloudProvider: 'Local',
+  };
+}
+
+/**
+ * Quality demo profile: real DistilBERT + larger AG News slice for stakeholder-facing labels.
+ * DP-SGD stays on the fast E2E path (`buildNlpDpContractPayload`); quality prioritizes
+ * prediction fidelity (Wall Street → Business) while still exercising the same train→infer pipeline.
+ */
+function buildNlpQualityContractPayload({ aiModelIds, ccrpUserId }) {
+  return {
+    datasetSelections: [{ datasetId: NLP_DATASET_ID, individualPrice: 100 }],
+    aiModelIds,
+    duration: 30,
+    termsAndConditions: `Quality NLP demo ${Date.now()}`,
+    contractType: 'AI_TRAINING',
+    privacyRequirements: { maxPrivacyLoss: 1.0, minAccuracy: 0.7, differentialPrivacy: false },
+    trainingParams: {
+      taskType: 'text',
+      privacyTechnique: 'none',
+      differentialPrivacy: {
+        enabled: false,
+      },
+      framework: 'PyTorch',
+      architecture: 'distilbert-base-uncased',
+      demoProfile: 'quality',
+      maxEpochs: 2,
+      fastDevRun: false,
+      trainSubsetSize: 2000,
+      testSubsetSize: 500,
+      batchSize: 16,
+      learningRate: 0.00005,
+      validationMetrics: ['accuracy', 'loss'],
+    },
+    environmentSpecs: {
+      compute: { cpuCores: 4, memoryGB: 8, gpuCount: 0 },
+      security: {
+        confidentialComputing: false,
+        attestationRequired: false,
+        encryptionAtRest: true,
+        encryptionInTransit: true,
+        networkIsolation: true,
+      },
+      kms: {
+        provider: 'hashicorp-vault',
+        keyId: 'e2e-nlp-quality-key',
+        algorithm: 'AES-256-GCM',
+        rotationPeriod: 90,
+      },
+      runtime: {
+        containerSpec: {
+          image: 'contractmanagement/local-trainer:latest',
+          command: 'python train.py',
+          cpuCores: 4,
+          memoryGB: 8,
+          gpuCount: 0,
+        },
+      },
+    },
+    kmsConfigs: {
+      provider: 'hashicorp-vault',
+      keyId: 'e2e-nlp-quality-key',
+      vaultUrl: 'http://localhost:8200',
+      metadata: { seededBy: 'playwright-nlp-quality' },
+    },
+    containerImage: 'contractmanagement/local-trainer:latest',
+    serviceAccount: 'local/e2e-nlp-quality',
     logDestination: 'local:file',
     ccrpId: ccrpUserId,
     ccrpCloudProvider: 'Local',
@@ -249,6 +328,48 @@ async function createSignedNlpDpContractAndTrain() {
   return { tdcToken, tdcUser, contractId, jobId, job: done };
 }
 
+/** Quality DistilBERT + DP train for stakeholder demos (longer than fast E2E). */
+async function createSignedNlpQualityContractAndTrain({ timeoutMs = 45 * 60 * 1000 } = {}) {
+  const [{ token: tdcToken, user: tdcUser }, { token: tdpToken }, { token: ccrpToken, user: ccrpUser }] =
+    await Promise.all([login(USERS.tdc.email), login(USERS.tdp.email), login(USERS.ccrp.email)]);
+
+  const modelNumericId = await resolveNumericModelId(tdcToken, NLP_QUALITY_MODEL_ID);
+  if (!modelNumericId) {
+    throw new Error(
+      `NLP quality model ${NLP_QUALITY_MODEL_ID} not found — run Playwright global-setup (seeds E2E NLP fixtures)`
+    );
+  }
+
+  const create = await axios.post(
+    `${BACKEND_URL}/api/contracts/ricardian`,
+    buildNlpQualityContractPayload({ aiModelIds: [modelNumericId], ccrpUserId: ccrpUser.id }),
+    { headers: { Authorization: `Bearer ${tdcToken}` } }
+  );
+  const contractId = create.data?.contract?.contractId;
+  if (!contractId) throw new Error('Quality contract creation did not return contractId');
+
+  await signContractAsParties({ contractId, tdpToken, ccrpToken, tdcToken });
+
+  const contractRes = await axios.get(`${BACKEND_URL}/api/contracts/${encodeURIComponent(contractId)}`, {
+    headers: { Authorization: `Bearer ${tdcToken}` },
+  });
+  const status = contractRes.data?.status || contractRes.data?.contract?.status;
+  if (status !== 'SIGNED') {
+    throw new Error(`Quality contract not SIGNED after CCRP sign (status: ${status ?? 'unknown'})`);
+  }
+
+  const start = await axios.post(
+    `${BACKEND_URL}/api/tdc/training/contracts/${encodeURIComponent(contractId)}/start`,
+    {},
+    { headers: { Authorization: `Bearer ${tdcToken}` } }
+  );
+  const jobId = start.data?.job?.jobId;
+  if (!jobId) throw new Error('Quality training start did not return jobId');
+
+  const done = await waitForJobToFinish({ contractId, jobId, token: tdcToken, timeoutMs });
+  return { tdcToken, tdcUser, contractId, jobId, job: done };
+}
+
 function assertPrivacyMetrics(metrics) {
   if (!metrics || typeof metrics !== 'object') {
     throw new Error('Expected privacyMetrics on completed job results');
@@ -275,14 +396,18 @@ module.exports = {
   USERS,
   NLP_DATASET_ID,
   NLP_MODEL_ID,
+  NLP_QUALITY_MODEL_ID,
+  useNlpQualityDemo,
   login,
   seedAuth,
   fetchTrainingEnv,
   getNlpDpSkipReason,
   assertLocalDockerMode,
   buildNlpDpContractPayload,
+  buildNlpQualityContractPayload,
   signContractAsParties,
   createSignedNlpDpContractAndTrain,
+  createSignedNlpQualityContractAndTrain,
   waitForJobToFinish,
   assertPrivacyMetrics,
   resolveNumericModelId,

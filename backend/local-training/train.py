@@ -652,6 +652,42 @@ def _resolve_dp_config(training_params: dict) -> Dict[str, Any]:
     }
 
 
+def _positive_int(value: Any, default: Optional[int] = None) -> Optional[int]:
+    if value is None:
+        return default
+    try:
+        n = int(value)
+    except (TypeError, ValueError):
+        return default
+    return n if n > 0 else default
+
+
+def _apply_text_subset(
+    train_ds,
+    test_ds,
+    *,
+    fast: bool,
+    train_subset_size: Optional[int],
+    test_subset_size: Optional[int],
+):
+    """Slice AG News (or other HF) splits for fast E2E vs quality demo profiles."""
+    if fast:
+        n_train = min(256, len(train_ds))
+        n_test = min(256, len(test_ds))
+        print(f"[trainer] fastDevRun subset train={n_train} test={n_test}", flush=True)
+        return train_ds.select(range(n_train)), test_ds.select(range(n_test))
+
+    if train_subset_size is not None:
+        n_train = min(int(train_subset_size), len(train_ds))
+        train_ds = train_ds.select(range(n_train))
+        print(f"[trainer] trainSubsetSize={n_train}", flush=True)
+    if test_subset_size is not None:
+        n_test = min(int(test_subset_size), len(test_ds))
+        test_ds = test_ds.select(range(n_test))
+        print(f"[trainer] testSubsetSize={n_test}", flush=True)
+    return train_ds, test_ds
+
+
 def train_text_hf(
     out_dir: Path,
     epochs: int,
@@ -659,6 +695,9 @@ def train_text_hf(
     model_name: str,
     dataset_spec: Optional[Dict[str, Any]] = None,
     dp_config: Optional[Dict[str, Any]] = None,
+    train_subset_size: Optional[int] = None,
+    test_subset_size: Optional[int] = None,
+    learning_rate: Optional[float] = None,
 ) -> TrainResult:
     import torch
     from transformers import AutoModelForSequenceClassification, AutoTokenizer
@@ -689,9 +728,13 @@ def train_text_hf(
     train_ds = ds[split_train]
     test_ds = ds[split_test]
 
-    if fast:
-        train_ds = train_ds.select(range(256))
-        test_ds = test_ds.select(range(256))
+    train_ds, test_ds = _apply_text_subset(
+        train_ds,
+        test_ds,
+        fast=fast,
+        train_subset_size=train_subset_size,
+        test_subset_size=test_subset_size,
+    )
 
     tok = AutoTokenizer.from_pretrained(hf_name)
     model = AutoModelForSequenceClassification.from_pretrained(
@@ -757,7 +800,9 @@ def train_text_hf(
             noise_multiplier = 1.0
 
     trainable = [p for p in model.parameters() if p.requires_grad]
-    opt = torch.optim.AdamW(trainable if dp_enabled else model.parameters(), lr=2e-4)
+    lr = float(learning_rate) if learning_rate and learning_rate > 0 else (2e-4 if dp_enabled else 5e-5)
+    opt = torch.optim.AdamW(trainable if dp_enabled else model.parameters(), lr=lr)
+    print(f"[trainer] text lr={lr} trainable_params={sum(p.numel() for p in (trainable if dp_enabled else model.parameters()))}", flush=True)
     if dp_enabled:
         from opacus import PrivacyEngine
 
@@ -813,6 +858,20 @@ def train_text_hf(
         {"state_dict": model.state_dict(), "model_name": hf_name, "task": repo_id},
         str(artifact_path),
     )
+
+    # Offline-friendly export so infer.py does not need Hugging Face Hub on predict.
+    try:
+        hf_export = out_dir / "hf_export"
+        hf_export.mkdir(parents=True, exist_ok=True)
+        # Unwrap Opacus GradSampleModule if present
+        to_save = model
+        if hasattr(model, "_module"):
+            to_save = model._module
+        to_save.save_pretrained(str(hf_export))
+        tok.save_pretrained(str(hf_export))
+        print(f"[trainer] wrote offline HF export to {hf_export}", flush=True)
+    except Exception as e:
+        print(f"[trainer] warning: hf_export save failed: {e}", file=sys.stderr, flush=True)
 
     extra: Dict[str, Any] = {
         "taskType": "text",
@@ -931,6 +990,24 @@ def main() -> int:
     elif task == "text":
         hf_name = _resolve_hf_model_name(tp, catalog_model)
         hf_dataset = _resolve_hf_dataset_spec(contract_inputs)
+        demo_profile = str(tp.get("demoProfile") or "").strip().lower()
+        train_subset = _positive_int(tp.get("trainSubsetSize"))
+        test_subset = _positive_int(tp.get("testSubsetSize"))
+        if demo_profile == "quality":
+            # Meaningful AG News demos: real DistilBERT head + larger slice than fastDevRun.
+            if train_subset is None:
+                train_subset = 2000
+            if test_subset is None:
+                test_subset = 500
+            print(
+                f"[trainer] demoProfile=quality "
+                f"trainSubsetSize={train_subset} testSubsetSize={test_subset}",
+                flush=True,
+            )
+        try:
+            learning_rate = float(tp.get("learningRate")) if tp.get("learningRate") is not None else None
+        except (TypeError, ValueError):
+            learning_rate = None
         res = train_text_hf(
             out_dir=out_dir,
             epochs=max_epochs,
@@ -938,6 +1015,9 @@ def main() -> int:
             model_name=hf_name,
             dataset_spec=hf_dataset,
             dp_config=dp_config if dp_config.get("enabled") else None,
+            train_subset_size=train_subset,
+            test_subset_size=test_subset,
+            learning_rate=learning_rate,
         )
     else:
         res = train_tabular_iris(

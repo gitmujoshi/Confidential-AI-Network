@@ -25,9 +25,19 @@ This document describes the **TDC (Training Data Consumer)** training flow imple
 | `HUGGINGFACE_INTEGRATION_ENABLED` | Dev/test only. Enables `/api/dev/huggingface` Hub validation routes (not production by default). See [HUGGINGFACE.md](../integrations/HUGGINGFACE.md). |
 | `BACKEND_URL` / `BACKEND_PORT` | API base URL for Node-side calls and Playwright global setup. |
 
-| `TRAINER_DEVICE` | Optional (`train.py`). `auto` \| `mps` \| `cpu` \| `cuda`. Native Mac default: MPS when available; CPU for Opacus DP-SGD unless `TRAINER_DP_ON_MPS=true`. |
+| `INFERENCE_TIMEOUT_MS` | Optional. Docker/host infer timeout (default **600000** / 10 min — DistilBERT quality cold start + Hub download). |
+| `HF_HOME` / `HUGGINGFACE_HUB_CACHE` | Optional. Host cache mounted into trainer/infer containers so Hub models are not re-downloaded every run. |
 
 **Differential privacy (NLP):** when `contract.trainingParams.differentialPrivacy.enabled` is true and the job runs the **text** trainer (`ag_news` + DistilBERT demo), `train.py` applies **Opacus DP-SGD**. Docker: rebuild `contractmanagement/local-trainer:latest`. Native Mac: `scripts/setup-native-venv.sh`. Completed jobs surface `results.privacyMetrics` (ε, δ, mechanism) on `TrainingJob.metadata`.
+
+**Demo profiles (text / AG News):**
+
+| Profile | When | Model | Subset / epochs | Purpose |
+|---------|------|-------|-----------------|---------|
+| **fast** (`demoProfile: fast`, `fastDevRun: true`) | NLP DP E2E, CI | `sshleifer/tiny-distilbert-base-cased` | 256 samples, 1 epoch | Pipeline smoke (labels may be weak) |
+| **quality** (`demoProfile: quality`) | Lifecycle guide / stakeholder demos | `distilbert-base-uncased` | `trainSubsetSize=2000`, 2 epochs, full fine-tune (DP off for label fidelity) | Meaningful topic labels (e.g. Wall Street → **Business**) |
+
+Lifecycle screenshot tour defaults to **quality**; set `LIFECYCLE_DEMO_QUALITY=false` for the fast path.
 
 After pulling changes that add `training_jobs.metadata`, ensure the column exists:
 

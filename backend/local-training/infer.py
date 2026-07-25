@@ -74,20 +74,30 @@ def infer_text(artifact: Path, payload: Dict[str, Any]) -> Dict[str, Any]:
 
     num_labels = 4
     for key, tensor in clean_state.items():
-        if str(key).endswith("classifier.weight") or str(key).endswith("classifier.out_proj.weight"):
+        key_s = str(key)
+        if key_s == "classifier.weight" or key_s.endswith(".classifier.weight"):
             try:
                 num_labels = int(tensor.shape[0])
             except Exception:
                 num_labels = 4
             break
 
-    tokenizer = AutoTokenizer.from_pretrained(model_name)
-    model = AutoModelForSequenceClassification.from_pretrained(
-        model_name,
-        num_labels=num_labels,
-        ignore_mismatched_sizes=True,
-    )
-    missing, unexpected = model.load_state_dict(clean_state, strict=False)
+    # Prefer training-time offline export (no Hub) when present beside model.bin.
+    hf_export = artifact.parent / "hf_export"
+    if hf_export.is_dir() and (hf_export / "config.json").exists():
+        tokenizer = AutoTokenizer.from_pretrained(str(hf_export))
+        model = AutoModelForSequenceClassification.from_pretrained(str(hf_export))
+        missing, unexpected = [], []
+        # Weights already in export; still overlay model.bin state for safety.
+        missing, unexpected = model.load_state_dict(clean_state, strict=False)
+    else:
+        tokenizer = AutoTokenizer.from_pretrained(model_name)
+        model = AutoModelForSequenceClassification.from_pretrained(
+            model_name,
+            num_labels=num_labels,
+            ignore_mismatched_sizes=True,
+        )
+        missing, unexpected = model.load_state_dict(clean_state, strict=False)
     model.eval()
 
     enc = tokenizer(text, return_tensors="pt", truncation=True, max_length=128, padding=True)

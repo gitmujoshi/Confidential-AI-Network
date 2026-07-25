@@ -170,6 +170,7 @@ async function cleanupDatabase() {
            'e2e-model-1',
            'MODEL-E2E-001',
            'e2e-model-nlp-distilbert',
+           'e2e-model-nlp-distilbert-quality',
            'e2e-model-rnn-lstm',
            'e2e-model-gan-demo'
          )

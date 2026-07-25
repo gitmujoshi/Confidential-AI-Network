@@ -222,6 +222,30 @@ class E2ETestDataManager {
         seededBy: 'playwright',
         modalityHint: 'text',
         huggingfaceModel: 'sshleifer/tiny-distilbert-base-cased',
+        demoProfile: 'fast',
+      },
+    });
+
+    // Quality demo: real DistilBERT for meaningful AG News inference (lifecycle / showcase).
+    await ensureAiModelExists(backendURL, adminToken, {
+      modelId: 'e2e-model-nlp-distilbert-quality',
+      name: 'E2E DistilBERT Quality',
+      description:
+        'Seeded quality NLP model for stakeholder demos — DistilBERT full fine-tune on AG News (meaningful inference labels)',
+      type: 'transformer',
+      architecture: 'distilbert-base-uncased',
+      parameters: '66M',
+      framework: 'PyTorch',
+      privacyTechnique: 'none',
+      validationMetrics: ['accuracy', 'loss'],
+      maxEpochs: 2,
+      batchSize: 16,
+      learningRate: 0.00005,
+      metadata: {
+        seededBy: 'playwright',
+        modalityHint: 'text',
+        huggingfaceModel: 'distilbert-base-uncased',
+        demoProfile: 'quality',
       },
     });
 
@@ -318,7 +342,7 @@ class E2ETestDataManager {
         console.warn('⚠️ E2E NLP dataset reconcile failed:', err.response?.status || err.message);
       }
     }
-    console.log('✅ E2E NLP DP fixtures (e2e-nlp-ag-news, e2e-model-nlp-distilbert)');
+    console.log('✅ E2E NLP DP fixtures (e2e-nlp-ag-news, e2e-model-nlp-distilbert, e2e-model-nlp-distilbert-quality)');
 
     // Vision dataset for CNN / CIFAR local-docker multi-model track
     const visionDatasetId = 'e2e-vision-cifar';

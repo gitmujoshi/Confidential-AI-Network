@@ -1,4 +1,5 @@
 const fs = require('fs');
+const os = require('os');
 const path = require('path');
 const { spawn } = require('child_process');
 
@@ -27,6 +28,20 @@ function safeReadJson(filePath) {
   } catch (_) {
     return null;
   }
+}
+
+/** Persist Hugging Face downloads on the host across ephemeral trainer containers. */
+function appendHfCacheDockerArgs(args) {
+  const hostCache =
+    process.env.HF_HOME ||
+    process.env.HUGGINGFACE_HUB_CACHE ||
+    path.join(os.homedir(), '.cache', 'huggingface');
+  try {
+    fs.mkdirSync(hostCache, { recursive: true });
+  } catch (_) {
+    // best-effort
+  }
+  args.push('-e', 'HF_HOME=/hf-cache', '-e', 'TRANSFORMERS_CACHE=/hf-cache', '-v', `${hostCache}:/hf-cache`);
 }
 
 /**
@@ -76,6 +91,7 @@ function buildDockerRunArgs({ jobId, contractId, maxEpochs, image, outDir, input
     args.push('-e', 'DP_ENABLED=0');
   }
 
+  appendHfCacheDockerArgs(args);
   args.push('-v', `${outDir}:/outputs`, '-v', `${inputsDir}:/inputs:ro`, image);
   return args;
 }

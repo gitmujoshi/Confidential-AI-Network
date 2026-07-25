@@ -7,6 +7,7 @@
  */
 const { spawn } = require('child_process');
 const fs = require('fs');
+const os = require('os');
 const path = require('path');
 const db = require('../models');
 
@@ -20,6 +21,25 @@ function trainerImage() {
 
 function inferenceMode() {
   return String(process.env.INFERENCE_EXECUTION_MODE || 'docker').toLowerCase();
+}
+
+/** Host HF cache so DistilBERT-quality cold starts do not re-download every container. */
+function hostHfCacheDir() {
+  const preferred =
+    process.env.HF_HOME ||
+    process.env.HUGGINGFACE_HUB_CACHE ||
+    path.join(os.homedir(), '.cache', 'huggingface');
+  try {
+    fs.mkdirSync(preferred, { recursive: true });
+  } catch (_) {
+    // best-effort
+  }
+  return preferred;
+}
+
+function appendHfCacheDockerArgs(args) {
+  const hostCache = hostHfCacheDir();
+  args.push('-e', 'HF_HOME=/hf-cache', '-e', 'TRANSFORMERS_CACHE=/hf-cache', '-v', `${hostCache}:/hf-cache`);
 }
 
 function resolveTaskType(model, jobMeta = {}) {
@@ -118,7 +138,7 @@ function runCommand(cmd, args, opts = {}) {
 async function runInfer({ artifactPath, taskType, input }) {
   const inputJson = JSON.stringify(input || {});
   const mode = inferenceMode();
-  const timeoutMs = Number(process.env.INFERENCE_TIMEOUT_MS || 180000);
+  const timeoutMs = Number(process.env.INFERENCE_TIMEOUT_MS || 600000);
 
   const runWithTimeout = async (fn) => {
     let timer;
@@ -143,26 +163,28 @@ async function runInfer({ artifactPath, taskType, input }) {
     return parseInferResult(result);
   }
 
-  // Docker: mount artifact directory read-only
+  // Docker: mount artifact directory read-only + HF cache for transformer bases
   const outDir = path.dirname(artifactPath);
   const image = trainerImage();
-  const result = await runWithTimeout(() =>
-    runCommand('docker', [
-      'run',
-      '--rm',
-      '-v',
-      `${outDir}:/model:ro`,
-      image,
-      'python',
-      '/app/infer.py',
-      '--artifact',
-      '/model/model.bin',
-      '--task',
-      taskType,
-      '--input',
-      inputJson,
-    ])
+  const dockerArgs = [
+    'run',
+    '--rm',
+    '-v',
+    `${outDir}:/model:ro`,
+  ];
+  appendHfCacheDockerArgs(dockerArgs);
+  dockerArgs.push(
+    image,
+    'python',
+    '/app/infer.py',
+    '--artifact',
+    '/model/model.bin',
+    '--task',
+    taskType,
+    '--input',
+    inputJson
   );
+  const result = await runWithTimeout(() => runCommand('docker', dockerArgs));
   return parseInferResult(result);
 }
 

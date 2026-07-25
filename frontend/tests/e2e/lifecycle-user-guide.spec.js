@@ -16,12 +16,19 @@ const {
   completeFirstLoginPasswordViaAPI,
   ensureTspLocalProvider,
   loginViaAPI,
+  seedSession,
   writeGuide,
 } = require('./helpers/lifecycle-user-guide');
-const { NLP_MODEL_ID, buildNlpDpContractPayload } = require('./helpers/nlp-dp-training');
+const {
+  NLP_MODEL_ID,
+  NLP_QUALITY_MODEL_ID,
+  useNlpQualityDemo,
+  buildNlpDpContractPayload,
+  buildNlpQualityContractPayload,
+} = require('./helpers/nlp-dp-training');
 
 test.describe('Lifecycle user guide (screenshot tour)', () => {
-  test.describe.configure({ mode: 'serial' });
+  test.describe.configure({ mode: 'serial', timeout: 60 * 60 * 1000 });
 
   test.beforeEach(async ({ page }, testInfo) => {
     test.skip(testInfo.project.name !== 'chromium', 'Lifecycle guide captured on Desktop Chromium only');
@@ -29,7 +36,13 @@ test.describe('Lifecycle user guide (screenshot tour)', () => {
   });
 
   test('Onboard → create → sign → train → provenance → inference', async ({ page }) => {
-    test.setTimeout(20 * 60 * 1000);
+    const qualityDemo = useNlpQualityDemo();
+    // Quality DistilBERT on CPU Docker can take 20–40+ minutes; plus onboard/sign/infer.
+    test.setTimeout((qualityDemo ? 60 : 20) * 60 * 1000);
+    const catalogModelId = qualityDemo ? NLP_QUALITY_MODEL_ID : NLP_MODEL_ID;
+    const modelOptionRe = qualityDemo
+      ? /DistilBERT Quality|E2E DistilBERT Quality|distilbert-base/i
+      : /Tiny DistilBERT|DistilBERT|NLP DP/i;
     const steps = [];
     const ts = Date.now();
     const tdcEmail = `lifecycle.tdc.${ts}@test.com`;
@@ -236,8 +249,8 @@ test.describe('Lifecycle user guide (screenshot tour)', () => {
     const aiModelsCombo = page.getByRole('combobox', { name: /AI Models/i });
     if (await aiModelsCombo.isVisible().catch(() => false)) {
       await aiModelsCombo.click();
-      const distilbert = page.getByRole('option', { name: /Tiny DistilBERT|DistilBERT|NLP DP/i });
-      if (await distilbert.isVisible().catch(() => false)) await distilbert.click();
+      const distilbert = page.getByRole('option', { name: modelOptionRe });
+      if (await distilbert.first().isVisible().catch(() => false)) await distilbert.first().click();
       else await page.getByRole('option').first().click();
     }
 
@@ -249,7 +262,9 @@ test.describe('Lifecycle user guide (screenshot tour)', () => {
     const terms = page.getByLabel(/Terms and Conditions/i).first();
     if (await terms.isVisible().catch(() => false)) {
       await terms.fill(
-        'Lifecycle NLP DP contract: PyTorch Tiny DistilBERT with DP-SGD (epsilon 0.5, delta 1e-5).'
+        qualityDemo
+          ? 'Lifecycle NLP quality demo: PyTorch DistilBERT (AG News), meaningful inference labels.'
+          : 'Lifecycle NLP DP contract: PyTorch Tiny DistilBERT with DP-SGD (epsilon 0.5, delta 1e-5).'
       );
     }
     const price = page.getByLabel(/Price/i).first();
@@ -258,8 +273,12 @@ test.describe('Lifecycle user guide (screenshot tour)', () => {
     steps.push({
       title: 'TDC creates contract — NLP model & dataset',
       body: [
-        'The TDC selects the TDP **AG News** NLP dataset and the catalog model **Tiny DistilBERT (NLP DP)**.',
-        'Contract terms reference **PyTorch** training with **differential privacy (DP-SGD)**.',
+        qualityDemo
+          ? 'The TDC selects the TDP **AG News** NLP dataset and the catalog model **DistilBERT Quality**.'
+          : 'The TDC selects the TDP **AG News** NLP dataset and the catalog model **Tiny DistilBERT (NLP DP)**.',
+        qualityDemo
+          ? 'Contract terms reference **PyTorch** / **DistilBERT** training for meaningful AG News inference labels.'
+          : 'Contract terms reference **PyTorch** training with **differential privacy (DP-SGD)**.',
       ].join('\n'),
       ...(await captureShot(page, '08-tdc-create-details.png')),
     });
@@ -297,23 +316,27 @@ test.describe('Lifecycle user guide (screenshot tour)', () => {
       (Array.isArray(list) &&
         list.find(
           (m) =>
-            m.modelId === NLP_MODEL_ID ||
-            /distilbert|nlp dp/i.test(`${m.modelId || ''} ${m.name || ''}`)
+            m.modelId === catalogModelId ||
+            (qualityDemo
+              ? /distilbert-quality|quality \(nlp dp\)/i.test(`${m.modelId || ''} ${m.name || ''}`)
+              : /tiny-distilbert|tiny distilbert/i.test(`${m.modelId || ''} ${m.name || ''}`))
         )) ||
       null;
     if (!model?.id) {
       throw new Error(
-        `NLP DistilBERT model ${NLP_MODEL_ID} not found — run Playwright global-setup catalog seed`
+        `NLP DistilBERT model ${catalogModelId} not found — run Playwright global-setup catalog seed`
       );
     }
 
-    // Well-known PyTorch + Tiny DistilBERT + DP-SGD parameters (same shape as NLP DP E2E).
-    const payload = buildNlpDpContractPayload({
+    // Quality demo = meaningful AG News labels; fast = tiny DistilBERT E2E profile.
+    const payload = (qualityDemo ? buildNlpQualityContractPayload : buildNlpDpContractPayload)({
       aiModelIds: [model.id],
       ccrpUserId: tspUser.id,
     });
     payload.datasetSelections = [{ datasetId, individualPrice: 100 }];
-    payload.termsAndConditions = `Lifecycle NLP DP contract ${ts}: PyTorch Tiny DistilBERT, DP-SGD ε=0.5 δ=1e-5`;
+    payload.termsAndConditions = qualityDemo
+      ? `Lifecycle NLP quality ${ts}: PyTorch DistilBERT AG News (demoProfile=quality)`
+      : `Lifecycle NLP DP contract ${ts}: PyTorch Tiny DistilBERT, DP-SGD ε=0.5 δ=1e-5`;
     payload.kmsConfigs = {
       ...payload.kmsConfigs,
       keyId: 'lifecycle-nlp-dp-key',
@@ -413,8 +436,8 @@ test.describe('Lifecycle user guide (screenshot tour)', () => {
     const jobId = start.data?.job?.jobId;
     expect(jobId).toBeTruthy();
 
-    // Wait for completion (includes disk reconcile if needed).
-    const deadline = Date.now() + 8 * 60 * 1000;
+    // Wait for completion (quality DistilBERT can take 20–40+ min on CPU Docker).
+    const deadline = Date.now() + (qualityDemo ? 45 : 8) * 60 * 1000;
     let jobStatus = 'RUNNING';
     while (Date.now() < deadline) {
       const jobsRes = await axios.get(
@@ -424,11 +447,22 @@ test.describe('Lifecycle user guide (screenshot tour)', () => {
       const job = (jobsRes.data?.jobs || []).find((j) => j.jobId === jobId);
       jobStatus = job?.status || jobStatus;
       if (['COMPLETED', 'FAILED', 'CANCELLED', 'STALLED'].includes(jobStatus)) break;
-      await page.waitForTimeout(2500);
+      // Prefer Node sleep so a CRA crash mid-train does not abort the wait loop.
+      await new Promise((r) => setTimeout(r, 5000));
     }
     expect(jobStatus).toBe('COMPLETED');
 
-    await page.reload();
+    // Long quality trains can outlive the CRA process / auth cookie — re-seed session then open Training.
+    await seedSession(page, { email: tdcEmail });
+    for (let attempt = 0; attempt < 8; attempt += 1) {
+      try {
+        await page.goto('/tdc/training', { waitUntil: 'domcontentloaded', timeout: 60000 });
+        break;
+      } catch (e) {
+        if (attempt === 7) throw e;
+        await page.waitForTimeout(3000);
+      }
+    }
     await expect(page.getByText(contractId, { exact: false }).first()).toBeVisible({ timeout: 60000 });
     const card = page.locator('.MuiCard-root').filter({ hasText: contractId }).first();
     await card.getByRole('button', { name: /View details/i }).first().click();
@@ -438,10 +472,12 @@ test.describe('Lifecycle user guide (screenshot tour)', () => {
       timeout: 30000,
     }).catch(() => {});
     steps.push({
-      title: 'Training completed (PyTorch + DP-SGD)',
+      title: qualityDemo ? 'Training completed (PyTorch DistilBERT)' : 'Training completed (PyTorch + DP-SGD)',
       body: [
         'When the local trainer finishes, the job status is **COMPLETED**.',
-        'For this tour the run uses **PyTorch** / **Tiny DistilBERT** with **differential privacy (DP-SGD)** metrics when available.',
+        qualityDemo
+          ? 'This tour uses the **quality** profile: **PyTorch** / **DistilBERT** on AG News so inference labels are meaningful for stakeholders.'
+          : 'For this tour the run uses **PyTorch** / **Tiny DistilBERT** with **differential privacy (DP-SGD)** metrics when available.',
       ].join('\n'),
       ...(await captureShot(page, '17-tdc-training-completed.png')),
     });
@@ -519,17 +555,22 @@ test.describe('Lifecycle user guide (screenshot tour)', () => {
     });
 
     await page.getByRole('button', { name: /Run prediction/i }).click();
-    // Text DistilBERT cold start in Docker can take ~15–60s.
+    // Text DistilBERT cold start in Docker can take ~15–60s (quality model longer).
     await expect(page.getByText(/Label:/i).or(page.getByText(/setosa|World|Sports|Business|Sci\/Tech/i)).first()).toBeVisible({
       timeout: 300000,
     });
-    // Prefer the result card heading area
     await expect(page.getByText(/Label:/i)).toBeVisible({ timeout: 30000 });
+    if (qualityDemo) {
+      // Quality profile should classify the default Wall Street headline as Business.
+      await expect(page.getByText(/Label:\s*Business/i)).toBeVisible({ timeout: 30000 });
+    }
     steps.push({
       title: 'Inference app — prediction result',
       body: [
         '**Run prediction** calls the local inferencer (`infer.py` via Docker) against the trained DistilBERT artifact.',
-        'The result shows the predicted AG News class label (World / Sports / Business / Sci/Tech) and probabilities.',
+        qualityDemo
+          ? 'With the **quality** profile, the default Wall Street headline predicts **Business** (AG News: World / Sports / Business / Sci/Tech).'
+          : 'The result shows the predicted AG News class label (World / Sports / Business / Sci/Tech) and probabilities.',
       ].join('\n'),
       ...(await captureShot(page, '24-tdc-inference-predict.png')),
     });

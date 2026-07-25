@@ -118,12 +118,35 @@ async function logoutViaUI(page) {
 }
 
 async function loginViaUI(page, { email, password = PASSWORD }) {
-  await page.goto('/login');
-  await expect(page.getByLabel(/email address/i)).toBeVisible();
+  await page.goto('/login', { waitUntil: 'domcontentloaded', timeout: 60000 });
+  await expect(page.getByLabel(/email address/i)).toBeVisible({ timeout: 60000 });
   await page.getByLabel(/email address/i).fill(email);
   await page.getByRole('textbox', { name: 'Password', exact: true }).fill(password);
   await page.getByRole('button', { name: /sign in/i }).click();
   await expect(page).toHaveURL(/\/dashboard$/, { timeout: 90_000 });
+}
+
+/** Seed browser auth from API tokens (resilient after long waits / FE restarts). */
+async function seedSession(page, { email, password = PASSWORD }) {
+  const { token, user } = await loginViaAPI({ email, password });
+  await page.addInitScript(
+    ({ t, u }) => {
+      localStorage.setItem('authToken', t);
+      localStorage.setItem('user', JSON.stringify(u));
+      localStorage.setItem('currentUser', JSON.stringify(u));
+    },
+    { t: token, u: user }
+  );
+  await page.goto('/dashboard', { waitUntil: 'domcontentloaded', timeout: 60000 });
+  await page.evaluate(
+    ({ t, u }) => {
+      localStorage.setItem('authToken', t);
+      localStorage.setItem('user', JSON.stringify(u));
+      localStorage.setItem('currentUser', JSON.stringify(u));
+    },
+    { t: token, u: user }
+  );
+  return { token, user };
 }
 
 function buildMarkdown({ steps, generatedAt }) {
@@ -137,7 +160,7 @@ function buildMarkdown({ steps, generatedAt }) {
     '',
     '1. **Enterprise-register** **TDC**, **TDP**, and **TSP/CCRP** (User Type = Enterprise + organization)',
     '2. TDP publishes an NLP dataset (Hugging Face `ag_news` reference)',
-    '3. TDC creates a Ricardian contract with **PyTorch** / **Tiny DistilBERT** and **differential privacy (DP-SGD)**',
+    '3. TDC creates a Ricardian contract with **PyTorch** / **DistilBERT** (quality demo profile for meaningful AG News labels)',
     '4. TDP and TSP are notified, review, and sign',
     '5. TDC views the **SIGNED** contract, runs local-docker training, and inspects **logs** + **provenance**',
     '6. TDC **registers** the trained model, **deploys** it for local inference, and runs a **prediction** in the Inference app',
@@ -155,14 +178,16 @@ function buildMarkdown({ steps, generatedAt }) {
     '',
     '| Field | Value |',
     '|---|---|',
-    '| Task / modality | Text classification (`taskType: text`) |',
-    '| Model | `E2E Tiny DistilBERT (NLP DP)` (`e2e-model-nlp-distilbert`) |',
-    '| Architecture | `sshleifer/tiny-distilbert-base-cased` |',
+    '| Task / modality | Text classification (`taskType: text`) — AG News topics |',
+    '| Demo profile | **quality** (meaningful labels; use `LIFECYCLE_DEMO_QUALITY=false` for tiny/fast E2E) |',
+    '| Model | `E2E DistilBERT Quality` (`e2e-model-nlp-distilbert-quality`) |',
+    '| Architecture | `distilbert-base-uncased` |',
     '| Framework | PyTorch |',
-    '| Privacy | Differential privacy — DP-SGD (`ε=0.5`, `δ=1e-5`, `maxGradNorm=1.0`) |',
-    '| Hyperparameters | `maxEpochs=1`, `batchSize=16`, `learningRate=2e-4`, `fastDevRun=true` |',
+    '| Privacy | Optional on quality path (DP-SGD remains on fast NLP E2E: tiny DistilBERT, `ε=0.5`) |',
+    '| Hyperparameters | `maxEpochs=2`, `batchSize=16`, `learningRate=5e-5`, `fastDevRun=false`, `trainSubsetSize=2000` |',
     '| Dataset | Lifecycle TDP NLP catalog row with Hugging Face `ag_news` reference |',
     '| After train | Register → Deploy → Predict (local `infer.py` / Inference app) |',
+    '| Expected demo prediction | Headline about Wall Street → **Business** |',
     '',
     '## Happy path',
     '',
@@ -190,6 +215,9 @@ function buildMarkdown({ steps, generatedAt }) {
     '# Stack must be up: backend :5001, frontend :3000, Keycloak, Docker trainer image (with infer.py)',
     'cd frontend',
     'BACKEND_URL=http://127.0.0.1:5001 npm run test:e2e:lifecycle-guide',
+    '',
+    '# Fast path (tiny DistilBERT + fastDevRun) instead of quality demo:',
+    '# LIFECYCLE_DEMO_QUALITY=false BACKEND_URL=http://127.0.0.1:5001 npm run test:e2e:lifecycle-guide',
     '```',
     '',
     'Optional cleanup afterward (keeps seed users/catalog): `npm run cleanup:e2e-data` from repo root.',
@@ -217,6 +245,7 @@ module.exports = {
   settle,
   loginViaAPI,
   loginViaUI,
+  seedSession,
   logoutViaUI,
   completeFirstLoginPasswordViaAPI,
   ensureTspLocalProvider,
