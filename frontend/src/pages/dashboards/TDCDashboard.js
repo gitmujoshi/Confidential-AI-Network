@@ -33,10 +33,22 @@ import {
 } from '@mui/icons-material';
 import { useUser } from '../../contexts/UserContext';
 import { apiService } from '../../services/api';
+import { formatDeploymentCurrency } from '../../utils/deploymentCurrency';
 
 const TDCDashboard = () => {
   const navigate = useNavigate();
   const { currentUser: user, isInitializing } = useUser();
+
+  // Deployment currency from DEPA config (`DEPLOYMENT_CURRENCY` on the backend).
+  const { data: depaConfig } = useQuery(
+    ['depaConfiguration'],
+    async () => {
+      const res = await apiService.getDEPAConfiguration();
+      return res?.config || res?.data?.config || null;
+    },
+    { staleTime: 5 * 60 * 1000, retry: 1 }
+  );
+  const deploymentCurrency = depaConfig?.currency || 'USD';
 
   // Fetch TDC dashboard data
   const { data: dashboardData, isLoading, error } = useQuery(
@@ -104,12 +116,7 @@ const TDCDashboard = () => {
     }
   };
 
-  const formatCurrency = (amount) => {
-    return new Intl.NumberFormat('en-IN', {
-      style: 'currency',
-      currency: 'INR'
-    }).format(amount);
-  };
+  const formatCurrency = (amount) => formatDeploymentCurrency(amount, deploymentCurrency);
 
   // Show loading state when user is initializing or data is loading
   if (isInitializing || isLoading) {

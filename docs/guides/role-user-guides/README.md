@@ -1,6 +1,6 @@
 # Role user guides (screenshot tours)
 
-Auto-generated on **2026-07-23** by `npm run test:e2e:user-guides`.
+Auto-generated on **2026-07-25** by `npm run test:e2e:user-guides`.
 
 Each guide walks through the primary screens for one party type, with screenshots captured from a live local stack (Chromium desktop).
 
@@ -20,8 +20,5 @@ npm run test:e2e:user-guides
 ```
 
 Screenshots land in `screenshots/<role>/`. Markdown files in this folder are overwritten on each run.
-
-Also see the cross-role screenshot tour: [Lifecycle user guide](../lifecycle-user-guide/LIFECYCLE_USER_GUIDE.md) (`npm run test:e2e:lifecycle-guide`),
-and [Multi-model training guide](../multi-model-user-guide/MULTI_MODEL_USER_GUIDE.md) (`npm run test:e2e:multi-model-guide`).
 
 ← [Guides index](../README.md)
