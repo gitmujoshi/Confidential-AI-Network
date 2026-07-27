@@ -5,9 +5,17 @@ terraform {
       source  = "hashicorp/azurerm"
       version = "~> 3.90"
     }
+    azuread = {
+      source  = "hashicorp/azuread"
+      version = "~> 2.47"
+    }
     kubernetes = {
       source  = "hashicorp/kubernetes"
       version = "~> 2.0"
+    }
+    random = {
+      source  = "hashicorp/random"
+      version = "~> 3.5"
     }
   }
 }
@@ -24,6 +32,10 @@ provider "azurerm" {
 
   subscription_id = var.subscription_id
   tenant_id       = var.tenant_id
+}
+
+provider "azuread" {
+  tenant_id = var.tenant_id
 }
 
 provider "kubernetes" {
@@ -94,22 +106,55 @@ module "load_balancer" {
   project_tags        = local.resource_tags
 }
 
+# Microsoft Entra ID (sole IdP on Azure — no Keycloak)
+module "identity" {
+  source = "./modules/identity"
+
+  tenant_id   = var.tenant_id
+  environment = var.environment
+  app_domain  = var.app_domain
+
+  create_apps              = var.create_entra_apps
+  create_api_client_secret = var.create_entra_api_client_secret
+  grant_admin_consent      = var.entra_grant_admin_consent
+
+  redirect_uri             = var.entra_redirect_uri
+  post_logout_redirect_uri = var.entra_post_logout_redirect_uri
+  api_audience             = var.entra_api_audience
+  owners                   = var.entra_app_owners
+
+  existing_client_id     = var.entra_client_id
+  existing_api_client_id = var.entra_api_client_id
+  existing_api_audience  = var.entra_api_audience
+  existing_client_secret = var.entra_client_secret
+}
+
 module "kubernetes_resources" {
   source = "./modules/kubernetes_resources"
 
-  depends_on = [module.aks]
+  depends_on = [module.aks, module.identity]
 
-  db_host                 = module.database.db_host
-  db_port                 = module.database.db_port
-  db_name                 = module.database.db_name
-  db_user                 = module.database.db_user
-  db_password             = var.db_password
-  lb_ip                   = module.load_balancer.public_ip_address
-  registry_url            = module.container_registry.registry_url
-  image_tag               = local.effective_image_tag
-  release_version         = var.release_version
-  app_domain              = var.app_domain
-  environment             = var.environment
-  keycloak_admin_username = var.keycloak_admin_username
-  keycloak_admin_password = var.keycloak_admin_password
+  db_host         = module.database.db_host
+  db_port         = module.database.db_port
+  db_name         = module.database.db_name
+  db_user         = module.database.db_user
+  db_password     = var.db_password
+  lb_ip           = module.load_balancer.public_ip_address
+  registry_url    = module.container_registry.registry_url
+  image_tag       = local.effective_image_tag
+  release_version = var.release_version
+  app_domain      = var.app_domain
+  environment     = var.environment
+
+  entra_tenant_id     = var.tenant_id
+  entra_client_id     = local.effective_entra_client_id
+  entra_api_client_id = local.effective_entra_api_client_id
+  entra_client_secret = local.effective_entra_client_secret
+  entra_authority     = local.effective_entra_authority
+  entra_issuer        = local.effective_entra_issuer
+  entra_api_audience  = local.effective_entra_api_audience
+  entra_api_scope     = local.effective_entra_api_scope
+  entra_jwks_url      = var.entra_jwks_url
+  entra_role_claim    = var.entra_role_claim
+  entra_redirect_uri  = local.effective_entra_redirect_uri
 }

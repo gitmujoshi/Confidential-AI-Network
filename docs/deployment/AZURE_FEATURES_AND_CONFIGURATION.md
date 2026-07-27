@@ -21,7 +21,7 @@ Canonical catalog of **Azure-oriented product features**, how they fit the E2E m
 
 | # | Feature | Maturity | Primary config |
 |---|---------|----------|----------------|
-| 1 | Entra ID auth (MSAL + JWT) | Design | `AUTH_PROVIDER`, `ENTRA_*` |
+| 1 | Entra ID auth (OIDC JWT + redirect) | Implemented | `AUTH_PROVIDER=entra`, `ENTRA_*` |
 | 2 | Edge: Front Door, APIM, App Gateway, private AKS | Design / Partial IaC | Terraform + DNS |
 | 3 | Platform Key Vault (secrets, CMK) | Partial | `AZURE_KEY_VAULT_*` |
 | 4 | Signing keys in Key Vault / HSM + verify on sign | Design | `SIGNING_KEY_BACKEND` |
@@ -62,8 +62,8 @@ Local today shortcuts: Keycloak login, disk/demo datasets, placeholder signature
 | | |
 |--|--|
 | **Purpose** | Sole IdP on Azure: login, MFA/Conditional Access, app roles for TDC/TDP/CCRP/AppAdmin |
-| **Maturity** | Design — codebase is Keycloak-centric |
-| **Local** | Keep `KEYCLOAK_ENABLED=true`; do not use Entra for laptop demos unless explicitly testing MSAL |
+| **Maturity** | Implemented — `AUTH_PROVIDER=entra`; OIDC redirect login; JWKS middleware; Terraform `modules/identity` |
+| **Local** | Keep `KEYCLOAK_ENABLED=true`; do not use Entra for laptop demos unless explicitly testing SSO |
 
 **Settings (target `config.env` / Key Vault):**
 
@@ -74,13 +74,16 @@ Local today shortcuts: Keycloak login, disk/demo datasets, placeholder signature
 | `ENTRA_CLIENT_ID` | GUID | SPA app registration |
 | `ENTRA_API_AUDIENCE` | `api://can-dev-api` | API app ID URI / audience |
 | `ENTRA_API_CLIENT_ID` | GUID | API app registration |
-| `ENTRA_CLIENT_SECRET` | secret | Confidential client (backend only; Key Vault) |
-| `ENTRA_AUTHORITY` | `https://login.microsoftonline.com/{tenant}` | MSAL authority |
-| `ENTRA_REDIRECT_URI` | `https://app.dev.example.com` | SPA redirect |
+| `ENTRA_API_SCOPE` | `api://can-dev-api/access_as_user` | Delegated scope on authorize |
+| `ENTRA_CLIENT_SECRET` | secret | Optional API secret (Key Vault); SPA public client needs none for code exchange |
+| `ENTRA_AUTHORITY` | `https://login.microsoftonline.com/{tenant}/v2.0` | OIDC authority |
+| `ENTRA_REDIRECT_URI` | `https://app.dev.example.com/login` | SPA redirect |
 | `ENTRA_ROLE_CLAIM` | `roles` | Claim carrying `TDC`/`TDP`/`CCRP`/`AppAdmin` |
 | `KEYCLOAK_ENABLED` | `false` on Azure | Must be false when `AUTH_PROVIDER=entra` |
 
-**Entra app roles (API registration):** `TDC`, `TDP`, `CCRP`, `AppAdmin` — map to Keycloak `partyType` equivalents in the backend.
+**Entra app roles (API registration):** `TDC`, `TDP`, `CCRP`, `AppAdmin` — mapped in `entraIdentityService` / `oidcIdentityBase`.
+
+**Terraform:** [`deployment/azure/terraform/modules/identity`](../../deployment/azure/terraform/modules/identity/README.md) creates SPA + API apps and wires ConfigMap `AUTH_PROVIDER=entra`.
 
 **APIM:** validate JWT against Entra OpenID metadata (see [AZURE_IAM_AND_EDGE_CONFIG.md](AZURE_IAM_AND_EDGE_CONFIG.md) §10).
 
@@ -377,7 +380,7 @@ SCITT_DEPLOYMENT=aks
 
 Order matches engineering priority:
 
-1. **Entra auth adapter** — `AUTH_PROVIDER=entra`; MSAL SPA; backend JWKS; role map; Keycloak remains local.
+1. ~~**Entra auth adapter**~~ — done (`AUTH_PROVIDER=entra`; OIDC SPA redirect; JWKS; Terraform identity module; Keycloak local-only).
 2. **Blob storage backend** — `DATASET_STORAGE_BACKEND=azure-blob`; containers + MSI.
 3. **Signing Key Vault + verify** — `SIGNING_KEY_BACKEND=azure-keyvault`; enforce crypto on sign.
 4. **Contract KMS enforce** — resolve `kmsConfigs` against Azure Key Vault at train start.
@@ -393,6 +396,9 @@ Order matches engineering priority:
 
 | Area | Path |
 |------|------|
+| Entra IdP service | `backend/services/entraIdentityService.js` |
+| Cloud IdP registry | `backend/services/cloudIdpRegistry.js` |
+| OIDC routes | `backend/routes/auth.js` (`/oidc/config`, `/oidc/callback`) |
 | Portal sign | `backend/routes/contracts.js` |
 | Signing service | `backend/services/contractSigningService.js` |
 | Platform encrypt (demo) | `backend/services/platformEncryptionService.js` |
@@ -409,4 +415,5 @@ Order matches engineering priority:
 
 | Date | Change |
 |------|--------|
+| 2026-07-27 | Entra auth implemented (OIDC + Terraform identity); Keycloak removed from Azure TF |
 | 2026-07-26 | Initial feature + configuration catalog; Entra-only Azure; Keycloak local-only |

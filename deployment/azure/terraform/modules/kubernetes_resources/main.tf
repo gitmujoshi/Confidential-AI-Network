@@ -14,11 +14,22 @@ resource "kubernetes_config_map" "app_config" {
   }
 
   data = {
-    NODE_ENV                = var.environment
-    APP_DOMAIN              = var.app_domain
-    APP_VERSION             = var.release_version
-    IMAGE_TAG               = var.image_tag
-    KEYCLOAK_ADMIN_USERNAME = var.keycloak_admin_username
+    NODE_ENV            = var.environment
+    APP_DOMAIN          = var.app_domain
+    APP_VERSION         = var.release_version
+    IMAGE_TAG           = var.image_tag
+    AUTH_PROVIDER       = "entra"
+    KEYCLOAK_ENABLED    = "false"
+    ENTRA_TENANT_ID     = var.entra_tenant_id
+    ENTRA_CLIENT_ID     = var.entra_client_id
+    ENTRA_API_CLIENT_ID = var.entra_api_client_id
+    ENTRA_AUTHORITY     = var.entra_authority
+    ENTRA_ISSUER        = var.entra_issuer
+    ENTRA_API_AUDIENCE  = var.entra_api_audience
+    ENTRA_API_SCOPE     = var.entra_api_scope
+    ENTRA_JWKS_URL      = var.entra_jwks_url
+    ENTRA_ROLE_CLAIM    = var.entra_role_claim
+    ENTRA_REDIRECT_URI  = var.entra_redirect_uri != "" ? var.entra_redirect_uri : "https://${var.app_domain}/login"
   }
 }
 
@@ -39,15 +50,14 @@ resource "kubernetes_secret" "db_secret" {
   type = "Opaque"
 }
 
-resource "kubernetes_secret" "keycloak_secret" {
+resource "kubernetes_secret" "entra_identity_secret" {
   metadata {
-    name      = "keycloak-secret"
+    name      = "entra-identity-secret"
     namespace = kubernetes_namespace.app.metadata[0].name
   }
 
   data = {
-    KEYCLOAK_ADMIN_USERNAME = base64encode(var.keycloak_admin_username)
-    KEYCLOAK_ADMIN_PASSWORD = base64encode(var.keycloak_admin_password)
+    ENTRA_CLIENT_SECRET = base64encode(var.entra_client_secret)
   }
 
   type = "Opaque"
@@ -79,7 +89,15 @@ resource "kubernetes_deployment" "backend" {
           port { container_port = 5001 }
 
           env_from {
+            config_map_ref { name = kubernetes_config_map.app_config.metadata[0].name }
+          }
+
+          env_from {
             secret_ref { name = kubernetes_secret.db_secret.metadata[0].name }
+          }
+
+          env_from {
+            secret_ref { name = kubernetes_secret.entra_identity_secret.metadata[0].name }
           }
 
           liveness_probe {
@@ -135,6 +153,11 @@ resource "kubernetes_deployment" "frontend" {
           name  = "frontend"
           image = "${var.registry_url}/frontend:${var.image_tag}"
           port { container_port = 3000 }
+
+          env {
+            name  = "REACT_APP_AUTH_PROVIDER"
+            value = "entra"
+          }
         }
       }
     }

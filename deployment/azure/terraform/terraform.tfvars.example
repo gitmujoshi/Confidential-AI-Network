@@ -25,8 +25,20 @@ db_name     = "contractmanagement"
 db_user     = "canadmin"
 db_password = "CHANGE_ME_STRONG_PASSWORD"
 
-keycloak_admin_username = "admin"
-keycloak_admin_password = "CHANGE_ME_STRONG_PASSWORD"
+# Microsoft Entra ID (AUTH_PROVIDER=entra — Keycloak is local-only)
+create_entra_apps              = true
+create_entra_api_client_secret = true
+entra_grant_admin_consent      = true
+# entra_app_owners             = ["00000000-0000-0000-0000-000000000000"]
+# entra_api_audience           = "api://cms-dev-api"
+# entra_redirect_uri           = "https://app.dev.example.com/login"
+#
+# Reuse existing app registrations instead of creating:
+# create_entra_apps     = false
+# entra_client_id       = "…"
+# entra_api_client_id   = "…"
+# entra_api_audience    = "api://cms-dev-api"
+# entra_client_secret   = "…"
 
 repository_name = "cancontractmgmt"
 

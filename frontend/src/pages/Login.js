@@ -69,7 +69,7 @@ const Login = () => {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const code = params.get('code');
-    if (!code || !oidcConfig || oidcConfig.provider !== 'oci-iam') return;
+    if (!code || !oidcConfig || oidcConfig.loginMode !== 'oidc_redirect') return;
 
     const finishOidc = async () => {
       try {
@@ -109,7 +109,7 @@ const Login = () => {
       return;
     }
     setError(
-      'OCI Identity Domains is not fully configured (missing domain URL, client id, or redirect URI).'
+      `${oidcConfig?.label || 'Cloud IdP'} is not fully configured (missing authority/client id/redirect URI).`
     );
   };
 
@@ -285,8 +285,8 @@ const Login = () => {
             Contract Management
           </Typography>
           <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-            {oidcConfig?.provider === 'oci-iam'
-              ? 'Sign in with OCI IAM Identity Domains'
+            {oidcConfig?.loginMode === 'oidc_redirect'
+              ? `Sign in with ${oidcConfig.label || oidcConfig.provider}`
               : 'Sign in to your account'}
           </Typography>
 
@@ -301,7 +301,7 @@ const Login = () => {
             </Alert>
           )}
 
-          {oidcConfig?.provider === 'oci-iam' ? (
+          {oidcConfig?.loginMode === 'oidc_redirect' ? (
             <Button
               fullWidth
               variant="contained"
@@ -311,7 +311,7 @@ const Login = () => {
               disabled={loading}
               onClick={handleOidcLogin}
             >
-              {loading ? 'Signing in…' : 'Sign in with OCI IAM'}
+              {loading ? 'Signing in…' : `Sign in with ${oidcConfig.label || 'SSO'}`}
             </Button>
           ) : (
           <Box component="form" onSubmit={handleSubmit}>

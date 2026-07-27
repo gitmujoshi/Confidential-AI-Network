@@ -1,0 +1,16 @@
+# Copy to terraform.tfvars
+
+project_id  = "can-dev-123456"
+region      = "us-central1"
+environment = "dev"
+app_domain  = "app.dev.example.com"
+
+enable_identity_apis      = true
+enable_identity_platform  = true
+enable_google_idp         = true
+email_sign_in_enabled     = false
+
+# From Console → APIs & Services → Credentials (OAuth 2.0 Web client)
+gcp_oauth_client_id     = ""
+gcp_oauth_client_secret = ""
+# gcp_identity_redirect_uri = "https://app.dev.example.com/login"

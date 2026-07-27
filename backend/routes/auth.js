@@ -20,8 +20,12 @@ const express = require('express');
 const router = express.Router();
 const KeycloakService = require('../services/keycloakService');
 const keycloakService = new KeycloakService();
-const OciIdentityService = require('../services/ociIdentityService');
-const ociIdentityService = new OciIdentityService();
+const {
+  getAuthProvider,
+  isOidcAuthProvider,
+  getCloudIdpService,
+  oidcProviderLabel,
+} = require('../services/cloudIdpRegistry');
 const db = require('../models');
 const tokenBlacklist = require('../tokenBlacklist');
 const { 
@@ -38,27 +42,27 @@ const DIDService = require('../services/didService');
 const didService = new DIDService();
 const crypto = require('crypto');
 
-const getAuthProvider = () => (process.env.AUTH_PROVIDER || 'keycloak').toLowerCase();
-
 /**
  * GET /api/auth/oidc/config
- * Public OIDC settings for SPA (OCI IAM / future cloud IdPs).
+ * Public OIDC settings for SPA (OCI / Entra / GCP).
  */
 router.get('/oidc/config', async (req, res) => {
   const provider = getAuthProvider();
-  if (provider === 'oci-iam') {
-    const publicConfig = ociIdentityService.getPublicConfig();
+  if (isOidcAuthProvider(provider)) {
+    const idp = getCloudIdpService(provider);
+    const publicConfig = idp.getPublicConfig();
     let authorizationUrl = null;
     if (publicConfig.configured && publicConfig.redirectUri) {
       try {
         const state = crypto.randomBytes(16).toString('hex');
-        authorizationUrl = await ociIdentityService.getAuthorizeUrl({ state });
+        authorizationUrl = await idp.getAuthorizeUrl({ state });
       } catch (err) {
-        console.warn('OCI authorize URL build failed:', err.message);
+        console.warn(`${provider} authorize URL build failed:`, err.message);
       }
     }
     return res.json({
-      provider: 'oci-iam',
+      provider,
+      label: oidcProviderLabel(provider),
       keycloakEnabled: false,
       ...publicConfig,
       authorizationUrl,
@@ -74,13 +78,14 @@ router.get('/oidc/config', async (req, res) => {
 
 /**
  * POST /api/auth/oidc/callback
- * Exchange Identity Domain auth code for tokens; resolve local user.
+ * Exchange cloud IdP auth code for tokens; resolve local user.
  */
 router.post('/oidc/callback', logAuthEvent('OIDC_CALLBACK'), async (req, res) => {
   try {
-    if (getAuthProvider() !== 'oci-iam') {
+    const provider = getAuthProvider();
+    if (!isOidcAuthProvider(provider)) {
       return res.status(400).json({
-        error: 'OIDC callback only supported when AUTH_PROVIDER=oci-iam',
+        error: 'OIDC callback only supported for cloud IdPs (oci-iam, entra, gcp-identity)',
         code: 'OIDC_NOT_ENABLED',
       });
     }
@@ -89,12 +94,23 @@ router.post('/oidc/callback', logAuthEvent('OIDC_CALLBACK'), async (req, res) =>
       return res.status(400).json({ error: 'Authorization code required', code: 'MISSING_CODE' });
     }
 
-    const tokenResponse = await ociIdentityService.exchangeCodeForTokens(code, redirectUri);
-    const accessToken = tokenResponse.access_token;
-    const validation = await ociIdentityService.validateToken(accessToken);
+    const idp = getCloudIdpService(provider);
+    const tokenResponse = await idp.exchangeCodeForTokens(code, redirectUri);
+    const accessToken = idp.pickAccessToken
+      ? idp.pickAccessToken(tokenResponse)
+      : tokenResponse.access_token || tokenResponse.id_token;
+    const validation = await idp.validateToken(accessToken);
+    if (!validation.valid && tokenResponse.id_token && tokenResponse.id_token !== accessToken) {
+      // Some IdPs put roles only on id_token
+      const idValidation = await idp.validateToken(tokenResponse.id_token);
+      if (idValidation.valid) {
+        Object.assign(validation, idValidation);
+        validation.valid = true;
+      }
+    }
     if (!validation.valid) {
       return res.status(401).json({
-        error: 'Invalid Identity Domain token',
+        error: `Invalid ${oidcProviderLabel(provider)} token`,
         code: 'TOKEN_INVALID',
         details: validation.error,
       });
@@ -115,7 +131,7 @@ router.post('/oidc/callback', logAuthEvent('OIDC_CALLBACK'), async (req, res) =>
       return res.status(404).json({
         error: 'User not found in local database',
         code: 'USER_NOT_FOUND',
-        details: 'Provision the user in the app DB and set iamUsername/iamUserId to match Identity Domain',
+        details: `Provision the user in the app DB and set iamUsername/iamUserId to match ${oidcProviderLabel(provider)}`,
       });
     }
 
@@ -623,9 +639,9 @@ router.post('/login', logAuthEvent('LOGIN'), async (req, res) => {
       });
     }
 
-    if (getAuthProvider() === 'oci-iam') {
+    if (isOidcAuthProvider(getAuthProvider())) {
       return res.status(400).json({
-        error: 'Password login is disabled on OCI. Use Identity Domain SSO.',
+        error: `Password login is disabled for ${oidcProviderLabel(getAuthProvider())}. Use SSO.`,
         code: 'USE_OIDC_LOGIN',
         details: 'GET /api/auth/oidc/config then complete the OIDC redirect; POST /api/auth/oidc/callback with the code',
       });

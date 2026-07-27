@@ -19,13 +19,14 @@ const { normalizePartyType } = require('../utils/partyTypes');
 
 const KeycloakService = require('../services/keycloakService');
 const keycloakService = new KeycloakService();
-const OciIdentityService = require('../services/ociIdentityService');
-const ociIdentityService = new OciIdentityService();
+const {
+  getAuthProvider,
+  isOidcAuthProvider,
+  getCloudIdpService,
+} = require('../services/cloudIdpRegistry');
 const db = require('../models');
 const axios = require('axios');
 const tokenBlacklist = require('../tokenBlacklist');
-
-const AUTH_PROVIDER = () => (process.env.AUTH_PROVIDER || 'keycloak').toLowerCase();
 
 async function attachDbUserFromIdpClaims(req, next, res, token, userInfo, authType) {
   const lookupUsername = userInfo.username || userInfo.email || userInfo.preferred_username;
@@ -110,9 +111,10 @@ const authenticateToken = async (req, res, next) => {
       });
     }
 
-    // OCI IAM Identity Domains (cloud IdP — no Keycloak on OCI)
-    if (AUTH_PROVIDER() === 'oci-iam') {
-      const validationResult = await ociIdentityService.validateToken(token);
+    // Cloud OIDC IdPs (OCI IAM / Entra / GCP Identity)
+    if (isOidcAuthProvider(getAuthProvider())) {
+      const idp = getCloudIdpService();
+      const validationResult = await idp.validateToken(token);
       if (!validationResult.valid) {
         return res.status(401).json({
           error: 'Invalid or expired token',
@@ -121,7 +123,7 @@ const authenticateToken = async (req, res, next) => {
         });
       }
       const userInfo = validationResult.user || {};
-      return attachDbUserFromIdpClaims(req, next, res, token, userInfo, 'oci-iam');
+      return attachDbUserFromIdpClaims(req, next, res, token, userInfo, getAuthProvider());
     }
 
     // Try Keycloak validation first if enabled and available
@@ -431,9 +433,10 @@ const optionalAuth = async (req, res, next) => {
       return next();
     }
 
-    if (AUTH_PROVIDER() === 'oci-iam') {
+    if (isOidcAuthProvider(getAuthProvider())) {
       try {
-        const validationResult = await ociIdentityService.validateToken(token);
+        const idp = getCloudIdpService();
+        const validationResult = await idp.validateToken(token);
         if (!validationResult.valid) {
           req.user = null;
           return next();
@@ -448,12 +451,12 @@ const optionalAuth = async (req, res, next) => {
         }
         if (user) {
           await user.update({ lastLoginAt: new Date() });
-          req.user = { ...userInfo, localUser: user, token, authType: 'oci-iam' };
+          req.user = { ...userInfo, localUser: user, token, authType: getAuthProvider() };
         } else {
           req.user = null;
         }
-      } catch (ociErr) {
-        console.error('❌ OCI Identity optional auth failed:', ociErr);
+      } catch (idpErr) {
+        console.error('❌ Cloud IdP optional auth failed:', idpErr);
         req.user = null;
       }
       return next();

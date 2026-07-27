@@ -156,16 +156,79 @@ variable "cost_center" {
   default     = "TBD"
 }
 
-variable "keycloak_admin_username" {
-  description = "Keycloak admin username"
-  type        = string
-  default     = "admin"
+# --- Microsoft Entra ID (AUTH_PROVIDER=entra; Keycloak is local-only) --------
+
+variable "create_entra_apps" {
+  description = "Create SPA + API Entra app registrations via Terraform"
+  type        = bool
+  default     = true
 }
 
-variable "keycloak_admin_password" {
-  description = "Keycloak admin password"
+variable "create_entra_api_client_secret" {
+  description = "Create a client secret on the API app registration"
+  type        = bool
+  default     = true
+}
+
+variable "entra_grant_admin_consent" {
+  description = "Grant admin consent for SPA → API access_as_user"
+  type        = bool
+  default     = true
+}
+
+variable "entra_app_owners" {
+  description = "Entra object IDs that own the app registrations"
+  type        = list(string)
+  default     = []
+}
+
+variable "entra_client_id" {
+  description = "Manual / fallback SPA client ID (when create_entra_apps=false)"
   type        = string
+  default     = ""
+}
+
+variable "entra_api_client_id" {
+  description = "Manual / fallback API client ID"
+  type        = string
+  default     = ""
+}
+
+variable "entra_client_secret" {
+  description = "Manual / fallback client secret"
+  type        = string
+  default     = ""
   sensitive   = true
+}
+
+variable "entra_api_audience" {
+  description = "API identifier URI / JWT audience (default api://cms-{env}-api)"
+  type        = string
+  default     = ""
+}
+
+variable "entra_redirect_uri" {
+  description = "SPA OIDC redirect URI (default https://{app_domain}/login)"
+  type        = string
+  default     = ""
+}
+
+variable "entra_post_logout_redirect_uri" {
+  description = "SPA post-logout URI"
+  type        = string
+  default     = ""
+}
+
+variable "entra_jwks_url" {
+  description = "Optional JWKS override (default from authority discovery)"
+  type        = string
+  default     = ""
+}
+
+variable "entra_role_claim" {
+  description = "JWT claim carrying app roles"
+  type        = string
+  default     = "roles"
 }
 
 variable "project_tags" {

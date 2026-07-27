@@ -22,7 +22,7 @@ Canonical catalog of **Google Cloud–oriented product features**, E2E fit, **ma
 
 | # | Feature | Maturity | Primary config |
 |---|---------|----------|----------------|
-| 1 | Identity Platform / Cloud Identity (JWT) | Design | `AUTH_PROVIDER`, `GCP_IDENTITY_*` |
+| 1 | Identity Platform / Cloud Identity (JWT) | Implemented | `AUTH_PROVIDER=gcp-identity`, `GCP_OIDC_*` |
 | 2 | Edge: Cloud CDN, Cloud Armor, API Gateway, private GKE | Design | Terraform + DNS |
 | 3 | Secret Manager / Cloud KMS (platform) | Partial (secretManager hook) | `GCP_PROJECT_ID`, `SECRET_BACKEND` |
 | 4 | Signing keys in Cloud KMS/HSM + verify | Design | `SIGNING_KEY_BACKEND` |
@@ -63,7 +63,7 @@ Local shortcuts: Keycloak, disk datasets, placeholder signatures, `local-docker`
 | | |
 |--|--|
 | **Purpose** | Sole cloud IdP: login, MFA, custom claims / groups for party roles |
-| **Maturity** | Design — codebase Keycloak-centric |
+| **Maturity** | Implemented — `AUTH_PROVIDER=gcp-identity`; OIDC redirect; JWKS; Terraform identity scaffold |
 | **Local** | `AUTH_PROVIDER=keycloak` |
 
 | Variable | Example | Description |
@@ -72,11 +72,17 @@ Local shortcuts: Keycloak, disk datasets, placeholder signatures, `local-docker`
 | `GCP_PROJECT_ID` | `can-dev-123456` | Project |
 | `GCP_IDENTITY_API_KEY` | (web) | Identity Platform web API key (not secret for SPA limits) |
 | `GCP_IDENTITY_AUTH_DOMAIN` | `can-dev-123456.firebaseapp.com` | Auth domain |
+| `GCP_OIDC_CLIENT_ID` | (oauth) | OAuth 2.0 Web client ID |
+| `GCP_OIDC_CLIENT_SECRET` | secret | OAuth client secret (backend code exchange) |
 | `GCP_OIDC_ISSUER` | `https://securetoken.google.com/{project}` | JWT issuer |
-| `GCP_OIDC_AUDIENCE` | project id | API audience |
-| `GCP_ROLE_CLAIM` | `roles` or custom claim | `TDC`/`TDP`/`CCRP`/`AppAdmin` |
+| `GCP_OIDC_AUDIENCE` | project id | JWT audience |
+| `GCP_IDENTITY_REDIRECT_URI` | `https://app.dev.example.com/login` | SPA redirect |
+| `GCP_USE_IDENTITY_PLATFORM_TOKENS` | `true` | Validate securetoken JWKS |
+| `GCP_ROLE_CLAIM` | `roles` | Custom claims / roles |
 | `GCP_IAP_ENABLED` | `true` (optional) | IAP in front of SPA / ops |
 | `KEYCLOAK_ENABLED` | `false` on GCP | When `AUTH_PROVIDER=gcp-identity` |
+
+**Terraform:** [`deployment/gcp/terraform/modules/identity`](../../deployment/gcp/terraform/modules/identity/README.md) enables Identity Platform; pass Console-created OAuth client IDs via tfvars.
 
 **Workload identity:** GKE pods use Workload Identity Federation → GCP SA (no JSON keys in pods).
 
@@ -86,7 +92,7 @@ Local shortcuts: Keycloak, disk datasets, placeholder signatures, `local-docker`
 
 | Component | Maturity | Notes |
 |-----------|----------|-------|
-| VPC, GKE, Cloud SQL PostgreSQL, Artifact Registry, HTTPS LB | Design | Target: `deployment/gcp/terraform/` |
+| VPC, GKE, Cloud SQL PostgreSQL, Artifact Registry, HTTPS LB | Design / partial | Identity scaffold lives under `deployment/gcp/terraform/`; compute stack still planned |
 | Cloud CDN + Cloud Armor | Design | WAF policies |
 | API Gateway | Design | JWT validation |
 | Private GKE control plane | Design (prod) | |
@@ -282,7 +288,7 @@ SCITT_DEPLOYMENT=gke
 
 ## 5. Implementation backlog
 
-1. Identity Platform + JWT adapter; Keycloak local-only  
+1. ~~Identity Platform + JWT adapter~~ — done (`AUTH_PROVIDER=gcp-identity`; OIDC; Terraform identity scaffold; Keycloak local-only)  
 2. Platform Terraform (VPC, GKE, Cloud SQL, Artifact Registry, LB)  
 3. GCS dataset backend + Workload Identity  
 4. Signing Cloud KMS + crypto verify  
@@ -298,9 +304,12 @@ SCITT_DEPLOYMENT=gke
 
 | Area | Path |
 |------|------|
+| GCP IdP service | `backend/services/gcpIdentityService.js` |
+| Cloud IdP registry | `backend/services/cloudIdpRegistry.js` |
 | GCP provider | `backend/services/providers/gcpProvider.js` |
 | Secrets | `backend/services/secretManager.js` (`GCP_SECRETS`) |
 | TEE hints | `backend/services/teeProvisioningService.js` (`GCP_PROJECT_ID`) |
+| Terraform identity | `deployment/gcp/terraform/modules/identity/` |
 
 ---
 
@@ -308,4 +317,5 @@ SCITT_DEPLOYMENT=gke
 
 | Date | Change |
 |------|--------|
+| 2026-07-27 | Identity Platform auth implemented (OIDC + TF identity scaffold); Keycloak local-only |
 | 2026-07-26 | Initial GCP feature + configuration catalog |

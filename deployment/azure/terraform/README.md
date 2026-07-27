@@ -13,7 +13,8 @@ Baseline infrastructure for deploying the Confidential AI Network on **Microsoft
 | `database` | PostgreSQL Flexible Server (private endpoint) |
 | `load_balancer` | Standard public IP + LB for ingress |
 | `container_registry` | Azure Container Registry (Premium) |
-| `kubernetes_resources` | Namespace, secrets, backend/frontend deployments |
+| `identity` | Entra SPA + API app registrations, app roles (`TDC`/`TDP`/`CCRP`/`AppAdmin`) |
+| `kubernetes_resources` | Namespace, ConfigMap (`AUTH_PROVIDER=entra`), secrets, backend/frontend |
 
 ## Prerequisites
 
