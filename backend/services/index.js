@@ -5,6 +5,7 @@ const DIDService = require('./didService');
 const DPDPService = require('./dpdpService');
 const EmailService = require('./emailService');
 const KeycloakService = require('./keycloakService');
+const OciIdentityService = require('./ociIdentityService');
 const NotificationService = require('./notificationService');
 const SigningService = require('./signingService');
 const AuditService = require('./auditService');
@@ -19,6 +20,7 @@ module.exports = {
   DPDPService,
   EmailService,
   KeycloakService,
+  OciIdentityService,
   NotificationService,
   SigningService,
   AuditService,

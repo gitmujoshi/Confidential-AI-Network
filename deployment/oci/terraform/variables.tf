@@ -167,24 +167,150 @@ variable "defined_tag_namespace" {
   default     = ""
 }
 
-variable "keycloak_db_password" {
-  description = "Keycloak database password (defaults to db_password when empty)"
+# OCI IAM Identity Domains (sole IdP — Keycloak is local-only)
+variable "create_identity_domain" {
+  description = "Create Identity Domain via modules/identity (recommended)"
+  type        = bool
+  default     = true
+}
+
+variable "create_identity_groups" {
+  description = "Create cms-{env}-* role groups in the Identity Domain"
+  type        = bool
+  default     = true
+}
+
+variable "create_identity_apps" {
+  description = "Create SPA + API OIDC apps in the Identity Domain"
+  type        = bool
+  default     = true
+}
+
+variable "existing_identity_domain_id" {
+  description = "Existing Identity Domain OCID when create_identity_domain=false"
+  type        = string
+  default     = ""
+}
+
+variable "identity_domain_display_name" {
+  description = "Display name for new domain (default cms-{env}-id)"
+  type        = string
+  default     = ""
+}
+
+variable "identity_domain_description" {
+  type    = string
+  default = ""
+}
+
+variable "identity_domain_license_type" {
+  description = "Identity Domain license type"
+  type        = string
+  default     = "free"
+}
+
+variable "identity_domain_hidden_on_login" {
+  type    = bool
+  default = false
+}
+
+variable "identity_domain_admin_email" {
+  description = "Optional bootstrap admin email for new domain"
+  type        = string
+  default     = ""
+}
+
+variable "identity_domain_admin_first_name" {
+  type    = string
+  default = ""
+}
+
+variable "identity_domain_admin_last_name" {
+  type    = string
+  default = ""
+}
+
+variable "identity_domain_admin_user_name" {
+  type    = string
+  default = ""
+}
+
+variable "identity_domain_admin_notification_bypassed" {
+  type    = bool
+  default = true
+}
+
+variable "identity_allow_all_url_schemes" {
+  description = "Allow http redirect URIs on SPA app (LB IP pilots)"
+  type        = bool
+  default     = true
+}
+
+variable "oci_identity_domain_url" {
+  description = "Manual / fallback Identity Domain URL (used when create_identity_domain=false without OCID)"
+  type        = string
+  default     = ""
+}
+
+variable "oci_identity_client_id" {
+  description = "Manual / fallback SPA OIDC client id"
+  type        = string
+  default     = ""
+}
+
+variable "oci_identity_api_client_id" {
+  description = "Manual / fallback API audience / client id"
+  type        = string
+  default     = ""
+}
+
+variable "oci_identity_client_secret" {
+  description = "Manual / fallback confidential client secret"
   type        = string
   sensitive   = true
   default     = ""
 }
 
-# Keycloak Configuration
-variable "keycloak_admin_username" {
-  description = "Keycloak admin username"
+variable "oci_identity_issuer" {
+  description = "JWT issuer override (default = domain URL)"
   type        = string
-  default     = "admin"
+  default     = ""
 }
 
-variable "keycloak_admin_password" {
-  description = "Keycloak admin password"
+variable "oci_identity_audience" {
+  description = "JWT audience override (default api://cms-{env}-api)"
   type        = string
-  sensitive   = true
+  default     = ""
+}
+
+variable "oci_identity_jwks_url" {
+  description = "JWKS URL override"
+  type        = string
+  default     = ""
+}
+
+variable "oci_identity_role_claim" {
+  description = "JWT claim for groups/roles"
+  type        = string
+  default     = "groups"
+}
+
+variable "oci_identity_redirect_uri" {
+  description = "OIDC redirect URI (empty → https://{app_domain}/login)"
+  type        = string
+  default     = ""
+}
+
+variable "oci_identity_post_logout_redirect_uri" {
+  description = "OIDC post-logout URI (empty → https://{app_domain}/)"
+  type        = string
+  default     = ""
+}
+
+variable "oci_cloud_gate_enabled" {
+  description = "Front SPA with Cloud Gate"
+  type        = bool
+  default     = true
 }
 
 # Blockchain Configuration

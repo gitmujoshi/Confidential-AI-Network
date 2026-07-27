@@ -1,21 +1,32 @@
 # Azure Security Architecture — Confidential AI Network
 
-This document defines the **recommended Microsoft Azure security architecture** for deploying the Confidential AI Network across **dev, test, staging, and production** environments. It aligns with the [Azure Well-Architected Framework](https://learn.microsoft.com/azure/well-architected/security/) security pillar, Zero Trust principles, and the application stack (React frontend, Node.js API, Keycloak, PostgreSQL, Redis, optional SCITT CCF, CAN/training workloads on AKS).
+This document defines the **recommended Microsoft Azure security architecture** for deploying the Confidential AI Network across **dev, test, staging, and production** environments. It aligns with the [Azure Well-Architected Framework](https://learn.microsoft.com/azure/well-architected/security/) security pillar, Zero Trust principles, and the application stack (React frontend, Node.js API, **Microsoft Entra ID**, PostgreSQL, Redis, optional SCITT CCF, CAN/training workloads on AKS).
+
+**Identity split (important):**
+
+| Environment | Identity provider | Notes |
+|-------------|-------------------|-------|
+| **Azure** (dev / test / staging / prod) | **Microsoft Entra ID** | SSO, Conditional Access, app roles / groups for TDC·TDP·CCRP·AppAdmin; APIM validates Entra JWTs |
+| **Local laptop / docker-compose** | **Keycloak** | Realm `contract-management` for E2E and demos only — **do not deploy Keycloak on Azure** |
 
 ### Document set
 
 | Document | Role |
 |----------|------|
-| **This doc** | **Step-by-step setup runbook**, architecture rationale, topology, environment profiles, governance |
-| [Azure IAM & Edge Config](../deployment/AZURE_IAM_AND_EDGE_CONFIG.md) | **Implementation reference** — Entra ID groups, RBAC, Front Door, APIM, WAF rules |
+| **This doc** | **Step-by-step setup runbook**, architecture rationale, topology, environment profiles, governance, **E2E crypto & key flows on Azure** |
+| [Azure Features & Configuration](../deployment/AZURE_FEATURES_AND_CONFIGURATION.md) | **Feature catalog** — Entra, KV, signing, DEK/MEK, train, Blob, SCITT + **env vars / profiles** |
+| [Azure IAM & Edge Config](../deployment/AZURE_IAM_AND_EDGE_CONFIG.md) | **Implementation reference** — Entra ID groups, RBAC, Front Door, APIM, WAF, **key APIs & Key Vault key types** |
 | [Azure Terraform](../../deployment/azure/terraform/README.md) | Baseline IaC (VNet, AKS, PostgreSQL, App Gateway, ACR, K8s manifests) |
 | [Azure Readiness](../deployment/AZURE_READINESS.md) | Gap analysis and rollout phases |
+| [config.azure.env.example](../../config/examples/config.azure.env.example) | Target Azure environment template |
 
 **Related docs**
 
+- [Participant onboarding & E2E lifecycle](../guides/PARTICIPANT_ONBOARDING_AND_E2E_LIFECYCLE.md) — canonical DEK/MEK / signing / CAN escrow model
 - [Production Security Guide](SECURITY_GUIDE.md) — application-layer controls
 - [Production Architecture](PRODUCTION_ARCHITECTURE.md) — service topology
 - [CCRP Azure integration](../../backend/AZURE_INTEGRATION_GUIDE.md) — per-contract training workloads (separate from platform deploy)
+- [Contract signing technical reference](../features/contract-signing/CONTRACT_SIGNING_TECHNICAL_REFERENCE.md) — signing key APIs
 
 ---
 
@@ -69,8 +80,9 @@ Collect: **subscription ID**, **tenant ID**, bootstrap **service principal** or 
 2. **Key Vault** — create vault in `can-dev-data-rg`; enable purge protection in staging/prod.
 3. **Key Vault secrets** (dev placeholders):
    - `can-dev-db-password`
-   - `can-dev-keycloak-client-secret`
-   - `can-dev-keycloak-admin-password`
+   - `can-dev-entra-api-client-secret` (if confidential client used)
+   - `can-dev-db-admin-password`
+   - TLS cert refs / ACME as needed
 4. **Storage accounts** — Terraform state (`canterraformstate`), datasets, training artifacts per env.
 5. **Log Analytics** — workspace `can-dev-logs`; diagnostic settings on all edge resources.
 6. **Configure Terraform remote state** → Azure Storage backend.
@@ -100,7 +112,7 @@ terraform apply -var-file=terraform.tfvars
 Creates: VNet, public + private subnets, NAT Gateway, NSGs, private DNS zones.
 
 3. **Apply NSG default-deny model** — §5.4 (`nsg-appgw-ingress`, `nsg-aks-nodes`, `nsg-postgres`).
-4. **Private DNS** — `backend.can-dev.internal`, `keycloak.can-dev.internal`.
+4. **Private DNS** — `backend.can-dev.internal`, `frontend.can-dev.internal` (no Keycloak internal name).
 5. **Azure Bastion** — in `can-dev-network-rg`; no SSH from `0.0.0.0/0`.
 
 **Exit criteria:** Private subnet routes `0.0.0.0/0` → NAT; AKS nodes have no public IPs.
@@ -145,7 +157,7 @@ kubectl get nodes
 
 ### Phase 6 — Application Gateway & in-cluster apps
 
-1. **Application Gateway WAF v2** — listeners for frontend, backend, Keycloak paths.
+1. **Application Gateway WAF v2** — listeners for frontend and API paths (login is Entra-hosted).
 2. **Build & push images to ACR**:
 
 ```bash
@@ -167,25 +179,28 @@ docker push cancontractmgmt.azurecr.io/frontend:latest
 
 **Order:** TLS certs → App Gateway listeners → Front Door origin → APIM routes.
 
-1. **TLS certificates** — Key Vault or Azure-managed; hostnames: `app.dev`, `auth.dev`, `api.dev`, `ops.dev`.
+1. **TLS certificates** — Key Vault or Azure-managed; hostnames: `app.dev`, `login.dev` (Entra redirect), `api.dev`, `ops.dev`.
 2. **Azure Front Door WAF** `can-waf-dev` — OWASP 3.2; **Detection** mode in dev.
 3. **API Management** `can-apim-dev`:
    - Hostname `api.dev.example.com`
-   - JWT validation → Keycloak JWKS
+   - JWT validation → **Microsoft Entra ID** OpenID metadata / JWKS
    - Routes: `/api/health`, `/api/auth/*`, `/api/contracts/*`
-4. **Entra ID app registrations** — SPA, API, Easy Auth on App Service (if used) per §9.
+4. **Entra ID app registrations** — SPA (public PKCE), API (expose scopes + app roles), backend confidential client as needed.
 5. **Custom WAF rules** — login rate limit; block `/api/debug` in prod.
 
 ---
 
-### Phase 8 — Identity (Entra ID + Keycloak)
+### Phase 8 — Identity (Microsoft Entra ID only on Azure)
 
-1. **Entra ID groups** per env — TDC, TDP, CCRP, AppAdmin; conditional access policies.
-2. **Keycloak realm** `contract-management` — clients, roles, Vault-stored secrets.
-3. **APIM JWT** issuer/JWKS → `https://auth.dev.example.com/realms/contract-management`.
-4. **Sync seed users** — adapt `scripts/fix-auth-unified.sh` for Azure Keycloak URL.
+1. **Entra ID security groups** per env — TDC, TDP, CCRP/TSP, AppAdmin; map to **app roles** on the API registration.
+2. **Conditional Access** — MFA for staging/prod; device compliance as required.
+3. **APIM JWT** issuer → `https://login.microsoftonline.com/{tenant}/v2.0` (or CIAM tenant if used).
+4. **Backend** — validate Entra access tokens; map `roles` / group claims → party types (`TDC`, `TDP`, `TSP`/`CCRP`, `AppAdmin`).
+5. **Seed / test users** — Entra guest or cloud-only users in `can-{env}-*-users` groups (no Keycloak sync on Azure).
 
-**Exit criteria:** User logs in via Entra ID → SPA → Keycloak token → API call succeeds.
+**Exit criteria:** User signs in with Entra ID → SPA gets Entra token → APIM + API accept token → role-gated call succeeds.
+
+**Out of scope for Azure:** deploying or syncing **Keycloak**. Use Keycloak only for local docker-compose (`./start-system.sh`, Playwright).
 
 ---
 
@@ -194,11 +209,11 @@ docker push cancontractmgmt.azurecr.io/frontend:latest
 | Host | Target |
 |------|--------|
 | `app.dev.example.com` | Front Door / App Gateway public IP |
-| `auth.dev.example.com` | Front Door / App Gateway |
 | `api.dev.example.com` | Front Door → APIM |
 | `ops.dev.example.com` | Front Door (Grafana if deployed) |
+| Entra redirect URIs | `https://app.dev.example.com/*` (SPA); no separate Keycloak hostname |
 
-Smoke tests: login as TDC/TDP/CCRP; create → sign → training path; rate limits; 401 on unsigned API calls.
+Smoke tests: login as TDC/TDP/CCRP via **Entra**; create → sign → training path; rate limits; 401 on unsigned API calls.
 
 ---
 
@@ -272,8 +287,8 @@ flowchart TB
 
 1. **DNS** — `app.{env}`, `auth.{env}`, `api.{env}`, `ops.{env}`.
 2. **Front Door WAF** — TLS termination, OWASP, bot management, geo filtering.
-3. **APIM** (`api.{env}`) — JWT validation (Keycloak JWKS), rate limits, CORS → App Gateway → backend `:5001`.
-4. **App Gateway** — path-based routing to AKS ingress for frontend `:3000`, Keycloak `:8080`.
+3. **APIM** (`api.{env}`) — JWT validation (**Entra ID** JWKS), rate limits, CORS → App Gateway → backend `:5001`.
+4. **App Gateway** — path-based routing to AKS ingress for frontend `:3000` (no Keycloak pool on Azure).
 5. **AKS** — private nodes; egress via NAT; PostgreSQL via **private endpoint** only.
 
 ---
@@ -303,24 +318,26 @@ Tenant Root Group
 
 ---
 
-## 4. Identity (Microsoft Entra ID)
+## 4. Identity (Microsoft Entra ID on Azure; Keycloak local-only)
 
 | Environment | Entra app / group prefix | Purpose |
 |-------------|--------------------------|---------|
-| dev | `can-dev-*` | Developer SSO, Keycloak sync testing |
-| test | `can-test-*` | QA automation, Playwright service accounts |
+| dev | `can-dev-*` | Developer SSO, Entra app-role testing |
+| test | `can-test-*` | QA automation, Playwright service principals |
 | staging | `can-staging-*` | Pre-prod UAT, partner demos |
 | prod | `can-prod-*` | Production TDC / TDP / CCRP / AppAdmin |
 
-Keycloak remains **application authorization** (roles: TDC, TDP, CCRP, AppAdmin). Entra ID provides **enterprise SSO** and conditional access.
+**Azure rule:** **Microsoft Entra ID is the sole identity provider** for browser and API auth. App roles / security groups carry party type (`TDC`, `TDP`, `CCRP`/`TSP`, `AppAdmin`). Backend and APIM validate **Entra** JWTs.
+
+**Local rule:** **Keycloak** (`contract-management` realm) remains the IdP for docker-compose / laptop demos and Playwright. Do **not** run Keycloak in Azure resource groups.
 
 | Layer | Component | Responsibility |
 |-------|-----------|----------------|
-| Corporate IdP | Entra ID / federated SAML | Workforce & partner federation |
-| Entra ID | Groups + Conditional Access | MFA, device compliance, per-env lifecycle |
+| Corporate IdP | **Entra ID** (or federated SAML into Entra) | Workforce & partner federation, MFA |
+| Entra ID | Groups + app roles + Conditional Access | Party-type authorization claims |
 | App Gateway / Front Door | TLS + routing | Public ingress to AKS |
-| Keycloak | Realm `contract-management` | App roles, client credentials, token issuance |
-| Backend API | JWT validation | `authenticateToken` middleware |
+| Backend API | JWT validation (Entra issuer) | `authenticateToken` adapted for Entra |
+| Local only | Keycloak | Docker Compose E2E — never Azure |
 
 ---
 
@@ -395,7 +412,7 @@ Full route tables and JWT policies: [Azure IAM & Edge Config §9–§11](../depl
 |---------|-------|
 | **Microsoft Defender for Cloud** | Subscription-wide; alerts on public exposure, weak TLS, crypto mining |
 | **Azure Policy** | Deny public blob access, require HTTPS, enforce tags on `can-{env}-data-rg` |
-| **Log Analytics / Sentinel** | Central audit; WAF, APIM, AKS, Keycloak logs exported. App audit: [SIEM Integration Framework](SIEM_INTEGRATION_FRAMEWORK.md). |
+| **Log Analytics / Sentinel** | Central audit; WAF, APIM, AKS, Entra sign-in logs. App audit: [SIEM Integration Framework](SIEM_INTEGRATION_FRAMEWORK.md). |
 | **Azure Bastion** | Admin kubectl/SSH; session logging; no open port 22 |
 
 ---
@@ -424,18 +441,170 @@ RTO target: **4 h** | RPO target: **15 min** (adjust per SLA).
 
 | Component | Azure service | Security notes |
 |-----------|---------------|----------------|
-| React frontend | AKS + Front Door | CSP at ingress; no secrets in bundle |
-| Backend API | AKS + APIM | JWT via Keycloak; signing gate for TDP/CCRP |
-| Keycloak | AKS | External DB on PostgreSQL; Key Vault for client secrets |
+| React frontend | AKS + Front Door | CSP at ingress; MSAL / Entra SPA login |
+| Backend API | AKS + APIM | **Entra JWT**; signing gate for TDP/CCRP |
+| Identity | **Microsoft Entra ID** | App roles / groups; no Keycloak on Azure |
 | PostgreSQL | Flexible Server | Private endpoint; Defender for SQL |
 | Redis | AKS or Azure Cache | Key Vault password; private access |
 | SCITT CCF | AKS or dedicated VM | Isolated namespace; mTLS to backend |
-| CAN / training | AKS `can-training` | Confidential VMs (DCsv3) where required |
-| Playwright E2E | test RG CI | Seeded users only; no prod credentials |
+| CAN / training | AKS `can-training` or DCsv3 | See §16 key release into TEE |
+| Playwright E2E | Local or test CI | **Local:** Keycloak. **Azure staging:** Entra test users only |
 
 ---
 
-## 13. Deployment & IaC alignment
+## 16. End-to-end security flows (identity, signing, encryption, CCRP)
+
+This section maps the **full multi-party happy path** onto Azure controls. Canonical application crypto rules live in [PARTICIPANT_ONBOARDING_AND_E2E_LIFECYCLE.md](../guides/PARTICIPANT_ONBOARDING_AND_E2E_LIFECYCLE.md). Below: how those flows should land on Azure, and what is **implemented today** vs **target**.
+
+### 16.1 Identity layers (do not conflate)
+
+| Layer | Who / what | Azure / platform home | Purpose |
+|-------|------------|----------------------|---------|
+| Human SSO | Entra ID user | Entra + Conditional Access | Enterprise login, MFA |
+| App role | Entra app role / group `TDC` · `TDP` · `TSP`/`CCRP` · `AppAdmin` | Entra app registration | Portal RBAC on Azure |
+| Local IdP (non-Azure) | Keycloak realm roles | docker-compose only | Laptop / Playwright |
+| Party ID | DEPA ID (`US-EAST-TDC-…`) | App DB | Jurisdiction-scoped entity ID |
+| Optional DID | `did:web` / `did:ethr` / system DID | App + DID service | Portable identity label |
+| Contract signing key | ECDSA-P256 / RSA `UserKey` | App DB today → **Key Vault / MHSM target** | Ricardian signatures |
+| Data encryption key (**DEK**) | AES-256-GCM | **TDP / data principal** (target: never platform plaintext) | Dataset ciphertext |
+| Model encryption key (**MEK**) | AES-256-GCM | **TDC / model owner** (target: never platform plaintext) | Base-model ciphertext |
+| CCR session key | Ephemeral TLS in TEE | Confidential VM / ACI / AKS confidential | Attested key delivery window |
+| Infra secrets | DB, Entra client secrets, TLS | **Azure Key Vault** (platform) | Ops secrets — not DEK/MEK |
+
+### 16.2 E2E flow A — Onboard → sign → portal train (Azure Phase 1)
+
+```
+Entra SSO (MSAL) → Entra access token → Portal + APIM
+  → TDP publishes dataset (ciphertext or demo clear for local)
+  → TDC creates Ricardian contract (env + KMS placeholders)
+  → TDP then TSP/CCRP sign (authenticated approval; DID recorded as metadata)
+  → Optional SCITT claim/receipt
+  → TDC starts training (Azure ACI/AKS Job target; local-docker for laptop demos)
+  → Register / deploy / infer (demo path)
+```
+
+| Step | Azure control | Maturity |
+|------|---------------|----------|
+| Login | **Entra ID** + APIM JWT | Design; app still Keycloak-centric in code today |
+| Role gates | Entra app roles / groups in token | Design — map claims in backend |
+| Contract sign API | `POST /api/contracts/:id/sign` + Entra JWT | Authz exists; **DID crypto verify not enforced** |
+| Signing private keys | Should be Key Vault–backed HSM keys | **Gap** — portal stores `UserKey` in DB today |
+| Training compute | AKS Job / ACI / DCsv3 | Partial (`azureProvider.js`); local-docker is proven demo |
+| Artifacts | Blob `can-{env}-training-outputs` + CMK | Design |
+
+### 16.3 E2E flow B — CAN dual-key escrow → CCRP clean room (production target)
+
+```
+CCRP provisions TEE (Azure confidential VM / confidential container)
+  → TEE generates ephemeral keypair + attestation evidence
+  → JCS escrow OPEN (deadline ~10m)
+  → TDP encrypts dataset with DEK; stages ciphertext in Blob (tee_only)
+  → TDC encrypts base model with MEK; stages ciphertext in Blob
+  → Principals verify attestation independently
+  → TDP releases DEK → TEE over attested channel (not via Node plaintext)
+  → TDC releases MEK → TEE over attested channel
+  → Escrow BOTH_READY → RELEASED → train in memory
+  → Re-encrypt outputs; zeroize DEK/MEK; destroy CCR
+  → Provenance / SCITT events
+```
+
+| Rule | Azure implication |
+|------|-------------------|
+| Platform must **not** hold DEK/MEK plaintext | Backend only sees release **signals** / wrapped keys; Key Vault HSM for wrap keys if used |
+| Decrypt only in TEE | Confidential computing SKU (DCsv3 / confidential containers); no disk spill |
+| Dual-key gate | Both DEK and MEK released before start; sweeper → EXPIRED/DESTROYED |
+| CCRP credentials | Per-TSP Azure SP in Key Vault; workload identity for provisioner |
+
+**Maturity today:** JCS MVP accepts **key-release signals** (rejects raw key bytes to Node). Attestation is **simulated**. Local Docker training is **not** a hardware TEE. Treat clean-room decrypt-and-train as **target** until attestation + attested TLS delivery ship.
+
+### 16.4 Signing key management (contract signatures)
+
+| Concern | Portal today | Azure production target |
+|---------|--------------|-------------------------|
+| Generate | `/api/signing/keys/generate` (ECDSA-P256 / RSA) | Generate in **Key Vault** (or MHSM); store only key id + public material in app DB |
+| Custody | `UserKey.privateKey` on DB row | Private key **never** leaves HSM; sign via Key Vault crypto ops or confidential sidecar |
+| Use at sign | UI sends hash/placeholder; backend records signature + optional `did` | Client or backend calls Key Vault **sign**; verify with public key / DID document |
+| DID verify | `verifyDIDSignature` helper exists; **not wired** into sign route | Enforce verify when `did` present; fail closed in prod |
+| Audit | SCITT claim best-effort | Required SCITT receipt + Sentinel alert on verify failure |
+
+**Azure Key Vault layout (target):**
+
+| Secret / key name pattern | Content | Who can use |
+|---------------------------|---------|-------------|
+| `can-{env}-user-sign-{depaId}` | RSA/EC signing key | Backend MSI + user-scoped grant via app policy |
+| `can-{env}-entra-api-client` | Entra confidential client secret (if used) | Backend MSI / External Secrets |
+| `can-{env}-scitt-*` | SCITT CCF client material | SCITT workload identity |
+
+### 16.5 TDP DEK and TDC MEK (data / model encryption)
+
+| Key | Owner | Encrypts | Staging (Azure) | Release |
+|-----|-------|----------|-----------------|---------|
+| **DEK** | TDP / data principal | Dataset | Blob `can-{env}-datasets` (ciphertext only) | To CCR TEE after attestation + escrow |
+| **MEK** | TDC / model owner | Base model | Blob `can-{env}-artifacts` (ciphertext only) | Same |
+
+**Platform encryption service** (portal uploads) may still generate/hold keys for demos — **do not treat as CAN-compliant**. Production CAN requires principal-owned DEK/MEK.
+
+**Optional Azure pattern for wrap keys (not DEK/MEK themselves):**
+
+- TDP/TDC hold DEK/MEK in client HSM or Key Vault **customer** vault.
+- Platform Key Vault holds only **KEK** used to wrap session material if a wrap step is required.
+- CCRP MSI can unwrap **only** inside confidential compute with attestation policy (Azure Attestation + SKR where applicable).
+
+### 16.6 Secure key release to CCRP (target sequence)
+
+1. **Provision** — CCRP Azure SP creates confidential environment (see [AZURE_INTEGRATION_GUIDE.md](../../backend/AZURE_INTEGRATION_GUIDE.md)).
+2. **Attest** — TEE produces evidence; Azure Attestation (or vendor) validates measurement.
+3. **Authorize** — Contract `SIGNED`; principals match DEPA IDs; escrow not expired.
+4. **Release** — Principals push DEK/MEK over **attested TLS** into TEE (or Azure Secure Key Release from MHSM when SKR is used).
+5. **Train** — Decrypt in memory only; no Blob of plaintext keys.
+6. **Destroy** — Zeroize; revoke temporary Blob SAS; Key Vault key versions rotated if used; provenance `DESTROYED`.
+
+**Never:** send DEK/MEK plaintext through the Node API, Redis, or application logs.
+
+### 16.7 APIM / RBAC surface for crypto APIs
+
+See [Azure IAM & Edge Config §10](../deployment/AZURE_IAM_AND_EDGE_CONFIG.md) for route table. Minimum role gates:
+
+| API family | Role | Notes |
+|------------|------|-------|
+| `/api/signing/*` | Authenticated party | Own keys only |
+| `/api/contracts/*/sign` | TDP / TSP / TDC per gate | Linked party checks |
+| `/api/can/jcs/*` | CAN principal + JWT | Escrow + key-released |
+| `/api/ccrp/*` / TSP Azure credentials | TSP/CCRP | Subscription credentials in Key Vault |
+| `/api/tdc/training/*` | TDC | Portal train path |
+| `/api/tdc/inference/*` | TDC | Deployed artifacts only |
+
+### 16.8 Maturity matrix (honest)
+
+| Capability | Local demo (Keycloak) | Azure pilot (Phase 1) | Azure CAN prod (Phase 3+) |
+|------------|----------------------|----------------------|---------------------------|
+| Login IdP | Keycloak | **Entra ID** | **Entra ID** |
+| Contract sign (authz) | Yes | Yes | Yes + crypto verify |
+| Signing keys in HSM | No | Design | Required |
+| DID crypto verify on sign | No | Optional | Required if DID claimed |
+| DEK/MEK principal custody | Partial | Design | Required |
+| Dual-key escrow signals | MVP | Wire to Azure CCR | Required |
+| Attested key delivery | Simulated | Design | Required |
+| Confidential VM train | No (Docker) | Spike | Required for CAN claims |
+| SCITT on Azure | Local compose | Optional | Required for audit |
+| Keycloak on Azure | N/A | **Do not deploy** | **Do not deploy** |
+
+### 16.9 Pre-go-live checklist (crypto / CAN)
+
+- [ ] Signing keys migrated off DB plaintext to Key Vault / MHSM
+- [ ] Sign path verifies cryptographic signature (and DID when present)
+- [ ] Dataset/model Blob containers hold **ciphertext only**; CMK enabled
+- [ ] DEK/MEK never logged; Node rejects raw key material on release APIs
+- [ ] CCRP path uses confidential SKU + attestation policy
+- [ ] Escrow timeout destroys compute; Sentinel alert on EXPIRED with late key attempt
+- [ ] Provenance/SCITT events for: signed, attested, key released, started, completed, destroyed
+- [ ] Pen test includes key-exfiltration attempts via API and logs
+
+---
+
+## 17. Deployment & IaC alignment
+
+For **per-feature env vars, maturity, and local vs Azure profiles**, see [Azure Features & Configuration](../deployment/AZURE_FEATURES_AND_CONFIGURATION.md).
 
 **Current state:** `deployment/azure/terraform/` provisions VNet, AKS, PostgreSQL, App Gateway public IP, ACR, and baseline K8s workloads. It does **not** yet create management groups, Entra app registrations, Front Door, or APIM.
 
@@ -443,31 +612,33 @@ RTO target: **4 h** | RPO target: **15 min** (adjust per SLA).
 |----------------|---------|
 | `modules/front_door` | Global WAF + routing |
 | `modules/apim` | API Management + JWT policies |
-| `modules/key_vault` | Per-env secrets and CMK |
+| `modules/key_vault` | Per-env secrets, CMK, and **signing / wrap key** policies (§16) |
 | `modules/policy` | Azure Policy initiative assignments |
+| `modules/confidential_compute` | DCsv3 / confidential container pool for CCRP (Phase 3) |
 
 **Alternative path:** [deploy/azure/deploy-azure.sh](../../deploy/azure/deploy-azure.sh) — single-VM docker-compose deploy via Azure CLI (simpler than AKS).
 
 ---
 
-## 14. Pre-go-live checklist (prod)
+## 18. Pre-go-live checklist (prod)
 
 - [ ] Management group RBAC applied; prod deny assignments active
 - [ ] Entra conditional access + MFA for all prod users
-- [ ] Front Door WAF in Prevention mode; APIM JWT validation enabled
+- [ ] Front Door WAF in Prevention mode; APIM JWT validation (**Entra**) enabled
 - [ ] AKS private cluster; no public node IPs
 - [ ] PostgreSQL private endpoint only; backups geo-redundant
 - [ ] Key Vault purge protection; no secrets in Terraform state plaintext
 - [ ] Blob containers private; Azure Policy enforced on data RG
 - [ ] Defender for Cloud alerts routed to on-call
-- [ ] Keycloak realm configured; `fix-auth-unified.sh` adapted for Azure URLs
-- [ ] E2E smoke tests pass against staging before prod promotion
+- [ ] **No Keycloak** workloads in Azure RGs; SPA uses MSAL / Entra
+- [ ] E2E smoke tests pass against staging (Entra test users) before prod promotion
+- [ ] Crypto / CAN checklist in **§16.9** complete for any CAN production claims
 
 ---
 
-## 15. Reference URLs
+## 19. Reference URLs
 
-Verified **2026-06-16**.
+Verified **2026-06-16** (architecture); E2E crypto section added **2026-07-25**.
 
 - [Azure Well-Architected — Security](https://learn.microsoft.com/azure/well-architected/security/)
 - [Microsoft Entra ID](https://learn.microsoft.com/entra/identity/)
@@ -476,6 +647,8 @@ Verified **2026-06-16**.
 - [Azure Front Door](https://learn.microsoft.com/azure/frontdoor/)
 - [API Management](https://learn.microsoft.com/azure/api-management/)
 - [Azure Key Vault](https://learn.microsoft.com/azure/key-vault/)
+- [Azure Attestation](https://learn.microsoft.com/azure/attestation/)
+- [Secure Key Release with AKV](https://learn.microsoft.com/azure/key-vault/managed-hsm/secure-key-release-overview)
 - [PostgreSQL Flexible Server](https://learn.microsoft.com/azure/postgresql/flexible-server/)
 - [Microsoft Defender for Cloud](https://learn.microsoft.com/azure/defender-for-cloud/)
 - [Azure Bastion](https://learn.microsoft.com/azure/bastion/bastion-overview)

@@ -31,6 +31,7 @@ const Login = () => {
   const [devResetToken, setDevResetToken] = useState('');
   const [devResetLink, setDevResetLink] = useState('');
   const [devLoading, setDevLoading] = useState(false);
+  const [oidcConfig, setOidcConfig] = useState(null);
 
   useEffect(() => {
     const clearStaleTokens = async () => {
@@ -53,7 +54,64 @@ const Login = () => {
       }
     };
     clearStaleTokens();
+
+    const loadOidc = async () => {
+      try {
+        const res = await apiService.get('/api/auth/oidc/config');
+        setOidcConfig(res.data);
+      } catch (_) {
+        setOidcConfig({ provider: 'keycloak', loginMode: 'password' });
+      }
+    };
+    loadOidc();
   }, [navigate]);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const code = params.get('code');
+    if (!code || !oidcConfig || oidcConfig.provider !== 'oci-iam') return;
+
+    const finishOidc = async () => {
+      try {
+        setLoading(true);
+        setError('');
+        const redirectUri =
+          oidcConfig.redirectUri || `${window.location.origin}/login`;
+        const response = await apiService.post('/api/auth/oidc/callback', {
+          code,
+          redirectUri,
+        });
+        if (response.data.accessToken) {
+          localStorage.setItem('authToken', response.data.accessToken);
+          if (response.data.refreshToken) {
+            localStorage.setItem('refreshToken', response.data.refreshToken);
+          }
+          setUser(response.data.user);
+          window.history.replaceState({}, document.title, '/login');
+          setSuccess('Login successful! Redirecting...');
+          setTimeout(() => navigate('/dashboard'), 800);
+        }
+      } catch (err) {
+        setError(
+          'OCI Identity login failed: ' +
+            (err.response?.data?.error || err.message)
+        );
+      } finally {
+        setLoading(false);
+      }
+    };
+    finishOidc();
+  }, [oidcConfig, navigate, setUser]);
+
+  const handleOidcLogin = () => {
+    if (oidcConfig?.authorizationUrl) {
+      window.location.href = oidcConfig.authorizationUrl;
+      return;
+    }
+    setError(
+      'OCI Identity Domains is not fully configured (missing domain URL, client id, or redirect URI).'
+    );
+  };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -227,7 +285,9 @@ const Login = () => {
             Contract Management
           </Typography>
           <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-            Sign in to your account
+            {oidcConfig?.provider === 'oci-iam'
+              ? 'Sign in with OCI IAM Identity Domains'
+              : 'Sign in to your account'}
           </Typography>
 
           {error && (
@@ -241,6 +301,19 @@ const Login = () => {
             </Alert>
           )}
 
+          {oidcConfig?.provider === 'oci-iam' ? (
+            <Button
+              fullWidth
+              variant="contained"
+              size="large"
+              endIcon={<ArrowForward />}
+              sx={{ mt: 1, mb: 1.5, py: 1.15 }}
+              disabled={loading}
+              onClick={handleOidcLogin}
+            >
+              {loading ? 'Signing in…' : 'Sign in with OCI IAM'}
+            </Button>
+          ) : (
           <Box component="form" onSubmit={handleSubmit}>
             <TextField
               margin="dense"
@@ -279,6 +352,7 @@ const Login = () => {
               {loading ? 'Signing in…' : 'Sign In'}
             </Button>
           </Box>
+          )}
 
           <Stack
             direction={{ xs: 'column', sm: 'row' }}

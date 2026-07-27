@@ -60,7 +60,8 @@ REGISTRY_URL="$(terraform output -raw container_registry_url)"
 LB_IP="$(terraform output -raw load_balancer_ip)"
 FRONTEND_URL="$(terraform output -raw frontend_url)"
 BACKEND_URL="$(terraform output -raw backend_url)"
-KEYCLOAK_URL="$(terraform output -raw keycloak_url)"
+AUTH_PROVIDER="$(terraform output -raw auth_provider 2>/dev/null || echo oci-iam)"
+OCI_ID_URL="$(terraform output -raw oci_identity_domain_url 2>/dev/null || true)"
 export DEPLOY_ENV_TAG="$(terraform output -raw environment 2>/dev/null || true)"
 export IMAGE_TAG="${IMAGE_TAG:-$(terraform output -raw effective_image_tag 2>/dev/null || true)}"
 
@@ -100,7 +101,7 @@ if [ "$DEPLOY_BUILD_IMAGES" = true ]; then
   fi
 fi
 
-print_urls_summary "$LB_IP" "$FRONTEND_URL" "$BACKEND_URL" "$KEYCLOAK_URL"
+print_urls_summary "$LB_IP" "$FRONTEND_URL" "$BACKEND_URL" "(IdP: ${AUTH_PROVIDER}${OCI_ID_URL:+ — ${OCI_ID_URL}})"
 
 echo "Next steps:"
 terraform output -json next_steps | jq -r '.[]' 2>/dev/null || terraform output next_steps

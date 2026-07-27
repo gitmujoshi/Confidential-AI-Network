@@ -321,13 +321,15 @@ DB_PORT=1521
 DB_NAME=your-db-name
 DB_USER=your-db-user
 DB_PASSWORD=CHANGE_ME
-KEYCLOAK_URL=http://localhost:8080
-KEYCLOAK_REALM=contract-management
-KEYCLOAK_CLIENT_ID=contract-management-client
-KEYCLOAK_CLIENT_SECRET=your-client-secret
+# Prefer OCI IAM on OCI (Keycloak is for local docker demos only).
+AUTH_PROVIDER=oci-iam
+KEYCLOAK_ENABLED=false
+OCI_IDENTITY_DOMAIN_URL=https://idcs-XXXX.identity.oraclecloud.com
+OCI_IDENTITY_CLIENT_ID=
+OCI_IDENTITY_API_CLIENT_ID=
+OCI_IDENTITY_REDIRECT_URI=https://YOUR_HOST/login
 API_PORT=5001
 FRONTEND_PORT=3000
-KEYCLOAK_PORT=8080
 SCITT_CCF_ENABLED=false
 ENVEOF
 

@@ -20,6 +20,8 @@ const express = require('express');
 const router = express.Router();
 const KeycloakService = require('../services/keycloakService');
 const keycloakService = new KeycloakService();
+const OciIdentityService = require('../services/ociIdentityService');
+const ociIdentityService = new OciIdentityService();
 const db = require('../models');
 const tokenBlacklist = require('../tokenBlacklist');
 const { 
@@ -34,6 +36,117 @@ const rateLimit = require('express-rate-limit');
 const { ethers } = require('ethers');
 const DIDService = require('../services/didService');
 const didService = new DIDService();
+const crypto = require('crypto');
+
+const getAuthProvider = () => (process.env.AUTH_PROVIDER || 'keycloak').toLowerCase();
+
+/**
+ * GET /api/auth/oidc/config
+ * Public OIDC settings for SPA (OCI IAM / future cloud IdPs).
+ */
+router.get('/oidc/config', async (req, res) => {
+  const provider = getAuthProvider();
+  if (provider === 'oci-iam') {
+    const publicConfig = ociIdentityService.getPublicConfig();
+    let authorizationUrl = null;
+    if (publicConfig.configured && publicConfig.redirectUri) {
+      try {
+        const state = crypto.randomBytes(16).toString('hex');
+        authorizationUrl = await ociIdentityService.getAuthorizeUrl({ state });
+      } catch (err) {
+        console.warn('OCI authorize URL build failed:', err.message);
+      }
+    }
+    return res.json({
+      provider: 'oci-iam',
+      keycloakEnabled: false,
+      ...publicConfig,
+      authorizationUrl,
+      loginMode: 'oidc_redirect',
+    });
+  }
+  return res.json({
+    provider: provider === 'keycloak' ? 'keycloak' : provider,
+    keycloakEnabled: process.env.KEYCLOAK_ENABLED === 'true',
+    loginMode: process.env.KEYCLOAK_ENABLED === 'true' ? 'password' : 'dev_password',
+  });
+});
+
+/**
+ * POST /api/auth/oidc/callback
+ * Exchange Identity Domain auth code for tokens; resolve local user.
+ */
+router.post('/oidc/callback', logAuthEvent('OIDC_CALLBACK'), async (req, res) => {
+  try {
+    if (getAuthProvider() !== 'oci-iam') {
+      return res.status(400).json({
+        error: 'OIDC callback only supported when AUTH_PROVIDER=oci-iam',
+        code: 'OIDC_NOT_ENABLED',
+      });
+    }
+    const { code, redirectUri } = req.body || {};
+    if (!code) {
+      return res.status(400).json({ error: 'Authorization code required', code: 'MISSING_CODE' });
+    }
+
+    const tokenResponse = await ociIdentityService.exchangeCodeForTokens(code, redirectUri);
+    const accessToken = tokenResponse.access_token;
+    const validation = await ociIdentityService.validateToken(accessToken);
+    if (!validation.valid) {
+      return res.status(401).json({
+        error: 'Invalid Identity Domain token',
+        code: 'TOKEN_INVALID',
+        details: validation.error,
+      });
+    }
+
+    const userInfo = validation.user || {};
+    let user = null;
+    if (userInfo.email) {
+      user = await db.User.findOne({ where: { email: String(userInfo.email).toLowerCase(), isActive: true } });
+    }
+    if (!user && userInfo.username) {
+      user = await db.User.findOne({ where: { iamUsername: userInfo.username, isActive: true } });
+    }
+    if (!user && userInfo.sub) {
+      user = await db.User.findOne({ where: { iamUserId: userInfo.sub, isActive: true } });
+    }
+    if (!user) {
+      return res.status(404).json({
+        error: 'User not found in local database',
+        code: 'USER_NOT_FOUND',
+        details: 'Provision the user in the app DB and set iamUsername/iamUserId to match Identity Domain',
+      });
+    }
+
+    await user.update({
+      lastLoginAt: new Date(),
+      iamUserId: user.iamUserId || userInfo.sub || user.iamUserId,
+      iamUsername: user.iamUsername || userInfo.username || user.iamUsername,
+    });
+
+    return res.json({
+      message: 'Login successful',
+      accessToken,
+      refreshToken: tokenResponse.refresh_token || null,
+      expiresIn: tokenResponse.expires_in || 3600,
+      user: {
+        id: user.id,
+        email: user.email,
+        name: user.name || userInfo.name || 'User',
+        partyType: user.partyType,
+        depaId: user.depaId || null,
+      },
+    });
+  } catch (error) {
+    console.error('OIDC callback failed:', error.response?.data || error.message);
+    return res.status(401).json({
+      error: 'OIDC login failed',
+      code: 'OIDC_CALLBACK_FAILED',
+      details: error.response?.data?.error_description || error.message,
+    });
+  }
+});
 
 /**
  * POST /api/auth/register
@@ -507,6 +620,14 @@ router.post('/login', logAuthEvent('LOGIN'), async (req, res) => {
       return res.status(400).json({ 
         error: 'Email and password are required',
         code: 'MISSING_CREDENTIALS'
+      });
+    }
+
+    if (getAuthProvider() === 'oci-iam') {
+      return res.status(400).json({
+        error: 'Password login is disabled on OCI. Use Identity Domain SSO.',
+        code: 'USE_OIDC_LOGIN',
+        details: 'GET /api/auth/oidc/config then complete the OIDC redirect; POST /api/auth/oidc/callback with the code',
       });
     }
 

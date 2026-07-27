@@ -1,22 +1,31 @@
 # OCI Security Architecture — Contract Management System
 
-This document defines the **recommended Oracle Cloud Infrastructure (OCI) security architecture** for deploying the Contract Management System across **dev, test, staging, and production** environments. It aligns with OCI Well-Architected Framework security pillars, Zero Trust principles, and the application’s existing stack (React frontend, Node.js API, Keycloak, PostgreSQL/Autonomous Database, Redis, optional SCITT CCF, CAN/training workloads on OKE).
+This document defines the **recommended Oracle Cloud Infrastructure (OCI) security architecture** for deploying the Contract Management System across **dev, test, staging, and production** environments. It aligns with OCI Well-Architected Framework security pillars, Zero Trust principles, and the application stack (React frontend, Node.js API, **OCI IAM Identity Domains**, PostgreSQL/Autonomous Database, Redis, optional SCITT CCF, CAN/training workloads on OKE).
+
+**Identity split (important):**
+
+| Environment | Identity provider | Notes |
+|-------------|-------------------|-------|
+| **OCI** (dev / test / staging / prod) | **OCI IAM Identity Domains** | SSO, MFA, groups/app roles for TDC·TDP·CCRP·AppAdmin; API Gateway validates Identity Domain JWTs; optional Cloud Gate for browser apps |
+| **Local laptop / docker-compose** | **Keycloak** | Realm `contract-management` for E2E and demos only — **do not deploy Keycloak on OCI** |
 
 ### Document set
 
 | Document | Role |
 |----------|------|
 | **This doc** | **Step-by-step setup runbook**, architecture rationale, topology, environment profiles, governance |
-| [OCI IAM & Edge Config](../deployment/OCI_IAM_AND_EDGE_CONFIG.md) | **Implementation reference** — all IAM groups/policies, Cloud Gate apps, API Gateway routes/JWT, WAF rules |
+| [OCI Features & Configuration](../deployment/OCI_FEATURES_AND_CONFIGURATION.md) | **Feature catalog** — OCI IAM, Vault, signing, DEK/MEK, train, Object Storage, SCITT + **env vars** |
+| [OCI IAM & Edge Config](../deployment/OCI_IAM_AND_EDGE_CONFIG.md) | **Implementation reference** — IAM groups/policies, Cloud Gate, API Gateway JWT (**Identity Domain**), WAF |
 | [OCI Terraform](../../deployment/oci/terraform/README.md) | Baseline IaC (VCN, OKE, ADB, LB, OCIR, K8s manifests) |
 | [OCI Readiness](../deployment/OCI_READINESS.md) | Gap analysis and rollout phases |
+| [config.oci.env.example](../../config/examples/config.oci.env.example) | Target OCI environment template |
 
 Use this document for design reviews and stakeholder alignment. Use **OCI IAM & Edge Config** when writing policies, configuring edge services, or preparing security sign-off.
 
 **Related docs**
 
-- [Production Security Guide](SECURITY_GUIDE.md) — application-layer controls (Keycloak, network policies, secrets)
-- [OCI IAM & Edge Config](../deployment/OCI_IAM_AND_EDGE_CONFIG.md) — **full IAM policies, Cloud Gate, API Gateway, WAF** (implementation reference)
+- [Production Security Guide](SECURITY_GUIDE.md) — application-layer controls (network policies, secrets)
+- [OCI IAM & Edge Config](../deployment/OCI_IAM_AND_EDGE_CONFIG.md) — **full IAM policies, Cloud Gate, API Gateway, WAF**
 - [OCI Terraform deployment](../../deployment/oci/terraform/README.md) — baseline infrastructure modules
 - [Production Architecture](PRODUCTION_ARCHITECTURE.md) — service topology
 
@@ -80,8 +89,7 @@ Collect OCIDs: **tenancy**, bootstrap **user**, target **compartment** (until co
 2. **Vault** — create vault in `cms-dev-data` (dev) and plan prod vault in `cms-prod-data`; enable HSM for prod.
 3. **Vault secrets** (dev placeholders):
    - `cms-dev-db-password`
-   - `cms-dev-keycloak-client-secret`
-   - `cms-dev-keycloak-admin-password`
+   - `cms-dev-oci-identity-client-secret` (confidential API clients only)
 4. **Object Storage** — buckets per [OCI IAM & Edge Config §12](../deployment/OCI_IAM_AND_EDGE_CONFIG.md):
    - `cms-terraform-state` (shared)
    - `cms-dev-datasets-*`, `cms-dev-training-outputs-*`, `cms-dev-artifacts-*`
@@ -113,7 +121,7 @@ terraform apply -var-file=terraform.tfvars
 Creates: VCN, public + private subnets, IGW, NAT, Service Gateway, security lists/NSGs.
 
 3. **Apply NSGs** default-deny model — §5.4 (`nsg-lb-ingress`, `nsg-oke-workers`, `nsg-adb`).
-4. **Private DNS** — views for `backend.cms-dev.internal`, `keycloak.cms-dev.internal` — §5.6.
+4. **Private DNS** — views for `backend.cms-dev.internal` — §5.6.
 5. **Bastion** — endpoint in `cms-dev-compute`; no SSH from `0.0.0.0/0` — §9.4.
 
 **Exit criteria:** Private subnet routes: `0.0.0.0/0` → NAT; OCI services → Service Gateway; no public IPs on worker subnet.
@@ -160,7 +168,7 @@ kubectl get nodes
 
 **Goal:** Internal routing before public edge.
 
-1. **Flexible LB** — public listener (443) → backend sets: frontend `:3000`, backend `:5001`, Keycloak `:8080` — Terraform `load_balancer` module.
+1. **Flexible LB** — public listener (443) → backend sets: frontend `:3000`, backend `:5001` — Terraform `load_balancer` module.
 2. **Build & push images to OCIR**:
 
 ```bash
@@ -172,8 +180,7 @@ docker push <region>.ocir.io/<namespace>/frontend:latest
 ```
 
 3. **Deploy K8s manifests** — Terraform `kubernetes_resources` module or `kubectl apply`:
-   - Keycloak DB (or point Keycloak at ADB schema)
-   - Keycloak, Redis, backend, frontend
+   - Redis, backend, frontend (**no Keycloak** on OCI)
 4. **Configure ingress** rules mapping paths to services.
 5. **Health checks** — `GET /api/health` on backend; frontend `/`.
 
@@ -187,37 +194,34 @@ docker push <region>.ocir.io/<namespace>/frontend:latest
 
 **Order matters:** TLS certs → LB listeners → WAF → API GW / Cloud Gate.
 
-1. **TLS certificates** — OCI Certificates or import; hostnames: `app.dev`, `auth.dev`, `api.dev`, `ops.dev`.
+1. **TLS certificates** — OCI Certificates or import; hostnames: `app.dev`, `api.dev`, `ops.dev`.
 2. **WAF policy** `cms-waf-dev` — attach to public LB; OWASP CRS **log-only** in dev — §11.
 3. **API Gateway** `cms-api-gw-dev`:
    - Hostname `api.dev.example.com`
-   - JWT auth → Keycloak JWKS (after Phase 8 Keycloak is up)
+   - JWT auth → **OCI IAM Identity Domain** JWKS (after Phase 8)
    - Routes per §10.5; start with `/api/health`, `/api/auth/*`, `/api/contracts/*`
 4. **Cloud Gate** apps — §9:
    - `cms-frontend-dev` → `app.dev.example.com`
-   - `cms-keycloak-dev` → `auth.dev.example.com`
+   - Ops apps as needed (**no** Keycloak / `auth.*` upstream on OCI)
 5. **Custom WAF rules** — login rate limit, block `/api/debug` in prod (when promoted).
 
-**Exit criteria:** External `https://api.dev.example.com/api/health` works; `https://app.dev.example.com` shows Cloud Gate login.
+**Exit criteria:** External `https://api.dev.example.com/api/health` works; `https://app.dev.example.com` shows Cloud Gate / Identity Domain login.
 
 ---
 
-### Phase 8 — Identity (Identity Domain + Keycloak)
+### Phase 8 — Identity (OCI IAM Identity Domains only)
 
-**Goal:** Enterprise SSO + application roles (TDC, TDP, CCRP, AppAdmin).
+**Goal:** Enterprise SSO + application roles (TDC, TDP, CCRP, AppAdmin) **without Keycloak**.
 
 1. **Create Identity Domain** `cms-dev-id` — §4.
 2. **Federate corporate IdP** (optional in dev; required prod).
-3. **Create Identity Domain groups** — [§1.3](../deployment/OCI_IAM_AND_EDGE_CONFIG.md); map IdP groups.
-4. **Keycloak** — import/create realm `contract-management`:
-   - Clients: `contract-management-frontend`, `contract-management-client`
-   - Roles: `TDC`, `TDP`, `CCRP`, `AppAdmin`, `ADMIN`
-   - Store client secret in Vault
-5. **Cloud Gate ↔ Keycloak broker** — §9.4.
-6. **Sync seed users** (dev/test): run Keycloak sync / equivalent of `scripts/fix-auth-unified.sh` against OCI Keycloak URL.
-7. **Update API Gateway JWT** issuer/JWKS to `https://auth.dev.example.com/realms/contract-management`.
+3. **Create Identity Domain groups** — [§1.3](../deployment/OCI_IAM_AND_EDGE_CONFIG.md); map to TDC/TDP/CCRP/AppAdmin.
+4. **Register OIDC apps** — SPA (public + PKCE) + API resource/confidential client; store secrets in Vault.
+5. **Backend** — `AUTH_PROVIDER=oci-iam`; validate Identity Domain JWTs; map groups → `partyType`.
+6. **API Gateway JWT** — issuer/JWKS = Identity Domain (not Keycloak).
+7. **Seed users** (dev/test) in Identity Domain groups — no Keycloak sync; **do not** deploy Keycloak on OKE.
 
-**Exit criteria:** User logs in via Cloud Gate → SPA → obtains Keycloak token → `Authorization: Bearer` call to API succeeds.
+**Exit criteria:** User logs in via Identity Domain (Cloud Gate optional) → SPA obtains OIDC token → `Authorization: Bearer` call to API succeeds.
 
 ---
 
@@ -268,7 +272,7 @@ Repeat Phases 3–9 per environment with stricter posture:
 | Terraform deploy | `deployment/oci/terraform/` → `./deploy.sh` or `terraform apply` |
 | IAM policies | [OCI IAM & Edge Config](../deployment/OCI_IAM_AND_EDGE_CONFIG.md) |
 | VM-only deploy (simpler) | `deploy/oci/deploy-oci.sh` |
-| Auth fix after Keycloak URL change | `scripts/fix-auth-unified.sh` (adapt URLs for OCI) |
+| Auth issues on OCI | Verify Identity Domain issuer/JWKS and `AUTH_PROVIDER=oci-iam` (local: `./fix-auth.sh` for Keycloak only) |
 | Readiness gaps (SCITT, training) | [OCI Readiness](../deployment/OCI_READINESS.md) |
 
 ---
@@ -340,12 +344,12 @@ flowchart TB
 
 **Traffic path (production user-facing)**
 
-1. **DNS** — four public hostnames per environment: `app.{env}`, `auth.{env}`, `api.{env}`, `ops.{env}` (see [OCI IAM & Edge Config §9–§11](../deployment/OCI_IAM_AND_EDGE_CONFIG.md)).
+1. **DNS** — public hostnames per environment: `app.{env}`, `api.{env}`, `ops.{env}` (see [OCI IAM & Edge Config §9–§11](../deployment/OCI_IAM_AND_EDGE_CONFIG.md)). No `auth.*` Keycloak hostname on OCI.
 2. **WAF** — terminates TLS, OWASP CRS, bot management, geo/rate limits; splits traffic by hostname.
-3. **API Gateway** (`api.{env}`) — JWT validation (Keycloak JWKS), route-level rate limits, CORS, request validation → private LB → backend `:5001`.
-4. **Cloud Gate** (`app.{env}`, `auth.{env}`, `ops.{env}`) — Identity Domain SSO + MFA for browser apps; **not** used for `api.{env}`.
+3. **API Gateway** (`api.{env}`) — JWT validation (**OCI IAM Identity Domain** JWKS), route-level rate limits, CORS, request validation → private LB → backend `:5001`.
+4. **Cloud Gate** (`app.{env}`, `ops.{env}`) — Identity Domain SSO + MFA for browser apps; **not** used for `api.{env}`.
 5. **Load Balancer** — private backend sets only; forwards to OKE **Ingress Controller** in private subnets.
-6. **OKE** — frontend `:3000`, backend `:5001`, Keycloak `:8080`, Redis; egress via NAT; ADB via **private endpoint** only.
+6. **OKE** — frontend `:3000`, backend `:5001`, Redis; egress via NAT; ADB via **private endpoint** only. **No Keycloak.**
 
 ---
 
@@ -429,31 +433,32 @@ Use **separate Identity Domains per environment** (strong isolation) or **one do
 
 | Environment | Identity Domain | Purpose |
 |-------------|-----------------|---------|
-| **dev** | `cms-dev-id` | Developer SSO, local Keycloak sync testing |
+| **dev** | `cms-dev-id` | Developer SSO; seed Identity Domain test users |
 | **test** | `cms-test-id` | QA automation, Playwright service accounts |
 | **staging** | `cms-staging-id` | Pre-prod UAT, partner demos |
 | **prod** | `cms-prod-id` | TDC / TDP / CCRP / AppAdmin production users |
 
 **Identity Domain groups** (`cms-{env}-tdc-users`, `cms-{env}-app-admins`, etc.) and IdP mapping: [OCI IAM & Edge Config §1.3](../deployment/OCI_IAM_AND_EDGE_CONFIG.md).
 
-### 4.1 Integration with Keycloak
+### 4.1 OCI IAM as sole application IdP (no Keycloak on OCI)
 
-Keycloak remains the **application authorization** source (roles: TDC, TDP, CCRP, AppAdmin). Identity Domain provides **enterprise SSO**:
+**OCI IAM Identity Domains** are the **application authorization** source (groups/roles: TDC, TDP, CCRP, AppAdmin). This matches Azure (Entra-only). **Keycloak is local docker-compose / Playwright only — do not deploy on OCI.**
 
 | Layer | Component | Responsibility |
 |-------|-----------|----------------|
-| Corporate IdP | Okta / Azure AD / corporate SAML | Workforce & partner federation |
-| OCI Identity Domain | SAML/OIDC broker | Per-environment user lifecycle, MFA |
-| Cloud Gate | Reverse proxy + SSO | Protects frontend URLs and Keycloak admin console |
-| Keycloak | Realm `contract-management` | App roles, client credentials, token issuance |
-| Backend API | JWT validation | `authenticateToken` middleware (existing) |
+| Corporate IdP | Okta / Entra / corporate SAML | Optional workforce federation into Identity Domain |
+| OCI Identity Domain | OIDC issuer + groups/app roles | User lifecycle, MFA, token issuance, role claims |
+| Cloud Gate (optional) | Reverse proxy + SSO | Protects browser SPA / ops URLs |
+| API Gateway | JWT validation | Identity Domain issuer + JWKS |
+| Backend API | JWT + group → `partyType` | `AUTH_PROVIDER=oci-iam` (target) |
+| Keycloak | *Not on OCI* | Local demos only |
 
 **Production flow**
 
-1. User hits `https://app.example.com` → Cloud Gate → Identity Domain login (MFA).
-2. Cloud Gate sets session cookie; forwards to frontend SPA.
-3. SPA uses Keycloak OIDC (confidential/public client) for API tokens.
-4. API Gateway validates JWT signature (Keycloak JWKS) before traffic reaches OKE.
+1. User hits `https://app.example.com` → Cloud Gate (optional) → Identity Domain login (MFA).
+2. SPA uses Identity Domain OIDC (public client + PKCE) for API tokens.
+3. API Gateway validates JWT signature (**Identity Domain** JWKS) before traffic reaches OKE.
+4. Backend maps Identity Domain groups → `partyType` (`TDC` / `TDP` / `CCRP` / `AppAdmin`).
 
 ### 4.2 Service accounts & automation
 
@@ -468,15 +473,16 @@ Never embed long-lived API keys in Terraform state or container images.
 
 **Full service account inventory and group bindings:** [OCI IAM & Edge Config §1.4](../deployment/OCI_IAM_AND_EDGE_CONFIG.md).
 
-### 4.3 Keycloak clients (application layer)
+### 4.3 Identity Domain OIDC apps (application layer)
 
-| Client | Purpose |
-|--------|---------|
-| `contract-management-frontend` | SPA (public, PKCE) |
-| `contract-management-client` | Backend confidential client |
-| API Gateway JWT audience | Keycloak realm `contract-management`; JWKS at `auth.{env}` |
+| App | Purpose |
+|-----|---------|
+| `cms-{env}-frontend` | SPA (public, PKCE) |
+| `cms-{env}-api` | API resource / audience for JWT |
+| `cms-{env}-backend` | Confidential client (optional service-to-service) |
+| API Gateway JWT | Identity Domain issuer + JWKS |
 
-Secrets stored in Vault as `cms-{env}-keycloak-client-secret`. See [OCI IAM & Edge Config §1.5](../deployment/OCI_IAM_AND_EDGE_CONFIG.md).
+Secrets stored in Vault as `cms-{env}-oci-identity-client-secret`. See [OCI IAM & Edge Config §1.5](../deployment/OCI_IAM_AND_EDGE_CONFIG.md).
 
 ---
 
@@ -540,7 +546,7 @@ Apply **NSGs** (preferred over legacy security lists) with explicit allow rules.
 | Direction | Source | Dest | Ports | Notes |
 |-----------|--------|------|-------|-------|
 | Ingress | `0.0.0.0/0` | LB | 443 | From WAF only in hardened variant: WAF CIDRs |
-| Egress | LB | OKE ingress | 443, 8080 | Frontend + Keycloak paths |
+| Egress | LB | OKE ingress | 443 | Frontend paths |
 
 **NSG: `nsg-oke-workers`**
 
@@ -564,12 +570,12 @@ For egress filtering beyond NAT:
 
 - Deploy **Network Firewall** in hub or edge subnet.
 - Force private subnet egress through firewall policy.
-- Allowlist: OCIR, Keycloak JWKS, SCITT endpoints, CAN attestation URLs.
+- Allowlist: OCIR, Identity Domain JWKS/OIDC, SCITT endpoints, CAN attestation URLs.
 - Log all denied flows to Logging Analytics.
 
 ### 5.6 Private DNS
 
-- **Private DNS view** per VCN: `backend.cms-prod.internal`, `keycloak.cms-prod.internal`.
+- **Private DNS view** per VCN: `backend.cms-prod.internal`.
 - Autonomous DB connect strings use **private endpoint** hostnames only.
 - No public A records for database or Redis.
 
@@ -583,7 +589,6 @@ Edge services enforce **defense in depth** before traffic reaches OKE. WAF is th
 Internet → WAF (all hostnames)
             ├── api.{env}.example.com  → API Gateway → private LB → backend:5001
             └── app.{env}.example.com  → Cloud Gate → private LB → frontend:3000
-                auth.{env}.example.com → Cloud Gate → private LB → keycloak:8080
                 ops.{env}.example.com  → Cloud Gate → private LB → grafana (admins)
 ```
 
@@ -606,7 +611,6 @@ Deploy **one WAF policy per environment** (prod policy stricter than dev). Attac
 | Hostname | Backend after WAF |
 |----------|-------------------|
 | `app.{env}.example.com` | Cloud Gate → frontend |
-| `auth.{env}.example.com` | Cloud Gate → Keycloak |
 | `api.{env}.example.com` | API Gateway → backend |
 | `ops.{env}.example.com` | Cloud Gate → Grafana (admins) |
 
@@ -618,8 +622,8 @@ Hosts **`api.{env}.example.com` only** — all `/api/*` REST traffic. Does **not
 
 | Feature | Configuration |
 |---------|---------------|
-| **Authentication** | JWT validation — Keycloak issuer + JWKS per env ([§10.2](../deployment/OCI_IAM_AND_EDGE_CONFIG.md)) |
-| **Authorization** | Route-level role checks on `realm_access.roles` (`TDC`, `TDP`, `CCRP`, `AppAdmin`) |
+| **Authentication** | JWT validation — **OCI IAM Identity Domain** issuer + JWKS per env ([§10.2](../deployment/OCI_IAM_AND_EDGE_CONFIG.md)) |
+| **Authorization** | Route-level role checks on groups / app roles (`TDC`, `TDP`, `CCRP`, `AppAdmin`) |
 | **Rate limiting** | Tiers: anonymous, authenticated, sensitive, admin ([§10.4](../deployment/OCI_IAM_AND_EDGE_CONFIG.md)) |
 | **Request validation** | OpenAPI / body validation on POST routes |
 | **CORS** | `https://app.{env}.example.com` only |
@@ -633,7 +637,7 @@ Hosts **`api.{env}.example.com` only** — all `/api/*` REST traffic. Does **not
 | Route | Auth | Notes |
 |-------|------|-------|
 | `GET /api/health` | None | Health probe |
-| `POST /api/auth/login` | None + WAF/gateway rate limit | |
+| `POST /api/auth/login` | None + WAF/gateway rate limit | Prefer Identity Domain hosted UI / SPA OIDC |
 | `POST /api/contracts/*/sign` | JWT + `TDP` or `CCRP` | Sensitive tier |
 | `POST /api/can/*` | JWT + `CCRP` | Optional mTLS for CCRP principal |
 | `GET /api/scitt-ccf/*` | JWT + `AppAdmin` | |
@@ -641,13 +645,11 @@ Hosts **`api.{env}.example.com` only** — all `/api/*` REST traffic. Does **not
 
 ### 6.3 Oracle Cloud Gate
 
-Cloud Gate protects **browser-facing** apps only. API traffic uses API Gateway (§6.2).
+Cloud Gate protects **browser-facing** apps only. API traffic uses API Gateway (§6.2). **No Keycloak upstream.**
 
 | Application | Hostname | Cloud Gate app | Identity Domain group |
 |-------------|----------|----------------|----------------------|
 | React frontend | `app.{env}` | `cms-frontend-{env}` | `cms-{env}-all-users` + role groups |
-| Keycloak (user realm) | `auth.{env}` | `cms-keycloak-{env}` | All authenticated users |
-| Keycloak admin | `auth.{env}/admin/*` | `cms-keycloak-admin-{env}` | `cms-{env}-app-admins` + IP allowlist |
 | Grafana (ops) | `ops.{env}` | `cms-grafana-{env}` | `cms-{env}-platform-admins` |
 
 **Per-environment posture**
@@ -657,9 +659,8 @@ Cloud Gate protects **browser-facing** apps only. API traffic uses API Gateway (
 | MFA | Off | Optional | Required (admins) | **Required (all)** |
 | Session idle timeout | 8 h | 4 h | 2 h | **30 min** |
 | Corporate IdP federation | Optional | Recommended | Required | **Required** |
-| Keycloak admin IP allowlist | Off | Off | On | On |
 
-**Full app YAML specs, CSP headers, IdP → Identity Domain → Keycloak broker flow:** [OCI IAM & Edge Config §9](../deployment/OCI_IAM_AND_EDGE_CONFIG.md).
+**Full app YAML specs, CSP headers, Identity Domain OIDC flow:** [OCI IAM & Edge Config §9](../deployment/OCI_IAM_AND_EDGE_CONFIG.md).
 
 ---
 
@@ -684,12 +685,12 @@ Cloud Gate protects **browser-facing** apps only. API traffic uses API Gateway (
 |-----------|-----------|----------|
 | `cms-ingress` | ingress-nginx / Gateway API | From LB only |
 | `cms-app` | frontend, backend | Internal |
-| `cms-iam` | Keycloak, Keycloak DB | Cloud Gate + internal |
+| `cms-iam` | *(removed — no Keycloak on OCI)* | — |
 | `cms-data` | Redis | Internal only |
 | `cms-training` | CAN jobs, training sidecars | No ingress from internet |
 | `cms-ops` | prometheus, fluent-bit | Admin VPN / Bastion |
 
-Align with existing app ports: frontend **3000**, backend **5001**, Keycloak **8080**.
+Align with existing app ports: frontend **3000**, backend **5001**.
 
 ### 7.3 Vulnerability Scanning
 
@@ -725,7 +726,7 @@ Align with existing app ports: frontend **3000**, backend **5001**, Keycloak **8
 | Key | Env | Rotation | Used by |
 |-----|-----|----------|---------|
 | `cms-prod-db-cmk` | prod | 365d | ADB TDE |
-| `cms-prod-app-secrets` | prod | 90d | Keycloak client secret, JWT signing |
+| `cms-prod-app-secrets` | prod | 90d | OCI Identity confidential client secret, JWT signing |
 | `cms-prod-artifacts` | prod | 365d | Object Storage SSE |
 | `cms-{env}-tls` | all | 90d | Cert import for LB (or use OCI Certificates) |
 
@@ -768,7 +769,7 @@ Apply **Security Zone** to `cms-prod-data` and `cms-staging-data`:
 | OCI Audit | Logging + archive bucket | 1y prod, 90d non-prod |
 | WAF / API GW access | Logging Analytics | 90d–1y |
 | OKE container logs | Logging + optional SIEM | 90d prod |
-| Keycloak audit | Logging | 1y prod |
+| Identity Domain audit | Logging | 1y prod |
 | App audit (contracts, sign) | App DB + export | per compliance |
 
 Export to enterprise SIEM (Splunk, Sentinel) via **Service Connector Hub**. Application audit events: [SIEM Integration Framework](SIEM_INTEGRATION_FRAMEWORK.md) + [deployment/siem/](../../deployment/siem/README.md).
@@ -847,9 +848,8 @@ RTO target: **4 h** | RPO target: **15 min** (adjust per contract SLA).
 
 | Component | OCI service | Security notes |
 |-----------|-------------|----------------|
-| React frontend | OKE + Cloud Gate | CSP headers at ingress; no secrets in bundle |
-| Backend API | OKE + API Gateway | JWT via Keycloak; signing gate for TDP/CCRP |
-| Keycloak | OKE + Cloud Gate (admin) | External DB on ADB; Vault for client secrets |
+| React frontend | OKE + Cloud Gate / Identity Domain OIDC | CSP headers at ingress; no secrets in bundle |
+| Backend API | OKE + API Gateway | JWT via **OCI IAM Identity Domain**; signing gate for TDP/CCRP |
 | PostgreSQL / ADB | Autonomous DB | Private endpoint; SQL Firewall (Data Safe) |
 | Redis | OKE or OCI Cache | Password in Vault; no public access |
 | SCITT CCF | OKE or dedicated VM | Isolate namespace; mTLS to backend |
@@ -868,7 +868,7 @@ Extend Terraform (or OCI Resource Manager stacks) using specs in [OCI IAM & Edge
 |-------------------|---------|------|
 | `modules/compartments` | Compartment tree + IAM policies | [OCI_IAM_AND_EDGE_CONFIG.md](../deployment/OCI_IAM_AND_EDGE_CONFIG.md) §2–§7 |
 | `modules/iam` | Groups, dynamic groups, policy statements | §1, §3–§8 |
-| `modules/identity` | Identity Domain apps (via API/null_resource) | §1.3, §9 |
+| `modules/identity` | `oci_identity_domain` + role groups + SPA/API OIDC apps | §1.3, §1.5, §9 |
 | `modules/waf` | WAF policy + LB attachment | §11 |
 | `modules/api_gateway` | Gateway + routes + JWT | §10 |
 | `modules/cloud_gate` | Manual / SDK — no official TF resource | §9 |
@@ -907,17 +907,18 @@ Use this checklist for architecture sign-off. For **actionable IAM/edge validati
 - [ ] Separate Identity Domain for prod; MFA enforced
 - [ ] No local OCI user passwords; federated IdP only
 - [ ] Break-glass accounts sealed in Vault; tested quarterly
-- [ ] Keycloak realm roles match TDC/TDP/CCRP/AppAdmin
-- [ ] Keycloak client secrets in Vault; not in K8s plain ConfigMaps
+- [ ] Identity Domain groups map to TDC/TDP/CCRP/AppAdmin
+- [ ] OIDC client secrets in Vault; not in K8s plain ConfigMaps
+- [ ] **No Keycloak** workloads in OCI compartments / OKE namespaces
 
 ### Network
 
 - [ ] No public IPs on OKE workers or databases
 - [ ] NSGs default-deny verified with connectivity tests
-- [ ] Four hostnames resolve: `app`, `auth`, `api`, `ops`
+- [ ] Hostnames resolve: `app`, `api`, `ops` (no Keycloak `auth.*`)
 - [ ] WAF attached; OWASP CRS blocking enabled ([§11](../deployment/OCI_IAM_AND_EDGE_CONFIG.md))
-- [ ] API Gateway JWT validation on all protected routes ([§10](../deployment/OCI_IAM_AND_EDGE_CONFIG.md))
-- [ ] Cloud Gate protecting `app.*`, `auth.*`, `ops.*` — **not** `api.*` ([§9](../deployment/OCI_IAM_AND_EDGE_CONFIG.md))
+- [ ] API Gateway JWT validation (**Identity Domain**) on all protected routes ([§10](../deployment/OCI_IAM_AND_EDGE_CONFIG.md))
+- [ ] Cloud Gate protecting `app.*`, `ops.*` — **not** `api.*` ([§9](../deployment/OCI_IAM_AND_EDGE_CONFIG.md))
 - [ ] `GET /api/debug/*` blocked at WAF in prod
 
 ### Data
@@ -937,9 +938,9 @@ Use this checklist for architecture sign-off. For **actionable IAM/edge validati
 
 ### Application
 
-- [ ] Keycloak sync procedure documented for prod (equivalent to `./fix-auth.sh`)
+- [ ] `AUTH_PROVIDER=oci-iam` documented for OCI; local Keycloak procedure separate (`./fix-auth.sh`)
 - [ ] Contract signing gate tested (TDP/CCRP linkage)
-- [ ] Rate limits on `/api/auth/login` and `/api/contracts/*/sign` verified at WAF + API Gateway
+- [ ] Rate limits on auth and `/api/contracts/*/sign` verified at WAF + API Gateway
 - [ ] Unauthenticated sign request returns 401 at gateway
 
 ---

@@ -35,8 +35,30 @@ lb_name         = "can-dev-lb"
 repository_name = "confidential-ai-network"
 app_domain      = "app.dev.example.com"
 
-keycloak_admin_username = "admin"
-keycloak_admin_password = "CHANGE_ME_STRONG_PASSWORD"
+# OCI IAM Identity Domains — created by modules/identity (default)
+create_identity_domain = true
+create_identity_groups = true
+create_identity_apps   = true
+identity_domain_license_type = "free"
+# identity_domain_display_name = "cms-dev-id"
+# Optional bootstrap admin for new domain (all four required together):
+# identity_domain_admin_email      = "admin@example.com"
+# identity_domain_admin_first_name = "Platform"
+# identity_domain_admin_last_name  = "Admin"
+# identity_domain_admin_user_name  = "platform.admin"
+
+# To reuse an existing domain instead:
+# create_identity_domain      = false
+# existing_identity_domain_id = "ocid1.domain.oc1.."
+# oci_identity_domain_url     = "https://idcs-XXXX.identity.oraclecloud.com"
+# oci_identity_client_id      = "SPA_CLIENT_ID"
+# oci_identity_api_client_id  = "API_CLIENT_ID"
+# oci_identity_client_secret  = "CHANGE_ME"
+
+oci_identity_role_claim = "groups"
+# oci_identity_redirect_uri = "https://app.dev.example.com/login"
+oci_cloud_gate_enabled  = true
+identity_allow_all_url_schemes = true
 
 ethereum_network  = "goerli"
 infura_project_id = ""

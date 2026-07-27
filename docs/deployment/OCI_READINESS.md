@@ -10,13 +10,15 @@ Assessment of whether the Contract Management System is ready to deploy to **Ora
 |-------|--------|--------|
 | **Architecture & security design** | Yes (doc) | [OCI_SECURITY_ARCHITECTURE.md](../production/OCI_SECURITY_ARCHITECTURE.md) |
 | **Terraform / OKE scaffold** | Partial | [deployment/oci/terraform/README.md](../../deployment/oci/terraform/README.md) |
-| **Core app on OCI (UI + API + Keycloak + DB)** | Partial | K8s manifests in Terraform module; needs validation & hardening |
+| **Core app on OCI (UI + API + OCI IAM + DB)** | Partial | Keycloak removed from OCI TF; `AUTH_PROVIDER=oci-iam` + OIDC/JWKS wired; needs live Identity Domain validation |
 | **SCITT CCF on OCI** | No | Not in OCI Terraform; required if `SCITT_CCF_ENABLED=true` locally |
 | **Physical training on OCI** | No | Local-docker trainer assumes host Docker + disk uploads |
 | **CAN / CCRP on OCI** | No | Local CCRP executor only |
 | **One-click production** | No | Docs still reference AWS/K8s scripts; OCI path is scaffold + manual steps |
 
-**Verdict:** Ready for an **OCI infrastructure pilot** (network, OKE, ADB, LB, OCIR) with engineering effort to validate and wire secrets, DNS, and Keycloak. **Not** ready for a full production cutover with SCITT + physical training parity to local demo without additional work.
+**Identity:** OCI environments use **OCI IAM Identity Domains** only. **Keycloak** stays on local docker-compose for demos/E2E — not part of OCI deploy (same split as Azure/Entra).
+
+**Verdict:** Ready for an **OCI infrastructure pilot** (network, OKE, ADB, LB, OCIR) with engineering effort to validate secrets, DNS, and **OCI IAM** integration. **Not** ready for a full production cutover with SCITT + physical training parity to local demo without additional work.
 
 ---
 
@@ -25,9 +27,11 @@ Assessment of whether the Contract Management System is ready to deploy to **Ora
 ### Documentation
 
 - [OCI Security Architecture](../production/OCI_SECURITY_ARCHITECTURE.md) — **step-by-step new-env setup runbook** + compartments, WAF, API Gateway, Cloud Gate, OKE, Vault
+- [OCI Features & Configuration](OCI_FEATURES_AND_CONFIGURATION.md) — **feature catalog + env/settings**
 - **[OCI IAM & Edge Config](OCI_IAM_AND_EDGE_CONFIG.md)** — full IAM policies, Cloud Gate, API Gateway routes, WAF rules
+- [config/examples/config.oci.env.example](../../config/examples/config.oci.env.example) — OCI env template (target)
 - [deployment/oci/terraform/README.md](../../deployment/oci/terraform/README.md) — module list and deploy flow
-- [docs/deployment/README.md](../deployment/README.md) — decision tree (VM vs OCI vs K8s)
+- [docs/deployment/README.md](README.md) — decision tree (VM vs OCI vs Azure vs AWS vs GCP)
 
 ### Infrastructure code (`deployment/oci/terraform/`)
 
@@ -38,7 +42,7 @@ Assessment of whether the Contract Management System is ready to deploy to **Ora
 | `database` | Autonomous Database |
 | `load_balancer` | Public LB, backend sets |
 | `container_registry` | OCIR |
-| `kubernetes_resources` | Namespace, ConfigMaps, Secrets, Deployments (backend, frontend, Keycloak, Redis) |
+| `kubernetes_resources` | Namespace, ConfigMaps, Secrets, Deployments (backend, frontend, Redis; **Keycloak still in TF — remove for OCI IAM target**) |
 
 ### Alternative path
 
@@ -52,7 +56,8 @@ Assessment of whether the Contract Management System is ready to deploy to **Ora
 
 - Terraform K8s resources target a **generic** deployment; images, tags, and health probes must be built and pushed to **OCIR**
 - **Autonomous DB** vs app’s PostgreSQL-specific migrations/Sequelize — verify compatibility and connection wallet
-- **Keycloak** realm export, HTTPS, and persistent identity store differ from local `docker-compose.keycloak-*.yml`
+- **OCI IAM Identity Domains** — OIDC SPA + backend JWT validation; group → partyType map (code is still Keycloak-centric)
+- **Do not** port Keycloak realm to OKE — keep Keycloak for local docker only; remove Keycloak Deployment from OCI Terraform
 - **Environment sync:** `config.env` / `secrets.env` patterns need OCI Vault + K8s Secrets mapping
 
 ### 2. SCITT CCF (enabled in local `config.env`)
@@ -97,9 +102,10 @@ The security doc describes WAF, API Gateway, Cloud Gate, Bastion, multi-compartm
 - [ ] `terraform apply` in dev compartment
 - [ ] Build/push backend + frontend images to OCIR
 - [ ] Deploy OKE workloads; connect ADB; run migrations
-- [ ] Keycloak + TLS + DNS (`app_domain`)
-- [ ] `./fix-auth.sh` equivalent for OCI Keycloak URLs
-- [ ] Smoke: login, contract create, sign (SCITT optional/off)
+- [ ] **OCI IAM** Identity Domain + SPA/API OIDC apps; Cloud Gate optional for `app.*`
+- [ ] Map Identity Domain groups → party types; API Gateway JWT = Identity Domain JWKS
+- [ ] Remove Keycloak from OCI K8s manifests
+- [ ] Smoke: Identity Domain login, contract create, sign (SCITT optional/off)
 
 ### Phase 2 — Data & artifacts
 
@@ -138,6 +144,8 @@ The security doc describes WAF, API Gateway, Cloud Gate, Bastion, multi-compartm
 
 ## Related links
 
+- [OCI Features & Configuration](OCI_FEATURES_AND_CONFIGURATION.md)
+- [Azure Readiness](AZURE_READINESS.md) · [AWS Readiness](AWS_READINESS.md) · [GCP Readiness](GCP_READINESS.md)
 - [Production README](../production/README.md)
 - [LOCAL_DEMO_RUNBOOK.md](../training/LOCAL_DEMO_RUNBOOK.md)
 - [deployment/oci/terraform/README.md](../../deployment/oci/terraform/README.md)

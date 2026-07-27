@@ -4,6 +4,12 @@
 
 This guide explains the **real Azure infrastructure provisioning** implementation in the Contract Management System. The system now uses actual Azure SDK calls to provision real infrastructure and supports CCRP-specific Azure credentials for multi-tenant deployments.
 
+**Related (platform Azure docs):**
+
+- [Azure Features & Configuration](../docs/deployment/AZURE_FEATURES_AND_CONFIGURATION.md) — full feature catalog + env vars (Entra, Blob, train modes, DEK/MEK)
+- [config.azure.env.example](../config/examples/config.azure.env.example) — target Azure env template
+- [Azure Security Architecture](../docs/production/AZURE_SECURITY_ARCHITECTURE.md) — platform topology & crypto flows
+
 ## 🏗️ What's Been Implemented
 
 ### ✅ **Real Azure Infrastructure Provisioning**

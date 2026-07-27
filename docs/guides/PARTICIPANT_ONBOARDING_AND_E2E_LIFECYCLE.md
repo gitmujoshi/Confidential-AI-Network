@@ -10,6 +10,11 @@ This document **unifies** material previously spread across user guides, flow sp
 | Status | Living doc — reflects code + design as of 2026-07 |
 | Companion demo | [LOCAL_DEMO_RUNBOOK.md](../training/LOCAL_DEMO_RUNBOOK.md) |
 | Glossary | [GLOSSARY.md](../GLOSSARY.md) |
+| Azure features & settings | [AZURE_FEATURES_AND_CONFIGURATION.md](../deployment/AZURE_FEATURES_AND_CONFIGURATION.md) — Entra, KV, DEK/MEK, train, Blob, SCITT |
+| OCI features & settings | [OCI_FEATURES_AND_CONFIGURATION.md](../deployment/OCI_FEATURES_AND_CONFIGURATION.md) |
+| AWS features & settings | [AWS_FEATURES_AND_CONFIGURATION.md](../deployment/AWS_FEATURES_AND_CONFIGURATION.md) |
+| GCP features & settings | [GCP_FEATURES_AND_CONFIGURATION.md](../deployment/GCP_FEATURES_AND_CONFIGURATION.md) |
+| Azure crypto topology | [AZURE_SECURITY_ARCHITECTURE.md](../production/AZURE_SECURITY_ARCHITECTURE.md) §16 |
 
 ---
 

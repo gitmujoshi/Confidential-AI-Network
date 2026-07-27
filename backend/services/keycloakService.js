@@ -14,14 +14,18 @@ class KeycloakService {
   constructor() {
     // Validate required environment variables
     this.validateEnvironmentVariables();
-    
-    this.baseUrl = process.env.KEYCLOAK_URL;
-    this.realm = process.env.KEYCLOAK_REALM;
+
+    if (!this.disabled) {
+      this.baseUrl = process.env.KEYCLOAK_URL;
+      this.realm = process.env.KEYCLOAK_REALM;
+      this.clientId = process.env.KEYCLOAK_CLIENT_ID;
+      this.clientSecret = process.env.KEYCLOAK_CLIENT_SECRET;
+      this.adminUsername = process.env.KEYCLOAK_ADMIN_USERNAME;
+      this.adminPassword = process.env.KEYCLOAK_ADMIN_PASSWORD;
+    }
+
     this.adminRealm = 'master';
-    this.clientId = process.env.KEYCLOAK_CLIENT_ID;
-    this.clientSecret = process.env.KEYCLOAK_CLIENT_SECRET;
-    this.adminUsername = process.env.KEYCLOAK_ADMIN_USERNAME;
-    this.adminPassword = process.env.KEYCLOAK_ADMIN_PASSWORD;
+    this.baseUrl = this.baseUrl || '';
     
     // Configure axios based on URL scheme
     this.isHttps = this.baseUrl.startsWith('https://');
@@ -31,6 +35,18 @@ class KeycloakService {
   }
   
   validateEnvironmentVariables() {
+    // Cloud IdPs (OCI IAM / Entra / Cognito) keep Keycloak off — do not require Keycloak env.
+    if (process.env.KEYCLOAK_ENABLED !== 'true') {
+      this.disabled = true;
+      this.baseUrl = process.env.KEYCLOAK_URL || '';
+      this.realm = process.env.KEYCLOAK_REALM || '';
+      this.clientId = process.env.KEYCLOAK_CLIENT_ID || '';
+      this.clientSecret = process.env.KEYCLOAK_CLIENT_SECRET || '';
+      this.adminUsername = process.env.KEYCLOAK_ADMIN_USERNAME || '';
+      this.adminPassword = process.env.KEYCLOAK_ADMIN_PASSWORD || '';
+      return;
+    }
+
     const requiredVars = [
       'KEYCLOAK_URL',
       'KEYCLOAK_REALM',
@@ -45,6 +61,7 @@ class KeycloakService {
     if (missingVars.length > 0) {
       throw new Error(`Missing required environment variables: ${missingVars.join(', ')}`);
     }
+    this.disabled = false;
   }
 
   /**

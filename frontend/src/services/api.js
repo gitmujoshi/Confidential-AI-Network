@@ -153,6 +153,8 @@ const realApiService = {
 
   // Auth
   login: (credentials) => api.post('/api/auth/login', credentials),
+  oidcConfig: () => api.get('/api/auth/oidc/config'),
+  oidcCallback: (payload) => api.post('/api/auth/oidc/callback', payload),
   register: (userData) => api.post('/api/auth/register', userData),
   logout: () => api.post('/api/auth/logout'),
   refreshToken: (refreshToken) => api.post('/api/auth/refresh', { refreshToken }),

@@ -64,7 +64,13 @@ Follow the links below by topic. OCI and Azure each have a **step-by-step new-en
 | End-to-end production deployment | [PRODUCTION_DEPLOYMENT_GUIDE.md](PRODUCTION_DEPLOYMENT_GUIDE.md) |
 | System architecture (components, data flow) | [PRODUCTION_ARCHITECTURE.md](PRODUCTION_ARCHITECTURE.md) |
 | OCI deploy readiness | [../deployment/OCI_READINESS.md](../deployment/OCI_READINESS.md) |
+| OCI features & configuration (env vars) | [../deployment/OCI_FEATURES_AND_CONFIGURATION.md](../deployment/OCI_FEATURES_AND_CONFIGURATION.md) |
 | Azure deploy readiness | [../deployment/AZURE_READINESS.md](../deployment/AZURE_READINESS.md) |
+| Azure features & configuration (env vars) | [../deployment/AZURE_FEATURES_AND_CONFIGURATION.md](../deployment/AZURE_FEATURES_AND_CONFIGURATION.md) |
+| AWS deploy readiness | [../deployment/AWS_READINESS.md](../deployment/AWS_READINESS.md) |
+| AWS features & configuration (env vars) | [../deployment/AWS_FEATURES_AND_CONFIGURATION.md](../deployment/AWS_FEATURES_AND_CONFIGURATION.md) |
+| GCP deploy readiness | [../deployment/GCP_READINESS.md](../deployment/GCP_READINESS.md) |
+| GCP features & configuration (env vars) | [../deployment/GCP_FEATURES_AND_CONFIGURATION.md](../deployment/GCP_FEATURES_AND_CONFIGURATION.md) |
 | Deployment index (scripts, tfvars) | [../deployment/README.md](../deployment/README.md) |
 | Troubleshooting | [TROUBLESHOOTING_GUIDE.md](TROUBLESHOOTING_GUIDE.md) |
 
@@ -74,8 +80,12 @@ Follow the links below by topic. OCI and Azure each have a **step-by-step new-en
 |-------|----------|
 | OCI security architecture (compartments, WAF, API GW, OKE) | [OCI_SECURITY_ARCHITECTURE.md](OCI_SECURITY_ARCHITECTURE.md) |
 | Azure security architecture (Entra ID, Front Door, APIM, AKS) | [AZURE_SECURITY_ARCHITECTURE.md](AZURE_SECURITY_ARCHITECTURE.md) |
+| AWS security architecture (Cognito, CloudFront, EKS) | [AWS_SECURITY_ARCHITECTURE.md](AWS_SECURITY_ARCHITECTURE.md) |
+| GCP security architecture (Identity Platform, Armor, GKE) | [GCP_SECURITY_ARCHITECTURE.md](GCP_SECURITY_ARCHITECTURE.md) |
 | OCI IAM and edge configuration (policies, routes, JWT) | [../deployment/OCI_IAM_AND_EDGE_CONFIG.md](../deployment/OCI_IAM_AND_EDGE_CONFIG.md) |
 | Azure IAM and edge configuration | [../deployment/AZURE_IAM_AND_EDGE_CONFIG.md](../deployment/AZURE_IAM_AND_EDGE_CONFIG.md) |
+| AWS IAM and edge configuration | [../deployment/AWS_IAM_AND_EDGE_CONFIG.md](../deployment/AWS_IAM_AND_EDGE_CONFIG.md) |
+| GCP IAM and edge configuration | [../deployment/GCP_IAM_AND_EDGE_CONFIG.md](../deployment/GCP_IAM_AND_EDGE_CONFIG.md) |
 | Application security practices | [SECURITY_GUIDE.md](SECURITY_GUIDE.md) |
 | SIEM / audit export (Splunk, Sentinel, OCI, webhook) | [SIEM_INTEGRATION_FRAMEWORK.md](SIEM_INTEGRATION_FRAMEWORK.md) · [../deployment/siem/README.md](../deployment/siem/README.md) |
 

@@ -258,7 +258,7 @@ print_urls_summary() {
   local lb_ip="$1"
   local frontend_url="$2"
   local backend_url="$3"
-  local keycloak_url="$4"
+  local identity_line="$4"
 
   echo ""
   print_header "Deployment Summary"
@@ -267,7 +267,7 @@ print_urls_summary() {
   echo "Application URLs:"
   echo "  Frontend:  ${frontend_url}"
   echo "  Backend:   ${backend_url}"
-  echo "  Keycloak:  ${keycloak_url}"
+  echo "  Identity:  ${identity_line}"
   echo ""
   echo "Kubernetes:"
   echo "  Namespace: ${K8S_NAMESPACE}"

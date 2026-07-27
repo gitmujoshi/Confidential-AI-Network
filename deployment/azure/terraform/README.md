@@ -2,6 +2,8 @@
 
 Baseline infrastructure for deploying the Confidential AI Network on **Microsoft Azure**.
 
+**Identity:** Azure uses **Microsoft Entra ID** (not Keycloak). Full feature/settings catalog: [docs/deployment/AZURE_FEATURES_AND_CONFIGURATION.md](../../../docs/deployment/AZURE_FEATURES_AND_CONFIGURATION.md). Env template: [config/examples/config.azure.env.example](../../../config/examples/config.azure.env.example).
+
 ## Architecture
 
 | Module | Azure resources |
@@ -29,7 +31,7 @@ az account set --subscription "<subscription-id>"
 
 cd deployment/azure/terraform
 cp terraform.tfvars.example terraform.tfvars
-# Edit subscription_id, tenant_id, db_password, keycloak_admin_password
+# Edit subscription_id, tenant_id, db_password (Entra for auth — not Keycloak)
 
 chmod +x deploy.sh destroy.sh
 ./deploy.sh -y --images

@@ -3,7 +3,7 @@ terraform {
   required_providers {
     oci = {
       source  = "oracle/oci"
-      version = "~> 5.0"
+      version = ">= 5.40.0"
     }
     kubernetes = {
       source  = "hashicorp/kubernetes"
@@ -76,7 +76,7 @@ module "oke" {
   node_memory_in_gbs = var.node_memory_in_gbs
   kubernetes_version = var.kubernetes_version
   freeform_tags      = local.resource_freeform_tags
-  defined_tags         = local.resource_defined_tags
+  defined_tags       = local.resource_defined_tags
 }
 
 # Database
@@ -107,18 +107,54 @@ module "load_balancer" {
 module "container_registry" {
   source = "./modules/container_registry"
 
-  compartment_id   = var.compartment_id
-  repository_name  = var.repository_name
-  environment      = var.environment
-  freeform_tags    = local.resource_freeform_tags
-  defined_tags     = local.resource_defined_tags
+  compartment_id  = var.compartment_id
+  repository_name = var.repository_name
+  environment     = var.environment
+  freeform_tags   = local.resource_freeform_tags
+  defined_tags    = local.resource_defined_tags
+}
+
+# OCI IAM Identity Domains (sole IdP on OCI — no Keycloak)
+module "identity" {
+  source = "./modules/identity"
+
+  compartment_id = var.compartment_id
+  environment    = var.environment
+  home_region    = var.region
+  app_domain     = var.app_domain
+
+  create_domain = var.create_identity_domain
+  create_groups = var.create_identity_groups
+  create_apps   = var.create_identity_apps
+
+  existing_domain_id  = var.existing_identity_domain_id
+  existing_domain_url = var.oci_identity_domain_url
+
+  domain_display_name = var.identity_domain_display_name
+  domain_description  = var.identity_domain_description
+  license_type        = var.identity_domain_license_type
+  is_hidden_on_login  = var.identity_domain_hidden_on_login
+
+  admin_email              = var.identity_domain_admin_email
+  admin_first_name         = var.identity_domain_admin_first_name
+  admin_last_name          = var.identity_domain_admin_last_name
+  admin_user_name          = var.identity_domain_admin_user_name
+  is_notification_bypassed = var.identity_domain_admin_notification_bypassed
+
+  redirect_uri             = var.oci_identity_redirect_uri
+  post_logout_redirect_uri = var.oci_identity_post_logout_redirect_uri
+  api_audience             = var.oci_identity_audience
+  allow_all_url_schemes    = var.identity_allow_all_url_schemes
+
+  freeform_tags = local.resource_freeform_tags
+  defined_tags  = local.resource_defined_tags
 }
 
 # Kubernetes Resources
 module "kubernetes_resources" {
   source = "./modules/kubernetes_resources"
 
-  depends_on = [module.oke]
+  depends_on = [module.oke, module.identity]
 
   db_host     = module.database.db_host
   db_port     = module.database.db_port
@@ -130,12 +166,20 @@ module "kubernetes_resources" {
   registry_url = module.container_registry.registry_url
   image_tag    = local.effective_image_tag
 
-  app_domain              = var.app_domain
-  environment             = var.environment
-  release_version         = var.release_version
-  ethereum_network        = var.ethereum_network
-  infura_project_id       = var.infura_project_id
-  keycloak_admin_username = var.keycloak_admin_username
-  keycloak_admin_password = var.keycloak_admin_password
-  keycloak_db_password    = var.keycloak_db_password != "" ? var.keycloak_db_password : var.db_password
+  app_domain        = var.app_domain
+  environment       = var.environment
+  release_version   = var.release_version
+  ethereum_network  = var.ethereum_network
+  infura_project_id = var.infura_project_id
+
+  oci_identity_domain_url    = local.effective_oci_identity_domain_url
+  oci_identity_client_id     = local.effective_oci_identity_client_id
+  oci_identity_api_client_id = local.effective_oci_identity_api_client_id
+  oci_identity_client_secret = local.effective_oci_identity_client_secret
+  oci_identity_issuer        = local.effective_oci_identity_issuer
+  oci_identity_audience      = local.effective_oci_identity_audience
+  oci_identity_jwks_url      = var.oci_identity_jwks_url
+  oci_identity_role_claim    = var.oci_identity_role_claim
+  oci_identity_redirect_uri  = local.effective_oci_identity_redirect_uri
+  oci_cloud_gate_enabled     = var.oci_cloud_gate_enabled
 }

@@ -10,13 +10,15 @@ Assessment of whether the Confidential AI Network is ready to deploy to **Micros
 |-------|--------|--------|
 | **Architecture & security design** | Yes (doc) | [AZURE_SECURITY_ARCHITECTURE.md](../production/AZURE_SECURITY_ARCHITECTURE.md) |
 | **Terraform / AKS scaffold** | Partial | [deployment/azure/terraform/README.md](../../deployment/azure/terraform/README.md) |
-| **Core app on Azure (UI + API + Keycloak + DB)** | Partial | K8s manifests in Terraform module; needs validation & hardening |
-| **SCITT CCF on Azure** | No | Not in Azure Terraform; required if `SCITT_CCF_ENABLED=true` locally |
+| **Core app on Azure (UI + API + Entra + DB)** | Partial | K8s manifests in Terraform module; **Entra** auth to replace Keycloak for Azure; needs validation & hardening |
+| **SCITT CCF on Azure** | No | Not in Azure Terraform; optional for local when `SCITT_CCF_ENABLED=true` |
 | **Physical training on Azure** | Partial | CCRP `azureProvider.js` + runtime Terraform in `terraformService.js`; not platform baseline |
 | **CAN / CCRP on Azure** | Partial | [azure_confidential_computing_integration.md](../contracts/azure_confidential_computing_integration.md) |
 | **One-click production** | No | Full edge stack (Front Door, APIM) is design-only in Terraform |
 
-**Verdict:** Ready for an **Azure infrastructure pilot** (VNet, AKS, PostgreSQL, App Gateway, ACR) with engineering effort to validate secrets, DNS, and Keycloak. **Not** ready for full production cutover with SCITT + training parity to local demo without additional work.
+**Identity:** Azure environments use **Microsoft Entra ID** only. **Keycloak** stays on local docker-compose for demos/E2E — not part of Azure deploy.
+
+**Verdict:** Ready for an **Azure infrastructure pilot** (VNet, AKS, PostgreSQL, App Gateway, ACR) with engineering effort to validate secrets, DNS, and **Entra ID** integration. **Not** ready for full production cutover with SCITT + training parity to local demo without additional work.
 
 ---
 
@@ -25,7 +27,9 @@ Assessment of whether the Confidential AI Network is ready to deploy to **Micros
 ### Documentation
 
 - [Azure Security Architecture](../production/AZURE_SECURITY_ARCHITECTURE.md) — step-by-step runbook + reference architecture
+- [Azure Features & Configuration](AZURE_FEATURES_AND_CONFIGURATION.md) — **feature catalog + env/settings** (Entra, KV, DEK/MEK, train, Blob, SCITT)
 - [Azure IAM & Edge Config](AZURE_IAM_AND_EDGE_CONFIG.md) — RBAC, Entra ID, Front Door, APIM, WAF
+- [config/examples/config.azure.env.example](../../config/examples/config.azure.env.example) — Azure env template (target)
 - [deployment/azure/terraform/README.md](../../deployment/azure/terraform/README.md) — module list and deploy flow
 - [backend/AZURE_INTEGRATION_GUIDE.md](../../backend/AZURE_INTEGRATION_GUIDE.md) — CCRP credential and training integration
 
@@ -66,9 +70,10 @@ Assessment of whether the Confidential AI Network is ready to deploy to **Micros
 ### 1. Application stack
 
 - Terraform K8s resources need images built and pushed to **ACR**
+- **Entra ID** app registrations, MSAL SPA, backend JWT validation for Entra issuer
 - **PostgreSQL Flexible Server** vs Sequelize migrations — verify extensions and connection SSL
-- **Keycloak** realm export, HTTPS, persistent store differ from local docker-compose
 - **Environment sync:** `config.env` / `secrets.env` → Key Vault + K8s Secrets mapping
+- **Do not** port Keycloak realm export to Azure — keep Keycloak for local docker only
 
 ### 2. SCITT CCF
 
@@ -104,9 +109,9 @@ Docs describe Front Door, APIM, Bastion, multi-RG layout — **most edge service
 - [ ] `terraform apply` in `can-dev-compute-rg`
 - [ ] Build/push backend + frontend images to ACR
 - [ ] Deploy AKS workloads; connect PostgreSQL; run migrations
-- [ ] Keycloak + TLS + DNS
-- [ ] `fix-auth-unified.sh` adapted for Azure Keycloak URL
-- [ ] Manual smoke test: login, contract create, sign
+- [ ] **Entra ID** SPA + API app registrations; MSAL login; APIM Entra JWT
+- [ ] Map Entra app roles → party types in backend
+- [ ] Manual smoke test: Entra login, contract create, sign
 
 ### Phase 2 — Security hardening (2–4 weeks)
 
@@ -142,7 +147,7 @@ az account set --subscription "<subscription-id>"
 # Platform Terraform
 cd deployment/azure/terraform
 cp terraform.tfvars.example terraform.tfvars
-# Edit subscription_id, location, db_password, keycloak_admin_password
+# Edit subscription_id, location, db_password (no Keycloak on Azure — use Entra)
 ./deploy.sh
 
 # Or simpler VM path
@@ -153,5 +158,6 @@ cp terraform.tfvars.example terraform.tfvars
 
 ## Related
 
-- [OCI Readiness](OCI_READINESS.md) — parallel assessment for Oracle Cloud
+- [Azure Features & Configuration](AZURE_FEATURES_AND_CONFIGURATION.md) — detailed settings for each remaining feature
+- [OCI Readiness](OCI_READINESS.md) · [AWS Readiness](AWS_READINESS.md) · [GCP Readiness](GCP_READINESS.md)
 - [docs/deployment/README.md](README.md) — deployment decision tree

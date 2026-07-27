@@ -74,9 +74,34 @@ output "backend_url" {
   value       = "http://${module.load_balancer.lb_ip}:5000"
 }
 
-output "keycloak_url" {
-  description = "Keycloak admin console URL"
-  value       = "http://${module.load_balancer.lb_ip}:8080"
+output "auth_provider" {
+  description = "Application IdP on OCI"
+  value       = "oci-iam"
+}
+
+output "oci_identity_domain_id" {
+  description = "Identity Domain OCID"
+  value       = try(module.identity.domain_id, null)
+}
+
+output "oci_identity_domain_url" {
+  description = "Identity Domain URL used by the app"
+  value       = local.effective_oci_identity_domain_url
+}
+
+output "oci_identity_frontend_client_id" {
+  description = "SPA OIDC client id"
+  value       = local.effective_oci_identity_client_id
+}
+
+output "oci_identity_api_client_id" {
+  description = "API OIDC client id"
+  value       = local.effective_oci_identity_api_client_id
+}
+
+output "oci_identity_group_names" {
+  description = "Role group display names created in the domain"
+  value       = try(module.identity.group_display_names, {})
 }
 
 # Network Outputs
@@ -125,11 +150,12 @@ output "next_steps" {
   description = "Next steps after deployment"
   value = [
     "1. Configure DNS to point ${var.app_domain} to ${module.load_balancer.lb_ip}",
-    "2. Access Keycloak admin console at http://${module.load_balancer.lb_ip}:8080",
-    "3. Set up Keycloak realm and users",
-    "4. Configure environment variables in Kubernetes secrets",
+    "2. Identity Domain URL: ${local.effective_oci_identity_domain_url}",
+    "3. Assign users to groups ${join(", ", values(try(module.identity.group_display_names, {})))} (or seed via Console)",
+    "4. Confirm AUTH_PROVIDER=oci-iam and KEYCLOAK_ENABLED=false on backend pods",
     "5. Deploy application containers to OKE cluster",
     "6. Access frontend at http://${module.load_balancer.lb_ip}:3000",
-    "7. Access backend API at http://${module.load_balancer.lb_ip}:5000"
+    "7. Access backend API at http://${module.load_balancer.lb_ip}:5000",
+    "8. Sign in via Identity Domain SSO (SPA client ${local.effective_oci_identity_client_id})"
   ]
 } 

@@ -2,7 +2,7 @@
 resource "kubernetes_namespace" "app_namespace" {
   metadata {
     name = "contract-management"
-    
+
     labels = {
       app = "contract-management"
     }
@@ -15,16 +15,25 @@ resource "kubernetes_config_map" "app_config" {
     name      = "app-config"
     namespace = kubernetes_namespace.app_namespace.metadata[0].name
   }
-  
+
   data = {
-    NODE_ENV                    = var.environment
-    APP_DOMAIN                  = var.app_domain
-    APP_VERSION                 = var.release_version
-    IMAGE_TAG                   = var.image_tag
-    ETHEREUM_NETWORK            = var.ethereum_network
-    INFURA_PROJECT_ID           = var.infura_project_id
-    KEYCLOAK_ADMIN_USERNAME     = var.keycloak_admin_username
-    KEYCLOAK_ADMIN_PASSWORD     = var.keycloak_admin_password
+    NODE_ENV                   = var.environment
+    APP_DOMAIN                 = var.app_domain
+    APP_VERSION                = var.release_version
+    IMAGE_TAG                  = var.image_tag
+    ETHEREUM_NETWORK           = var.ethereum_network
+    INFURA_PROJECT_ID          = var.infura_project_id
+    AUTH_PROVIDER              = "oci-iam"
+    KEYCLOAK_ENABLED           = "false"
+    OCI_IDENTITY_DOMAIN_URL    = var.oci_identity_domain_url
+    OCI_IDENTITY_CLIENT_ID     = var.oci_identity_client_id
+    OCI_IDENTITY_API_CLIENT_ID = var.oci_identity_api_client_id
+    OCI_IDENTITY_ISSUER        = var.oci_identity_issuer
+    OCI_IDENTITY_AUDIENCE      = var.oci_identity_audience
+    OCI_IDENTITY_JWKS_URL      = var.oci_identity_jwks_url
+    OCI_IDENTITY_ROLE_CLAIM    = var.oci_identity_role_claim
+    OCI_IDENTITY_REDIRECT_URI  = var.oci_identity_redirect_uri != "" ? var.oci_identity_redirect_uri : "https://${var.app_domain}/login"
+    OCI_CLOUD_GATE_ENABLED     = tostring(var.oci_cloud_gate_enabled)
   }
 }
 
@@ -34,7 +43,7 @@ resource "kubernetes_secret" "db_secret" {
     name      = "db-secret"
     namespace = kubernetes_namespace.app_namespace.metadata[0].name
   }
-  
+
   data = {
     DB_HOST     = base64encode(var.db_host)
     DB_PORT     = base64encode(var.db_port)
@@ -42,42 +51,22 @@ resource "kubernetes_secret" "db_secret" {
     DB_USER     = base64encode(var.db_user)
     DB_PASSWORD = base64encode(var.db_password)
   }
-  
+
   type = "Opaque"
 }
 
-# Secret for Keycloak configuration
-resource "kubernetes_secret" "keycloak_secret" {
+# Secret for OCI IAM confidential client (optional)
+resource "kubernetes_secret" "oci_identity_secret" {
   metadata {
-    name      = "keycloak-secret"
+    name      = "oci-identity-secret"
     namespace = kubernetes_namespace.app_namespace.metadata[0].name
   }
-  
+
   data = {
-    KEYCLOAK_ADMIN_USERNAME = base64encode(var.keycloak_admin_username)
-    KEYCLOAK_ADMIN_PASSWORD = base64encode(var.keycloak_admin_password)
-    KEYCLOAK_DB_PASSWORD    = base64encode(var.keycloak_db_password)
+    OCI_IDENTITY_CLIENT_SECRET = base64encode(var.oci_identity_client_secret)
   }
-  
-  type = "Opaque"
-}
 
-# Persistent Volume Claim for Keycloak database
-resource "kubernetes_persistent_volume_claim" "keycloak_db_pvc" {
-  metadata {
-    name      = "keycloak-db-pvc"
-    namespace = kubernetes_namespace.app_namespace.metadata[0].name
-  }
-  
-  spec {
-    access_modes = ["ReadWriteOnce"]
-    resources {
-      requests = {
-        storage = "10Gi"
-      }
-    }
-    storage_class_name = "oci-bv"
-  }
+  type = "Opaque"
 }
 
 # Persistent Volume Claim for Redis
@@ -86,7 +75,7 @@ resource "kubernetes_persistent_volume_claim" "redis_pvc" {
     name      = "redis-pvc"
     namespace = kubernetes_namespace.app_namespace.metadata[0].name
   }
-  
+
   spec {
     access_modes = ["ReadWriteOnce"]
     resources {
@@ -98,261 +87,44 @@ resource "kubernetes_persistent_volume_claim" "redis_pvc" {
   }
 }
 
-# Deployment for Keycloak Database
-resource "kubernetes_deployment" "keycloak_db" {
-  metadata {
-    name      = "keycloak-db"
-    namespace = kubernetes_namespace.app_namespace.metadata[0].name
-  }
-  
-  spec {
-    replicas = 1
-    
-    selector {
-      match_labels = {
-        app = "keycloak-db"
-      }
-    }
-    
-    template {
-      metadata {
-        labels = {
-          app = "keycloak-db"
-        }
-      }
-      
-      spec {
-        container {
-          image = "postgres:15"
-          name  = "postgres"
-          
-          env {
-            name  = "POSTGRES_DB"
-            value = "keycloak"
-          }
-          
-          env {
-            name  = "POSTGRES_USER"
-            value = "keycloak"
-          }
-          
-          env {
-            name = "POSTGRES_PASSWORD"
-            value_from {
-              secret_key_ref {
-                name = kubernetes_secret.keycloak_secret.metadata[0].name
-                key  = "KEYCLOAK_DB_PASSWORD"
-              }
-            }
-          }
-          
-          port {
-            container_port = 5432
-          }
-          
-          volume_mount {
-            name       = "postgres-storage"
-            mount_path = "/var/lib/postgresql/data"
-          }
-        }
-        
-        volume {
-          name = "postgres-storage"
-          persistent_volume_claim {
-            claim_name = kubernetes_persistent_volume_claim.keycloak_db_pvc.metadata[0].name
-          }
-        }
-      }
-    }
-  }
-}
-
-# Service for Keycloak Database
-resource "kubernetes_service" "keycloak_db_service" {
-  metadata {
-    name      = "keycloak-db-service"
-    namespace = kubernetes_namespace.app_namespace.metadata[0].name
-  }
-  
-  spec {
-    selector = {
-      app = "keycloak-db"
-    }
-    
-    port {
-      port        = 5432
-      target_port = 5432
-    }
-    
-    type = "ClusterIP"
-  }
-}
-
-# Deployment for Keycloak
-resource "kubernetes_deployment" "keycloak" {
-  metadata {
-    name      = "keycloak"
-    namespace = kubernetes_namespace.app_namespace.metadata[0].name
-  }
-  
-  spec {
-    replicas = 1
-    
-    selector {
-      match_labels = {
-        app = "keycloak"
-      }
-    }
-    
-    template {
-      metadata {
-        labels = {
-          app = "keycloak"
-        }
-      }
-      
-      spec {
-        container {
-          image = "quay.io/keycloak/keycloak:23.0"
-          name  = "keycloak"
-          
-          env {
-            name  = "KC_DB"
-            value = "postgres"
-          }
-          
-          env {
-            name  = "KC_DB_URL"
-            value = "jdbc:postgresql://keycloak-db-service:5432/keycloak"
-          }
-          
-          env {
-            name  = "KC_DB_USERNAME"
-            value = "keycloak"
-          }
-          
-          env {
-            name = "KC_DB_PASSWORD"
-            value_from {
-              secret_key_ref {
-                name = kubernetes_secret.keycloak_secret.metadata[0].name
-                key  = "KEYCLOAK_DB_PASSWORD"
-              }
-            }
-          }
-          
-          env {
-            name = "KEYCLOAK_ADMIN"
-            value_from {
-              secret_key_ref {
-                name = kubernetes_secret.keycloak_secret.metadata[0].name
-                key  = "KEYCLOAK_ADMIN_USERNAME"
-              }
-            }
-          }
-          
-          env {
-            name = "KEYCLOAK_ADMIN_PASSWORD"
-            value_from {
-              secret_key_ref {
-                name = kubernetes_secret.keycloak_secret.metadata[0].name
-                key  = "KEYCLOAK_ADMIN_PASSWORD"
-              }
-            }
-          }
-          
-          env {
-            name  = "KC_HOSTNAME_STRICT"
-            value = "false"
-          }
-          
-          env {
-            name  = "KC_HOSTNAME_STRICT_HTTPS"
-            value = "false"
-          }
-          
-          env {
-            name  = "KC_HTTP_ENABLED"
-            value = "true"
-          }
-          
-          env {
-            name  = "KC_HEALTH_ENABLED"
-            value = "true"
-          }
-          
-          port {
-            container_port = 8080
-          }
-          
-          command = ["start-dev"]
-        }
-      }
-    }
-  }
-  
-  depends_on = [kubernetes_deployment.keycloak_db]
-}
-
-# Service for Keycloak
-resource "kubernetes_service" "keycloak_service" {
-  metadata {
-    name      = "keycloak-service"
-    namespace = kubernetes_namespace.app_namespace.metadata[0].name
-  }
-  
-  spec {
-    selector = {
-      app = "keycloak"
-    }
-    
-    port {
-      port        = 8080
-      target_port = 8080
-    }
-    
-    type = "LoadBalancer"
-  }
-}
-
 # Deployment for Redis
 resource "kubernetes_deployment" "redis" {
   metadata {
     name      = "redis"
     namespace = kubernetes_namespace.app_namespace.metadata[0].name
   }
-  
+
   spec {
     replicas = 1
-    
+
     selector {
       match_labels = {
         app = "redis"
       }
     }
-    
+
     template {
       metadata {
         labels = {
           app = "redis"
         }
       }
-      
+
       spec {
         container {
           image = "redis:7-alpine"
           name  = "redis"
-          
+
           port {
             container_port = 6379
           }
-          
+
           volume_mount {
             name       = "redis-storage"
             mount_path = "/data"
           }
         }
-        
+
         volume {
           name = "redis-storage"
           persistent_volume_claim {
@@ -370,17 +142,17 @@ resource "kubernetes_service" "redis_service" {
     name      = "redis-service"
     namespace = kubernetes_namespace.app_namespace.metadata[0].name
   }
-  
+
   spec {
     selector = {
       app = "redis"
     }
-    
+
     port {
       port        = 6379
       target_port = 6379
     }
-    
+
     type = "ClusterIP"
   }
 }
@@ -391,54 +163,60 @@ resource "kubernetes_deployment" "backend" {
     name      = "backend"
     namespace = kubernetes_namespace.app_namespace.metadata[0].name
   }
-  
+
   spec {
     replicas = 2
-    
+
     selector {
       match_labels = {
         app = "backend"
       }
     }
-    
+
     template {
       metadata {
         labels = {
           app = "backend"
         }
       }
-      
+
       spec {
         container {
           image = "${var.registry_url}/backend:${var.image_tag}"
           name  = "backend"
-          
+
           env_from {
             config_map_ref {
               name = kubernetes_config_map.app_config.metadata[0].name
             }
           }
-          
+
           env_from {
             secret_ref {
               name = kubernetes_secret.db_secret.metadata[0].name
             }
           }
-          
+
+          env_from {
+            secret_ref {
+              name = kubernetes_secret.oci_identity_secret.metadata[0].name
+            }
+          }
+
           env {
             name  = "REDIS_HOST"
             value = "redis-service"
           }
-          
+
           env {
             name  = "REDIS_PORT"
             value = "6379"
           }
-          
+
           port {
             container_port = 5000
           }
-          
+
           resources {
             requests = {
               memory = "512Mi"
@@ -461,17 +239,17 @@ resource "kubernetes_service" "backend_service" {
     name      = "backend-service"
     namespace = kubernetes_namespace.app_namespace.metadata[0].name
   }
-  
+
   spec {
     selector = {
       app = "backend"
     }
-    
+
     port {
       port        = 5000
       target_port = 5000
     }
-    
+
     type = "LoadBalancer"
   }
 }
@@ -482,48 +260,48 @@ resource "kubernetes_deployment" "frontend" {
     name      = "frontend"
     namespace = kubernetes_namespace.app_namespace.metadata[0].name
   }
-  
+
   spec {
     replicas = 2
-    
+
     selector {
       match_labels = {
         app = "frontend"
       }
     }
-    
+
     template {
       metadata {
         labels = {
           app = "frontend"
         }
       }
-      
+
       spec {
         container {
           image = "${var.registry_url}/frontend:${var.image_tag}"
           name  = "frontend"
-          
+
           env_from {
             config_map_ref {
               name = kubernetes_config_map.app_config.metadata[0].name
             }
           }
-          
+
           env {
             name  = "REACT_APP_API_URL"
             value = "http://backend-service:5000"
           }
-          
+
           env {
-            name  = "REACT_APP_KEYCLOAK_URL"
-            value = "http://keycloak-service:8080"
+            name  = "REACT_APP_AUTH_PROVIDER"
+            value = "oci-iam"
           }
-          
+
           port {
             container_port = 3000
           }
-          
+
           resources {
             requests = {
               memory = "256Mi"
@@ -546,17 +324,17 @@ resource "kubernetes_service" "frontend_service" {
     name      = "frontend-service"
     namespace = kubernetes_namespace.app_namespace.metadata[0].name
   }
-  
+
   spec {
     selector = {
       app = "frontend"
     }
-    
+
     port {
       port        = 3000
       target_port = 3000
     }
-    
+
     type = "LoadBalancer"
   }
 } 

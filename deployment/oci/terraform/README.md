@@ -2,6 +2,10 @@
 
 This directory contains the Terraform configuration for deploying the Contract Management System to Oracle Cloud Infrastructure (OCI).
 
+**Docs:** [OCI Features & Configuration](../../../docs/deployment/OCI_FEATURES_AND_CONFIGURATION.md) · [config.oci.env.example](../../../config/examples/config.oci.env.example) · [OCI Security Architecture](../../../docs/production/OCI_SECURITY_ARCHITECTURE.md).
+
+**Identity:** OCI uses **OCI IAM Identity Domains** only (`AUTH_PROVIDER=oci-iam`). **Keycloak is not deployed** on OKE. Domain + OIDC apps + role groups are created by [`modules/identity`](modules/identity/README.md) (default on).
+
 ## 🏗️ Architecture Overview
 
 The deployment creates a complete infrastructure including:
@@ -93,6 +97,7 @@ terraform/
     ├── database/              # Autonomous database
     ├── load_balancer/         # Load balancer configuration
     ├── container_registry/    # Container registry
+    ├── identity/              # Identity Domain + OIDC apps + role groups
     └── kubernetes_resources/  # Application deployment
 ```
 
@@ -108,7 +113,7 @@ terraform/
 | `private_key_path` | Path to private key | `~/.oci/oci_api_key.pem` |
 | `compartment_id` | Compartment OCID | `ocid1.compartment.oc1..example` |
 | `db_password` | Database password | `your-secure-password` |
-| `keycloak_admin_password` | Keycloak admin password | `your-secure-password` |
+| `create_identity_domain` | Create Identity Domain via TF | `true` (default) |
 
 ### Tagging & versioning
 
@@ -160,7 +165,7 @@ See [OCI_TAGGING_AND_VERSIONING.md](../../../docs/deployment/OCI_TAGGING_AND_VER
 
 ### Load Balancer
 - **Shape**: Flexible (10-100 Mbps)
-- **Backend Sets**: Frontend, Backend API, Keycloak
+- **Backend Sets**: Frontend, Backend API
 - **Health Checks**: HTTP-based with 10s intervals
 
 ### Container Registry
@@ -173,17 +178,16 @@ See [OCI_TAGGING_AND_VERSIONING.md](../../../docs/deployment/OCI_TAGGING_AND_VER
 ### Kubernetes Resources
 - **Namespace**: `contract-management`
 - **ConfigMaps**: Application configuration
-- **Secrets**: Database and Keycloak credentials
-- **Persistent Volumes**: For Keycloak DB and Redis
-- **Deployments**: Backend, Frontend, Keycloak, Redis
+- **Secrets**: Database and OCI Identity client secret
+- **Persistent Volumes**: Redis
+- **Deployments**: Backend, Frontend, Redis (no Keycloak)
 - **Services**: LoadBalancer type for external access
 
 ### Application Components
-1. **Keycloak Database**: PostgreSQL 15 with persistent storage
-2. **Keycloak**: Identity and Access Management
-3. **Redis**: Session management and caching
-4. **Backend API**: Node.js/Express application
-5. **Frontend**: React application served by Nginx
+1. **Redis**: Session management and caching
+2. **Backend API**: Node.js/Express (`AUTH_PROVIDER=oci-iam`)
+3. **Frontend**: React application (OCI IAM SSO)
+4. **Identity**: `modules/identity` — Domain, OIDC apps, role groups → K8s ConfigMap
 
 ## 🔒 Security Features
 
@@ -230,8 +234,8 @@ See [OCI_TAGGING_AND_VERSIONING.md](../../../docs/deployment/OCI_TAGGING_AND_VER
 
 3. **Post-Deployment**
    - Configure DNS
-   - Set up Keycloak realm
-   - Test application endpoints
+   - Create Identity Domain OIDC apps + groups; seed matching app DB users
+   - Test SSO login and API JWT validation
 
 ## 🛠️ Management Commands
 

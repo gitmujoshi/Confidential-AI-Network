@@ -19,9 +19,72 @@ const { normalizePartyType } = require('../utils/partyTypes');
 
 const KeycloakService = require('../services/keycloakService');
 const keycloakService = new KeycloakService();
+const OciIdentityService = require('../services/ociIdentityService');
+const ociIdentityService = new OciIdentityService();
 const db = require('../models');
 const axios = require('axios');
 const tokenBlacklist = require('../tokenBlacklist');
+
+const AUTH_PROVIDER = () => (process.env.AUTH_PROVIDER || 'keycloak').toLowerCase();
+
+async function attachDbUserFromIdpClaims(req, next, res, token, userInfo, authType) {
+  const lookupUsername = userInfo.username || userInfo.email || userInfo.preferred_username;
+  let user = null;
+
+  if (lookupUsername) {
+    user = await db.User.findOne({
+      where: { iamUsername: lookupUsername, isActive: true },
+    });
+  }
+  if (!user && userInfo.email) {
+    user = await db.User.findOne({
+      where: { email: userInfo.email, isActive: true },
+    });
+  }
+  if (!user && userInfo.sub) {
+    user = await db.User.findOne({
+      where: { iamUserId: userInfo.sub, isActive: true },
+    });
+  }
+
+  if (!user) {
+    return res.status(404).json({
+      error: 'User not found in local database',
+      code: 'USER_NOT_FOUND',
+      details: `User exists in ${authType} but not in local database`,
+    });
+  }
+
+  await user.update({ lastLoginAt: new Date() });
+  const normalizedPartyType = normalizePartyType(user.partyType);
+  req.user = {
+    ...userInfo,
+    id: userInfo.dbUserId || user.id,
+    partyType: normalizedPartyType,
+    localUser: {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      partyType: normalizedPartyType,
+      walletAddress: user.walletAddress,
+      did: user.did,
+      publicKey: user.publicKey,
+      description: user.description,
+      organization: user.organization,
+      phoneNumber: user.phoneNumber,
+      website: user.website,
+      location: user.location,
+      isRegistered: user.isRegistered,
+      onboardingStatus: user.onboardingStatus,
+      profileCompleted: user.profileCompleted,
+      emailVerified: user.emailVerified,
+      depaId: user.depaId,
+    },
+    token,
+    authType,
+  };
+  return next();
+}
 
 /**
  * Validate JWT token and extract user information
@@ -45,6 +108,20 @@ const authenticateToken = async (req, res, next) => {
         error: 'Token has been invalidated',
         code: 'TOKEN_BLACKLISTED'
       });
+    }
+
+    // OCI IAM Identity Domains (cloud IdP — no Keycloak on OCI)
+    if (AUTH_PROVIDER() === 'oci-iam') {
+      const validationResult = await ociIdentityService.validateToken(token);
+      if (!validationResult.valid) {
+        return res.status(401).json({
+          error: 'Invalid or expired token',
+          code: 'TOKEN_INVALID',
+          details: validationResult.error,
+        });
+      }
+      const userInfo = validationResult.user || {};
+      return attachDbUserFromIdpClaims(req, next, res, token, userInfo, 'oci-iam');
     }
 
     // Try Keycloak validation first if enabled and available
@@ -351,6 +428,34 @@ const optionalAuth = async (req, res, next) => {
     if (!token) {
       // No token provided, continue without authentication
       req.user = null;
+      return next();
+    }
+
+    if (AUTH_PROVIDER() === 'oci-iam') {
+      try {
+        const validationResult = await ociIdentityService.validateToken(token);
+        if (!validationResult.valid) {
+          req.user = null;
+          return next();
+        }
+        const userInfo = validationResult.user || {};
+        let user = null;
+        if (userInfo.email) {
+          user = await db.User.findOne({ where: { email: userInfo.email, isActive: true } });
+        }
+        if (!user && userInfo.username) {
+          user = await db.User.findOne({ where: { iamUsername: userInfo.username, isActive: true } });
+        }
+        if (user) {
+          await user.update({ lastLoginAt: new Date() });
+          req.user = { ...userInfo, localUser: user, token, authType: 'oci-iam' };
+        } else {
+          req.user = null;
+        }
+      } catch (ociErr) {
+        console.error('❌ OCI Identity optional auth failed:', ociErr);
+        req.user = null;
+      }
       return next();
     }
 

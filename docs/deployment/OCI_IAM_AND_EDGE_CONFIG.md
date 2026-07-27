@@ -1,8 +1,10 @@
 # OCI IAM, Cloud Gate, API Gateway & WAF — Implementation Reference
 
-**Companion to:** [OCI Security Architecture](../production/OCI_SECURITY_ARCHITECTURE.md)
+**Companion to:** [OCI Security Architecture](../production/OCI_SECURITY_ARCHITECTURE.md) · [OCI Features & Configuration](OCI_FEATURES_AND_CONFIGURATION.md) (env vars / settings catalog)
 
 This document is the **implementable inventory** of OCI identities, IAM policies, dynamic groups, Cloud Gate applications, API Gateway routes, and WAF policies for the Contract Management System. Use it for security review, Terraform/Resource Manager implementation, and pre-go-live checklists.
+
+**Identity:** On OCI, **OCI IAM Identity Domains** are the only IdP (SSO + JWT + groups/app roles). **Keycloak is local docker-compose / Playwright only** — do not provision Keycloak Deployments, `auth.*` hostnames, or Keycloak JWKS on OCI.
 
 **Placeholders** (replace per tenancy):
 
@@ -12,17 +14,16 @@ This document is the **implementable inventory** of OCI identities, IAM policies
 | `{env}` | `dev` \| `test` \| `staging` \| `prod` |
 | `{region}` | `us-ashburn-1` |
 | `app.{env}.example.com` | `app.cms.example.com` |
-| `auth.{env}.example.com` | `auth.cms.example.com` |
 | `api.{env}.example.com` | `api.cms.example.com` |
 | `ops.{env}.example.com` | `ops.cms.example.com` |
+| `{idcs-url}` | `https://idcs-XXXX.identity.oraclecloud.com` |
 
-**Application constants** (from codebase):
+**Application constants** (OCI target):
 
-- Keycloak realm: `contract-management`
-- App roles: `TDC`, `TDP`, `CCRP`, `AppAdmin`, `ADMIN`
-- Backend port: `5001` · Frontend: `3000` · Keycloak: `8080`
-- JWT issuer (prod): `https://auth.prod.example.com/realms/contract-management`
-- JWKS URL: `https://auth.prod.example.com/realms/contract-management/protocol/openid-connect/certs`
+- App roles (Identity Domain groups): `TDC`, `TDP`, `CCRP`, `AppAdmin`
+- Backend port: `5001` · Frontend: `3000`
+- JWT issuer: Identity Domain OIDC issuer (`{idcs-url}`)
+- JWKS URL: Identity Domain JWKS (not Keycloak)
 
 ---
 
@@ -56,7 +57,7 @@ This document is the **implementable inventory** of OCI identities, IAM policies
 
 ### 1.3 Identity Domain groups (per environment)
 
-Map corporate IdP groups → Identity Domain groups → Cloud Gate / optional Keycloak federation.
+Map corporate IdP groups → Identity Domain groups → SPA / API JWT claims. These groups **are** the app roles (no Keycloak layer).
 
 | Identity Domain group | Maps to app role | Cloud Gate apps |
 |----------------------|------------------|-----------------|
@@ -64,7 +65,7 @@ Map corporate IdP groups → Identity Domain groups → Cloud Gate / optional Ke
 | `cms-{env}-tdc-users` | TDC | Frontend |
 | `cms-{env}-tdp-users` | TDP | Frontend |
 | `cms-{env}-ccrp-users` | CCRP | Frontend |
-| `cms-{env}-app-admins` | AppAdmin | Frontend, Keycloak admin (staging/prod) |
+| `cms-{env}-app-admins` | AppAdmin | Frontend |
 | `cms-{env}-platform-admins` | — | Grafana, Bastion workflow approvers |
 | `cms-{env}-break-glass` | — | All admin apps; step-up MFA |
 
@@ -78,15 +79,15 @@ Map corporate IdP groups → Identity Domain groups → Cloud Gate / optional Ke
 | `svc-monitoring` | Instance principal or API key | 90d | Read metrics/alarms in ops compartments |
 | `svc-break-glass` | Sealed API key in Vault | Per incident | `cms-break-glass-admins` |
 
-### 1.5 Keycloak clients (application — not OCI IAM)
+### 1.5 Identity Domain OIDC apps (application IdP)
 
-| Client ID | Type | Used by |
-|-----------|------|---------|
-| `contract-management-frontend` | Public (PKCE) | React SPA |
-| `contract-management-client` | Confidential | Backend service account |
-| `contract-management-api-gateway` | Bearer-only | API Gateway JWT validation audience (optional) |
+| App / client ID | Type | Used by |
+|-----------------|------|---------|
+| `cms-{env}-frontend` | Public (PKCE) | React SPA |
+| `cms-{env}-api` | Resource / audience | API Gateway + backend JWT audience |
+| `cms-{env}-backend` | Confidential (optional) | Service-to-service |
 
-Store `KEYCLOAK_CLIENT_SECRET` in Vault secret `cms-{env}-keycloak-client-secret`.
+Store confidential client secrets in Vault as `cms-{env}-oci-identity-client-secret`. Set `AUTH_PROVIDER=oci-iam` and `KEYCLOAK_ENABLED=false` on OCI.
 
 ---
 
@@ -318,7 +319,6 @@ Allow dynamic-group cms-{env}-oke-workloads to use keys in tenancy
 | `cms-ingress` | `ingress-nginx` | `ingress-nginx` chart defaults | LB → ingress only |
 | `cms-app` | `backend-sa` | read secrets (ESO synced) | No cluster-admin |
 | `cms-app` | `frontend-sa` | minimal | No API access |
-| `cms-iam` | `keycloak-sa` | read secrets | DB creds from Vault |
 | `cms-data` | `redis-sa` | minimal | Internal only |
 | `cms-training` | `training-job-sa` | create Jobs, read ConfigMaps | Workload Identity → Object Storage |
 | `cms-ops` | `prometheus-sa` | `prometheus-operator` defaults | Scrape internal targets |
@@ -336,11 +336,10 @@ Cloud Gate protects **browser-facing** traffic. API Gateway handles **machine / 
 | Hostname | Cloud Gate app | Upstream (private LB backend set) | TLS |
 |----------|----------------|-------------------------------------|-----|
 | `app.{env}.example.com` | `cms-frontend-{env}` | OKE ingress → frontend:3000 | Terminated at WAF + CG |
-| `auth.{env}.example.com` | `cms-keycloak-{env}` | OKE ingress → keycloak:8080 | Terminated at WAF + CG |
-| `auth.{env}.example.com/admin/*` | `cms-keycloak-admin-{env}` | Same Keycloak upstream | MFA + IP allowlist |
 | `ops.{env}.example.com` | `cms-grafana-{env}` | OKE ingress → grafana | Identity Domain `platform-admins` only |
 
-**Do not** put `api.{env}.example.com` behind Cloud Gate — route it to **API Gateway** (§10).
+**Do not** put `api.{env}.example.com` behind Cloud Gate — route it to **API Gateway** (§10).  
+**Do not** deploy Keycloak or an `auth.*` Cloud Gate app on OCI.
 
 ### 9.2 Identity Domain integration (per env)
 
@@ -382,40 +381,6 @@ headers_to_upstream:
   - X-Forwarded-Groups
 ```
 
-#### App: `cms-keycloak-{env}` (user realm paths)
-
-```yaml
-name: cms-keycloak-prod
-type: OIDC
-identity_domain: cms-prod-id
-upstream_url: https://<private-lb-hostname>/realms/
-paths:
-  - /realms/contract-management/*
-  - /resources/*
-  - /js/*
-groups_allowed:
-  - cms-prod-all-users
-```
-
-#### App: `cms-keycloak-admin-{env}`
-
-```yaml
-name: cms-keycloak-admin-prod
-type: OIDC
-identity_domain: cms-prod-id
-upstream_url: https://<private-lb-hostname>/admin/
-paths:
-  - /admin/*
-groups_allowed:
-  - cms-prod-app-admins
-  - cms-prod-break-glass
-ip_allowlist_cidrs:
-  - 203.0.113.0/24          # corporate egress
-  - 10.0.0.0/8              # VPN
-require_mfa: true
-step_up_auth: true
-```
-
 #### App: `cms-grafana-{env}`
 
 ```yaml
@@ -428,13 +393,13 @@ groups_allowed:
 require_mfa: true
 ```
 
-### 9.4 Cloud Gate ↔ Keycloak broker (prod)
+### 9.4 Identity Domain login flow (prod) — no Keycloak
 
-1. Corporate IdP → Identity Domain (SAML 2.0 or OIDC).
-2. Cloud Gate → Identity Domain (OIDC) for browser SSO at `app.*`.
-3. Keycloak **Identity Provider** brokering: trust Identity Domain OIDC for workforce users.
-4. SPA still obtains API tokens via Keycloak client `contract-management-frontend` (authorization code + PKCE).
-5. Map IdP groups → Keycloak realm roles (`TDC`, `TDP`, `CCRP`, `AppAdmin`) via Keycloak mappers.
+1. Corporate IdP → Identity Domain (SAML 2.0 or OIDC) — optional federation.
+2. Cloud Gate → Identity Domain (OIDC) for browser SSO at `app.*` (optional).
+3. SPA obtains API tokens via Identity Domain OIDC app `cms-{env}-frontend` (authorization code + PKCE).
+4. API Gateway + backend validate JWT against Identity Domain JWKS.
+5. Map Identity Domain groups (`cms-{env}-tdc-users`, …) → backend `partyType` (`TDC`, `TDP`, `CCRP`, `AppAdmin`).
 
 ### 9.5 Cloud Gate headers & CSP
 
@@ -465,7 +430,7 @@ One **API Gateway deployment** per environment in `cms-security-shared` or `cms-
 | Access | Public via WAF only |
 | Subnet | `cms-{env}-network` DMZ subnet (private) + public LB listener |
 
-### 10.2 JWT authentication policy
+### 10.2 JWT authentication policy (OCI IAM Identity Domain)
 
 ```json
 {
@@ -473,16 +438,18 @@ One **API Gateway deployment** per environment in `cms-security-shared` or `cms-
   "tokenHeader": "Authorization",
   "tokenPrefix": "Bearer ",
   "issuers": [
-    "https://auth.{env}.example.com/realms/contract-management"
+    "https://idcs-XXXX.identity.oraclecloud.com"
   ],
-  "jwksUri": "https://auth.{env}.example.com/realms/contract-management/protocol/openid-connect/certs",
-  "audiences": ["contract-management-frontend", "account"],
+  "jwksUri": "https://idcs-XXXX.identity.oraclecloud.com/admin/v1/SigningCert/jwk",
+  "audiences": ["cms-{env}-api", "cms-{env}-frontend"],
   "maxClockSkewInSeconds": 60,
   "isAnonymousAccessAllowed": false
 }
 ```
 
-**Role extraction** (for route-level authorization): map JWT claim `realm_access.roles` or custom `party_type` claim. API Gateway supports **scope/claim validation** per route; backend `requireRole()` remains authoritative — gateway is first line of defense.
+Replace issuer/JWKS with the environment Identity Domain OIDC discovery values. **Do not** point at Keycloak.
+
+**Role extraction** (for route-level authorization): map JWT `groups` (or custom app-role claim) to `TDC` / `TDP` / `CCRP` / `AppAdmin`. API Gateway supports **scope/claim validation** per route; backend role checks remain authoritative — gateway is first line of defense.
 
 ### 10.3 CORS policy (gateway-level)
 
@@ -626,7 +593,6 @@ One **WAF policy** per environment, attached to the **public Load Balancer** fro
 | Hostname | Backend target |
 |----------|----------------|
 | `app.{env}.example.com` | Cloud Gate → frontend |
-| `auth.{env}.example.com` | Cloud Gate → Keycloak |
 | `api.{env}.example.com` | API Gateway |
 | `ops.{env}.example.com` | Cloud Gate → Grafana |
 
@@ -675,7 +641,7 @@ Internet
    ├── host api.prod.example.com ──► API Gateway cms-api-gw-prod ──► private LB ──► backend:5001
    │
    └── host app.prod.example.com ──► Cloud Gate ──► private LB ──► frontend:3000
-       host auth.prod.example.com ──► Cloud Gate ──► private LB ──► keycloak:8080
+       host ops.prod.example.com ──► Cloud Gate ──► private LB ──► grafana
 ```
 
 - Terminate TLS at **WAF** (recommended) or LB — single cert per hostname.
@@ -719,15 +685,16 @@ All buckets: **private**, SSE-KMS with `cms-{env}-artifacts` Vault key, no pre-a
 - [ ] Create dynamic groups with matching rules (§1.2)
 - [ ] Apply policies §3–§7 per compartment
 - [ ] Provision Identity Domains per env; configure MFA
-- [ ] Create Keycloak clients; store secrets in Vault
-- [ ] Map IdP groups → Keycloak roles
+- [ ] Create Identity Domain OIDC apps (§1.5); store confidential secrets in Vault
+- [ ] Map Identity Domain groups → TDC/TDP/CCRP/AppAdmin in backend (`AUTH_PROVIDER=oci-iam`)
+- [ ] Confirm **no Keycloak** Deployment / `auth.*` hostname on OCI
 
 ### Edge
 
-- [ ] Issue TLS certs for `app`, `auth`, `api`, `ops` hostnames
+- [ ] Issue TLS certs for `app`, `api`, `ops` hostnames
 - [ ] Deploy WAF policies (§11); attach to public LB
-- [ ] Deploy API Gateway with JWT policy (§10)
-- [ ] Configure Cloud Gate apps (§9)
+- [ ] Deploy API Gateway with **Identity Domain** JWT policy (§10)
+- [ ] Configure Cloud Gate apps (§9) — frontend/ops only
 - [ ] Verify traffic flow: no direct public access to OKE workers
 
 ### Validation
@@ -737,7 +704,7 @@ All buckets: **private**, SSE-KMS with `cms-{env}-artifacts` Vault key, no pre-a
 - [ ] Login rate limit triggers at 21st request/min from single IP
 - [ ] `GET /api/debug/env` blocked at WAF in prod
 - [ ] TDP user JWT can sign; TDC cannot sign as TDP
-- [ ] Cloud Gate admin console requires MFA + allowlist
+- [ ] Cloud Gate / Identity Domain MFA enforced for admins in staging+
 - [ ] OKE pod can read Vault secret via workload identity
 - [ ] Cloud Guard reports no public buckets
 
@@ -752,7 +719,7 @@ All buckets: **private**, SSE-KMS with `cms-{env}-artifacts` Vault key, no pre-a
 | `modules/waf` | WAF policies + LB attachment per §11 |
 | `modules/api_gateway` | Gateway, deployment, routes per §10 |
 | `modules/cloud_gate` | Documented as manual / OCI Console — no official TF resource at time of writing |
-| `modules/identity` | Identity Domain apps (OCI SDK / `null_resource`) |
+| `modules/identity` | `oci_identity_domain` + groups + SPA/API OIDC apps → K8s ConfigMap |
 | `modules/vault` | Keys referenced in §7.3 |
 
 ---
@@ -760,6 +727,7 @@ All buckets: **private**, SSE-KMS with `cms-{env}-artifacts` Vault key, no pre-a
 ## 15. Related documents
 
 - [OCI Security Architecture](../production/OCI_SECURITY_ARCHITECTURE.md) — design rationale
+- [OCI Features & Configuration](OCI_FEATURES_AND_CONFIGURATION.md) — env vars / settings catalog
 - [OCI_READINESS.md](OCI_READINESS.md) — deployment readiness assessment
 - [SECURITY_GUIDE.md](../production/SECURITY_GUIDE.md) — application-layer controls
 - [deployment/oci/terraform/README.md](../../deployment/oci/terraform/README.md) — baseline IaC

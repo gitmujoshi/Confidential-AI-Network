@@ -59,19 +59,64 @@ variable "infura_project_id" {
   type        = string
 }
 
-variable "keycloak_admin_username" {
-  description = "Keycloak admin username"
+# OCI IAM Identity Domains (sole IdP on OCI — no Keycloak)
+variable "oci_identity_domain_url" {
+  description = "OCI Identity Domain base URL (https://idcs-….identity.oraclecloud.com)"
   type        = string
+  default     = ""
 }
 
-variable "keycloak_admin_password" {
-  description = "Keycloak admin password"
+variable "oci_identity_client_id" {
+  description = "SPA / OIDC client id in Identity Domain"
   type        = string
-  sensitive   = true
+  default     = ""
 }
 
-variable "keycloak_db_password" {
-  description = "Keycloak database password"
+variable "oci_identity_api_client_id" {
+  description = "API audience / resource client id"
+  type        = string
+  default     = ""
+}
+
+variable "oci_identity_client_secret" {
+  description = "Confidential client secret (optional; Vault preferred)"
   type        = string
   sensitive   = true
-} 
+  default     = ""
+}
+
+variable "oci_identity_issuer" {
+  description = "JWT issuer (defaults to domain URL when empty in app)"
+  type        = string
+  default     = ""
+}
+
+variable "oci_identity_audience" {
+  description = "JWT audience"
+  type        = string
+  default     = ""
+}
+
+variable "oci_identity_jwks_url" {
+  description = "JWKS URL override (optional; discovery used when empty)"
+  type        = string
+  default     = ""
+}
+
+variable "oci_identity_role_claim" {
+  description = "JWT claim carrying role groups"
+  type        = string
+  default     = "groups"
+}
+
+variable "oci_identity_redirect_uri" {
+  description = "OIDC redirect URI (defaults to https://{app_domain}/login)"
+  type        = string
+  default     = ""
+}
+
+variable "oci_cloud_gate_enabled" {
+  description = "Whether Cloud Gate fronts the SPA"
+  type        = bool
+  default     = true
+}
