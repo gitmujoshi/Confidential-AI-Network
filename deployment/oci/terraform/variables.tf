@@ -313,6 +313,147 @@ variable "oci_cloud_gate_enabled" {
   default     = true
 }
 
+# --- SPIRE / SPIFFE (Phase 1; docs/deployment/OCI_SPIFFE_SPIRE_WIF.md) --------
+
+variable "enable_spire" {
+  description = "Deploy SPIRE Server/Agent via Helm (Phase 1 workload identity)"
+  type        = bool
+  default     = false
+}
+
+variable "spiffe_trust_domain" {
+  description = "SPIFFE trust domain (empty → can.{env}.oci.{spiffe_trust_domain_suffix})"
+  type        = string
+  default     = ""
+}
+
+variable "spiffe_trust_domain_suffix" {
+  description = "Suffix used when spiffe_trust_domain is empty"
+  type        = string
+  default     = "example"
+}
+
+variable "spire_namespace" {
+  type    = string
+  default = "spire"
+}
+
+variable "spire_install_helm_release" {
+  description = "Install spiffe/spire Helm chart when enable_spire=true"
+  type        = bool
+  default     = true
+}
+
+variable "spire_create_cluster_spiffe_ids" {
+  description = "Apply ClusterSPIFFEID CRDs for backend/trainer/smoke"
+  type        = bool
+  default     = true
+}
+
+variable "spire_enable_oidc_discovery" {
+  description = "Enable SPIRE OIDC Discovery Provider (JWKS for Phase 3 WIF)"
+  type        = bool
+  default     = true
+}
+
+variable "spire_create_placeholder_service_accounts" {
+  type    = bool
+  default = true
+}
+
+variable "spire_create_training_namespace" {
+  type    = bool
+  default = true
+}
+
+variable "spire_storage_class" {
+  description = "PVC StorageClass for SPIRE server"
+  type        = string
+  default     = "oci-bv"
+}
+
+variable "spire_helm_chart_version" {
+  description = "Pin spiffe/spire chart version (empty = latest)"
+  type        = string
+  default     = ""
+}
+
+variable "spire_oidc_issuer" {
+  description = "Override OIDC issuer URL"
+  type        = string
+  default     = ""
+}
+
+variable "spire_oidc_jwks_url" {
+  description = "Override OIDC JWKS URL"
+  type        = string
+  default     = ""
+}
+
+variable "can_require_spiffe_mtls" {
+  description = "Set CAN_REQUIRE_SPIFFE_MTLS in spiffe-config (false for Phase 1)"
+  type        = bool
+  default     = false
+}
+
+# --- OCI WIF Phase 3 (docs/deployment/OCI_SPIFFE_SPIRE_WIF.md) ----------------
+
+variable "enable_wif" {
+  description = "Deploy OCI Identity Propagation Trust + service users (SPIRE → UPST)"
+  type        = bool
+  default     = false
+}
+
+variable "wif_spire_oidc_issuer" {
+  description = "Override SPIRE issuer for WIF (default: module.spire.oidc_issuer)"
+  type        = string
+  default     = ""
+}
+
+variable "wif_spire_jwks_url" {
+  description = "Override SPIRE JWKS for WIF (must be reachable from Identity Domain)"
+  type        = string
+  default     = ""
+}
+
+variable "wif_spire_public_certificate" {
+  description = "Pinned SPIRE OIDC signing cert when JWKS is not routable"
+  type        = string
+  default     = ""
+  sensitive   = true
+}
+
+variable "wif_create_token_exchange_app" {
+  type    = bool
+  default = true
+}
+
+variable "wif_create_service_users" {
+  type    = bool
+  default = true
+}
+
+variable "wif_create_propagation_trust" {
+  type    = bool
+  default = true
+}
+
+variable "wif_write_kubernetes_config" {
+  type    = bool
+  default = true
+}
+
+variable "wif_client_claim_name" {
+  description = "Optional extra JWT claim gate on Propagation Trust"
+  type        = string
+  default     = ""
+}
+
+variable "wif_client_claim_values" {
+  type    = list(string)
+  default = []
+}
+
 # Blockchain Configuration
 variable "ethereum_network" {
   description = "Ethereum network to use"

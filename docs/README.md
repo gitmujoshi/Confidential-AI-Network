@@ -56,6 +56,7 @@
 | IAM & keys | [security/README.md](security/README.md) |
 | OCI security architecture | [production/OCI_SECURITY_ARCHITECTURE.md](production/OCI_SECURITY_ARCHITECTURE.md) |
 | Azure security architecture | [production/AZURE_SECURITY_ARCHITECTURE.md](production/AZURE_SECURITY_ARCHITECTURE.md) |
+| Security blog (GitHub Pages) | [blogs/](blogs/README.md) |
 
 ---
 
@@ -77,7 +78,7 @@
 | End user / facilitator | [guides/PARTICIPANT_ONBOARDING_AND_E2E_LIFECYCLE.md](guides/PARTICIPANT_ONBOARDING_AND_E2E_LIFECYCLE.md) · [training/LOCAL_DEMO_RUNBOOK.md](training/LOCAL_DEMO_RUNBOOK.md) |
 | Developer | [DEVELOPER_GUIDE.md](DEVELOPER_GUIDE.md) |
 | AppAdmin / SRE | [ADMIN_GUIDE.md](ADMIN_GUIDE.md) · [production/README.md](production/README.md) |
-| Security / architect | [ARCHITECTURE.md](ARCHITECTURE.md) · [security/README.md](security/README.md) |
+| Security / architect | [ARCHITECTURE.md](ARCHITECTURE.md) · [security/README.md](security/README.md) · [blogs/](blogs/README.md) |
 
 ---
 
@@ -95,6 +96,7 @@ docs/
 ├── api/               reference
 ├── architecture/      deep design
 ├── security/          IAM, keys, provenance crypto
+├── blogs/             GitHub Pages security blog (Jekyll)
 ├── deployment/        OCI/Azure readiness + IAM edge
 ├── production/        runbooks, SIEM, security architectures
 ├── development/       local env, testing
@@ -114,4 +116,4 @@ Superseded indexes, root stubs, conversion exports, and old implementation summa
 
 When updating docs: edit the canonical file, link from this home page, follow [DOC_STYLE.md](DOC_STYLE.md).
 
-**Last updated:** 2026-07-18
+**Last updated:** 2026-07-28

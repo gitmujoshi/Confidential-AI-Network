@@ -16,6 +16,7 @@ This document defines the **recommended Oracle Cloud Infrastructure (OCI) securi
 | **This doc** | **Step-by-step setup runbook**, architecture rationale, topology, environment profiles, governance |
 | [OCI Features & Configuration](../deployment/OCI_FEATURES_AND_CONFIGURATION.md) | **Feature catalog** — OCI IAM, Vault, signing, DEK/MEK, train, Object Storage, SCITT + **env vars** |
 | [OCI IAM & Edge Config](../deployment/OCI_IAM_AND_EDGE_CONFIG.md) | **Implementation reference** — IAM groups/policies, Cloud Gate, API Gateway JWT (**Identity Domain**), WAF |
+| [OCI SPIFFE/SPIRE + WIF](../deployment/OCI_SPIFFE_SPIRE_WIF.md) | **Workload identity** — SPIFFE/SPIRE mTLS + OCI WIF / OKE Workload Identity |
 | [OCI Terraform](../../deployment/oci/terraform/README.md) | Baseline IaC (VCN, OKE, ADB, LB, OCIR, K8s manifests) |
 | [OCI Readiness](../deployment/OCI_READINESS.md) | Gap analysis and rollout phases |
 | [config.oci.env.example](../../config/examples/config.oci.env.example) | Target OCI environment template |

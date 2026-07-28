@@ -27,5 +27,6 @@ Canonical security & identity docs. Prefer these over archive copies.
 
 - [Participant onboarding & E2E](../guides/PARTICIPANT_ONBOARDING_AND_E2E_LIFECYCLE.md)
 - [CAN gap memo](../features/can/CAN_GAP_DECISION_MEMO.md)
+- [Security blog (GitHub Pages)](../blogs/README.md) — short posts that link here and to production/deployment specs
 
 ← [Documentation home](../README.md)

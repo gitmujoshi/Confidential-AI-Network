@@ -65,6 +65,7 @@ Follow the links below by topic. OCI and Azure each have a **step-by-step new-en
 | System architecture (components, data flow) | [PRODUCTION_ARCHITECTURE.md](PRODUCTION_ARCHITECTURE.md) |
 | OCI deploy readiness | [../deployment/OCI_READINESS.md](../deployment/OCI_READINESS.md) |
 | OCI features & configuration (env vars) | [../deployment/OCI_FEATURES_AND_CONFIGURATION.md](../deployment/OCI_FEATURES_AND_CONFIGURATION.md) |
+| OCI SPIFFE/SPIRE + WIF (workload identity) | [../deployment/OCI_SPIFFE_SPIRE_WIF.md](../deployment/OCI_SPIFFE_SPIRE_WIF.md) |
 | Azure deploy readiness | [../deployment/AZURE_READINESS.md](../deployment/AZURE_READINESS.md) |
 | Azure features & configuration (env vars) | [../deployment/AZURE_FEATURES_AND_CONFIGURATION.md](../deployment/AZURE_FEATURES_AND_CONFIGURATION.md) |
 | AWS deploy readiness | [../deployment/AWS_READINESS.md](../deployment/AWS_READINESS.md) |

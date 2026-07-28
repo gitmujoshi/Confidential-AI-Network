@@ -1,10 +1,12 @@
 # OCI IAM, Cloud Gate, API Gateway & WAF — Implementation Reference
 
-**Companion to:** [OCI Security Architecture](../production/OCI_SECURITY_ARCHITECTURE.md) · [OCI Features & Configuration](OCI_FEATURES_AND_CONFIGURATION.md) (env vars / settings catalog)
+**Companion to:** [OCI Security Architecture](../production/OCI_SECURITY_ARCHITECTURE.md) · [OCI Features & Configuration](OCI_FEATURES_AND_CONFIGURATION.md) (env vars / settings catalog) · [OCI SPIFFE/SPIRE + WIF](OCI_SPIFFE_SPIRE_WIF.md) (workload identity)
 
 This document is the **implementable inventory** of OCI identities, IAM policies, dynamic groups, Cloud Gate applications, API Gateway routes, and WAF policies for the Contract Management System. Use it for security review, Terraform/Resource Manager implementation, and pre-go-live checklists.
 
 **Identity:** On OCI, **OCI IAM Identity Domains** are the only IdP (SSO + JWT + groups/app roles). **Keycloak is local docker-compose / Playwright only** — do not provision Keycloak Deployments, `auth.*` hostnames, or Keycloak JWKS on OCI.
+
+**Workload identity:** For pod→OCI API access and service-to-service mTLS, see **[OCI_SPIFFE_SPIRE_WIF.md](OCI_SPIFFE_SPIRE_WIF.md)** (SPIFFE/SPIRE + OCI WIF / OKE Workload Identity). Dynamic groups in §1.2 remain the Path N (native OKE WI) anchors.
 
 **Placeholders** (replace per tenancy):
 

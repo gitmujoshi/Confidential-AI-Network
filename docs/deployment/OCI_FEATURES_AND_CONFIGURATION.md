@@ -6,6 +6,7 @@ Canonical catalog of **OCI-oriented product features**, E2E fit, **maturity**, a
 |-----|------|
 | [OCI_SECURITY_ARCHITECTURE.md](../production/OCI_SECURITY_ARCHITECTURE.md) | Topology, runbook, compartments |
 | [OCI_IAM_AND_EDGE_CONFIG.md](OCI_IAM_AND_EDGE_CONFIG.md) | IAM policies, Cloud Gate, API GW, WAF |
+| [OCI_SPIFFE_SPIRE_WIF.md](OCI_SPIFFE_SPIRE_WIF.md) | SPIFFE/SPIRE + OCI WIF (workload identity design) |
 | [OCI_READINESS.md](OCI_READINESS.md) | Honest gap analysis |
 | [OCI_TAGGING_AND_VERSIONING.md](OCI_TAGGING_AND_VERSIONING.md) | `cms-*` tags, image tags |
 | [PARTICIPANT_ONBOARDING_AND_E2E_LIFECYCLE.md](../guides/PARTICIPANT_ONBOARDING_AND_E2E_LIFECYCLE.md) | DEK/MEK / signing / CAN model |
@@ -33,6 +34,7 @@ Canonical catalog of **OCI-oriented product features**, E2E fit, **maturity**, a
 | 10 | OCI-targeted E2E / CI | Design | staging URLs + IdP users |
 | 11 | Local Keycloak demo path | Implemented | `KEYCLOAK_*`, `local-docker` |
 | 12 | Platform Terraform (VCN, OKE, ADB, OCIR) | Partial | `deployment/oci/terraform/` — Keycloak removed from K8s/LB |
+| 13 | SPIFFE/SPIRE + OCI WIF / OKE Workload Identity | Design | `SPIFFE_*`, `OCI_WIF_*`, [OCI_SPIFFE_SPIRE_WIF.md](OCI_SPIFFE_SPIRE_WIF.md) |
 
 ---
 
@@ -302,13 +304,14 @@ SCITT_DEPLOYMENT=oke
 2. ~~**Remove Keycloak from OCI Terraform / K8s**~~ — done; Keycloak remains local docker only  
 3. ~~**Terraform Identity Domains module**~~ — `modules/identity` creates domain, role groups, SPA/API apps; outputs → K8s  
 4. Validate OKE + ADB + TLS/DNS; Vault → External Secrets  
-4. Object Storage dataset backend  
-5. Signing keys in Vault + crypto verify on sign  
-6. Contract KMS enforce against OCI Vault  
-7. OKE Job training executor + OCIR trainer image  
-8. Attested DEK/MEK release  
-9. WAF + API Gateway + Cloud Gate Terraform  
-10. SCITT on OKE; E2E against staging Identity Domain users  
+5. Object Storage dataset backend  
+6. Signing keys in Vault + crypto verify on sign  
+7. Contract KMS enforce against OCI Vault  
+8. OKE Job training executor + OCIR trainer image  
+9. **SPIFFE/SPIRE + OCI WIF** — [OCI_SPIFFE_SPIRE_WIF.md](OCI_SPIFFE_SPIRE_WIF.md)  
+10. Attested DEK/MEK release on OCI confidential compute  
+11. WAF + API Gateway + Cloud Gate Terraform  
+12. SCITT on OKE; E2E against staging Identity Domain users  
 
 ---
 
@@ -319,6 +322,7 @@ SCITT_DEPLOYMENT=oke
 | OCI provider | `backend/services/providers/ociProvider.js` |
 | Secret backends | `backend/services/secretManager.js` (`OCI_VAULT`) |
 | Platform Terraform | `deployment/oci/terraform/` |
+| SPIFFE/WIF design | `docs/deployment/OCI_SPIFFE_SPIRE_WIF.md` |
 | Portal sign / CAN | `backend/routes/contracts.js`, `can-jcs.js` |
 
 ---
@@ -327,5 +331,6 @@ SCITT_DEPLOYMENT=oke
 
 | Date | Change |
 |------|--------|
+| 2026-07-28 | SPIFFE/SPIRE + OCI WIF design doc linked; feature #13; env template vars |
 | 2026-07-26 | Initial OCI feature + configuration catalog |
 | 2026-07-26 | Identity: **OCI IAM Identity Domains only** on OCI; Keycloak local-only (parity with Azure/Entra) |

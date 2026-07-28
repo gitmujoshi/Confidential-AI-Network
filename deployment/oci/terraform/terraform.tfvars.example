@@ -60,6 +60,21 @@ oci_identity_role_claim = "groups"
 oci_cloud_gate_enabled  = true
 identity_allow_all_url_schemes = true
 
+# SPIRE / SPIFFE Phase 1 (opt-in) — docs/deployment/OCI_SPIFFE_SPIRE_WIF.md
+enable_spire = false
+# enable_spire = true
+# spiffe_trust_domain = "can.dev.oci.example"
+# spire_enable_oidc_discovery = true
+# spire_create_cluster_spiffe_ids = true
+# spire_storage_class = "oci-bv"
+# can_require_spiffe_mtls = false
+
+# OCI WIF Phase 3 (requires SPIRE OIDC issuer + reachable JWKS or pinned cert)
+enable_wif = false
+# enable_wif = true
+# wif_spire_jwks_url = "https://oidc.spire.dev.example/keys"  # override if not using module.spire
+# wif_spire_public_certificate = ""  # PEM when JWKS not routable from Identity Domain
+
 ethereum_network  = "goerli"
 infura_project_id = ""
 

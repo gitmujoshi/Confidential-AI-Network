@@ -146,16 +146,74 @@ output "resource_tags" {
   value       = local.resource_freeform_tags
 }
 
+output "spire_enabled" {
+  description = "Whether SPIRE Phase 1 module is enabled"
+  value       = var.enable_spire
+}
+
+output "spiffe_trust_domain" {
+  value = try(module.spire.trust_domain, null)
+}
+
+output "spire_oidc_issuer" {
+  description = "SPIRE OIDC issuer for Phase 3 WIF trust"
+  value       = try(module.spire.oidc_issuer, null)
+}
+
+output "spire_oidc_jwks_url" {
+  value = try(module.spire.oidc_jwks_url, null)
+}
+
+output "spiffe_id_inventory" {
+  description = "Canonical SPIFFE IDs (backend, trainer, smoke)"
+  value       = try(module.spire.spiffe_id_inventory, {})
+}
+
+output "wif_enabled" {
+  value = var.enable_wif
+}
+
+output "wif_trust_name" {
+  value = try(module.wif.trust_name, null)
+}
+
+output "wif_token_exchange_client_id" {
+  value = try(module.wif.token_exchange_client_id, null)
+}
+
+output "wif_service_user_names" {
+  value = try(module.wif.service_user_names, {})
+}
+
+output "wif_impersonation_rules" {
+  value = try(module.wif.impersonation_rules, {})
+}
+
 output "next_steps" {
   description = "Next steps after deployment"
-  value = [
-    "1. Configure DNS to point ${var.app_domain} to ${module.load_balancer.lb_ip}",
-    "2. Identity Domain URL: ${local.effective_oci_identity_domain_url}",
-    "3. Assign users to groups ${join(", ", values(try(module.identity.group_display_names, {})))} (or seed via Console)",
-    "4. Confirm AUTH_PROVIDER=oci-iam and KEYCLOAK_ENABLED=false on backend pods",
-    "5. Deploy application containers to OKE cluster",
-    "6. Access frontend at http://${module.load_balancer.lb_ip}:3000",
-    "7. Access backend API at http://${module.load_balancer.lb_ip}:5000",
-    "8. Sign in via Identity Domain SSO (SPA client ${local.effective_oci_identity_client_id})"
-  ]
-} 
+  value = concat(
+    [
+      "1. Configure DNS to point ${var.app_domain} to ${module.load_balancer.lb_ip}",
+      "2. Identity Domain URL: ${local.effective_oci_identity_domain_url}",
+      "3. Assign users to groups ${join(", ", values(try(module.identity.group_display_names, {})))} (or seed via Console)",
+      "4. Confirm AUTH_PROVIDER=oci-iam and KEYCLOAK_ENABLED=false on backend pods",
+      "5. Deploy application containers to OKE cluster",
+      "6. Access frontend at http://${module.load_balancer.lb_ip}:3000",
+      "7. Access backend API at http://${module.load_balancer.lb_ip}:5000",
+      "8. Sign in via Identity Domain SSO (SPA client ${local.effective_oci_identity_client_id})",
+    ],
+    var.enable_spire ? [
+      "9. SPIRE: kubectl -n spire get pods; ConfigMap spiffe-config in contract-management",
+      "10. Smoke SVID: kubectl apply -f deployment/oci/helm/spire/manifests/smoke-job.yaml",
+      ] : [
+      "9. Optional: set enable_spire=true for SPIFFE/SPIRE Phase 1 (OCI_SPIFFE_SPIRE_WIF.md)",
+    ],
+    var.enable_wif ? [
+      "11. WIF: verify Identity Propagation Trust ${try(module.wif.trust_name, "")}",
+      "12. Mount oci-wif-config + oci-wif-secret on backend/trainer; set OCI_AUTH_MODE=wif",
+      "13. Grant IAM policies to service users (see module.wif.suggested_iam_policy_comments)",
+      ] : [
+      "11. Optional: set enable_wif=true after SPIRE OIDC JWKS is reachable (Phase 3)",
+    ]
+  )
+}

@@ -46,7 +46,4 @@ variable "node_memory_in_gbs" {
 variable "kubernetes_version" {
   description = "Kubernetes version"
   type        = string
-}
-
-
 } 

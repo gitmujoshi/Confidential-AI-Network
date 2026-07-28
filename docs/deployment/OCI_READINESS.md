@@ -124,10 +124,12 @@ The security doc describes WAF, API Gateway, Cloud Gate, Bastion, multi-compartm
 - [ ] WAF + API Gateway or Cloud Gate in front of LB
 - [ ] Vault keys, separate compartments per env
 - [ ] Cloud Guard, logging to SIEM
+- [ ] SPIFFE/SPIRE + OCI WIF (optional but recommended for CAN/training) — [OCI_SPIFFE_SPIRE_WIF.md](OCI_SPIFFE_SPIRE_WIF.md); TF: `enable_spire` / `enable_wif`
 
 ### Phase 5 — SCITT / confidential computing (if required)
 
 - [ ] SCITT CCF deployment model on OCI or hybrid (ledger in cloud, training in CCRP)
+- [ ] CAN CCR: SPIFFE peer allowlist + attestation before DEK/MEK release
 
 ---
 
@@ -139,12 +141,14 @@ The security doc describes WAF, API Gateway, Cloud Gate, Bastion, multi-compartm
 | **OCI “hello world” app** | Start Phase 1 with `deployment/oci/terraform/` in a **dev** compartment |
 | **OCI production with training** | Plan Phases 1–3; budget 2–3 months after Phase 1 is stable |
 | **Full security reference architecture** | Use OCI_SECURITY_ARCHITECTURE.md as target; implement incrementally |
+| **Zero-trust workload identity (SPIFFE + WIF)** | Follow [OCI_SPIFFE_SPIRE_WIF.md](OCI_SPIFFE_SPIRE_WIF.md) after Identity Domains + OKE are stable |
 
 ---
 
 ## Related links
 
 - [OCI Features & Configuration](OCI_FEATURES_AND_CONFIGURATION.md)
+- [OCI SPIFFE/SPIRE + WIF](OCI_SPIFFE_SPIRE_WIF.md)
 - [Azure Readiness](AZURE_READINESS.md) · [AWS Readiness](AWS_READINESS.md) · [GCP Readiness](GCP_READINESS.md)
 - [Production README](../production/README.md)
 - [LOCAL_DEMO_RUNBOOK.md](../training/LOCAL_DEMO_RUNBOOK.md)

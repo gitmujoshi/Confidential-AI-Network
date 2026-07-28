@@ -183,3 +183,68 @@ module "kubernetes_resources" {
   oci_identity_redirect_uri  = local.effective_oci_identity_redirect_uri
   oci_cloud_gate_enabled     = var.oci_cloud_gate_enabled
 }
+
+# SPIRE / SPIFFE — Phase 1 platform (opt-in; see docs/deployment/OCI_SPIFFE_SPIRE_WIF.md)
+module "spire" {
+  source = "./modules/spire"
+
+  depends_on = [module.oke, module.kubernetes_resources]
+
+  enabled      = var.enable_spire
+  environment  = var.environment
+  cluster_name = var.cluster_name
+
+  trust_domain        = var.spiffe_trust_domain
+  trust_domain_suffix = var.spiffe_trust_domain_suffix
+  namespace           = var.spire_namespace
+  app_namespace       = "contract-management"
+
+  install_helm_release                = var.spire_install_helm_release
+  create_cluster_spiffe_ids           = var.spire_create_cluster_spiffe_ids
+  enable_oidc_discovery               = var.spire_enable_oidc_discovery
+  create_placeholder_service_accounts = var.spire_create_placeholder_service_accounts
+  create_training_namespace           = var.spire_create_training_namespace
+  storage_class                       = var.spire_storage_class
+  helm_chart_version                  = var.spire_helm_chart_version
+  oidc_issuer                         = var.spire_oidc_issuer
+  oidc_jwks_url                       = var.spire_oidc_jwks_url
+  can_require_spiffe_mtls             = var.can_require_spiffe_mtls
+}
+
+# OCI WIF — Phase 3 (SPIRE JWT-SVID → UPST; opt-in)
+module "wif" {
+  source = "./modules/wif"
+
+  depends_on = [module.identity, module.spire, module.kubernetes_resources]
+
+  enabled     = var.enable_wif
+  environment = var.environment
+
+  idcs_endpoint = coalesce(
+    try(module.identity.domain_url, null),
+    var.oci_identity_domain_url != "" ? var.oci_identity_domain_url : null,
+    ""
+  )
+
+  spire_oidc_issuer = coalesce(
+    var.wif_spire_oidc_issuer != "" ? var.wif_spire_oidc_issuer : null,
+    try(module.spire.oidc_issuer, null),
+    ""
+  )
+  spire_jwks_url = coalesce(
+    var.wif_spire_jwks_url != "" ? var.wif_spire_jwks_url : null,
+    try(module.spire.oidc_jwks_url, null),
+    ""
+  )
+  spire_public_certificate = var.wif_spire_public_certificate
+  spiffe_id_inventory      = try(module.spire.spiffe_id_inventory, {})
+
+  create_token_exchange_app = var.wif_create_token_exchange_app
+  create_service_users      = var.wif_create_service_users
+  create_propagation_trust  = var.wif_create_propagation_trust
+  write_kubernetes_config   = var.wif_write_kubernetes_config
+  app_namespace             = "contract-management"
+
+  client_claim_name   = var.wif_client_claim_name
+  client_claim_values = var.wif_client_claim_values
+}

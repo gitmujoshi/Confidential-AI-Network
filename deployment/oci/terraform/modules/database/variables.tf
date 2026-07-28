@@ -24,7 +24,4 @@ variable "db_cpu_core_count" {
   description = "Number of CPU cores for the database"
   type        = number
   default     = 1
-}
-
-
 } 

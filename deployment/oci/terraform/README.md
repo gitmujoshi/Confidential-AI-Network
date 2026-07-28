@@ -6,7 +6,9 @@ This directory contains the Terraform configuration for deploying the Contract M
 
 **Identity:** OCI uses **OCI IAM Identity Domains** only (`AUTH_PROVIDER=oci-iam`). **Keycloak is not deployed** on OKE. Domain + OIDC apps + role groups are created by [`modules/identity`](modules/identity/README.md) (default on).
 
-## 🏗️ Architecture Overview
+**Workload identity:** SPIFFE/SPIRE Phase 1 — [`modules/spire`](modules/spire/README.md) + [`helm/spire`](../helm/spire/). OCI WIF Phase 3 — [`modules/wif`](modules/wif/README.md). Opt-in: `enable_spire` / `enable_wif`. Design: [OCI_SPIFFE_SPIRE_WIF.md](../../../docs/deployment/OCI_SPIFFE_SPIRE_WIF.md).
+
+## Architecture Overview
 
 The deployment creates a complete infrastructure including:
 
@@ -15,7 +17,10 @@ The deployment creates a complete infrastructure including:
 - **Autonomous Database** for application data
 - **Load Balancer** for traffic distribution
 - **Container Registry** for Docker images
+- **OCI IAM Identity Domains** (SPA/API apps + role groups)
 - **Kubernetes Resources** for application deployment
+- **SPIRE** (optional) — Server/Agent + OIDC Discovery + ClusterSPIFFEID entries
+- **OCI WIF** (optional) — IdentityPropagationTrust + Service Users + token-exchange app
 
 ## 📋 Prerequisites
 
