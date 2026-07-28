@@ -13,6 +13,10 @@ Reviewers often ask “where is the security story?” Here is the map.
 
 Start at [docs/security/](https://github.com/gitmujoshi/Confidential-AI-Network/tree/main/docs/security): IAM design, key management, secrets, user auth architecture.
 
+## GRC — requirements met (NIST & CIS)
+
+For auditors and GRC reviewers: [SECURITY_CONTROLS_NIST_CIS_MAPPING](https://github.com/gitmujoshi/Confidential-AI-Network/blob/main/docs/compliance/SECURITY_CONTROLS_NIST_CIS_MAPPING.md) maps CAN requirements to **NIST CSF 2.0**, **NIST SP 800-53 Rev. 5**, and **CIS Controls v8**, with evidence links.
+
 ## Cloud deployment security
 
 Start with shared patterns, then the cloud you are deploying:

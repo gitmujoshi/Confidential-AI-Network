@@ -25,6 +25,7 @@
 | SCITT CCF on OCI | Features § SCITT | `modules/scitt` (ConfigMap scaffold) |
 | Env / feature catalog | [OCI_FEATURES_AND_CONFIGURATION.md](OCI_FEATURES_AND_CONFIGURATION.md) | [config.oci.env.example](../../config/examples/config.oci.env.example) |
 | Cross-cloud patterns | [MULTI_CLOUD_SECURITY_ARCHITECTURE_PATTERNS.md](../production/MULTI_CLOUD_SECURITY_ARCHITECTURE_PATTERNS.md) | Pattern P8 clean rooms = design complete; cloud TEE product apply remains operator-led |
+| **NIST / CIS requirements met** | [SECURITY_CONTROLS_NIST_CIS_MAPPING.md](../compliance/SECURITY_CONTROLS_NIST_CIS_MAPPING.md) | GRC crosswalk (CSF 2.0, 800-53, CIS Controls v8) |
 
 ---
 

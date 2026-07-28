@@ -48,7 +48,7 @@ Security and platform teams need **defense in depth** (WAF, API gateway, private
 | **TDP** | Monetize data safely | Classification, access policy, audit |
 | **CCRP** | Host compliant workloads | Environment isolation, monitoring |
 | **Platform / SRE** | Deploy and run reliably | Architecture, deployment, scaling, DR |
-| **Security / GRC** | Control and evidence | Security architecture, SIEM, compliance |
+| **Security / GRC** | Control and evidence | Security architecture, SIEM, [NIST/CIS mapping](../compliance/SECURITY_CONTROLS_NIST_CIS_MAPPING.md) |
 | **AppAdmin** | Operate users and health | [ADMIN_GUIDE.md](../ADMIN_GUIDE.md), troubleshooting |
 
 ---
@@ -81,6 +81,7 @@ Follow the links below by topic. OCI and Azure each have a **step-by-step new-en
 | Topic | Document |
 |-------|----------|
 | **Multi-cloud security patterns** (Azure, AWS, GCP, OCI) | [MULTI_CLOUD_SECURITY_ARCHITECTURE_PATTERNS.md](MULTI_CLOUD_SECURITY_ARCHITECTURE_PATTERNS.md) |
+| **NIST / CIS control mapping** | [../compliance/SECURITY_CONTROLS_NIST_CIS_MAPPING.md](../compliance/SECURITY_CONTROLS_NIST_CIS_MAPPING.md) |
 | OCI security architecture (compartments, WAF, API GW, OKE) | [OCI_SECURITY_ARCHITECTURE.md](OCI_SECURITY_ARCHITECTURE.md) |
 | Azure security architecture (Entra ID, Front Door, APIM, AKS) | [AZURE_SECURITY_ARCHITECTURE.md](AZURE_SECURITY_ARCHITECTURE.md) |
 | AWS security architecture (Cognito, CloudFront, EKS) | [AWS_SECURITY_ARCHITECTURE.md](AWS_SECURITY_ARCHITECTURE.md) |
@@ -91,6 +92,7 @@ Follow the links below by topic. OCI and Azure each have a **step-by-step new-en
 | GCP IAM and edge configuration | [../deployment/GCP_IAM_AND_EDGE_CONFIG.md](../deployment/GCP_IAM_AND_EDGE_CONFIG.md) |
 | Application security practices | [SECURITY_GUIDE.md](SECURITY_GUIDE.md) |
 | SIEM / audit export (Splunk, Sentinel, OCI, webhook) | [SIEM_INTEGRATION_FRAMEWORK.md](SIEM_INTEGRATION_FRAMEWORK.md) · [../deployment/siem/README.md](../deployment/siem/README.md) |
+| **NIST / CIS requirements met** | [../compliance/SECURITY_CONTROLS_NIST_CIS_MAPPING.md](../compliance/SECURITY_CONTROLS_NIST_CIS_MAPPING.md) |
 
 ### Observability and resilience
 
