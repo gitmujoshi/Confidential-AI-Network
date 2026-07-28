@@ -22,6 +22,7 @@ This document defines the **recommended Microsoft Azure security architecture** 
 
 **Related docs**
 
+- [Multi-cloud security architecture patterns](MULTI_CLOUD_SECURITY_ARCHITECTURE_PATTERNS.md) — shared patterns across Azure, AWS, GCP, OCI
 - [Participant onboarding & E2E lifecycle](../guides/PARTICIPANT_ONBOARDING_AND_E2E_LIFECYCLE.md) — canonical DEK/MEK / signing / CAN escrow model
 - [Production Security Guide](SECURITY_GUIDE.md) — application-layer controls
 - [Production Architecture](PRODUCTION_ARCHITECTURE.md) — service topology

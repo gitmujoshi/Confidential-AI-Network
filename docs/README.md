@@ -56,6 +56,7 @@
 | IAM & keys | [security/README.md](security/README.md) |
 | OCI security architecture | [production/OCI_SECURITY_ARCHITECTURE.md](production/OCI_SECURITY_ARCHITECTURE.md) |
 | Azure security architecture | [production/AZURE_SECURITY_ARCHITECTURE.md](production/AZURE_SECURITY_ARCHITECTURE.md) |
+| Multi-cloud security patterns | [production/MULTI_CLOUD_SECURITY_ARCHITECTURE_PATTERNS.md](production/MULTI_CLOUD_SECURITY_ARCHITECTURE_PATTERNS.md) |
 | Security blog (GitHub Pages) | [blogs/](blogs/README.md) · [Product tour](blogs/product-tour.md) |
 
 ---
@@ -78,7 +79,7 @@
 | End user / facilitator | [guides/PARTICIPANT_ONBOARDING_AND_E2E_LIFECYCLE.md](guides/PARTICIPANT_ONBOARDING_AND_E2E_LIFECYCLE.md) · [training/LOCAL_DEMO_RUNBOOK.md](training/LOCAL_DEMO_RUNBOOK.md) |
 | Developer | [DEVELOPER_GUIDE.md](DEVELOPER_GUIDE.md) |
 | AppAdmin / SRE | [ADMIN_GUIDE.md](ADMIN_GUIDE.md) · [production/README.md](production/README.md) |
-| Security / architect | [ARCHITECTURE.md](ARCHITECTURE.md) · [security/README.md](security/README.md) · [blogs/](blogs/README.md) |
+| Security / architect | [ARCHITECTURE.md](ARCHITECTURE.md) · [security/README.md](security/README.md) · [production/MULTI_CLOUD_SECURITY_ARCHITECTURE_PATTERNS.md](production/MULTI_CLOUD_SECURITY_ARCHITECTURE_PATTERNS.md) · [blogs/](blogs/README.md) |
 
 ---
 

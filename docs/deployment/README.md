@@ -9,6 +9,7 @@ Need production? ──no──► getting-started/QUICK_START.md + ./start-syst
         │
        yes
         │
+        ├── Shared security patterns (all clouds) ► production/MULTI_CLOUD_SECURITY_ARCHITECTURE_PATTERNS.md
         ├── Single Ubuntu VM / docker-compose ──► deployment/ (repo scripts)
         ├── OCI (OKE, ADB, WAF) ──────────────► deployment/oci/terraform/
         ├── Azure (AKS, PostgreSQL, Front Door) ► deployment/azure/terraform/
@@ -16,6 +17,12 @@ Need production? ──no──► getting-started/QUICK_START.md + ./start-syst
         ├── GCP (GKE, Identity Platform) ─────► docs (IaC scaffold TBD)
         └── Kubernetes multi-service ─────────► deploy/production/ + docs/production/
 ```
+
+## Cross-cloud (start here for CISOs)
+
+| Doc | Purpose |
+|-----|---------|
+| [../production/MULTI_CLOUD_SECURITY_ARCHITECTURE_PATTERNS.md](../production/MULTI_CLOUD_SECURITY_ARCHITECTURE_PATTERNS.md) | Common security architecture patterns across Azure, AWS, GCP, OCI |
 
 ## Local & VM (docker-compose)
 

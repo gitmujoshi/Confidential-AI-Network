@@ -65,6 +65,11 @@ permalink: /
     One product surface, three trust planes: people, cloud APIs, and peer workloads.
     Contracts bind the economic and legal agreement; confidential compute and cryptography enforce the technical one.
   </p>
+  <p>
+    Shared control objectives across Azure, Amazon Web Services, Google Cloud, and Oracle Cloud Infrastructure:
+    <a href="https://github.com/gitmujoshi/Confidential-AI-Network/blob/main/docs/production/MULTI_CLOUD_SECURITY_ARCHITECTURE_PATTERNS.md">Multi-cloud security architecture patterns</a>
+    (full write-up in the repository; this site stays short).
+  </p>
 
   <figure class="arch-figure" aria-label="High-level Confidential AI Network architecture">
 <pre class="arch-diagram">

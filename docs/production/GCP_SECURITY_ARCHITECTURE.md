@@ -19,7 +19,7 @@ Recommended **Google Cloud** security architecture for deploying the Confidentia
 | [GCP Readiness](../deployment/GCP_READINESS.md) | Gap analysis |
 | [config.gcp.env.example](../../config/examples/config.gcp.env.example) | Env template |
 
-**Related:** [PARTICIPANT_ONBOARDING_AND_E2E_LIFECYCLE.md](../guides/PARTICIPANT_ONBOARDING_AND_E2E_LIFECYCLE.md) · [Azure Security Architecture](AZURE_SECURITY_ARCHITECTURE.md) (parallel)
+**Related:** [Multi-cloud security architecture patterns](MULTI_CLOUD_SECURITY_ARCHITECTURE_PATTERNS.md) · [PARTICIPANT_ONBOARDING_AND_E2E_LIFECYCLE.md](../guides/PARTICIPANT_ONBOARDING_AND_E2E_LIFECYCLE.md) · [Azure Security Architecture](AZURE_SECURITY_ARCHITECTURE.md) (parallel)
 
 ---
 

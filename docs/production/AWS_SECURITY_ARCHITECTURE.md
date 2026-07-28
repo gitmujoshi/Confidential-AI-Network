@@ -19,7 +19,7 @@ Recommended **Amazon Web Services** security architecture for deploying the Conf
 | [AWS Readiness](../deployment/AWS_READINESS.md) | Gap analysis |
 | [config.aws.env.example](../../config/examples/config.aws.env.example) | Env template |
 
-**Related:** [PARTICIPANT_ONBOARDING_AND_E2E_LIFECYCLE.md](../guides/PARTICIPANT_ONBOARDING_AND_E2E_LIFECYCLE.md) · [Azure Security Architecture](AZURE_SECURITY_ARCHITECTURE.md) (parallel)
+**Related:** [Multi-cloud security architecture patterns](MULTI_CLOUD_SECURITY_ARCHITECTURE_PATTERNS.md) · [PARTICIPANT_ONBOARDING_AND_E2E_LIFECYCLE.md](../guides/PARTICIPANT_ONBOARDING_AND_E2E_LIFECYCLE.md) · [Azure Security Architecture](AZURE_SECURITY_ARCHITECTURE.md) (parallel)
 
 ---
 

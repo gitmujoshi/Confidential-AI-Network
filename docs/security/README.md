@@ -14,6 +14,7 @@ Canonical security & identity docs. Prefer these over archive copies.
 | Production security (app layer) | [../production/SECURITY_GUIDE.md](../production/SECURITY_GUIDE.md) |
 | OCI security architecture | [../production/OCI_SECURITY_ARCHITECTURE.md](../production/OCI_SECURITY_ARCHITECTURE.md) |
 | Azure security architecture | [../production/AZURE_SECURITY_ARCHITECTURE.md](../production/AZURE_SECURITY_ARCHITECTURE.md) |
+| Multi-cloud security patterns | [../production/MULTI_CLOUD_SECURITY_ARCHITECTURE_PATTERNS.md](../production/MULTI_CLOUD_SECURITY_ARCHITECTURE_PATTERNS.md) |
 
 ## Specialized
 

@@ -25,6 +25,7 @@ The homepage carries the architecture overview and the “why”; posts go deep 
 | Area | Start here |
 |------|------------|
 | Docs home | [docs/README.md](https://github.com/gitmujoshi/Confidential-AI-Network/blob/main/docs/README.md) |
+| Multi-cloud security patterns | [MULTI_CLOUD_SECURITY_ARCHITECTURE_PATTERNS.md](https://github.com/gitmujoshi/Confidential-AI-Network/blob/main/docs/production/MULTI_CLOUD_SECURITY_ARCHITECTURE_PATTERNS.md) |
 | Security index | [docs/security/](https://github.com/gitmujoshi/Confidential-AI-Network/tree/main/docs/security) |
 | OCI security | [OCI_SECURITY_ARCHITECTURE.md](https://github.com/gitmujoshi/Confidential-AI-Network/blob/main/docs/production/OCI_SECURITY_ARCHITECTURE.md) |
 | Azure security | [AZURE_SECURITY_ARCHITECTURE.md](https://github.com/gitmujoshi/Confidential-AI-Network/blob/main/docs/production/AZURE_SECURITY_ARCHITECTURE.md) |

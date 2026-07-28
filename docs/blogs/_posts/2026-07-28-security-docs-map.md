@@ -15,10 +15,18 @@ Start at [docs/security/](https://github.com/gitmujoshi/Confidential-AI-Network/
 
 ## Cloud deployment security
 
+Start with shared patterns, then the cloud you are deploying:
+
+| Scope | Document |
+|-------|----------|
+| **All clouds** | [MULTI_CLOUD_SECURITY_ARCHITECTURE_PATTERNS](https://github.com/gitmujoshi/Confidential-AI-Network/blob/main/docs/production/MULTI_CLOUD_SECURITY_ARCHITECTURE_PATTERNS.md) |
+
 | Cloud | Architecture | IAM / edge | Features + env |
 |-------|--------------|------------|----------------|
 | OCI | [OCI_SECURITY_ARCHITECTURE](https://github.com/gitmujoshi/Confidential-AI-Network/blob/main/docs/production/OCI_SECURITY_ARCHITECTURE.md) | [OCI_IAM_AND_EDGE](https://github.com/gitmujoshi/Confidential-AI-Network/blob/main/docs/deployment/OCI_IAM_AND_EDGE_CONFIG.md) | [OCI_FEATURES](https://github.com/gitmujoshi/Confidential-AI-Network/blob/main/docs/deployment/OCI_FEATURES_AND_CONFIGURATION.md) |
 | Azure | [AZURE_SECURITY_ARCHITECTURE](https://github.com/gitmujoshi/Confidential-AI-Network/blob/main/docs/production/AZURE_SECURITY_ARCHITECTURE.md) | [AZURE_IAM_AND_EDGE](https://github.com/gitmujoshi/Confidential-AI-Network/blob/main/docs/deployment/AZURE_IAM_AND_EDGE_CONFIG.md) | [AZURE_FEATURES](https://github.com/gitmujoshi/Confidential-AI-Network/blob/main/docs/deployment/AZURE_FEATURES_AND_CONFIGURATION.md) |
+| AWS | [AWS_SECURITY_ARCHITECTURE](https://github.com/gitmujoshi/Confidential-AI-Network/blob/main/docs/production/AWS_SECURITY_ARCHITECTURE.md) | [AWS_IAM_AND_EDGE](https://github.com/gitmujoshi/Confidential-AI-Network/blob/main/docs/deployment/AWS_IAM_AND_EDGE_CONFIG.md) | [AWS_FEATURES](https://github.com/gitmujoshi/Confidential-AI-Network/blob/main/docs/deployment/AWS_FEATURES_AND_CONFIGURATION.md) |
+| GCP | [GCP_SECURITY_ARCHITECTURE](https://github.com/gitmujoshi/Confidential-AI-Network/blob/main/docs/production/GCP_SECURITY_ARCHITECTURE.md) | [GCP_IAM_AND_EDGE](https://github.com/gitmujoshi/Confidential-AI-Network/blob/main/docs/deployment/GCP_IAM_AND_EDGE_CONFIG.md) | [GCP_FEATURES](https://github.com/gitmujoshi/Confidential-AI-Network/blob/main/docs/deployment/GCP_FEATURES_AND_CONFIGURATION.md) |
 | Workload identity (OCI) | [OCI_SPIFFE_SPIRE_WIF](https://github.com/gitmujoshi/Confidential-AI-Network/blob/main/docs/deployment/OCI_SPIFFE_SPIRE_WIF.md) | — | Terraform `modules/spire`, `modules/wif` |
 
 ## Lifecycle & crypto narrative

@@ -79,6 +79,7 @@ Follow the links below by topic. OCI and Azure each have a **step-by-step new-en
 
 | Topic | Document |
 |-------|----------|
+| **Multi-cloud security patterns** (Azure, AWS, GCP, OCI) | [MULTI_CLOUD_SECURITY_ARCHITECTURE_PATTERNS.md](MULTI_CLOUD_SECURITY_ARCHITECTURE_PATTERNS.md) |
 | OCI security architecture (compartments, WAF, API GW, OKE) | [OCI_SECURITY_ARCHITECTURE.md](OCI_SECURITY_ARCHITECTURE.md) |
 | Azure security architecture (Entra ID, Front Door, APIM, AKS) | [AZURE_SECURITY_ARCHITECTURE.md](AZURE_SECURITY_ARCHITECTURE.md) |
 | AWS security architecture (Cognito, CloudFront, EKS) | [AWS_SECURITY_ARCHITECTURE.md](AWS_SECURITY_ARCHITECTURE.md) |

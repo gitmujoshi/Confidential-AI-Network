@@ -23,6 +23,8 @@ This document defines the **recommended Oracle Cloud Infrastructure (OCI) securi
 
 Use this document for design reviews and stakeholder alignment. Use **OCI IAM & Edge Config** when writing policies, configuring edge services, or preparing security sign-off.
 
+**Cross-cloud patterns:** [MULTI_CLOUD_SECURITY_ARCHITECTURE_PATTERNS.md](MULTI_CLOUD_SECURITY_ARCHITECTURE_PATTERNS.md) — shared control objectives mapped to Azure, AWS, GCP, and OCI.
+
 **Related docs**
 
 - [Production Security Guide](SECURITY_GUIDE.md) — application-layer controls (network policies, secrets)
