@@ -407,6 +407,52 @@ class TdcTrainingExecutionService {
       return this.getJobPublic(jobId);
     }
 
+    // OCI OKE Job path (design scaffold — Object Storage + cms-training Job template).
+    if (executionMode === 'oci' || executionMode === 'oci-oke-job') {
+      const jobId = `job-${contract.contractId}-${Date.now()}`;
+      const containerSpec = buildContainerSpec(contract);
+      const inputs = shapeInputsForLocalTrainerContainer(await expandContractTrainingInputs(contract));
+      const jobDepaId = depaIdService.generateTrainingJobDEPAId();
+      await db.TrainingJob.create({
+        jobId,
+        contractId: contract.contractId,
+        status: 'PENDING',
+        trainingConfig: contract.trainingParams,
+        environmentConfig: {
+          environmentSpecs: contract.environmentSpecs,
+          cloudProvider: contract.tspCloudProvider || 'oci',
+          containerSpec,
+        },
+        datasets: contract.contractDatasets,
+        aiModels: contract.aiModelIds,
+        metadata: {
+          depaId: jobDepaId,
+          simulation: String(process.env.TRAINING_SIMULATION_MODE || '').toLowerCase() === 'true',
+          progress: 0,
+          containerSpec,
+          phases: [{ name: 'PENDING', at: new Date().toISOString() }],
+          executionMode: 'oci-oke-job',
+          inputs,
+        },
+        createdBy: userId,
+      });
+
+      const { runOkeJobTraining } = require('./okeJobTrainingRunner');
+      setImmediate(() => {
+        runOkeJobTraining({
+          jobId,
+          contractId: contract.contractId,
+          containerSpec,
+          trainingParams: contract.trainingParams,
+          inputs,
+        }).catch((err) => {
+          console.error(`[okeJobTrainingRunner] ${jobId}:`, err.message);
+        });
+      });
+
+      return this.getJobPublic(jobId);
+    }
+
     const TrainingService = require('./trainingService');
     const trainingService = new TrainingService();
     const run = await trainingService.triggerTrainingRun(contractId);

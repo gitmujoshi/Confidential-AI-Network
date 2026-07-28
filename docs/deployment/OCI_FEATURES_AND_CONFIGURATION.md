@@ -7,12 +7,13 @@ Canonical catalog of **OCI-oriented product features**, E2E fit, **maturity**, a
 | [OCI_SECURITY_ARCHITECTURE.md](../production/OCI_SECURITY_ARCHITECTURE.md) | Topology, runbook, compartments |
 | [OCI_IAM_AND_EDGE_CONFIG.md](OCI_IAM_AND_EDGE_CONFIG.md) | IAM policies, Cloud Gate, API GW, WAF |
 | [OCI_SPIFFE_SPIRE_WIF.md](OCI_SPIFFE_SPIRE_WIF.md) | SPIFFE/SPIRE + OCI WIF (workload identity design) |
-| [OCI_READINESS.md](OCI_READINESS.md) | Honest gap analysis |
+| [OCI_DESIGN_COMPLETE.md](OCI_DESIGN_COMPLETE.md) | Design/scaffold completeness map |
+| [OCI_READINESS.md](OCI_READINESS.md) | Honest gap analysis (design vs live apply) |
 | [OCI_TAGGING_AND_VERSIONING.md](OCI_TAGGING_AND_VERSIONING.md) | `cms-*` tags, image tags |
 | [PARTICIPANT_ONBOARDING_AND_E2E_LIFECYCLE.md](../guides/PARTICIPANT_ONBOARDING_AND_E2E_LIFECYCLE.md) | DEK/MEK / signing / CAN model |
 | [config/examples/config.oci.env.example](../../config/examples/config.oci.env.example) | Env var template for OCI |
 
-**Maturity legend:** `Implemented` · `Partial` · `Design (not coded)` · `Local-only`
+**Maturity legend:** `Implemented` · `Partial` · `Design scaffold` (code/IaC present; live apply optional) · `Local-only`
 
 **Identity rule (OCI):** Azure-parallel — **OCI IAM Identity Domains** are the sole IdP on OCI (SSO, MFA, groups/app roles for TDC·TDP·CCRP·AppAdmin). **Cloud Gate** optionally fronts browser apps. **Keycloak** = local docker-compose / Playwright only — **do not deploy Keycloak on OCI**.
 
@@ -22,19 +23,19 @@ Canonical catalog of **OCI-oriented product features**, E2E fit, **maturity**, a
 
 | # | Feature | Maturity | Primary config |
 |---|---------|----------|----------------|
-| 1 | OCI IAM Identity Domains (+ Cloud Gate for SPA) | Partial (TF `modules/identity` creates domain/apps/groups; app OIDC/JWKS wired) | `AUTH_PROVIDER`, `OCI_IDENTITY_*` |
-| 2 | Edge: WAF, API Gateway, LB, private OKE | Design / Partial IaC | Terraform + DNS |
-| 3 | OCI Vault (secrets, master keys) | Design / Partial | `OCI_VAULT_*`, `SECRET_BACKEND` |
-| 4 | Signing keys in Vault / HSM + verify on sign | Design | `SIGNING_KEY_BACKEND` |
+| 1 | OCI IAM Identity Domains (+ Cloud Gate for SPA) | Partial / Design scaffold (`modules/identity` + app OIDC) | `AUTH_PROVIDER`, `OCI_IDENTITY_*` |
+| 2 | Edge: WAF, API Gateway, LB, private OKE | Design scaffold (`modules/edge` + LB) | `enable_edge`, Terraform + DNS |
+| 3 | OCI Vault (secrets, master keys) | Design scaffold (`modules/vault`) | `enable_vault`, `OCI_VAULT_*`, `SECRET_BACKEND` |
+| 4 | Signing keys in Vault / HSM + verify on sign | Design scaffold (Vault module + env) | `SIGNING_KEY_BACKEND` |
 | 5 | Principal DEK / MEK + attested release | Design (signals MVP) | `CAN_*`, attestation |
-| 6 | Contract `kmsConfigs` → OCI Vault | Partial (JSON only) | contract JSON + TSP creds |
-| 7 | OCI training (OKE Job / Compute / confidential) | Design / Partial provider | `TRAINING_EXECUTION_MODE`, CCRP OCI |
-| 8 | Object Storage datasets / artifacts | Design | `OCI_OBJECT_STORAGE_*` |
-| 9 | SCITT CCF on OCI | Design | `SCITT_*` |
-| 10 | OCI-targeted E2E / CI | Design | staging URLs + IdP users |
+| 6 | Contract `kmsConfigs` → OCI Vault | Partial (JSON + Vault OCID scaffold) | contract JSON + TSP creds |
+| 7 | OCI training (OKE Job) | Design scaffold (`modules/training` + `okeJobTrainingRunner`) | `TRAINING_EXECUTION_MODE=oci-oke-job`, `enable_training` |
+| 8 | Object Storage datasets / artifacts | Design scaffold (`modules/object_storage`) | `enable_object_storage`, `OCI_OBJECT_STORAGE_*` |
+| 9 | SCITT CCF on OCI | Design scaffold (`modules/scitt`) | `enable_scitt`, `SCITT_*` |
+| 10 | OCI-targeted E2E / CI | Design (ops) | staging URLs + IdP users |
 | 11 | Local Keycloak demo path | Implemented | `KEYCLOAK_*`, `local-docker` |
-| 12 | Platform Terraform (VCN, OKE, ADB, OCIR) | Partial | `deployment/oci/terraform/` — Keycloak removed from K8s/LB |
-| 13 | SPIFFE/SPIRE + OCI WIF / OKE Workload Identity | Design | `SPIFFE_*`, `OCI_WIF_*`, [OCI_SPIFFE_SPIRE_WIF.md](OCI_SPIFFE_SPIRE_WIF.md) |
+| 12 | Platform Terraform (VCN, OKE, ADB, OCIR) | Partial / Design scaffold | `deployment/oci/terraform/` |
+| 13 | SPIFFE/SPIRE + OCI WIF / OKE Workload Identity | Design scaffold (`modules/spire`, `modules/wif`, WIF helper) | `enable_spire`, `enable_wif`, `SPIFFE_*`, `OCI_WIF_*` |
 
 ---
 

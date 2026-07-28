@@ -189,6 +189,42 @@ output "wif_impersonation_rules" {
   value = try(module.wif.impersonation_rules, {})
 }
 
+output "vault_enabled" {
+  value = var.enable_vault
+}
+
+output "vault_id" {
+  value = try(module.vault.vault_id, null)
+}
+
+output "vault_key_id" {
+  value = try(module.vault.key_id, null)
+}
+
+output "object_storage_enabled" {
+  value = var.enable_object_storage
+}
+
+output "object_storage_namespace" {
+  value = try(module.object_storage.namespace, null)
+}
+
+output "object_storage_buckets" {
+  value = try(module.object_storage.bucket_names, {})
+}
+
+output "edge_enabled" {
+  value = var.enable_edge
+}
+
+output "training_scaffold_enabled" {
+  value = var.enable_training
+}
+
+output "scitt_scaffold_enabled" {
+  value = var.enable_scitt
+}
+
 output "next_steps" {
   description = "Next steps after deployment"
   value = concat(
@@ -214,6 +250,31 @@ output "next_steps" {
       "13. Grant IAM policies to service users (see module.wif.suggested_iam_policy_comments)",
       ] : [
       "11. Optional: set enable_wif=true after SPIRE OIDC JWKS is reachable (Phase 3)",
+    ],
+    var.enable_vault ? [
+      "14. Vault OCID ${try(module.vault.vault_id, "")} — set OCI_VAULT_OCID / SECRET_BACKEND=oci-vault",
+      ] : [
+      "14. Optional: set enable_vault=true for OCI Vault + master CMK scaffold",
+    ],
+    var.enable_object_storage ? [
+      "15. Object Storage namespace ${try(module.object_storage.namespace, "")} — wire DATASET_STORAGE_BACKEND=oci-object",
+      ] : [
+      "15. Optional: set enable_object_storage=true for dataset/output/artifact buckets",
+    ],
+    var.enable_training ? [
+      "16. Training: apply Job template from cms-training ConfigMap; TRAINING_EXECUTION_MODE=oci-oke-job",
+      ] : [
+      "16. Optional: set enable_training=true for OKE Job training scaffold",
+    ],
+    var.enable_edge ? [
+      "17. Edge: review ConfigMap oci-edge-design; implement WAF + API Gateway per OCI_IAM_AND_EDGE_CONFIG.md",
+      ] : [
+      "17. Optional: set enable_edge=true for WAF/API Gateway design ConfigMap",
+    ],
+    var.enable_scitt ? [
+      "18. SCITT: set SCITT_CCF_ENABLED when ledger URL is real",
+      ] : [
+      "18. Optional: set enable_scitt=true for SCITT ConfigMap scaffold",
     ]
   )
 }

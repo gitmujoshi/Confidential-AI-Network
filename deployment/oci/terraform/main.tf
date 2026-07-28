@@ -248,3 +248,63 @@ module "wif" {
   client_claim_name   = var.wif_client_claim_name
   client_claim_values = var.wif_client_claim_values
 }
+
+# --- Design-complete platform scaffolds (opt-in; no live tenancy required to keep defaults off) ---
+
+module "vault" {
+  source = "./modules/vault"
+
+  enabled        = var.enable_vault
+  compartment_id = var.compartment_id
+  environment    = var.environment
+}
+
+module "object_storage" {
+  source = "./modules/object_storage"
+
+  enabled        = var.enable_object_storage
+  compartment_id = var.compartment_id
+  environment    = var.environment
+  namespace      = var.object_storage_namespace
+}
+
+module "edge" {
+  source = "./modules/edge"
+
+  depends_on = [module.kubernetes_resources]
+
+  enabled        = var.enable_edge
+  compartment_id = var.compartment_id
+  environment    = var.environment
+  app_domain     = var.app_domain
+  app_namespace  = "contract-management"
+
+  jwt_issuer   = local.effective_oci_identity_issuer
+  jwt_audience = local.effective_oci_identity_audience
+  jwt_jwks_url = var.oci_identity_jwks_url
+}
+
+module "training" {
+  source = "./modules/training"
+
+  depends_on = [module.oke, module.object_storage]
+
+  enabled     = var.enable_training
+  environment = var.environment
+
+  trainer_image            = var.training_trainer_image
+  object_storage_namespace = try(module.object_storage.namespace, var.object_storage_namespace)
+  bucket_datasets          = try(module.object_storage.bucket_names["datasets"], "cms-${var.environment}-datasets")
+  bucket_training_outputs  = try(module.object_storage.bucket_names["training_outputs"], "cms-${var.environment}-training-outputs")
+  bucket_artifacts         = try(module.object_storage.bucket_names["artifacts"], "cms-${var.environment}-artifacts")
+}
+
+module "scitt" {
+  source = "./modules/scitt"
+
+  depends_on = [module.kubernetes_resources]
+
+  enabled     = var.enable_scitt
+  environment = var.environment
+  scitt_url   = var.scitt_ccf_url
+}

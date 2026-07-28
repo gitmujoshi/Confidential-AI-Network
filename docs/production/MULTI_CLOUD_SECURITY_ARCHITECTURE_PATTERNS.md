@@ -161,10 +161,10 @@ Application crypto narrative (signing, Data Encryption Key, Model Encryption Key
 |--|--|
 | **Objective** | High-sensitivity training decrypts data only inside an isolated, preferably attested environment. |
 | **CAN rule** | Tech Service Provider / Confidential Clean Room Provider hosts segmented or Trusted Execution Environment compute; key release gated on contract state + identity (+ attestation when maturity allows). |
-| **Azure** | Confidential VMs / enclaves on Azure Kubernetes Service (phased) |
-| **AWS** | Nitro Enclaves / confidential options (phased) |
-| **GCP** | Confidential Google Kubernetes Engine / Confidential VMs (phased) |
-| **OCI** | Confidential computing / clean-room paths on Oracle Container Engine for Kubernetes (phased) |
+| **Azure** | Confidential VMs / enclaves on Azure Kubernetes Service — **design complete**; product shapes applied when the subscription is ready |
+| **AWS** | Nitro Enclaves / confidential options — **design complete**; apply when the account is ready |
+| **GCP** | Confidential Google Kubernetes Engine / Confidential VMs — **design complete**; apply when the project is ready |
+| **OCI** | Confidential computing / clean-room paths on Oracle Container Engine for Kubernetes — **design scaffold complete** ([OCI_DESIGN_COMPLETE.md](../deployment/OCI_DESIGN_COMPLETE.md)); Terraform/Helm and training Job templates are in-repo (`enable_training`, SPIFFE/WIF opt-in) |
 
 SPIFFE peer authentication complements — does not replace — Trusted Execution Environment attestation.
 

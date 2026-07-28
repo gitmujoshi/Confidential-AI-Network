@@ -41,7 +41,8 @@ Need production? ──no──► getting-started/QUICK_START.md + ./start-syst
 | [OCI_FEATURES_AND_CONFIGURATION.md](OCI_FEATURES_AND_CONFIGURATION.md) | **Feature catalog + env/settings** (OCI IAM, Vault, DEK/MEK, train, Object Storage, SCITT) |
 | [OCI_IAM_AND_EDGE_CONFIG.md](OCI_IAM_AND_EDGE_CONFIG.md) | **IAM policies, Cloud Gate, API Gateway, WAF** (implementation reference) |
 | [OCI_SPIFFE_SPIRE_WIF.md](OCI_SPIFFE_SPIRE_WIF.md) | **SPIFFE/SPIRE + OCI WIF** design & implementation (workload identity) |
-| [OCI_READINESS.md](OCI_READINESS.md) | Honest assessment: what is / isn't ready for OCI |
+| [OCI_DESIGN_COMPLETE.md](OCI_DESIGN_COMPLETE.md) | **Design/scaffold completeness** (code + docs; no live tenancy required) |
+| [OCI_READINESS.md](OCI_READINESS.md) | Honest assessment: design vs live apply |
 | [OCI_TAGGING_AND_VERSIONING.md](OCI_TAGGING_AND_VERSIONING.md) | **cms-* tags, image tags, release versioning** |
 | [../../config/examples/config.oci.env.example](../../config/examples/config.oci.env.example) | OCI env var template (target) |
 | [../../deployment/oci/terraform/README.md](../../deployment/oci/terraform/README.md) | Terraform modules (OKE, ADB, LB, OCIR) |

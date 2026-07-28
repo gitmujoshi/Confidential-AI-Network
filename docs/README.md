@@ -57,6 +57,7 @@
 | OCI security architecture | [production/OCI_SECURITY_ARCHITECTURE.md](production/OCI_SECURITY_ARCHITECTURE.md) |
 | Azure security architecture | [production/AZURE_SECURITY_ARCHITECTURE.md](production/AZURE_SECURITY_ARCHITECTURE.md) |
 | Multi-cloud security patterns | [production/MULTI_CLOUD_SECURITY_ARCHITECTURE_PATTERNS.md](production/MULTI_CLOUD_SECURITY_ARCHITECTURE_PATTERNS.md) |
+| OCI design complete (scaffolds) | [deployment/OCI_DESIGN_COMPLETE.md](deployment/OCI_DESIGN_COMPLETE.md) |
 | Security blog (GitHub Pages) | [blogs/](blogs/README.md) · [Product tour](blogs/product-tour.md) |
 
 ---

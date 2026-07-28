@@ -1,0 +1,59 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: cms-training-job-{{CONTRACT_ID}}
+  namespace: cms-training
+  labels:
+    app.kubernetes.io/part-of: confidential-ai-network
+    cms-component: training
+    cms.contract/id: "{{CONTRACT_ID}}"
+spec:
+  ttlSecondsAfterFinished: 86400
+  backoffLimit: 2
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: cms-trainer
+        cms.contract/id: "{{CONTRACT_ID}}"
+    spec:
+      serviceAccountName: training-job-sa
+      restartPolicy: Never
+      containers:
+        - name: trainer
+          image: "{{TRAINER_IMAGE}}"
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: TRAINING_EXECUTION_MODE
+              value: "oci"
+            - name: OCI_TRAINING_COMPUTE
+              value: "oke-job"
+            - name: OCI_OBJECT_STORAGE_NAMESPACE
+              value: "{{OCI_OBJECT_STORAGE_NAMESPACE}}"
+            - name: OCI_OBJECT_STORAGE_BUCKET_DATASETS
+              value: "{{OCI_OBJECT_STORAGE_BUCKET_DATASETS}}"
+            - name: OCI_OBJECT_STORAGE_BUCKET_OUTPUTS
+              value: "{{OCI_OBJECT_STORAGE_BUCKET_OUTPUTS}}"
+            - name: OCI_OBJECT_STORAGE_BUCKET_ARTIFACTS
+              value: "{{OCI_OBJECT_STORAGE_BUCKET_ARTIFACTS}}"
+            - name: CONTRACT_ID
+              value: "{{CONTRACT_ID}}"
+            - name: DATASET_OBJECT_KEY
+              value: "{{DATASET_OBJECT_KEY}}"
+            - name: OUTPUT_OBJECT_PREFIX
+              value: "{{OUTPUT_OBJECT_PREFIX}}"
+          resources:
+            requests:
+              cpu: "2"
+              memory: "4Gi"
+            limits:
+              cpu: "4"
+              memory: "8Gi"
+          volumeMounts:
+            - name: spire-agent-socket
+              mountPath: /spire-agent-socket
+              readOnly: true
+      volumes:
+        - name: spire-agent-socket
+          hostPath:
+            path: /var/run/spire/sockets
+            type: DirectoryOrCreate

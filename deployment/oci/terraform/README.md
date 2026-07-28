@@ -6,7 +6,9 @@ This directory contains the Terraform configuration for deploying the Contract M
 
 **Identity:** OCI uses **OCI IAM Identity Domains** only (`AUTH_PROVIDER=oci-iam`). **Keycloak is not deployed** on OKE. Domain + OIDC apps + role groups are created by [`modules/identity`](modules/identity/README.md) (default on).
 
-**Workload identity:** SPIFFE/SPIRE Phase 1 — [`modules/spire`](modules/spire/README.md) + [`helm/spire`](../helm/spire/). OCI WIF Phase 3 — [`modules/wif`](modules/wif/README.md). Opt-in: `enable_spire` / `enable_wif`. Design: [OCI_SPIFFE_SPIRE_WIF.md](../../../docs/deployment/OCI_SPIFFE_SPIRE_WIF.md).
+**Workload identity:** SPIFFE/SPIRE — [`modules/spire`](modules/spire/README.md) + [`helm/spire`](../helm/spire/). OCI WIF — [`modules/wif`](modules/wif/README.md). Opt-in: `enable_spire` / `enable_wif`.
+
+**Design scaffolds (opt-in):** Vault, Object Storage, edge ConfigMap, OKE training Job, SCITT — `enable_vault`, `enable_object_storage`, `enable_edge`, `enable_training`, `enable_scitt`. Completeness map: [OCI_DESIGN_COMPLETE.md](../../../docs/deployment/OCI_DESIGN_COMPLETE.md).
 
 ## Architecture Overview
 
@@ -21,6 +23,7 @@ The deployment creates a complete infrastructure including:
 - **Kubernetes Resources** for application deployment
 - **SPIRE** (optional) — Server/Agent + OIDC Discovery + ClusterSPIFFEID entries
 - **OCI WIF** (optional) — IdentityPropagationTrust + Service Users + token-exchange app
+- **Vault / Object Storage / edge / training / SCITT** (optional design scaffolds)
 
 ## 📋 Prerequisites
 

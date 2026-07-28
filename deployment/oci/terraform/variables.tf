@@ -454,6 +454,56 @@ variable "wif_client_claim_values" {
   default = []
 }
 
+# --- Design scaffolds: Vault, Object Storage, edge, training, SCITT ------------
+
+variable "enable_vault" {
+  description = "Create OCI Vault + master CMK (design scaffold; default off)"
+  type        = bool
+  default     = false
+}
+
+variable "enable_object_storage" {
+  description = "Create datasets/outputs/artifacts Object Storage buckets (default off)"
+  type        = bool
+  default     = false
+}
+
+variable "object_storage_namespace" {
+  description = "Object Storage namespace (empty → discover via data source when enable_object_storage)"
+  type        = string
+  default     = ""
+}
+
+variable "enable_edge" {
+  description = "Write edge design ConfigMap (WAF + API Gateway + Cloud Gate placeholders)"
+  type        = bool
+  default     = false
+}
+
+variable "enable_training" {
+  description = "Create OKE training namespace, ServiceAccount, and Job template ConfigMap"
+  type        = bool
+  default     = false
+}
+
+variable "training_trainer_image" {
+  description = "OCIR trainer image for OKE Job template"
+  type        = string
+  default     = ""
+}
+
+variable "enable_scitt" {
+  description = "Write SCITT CCF ConfigMap scaffold on OKE (default off)"
+  type        = bool
+  default     = false
+}
+
+variable "scitt_ccf_url" {
+  description = "SCITT CCF base URL placeholder for scitt module"
+  type        = string
+  default     = ""
+}
+
 # Blockchain Configuration
 variable "ethereum_network" {
   description = "Ethereum network to use"

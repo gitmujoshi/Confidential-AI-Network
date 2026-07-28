@@ -72,6 +72,16 @@ enable_spire = false
 # OCI WIF Phase 3 (requires SPIRE OIDC issuer + reachable JWKS or pinned cert)
 enable_wif = false
 # enable_wif = true
+
+# Design scaffolds (architecture complete in-repo; enable when applying to a tenancy)
+enable_vault           = false
+enable_object_storage  = false
+enable_edge            = false
+enable_training        = false
+enable_scitt           = false
+# object_storage_namespace = ""
+# training_trainer_image   = "iad.ocir.io/NAMESPACE/local-trainer:latest"
+# scitt_ccf_url            = "https://scitt.dev.example.com"
 # wif_spire_jwks_url = "https://oidc.spire.dev.example/keys"  # override if not using module.spire
 # wif_spire_public_certificate = ""  # PEM when JWKS not routable from Identity Domain
 
