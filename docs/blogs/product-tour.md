@@ -1,7 +1,7 @@
 ---
 layout: default
 title: Product tour
-description: End-to-end UI tour — party registration, catalog, contract signing, training, logs, provenance, deploy, and inference.
+description: End-to-end UI tour — party registration, catalog, contract signing, training, logs, provenance, deploy, inference, plus OCI mock scaffolds.
 permalink: /product-tour/
 ---
 
@@ -10,8 +10,10 @@ permalink: /product-tour/
   <h1>From registration to a live prediction</h1>
   <p class="lede">
     Screenshots below are captured from a real local run of the Confidential AI Network stack
-    (Playwright lifecycle guide). They show the full multi-party path: onboard parties, publish data,
-    agree and sign a contract, train, inspect logs and provenance, then deploy and test the model.
+    (Playwright lifecycle guide), plus the public <strong>OCI scaffolds mock UI</strong>
+    (no live tenancy required). They show the full multi-party path: onboard parties, publish data,
+    agree and sign a contract, train, inspect logs and provenance, then deploy and test the model —
+    and how the same flows look when OCI Vault / confidential compute scaffolds are enabled.
   </p>
 </section>
 
@@ -23,12 +25,15 @@ permalink: /product-tour/
     <li><a href="#contract">Contract</a> — create, notify, and sign by all parties</li>
     <li><a href="#train">Training</a> — start job, completion, run logs, provenance report</li>
     <li><a href="#infer">Deploy &amp; test</a> — register artifact, deploy, run a prediction</li>
+    <li><a href="#oci-mock">OCI mock UIs</a> — scaffolds, Vault onboarding, TSP confidential env, contract KMS, provenance</li>
   </ol>
   <p>
     Canonical long-form text:
     <a href="https://github.com/gitmujoshi/Confidential-AI-Network/blob/main/docs/guides/lifecycle-user-guide/LIFECYCLE_USER_GUIDE.md">Lifecycle user guide</a>
     ·
-    <a href="https://github.com/gitmujoshi/Confidential-AI-Network/blob/main/docs/guides/PARTICIPANT_ONBOARDING_AND_E2E_LIFECYCLE.md">Participant onboarding &amp; E2E lifecycle</a>.
+    <a href="https://github.com/gitmujoshi/Confidential-AI-Network/blob/main/docs/guides/PARTICIPANT_ONBOARDING_AND_E2E_LIFECYCLE.md">Participant onboarding &amp; E2E lifecycle</a>
+    ·
+    <a href="https://github.com/gitmujoshi/Confidential-AI-Network/blob/main/docs/deployment/OCI_DESIGN_COMPLETE.md">OCI design complete</a>.
   </p>
 </section>
 
@@ -167,16 +172,53 @@ permalink: /product-tour/
   </figure>
 </section>
 
+<section class="home-section tour-section" id="oci-mock">
+  <h2>6. OCI mock UIs (scaffolds all enabled)</h2>
+  <p>
+    Public walkthrough at <code>/demo/oci-scaffolds</code> — mock Vault OCIDs, confidential-compute
+    TSP environment, contract KMS / env specs, and a sample provenance report.
+    No live OCI tenancy required; mirrors the design map in
+    <a href="https://github.com/gitmujoshi/Confidential-AI-Network/blob/main/docs/deployment/OCI_DESIGN_COMPLETE.md">OCI_DESIGN_COMPLETE.md</a>.
+  </p>
+  <figure class="shot">
+    <img src="{{ '/assets/oci/01-scaffolds.png' | relative_url }}" alt="OCI mock UI — Terraform enable flags as scaffolds on" loading="lazy" />
+    <figcaption>Scaffolds — opt-in Terraform / config flags shown as enabled</figcaption>
+  </figure>
+  <figure class="shot">
+    <img src="{{ '/assets/oci/02-onboarding-keys-vault.png' | relative_url }}" alt="OCI mock UI — party onboarding with Vault-backed signing key" loading="lazy" />
+    <figcaption>Onboarding — party DEPA ID and signing key backed by OCI Vault</figcaption>
+  </figure>
+  <figure class="shot">
+    <img src="{{ '/assets/oci/03-tsp-confidential-env.png' | relative_url }}" alt="OCI mock UI — TSP confidential compute environment" loading="lazy" />
+    <figcaption>TSP confidential env — OKE clean-room path, Vault secrets, SPIFFE job identity</figcaption>
+  </figure>
+  <figure class="shot">
+    <img src="{{ '/assets/oci/04-contract.png' | relative_url }}" alt="OCI mock UI — contract environmentSpecs and kmsConfigs" loading="lazy" />
+    <figcaption>Contract — confidential-vm compute, Object Storage, OCI Vault KMS refs</figcaption>
+  </figure>
+  <figure class="shot">
+    <img src="{{ '/assets/oci/05-provenance.png' | relative_url }}" alt="OCI mock UI — provenance audit report" loading="lazy" />
+    <figcaption>Provenance — mock audit report shaped like the live SCITT / job provenance viewers</figcaption>
+  </figure>
+</section>
+
 <section class="home-section">
   <h2>How these screenshots are produced</h2>
   <p>
-    Regenerated from the live stack with:
+    Lifecycle path (full stack — backend, frontend, Keycloak, trainer):
   </p>
   <pre class="arch-diagram" style="white-space: pre-wrap;">cd frontend
 BACKEND_URL=http://127.0.0.1:5001 npm run test:e2e:lifecycle-guide</pre>
   <p>
+    OCI mock UI (frontend only):
+  </p>
+  <pre class="arch-diagram" style="white-space: pre-wrap;">cd frontend
+npm run test:e2e:oci-demo</pre>
+  <p>
     Images live in
     <code>docs/guides/lifecycle-user-guide/screenshots/</code>
+    and
+    <code>docs/guides/oci-scaffold-demo/screenshots/</code>,
     and are copied into this site at Pages build time.
   </p>
 </section>

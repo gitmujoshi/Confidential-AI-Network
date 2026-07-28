@@ -49,18 +49,20 @@ module.exports = defineConfig({
     {
       name: 'chromium',
       use: { ...devices['Desktop Chrome'] },
+      // Docs screenshot generators — run via dedicated npm scripts only
+      testIgnore: ['**/oci-scaffold-demo.spec.js'],
     },
 
     {
       name: 'firefox',
       use: { ...devices['Desktop Firefox'] },
-      testIgnore: ['**/role-user-guides.spec.js'],
+      testIgnore: ['**/role-user-guides.spec.js', '**/oci-scaffold-demo.spec.js'],
     },
 
     {
       name: 'webkit',
       use: { ...devices['Desktop Safari'] },
-      testIgnore: ['**/role-user-guides.spec.js'],
+      testIgnore: ['**/role-user-guides.spec.js', '**/oci-scaffold-demo.spec.js'],
     },
 
     /* Test against mobile viewports. */
@@ -73,6 +75,7 @@ module.exports = defineConfig({
         '**/create-contract-ui-workflow.spec.js',
         '**/full-e2e-register-sign-train-local.spec.js',
         '**/role-user-guides.spec.js',
+        '**/oci-scaffold-demo.spec.js',
       ],
     },
     {
@@ -83,6 +86,7 @@ module.exports = defineConfig({
         '**/create-contract-ui-workflow.spec.js',
         '**/full-e2e-register-sign-train-local.spec.js',
         '**/role-user-guides.spec.js',
+        '**/oci-scaffold-demo.spec.js',
       ],
     },
 

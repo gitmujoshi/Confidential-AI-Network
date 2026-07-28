@@ -16,7 +16,7 @@ and deployable on enterprise clouds with their native identity systems.
 
 This site publishes **security and identity design notes** for operators and reviewers,
 plus a **[product tour]({{ '/product-tour/' | relative_url }})** of end-to-end UI screenshots
-(from registration through training, provenance, and inference).
+(from registration through training, provenance, and inference, including the OCI mock scaffolds).
 It is generated from [`docs/blogs/`](https://github.com/gitmujoshi/Confidential-AI-Network/tree/main/docs/blogs) via GitHub Pages.
 The homepage carries the architecture overview and the “why”; posts go deep on identity and Zero Trust.
 
@@ -32,7 +32,7 @@ The homepage carries the architecture overview and the “why”; posts go deep 
 | OCI IAM & edge | [OCI_IAM_AND_EDGE_CONFIG.md](https://github.com/gitmujoshi/Confidential-AI-Network/blob/main/docs/deployment/OCI_IAM_AND_EDGE_CONFIG.md) |
 | SPIFFE + OCI WIF | [OCI_SPIFFE_SPIRE_WIF.md](https://github.com/gitmujoshi/Confidential-AI-Network/blob/main/docs/deployment/OCI_SPIFFE_SPIRE_WIF.md) |
 | OCI design complete | [OCI_DESIGN_COMPLETE.md](https://github.com/gitmujoshi/Confidential-AI-Network/blob/main/docs/deployment/OCI_DESIGN_COMPLETE.md) |
-| OCI scaffolds mock UI | `/demo/oci-scaffolds` (local app) · [OciScaffoldDemo.js](https://github.com/gitmujoshi/Confidential-AI-Network/blob/main/frontend/src/pages/OciScaffoldDemo.js) |
+| OCI scaffolds mock UI | Product tour [§ OCI mock UIs](https://gitmujoshi.github.io/Confidential-AI-Network/product-tour/#oci-mock) · local `/demo/oci-scaffolds` · [OciScaffoldDemo.js](https://github.com/gitmujoshi/Confidential-AI-Network/blob/main/frontend/src/pages/OciScaffoldDemo.js) |
 | Product tour (UI screenshots) | [product-tour.md](https://github.com/gitmujoshi/Confidential-AI-Network/blob/main/docs/blogs/product-tour.md) · [Lifecycle guide](https://github.com/gitmujoshi/Confidential-AI-Network/blob/main/docs/guides/lifecycle-user-guide/LIFECYCLE_USER_GUIDE.md) |
 
 **Identity rule (cloud):** Azure → Microsoft Entra ID; OCI → OCI IAM Identity Domains; GCP → Identity Platform; AWS → Cognito. **Keycloak** is local docker-compose / Playwright only.

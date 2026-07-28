@@ -127,7 +127,8 @@ permalink: /
   <p>
     Prefer screenshots?
     <a href="{{ '/product-tour/' | relative_url }}">Walk the full UI path</a>
-    from party registration through training, provenance, and a live prediction.
+    from party registration through training, provenance, and a live prediction —
+    including the <a href="{{ '/product-tour/#oci-mock' | relative_url }}">OCI mock scaffolds</a>.
   </p>
 </section>
 
