@@ -1,72 +1,90 @@
 # OCI SPIFFE/SPIRE + IAM Workload Identity Federation
 
-**Design and implementation reference** for combining **SPIFFE/SPIRE** (workload identity for service-to-service Zero Trust) with **OCI IAM Workload Identity Federation (WIF)** and **OKE Workload Identity** (short-lived access to OCI APIs: Vault, Object Storage, OCIR, Logging).
+**Design and implementation reference** for combining **SPIFFE/SPIRE** (portable identity for services talking to each other under Zero Trust) with **Oracle Cloud Infrastructure (OCI) IAM Workload Identity Federation** and **Oracle Container Engine for Kubernetes (OKE) Workload Identity** — so training and platform workloads get short-lived access to Vault, Object Storage, container registry, and Logging **without static API keys**.
 
 | Item | Value |
 |------|--------|
 | Status | **Design** — not coded; target for OCI staging/prod |
-| Audience | Platform / security engineers, CCRP operators |
+| Audience | CISOs and security leaders (trust model), platform / security engineers, clean-room operators |
 | Maturity | Design (not coded) |
-| Complements | [OCI IAM Identity Domains](OCI_IAM_AND_EDGE_CONFIG.md) (human SSO) — **does not replace** them |
+| Complements | [OCI IAM Identity Domains](OCI_IAM_AND_EDGE_CONFIG.md) (human single sign-on) — **does not replace** them |
+
+### Terms used in this document
+
+Spell these out for leadership readers; short forms appear later in engineer checklists only after this table. See also [GLOSSARY.md](../GLOSSARY.md).
+
+| Term | Meaning |
+|------|---------|
+| **SPIFFE / SPIRE** | Open standard (**SPIFFE**) and software (**SPIRE**) that give each workload a portable identity and short-lived proof of that identity |
+| **SVID** | **SPIFFE Verifiable Identity Document** — the certificate or token proving a workload’s SPIFFE ID |
+| **Service Account** | Kubernetes identity for a pod or Job (not a human). Prefer over bare “SA” |
+| **WIF** | **Workload Identity Federation** — turn a trusted external identity into a short-lived OCI session |
+| **OKE Workload Identity** | Native OKE feature that maps a Kubernetes Service Account to OCI permissions |
+| **UPST** | OCI **User Principal Session Token** — short-lived cloud session (typically ≤ 60 minutes) |
+| **mTLS** | **Mutual TLS** — both sides of a connection authenticate with certificates |
+| **IdP** | **Identity provider** for people (here: OCI IAM Identity Domains) |
+| **TEE** | **Trusted Execution Environment** — hardware-isolated enclave for confidential compute |
+| **CCR** | **Confidential Clean Room** — isolated training environment |
+| **DEK / MEK** | **Data / Model Encryption Keys** released only to authorized, attested workloads |
 
 ### Document set
 
 | Document | Role |
 |----------|------|
-| **This doc** | SPIFFE/SPIRE + OCI WIF design, trust model, phased implementation |
+| **This doc** | SPIFFE/SPIRE + OCI Workload Identity Federation design, trust model, phased implementation |
 | [OCI_SECURITY_ARCHITECTURE.md](../production/OCI_SECURITY_ARCHITECTURE.md) | Overall OCI security topology + env runbook |
-| [OCI_IAM_AND_EDGE_CONFIG.md](OCI_IAM_AND_EDGE_CONFIG.md) | Human IdP groups, dynamic groups, edge JWT |
+| [OCI_IAM_AND_EDGE_CONFIG.md](OCI_IAM_AND_EDGE_CONFIG.md) | Human identity-provider groups, dynamic groups, edge tokens |
 | [OCI_FEATURES_AND_CONFIGURATION.md](OCI_FEATURES_AND_CONFIGURATION.md) | Feature catalog + env vars |
-| [PARTICIPANT_ONBOARDING_AND_E2E_LIFECYCLE.md](../guides/PARTICIPANT_ONBOARDING_AND_E2E_LIFECYCLE.md) | DEK/MEK / CAN attestation model |
+| [PARTICIPANT_ONBOARDING_AND_E2E_LIFECYCLE.md](../guides/PARTICIPANT_ONBOARDING_AND_E2E_LIFECYCLE.md) | Encryption-key and CAN attestation model |
 | [config.oci.env.example](../../config/examples/config.oci.env.example) | Target env template |
 
 **Identity layers (do not conflate):**
 
 | Layer | Mechanism | Who / what | Purpose |
 |-------|-----------|------------|---------|
-| **A. Human / app SSO** | OCI IAM Identity Domains (OIDC) | TDC, TDP, CCRP, AppAdmin users | Portal login, API JWT roles |
-| **B. Platform ↔ OCI control plane** | OKE Workload Identity **and/or** OCI IAM WIF | Pods, Jobs, CI | Vault, Object Storage, OCIR — **no static API keys** |
-| **C. Workload ↔ workload** | SPIFFE/SPIRE (X.509 / JWT-SVID) | Backend, trainer, CAN CCR, SCITT, External Secrets | mTLS, attested peer identity, multi-cloud portable IDs |
+| **A. Human / app single sign-on** | OCI IAM Identity Domains (OpenID Connect) | TDC, TDP, CCRP, AppAdmin users | Portal login, API role claims |
+| **B. Platform ↔ OCI control plane** | OKE Workload Identity **and/or** OCI IAM Workload Identity Federation | Pods, Jobs, CI | Vault, Object Storage, registry — **no static API keys** |
+| **C. Workload ↔ workload** | SPIFFE/SPIRE (X.509 or JWT identity documents) | Backend, trainer, CAN clean room, SCITT, External Secrets | Mutual TLS, attested peer identity, multi-cloud portable IDs |
 
-**Keycloak** remains **local docker-compose / Playwright only**. Do not deploy Keycloak on OCI as a SPIRE substitute or app IdP.
+**Keycloak** remains **local docker-compose / Playwright only**. Do not deploy Keycloak on OCI as a SPIRE substitute or application identity provider.
 
 ---
 
-## 1. Why both SPIFFE/SPIRE and OCI WIF?
+## 1. Why both SPIFFE/SPIRE and OCI Workload Identity Federation?
 
-They solve **orthogonal** problems:
+They solve **different** problems:
 
-| Need | SPIFFE/SPIRE | OCI WIF / OKE WI |
-|------|--------------|------------------|
-| “Is this peer the training Job SA I expect?” | Yes (SPIFFE ID + SVID) | No (OCI principal only) |
-| “May this pod read `cms-dev-datasets` bucket?” | Indirect (via broker) | Yes (IAM policy on principal) |
-| Portable identity across OKE / AKS / GKE / bare CCR | Yes | Cloud-specific |
-| Short-lived OCI session (UPST/RPST) without API keys | Via **JWT-SVID → WIF exchange** | Native |
-| CAN / TEE peer auth before DEK·MEK release | Strong fit | Insufficient alone |
+| Question a security leader asks | SPIFFE/SPIRE | OCI Workload Identity Federation / OKE Workload Identity |
+|--------------------------------|--------------|------------------------------------------------------------|
+| “Is this peer the **training Job’s Kubernetes Service Account** I expect?” | Yes (SPIFFE ID + verifiable identity document) | No (OCI cloud principal only) |
+| “May this pod read the `cms-dev-datasets` bucket?” | Indirect (via a broker) | Yes (IAM policy on the cloud principal) |
+| “Will the same identity work on OKE, AKS, GKE, or a bare clean room?” | Yes | Cloud-specific |
+| “Can we get a short-lived OCI session without API keys?” | Via JWT identity document → federation exchange | Native |
+| “Before we release data or model encryption keys, can peers prove who they are (and ideally TEE state)?” | Strong fit for peer identity | Insufficient alone |
 
 **Recommended composition for Confidential AI Network on OCI:**
 
-1. **SPIRE** issues SVIDs after node/workload attestation (K8s SA, or TEE attestor for CCR).
-2. **Service mesh or app mTLS** uses X.509-SVIDs for east-west traffic (backend ↔ trainer ↔ CAN escrow).
+1. **SPIRE** issues verifiable identity documents after node/workload attestation (Kubernetes Service Account, or a TEE attestor for the confidential clean room).
+2. **Service mesh or application mutual TLS** uses X.509 identity documents for east-west traffic (backend ↔ trainer ↔ CAN escrow).
 3. **OCI resource access** uses either:
    - **Path N (native):** OKE enhanced-cluster Workload Identity for pods that only need OCI APIs, **or**
-   - **Path F (federation):** SPIRE **JWT-SVID** → OCI IAM **Identity Propagation Trust** → **UPST** (WIF), then call OCI APIs with proof-of-possession.
+   - **Path F (federation):** SPIRE **JWT identity document** → OCI IAM **Identity Propagation Trust** → short-lived **User Principal Session Token**, then call OCI APIs with proof-of-possession.
 
-Use **Path N** for standard OKE apps (External Secrets, backend Object Storage). Use **Path F** when the same SPIFFE identity must work **off-OKE** (CI, multi-cloud CCR, self-managed K8s) or when you want a **single portable ID** mapped into OCI via trust rules.
+Use **Path N** for standard OKE apps (External Secrets, backend Object Storage). Use **Path F** when the same SPIFFE identity must work **off OKE** (CI, multi-cloud clean rooms, self-managed Kubernetes) or when you want a **single portable ID** mapped into OCI via trust rules.
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│ Humans: Identity Domain OIDC → API Gateway → backend            │
+│ Humans: Identity Domain OpenID Connect → API Gateway → backend  │
 └─────────────────────────────────────────────────────────────────┘
 ┌─────────────────────────────────────────────────────────────────┐
 │ SPIRE Server (trust domain: can.oci.{env})                      │
-│   ├─ Agents on OKE nodes / CCR nodes                            │
-│   ├─ X.509-SVID → mTLS (mesh or app)                            │
-│   └─ JWT-SVID  → OCI WIF token exchange → UPST → Vault/OSS     │
+│   ├─ Agents on OKE nodes / clean-room nodes                     │
+│   ├─ X.509 identity document → mutual TLS (mesh or app)         │
+│   └─ JWT identity document → OCI federation → session → Vault   │
 └─────────────────────────────────────────────────────────────────┘
 ┌─────────────────────────────────────────────────────────────────┐
-│ Optional parallel: OKE Workload Identity (native RPST)          │
-│   for pods that do not need portable SPIFFE federation          │
+│ Optional parallel: OKE Workload Identity (native short-lived    │
+│   session) for pods that do not need portable SPIFFE federation │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
@@ -74,13 +92,13 @@ Use **Path N** for standard OKE apps (External Secrets, backend Object Storage).
 
 ## 2. Design principles
 
-1. **Least privilege per SPIFFE ID** — one ID per K8s ServiceAccount × namespace × env (or finer for CAN sessions).
-2. **No long-lived OCI API keys in pods** — prefer OKE WI or WIF UPST (≤ 60 minutes).
-3. **Attestation before identity** — SPIRE only issues SVIDs after configured selectors (K8s SA, node, optionally TEE).
-4. **Impersonation to Service Users** — WIF maps JWT-SVID claims → Identity Domain **Service Users** with IAM group membership (Vault reader, OSS writer, etc.).
-5. **Separate trust domains per env** — `spiffe://can.dev.oci.example`, `spiffe://can.prod.oci.example` (or path-segment env); never share prod SPIRE keys with dev.
-6. **Human IdP stays Identity Domains** — SPIRE is not an end-user login path.
-7. **CAN key release** — escrow/CCR may require SPIFFE peer auth **and** TEE attestation evidence; OCI WIF alone does not prove enclave state.
+1. **Least privilege per SPIFFE ID** — one ID per Kubernetes Service Account × namespace × environment (or finer for CAN sessions).
+2. **No long-lived OCI API keys in pods** — prefer OKE Workload Identity or federation session tokens (≤ 60 minutes).
+3. **Attestation before identity** — SPIRE only issues identity documents after configured selectors (Kubernetes Service Account, node, optionally TEE).
+4. **Impersonation to Service Users** — federation maps JWT identity claims → Identity Domain **Service Users** with IAM group membership (Vault reader, Object Storage writer, etc.).
+5. **Separate trust domains per environment** — `spiffe://can.dev.oci.example`, `spiffe://can.prod.oci.example` (or path-segment env); never share production SPIRE keys with development.
+6. **Human identity provider stays Identity Domains** — SPIRE is not an end-user login path.
+7. **CAN key release** — escrow / confidential clean room may require SPIFFE peer authentication **and** TEE attestation evidence; OCI federation alone does not prove enclave state.
 
 ---
 
@@ -89,15 +107,15 @@ Use **Path N** for standard OKE apps (External Secrets, backend Object Storage).
 Trust domain (example): `can.{env}.oci.dpi-apps.space`  
 SPIFFE ID form: `spiffe://{trust-domain}/{path}`
 
-| Workload | Example SPIFFE ID | K8s SA / selector | OCI Service User (WIF) | Typical OCI rights |
-|----------|-------------------|-------------------|------------------------|--------------------|
-| Backend API | `…/ns/contract-management/sa/backend` | `backend` | `svc-can-{env}-backend` | Vault read (app secrets), OSS read datasets/artifacts metadata |
-| Training Job | `…/ns/cms-training/sa/training-job` | `training-job-sa` | `svc-can-{env}-trainer` | OSS read ciphertext; write training outputs |
-| CAN JCS / escrow | `…/ns/cms-can/sa/can-jcs` | `can-jcs` | `svc-can-{env}-jcs` | Minimal; prefer no broad Vault master-key access |
-| CAN CCR agent | `…/ns/cms-can/sa/can-ccr` | `can-ccr` | `svc-can-{env}-ccr` | Session-scoped OSS; attestation-gated |
+| Workload | Example SPIFFE ID | Kubernetes Service Account / selector | OCI Service User (federation) | Typical OCI rights |
+|----------|-------------------|---------------------------------------|-------------------------------|--------------------|
+| Backend API | `…/ns/contract-management/sa/backend` | `backend` | `svc-can-{env}-backend` | Vault read (app secrets), Object Storage read datasets/artifacts metadata |
+| Training Job | `…/ns/cms-training/sa/training-job` | `training-job-sa` | `svc-can-{env}-trainer` | Object Storage read ciphertext; write training outputs |
+| CAN Job Coordination / escrow | `…/ns/cms-can/sa/can-jcs` | `can-jcs` | `svc-can-{env}-jcs` | Minimal; prefer no broad Vault master-key access |
+| CAN clean-room agent | `…/ns/cms-can/sa/can-ccr` | `can-ccr` | `svc-can-{env}-ccr` | Session-scoped Object Storage; attestation-gated |
 | External Secrets | `…/ns/external-secrets/sa/eso` | `external-secrets` | `svc-can-{env}-eso` | Vault secret read only (mapped paths) |
-| SCITT CCF client | `…/ns/scitt/sa/scitt-client` | `scitt-client` | `svc-can-{env}-scitt` | Narrow network + optional OSS receipt store |
-| CI deploy (off-cluster) | `…/ci/github-actions/{repo}` | JWT from OIDC | `svc-can-{env}-cicd` | OCIR push, OKE deploy (dev/test) |
+| SCITT CCF client | `…/ns/scitt/sa/scitt-client` | `scitt-client` | `svc-can-{env}-scitt` | Narrow network + optional Object Storage receipt store |
+| CI deploy (off-cluster) | `…/ci/github-actions/{repo}` | Token from OpenID Connect | `svc-can-{env}-cicd` | Registry push, OKE deploy (dev/test) |
 
 **Path conventions:**
 
@@ -107,35 +125,35 @@ spiffe://can.{env}.oci.example/ci/{provider}/{subject}
 spiffe://can.{env}.oci.example/ccr/{ccrProvider}/{sessionId}   # optional session-scoped
 ```
 
-Map SPIFFE `sub` (full ID) or a stable claim (`spiffe_id`) in JWT-SVID into WIF **impersonation rules**.
+Map SPIFFE `sub` (full ID) or a stable claim (`spiffe_id`) in the JWT identity document into federation **impersonation rules**.
 
 ---
 
 ## 4. Architecture
 
-### 4.1 In-cluster (OKE) — Path N + SPIRE mTLS
+### 4.1 In-cluster (OKE) — Path N + SPIRE mutual TLS
 
 ```
 Pod (backend)
-  ├─ SPIRE Agent sidecar / CSI → X.509-SVID
-  ├─ mTLS to trainer / CAN (SPIFFE authz)
-  └─ OCI SDK: OKE Workload Identity → RPST → Vault / Object Storage
+  ├─ SPIRE Agent sidecar / CSI → X.509 identity document
+  ├─ Mutual TLS to trainer / CAN (SPIFFE authorization)
+  └─ OCI SDK: OKE Workload Identity → short-lived session → Vault / Object Storage
 ```
 
 Use when pods run on **OKE enhanced clusters** and only need OCI APIs. SPIRE still provides portable peer identity for CAN.
 
-### 4.2 Federated OCI access — Path F (SPIRE JWT-SVID → WIF)
+### 4.2 Federated OCI access — Path F (SPIRE JWT identity document → Workload Identity Federation)
 
 ```
 Workload
-  → SPIRE Agent: JWT-SVID (aud = OCI trust / token-exchange)
+  → SPIRE Agent: JWT identity document (audience = OCI trust / token-exchange)
   → Identity Domain /oauth2/v1/token
        grant_type = token-exchange
-       subject_token = JWT-SVID
+       subject_token = JWT identity document
        requested_token_type = urn:oci:token-type:oci-upst
-       + PoP public_key
-  → UPST (≤ 60m)
-  → OCI APIs (Vault, Object Storage, …) signed with PoP private key
+       + proof-of-possession public key
+  → User Principal Session Token (≤ 60m)
+  → OCI APIs (Vault, Object Storage, …) signed with proof-of-possession private key
 ```
 
 **Trust configuration (one-time, Identity Domain admin):**
@@ -153,29 +171,29 @@ Workload
 
 References: [OCI Workload Identity Federation (A-Team)](https://www.ateam-oracle.com/workload-identity-federation), Identity Propagation Trust SCIM APIs, token-exchange grant.
 
-### 4.3 CAN escrow / CCR (attested)
+### 4.3 CAN escrow / confidential clean room (attested)
 
 ```
-TDC/TDP portal (Identity Domain user JWT)
-  → CAN JCS API
-  → CCR workload obtains SPIFFE SVID (TEE / K8s attestor)
-  → Peer mTLS: JCS ↔ CCR (SPIFFE ID allowlist for contract session)
-  → Optional: CCR exchanges JWT-SVID → UPST for Object Storage ciphertext fetch
+TDC/TDP portal (Identity Domain user token)
+  → CAN Job Coordination Service API
+  → Clean-room workload obtains SPIFFE identity document (TEE / Kubernetes attestor)
+  → Peer mutual TLS: Job Coordination ↔ clean room (SPIFFE ID allowlist for contract session)
+  → Optional: clean room exchanges JWT identity document → session token for Object Storage ciphertext fetch
   → DEK/MEK release only after attestation + contract checks
-     (SPIFFE proves workload identity; attestation proves TEE claims)
+     (SPIFFE proves which workload is calling; attestation proves Trusted Execution Environment claims)
 ```
 
 SPIFFE does **not** replace CAN attestation providers (`CAN_ATTESTATION_PROVIDER`). It **complements** them for network-level principal binding.
 
 ### 4.4 Multi-cloud CCRP (future)
 
-Same SPIFFE trust domain (or federated SPIRE) across Azure/GCP CCR; each cloud’s WIF trusts SPIRE OIDC:
+Same SPIFFE trust domain (or federated SPIRE) across Azure/GCP clean rooms; each cloud’s workload identity federation trusts SPIRE OpenID Connect:
 
 | Cloud | Federation target |
 |-------|-------------------|
-| OCI | Identity Propagation Trust → UPST |
+| OCI | Identity Propagation Trust → User Principal Session Token |
 | Azure | Entra federated credential → AAD token |
-| GCP | WIF → SA access token |
+| GCP | Workload Identity Federation → service-account access token |
 
 App policies authorize by **SPIFFE ID**; cloud policies authorize by **mapped cloud principal**.
 
@@ -216,9 +234,9 @@ spiffe_id: spiffe://can.dev.oci.example/ns/cms-training/sa/training-job
 selectors: k8s:ns:cms-training k8s:sa:training-job-sa
 ```
 
-TTL: X.509-SVID 1h (rotate aggressively); JWT-SVID ≤ 15–30m for exchange.
+TTL: X.509 identity document 1h (rotate aggressively); JWT identity document ≤ 15–30m for exchange.
 
-### 5.4 Identity Domain artifacts (WIF)
+### 5.4 Identity Domain artifacts (Workload Identity Federation)
 
 | Artifact | Purpose |
 |----------|---------|
@@ -229,7 +247,7 @@ TTL: X.509-SVID 1h (rotate aggressively); JWT-SVID ≤ 15–30m for exchange.
 
 ### 5.5 IAM policies (sketch)
 
-Bind **groups** that Service Users belong to (not SPIFFE strings — OCI IAM sees the Service User / UPST principal):
+Bind **groups** that Service Users belong to (not SPIFFE strings — OCI IAM sees the Service User / session-token principal):
 
 ```text
 Allow group cms-{env}-spiffe-backend to read secret-family in compartment cms-{env}-security
@@ -243,10 +261,10 @@ Align group names with [OCI_IAM_AND_EDGE_CONFIG.md](OCI_IAM_AND_EDGE_CONFIG.md) 
 
 | Component | Change (target) |
 |-----------|-----------------|
-| Backend | Optional mTLS client cert from SPIRE Workload API; OCI SDK credential provider: WI or WIF UPST refresh |
-| Training runner | Fetch SVID; mTLS to backend callbacks; OSS via WI/WIF |
-| CAN JCS / CCR | Allowlist peer SPIFFE IDs per contract/session; reject unsigned peers |
-| External Secrets | Prefer Path N; or ESO + WIF if off-cluster |
+| Backend | Optional mutual-TLS client cert from SPIRE Workload API; OCI SDK credential provider: OKE Workload Identity or federation session refresh |
+| Training runner | Fetch identity document; mutual TLS to backend callbacks; Object Storage via Workload Identity or federation |
+| CAN Job Coordination / clean room | Allowlist peer SPIFFE IDs per contract/session; reject unsigned peers |
+| External Secrets | Prefer Path N; or External Secrets Operator + federation if off-cluster |
 | Terraform | Modules: `spire`, `wif_trust` (IdentityPropagationTrust), Service Users |
 
 ---
@@ -316,12 +334,12 @@ kubectl apply -f deployment/oci/helm/spire/manifests/smoke-job.yaml
 
 ### Phase 2 — OCI Path N (parallel, 3–5 days)
 
-- [ ] Annotate SAs for OKE Workload Identity
-- [ ] IAM policies for `cms-{env}-oke-workloads` / SA conditions
+- [ ] Annotate Kubernetes Service Accounts for OKE Workload Identity
+- [ ] IAM policies for `cms-{env}-oke-workloads` / Service Account conditions
 - [ ] Backend + ESO read Vault **without** API keys
-- [ ] Keep SPIRE for peer mTLS even when Path N supplies OCI creds
+- [ ] Keep SPIRE for peer mutual TLS even when Path N supplies OCI credentials
 
-### Phase 3 — OCI Path F / WIF (1–2 weeks)
+### Phase 3 — OCI Path F / Workload Identity Federation (1–2 weeks)
 
 Scaffolding **in repo** (opt-in):
 
@@ -334,7 +352,7 @@ Scaffolding **in repo** (opt-in):
 - [x] Terraform: Service Users `svc-can-{env}-backend` / `trainer`
 - [x] Terraform: `IdentityPropagationTrust` with SPIRE issuer + JWKS + exact `sub` impersonation
 - [x] K8s ConfigMap/Secret `OCI_WIF_*`
-- [ ] Workload library: JWT-SVID → token-exchange → UPST + PoP key (application code)
+- [ ] Workload library: JWT identity document → token-exchange → User Principal Session Token + proof-of-possession key (application code)
 - [ ] Integrate OCI SDK custom credential provider
 - [ ] Validate Object Storage + Vault calls; confirm Audit shows Service User
 - [ ] Classic IAM policies binding Service Users to Vault/OSS compartments
@@ -349,18 +367,18 @@ enable_wif   = true
 
 ### Phase 4 — CAN / training hardening (2–4 weeks)
 
-- [ ] Trainer Job: SVID + mTLS callbacks to backend
-- [ ] CAN JCS/CCR: peer SPIFFE allowlist; optional session SPIFFE IDs
+- [ ] Trainer Job: identity document + mutual-TLS callbacks to backend
+- [ ] CAN Job Coordination / clean room: peer SPIFFE allowlist; optional session SPIFFE IDs
 - [ ] Gate DEK/MEK release on attestation **and** SPIFFE peer match
 - [ ] Turn on `CAN_REQUIRE_SPIFFE_MTLS` in staging
-- [ ] Runbooks for SVID outage / SPIRE Server restore
+- [ ] Runbooks for identity-document outage / SPIRE Server restore
 
 ### Phase 5 — Prod + multi-cloud (as needed)
 
 - [ ] Separate trust domains; break-glass procedures
 - [ ] Prod Deny overlays if SPIRE OIDC exposed beyond private network
-- [ ] Federate Azure/GCP WIF to same SPIRE OIDC for CCRP portability
-- [ ] SIEM: Audit UPST usage + SPIRE registration events
+- [ ] Federate Azure/GCP workload identity to same SPIRE OpenID Connect for clean-room portability
+- [ ] SIEM: Audit session-token usage + SPIRE registration events
 
 ---
 
@@ -397,12 +415,12 @@ Wire into pods: envFrom `spiffe-config` + `oci-wif-config` + secret `oci-wif-sec
 | Risk | Mitigation |
 |------|------------|
 | SPIRE Server compromise | HA + HSM/Vault for CA; network isolation; audit registration APIs |
-| Stolen JWT-SVID | Short TTL; audience bound to OCI trust; PoP on UPST; revoke via SPIRE |
+| Stolen JWT identity document | Short TTL; audience bound to OCI trust; proof-of-possession on session token; revoke via SPIRE |
 | Over-broad impersonation rules | Prefer exact `sub eq spiffe://…`; avoid `sub eq *` in prod |
 | JWKS public exposure | Private endpoint or pin cert in trust; WAF allowlist Identity Domain egress |
 | Confused deputy (token exchange client) | Restrict `oauthClients`; store client secret in Vault |
-| Mixing human JWT and workload SVID | Separate issuers; never accept Identity Domain user tokens as SPIRE SVIDs |
-| CAN without attestation | SPIFFE ≠ TEE proof; keep `CAN_ATTESTATION_PROVIDER` path |
+| Mixing human tokens and workload identity documents | Separate issuers; never accept Identity Domain user tokens as SPIRE identity documents |
+| CAN without attestation | SPIFFE is not TEE proof; keep `CAN_ATTESTATION_PROVIDER` path |
 
 ---
 
@@ -412,24 +430,24 @@ Wire into pods: envFrom `spiffe-config` + `oci-wif-config` + secret `oci-wif-sec
 
 - [ ] Agent healthy on all nodes; Workload API socket present in test pod
 - [ ] `spire-server entry show` lists backend + trainer IDs
-- [ ] X.509-SVID rotates before expiry
-- [ ] OIDC discovery returns issuer + JWKS; keys verify a JWT-SVID
+- [ ] X.509 identity document rotates before expiry
+- [ ] OpenID Connect discovery returns issuer + JWKS; keys verify a JWT identity document
 
-### Path N (OKE WI)
+### Path N (OKE Workload Identity)
 
 - [ ] Pod without API key lists bucket / reads Vault secret
 - [ ] Audit log principal = workload identity
 
-### Path F (WIF)
+### Path F (Workload Identity Federation)
 
-- [ ] Token exchange returns UPST
-- [ ] UPST calls succeed; fail when SPIFFE ID not in impersonation map
-- [ ] UPST expires ≤ 60m; refresh path works
-- [ ] PoP signature required (unsigned requests rejected)
+- [ ] Token exchange returns User Principal Session Token
+- [ ] Session-token calls succeed; fail when SPIFFE ID not in impersonation map
+- [ ] Session token expires ≤ 60m; refresh path works
+- [ ] Proof-of-possession signature required (unsigned requests rejected)
 
 ### CAN / app
 
-- [ ] Trainer ↔ backend mTLS succeeds only for allowlisted SPIFFE IDs
+- [ ] Trainer ↔ backend mutual TLS succeeds only for allowlisted SPIFFE IDs
 - [ ] Portal human login still Identity Domain only
 - [ ] Local Keycloak E2E still passes with `SPIFFE_ENABLED=false`
 
@@ -459,4 +477,5 @@ Wire into pods: envFrom `spiffe-config` + `oci-wif-config` + secret `oci-wif-sec
 |------|--------|
 | 2026-07-28 | Phase 3 `modules/wif` (Propagation Trust, Service Users, token-exchange app) |
 | 2026-07-28 | Phase 1 Terraform/Helm scaffolding (`modules/spire`, `helm/spire`) |
-| 2026-07-28 | Initial design + implementation doc (SPIFFE/SPIRE + OCI WIF / OKE WI) |
+| 2026-07-28 | Initial design + implementation doc (SPIFFE/SPIRE + OCI Workload Identity Federation / OKE Workload Identity) |
+| 2026-07-28 | Leadership-facing language: expand SA, SVID, WIF, UPST, mTLS, and related abbreviations |

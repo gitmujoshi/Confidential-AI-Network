@@ -86,7 +86,15 @@ Canonical definitions for terms used across CAN documentation, code, and UI. For
 | **Attestation** | Cryptographic proof that a TEE or workload runs expected software before keys/data are released. |
 | **LUKS** | Linux disk encryption used for large dataset artifacts at rest. |
 | **KMS** | **Key Management Service** — vault-backed keys referenced in contract `kmsConfigs` / `environmentSpecs`. |
-| **Keycloak** | OIDC identity provider for CAN authentication and role mapping. |
+| **Keycloak** | OIDC identity provider for CAN authentication and role mapping (local demos; cloud uses Entra / OCI IAM / Identity Platform / Cognito). |
+| **IdP** | **Identity provider** — system that authenticates people (e.g. Microsoft Entra ID, OCI IAM Identity Domains). |
+| **mTLS** | **Mutual TLS** — both sides of a connection present certificates so peers authenticate each other. |
+| **SPIFFE / SPIRE** | **SPIFFE** is a standard for workload identity; **SPIRE** is the reference implementation that issues short-lived workload credentials. |
+| **SVID** | **SPIFFE Verifiable Identity Document** — the certificate or token a workload uses to prove its SPIFFE ID. |
+| **Service Account** | Kubernetes identity for a pod or Job (not a human login). Prefer this full phrase over **SA** in leadership-facing docs. |
+| **WIF** | **Workload Identity Federation** — exchange a trusted external identity (e.g. SPIRE token) for a short-lived cloud session (no static API keys). |
+| **OKE** | **Oracle Container Engine for Kubernetes** — Oracle’s managed Kubernetes service. |
+| **UPST / RPST** | OCI short-lived session tokens (**User Principal Session Token** / resource principal variants) used instead of long-lived API keys. |
 
 ---
 
@@ -95,13 +103,14 @@ Canonical definitions for terms used across CAN documentation, code, and UI. For
 | Term | Meaning |
 |------|---------|
 | **CAN JCS** | **Job Coordination Service** — API for confidential training job lifecycle (keys released, scheduler, physical Docker runner in opt-in tests). |
-| **DEK / MEK** | Data / model encryption keys released to authorized principals during CAN JCS flows. |
+| **CCR** | **Confidential Clean Room** — isolated training environment (often TEE-backed); operators may be called CCRP / TSP. |
+| **DEK / MEK** | **Data / Model Encryption Keys** released to authorized principals during CAN JCS flows. |
 
 ---
 
 ## Cloud and deployment (pointers)
 
-Extended infra vocabulary (OKE, AKS, WAF, compartments, etc.) lives in:
+Extended infra vocabulary (AKS, WAF, compartments, etc.) lives in:
 
 - [ARCHITECTURE.md](ARCHITECTURE.md)
 - [OCI_SECURITY_ARCHITECTURE.md](production/OCI_SECURITY_ARCHITECTURE.md)
@@ -109,4 +118,4 @@ Extended infra vocabulary (OKE, AKS, WAF, compartments, etc.) lives in:
 
 ---
 
-*Last updated: 2026-06-18*
+*Last updated: 2026-07-28*

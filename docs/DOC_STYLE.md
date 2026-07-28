@@ -17,6 +17,7 @@ How we keep `docs/` navigable. Inspired by [Google developer documentation style
 7. **Name roles consistently.** Prefer **TSP** in new docs; note **CCRP** as UI/legacy synonym once (see [GLOSSARY.md](GLOSSARY.md)).
 8. **DEPA** always means India’s **iSPIRT** **Data Empowerment and Protection Architecture** ([depa.world](https://depa.world)). Never expand it as “Decentralized Entity Provider Architecture” or as the DPDP Act. Use [GLOSSARY.md](GLOSSARY.md) as the canonical definition.
 9. **State maturity.** Shipped / MVP / design — never imply production TEE if only simulated.
+10. **Spell out abbreviations for leaders.** High-level security, architecture, and blog pages (anything a CISO, GRC, or business owner may read) must use full terms on first use in each page, and prefer plain language in tables and callouts. Do not write bare **SA**, **WI**, **UPST**, **SVID**, etc. without expansion. Engineer checklists may keep short forms after the page’s terms table. See [GLOSSARY.md](GLOSSARY.md).
 
 ## Where new docs go
 

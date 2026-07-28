@@ -53,7 +53,7 @@ permalink: /
     </li>
     <li>
       <strong>Identity is multi-cloud and Zero Trust.</strong>
-      Humans use cloud IdPs (Entra, OCI IAM, Identity Platform, Cognito). Workloads use SPIFFE/SPIRE and
+      Humans use cloud identity providers (Entra, OCI IAM, Identity Platform, Cognito). Workloads use SPIFFE/SPIRE and
       cloud workload identity — not long-lived keys.
     </li>
   </ul>
@@ -77,7 +77,7 @@ permalink: /
                    ▼                   ▼
          ┌─────────────────────────────────────┐
          │  Portal + APIs  ·  Ricardian terms  │
-         │  Cloud IdP SSO  ·  role RBAC        │
+         │  Cloud identity provider SSO · roles│
          └──────────────────┬──────────────────┘
                             ▼
          ┌─────────────────────────────────────┐
@@ -95,7 +95,7 @@ permalink: /
   <div class="arch-grid">
     <div>
       <h3>Control plane</h3>
-      <p>Portal, APIs, contract state machine, catalog, and AppAdmin ops. Humans authenticate via the deployment’s cloud IdP.</p>
+      <p>Portal, APIs, contract state machine, catalog, and AppAdmin ops. Humans authenticate via the deployment’s cloud identity provider.</p>
     </div>
     <div>
       <h3>Data &amp; crypto plane</h3>
