@@ -1,11 +1,12 @@
 :root {
-  --bg: #f7f6f2;
-  --ink: #1a1a1a;
-  --muted: #5c5c5c;
-  --accent: #0b6e4f;
-  --line: #d9d5cc;
-  --card: #fffef9;
-  --max: 42rem;
+  --bg: #f4f2ec;
+  --ink: #141414;
+  --muted: #5a5a5a;
+  --accent: #0a5c45;
+  --accent-soft: #e4efe9;
+  --line: #d4cfc4;
+  --card: #fffcf6;
+  --max: 48rem;
 }
 
 * { box-sizing: border-box; }
@@ -13,7 +14,10 @@
 body {
   margin: 0;
   font-family: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, serif;
-  background: var(--bg);
+  background:
+    radial-gradient(1200px 600px at 10% -10%, #e8efe9 0%, transparent 55%),
+    radial-gradient(900px 500px at 100% 0%, #ebe6dc 0%, transparent 50%),
+    var(--bg);
   color: var(--ink);
   line-height: 1.65;
 }
@@ -26,9 +30,13 @@ body {
 
 .site-header {
   border-bottom: 1px solid var(--line);
-  background: var(--card);
+  background: color-mix(in srgb, var(--card) 88%, transparent);
+  backdrop-filter: blur(8px);
   padding: 1rem 0;
-  margin-bottom: 2.5rem;
+  margin-bottom: 2rem;
+  position: sticky;
+  top: 0;
+  z-index: 10;
 }
 
 .site-header .wrap {
@@ -40,8 +48,9 @@ body {
 }
 
 .brand {
+  font-family: "Avenir Next", "Segoe UI", system-ui, sans-serif;
   font-weight: 700;
-  font-size: 1.15rem;
+  font-size: 1.05rem;
   color: var(--ink);
   text-decoration: none;
   letter-spacing: -0.02em;
@@ -52,6 +61,7 @@ nav a {
   text-decoration: none;
   margin-left: 1rem;
   font-size: 0.95rem;
+  font-family: "Avenir Next", "Segoe UI", system-ui, sans-serif;
 }
 
 nav a:hover { color: var(--accent); }
@@ -62,8 +72,153 @@ h1, h2, h3 {
   line-height: 1.25;
 }
 
+.hero-home {
+  padding: 1rem 0 2.5rem;
+  border-bottom: 1px solid var(--line);
+  margin-bottom: 2.5rem;
+  animation: rise 0.7s ease-out both;
+}
+
+.eyebrow {
+  font-family: "Avenir Next", "Segoe UI", system-ui, sans-serif;
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin: 0 0 0.85rem;
+}
+
+.hero-home h1 {
+  font-size: clamp(1.85rem, 4.5vw, 2.65rem);
+  margin: 0 0 1rem;
+  max-width: 22ch;
+}
+
+.lede {
+  color: var(--muted);
+  margin: 0 0 1.5rem;
+  max-width: 38rem;
+  font-size: 1.08rem;
+}
+
+.cta-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 1rem;
+  margin: 0;
+}
+
+.cta {
+  display: inline-block;
+  font-family: "Avenir Next", "Segoe UI", system-ui, sans-serif;
+  font-size: 0.95rem;
+  font-weight: 600;
+  text-decoration: none;
+  padding: 0.55rem 1rem;
+  border-radius: 4px;
+  background: var(--accent);
+  color: #f7fff9;
+  transition: transform 0.15s ease, background 0.15s ease;
+}
+
+.cta:hover { background: #084a37; transform: translateY(-1px); }
+
+.cta-secondary {
+  background: transparent;
+  color: var(--accent);
+  border: 1px solid color-mix(in srgb, var(--accent) 45%, var(--line));
+}
+
+.cta-secondary:hover { background: var(--accent-soft); }
+
+.home-section {
+  margin-bottom: 2.75rem;
+  animation: rise 0.75s ease-out both;
+  animation-delay: 0.08s;
+}
+
+.home-section h2 {
+  font-size: 1.35rem;
+  margin: 0 0 0.85rem;
+}
+
+.home-section > p {
+  color: var(--muted);
+  margin: 0 0 1rem;
+  max-width: 40rem;
+}
+
+.home-section a { color: var(--accent); }
+
+.vision-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.vision-list li {
+  padding: 0.9rem 0;
+  border-top: 1px solid var(--line);
+  color: var(--muted);
+}
+
+.vision-list li:last-child { border-bottom: 1px solid var(--line); }
+
+.vision-list strong {
+  display: block;
+  color: var(--ink);
+  font-family: "Avenir Next", "Segoe UI", system-ui, sans-serif;
+  margin-bottom: 0.2rem;
+}
+
+.arch-figure { margin: 1.25rem 0; }
+
+.arch-diagram {
+  margin: 0;
+  padding: 1rem 1.1rem;
+  overflow-x: auto;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 0.72rem;
+  line-height: 1.35;
+  background: #1c1d1b;
+  color: #e8e4da;
+  border-radius: 6px;
+}
+
+.arch-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.25rem 1.5rem;
+  margin-top: 1.5rem;
+}
+
+@media (max-width: 640px) {
+  .arch-grid { grid-template-columns: 1fr; }
+}
+
+.arch-grid h3 {
+  font-size: 1rem;
+  margin: 0 0 0.35rem;
+}
+
+.arch-grid p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+
+.notes-section {
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--line);
+}
+
+.section-intro {
+  margin-bottom: 0.5rem !important;
+}
+
 .hero h1 { font-size: clamp(1.8rem, 4vw, 2.4rem); margin: 0 0 0.5rem; }
-.hero p { color: var(--muted); margin: 0 0 2rem; max-width: 36rem; }
+.hero:not(.hero-home) p { color: var(--muted); margin: 0 0 2rem; max-width: 36rem; }
 
 .post-list { list-style: none; padding: 0; margin: 0 0 3rem; }
 .post-list li {
@@ -121,3 +276,13 @@ h1, h2, h3 {
   font-size: 0.9rem;
 }
 .site-footer a { color: var(--accent); }
+
+@keyframes rise {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-home, .home-section { animation: none; }
+  .cta:hover { transform: none; }
+}
