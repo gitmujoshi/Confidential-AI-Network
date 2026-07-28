@@ -1,0 +1,19 @@
+# ClusterSPIFFEID — CAN training job
+apiVersion: spire.spiffe.io/v1alpha1
+kind: ClusterSPIFFEID
+metadata:
+  name: can-training-job
+  labels:
+    app.kubernetes.io/part-of: confidential-ai-network
+    cms-role: trainer
+spec:
+  spiffeIDTemplate: "spiffe://{{ .TrustDomain }}/ns/{{ .PodMeta.Namespace }}/sa/{{ .PodSpec.ServiceAccountName }}"
+  namespaceSelector:
+    matchLabels:
+      kubernetes.io/metadata.name: cms-training
+  podSelector:
+    matchLabels:
+      app: training-job
+  workloadSelectorTemplates:
+    - "k8s:ns:cms-training"
+    - "k8s:sa:training-job-sa"

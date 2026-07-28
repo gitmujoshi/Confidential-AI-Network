@@ -1,0 +1,46 @@
+# Optional Phase 1 smoke: fetch an X.509-SVID via the SPIRE Workload API.
+# Requires ClusterSPIFFEID can-smoke-debug and agent socket hostPath.
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: spire-smoke
+  namespace: spire
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: spire-smoke-svid
+  namespace: spire
+  labels:
+    app: spire-smoke
+spec:
+  ttlSecondsAfterFinished: 600
+  template:
+    metadata:
+      labels:
+        app: spire-smoke
+    spec:
+      serviceAccountName: spire-smoke
+      restartPolicy: Never
+      containers:
+        - name: smoke
+          image: ghcr.io/spiffe/spire-agent:1.10.4
+          command:
+            - /opt/spire/bin/spire-agent
+            - api
+            - fetch
+            - x509
+            - -socketPath
+            - /spire-agent-socket/agent.sock
+            - -write
+            - /tmp/svid
+          volumeMounts:
+            - name: spire-agent-socket
+              mountPath: /spire-agent-socket
+              readOnly: true
+      volumes:
+        - name: spire-agent-socket
+          hostPath:
+            path: /run/spire/agent-sockets
+            type: DirectoryOrCreate

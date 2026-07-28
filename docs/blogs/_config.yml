@@ -1,0 +1,38 @@
+# GitHub Pages / Jekyll — Confidential AI Network security blog
+# Source root: docs/blogs (deployed by .github/workflows/pages-blogs.yml)
+
+title: Confidential AI Network
+description: Security architecture notes — identity, Zero Trust, multi-cloud, and confidential AI.
+# CI overrides baseurl via `jekyll build --baseurl` (see pages-blogs.yml).
+# For local `jekyll serve` against a project Pages path, use:
+#   bundle exec jekyll serve --baseurl /Confidential-AI-Network
+url: "https://gitmujoshi.github.io"
+baseurl: "/Confidential-AI-Network"
+
+markdown: kramdown
+highlighter: rouge
+permalink: /:categories/:year/:month/:day/:title/
+
+plugins:
+  - jekyll-feed
+  - jekyll-seo-tag
+
+exclude:
+  - README.md
+  - Gemfile
+  - Gemfile.lock
+  - vendor
+  - .gitignore
+
+defaults:
+  - scope:
+      path: ""
+      type: posts
+    values:
+      layout: post
+  - scope:
+      path: ""
+    values:
+      layout: default
+
+# Theme-free; use custom layouts in _layouts/

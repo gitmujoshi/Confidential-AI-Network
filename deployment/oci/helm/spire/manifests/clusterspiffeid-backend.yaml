@@ -1,0 +1,19 @@
+# ClusterSPIFFEID — CAN backend (contract-management / backend SA)
+apiVersion: spire.spiffe.io/v1alpha1
+kind: ClusterSPIFFEID
+metadata:
+  name: can-backend
+  labels:
+    app.kubernetes.io/part-of: confidential-ai-network
+    cms-role: backend
+spec:
+  spiffeIDTemplate: "spiffe://{{ .TrustDomain }}/ns/{{ .PodMeta.Namespace }}/sa/{{ .PodSpec.ServiceAccountName }}"
+  namespaceSelector:
+    matchLabels:
+      kubernetes.io/metadata.name: contract-management
+  podSelector:
+    matchLabels:
+      app: backend
+  workloadSelectorTemplates:
+    - "k8s:ns:contract-management"
+    - "k8s:sa:backend"

@@ -1,0 +1,64 @@
+# ClusterSPIFFEID examples for CAN workloads (SPIRE controller-manager CRD).
+# Applied by Terraform modules/spire when create_cluster_spiffe_ids=true.
+# Requires spire-server.controllerManager.enabled=true (see values.yaml).
+#
+# SPIFFE IDs follow docs/deployment/OCI_SPIFFE_SPIRE_WIF.md §3.
+---
+apiVersion: spire.spiffe.io/v1alpha1
+kind: ClusterSPIFFEID
+metadata:
+  name: can-backend
+  labels:
+    app.kubernetes.io/part-of: confidential-ai-network
+    cms-role: backend
+spec:
+  spiffeIDTemplate: "spiffe://{{ .TrustDomain }}/ns/{{ .PodMeta.Namespace }}/sa/{{ .PodSpec.ServiceAccountName }}"
+  namespaceSelector:
+    matchLabels:
+      # Prefer explicit namespace match via matchExpressions in overlays
+      kubernetes.io/metadata.name: contract-management
+  podSelector:
+    matchLabels:
+      app: backend
+  workloadSelectorTemplates:
+    - "k8s:ns:contract-management"
+    - "k8s:sa:backend"
+---
+apiVersion: spire.spiffe.io/v1alpha1
+kind: ClusterSPIFFEID
+metadata:
+  name: can-training-job
+  labels:
+    app.kubernetes.io/part-of: confidential-ai-network
+    cms-role: trainer
+spec:
+  spiffeIDTemplate: "spiffe://{{ .TrustDomain }}/ns/{{ .PodMeta.Namespace }}/sa/{{ .PodSpec.ServiceAccountName }}"
+  namespaceSelector:
+    matchLabels:
+      kubernetes.io/metadata.name: cms-training
+  podSelector:
+    matchLabels:
+      app: training-job
+  workloadSelectorTemplates:
+    - "k8s:ns:cms-training"
+    - "k8s:sa:training-job-sa"
+---
+apiVersion: spire.spiffe.io/v1alpha1
+kind: ClusterSPIFFEID
+metadata:
+  name: can-smoke-debug
+  labels:
+    app.kubernetes.io/part-of: confidential-ai-network
+    cms-role: smoke
+spec:
+  # Debug pods for Phase 1 mTLS smoke tests
+  spiffeIDTemplate: "spiffe://{{ .TrustDomain }}/ns/{{ .PodMeta.Namespace }}/sa/{{ .PodSpec.ServiceAccountName }}"
+  namespaceSelector:
+    matchLabels:
+      kubernetes.io/metadata.name: spire
+  podSelector:
+    matchLabels:
+      app: spire-smoke
+  workloadSelectorTemplates:
+    - "k8s:ns:spire"
+    - "k8s:sa:spire-smoke"

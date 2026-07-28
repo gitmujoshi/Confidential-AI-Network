@@ -1,0 +1,19 @@
+# ClusterSPIFFEID — Phase 1 smoke debug pods
+apiVersion: spire.spiffe.io/v1alpha1
+kind: ClusterSPIFFEID
+metadata:
+  name: can-smoke-debug
+  labels:
+    app.kubernetes.io/part-of: confidential-ai-network
+    cms-role: smoke
+spec:
+  spiffeIDTemplate: "spiffe://{{ .TrustDomain }}/ns/{{ .PodMeta.Namespace }}/sa/{{ .PodSpec.ServiceAccountName }}"
+  namespaceSelector:
+    matchLabels:
+      kubernetes.io/metadata.name: spire
+  podSelector:
+    matchLabels:
+      app: spire-smoke
+  workloadSelectorTemplates:
+    - "k8s:ns:spire"
+    - "k8s:sa:spire-smoke"

@@ -1,0 +1,61 @@
+# SPIRE Helm values — Confidential AI Network (OCI / OKE)
+#
+# Chart: spiffe/spire (helm-charts-hardened)
+#   helm repo add spiffe https://spiffe.github.io/helm-charts-hardened/
+#
+# Applied by: deployment/oci/terraform/modules/spire
+# Design:     docs/deployment/OCI_SPIFFE_SPIRE_WIF.md (Phase 1)
+#
+# Override trustDomain / clusterName via Terraform helm_release set blocks.
+
+global:
+  spire:
+    # Replaced by Terraform: can.{environment}.oci.{base_domain}
+    trustDomain: can.dev.oci.example
+    clusterName: can-dev-oke
+    # Prefer Workload API CSI in later phases; Agent socket is Phase 1 default
+    recommendations:
+      namespace: spire
+
+spire-server:
+  replicaCount: 1  # bump to 2+ for staging/prod HA
+  nodeAttestor:
+    k8sPSAT:
+      enabled: true
+  caTTL: 168h
+  controllerManager:
+    enabled: true
+    identities:
+      clusterSPIFFEIDs:
+        # Entries also maintained under manifests/ for GitOps review
+        enabled: true
+  persistence:
+    size: 8Gi
+    # OKE typically: oci-bv
+    storageClass: oci-bv
+
+spire-agent:
+  # DaemonSet on all nodes
+  hostPID: true
+  socketPath: /run/spire/agent-sockets
+  # Workloads mount agent.sock at SPIFFE_SOCKET_PATH
+  serviceAccount:
+    create: true
+
+spiffe-oidc-discovery-provider:
+  enabled: true
+  # In-cluster issuer; expose via private Ingress/LB for OCI WIF JWKS fetch (Phase 3)
+  config:
+    # Terraform overrides domains / acme as needed
+    domains:
+      - oidc.spire.svc.cluster.local
+  # Keep ClusterIP for Phase 1; private LB in Phase 3
+  service:
+    type: ClusterIP
+
+spiffe-csi-driver:
+  enabled: false  # enable when workloads adopt CSI volume mounts
+
+# Optional: leave disabled until mesh chosen
+spiffe-spiffe-csi-driver:
+  enabled: false
