@@ -1693,6 +1693,7 @@ function CreateRicardianContract() {
                             <MenuItem value="aws-kms">AWS KMS</MenuItem>
                             <MenuItem value="azure-keyvault">Azure Key Vault</MenuItem>
                             <MenuItem value="gcp-kms">Google Cloud KMS</MenuItem>
+                            <MenuItem value="oci-vault">OCI Vault</MenuItem>
                             <MenuItem value="hashicorp-vault">HashiCorp Vault</MenuItem>
                             <MenuItem value="custom">Custom KMS</MenuItem>
                           </Select>
@@ -1702,12 +1703,39 @@ function CreateRicardianContract() {
                       <Grid item xs={12} md={6}>
                         <TextField
                           fullWidth
-                          label="Key ID/ARN"
+                          label="Key ID / OCID / ARN"
                           value={environmentSpecs.kms?.keyId || ''}
                           onChange={(e) => handleKmsConfigChange('keyId', e.target.value)}
-                          placeholder="KMS Key ID or ARN"
+                          placeholder={
+                            environmentSpecs.kms?.provider === 'oci-vault'
+                              ? 'ocid1.key.oc1..'
+                              : 'KMS Key ID or ARN'
+                          }
                         />
                       </Grid>
+
+                      {environmentSpecs.kms?.provider === 'oci-vault' && (
+                        <>
+                          <Grid item xs={12} md={6}>
+                            <TextField
+                              fullWidth
+                              label="OCI Vault OCID"
+                              value={environmentSpecs.kms?.vaultOcid || ''}
+                              onChange={(e) => handleKmsConfigChange('vaultOcid', e.target.value)}
+                              placeholder="ocid1.vault.oc1.."
+                            />
+                          </Grid>
+                          <Grid item xs={12} md={6}>
+                            <TextField
+                              fullWidth
+                              label="OCI region"
+                              value={environmentSpecs.kms?.region || environmentSpecs.infrastructure?.region || ''}
+                              onChange={(e) => handleKmsConfigChange('region', e.target.value)}
+                              placeholder="us-ashburn-1"
+                            />
+                          </Grid>
+                        </>
+                      )}
                       
                       <Grid item xs={12} md={6}>
                         <TextField

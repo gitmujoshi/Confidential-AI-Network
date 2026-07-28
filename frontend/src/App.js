@@ -28,6 +28,7 @@ import Login from './pages/Login';
 import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
 import LandingPage from './pages/LandingPage';
+import OciScaffoldDemo from './pages/OciScaffoldDemo';
 import FirstLoginWizard from './pages/FirstLoginWizard.simple';
 import EnterpriseDIDManagement from './pages/EnterpriseDIDManagement';
 import Profile from './pages/Profile';
@@ -445,6 +446,7 @@ function AppRoutes() {
     <Routes>
       {/* Public Routes */}
       <Route path="/" element={<LandingPage />} />
+      <Route path="/demo/oci-scaffolds" element={<OciScaffoldDemo />} />
       <Route path="/login" element={
         <PublicRoute>
           <Login />

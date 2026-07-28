@@ -171,6 +171,9 @@ const LandingPage = () => {
               <Button variant="outlined" size="large" onClick={handleLogin}>
                 Sign in
               </Button>
+              <Button variant="text" size="large" onClick={() => navigate('/demo/oci-scaffolds')}>
+                OCI scaffolds demo
+              </Button>
             </Box>
           </Grid>
           <Grid item xs={12} md={6}>

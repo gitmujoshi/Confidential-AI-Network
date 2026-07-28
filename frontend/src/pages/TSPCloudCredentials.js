@@ -132,7 +132,8 @@ const TSPCloudCredentials = () => {
     compartmentId: '',
     userId: '',
     fingerprint: '',
-    privateKey: ''
+    privateKey: '',
+    vaultId: '',
   });
 
   useEffect(() => {
@@ -202,7 +203,11 @@ const TSPCloudCredentials = () => {
       
       const credentialData = {
         ...formData,
-        tspUserId: currentUser.id
+        tspUserId: currentUser.id,
+        ...(formData.cloudProvider === 'AZURE' ? { azure: azureFields } : {}),
+        ...(formData.cloudProvider === 'AWS' ? { aws: awsFields } : {}),
+        ...(formData.cloudProvider === 'GCP' ? { gcp: gcpFields } : {}),
+        ...(formData.cloudProvider === 'OCI' ? { oci: ociFields } : {}),
       };
 
       if (dialogMode === 'add') {
@@ -472,7 +477,20 @@ const TSPCloudCredentials = () => {
                 <InputLabel>Cloud Provider</InputLabel>
                 <Select
                   value={formData.cloudProvider}
-                  onChange={(e) => setFormData({ ...formData, cloudProvider: e.target.value })}
+                  onChange={(e) => {
+                    const cloudProvider = e.target.value;
+                    setFormData({
+                      ...formData,
+                      cloudProvider,
+                      ...(cloudProvider === 'OCI'
+                        ? {
+                            secretManager: 'OCI_VAULT',
+                            defaultLocation: 'us-ashburn-1',
+                            defaultVMSize: 'VM.Standard.E4.Flex',
+                          }
+                        : {}),
+                    });
+                  }}
                 >
                   <MenuItem value="AZURE">Microsoft Azure</MenuItem>
                   <MenuItem value="AWS">Amazon Web Services</MenuItem>
@@ -542,9 +560,73 @@ const TSPCloudCredentials = () => {
                     onChange={(e) => setFormData({ ...formData, enableKeyVault: e.target.checked })}
                   />
                 }
-                label="Enable Key Vault"
+                label="Enable Key Vault / OCI Vault"
               />
             </Grid>
+
+            {formData.cloudProvider === 'OCI' && (
+              <>
+                <Grid item xs={12}>
+                  <Alert severity="info">
+                    OCI confidential compute path: store secrets in OCI Vault and run training Jobs on OKE
+                    (<code style={{ marginLeft: 4 }}>cms-training</code>).
+                  </Alert>
+                </Grid>
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    fullWidth
+                    label="Compartment OCID"
+                    value={ociFields.compartmentId}
+                    onChange={(e) => setOciFields({ ...ociFields, compartmentId: e.target.value })}
+                    placeholder="ocid1.compartment.oc1.."
+                  />
+                </Grid>
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    fullWidth
+                    label="User OCID"
+                    value={ociFields.userId}
+                    onChange={(e) => setOciFields({ ...ociFields, userId: e.target.value })}
+                    placeholder="ocid1.user.oc1.."
+                  />
+                </Grid>
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    fullWidth
+                    label="API key fingerprint"
+                    value={ociFields.fingerprint}
+                    onChange={(e) => setOciFields({ ...ociFields, fingerprint: e.target.value })}
+                  />
+                </Grid>
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    fullWidth
+                    label="Vault OCID (optional)"
+                    value={ociFields.vaultId || ''}
+                    onChange={(e) => setOciFields({ ...ociFields, vaultId: e.target.value })}
+                    placeholder="ocid1.vault.oc1.."
+                  />
+                </Grid>
+                <Grid item xs={12}>
+                  <TextField
+                    fullWidth
+                    multiline
+                    minRows={3}
+                    label="API private key (PEM)"
+                    type={showPassword ? 'text' : 'password'}
+                    value={ociFields.privateKey}
+                    onChange={(e) => setOciFields({ ...ociFields, privateKey: e.target.value })}
+                    InputProps={{
+                      endAdornment: (
+                        <IconButton onClick={() => setShowPassword(!showPassword)} edge="end">
+                          {showPassword ? <VisibilityOff /> : <Visibility />}
+                        </IconButton>
+                      ),
+                    }}
+                  />
+                </Grid>
+              </>
+            )}
           </Grid>
         </DialogContent>
         <DialogActions>

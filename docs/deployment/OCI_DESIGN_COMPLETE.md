@@ -51,6 +51,9 @@ Baseline (always in root stack): networking, OKE, database, load balancer, OCIR,
 | OKE Job training | `backend/services/okeJobTrainingRunner.js` | `TRAINING_EXECUTION_MODE=oci` or `oci-oke-job`; simulates when `TRAINING_SIMULATION_MODE=true`; otherwise fails with pointer to Job template |
 | WIF credentials | `backend/services/ociWifCredentialProvider.js` | Documents token-exchange; simulates in test / `OCI_WIF_SIMULATION_MODE` |
 | Identity Domains OIDC | `backend/services/ociIdentityService.js` | Implemented for JWT/JWKS |
+| **Mock UI (all scaffolds on)** | `frontend/src/pages/OciScaffoldDemo.js` → **`/demo/oci-scaffolds`** | Onboarding keys+Vault, confidential TSP env, contract KMS, provenance JSON |
+
+Also wired in product UI: OCI fields on `/tsp/cloud-credentials`, **OCI Vault** in contract create KMS, provenance view/download on contract detail.
 
 ---
 

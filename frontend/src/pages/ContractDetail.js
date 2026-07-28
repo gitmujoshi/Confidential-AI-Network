@@ -328,6 +328,9 @@ function ContractDetail() {
   });
   const [editLoading, setEditLoading] = useState(false);
   const [editError, setEditError] = useState('');
+  const [provenanceLoading, setProvenanceLoading] = useState(false);
+  const [provenanceDialogOpen, setProvenanceDialogOpen] = useState(false);
+  const [provenanceJson, setProvenanceJson] = useState(null);
 
   // Fetch contract details
   const { data: contract, isLoading, error } = useQuery(
@@ -723,6 +726,61 @@ function ContractDetail() {
       console.error('Error saving contract:', error);
     } finally {
       setEditLoading(false);
+    }
+  };
+
+  const handleViewProvenanceReport = async () => {
+    if (!contract?.contractId && !contractId) return;
+    const id = contract.contractId || contractId;
+    try {
+      setProvenanceLoading(true);
+      const report = await apiService.getScittProvenanceReport(id);
+      setProvenanceJson(report);
+      setProvenanceDialogOpen(true);
+    } catch (e) {
+      // Fall back to OCI scaffold sample so demos still work without SCITT/job history
+      try {
+        const { OCI_PROVENANCE_MOCK } = await import('../data/ociScaffoldMock');
+        setProvenanceJson({
+          ...OCI_PROVENANCE_MOCK,
+          contractId: id,
+          _source: 'oci-scaffold-mock',
+          _note: e.response?.data?.error || e.message || 'Live provenance unavailable; showing OCI scaffold sample',
+        });
+        setProvenanceDialogOpen(true);
+        toast('Showing OCI scaffold provenance sample (live report unavailable)', { icon: 'ℹ️' });
+      } catch (_) {
+        toast.error(e.response?.data?.error || e.message || 'Failed to load provenance');
+      }
+    } finally {
+      setProvenanceLoading(false);
+    }
+  };
+
+  const handleDownloadProvenanceReport = async () => {
+    if (!contract?.contractId && !contractId) return;
+    const id = contract.contractId || contractId;
+    try {
+      setProvenanceLoading(true);
+      let report;
+      try {
+        report = await apiService.getScittProvenanceReport(id);
+      } catch (_) {
+        const { OCI_PROVENANCE_MOCK } = await import('../data/ociScaffoldMock');
+        report = { ...OCI_PROVENANCE_MOCK, contractId: id, _source: 'oci-scaffold-mock' };
+      }
+      const blob = new Blob([JSON.stringify(report, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${id}-provenance-audit.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+      toast.success('Downloaded provenance report');
+    } catch (e) {
+      toast.error(e.message || 'Download failed');
+    } finally {
+      setProvenanceLoading(false);
     }
   };
 
@@ -1433,6 +1491,24 @@ function ContractDetail() {
                     Download Legal Document
                   </Button>
                 )}
+                <Button
+                  variant="outlined"
+                  color="secondary"
+                  onClick={handleViewProvenanceReport}
+                  disabled={provenanceLoading}
+                  startIcon={provenanceLoading ? <CircularProgress size={16} /> : <Security />}
+                >
+                  View provenance
+                </Button>
+                <Button
+                  variant="outlined"
+                  color="secondary"
+                  onClick={handleDownloadProvenanceReport}
+                  disabled={provenanceLoading}
+                  startIcon={<Download />}
+                >
+                  Download provenance
+                </Button>
               </Box>
               
               {signError && (
@@ -2611,6 +2687,58 @@ function ContractDetail() {
           </Grid>
         )}
       </Grid>
+
+      <Dialog
+        open={provenanceDialogOpen}
+        onClose={() => setProvenanceDialogOpen(false)}
+        maxWidth="md"
+        fullWidth
+      >
+        <DialogTitle>Provenance / audit report</DialogTitle>
+        <DialogContent>
+          {provenanceJson?._note && (
+            <Alert severity="info" sx={{ mb: 2 }}>
+              {provenanceJson._note}
+            </Alert>
+          )}
+          <Box
+            component="pre"
+            sx={{
+              m: 0,
+              p: 2,
+              bgcolor: '#1c1d1b',
+              color: '#e8e4da',
+              borderRadius: 1,
+              overflow: 'auto',
+              fontSize: '0.78rem',
+              maxHeight: 480,
+            }}
+          >
+            {JSON.stringify(provenanceJson, null, 2)}
+          </Box>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setProvenanceDialogOpen(false)}>Close</Button>
+          <Button
+            variant="contained"
+            onClick={() => {
+              if (!provenanceJson) return;
+              const id = contract?.contractId || contractId;
+              const blob = new Blob([JSON.stringify(provenanceJson, null, 2)], {
+                type: 'application/json',
+              });
+              const url = URL.createObjectURL(blob);
+              const a = document.createElement('a');
+              a.href = url;
+              a.download = `${id}-provenance-audit.json`;
+              a.click();
+              URL.revokeObjectURL(url);
+            }}
+          >
+            Download JSON
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       {/* TSP Selection Dialog */}
       <Dialog open={tspDialogOpen} onClose={() => setTspDialogOpen(false)}>
