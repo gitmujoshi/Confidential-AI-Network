@@ -1,7 +1,7 @@
 ---
 layout: default
 title: Product tour
-description: End-to-end UI tour — party registration, catalog, contract signing, training, logs, provenance, deploy, inference, plus OCI mock scaffolds.
+description: End-to-end UI tour — from registration to a live prediction on Local Docker and on OCI (Vault KMS + confidential compute).
 permalink: /product-tour/
 ---
 
@@ -9,23 +9,28 @@ permalink: /product-tour/
   <p class="eyebrow">Product tour · UI from end-to-end tests</p>
   <h1>From registration to a live prediction</h1>
   <p class="lede">
-    Screenshots below are captured from a real local run of the Confidential AI Network stack
-    (Playwright lifecycle guide), plus the public <strong>OCI scaffolds mock UI</strong>
-    (no live tenancy required). They show the full multi-party path: onboard parties, publish data,
-    agree and sign a contract, train, inspect logs and provenance, then deploy and test the model —
-    and how the same flows look when OCI Vault / confidential compute scaffolds are enabled.
+    The same multi-party path on two execution environments:
+    <strong>Local Docker</strong> (Playwright lifecycle guide against a live stack) and
+    <strong>OCI</strong> (Identity Domains, OCI Vault KMS, confidential compute on OKE).
+    Onboard parties, publish data, agree and sign a contract, train, inspect logs and provenance,
+    then deploy and test the model.
   </p>
 </section>
 
 <section class="home-section">
   <h2>What you will see</h2>
+  <p>
+    <a href="#local">Local path</a>
+    ·
+    <a href="#oci">OCI path</a>
+  </p>
   <ol class="tour-toc">
-    <li><a href="#onboard">Party registration</a> — Training Data Consumer, Training Data Provider, Tech Service Provider</li>
-    <li><a href="#catalog">Catalog</a> — dataset publish and model selection for training</li>
-    <li><a href="#contract">Contract</a> — create, notify, and sign by all parties</li>
-    <li><a href="#train">Training</a> — start job, completion, run logs, provenance report</li>
-    <li><a href="#infer">Deploy &amp; test</a> — register artifact, deploy, run a prediction</li>
-    <li><a href="#oci-mock">OCI mock UIs</a> — TSP OCI Vault/KMS + confidential compute → contract → training logs → provenance</li>
+    <li>Party registration — Training Data Consumer, Training Data Provider, Tech Service Provider</li>
+    <li>Catalog — dataset publish and model selection for training</li>
+    <li>Contract — create, notify, and sign by all parties</li>
+    <li>Training — start job, completion, run logs</li>
+    <li>Provenance — audit report</li>
+    <li>Deploy &amp; test — register artifact, deploy, run a prediction</li>
   </ol>
   <p>
     Canonical long-form text:
@@ -34,6 +39,14 @@ permalink: /product-tour/
     <a href="https://github.com/gitmujoshi/Confidential-AI-Network/blob/main/docs/guides/PARTICIPANT_ONBOARDING_AND_E2E_LIFECYCLE.md">Participant onboarding &amp; E2E lifecycle</a>
     ·
     <a href="https://github.com/gitmujoshi/Confidential-AI-Network/blob/main/docs/deployment/OCI_DESIGN_COMPLETE.md">OCI design complete</a>.
+  </p>
+</section>
+
+<section class="home-section" id="local">
+  <h2>Local path</h2>
+  <p>
+    Captured from a real local run (<code>TRAINING_EXECUTION_MODE=local-docker</code>).
+    Screenshots from Playwright lifecycle guide.
   </p>
 </section>
 
@@ -172,50 +185,88 @@ permalink: /product-tour/
   </figure>
 </section>
 
-<section class="home-section tour-section" id="oci-mock">
-  <h2>6. OCI mock UIs (scaffolds all enabled)</h2>
+<section class="home-section" id="oci">
+  <h2>OCI path</h2>
   <p>
-    Public walkthrough at <code>/demo/oci-scaffolds</code> — one shared context for TSP OCI Vault KMS,
-    confidential compute, contract env/KMS bindings, training logs, and provenance.
-    No live OCI tenancy required; mirrors the design map in
-    <a href="https://github.com/gitmujoshi/Confidential-AI-Network/blob/main/docs/deployment/OCI_DESIGN_COMPLETE.md">OCI_DESIGN_COMPLETE.md</a>.
+    Same end-to-end stages with TSP on <strong>OCI</strong>: Identity Domains SSO, OCI Vault KMS,
+    confidential-vm compute on OKE, Object Storage ciphertext, and SPIFFE-gated key release.
+    Live UI walkthrough: <code>/demo/oci-scaffolds</code>
+    (design complete — no live tenancy required for the demo screens).
+  </p>
+</section>
+
+<section class="home-section tour-section" id="oci-onboard">
+  <h2>1. Party registration (OCI)</h2>
+  <p>
+    TDC, TDP, and TSP register with OCI IAM Identity Domains. Signing keys and secrets use OCI Vault;
+    the TSP offers confidential compute on OKE.
   </p>
   <figure class="shot">
-    <img src="{{ '/assets/oci/01-scaffolds.png' | relative_url }}" alt="OCI mock UI — Terraform enable flags as scaffolds on" loading="lazy" />
-    <figcaption>Scaffolds — opt-in Terraform / config flags shown as enabled</figcaption>
+    <img src="{{ '/assets/oci/01-registration.png' | relative_url }}" alt="OCI path — party registration for TDC, TDP, and TSP" loading="lazy" />
+    <figcaption>Enterprise registration — three parties with DEPA IDs; TSP offers OCI confidential compute</figcaption>
   </figure>
+</section>
+
+<section class="home-section tour-section" id="oci-catalog">
+  <h2>2. Dataset &amp; model catalog (OCI)</h2>
+  <p>TDP publishes a dataset to Object Storage; TDC selects dataset and catalog model for the contract.</p>
   <figure class="shot">
-    <img src="{{ '/assets/oci/02-onboarding-keys-vault.png' | relative_url }}" alt="OCI mock UI — party onboarding with Vault-backed signing key" loading="lazy" />
-    <figcaption>Onboarding — party DEPA ID and signing key backed by OCI Vault (same Vault OCID as later tabs)</figcaption>
+    <img src="{{ '/assets/oci/02-catalog.png' | relative_url }}" alt="OCI path — dataset and model catalog" loading="lazy" />
+    <figcaption>Catalog — Object Storage dataset + DistilBERT model selection</figcaption>
   </figure>
+</section>
+
+<section class="home-section tour-section" id="oci-contract">
+  <h2>3. Contract creation &amp; signing (OCI)</h2>
+  <p>
+    Contract binds <code>tspCloudProvider=OCI</code>, confidential-vm compute, Object Storage buckets,
+    and OCI Vault KMS. All parties sign before training.
+  </p>
   <figure class="shot">
-    <img src="{{ '/assets/oci/03-tsp-confidential-env.png' | relative_url }}" alt="OCI mock UI — TSP confidential compute environment" loading="lazy" />
-    <figcaption>TSP confidential env — OKE clean-room, OCI_VAULT secrets, SPIFFE job identity</figcaption>
+    <img src="{{ '/assets/oci/03-contract.png' | relative_url }}" alt="OCI path — signed contract with Vault KMS and confidential compute" loading="lazy" />
+    <figcaption>Signed contract — environmentSpecs and kmsConfigs with Vault OCID and SPIFFE</figcaption>
   </figure>
+</section>
+
+<section class="home-section tour-section" id="oci-train">
+  <h2>4. Training &amp; run logs (OCI)</h2>
+  <p>
+    TDC starts an <code>oci-oke-job</code>. Runner logs echo the same Vault OCID, SPIFFE ID, and buckets
+    as the contract.
+  </p>
   <figure class="shot">
-    <img src="{{ '/assets/oci/04-contract.png' | relative_url }}" alt="OCI mock UI — contract environmentSpecs and kmsConfigs" loading="lazy" />
-    <figcaption>Contract — TSP OCI KMS + confidential-vm compute + Object Storage bound in</figcaption>
+    <img src="{{ '/assets/oci/04-training.png' | relative_url }}" alt="OCI path — training job and runner logs" loading="lazy" />
+    <figcaption>Training completed — environment summary and OKE runner log</figcaption>
   </figure>
+</section>
+
+<section class="home-section tour-section" id="oci-provenance">
+  <h2>5. Provenance (OCI)</h2>
+  <p>
+    Audit bundle includes <code>contract.environmentSpecs</code>, <code>kmsConfigs</code>, and
+    <code>trainingJobs.environmentSummary</code> with OCI Vault and confidential compute detail.
+  </p>
   <figure class="shot">
-    <img src="{{ '/assets/oci/05-training-logs.png' | relative_url }}" alt="OCI mock UI — training logs echoing Vault and SPIFFE" loading="lazy" />
-    <figcaption>Training logs — same Vault OCID, SPIFFE ID, and buckets as the contract</figcaption>
+    <img src="{{ '/assets/oci/05-provenance.png' | relative_url }}" alt="OCI path — provenance audit report" loading="lazy" />
+    <figcaption>Provenance audit report</figcaption>
   </figure>
+</section>
+
+<section class="home-section tour-section" id="oci-infer">
+  <h2>6. Deploy &amp; test the model (OCI)</h2>
+  <p>Register the artifact, deploy inference, and run a prediction — same end state as Local.</p>
   <figure class="shot">
-    <img src="{{ '/assets/oci/06-provenance.png' | relative_url }}" alt="OCI mock UI — provenance audit report" loading="lazy" />
-    <figcaption>Provenance — audit bundle with contract.environmentSpecs / kmsConfigs and trainingJobs.environmentSummary</figcaption>
+    <img src="{{ '/assets/oci/06-deploy-predict.png' | relative_url }}" alt="OCI path — deployed model and prediction result" loading="lazy" />
+    <figcaption>Deployed inference — prediction result (Business / AG News demo)</figcaption>
   </figure>
 </section>
 
 <section class="home-section">
   <h2>How these screenshots are produced</h2>
-  <p>
-    Lifecycle path (full stack — backend, frontend, Keycloak, trainer):
-  </p>
+  <p>Local path (full stack — backend, frontend, Keycloak, trainer):</p>
   <pre class="arch-diagram" style="white-space: pre-wrap;">cd frontend
 BACKEND_URL=http://127.0.0.1:5001 npm run test:e2e:lifecycle-guide</pre>
-  <p>
-    OCI mock UI (frontend only):
-  </p>
+  <p>OCI path (frontend demo at <code>/demo/oci-scaffolds</code>):</p>
   <pre class="arch-diagram" style="white-space: pre-wrap;">cd frontend
 npm run test:e2e:oci-demo</pre>
   <p>

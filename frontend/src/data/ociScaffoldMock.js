@@ -396,6 +396,69 @@ export const OCI_PROVENANCE_MOCK = {
   },
 };
 
+export const OCI_E2E_PARTIES = [
+  {
+    role: 'TDC',
+    label: 'Training Data Consumer',
+    organization: 'Northstar Health AI',
+    depaId: OCI_SHARED.parties.tdc,
+    identityProvider: 'OCI IAM Identity Domains',
+    dashboard: 'Browse catalogs, create contracts, start OCI OKE training, deploy inference',
+  },
+  {
+    role: 'TDP',
+    label: 'Training Data Provider',
+    organization: 'Acme Health Data Cooperative',
+    depaId: OCI_SHARED.parties.tdp,
+    identityProvider: 'OCI IAM Identity Domains',
+    signingKeyBackend: 'oci-vault',
+    vaultOcid: OCI_SHARED.vault.vaultOcid,
+    dashboard: 'Publish datasets, sign contracts, review provenance',
+  },
+  {
+    role: 'TSP',
+    label: 'Tech Service Provider',
+    organization: OCI_TSP_ENV_MOCK.tsp.displayName,
+    depaId: OCI_SHARED.parties.tsp,
+    identityProvider: 'OCI IAM Identity Domains',
+    cloudProvider: 'OCI',
+    secretManager: 'OCI_VAULT',
+    compute: OCI_SHARED.confidentialCompute.computeType,
+    dashboard: 'Offer confidential OKE clean rooms, co-sign contracts, host training Jobs',
+  },
+];
+
+export const OCI_CATALOG_MOCK = {
+  dataset: {
+    name: 'Regulated health notes (NLP)',
+    modality: 'text',
+    reference: 'Hugging Face ag_news (demo reference)',
+    storage: `oci://${OCI_SHARED.objectStorage.namespace}/${OCI_SHARED.objectStorage.datasets}`,
+    ownerDepaId: OCI_SHARED.parties.tdp,
+  },
+  model: {
+    name: 'DistilBERT quality (NLP)',
+    framework: 'PyTorch',
+    architecture: 'distilbert-base-uncased',
+    privacy: 'Differential privacy optional',
+  },
+};
+
+export const OCI_INFERENCE_MOCK = {
+  modelId: 'MODEL-oci-scaffold-demo-001',
+  status: 'DEPLOYED',
+  endpoint: 'https://inference.can.dev.oci.example/v1/predict',
+  runtime: 'OKE inference Service (design)',
+  request: {
+    text: 'Wall Street gains on strong earnings from major banks.',
+  },
+  prediction: {
+    label: 'Business',
+    confidence: 0.91,
+    classes: ['World', 'Sports', 'Business', 'Sci/Tech'],
+  },
+};
+
 export default {
   OCI_SCAFFOLD_FLAGS,
   OCI_SHARED,
@@ -405,6 +468,9 @@ export default {
   OCI_TRAINING_JOB_MOCK,
   OCI_TRAINING_LOGS_MOCK,
   OCI_PROVENANCE_MOCK,
+  OCI_E2E_PARTIES,
+  OCI_CATALOG_MOCK,
+  OCI_INFERENCE_MOCK,
   buildOciContractEnvironmentSpecs,
   buildOciKmsConfigs,
   applyOciTspEnvironmentDefaults,

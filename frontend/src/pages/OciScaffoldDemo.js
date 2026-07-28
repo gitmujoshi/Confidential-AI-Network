@@ -1,6 +1,5 @@
-import React, { useMemo, useState } from 'react';
+import React, { useState } from 'react';
 import {
-  Alert,
   Box,
   Button,
   Chip,
@@ -19,24 +18,25 @@ import {
   Typography,
 } from '@mui/material';
 import {
-  Security as SecurityIcon,
-  VpnKey as VpnKeyIcon,
-  CloudQueue as CloudIcon,
+  PersonAdd as RegisterIcon,
+  Inventory2 as CatalogIcon,
   Description as ContractIcon,
-  FactCheck as ProvenanceIcon,
   Terminal as TerminalIcon,
+  FactCheck as ProvenanceIcon,
+  RocketLaunch as DeployIcon,
   Download as DownloadIcon,
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import {
-  OCI_SCAFFOLD_FLAGS,
   OCI_SHARED,
-  OCI_ONBOARDING_MOCK,
+  OCI_E2E_PARTIES,
   OCI_TSP_ENV_MOCK,
+  OCI_CATALOG_MOCK,
   OCI_CONTRACT_MOCK,
   OCI_TRAINING_JOB_MOCK,
   OCI_TRAINING_LOGS_MOCK,
   OCI_PROVENANCE_MOCK,
+  OCI_INFERENCE_MOCK,
 } from '../data/ociScaffoldMock';
 
 function TabPanel({ value, index, children }) {
@@ -44,7 +44,7 @@ function TabPanel({ value, index, children }) {
   return <Box sx={{ pt: 3 }}>{children}</Box>;
 }
 
-function JsonBlock({ value }) {
+function JsonBlock({ value, maxHeight = 360 }) {
   return (
     <Box
       component="pre"
@@ -57,7 +57,7 @@ function JsonBlock({ value }) {
         overflow: 'auto',
         fontSize: '0.78rem',
         lineHeight: 1.45,
-        maxHeight: 420,
+        maxHeight,
       }}
     >
       {JSON.stringify(value, null, 2)}
@@ -78,7 +78,7 @@ function LogBlock({ text }) {
         overflow: 'auto',
         fontSize: '0.78rem',
         lineHeight: 1.5,
-        maxHeight: 480,
+        maxHeight: 420,
         fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace',
       }}
     >
@@ -107,77 +107,45 @@ function downloadText(filename, text) {
   URL.revokeObjectURL(url);
 }
 
-/** Same TSP / Vault / confidential-compute chips on every product-flow tab. */
-function SharedOciContextBanner() {
-  const rows = [
-    ['TSP', OCI_TSP_ENV_MOCK.tsp.displayName],
-    ['Cloud / secret manager', `${OCI_SHARED.cloudProvider} · ${OCI_SHARED.secretManager}`],
-    ['Compute', `${OCI_SHARED.confidentialCompute.computeType} · ${OCI_SHARED.confidentialCompute.platform}`],
-    ['Vault OCID', OCI_SHARED.vault.vaultOcid],
-    ['Master key', OCI_SHARED.vault.masterKeyOcid],
-    ['SPIFFE', OCI_SHARED.confidentialCompute.spiffeId],
-    ['Object Storage outputs', OCI_SHARED.objectStorage.outputs],
-  ];
+function SectionTitle({ children, subtitle }) {
   return (
-    <Paper variant="outlined" sx={{ p: 2, mb: 2, bgcolor: '#fffcf6' }}>
-      <Typography variant="subtitle2" gutterBottom sx={{ color: '#0a5c45', fontWeight: 700 }}>
-        Shared OCI product-flow context (same refs on TSP → contract → logs → provenance)
+    <Box sx={{ mb: 2 }}>
+      <Typography variant="h6" gutterBottom>
+        {children}
       </Typography>
-      <Table size="small">
-        <TableBody>
-          {rows.map(([k, v]) => (
-            <TableRow key={k}>
-              <TableCell sx={{ fontWeight: 600, width: '28%', border: 0, py: 0.4 }}>{k}</TableCell>
-              <TableCell
-                sx={{
-                  fontFamily: 'ui-monospace, monospace',
-                  fontSize: '0.78rem',
-                  border: 0,
-                  py: 0.4,
-                  wordBreak: 'break-all',
-                }}
-              >
-                {v}
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-    </Paper>
+      {subtitle ? (
+        <Typography variant="body2" color="text.secondary">
+          {subtitle}
+        </Typography>
+      ) : null}
+    </Box>
   );
 }
 
 /**
- * Public mock UI: OCI design scaffolds “all enabled” walkthrough —
- * onboarding (keys + Vault), confidential TSP env, contract, training logs, provenance.
+ * Public OCI product-flow demo: registration → catalog → contract → train →
+ * provenance → deploy & predict (same path as the Local lifecycle tour).
  */
 const OciScaffoldDemo = () => {
   const navigate = useNavigate();
   const [tab, setTab] = useState(0);
-  const flags = useMemo(() => Object.entries(OCI_SCAFFOLD_FLAGS), []);
 
   return (
     <Box sx={{ minHeight: '100vh', bgcolor: '#f4f2ec', pb: 6 }}>
-      <Box
-        sx={{
-          borderBottom: '1px solid #d4cfc4',
-          bgcolor: '#fffcf6',
-          py: 2,
-        }}
-      >
+      <Box sx={{ borderBottom: '1px solid #d4cfc4', bgcolor: '#fffcf6', py: 2 }}>
         <Container maxWidth="lg">
           <Stack direction={{ xs: 'column', sm: 'row' }} justifyContent="space-between" spacing={2}>
             <Box>
               <Typography variant="overline" sx={{ color: '#0a5c45', fontWeight: 700, letterSpacing: 1 }}>
-                Confidential AI Network · OCI mock
+                Confidential AI Network · OCI
               </Typography>
               <Typography variant="h4" sx={{ fontWeight: 700, letterSpacing: '-0.02em' }}>
-                OCI scaffolds — all enabled
+                From registration to a live prediction
               </Typography>
               <Typography variant="body1" color="text.secondary" sx={{ maxWidth: 720 }}>
-                End-to-end mock product flow: TSP with OCI Vault KMS and confidential compute, bound into the
-                Ricardian contract, echoed in training logs, and carried into the provenance audit report.
-                No live tenancy required.
+                Full multi-party path on OCI: onboard parties (Identity Domains + Vault), publish data,
+                sign a Ricardian contract with confidential compute and OCI Vault KMS, train on OKE,
+                review provenance, then deploy and run a prediction.
               </Typography>
             </Box>
             <Stack direction="row" spacing={1} alignItems="flex-start">
@@ -193,11 +161,6 @@ const OciScaffoldDemo = () => {
       </Box>
 
       <Container maxWidth="lg" sx={{ mt: 3 }}>
-        <Alert severity="info" sx={{ mb: 2 }}>
-          Mock data only — one shared context (<code>OCI_SHARED</code>) drives every tab. Design map:{' '}
-          <code>docs/deployment/OCI_DESIGN_COMPLETE.md</code>.
-        </Alert>
-
         <Paper sx={{ px: 2, pt: 1 }}>
           <Tabs
             value={tab}
@@ -207,142 +170,129 @@ const OciScaffoldDemo = () => {
             textColor="primary"
             indicatorColor="primary"
           >
-            <Tab icon={<SecurityIcon />} iconPosition="start" label="Scaffolds" />
-            <Tab icon={<VpnKeyIcon />} iconPosition="start" label="Onboarding · Keys & Vault" />
-            <Tab icon={<CloudIcon />} iconPosition="start" label="TSP confidential env" />
-            <Tab icon={<ContractIcon />} iconPosition="start" label="Contract" />
-            <Tab icon={<TerminalIcon />} iconPosition="start" label="Training logs" />
-            <Tab icon={<ProvenanceIcon />} iconPosition="start" label="Provenance" />
+            <Tab icon={<RegisterIcon />} iconPosition="start" label="1. Registration" />
+            <Tab icon={<CatalogIcon />} iconPosition="start" label="2. Catalog" />
+            <Tab icon={<ContractIcon />} iconPosition="start" label="3. Contract" />
+            <Tab icon={<TerminalIcon />} iconPosition="start" label="4. Training" />
+            <Tab icon={<ProvenanceIcon />} iconPosition="start" label="5. Provenance" />
+            <Tab icon={<DeployIcon />} iconPosition="start" label="6. Deploy & predict" />
           </Tabs>
         </Paper>
 
         <TabPanel value={tab} index={0}>
-          <Typography variant="h6" gutterBottom>
-            Opt-in scaffolds (shown as enabled)
-          </Typography>
-          <Grid container spacing={1} sx={{ mb: 2 }}>
-            {flags.map(([key, val]) => (
-              <Grid item key={key}>
-                <Chip
-                  label={`${key}=${String(val)}`}
-                  color={val === true || (typeof val === 'string' && val !== 'false') ? 'success' : 'default'}
-                  variant="outlined"
-                  size="small"
-                />
+          <SectionTitle subtitle="Each party registers as an enterprise org on OCI IAM Identity Domains, receives a DEPA ID, and (for signing parties) a Vault-backed key.">
+            Party registration
+          </SectionTitle>
+          <Grid container spacing={2}>
+            {OCI_E2E_PARTIES.map((p) => (
+              <Grid item xs={12} md={4} key={p.role}>
+                <Paper variant="outlined" sx={{ p: 2, height: '100%' }}>
+                  <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 1 }}>
+                    <Chip label={p.role} color="primary" size="small" />
+                    <Typography variant="subtitle1" fontWeight={700}>
+                      {p.label}
+                    </Typography>
+                  </Stack>
+                  <Typography variant="body2" gutterBottom>
+                    {p.organization}
+                  </Typography>
+                  <Table size="small">
+                    <TableBody>
+                      <TableRow>
+                        <TableCell sx={{ fontWeight: 600, width: '40%', border: 0, px: 0 }}>DEPA ID</TableCell>
+                        <TableCell
+                          sx={{
+                            fontFamily: 'monospace',
+                            fontSize: '0.72rem',
+                            border: 0,
+                            px: 0,
+                            wordBreak: 'break-all',
+                          }}
+                        >
+                          {p.depaId}
+                        </TableCell>
+                      </TableRow>
+                      <TableRow>
+                        <TableCell sx={{ fontWeight: 600, border: 0, px: 0 }}>IdP</TableCell>
+                        <TableCell sx={{ fontSize: '0.8rem', border: 0, px: 0 }}>{p.identityProvider}</TableCell>
+                      </TableRow>
+                      {p.cloudProvider && (
+                        <TableRow>
+                          <TableCell sx={{ fontWeight: 600, border: 0, px: 0 }}>Cloud</TableCell>
+                          <TableCell sx={{ border: 0, px: 0 }}>
+                            {p.cloudProvider} · {p.secretManager}
+                          </TableCell>
+                        </TableRow>
+                      )}
+                      {p.vaultOcid && (
+                        <TableRow>
+                          <TableCell sx={{ fontWeight: 600, border: 0, px: 0 }}>Vault</TableCell>
+                          <TableCell
+                            sx={{
+                              fontFamily: 'monospace',
+                              fontSize: '0.72rem',
+                              border: 0,
+                              px: 0,
+                              wordBreak: 'break-all',
+                            }}
+                          >
+                            {p.vaultOcid}
+                          </TableCell>
+                        </TableRow>
+                      )}
+                    </TableBody>
+                  </Table>
+                  <Typography variant="caption" color="text.secondary" display="block" sx={{ mt: 1 }}>
+                    {p.dashboard}
+                  </Typography>
+                </Paper>
               </Grid>
             ))}
           </Grid>
-          <Typography variant="body2" color="text.secondary" paragraph>
-            These mirror <code>deployment/oci/terraform</code> flags and{' '}
-            <code>config/examples/config.oci.env.example</code>. In a real apply, defaults stay{' '}
-            <code>false</code> until you opt in.
-          </Typography>
-          <JsonBlock value={OCI_SCAFFOLD_FLAGS} />
+          <Paper variant="outlined" sx={{ p: 2, mt: 2 }}>
+            <Typography variant="subtitle2" gutterBottom>
+              TSP confidential compute (offered after registration)
+            </Typography>
+            <Stack direction="row" flexWrap="wrap" gap={1} sx={{ mb: 1 }}>
+              <Chip size="small" label={OCI_SHARED.confidentialCompute.computeType} />
+              <Chip size="small" label={OCI_SHARED.confidentialCompute.platform} />
+              <Chip size="small" label={`ns=${OCI_SHARED.confidentialCompute.trainingNamespace}`} />
+              <Chip size="small" label="OCI_VAULT" />
+            </Stack>
+            <Typography variant="body2" color="text.secondary" sx={{ fontFamily: 'monospace', fontSize: '0.8rem' }}>
+              {OCI_SHARED.confidentialCompute.spiffeId}
+            </Typography>
+          </Paper>
         </TabPanel>
 
         <TabPanel value={tab} index={1}>
-          <SharedOciContextBanner />
-          <Typography variant="h6" gutterBottom>
-            Party onboarding — signing key in OCI Vault
-          </Typography>
-          <Typography variant="body2" color="text.secondary" paragraph>
-            After Identity Domains SSO, the party receives a DEPA-aligned ID and a signing key
-            backed by the same OCI Vault OCID used later on the contract and provenance claims.
-          </Typography>
+          <SectionTitle subtitle="TDP publishes a dataset to Object Storage; TDC selects that dataset and a catalog model when creating the contract.">
+            Dataset &amp; model catalog
+          </SectionTitle>
           <Grid container spacing={2}>
             <Grid item xs={12} md={6}>
-              <Paper variant="outlined" sx={{ p: 2, height: '100%' }}>
+              <Paper variant="outlined" sx={{ p: 2 }}>
                 <Typography variant="subtitle2" gutterBottom>
-                  Party
+                  Dataset (TDP)
                 </Typography>
-                <Table size="small">
-                  <TableBody>
-                    {Object.entries(OCI_ONBOARDING_MOCK.party).map(([k, v]) => (
-                      <TableRow key={k}>
-                        <TableCell sx={{ fontWeight: 600, width: '40%' }}>{k}</TableCell>
-                        <TableCell sx={{ fontFamily: 'ui-monospace, monospace', fontSize: '0.8rem' }}>
-                          {v}
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+                <JsonBlock value={OCI_CATALOG_MOCK.dataset} />
               </Paper>
             </Grid>
             <Grid item xs={12} md={6}>
-              <Paper variant="outlined" sx={{ p: 2, height: '100%' }}>
-                <Typography variant="subtitle2" gutterBottom>
-                  Signing key
-                </Typography>
-                <Table size="small">
-                  <TableBody>
-                    {Object.entries(OCI_ONBOARDING_MOCK.signingKey).map(([k, v]) => (
-                      <TableRow key={k}>
-                        <TableCell sx={{ fontWeight: 600, width: '40%' }}>{k}</TableCell>
-                        <TableCell sx={{ fontFamily: 'ui-monospace, monospace', fontSize: '0.8rem' }}>
-                          {String(v)}
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </Paper>
-            </Grid>
-            <Grid item xs={12}>
               <Paper variant="outlined" sx={{ p: 2 }}>
                 <Typography variant="subtitle2" gutterBottom>
-                  OCI Vault (platform)
+                  Model (catalog)
                 </Typography>
-                <JsonBlock value={OCI_ONBOARDING_MOCK.vault} />
+                <JsonBlock value={OCI_CATALOG_MOCK.model} />
               </Paper>
             </Grid>
           </Grid>
         </TabPanel>
 
         <TabPanel value={tab} index={2}>
-          <SharedOciContextBanner />
-          <Typography variant="h6" gutterBottom>
-            TSP — confidential compute environment (OCI + OCI Vault)
-          </Typography>
-          <Typography variant="body2" color="text.secondary" paragraph>
-            Tech Service Provider offers an isolated clean-room path on OKE with OCI Vault for
-            secrets/KMS and SPIFFE identity for the training Job Service Account. These values are
-            copied into the contract <code>environmentSpecs</code> / <code>kmsConfigs</code>.
-          </Typography>
-          <Grid container spacing={2}>
-            <Grid item xs={12} md={5}>
-              <Paper variant="outlined" sx={{ p: 2 }}>
-                <Typography variant="subtitle2" gutterBottom>
-                  Cloud credentials (OCI + OCI_VAULT)
-                </Typography>
-                <JsonBlock value={{ ...OCI_TSP_ENV_MOCK.tsp, ...OCI_TSP_ENV_MOCK.credentials }} />
-              </Paper>
-            </Grid>
-            <Grid item xs={12} md={7}>
-              <Paper variant="outlined" sx={{ p: 2 }}>
-                <Typography variant="subtitle2" gutterBottom>
-                  Confidential compute offering
-                </Typography>
-                <Stack direction="row" flexWrap="wrap" gap={1} sx={{ mb: 2 }}>
-                  {OCI_TSP_ENV_MOCK.confidentialCompute.features.map((f) => (
-                    <Chip key={f} label={f} size="small" />
-                  ))}
-                </Stack>
-                <JsonBlock value={OCI_TSP_ENV_MOCK.confidentialCompute} />
-              </Paper>
-            </Grid>
-          </Grid>
-        </TabPanel>
-
-        <TabPanel value={tab} index={3}>
-          <SharedOciContextBanner />
-          <Typography variant="h6" gutterBottom>
-            Contract — TSP OCI KMS + confidential compute bound in
-          </Typography>
-          <Typography variant="body2" color="text.secondary" paragraph>
-            Ricardian contract binds <code>tspCloudProvider=OCI</code>, confidential-vm compute,
-            Object Storage buckets, and OCI Vault KMS refs (same OCIDs as TSP / onboarding).
-          </Typography>
+          <SectionTitle subtitle="TDC proposes terms, selects the OCI TSP, binds confidential-vm + OCI Vault KMS into environmentSpecs / kmsConfigs. TDP and TSP sign.">
+            Contract creation &amp; signing
+          </SectionTitle>
           <Paper variant="outlined" sx={{ p: 2, mb: 2 }}>
             <Table size="small">
               <TableHead>
@@ -353,26 +303,27 @@ const OciScaffoldDemo = () => {
               </TableHead>
               <TableBody>
                 <TableRow>
-                  <TableCell>contractId</TableCell>
-                  <TableCell sx={{ fontFamily: 'monospace', fontSize: '0.85rem' }}>
-                    {OCI_CONTRACT_MOCK.contractId}
-                  </TableCell>
+                  <TableCell>Title</TableCell>
+                  <TableCell>{OCI_CONTRACT_MOCK.title}</TableCell>
                 </TableRow>
                 <TableRow>
-                  <TableCell>status</TableCell>
+                  <TableCell>Status</TableCell>
                   <TableCell>
                     <Chip label={OCI_CONTRACT_MOCK.status} color="success" size="small" />
                   </TableCell>
                 </TableRow>
                 <TableRow>
-                  <TableCell>tspCloudProvider</TableCell>
-                  <TableCell>{OCI_CONTRACT_MOCK.tspCloudProvider}</TableCell>
+                  <TableCell>TSP</TableCell>
+                  <TableCell>
+                    {OCI_TSP_ENV_MOCK.tsp.displayName} ({OCI_CONTRACT_MOCK.tspCloudProvider} ·{' '}
+                    {OCI_CONTRACT_MOCK.kmsConfigs.provider})
+                  </TableCell>
                 </TableRow>
                 <TableRow>
-                  <TableCell>KMS provider</TableCell>
+                  <TableCell>Compute</TableCell>
                   <TableCell>
-                    {OCI_CONTRACT_MOCK.kmsConfigs.provider} /{' '}
-                    {OCI_CONTRACT_MOCK.environmentSpecs.kms.provider}
+                    {OCI_CONTRACT_MOCK.environmentSpecs.infrastructure.computeType} ·{' '}
+                    {OCI_CONTRACT_MOCK.environmentSpecs.infrastructure.okeCluster}
                   </TableCell>
                 </TableRow>
                 <TableRow>
@@ -380,10 +331,6 @@ const OciScaffoldDemo = () => {
                   <TableCell sx={{ fontFamily: 'monospace', fontSize: '0.8rem' }}>
                     {OCI_CONTRACT_MOCK.kmsConfigs.vaultOcid}
                   </TableCell>
-                </TableRow>
-                <TableRow>
-                  <TableCell>computeType</TableCell>
-                  <TableCell>{OCI_CONTRACT_MOCK.environmentSpecs.infrastructure.computeType}</TableCell>
                 </TableRow>
                 <TableRow>
                   <TableCell>SPIFFE</TableCell>
@@ -394,35 +341,39 @@ const OciScaffoldDemo = () => {
               </TableBody>
             </Table>
           </Paper>
-          <Divider sx={{ my: 2 }} />
           <Typography variant="subtitle2" gutterBottom>
-            Full contract scaffold JSON
+            Bound environmentSpecs + kmsConfigs
           </Typography>
-          <JsonBlock value={OCI_CONTRACT_MOCK} />
+          <JsonBlock
+            value={{
+              environmentSpecs: OCI_CONTRACT_MOCK.environmentSpecs,
+              kmsConfigs: OCI_CONTRACT_MOCK.kmsConfigs,
+            }}
+          />
           <Button
             sx={{ mt: 2 }}
             startIcon={<DownloadIcon />}
             variant="outlined"
-            onClick={() => downloadJson(`${OCI_CONTRACT_MOCK.contractId}-scaffold.json`, OCI_CONTRACT_MOCK)}
+            onClick={() => downloadJson(`${OCI_CONTRACT_MOCK.contractId}.json`, OCI_CONTRACT_MOCK)}
           >
             Download contract JSON
           </Button>
         </TabPanel>
 
-        <TabPanel value={tab} index={4}>
-          <SharedOciContextBanner />
-          <Typography variant="h6" gutterBottom>
-            Training logs — same Vault / SPIFFE / buckets as the contract
-          </Typography>
-          <Typography variant="body2" color="text.secondary" paragraph>
-            Simulated <code>oci-oke-job</code> runner output. Every OCID and SPIFFE ID matches the
-            contract <code>environmentSpecs</code> and appears again in the provenance report.
-          </Typography>
+        <TabPanel value={tab} index={3}>
+          <SectionTitle subtitle="After SIGNED, TDC starts an oci-oke-job. Logs show the same Vault OCID, SPIFFE ID, and Object Storage buckets as the contract.">
+            Training, run logs
+          </SectionTitle>
           <Paper variant="outlined" sx={{ p: 2, mb: 2 }}>
-            <Typography variant="subtitle2" gutterBottom>
-              Job summary
+            <Stack direction="row" spacing={1} sx={{ mb: 1 }} flexWrap="wrap" useFlexGap>
+              <Chip label={OCI_TRAINING_JOB_MOCK.status} color="success" size="small" />
+              <Chip label={OCI_TRAINING_JOB_MOCK.executionMode} size="small" variant="outlined" />
+              <Chip label={`region=${OCI_SHARED.region}`} size="small" variant="outlined" />
+            </Stack>
+            <Typography variant="body2" sx={{ fontFamily: 'monospace', fontSize: '0.8rem', mb: 1 }}>
+              {OCI_TRAINING_JOB_MOCK.jobId}
             </Typography>
-            <JsonBlock value={OCI_TRAINING_JOB_MOCK} />
+            <JsonBlock value={OCI_TRAINING_JOB_MOCK.environmentSummary} maxHeight={240} />
           </Paper>
           <Stack direction="row" spacing={1} sx={{ mb: 1 }}>
             <Button
@@ -432,46 +383,93 @@ const OciScaffoldDemo = () => {
             >
               Download runner.log
             </Button>
-            <Button variant="outlined" onClick={() => setTab(5)}>
+            <Button variant="outlined" onClick={() => setTab(4)}>
               Open provenance
             </Button>
           </Stack>
           <LogBlock text={OCI_TRAINING_LOGS_MOCK} />
         </TabPanel>
 
-        <TabPanel value={tab} index={5}>
-          <SharedOciContextBanner />
-          <Typography variant="h6" gutterBottom>
-            Provenance / audit report (mock)
-          </Typography>
-          <Typography variant="body2" color="text.secondary" paragraph>
-            Same shape as live <code>buildProvenanceAuditReport</code>:{' '}
-            <code>contract.environmentSpecs</code>, <code>kmsConfigs</code>, and{' '}
-            <code>trainingJobs[].environmentSummary</code> carry the TSP OCI Vault + confidential
-            compute details from earlier tabs.
-          </Typography>
+        <TabPanel value={tab} index={4}>
+          <SectionTitle subtitle="Contract audit bundle: environmentSpecs, kmsConfigs, and trainingJobs.environmentSummary carry TSP OCI Vault and confidential compute details.">
+            Provenance report
+          </SectionTitle>
           <Stack direction="row" spacing={1} sx={{ mb: 2 }}>
             <Button
               variant="contained"
               startIcon={<DownloadIcon />}
               sx={{ bgcolor: '#0a5c45' }}
               onClick={() =>
-                downloadJson(
-                  `${OCI_PROVENANCE_MOCK.contractId}-provenance-audit.json`,
-                  OCI_PROVENANCE_MOCK
-                )
+                downloadJson(`${OCI_PROVENANCE_MOCK.contractId}-provenance-audit.json`, OCI_PROVENANCE_MOCK)
               }
             >
               Download provenance JSON
             </Button>
-            <Button variant="outlined" onClick={() => setTab(3)}>
-              Back to contract
-            </Button>
-            <Button variant="outlined" onClick={() => setTab(4)}>
-              Back to training logs
+            <Button variant="outlined" onClick={() => setTab(5)}>
+              Deploy &amp; predict
             </Button>
           </Stack>
-          <JsonBlock value={OCI_PROVENANCE_MOCK} />
+          <JsonBlock value={OCI_PROVENANCE_MOCK} maxHeight={480} />
+        </TabPanel>
+
+        <TabPanel value={tab} index={5}>
+          <SectionTitle subtitle="Register the trained artifact, deploy for inference on OKE, and run a prediction — same end state as the Local product tour.">
+            Deploy &amp; test the model
+          </SectionTitle>
+          <Grid container spacing={2}>
+            <Grid item xs={12} md={5}>
+              <Paper variant="outlined" sx={{ p: 2 }}>
+                <Typography variant="subtitle2" gutterBottom>
+                  Deployment
+                </Typography>
+                <Table size="small">
+                  <TableBody>
+                    <TableRow>
+                      <TableCell sx={{ fontWeight: 600 }}>modelId</TableCell>
+                      <TableCell sx={{ fontFamily: 'monospace', fontSize: '0.8rem' }}>
+                        {OCI_INFERENCE_MOCK.modelId}
+                      </TableCell>
+                    </TableRow>
+                    <TableRow>
+                      <TableCell sx={{ fontWeight: 600 }}>status</TableCell>
+                      <TableCell>
+                        <Chip label={OCI_INFERENCE_MOCK.status} color="success" size="small" />
+                      </TableCell>
+                    </TableRow>
+                    <TableRow>
+                      <TableCell sx={{ fontWeight: 600 }}>runtime</TableCell>
+                      <TableCell>{OCI_INFERENCE_MOCK.runtime}</TableCell>
+                    </TableRow>
+                    <TableRow>
+                      <TableCell sx={{ fontWeight: 600 }}>endpoint</TableCell>
+                      <TableCell sx={{ fontFamily: 'monospace', fontSize: '0.75rem', wordBreak: 'break-all' }}>
+                        {OCI_INFERENCE_MOCK.endpoint}
+                      </TableCell>
+                    </TableRow>
+                  </TableBody>
+                </Table>
+              </Paper>
+            </Grid>
+            <Grid item xs={12} md={7}>
+              <Paper variant="outlined" sx={{ p: 2 }}>
+                <Typography variant="subtitle2" gutterBottom>
+                  Inference request
+                </Typography>
+                <JsonBlock value={OCI_INFERENCE_MOCK.request} maxHeight={120} />
+                <Divider sx={{ my: 2 }} />
+                <Typography variant="subtitle2" gutterBottom>
+                  Prediction result
+                </Typography>
+                <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 1 }}>
+                  <Chip label={OCI_INFERENCE_MOCK.prediction.label} color="success" />
+                  <Typography variant="body2">
+                    confidence {(OCI_INFERENCE_MOCK.prediction.confidence * 100).toFixed(0)}%
+                  </Typography>
+                </Stack>
+                <JsonBlock value={OCI_INFERENCE_MOCK.prediction} maxHeight={160} />
+              </Paper>
+            </Grid>
+          </Grid>
         </TabPanel>
       </Container>
     </Box>

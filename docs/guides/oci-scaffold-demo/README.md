@@ -1,14 +1,13 @@
-# OCI scaffold demo screenshots
+# OCI product-tour screenshots
 
-Playwright captures of the public mock UI at `/demo/oci-scaffolds`.
+Playwright captures of `/demo/oci-scaffolds` — full path matching the Local lifecycle tour:
 
-One shared context (`OCI_SHARED` in `frontend/src/data/ociScaffoldMock.js`) drives:
-
-1. Onboarding (Vault-backed signing key)
-2. TSP confidential env (`OCI` + `OCI_VAULT`)
-3. Contract `environmentSpecs` / `kmsConfigs`
-4. Training logs (same Vault OCID / SPIFFE / buckets)
-5. Provenance audit report (same shape as live `buildProvenanceAuditReport`)
+1. Registration (TDC / TDP / TSP on OCI Identity Domains + Vault)
+2. Catalog (Object Storage dataset + model)
+3. Contract (OCI Vault KMS + confidential compute bound in)
+4. Training (oci-oke-job logs)
+5. Provenance (audit bundle)
+6. Deploy & predict
 
 Regenerate:
 

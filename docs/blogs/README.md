@@ -3,7 +3,7 @@
 Published via **GitHub Pages** from `docs/blogs/`. Includes:
 
 - Homepage vision + architecture overview
-- **[Product tour](product-tour.md)** — end-to-end UI screenshots (registration → train → provenance → inference) plus OCI mock scaffolds
+- **[Product tour](product-tour.md)** — end-to-end UI (registration → prediction) for Local and OCI
 - Security / identity notes (`_posts/`)
 
 Canonical Diátaxis docs remain under [`docs/README.md`](../README.md).

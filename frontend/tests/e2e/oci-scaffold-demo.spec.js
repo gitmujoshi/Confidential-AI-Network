@@ -1,5 +1,5 @@
 /**
- * Captures OCI Mock UI screenshots for the GitHub Pages product tour.
+ * Captures OCI product-tour screenshots (registration → prediction).
  *
  * Run (frontend only; no backend required):
  *   cd frontend && npm run test:e2e:oci-demo
@@ -17,12 +17,12 @@ const SCREENSHOT_ROOT = path.join(
 );
 
 const TABS = [
-  { index: 0, file: '01-scaffolds.png', label: 'Scaffolds' },
-  { index: 1, file: '02-onboarding-keys-vault.png', label: 'Onboarding · Keys & Vault' },
-  { index: 2, file: '03-tsp-confidential-env.png', label: 'TSP confidential env' },
-  { index: 3, file: '04-contract.png', label: 'Contract' },
-  { index: 4, file: '05-training-logs.png', label: 'Training logs' },
-  { index: 5, file: '06-provenance.png', label: 'Provenance' },
+  { file: '01-registration.png', label: '1. Registration' },
+  { file: '02-catalog.png', label: '2. Catalog' },
+  { file: '03-contract.png', label: '3. Contract' },
+  { file: '04-training.png', label: '4. Training' },
+  { file: '05-provenance.png', label: '5. Provenance' },
+  { file: '06-deploy-predict.png', label: '6. Deploy & predict' },
 ];
 
 function ensureDir(dir) {
@@ -44,15 +44,15 @@ async function captureShot(page, fileName) {
   });
 }
 
-test.describe('OCI scaffold mock UI (product tour screenshots)', () => {
+test.describe('OCI product tour screenshots', () => {
   test.describe.configure({ mode: 'serial' });
 
-  test('capture all OCI mock tabs', async ({ page }) => {
+  test('capture registration → prediction tabs', async ({ page }) => {
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.goto('/demo/oci-scaffolds');
-    await expect(page.getByRole('heading', { name: /OCI scaffolds/i })).toBeVisible({
-      timeout: 60000,
-    });
+    await expect(
+      page.getByRole('heading', { name: /From registration to a live prediction/i })
+    ).toBeVisible({ timeout: 60000 });
 
     for (const tab of TABS) {
       await page.getByRole('tab', { name: tab.label }).click();
@@ -63,9 +63,8 @@ test.describe('OCI scaffold mock UI (product tour screenshots)', () => {
       await captureShot(page, tab.file);
     }
 
-    const written = TABS.map((t) => t.file);
-    for (const file of written) {
-      expect(fs.existsSync(path.join(SCREENSHOT_ROOT, file))).toBeTruthy();
+    for (const tab of TABS) {
+      expect(fs.existsSync(path.join(SCREENSHOT_ROOT, tab.file))).toBeTruthy();
     }
   });
 });
