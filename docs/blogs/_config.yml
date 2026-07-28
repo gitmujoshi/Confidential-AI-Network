@@ -2,7 +2,7 @@
 # Source root: docs/blogs (deployed by .github/workflows/pages-blogs.yml)
 
 title: Confidential AI Network
-description: Security architecture notes — identity, Zero Trust, multi-cloud, and confidential AI.
+description: Contract-governed, confidential AI training — vision, architecture, and security notes for multi-party collaboration without giving up data control.
 # CI overrides baseurl via `jekyll build --baseurl` (see pages-blogs.yml).
 # For local `jekyll serve` against a project Pages path, use:
 #   bundle exec jekyll serve --baseurl /Confidential-AI-Network
