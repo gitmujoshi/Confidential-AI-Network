@@ -28,6 +28,10 @@ body {
   padding: 0 1.5rem;
 }
 
+body:has(.tour-section) .wrap {
+  max-width: calc(56rem + 4rem);
+}
+
 .site-header {
   border-bottom: 1px solid var(--line);
   background: color-mix(in srgb, var(--card) 88%, transparent);
@@ -276,6 +280,37 @@ h1, h2, h3 {
   font-size: 0.9rem;
 }
 .site-footer a { color: var(--accent); }
+
+.tour-toc {
+  margin: 0 0 1rem;
+  padding-left: 1.25rem;
+  color: var(--muted);
+  max-width: 40rem;
+}
+
+.tour-toc a { color: var(--accent); }
+
+.tour-section .shot {
+  margin: 1.5rem 0 2rem;
+}
+
+.tour-section .shot img {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  height: auto;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--card);
+  box-shadow: 0 8px 24px rgba(20, 20, 20, 0.06);
+}
+
+.tour-section figcaption {
+  margin-top: 0.55rem;
+  color: var(--muted);
+  font-size: 0.92rem;
+  font-family: "Avenir Next", "Segoe UI", system-ui, sans-serif;
+}
 
 @keyframes rise {
   from { opacity: 0; transform: translateY(10px); }

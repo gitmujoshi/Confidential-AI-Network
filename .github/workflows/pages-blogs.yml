@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - "docs/blogs/**"
+      - "docs/guides/lifecycle-user-guide/**"
       - ".github/workflows/pages-blogs.yml"
   workflow_dispatch:
 
@@ -23,6 +24,13 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Sync lifecycle screenshots into blog assets
+        run: |
+          mkdir -p docs/blogs/assets/lifecycle
+          cp -f docs/guides/lifecycle-user-guide/screenshots/*.png \
+            docs/blogs/assets/lifecycle/
+          ls -la docs/blogs/assets/lifecycle | head -40
 
       - name: Setup Ruby
         uses: ruby/setup-ruby@v1

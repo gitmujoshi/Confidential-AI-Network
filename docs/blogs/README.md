@@ -1,53 +1,49 @@
-# Confidential AI Network — Security Blog
+# Confidential AI Network — GitHub Pages site
 
-Markdown blog published via **GitHub Pages**. Posts highlight architecture and security design from the main `docs/` tree (they do not replace the canonical Diátaxis docs).
+Published via **GitHub Pages** from `docs/blogs/`. Includes:
+
+- Homepage vision + architecture overview
+- **[Product tour](product-tour.md)** — end-to-end UI screenshots (registration → train → provenance → inference)
+- Security / identity notes (`_posts/`)
+
+Canonical Diátaxis docs remain under [`docs/README.md`](../README.md).
 
 | Item | Value |
 |------|--------|
 | Source | `docs/blogs/` |
-| Canonical docs | [`docs/README.md`](../README.md) |
-| Publish | GitHub Actions → GitHub Pages (see [Publishing](#publishing)) |
+| Screenshot source | [`docs/guides/lifecycle-user-guide/screenshots/`](../guides/lifecycle-user-guide/screenshots/) (copied at Pages build) |
+| Publish | [`.github/workflows/pages-blogs.yml`](../../.github/workflows/pages-blogs.yml) |
+| Live URL | https://gitmujoshi.github.io/Confidential-AI-Network/ |
 
 ## Local preview
 
 ```bash
+# Sync lifecycle screenshots (same step as CI)
+mkdir -p docs/blogs/assets/lifecycle
+cp -f docs/guides/lifecycle-user-guide/screenshots/*.png docs/blogs/assets/lifecycle/
+
 cd docs/blogs
 bundle install
-bundle exec jekyll serve
-# http://127.0.0.1:4000
+bundle exec jekyll serve --baseurl /Confidential-AI-Network
+# http://127.0.0.1:4000/Confidential-AI-Network/
 ```
 
 ## Publishing
 
 1. Repo **Settings → Pages → Build and deployment → Source: GitHub Actions**
-2. Push to `main`; workflow [`.github/workflows/pages-blogs.yml`](../../.github/workflows/pages-blogs.yml) builds this folder and deploys
-3. Site URL: `https://<org>.github.io/<repo>/` (or custom domain)
+2. Push to `main` (changes under `docs/blogs/**` or `docs/guides/lifecycle-user-guide/**`)
+3. Site: `https://gitmujoshi.github.io/Confidential-AI-Network/`
 
-Optional custom domain: add a `CNAME` file in this directory and configure DNS.
+## Regenerating the product tour screenshots
 
-## Writing a post
-
-Add a file under `_posts/` named `YYYY-MM-DD-slug.md`:
-
-```markdown
----
-layout: post
-title: "Your title"
-date: 2026-07-28
-categories: [security, oci]
-tags: [spiffe, wif]
-canonical: /deployment/OCI_SPIFFE_SPIRE_WIF.md
----
-
-Short intro for readers…
-
-## Deep dive
-
-Link to the full design doc in the repo for implementers.
+```bash
+# Stack must be up: backend :5001, frontend :3000, Keycloak, Docker trainer
+cd frontend
+BACKEND_URL=http://127.0.0.1:5001 npm run test:e2e:lifecycle-guide
 ```
 
-Prefer **short narrative posts** here and **link** to long-form design docs under `docs/production/`, `docs/deployment/`, and `docs/security/`.
+That refreshes `docs/guides/lifecycle-user-guide/` (markdown + PNGs). The next Pages deploy copies images into the site.
 
-## Post index
+## Writing a security note
 
-See [index.md](index.md) (rendered as the blog home on Pages).
+Add `_posts/YYYY-MM-DD-slug.md`. Prefer short narrative posts that link to long-form design docs under `docs/production/`, `docs/deployment/`, and `docs/security/`.

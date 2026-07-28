@@ -15,8 +15,8 @@ permalink: /
     agree in writing, train in isolation, and leave a trail regulators can verify.
   </p>
   <p class="cta-row">
-    <a class="cta" href="https://github.com/gitmujoshi/Confidential-AI-Network">Explore the codebase</a>
-    <a class="cta cta-secondary" href="{{ '/about/' | relative_url }}">About &amp; docs map</a>
+    <a class="cta" href="{{ '/product-tour/' | relative_url }}">See the end-to-end product tour</a>
+    <a class="cta cta-secondary" href="https://github.com/gitmujoshi/Confidential-AI-Network">Explore the codebase</a>
   </p>
 </section>
 
@@ -119,9 +119,14 @@ permalink: /
     that collaboration. If your bottleneck is “we cannot move the data,” this stack is the alternative path:
     contract first, compute second, proof always.
   </p>
+  <p>
+    Prefer screenshots?
+    <a href="{{ '/product-tour/' | relative_url }}">Walk the full UI path</a>
+    from party registration through training, provenance, and a live prediction.
+  </p>
 </section>
 
-<section class="home-section notes-section">
+<section class="home-section notes-section" id="notes">
   <h2>Security &amp; identity notes</h2>
   <p class="section-intro">
     Design posts for operators and reviewers. Long-form specs remain in the repository

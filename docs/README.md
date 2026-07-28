@@ -56,7 +56,7 @@
 | IAM & keys | [security/README.md](security/README.md) |
 | OCI security architecture | [production/OCI_SECURITY_ARCHITECTURE.md](production/OCI_SECURITY_ARCHITECTURE.md) |
 | Azure security architecture | [production/AZURE_SECURITY_ARCHITECTURE.md](production/AZURE_SECURITY_ARCHITECTURE.md) |
-| Security blog (GitHub Pages) | [blogs/](blogs/README.md) |
+| Security blog (GitHub Pages) | [blogs/](blogs/README.md) · [Product tour](blogs/product-tour.md) |
 
 ---
 
@@ -96,7 +96,7 @@ docs/
 ├── api/               reference
 ├── architecture/      deep design
 ├── security/          IAM, keys, provenance crypto
-├── blogs/             GitHub Pages security blog (Jekyll)
+├── blogs/             GitHub Pages site (vision, product tour, security notes)
 ├── deployment/        OCI/Azure readiness + IAM edge
 ├── production/        runbooks, SIEM, security architectures
 ├── development/       local env, testing
