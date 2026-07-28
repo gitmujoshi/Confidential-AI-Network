@@ -77,7 +77,7 @@ const LandingPage = () => {
     {
       icon: <SecurityIcon sx={{ fontSize: 40, color: 'primary.main' }} />,
       title: 'DEPA ID Management',
-      description: 'Decentralized Entity Provider Architecture IDs for privacy compliance and entity identification.'
+      description: 'DEPA-aligned entity IDs inspired by India’s iSPIRT Data Empowerment and Protection Architecture — for privacy compliance and clear party identification.'
     },
     {
       icon: <BusinessIcon sx={{ fontSize: 40, color: 'primary.main' }} />,
@@ -268,7 +268,8 @@ const LandingPage = () => {
             </Typography>
             <Typography variant="body1" color="text.secondary" paragraph sx={{ mb: 4 }}>
               Our contract management system is built with privacy and security at its core, 
-              featuring DEPA ID integration for secure entity identification and SCITT CCF Ledger 
+              featuring DEPA-aligned IDs (India’s iSPIRT Data Empowerment and Protection Architecture)
+              for secure entity identification and SCITT CCF Ledger 
               for tamper-proof contract execution with configurable regulatory framework support.
             </Typography>
             <Box>

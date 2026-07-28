@@ -1,9 +1,10 @@
 /**
  * Global DEPA ID Service
- * 
- * This service extends the existing DEPA ID service to support multi-deployment
- * global uniqueness across different countries and jurisdictions without regression.
- * 
+ *
+ * DEPA = India’s iSPIRT Data Empowerment and Protection Architecture (https://depa.world).
+ * Extends the DEPA ID service for multi-deployment global uniqueness across jurisdictions
+ * without regressing existing DEPA-aligned entity IDs.
+ *
  * Features:
  * - Deployment-specific DEPA ID prefixes
  * - Global deployment registry

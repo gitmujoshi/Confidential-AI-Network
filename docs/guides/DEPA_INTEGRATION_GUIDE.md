@@ -2,7 +2,9 @@
 
 ## 🎯 **Overview**
 
-The Digital Personal Data Protection (DPDP) Act requires unique identification of all entities involved in data processing. The Contract Management System implements DEPA (Digital Personal Data Protection Act) IDs to ensure compliance and provide complete audit trails for all data usage.
+**DEPA** is India’s **iSPIRT** **Data Empowerment and Protection Architecture** ([depa.world](https://depa.world)) — a consent-based framework for accountable data sharing. CAN aligns with DEPA-style multi-party collaboration (TDP / TDC / TSP).
+
+Separately, India’s **Digital Personal Data Protection (DPDP) Act** and other regimes may require clear identification and auditability of parties and processing. The Contract Management System assigns **DEPA IDs** (DEPA-aligned entity identifiers) to users, datasets, contracts, and models so every use of data has a stable, auditable reference.
 
 ---
 
@@ -10,7 +12,7 @@ The Digital Personal Data Protection (DPDP) Act requires unique identification o
 
 ### **What are DEPA IDs?**
 
-DEPA IDs are unique identifiers assigned to all entities in the system:
+In this product, **DEPA IDs** are unique, DEPA-aligned identifiers (inspired by India’s iSPIRT Data Empowerment and Protection Architecture) assigned to all entities in the system:
 - **Users**: TDPs, TDCs, CCRPs, AppAdmins
 - **Datasets**: All datasets uploaded to the system
 - **Contracts**: All training contracts created

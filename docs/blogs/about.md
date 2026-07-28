@@ -13,6 +13,8 @@ negotiate Ricardian contracts, train in protected environments, and leave an aud
 This site publishes **security and identity design notes** for operators and reviewers.
 It is generated from [`docs/blogs/`](https://github.com/gitmujoshi/Confidential-AI-Network/tree/main/docs/blogs) via GitHub Pages.
 
+CAN is inspired by India’s **iSPIRT** **DEPA** (**Data Empowerment and Protection Architecture**).
+
 ## Canonical documentation
 
 | Area | Start here |

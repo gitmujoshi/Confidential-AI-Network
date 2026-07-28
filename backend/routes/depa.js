@@ -1,8 +1,8 @@
 /**
  * DEPA ID Configuration API Routes
- * 
- * Provides endpoints for users to view DEPA ID configuration
- * and deployment information.
+ *
+ * DEPA = India’s iSPIRT Data Empowerment and Protection Architecture (https://depa.world).
+ * Provides endpoints for users to view DEPA-aligned ID configuration and deployment info.
  */
 
 const express = require('express');

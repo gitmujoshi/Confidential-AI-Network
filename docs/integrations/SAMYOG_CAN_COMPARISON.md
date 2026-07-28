@@ -1,6 +1,6 @@
 # CAN vs Samyog — comparison
 
-**Samyog** ([samyog.world](https://samyog.world)) is India’s **governance SRO** for DEPA-based AI data collaboration. **CAN (Confidential AI Network)** in this repository is a **deployable software platform** that implements a similar multi-party model (TDP / TDC / CCRP) with contracts, confidential compute, and provenance.
+**Samyog** ([samyog.world](https://samyog.world)) is India’s **governance SRO** for AI data collaboration under **DEPA** — India’s **iSPIRT** **Data Empowerment and Protection Architecture** ([depa.world](https://depa.world)). **CAN (Confidential AI Network)** in this repository is a **deployable software platform** that implements a similar multi-party model (TDP / TDC / CCRP) with contracts, confidential compute, and provenance.
 
 Last updated: 2026-06-17
 
@@ -18,7 +18,7 @@ flowchart TB
     Catalog[Data catalogue & discovery]
   end
 
-  subgraph DEPA["DEPA (technical rails)"]
+  subgraph DEPA["DEPA — iSPIRT Data Empowerment and Protection Architecture"]
     CCR[Confidential clean rooms / TEE]
     DP[Differential privacy]
     Ledger[E-contracts + audit trail]

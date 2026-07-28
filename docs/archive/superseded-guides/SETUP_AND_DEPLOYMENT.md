@@ -63,7 +63,7 @@ The Contract Management System supports multi-deployment global uniqueness acros
 
 ### Global DEPA ID System
 
-The system implements a global DEPA ID (Decentralized Entity Provider Architecture ID) system for ensuring uniqueness across all deployments:
+The system implements a global DEPA ID system (DEPA-aligned entity IDs inspired by India’s iSPIRT Data Empowerment and Protection Architecture) for ensuring uniqueness across all deployments:
 
 ```
 [DEPLOYMENT_PREFIX]-[ENTITY_TYPE]-[GUID]

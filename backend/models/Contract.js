@@ -386,7 +386,7 @@ module.exports = (sequelize, DataTypes) => {
       comment: 'Multi-TDP status following UML state diagram workflow'
     },
     
-    // DEPA ID (Decentralized Entity Provider Architecture ID) - immutable identifier
+    // DEPA ID — immutable DEPA-aligned entity ID (India's iSPIRT Data Empowerment and Protection Architecture)
     depaId: {
       type: DataTypes.STRING,
       allowNull: true, // Will be set to false after migration

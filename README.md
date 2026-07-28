@@ -2,7 +2,7 @@
 
 **CAN** is a multi-party platform for governed AI training: Training Data Providers (TDPs), Training Data Consumers (TDCs), and Confidential Clean Room Providers (CCRPs) negotiate **Ricardian contracts**, run training in protected environments, and retain an **auditable trail** on a confidential ledger (SCITT CCF).
 
-Inspired by [iSPIRT DEPA](https://depa.world) — consent-based, accountable data sharing for the AI era.
+Inspired by India’s **iSPIRT** [**DEPA** (Data Empowerment and Protection Architecture)](https://depa.world) — consent-based, accountable data sharing for the AI era.
 
 ---
 
@@ -259,7 +259,7 @@ Run `npm run status` and relevant tests before submitting.
 | **Ricardian contract** | Human-readable legal terms plus machine-enforceable structure |
 | **SCITT CCF** | Confidential consortium ledger for tamper-evident contract records |
 | **TEE** | Trusted Execution Environment — hardware-isolated enclave for confidential processing |
-| **DEPA** | Data Empowerment and Protection Architecture ([depa.world](https://depa.world)) |
+| **DEPA** | India’s iSPIRT **Data Empowerment and Protection Architecture** ([depa.world](https://depa.world)) |
 | **PET** | Privacy-Enhancing Technology (DP, federated learning, secure MPC, etc.) |
 | **Differential privacy (DP)** | Privacy guarantee via ε (epsilon) and δ (delta) budgets on training outputs |
 | **DP-SGD** | Differentially Private SGD — clipped noisy gradients during training |

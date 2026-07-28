@@ -85,7 +85,7 @@ module.exports = (sequelize) => {
       allowNull: true,
       comment: 'Additional model-specific metadata'
     },
-    // DEPA ID (Decentralized Entity Provider Architecture ID) - immutable identifier
+    // DEPA ID — immutable DEPA-aligned entity ID (India's iSPIRT Data Empowerment and Protection Architecture)
     depaId: {
       type: DataTypes.STRING,
       allowNull: true,

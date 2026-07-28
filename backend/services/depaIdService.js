@@ -1,12 +1,12 @@
 /**
  * DEPA ID Service
- * 
- * This service handles the generation, validation, and management of DEPA IDs
- * (Decentralized Entity Provider Architecture IDs) for all entities in the system.
- * 
+ *
+ * DEPA = India’s iSPIRT Data Empowerment and Protection Architecture (https://depa.world).
+ * This service generates and validates DEPA-aligned entity IDs for all entities in the system.
+ *
  * DEPA ID Format: [ENTITY_TYPE]-[GUID]
  * Examples: TDC-8f4e2a1b-3c4d-5e6f-7a8b-9c0d1e2f3a4b
- * 
+ *
  * Entity Types:
  * - TDC: Training Data Consumer
  * - TDP: Training Data Provider

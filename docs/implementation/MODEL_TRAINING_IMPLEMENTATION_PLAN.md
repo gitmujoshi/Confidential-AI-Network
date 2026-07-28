@@ -2,7 +2,7 @@
 
 ## 📋 Executive Summary
 
-This document outlines a comprehensive implementation plan for setting up and running AI model training based on signed contracts in the DEPA (Decentralized Entity Provider Architecture) system. The plan covers the complete workflow from contract execution to model deployment, ensuring security, privacy, and compliance throughout the process.
+This document outlines a comprehensive implementation plan for setting up and running AI model training based on signed contracts in the CAN platform, which aligns with India’s **iSPIRT** **DEPA** (**Data Empowerment and Protection Architecture**). The plan covers the complete workflow from contract execution to model deployment, ensuring security, privacy, and compliance throughout the process.
 
 ## 🎯 Implementation Goals
 

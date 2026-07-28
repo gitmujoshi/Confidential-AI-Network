@@ -244,7 +244,7 @@ The global uniqueness mechanisms ensure that all entities in the system have uni
 
 ### 1. DEPA ID System
 
-The DEPA ID (Decentralized Entity Provider Architecture ID) system provides globally unique identifiers for all entities in the contract management system. Each DEPA ID consists of an entity type prefix followed by a globally unique identifier, ensuring no two entities can have the same identifier.
+**DEPA** is India’s **iSPIRT** **Data Empowerment and Protection Architecture**. The **DEPA ID** system in CAN provides DEPA-aligned, globally unique identifiers for all entities in the contract management system. Each DEPA ID consists of an entity type prefix followed by a globally unique identifier, ensuring no two entities can have the same identifier.
 
 #### 1.1 DEPA ID Format
 

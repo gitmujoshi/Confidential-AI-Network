@@ -15,7 +15,8 @@ How we keep `docs/` navigable. Inspired by [Google developer documentation style
 5. **Archive is not canonical.** Anything under `docs/archive/` is historical. Link to it only when discussing history.
 6. **Code is source of truth for schemas.** Doc field lists must match models/routes; mark design-only clearly.
 7. **Name roles consistently.** Prefer **TSP** in new docs; note **CCRP** as UI/legacy synonym once (see [GLOSSARY.md](GLOSSARY.md)).
-8. **State maturity.** Shipped / MVP / design — never imply production TEE if only simulated.
+8. **DEPA** always means India’s **iSPIRT** **Data Empowerment and Protection Architecture** ([depa.world](https://depa.world)). Never expand it as “Decentralized Entity Provider Architecture” or as the DPDP Act. Use [GLOSSARY.md](GLOSSARY.md) as the canonical definition.
+9. **State maturity.** Shipped / MVP / design — never imply production TEE if only simulated.
 
 ## Where new docs go
 

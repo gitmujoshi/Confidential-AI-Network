@@ -13,7 +13,7 @@ Canonical definitions for terms used across CAN documentation, code, and UI. For
 | **TDP** | **Training Data Provider** — organization that publishes datasets and approves use under contract. |
 | **TSP** | **Tech Service Provider** — hosts isolated training environments (TEE, private cloud, or local Docker). Samyog/DEPA term; replaces legacy **CCRP**. |
 | **AppAdmin** | Platform administrator (users, health, configuration). |
-| **DEPA** | [Data Empowerment and Protection Architecture](https://depa.world) — India’s consent and data-governance framework; CAN aligns with DEPA-style multi-party data sharing. |
+| **DEPA** | India’s **iSPIRT** [**Data Empowerment and Protection Architecture**](https://depa.world) — consent-based data-governance framework for accountable sharing; CAN aligns with DEPA-style multi-party data collaboration. A **DEPA ID** in this product is a DEPA-aligned entity identifier (parties, datasets, contracts, models). |
 | **Ricardian contract** | Human-readable legal terms bound to machine-enforceable structure (datasets, training params, privacy, CCRP). |
 | **AIModel** | Catalog entry for a base or trained model referenced by contracts and training jobs. |
 
