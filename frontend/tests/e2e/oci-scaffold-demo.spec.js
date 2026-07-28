@@ -21,7 +21,8 @@ const TABS = [
   { index: 1, file: '02-onboarding-keys-vault.png', label: 'Onboarding · Keys & Vault' },
   { index: 2, file: '03-tsp-confidential-env.png', label: 'TSP confidential env' },
   { index: 3, file: '04-contract.png', label: 'Contract' },
-  { index: 4, file: '05-provenance.png', label: 'Provenance' },
+  { index: 4, file: '05-training-logs.png', label: 'Training logs' },
+  { index: 5, file: '06-provenance.png', label: 'Provenance' },
 ];
 
 function ensureDir(dir) {

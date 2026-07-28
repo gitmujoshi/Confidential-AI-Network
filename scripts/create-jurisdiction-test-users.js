@@ -141,6 +141,9 @@ async function registerUser(spec) {
     deploymentPrefix: spec.deploymentPrefix,
   };
   if (spec.jurisdiction) body.jurisdiction = spec.jurisdiction;
+  if (Array.isArray(spec.cloudProviders) && spec.cloudProviders.length) {
+    body.cloudProviders = spec.cloudProviders;
+  }
 
   const res = await axios.post(`${BACKEND_URL}/api/auth/register`, body, {
     headers: { 'Content-Type': 'application/json' },

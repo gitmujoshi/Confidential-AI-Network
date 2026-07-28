@@ -469,7 +469,48 @@ export default function TDCTraining() {
                     {liveJob.simulation && (
                       <Chip size="small" label="Simulated" sx={{ ml: 1 }} />
                     )}
+                    {liveJob.executionMode && (
+                      <Chip size="small" variant="outlined" label={liveJob.executionMode} sx={{ ml: 1 }} />
+                    )}
                   </Typography>
+                  {liveJob.environmentSummary &&
+                    (liveJob.environmentSummary.cloudProvider ||
+                      liveJob.environmentSummary.kms ||
+                      liveJob.environmentSummary.spiffeId) && (
+                      <Paper variant="outlined" sx={{ p: 1.5, mb: 2, bgcolor: 'action.hover' }}>
+                        <Typography variant="subtitle2" gutterBottom>
+                          Environment (from contract)
+                        </Typography>
+                        <Typography variant="body2" component="div" sx={{ fontFamily: 'monospace', fontSize: '0.8rem' }}>
+                          {[
+                            liveJob.environmentSummary.cloudProvider &&
+                              `cloud=${liveJob.environmentSummary.cloudProvider}`,
+                            liveJob.environmentSummary.computeType &&
+                              `compute=${liveJob.environmentSummary.computeType}`,
+                            liveJob.environmentSummary.region &&
+                              `region=${liveJob.environmentSummary.region}`,
+                            liveJob.environmentSummary.trainingNamespace &&
+                              `ns=${liveJob.environmentSummary.trainingNamespace}`,
+                            (liveJob.environmentSummary.secretManager ||
+                              liveJob.environmentSummary.kms?.provider) &&
+                              `kms=${
+                                liveJob.environmentSummary.secretManager ||
+                                liveJob.environmentSummary.kms?.provider
+                              }`,
+                            (liveJob.environmentSummary.kms?.vaultOcid ||
+                              liveJob.environmentSummary.kms?.keyVault) &&
+                              `vault=${
+                                liveJob.environmentSummary.kms?.vaultOcid ||
+                                liveJob.environmentSummary.kms?.keyVault
+                              }`,
+                            liveJob.environmentSummary.spiffeId &&
+                              `spiffe=${liveJob.environmentSummary.spiffeId}`,
+                          ]
+                            .filter(Boolean)
+                            .join(' · ')}
+                        </Typography>
+                      </Paper>
+                    )}
                   {typeof liveJob.progress === 'number' && (
                     <LinearProgress
                       variant="determinate"

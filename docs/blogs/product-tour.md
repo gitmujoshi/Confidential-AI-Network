@@ -25,7 +25,7 @@ permalink: /product-tour/
     <li><a href="#contract">Contract</a> — create, notify, and sign by all parties</li>
     <li><a href="#train">Training</a> — start job, completion, run logs, provenance report</li>
     <li><a href="#infer">Deploy &amp; test</a> — register artifact, deploy, run a prediction</li>
-    <li><a href="#oci-mock">OCI mock UIs</a> — scaffolds, Vault onboarding, TSP confidential env, contract KMS, provenance</li>
+    <li><a href="#oci-mock">OCI mock UIs</a> — TSP OCI Vault/KMS + confidential compute → contract → training logs → provenance</li>
   </ol>
   <p>
     Canonical long-form text:
@@ -175,8 +175,8 @@ permalink: /product-tour/
 <section class="home-section tour-section" id="oci-mock">
   <h2>6. OCI mock UIs (scaffolds all enabled)</h2>
   <p>
-    Public walkthrough at <code>/demo/oci-scaffolds</code> — mock Vault OCIDs, confidential-compute
-    TSP environment, contract KMS / env specs, and a sample provenance report.
+    Public walkthrough at <code>/demo/oci-scaffolds</code> — one shared context for TSP OCI Vault KMS,
+    confidential compute, contract env/KMS bindings, training logs, and provenance.
     No live OCI tenancy required; mirrors the design map in
     <a href="https://github.com/gitmujoshi/Confidential-AI-Network/blob/main/docs/deployment/OCI_DESIGN_COMPLETE.md">OCI_DESIGN_COMPLETE.md</a>.
   </p>
@@ -186,19 +186,23 @@ permalink: /product-tour/
   </figure>
   <figure class="shot">
     <img src="{{ '/assets/oci/02-onboarding-keys-vault.png' | relative_url }}" alt="OCI mock UI — party onboarding with Vault-backed signing key" loading="lazy" />
-    <figcaption>Onboarding — party DEPA ID and signing key backed by OCI Vault</figcaption>
+    <figcaption>Onboarding — party DEPA ID and signing key backed by OCI Vault (same Vault OCID as later tabs)</figcaption>
   </figure>
   <figure class="shot">
     <img src="{{ '/assets/oci/03-tsp-confidential-env.png' | relative_url }}" alt="OCI mock UI — TSP confidential compute environment" loading="lazy" />
-    <figcaption>TSP confidential env — OKE clean-room path, Vault secrets, SPIFFE job identity</figcaption>
+    <figcaption>TSP confidential env — OKE clean-room, OCI_VAULT secrets, SPIFFE job identity</figcaption>
   </figure>
   <figure class="shot">
     <img src="{{ '/assets/oci/04-contract.png' | relative_url }}" alt="OCI mock UI — contract environmentSpecs and kmsConfigs" loading="lazy" />
-    <figcaption>Contract — confidential-vm compute, Object Storage, OCI Vault KMS refs</figcaption>
+    <figcaption>Contract — TSP OCI KMS + confidential-vm compute + Object Storage bound in</figcaption>
   </figure>
   <figure class="shot">
-    <img src="{{ '/assets/oci/05-provenance.png' | relative_url }}" alt="OCI mock UI — provenance audit report" loading="lazy" />
-    <figcaption>Provenance — mock audit report shaped like the live SCITT / job provenance viewers</figcaption>
+    <img src="{{ '/assets/oci/05-training-logs.png' | relative_url }}" alt="OCI mock UI — training logs echoing Vault and SPIFFE" loading="lazy" />
+    <figcaption>Training logs — same Vault OCID, SPIFFE ID, and buckets as the contract</figcaption>
+  </figure>
+  <figure class="shot">
+    <img src="{{ '/assets/oci/06-provenance.png' | relative_url }}" alt="OCI mock UI — provenance audit report" loading="lazy" />
+    <figcaption>Provenance — audit bundle with contract.environmentSpecs / kmsConfigs and trainingJobs.environmentSummary</figcaption>
   </figure>
 </section>
 

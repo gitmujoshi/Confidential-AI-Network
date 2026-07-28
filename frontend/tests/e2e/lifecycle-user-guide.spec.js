@@ -223,13 +223,15 @@ test.describe('Lifecycle user guide (screenshot tour)', () => {
     });
     const tspTemp = await submitRegistration();
     await completeFirstLoginPasswordViaAPI({ email: tspEmail, currentPassword: tspTemp });
+    // Keep only the two static Local TSPs; strip Local from this ephemeral onboarded TSP.
     await ensureTspLocalProvider(tspEmail);
-    await loginViaUI(page, { email: tspEmail });
+    // Local Docker readiness is demonstrated on the static E2E Local TSP.
+    await loginViaUI(page, { email: 'ccrp.e2e@test.com', password: PASSWORD });
     await page.goto('/tsp/cloud-credentials');
     await expect(page.getByRole('main')).toBeVisible({ timeout: 60000 });
     steps.push({
       title: 'TSP Local cloud readiness',
-      body: 'Configure the enterprise TSP with a **Local** provider so contracts can run with `TRAINING_EXECUTION_MODE=local-docker` in this environment.',
+      body: 'Configure a dedicated **Local** TSP (`ccrp.e2e@test.com`) so contracts can run with `TRAINING_EXECUTION_MODE=local-docker`. Other TSPs use cloud providers (OCI/Azure/AWS).',
       ...(await captureShot(page, '07-onboard-tsp-local.png')),
     });
     await logoutViaUI(page);
@@ -292,7 +294,7 @@ test.describe('Lifecycle user guide (screenshot tour)', () => {
     await tspCard.click({ force: true });
     steps.push({
       title: 'TDC creates contract — select TSP',
-      body: 'Select the onboarded **TSP** (Local) and environment/KMS settings for the training session.',
+      body: 'Select the onboarded **TSP** for the contract. Local Docker training uses `ccrpCloudProvider: Local` (static Local TSPs: `ccrp.e2e@test.com`, `tsp.local@jurisdiction-test.com`).',
       ...(await captureShot(page, '09-tdc-create-tsp.png')),
     });
 

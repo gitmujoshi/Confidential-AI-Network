@@ -11,6 +11,9 @@
  * When TRAINING_SIMULATION_MODE=true, completes the job locally for design demos.
  */
 
+const path = require('path');
+const fs = require('fs');
+const os = require('os');
 const db = require('../models');
 const { writeLocalScittClaim } = require('./provenanceClaimWriter');
 const { buildTrainingModelProvenance } = require('./tdcTrainingHelpers');
@@ -20,29 +23,83 @@ function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+function pickEnvFromContract(job) {
+  const envCfg = job.environmentConfig || {};
+  const envSpecs = envCfg.environmentSpecs || {};
+  const infra = envSpecs.infrastructure || {};
+  const kms = envCfg.kmsConfigs || envSpecs.kms || {};
+  const security = envSpecs.security || {};
+  return { envCfg, envSpecs, infra, kms, security };
+}
+
+function buildOciRunnerLog({ jobId, contractId, infra, kms, objectStorage, spiffeId }) {
+  const vaultOcid = kms.vaultOcid || kms.keyVault || kms.vaultId || 'n/a';
+  const masterKey = kms.masterKeyOcid || kms.keyId || 'n/a';
+  const lines = [
+    `[oci-oke-job] contract=${contractId} job=${jobId}`,
+    `[oci-oke-job] cloudProvider=${infra.cloudProvider || 'OCI'} region=${infra.region || 'n/a'}`,
+    `[oci-oke-job] computeType=${infra.computeType || 'confidential-vm'} platform=${infra.platform || 'OCI Confidential Computing'}`,
+    `[oci-oke-job] okeCluster=${infra.okeCluster || 'n/a'} ns=${infra.trainingNamespace || 'cms-training'}`,
+    `[oci-oke-job] serviceAccount=${infra.serviceAccount || 'training-job-sa'}`,
+    `[oci-oke-job] spiffeId=${spiffeId || 'n/a'}`,
+    `[kms] provider=${kms.provider || kms.secretManager || 'OCI_VAULT'} vaultOcid=${vaultOcid}`,
+    `[kms] masterKeyOcid=${masterKey}`,
+    `[kms] awaiting key release: contract SIGNED + SPIFFE allowlist`,
+    `[storage] namespace=${objectStorage.namespace || 'n/a'}`,
+    `[storage] datasets=${objectStorage.datasets || 'n/a'} outputs=${objectStorage.outputs || 'n/a'}`,
+    `[storage] artifacts=${objectStorage.artifacts || 'n/a'}`,
+    `[wif] workload identity exchange for ${infra.serviceAccount || 'training-job-sa'} (design)`,
+    `[trainer] ciphertext-in from Object Storage; no plaintext datasets on host`,
+    `[trainer] epoch 1/3 loss=0.82`,
+    `[trainer] epoch 2/3 loss=0.41`,
+    `[trainer] epoch 3/3 loss=0.19`,
+    `[kms] DEK/MEK release granted; writing encrypted artifacts`,
+    `[oci-oke-job] COMPLETED outputs=${objectStorage.outputs || 'n/a'}/demo/outputs/`,
+  ];
+  return lines.join('\n') + '\n';
+}
+
 async function runOkeJobTraining(opts) {
   const { jobId, contractId, containerSpec, trainingParams, inputs } = opts;
   const simulation =
     String(process.env.TRAINING_SIMULATION_MODE || '').toLowerCase() === 'true' ||
     process.env.TRAINING_SIMULATION_MODE === '1';
 
-  const namespace = process.env.OCI_TRAINING_NAMESPACE || 'cms-training';
-  const trainerImage =
-    process.env.LOCAL_TRAINING_IMAGE ||
-    process.env.OCI_TRAINER_IMAGE ||
-    'iad.ocir.io/NAMESPACE/local-trainer:latest';
-
   const job = await db.TrainingJob.findOne({ where: { jobId } });
   if (!job) {
     throw new Error(`Training job not found: ${jobId}`);
   }
+
+  const { infra, kms, security } = pickEnvFromContract(job);
+  const namespace =
+    infra.trainingNamespace || process.env.OCI_TRAINING_NAMESPACE || 'cms-training';
+  const trainerImage =
+    process.env.LOCAL_TRAINING_IMAGE ||
+    process.env.OCI_TRAINER_IMAGE ||
+    'iad.ocir.io/NAMESPACE/local-trainer:latest';
+  const objectStorage = {
+    namespace:
+      infra.objectStorage?.namespace || process.env.OCI_OBJECT_STORAGE_NAMESPACE || null,
+    datasets:
+      infra.objectStorage?.datasets || process.env.OCI_OBJECT_STORAGE_BUCKET_DATASETS || null,
+    outputs:
+      infra.objectStorage?.outputs || process.env.OCI_OBJECT_STORAGE_BUCKET_OUTPUTS || null,
+    artifacts: infra.objectStorage?.artifacts || null,
+  };
+  const spiffeId = infra.spiffeId || null;
 
   await job.update({
     status: 'RUNNING',
     metadata: {
       ...(job.metadata || {}),
       executionMode: 'oci-oke-job',
-      oke: { namespace, trainerImage },
+      oke: {
+        namespace,
+        trainerImage,
+        cluster: infra.okeCluster || null,
+        serviceAccount: infra.serviceAccount || null,
+        spiffeId,
+      },
       phases: [
         ...((job.metadata && job.metadata.phases) || []),
         { name: 'RUNNING', at: new Date().toISOString() },
@@ -52,14 +109,42 @@ async function runOkeJobTraining(opts) {
 
   if (simulation) {
     await sleep(Number(process.env.OCI_OKE_JOB_SIM_MS || 1500));
+    const runnerLog = buildOciRunnerLog({
+      jobId,
+      contractId,
+      infra,
+      kms,
+      objectStorage,
+      spiffeId,
+    });
+
+    let logFile = null;
+    try {
+      const logDir = path.join(os.tmpdir(), 'can-oci-oke-logs');
+      fs.mkdirSync(logDir, { recursive: true });
+      logFile = path.join(logDir, `${jobId}.log`);
+      fs.writeFileSync(logFile, runnerLog, 'utf8');
+    } catch (_) {
+      logFile = null;
+    }
+
     const results = {
       mode: 'oci-oke-job-simulation',
       namespace,
       trainerImage,
+      spiffeId,
+      computeType: infra.computeType || 'confidential-vm',
+      platform: infra.platform || 'OCI Confidential Computing',
+      attestationProvider: security.attestationProvider || null,
       objectStorage: {
-        namespace: process.env.OCI_OBJECT_STORAGE_NAMESPACE || null,
-        datasets: process.env.OCI_OBJECT_STORAGE_BUCKET_DATASETS || null,
-        outputs: process.env.OCI_OBJECT_STORAGE_BUCKET_OUTPUTS || null,
+        ...objectStorage,
+        outputsPrefix: objectStorage.outputs ? `${objectStorage.outputs}/demo/outputs/` : null,
+      },
+      kms: {
+        provider: kms.provider || kms.secretManager || 'OCI_VAULT',
+        vaultOcid: kms.vaultOcid || kms.keyVault || null,
+        masterKeyOcid: kms.masterKeyOcid || kms.keyId || null,
+        keyRelease: 'gated-on-SIGNED+SPIFFE',
       },
       note:
         'Design scaffold — no Kubernetes Job was submitted. Apply enable_training Terraform and in-cluster submitter for live OKE runs.',
@@ -85,6 +170,8 @@ async function runOkeJobTraining(opts) {
         progress: 100,
         results,
         provenance,
+        runnerLog,
+        local: logFile ? { ...(latest.metadata?.local || {}), logFile } : latest.metadata?.local,
         phases: [
           ...((latest.metadata && latest.metadata.phases) || []),
           { name: 'COMPLETED', at: new Date().toISOString() },
@@ -97,7 +184,13 @@ async function runOkeJobTraining(opts) {
         type: 'training.job.completed',
         contractId,
         jobId,
-        payload: { mode: 'oci-oke-job-simulation' },
+        payload: {
+          mode: 'oci-oke-job-simulation',
+          spiffeId,
+          vaultOcid: results.kms.vaultOcid,
+          computeType: results.computeType,
+          objectStorageOutputs: results.objectStorage.outputsPrefix,
+        },
       });
       await buildJobTrainingProvenanceBundle(jobId);
     } catch (_) {

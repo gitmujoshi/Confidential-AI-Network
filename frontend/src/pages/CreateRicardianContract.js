@@ -221,6 +221,34 @@ function CreateRicardianContract() {
     }));
   };
 
+  // When TSP cloud provider is OCI, hydrate Vault KMS + confidential compute into environmentSpecs
+  // so contract / training / provenance share the same refs as the OCI mock product flow.
+  useEffect(() => {
+    if (!selectedTsp) return;
+    const selectedTspUser = availableTspUsers.find(
+      (u) =>
+        String(u.id) === String(selectedTsp) ||
+        (u.depaId != null && String(u.depaId) === String(selectedTsp))
+    );
+    const tspSelectionKey = selectedTspUser?.depaId || selectedTspUser?.id || selectedTsp;
+    const provider =
+      selectedTspCloudProviders[tspSelectionKey] ||
+      selectedTspCloudProviders[selectedTspUser?.id] ||
+      selectedTspUser?.cloudProviders?.[0] ||
+      selectedCloudProvider ||
+      '';
+    if (String(provider).toUpperCase() !== 'OCI') return;
+    let cancelled = false;
+    (async () => {
+      const { applyOciTspEnvironmentDefaults } = await import('../data/ociScaffoldMock');
+      if (cancelled) return;
+      setEnvironmentSpecs((prev) => applyOciTspEnvironmentDefaults(prev));
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [selectedTsp, selectedTspCloudProviders, selectedCloudProvider, availableTspUsers]);
+
   // Add comprehensive training environment specifications
   const [trainingEnvironment, setTrainingEnvironment] = useState({
     tspPlatform: {
@@ -948,12 +976,36 @@ function CreateRicardianContract() {
             storage: trainingEnvironment?.tspPlatform?.infrastructure?.compute?.specifications?.storage || 'Not specified'
           }
         },
-        // Add KMS configurations from environmentSpecs
-        kmsConfigs: environmentSpecs?.kms || {
-          provider: 'azure-key-vault',
-          keyName: 'training-data-key',
-          region: 'eastus'
-        },
+        // Add KMS configurations from environmentSpecs (OCI Vault uses OCI_VAULT + vaultOcid)
+        kmsConfigs: (() => {
+          const kms = environmentSpecs?.kms;
+          const isOci =
+            String(resolvedTspCloudProvider || '').toUpperCase() === 'OCI' ||
+            String(kms?.provider || '').toLowerCase().includes('oci');
+          if (isOci && kms) {
+            return {
+              provider: 'OCI_VAULT',
+              vaultOcid: kms.vaultOcid || kms.keyVault || null,
+              masterKeyOcid: kms.keyId || null,
+              region: kms.region || environmentSpecs?.infrastructure?.region || 'us-ashburn-1',
+              algorithm: kms.algorithm || 'AES-256-GCM',
+              rotationPeriod: kms.rotationPeriod || 90,
+              secretManager: 'OCI_VAULT',
+              computeType: environmentSpecs?.infrastructure?.computeType || 'confidential-vm',
+              spiffeId: environmentSpecs?.infrastructure?.spiffeId || null,
+              okeCluster: environmentSpecs?.infrastructure?.okeCluster || null,
+              trainingNamespace: environmentSpecs?.infrastructure?.trainingNamespace || null,
+              objectStorage: environmentSpecs?.infrastructure?.objectStorage || null,
+            };
+          }
+          return (
+            kms || {
+              provider: 'azure-key-vault',
+              keyName: 'training-data-key',
+              region: 'eastus',
+            }
+          );
+        })(),
         // Add TSP ID if selected
         tspId: Number.isFinite(parsedTspId) ? parsedTspId : null,
         tspCloudProvider: resolvedTspCloudProvider,

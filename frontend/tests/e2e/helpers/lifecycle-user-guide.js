@@ -54,7 +54,7 @@ async function completeFirstLoginPasswordViaAPI({ email, currentPassword, newPas
   }
 }
 
-async function ensureTspLocalProvider(email) {
+async function ensureTspLocalProvider(_email) {
   const { token: adminToken } = await loginViaAPI({ email: 'appadmin.e2e@test.com' });
   let rows = [];
   try {
@@ -68,18 +68,41 @@ async function ensureTspLocalProvider(email) {
     });
     rows = Array.isArray(res.data) ? res.data : [];
   }
-  const u = rows.find((row) => row.email === email);
-  if (!u) throw new Error(`TSP user not found for Local provider setup: ${email}`);
-  const existing = Array.isArray(u.cloudProviders) ? u.cloudProviders : [];
-  if (existing.map(String).includes('Local')) return;
-  await axios.put(
-    `${BACKEND_URL}/api/users/${u.id}`,
-    {
-      cloudProviders: ['Local'],
-      description: u.description || 'Lifecycle guide TSP (Local Docker)',
-    },
-    { headers: { Authorization: `Bearer ${adminToken}` } }
-  );
+
+  // Only two Local TSPs in the environment — static E2E + jurisdiction local.
+  const KEEP_LOCAL = new Set(['ccrp.e2e@test.com', 'tsp.local@jurisdiction-test.com']);
+
+  for (const row of rows) {
+    const rowEmail = String(row.email || '').toLowerCase();
+    const existing = Array.isArray(row.cloudProviders) ? row.cloudProviders.map(String) : [];
+    const hasLocal = existing.map((p) => p.toLowerCase()).includes('local');
+    const shouldKeep = KEEP_LOCAL.has(rowEmail);
+
+    if (shouldKeep) {
+      if (JSON.stringify(existing) === JSON.stringify(['Local'])) continue;
+      await axios.put(
+        `${BACKEND_URL}/api/users/${row.id}`,
+        {
+          cloudProviders: ['Local'],
+          description: row.description || 'Static Local Docker TSP',
+        },
+        { headers: { Authorization: `Bearer ${adminToken}` } }
+      );
+      continue;
+    }
+
+    if (!hasLocal) continue;
+    const next = existing.filter((p) => p.toLowerCase() !== 'local');
+    try {
+      await axios.put(
+        `${BACKEND_URL}/api/users/${row.id}`,
+        { cloudProviders: next },
+        { headers: { Authorization: `Bearer ${adminToken}` } }
+      );
+    } catch (_) {
+      /* best-effort trim */
+    }
+  }
 }
 
 async function logoutViaUI(page) {

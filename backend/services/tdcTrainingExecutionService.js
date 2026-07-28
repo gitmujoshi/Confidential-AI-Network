@@ -420,6 +420,7 @@ class TdcTrainingExecutionService {
         trainingConfig: contract.trainingParams,
         environmentConfig: {
           environmentSpecs: contract.environmentSpecs,
+          kmsConfigs: contract.kmsConfigs,
           cloudProvider: contract.tspCloudProvider || 'oci',
           containerSpec,
         },
@@ -618,7 +619,32 @@ class TdcTrainingExecutionService {
       trainingConfig: trainingCfg,
       environmentSummary: {
         cloudProvider: envCfg.cloudProvider || plain.cloudProvider || null,
+        region:
+          envCfg.environmentSpecs?.infrastructure?.region ||
+          envCfg.environmentSpecs?.kms?.region ||
+          envCfg.region ||
+          null,
+        computeType: envCfg.environmentSpecs?.infrastructure?.computeType || null,
+        platform: envCfg.environmentSpecs?.infrastructure?.platform || null,
+        okeCluster: envCfg.environmentSpecs?.infrastructure?.okeCluster || meta.oke?.cluster || null,
+        trainingNamespace:
+          envCfg.environmentSpecs?.infrastructure?.trainingNamespace || meta.oke?.namespace || null,
+        serviceAccount: envCfg.environmentSpecs?.infrastructure?.serviceAccount || null,
+        spiffeId: envCfg.environmentSpecs?.infrastructure?.spiffeId || results?.spiffeId || null,
+        attestationProvider: envCfg.environmentSpecs?.security?.attestationProvider || null,
+        secretManager:
+          envCfg.kmsConfigs?.secretManager ||
+          envCfg.kmsConfigs?.provider ||
+          envCfg.environmentSpecs?.kms?.provider ||
+          null,
+        kms: envCfg.kmsConfigs || envCfg.environmentSpecs?.kms || null,
+        objectStorage:
+          results?.objectStorage ||
+          envCfg.environmentSpecs?.infrastructure?.objectStorage ||
+          null,
       },
+      executionMode: meta.executionMode || null,
+      oke: meta.oke || null,
       results,
       modelProvenance,
       artifactDownloadUrl,

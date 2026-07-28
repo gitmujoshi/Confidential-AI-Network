@@ -188,7 +188,8 @@ router.post('/register', logAuthEvent('REGISTER'), async (req, res) => {
       // Global DEPA ID options
       globalDEPAId,
       deploymentPrefix,
-      jurisdiction
+      jurisdiction,
+      cloudProviders,
     } = req.body;
 
     // Validate required fields
@@ -464,8 +465,14 @@ router.post('/register', logAuthEvent('REGISTER'), async (req, res) => {
           didVerified,
           didVerificationMethod,
           depaId, // Add DEPA ID
-          // TSP contract wizard filters providers by this list (MultiTSPSelector).
-          cloudProviders: normalizedPartyType === 'TSP' ? ['Local'] : null,
+          // Prefer explicit cloudProviders from registration; default Local only when omitted
+          // so seeded regional TSPs are not all forced onto Local Docker.
+          cloudProviders:
+            normalizedPartyType === 'TSP'
+              ? Array.isArray(cloudProviders) && cloudProviders.length > 0
+                ? cloudProviders
+                : ['Local']
+              : null,
           isRegistered: true,
           registrationDate: new Date(),
           isActive: true,

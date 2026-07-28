@@ -155,6 +155,13 @@ router.get(
 
       const plain = row.get({ plain: true });
       const logPath = plain?.metadata?.local?.logFile || null;
+      const inlineLog = plain?.metadata?.runnerLog || null;
+
+      if (!logPath && inlineLog) {
+        res.setHeader('X-Log-Truncated', '0');
+        res.setHeader('X-Log-Bytes', String(Buffer.byteLength(inlineLog, 'utf8')));
+        return res.type('text/plain').send(inlineLog);
+      }
 
       if (!logPath) {
         return res.status(404).json({ success: false, error: 'Logs not available for this job' });

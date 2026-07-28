@@ -738,20 +738,34 @@ function ContractDetail() {
       setProvenanceJson(report);
       setProvenanceDialogOpen(true);
     } catch (e) {
-      // Fall back to OCI scaffold sample so demos still work without SCITT/job history
-      try {
-        const { OCI_PROVENANCE_MOCK } = await import('../data/ociScaffoldMock');
-        setProvenanceJson({
-          ...OCI_PROVENANCE_MOCK,
-          contractId: id,
-          _source: 'oci-scaffold-mock',
-          _note: e.response?.data?.error || e.message || 'Live provenance unavailable; showing OCI scaffold sample',
-        });
-        setProvenanceDialogOpen(true);
-        toast('Showing OCI scaffold provenance sample (live report unavailable)', { icon: 'ℹ️' });
-      } catch (_) {
-        toast.error(e.response?.data?.error || e.message || 'Failed to load provenance');
+      const isOci =
+        String(contract?.tspCloudProvider || '').toUpperCase() === 'OCI' ||
+        String(contract?.kmsConfigs?.provider || '')
+          .toUpperCase()
+          .includes('OCI') ||
+        String(contract?.environmentSpecs?.kms?.provider || '')
+          .toLowerCase()
+          .includes('oci');
+      if (isOci) {
+        try {
+          const { OCI_PROVENANCE_MOCK } = await import('../data/ociScaffoldMock');
+          setProvenanceJson({
+            ...OCI_PROVENANCE_MOCK,
+            contractId: id,
+            _source: 'oci-scaffold-mock',
+            _note:
+              e.response?.data?.error ||
+              e.message ||
+              'Live provenance unavailable; showing OCI scaffold sample with shared Vault/KMS/compute refs',
+          });
+          setProvenanceDialogOpen(true);
+          toast('Showing OCI scaffold provenance sample (live report unavailable)', { icon: 'ℹ️' });
+          return;
+        } catch (_) {
+          /* fall through */
+        }
       }
+      toast.error(e.response?.data?.error || e.message || 'Failed to load provenance');
     } finally {
       setProvenanceLoading(false);
     }
@@ -766,6 +780,12 @@ function ContractDetail() {
       try {
         report = await apiService.getScittProvenanceReport(id);
       } catch (_) {
+        const isOci =
+          String(contract?.tspCloudProvider || '').toUpperCase() === 'OCI' ||
+          String(contract?.kmsConfigs?.provider || '')
+            .toUpperCase()
+            .includes('OCI');
+        if (!isOci) throw new Error('Provenance report unavailable');
         const { OCI_PROVENANCE_MOCK } = await import('../data/ociScaffoldMock');
         report = { ...OCI_PROVENANCE_MOCK, contractId: id, _source: 'oci-scaffold-mock' };
       }
@@ -1938,10 +1958,52 @@ function ContractDetail() {
                                           }}
                                           margin="normal"
                                         />
+                                        {(envSpecs.infrastructure.cloudProvider ||
+                                          envSpecs.infrastructure.region ||
+                                          envSpecs.infrastructure.okeCluster ||
+                                          envSpecs.infrastructure.spiffeId) && (
+                                          <>
+                                            <TextField
+                                              fullWidth
+                                              label="Cloud Provider"
+                                              value={envSpecs.infrastructure.cloudProvider || ''}
+                                              margin="normal"
+                                              InputProps={{ readOnly: !isEditMode }}
+                                            />
+                                            <TextField
+                                              fullWidth
+                                              label="Region"
+                                              value={envSpecs.infrastructure.region || ''}
+                                              margin="normal"
+                                              InputProps={{ readOnly: !isEditMode }}
+                                            />
+                                            <TextField
+                                              fullWidth
+                                              label="OKE cluster"
+                                              value={envSpecs.infrastructure.okeCluster || ''}
+                                              margin="normal"
+                                              InputProps={{ readOnly: !isEditMode }}
+                                            />
+                                            <TextField
+                                              fullWidth
+                                              label="Training namespace"
+                                              value={envSpecs.infrastructure.trainingNamespace || ''}
+                                              margin="normal"
+                                              InputProps={{ readOnly: !isEditMode }}
+                                            />
+                                            <TextField
+                                              fullWidth
+                                              label="SPIFFE ID"
+                                              value={envSpecs.infrastructure.spiffeId || ''}
+                                              margin="normal"
+                                              InputProps={{ readOnly: !isEditMode }}
+                                            />
+                                          </>
+                                        )}
                                         <TextField
                                           fullWidth
                                           label="Memory"
-                                          value={envSpecs.infrastructure.memory || ''}
+                                          value={envSpecs.infrastructure.memory || envSpecs.infrastructure.memoryGB || ''}
                                           onChange={(e) => {
                                             const updatedSpecs = {
                                               ...envSpecs,
@@ -2003,14 +2065,30 @@ function ContractDetail() {
                                         />
                                         <TextField
                                           fullWidth
-                                          label="Key Vault"
-                                          value={envSpecs.kms.keyVault || ''}
+                                          label={
+                                            String(envSpecs.kms.provider || '')
+                                              .toLowerCase()
+                                              .includes('oci')
+                                              ? 'OCI Vault OCID'
+                                              : 'Key Vault'
+                                          }
+                                          value={
+                                            envSpecs.kms.vaultOcid ||
+                                            envSpecs.kms.keyVault ||
+                                            envSpecs.kms.vaultId ||
+                                            ''
+                                          }
                                           onChange={(e) => {
+                                            const isOci = String(envSpecs.kms.provider || '')
+                                              .toLowerCase()
+                                              .includes('oci');
                                             const updatedSpecs = {
                                               ...envSpecs,
                                               kms: {
                                                 ...envSpecs.kms,
-                                                keyVault: e.target.value
+                                                ...(isOci
+                                                  ? { vaultOcid: e.target.value, keyVault: e.target.value }
+                                                  : { keyVault: e.target.value }),
                                               }
                                             };
                                             if (contract.onEnvironmentSpecsChange) {
@@ -2019,6 +2097,24 @@ function ContractDetail() {
                                           }}
                                           margin="normal"
                                         />
+                                        {(envSpecs.kms.keyId || envSpecs.kms.region) && (
+                                          <>
+                                            <TextField
+                                              fullWidth
+                                              label="Key ID / Master key OCID"
+                                              value={envSpecs.kms.keyId || ''}
+                                              margin="normal"
+                                              InputProps={{ readOnly: !isEditMode }}
+                                            />
+                                            <TextField
+                                              fullWidth
+                                              label="KMS region"
+                                              value={envSpecs.kms.region || ''}
+                                              margin="normal"
+                                              InputProps={{ readOnly: !isEditMode }}
+                                            />
+                                          </>
+                                        )}
                                       </Grid>
                                     )}
 

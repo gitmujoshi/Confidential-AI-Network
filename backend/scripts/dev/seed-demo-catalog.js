@@ -173,9 +173,9 @@ async function main() {
   await upsertUser({
     email: 'ccrp.demo@local.test',
     partyType: 'CCRP',
-    name: 'Demo CCRP (Local + Azure)',
-    description: 'Demo CCRP supporting Local and Azure environments for development.',
-    cloudProviders: ['Local', 'Azure'],
+    name: 'Demo CCRP (Azure)',
+    description: 'Demo CCRP supporting Azure environments for development (Local Docker uses ccrp.e2e@test.com).',
+    cloudProviders: ['Azure'],
     organization: 'Demo Clean Rooms Inc.',
   });
 

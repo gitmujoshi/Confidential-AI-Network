@@ -207,7 +207,14 @@ const TSPCloudCredentials = () => {
         ...(formData.cloudProvider === 'AZURE' ? { azure: azureFields } : {}),
         ...(formData.cloudProvider === 'AWS' ? { aws: awsFields } : {}),
         ...(formData.cloudProvider === 'GCP' ? { gcp: gcpFields } : {}),
-        ...(formData.cloudProvider === 'OCI' ? { oci: ociFields } : {}),
+        ...(formData.cloudProvider === 'OCI'
+          ? {
+              oci: {
+                ...ociFields,
+                vaultOcid: ociFields.vaultId || ociFields.vaultOcid || null,
+              },
+            }
+          : {}),
       };
 
       if (dialogMode === 'add') {
