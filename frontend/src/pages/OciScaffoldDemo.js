@@ -221,7 +221,20 @@ const OciScaffoldDemo = () => {
                           <TableCell sx={{ fontWeight: 600, border: 0, px: 0 }}>Cloud</TableCell>
                           <TableCell sx={{ border: 0, px: 0 }}>
                             {p.cloudProvider} · {p.secretManager}
+                            {p.infrastructure ? ` · ${p.infrastructure}` : ''}
                           </TableCell>
+                        </TableRow>
+                      )}
+                      {p.email && (
+                        <TableRow>
+                          <TableCell sx={{ fontWeight: 600, border: 0, px: 0 }}>Email</TableCell>
+                          <TableCell sx={{ fontSize: '0.8rem', border: 0, px: 0 }}>{p.email}</TableCell>
+                        </TableRow>
+                      )}
+                      {p.compute && (
+                        <TableRow>
+                          <TableCell sx={{ fontWeight: 600, border: 0, px: 0 }}>Compute</TableCell>
+                          <TableCell sx={{ border: 0, px: 0 }}>{p.compute}</TableCell>
                         </TableRow>
                       )}
                       {p.vaultOcid && (
@@ -290,7 +303,7 @@ const OciScaffoldDemo = () => {
         </TabPanel>
 
         <TabPanel value={tab} index={2}>
-          <SectionTitle subtitle="TDC proposes terms, selects the OCI TSP, binds confidential-vm + OCI Vault KMS into environmentSpecs / kmsConfigs. TDP and TSP sign.">
+          <SectionTitle subtitle="TDC proposes terms and selects an OCI infrastructure TSP (confidential-vm / OKE / OCI Vault — not Local Docker). TDP and TSP sign.">
             Contract creation &amp; signing
           </SectionTitle>
           <Paper variant="outlined" sx={{ p: 2, mb: 2 }}>

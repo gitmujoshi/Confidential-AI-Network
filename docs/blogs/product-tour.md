@@ -188,10 +188,12 @@ permalink: /product-tour/
 <section class="home-section" id="oci">
   <h2>OCI path</h2>
   <p>
-    Same end-to-end stages with TSP on <strong>OCI</strong>: Identity Domains SSO, OCI Vault KMS,
-    confidential-vm compute on OKE, Object Storage ciphertext, and SPIFFE-gated key release.
+    Same end-to-end stages with an <strong>OCI infrastructure TSP</strong>
+    (confidential-vm on OKE, OCI Vault KMS — not Local Docker): Identity Domains SSO,
+    Object Storage ciphertext, and SPIFFE-gated key release.
     Live UI walkthrough: <code>/demo/oci-scaffolds</code>
     (design complete — no live tenancy required for the demo screens).
+    Static OCI TSP for the app: <code>tsp.oci.e2e@test.com</code>.
   </p>
 </section>
 
@@ -199,7 +201,7 @@ permalink: /product-tour/
   <h2>1. Party registration (OCI)</h2>
   <p>
     TDC, TDP, and TSP register with OCI IAM Identity Domains. Signing keys and secrets use OCI Vault;
-    the TSP offers confidential compute on OKE.
+    the TSP is an <strong>OCI infrastructure provider</strong> offering confidential compute on OKE (not Local Docker).
   </p>
   <figure class="shot">
     <img src="{{ '/assets/oci/01-registration.png' | relative_url }}" alt="OCI path — party registration for TDC, TDP, and TSP" loading="lazy" />

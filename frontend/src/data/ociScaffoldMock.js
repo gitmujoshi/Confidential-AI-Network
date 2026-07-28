@@ -101,8 +101,11 @@ export const OCI_TSP_ENV_MOCK = {
   tsp: {
     depaId: OCI_SHARED.parties.tsp,
     displayName: 'SecureClean Rooms LLC',
+    email: 'tsp.oci.e2e@test.com',
+    role: 'OCI infrastructure provider',
     cloudProvider: OCI_SHARED.cloudProvider,
     secretManager: OCI_SHARED.secretManager,
+    note: 'Not Local Docker — OCI tenancy with confidential compute, Vault, and OKE Jobs',
   },
   credentials: {
     compartmentId: OCI_SHARED.tspVault.compartmentId,
@@ -419,12 +422,15 @@ export const OCI_E2E_PARTIES = [
     role: 'TSP',
     label: 'Tech Service Provider',
     organization: OCI_TSP_ENV_MOCK.tsp.displayName,
+    email: OCI_TSP_ENV_MOCK.tsp.email,
     depaId: OCI_SHARED.parties.tsp,
     identityProvider: 'OCI IAM Identity Domains',
     cloudProvider: 'OCI',
     secretManager: 'OCI_VAULT',
     compute: OCI_SHARED.confidentialCompute.computeType,
-    dashboard: 'Offer confidential OKE clean rooms, co-sign contracts, host training Jobs',
+    infrastructure: 'OCI (not Local Docker)',
+    dashboard:
+      'OCI infrastructure provider — confidential-vm on OKE, OCI Vault KMS, Object Storage, SPIFFE/WIF Jobs',
   },
 ];
 

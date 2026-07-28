@@ -121,7 +121,7 @@ async function ensureStaticTspAdvertisesLocalDocker(backendURL, adminToken) {
       `${backendURL}/api/users/${u.id}`,
       {
         cloudProviders: target,
-        description: u.description || 'Static E2E TSP provider (Local Docker)',
+        description: u.description || 'Static E2E TSP for Local Docker training only',
       },
       { headers: { Authorization: `Bearer ${adminToken}` } }
     );
@@ -129,6 +129,56 @@ async function ensureStaticTspAdvertisesLocalDocker(backendURL, adminToken) {
   } catch (err) {
     console.warn(
       '⚠️ Failed to set Local provider on static TSP:',
+      err.response?.status || err.message
+    );
+  }
+}
+
+/** Static OCI infrastructure TSP — confidential compute, never Local. */
+async function ensureStaticTspAdvertisesOci(backendURL, adminToken) {
+  const staticEmail = 'tsp.oci.e2e@test.com';
+  try {
+    let rows = [];
+    try {
+      const res = await axios.get(`${backendURL}/api/users/tsp`, {
+        headers: { Authorization: `Bearer ${adminToken}` },
+      });
+      rows = Array.isArray(res.data) ? res.data : [];
+    } catch (_) {
+      const res = await axios.get(`${backendURL}/api/users/ccrp`, {
+        headers: { Authorization: `Bearer ${adminToken}` },
+      });
+      rows = Array.isArray(res.data) ? res.data : [];
+    }
+    const u = rows.find((row) => row.email === staticEmail);
+    if (!u) {
+      console.warn(`⚠️ Static OCI TSP ${staticEmail} not found — run: npm run seed:e2e-users`);
+      return;
+    }
+    const existing = Array.isArray(u.cloudProviders) ? u.cloudProviders : [];
+    const target = ['OCI'];
+    const description =
+      'OCI infrastructure provider: confidential-vm on OKE, OCI Vault (OCI_VAULT) for KMS/secrets, Object Storage ciphertext, SPIFFE/WIF for training Jobs. Not Local Docker.';
+    if (
+      normalizedProviderSet(existing) === normalizedProviderSet(target) &&
+      String(u.description || '') === description
+    ) {
+      console.log(`✅ Static TSP ${staticEmail} already has OCI infrastructure provider`);
+      return;
+    }
+    await axios.put(
+      `${backendURL}/api/users/${u.id}`,
+      {
+        cloudProviders: target,
+        description,
+        organization: u.organization || 'SecureClean Rooms LLC',
+      },
+      { headers: { Authorization: `Bearer ${adminToken}` } }
+    );
+    console.log(`✅ Ensured OCI infrastructure cloudProviders on static TSP ${staticEmail}`);
+  } catch (err) {
+    console.warn(
+      '⚠️ Failed to set OCI provider on static TSP:',
       err.response?.status || err.message
     );
   }
@@ -156,6 +206,7 @@ class E2ETestDataManager {
     }
 
     await ensureStaticTspAdvertisesLocalDocker(backendURL, adminToken);
+    await ensureStaticTspAdvertisesOci(backendURL, adminToken);
 
     // Deterministic AI fixtures: tabular/text + vision (wizard modality filtering / dropdown tests).
     await ensureAiModelExists(backendURL, adminToken, {

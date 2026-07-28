@@ -1587,7 +1587,7 @@ function CreateRicardianContract() {
                             <MenuItem value="AWS">AWS</MenuItem>
                             <MenuItem value="Azure">Azure</MenuItem>
                             <MenuItem value="GCP">GCP</MenuItem>
-                            <MenuItem value="OCI">OCI</MenuItem>
+                            <MenuItem value="OCI">OCI (confidential compute)</MenuItem>
                           </Select>
                         </FormControl>
                       </Grid>

@@ -38,6 +38,11 @@ const KEEP_LOCAL = new Set([
   'tsp.local@jurisdiction-test.com',
 ]);
 
+const KEEP_OCI = new Set([
+  'tsp.oci.e2e@test.com',
+  'tsp.yotta@in-fintech-test.com',
+]);
+
 /** Preferred non-Local providers when stripping Local. */
 const PROVIDER_BY_EMAIL = {
   'tsp.us-east@jurisdiction-test.com': ['AWS'],
@@ -46,6 +51,7 @@ const PROVIDER_BY_EMAIL = {
   'tsp.ca-central@jurisdiction-test.com': ['Azure'],
   'tsp.yotta@in-fintech-test.com': ['OCI'],
   'tsp.esds@in-fintech-test.com': ['Azure'],
+  'tsp.oci.e2e@test.com': ['OCI'],
   'ccrp.demo@local.test': ['Azure'],
 };
 
@@ -96,6 +102,25 @@ async function main() {
         console.log(`· already Local-only: ${email}`);
       }
       kept += 1;
+      continue;
+    }
+
+    if (KEEP_OCI.has(email) || PROVIDER_BY_EMAIL[email]?.includes('OCI')) {
+      const target = PROVIDER_BY_EMAIL[email] || ['OCI'];
+      const patch = {
+        cloudProviders: target,
+        description:
+          user.description && !/local docker/i.test(String(user.description))
+            ? user.description
+            : 'OCI infrastructure provider: confidential-vm on OKE, OCI Vault, Object Storage, SPIFFE/WIF. Not Local Docker.',
+      };
+      if (JSON.stringify(current) !== JSON.stringify(target)) {
+        console.log(`✓ keep OCI: ${email}  ${JSON.stringify(current)} → ${JSON.stringify(target)}`);
+        if (!dryRun) await user.update(patch);
+        updated += 1;
+      } else {
+        console.log(`· already OCI: ${email}`);
+      }
       continue;
     }
 

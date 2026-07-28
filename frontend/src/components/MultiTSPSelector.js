@@ -54,6 +54,27 @@ const MultiTSPSelector = ({
     }
   };
 
+  const isOciInfra = (tsp) =>
+    (tsp.cloudProviders || []).map(String).some((p) => p.toUpperCase() === 'OCI');
+
+  const offeringChips = (tsp) => {
+    if (isOciInfra(tsp)) {
+      return [
+        { label: 'OCI infra', color: 'success' },
+        { label: 'confidential-vm', color: 'default' },
+        { label: 'OKE', color: 'default' },
+        { label: 'OCI Vault', color: 'default' },
+      ];
+    }
+    if ((tsp.cloudProviders || []).map(String).includes('Local')) {
+      return [{ label: 'Local Docker', color: 'default' }];
+    }
+    return (tsp.cloudProviders || []).map((p) => ({
+      label: p,
+      color: getProviderColor(p),
+    }));
+  };
+
   return (
     <Box>
       <FormControl fullWidth size="small" sx={{ mb: 2.5, maxWidth: 360 }}>
@@ -71,14 +92,15 @@ const MultiTSPSelector = ({
           <MenuItem value="AWS">AWS</MenuItem>
           <MenuItem value="Azure">Azure</MenuItem>
           <MenuItem value="GCP">GCP</MenuItem>
-          <MenuItem value="OCI">OCI</MenuItem>
+          <MenuItem value="OCI">OCI (confidential compute)</MenuItem>
         </Select>
       </FormControl>
 
       {!selectedTsp && (
         <Alert severity="info" sx={{ mb: 2 }}>
           <AlertTitle sx={{ fontWeight: 700 }}>No TSP selected</AlertTitle>
-          Choose a training service provider for confidential compute (optional).
+          Choose a training service provider. For OCI, pick an OCI infrastructure provider
+          (confidential-vm / OKE / OCI Vault) — not Local Docker.
         </Alert>
       )}
 
@@ -86,6 +108,7 @@ const MultiTSPSelector = ({
         {filteredTspUsers.map((tsp) => {
           const tspKey = tsp.depaId || tsp.id;
           const isSelected = String(selectedTsp) === String(tspKey);
+          const chips = offeringChips(tsp);
 
           return (
             <Paper
@@ -93,6 +116,7 @@ const MultiTSPSelector = ({
               variant="outlined"
               data-testid={`tsp-card-${tspKey}`}
               data-tsp-email={tsp.email || ''}
+              data-tsp-cloud={isOciInfra(tsp) ? 'OCI' : tsp.cloudProviders?.[0] || ''}
               data-selected={isSelected ? 'true' : 'false'}
               onClick={() => !disabled && onTspToggle(tspKey)}
               sx={{
@@ -141,7 +165,10 @@ const MultiTSPSelector = ({
                     )}
                   </Stack>
                   <Typography variant="body2" color="text.secondary" sx={{ mb: 0.75 }}>
-                    {tsp.description || 'Confidential computing environment provider'}
+                    {tsp.description ||
+                      (isOciInfra(tsp)
+                        ? 'OCI infrastructure provider — confidential compute on OKE with OCI Vault'
+                        : 'Confidential computing environment provider')}
                   </Typography>
                   <Typography
                     variant="caption"
@@ -150,15 +177,18 @@ const MultiTSPSelector = ({
                   >
                     {tsp.email}
                   </Typography>
-                  {tsp.cloudProviders?.[0] && (
-                    <Chip
-                      icon={<Cloud sx={{ fontSize: '16px !important' }} />}
-                      label={tsp.cloudProviders[0]}
-                      color={getProviderColor(tsp.cloudProviders[0])}
-                      variant="outlined"
-                      size="small"
-                    />
-                  )}
+                  <Stack direction="row" flexWrap="wrap" gap={0.75}>
+                    {chips.map((c) => (
+                      <Chip
+                        key={c.label}
+                        icon={c.label.startsWith('OCI') ? <Cloud sx={{ fontSize: '16px !important' }} /> : undefined}
+                        label={c.label}
+                        color={c.color}
+                        variant="outlined"
+                        size="small"
+                      />
+                    ))}
+                  </Stack>
                 </Box>
               </Stack>
             </Paper>
@@ -178,6 +208,7 @@ const MultiTSPSelector = ({
           if (!selectedTspUser) return null;
           const providers = selectedTspUser.cloudProviders || [];
           const selectedKey = selectedTspUser.depaId || selectedTspUser.id;
+          const oci = isOciInfra(selectedTspUser);
           return (
             <Paper
               variant="outlined"
@@ -190,7 +221,7 @@ const MultiTSPSelector = ({
               }}
             >
               <Typography variant="subtitle2" sx={{ color: '#94a3b8', mb: 0.5 }}>
-                Selected TSP
+                Selected TSP {oci ? '· OCI infrastructure' : ''}
               </Typography>
               <List dense disablePadding>
                 <ListItem sx={{ px: 0 }}>
@@ -204,19 +235,22 @@ const MultiTSPSelector = ({
                     <Typography variant="caption" sx={{ color: '#94a3b8' }} display="block">
                       {selectedTspUser.email}
                     </Typography>
-                    {providers.length > 0 && (
-                      <Box sx={{ mt: 1 }}>
-                        {providers.map((provider) => (
-                          <Chip
-                            key={provider}
-                            label={provider}
-                            color={getProviderColor(provider)}
-                            size="small"
-                            sx={{ mr: 0.5 }}
-                          />
-                        ))}
-                      </Box>
+                    {oci && (
+                      <Typography variant="caption" sx={{ color: '#86efac', mt: 0.5 }} display="block">
+                        confidential-vm · OKE · OCI Vault (not Local Docker)
+                      </Typography>
                     )}
+                    <Box sx={{ mt: 1 }}>
+                      {offeringChips(selectedTspUser).map((c) => (
+                        <Chip
+                          key={c.label}
+                          label={c.label}
+                          color={c.color}
+                          size="small"
+                          sx={{ mr: 0.5, mb: 0.5 }}
+                        />
+                      ))}
+                    </Box>
                   </Box>
                   <ListItemSecondaryAction>
                     <IconButton
@@ -248,7 +282,7 @@ const MultiTSPSelector = ({
                   >
                     {providers.map((provider) => (
                       <MenuItem key={provider} value={provider}>
-                        {provider}
+                        {provider === 'OCI' ? 'OCI (confidential compute)' : provider}
                       </MenuItem>
                     ))}
                   </Select>

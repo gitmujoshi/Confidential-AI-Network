@@ -70,15 +70,33 @@ async function ensureTspLocalProvider(_email) {
   }
 
   // Only two Local TSPs in the environment — static E2E + jurisdiction local.
+  // OCI TSPs (tsp.oci.e2e@test.com, etc.) must stay on OCI — never force Local onto them.
   const KEEP_LOCAL = new Set(['ccrp.e2e@test.com', 'tsp.local@jurisdiction-test.com']);
+  const KEEP_OCI = new Set(['tsp.oci.e2e@test.com', 'tsp.yotta@in-fintech-test.com']);
 
   for (const row of rows) {
     const rowEmail = String(row.email || '').toLowerCase();
     const existing = Array.isArray(row.cloudProviders) ? row.cloudProviders.map(String) : [];
     const hasLocal = existing.map((p) => p.toLowerCase()).includes('local');
-    const shouldKeep = KEEP_LOCAL.has(rowEmail);
+    const shouldKeepLocal = KEEP_LOCAL.has(rowEmail);
+    const shouldKeepOci = KEEP_OCI.has(rowEmail);
 
-    if (shouldKeep) {
+    if (shouldKeepOci) {
+      if (JSON.stringify(existing) === JSON.stringify(['OCI'])) continue;
+      await axios.put(
+        `${BACKEND_URL}/api/users/${row.id}`,
+        {
+          cloudProviders: ['OCI'],
+          description:
+            row.description ||
+            'OCI infrastructure provider: confidential-vm on OKE, OCI Vault, Object Storage, SPIFFE/WIF. Not Local Docker.',
+        },
+        { headers: { Authorization: `Bearer ${adminToken}` } }
+      );
+      continue;
+    }
+
+    if (shouldKeepLocal) {
       if (JSON.stringify(existing) === JSON.stringify(['Local'])) continue;
       await axios.put(
         `${BACKEND_URL}/api/users/${row.id}`,

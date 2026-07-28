@@ -19,7 +19,17 @@
       "partyType": "TSP",
       "role": "TSP",
       "legacyPartyType": "CCRP",
-      "cloudProviders": ["Local"]
+      "cloudProviders": ["Local"],
+      "description": "Static E2E TSP for Local Docker training only"
+    },
+    {
+      "name": "SecureClean Rooms (OCI)",
+      "email": "tsp.oci.e2e@test.com",
+      "partyType": "TSP",
+      "role": "TSP",
+      "organization": "SecureClean Rooms LLC",
+      "cloudProviders": ["OCI"],
+      "description": "OCI infrastructure provider: confidential-vm on OKE, OCI Vault (OCI_VAULT) for KMS/secrets, Object Storage ciphertext, SPIFFE/WIF for training Jobs. Not Local Docker."
     },
     {
       "name": "AppAdmin E2E User",

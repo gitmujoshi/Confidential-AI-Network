@@ -84,7 +84,7 @@ async function waitForBackend(timeoutMs = 90000) {
   throw new Error(`Backend not healthy at ${BACKEND_URL}`);
 }
 
-async function ensureUser({ name, email, partyType }) {
+async function ensureUser({ name, email, partyType, organization, description, cloudProviders }) {
   try {
     const login = await axios.post(`${BACKEND_URL}/api/auth/login`, {
       email,
@@ -100,11 +100,17 @@ async function ensureUser({ name, email, partyType }) {
 
   let temporaryPassword;
   try {
-    const reg = await axios.post(`${BACKEND_URL}/api/auth/register`, {
+    const body = {
       name,
       email,
       partyType,
-    });
+    };
+    if (organization) body.organization = organization;
+    if (description) body.description = description;
+    if (Array.isArray(cloudProviders) && cloudProviders.length) {
+      body.cloudProviders = cloudProviders;
+    }
+    const reg = await axios.post(`${BACKEND_URL}/api/auth/register`, body);
     temporaryPassword = reg.data?.loginCredentials?.password;
     console.log(`   + registered: ${email} (${partyType})`);
   } catch (err) {
@@ -127,17 +133,23 @@ async function ensureUser({ name, email, partyType }) {
   return { email, status: 'created' };
 }
 
+async function listTspUsers(adminToken) {
+  const res = await axios
+    .get(`${BACKEND_URL}/api/users/tsp`, {
+      headers: { Authorization: `Bearer ${adminToken}` },
+    })
+    .catch(() =>
+      axios.get(`${BACKEND_URL}/api/users/ccrp`, {
+        headers: { Authorization: `Bearer ${adminToken}` },
+      })
+    );
+  return Array.isArray(res.data) ? res.data : [];
+}
+
 async function ensureStaticTspLocal(adminToken) {
   const tsp = USERS.find((u) => u.cloudProviders?.includes('Local'));
   if (!tsp) return;
-  const res = await axios.get(`${BACKEND_URL}/api/users/tsp`, {
-    headers: { Authorization: `Bearer ${adminToken}` },
-  }).catch(() =>
-    axios.get(`${BACKEND_URL}/api/users/ccrp`, {
-      headers: { Authorization: `Bearer ${adminToken}` },
-    })
-  );
-  const rows = Array.isArray(res.data) ? res.data : [];
+  const rows = await listTspUsers(adminToken);
   const user = rows.find((u) => u.email === tsp.email);
   if (!user) {
     console.warn(`   ⚠️ static TSP not found for Local provider: ${tsp.email}`);
@@ -149,11 +161,41 @@ async function ensureStaticTspLocal(adminToken) {
     `${BACKEND_URL}/api/users/${user.id}`,
     {
       cloudProviders: ['Local'],
-      description: user.description || 'Static E2E TSP provider (Local Docker)',
+      description: tsp.description || 'Static E2E TSP for Local Docker training only',
     },
     { headers: { Authorization: `Bearer ${adminToken}` } }
   );
   console.log(`   ✓ Local cloud provider on ${tsp.email}`);
+}
+
+async function ensureStaticTspOci(adminToken) {
+  const tsp = USERS.find((u) => u.cloudProviders?.includes('OCI'));
+  if (!tsp) return;
+  const rows = await listTspUsers(adminToken);
+  const user = rows.find((u) => u.email === tsp.email);
+  if (!user) {
+    console.warn(`   ⚠️ static OCI TSP not found: ${tsp.email}`);
+    return;
+  }
+  const patch = {
+    cloudProviders: ['OCI'],
+    description:
+      tsp.description ||
+      'OCI infrastructure provider: confidential-vm on OKE, OCI Vault, Object Storage, SPIFFE/WIF. Not Local Docker.',
+    organization: tsp.organization || user.organization || 'SecureClean Rooms LLC',
+  };
+  const existing = Array.isArray(user.cloudProviders) ? user.cloudProviders : [];
+  const already =
+    JSON.stringify(existing) === JSON.stringify(['OCI']) &&
+    String(user.description || '') === String(patch.description);
+  if (already) {
+    console.log(`   ✓ OCI infrastructure provider already set on ${tsp.email}`);
+    return;
+  }
+  await axios.put(`${BACKEND_URL}/api/users/${user.id}`, patch, {
+    headers: { Authorization: `Bearer ${adminToken}` },
+  });
+  console.log(`   ✓ OCI infrastructure provider on ${tsp.email}`);
 }
 
 async function verifyAllLogins() {
@@ -184,6 +226,9 @@ async function main() {
         name: u.name,
         email: u.email,
         partyType: u.partyType,
+        organization: u.organization,
+        description: u.description,
+        cloudProviders: u.cloudProviders,
       });
     } catch (err) {
       if (u.legacyPartyType) {
@@ -191,6 +236,9 @@ async function main() {
           name: u.name,
           email: u.email,
           partyType: u.legacyPartyType,
+          organization: u.organization,
+          description: u.description,
+          cloudProviders: u.cloudProviders,
         });
       } else {
         throw err;
@@ -203,6 +251,7 @@ async function main() {
     password: PASSWORD,
   });
   await ensureStaticTspLocal(adminLogin.data.accessToken);
+  await ensureStaticTspOci(adminLogin.data.accessToken);
 
   const failures = await verifyAllLogins();
   if (failures.length) {
