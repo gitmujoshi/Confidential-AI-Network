@@ -25,18 +25,34 @@ provider "oci" {
   region           = var.region
 }
 
-# Configure Kubernetes Provider
+# Configure Kubernetes Provider (OKE token via OCI CLI)
 provider "kubernetes" {
-  host                   = data.oci_container_engine_cluster.oke_cluster.endpoints[0].kubernetes
-  cluster_ca_certificate = base64decode(data.oci_container_engine_cluster.oke_cluster.kube_config[0].cluster_ca_certificate)
-  token                  = data.oci_container_engine_cluster.oke_cluster.kube_config[0].token
+  host                   = try(module.oke.cluster_endpoint, null)
+  cluster_ca_certificate = base64decode(yamldecode(module.oke.kubeconfig).clusters[0].cluster["certificate-authority-data"])
+  exec {
+    api_version = "client.authentication.k8s.io/v1beta1"
+    command     = "oci"
+    args = [
+      "ce", "cluster", "generate-token",
+      "--cluster-id", module.oke.cluster_id,
+      "--region", var.region,
+    ]
+  }
 }
 
 provider "helm" {
   kubernetes {
-    host                   = data.oci_container_engine_cluster.oke_cluster.endpoints[0].kubernetes
-    cluster_ca_certificate = base64decode(data.oci_container_engine_cluster.oke_cluster.kube_config[0].cluster_ca_certificate)
-    token                  = data.oci_container_engine_cluster.oke_cluster.kube_config[0].token
+    host                   = try(module.oke.cluster_endpoint, null)
+    cluster_ca_certificate = base64decode(yamldecode(module.oke.kubeconfig).clusters[0].cluster["certificate-authority-data"])
+    exec {
+      api_version = "client.authentication.k8s.io/v1beta1"
+      command     = "oci"
+      args = [
+        "ce", "cluster", "generate-token",
+        "--cluster-id", module.oke.cluster_id,
+        "--region", var.region,
+      ]
+    }
   }
 }
 
@@ -45,9 +61,8 @@ data "oci_identity_availability_domains" "ads" {
   compartment_id = var.compartment_id
 }
 
-data "oci_container_engine_cluster" "oke_cluster" {
-  cluster_id = module.oke.cluster_id
-}
+# Remove obsolete data.oci_container_engine_cluster — kubeconfig comes from module.oke
+
 
 # VCN and Networking
 module "networking" {
@@ -75,25 +90,35 @@ module "oke" {
   node_ocpus         = var.node_ocpus
   node_memory_in_gbs = var.node_memory_in_gbs
   kubernetes_version = var.kubernetes_version
+  node_image_id      = var.node_image_id
   freeform_tags      = local.resource_freeform_tags
   defined_tags       = local.resource_defined_tags
 }
 
-# Database
+# Database — OCI Database with PostgreSQL (app uses Sequelize postgres dialect)
 module "database" {
   source = "./modules/database"
 
-  compartment_id = var.compartment_id
-  subnet_id      = module.networking.private_subnet_id
-  db_name        = var.db_name
-  db_password    = var.db_password
-  db_size        = var.db_size
-  freeform_tags  = local.resource_freeform_tags
-  defined_tags   = local.resource_defined_tags
+  compartment_id              = var.compartment_id
+  vcn_id                      = module.networking.vcn_id
+  vcn_cidr                    = var.vcn_cidr
+  subnet_id                   = module.networking.private_subnet_id
+  availability_domain         = data.oci_identity_availability_domains.ads.availability_domains[0].name
+  db_name                     = var.db_name
+  db_user                     = var.db_user
+  db_password                 = var.db_password
+  app_database_name           = var.app_database_name
+  db_shape                    = var.db_shape
+  instance_count              = var.db_instance_count
+  instance_ocpu_count         = var.db_instance_ocpu_count
+  instance_memory_size_in_gbs = var.db_instance_memory_in_gbs
+  freeform_tags               = local.resource_freeform_tags
+  defined_tags                = local.resource_defined_tags
 }
 
-# Load Balancer
+# Optional legacy flexible LB (empty backends) — prefer OKE native Service LBs
 module "load_balancer" {
+  count  = var.enable_legacy_load_balancer ? 1 : 0
   source = "./modules/load_balancer"
 
   compartment_id = var.compartment_id
@@ -103,11 +128,12 @@ module "load_balancer" {
   defined_tags   = local.resource_defined_tags
 }
 
-# Container Registry
+# Container Registry — backend + frontend repos under repository_name/
 module "container_registry" {
   source = "./modules/container_registry"
 
   compartment_id  = var.compartment_id
+  region          = var.region
   repository_name = var.repository_name
   environment     = var.environment
   freeform_tags   = local.resource_freeform_tags
@@ -150,19 +176,19 @@ module "identity" {
   defined_tags  = local.resource_defined_tags
 }
 
-# Kubernetes Resources
+# Kubernetes Resources (after identity + postgres + optional vault/object storage)
 module "kubernetes_resources" {
   source = "./modules/kubernetes_resources"
 
-  depends_on = [module.oke, module.identity]
+  depends_on = [module.oke, module.identity, module.database, module.container_registry, module.vault, module.object_storage]
 
   db_host     = module.database.db_host
   db_port     = module.database.db_port
   db_name     = module.database.db_name
   db_user     = module.database.db_user
   db_password = var.db_password
+  db_ssl      = var.db_ssl
 
-  lb_ip        = module.load_balancer.lb_ip
   registry_url = module.container_registry.registry_url
   image_tag    = local.effective_image_tag
 
@@ -171,6 +197,19 @@ module "kubernetes_resources" {
   release_version   = var.release_version
   ethereum_network  = var.ethereum_network
   infura_project_id = var.infura_project_id
+
+  frontend_api_base_url        = var.frontend_api_base_url
+  expose_backend_load_balancer = var.expose_backend_load_balancer
+  ocir_host                    = module.container_registry.ocir_host
+  ocir_username                = var.ocir_username
+  ocir_auth_token              = var.ocir_auth_token
+
+  oci_vault_ocid                  = var.enable_vault ? try(module.vault.vault_id, "") : ""
+  oci_vault_key_id                = var.enable_vault ? try(module.vault.key_id, "") : ""
+  object_storage_namespace        = var.enable_object_storage ? try(module.object_storage.namespace, "") : ""
+  object_storage_datasets_bucket  = var.enable_object_storage ? try(module.object_storage.bucket_names["datasets"], "") : ""
+  object_storage_outputs_bucket   = var.enable_object_storage ? try(module.object_storage.bucket_names["training_outputs"], "") : ""
+  object_storage_artifacts_bucket = var.enable_object_storage ? try(module.object_storage.bucket_names["artifacts"], "") : ""
 
   oci_identity_domain_url    = local.effective_oci_identity_domain_url
   oci_identity_client_id     = local.effective_oci_identity_client_id
@@ -182,6 +221,24 @@ module "kubernetes_resources" {
   oci_identity_role_claim    = var.oci_identity_role_claim
   oci_identity_redirect_uri  = local.effective_oci_identity_redirect_uri
   oci_cloud_gate_enabled     = var.oci_cloud_gate_enabled
+}
+
+# Vault / Object Storage before app ConfigMap wiring (opt-in)
+module "vault" {
+  source = "./modules/vault"
+
+  enabled        = var.enable_vault
+  compartment_id = var.compartment_id
+  environment    = var.environment
+}
+
+module "object_storage" {
+  source = "./modules/object_storage"
+
+  enabled        = var.enable_object_storage
+  compartment_id = var.compartment_id
+  environment    = var.environment
+  namespace      = var.object_storage_namespace
 }
 
 # SPIRE / SPIFFE — Phase 1 platform (opt-in; see docs/deployment/OCI_SPIFFE_SPIRE_WIF.md)
@@ -249,24 +306,7 @@ module "wif" {
   client_claim_values = var.wif_client_claim_values
 }
 
-# --- Design-complete platform scaffolds (opt-in; no live tenancy required to keep defaults off) ---
-
-module "vault" {
-  source = "./modules/vault"
-
-  enabled        = var.enable_vault
-  compartment_id = var.compartment_id
-  environment    = var.environment
-}
-
-module "object_storage" {
-  source = "./modules/object_storage"
-
-  enabled        = var.enable_object_storage
-  compartment_id = var.compartment_id
-  environment    = var.environment
-  namespace      = var.object_storage_namespace
-}
+# --- Remaining design scaffolds (opt-in) ---
 
 module "edge" {
   source = "./modules/edge"

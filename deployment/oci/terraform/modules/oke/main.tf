@@ -17,6 +17,30 @@ resource "oci_container_engine_cluster" "oke_cluster" {
   defined_tags  = var.defined_tags
 }
 
+# Compatible node images for this cluster / K8s version
+data "oci_containerengine_node_pool_option" "node_pool_options" {
+  node_pool_option_id = oci_container_engine_cluster.oke_cluster.id
+  compartment_id      = var.compartment_id
+}
+
+locals {
+  # Prefer Oracle Linux images that match the cluster Kubernetes version string
+  k8s_ver_compact = replace(var.kubernetes_version, "v", "")
+  oke_image_candidates = [
+    for s in data.oci_containerengine_node_pool_option.node_pool_options.sources : s
+    if can(regex("(?i)Oracle-Linux", s.source_name)) && can(regex(local.k8s_ver_compact, s.source_name))
+  ]
+  oke_node_image_id = var.node_image_id != "" ? var.node_image_id : (
+    length(local.oke_image_candidates) > 0
+    ? local.oke_image_candidates[0].image_id
+    : data.oci_containerengine_node_pool_option.node_pool_options.sources[0].image_id
+  )
+}
+
+data "oci_identity_availability_domains" "ads" {
+  compartment_id = var.compartment_id
+}
+
 # Node Pool
 resource "oci_container_engine_node_pool" "oke_node_pool" {
   cluster_id         = oci_container_engine_cluster.oke_cluster.id
@@ -40,11 +64,16 @@ resource "oci_container_engine_node_pool" "oke_node_pool" {
     memory_in_gbs = var.node_memory_in_gbs
   }
 
+  node_source_details {
+    image_id                = local.oke_node_image_id
+    source_type             = "IMAGE"
+    boot_volume_size_in_gbs = var.node_boot_volume_size_in_gbs
+  }
+
   freeform_tags = var.freeform_tags
   defined_tags  = var.defined_tags
 }
 
-# Data source for availability domains
-data "oci_identity_availability_domains" "ads" {
-  compartment_id = var.compartment_id
-} 
+data "oci_containerengine_cluster_kube_config" "kube_config" {
+  cluster_id = oci_container_engine_cluster.oke_cluster.id
+}

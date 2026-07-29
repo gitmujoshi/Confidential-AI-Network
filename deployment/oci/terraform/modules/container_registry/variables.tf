@@ -3,8 +3,13 @@ variable "compartment_id" {
   type        = string
 }
 
+variable "region" {
+  description = "OCI region (used to derive OCIR hostname)"
+  type        = string
+}
+
 variable "repository_name" {
-  description = "OCIR repository display name"
+  description = "OCIR repository name prefix (creates prefix/backend and prefix/frontend)"
   type        = string
 }
 
@@ -17,4 +22,14 @@ variable "repository_immutable" {
   description = "Override OCIR immutable tag policy (defaults to true for prod)"
   type        = bool
   default     = null
+}
+
+variable "freeform_tags" {
+  type    = map(string)
+  default = {}
+}
+
+variable "defined_tags" {
+  type    = map(string)
+  default = {}
 }

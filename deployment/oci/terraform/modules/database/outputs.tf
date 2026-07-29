@@ -1,30 +1,36 @@
 output "db_id" {
-  description = "OCID of the database"
-  value       = oci_database_autonomous_database.database.id
+  description = "OCID of the OCI PostgreSQL db system"
+  value       = oci_psql_db_system.postgres.id
 }
 
 output "db_host" {
-  description = "Database host"
-  value       = oci_database_autonomous_database.database.connection_strings[0].hosts[0]
+  description = "Primary PostgreSQL private IP (from network_details or primary instance)"
+  value = coalesce(
+    try(oci_psql_db_system.postgres.network_details[0].primary_db_endpoint_private_ip, null),
+    try([for i in oci_psql_db_system.postgres.instances : i.private_ip if try(i.is_primary, true)][0], null),
+    try(oci_psql_db_system.postgres.instances[0].private_ip, null)
+  )
 }
 
 output "db_port" {
-  description = "Database port"
-  value       = oci_database_autonomous_database.database.connection_strings[0].ports[0]
+  description = "PostgreSQL port"
+  value       = "5432"
 }
 
 output "db_name" {
-  description = "Database name"
-  value       = oci_database_autonomous_database.database.db_name
+  description = "Application database name"
+  value       = var.app_database_name
 }
 
 output "db_user" {
   description = "Database admin user"
-  value       = "ADMIN"
+  value       = var.db_user
 }
 
-output "db_connection_string" {
-  description = "Database connection string"
-  value       = oci_database_autonomous_database.database.connection_strings[0].high
-  sensitive   = true
-} 
+output "db_system_display_name" {
+  value = oci_psql_db_system.postgres.display_name
+}
+
+output "nsg_id" {
+  value = oci_core_network_security_group.postgres.id
+}

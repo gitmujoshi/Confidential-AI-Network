@@ -16,7 +16,7 @@
 |---------------------|------------|---------------------|
 | Human identity (Identity Domains) | [OCI_IAM_AND_EDGE_CONFIG.md](OCI_IAM_AND_EDGE_CONFIG.md) | `modules/identity` + `ociIdentityService.js` |
 | Edge (WAF, API Gateway, Cloud Gate) | Same + security architecture §6 | `modules/edge` (ConfigMap + operator checklist) |
-| Network / OKE / ADB / LB / OCIR | [OCI_SECURITY_ARCHITECTURE.md](../production/OCI_SECURITY_ARCHITECTURE.md) | `modules/networking`, `oke`, `database`, `load_balancer`, `container_registry`, `kubernetes_resources` |
+| Network / OKE / **PostgreSQL** / OCIR / K8s | [OCI_SECURITY_ARCHITECTURE.md](../production/OCI_SECURITY_ARCHITECTURE.md) | `modules/networking`, `oke`, `database` (OCI Postgres), `container_registry`, `kubernetes_resources`; legacy LB opt-in |
 | Vault / CMK | Security architecture §8.3 | `modules/vault` |
 | Object Storage datasets/artifacts | Features catalog § Object Storage | `modules/object_storage` |
 | Training as OKE Job | Readiness Phase 3 | `modules/training` + `helm/training` + `okeJobTrainingRunner.js` |
@@ -41,7 +41,7 @@
 | `enable_training` | `modules/training` |
 | `enable_scitt` | `modules/scitt` |
 
-Baseline (always in root stack): networking, OKE, database, load balancer, OCIR, identity, kubernetes_resources.
+Baseline (always in root stack): networking, OKE, **PostgreSQL**, OCIR, identity, kubernetes_resources. Legacy flexible LB: `enable_legacy_load_balancer` (default false).
 
 ---
 
@@ -73,6 +73,7 @@ Those are **apply / operations** work tracked in [OCI_READINESS.md](OCI_READINES
 
 | Date | Change |
 |------|--------|
+| 2026-07-29 | Baseline apply path: OCI PostgreSQL, OKE node images, OCIR dual repos + pull secret, nginx `/api` proxy |
 | 2026-07-28 | Design/scaffold completeness declaration + module map |
 
 ← [OCI readiness](OCI_READINESS.md) · [OCI Terraform README](../../deployment/oci/terraform/README.md)

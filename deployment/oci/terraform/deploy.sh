@@ -1,5 +1,5 @@
 #!/bin/bash
-# Confidential AI Network - OCI Terraform deployment (OKE + ADB + OCIR)
+# Confidential AI Network - OCI Terraform deployment (OKE + PostgreSQL + OCIR)
 
 set -euo pipefail
 
@@ -15,8 +15,16 @@ usage() {
 OCI image push prerequisites:
   export OCI_AUTH_TOKEN="<your-auth-token>"
   export OCI_USERNAME="<tenancy-namespace>/<oci-username>"
+  # Optional: also set for Kubernetes imagePullSecret
+  export TF_VAR_ocir_username="\$OCI_USERNAME"
+  export TF_VAR_ocir_auth_token="\$OCI_AUTH_TOKEN"
 
 Generate an auth token: OCI Console → Profile → Auth Tokens
+
+Notes:
+  - Database is OCI Database with PostgreSQL (not Autonomous DB)
+  - Frontend serves API via nginx /api → backend ClusterIP
+  - Identity: OCI IAM Identity Domains only (no Keycloak on OKE)
 EOF
 }
 
@@ -48,6 +56,14 @@ else
   print_success "OCI CLI found"
 fi
 ensure_tfvars "$SCRIPT_DIR"
+
+# Propagate OCIR credentials into Terraform for imagePullSecret when present
+if [ -n "${OCI_USERNAME:-}" ] && [ -z "${TF_VAR_ocir_username:-}" ]; then
+  export TF_VAR_ocir_username="$OCI_USERNAME"
+fi
+if [ -n "${OCI_AUTH_TOKEN:-}" ] && [ -z "${TF_VAR_ocir_auth_token:-}" ]; then
+  export TF_VAR_ocir_auth_token="$OCI_AUTH_TOKEN"
+fi
 
 terraform_init_validate
 terraform_plan_apply

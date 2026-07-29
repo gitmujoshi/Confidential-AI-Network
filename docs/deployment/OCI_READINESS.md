@@ -12,15 +12,17 @@ Assessment of whether the Contract Management System is ready to deploy to **Ora
 | Layer | Design / code | Live tenancy |
 |-------|---------------|--------------|
 | **Architecture & security design** | Complete | — |
-| **Terraform / OKE + opt-in modules** | Complete (scaffolds; `enable_*` default off) | Apply when compartment ready |
-| **Core app on OCI (UI + API + OCI IAM + DB)** | Scaffold + OIDC wiring | Needs Identity Domain validation |
-| **Vault / Object Storage / edge / training / SCITT** | Modules + app hooks | Opt-in apply |
+| **Terraform / OKE + PostgreSQL + Identity** | Baseline apply path implemented | Needs compartment + quotas |
+| **Core app on OCI (UI + API + OCI IAM + DB)** | K8s + nginx `/api` proxy + OCIR repos | Image push + IdP users |
+| **Vault / Object Storage / edge / training / SCITT** | Modules + app hooks | Opt-in `enable_*` |
 | **SPIFFE/SPIRE + WIF** | Modules + credential helper | Opt-in apply |
-| **One-click production** | No | Manual enable flags + DNS + images |
+| **One-click production** | Near — `./deployment/deploy-oci.sh terraform -y --images` | DNS + IdP seed users |
 
 **Identity:** OCI environments use **OCI IAM Identity Domains** only. **Keycloak** stays on local docker-compose for demos/E2E — not part of OCI deploy.
 
-**Verdict:** **Architecture and design are complete in-repo.** Ready for an **OCI infrastructure pilot** when you choose to apply Terraform. Not claimed: full production cutover without operator apply, image push, and smoke tests.
+**Database:** **OCI Database with PostgreSQL** (not Autonomous DB) — required for Sequelize `postgres`.
+
+**Verdict:** Baseline OCI deploy path is **implementation-complete in-repo** (Postgres, OKE node images, OCIR pull secret, frontend `/api` proxy). Still required from operators: tenancy apply, image push, Identity Domain user assignment, DNS/TLS.
 
 ---
 
@@ -33,6 +35,7 @@ Assessment of whether the Contract Management System is ready to deploy to **Ora
 - [OCI Features & Configuration](OCI_FEATURES_AND_CONFIGURATION.md) — feature catalog + env/settings
 - [OCI IAM & Edge Config](OCI_IAM_AND_EDGE_CONFIG.md) — IAM policies, Cloud Gate, API Gateway, WAF
 - [OCI SPIFFE/SPIRE + WIF](OCI_SPIFFE_SPIRE_WIF.md) — workload identity
+- [OCI Marketplace listing checklist](OCI_MARKETPLACE_LISTING_CHECKLIST.md) — Oracle Marketplace publish path for CAN
 - [config/examples/config.oci.env.example](../../config/examples/config.oci.env.example) — env template
 
 ### Infrastructure code (`deployment/oci/terraform/`)

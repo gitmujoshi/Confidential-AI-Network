@@ -1,6 +1,10 @@
 const { Sequelize } = require('sequelize');
 require('dotenv').config({ path: '../config.env' });
 
+const useSsl =
+  String(process.env.DB_SSL || '').toLowerCase() === 'true' ||
+  process.env.DB_SSL === '1';
+
 const sequelize = new Sequelize(
   process.env.DB_NAME,
   process.env.DB_USER,
@@ -18,8 +22,20 @@ const sequelize = new Sequelize(
     },
     dialectOptions: {
       // Force IPv4 connection
-      family: 4
-    }
+      family: 4,
+      ...(useSsl
+        ? {
+            ssl: {
+              require: true,
+              // OCI managed Postgres often presents a cert chain that needs the tenancy CA;
+              // set DB_SSL_REJECT_UNAUTHORIZED=true once the CA is mounted.
+              rejectUnauthorized:
+                String(process.env.DB_SSL_REJECT_UNAUTHORIZED || 'false').toLowerCase() ===
+                'true',
+            },
+          }
+        : {}),
+    },
   }
 );
 

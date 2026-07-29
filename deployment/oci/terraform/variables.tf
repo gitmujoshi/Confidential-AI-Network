@@ -88,10 +88,86 @@ variable "db_password" {
   sensitive   = true
 }
 
+variable "db_user" {
+  description = "PostgreSQL admin username"
+  type        = string
+  default     = "canadmin"
+}
+
+variable "app_database_name" {
+  description = "Database name the app connects to (default postgres until you CREATE DATABASE)"
+  type        = string
+  default     = "postgres"
+}
+
+variable "db_shape" {
+  description = "OCI PostgreSQL shape"
+  type        = string
+  default     = "PostgreSQL.VM.Standard.E4.Flex.2.32GB"
+}
+
+variable "db_instance_count" {
+  type    = number
+  default = 1
+}
+
+variable "db_instance_ocpu_count" {
+  type    = number
+  default = 2
+}
+
+variable "db_instance_memory_in_gbs" {
+  type    = number
+  default = 32
+}
+
+variable "db_ssl" {
+  type    = bool
+  default = true
+}
+
 variable "db_size" {
-  description = "Size of the database in GB"
+  description = "Deprecated (ADB TB size). Kept for tfvars compatibility; unused by PostgreSQL module."
   type        = number
-  default     = 100
+  default     = 1
+}
+
+variable "node_image_id" {
+  description = "Optional OKE node image OCID (auto-selected when empty)"
+  type        = string
+  default     = ""
+}
+
+variable "enable_legacy_load_balancer" {
+  description = "Provision disconnected flexible LB (legacy). Prefer OKE Service LBs."
+  type        = bool
+  default     = false
+}
+
+variable "frontend_api_base_url" {
+  description = "API URL guidance for SPA (empty = same-origin /api via nginx)"
+  type        = string
+  default     = ""
+}
+
+variable "expose_backend_load_balancer" {
+  description = "Expose backend via public OKE LB Service (debug)"
+  type        = bool
+  default     = false
+}
+
+variable "ocir_username" {
+  description = "OCIR username (tenancy-namespace/user) for imagePullSecret — or set TF_VAR_ocir_username"
+  type        = string
+  default     = ""
+  sensitive   = true
+}
+
+variable "ocir_auth_token" {
+  description = "OCIR auth token for imagePullSecret — or set TF_VAR_ocir_auth_token"
+  type        = string
+  default     = ""
+  sensitive   = true
 }
 
 # Load Balancer Configuration

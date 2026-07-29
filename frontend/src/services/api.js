@@ -1,6 +1,10 @@
 import axios from 'axios';
 
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5001';
+// Local: http://localhost:5001. OKE/prod image: empty string → same-origin /api via nginx.
+const API_BASE_URL =
+  process.env.REACT_APP_API_URL !== undefined && process.env.REACT_APP_API_URL !== null
+    ? process.env.REACT_APP_API_URL
+    : 'http://localhost:5001';
 
 export const api = axios.create({
   baseURL: API_BASE_URL,

@@ -2,7 +2,7 @@
 # Confidential AI Network - OCI deployment entry point
 #
 # Modes:
-#   terraform (default) - OKE + ADB + OCIR via Terraform
+#   terraform (default) - OKE + PostgreSQL + OCIR via Terraform
 #   vm                  - Single-compute-instance via OCI CLI
 
 set -euo pipefail
@@ -20,24 +20,26 @@ Usage:
   ./deployment/deploy-oci.sh [mode] [options]
 
 Modes:
-  terraform   Deploy OKE infrastructure (default)
+  terraform   Deploy OKE + PostgreSQL + Identity Domains (default)
               Options: -y --images --plan-only --skip-kubectl
-  vm          Single-instance quick start (OCI CLI + docker-compose)
+  vm          Single-instance quick start (OCI CLI + docker-compose) [legacy]
   destroy     Tear down Terraform stack (-y for auto-approve)
   help        Show this message
 
 OCI image push (with --images):
   export OCI_AUTH_TOKEN="<auth-token>"
   export OCI_USERNAME="<tenancy-namespace>/<username>"
+  export TF_VAR_ocir_username="\$OCI_USERNAME"
+  export TF_VAR_ocir_auth_token="\$OCI_AUTH_TOKEN"
 
 Examples:
   ./deployment/deploy-oci.sh terraform -y --images
-  ./deployment/deploy-oci.sh vm
   ./deployment/deploy-oci.sh destroy -y
 
 Docs:
   deployment/oci/terraform/README.md
   docs/deployment/OCI_READINESS.md
+  docs/deployment/OCI_MARKETPLACE_LISTING_CHECKLIST.md
 EOF
 }
 

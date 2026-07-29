@@ -36,20 +36,23 @@ output "database_name" {
   value       = module.database.db_name
 }
 
-# Load Balancer Outputs
+# Load Balancer Outputs (legacy optional module)
 output "load_balancer_id" {
-  description = "OCID of the load balancer"
-  value       = module.load_balancer.lb_id
+  description = "OCID of the legacy flexible load balancer (null when disabled)"
+  value       = try(module.load_balancer[0].lb_id, null)
 }
 
 output "load_balancer_ip" {
-  description = "Public IP of the load balancer"
-  value       = module.load_balancer.lb_ip
+  description = "Public IP — prefers OKE frontend Service LB, else legacy LB"
+  value = coalesce(
+    try(module.kubernetes_resources.frontend_service_ip, null),
+    try(module.load_balancer[0].lb_ip, null)
+  )
 }
 
 output "load_balancer_url" {
-  description = "URL of the load balancer"
-  value       = "http://${module.load_balancer.lb_ip}"
+  description = "URL of the frontend"
+  value       = "http://${coalesce(try(module.kubernetes_resources.frontend_service_ip, null), try(module.load_balancer[0].lb_ip, "pending"))}"
 }
 
 # Container Registry Outputs
@@ -66,12 +69,16 @@ output "container_registry_repository" {
 # Application URLs
 output "frontend_url" {
   description = "Frontend application URL"
-  value       = "http://${module.load_balancer.lb_ip}:3000"
+  value       = "http://${coalesce(try(module.kubernetes_resources.frontend_service_ip, null), try(module.load_balancer[0].lb_ip, "pending"))}:3000"
 }
 
 output "backend_url" {
-  description = "Backend API URL"
-  value       = "http://${module.load_balancer.lb_ip}:5000"
+  description = "Backend API URL (same-origin /api via frontend nginx, or optional public LB)"
+  value = var.expose_backend_load_balancer ? (
+    "http://${coalesce(try(module.kubernetes_resources.backend_public_ip, null), "pending")}:5000"
+    ) : (
+    "http://${coalesce(try(module.kubernetes_resources.frontend_service_ip, null), try(module.load_balancer[0].lb_ip, "pending"))}:3000/api"
+  )
 }
 
 output "auth_provider" {
@@ -229,13 +236,13 @@ output "next_steps" {
   description = "Next steps after deployment"
   value = concat(
     [
-      "1. Configure DNS to point ${var.app_domain} to ${module.load_balancer.lb_ip}",
+      "1. Point DNS ${var.app_domain} at frontend LB IP ${coalesce(try(module.kubernetes_resources.frontend_service_ip, null), try(module.load_balancer[0].lb_ip, "pending"))}",
       "2. Identity Domain URL: ${local.effective_oci_identity_domain_url}",
       "3. Assign users to groups ${join(", ", values(try(module.identity.group_display_names, {})))} (or seed via Console)",
       "4. Confirm AUTH_PROVIDER=oci-iam and KEYCLOAK_ENABLED=false on backend pods",
-      "5. Deploy application containers to OKE cluster",
-      "6. Access frontend at http://${module.load_balancer.lb_ip}:3000",
-      "7. Access backend API at http://${module.load_balancer.lb_ip}:5000",
+      "5. Push images: ./deployment/deploy-oci.sh terraform -y --images (set OCI_AUTH_TOKEN + OCI_USERNAME; optional TF_VAR_ocir_* for pull secret)",
+      "6. Access UI at http://${coalesce(try(module.kubernetes_resources.frontend_service_ip, null), "pending")}:3000 (API via /api nginx proxy)",
+      "7. PostgreSQL is private — app DB=${module.database.db_name}; create app DB if not using postgres: CREATE DATABASE …",
       "8. Sign in via Identity Domain SSO (SPA client ${local.effective_oci_identity_client_id})",
     ],
     var.enable_spire ? [
@@ -257,7 +264,7 @@ output "next_steps" {
       "14. Optional: set enable_vault=true for OCI Vault + master CMK scaffold",
     ],
     var.enable_object_storage ? [
-      "15. Object Storage namespace ${try(module.object_storage.namespace, "")} — wire DATASET_STORAGE_BACKEND=oci-object",
+      "15. Object Storage namespace ${try(module.object_storage.namespace, "")} — DATASET_STORAGE_BACKEND=oci-object wired in ConfigMap",
       ] : [
       "15. Optional: set enable_object_storage=true for dataset/output/artifact buckets",
     ],

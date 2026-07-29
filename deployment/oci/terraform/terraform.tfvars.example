@@ -28,8 +28,22 @@ node_ocpus         = 2
 node_memory_in_gbs = 16
 
 db_name     = "contractmanagement"
+db_user     = "canadmin"
 db_password = "CHANGE_ME_STRONG_PASSWORD"
-db_size     = 1
+# Application connects to this DB name (create if needed). Default postgres works out of the box.
+app_database_name = "postgres"
+# db_shape = "PostgreSQL.VM.Standard.E4.Flex.2.32GB"
+
+# Optional: pin OKE node image OCID (otherwise auto-selected for kubernetes_version)
+# node_image_id = "ocid1.image.oc1.."
+
+# Prefer OKE native Service LBs (default). Legacy flexible LB is off.
+enable_legacy_load_balancer = false
+# expose_backend_load_balancer = false
+
+# For private OCIR pulls from OKE (or export TF_VAR_ocir_username / TF_VAR_ocir_auth_token)
+# ocir_username   = "tenancyns/oracleidentitycloudservice/user@example.com"
+# ocir_auth_token = "CHANGE_ME"
 
 lb_name         = "can-dev-lb"
 repository_name = "confidential-ai-network"

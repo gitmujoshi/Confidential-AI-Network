@@ -46,4 +46,26 @@ variable "node_memory_in_gbs" {
 variable "kubernetes_version" {
   description = "Kubernetes version"
   type        = string
+}
+
+variable "node_image_id" {
+  description = "Optional OCID of OKE node image; empty = auto-select compatible Oracle Linux image"
+  type        = string
+  default     = ""
+}
+
+variable "node_boot_volume_size_in_gbs" {
+  description = "Boot volume size for worker nodes"
+  type        = number
+  default     = 60
+}
+
+variable "freeform_tags" {
+  type    = map(string)
+  default = {}
+}
+
+variable "defined_tags" {
+  type    = map(string)
+  default = {}
 } 

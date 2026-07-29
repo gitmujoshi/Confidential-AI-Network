@@ -2,9 +2,13 @@
 
 This directory contains the Terraform configuration for deploying the Contract Management System to Oracle Cloud Infrastructure (OCI).
 
-**Docs:** [OCI Features & Configuration](../../../docs/deployment/OCI_FEATURES_AND_CONFIGURATION.md) · [config.oci.env.example](../../../config/examples/config.oci.env.example) · [OCI Security Architecture](../../../docs/production/OCI_SECURITY_ARCHITECTURE.md).
+**Docs:** [OCI Features & Configuration](../../../docs/deployment/OCI_FEATURES_AND_CONFIGURATION.md) · [config.oci.env.example](../../../config/examples/config.oci.env.example) · [OCI Security Architecture](../../../docs/production/OCI_SECURITY_ARCHITECTURE.md) · [Marketplace checklist](../../../docs/deployment/OCI_MARKETPLACE_LISTING_CHECKLIST.md).
 
 **Identity:** OCI uses **OCI IAM Identity Domains** only (`AUTH_PROVIDER=oci-iam`). **Keycloak is not deployed** on OKE. Domain + OIDC apps + role groups are created by [`modules/identity`](modules/identity/README.md) (default on).
+
+**Database:** **OCI Database with PostgreSQL** (`modules/database`) — matches the app’s Sequelize `postgres` dialect (not Autonomous Database).
+
+**Ingress:** OKE native `LoadBalancer` Service for the frontend; nginx proxies `/api` → backend ClusterIP. Legacy flexible LB is opt-in (`enable_legacy_load_balancer`).
 
 **Workload identity:** SPIFFE/SPIRE — [`modules/spire`](modules/spire/README.md) + [`helm/spire`](../helm/spire/). OCI WIF — [`modules/wif`](modules/wif/README.md). Opt-in: `enable_spire` / `enable_wif`.
 
@@ -14,16 +18,13 @@ This directory contains the Terraform configuration for deploying the Contract M
 
 The deployment creates a complete infrastructure including:
 
-- **VCN (Virtual Cloud Network)** with public and private subnets
-- **OKE (Oracle Container Engine for Kubernetes)** cluster
-- **Autonomous Database** for application data
-- **Load Balancer** for traffic distribution
-- **Container Registry** for Docker images
+- **VCN** with public and private subnets
+- **OKE** cluster with node image auto-selection
+- **OCI Database with PostgreSQL** (private subnet + NSG)
+- **OCIR** repositories (`…/backend`, `…/frontend`) + optional imagePullSecret
 - **OCI IAM Identity Domains** (SPA/API apps + role groups)
-- **Kubernetes Resources** for application deployment
-- **SPIRE** (optional) — Server/Agent + OIDC Discovery + ClusterSPIFFEID entries
-- **OCI WIF** (optional) — IdentityPropagationTrust + Service Users + token-exchange app
-- **Vault / Object Storage / edge / training / SCITT** (optional design scaffolds)
+- **Kubernetes** Deployments/Services (frontend public LB, backend ClusterIP, Redis)
+- **SPIRE / WIF / Vault / Object Storage / training / edge / SCITT** (optional)
 
 ## 📋 Prerequisites
 

@@ -221,8 +221,12 @@ build_app_images() {
   print_status "Building backend image..."
   docker build -t "${registry_url}/backend:${tag}" "$repo_root/backend"
 
-  print_status "Building frontend image..."
-  docker build -t "${registry_url}/frontend:${tag}" "$repo_root/frontend"
+  print_status "Building frontend image (REACT_APP_API_URL=${REACT_APP_API_URL:-} same-origin /api)..."
+  docker build \
+    --build-arg "REACT_APP_API_URL=${REACT_APP_API_URL:-}" \
+    --build-arg "REACT_APP_AUTH_PROVIDER=${REACT_APP_AUTH_PROVIDER:-oci-iam}" \
+    -t "${registry_url}/frontend:${tag}" \
+    "$repo_root/frontend"
 
   print_status "Pushing images to ${registry_url}..."
   push_image_with_aliases "$registry_url" "backend" "$tag"
@@ -235,7 +239,7 @@ wait_for_k8s_deployments() {
   local timeout="${1:-600}"
 
   print_status "Waiting for deployments in namespace ${K8S_NAMESPACE}..."
-  for deployment in backend frontend keycloak; do
+  for deployment in backend frontend; do
     if kubectl get deployment "$deployment" -n "$K8S_NAMESPACE" >/dev/null 2>&1; then
       kubectl wait --for=condition=available --timeout="${timeout}s" \
         "deployment/${deployment}" -n "$K8S_NAMESPACE" || print_warning "Timed out waiting for ${deployment}"
