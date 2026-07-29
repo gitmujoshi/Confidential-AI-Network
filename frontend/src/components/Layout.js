@@ -459,7 +459,7 @@ const Layout = ({ children }) => {
           minHeight: '100vh',
         }}
       >
-        <Box sx={{ maxWidth: 1280, mx: 'auto' }}>{children}</Box>
+        <Box sx={{ width: '100%', maxWidth: '100%' }}>{children}</Box>
       </Box>
     </Box>
   );

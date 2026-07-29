@@ -133,7 +133,7 @@ const OciScaffoldDemo = () => {
   return (
     <Box sx={{ minHeight: '100vh', bgcolor: '#f4f2ec', pb: 6 }}>
       <Box sx={{ borderBottom: '1px solid #d4cfc4', bgcolor: '#fffcf6', py: 2 }}>
-        <Container maxWidth="lg">
+        <Container maxWidth={false}>
           <Stack direction={{ xs: 'column', sm: 'row' }} justifyContent="space-between" spacing={2}>
             <Box>
               <Typography variant="overline" sx={{ color: '#0a5c45', fontWeight: 700, letterSpacing: 1 }}>
@@ -160,7 +160,7 @@ const OciScaffoldDemo = () => {
         </Container>
       </Box>
 
-      <Container maxWidth="lg" sx={{ mt: 3 }}>
+      <Container maxWidth={false} sx={{ mt: 3 }}>
         <Paper sx={{ px: 2, pt: 1 }}>
           <Tabs
             value={tab}

@@ -147,7 +147,7 @@ const LandingPage = () => {
       </AppBar>
 
       {/* Hero Section */}
-      <Container maxWidth="lg" sx={{ py: { xs: 6, md: 10 } }}>
+      <Container maxWidth={false} sx={{ py: { xs: 6, md: 10 }, px: { xs: 2, sm: 3, md: 4, lg: 6 } }}>
         <Grid container spacing={6} alignItems="center">
           <Grid item xs={12} md={6}>
             <Typography variant="overline" color="primary" sx={{ fontWeight: 700 }}>
@@ -235,7 +235,7 @@ const LandingPage = () => {
 
       {/* Features Section */}
       <Box sx={{ py: 8, borderTop: '1px solid', borderColor: 'divider' }}>
-        <Container maxWidth="lg">
+        <Container maxWidth={false} sx={{ px: { xs: 2, sm: 3, md: 4, lg: 6 } }}>
           <Typography variant="h4" component="h2" textAlign="center" gutterBottom sx={{ fontWeight: 750, mb: 1 }}>
             Built for regulated collaboration
           </Typography>
@@ -263,7 +263,7 @@ const LandingPage = () => {
       </Box>
 
       {/* Benefits Section */}
-      <Container maxWidth="lg" sx={{ py: 8 }}>
+      <Container maxWidth={false} sx={{ py: 8, px: { xs: 2, sm: 3, md: 4, lg: 6 } }}>
         <Grid container spacing={6} alignItems="center">
           <Grid item xs={12} md={6}>
             <Typography variant="h3" component="h2" gutterBottom sx={{ fontWeight: 'bold' }}>
@@ -334,7 +334,7 @@ const LandingPage = () => {
 
       {/* CTA Section */}
       <Box sx={{ bgcolor: 'primary.main', color: 'white', py: 8 }}>
-        <Container maxWidth="md" sx={{ textAlign: 'center' }}>
+        <Container maxWidth={false} sx={{ textAlign: 'center', px: { xs: 2, sm: 3, md: 4, lg: 6 } }}>
           <Typography variant="h3" component="h2" gutterBottom sx={{ fontWeight: 'bold' }}>
             Ready to Get Started?
           </Typography>
@@ -377,7 +377,7 @@ const LandingPage = () => {
 
       {/* Footer */}
       <Box sx={{ bgcolor: 'grey.100', py: 4 }}>
-        <Container maxWidth="lg">
+        <Container maxWidth={false} sx={{ px: { xs: 2, sm: 3, md: 4, lg: 6 } }}>
           <Grid container spacing={4}>
             <Grid item xs={12} md={6}>
               <Typography variant="h6" gutterBottom sx={{ fontWeight: 'bold' }}>

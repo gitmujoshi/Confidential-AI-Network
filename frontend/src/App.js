@@ -159,23 +159,27 @@ const theme = createTheme({
     divider: 'rgba(15, 23, 42, 0.08)',
   },
   typography: {
+    // Base 16px (MUI default is 14) — scales rem-based type for easier reading.
+    fontSize: 16,
+    htmlFontSize: 16,
     fontFamily:
       '"Plus Jakarta Sans", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
-    h1: { fontWeight: 800, letterSpacing: '-0.035em', lineHeight: 1.15 },
-    h2: { fontWeight: 750, letterSpacing: '-0.03em', lineHeight: 1.2 },
-    h3: { fontWeight: 700, letterSpacing: '-0.025em', lineHeight: 1.25 },
-    h4: { fontWeight: 700, letterSpacing: '-0.02em', lineHeight: 1.3 },
-    h5: { fontWeight: 650, letterSpacing: '-0.015em', lineHeight: 1.35 },
-    h6: { fontWeight: 650, letterSpacing: '-0.01em', lineHeight: 1.4 },
-    subtitle1: { fontWeight: 600, letterSpacing: '-0.01em' },
-    subtitle2: { fontWeight: 600, letterSpacing: '-0.005em' },
-    body1: { lineHeight: 1.65, letterSpacing: '-0.005em' },
-    body2: { lineHeight: 1.55, letterSpacing: '-0.005em' },
-    button: { fontWeight: 600, letterSpacing: '-0.01em' },
+    h1: { fontWeight: 800, letterSpacing: '-0.035em', lineHeight: 1.15, fontSize: '2.75rem' },
+    h2: { fontWeight: 750, letterSpacing: '-0.03em', lineHeight: 1.2, fontSize: '2.25rem' },
+    h3: { fontWeight: 700, letterSpacing: '-0.025em', lineHeight: 1.25, fontSize: '1.875rem' },
+    h4: { fontWeight: 700, letterSpacing: '-0.02em', lineHeight: 1.3, fontSize: '1.5rem' },
+    h5: { fontWeight: 650, letterSpacing: '-0.015em', lineHeight: 1.35, fontSize: '1.25rem' },
+    h6: { fontWeight: 650, letterSpacing: '-0.01em', lineHeight: 1.4, fontSize: '1.125rem' },
+    subtitle1: { fontWeight: 600, letterSpacing: '-0.01em', fontSize: '1.0625rem' },
+    subtitle2: { fontWeight: 600, letterSpacing: '-0.005em', fontSize: '0.9375rem' },
+    body1: { fontSize: '1.0625rem', lineHeight: 1.7, letterSpacing: '-0.005em' },
+    body2: { fontSize: '0.9375rem', lineHeight: 1.6, letterSpacing: '-0.005em' },
+    button: { fontWeight: 600, letterSpacing: '-0.01em', fontSize: '0.9375rem' },
+    caption: { fontSize: '0.8125rem', lineHeight: 1.5 },
     overline: {
       fontWeight: 700,
       letterSpacing: '0.08em',
-      fontSize: '0.7rem',
+      fontSize: '0.75rem',
     },
   },
   components: {
@@ -244,6 +248,11 @@ const theme = createTheme({
         sizeSmall: {
           borderRadius: 7,
         },
+      },
+    },
+    MuiContainer: {
+      defaultProps: {
+        maxWidth: false,
       },
     },
     MuiPaper: {

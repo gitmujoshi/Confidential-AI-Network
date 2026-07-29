@@ -293,7 +293,7 @@ const TrainingEnvironment = () => {
 
   if (loading) {
     return (
-      <Container maxWidth="lg" sx={{ py: 4 }}>
+      <Container maxWidth={false} sx={{ py: 4 }}>
         <Box display="flex" justifyContent="center" alignItems="center" minHeight="400px">
           <CircularProgress />
         </Box>
@@ -302,7 +302,7 @@ const TrainingEnvironment = () => {
   }
 
   return (
-    <Container maxWidth="lg" sx={{ py: 4 }}>
+    <Container maxWidth={false} sx={{ py: 4 }}>
       <Paper elevation={0} sx={{ p: 4 }}>
         <Typography variant="h4" component="h1" gutterBottom align="center">
           Training Environment Management

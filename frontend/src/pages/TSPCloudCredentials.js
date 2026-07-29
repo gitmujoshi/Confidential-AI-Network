@@ -328,7 +328,7 @@ const TSPCloudCredentials = () => {
 
   if (!currentUser || currentUser.partyType !== 'TSP') {
     return (
-      <Container maxWidth="lg">
+      <Container maxWidth={false}>
         <Alert severity="warning">
           <AlertTitle>Access Restricted</AlertTitle>
           This page is only available for TSP (Tech Service Provider) users.
@@ -338,7 +338,7 @@ const TSPCloudCredentials = () => {
   }
 
   return (
-    <Container maxWidth="lg">
+    <Container maxWidth={false}>
       <Box sx={{ mb: 4 }}>
         <Typography variant="h4" component="h1" gutterBottom>
           <Security sx={{ mr: 1, verticalAlign: 'middle' }} />

@@ -561,7 +561,7 @@ const Profile = () => {
   // Show loading spinner while checking user
   if (isInitializing) {
     return (
-      <Container maxWidth="lg">
+      <Container maxWidth={false}>
         <Box sx={{ display: 'flex', justifyContent: 'center', mt: 8 }}>
           <CircularProgress />
         </Box>
@@ -572,7 +572,7 @@ const Profile = () => {
   // Show error if no user
   if (!currentUser) {
     return (
-      <Container maxWidth="lg">
+      <Container maxWidth={false}>
         <Box sx={{ mt: 8 }}>
           <Alert severity="error">
             Please log in to view profiles.
@@ -585,7 +585,7 @@ const Profile = () => {
   // Show authentication error with refresh option
   if (authError) {
     return (
-      <Container maxWidth="lg">
+      <Container maxWidth={false}>
         <Box sx={{ mt: 8 }}>
           <Alert 
             severity="error" 
@@ -612,7 +612,7 @@ const Profile = () => {
 
   if (!profileUser) {
     return (
-      <Container maxWidth="lg">
+      <Container maxWidth={false}>
         <Box sx={{ mt: 8 }}>
           <Alert severity="info">
             Loading profile...
@@ -634,7 +634,7 @@ const Profile = () => {
   };
 
   return (
-    <Container maxWidth="lg">
+    <Container maxWidth={false}>
       <Box sx={{ mt: 8, mb: 4 }}>
         <Paper elevation={0} variant="outlined" sx={{ p: 4 }}>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>

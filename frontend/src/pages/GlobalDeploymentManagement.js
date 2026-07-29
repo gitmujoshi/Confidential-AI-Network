@@ -195,7 +195,7 @@ const GlobalDeploymentManagement = () => {
   };
 
   return (
-    <Container maxWidth="lg" sx={{ py: 4 }}>
+    <Container maxWidth={false} sx={{ py: 4 }}>
       <Paper elevation={0} variant="outlined" sx={{ p: 4 }}>
         <Typography variant="h4" component="h1" gutterBottom align="center">
           Global Deployment Management

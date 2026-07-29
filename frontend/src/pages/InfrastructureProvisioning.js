@@ -249,7 +249,7 @@ const InfrastructureProvisioning = () => {
 
   if (loading) {
     return (
-      <Container maxWidth="lg" sx={{ py: 4 }}>
+      <Container maxWidth={false} sx={{ py: 4 }}>
         <Box display="flex" justifyContent="center" alignItems="center" minHeight="400px">
           <CircularProgress />
         </Box>
@@ -258,7 +258,7 @@ const InfrastructureProvisioning = () => {
   }
 
   return (
-    <Container maxWidth="lg" sx={{ py: 4 }}>
+    <Container maxWidth={false} sx={{ py: 4 }}>
       <Paper elevation={0} variant="outlined" sx={{ p: 4 }}>
         <Typography variant="h4" component="h1" gutterBottom align="center">
           Infrastructure Provisioning

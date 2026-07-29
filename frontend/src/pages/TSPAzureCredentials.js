@@ -12,7 +12,7 @@ const TSPAzureCredentials = () => {
   }, [navigate]);
 
   return (
-    <Container maxWidth="lg">
+    <Container maxWidth={false}>
       <Box sx={{ mb: 4 }}>
         <Typography variant="h4" component="h1" gutterBottom>
           <Security sx={{ mr: 1, verticalAlign: 'middle' }} />

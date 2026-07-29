@@ -335,7 +335,7 @@ export default function TDCTraining() {
   }
 
   return (
-    <Container maxWidth="lg" sx={{ py: 3 }}>
+    <Container maxWidth={false} sx={{ py: 3 }}>
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
         <Typography variant="h4">Training &amp; models</Typography>
         <Button startIcon={<RefreshIcon />} onClick={loadContracts}>
