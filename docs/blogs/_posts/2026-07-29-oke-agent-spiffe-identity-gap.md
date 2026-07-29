@@ -117,6 +117,7 @@ This deploys SPIRE Server, the per-node SPIRE Agent DaemonSet, the SPIFFE CSI dr
 
 **4. Register your agent pods for automatic identity issuance.** Rather than registering each workload by hand, the SPIRE Controller Manager watches for a `ClusterSPIFFEID` resource and auto-issues SVIDs to matching pods:
 
+{% raw %}
 ```yaml
 apiVersion: spire.spiffe.io/v1alpha1
 kind: ClusterSPIFFEID
@@ -128,6 +129,7 @@ spec:
     matchLabels:
       app: agent-research
 ```
+{% endraw %}
 
 One of these per agent namespace (matching the `agents-research` / `agents-finance` / `agents-orchestrator` split from the diagram) gets every matching pod its own SVID automatically, with no manual registration step per pod.
 
