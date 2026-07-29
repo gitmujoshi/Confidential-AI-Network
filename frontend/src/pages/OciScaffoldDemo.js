@@ -303,7 +303,7 @@ const OciScaffoldDemo = () => {
         </TabPanel>
 
         <TabPanel value={tab} index={2}>
-          <SectionTitle subtitle="TDC proposes terms and selects an OCI infrastructure TSP (confidential-vm / OKE / OCI Vault — not Local Docker). TDP and TSP sign.">
+          <SectionTitle subtitle="TDC proposes terms and selects the OCI infrastructure TSP (SecureClean Rooms — confidential-vm / OKE / OCI Vault). TDP and TSP sign.">
             Contract creation &amp; signing
           </SectionTitle>
           <Paper variant="outlined" sx={{ p: 2, mb: 2 }}>

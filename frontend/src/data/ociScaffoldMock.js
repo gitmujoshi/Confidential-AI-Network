@@ -105,7 +105,7 @@ export const OCI_TSP_ENV_MOCK = {
     role: 'OCI infrastructure provider',
     cloudProvider: OCI_SHARED.cloudProvider,
     secretManager: OCI_SHARED.secretManager,
-    note: 'Not Local Docker — OCI tenancy with confidential compute, Vault, and OKE Jobs',
+    note: 'OCI tenancy — confidential compute, Vault KMS, and OKE Jobs',
   },
   credentials: {
     compartmentId: OCI_SHARED.tspVault.compartmentId,
@@ -428,9 +428,9 @@ export const OCI_E2E_PARTIES = [
     cloudProvider: 'OCI',
     secretManager: 'OCI_VAULT',
     compute: OCI_SHARED.confidentialCompute.computeType,
-    infrastructure: 'OCI (not Local Docker)',
+    infrastructure: 'OKE · confidential-vm · Vault',
     dashboard:
-      'OCI infrastructure provider — confidential-vm on OKE, OCI Vault KMS, Object Storage, SPIFFE/WIF Jobs',
+      'OCI infrastructure TSP — SecureClean Rooms (tsp.oci.e2e@test.com): confidential-vm on OKE, OCI Vault KMS, Object Storage, SPIFFE/WIF Jobs',
   },
 ];
 
