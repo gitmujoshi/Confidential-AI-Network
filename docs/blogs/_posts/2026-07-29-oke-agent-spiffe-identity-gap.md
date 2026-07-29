@@ -1,8 +1,11 @@
-# The Credential Every AI Agent Fleet on an OKE Node Ends Up Sharing (And Shouldn't)
-
-> **Published on the CAN blog:** [full post](https://gitmujoshi.github.io/Confidential-AI-Network/security/2026/07/29/oke-agent-spiffe-identity-gap/) · [short take](https://gitmujoshi.github.io/Confidential-AI-Network/security/2026/07/29/oke-agent-spiffe-short-take/)
->
-> This file remains the canonical long-form copy in `docs/architecture/`.
+---
+layout: post
+title: "The credential every AI agent fleet on an OKE node ends up sharing (and shouldn't)"
+date: 2026-07-29
+categories: [security, identity, oci]
+tags: [spiffe, spire, oke, wif, agents]
+canonical: docs/architecture/oci-spiffe-identity-gap.md
+---
 
 **The problem we're actually facing:** we're building AI agents on OKE, and each one needs its own scoped access to OCI resources and external APIs — without falling back on one shared credential across the whole agent fleet. That's a straightforward ask on AWS or GCP. On OCI, it means wiring SPIFFE identity through a federation path that exists but isn't built for this out of the box.
 
@@ -52,7 +55,9 @@ FastMCP is designed to run as an OAuth 2.1 resource server, and its own guidance
 
 That gives you the full chain, identity-consistent end to end: agent pod gets a per-workload SVID from SPIRE → calls a FastMCP tool server, which validates that same SVID against SPIRE's JWKS → the tool server (or the agent itself) exchanges the SVID for a scoped OCI or OpenAI token when it needs to reach outside. One identity, three checkpoints, no shared credentials at any of them.
 
-![SPIFFE/SPIRE identity for multiple AI agents on one OCI/OKE node](spiffe-oci-agents-diagram.png)
+*(Diagram: multiple agent pods on one OKE node sharing a node-level principal unless SPIFFE issues per-workload SVIDs.)*
+
+Canonical design for CAN: [OCI SPIFFE/SPIRE + WIF](https://github.com/gitmujoshi/Confidential-AI-Network/blob/main/docs/deployment/OCI_SPIFFE_SPIRE_WIF.md) · [repo scaffolding post]({{ site.baseurl }}{% post_url 2026-07-28-spiffe-spire-oci-wif %}).
 
 ## Runtime authentication and authorization
 

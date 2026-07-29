@@ -1,5 +1,8 @@
 # The Credential Every AI Agent Fleet on an OKE Node Ends Up Sharing (And Shouldn't)
 
+> **Blog short take:** [per-node credentials break multi-agent fleets on OKE](https://gitmujoshi.github.io/Confidential-AI-Network/security/2026/07/29/oke-agent-spiffe-short-take/)  
+> **Full technical writeup:** [long post](https://gitmujoshi.github.io/Confidential-AI-Network/security/2026/07/29/oke-agent-spiffe-identity-gap/)
+
 **The problem we're actually facing:** we're building AI agents on OKE, and each one needs its own scoped access to OCI resources and external APIs — without falling back on one shared credential across the whole agent fleet. That's a straightforward ask on AWS or GCP. On OCI, it means wiring SPIFFE identity through a federation path that exists, but isn't built for this out of the box.
 
 We hit a version of this problem before — in 2021-22 we built a custom OCI-native app that needed to talk to multiple Fusion Applications APIs, back when Fusion's identity stack was still a standalone IDCS instance with no unified path to OCI IAM. We hand-built the bridge ourselves. Oracle has since folded IDCS into unified Identity Domains, and that bridge is now mostly a config exercise.
