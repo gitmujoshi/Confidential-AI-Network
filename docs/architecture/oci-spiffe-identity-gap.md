@@ -1,6 +1,6 @@
 # The Credential Every AI Agent Fleet on an OKE Node Ends Up Sharing (And Shouldn't)
 
-> **Published on the CAN blog:** [full post](https://gitmujoshi.github.io/Confidential-AI-Network/security/2026/07/29/oke-agent-spiffe-identity-gap/) · [short take](https://gitmujoshi.github.io/Confidential-AI-Network/security/2026/07/29/oke-agent-spiffe-short-take/)
+> **Published on the CAN blog:** [full post](https://gitmujoshi.github.io/Confidential-AI-Network/security/identity/oci/2026/07/29/oke-agent-spiffe-identity-gap/) · [short take](https://gitmujoshi.github.io/Confidential-AI-Network/security/identity/oci/2026/07/29/oke-agent-spiffe-short-take/)
 >
 > This file remains the canonical long-form copy in `docs/architecture/`.
 
