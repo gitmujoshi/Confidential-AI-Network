@@ -30,5 +30,26 @@
       <p>Confidential AI Network — governed collaboration for AI training. Specs in the <a href="https://github.com/gitmujoshi/Confidential-AI-Network/tree/main/docs">docs/</a> tree; security notes on this site.</p>
     </div>
   </footer>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      var blocks = document.querySelectorAll("pre > code.language-mermaid");
+      if (!blocks.length || typeof mermaid === "undefined") return;
+      blocks.forEach(function (code) {
+        var div = document.createElement("div");
+        div.className = "mermaid";
+        div.textContent = code.textContent;
+        code.parentElement.replaceWith(div);
+      });
+      mermaid.initialize({
+        startOnLoad: false,
+        theme: "neutral",
+        securityLevel: "strict",
+        flowchart: { useMaxWidth: true, htmlLabels: false },
+        sequence: { useMaxWidth: true }
+      });
+      mermaid.run({ querySelector: ".mermaid" });
+    });
+  </script>
 </body>
 </html>

@@ -41,12 +41,12 @@ Rather than relying on a single monolithic model, the workload is distributed ac
 
 ```mermaid
 flowchart TD
-    HITL["Human-in-the-Loop (HITL)<br><i>(Oversight / Approvals)</i>"]
+    HITL["Human-in-the-Loop (HITL)\n(Oversight / Approvals)"]
     Orchestrator["Orchestrator Agent"]
 
-    Triage["Triage Agent<br>(SIEM / XDR)"]
-    Forensic["Forensic Agent<br>(Code / Network)"]
-    Responder["Responder Agent<br>(IAM / Firewall)"]
+    Triage["Triage Agent\n(SIEM / XDR)"]
+    Forensic["Forensic Agent\n(Code / Network)"]
+    Responder["Responder Agent\n(IAM / Firewall)"]
 
     HITL <-->|Oversight & Approvals| Orchestrator
     Orchestrator --> Triage
@@ -312,12 +312,12 @@ For enterprise compliance, inference and governance layers should run inside pri
 graph TB
     subgraph Boundary ["AIR-GAPPED COMPUTE BOUNDARY"]
         subgraph Compute ["Execution Layer"]
-            Inference["Local Inference<br>(Ollama / Llama)"]
-            OPA["OPA Sidecar<br>(Rego Engine)"]
-            Headroom["Headroom<br>(Proxy)"]
+            Inference["Local Inference\n(Ollama / Llama)"]
+            OPA["OPA Sidecar\n(Rego Engine)"]
+            Headroom["Headroom\n(Proxy)"]
         end
 
-        WORM["WORM Audit Telemetry<br><i>(Immutable Ledger Log)</i>"]
+        WORM["WORM Audit Telemetry\n(Immutable Ledger Log)"]
     end
 
     Inference --> WORM
