@@ -155,6 +155,63 @@ When OPA checks an execution request, it validates a cryptographically signed id
 
 To prevent agents from executing unauthorized commands, every tool call passes through an Open Policy Agent (OPA) sidecar enforcing declarative Rego policies.
 
+### Why OPA alongside cloud IAM — not instead of it
+
+Enterprises often ask: *why not rely only on OCI IAM allow/deny, AWS IAM, or GCP IAM?* Those controls are **necessary outer walls**. They are not a substitute for an agent-aware inner gate.
+
+Cloud IAM answers: *may this principal call this cloud API on this resource?*  
+OPA (or an equivalent app-level engine) answers: *may this agent execute this proposed tool call, with this payload and runtime context, right now?*
+
+| Layer | Typical controls | Decision unit |
+| --- | --- | --- |
+| **Outer wall (keep and tighten)** | OCI IAM policies / dynamic groups; AWS IAM roles, SCPs, permissions boundaries, resource policies; GCP IAM allow/deny, deny policies, Org Policy, VPC Service Controls | Cloud principal + API action + resource |
+| **Inner gate (G-MASE / OPA)** | Rego (or Cedar / Verified Permissions called from the tool wrapper) | Full tool proposal: SPIFFE ID, action type, target, SQL/args, confidence, loop count, spend, HITL flag |
+
+**Gaps in cloud-native policy alone**
+
+- **No LLM intent.** IAM does not see SQL text, a firewall CIDR, “confidence 0.4,” the fifth identical loop, or “HITL not approved.”
+- **Role ≠ safe action.** A valid UPST / assumed role / service-account token can still perform anything that role already allows—including shapes a prompt-injected model invents.
+- **Multi-cloud and non-cloud tools.** SecOps agents call SIEM, Jira, Slack, package registries, and multiple clouds. OCI/AWS/GCP each have a different policy language; OPA is one decision point **before** side effects.
+- **Fail-closed runtime.** If the policy engine is unreachable, the tool wrapper blocks. If the agent already holds a broad cloud credential and you only rely on IAM, the model keeps proposing until something matches an allow.
+- **Shared node identity.** On OKE (and similarly mis-scoped EKS/GKE setups), instance/node principals can collapse many agents into one cloud identity unless SPIFFE federation is per-workload. IAM then cannot distinguish agents even when it is “correct.”
+
+**AWS native policy (use as outer wall)**
+
+| Control | What it decides | Still needs OPA for… |
+| --- | --- | --- |
+| IAM policies / roles (IRSA, Roles Anywhere) | Can this principal call `ec2:AuthorizeSecurityGroupIngress`, `s3:GetObject`, …? | Payload/intent, confidence, loops, HITL, non-AWS tools |
+| SCPs / permissions boundaries | Org ceilings on what any role can ever do | Coarse blast radius only |
+| Resource policies (S3, KMS, …) | Who may touch *this* resource | Same API-level grain |
+| Amazon Verified Permissions / Cedar (optional) | Richer app authZ *if your wrapper calls it* | Must still sit **before** tool execution—same architectural slot as OPA |
+
+**GCP native policy (use as outer wall)**
+
+| Control | What it decides | Still needs OPA for… |
+| --- | --- | --- |
+| IAM allow / deny on projects, folders, org | Can this SA call `compute.firewalls.update`, …? | Tool semantics and agent telemetry |
+| Deny policies / principal access boundaries | Hard floors allow policies cannot override | Still not payload-aware |
+| Organization Policy constraints | Tenancy guardrails (e.g. restrict public IPs, allowed APIs) | Blast radius, not per-tool LLM intent |
+| VPC Service Controls | Data exfil / service perimeter | Network/data boundary, not remediation judgment |
+| Workload Identity Federation / Binary Authorization | How tokens are minted / what may run | Identity and deploy trust—not action content |
+
+**OCI native policy (use as outer wall)**
+
+| Control | What it decides | Still needs OPA for… |
+| --- | --- | --- |
+| IAM policy statements (allow/deny), dynamic groups | Can this principal manage VCNs, Object Storage, …? | Same intent gap as AWS/GCP |
+| Compartment isolation & tagging conditions | Where in the tenancy a principal may act | Not confidence, loops, or HITL |
+| Workload Identity Federation → UPST | Short-lived OCI credentials from OIDC/SPIRE | Must be issued **after** OPA allow; avoid one instance principal for every agent on a node |
+
+**Required order on every cloud**
+
+```text
+attest workload → issue SPIFFE SVID → OPA allow/deny on proposed tool
+  → (only if allow) federate short-lived cloud credential (AWS / GCP / OCI)
+  → call cloud or SaaS API under least-privilege IAM
+```
+
+Keep IAM/SCPs/Org Policy **tight**. Do not delete OPA because “the cloud already has policies.” Native policy without the inner gate means the model can do anything the role already allows.
+
 ### Production Rego Policy (`policy.rego`)
 
 ```rego
@@ -393,7 +450,16 @@ If any of the above is skipped for convenience, the deployment may still be “o
 | **Azure** | AKS | Federate workload identity into **Entra / Azure AD** federated credentials for scoped RBAC. Keep policy sidecars in the pod network path. |
 | **OCI** | OKE | Federate SPIRE OIDC into **OCI IAM Workload Identity Federation** for UPSTs; avoid collapsing many agents into one **instance principal** on a shared worker node. |
 
-In all cases the order is: **attest → issue SVID → OPA allow/deny on the proposed tool → then (and only then) exchange for a cloud credential scoped to that action.** Skipping OPA and “just using cloud IAM” reintroduces prompt-bypass risk: IAM answers *which role*, not *whether this SQL string or firewall change is permitted*.
+In all cases the order is: **attest → issue SVID → OPA allow/deny on the proposed tool → then (and only then) exchange for a cloud credential scoped to that action.** Skipping OPA and “just using cloud IAM” reintroduces prompt-bypass risk: IAM answers *which role*, not *whether this SQL string or firewall change is permitted*. Section 7 details how AWS IAM/SCPs, GCP IAM/Org Policy/VPC-SC, and OCI IAM complement—not replace—that inner gate.
+
+### How to use AWS / GCP / OCI native policies correctly
+
+| Goal | AWS | GCP | OCI |
+| --- | --- | --- | --- |
+| Least privilege per agent | Separate IAM roles; federate via Roles Anywhere / OIDC after OPA | Separate service accounts; WIF bound to SPIFFE / K8s SA | Separate dynamic groups or federated users; WIF → UPST after OPA |
+| Org ceiling | SCPs + permissions boundaries | Org Policy + deny policies | Tenancy/compartment IAM deny + tagging |
+| Data perimeter | PrivateLink, VPC endpoints, no open NAT from agent NS | Private Service Connect, VPC-SC | Private endpoints / NSGs; default-deny egress |
+| What native policy must **not** become | The only check before `boto3` / AWS SDK calls | The only check before Google API clients | The only check before OCI SDK calls |
 
 ### Network postures that preserve guardrail strength
 
