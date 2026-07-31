@@ -10,19 +10,7 @@
   {% feed_meta %}
 </head>
 <body>
-  <header class="site-header">
-    <div class="wrap">
-      <a class="brand" href="{{ '/' | relative_url }}">{{ site.title }}</a>
-      <nav>
-        <a href="{{ '/' | relative_url }}">Home</a>
-        <a href="{{ '/product-tour/' | relative_url }}">Product tour</a>
-        <a href="{{ '/#notes' | relative_url }}">Notes</a>
-        <a href="{{ '/about/' | relative_url }}">About</a>
-        <a href="https://github.com/gitmujoshi/Confidential-AI-Network">GitHub</a>
-      </nav>
-    </div>
-  </header>
-  <main class="wrap">
+  <main class="wrap site-main">
     {{ content }}
   </main>
   <footer class="site-footer">

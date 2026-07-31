@@ -32,15 +32,8 @@ body:has(.tour-section) .wrap {
   max-width: calc(56rem + 4rem);
 }
 
-.site-header {
-  border-bottom: 1px solid var(--line);
-  background: color-mix(in srgb, var(--card) 88%, transparent);
-  backdrop-filter: blur(8px);
-  padding: 1rem 0;
-  margin-bottom: 2rem;
-  position: sticky;
-  top: 0;
-  z-index: 10;
+.site-main {
+  padding-top: 2rem;
 }
 
 .site-header .wrap {
