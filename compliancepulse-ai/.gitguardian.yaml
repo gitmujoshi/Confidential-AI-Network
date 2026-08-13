@@ -1,0 +1,20 @@
+# GitGuardian configuration for CompliancePulse AI
+
+# Paths to ignore - these contain example/placeholder values only
+paths-ignore:
+  - .env.example
+  - "**/*.example"
+  - "**/example-*"
+  - docs/**
+  - "**/*.md"
+
+# Exclude specific secrets by match
+# These are placeholder values in configuration files
+matches-ignore:
+  - name: Generic High Entropy Secret
+    match: your-secret-key-change-in-production
+  - name: PostgreSQL Credentials
+    match: postgresql://postgres:postgres@localhost:5432/compliancepulse
+    
+# Minimum occurrences for a secret to be reported
+minimum-occurrences: 2

@@ -6,8 +6,8 @@ services:
     image: postgres:15-alpine
     container_name: compliancepulse-postgres
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
+      POSTGRES_USER: complianceuser
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-dev_password_change_in_prod}
       POSTGRES_DB: compliancepulse
     ports:
       - "5432:5432"
@@ -78,7 +78,7 @@ services:
       dockerfile: ../infrastructure/docker/Dockerfile.backend
     container_name: compliancepulse-backend
     environment:
-      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/compliancepulse
+      - DATABASE_URL=postgresql://complianceuser:${POSTGRES_PASSWORD:-dev_password_change_in_prod}@postgres:5432/compliancepulse
       - REDIS_HOST=redis
       - OPA_SERVER_URL=http://opa-server:8181
       - SPIRE_SERVER_ADDRESS=unix:///tmp/spire-server/socket

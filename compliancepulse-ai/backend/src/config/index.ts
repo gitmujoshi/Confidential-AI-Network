@@ -10,7 +10,7 @@ export const config = {
 
   // Database Configuration
   database: {
-    url: process.env.DATABASE_URL || 'postgresql://postgres:postgres@localhost:5432/compliancepulse',
+    url: process.env.DATABASE_URL || 'postgresql://username:password@localhost:5432/compliancepulse',
     pool: {
       max: parseInt(process.env.DB_POOL_MAX || '20', 10),
       min: parseInt(process.env.DB_POOL_MIN || '5', 10),
@@ -34,7 +34,7 @@ export const config = {
 
   // Authentication
   auth: {
-    jwtSecret: process.env.JWT_SECRET || 'your-secret-key-change-in-production',
+    jwtSecret: process.env.JWT_SECRET || 'CHANGE_ME_IN_PRODUCTION',
     jwtExpiry: process.env.JWT_EXPIRY || '1h',
     bcryptRounds: parseInt(process.env.BCRYPT_ROUNDS || '12', 10),
   },
