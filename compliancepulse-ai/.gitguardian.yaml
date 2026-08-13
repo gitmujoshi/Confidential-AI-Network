@@ -11,10 +11,10 @@ paths-ignore:
 # Exclude specific secrets by match
 # These are placeholder values in configuration files
 matches-ignore:
-  - name: Generic High Entropy Secret
-    match: your-secret-key-change-in-production
-  - name: PostgreSQL Credentials
-    match: postgresql://postgres:postgres@localhost:5432/compliancepulse
+  - name: Placeholder Values
+    match: CHANGE_ME_IN_PRODUCTION
+  - name: Example PostgreSQL URL
+    match: username:password@localhost:5432/compliancepulse
     
 # Minimum occurrences for a secret to be reported
 minimum-occurrences: 2
