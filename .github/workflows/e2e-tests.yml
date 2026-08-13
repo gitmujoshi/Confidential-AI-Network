@@ -86,6 +86,9 @@ jobs:
           KEYCLOAK_ENABLED: false
           HUGGINGFACE_INTEGRATION_ENABLED: true
 
+      - name: Install root dependencies for seeding
+        run: npm install
+
       - name: Seed E2E test users
         run: npm run seed:e2e-users
         env:
