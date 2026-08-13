@@ -35,6 +35,12 @@ jobs:
           node-version: '18'
           cache: 'npm'
 
+      - name: Build shared value-objects package
+        run: |
+          cd shared/valueObjects
+          npm ci
+          npm run build
+
       - name: Install backend dependencies
         run: |
           cd backend
