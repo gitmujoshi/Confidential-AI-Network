@@ -186,7 +186,7 @@ SPIRE_TRUST_DOMAIN=compliancepulse.ai
 OPA_SERVER_URL=http://localhost:8181
 
 # Authentication
-JWT_SECRET=your-secret-key
+JWT_SECRET=CHANGE_ME_IN_PRODUCTION
 JWT_EXPIRY=1h
 
 # Monitoring
