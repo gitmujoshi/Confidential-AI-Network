@@ -16,10 +16,10 @@ const E2E_USERS = [
     partyType: 'TDP'
   },
   {
-    name: 'CCRP Test User',
+    name: 'TSP Test User',
     email: 'ccrp-test@example.com',
     password: 'password123',
-    partyType: 'CCRP'
+    partyType: 'TSP'
   },
   {
     name: 'AppAdmin Test User',
@@ -194,7 +194,7 @@ async function createTestData() {
     
     const tdpUser = users.find(u => u.partyType === 'TDP');
     const tdcUser = users.find(u => u.partyType === 'TDC');
-    const ccrpUser = users.find(u => u.partyType === 'CCRP');
+    const ccrpUser = users.find(u => u.partyType === 'TSP');
     
     if (!tdpUser || !tdcUser || !ccrpUser) {
       throw new Error('Required users not found for test data creation');
