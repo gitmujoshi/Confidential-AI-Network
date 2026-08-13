@@ -68,6 +68,19 @@ jobs:
           DB_USER: postgres
           DB_PASSWORD: postgres
 
+      - name: Seed E2E test users
+        run: |
+          cd backend
+          npm run seed:e2e-users
+        env:
+          NODE_ENV: test
+          DB_HOST: localhost
+          DB_PORT: 5432
+          DB_NAME: contract_management_test
+          DB_USER: postgres
+          DB_PASSWORD: postgres
+          DATA_ENCRYPTION_KEY: test-data-encryption-key-32chars!!
+
       - name: Start backend server
         run: |
           cd backend
