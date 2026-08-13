@@ -1,0 +1,118 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: compliancepulse-postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: compliancepulse
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis (for job queues)
+  redis:
+    image: redis:7-alpine
+    container_name: compliancepulse-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # SPIRE Server
+  spire-server:
+    image: ghcr.io/spiffe/spire-server:1.8.0
+    container_name: compliancepulse-spire-server
+    command: 
+      - "-config"
+      - "/opt/spire/conf/server/server.conf"
+    volumes:
+      - ./infrastructure/spire/server.conf:/opt/spire/conf/server/server.conf
+      - spire_data:/opt/spire/data
+      - /tmp/spire-server:/tmp/spire-server
+    ports:
+      - "8081:8081"
+    healthcheck:
+      test: ["CMD", "/opt/spire/bin/spire-server", "healthcheck"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Open Policy Agent
+  opa-server:
+    image: openpolicyagent/opa:latest
+    container_name: compliancepulse-opa
+    command:
+      - "run"
+      - "--server"
+      - "--addr=0.0.0.0:8181"
+      - "/policies"
+    volumes:
+      - ./backend/src/opa/policies:/policies
+    ports:
+      - "8181:8181"
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "http://localhost:8181/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Backend API
+  backend:
+    build:
+      context: ./backend
+      dockerfile: ../infrastructure/docker/Dockerfile.backend
+    container_name: compliancepulse-backend
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/compliancepulse
+      - REDIS_HOST=redis
+      - OPA_SERVER_URL=http://opa-server:8181
+      - SPIRE_SERVER_ADDRESS=unix:///tmp/spire-server/socket
+    ports:
+      - "3001:3001"
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+      - /tmp/spire-server:/tmp/spire-server
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      opa-server:
+        condition: service_healthy
+    command: npm run dev
+
+  # Frontend
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: ../infrastructure/docker/Dockerfile.frontend
+    container_name: compliancepulse-frontend
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    depends_on:
+      - backend
+    command: npm run dev
+
+volumes:
+  postgres_data:
+  redis_data:
+  spire_data:
