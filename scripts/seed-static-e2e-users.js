@@ -16,21 +16,27 @@ const ROOT = path.join(__dirname, '..');
 
 // Prefer workspace axios (root may not have node_modules/axios).
 function loadAxios() {
-  const candidates = [
-    path.join(ROOT, 'node_modules/axios'),
-    path.join(ROOT, 'frontend/node_modules/axios'),
-    path.join(ROOT, 'backend/node_modules/axios'),
-  ];
-  for (const c of candidates) {
-    try {
-      const mod = require(c);
-      const ax = mod && typeof mod.post === 'function' ? mod : mod.default;
-      if (ax && typeof ax.post === 'function') return ax;
-    } catch (_) {
-      /* try next */
+  // First try standard Node module resolution
+  try {
+    return require('axios');
+  } catch (_) {
+    // Fall back to absolute paths
+    const candidates = [
+      path.join(ROOT, 'node_modules/axios'),
+      path.join(ROOT, 'frontend/node_modules/axios'),
+      path.join(ROOT, 'backend/node_modules/axios'),
+    ];
+    for (const c of candidates) {
+      try {
+        const mod = require(c);
+        const ax = mod && typeof mod.post === 'function' ? mod : mod.default;
+        if (ax && typeof ax.post === 'function') return ax;
+      } catch (_) {
+        /* try next */
+      }
     }
+    throw new Error('Cannot find axios (install deps in frontend/ or backend/)');
   }
-  throw new Error('Cannot find axios (install deps in frontend/ or backend/)');
 }
 const axios = loadAxios();
 
