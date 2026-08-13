@@ -174,6 +174,10 @@ async function verifyUserLogin(userData) {
       };
     }
   } catch (error) {
+    if (error.code === 'ECONNREFUSED') {
+      console.log(`⚠️  Backend not available, skipping login verification for ${userData.email}`);
+      return null;
+    }
     console.error(`❌ Login verification failed for ${userData.email}:`, error.response?.data || error.message);
     throw error;
   }
@@ -281,16 +285,22 @@ async function setupE2EEnvironment() {
     
     console.log('\n✅ E2E environment setup complete!');
     console.log('\n📋 E2E Test Users:');
-    verifiedUsers.forEach(user => {
-      console.log(`  - ${user.user.email} (ID: ${user.user.id}, Role: ${user.user.partyType})`);
-    });
+    if (verifiedUsers.length > 0) {
+      verifiedUsers.forEach(user => {
+        console.log(`  - ${user.user.email} (ID: ${user.user.id}, Role: ${user.user.partyType})`);
+      });
+    } else {
+      createdUsers.forEach(user => {
+        console.log(`  - ${user.email} (ID: ${user.id}, Role: ${user.partyType}) [not verified - backend not running]`);
+      });
+    }
     
     console.log('\n🔑 Login Credentials:');
     E2E_USERS.forEach(user => {
       console.log(`  - Email: ${user.email}, Password: ${user.password}`);
     });
     
-    return verifiedUsers;
+    return verifiedUsers.length > 0 ? verifiedUsers : createdUsers;
     
   } catch (error) {
     console.error('❌ E2E environment setup failed:', error);
