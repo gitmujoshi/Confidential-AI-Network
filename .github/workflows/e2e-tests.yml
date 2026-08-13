@@ -82,6 +82,7 @@ jobs:
           DB_USER: postgres
           DB_PASSWORD: postgres
           JWT_SECRET: test-jwt-secret-key-for-integration-tests
+          DATA_ENCRYPTION_KEY: test-data-encryption-key-32chars!!
           KEYCLOAK_ENABLED: false
           HUGGINGFACE_INTEGRATION_ENABLED: true
 
