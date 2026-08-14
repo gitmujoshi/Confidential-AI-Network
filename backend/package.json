@@ -40,6 +40,7 @@
     "migrate": "npm run db:reset:test",
     "migrate:test": "npm run db:reset:test",
     "seed:e2e-users": "node create-e2e-users-direct.js",
+    "seed:e2e-users:ci": "node seed-e2e-users-for-ci.js",
     "seed:demo-catalog": "node scripts/dev/seed-demo-catalog.js",
     "db:purge-local-depa-reseed": "node scripts/dev/purge-local-depa-reseed.js",
     "db:purge-local-depa-reseed:dry": "node scripts/dev/purge-local-depa-reseed.js --dry-run",
