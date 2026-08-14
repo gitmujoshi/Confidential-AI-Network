@@ -80,7 +80,7 @@ npm run test:e2e:headed
   ```bash
   cd open-gmase-core && docker compose up -d
   ```
-  Bypass with `GMASE_INFERENCE_GATE=false` / `GMASE_TRAINING_GATE=false` on the backend if you only want artifact smoke without OPA. Optional: `COMPLIANCEPULSE_INGEST_URL` forwards decisions to CompliancePulse ingest.
+  Bypass with `GMASE_INFERENCE_GATE=false` / `GMASE_TRAINING_GATE=false` on the backend if you only want artifact smoke without OPA. CompliancePulse ingest defaults to `http://localhost:3001` (warn if down; `COMPLIANCEPULSE_INGEST_URL=false` to disable).
 - **Run** (same local-docker prerequisites; trainer image must include `infer.py`):
   ```bash
   E2E_WAIT_FOR_LOCAL_TRAINING=true BACKEND_URL=http://127.0.0.1:5001 npm run test:e2e:inference

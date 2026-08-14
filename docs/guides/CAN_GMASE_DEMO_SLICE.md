@@ -17,7 +17,7 @@ Side effect (train / deploy / predict)
 | --- | --- | --- |
 | Training start | `GMASE_TRAINING_GATE` | `start_training` |
 | Inference deploy/predict | `GMASE_INFERENCE_GATE` | `deploy_inference` / `run_inference` |
-| Forward to CompliancePulse | `COMPLIANCEPULSE_INGEST_URL` | (best-effort POST) |
+| Forward to CompliancePulse | `COMPLIANCEPULSE_INGEST_URL` (default `http://localhost:3001`) | best-effort POST; warn if down; `false` disables |
 
 This does **not** yet ship multi-tenant CompliancePulse SaaS, SPIRE attestation, or the G-MASE swarm UI. It proves the control-plane seam you can show stakeholders next to a normal CAN contract→train→infer demo.
 
@@ -26,7 +26,7 @@ This does **not** yet ship multi-tenant CompliancePulse SaaS, SPIRE attestation,
 1. Docker (for OPA)
 2. CAN backend running (`./start-system.sh` or your usual local start) on port **5001**
 3. Open-GMASE OPA on port **8181**
-4. Optional: CompliancePulse backend + `COMPLIANCEPULSE_INGEST_URL=http://localhost:3001` on the CAN process
+4. Optional: CompliancePulse backend on **3001** (CAN forwards here by default; set `COMPLIANCEPULSE_INGEST_URL=false` to disable)
 
 ## Quick demo
 
@@ -78,7 +78,7 @@ Env:
 | `OPA_TIMEOUT_MS` | `2000` |
 | `GMASE_TRAINING_GATE` | on |
 | `GMASE_INFERENCE_GATE` | on |
-| `COMPLIANCEPULSE_INGEST_URL` | unset (no forward) |
+| `COMPLIANCEPULSE_INGEST_URL` | `http://localhost:3001` (set `false` to disable) |
 
 Override package per debug request with `"policy_package": "open_gmase/can_contracts"`.
 
@@ -93,7 +93,7 @@ Override package per debug request with `"policy_package": "open_gmase/can_contr
 2. Show a **denied** DROP TABLE / raw export via the debug endpoint (HTTP 403 + reason).  
 3. Show the same decision in `/api/debug/gmase-tool-decisions` (CAN audit trail).  
 4. Show Inference **Open-GMASE policy gate** ALLOW panel (and training-start toast).  
-5. Be explicit: swarm UI, SPIRE attestation, and multi-tenant SaaS are still research roadmap; this is the **inner gate** wiring (+ optional ingest).
+5. Be explicit: swarm UI, SPIRE attestation, and multi-tenant SaaS are still research roadmap; this is the **inner gate** wiring (+ default ingest to localhost:3001).
 
 ## Next engineering steps
 

@@ -16,7 +16,7 @@ excerpt: "Live control-plane seam: CAN training + inference side effects hit Ope
 | Gate **TDC training start** | Live (`GMASE_TRAINING_GATE`, default on) |
 | Gate **TDC deploy / predict** | Live (`GMASE_INFERENCE_GATE`, default on) |
 | Decisions in CAN AuditLogs | Live (`GMASE_TOOL_DECISION`) |
-| Forward decisions → CompliancePulse ingest | Live when `COMPLIANCEPULSE_INGEST_URL` is set |
+| Forward decisions → CompliancePulse ingest | On by default (`http://localhost:3001`; warn if CP down; `COMPLIANCEPULSE_INGEST_URL=false` to disable) |
 | CompliancePulse multi-tenant SaaS / swarm UI / SPIRE | Still research roadmap |
 
 TDC **start training**, **deploy**, and **predict** call `open_gmase/can_contracts` fail-closed (unless the matching gate env is set to `false`). Inference UI shows the policy gate panel; Playwright covers it via `npm run test:e2e:inference`.
@@ -27,14 +27,15 @@ TDC **start training**, **deploy**, and **predict** call `open_gmase/can_contrac
 Side effect (train / deploy / predict)
   →  Open-GMASE OPA (Rego)
   →  CAN AuditLogs (GMASE_TOOL_DECISION)
-  →  optional CompliancePulse POST /api/v1/audit/ingest
+  →  CompliancePulse POST /api/v1/audit/ingest (default localhost:3001; warn if down)
 ```
 
 1. A proposed tool call (for example `execute_sql` with `DROP TABLE`, or `start_training` / `run_inference`) is evaluated by community Rego packs.  
 2. Allow or deny comes back **fail-closed** if OPA is unreachable.  
 3. The decision is written into CAN’s audit trail so you can show *evidence*, not a slide.  
 4. On the Inference app, an **Open-GMASE policy gate** panel shows ALLOW/DENY with package + audit id.  
-5. Training start returns `job.governance` the same way.
+5. Training start returns `job.governance` the same way.  
+6. The same decision is forwarded to CompliancePulse ingest by default (non-blocking; logs a warning if CP is not running).
 
 ## Screenshots (from E2E)
 
@@ -63,9 +64,9 @@ Prerequisites: Docker (for OPA), CAN backend on port **5001**.
 # OPA (from repo root)
 cd open-gmase-core && docker compose up -d
 
-# Optional: CompliancePulse backend (ingest receiver)
+# Optional: CompliancePulse backend (ingest receiver; CAN defaults to this URL)
 # cd compliancepulse-ai/backend && npm run dev
-# export COMPLIANCEPULSE_INGEST_URL=http://localhost:3001   # on the CAN backend
+# Disable forward: COMPLIANCEPULSE_INGEST_URL=false on the CAN backend
 
 # CAN stack (separate terminal, if not already up)
 ./start-system.sh
@@ -101,7 +102,7 @@ Expect a **deny** on the DROP, and a matching `GMASE_TOOL_DECISION` row when you
 1. Show the normal CAN [product tour]({{ '/product-tour/' | relative_url }}) (contracts → training → inference).  
 2. On training start / Inference app, point at Open-GMASE **ALLOW** (toast or policy-gate panel).  
 3. Optionally hit the deny path above; show HTTP 403 / deny reason and AuditLogs.  
-4. Say clearly: multi-tenant CompliancePulse SaaS, swarm UI, and SPIRE attestation are still roadmap—this is the **inner gate** wiring plus optional ingest.
+4. Say clearly: multi-tenant CompliancePulse SaaS, swarm UI, and SPIRE attestation are still roadmap—this is the **inner gate** wiring plus default decision ingest.
 
 ## Code & full runbook
 

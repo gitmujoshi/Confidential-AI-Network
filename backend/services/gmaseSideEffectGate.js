@@ -1,13 +1,14 @@
 /**
  * Shared Open-GMASE side-effect gate for CAN (training + inference).
  * Fail-closed when enabled; writes GMASE_TOOL_DECISION to AuditLogs;
- * optionally forwards to CompliancePulse ingest when COMPLIANCEPULSE_INGEST_URL is set.
+ * forwards to CompliancePulse ingest by default (localhost:3001), warn-only if CP is down.
  */
 const axios = require('axios');
 const { authorizeTool } = require('./gmaseOpaService');
 const AuditService = require('./auditService');
 
 const auditService = new AuditService();
+const DEFAULT_COMPLIANCEPULSE_INGEST_URL = 'http://localhost:3001';
 
 function envFlagEnabled(name, defaultOn = true) {
   const v = process.env[name];
@@ -22,6 +23,26 @@ function isInferenceGateEnabled() {
 
 function isTrainingGateEnabled() {
   return envFlagEnabled('GMASE_TRAINING_GATE', true);
+}
+
+/**
+ * CompliancePulse ingest base URL.
+ * Default: http://localhost:3001. Disable with COMPLIANCEPULSE_INGEST_URL=false|0|off|'' .
+ */
+function getCompliancePulseIngestUrl() {
+  const raw = process.env.COMPLIANCEPULSE_INGEST_URL;
+  if (raw === undefined || raw === null) {
+    return DEFAULT_COMPLIANCEPULSE_INGEST_URL;
+  }
+  const trimmed = String(raw).trim();
+  if (!trimmed || trimmed === 'false' || trimmed === '0' || trimmed.toLowerCase() === 'off') {
+    return '';
+  }
+  return trimmed.replace(/\/$/, '');
+}
+
+function isCompliancePulseIngestEnabled() {
+  return Boolean(getCompliancePulseIngestUrl());
 }
 
 /**
@@ -95,8 +116,8 @@ async function authorizeCanSideEffect({
     console.warn('GMASE side-effect audit log failed:', err.message);
   }
 
-  // Best-effort forward to CompliancePulse research ingest (non-blocking).
-  const ingestUrl = (process.env.COMPLIANCEPULSE_INGEST_URL || '').replace(/\/$/, '');
+  // Best-effort forward to CompliancePulse (default localhost:3001; warn if unreachable).
+  const ingestUrl = getCompliancePulseIngestUrl();
   if (ingestUrl) {
     setImmediate(() => {
       axios
@@ -112,7 +133,10 @@ async function authorizeCanSideEffect({
           { timeout: Number(process.env.COMPLIANCEPULSE_INGEST_TIMEOUT_MS || 2000) }
         )
         .catch((err) => {
-          console.warn('CompliancePulse ingest forward failed:', err.message);
+          console.warn(
+            `CompliancePulse ingest forward failed (${ingestUrl}): ${err.message}. ` +
+              'Start CP or set COMPLIANCEPULSE_INGEST_URL=false to disable.'
+          );
         });
     });
   }
@@ -149,4 +173,7 @@ module.exports = {
   authorizeCanSideEffect,
   isInferenceGateEnabled,
   isTrainingGateEnabled,
+  getCompliancePulseIngestUrl,
+  isCompliancePulseIngestEnabled,
+  DEFAULT_COMPLIANCEPULSE_INGEST_URL,
 };

@@ -57,8 +57,22 @@ router.get('/env', (req, res) => {
         process.env.GMASE_TRAINING_GATE === 'false' || process.env.GMASE_TRAINING_GATE === '0'
           ? false
           : true,
-      compliancePulseIngest: Boolean(process.env.COMPLIANCEPULSE_INGEST_URL),
-      note: 'TDC training start + deploy/predict call open_gmase/can_contracts when gates are on; optional COMPLIANCEPULSE_INGEST_URL forwards decisions',
+      compliancePulseIngest: (() => {
+        try {
+          const {
+            getCompliancePulseIngestUrl,
+            isCompliancePulseIngestEnabled,
+          } = require('../services/gmaseSideEffectGate');
+          return {
+            enabled: isCompliancePulseIngestEnabled(),
+            url: getCompliancePulseIngestUrl() || null,
+            defaultUrl: 'http://localhost:3001',
+          };
+        } catch (_) {
+          return { enabled: false, url: null };
+        }
+      })(),
+      note: 'TDC training start + deploy/predict call open_gmase/can_contracts when gates are on; CompliancePulse ingest defaults to http://localhost:3001 (warn if down; set COMPLIANCEPULSE_INGEST_URL=false to disable)',
     },
     training: {
       canLocalTrainingMode: process.env.CAN_LOCAL_TRAINING_MODE || 'simulate',

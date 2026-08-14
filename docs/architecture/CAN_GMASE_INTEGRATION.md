@@ -10,7 +10,7 @@ See **[CAN_GMASE_DEMO_SLICE.md](../guides/CAN_GMASE_DEMO_SLICE.md)**.
 TDC start_training / deploy_inference / run_inference
   → Open-GMASE OPA (open_gmase.can_contracts)
   → CAN AuditLogs (GMASE_TOOL_DECISION)
-  → optional CompliancePulse POST /api/v1/audit/ingest
+  → CompliancePulse POST /api/v1/audit/ingest (default http://localhost:3001; warn if down)
 ```
 
 Also: `POST /api/debug/gmase-tool-check` for ad-hoc tool proposals (`open_gmase.tools`).
