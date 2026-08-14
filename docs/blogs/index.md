@@ -190,12 +190,20 @@ permalink: /
     <p class="group-lede">For security architects and platform engineers.</p>
     <ol class="post-list ordered">
       <li>
+        <a href="{% post_url 2026-08-15-gmase-deep-dive %}">G-MASE deep dive: Governed Multi-Agent SecOps Environment</a>
+        <p class="meta">August 15, 2026 · Swarm topology, control order, Open-GMASE Core</p>
+      </li>
+      <li>
+        <a href="{% post_url 2026-08-15-compliancepulse-ai-deep-dive %}">CompliancePulse AI deep dive: zero-trust control plane</a>
+        <p class="meta">August 15, 2026 · Open-core product path, ingest, roadmap</p>
+      </li>
+      <li>
         <a href="{% post_url 2026-07-31-governing-autonomous-ai-agents-cybersecurity %}">Governing autonomous AI agents in cybersecurity operations</a>
-        <p class="meta">July 31, 2026 · G-MASE reference architecture</p>
+        <p class="meta">July 31, 2026 · Attack matrix &amp; multi-cloud IAM whitepaper</p>
       </li>
       <li>
         <a href="{% post_url 2026-08-14-unified-governed-agentic-secops-framework %}">Unified Governed Agentic SecOps Framework</a>
-        <p class="meta">August 14, 2026 · Swarm + control plane whitepaper</p>
+        <p class="meta">August 14, 2026 · Swarm + control plane together</p>
       </li>
       <li>
         <a href="{% post_url 2026-08-14-can-gmase-demo-slice %}">Try it: CAN ↔ Open-GMASE ↔ CompliancePulse (demo slice)</a>

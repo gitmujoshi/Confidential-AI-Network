@@ -116,8 +116,10 @@ Use that alongside the [product tour]({{ '/product-tour/' | relative_url }}) whe
 3. **Run the live seam** — [CAN ↔ Open-GMASE ↔ CompliancePulse]({% post_url 2026-08-14-can-gmase-demo-slice %}) (OPA → AuditLogs → CP ingest).  
 4. **Go deeper only if needed:**
    - [Building Confidential AI Network]({% post_url 2026-07-29-building-confidential-ai-network %}) — product detail for CAN  
-   - [Governing autonomous AI agents]({% post_url 2026-07-31-governing-autonomous-ai-agents-cybersecurity %}) — G-MASE for security architects  
-   - [Unified Governed Agentic SecOps Framework]({% post_url 2026-08-14-unified-governed-agentic-secops-framework %}) — whitepaper linking swarm + control plane  
+   - [G-MASE deep dive]({% post_url 2026-08-15-gmase-deep-dive %}) — SecOps swarm environment  
+   - [CompliancePulse AI deep dive]({% post_url 2026-08-15-compliancepulse-ai-deep-dive %}) — control plane & evidence product  
+   - [Governing autonomous AI agents]({% post_url 2026-07-31-governing-autonomous-ai-agents-cybersecurity %}) — attack matrix & multi-cloud IAM  
+   - [Unified Governed Agentic SecOps Framework]({% post_url 2026-08-14-unified-governed-agentic-secops-framework %}) — swarm + control plane together  
 
 Everything else on this site (identity deep dives, cloud runbooks, control mappings) is **optional depth** for specialists.
 
