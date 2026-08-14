@@ -240,12 +240,17 @@ permalink: /product-tour/
 <section class="home-section tour-section" id="infer">
   <h2>5. Deploy &amp; test the model (Local)</h2>
   <p>
-    Register the trained artifact into the model catalog, deploy it for inference,
-    open the Inference app, and run a prediction against the local inferencer.
+    This tour trains a <strong>quality DistilBERT</strong> text classifier on
+    <strong>AG News</strong> (World / Sports / Business / Sci/Tech) under a signed
+    Ricardian contract, then registers the artifact, deploys it for local inference,
+    and runs a headline prediction. The default example
+    (<code>"Wall Street rallies…"</code>) predicts <strong>Business</strong>.
+    Register → deploy → open the Inference app → run prediction against
+    <code>infer.py</code> in the local trainer image.
   </p>
   <figure class="shot">
     <img src="{{ '/assets/lifecycle/20-tdc-register-model.png' | relative_url }}" alt="Register trained model for inference" loading="lazy" />
-    <figcaption>Register trained model for inference</figcaption>
+    <figcaption>Register trained DistilBERT artifact for inference</figcaption>
   </figure>
   <figure class="shot">
     <img src="{{ '/assets/lifecycle/21-tdc-deploy-inference.png' | relative_url }}" alt="Deploy model for inference" loading="lazy" />
@@ -257,30 +262,33 @@ permalink: /product-tour/
   </figure>
   <figure class="shot">
     <img src="{{ '/assets/lifecycle/23-tdc-inference-app.png' | relative_url }}" alt="Inference app with example request" loading="lazy" />
-    <figcaption>Inference app — request ready</figcaption>
+    <figcaption>Inference app — AG News headline request ready</figcaption>
   </figure>
   <figure class="shot">
     <img src="{{ '/assets/lifecycle/24-tdc-inference-predict.png' | relative_url }}" alt="Inference prediction result with Open-GMASE gate" loading="lazy" />
-    <figcaption>Prediction result (quality DistilBERT) — includes Open-GMASE policy gate when OPA is running</figcaption>
+    <figcaption>Prediction <strong>Business</strong> (quality DistilBERT) — includes Open-GMASE policy gate when OPA is running</figcaption>
   </figure>
 </section>
 
 <section class="home-section tour-section" id="gmase">
   <h2>6. Open-GMASE gate + CompliancePulse ingest (research demo)</h2>
   <p>
-    Before a prediction runs, CAN asks Open-GMASE OPA (<code>open_gmase/can_contracts</code>).
-    The Inference app shows ALLOW/DENY with package and audit id. The same decision is
-    <strong>forwarded by default</strong> to CompliancePulse
-    (<code>POST /api/v1/audit/ingest</code> on <code>localhost:3001</code>).
-    Details: <a href="{% post_url 2026-08-14-can-gmase-demo-slice %}">demo slice guide</a>.
+    The gate screenshots below use a faster <strong>tabular logistic regression</strong>
+    model (Iris-style features → label <strong>setosa</strong>) so the seam is easy to
+    reproduce. Before predict runs, CAN asks Open-GMASE OPA
+    (<code>open_gmase/can_contracts</code>). The Inference app shows ALLOW/DENY with
+    package and audit id. The same decision is <strong>forwarded by default</strong> to
+    CompliancePulse (<code>POST /api/v1/audit/ingest</code> on <code>localhost:3001</code>).
+    Details (including both model profiles):
+    <a href="{% post_url 2026-08-14-can-gmase-demo-slice %}">demo slice guide</a>.
   </p>
   <figure class="shot">
     <img src="{{ '/assets/gmase/01-tdc-deploy-inference.png' | relative_url }}" alt="Deploy for inference under Open-GMASE gate" loading="lazy" />
-    <figcaption>Deploy for inference — gated by OPA; forwarded to CompliancePulse</figcaption>
+    <figcaption>Deploy tabular logreg — gated by OPA; forwarded to CompliancePulse</figcaption>
   </figure>
   <figure class="shot">
     <img src="{{ '/assets/gmase/03-tdc-inference-predict-gmase.png' | relative_url }}" alt="Open-GMASE ALLOW on prediction" loading="lazy" />
-    <figcaption>Prediction with Open-GMASE policy gate (ALLOW) — same payload lands in CP audit trail</figcaption>
+    <figcaption>Prediction <strong>setosa</strong> with Open-GMASE ALLOW — same payload in CP audit trail</figcaption>
   </figure>
 </section>
 
