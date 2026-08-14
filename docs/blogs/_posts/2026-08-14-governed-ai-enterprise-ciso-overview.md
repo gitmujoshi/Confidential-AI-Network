@@ -10,6 +10,8 @@ excerpt: "Two risks boardrooms care about—unsafe data sharing and unbounded AI
 
 **Reading time:** ~6 minutes. No architecture diagrams required.
 
+> **Status:** This is an **active research and engineering project**, not a finished commercial product. The architecture, open-source reference code, and product surfaces will keep evolving as we learn from design partners and real deployments. Treat published posts as a living blueprint—useful for direction and discussion—not as a frozen commitment.
+
 If you lead security, risk, or compliance, you are probably being asked two questions at once:
 
 1. *How do we train better models on data we do not fully own—without creating the next breach headline?*  
@@ -92,7 +94,8 @@ Humans still sign in with your enterprise identity. Machines get short-lived, at
 - Not “another chatbot for the SOC.”  
 - Not “put all your data in our lake.”  
 - Not a promise that model alignment alone will keep production safe.  
-- Not a requirement that every executive read every technical note on this site.
+- Not a requirement that every executive read every technical note on this site.  
+- Not a claim that every capability described is production-complete today—this stack is still under active research and will continue to change.
 
 ---
 

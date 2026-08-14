@@ -13,6 +13,7 @@ permalink: /
     Today that usually means exports, NDAs, and hope.
     We build the rails where providers, consumers, and clean-room operators
     agree in writing, train in isolation, and leave a trail regulators can verify.
+    This is an active research project; the platform and docs will keep evolving.
   </p>
   <p class="cta-row">
     <a class="cta" href="{% post_url 2026-08-14-governed-ai-enterprise-ciso-overview %}">Executive overview (CISO)</a>
@@ -138,6 +139,7 @@ permalink: /
   <h2>Notes &amp; whitepapers</h2>
   <p class="section-intro">
     Start with the executive overview. Everything else is optional depth for architects and reviewers.
+    This site documents an <strong>active research project</strong>—designs and implementations will keep evolving.
     Long-form specs remain in the repository <code>docs/</code> tree.
   </p>
 
