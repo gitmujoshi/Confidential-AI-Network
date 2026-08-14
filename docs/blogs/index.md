@@ -17,7 +17,7 @@ permalink: /
   </p>
   <p class="cta-row">
     <a class="cta" href="{% post_url 2026-08-14-governed-ai-enterprise-ciso-overview %}">Executive overview (CISO)</a>
-    <a class="cta cta-secondary" href="{% post_url 2026-08-14-reintroducing-confidential-ai-network %}">Reintroducing CAN</a>
+    <a class="cta cta-secondary" href="{% post_url 2026-08-14-can-contract-to-prediction %}">CAN: contract to prediction</a>
     <a class="cta cta-secondary" href="{{ '/product-tour/' | relative_url }}">Product tour</a>
   </p>
 </section>
@@ -149,8 +149,8 @@ permalink: /
     <p class="group-lede">Written for CISOs, risk leaders, and non-technical stakeholders. Six minutes; no prerequisite reading.</p>
     <ol class="post-list ordered">
       <li>
-        <a href="{% post_url 2026-08-14-reintroducing-confidential-ai-network %}">Reintroducing Confidential AI Network — contracts, training, inference, and policy gates</a>
-        <p class="meta">August 14, 2026 · What’s new: local train→infer, Open-GMASE, CompliancePulse</p>
+        <a href="{% post_url 2026-08-14-can-contract-to-prediction %}">Confidential AI Network: from signed contract to governed prediction</a>
+        <p class="meta">August 14, 2026 · Train → infer under Open-GMASE, with CompliancePulse ingest</p>
       </li>
       <li>
         <a href="{% post_url 2026-08-14-governed-ai-enterprise-ciso-overview %}">Governed AI for the enterprise — a CISO’s overview</a>
@@ -183,8 +183,8 @@ permalink: /
     <p class="group-lede">Product and architecture detail for CAN.</p>
     <ol class="post-list ordered">
       <li>
-        <a href="{% post_url 2026-08-14-reintroducing-confidential-ai-network %}">Reintroducing Confidential AI Network — contracts, training, inference, and policy gates</a>
-        <p class="meta">August 14, 2026 · Current product surface + new features</p>
+        <a href="{% post_url 2026-08-14-can-contract-to-prediction %}">Confidential AI Network: from signed contract to governed prediction</a>
+        <p class="meta">August 14, 2026 · Current product surface — contract through governed inference</p>
       </li>
       <li>
         <a href="{% post_url 2026-07-29-building-confidential-ai-network %}">Building Confidential AI Network — governed multi-party training without a data lake</a>

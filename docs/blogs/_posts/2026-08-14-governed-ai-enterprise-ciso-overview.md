@@ -113,7 +113,7 @@ Use that alongside the [product tour]({{ '/product-tour/' | relative_url }}) whe
 
 1. **Stay here** if you only need the thesis for a steering committee.  
 2. **See the product** — [Product tour]({{ '/product-tour/' | relative_url }}) (screenshots of the CAN flow).  
-3. **Catch up on what’s new** — [Reintroducing CAN]({% post_url 2026-08-14-reintroducing-confidential-ai-network %}) (train→infer, Open-GMASE, CompliancePulse).  
+3. **See the full CAN loop** — [From signed contract to governed prediction]({% post_url 2026-08-14-can-contract-to-prediction %}) (train→infer, Open-GMASE, CompliancePulse).  
 4. **Run the live seam** — [CAN ↔ Open-GMASE ↔ CompliancePulse]({% post_url 2026-08-14-can-gmase-demo-slice %}) (OPA → AuditLogs → CP ingest).  
 5. **Go deeper only if needed:**
    - [Building Confidential AI Network]({% post_url 2026-07-29-building-confidential-ai-network %}) — product detail for CAN  
