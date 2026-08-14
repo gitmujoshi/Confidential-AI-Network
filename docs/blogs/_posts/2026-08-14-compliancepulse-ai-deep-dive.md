@@ -1,16 +1,16 @@
 ---
 layout: post
 title: "CompliancePulse AI deep dive: zero-trust control plane for agent execution"
-date: 2026-08-15
+date: 2026-08-14
 categories: [security]
 tags: [compliancepulse, g-mase, open-gmase, audit, opa, spiffe, saas, open-core]
-permalink: /security/2026/08/15/compliancepulse-ai-deep-dive/
+permalink: /security/2026/08/14/compliancepulse-ai-deep-dive/
 excerpt: "What CompliancePulse AI is, how it relates to Open-GMASE and G-MASE, what the research ingest path already does with CAN, and what remains on the multi-tenant SaaS roadmap."
 ---
 
 *Product and architecture deep dive for **CompliancePulse AI**—the commercial / enterprise control plane that wraps governed agent execution with identity, policy, and evidence.*
 
-**Related reading:** [G-MASE deep dive]({% post_url 2026-08-15-gmase-deep-dive %}) · [Unified framework]({% post_url 2026-08-14-unified-governed-agentic-secops-framework %}) · [CAN ↔ Open-GMASE ↔ CompliancePulse demo]({% post_url 2026-08-14-can-gmase-demo-slice %}) · [compliancepulse-ai/](https://github.com/gitmujoshi/Confidential-AI-Network/tree/main/compliancepulse-ai) · [Open-GMASE Core](https://github.com/gitmujoshi/Confidential-AI-Network/tree/main/open-gmase-core)
+**Related reading:** [G-MASE deep dive]({% post_url 2026-08-14-gmase-deep-dive %}) · [Unified framework]({% post_url 2026-08-14-unified-governed-agentic-secops-framework %}) · [CAN ↔ Open-GMASE ↔ CompliancePulse demo]({% post_url 2026-08-14-can-gmase-demo-slice %}) · [compliancepulse-ai/](https://github.com/gitmujoshi/Confidential-AI-Network/tree/main/compliancepulse-ai) · [Open-GMASE Core](https://github.com/gitmujoshi/Confidential-AI-Network/tree/main/open-gmase-core)
 
 ---
 
@@ -73,7 +73,7 @@ Open-GMASE answers the *local* “fail closed before side effect” question. Co
 | **Agent lifecycle** | Register agents, evaluate proposals, swarm investigate hooks, HITL workflows |
 | **Enterprise UX** | React control plane for operators (research → product) |
 
-The **G-MASE agents** (orchestrator / triage / forensic / remediation) ship as the *application package* that this control plane is designed to govern—see the [G-MASE deep dive]({% post_url 2026-08-15-gmase-deep-dive %}).
+The **G-MASE agents** (orchestrator / triage / forensic / remediation) ship as the *application package* that this control plane is designed to govern—see the [G-MASE deep dive]({% post_url 2026-08-14-gmase-deep-dive %}).
 
 ---
 
@@ -229,4 +229,4 @@ Then run a gated deploy/predict or `npm run test:e2e:inference` with `E2E_WAIT_F
 3. The **CAN ingest path is real today** for decision events—not for datasets or model bytes.  
 4. Multi-tenant SaaS, enterprise IdP packs, and certified policy packs are the **upgrade roadmap**—say that clearly to stakeholders.
 
-Pair with the [G-MASE deep dive]({% post_url 2026-08-15-gmase-deep-dive %}) for the swarm side, or jump straight to the [hands-on demo]({% post_url 2026-08-14-can-gmase-demo-slice %}).
+Pair with the [G-MASE deep dive]({% post_url 2026-08-14-gmase-deep-dive %}) for the swarm side, or jump straight to the [hands-on demo]({% post_url 2026-08-14-can-gmase-demo-slice %}).

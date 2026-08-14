@@ -8,6 +8,8 @@ description: Contract-governed, confidential AI training — vision, architectur
 #   bundle exec jekyll serve --baseurl /Confidential-AI-Network
 url: "https://gitmujoshi.github.io"
 baseurl: "/Confidential-AI-Network"
+# Publish posts even if filename date is slightly ahead of CI clock
+future: true
 
 markdown: kramdown
 highlighter: rouge

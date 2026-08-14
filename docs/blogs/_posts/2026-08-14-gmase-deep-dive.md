@@ -1,16 +1,16 @@
 ---
 layout: post
 title: "G-MASE deep dive: Governed Multi-Agent SecOps Environment"
-date: 2026-08-15
+date: 2026-08-14
 categories: [security]
 tags: [g-mase, open-gmase, agents, secops, opa, spiffe, mcp, zero-trust]
-permalink: /security/2026/08/15/gmase-deep-dive/
+permalink: /security/2026/08/14/gmase-deep-dive/
 excerpt: "What G-MASE is, how the SecOps swarm is structured, why prompts are not a control plane, and how Open-GMASE Core ships the community reference implementation."
 ---
 
 *Product and architecture deep dive for **G-MASE** (Governed Multi-Agent SecOps Environment)—the intelligence and swarm layer of the governed agent stack.*
 
-**Related reading:** [Governing autonomous AI agents]({% post_url 2026-07-31-governing-autonomous-ai-agents-cybersecurity %}) (attack matrix & cloud IAM mapping) · [CompliancePulse AI deep dive]({% post_url 2026-08-15-compliancepulse-ai-deep-dive %}) · [Unified framework]({% post_url 2026-08-14-unified-governed-agentic-secops-framework %}) · [CAN ↔ Open-GMASE demo]({% post_url 2026-08-14-can-gmase-demo-slice %}) · [Open-GMASE Core](https://github.com/gitmujoshi/Confidential-AI-Network/tree/main/open-gmase-core)
+**Related reading:** [Governing autonomous AI agents]({% post_url 2026-07-31-governing-autonomous-ai-agents-cybersecurity %}) (attack matrix & cloud IAM mapping) · [CompliancePulse AI deep dive]({% post_url 2026-08-14-compliancepulse-ai-deep-dive %}) · [Unified framework]({% post_url 2026-08-14-unified-governed-agentic-secops-framework %}) · [CAN ↔ Open-GMASE demo]({% post_url 2026-08-14-can-gmase-demo-slice %}) · [Open-GMASE Core](https://github.com/gitmujoshi/Confidential-AI-Network/tree/main/open-gmase-core)
 
 ---
 
@@ -144,7 +144,7 @@ cd open-gmase-core && docker compose up -d
 ./examples/policy-check.sh
 ```
 
-**Honest scope:** local/sandbox adoption and community Rego/agent contributions. Multi-tenant SaaS, certified compliance packs, and enterprise IdP glue are **out of scope** here—see [OPEN_CORE.md](https://github.com/gitmujoshi/Confidential-AI-Network/blob/main/open-gmase-core/OPEN_CORE.md) and the [CompliancePulse deep dive]({% post_url 2026-08-15-compliancepulse-ai-deep-dive %}).
+**Honest scope:** local/sandbox adoption and community Rego/agent contributions. Multi-tenant SaaS, certified compliance packs, and enterprise IdP glue are **out of scope** here—see [OPEN_CORE.md](https://github.com/gitmujoshi/Confidential-AI-Network/blob/main/open-gmase-core/OPEN_CORE.md) and the [CompliancePulse deep dive]({% post_url 2026-08-14-compliancepulse-ai-deep-dive %}).
 
 ---
 
@@ -193,4 +193,4 @@ Primary sample mitigations: default-deny Rego with explicit allows; blocks on de
 3. **CompliancePulse AI** is the commercial control plane that productizes identity, policy packs, and multi-tenant evidence.  
 4. Treat every agent tool call as a privileged identity event—because it is.
 
-Next: [CompliancePulse AI deep dive]({% post_url 2026-08-15-compliancepulse-ai-deep-dive %}) · try the [CAN seam]({% post_url 2026-08-14-can-gmase-demo-slice %}).
+Next: [CompliancePulse AI deep dive]({% post_url 2026-08-14-compliancepulse-ai-deep-dive %}) · try the [CAN seam]({% post_url 2026-08-14-can-gmase-demo-slice %}).

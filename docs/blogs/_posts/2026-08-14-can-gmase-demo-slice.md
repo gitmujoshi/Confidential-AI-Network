@@ -10,7 +10,7 @@ excerpt: "Live three-layer seam: CAN side effects hit Open-GMASE OPA, land in CA
 
 **Status:** Research demo path for the **control-plane seam** between Confidential AI Network, Open-GMASE, and CompliancePulse.
 
-**Deep dives:** [G-MASE]({% post_url 2026-08-15-gmase-deep-dive %}) · [CompliancePulse AI]({% post_url 2026-08-15-compliancepulse-ai-deep-dive %})
+**Deep dives:** [G-MASE]({% post_url 2026-08-14-gmase-deep-dive %}) · [CompliancePulse AI]({% post_url 2026-08-14-compliancepulse-ai-deep-dive %})
 
 | Capability | Status |
 | --- | --- |
