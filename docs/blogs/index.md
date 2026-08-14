@@ -15,9 +15,9 @@ permalink: /
     agree in writing, train in isolation, and leave a trail regulators can verify.
   </p>
   <p class="cta-row">
-    <a class="cta" href="{{ '/product-tour/' | relative_url }}">See the end-to-end product tour</a>
-    <a class="cta cta-secondary" href="{{ '/#notes' | relative_url }}">Browse notes &amp; whitepapers</a>
-    <a class="cta cta-secondary" href="https://github.com/gitmujoshi/Confidential-AI-Network">Explore the codebase</a>
+    <a class="cta" href="{{ site.baseurl }}{% post_url 2026-08-14-governed-ai-enterprise-ciso-overview %}">Executive overview (CISO)</a>
+    <a class="cta cta-secondary" href="{{ '/product-tour/' | relative_url }}">Product tour</a>
+    <a class="cta cta-secondary" href="{{ '/#notes' | relative_url }}">All notes</a>
   </p>
 </section>
 
@@ -137,12 +137,28 @@ permalink: /
 <section class="home-section notes-section" id="notes">
   <h2>Notes &amp; whitepapers</h2>
   <p class="section-intro">
-    Curated reading paths for operators, architects, and reviewers.
+    Start with the executive overview. Everything else is optional depth for architects and reviewers.
     Long-form specs remain in the repository <code>docs/</code> tree.
   </p>
 
-  <nav class="notes-toc" aria-label="Topic guides">
-    <a href="#series-platform">Platform</a>
+  <div class="post-group start-here" id="series-start">
+    <p class="series-label">Start here</p>
+    <h3>Executive overview</h3>
+    <p class="group-lede">Written for CISOs, risk leaders, and non-technical stakeholders. Six minutes; no prerequisite reading.</p>
+    <ol class="post-list ordered">
+      <li>
+        <a href="{{ site.baseurl }}{% post_url 2026-08-14-governed-ai-enterprise-ciso-overview %}">Governed AI for the enterprise — a CISO’s overview</a>
+        <p class="meta">August 14, 2026 · Combined CAN + Open-GMASE + CompliancePulse value story</p>
+      </li>
+      <li>
+        <a href="{{ '/product-tour/' | relative_url }}">Product tour</a>
+        <p class="meta">Screenshots · CAN end-to-end path</p>
+      </li>
+    </ol>
+  </div>
+
+  <nav class="notes-toc" aria-label="Deeper topic guides">
+    <a href="#series-platform">Platform detail</a>
     <a href="#series-agents">Agent governance</a>
     <a href="#series-identity">Identity</a>
     <a href="#series-cloud">Cloud security</a>
@@ -150,24 +166,22 @@ permalink: /
     <a href="#all-posts">All posts</a>
   </nav>
 
+  <p class="depth-intro">Deeper reading <span class="muted-inline">(skip unless you need the detail)</span></p>
+
   <div class="post-group" id="series-platform">
-    <h3>1. Platform — Confidential AI Network</h3>
-    <p class="group-lede">Start here for the product thesis: multi-party training without a shared data lake.</p>
+    <h3>Platform — Confidential AI Network</h3>
+    <p class="group-lede">Product and architecture detail for CAN.</p>
     <ol class="post-list ordered">
       <li>
         <a href="{{ site.baseurl }}{% post_url 2026-07-29-building-confidential-ai-network %}">Building Confidential AI Network — governed multi-party training without a data lake</a>
-        <p class="meta">July 29, 2026 · Product overview</p>
-      </li>
-      <li>
-        <a href="{{ '/product-tour/' | relative_url }}">Product tour</a>
-        <p class="meta">UI walkthrough · Local &amp; OCI</p>
+        <p class="meta">July 29, 2026 · Technical product walkthrough</p>
       </li>
     </ol>
   </div>
 
   <div class="post-group" id="series-agents">
-    <h3>2. Agent governance — G-MASE &amp; CompliancePulse</h3>
-    <p class="group-lede">How autonomous SecOps agents stay bounded by identity, policy, and typed execution.</p>
+    <h3>Agent governance — G-MASE &amp; CompliancePulse</h3>
+    <p class="group-lede">For security architects and platform engineers.</p>
     <ol class="post-list ordered">
       <li>
         <a href="{{ site.baseurl }}{% post_url 2026-07-31-governing-autonomous-ai-agents-cybersecurity %}">Governing autonomous AI agents in cybersecurity operations</a>
@@ -175,13 +189,13 @@ permalink: /
       </li>
       <li>
         <a href="{{ site.baseurl }}{% post_url 2026-08-14-unified-governed-agentic-secops-framework %}">Unified Governed Agentic SecOps Framework</a>
-        <p class="meta">August 14, 2026 · G-MASE + CompliancePulse whitepaper</p>
+        <p class="meta">August 14, 2026 · Swarm + control plane whitepaper</p>
       </li>
     </ol>
   </div>
 
   <div class="post-group" id="series-identity">
-    <h3>3. Identity — humans, cloud APIs, workloads</h3>
+    <h3>Identity — humans, cloud APIs, workloads</h3>
     <p class="group-lede">Zero-trust identity for people and for agent fleets on Kubernetes.</p>
     <ol class="post-list ordered">
       <li>
@@ -208,7 +222,7 @@ permalink: /
   </div>
 
   <div class="post-group" id="series-cloud">
-    <h3>4. Cloud security architectures</h3>
+    <h3>Cloud security architectures</h3>
     <p class="group-lede">Deployment-shaped notes for cloud identity and edge controls.</p>
     <ol class="post-list ordered">
       <li>
@@ -219,7 +233,7 @@ permalink: /
   </div>
 
   <div class="post-group" id="series-compliance">
-    <h3>5. Compliance &amp; documentation map</h3>
+    <h3>Compliance &amp; documentation map</h3>
     <p class="group-lede">Where reviewers find controls evidence and how requirements map to NIST and CIS.</p>
     <ol class="post-list ordered">
       <li>
@@ -235,7 +249,7 @@ permalink: /
 
   <div class="post-group all-posts" id="all-posts">
     <h3>All posts by date</h3>
-    <p class="group-lede">Newest first. Use the guides above for a recommended order.</p>
+    <p class="group-lede">Newest first. Prefer the executive overview unless you need a specialist topic.</p>
     <ul class="post-list">
       {% assign posts_by_date = site.posts | sort: 'date' | reverse %}
       {% for post in posts_by_date %}
