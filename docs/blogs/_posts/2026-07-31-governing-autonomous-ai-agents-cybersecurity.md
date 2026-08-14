@@ -489,6 +489,8 @@ Relying on model alignment or text prompts to enforce infrastructure security is
 
 Effective AI governance requires treating the model as an untrusted reasoning engine bounded by deterministic infrastructure sidecars. **G-MASE** combines **SPIFFE/SPIRE dynamic identity**, **OPA policy enforcement**, typed schemas (e.g. **BAML**), and local context reduction (e.g. **Headroom**) so agents can operate at machine speed without bypassing corporate security policy—whether that runtime sits in an air-gapped perimeter or in a private VPC on a public cloud.
 
+A thin, runnable seam of the inner gate (OPA → CAN AuditLogs) is documented here: [CAN ↔ Open-GMASE demo slice]({% post_url 2026-08-14-can-gmase-demo-slice %}).
+
 ---
 
 ## Sources & attributions

@@ -12,7 +12,7 @@ canonical: docs/architecture/unified-governed-agentic-secops-framework.md
 **Document type:** Architectural blueprint  
 **Domain:** AI security, zero trust & autonomous SecOps
 
-Related: [Open-GMASE Core](https://github.com/gitmujoshi/Confidential-AI-Network/tree/main/open-gmase-core) · [Governing autonomous AI agents]({% post_url 2026-07-31-governing-autonomous-ai-agents-cybersecurity %}) · [Confidential AI Network](https://github.com/gitmujoshi/Confidential-AI-Network)
+Related: [Open-GMASE Core](https://github.com/gitmujoshi/Confidential-AI-Network/tree/main/open-gmase-core) · [Governing autonomous AI agents]({% post_url 2026-07-31-governing-autonomous-ai-agents-cybersecurity %}) · [CAN ↔ Open-GMASE demo slice]({% post_url 2026-08-14-can-gmase-demo-slice %}) · [Confidential AI Network](https://github.com/gitmujoshi/Confidential-AI-Network)
 
 ---
 

@@ -118,5 +118,6 @@ allow {
 allow {
     count(deny) == 0
     input.tool_name == "execute_sql"
-    startswith(lower(trim(input.parameters.query)), "select")
+    # OPA ≥0.70: trim(string, cutset); use trim_space for whitespace
+    startswith(lower(trim_space(input.parameters.query)), "select")
 }

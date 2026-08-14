@@ -2,6 +2,8 @@
 
 **Status:** Research demo path — not a full unified production runtime.
 
+**Blog (GitHub Pages):** [Try it: CAN ↔ Open-GMASE policy gate](https://gitmujoshi.github.io/Confidential-AI-Network/guides/2026/08/14/can-gmase-demo-slice/)
+
 Smallest live integration of the three-offering story:
 
 ```text

@@ -156,6 +156,10 @@ permalink: /
         <a href="{{ '/product-tour/' | relative_url }}">Product tour</a>
         <p class="meta">Screenshots · CAN end-to-end path</p>
       </li>
+      <li>
+        <a href="{% post_url 2026-08-14-can-gmase-demo-slice %}">Try it: CAN ↔ Open-GMASE policy gate (demo slice)</a>
+        <p class="meta">August 14, 2026 · Live OPA → CAN AuditLogs seam (research demo)</p>
+      </li>
     </ol>
   </div>
 
@@ -192,6 +196,10 @@ permalink: /
       <li>
         <a href="{% post_url 2026-08-14-unified-governed-agentic-secops-framework %}">Unified Governed Agentic SecOps Framework</a>
         <p class="meta">August 14, 2026 · Swarm + control plane whitepaper</p>
+      </li>
+      <li>
+        <a href="{% post_url 2026-08-14-can-gmase-demo-slice %}">Try it: CAN ↔ Open-GMASE policy gate (demo slice)</a>
+        <p class="meta">August 14, 2026 · Runnable seam for stakeholders</p>
       </li>
     </ol>
   </div>
