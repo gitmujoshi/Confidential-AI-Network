@@ -54,22 +54,18 @@ Honest scope: CP ingest is a **research stub** (in-memory audit store), not a fi
 
 ## Model trained & inference (what the screenshots show)
 
-The governance screenshots below come from the **fast tabular** E2E path (quick enough to gate repeatedly). The full product-tour lifecycle uses a richer **NLP** model so labels read well for stakeholders.
+Governance screenshots in this post still use the **fast tabular** path (quick gate regression). A **vision** path is also live for higher visual impact. The product-tour lifecycle uses **NLP** so labels read well for stakeholders.
 
-| | **GMASE gate screenshots** (this post) | **Lifecycle / product tour** |
-| --- | --- | --- |
-| **Task** | Tabular classification | Text classification (AG News topics) |
-| **Catalog model** | `e2e-model-tabular-logreg` | `e2e-model-nlp-distilbert-quality` |
-| **Architecture** | Logistic regression (`taskType: tabular`) | DistilBERT / transformer (`taskType: text`) |
-| **Framework** | scikit-style tabular trainer in the local Docker image | PyTorch + Hugging Face (`distilbert-base-uncased`) |
-| **Dataset** | Iris-style CSV features (4 floats) | AG News headlines |
-| **Train** | Local Docker (`TRAINING_EXECUTION_MODE=local-docker`) under a signed Ricardian contract | Same local-docker path; quality profile uses a larger train subset |
-| **Artifact** | Registered from the completed job → `AIModel` → **Deploy for inference** | Same register → deploy flow |
-| **Example request** | `{ "features": [5.1, 3.5, 1.4, 0.2] }` | `{ "text": "Wall Street rallies as tech stocks climb on strong earnings." }` |
-| **Example label** | **setosa** (Iris class 0) | **Business** (AG News class 2) |
-| **Runtime** | `infer.py` in `contractmanagement/local-trainer` (Docker) | Same inferencer, text path |
+| | **GMASE gate screenshots** | **Vision (API / Inference app)** | **Lifecycle / product tour** |
+| --- | --- | --- | --- |
+| **Task** | Tabular classification | Image classification (CIFAR-10) | Text classification (AG News) |
+| **Catalog model** | `e2e-model-tabular-logreg` | `MODEL-E2E-001` / CNN | `e2e-model-nlp-distilbert-quality` |
+| **Architecture** | Logistic regression | TinyCNN (`taskType: vision`) | DistilBERT / transformer |
+| **Dataset** | Iris-style CSV (4 floats) | CIFAR-10 subset (~2k train; FakeData if `E2E_VISION_FAST`) | AG News headlines |
+| **Example request** | `{ "features": [5.1, 3.5, 1.4, 0.2] }` | `{ "imageBase64": "…" }` (32×32 demo PNG) | `{ "text": "Wall Street rallies…" }` |
+| **Example label** | **setosa** | CIFAR name (e.g. **airplane**) | **Business** |
 
-In both cases the **prediction is the side effect**: Open-GMASE must **ALLOW** `run_inference` (and earlier `deploy_inference` / `start_training`) before the local inferencer runs. The UI then shows the label **and** the policy-gate panel; CompliancePulse receives the same decision via ingest.
+In all cases the **side effect** (train / deploy / predict) is gated by Open-GMASE. The UI shows the label **and** the policy-gate panel. CompliancePulse receives the **governance decision**, not the pixels or weights (see below).
 
 ## What you will see
 
@@ -85,7 +81,7 @@ In both cases the **prediction is the side effect**: Open-GMASE must **ALLOW** `
 
 <figure class="shot">
   <img src="{{ '/assets/gmase/01-tdc-deploy-inference.png' | relative_url }}" alt="TDC Training page after Deploy for inference" loading="lazy" />
-  <figcaption>Deploy for inference on the trained tabular logreg artifact — OPA authorizes <code>deploy_inference</code>; decision also goes to CompliancePulse</figcaption>
+  <figcaption>Deploy for inference — OPA authorizes <code>deploy_inference</code>; the <em>governance decision</em> (not the model artifact) is forwarded to CompliancePulse</figcaption>
 </figure>
 
 <figure class="shot">
@@ -101,6 +97,25 @@ In both cases the **prediction is the side effect**: Open-GMASE must **ALLOW** `
 The lifecycle product tour uses **quality DistilBERT** on AG News (prediction **Business**) and the same gate when OPA is up — see [`24-tdc-inference-predict.png`]({{ '/assets/lifecycle/24-tdc-inference-predict.png' | relative_url }}) on the [product tour]({{ '/product-tour/' | relative_url }}#infer).
 
 ## CompliancePulse integration (how to show it)
+
+### What is forwarded (and what is not)
+
+**Yes — deploy for inference is gated and forwarded.** When you click **Deploy for inference** (or run predict / start training), CAN:
+
+1. Asks Open-GMASE OPA (`deploy_inference` / `run_inference` / `start_training`)
+2. Writes `GMASE_TOOL_DECISION` to CAN AuditLogs
+3. **Forwards that same decision** to CompliancePulse `POST /api/v1/audit/ingest` (default `http://localhost:3001`)
+
+What CP stores is the **control-plane decision**, for example:
+
+| Included | Not included |
+| --- | --- |
+| `tool_name` (`deploy_inference`, `run_inference`, …) | Training images / CSV / text corpora |
+| `allow` / `reason` / deny-warn lists | Inference `imageBase64` / feature vectors |
+| `model_id`, `contract_id`, OPA `package` | Model weights (`model.bin`) |
+| `auditId`, `source: confidential-ai-network` | Prediction logits / raw outputs |
+
+So the caption “Deploy for inference — gated by OPA; forwarded to CompliancePulse” means the **ALLOW/DENY audit event** is forwarded — not that the dataset or image pixels are copied into CP.
 
 ### Start the three processes
 

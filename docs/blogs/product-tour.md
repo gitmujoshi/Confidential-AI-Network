@@ -275,20 +275,22 @@ permalink: /product-tour/
   <p>
     The gate screenshots below use a faster <strong>tabular logistic regression</strong>
     model (Iris-style features → label <strong>setosa</strong>) so the seam is easy to
-    reproduce. Before predict runs, CAN asks Open-GMASE OPA
+    reproduce. A <strong>vision</strong> path (TinyCNN + CIFAR-10 sample image) is available
+    in the Inference app / API E2E. Before predict runs, CAN asks Open-GMASE OPA
     (<code>open_gmase/can_contracts</code>). The Inference app shows ALLOW/DENY with
-    package and audit id. The same decision is <strong>forwarded by default</strong> to
-    CompliancePulse (<code>POST /api/v1/audit/ingest</code> on <code>localhost:3001</code>).
-    Details (including both model profiles):
+    package and audit id. The same <em>governance decision</em> (not pixels or weights) is
+    <strong>forwarded by default</strong> to CompliancePulse
+    (<code>POST /api/v1/audit/ingest</code> on <code>localhost:3001</code>).
+    Details:
     <a href="{% post_url 2026-08-14-can-gmase-demo-slice %}">demo slice guide</a>.
   </p>
   <figure class="shot">
     <img src="{{ '/assets/gmase/01-tdc-deploy-inference.png' | relative_url }}" alt="Deploy for inference under Open-GMASE gate" loading="lazy" />
-    <figcaption>Deploy tabular logreg — gated by OPA; forwarded to CompliancePulse</figcaption>
+    <figcaption>Deploy for inference — gated by OPA; decision forwarded to CompliancePulse (not the model artifact)</figcaption>
   </figure>
   <figure class="shot">
     <img src="{{ '/assets/gmase/03-tdc-inference-predict-gmase.png' | relative_url }}" alt="Open-GMASE ALLOW on prediction" loading="lazy" />
-    <figcaption>Prediction <strong>setosa</strong> with Open-GMASE ALLOW — same payload in CP audit trail</figcaption>
+    <figcaption>Prediction <strong>setosa</strong> with Open-GMASE ALLOW — same decision event in CP audit trail</figcaption>
   </figure>
 </section>
 

@@ -569,6 +569,9 @@ def train_vision_cifar10_small(out_dir: Path, epochs: int, fast: bool, architect
         try:
             train_ds = torchvision.datasets.CIFAR10(root=str(root), train=True, download=True, transform=tfm)
             test_ds = torchvision.datasets.CIFAR10(root=str(root), train=False, download=True, transform=tfm)
+            # Keep local demos tractable (full CIFAR is ~50k images / epoch).
+            train_ds = Subset(train_ds, list(range(min(2048, len(train_ds)))))
+            test_ds = Subset(test_ds, list(range(min(512, len(test_ds)))))
         except Exception:
             dataset_name = "fakedata"
             train_ds = torchvision.datasets.FakeData(

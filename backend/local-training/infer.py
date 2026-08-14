@@ -6,6 +6,7 @@ Usage:
   python infer.py --artifact /path/model.bin --task tabular --input '{"features":[5.1,3.5,1.4,0.2]}'
   python infer.py --artifact /path/model.bin --task text --input '{"text":"Wall Street gains on tech news"}'
   python infer.py --artifact /path/model.bin --task vision --input '{"demo":true}'
+  python infer.py --artifact /path/model.bin --task vision --input '{"imageBase64":"..."}'
 
 Prints one JSON object to stdout.
 """
@@ -21,6 +22,18 @@ from typing import Any, Dict, List, Optional
 
 IRIS_LABELS = ["setosa", "versicolor", "virginica"]
 AG_NEWS_LABELS = ["World", "Sports", "Business", "Sci/Tech"]
+CIFAR10_LABELS = [
+    "airplane",
+    "automobile",
+    "bird",
+    "cat",
+    "deer",
+    "dog",
+    "frog",
+    "horse",
+    "ship",
+    "truck",
+]
 
 
 def _load_json_input(raw: str) -> Dict[str, Any]:
@@ -144,6 +157,12 @@ def _build_tinycnn(num_classes: int):
     return TinyCNN(num_classes)
 
 
+def _vision_label(pred: int, num_classes: int) -> str:
+    if num_classes == len(CIFAR10_LABELS) and 0 <= pred < len(CIFAR10_LABELS):
+        return CIFAR10_LABELS[pred]
+    return str(pred)
+
+
 def infer_vision(artifact: Path, payload: Dict[str, Any]) -> Dict[str, Any]:
     import torch
     from torchvision import transforms
@@ -189,8 +208,9 @@ def infer_vision(artifact: Path, payload: Dict[str, Any]) -> Dict[str, Any]:
     return {
         "taskType": "vision",
         "prediction": pred,
-        "label": str(pred),
+        "label": _vision_label(pred, num_classes),
         "probabilities": probs,
+        "labels": CIFAR10_LABELS if num_classes == len(CIFAR10_LABELS) else None,
         "arch": arch,
         "source": source,
     }

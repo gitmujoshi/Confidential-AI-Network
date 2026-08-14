@@ -18,8 +18,10 @@ import {
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import StopIcon from '@mui/icons-material/Stop';
+import ImageIcon from '@mui/icons-material/Image';
 import toast from 'react-hot-toast';
 import apiService from '../services/api';
+import cifarDemoSample from '../data/cifarDemoSample';
 
 function pretty(obj) {
   try {
@@ -27,6 +29,20 @@ function pretty(obj) {
   } catch (_) {
     return String(obj);
   }
+}
+
+function previewFromInputText(text) {
+  try {
+    const parsed = JSON.parse(text || '{}');
+    const raw = parsed?.imageBase64;
+    if (typeof raw === 'string' && raw.length > 20) {
+      if (raw.startsWith('data:')) return raw;
+      return `data:image/png;base64,${raw}`;
+    }
+  } catch (_) {
+    /* ignore */
+  }
+  return null;
 }
 
 export default function TDCInference() {
@@ -43,6 +59,10 @@ export default function TDCInference() {
     () => deployments.find((d) => d.modelId === selectedId) || null,
     [deployments, selectedId]
   );
+
+  const imagePreview = useMemo(() => previewFromInputText(inputText), [inputText]);
+  const isVision =
+    (selected?.inference?.taskType || selected?.type) === 'vision' || selected?.type === 'cnn';
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -72,6 +92,15 @@ export default function TDCInference() {
       setSearchParams({ modelId: selected.modelId }, { replace: true });
     }
   }, [selected, searchParams, setSearchParams]);
+
+  const handleLoadSampleImage = () => {
+    setInputText(
+      pretty({
+        imageBase64: cifarDemoSample.imageBase64,
+        classHint: cifarDemoSample.classHint,
+      })
+    );
+  };
 
   const handlePredict = async () => {
     if (!selectedId) return;
@@ -186,9 +215,43 @@ export default function TDCInference() {
                 minRows={6}
                 value={inputText}
                 onChange={(e) => setInputText(e.target.value)}
-                placeholder='{"text":"..."} or {"features":[...]} or {"demo":true}'
+                placeholder='{"text":"..."} or {"features":[...]} or {"imageBase64":"..."}'
                 sx={{ fontFamily: 'monospace', mb: 2 }}
+                inputProps={{ 'data-testid': 'inference-request-json' }}
               />
+
+              {(isVision || imagePreview) && (
+                <Stack direction="row" spacing={2} alignItems="center" sx={{ mb: 2 }}>
+                  <Button
+                    size="small"
+                    variant="outlined"
+                    startIcon={<ImageIcon />}
+                    onClick={handleLoadSampleImage}
+                    data-testid="load-vision-sample"
+                  >
+                    Load sample image
+                  </Button>
+                  {imagePreview && (
+                    <Box
+                      component="img"
+                      src={imagePreview}
+                      alt="Inference input preview"
+                      data-testid="inference-image-preview"
+                      sx={{
+                        width: 64,
+                        height: 64,
+                        imageRendering: 'pixelated',
+                        border: '1px solid',
+                        borderColor: 'divider',
+                        borderRadius: 1,
+                      }}
+                    />
+                  )}
+                  <Typography variant="caption" color="text.secondary">
+                    CIFAR-10 classes: airplane, automobile, bird, cat, deer, dog, frog, horse, ship, truck
+                  </Typography>
+                </Stack>
+              )}
 
               <Stack direction="row" spacing={1}>
                 <Button

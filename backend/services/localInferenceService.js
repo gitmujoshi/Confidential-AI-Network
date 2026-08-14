@@ -73,11 +73,27 @@ function resolveTaskType(model, jobMeta = {}) {
   return 'tabular';
 }
 
+function visionDemoSample() {
+  try {
+    // eslint-disable-next-line import/no-dynamic-require, global-require
+    return require('../local-training/samples/cifarDemoSample');
+  } catch (_) {
+    return null;
+  }
+}
+
 function exampleInputForTask(taskType) {
   if (taskType === 'text') {
     return { text: 'Wall Street rallies as tech stocks climb on strong earnings.' };
   }
   if (taskType === 'vision') {
+    const sample = visionDemoSample();
+    if (sample?.imageBase64) {
+      return {
+        imageBase64: sample.imageBase64,
+        classHint: sample.classHint || 'airplane',
+      };
+    }
     return { demo: true };
   }
   // Iris sample (setosa-ish)
@@ -181,14 +197,17 @@ async function runInfer({ artifactPath, taskType, input }) {
     return parseInferResult(result);
   }
 
-  // Docker: mount artifact directory read-only + HF cache for transformer bases
+  // Docker: mount artifact directory read-only + host infer.py (so label maps ship without rebuild)
   const outDir = path.dirname(artifactPath);
+  const inferPy = path.join(repoRoot(), 'backend', 'local-training', 'infer.py');
   const image = trainerImage();
   const dockerArgs = [
     'run',
     '--rm',
     '-v',
     `${outDir}:/model:ro`,
+    '-v',
+    `${inferPy}:/app/infer.py:ro`,
   ];
   appendHfCacheDockerArgs(dockerArgs);
   dockerArgs.push(

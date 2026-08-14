@@ -175,6 +175,66 @@ async function trainTabularForInference() {
   return run;
 }
 
+/**
+ * Vision track for stakeholder demos: TinyCNN on a CIFAR-10 subset (not FakeData).
+ * Override with E2E_VISION_FAST=true to keep FakeData / fastDevRun.
+ */
+async function trainVisionForInference() {
+  await assertLocalTrainingReady();
+  const vision = TRAINABLE_TRACKS.find((t) => t.id === 'vision');
+  if (!vision) throw new Error('vision trainable track missing');
+  const fast =
+    process.env.E2E_VISION_FAST === 'true' || process.env.E2E_VISION_FAST === '1';
+  const track = {
+    ...vision,
+    title: fast ? vision.title : 'Vision — TinyCNN + CIFAR-10 subset (demo)',
+    buildPayload(args) {
+      const payload = vision.buildPayload(args);
+      if (!fast) {
+        payload.trainingParams = {
+          ...payload.trainingParams,
+          fastDevRun: false,
+          maxEpochs: 1,
+          architecture: 'tinycnn',
+        };
+      }
+      return payload;
+    },
+  };
+  const run = await createSignedAndOptionallyTrain(track);
+  if (!run.job || run.job.status !== 'COMPLETED') {
+    throw new Error(`Expected COMPLETED vision job, got ${run.job?.status}`);
+  }
+  return run;
+}
+
+function visionSampleInput() {
+  try {
+    // eslint-disable-next-line import/no-dynamic-require, global-require
+    const sample = require('../../../../backend/local-training/samples/cifarDemoSample');
+    return {
+      imageBase64: sample.imageBase64,
+      classHint: sample.classHint || 'airplane',
+    };
+  } catch (_) {
+    return { demo: true };
+  }
+}
+
+const CIFAR10_LABELS = [
+  'airplane',
+  'automobile',
+  'bird',
+  'cat',
+  'deer',
+  'dog',
+  'frog',
+  'horse',
+  'ship',
+  'truck',
+];
+
+
 async function registerModelFromJob({ tdcToken, jobId, name }) {
   const res = await axios.post(
     `${BACKEND_URL}/api/tdc/training/jobs/${encodeURIComponent(jobId)}/register-model`,
@@ -254,21 +314,55 @@ async function createDeployedTabularInference() {
   };
 }
 
+/**
+ * Vision happy path: TinyCNN (+ CIFAR subset unless E2E_VISION_FAST) → deploy → predict sample PNG.
+ */
+async function createDeployedVisionInference() {
+  const run = await trainVisionForInference();
+  const { token: tdcToken, user: tdcUser } = await login(USERS.tdc.email);
+  const registered = await registerModelFromJob({
+    tdcToken,
+    jobId: run.jobId,
+    name: `E2E Vision Inference ${Date.now()}`,
+  });
+  const deployed = await deployModel({ tdcToken, modelId: registered.modelId });
+  const input = visionSampleInput();
+  const prediction = await predictModel({
+    tdcToken,
+    modelId: registered.modelId,
+    input,
+  });
+  return {
+    tdcToken,
+    tdcUser,
+    contractId: run.contractId,
+    jobId: run.jobId,
+    modelId: registered.modelId,
+    deploy: deployed,
+    prediction,
+    input,
+  };
+}
+
 module.exports = {
   BACKEND_URL,
   USERS,
   DEFAULT_CP_URL,
+  CIFAR10_LABELS,
   login,
   seedAuth,
   getInferenceSkipReason,
   assertInferenceReady,
   trainTabularForInference,
+  trainVisionForInference,
+  visionSampleInput,
   registerModelFromJob,
   deployModel,
   predictModel,
   undeployModel,
   listDeployments,
   createDeployedTabularInference,
+  createDeployedVisionInference,
   checkGmaseOpaHealth,
   checkCompliancePulseHealth,
   listCompliancePulseIngestEvents,

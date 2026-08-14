@@ -2,6 +2,7 @@ const { test, expect } = require('@playwright/test');
 const {
   assertInferenceReady,
   createDeployedTabularInference,
+  createDeployedVisionInference,
   login,
   USERS,
   listDeployments,
@@ -11,6 +12,7 @@ const {
   fetchDebugEnv,
   resolveCompliancePulseBaseUrl,
   waitForCompliancePulseIngestForModel,
+  CIFAR10_LABELS,
 } = require('./helpers/inference-e2e');
 
 /**
@@ -115,6 +117,58 @@ test.describe('Inference deploy + predict — API smoke (opt-in)', () => {
       body: result.modelId,
     });
     await testInfo.attach('inference.api.prediction.json', {
+      contentType: 'application/json',
+      body: JSON.stringify(result.prediction, null, 2),
+    });
+  });
+
+  test('vision: train → deploy → predict sample image (+ GMASE + CP ingest)', async ({}, testInfo) => {
+    if (!(await assertInferenceReady(test))) return;
+
+    const debugEnv = await fetchDebugEnv();
+    const gateOn = debugEnv.gmase?.inferenceGate !== false;
+    const cpIngestOn = debugEnv.gmase?.compliancePulseIngest?.enabled !== false;
+
+    const result = await createDeployedVisionInference();
+    expect(result.modelId).toBeTruthy();
+    expect(result.deploy.inference.status).toBe('DEPLOYED');
+    expect(result.deploy.inference.taskType).toBe('vision');
+    expect(result.prediction.result.success).toBe(true);
+    expect(result.prediction.result.taskType).toBe('vision');
+    expect(CIFAR10_LABELS).toContain(result.prediction.result.label);
+    expect(result.prediction.result.source).toBe('imageBase64');
+    expect(Array.isArray(result.prediction.result.probabilities)).toBe(true);
+
+    if (gateOn) {
+      expect(result.deploy.governance?.allow).toBe(true);
+      expect(result.prediction.governance?.allow).toBe(true);
+      const decisions = await listGmaseToolDecisions({ limit: 40 });
+      const forModel = decisions.filter((row) => row.model_id === result.modelId);
+      expect(forModel.map((r) => r.tool_name)).toEqual(
+        expect.arrayContaining(['deploy_inference', 'run_inference'])
+      );
+    }
+
+    if (cpIngestOn) {
+      const cpUrl = resolveCompliancePulseBaseUrl(debugEnv);
+      const ingested = await waitForCompliancePulseIngestForModel({
+        baseUrl: cpUrl,
+        modelId: result.modelId,
+        minCount: 2,
+      });
+      expect(ingested.length).toBeGreaterThanOrEqual(2);
+      const actions = ingested.map((e) => e.action);
+      expect(actions.some((a) => String(a).includes('deploy_inference'))).toBe(true);
+      expect(actions.some((a) => String(a).includes('run_inference'))).toBe(true);
+      // Governance decision only — not pixels / training images / weights
+      expect(ingested.every((e) => e.metadata?.imageBase64 == null)).toBe(true);
+      expect(ingested.every((e) => e.metadata?.input == null || e.metadata?.input?.imageBase64 == null)).toBe(
+        true
+      );
+    }
+
+    await undeployModel({ tdcToken: result.tdcToken, modelId: result.modelId });
+    await testInfo.attach('inference.api.vision.prediction.json', {
       contentType: 'application/json',
       body: JSON.stringify(result.prediction, null, 2),
     });
