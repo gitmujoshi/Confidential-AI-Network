@@ -4,6 +4,15 @@
 
 Inspired by India’s **iSPIRT** [**DEPA** (Data Empowerment and Protection Architecture)](https://depa.world) — consent-based, accountable data sharing for the AI era.
 
+This repository also hosts the **agent-governance stack** that gates CAN side effects and SecOps tool proposals:
+
+| Layer | Path | What it is |
+| --- | --- | --- |
+| **Open-GMASE Core** | [`open-gmase-core/`](open-gmase-core/) | Apache 2.0 community edition of **G-MASE** (Governed Multi-Agent SecOps Environment) — SPIFFE/SPIRE, OPA/Rego, BAML schemas, starter MCP agents |
+| **CompliancePulse AI** | [`compliancepulse-ai/`](compliancepulse-ai/) | Open-core **commercial / SaaS control plane** for agent governance — audit ingest, policy APIs, multi-tenant roadmap |
+
+**Blog (GitHub Pages):** [G-MASE deep dive](https://gitmujoshi.github.io/Confidential-AI-Network/security/2026/08/14/gmase-deep-dive/) · [CompliancePulse AI deep dive](https://gitmujoshi.github.io/Confidential-AI-Network/security/2026/08/14/compliancepulse-ai-deep-dive/) · [CAN ↔ Open-GMASE ↔ CompliancePulse demo](https://gitmujoshi.github.io/Confidential-AI-Network/guides/2026/08/14/can-gmase-demo-slice/) · [site home](https://gitmujoshi.github.io/Confidential-AI-Network/)
+
 ---
 
 ## Business use cases
@@ -47,7 +56,7 @@ Platform and security teams need **defense in depth** (WAF, API gateway, private
 | **CCRP** | Host compliant environments, monitor jobs | [User guide](docs/USER_GUIDE.md) · [CCRP training](docs/training/README.md) |
 | **AppAdmin** | Users, health, audit | [Admin guide](docs/ADMIN_GUIDE.md) |
 | **Platform / SRE** | Deploy and operate in cloud | [Production docs](docs/production/README.md) |
-| **Security / GRC** | Controls and evidence | [Security](docs/production/README.md) · [SIEM](docs/production/SIEM_INTEGRATION_FRAMEWORK.md) |
+| **Security / GRC** | Controls and evidence | [Security](docs/production/README.md) · [SIEM](docs/production/SIEM_INTEGRATION_FRAMEWORK.md) · [G-MASE](https://gitmujoshi.github.io/Confidential-AI-Network/security/2026/08/14/gmase-deep-dive/) · [CompliancePulse](https://gitmujoshi.github.io/Confidential-AI-Network/security/2026/08/14/compliancepulse-ai-deep-dive/) |
 | **Developers** | Extend APIs and integrations | [Developer guide](docs/DEVELOPER_GUIDE.md) |
 
 ### Typical workflow
@@ -66,11 +75,28 @@ flowchart LR
 
 ### Related: Open-GMASE & CompliancePulse
 
+CAN can call **Open-GMASE** OPA packs before training start / inference deploy / predict (`GMASE_TRAINING_GATE`, `GMASE_INFERENCE_GATE`, default on). Decisions land in CAN AuditLogs as `GMASE_TOOL_DECISION` and, by default, forward to **CompliancePulse** `POST /api/v1/audit/ingest` (`http://localhost:3001`; set `COMPLIANCEPULSE_INGEST_URL=false` to disable). That forwards the **governance decision**, not training data or model weights.
+
 | Project | Path | Role |
 | --- | --- | --- |
-| **Open-GMASE Core** | [`open-gmase-core/`](open-gmase-core/) | Apache 2.0 community reference for governed agent execution (SPIFFE, OPA, starter agents) |
-| **CompliancePulse AI** | [`compliancepulse-ai/`](compliancepulse-ai/) | Open-core commercial / SaaS control-plane layer for agent governance |
-| **CAN ↔ G-MASE demo slice** | [`docs/guides/CAN_GMASE_DEMO_SLICE.md`](docs/guides/CAN_GMASE_DEMO_SLICE.md) | Tool → OPA → CAN AuditLogs (research demo; not full unified runtime) |
+| **G-MASE** | Architecture + blog | Governed Multi-Agent SecOps Environment — swarm pattern (orchestrator / triage / forensic / remediation) |
+| **Open-GMASE Core** | [`open-gmase-core/`](open-gmase-core/) | Apache 2.0 community reference (SPIFFE, OPA, starter agents). Quick start: `cd open-gmase-core && docker compose up -d` |
+| **CompliancePulse AI** | [`compliancepulse-ai/`](compliancepulse-ai/) | Open-core commercial control plane (ingest, trail, policy APIs; multi-tenant SaaS still roadmap) |
+| **CAN ↔ G-MASE demo** | [`docs/guides/CAN_GMASE_DEMO_SLICE.md`](docs/guides/CAN_GMASE_DEMO_SLICE.md) | Runnable seam + [blog walkthrough](https://gitmujoshi.github.io/Confidential-AI-Network/guides/2026/08/14/can-gmase-demo-slice/) |
+| **Deep dives** | Pages | [G-MASE](https://gitmujoshi.github.io/Confidential-AI-Network/security/2026/08/14/gmase-deep-dive/) · [CompliancePulse AI](https://gitmujoshi.github.io/Confidential-AI-Network/security/2026/08/14/compliancepulse-ai-deep-dive/) · [Unified framework](https://gitmujoshi.github.io/Confidential-AI-Network/security/2026/08/14/unified-governed-agentic-secops-framework/) |
+
+```mermaid
+flowchart LR
+  CAN["CAN side effects<br/>train / deploy / predict"]
+  OG["Open-GMASE OPA<br/>open_gmase/can_contracts"]
+  AL["CAN AuditLogs<br/>GMASE_TOOL_DECISION"]
+  CP["CompliancePulse<br/>audit/ingest"]
+
+  CAN -->|authorize fail-closed| OG
+  OG -->|allow / deny| CAN
+  CAN --> AL
+  AL -->|default forward| CP
+```
 
 ---
 
@@ -87,6 +113,8 @@ Full index: **[docs/README.md](docs/README.md)**
 | Demo to stakeholders | [Local demo runbook](docs/training/LOCAL_DEMO_RUNBOOK.md) |
 | Full party lifecycle (canonical) | [Participant onboarding & E2E](docs/guides/PARTICIPANT_ONBOARDING_AND_E2E_LIFECYCLE.md) |
 | Use the product (roles) | [User guide](docs/USER_GUIDE.md) |
+| Try Open-GMASE + CompliancePulse with CAN | [CAN_GMASE_DEMO_SLICE.md](docs/guides/CAN_GMASE_DEMO_SLICE.md) · [blog](https://gitmujoshi.github.io/Confidential-AI-Network/guides/2026/08/14/can-gmase-demo-slice/) |
+| Read G-MASE / CompliancePulse deep dives | [G-MASE](https://gitmujoshi.github.io/Confidential-AI-Network/security/2026/08/14/gmase-deep-dive/) · [CompliancePulse](https://gitmujoshi.github.io/Confidential-AI-Network/security/2026/08/14/compliancepulse-ai-deep-dive/) |
 
 ### Architecture and implementation
 
@@ -158,10 +186,13 @@ npm run test:login
 |------|---------|
 | `frontend/` | React UI |
 | `backend/` | Node.js API |
+| `open-gmase-core/` | Open-GMASE Core (OPA/SPIRE community packs) |
+| `compliancepulse-ai/` | CompliancePulse AI (control-plane research / open-core path) |
 | `docker/` | Compose stacks and Dockerfiles |
 | `scripts/` | Startup, deploy, utilities — [scripts/README.md](scripts/README.md) |
 | `deployment/` | OCI/Azure Terraform and deploy scripts |
 | `docs/` | Documentation index |
+| `docs/blogs/` | GitHub Pages site source |
 
 ---
 
@@ -201,6 +232,8 @@ flowchart LR
 - **Multi-party Ricardian contracts** — TDP, TDC, CCRP workflows with digital signing
 - **SCITT CCF ledger** — high-throughput, confidential-computing-friendly audit trail
 - **TDC training jobs** — contract-bound training; `local-docker`, `local-native` (Mac MPS), or `local-mlx`; optional model registration; NLP jobs can return **Opacus DP-SGD** `privacyMetrics` ([runtime doc](docs/training/TDC_TRAINING_RUNTIME.md) · [glossary](docs/GLOSSARY.md))
+- **Open-GMASE policy gates** — fail-closed OPA on train / deploy / predict; Inference UI shows ALLOW/DENY
+- **CompliancePulse ingest** — default forward of `GMASE_TOOL_DECISION` to CP audit trail (research stub; not full multi-tenant SaaS yet)
 - **CCRP training console** — deploy and monitor jobs via API and `/ccrp/training-environment`
 - **Encryption** — LUKS for large files, TEE decryption paths, differential privacy support
 - **Multi-cloud** — AWS, Azure, GCP, OCI deployment paths
@@ -264,6 +297,9 @@ Run `npm run status` and relevant tests before submitting.
 | **TDC** | Training Data Consumer — requests training on contracted data |
 | **TDP** | Training Data Provider — owns and publishes datasets |
 | **CCRP** | Confidential Clean Room Provider — hosts secure training environments |
+| **G-MASE** | Governed Multi-Agent SecOps Environment — SecOps swarm pattern under zero-trust sidecars |
+| **Open-GMASE Core** | Apache 2.0 community G-MASE reference (`open-gmase-core/`) |
+| **CompliancePulse AI** | Commercial / SaaS control-plane path for agent governance (`compliancepulse-ai/`) |
 | **Ricardian contract** | Human-readable legal terms plus machine-enforceable structure |
 | **SCITT CCF** | Confidential consortium ledger for tamper-evident contract records |
 | **TEE** | Trusted Execution Environment — hardware-isolated enclave for confidential processing |
@@ -280,6 +316,7 @@ Run `npm run status` and relevant tests before submitting.
 | **MLX** | Apple’s ML framework for Apple Silicon GPU |
 | **MPS** | Metal Performance Shaders — PyTorch GPU backend on macOS |
 | **SIEM** | Security analytics export (Splunk, Sentinel, OCI Logging, webhooks) |
+| **OPA** | Open Policy Agent — Rego policy engine used by Open-GMASE gates |
 
 **Full glossary** (training modes, LoRA, CAN JCS, KMS, …): [docs/GLOSSARY.md](docs/GLOSSARY.md).
 
@@ -289,10 +326,10 @@ Extended cloud/IAM/networking tables: [ARCHITECTURE.md](docs/ARCHITECTURE.md), [
 
 ## License and support
 
-- **License:** [MIT](LICENSE)  
-- **Docs:** [docs/README.md](docs/README.md)  
+- **License:** [MIT](LICENSE) (Open-GMASE Core is Apache 2.0; see [`open-gmase-core/LICENSE`](open-gmase-core/LICENSE))  
+- **Docs:** [docs/README.md](docs/README.md) · [Blog](https://gitmujoshi.github.io/Confidential-AI-Network/)  
 - **Issues:** GitHub Issues  
 
 ---
 
-*Last updated: 2026-06-18*
+*Last updated: 2026-08-14*
