@@ -9,11 +9,13 @@ const {
   predictModel,
   listGmaseToolDecisions,
   fetchDebugEnv,
+  resolveCompliancePulseBaseUrl,
+  waitForCompliancePulseIngestForModel,
 } = require('./helpers/inference-e2e');
 
 /**
  * Opt-in API: register → deploy → predict for a local-docker tabular model.
- * Includes Open-GMASE OPA gate assertions when GMASE_INFERENCE_GATE is enabled (default).
+ * Defaults: Open-GMASE OPA gate + CompliancePulse ingest assertions.
  *
  * Prerequisites:
  *   TRAINING_EXECUTION_MODE=local-docker (or local-native)
@@ -21,6 +23,9 @@ const {
  *   Docker image contractmanagement/local-trainer:latest includes infer.py
  *   Open-GMASE OPA on :8181 when inference gate is on
  *     (cd open-gmase-core && docker compose up -d)
+ *   CompliancePulse on :3001 when ingest is on (default)
+ *     (cd compliancepulse-ai/backend && npm run dev)
+ *   Or set COMPLIANCEPULSE_INGEST_URL=false on CAN to skip CP checks
  *
  * Run (from frontend/):
  *   E2E_WAIT_FOR_LOCAL_TRAINING=true BACKEND_URL=http://127.0.0.1:5001 npm run test:e2e:inference
@@ -28,11 +33,18 @@ const {
 test.describe('Inference deploy + predict — API smoke (opt-in)', () => {
   test.describe.configure({ mode: 'serial', timeout: 600_000 });
 
-  test('train → register → deploy → predict → list → undeploy (+ GMASE gate)', async ({}, testInfo) => {
+  test('train → register → deploy → predict → list → undeploy (+ GMASE + CP ingest)', async ({}, testInfo) => {
     if (!(await assertInferenceReady(test))) return;
 
     const debugEnv = await fetchDebugEnv();
     const gateOn = debugEnv.gmase?.inferenceGate !== false;
+    const cpIngestOn = debugEnv.gmase?.compliancePulseIngest?.enabled !== false;
+
+    // Default posture: ingest is enabled and points at localhost:3001 unless overridden.
+    if (cpIngestOn) {
+      expect(debugEnv.gmase?.compliancePulseIngest?.enabled).toBe(true);
+      expect(resolveCompliancePulseBaseUrl(debugEnv)).toBeTruthy();
+    }
 
     const result = await createDeployedTabularInference();
     expect(result.modelId).toBeTruthy();
@@ -58,6 +70,26 @@ test.describe('Inference deploy + predict — API smoke (opt-in)', () => {
       await testInfo.attach('inference.api.gmase-decisions.json', {
         contentType: 'application/json',
         body: JSON.stringify(forModel, null, 2),
+      });
+    }
+
+    if (cpIngestOn) {
+      const cpUrl = resolveCompliancePulseBaseUrl(debugEnv);
+      // deploy + predict should each forward at least one ingest event
+      const ingested = await waitForCompliancePulseIngestForModel({
+        baseUrl: cpUrl,
+        modelId: result.modelId,
+        minCount: 2,
+      });
+      expect(ingested.length).toBeGreaterThanOrEqual(2);
+      const actions = ingested.map((e) => e.action);
+      expect(actions.some((a) => String(a).includes('deploy_inference'))).toBe(true);
+      expect(actions.some((a) => String(a).includes('run_inference'))).toBe(true);
+      expect(ingested.every((e) => e.result === 'success' || e.result === 'denied')).toBe(true);
+
+      await testInfo.attach('inference.api.cp-ingest.json', {
+        contentType: 'application/json',
+        body: JSON.stringify(ingested, null, 2),
       });
     }
 

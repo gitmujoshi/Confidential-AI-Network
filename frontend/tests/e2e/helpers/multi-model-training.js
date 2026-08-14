@@ -261,6 +261,23 @@ async function assertLocalTrainingReady() {
       );
     }
   }
+  if (env.gmase?.compliancePulseIngest?.enabled !== false) {
+    const cpUrl = (
+      env.gmase?.compliancePulseIngest?.url ||
+      process.env.COMPLIANCEPULSE_INGEST_URL ||
+      'http://localhost:3001'
+    ).replace(/\/$/, '');
+    const cp = await axios.get(`${cpUrl}/health`, {
+      timeout: 5000,
+      validateStatus: () => true,
+    });
+    if (cp.status !== 200) {
+      throw new Error(
+        `CompliancePulse ingest required by default (${cpUrl}). ` +
+          'Start CP backend, or set COMPLIANCEPULSE_INGEST_URL=false on CAN to skip.'
+      );
+    }
+  }
 }
 
 async function createSignedContractForTrack(track) {

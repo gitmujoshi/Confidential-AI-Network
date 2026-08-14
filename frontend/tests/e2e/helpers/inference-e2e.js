@@ -1,7 +1,8 @@
 /**
  * E2E helpers for TDC local inference: register → deploy → predict.
- * Uses the fast tabular (logistic regression) track by default.
- * When the backend GMASE inference gate is on (default), Open-GMASE OPA must be reachable.
+ * Defaults (when enabled on the backend):
+ *   - Open-GMASE OPA must be reachable
+ *   - CompliancePulse ingest (localhost:3001) must be reachable
  */
 const axios = require('axios');
 const {
@@ -16,6 +17,8 @@ const {
   createSignedAndOptionallyTrain,
   assertLocalTrainingReady,
 } = require('./multi-model-training');
+
+const DEFAULT_CP_URL = 'http://localhost:3001';
 
 async function fetchDebugEnv() {
   const res = await axios.get(`${BACKEND_URL}/api/debug/env`, { timeout: 5000 });
@@ -32,6 +35,66 @@ async function checkGmaseOpaHealth() {
   } catch (e) {
     return { ok: false, error: e.message };
   }
+}
+
+function resolveCompliancePulseBaseUrl(debugEnv) {
+  const fromEnv = debugEnv?.gmase?.compliancePulseIngest?.url;
+  if (fromEnv) return String(fromEnv).replace(/\/$/, '');
+  return (process.env.COMPLIANCEPULSE_INGEST_URL || DEFAULT_CP_URL).replace(/\/$/, '');
+}
+
+async function checkCompliancePulseHealth(baseUrl = DEFAULT_CP_URL) {
+  const url = String(baseUrl || DEFAULT_CP_URL).replace(/\/$/, '');
+  try {
+    const res = await axios.get(`${url}/health`, {
+      timeout: 5000,
+      validateStatus: () => true,
+    });
+    return { ok: res.status === 200, status: res.status, baseUrl: url, body: res.data };
+  } catch (e) {
+    return { ok: false, error: e.message, baseUrl: url };
+  }
+}
+
+async function listCompliancePulseIngestEvents({
+  baseUrl = DEFAULT_CP_URL,
+  limit = 50,
+} = {}) {
+  const url = String(baseUrl || DEFAULT_CP_URL).replace(/\/$/, '');
+  const res = await axios.get(`${url}/api/v1/audit/trail`, {
+    params: { limit, eventTypes: 'external_ingest' },
+    timeout: 10000,
+    validateStatus: () => true,
+  });
+  if (res.status >= 400) {
+    throw new Error(`CompliancePulse audit trail failed: HTTP ${res.status} ${JSON.stringify(res.data)}`);
+  }
+  return res.data?.events || [];
+}
+
+/**
+ * Wait briefly for CAN's setImmediate forward, then find ingest events for a model.
+ */
+async function waitForCompliancePulseIngestForModel({
+  baseUrl,
+  modelId,
+  minCount = 1,
+  attempts = 10,
+  delayMs = 250,
+} = {}) {
+  let last = [];
+  for (let i = 0; i < attempts; i += 1) {
+    // eslint-disable-next-line no-await-in-loop
+    await new Promise((r) => setTimeout(r, delayMs));
+    // eslint-disable-next-line no-await-in-loop
+    const events = await listCompliancePulseIngestEvents({ baseUrl, limit: 80 });
+    last = events.filter((e) => {
+      const meta = e.metadata || {};
+      return meta.model_id === modelId || meta.modelId === modelId;
+    });
+    if (last.length >= minCount) return last;
+  }
+  return last;
 }
 
 async function listGmaseToolDecisions({ limit = 20 } = {}) {
@@ -69,6 +132,20 @@ async function getInferenceSkipReason() {
           'Open-GMASE OPA required for inference gate (GMASE_INFERENCE_GATE default on). ' +
           'Start with: cd open-gmase-core && docker compose up -d. ' +
           `Health: ${opa.error || opa.status || 'unreachable'}`
+        );
+      }
+    }
+
+    const cpIngest = env.gmase?.compliancePulseIngest;
+    const cpEnabled = cpIngest?.enabled !== false;
+    if (cpEnabled) {
+      const cpUrl = resolveCompliancePulseBaseUrl(env);
+      const cp = await checkCompliancePulseHealth(cpUrl);
+      if (!cp.ok) {
+        return (
+          'CompliancePulse ingest required by default (COMPLIANCEPULSE_INGEST_URL → ' +
+          `${cpUrl}). Start CP backend, or set COMPLIANCEPULSE_INGEST_URL=false on CAN to skip. ` +
+          `Health: ${cp.error || cp.status || 'unreachable'}`
         );
       }
     }
@@ -180,6 +257,7 @@ async function createDeployedTabularInference() {
 module.exports = {
   BACKEND_URL,
   USERS,
+  DEFAULT_CP_URL,
   login,
   seedAuth,
   getInferenceSkipReason,
@@ -192,6 +270,10 @@ module.exports = {
   listDeployments,
   createDeployedTabularInference,
   checkGmaseOpaHealth,
+  checkCompliancePulseHealth,
+  listCompliancePulseIngestEvents,
+  waitForCompliancePulseIngestForModel,
+  resolveCompliancePulseBaseUrl,
   listGmaseToolDecisions,
   fetchDebugEnv,
 };
