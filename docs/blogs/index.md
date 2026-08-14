@@ -15,7 +15,7 @@ permalink: /
     agree in writing, train in isolation, and leave a trail regulators can verify.
   </p>
   <p class="cta-row">
-    <a class="cta" href="{{ site.baseurl }}{% post_url 2026-08-14-governed-ai-enterprise-ciso-overview %}">Executive overview (CISO)</a>
+    <a class="cta" href="{% post_url 2026-08-14-governed-ai-enterprise-ciso-overview %}">Executive overview (CISO)</a>
     <a class="cta cta-secondary" href="{{ '/product-tour/' | relative_url }}">Product tour</a>
     <a class="cta cta-secondary" href="{{ '/#notes' | relative_url }}">All notes</a>
   </p>
@@ -147,7 +147,7 @@ permalink: /
     <p class="group-lede">Written for CISOs, risk leaders, and non-technical stakeholders. Six minutes; no prerequisite reading.</p>
     <ol class="post-list ordered">
       <li>
-        <a href="{{ site.baseurl }}{% post_url 2026-08-14-governed-ai-enterprise-ciso-overview %}">Governed AI for the enterprise — a CISO’s overview</a>
+        <a href="{% post_url 2026-08-14-governed-ai-enterprise-ciso-overview %}">Governed AI for the enterprise — a CISO’s overview</a>
         <p class="meta">August 14, 2026 · Combined CAN + Open-GMASE + CompliancePulse value story</p>
       </li>
       <li>
@@ -173,7 +173,7 @@ permalink: /
     <p class="group-lede">Product and architecture detail for CAN.</p>
     <ol class="post-list ordered">
       <li>
-        <a href="{{ site.baseurl }}{% post_url 2026-07-29-building-confidential-ai-network %}">Building Confidential AI Network — governed multi-party training without a data lake</a>
+        <a href="{% post_url 2026-07-29-building-confidential-ai-network %}">Building Confidential AI Network — governed multi-party training without a data lake</a>
         <p class="meta">July 29, 2026 · Technical product walkthrough</p>
       </li>
     </ol>
@@ -184,11 +184,11 @@ permalink: /
     <p class="group-lede">For security architects and platform engineers.</p>
     <ol class="post-list ordered">
       <li>
-        <a href="{{ site.baseurl }}{% post_url 2026-07-31-governing-autonomous-ai-agents-cybersecurity %}">Governing autonomous AI agents in cybersecurity operations</a>
+        <a href="{% post_url 2026-07-31-governing-autonomous-ai-agents-cybersecurity %}">Governing autonomous AI agents in cybersecurity operations</a>
         <p class="meta">July 31, 2026 · G-MASE reference architecture</p>
       </li>
       <li>
-        <a href="{{ site.baseurl }}{% post_url 2026-08-14-unified-governed-agentic-secops-framework %}">Unified Governed Agentic SecOps Framework</a>
+        <a href="{% post_url 2026-08-14-unified-governed-agentic-secops-framework %}">Unified Governed Agentic SecOps Framework</a>
         <p class="meta">August 14, 2026 · Swarm + control plane whitepaper</p>
       </li>
     </ol>
@@ -199,23 +199,23 @@ permalink: /
     <p class="group-lede">Zero-trust identity for people and for agent fleets on Kubernetes.</p>
     <ol class="post-list ordered">
       <li>
-        <a href="{{ site.baseurl }}{% post_url 2026-07-28-three-identity-planes %}">Three identity planes: humans, cloud APIs, and workloads</a>
+        <a href="{% post_url 2026-07-28-three-identity-planes %}">Three identity planes: humans, cloud APIs, and workloads</a>
         <p class="meta">July 28, 2026 · Conceptual model</p>
       </li>
       <li>
-        <a href="{{ site.baseurl }}{% post_url 2026-07-28-spiffe-spire-oci-wif %}">SPIFFE/SPIRE with OCI IAM workload identity</a>
+        <a href="{% post_url 2026-07-28-spiffe-spire-oci-wif %}">SPIFFE/SPIRE with OCI IAM workload identity</a>
         <p class="meta">July 28, 2026 · CAN scaffolding</p>
       </li>
       <li>
-        <a href="{{ site.baseurl }}{% post_url 2026-07-29-oke-agent-spiffe-identity-gap %}">The credential every AI agent fleet on an OKE node ends up sharing</a>
+        <a href="{% post_url 2026-07-29-oke-agent-spiffe-identity-gap %}">The credential every AI agent fleet on an OKE node ends up sharing</a>
         <p class="meta">July 29, 2026 · Full write-up</p>
       </li>
       <li>
-        <a href="{{ site.baseurl }}{% post_url 2026-07-29-beyond-instance-principals-oke-spiffe %}">Beyond instance principals: fixing the pod identity gap in OKE</a>
+        <a href="{% post_url 2026-07-29-beyond-instance-principals-oke-spiffe %}">Beyond instance principals: fixing the pod identity gap in OKE</a>
         <p class="meta">July 29, 2026 · Deep dive</p>
       </li>
       <li>
-        <a href="{{ site.baseurl }}{% post_url 2026-07-29-oke-agent-spiffe-short-take %}">Short take: per-node credentials break multi-agent fleets on OKE</a>
+        <a href="{% post_url 2026-07-29-oke-agent-spiffe-short-take %}">Short take: per-node credentials break multi-agent fleets on OKE</a>
         <p class="meta">July 29, 2026 · LinkedIn-length summary</p>
       </li>
     </ol>
@@ -226,7 +226,7 @@ permalink: /
     <p class="group-lede">Deployment-shaped notes for cloud identity and edge controls.</p>
     <ol class="post-list ordered">
       <li>
-        <a href="{{ site.baseurl }}{% post_url 2026-07-28-azure-entra-security-architecture %}">Azure security architecture — Entra-only identity on cloud</a>
+        <a href="{% post_url 2026-07-28-azure-entra-security-architecture %}">Azure security architecture — Entra-only identity on cloud</a>
         <p class="meta">July 28, 2026 · Azure / Entra</p>
       </li>
     </ol>
@@ -237,11 +237,11 @@ permalink: /
     <p class="group-lede">Where reviewers find controls evidence and how requirements map to NIST and CIS.</p>
     <ol class="post-list ordered">
       <li>
-        <a href="{{ site.baseurl }}{% post_url 2026-07-28-security-docs-map %}">Where to find CAN security docs (map for reviewers)</a>
+        <a href="{% post_url 2026-07-28-security-docs-map %}">Where to find CAN security docs (map for reviewers)</a>
         <p class="meta">July 28, 2026 · Docs index</p>
       </li>
       <li>
-        <a href="{{ site.baseurl }}{% post_url 2026-07-28-nist-cis-controls-mapping %}">Requirements met — NIST CSF, SP 800-53, and CIS Controls mapping</a>
+        <a href="{% post_url 2026-07-28-nist-cis-controls-mapping %}">Requirements met — NIST CSF, SP 800-53, and CIS Controls mapping</a>
         <p class="meta">July 28, 2026 · GRC mapping</p>
       </li>
     </ol>

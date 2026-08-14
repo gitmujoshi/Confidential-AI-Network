@@ -234,4 +234,4 @@ Anyone else running SPIRE federated into OCI IAM today — or hitting the node-v
 
 ---
 
-Related: [CAN SPIFFE/SPIRE + OCI WIF design](https://github.com/gitmujoshi/Confidential-AI-Network/blob/main/docs/deployment/OCI_SPIFFE_SPIRE_WIF.md) · [scaffolding post]({{ site.baseurl }}{% post_url 2026-07-28-spiffe-spire-oci-wif %})
+Related: [CAN SPIFFE/SPIRE + OCI WIF design](https://github.com/gitmujoshi/Confidential-AI-Network/blob/main/docs/deployment/OCI_SPIFFE_SPIRE_WIF.md) · [scaffolding post]({% post_url 2026-07-28-spiffe-spire-oci-wif %})

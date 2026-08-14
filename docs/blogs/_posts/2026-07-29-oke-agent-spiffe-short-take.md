@@ -3,6 +3,7 @@ layout: post
 title: "Short take: per-node credentials break multi-agent fleets on OKE"
 date: 2026-07-29
 categories: [security, identity, oci]
+permalink: /security/2026/07/29/oke-agent-spiffe-short-take/
 tags: [spiffe, oke, linkedin]
 canonical: docs/architecture/oci-spiffe-linkedin-post.md
 ---
@@ -16,6 +17,6 @@ OpenAI’s Workload Identity Federation supports OCI — but on OKE, **instance 
 Native SPIFFE support in Identity Domains (Roles Anywhere–class ergonomics) would let IAM evaluate per-agent, not per-node.
 
 **Full writeup** (SPIRE install, trust API, token examples, FastMCP east-west):  
-[The credential every AI agent fleet on an OKE node ends up sharing]({{ site.baseurl }}{% post_url 2026-07-29-oke-agent-spiffe-identity-gap %})
+[The credential every AI agent fleet on an OKE node ends up sharing]({% post_url 2026-07-29-oke-agent-spiffe-identity-gap %})
 
 CAN scaffolding: [SPIFFE/SPIRE + OCI WIF design](https://github.com/gitmujoshi/Confidential-AI-Network/blob/main/docs/deployment/OCI_SPIFFE_SPIRE_WIF.md)

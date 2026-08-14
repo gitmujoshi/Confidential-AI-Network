@@ -4,6 +4,7 @@ title: "Building Confidential AI Network — governed multi-party training witho
 date: 2026-07-29
 categories: [architecture, product, security]
 tags: [can, ricardian, scitt, depa, oci, confidential-computing]
+permalink: /security/2026/07/29/building-confidential-ai-network/
 canonical: README.md
 ---
 
@@ -102,7 +103,7 @@ Training jobs in isolated environments — confidential VMs, segmented Kubernete
 ### 4. Evidence plane
 **SCITT** (Supply Chain Integrity, Transparency, and Trust) on a **CCF** confidential ledger for claims; SIEM export hooks for SOC tools.
 
-Deep dive: [multi-cloud security patterns](https://github.com/gitmujoshi/Confidential-AI-Network/blob/main/docs/production/MULTI_CLOUD_SECURITY_ARCHITECTURE_PATTERNS.md) · [three identity planes]({{ site.baseurl }}{% post_url 2026-07-28-three-identity-planes %}).
+Deep dive: [multi-cloud security patterns](https://github.com/gitmujoshi/Confidential-AI-Network/blob/main/docs/production/MULTI_CLOUD_SECURITY_ARCHITECTURE_PATTERNS.md) · [three identity planes]({% post_url 2026-07-28-three-identity-planes %}).
 
 ---
 
@@ -151,7 +152,7 @@ CAN maintains a crosswalk of met / partial requirements to:
 - NIST SP 800-53 Rev. 5  
 - CIS Controls v8  
 
-Read: [SECURITY_CONTROLS_NIST_CIS_MAPPING.md](https://github.com/gitmujoshi/Confidential-AI-Network/blob/main/docs/compliance/SECURITY_CONTROLS_NIST_CIS_MAPPING.md) · [blog note]({{ site.baseurl }}{% post_url 2026-07-28-nist-cis-controls-mapping %}).
+Read: [SECURITY_CONTROLS_NIST_CIS_MAPPING.md](https://github.com/gitmujoshi/Confidential-AI-Network/blob/main/docs/compliance/SECURITY_CONTROLS_NIST_CIS_MAPPING.md) · [blog note]({% post_url 2026-07-28-nist-cis-controls-mapping %}).
 
 That matrix is a **control map**, not a claim of SOC 2 / FedRAMP certification for a customer tenancy.
 
@@ -191,7 +192,7 @@ The product bet is simple: **contract first, compute second, proof always.**
 | Docs home | [docs/README.md](https://github.com/gitmujoshi/Confidential-AI-Network/blob/main/docs/README.md) |
 | Architecture | [ARCHITECTURE.md](https://github.com/gitmujoshi/Confidential-AI-Network/blob/main/docs/ARCHITECTURE.md) |
 | SCITT | [SCITT_CCF_ARCHITECTURE.md](https://github.com/gitmujoshi/Confidential-AI-Network/blob/main/docs/features/scitt/SCITT_CCF_ARCHITECTURE.md) |
-| SPIFFE + OCI WIF | [post]({{ site.baseurl }}{% post_url 2026-07-28-spiffe-spire-oci-wif %}) · [design](https://github.com/gitmujoshi/Confidential-AI-Network/blob/main/docs/deployment/OCI_SPIFFE_SPIRE_WIF.md) |
+| SPIFFE + OCI WIF | [post]({% post_url 2026-07-28-spiffe-spire-oci-wif %}) · [design](https://github.com/gitmujoshi/Confidential-AI-Network/blob/main/docs/deployment/OCI_SPIFFE_SPIRE_WIF.md) |
 | Source | [github.com/gitmujoshi/Confidential-AI-Network](https://github.com/gitmujoshi/Confidential-AI-Network) |
 
 If you are evaluating CAN for a regulated collaboration, start with the product tour, then the multi-cloud security patterns doc, then an OCI or Azure staging compartment — not a slide deck alone.

@@ -3,6 +3,7 @@ layout: post
 title: "Three identity planes: humans, cloud APIs, and workloads"
 date: 2026-07-28
 categories: [security, identity]
+permalink: /security/2026/07/28/three-identity-planes/
 tags: [zero-trust, spiffe, entra, oci-iam]
 canonical: docs/deployment/OCI_SPIFFE_SPIRE_WIF.md
 ---

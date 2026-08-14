@@ -3,6 +3,7 @@ layout: post
 title: "SPIFFE/SPIRE with OCI IAM workload identity — scaffolding what we ship"
 date: 2026-07-28
 categories: [security, oci]
+permalink: /security/2026/07/28/spiffe-spire-oci-wif/
 tags: [spiffe, spire, wif, oke]
 canonical: docs/deployment/OCI_SPIFFE_SPIRE_WIF.md
 ---

@@ -3,6 +3,7 @@ layout: post
 title: "Requirements met — NIST CSF, SP 800-53, and CIS Controls mapping"
 date: 2026-07-28
 categories: [security, compliance, grc]
+permalink: /security/2026/07/28/nist-cis-controls-mapping/
 tags: [nist, cis, controls, assurance]
 canonical: docs/compliance/SECURITY_CONTROLS_NIST_CIS_MAPPING.md
 ---

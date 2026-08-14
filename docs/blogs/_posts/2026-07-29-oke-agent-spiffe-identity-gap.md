@@ -3,6 +3,7 @@ layout: post
 title: "The credential every AI agent fleet on an OKE node ends up sharing (and shouldn't)"
 date: 2026-07-29
 categories: [security, identity, oci]
+permalink: /security/2026/07/29/oke-agent-spiffe-identity-gap/
 tags: [spiffe, spire, oke, wif, agents]
 canonical: docs/architecture/oci-spiffe-identity-gap.md
 ---
@@ -57,7 +58,7 @@ That gives you the full chain, identity-consistent end to end: agent pod gets a 
 
 *(Diagram: multiple agent pods on one OKE node sharing a node-level principal unless SPIFFE issues per-workload SVIDs.)*
 
-Canonical design for CAN: [OCI SPIFFE/SPIRE + WIF](https://github.com/gitmujoshi/Confidential-AI-Network/blob/main/docs/deployment/OCI_SPIFFE_SPIRE_WIF.md) · [repo scaffolding post]({{ site.baseurl }}{% post_url 2026-07-28-spiffe-spire-oci-wif %}).
+Canonical design for CAN: [OCI SPIFFE/SPIRE + WIF](https://github.com/gitmujoshi/Confidential-AI-Network/blob/main/docs/deployment/OCI_SPIFFE_SPIRE_WIF.md) · [repo scaffolding post]({% post_url 2026-07-28-spiffe-spire-oci-wif %}).
 
 ## Runtime authentication and authorization
 

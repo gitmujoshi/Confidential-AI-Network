@@ -12,7 +12,7 @@ canonical: docs/architecture/unified-governed-agentic-secops-framework.md
 **Document type:** Architectural blueprint  
 **Domain:** AI security, zero trust & autonomous SecOps
 
-Related: [Open-GMASE Core](https://github.com/gitmujoshi/Confidential-AI-Network/tree/main/open-gmase-core) · [Governing autonomous AI agents]({{ site.baseurl }}{% post_url 2026-07-31-governing-autonomous-ai-agents-cybersecurity %}) · [Confidential AI Network](https://github.com/gitmujoshi/Confidential-AI-Network)
+Related: [Open-GMASE Core](https://github.com/gitmujoshi/Confidential-AI-Network/tree/main/open-gmase-core) · [Governing autonomous AI agents]({% post_url 2026-07-31-governing-autonomous-ai-agents-cybersecurity %}) · [Confidential AI Network](https://github.com/gitmujoshi/Confidential-AI-Network)
 
 ---
 
@@ -105,7 +105,7 @@ When merged into a unified solution, **G-MASE** functions as the specialized app
    - *Low-risk operational action:* Executed automatically on a Human-on-the-Loop (HOTL) basis.
 6. **Immutable audit logging:** Cognitive telemetry—system prompts, reasoning paths, OPA evaluations, and execution results—is written to durable stores (e.g. BigQuery and PostgreSQL with RLS in the enterprise target architecture).
 
-Cloud IAM (AWS / GCP / OCI) remains the **outer wall**; OPA remains the **inner gate** on every tool proposal. See the [G-MASE SecOps article]({{ site.baseurl }}{% post_url 2026-07-31-governing-autonomous-ai-agents-cybersecurity %}) for the multi-cloud IAM mapping.
+Cloud IAM (AWS / GCP / OCI) remains the **outer wall**; OPA remains the **inner gate** on every tool proposal. See the [G-MASE SecOps article]({% post_url 2026-07-31-governing-autonomous-ai-agents-cybersecurity %}) for the multi-cloud IAM mapping.
 
 ---
 
@@ -129,7 +129,7 @@ Securing autonomous AI agents does not require constraining their cognitive inte
 
 | Resource | Role |
 | --- | --- |
-| [Governing autonomous AI agents in cybersecurity operations]({{ site.baseurl }}{% post_url 2026-07-31-governing-autonomous-ai-agents-cybersecurity %}) | Detailed G-MASE pillars, attack prevention, cloud IAM vs OPA |
+| [Governing autonomous AI agents in cybersecurity operations]({% post_url 2026-07-31-governing-autonomous-ai-agents-cybersecurity %}) | Detailed G-MASE pillars, attack prevention, cloud IAM vs OPA |
 | [Open-GMASE Core](https://github.com/gitmujoshi/Confidential-AI-Network/tree/main/open-gmase-core) | Apache 2.0 community reference (OPA packs, starters, Compose) |
 | [CompliancePulse AI](https://github.com/gitmujoshi/Confidential-AI-Network/tree/main/compliancepulse-ai) | Enterprise / SaaS control-plane path |
 | [SPIFFE](https://spiffe.io/) · [OPA](https://www.openpolicyagent.org/) · [BAML](https://www.boundaryml.com/) · [Headroom](https://github.com/headroomlabs-ai/headroom) | Third-party building blocks |

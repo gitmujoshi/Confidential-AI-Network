@@ -3,6 +3,7 @@ layout: post
 title: "Where to find CAN security docs (map for reviewers)"
 date: 2026-07-28
 categories: [security, docs]
+permalink: /security/2026/07/28/security-docs-map/
 tags: [diataxis, review]
 canonical: docs/security/README.md
 ---

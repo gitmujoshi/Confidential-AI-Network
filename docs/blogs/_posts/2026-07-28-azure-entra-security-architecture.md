@@ -3,6 +3,7 @@ layout: post
 title: "Azure security architecture — Entra-only identity on cloud"
 date: 2026-07-28
 categories: [security, azure]
+permalink: /security/2026/07/28/azure-entra-security-architecture/
 tags: [entra, aks, key-vault]
 canonical: docs/production/AZURE_SECURITY_ARCHITECTURE.md
 ---

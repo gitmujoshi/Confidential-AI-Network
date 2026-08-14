@@ -101,9 +101,9 @@ Humans still sign in with your enterprise identity. Machines get short-lived, at
 1. **Stay here** if you only need the thesis for a steering committee.  
 2. **See the product** — [Product tour]({{ '/product-tour/' | relative_url }}) (screenshots of the CAN flow).  
 3. **Go deeper only if needed:**
-   - [Building Confidential AI Network]({{ site.baseurl }}{% post_url 2026-07-29-building-confidential-ai-network %}) — product detail for CAN  
-   - [Governing autonomous AI agents]({{ site.baseurl }}{% post_url 2026-07-31-governing-autonomous-ai-agents-cybersecurity %}) — G-MASE for security architects  
-   - [Unified Governed Agentic SecOps Framework]({{ site.baseurl }}{% post_url 2026-08-14-unified-governed-agentic-secops-framework %}) — whitepaper linking swarm + control plane  
+   - [Building Confidential AI Network]({% post_url 2026-07-29-building-confidential-ai-network %}) — product detail for CAN  
+   - [Governing autonomous AI agents]({% post_url 2026-07-31-governing-autonomous-ai-agents-cybersecurity %}) — G-MASE for security architects  
+   - [Unified Governed Agentic SecOps Framework]({% post_url 2026-08-14-unified-governed-agentic-secops-framework %}) — whitepaper linking swarm + control plane  
 
 Everything else on this site (identity deep dives, cloud runbooks, control mappings) is **optional depth** for specialists.
 
