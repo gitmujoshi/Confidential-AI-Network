@@ -2,8 +2,9 @@
 layout: post
 title: "Governed AI for the enterprise — a CISO’s overview"
 date: 2026-08-14
-categories: [executive, security]
+categories: [executive]
 tags: [ciso, can, g-mase, compliancepulse, overview]
+permalink: /executive/2026/08/14/governed-ai-enterprise-ciso-overview/
 excerpt: "Two risks boardrooms care about—unsafe data sharing and unbounded AI agents—and one stack that addresses both without requiring a deep dive into every technical note."
 ---
 
