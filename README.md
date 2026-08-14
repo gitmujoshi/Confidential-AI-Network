@@ -64,6 +64,13 @@ flowchart LR
   TDP --> TDC --> Sign --> CCRP --> Train --> Audit
 ```
 
+### Related: Open-GMASE & CompliancePulse
+
+| Project | Path | Role |
+| --- | --- | --- |
+| **Open-GMASE Core** | [`open-gmase-core/`](open-gmase-core/) | Apache 2.0 community reference for governed agent execution (SPIFFE, OPA, starter agents) |
+| **CompliancePulse AI** | [`compliancepulse-ai/`](compliancepulse-ai/) | Open-core commercial / SaaS control-plane layer for agent governance |
+
 ---
 
 ## Documentation

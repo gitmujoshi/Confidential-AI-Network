@@ -1,0 +1,35 @@
+# Open-GMASE Core — local reference stack (OPA + optional SPIRE)
+# SPIRE upstream CA files are optional for first boot of OPA-only demos.
+services:
+  opa:
+    image: openpolicyagent/opa:0.70.0
+    container_name: open-gmase-opa
+    command:
+      - "run"
+      - "--server"
+      - "--addr=0.0.0.0:8181"
+      - "--log-level=info"
+      - "/policies"
+    volumes:
+      - ./execution-guardrails/opa-policies:/policies:ro
+    ports:
+      - "8181:8181"
+    healthcheck:
+      test: ["CMD", "/opa", "version"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Optional: enable when you add a generated upstream CA under spiffe-spire/
+  # spire-server:
+  #   image: ghcr.io/spiffe/spire-server:1.9.6
+  #   container_name: open-gmase-spire-server
+  #   command: ["-config", "/opt/spire/conf/server/server.conf"]
+  #   volumes:
+  #     - ./execution-guardrails/spiffe-spire/server.conf:/opt/spire/conf/server/server.conf:ro
+  #     - spire_data:/opt/spire/data
+  #   ports:
+  #     - "8081:8081"
+
+volumes:
+  spire_data:

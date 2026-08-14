@@ -1,0 +1,27 @@
+# Dev-oriented SPIRE agent sketch. Prefer SPIRE's documented
+# docker / k8s examples for production. Agents should receive
+# SVIDs like: spiffe://open-gmase.local/ns/secops/sa/agent-triage
+
+agent {
+  data_dir = "/opt/spire/data/agent"
+  log_level = "INFO"
+  server_address = "spire-server"
+  server_port = "8081"
+  socket_path = "/tmp/spire-agent/public/api.sock"
+  trust_domain = "open-gmase.local"
+  insecure_bootstrap = true
+
+  plugins {
+    NodeAttestor "join_token" {
+      plugin_data {}
+    }
+
+    KeyManager "memory" {
+      plugin_data {}
+    }
+
+    WorkloadAttestor "unix" {
+      plugin_data {}
+    }
+  }
+}

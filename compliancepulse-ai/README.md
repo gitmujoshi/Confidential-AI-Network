@@ -2,6 +2,19 @@
 
 **Zero-Trust Governance for Autonomous AI Agents in Enterprise SecOps**
 
+## Open-Core positioning
+
+CompliancePulse AI is the **commercial / enterprise layer** of the G-MASE stack.
+
+| Layer | Path | License / intent |
+| --- | --- | --- |
+| **Open-GMASE Core** (community) | [`../open-gmase-core`](../open-gmase-core) | Apache 2.0 — SPIFFE/OPA/BAML blueprints, starter agents, local Compose |
+| **CompliancePulse AI** (this directory) | `.` | SaaS control plane, multi-tenant UI/API, enterprise integrations roadmap |
+
+Start with Open-GMASE for sandboxes and policy packs; use CompliancePulse when you need the product control plane. Details: [`../open-gmase-core/OPEN_CORE.md`](../open-gmase-core/OPEN_CORE.md).
+
+---
+
 ## Overview
 
 CompliancePulse AI is an enterprise-grade SaaS platform that secures autonomous AI agent execution through deterministic policy enforcement, cryptographic workload identity, and immutable audit trails. Built for regulated industries requiring SOC 2, ISO 27001, and HIPAA compliance.
