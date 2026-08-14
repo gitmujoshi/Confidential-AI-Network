@@ -70,6 +70,7 @@ flowchart LR
 | --- | --- | --- |
 | **Open-GMASE Core** | [`open-gmase-core/`](open-gmase-core/) | Apache 2.0 community reference for governed agent execution (SPIFFE, OPA, starter agents) |
 | **CompliancePulse AI** | [`compliancepulse-ai/`](compliancepulse-ai/) | Open-core commercial / SaaS control-plane layer for agent governance |
+| **CAN ↔ G-MASE demo slice** | [`docs/guides/CAN_GMASE_DEMO_SLICE.md`](docs/guides/CAN_GMASE_DEMO_SLICE.md) | Tool → OPA → CAN AuditLogs (research demo; not full unified runtime) |
 
 ---
 

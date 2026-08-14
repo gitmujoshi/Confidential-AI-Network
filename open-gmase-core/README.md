@@ -50,6 +50,8 @@ docker compose up -d
 ./examples/policy-check.sh
 ```
 
+**CAN integration demo slice** (OPA → CAN AuditLogs): see [`../docs/guides/CAN_GMASE_DEMO_SLICE.md`](../docs/guides/CAN_GMASE_DEMO_SLICE.md) and `../scripts/demo-gmase-can-slice.sh`.
+
 Design whitepaper: [Governing autonomous AI agents in cybersecurity operations](https://gitmujoshi.github.io/Confidential-AI-Network/security/2026/07/31/governing-autonomous-ai-agents-cybersecurity/)
 
 ## Status

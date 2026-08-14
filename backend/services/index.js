@@ -11,6 +11,8 @@ const GcpIdentityService = require('./gcpIdentityService');
 const NotificationService = require('./notificationService');
 const SigningService = require('./signingService');
 const AuditService = require('./auditService');
+const gmaseOpaService = require('./gmaseOpaService');
+
 const DEPAIdService = require('./depaIdService');
 const GlobalDEPAIdService = require('./globalDEPAIdService');
 const ricardianContractService = require('./ricardianContractService');
@@ -28,6 +30,7 @@ module.exports = {
   NotificationService,
   SigningService,
   AuditService,
+  gmaseOpaService,
   DEPAIdService,
   GlobalDEPAIdService,
   ricardianContractService // Export as singleton instance
