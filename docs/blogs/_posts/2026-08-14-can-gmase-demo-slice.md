@@ -1,11 +1,11 @@
 ---
 layout: post
-title: "Try it: CAN ↔ Open-GMASE policy gate (demo slice)"
+title: "Try it: CAN ↔ Open-GMASE ↔ CompliancePulse (demo slice)"
 date: 2026-08-14
 categories: [guides]
-tags: [demo, can, open-gmase, opa, audit]
+tags: [demo, can, open-gmase, compliancepulse, opa, audit]
 permalink: /guides/2026/08/14/can-gmase-demo-slice/
-excerpt: "Live control-plane seam: CAN training + inference side effects hit Open-GMASE OPA, land in AuditLogs, and can forward to CompliancePulse ingest. Research demo—not a full multi-tenant SaaS."
+excerpt: "Live three-layer seam: CAN side effects hit Open-GMASE OPA, land in CAN AuditLogs, and forward by default into CompliancePulse ingest. Research demo—not a full multi-tenant SaaS."
 ---
 
 **Status:** Research demo path for the **control-plane seam** between Confidential AI Network, Open-GMASE, and CompliancePulse.
@@ -16,32 +16,57 @@ excerpt: "Live control-plane seam: CAN training + inference side effects hit Ope
 | Gate **TDC training start** | Live (`GMASE_TRAINING_GATE`, default on) |
 | Gate **TDC deploy / predict** | Live (`GMASE_INFERENCE_GATE`, default on) |
 | Decisions in CAN AuditLogs | Live (`GMASE_TOOL_DECISION`) |
-| Forward decisions → CompliancePulse ingest | On by default (`http://localhost:3001`; warn if CP down; `COMPLIANCEPULSE_INGEST_URL=false` to disable) |
+| Forward decisions → **CompliancePulse ingest** | Live by default (`http://localhost:3001`; warn if CP down; `COMPLIANCEPULSE_INGEST_URL=false` to disable) |
+| E2E asserts OPA + CP ingest | Live (`npm run test:e2e:inference`) |
 | CompliancePulse multi-tenant SaaS / swarm UI / SPIRE | Still research roadmap |
 
-TDC **start training**, **deploy**, and **predict** call `open_gmase/can_contracts` fail-closed (unless the matching gate env is set to `false`). Inference UI shows the policy gate panel; Playwright covers it via `npm run test:e2e:inference`.
+TDC **start training**, **deploy**, and **predict** call `open_gmase/can_contracts` fail-closed. The same allow/deny is written to CAN AuditLogs **and forwarded** to CompliancePulse `POST /api/v1/audit/ingest`. Inference UI shows the policy gate panel; Playwright requires OPA + CP by default.
+
+## Three layers, one decision path
+
+```mermaid
+flowchart LR
+  subgraph CAN["Confidential AI Network"]
+    SE["Side effect<br/>train / deploy / predict"]
+    AL["AuditLogs<br/>GMASE_TOOL_DECISION"]
+  end
+  subgraph OG["Open-GMASE Core"]
+    OPA["OPA Rego<br/>open_gmase/can_contracts"]
+  end
+  subgraph CP["CompliancePulse AI"]
+    ING["POST /api/v1/audit/ingest"]
+    TR["GET /api/v1/audit/trail<br/>external_ingest"]
+  end
+  SE -->|authorize fail-closed| OPA
+  OPA -->|allow / deny| SE
+  SE --> AL
+  AL -->|default forward<br/>localhost:3001| ING
+  ING --> TR
+```
+
+| Layer | Role in this demo |
+| --- | --- |
+| **CAN** | Product surface (contracts, training, inference) + durable AuditLogs |
+| **Open-GMASE** | Community OPA packs — the *inner gate* before the side effect |
+| **CompliancePulse** | Commercial-path ingest receiver — stores the same decision for control-plane / evidence conversations |
+
+Honest scope: CP ingest is a **research stub** (in-memory audit store), not a finished multi-tenant SaaS console.
 
 ## What you will see
 
-```text
-Side effect (train / deploy / predict)
-  →  Open-GMASE OPA (Rego)
-  →  CAN AuditLogs (GMASE_TOOL_DECISION)
-  →  CompliancePulse POST /api/v1/audit/ingest (default localhost:3001; warn if down)
-```
-
 1. A proposed tool call (for example `execute_sql` with `DROP TABLE`, or `start_training` / `run_inference`) is evaluated by community Rego packs.  
 2. Allow or deny comes back **fail-closed** if OPA is unreachable.  
-3. The decision is written into CAN’s audit trail so you can show *evidence*, not a slide.  
+3. The decision is written into CAN’s audit trail.  
 4. On the Inference app, an **Open-GMASE policy gate** panel shows ALLOW/DENY with package + audit id.  
 5. Training start returns `job.governance` the same way.  
-6. The same decision is forwarded to CompliancePulse ingest by default (non-blocking; logs a warning if CP is not running).
+6. CAN **forwards** the decision to CompliancePulse ingest by default (non-blocking; warns if CP is down).  
+7. You can list those events on CP as `external_ingest` via the audit trail API.
 
 ## Screenshots (from E2E)
 
 <figure class="shot">
   <img src="{{ '/assets/gmase/01-tdc-deploy-inference.png' | relative_url }}" alt="TDC Training page after Deploy for inference" loading="lazy" />
-  <figcaption>Deploy for inference — OPA authorizes <code>deploy_inference</code> before the model is marked DEPLOYED</figcaption>
+  <figcaption>Deploy for inference — OPA authorizes <code>deploy_inference</code>; decision is also forwarded to CompliancePulse</figcaption>
 </figure>
 
 <figure class="shot">
@@ -51,34 +76,78 @@ Side effect (train / deploy / predict)
 
 <figure class="shot">
   <img src="{{ '/assets/gmase/03-tdc-inference-predict-gmase.png' | relative_url }}" alt="Prediction result with Open-GMASE policy gate ALLOW" loading="lazy" />
-  <figcaption>Prediction result with <strong>Open-GMASE policy gate</strong> (ALLOW) and audit id — the inner gate before inference runs</figcaption>
+  <figcaption>Prediction with <strong>Open-GMASE policy gate</strong> (ALLOW) + audit id — the same payload is ingested by CompliancePulse</figcaption>
 </figure>
 
 The lifecycle product tour’s prediction shot (`24-tdc-inference-predict.png`) also includes this gate when OPA is up.
 
-## Run locally
+## CompliancePulse integration (how to show it)
 
-Prerequisites: Docker (for OPA), CAN backend on port **5001**.
+### Start the three processes
 
 ```bash
-# OPA (from repo root)
+# 1) Open-GMASE OPA
 cd open-gmase-core && docker compose up -d
 
-# Optional: CompliancePulse backend (ingest receiver; CAN defaults to this URL)
-# cd compliancepulse-ai/backend && npm run dev
-# Disable forward: COMPLIANCEPULSE_INGEST_URL=false on the CAN backend
+# 2) CompliancePulse ingest receiver (default target for CAN)
+cd compliancepulse-ai/backend && npm run dev
+# listens on http://localhost:3001
 
-# CAN stack (separate terminal, if not already up)
+# 3) CAN stack
 ./start-system.sh
+# COMPLIANCEPULSE_INGEST_URL defaults to http://localhost:3001
+# Disable: COMPLIANCEPULSE_INGEST_URL=false
+```
 
-# One-shot smoke
+### Prove the forward after a gated action
+
+After a deploy/predict (or the smoke script below):
+
+```bash
+# CAN side — decisions in AuditLogs
+curl -s 'http://localhost:5001/api/debug/gmase-tool-decisions?limit=5'
+
+# CompliancePulse side — same decisions as external_ingest
+curl -s 'http://localhost:3001/api/v1/audit/trail?eventTypes=external_ingest&limit=5'
+```
+
+Expected shape on CP (fields may vary slightly):
+
+```json
+{
+  "events": [
+    {
+      "eventType": "external_ingest",
+      "action": "ingest:run_inference",
+      "result": "success",
+      "metadata": {
+        "source": "confidential-ai-network",
+        "tool_name": "run_inference",
+        "allow": true,
+        "package": "open_gmase/can_contracts",
+        "model_id": "…"
+      }
+    }
+  ]
+}
+```
+
+E2E (`npm run test:e2e:inference`) **requires** OPA + CP by default and asserts ≥2 ingest events per model (`deploy_inference` + `run_inference`).
+
+## Run locally (full slice)
+
+```bash
+cd open-gmase-core && docker compose up -d
+cd compliancepulse-ai/backend && npm run dev   # separate terminal
+./start-system.sh                             # separate terminal
+
 ./scripts/demo-gmase-can-slice.sh
 
-# UI + screenshots (from frontend/)
+cd frontend
 E2E_WAIT_FOR_LOCAL_TRAINING=true BACKEND_URL=http://127.0.0.1:5001 npm run test:e2e:inference
 ```
 
-Or exercise the debug API directly:
+Ad-hoc deny path (CAN debug API):
 
 ```bash
 curl -s http://localhost:5001/api/debug/gmase-opa-health
@@ -93,16 +162,15 @@ curl -s -X POST http://localhost:5001/api/debug/gmase-tool-check \
   }'
 
 curl -s 'http://localhost:5001/api/debug/gmase-tool-decisions?limit=5'
+curl -s 'http://localhost:3001/api/v1/audit/trail?eventTypes=external_ingest&limit=5'
 ```
 
-Expect a **deny** on the DROP, and a matching `GMASE_TOOL_DECISION` row when you list decisions.
+## Stakeholder script (three minutes)
 
-## Stakeholder script (two minutes)
-
-1. Show the normal CAN [product tour]({{ '/product-tour/' | relative_url }}) (contracts → training → inference).  
-2. On training start / Inference app, point at Open-GMASE **ALLOW** (toast or policy-gate panel).  
-3. Optionally hit the deny path above; show HTTP 403 / deny reason and AuditLogs.  
-4. Say clearly: multi-tenant CompliancePulse SaaS, swarm UI, and SPIRE attestation are still roadmap—this is the **inner gate** wiring plus default decision ingest.
+1. Show the CAN [product tour]({{ '/product-tour/' | relative_url }}) (contracts → training → inference).  
+2. On the Inference app, point at the **Open-GMASE policy gate** ALLOW panel.  
+3. Show the **same decision** in CAN AuditLogs *and* CompliancePulse `audit/trail` (`external_ingest`).  
+4. Say clearly: multi-tenant CP SaaS UI, swarm agents, and SPIRE attestation are still roadmap—this is the **inner gate** plus the **commercial-path ingest** seam.
 
 ## Code & full runbook
 
@@ -110,14 +178,15 @@ Expect a **deny** on the DROP, and a matching `GMASE_TOOL_DECISION` row when you
 | --- | --- |
 | Runbook | [`docs/guides/CAN_GMASE_DEMO_SLICE.md`](https://github.com/gitmujoshi/Confidential-AI-Network/blob/main/docs/guides/CAN_GMASE_DEMO_SLICE.md) |
 | Screenshots | [`docs/guides/gmase-integration/`](https://github.com/gitmujoshi/Confidential-AI-Network/tree/main/docs/guides/gmase-integration) |
-| Side-effect gate | [`backend/services/gmaseSideEffectGate.js`](https://github.com/gitmujoshi/Confidential-AI-Network/blob/main/backend/services/gmaseSideEffectGate.js) |
+| Side-effect gate + CP forward | [`backend/services/gmaseSideEffectGate.js`](https://github.com/gitmujoshi/Confidential-AI-Network/blob/main/backend/services/gmaseSideEffectGate.js) |
+| CompliancePulse ingest API | [`compliancepulse-ai/`](https://github.com/gitmujoshi/Confidential-AI-Network/tree/main/compliancepulse-ai) — `POST /api/v1/audit/ingest` |
 | Smoke script | [`scripts/demo-gmase-can-slice.sh`](https://github.com/gitmujoshi/Confidential-AI-Network/blob/main/scripts/demo-gmase-can-slice.sh) |
 | Policies | [`open-gmase-core/execution-guardrails/opa-policies/`](https://github.com/gitmujoshi/Confidential-AI-Network/tree/main/open-gmase-core/execution-guardrails/opa-policies) |
-| CompliancePulse ingest | `POST /api/v1/audit/ingest` in [`compliancepulse-ai/`](https://github.com/gitmujoshi/Confidential-AI-Network/tree/main/compliancepulse-ai) |
 
 ## Related reading
 
 - [Governed AI for the enterprise — CISO overview]({% post_url 2026-08-14-governed-ai-enterprise-ciso-overview %})  
 - [Governing autonomous AI agents]({% post_url 2026-07-31-governing-autonomous-ai-agents-cybersecurity %})  
 - [Unified Governed Agentic SecOps Framework]({% post_url 2026-08-14-unified-governed-agentic-secops-framework %})  
-- [Open-GMASE Core](https://github.com/gitmujoshi/Confidential-AI-Network/tree/main/open-gmase-core)
+- [Open-GMASE Core](https://github.com/gitmujoshi/Confidential-AI-Network/tree/main/open-gmase-core)  
+- [CompliancePulse AI](https://github.com/gitmujoshi/Confidential-AI-Network/tree/main/compliancepulse-ai)

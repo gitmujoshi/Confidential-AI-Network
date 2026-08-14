@@ -266,19 +266,21 @@ permalink: /product-tour/
 </section>
 
 <section class="home-section tour-section" id="gmase">
-  <h2>6. Open-GMASE inference gate (research demo)</h2>
+  <h2>6. Open-GMASE gate + CompliancePulse ingest (research demo)</h2>
   <p>
     Before a prediction runs, CAN asks Open-GMASE OPA (<code>open_gmase/can_contracts</code>).
-    The Inference app shows ALLOW/DENY with package and audit id. This is the same inner gate
-    described in the <a href="{% post_url 2026-08-14-can-gmase-demo-slice %}">demo slice guide</a>.
+    The Inference app shows ALLOW/DENY with package and audit id. The same decision is
+    <strong>forwarded by default</strong> to CompliancePulse
+    (<code>POST /api/v1/audit/ingest</code> on <code>localhost:3001</code>).
+    Details: <a href="{% post_url 2026-08-14-can-gmase-demo-slice %}">demo slice guide</a>.
   </p>
   <figure class="shot">
     <img src="{{ '/assets/gmase/01-tdc-deploy-inference.png' | relative_url }}" alt="Deploy for inference under Open-GMASE gate" loading="lazy" />
-    <figcaption>Deploy for inference — gated by OPA</figcaption>
+    <figcaption>Deploy for inference — gated by OPA; forwarded to CompliancePulse</figcaption>
   </figure>
   <figure class="shot">
     <img src="{{ '/assets/gmase/03-tdc-inference-predict-gmase.png' | relative_url }}" alt="Open-GMASE ALLOW on prediction" loading="lazy" />
-    <figcaption>Prediction with Open-GMASE policy gate (ALLOW)</figcaption>
+    <figcaption>Prediction with Open-GMASE policy gate (ALLOW) — same payload lands in CP audit trail</figcaption>
   </figure>
 </section>
 

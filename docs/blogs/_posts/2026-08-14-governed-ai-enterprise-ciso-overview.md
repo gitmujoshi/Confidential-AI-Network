@@ -103,7 +103,7 @@ Humans still sign in with your enterprise identity. Machines get short-lived, at
 
 The full unified runtime (swarm UI, SPIRE attestation, multi-tenant CompliancePulse SaaS) is still research. What **does** run locally today: Open-GMASE OPA gates **training start** and **inference deploy/predict**, decisions land in CAN AuditLogs, and CAN **forwards them by default** to CompliancePulse at `http://localhost:3001` (warns if CP is down; set `COMPLIANCEPULSE_INGEST_URL=false` to disable).
 
-→ [Try it: CAN ↔ Open-GMASE demo slice]({% post_url 2026-08-14-can-gmase-demo-slice %}) (includes E2E screenshots of the Inference app policy gate)
+→ [Try it: CAN ↔ Open-GMASE ↔ CompliancePulse demo slice]({% post_url 2026-08-14-can-gmase-demo-slice %}) (Inference gate screenshots + CP ingest trail)
 
 Use that alongside the [product tour]({{ '/product-tour/' | relative_url }}) when you want a stakeholder demo that is honest about scope.
 
@@ -113,7 +113,7 @@ Use that alongside the [product tour]({{ '/product-tour/' | relative_url }}) whe
 
 1. **Stay here** if you only need the thesis for a steering committee.  
 2. **See the product** — [Product tour]({{ '/product-tour/' | relative_url }}) (screenshots of the CAN flow).  
-3. **Run the live seam** — [CAN ↔ Open-GMASE demo slice]({% post_url 2026-08-14-can-gmase-demo-slice %}) (OPA → AuditLogs).  
+3. **Run the live seam** — [CAN ↔ Open-GMASE ↔ CompliancePulse]({% post_url 2026-08-14-can-gmase-demo-slice %}) (OPA → AuditLogs → CP ingest).  
 4. **Go deeper only if needed:**
    - [Building Confidential AI Network]({% post_url 2026-07-29-building-confidential-ai-network %}) — product detail for CAN  
    - [Governing autonomous AI agents]({% post_url 2026-07-31-governing-autonomous-ai-agents-cybersecurity %}) — G-MASE for security architects  
