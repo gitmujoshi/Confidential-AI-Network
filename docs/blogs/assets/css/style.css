@@ -210,6 +210,49 @@ h1, h2, h3 {
   border-top: 1px solid var(--line);
 }
 
+.notes-toc {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 0.85rem;
+  margin: 0 0 2rem;
+  padding: 0;
+  font-family: "Avenir Next", "Segoe UI", system-ui, sans-serif;
+  font-size: 0.88rem;
+}
+
+.notes-toc a {
+  color: var(--accent);
+  text-decoration: none;
+  border-bottom: 1px solid color-mix(in srgb, var(--accent) 35%, transparent);
+}
+
+.notes-toc a:hover {
+  border-bottom-color: var(--accent);
+}
+
+.post-group {
+  margin: 0 0 2.25rem;
+  padding: 0 0 0.25rem;
+}
+
+.post-group h3 {
+  font-size: 1.15rem;
+  margin: 0 0 0.4rem;
+}
+
+.group-lede {
+  color: var(--muted);
+  margin: 0 0 0.75rem !important;
+  font-size: 0.98rem;
+  max-width: 40rem;
+}
+
+.post-group.all-posts {
+  margin-top: 2.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--line);
+}
+
 .section-intro {
   margin-bottom: 0.5rem !important;
 }
@@ -217,20 +260,31 @@ h1, h2, h3 {
 .hero h1 { font-size: clamp(1.8rem, 4vw, 2.4rem); margin: 0 0 0.5rem; }
 .hero:not(.hero-home) p { color: var(--muted); margin: 0 0 2rem; max-width: 36rem; }
 
-.post-list { list-style: none; padding: 0; margin: 0 0 3rem; }
+.post-list { list-style: none; padding: 0; margin: 0 0 0.5rem; }
+.post-list.ordered {
+  list-style: decimal;
+  padding-left: 1.35rem;
+}
+.post-list.ordered li {
+  padding-left: 0.35rem;
+}
 .post-list li {
-  padding: 1.25rem 0;
+  padding: 0.95rem 0;
   border-top: 1px solid var(--line);
+}
+.post-list li:first-child {
+  border-top: none;
+  padding-top: 0.35rem;
 }
 .post-list a {
   color: var(--ink);
   text-decoration: none;
   font-family: "Avenir Next", "Segoe UI", system-ui, sans-serif;
   font-weight: 600;
-  font-size: 1.15rem;
+  font-size: 1.05rem;
 }
 .post-list a:hover { color: var(--accent); }
-.post-list .meta { color: var(--muted); font-size: 0.9rem; margin: 0.35rem 0 0; }
+.post-list .meta { color: var(--muted); font-size: 0.88rem; margin: 0.3rem 0 0; }
 
 .post-header { margin-bottom: 1.75rem; }
 .post-header h1 { margin: 0.25rem 0 0.75rem; font-size: clamp(1.6rem, 3vw, 2.1rem); }

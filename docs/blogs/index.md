@@ -16,6 +16,7 @@ permalink: /
   </p>
   <p class="cta-row">
     <a class="cta" href="{{ '/product-tour/' | relative_url }}">See the end-to-end product tour</a>
+    <a class="cta cta-secondary" href="{{ '/#notes' | relative_url }}">Browse notes &amp; whitepapers</a>
     <a class="cta cta-secondary" href="https://github.com/gitmujoshi/Confidential-AI-Network">Explore the codebase</a>
   </p>
 </section>
@@ -134,17 +135,115 @@ permalink: /
 </section>
 
 <section class="home-section notes-section" id="notes">
-  <h2>Security &amp; identity notes</h2>
+  <h2>Notes &amp; whitepapers</h2>
   <p class="section-intro">
-    Design posts for operators and reviewers. Long-form specs remain in the repository
-    <code>docs/</code> tree.
+    Curated reading paths for operators, architects, and reviewers.
+    Long-form specs remain in the repository <code>docs/</code> tree.
   </p>
-  <ul class="post-list">
-    {% for post in site.posts %}
-    <li>
-      <a href="{{ post.url | relative_url }}">{{ post.title }}</a>
-      <p class="meta">{{ post.date | date: "%B %-d, %Y" }}{% if post.categories.size > 0 %} · {{ post.categories | join: ", " }}{% endif %}</p>
-    </li>
-    {% endfor %}
-  </ul>
+
+  <nav class="notes-toc" aria-label="Topic guides">
+    <a href="#series-platform">Platform</a>
+    <a href="#series-agents">Agent governance</a>
+    <a href="#series-identity">Identity</a>
+    <a href="#series-cloud">Cloud security</a>
+    <a href="#series-compliance">Compliance</a>
+    <a href="#all-posts">All posts</a>
+  </nav>
+
+  <div class="post-group" id="series-platform">
+    <h3>1. Platform — Confidential AI Network</h3>
+    <p class="group-lede">Start here for the product thesis: multi-party training without a shared data lake.</p>
+    <ol class="post-list ordered">
+      <li>
+        <a href="{{ site.baseurl }}{% post_url 2026-07-29-building-confidential-ai-network %}">Building Confidential AI Network — governed multi-party training without a data lake</a>
+        <p class="meta">July 29, 2026 · Product overview</p>
+      </li>
+      <li>
+        <a href="{{ '/product-tour/' | relative_url }}">Product tour</a>
+        <p class="meta">UI walkthrough · Local &amp; OCI</p>
+      </li>
+    </ol>
+  </div>
+
+  <div class="post-group" id="series-agents">
+    <h3>2. Agent governance — G-MASE &amp; CompliancePulse</h3>
+    <p class="group-lede">How autonomous SecOps agents stay bounded by identity, policy, and typed execution.</p>
+    <ol class="post-list ordered">
+      <li>
+        <a href="{{ site.baseurl }}{% post_url 2026-07-31-governing-autonomous-ai-agents-cybersecurity %}">Governing autonomous AI agents in cybersecurity operations</a>
+        <p class="meta">July 31, 2026 · G-MASE reference architecture</p>
+      </li>
+      <li>
+        <a href="{{ site.baseurl }}{% post_url 2026-08-14-unified-governed-agentic-secops-framework %}">Unified Governed Agentic SecOps Framework</a>
+        <p class="meta">August 14, 2026 · G-MASE + CompliancePulse whitepaper</p>
+      </li>
+    </ol>
+  </div>
+
+  <div class="post-group" id="series-identity">
+    <h3>3. Identity — humans, cloud APIs, workloads</h3>
+    <p class="group-lede">Zero-trust identity for people and for agent fleets on Kubernetes.</p>
+    <ol class="post-list ordered">
+      <li>
+        <a href="{{ site.baseurl }}{% post_url 2026-07-28-three-identity-planes %}">Three identity planes: humans, cloud APIs, and workloads</a>
+        <p class="meta">July 28, 2026 · Conceptual model</p>
+      </li>
+      <li>
+        <a href="{{ site.baseurl }}{% post_url 2026-07-28-spiffe-spire-oci-wif %}">SPIFFE/SPIRE with OCI IAM workload identity</a>
+        <p class="meta">July 28, 2026 · CAN scaffolding</p>
+      </li>
+      <li>
+        <a href="{{ site.baseurl }}{% post_url 2026-07-29-oke-agent-spiffe-identity-gap %}">The credential every AI agent fleet on an OKE node ends up sharing</a>
+        <p class="meta">July 29, 2026 · Full write-up</p>
+      </li>
+      <li>
+        <a href="{{ site.baseurl }}{% post_url 2026-07-29-beyond-instance-principals-oke-spiffe %}">Beyond instance principals: fixing the pod identity gap in OKE</a>
+        <p class="meta">July 29, 2026 · Deep dive</p>
+      </li>
+      <li>
+        <a href="{{ site.baseurl }}{% post_url 2026-07-29-oke-agent-spiffe-short-take %}">Short take: per-node credentials break multi-agent fleets on OKE</a>
+        <p class="meta">July 29, 2026 · LinkedIn-length summary</p>
+      </li>
+    </ol>
+  </div>
+
+  <div class="post-group" id="series-cloud">
+    <h3>4. Cloud security architectures</h3>
+    <p class="group-lede">Deployment-shaped notes for cloud identity and edge controls.</p>
+    <ol class="post-list ordered">
+      <li>
+        <a href="{{ site.baseurl }}{% post_url 2026-07-28-azure-entra-security-architecture %}">Azure security architecture — Entra-only identity on cloud</a>
+        <p class="meta">July 28, 2026 · Azure / Entra</p>
+      </li>
+    </ol>
+  </div>
+
+  <div class="post-group" id="series-compliance">
+    <h3>5. Compliance &amp; documentation map</h3>
+    <p class="group-lede">Where reviewers find controls evidence and how requirements map to NIST and CIS.</p>
+    <ol class="post-list ordered">
+      <li>
+        <a href="{{ site.baseurl }}{% post_url 2026-07-28-security-docs-map %}">Where to find CAN security docs (map for reviewers)</a>
+        <p class="meta">July 28, 2026 · Docs index</p>
+      </li>
+      <li>
+        <a href="{{ site.baseurl }}{% post_url 2026-07-28-nist-cis-controls-mapping %}">Requirements met — NIST CSF, SP 800-53, and CIS Controls mapping</a>
+        <p class="meta">July 28, 2026 · GRC mapping</p>
+      </li>
+    </ol>
+  </div>
+
+  <div class="post-group all-posts" id="all-posts">
+    <h3>All posts by date</h3>
+    <p class="group-lede">Newest first. Use the guides above for a recommended order.</p>
+    <ul class="post-list">
+      {% assign posts_by_date = site.posts | sort: 'date' | reverse %}
+      {% for post in posts_by_date %}
+      <li>
+        <a href="{{ post.url | relative_url }}">{{ post.title }}</a>
+        <p class="meta">{{ post.date | date: "%B %-d, %Y" }}{% if post.categories.size > 0 %} · {{ post.categories | join: ", " }}{% endif %}</p>
+      </li>
+      {% endfor %}
+    </ul>
+  </div>
 </section>
