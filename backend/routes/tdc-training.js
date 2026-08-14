@@ -15,10 +15,14 @@ const service = new TdcTrainingExecutionService();
 function handleError(res, err) {
   const status = err.statusCode || 500;
   if (status >= 500) console.error('TDC training error:', err);
-  return res.status(status).json({
+  const payload = {
     success: false,
     error: err.message || 'Internal error',
-  });
+  };
+  if (err.details?.governance) {
+    payload.governance = err.details.governance;
+  }
+  return res.status(status).json(payload);
 }
 
 router.get(

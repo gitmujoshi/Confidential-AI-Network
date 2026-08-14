@@ -317,7 +317,12 @@ export default function TDCTraining() {
     setStartingId(contractId);
     try {
       const data = await apiService.startTdcTraining(contractId);
-      toast.success('Training started');
+      const gate = data.job?.governance;
+      toast.success(
+        gate && !gate.skipped
+          ? `Training started (Open-GMASE: ${gate.allow ? 'ALLOW' : 'DENY'})`
+          : 'Training started'
+      );
       setLiveJob(data.job);
       setPollJobId(data.job?.jobId);
       await loadJobsForContract(contractId);

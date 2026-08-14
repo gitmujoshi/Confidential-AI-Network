@@ -53,7 +53,12 @@ router.get('/env', (req, res) => {
         process.env.GMASE_INFERENCE_GATE === 'false' || process.env.GMASE_INFERENCE_GATE === '0'
           ? false
           : true,
-      note: 'TDC deploy/predict call open_gmase/can_contracts when inferenceGate=true; POST /api/debug/gmase-tool-check for manual demos',
+      trainingGate:
+        process.env.GMASE_TRAINING_GATE === 'false' || process.env.GMASE_TRAINING_GATE === '0'
+          ? false
+          : true,
+      compliancePulseIngest: Boolean(process.env.COMPLIANCEPULSE_INGEST_URL),
+      note: 'TDC training start + deploy/predict call open_gmase/can_contracts when gates are on; optional COMPLIANCEPULSE_INGEST_URL forwards decisions',
     },
     training: {
       canLocalTrainingMode: process.env.CAN_LOCAL_TRAINING_MODE || 'simulate',

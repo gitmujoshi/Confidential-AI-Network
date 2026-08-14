@@ -76,11 +76,11 @@ npm run test:e2e:headed
 ### 7. Inference deploy + predict (opt-in)
 - **Files**: `inference-deploy-api.spec.js`, `inference-deploy-ui.spec.js`
 - **Helper**: `helpers/inference-e2e.js` — tabular local train → register → deploy → predict
-- **Open-GMASE gate**: With `GMASE_INFERENCE_GATE` enabled (default), deploy/predict call OPA (`open_gmase/can_contracts`) and write `GMASE_TOOL_DECISION` audits. Start OPA first:
+- **Open-GMASE gate**: With `GMASE_INFERENCE_GATE` / `GMASE_TRAINING_GATE` enabled (default), deploy/predict/training-start call OPA (`open_gmase/can_contracts`) and write `GMASE_TOOL_DECISION` audits. Start OPA first:
   ```bash
   cd open-gmase-core && docker compose up -d
   ```
-  Bypass with `GMASE_INFERENCE_GATE=false` on the backend if you only want artifact smoke without OPA.
+  Bypass with `GMASE_INFERENCE_GATE=false` / `GMASE_TRAINING_GATE=false` on the backend if you only want artifact smoke without OPA. Optional: `COMPLIANCEPULSE_INGEST_URL` forwards decisions to CompliancePulse ingest.
 - **Run** (same local-docker prerequisites; trainer image must include `infer.py`):
   ```bash
   E2E_WAIT_FOR_LOCAL_TRAINING=true BACKEND_URL=http://127.0.0.1:5001 npm run test:e2e:inference

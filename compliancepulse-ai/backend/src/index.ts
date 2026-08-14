@@ -58,7 +58,8 @@ function createApp(): Application {
   app.use('/api/v1/agents', optionalAuth, apiRoutes);
   app.use('/api/v1/policy', authenticate, apiRoutes);
   app.use('/api/v1/identity', authenticate, apiRoutes);
-  app.use('/api/v1/audit', authenticate, apiRoutes);
+  // Audit trail/report stay authenticated; ingest uses optionalAuth for CAN forward demos
+  app.use('/api/v1/audit', optionalAuth, apiRoutes);
 
   // Error handlers
   app.use(notFoundHandler);

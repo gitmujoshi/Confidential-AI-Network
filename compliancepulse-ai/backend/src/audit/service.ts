@@ -16,6 +16,7 @@ export enum AuditEventType {
   AUTHENTICATION = 'authentication',
   AUTHORIZATION = 'authorization',
   CONFIGURATION_CHANGE = 'configuration_change',
+  EXTERNAL_INGEST = 'external_ingest',
 }
 
 /**

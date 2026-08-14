@@ -236,7 +236,10 @@ const CATALOG_ONLY_TRACKS = [
 const ALL_TRACKS = [...TRAINABLE_TRACKS, ...CATALOG_ONLY_TRACKS];
 
 async function assertLocalTrainingReady() {
-  const training = await fetchTrainingEnv();
+  const axios = require('axios');
+  const envRes = await axios.get(`${BACKEND_URL}/api/debug/env`, { timeout: 5000 });
+  const env = envRes.data || {};
+  const training = env.training || (await fetchTrainingEnv());
   const mode = training.trainingExecutionMode;
   if (mode !== 'local-docker' && mode !== 'local-native') {
     throw new Error(
@@ -245,6 +248,18 @@ async function assertLocalTrainingReady() {
   }
   if (training.trainingSimulationMode === true || training.trainingSimulationMode === 'true') {
     throw new Error('Multi-model guide needs TRAINING_SIMULATION_MODE=false');
+  }
+  if (env.gmase?.trainingGate !== false) {
+    const opa = await axios.get(`${BACKEND_URL}/api/debug/gmase-opa-health`, {
+      timeout: 5000,
+      validateStatus: () => true,
+    });
+    if (opa.status !== 200 || opa.data?.ok !== true) {
+      throw new Error(
+        'Open-GMASE OPA required for training gate (GMASE_TRAINING_GATE default on). ' +
+          'Start with: cd open-gmase-core && docker compose up -d'
+      );
+    }
   }
 }
 

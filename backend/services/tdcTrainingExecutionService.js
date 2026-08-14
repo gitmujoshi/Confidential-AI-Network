@@ -27,6 +27,7 @@ const {
   shapeInputsForLocalTrainerContainer,
 } = require('./contractTrainingInputsService');
 const { stageDatasetsForLocalJob } = require('./datasetArtifactStaging');
+const { authorizeCanSideEffect, isTrainingGateEnabled } = require('./gmaseSideEffectGate');
 
 function validateTdcCanTrain(contract, userId) {
   if (!contract) {
@@ -210,6 +211,33 @@ class TdcTrainingExecutionService {
     await hydrateContractDatasetsForTraining(contract);
     await assertNoConcurrentJob(contractId);
 
+    const governance = await authorizeCanSideEffect({
+      toolName: 'start_training',
+      userId,
+      contract,
+      enabled: isTrainingGateEnabled(),
+      slice: 'can-training-gate',
+      parameters: {
+        contract_id: contract.contractId,
+        execution_mode:
+          process.env.TRAINING_EXECUTION_MODE ||
+          (process.env.NODE_ENV && process.env.NODE_ENV !== 'production' ? 'local-docker' : ''),
+      },
+      metadata: {
+        contract_status: contract.status,
+        dataset_classification:
+          contract.contractDatasets?.[0]?.classification ||
+          contract.metadata?.datasetClassification ||
+          null,
+        training_region: contract.environmentSpecs?.region || contract.tspCloudProvider || null,
+      },
+    });
+
+    const withGovernance = async (jobId) => {
+      const job = await this.getJobPublic(jobId);
+      return { ...job, governance };
+    };
+
     if (isSimulationMode()) {
       const jobId = `job-${contract.contractId}-${Date.now()}`;
       const containerSpec = buildContainerSpec(contract);
@@ -235,12 +263,13 @@ class TdcTrainingExecutionService {
           containerSpec,
           phases: [{ name: 'PENDING', at: new Date().toISOString() }],
           inputs,
+          governance,
         },
         createdBy: userId,
       });
 
       scheduleSimulation(jobId, contract);
-      return this.getJobPublic(jobId);
+      return withGovernance(jobId);
     }
 
     // Prefer local-docker for local development when no execution mode is configured.
@@ -295,7 +324,7 @@ class TdcTrainingExecutionService {
         });
       });
 
-      return this.getJobPublic(jobId);
+      return withGovernance(jobId);
     }
 
     // Native MLX on Apple Silicon (host venv — uses GPU; no Docker).
@@ -356,7 +385,7 @@ class TdcTrainingExecutionService {
         });
       });
 
-      return this.getJobPublic(jobId);
+      return withGovernance(jobId);
     }
 
     // Local Docker execution mode (runs training in a separate container on the backend host).
@@ -404,7 +433,7 @@ class TdcTrainingExecutionService {
       // Intentionally no local `training_started` SCITT row: TrainingJob + API are the source of truth
       // and a separate claim duplicated training_completed payloads.
 
-      return this.getJobPublic(jobId);
+      return withGovernance(jobId);
     }
 
     // OCI OKE Job path (design scaffold — Object Storage + cms-training Job template).
@@ -451,7 +480,7 @@ class TdcTrainingExecutionService {
         });
       });
 
-      return this.getJobPublic(jobId);
+      return withGovernance(jobId);
     }
 
     const TrainingService = require('./trainingService');

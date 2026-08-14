@@ -8,13 +8,15 @@ http://localhost:3001/api/v1
 
 ## Authentication
 
-All API endpoints (except `/health`) require JWT authentication.
+Most API endpoints require JWT authentication.
 
 Include the token in the Authorization header:
 
 ```
 Authorization: Bearer <your-jwt-token>
 ```
+
+**Exception (research demo):** `POST /api/v1/audit/ingest` accepts optional auth so Confidential AI Network can forward `GMASE_TOOL_DECISION` events when `COMPLIANCEPULSE_INGEST_URL` is set.
 
 ## Endpoints
 

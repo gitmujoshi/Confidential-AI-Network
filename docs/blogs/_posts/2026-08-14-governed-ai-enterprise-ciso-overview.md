@@ -101,7 +101,7 @@ Humans still sign in with your enterprise identity. Machines get short-lived, at
 
 ## What you can try today
 
-The full unified runtime (swarm UI, SPIRE attestation, CompliancePulse SaaS) is still research. What **does** run locally today is a thin seam: a tool proposal is checked by Open-GMASE OPA and the allow/deny lands in CAN AuditLogs.
+The full unified runtime (swarm UI, SPIRE attestation, multi-tenant CompliancePulse SaaS) is still research. What **does** run locally today: Open-GMASE OPA gates **training start** and **inference deploy/predict**, decisions land in CAN AuditLogs, and CAN can forward them to CompliancePulse `POST /api/v1/audit/ingest`.
 
 → [Try it: CAN ↔ Open-GMASE demo slice]({% post_url 2026-08-14-can-gmase-demo-slice %}) (includes E2E screenshots of the Inference app policy gate)
 

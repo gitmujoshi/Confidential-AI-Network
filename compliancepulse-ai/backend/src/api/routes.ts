@@ -179,6 +179,47 @@ router.post(
 );
 
 /**
+ * Ingest external governance decisions (e.g. CAN ↔ Open-GMASE side-effect audits).
+ * POST /api/v1/audit/ingest
+ * Research demo path — optionalAuth so CAN can forward without a full SaaS tenant yet.
+ */
+router.post(
+  '/ingest',
+  [
+    body('source').optional().isString(),
+    body('eventType').optional().isString(),
+    body('tool_name').optional().isString(),
+    body('allow').optional().isBoolean(),
+  ],
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const payload = req.body || {};
+      const allow = payload.allow === true;
+      const toolName = payload.tool_name || payload.toolName || 'unknown';
+      const eventId = await auditService.logEvent(
+        AuditEventType.EXTERNAL_INGEST,
+        `ingest:${toolName}`,
+        `external:${payload.source || 'unknown'}`,
+        allow ? 'success' : 'denied',
+        {
+          ...payload,
+          ingestedFrom: payload.source || 'external',
+        },
+        { userId: req.user?.id || payload.userId }
+      );
+
+      res.status(201).json({
+        success: true,
+        eventId,
+        note: 'Research ingest — not a multi-tenant SaaS control plane yet',
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
+/**
  * Query audit trail
  * GET /api/v1/audit/trail
  */

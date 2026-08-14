@@ -10,92 +10,23 @@ const fs = require('fs');
 const os = require('os');
 const path = require('path');
 const db = require('../models');
-const { authorizeTool } = require('./gmaseOpaService');
-const AuditService = require('./auditService');
+const { authorizeCanSideEffect, isInferenceGateEnabled } = require('./gmaseSideEffectGate');
 
-const auditService = new AuditService();
-
-/** When true (default), deploy/predict call Open-GMASE OPA fail-closed. Set GMASE_INFERENCE_GATE=false to bypass. */
-function isInferenceGateEnabled() {
-  const v = process.env.GMASE_INFERENCE_GATE;
-  if (v === 'false' || v === '0') return false;
-  return true;
-}
-
-/**
- * Authorize a TDC inference side-effect via Open-GMASE can_contracts pack and audit the decision.
- * @returns {Promise<object>} governance payload attached to API responses
- */
+/** Authorize inference side-effect via shared Open-GMASE gate. */
 async function authorizeInferenceTool({ toolName, userId, contract, model, inferenceMeta, parameters }) {
-  if (!isInferenceGateEnabled()) {
-    return { skipped: true, allow: true, reason: 'GMASE_INFERENCE_GATE disabled' };
-  }
-
-  const decision = await authorizeTool({
-    tool_name: toolName,
-    policy_package: 'open_gmase/can_contracts',
-    environment: process.env.NODE_ENV || 'development',
+  return authorizeCanSideEffect({
+    toolName,
+    userId,
+    contract,
+    enabled: isInferenceGateEnabled(),
+    slice: 'can-inference-gate',
     parameters: parameters || {},
     metadata: {
-      contract_id: contract?.contractId || null,
-      contract_status: contract?.status || null,
       model_id: model?.modelId || null,
       inference_status: inferenceMeta?.status || null,
       task_type: inferenceMeta?.taskType || null,
-      slice: 'can-inference-gate',
     },
   });
-
-  let auditId = null;
-  try {
-    const auditLog = await auditService.logEvent(
-      'GMASE_TOOL_DECISION',
-      {
-        tool_name: toolName,
-        allow: decision.allow,
-        reason: decision.reason,
-        deny: decision.deny,
-        warn: decision.warn,
-        opaUrl: decision.opaUrl,
-        package: decision.package,
-        input: decision.input,
-        contract_id: contract?.contractId || null,
-        model_id: model?.modelId || null,
-        slice: 'can-inference-gate',
-      },
-      userId || null
-    );
-    auditId = auditLog?.id || null;
-  } catch (err) {
-    console.warn('GMASE inference audit log failed:', err.message);
-  }
-
-  if (!decision.allow) {
-    const err = new Error(decision.reason || 'Denied by Open-GMASE inference gate');
-    err.statusCode = 403;
-    err.details = {
-      governance: {
-        allow: false,
-        reason: decision.reason,
-        deny: decision.deny,
-        warn: decision.warn,
-        package: decision.package,
-        auditId,
-      },
-    };
-    throw err;
-  }
-
-  return {
-    skipped: false,
-    allow: true,
-    reason: decision.reason,
-    deny: decision.deny,
-    warn: decision.warn,
-    package: decision.package,
-    opaUrl: decision.opaUrl,
-    auditId,
-  };
 }
 
 function repoRoot() {

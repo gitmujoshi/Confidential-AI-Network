@@ -11,6 +11,8 @@ CompliancePulse AI is the **commercial / enterprise layer** of the G-MASE stack.
 | **Open-GMASE Core** (community) | [`../open-gmase-core`](../open-gmase-core) | Apache 2.0 — SPIFFE/OPA/BAML blueprints, starter agents, local Compose |
 | **CompliancePulse AI** (this directory) | `.` | SaaS control plane, multi-tenant UI/API, enterprise integrations roadmap |
 
+**Research seam with CAN:** when Confidential AI Network sets `COMPLIANCEPULSE_INGEST_URL`, Open-GMASE decisions are forwarded to `POST /api/v1/audit/ingest`. That is an ingest stub—not a finished multi-tenant SaaS product.
+
 Start with Open-GMASE for sandboxes and policy packs; use CompliancePulse when you need the product control plane. Details: [`../open-gmase-core/OPEN_CORE.md`](../open-gmase-core/OPEN_CORE.md).
 
 ---
