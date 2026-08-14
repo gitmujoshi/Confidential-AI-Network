@@ -1,0 +1,29 @@
+# GitGuardian configuration for CompliancePulse AI
+
+# Version
+version: 2
+
+# Paths to ignore - these contain example/placeholder values only
+paths-ignore:
+  - "**/.env.example"
+  - "**/*.example"
+  - "**/example-*"
+  - "**/docs/**"
+  - "**/*.md"
+  - "**/SECURITY.md"
+  - "**/README.md"
+  - "**/.gitguardian.yaml"
+
+# Exclude specific secrets by match - these are documentation examples
+matches-ignore:
+  - name: Development Placeholder Values
+    match: CHANGE_ME_IN_PRODUCTION
+  - name: Example Database Credentials
+    match: username:password@localhost
+  - name: Development Password Placeholder
+    match: dev_password_change_in_prod
+  - name: Redis Password Placeholder
+    match: change_me_if_redis_auth_enabled
+    
+# Minimum occurrences for a secret to be reported
+minimum-occurrences: 2

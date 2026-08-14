@@ -35,6 +35,12 @@ jobs:
           node-version: '18'
           cache: 'npm'
 
+      - name: Build shared value-objects package
+        run: |
+          cd shared/valueObjects
+          npm ci
+          npm run build
+
       - name: Install backend dependencies
         run: |
           cd backend
@@ -76,8 +82,18 @@ jobs:
           DB_USER: postgres
           DB_PASSWORD: postgres
           JWT_SECRET: test-jwt-secret-key-for-integration-tests
+          DATA_ENCRYPTION_KEY: test-data-encryption-key-32chars!!
           KEYCLOAK_ENABLED: false
           HUGGINGFACE_INTEGRATION_ENABLED: true
+
+      - name: Install root dependencies for seeding
+        run: npm install
+
+      - name: Seed E2E test users
+        run: npm run seed:e2e-users
+        env:
+          NODE_ENV: test
+          BACKEND_URL: http://localhost:5001
 
       - name: Run E2E tests
         run: |

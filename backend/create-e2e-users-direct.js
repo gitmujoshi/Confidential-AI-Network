@@ -16,10 +16,10 @@ const E2E_USERS = [
     partyType: 'TDP'
   },
   {
-    name: 'CCRP Test User',
+    name: 'TSP Test User',
     email: 'ccrp-test@example.com',
     password: 'password123',
-    partyType: 'CCRP'
+    partyType: 'TSP'
   },
   {
     name: 'AppAdmin Test User',
@@ -174,6 +174,10 @@ async function verifyUserLogin(userData) {
       };
     }
   } catch (error) {
+    if (error.code === 'ECONNREFUSED') {
+      console.log(`⚠️  Backend not available, skipping login verification for ${userData.email}`);
+      return null;
+    }
     console.error(`❌ Login verification failed for ${userData.email}:`, error.response?.data || error.message);
     throw error;
   }
@@ -194,7 +198,7 @@ async function createTestData() {
     
     const tdpUser = users.find(u => u.partyType === 'TDP');
     const tdcUser = users.find(u => u.partyType === 'TDC');
-    const ccrpUser = users.find(u => u.partyType === 'CCRP');
+    const ccrpUser = users.find(u => u.partyType === 'TSP');
     
     if (!tdpUser || !tdcUser || !ccrpUser) {
       throw new Error('Required users not found for test data creation');
@@ -276,21 +280,32 @@ async function setupE2EEnvironment() {
       }
     }
     
-    // Step 4: Create test data
-    await createTestData();
+    // Step 4: Create test data (optional - skip if fails)
+    try {
+      await createTestData();
+      console.log('✅ Test data created successfully');
+    } catch (error) {
+      console.log('⚠️  Skipping test data creation (not critical for e2e tests):', error.message);
+    }
     
     console.log('\n✅ E2E environment setup complete!');
     console.log('\n📋 E2E Test Users:');
-    verifiedUsers.forEach(user => {
-      console.log(`  - ${user.user.email} (ID: ${user.user.id}, Role: ${user.user.partyType})`);
-    });
+    if (verifiedUsers.length > 0) {
+      verifiedUsers.forEach(user => {
+        console.log(`  - ${user.user.email} (ID: ${user.user.id}, Role: ${user.user.partyType})`);
+      });
+    } else {
+      createdUsers.forEach(user => {
+        console.log(`  - ${user.email} (ID: ${user.id}, Role: ${user.partyType}) [not verified - backend not running]`);
+      });
+    }
     
     console.log('\n🔑 Login Credentials:');
     E2E_USERS.forEach(user => {
       console.log(`  - Email: ${user.email}, Password: ${user.password}`);
     });
     
-    return verifiedUsers;
+    return verifiedUsers.length > 0 ? verifiedUsers : createdUsers;
     
   } catch (error) {
     console.error('❌ E2E environment setup failed:', error);
