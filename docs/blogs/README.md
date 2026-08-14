@@ -19,9 +19,10 @@ Canonical Diátaxis docs remain under [`docs/README.md`](../README.md).
 
 ```bash
 # Sync lifecycle + OCI mock screenshots (same step as CI)
-mkdir -p docs/blogs/assets/lifecycle docs/blogs/assets/oci
+mkdir -p docs/blogs/assets/lifecycle docs/blogs/assets/oci docs/blogs/assets/gmase
 cp -f docs/guides/lifecycle-user-guide/screenshots/*.png docs/blogs/assets/lifecycle/
 cp -f docs/guides/oci-scaffold-demo/screenshots/*.png docs/blogs/assets/oci/
+cp -f docs/guides/gmase-integration/screenshots/*.png docs/blogs/assets/gmase/ 2>/dev/null || true
 
 cd docs/blogs
 bundle install

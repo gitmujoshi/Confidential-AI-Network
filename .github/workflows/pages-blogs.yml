@@ -7,6 +7,7 @@ on:
       - "docs/blogs/**"
       - "docs/guides/lifecycle-user-guide/**"
       - "docs/guides/oci-scaffold-demo/**"
+      - "docs/guides/gmase-integration/**"
       - ".github/workflows/pages-blogs.yml"
   workflow_dispatch:
 
@@ -39,6 +40,14 @@ jobs:
           cp -f docs/guides/oci-scaffold-demo/screenshots/*.png \
             docs/blogs/assets/oci/
           ls -la docs/blogs/assets/oci
+
+      - name: Sync Open-GMASE integration screenshots into blog assets
+        run: |
+          mkdir -p docs/blogs/assets/gmase
+          if ls docs/guides/gmase-integration/screenshots/*.png >/dev/null 2>&1; then
+            cp -f docs/guides/gmase-integration/screenshots/*.png docs/blogs/assets/gmase/
+          fi
+          ls -la docs/blogs/assets/gmase || true
 
       - name: Setup Ruby
         uses: ruby/setup-ruby@v1

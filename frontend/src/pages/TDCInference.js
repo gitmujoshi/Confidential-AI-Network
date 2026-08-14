@@ -213,7 +213,7 @@ export default function TDCInference() {
           </Card>
 
           {lastResult && (
-            <Card>
+            <Card data-testid="inference-result-card">
               <CardContent>
                 <Typography variant="h6" gutterBottom>
                   Result
@@ -230,6 +230,39 @@ export default function TDCInference() {
                     </Typography>
                   )}
                 </Typography>
+
+                {lastResult.governance && !lastResult.governance.skipped && (
+                  <Alert
+                    data-testid="gmase-governance"
+                    severity={lastResult.governance.allow ? 'success' : 'error'}
+                    sx={{ mb: 2 }}
+                  >
+                    <Typography variant="subtitle2" gutterBottom>
+                      Open-GMASE policy gate
+                    </Typography>
+                    <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap sx={{ mb: 1 }}>
+                      <Chip
+                        size="small"
+                        color={lastResult.governance.allow ? 'success' : 'error'}
+                        label={lastResult.governance.allow ? 'ALLOW' : 'DENY'}
+                      />
+                      {lastResult.governance.package && (
+                        <Chip size="small" variant="outlined" label={lastResult.governance.package} />
+                      )}
+                      {lastResult.governance.auditId != null && (
+                        <Chip
+                          size="small"
+                          variant="outlined"
+                          label={`audit #${lastResult.governance.auditId}`}
+                        />
+                      )}
+                    </Stack>
+                    <Typography variant="body2">
+                      {lastResult.governance.reason || 'Policy evaluated before inference ran.'}
+                    </Typography>
+                  </Alert>
+                )}
+
                 <Divider sx={{ my: 1 }} />
                 <Box component="pre" sx={{ fontSize: 12, overflow: 'auto', m: 0 }}>
                   {pretty(lastResult)}

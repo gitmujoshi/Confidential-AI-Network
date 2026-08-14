@@ -49,7 +49,11 @@ router.get('/env', (req, res) => {
     gmase: {
       opaUrl: process.env.OPA_URL || 'http://localhost:8181',
       policyPackage: process.env.OPA_POLICY_PACKAGE || 'open_gmase/tools',
-      note: 'POST /api/debug/gmase-tool-check — Open-GMASE OPA → CAN AuditLogs demo slice',
+      inferenceGate:
+        process.env.GMASE_INFERENCE_GATE === 'false' || process.env.GMASE_INFERENCE_GATE === '0'
+          ? false
+          : true,
+      note: 'TDC deploy/predict call open_gmase/can_contracts when inferenceGate=true; POST /api/debug/gmase-tool-check for manual demos',
     },
     training: {
       canLocalTrainingMode: process.env.CAN_LOCAL_TRAINING_MODE || 'simulate',

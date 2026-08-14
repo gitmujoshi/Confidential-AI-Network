@@ -20,7 +20,9 @@ const DEFAULT_PACKAGE = process.env.OPA_POLICY_PACKAGE || 'open_gmase/tools';
  */
 async function authorizeTool(proposal = {}) {
   const opaUrl = (process.env.OPA_URL || DEFAULT_OPA_URL).replace(/\/$/, '');
-  const pkg = (process.env.OPA_POLICY_PACKAGE || DEFAULT_PACKAGE).replace(/\./g, '/');
+  const pkg = String(
+    proposal.policy_package || process.env.OPA_POLICY_PACKAGE || DEFAULT_PACKAGE
+  ).replace(/\./g, '/');
   const input = {
     tool_name: proposal.tool_name,
     environment: proposal.environment || process.env.NODE_ENV || 'development',

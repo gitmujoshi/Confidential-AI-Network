@@ -1,6 +1,7 @@
 /**
  * E2E helpers for TDC local inference: register → deploy → predict.
  * Uses the fast tabular (logistic regression) track by default.
+ * When the backend GMASE inference gate is on (default), Open-GMASE OPA must be reachable.
  */
 const axios = require('axios');
 const {
@@ -16,6 +17,31 @@ const {
   assertLocalTrainingReady,
 } = require('./multi-model-training');
 
+async function fetchDebugEnv() {
+  const res = await axios.get(`${BACKEND_URL}/api/debug/env`, { timeout: 5000 });
+  return res.data || {};
+}
+
+async function checkGmaseOpaHealth() {
+  try {
+    const res = await axios.get(`${BACKEND_URL}/api/debug/gmase-opa-health`, {
+      timeout: 5000,
+      validateStatus: () => true,
+    });
+    return { ok: res.status === 200 && res.data?.ok === true, ...res.data };
+  } catch (e) {
+    return { ok: false, error: e.message };
+  }
+}
+
+async function listGmaseToolDecisions({ limit = 20 } = {}) {
+  const res = await axios.get(`${BACKEND_URL}/api/debug/gmase-tool-decisions`, {
+    params: { limit },
+    timeout: 10000,
+  });
+  return res.data?.decisions || [];
+}
+
 async function getInferenceSkipReason() {
   const wait =
     process.env.E2E_WAIT_FOR_LOCAL_TRAINING === 'true' ||
@@ -24,7 +50,8 @@ async function getInferenceSkipReason() {
     return 'Set E2E_WAIT_FOR_LOCAL_TRAINING=true to run inference deploy/predict E2E';
   }
   try {
-    const training = await fetchTrainingEnv();
+    const env = await fetchDebugEnv();
+    const training = env.training || (await fetchTrainingEnv());
     const mode = training.trainingExecutionMode;
     const okMode = mode === 'local-docker' || mode === 'local-native';
     if (!okMode) {
@@ -32,6 +59,18 @@ async function getInferenceSkipReason() {
     }
     if (training.trainingSimulationMode === 'true' || training.trainingSimulationMode === true) {
       return 'TRAINING_SIMULATION_MODE must be false for inference artifact E2E';
+    }
+
+    const gateOn = env.gmase?.inferenceGate !== false;
+    if (gateOn) {
+      const opa = await checkGmaseOpaHealth();
+      if (!opa.ok) {
+        return (
+          'Open-GMASE OPA required for inference gate (GMASE_INFERENCE_GATE default on). ' +
+          'Start with: cd open-gmase-core && docker compose up -d. ' +
+          `Health: ${opa.error || opa.status || 'unreachable'}`
+        );
+      }
     }
   } catch (e) {
     return `Could not read /api/debug/env: ${e.message}`;
@@ -152,4 +191,7 @@ module.exports = {
   undeployModel,
   listDeployments,
   createDeployedTabularInference,
+  checkGmaseOpaHealth,
+  listGmaseToolDecisions,
+  fetchDebugEnv,
 };

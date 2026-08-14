@@ -298,7 +298,12 @@ export default function TDCTraining() {
     setDeploying(true);
     try {
       const data = await apiService.deployTdcInferenceModel(liveJob.registeredModelId);
-      toast.success(`Deployed ${data.modelId} for inference`);
+      const gate = data.governance;
+      toast.success(
+        gate && !gate.skipped
+          ? `Deployed ${data.modelId} (Open-GMASE: ${gate.allow ? 'ALLOW' : 'DENY'})`
+          : `Deployed ${data.modelId} for inference`
+      );
       const refreshed = await apiService.getTdcTrainingJob(liveJob.jobId);
       setLiveJob(refreshed.job);
     } catch (e) {

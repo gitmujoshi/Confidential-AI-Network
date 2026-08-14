@@ -81,5 +81,6 @@ Override package per request with `"policy_package": "open_gmase/can_contracts"`
 ## Next engineering steps (not in this slice)
 
 - Call `gmaseOpaService.authorizeTool` from `tdcTrainingExecutionService.startTrainingForContract` before spawn.  
+- ~~Call authorize on TDC inference~~ — **done**: deploy/predict use `open_gmase/can_contracts` (`GMASE_INFERENCE_GATE`, default on); covered by `npm run test:e2e:inference`.  
 - Attach real SPIFFE IDs to `metadata.agent_id`.  
 - Promote debug routes behind auth for non-local environments.

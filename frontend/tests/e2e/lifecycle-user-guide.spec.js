@@ -566,13 +566,19 @@ test.describe('Lifecycle user guide (screenshot tour)', () => {
       // Quality profile should classify the default Wall Street headline as Business.
       await expect(page.getByText(/Label:\s*Business/i)).toBeVisible({ timeout: 30000 });
     }
+    // Open-GMASE inference gate (when enabled) surfaces ALLOW on the result card.
+    const gmasePanel = page.getByTestId('gmase-governance');
+    if (await gmasePanel.isVisible().catch(() => false)) {
+      await expect(gmasePanel.getByText(/ALLOW/i)).toBeVisible();
+    }
     steps.push({
-      title: 'Inference app — prediction result',
+      title: 'Inference app — prediction result (+ Open-GMASE gate)',
       body: [
         '**Run prediction** calls the local inferencer (`infer.py` via Docker) against the trained DistilBERT artifact.',
         qualityDemo
           ? 'With the **quality** profile, the default Wall Street headline predicts **Business** (AG News: World / Sports / Business / Sci/Tech).'
           : 'The result shows the predicted AG News class label (World / Sports / Business / Sci/Tech) and probabilities.',
+        'When `GMASE_INFERENCE_GATE` is on, the **Open-GMASE policy gate** panel shows ALLOW (or DENY) before the side effect is accepted, with the Rego package and audit id.',
       ].join('\n'),
       ...(await captureShot(page, '24-tdc-inference-predict.png')),
     });
