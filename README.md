@@ -11,7 +11,7 @@ This repository also hosts the **agent-governance stack** that gates CAN side ef
 | **Open-GMASE Core** | [`open-gmase-core/`](open-gmase-core/) | Apache 2.0 community edition of **G-MASE** (Governed Multi-Agent SecOps Environment) — SPIFFE/SPIRE, OPA/Rego, BAML schemas, starter MCP agents |
 | **CompliancePulse AI** | [`compliancepulse-ai/`](compliancepulse-ai/) | Open-core **commercial / SaaS control plane** for agent governance — audit ingest, policy APIs, multi-tenant roadmap |
 
-**Blog (GitHub Pages):** [G-MASE deep dive](https://gitmujoshi.github.io/Confidential-AI-Network/security/2026/08/14/gmase-deep-dive/) · [CompliancePulse AI deep dive](https://gitmujoshi.github.io/Confidential-AI-Network/security/2026/08/14/compliancepulse-ai-deep-dive/) · [CAN ↔ Open-GMASE ↔ CompliancePulse demo](https://gitmujoshi.github.io/Confidential-AI-Network/guides/2026/08/14/can-gmase-demo-slice/) · [site home](https://gitmujoshi.github.io/Confidential-AI-Network/)
+**Blog (GitHub Pages):** [Reintroducing CAN](https://gitmujoshi.github.io/Confidential-AI-Network/product/2026/08/14/reintroducing-confidential-ai-network/) · [G-MASE deep dive](https://gitmujoshi.github.io/Confidential-AI-Network/security/2026/08/14/gmase-deep-dive/) · [CompliancePulse AI deep dive](https://gitmujoshi.github.io/Confidential-AI-Network/security/2026/08/14/compliancepulse-ai-deep-dive/) · [CAN ↔ Open-GMASE ↔ CompliancePulse demo](https://gitmujoshi.github.io/Confidential-AI-Network/guides/2026/08/14/can-gmase-demo-slice/) · [site home](https://gitmujoshi.github.io/Confidential-AI-Network/)
 
 ---
 
