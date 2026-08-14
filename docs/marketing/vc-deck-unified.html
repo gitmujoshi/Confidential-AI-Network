@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>VC Deck — CAN · Open-GMASE · CompliancePulse</title>
+  <style>
+    :root {
+      --bg: #0f1412;
+      --panel: #18201c;
+      --ink: #f2efe6;
+      --muted: #9aa59c;
+      --accent: #3d9b6e;
+      --line: #2a3530;
+      --warn: #c4a35a;
+    }
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0;
+      height: 100%;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+    }
+    .deck { height: 100%; position: relative; }
+    .slide {
+      display: none;
+      height: 100%;
+      padding: clamp(2rem, 5vw, 4rem);
+      max-width: 1100px;
+      margin: 0 auto;
+      flex-direction: column;
+      justify-content: center;
+    }
+    .slide.active { display: flex; }
+    .eyebrow {
+      font-family: "Avenir Next", "Segoe UI", system-ui, sans-serif;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      font-size: 0.75rem;
+      color: var(--accent);
+      margin: 0 0 1rem;
+    }
+    h1, h2, h3 {
+      font-family: "Avenir Next", "Segoe UI", system-ui, sans-serif;
+      letter-spacing: -0.02em;
+      font-weight: 650;
+      margin: 0 0 1rem;
+      line-height: 1.15;
+    }
+    h1 { font-size: clamp(2rem, 5vw, 3.2rem); max-width: 18ch; }
+    h2 { font-size: clamp(1.5rem, 3.5vw, 2.2rem); }
+    p, li { font-size: clamp(1.05rem, 2vw, 1.25rem); line-height: 1.55; color: var(--ink); }
+    .lede { color: var(--muted); max-width: 42rem; font-size: 1.2rem; }
+    ul { padding-left: 1.2rem; }
+    li { margin: 0.4rem 0; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-family: "Avenir Next", "Segoe UI", system-ui, sans-serif;
+      font-size: 0.95rem;
+    }
+    th, td {
+      border: 1px solid var(--line);
+      padding: 0.65rem 0.75rem;
+      text-align: left;
+      vertical-align: top;
+    }
+    th { background: var(--panel); color: var(--muted); font-weight: 600; }
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1rem;
+      margin-top: 1.5rem;
+    }
+    @media (max-width: 800px) {
+      .cards { grid-template-columns: 1fr; }
+    }
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      padding: 1.1rem 1.2rem;
+      border-radius: 4px;
+    }
+    .card h3 { font-size: 1.05rem; color: var(--accent); margin-bottom: 0.4rem; }
+    .card p { font-size: 0.95rem; color: var(--muted); margin: 0; }
+    pre.arch {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      padding: 1rem 1.2rem;
+      overflow-x: auto;
+      font-family: ui-monospace, Menlo, Consolas, monospace;
+      font-size: 0.78rem;
+      line-height: 1.4;
+      color: var(--muted);
+    }
+    .footer-bar {
+      position: fixed;
+      left: 0; right: 0; bottom: 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.75rem 1.25rem;
+      background: color-mix(in srgb, var(--bg) 88%, transparent);
+      border-top: 1px solid var(--line);
+      font-family: "Avenir Next", "Segoe UI", system-ui, sans-serif;
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+    .footer-bar button {
+      background: transparent;
+      border: 1px solid var(--line);
+      color: var(--ink);
+      padding: 0.35rem 0.75rem;
+      cursor: pointer;
+      font: inherit;
+    }
+    .footer-bar button:hover { border-color: var(--accent); color: var(--accent); }
+    .title-slide h1 { max-width: 22ch; }
+    .quote {
+      font-size: 1.35rem;
+      border-left: 3px solid var(--accent);
+      padding-left: 1rem;
+      color: var(--ink);
+      max-width: 36rem;
+    }
+    .note { color: var(--warn); font-size: 0.95rem; font-family: "Avenir Next", system-ui, sans-serif; }
+  </style>
+</head>
+<body>
+  <div class="deck" id="deck">
+
+    <section class="slide active title-slide">
+      <p class="eyebrow">Investor deck</p>
+      <h1>Governed AI for the enterprise</h1>
+      <p class="lede">Train on shared data without losing control. Run autonomous agents without losing the control plane.</p>
+      <div class="cards">
+        <div class="card"><h3>CAN</h3><p>Confidential multi-party training</p></div>
+        <div class="card"><h3>Open-GMASE</h3><p>Open agent execution security</p></div>
+        <div class="card"><h3>CompliancePulse</h3><p>Enterprise governance plane</p></div>
+      </div>
+    </section>
+
+    <section class="slide">
+      <p class="eyebrow">Problem</p>
+      <h2>Two failures. One root cause.</h2>
+      <table>
+        <tr><th>Failure</th><th>What breaks</th></tr>
+        <tr><td>Data collaboration</td><td>Silos, exports, NDAs — models that need multi-party data never ship cleanly.</td></tr>
+        <tr><td>Agentic execution</td><td>Agents need write access; prompts and RBAC are not security boundaries.</td></tr>
+      </table>
+      <p style="margin-top:1.25rem">Enterprises treat <em>policy text</em> as a control. Production needs deterministic, auditable enforcement.</p>
+    </section>
+
+    <section class="slide">
+      <p class="eyebrow">Why now</p>
+      <h2>The market caught up to the risk</h2>
+      <ul>
+        <li>Multi-party AI is mandatory in regulated industries.</li>
+        <li>Agent fleets ship with privileged tools before identity and policy catch up.</li>
+        <li>Boards want evidence: who used what data, which agent changed what.</li>
+        <li>Cloud IAM answers “which role?” — not “is this LLM proposal safe?”</li>
+      </ul>
+    </section>
+
+    <section class="slide">
+      <p class="eyebrow">Vision</p>
+      <h2>Trust the rails, not the hope</h2>
+      <p class="quote">Contracts govern who may train on what.<br/>Sidecars govern what agents may execute.<br/>Ledgers and cognitive telemetry prove both.</p>
+      <p class="lede" style="margin-top:1.5rem">We sell governed collaboration and governed autonomy — not another chatbot.</p>
+    </section>
+
+    <section class="slide">
+      <p class="eyebrow">Solution</p>
+      <h2>Three offerings. One stack.</h2>
+      <pre class="arch">CompliancePulse AI     →  Enterprise control plane (IdP, packs, SOC UI)
+        │ builds on
+Open-GMASE Core        →  Community / PLG runtime (SPIFFE, OPA, agents)
+        │ secures jobs inside
+Confidential AI Network →  Multi-party training (contracts, CCRP, SCITT)</pre>
+    </section>
+
+    <section class="slide">
+      <p class="eyebrow">Offering A</p>
+      <h2>CAN — Confidential AI Network</h2>
+      <p class="lede">Marketplace + workflow for governed training across distrusting parties.</p>
+      <table>
+        <tr><th>Party</th><th>Job</th></tr>
+        <tr><td>TDP</td><td>Publish data &amp; terms; monetize without bulk export</td></tr>
+        <tr><td>TDC</td><td>Contract, train in clean rooms, get attested outcomes</td></tr>
+        <tr><td>CCRP</td><td>Host isolated / confidential compute</td></tr>
+      </table>
+    </section>
+
+    <section class="slide">
+      <p class="eyebrow">Offering B</p>
+      <h2>Open-GMASE — PLG runtime</h2>
+      <ul>
+        <li>Apache 2.0 reference for governed agent execution</li>
+        <li>SPIFFE/SPIRE · OPA/Rego · typed tool schemas · starter agents</li>
+        <li>Model proposes; sidecars dispose</li>
+        <li>Funnel: clone → compose up → contribute packs → upgrade</li>
+      </ul>
+    </section>
+
+    <section class="slide">
+      <p class="eyebrow">Offering C</p>
+      <h2>CompliancePulse AI — Enterprise</h2>
+      <table>
+        <tr><th>Open-GMASE</th><th>CompliancePulse</th></tr>
+        <tr><td>Local SPIFFE / base Rego</td><td>Okta / Entra, federation, HSM</td></tr>
+        <tr><td>Starter agents</td><td>Managed SecOps swarm</td></tr>
+        <tr><td>Local audit</td><td>Multi-tenant, RLS, CMEK, SOC dashboard</td></tr>
+        <tr><td>Community packs</td><td>SOC2 / HIPAA / PCI / NIST packs</td></tr>
+      </table>
+    </section>
+
+    <section class="slide">
+      <p class="eyebrow">Integration</p>
+      <h2>How the unified story works</h2>
+      <ul>
+        <li>CAN contracts define data use and parties.</li>
+        <li>CCRP / training jobs egress tools through Open-GMASE.</li>
+        <li>OPA sees <code>contract_id</code>, classification, roles.</li>
+        <li>Decisions feed CAN audit / SCITT + CompliancePulse telemetry.</li>
+        <li>Humans: Keycloak. Workloads: SPIFFE. Cloud IAM: outer wall.</li>
+      </ul>
+    </section>
+
+    <section class="slide">
+      <p class="eyebrow">Business model</p>
+      <h2>Open-core + marketplace</h2>
+      <table>
+        <tr><th>Stream</th><th>Offering</th></tr>
+        <tr><td>Take rate on contracts</td><td>CAN</td></tr>
+        <tr><td>Clean-room / partner margin</td><td>CAN + CCRPs</td></tr>
+        <tr><td>Control-plane SaaS + packs</td><td>CompliancePulse</td></tr>
+        <tr><td>Free runtime → paid upgrade</td><td>Open-GMASE → CompliancePulse</td></tr>
+      </table>
+    </section>
+
+    <section class="slide">
+      <p class="eyebrow">Traction</p>
+      <h2>Build status (honest)</h2>
+      <table>
+        <tr><th>Layer</th><th>Status</th></tr>
+        <tr><td>CAN</td><td>Working product path: contracts, jobs, SCITT, deploy docs</td></tr>
+        <tr><td>G-MASE narrative</td><td>Published architecture / blog</td></tr>
+        <tr><td>Open-GMASE Core</td><td>OSS scaffold + policy packs + Compose</td></tr>
+        <tr><td>CompliancePulse</td><td>Early shell — enterprise PRD still to build</td></tr>
+      </table>
+      <p class="note">Clear thesis and funnel; runtime depth is the execution plan.</p>
+    </section>
+
+    <section class="slide">
+      <p class="eyebrow">GTM</p>
+      <h2>Land open. Expand enterprise.</h2>
+      <ul>
+        <li>PLG via Open-GMASE + whitepaper</li>
+        <li>Design partners in healthcare / finance / public sector</li>
+        <li>Cloud / CCRP partners (OCI-first, then AWS/GCP)</li>
+        <li>Upsell CompliancePulse on the same guardrails</li>
+      </ul>
+    </section>
+
+    <section class="slide">
+      <p class="eyebrow">The ask</p>
+      <h2>Build the control plane for governed AI</h2>
+      <ul>
+        <li>Finish zero-trust egress (SPIRE, sidecar, BAML, durable audit)</li>
+        <li>Harden CAN multi-cloud production</li>
+        <li>5–10 design-partner deployments</li>
+        <li>Grow open policy-pack ecosystem</li>
+      </ul>
+      <p class="lede">Capital + regulated intros + AI governance network.</p>
+    </section>
+
+    <section class="slide title-slide">
+      <p class="eyebrow">Close</p>
+      <h1>Train with strangers. Trust the rails.</h1>
+      <p class="lede">Automate SecOps. Don’t automate privilege abuse.</p>
+      <div class="cards">
+        <div class="card"><h3>CAN</h3><p>Confidential multi-party training</p></div>
+        <div class="card"><h3>Open-GMASE</h3><p>Apache 2.0 agent security</p></div>
+        <div class="card"><h3>CompliancePulse</h3><p>Enterprise upgrade path</p></div>
+      </div>
+    </section>
+
+  </div>
+
+  <div class="footer-bar">
+    <span id="counter">1 / 14</span>
+    <span>
+      <button type="button" id="prev">← Prev</button>
+      <button type="button" id="next">Next →</button>
+    </span>
+  </div>
+
+  <script>
+    const slides = [...document.querySelectorAll('.slide')];
+    let i = 0;
+    function show(n) {
+      i = (n + slides.length) % slides.length;
+      slides.forEach((s, idx) => s.classList.toggle('active', idx === i));
+      document.getElementById('counter').textContent = (i + 1) + ' / ' + slides.length;
+    }
+    document.getElementById('prev').onclick = () => show(i - 1);
+    document.getElementById('next').onclick = () => show(i + 1);
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') { e.preventDefault(); show(i + 1); }
+      if (e.key === 'ArrowLeft' || e.key === 'PageUp') { e.preventDefault(); show(i - 1); }
+      if (e.key === 'Home') show(0);
+      if (e.key === 'End') show(slides.length - 1);
+    });
+  </script>
+</body>
+</html>
