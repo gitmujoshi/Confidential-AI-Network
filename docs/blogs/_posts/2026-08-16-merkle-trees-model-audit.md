@@ -11,9 +11,9 @@ canonical: docs/security/MERKLE_TREE_PROVENANCE_IMPLEMENTATION.md
 
 *When a model produces a harmful, biased, or contract-violating outcome, the question is not only “what did it output?”—it is “what inputs, policy, and artifacts led here, and can we prove nobody rewrote the trail?”*
 
-**Related:** [Contract → governed prediction]({% post_url 2026-08-14-can-contract-to-prediction %}) · [Open-GMASE]({% post_url 2026-08-14-gmase-deep-dive %}) · [TEE attest → decrypt]({% post_url 2026-08-16-can-tee-attest-decrypt-train %}) · In-repo: [MERKLE_TREE_PROVENANCE_IMPLEMENTATION.md](https://github.com/gitmujoshi/Confidential-AI-Network/blob/main/docs/security/MERKLE_TREE_PROVENANCE_IMPLEMENTATION.md) · [Provenance integration](https://github.com/gitmujoshi/Confidential-AI-Network/blob/main/docs/features/provenance/PROVENANCE_INTEGRATION_GUIDE.md)
+**Related:** [Contract → governed prediction]({% post_url 2026-08-14-can-contract-to-prediction %}) · [Product tour — Auditor]({{ '/product-tour/#auditor' | relative_url }}) · [Open-GMASE]({% post_url 2026-08-14-gmase-deep-dive %}) · [TEE attest → decrypt]({% post_url 2026-08-16-can-tee-attest-decrypt-train %}) · In-repo: [AUDITOR_ROLE.md](https://github.com/gitmujoshi/Confidential-AI-Network/blob/main/docs/features/AUDITOR_ROLE.md) · [MERKLE_TREE_PROVENANCE_IMPLEMENTATION.md](https://github.com/gitmujoshi/Confidential-AI-Network/blob/main/docs/security/MERKLE_TREE_PROVENANCE_IMPLEMENTATION.md)
 
-> **Status:** Merkle builders, proofs, and an **Auditor** role/UI exist (`/auditor/*`, `/api/auditor/*`). Product demos also show the **provenance report UI** and **SCITT** path. Treat cross-cloud Merkle replication and every historical leaf type as **architecture + partial coverage**, not “every leaf is GA everywhere.” See [AUDITOR_ROLE.md](https://github.com/gitmujoshi/Confidential-AI-Network/blob/main/docs/features/AUDITOR_ROLE.md).
+> **Status:** Merkle builders, proofs, and an **Auditor** role/UI exist (`/auditor/*`, `/api/auditor/*`). The Auditor **Verify** action checks **leaf inclusion under a published root** for durable contract evidence—not model correctness. Product demos also show the **provenance report UI** and **SCITT** path. Treat cross-cloud Merkle replication and every aspirational leaf type as **architecture + partial coverage**. See [AUDITOR_ROLE.md](https://github.com/gitmujoshi/Confidential-AI-Network/blob/main/docs/features/AUDITOR_ROLE.md).
 
 ---
 
@@ -69,6 +69,8 @@ Change one byte of training data or swap a config field → leaf changes → roo
 
 ## 3. What CAN puts under the tree
 
+### 3.1 Target design (full lifecycle)
+
 Aligned with the provenance design and training job lifecycle:
 
 | Phase | Example leaves |
@@ -86,30 +88,72 @@ Events → hash leaves → Merkle root → (optional) SCITT receipt
      inclusion proof for one disputed event
 ```
 
+### 3.2 What the Auditor UI builds today
+
+The Auditor workspace (`/auditor/dashboard` → **Audit tree**) builds a **contract-scoped** tree from durable DB evidence. Each **Verify** click checks inclusion of one of these leaf kinds:
+
+| Leaf kind | What the leaf commits to |
+| --- | --- |
+| **contract** | Contract id, status, legal-document hash, parties, environment specs, training params, linked datasets |
+| **training_job** | Job id/status, metrics, artifact hashes (when recorded), timestamps |
+| **scitt_claim** | SCITT claim type/status/data markers for that contract |
+| **ai_model** | Registered model metadata (name, framework, architecture, ids) |
+
+Not every row in the “target design” table above is a separate leaf yet (for example raw DP config or every G-MASE decision may live in AuditLogs / CompliancePulse until folded into this tree). The product-tour screens show this path: [Auditor section]({{ '/product-tour/#auditor' | relative_url }}).
+
 ---
 
-## 4. Incident playbook: model misbehaves
+## 4. What an Auditor actually verifies
+
+Two different jobs—do not conflate them.
+
+### 4.1 What **Verify** checks (cryptography)
+
+That a **leaf is included** in the tree under the published **root hash**.
+
+In other words: *“This evidence record belongs to this committed provenance set and has not been silently dropped or swapped relative to this root.”*
+
+| Verified by inclusion proof | Not verified by inclusion proof |
+| --- | --- |
+| Integrity of lineage for that leaf under root R | That the model’s prediction was correct |
+| Consistency of the audit trail for that contract | Ethics / fairness of the model |
+| Binding of listed contract / job / claim / model digests | That every aspirational leaf type is always present |
+
+If the inclusion proof **fails**, treat it as an **integrity / ops** problem first—not only a model-quality problem.
+
+### 4.2 What the Auditor **reviews** (human)
+
+After Verify succeeds (or while investigating), they open the **Ricardian contract** the training was based on and ask process questions:
+
+- Was this the agreed use, data, and environment?  
+- Which training job produced the disputed artifact?  
+- Which SCITT markers were recorded for sign / train / deploy?
+
+Merkle trees do not make models ethical. They make **denial and rewriting of history expensive**. Auditors prove **lineage integrity**, then judge **process fit to the contract**—not model quality by itself.
+
+---
+
+## 5. Incident playbook: model misbehaves
 
 Suppose an inference result looks wrong, unsafe, or outside the Ricardian use terms.
 
-### 4.1 Freeze the claim
+### 5.1 Freeze the claim
 
 1. Capture **model id**, **job id**, **contract id**, timestamp, and the disputed output.  
-2. Load the job’s published **Merkle root** (and SCITT receipt if enabled).  
-3. Do **not** only trust the live UI—export the proof package.
+2. Open the Auditor **audit tree** for that contract (or export the proof package)—load the published **Merkle root** (and SCITT receipt if enabled).  
+3. Do **not** only trust the live training UI screenshot.
 
-### 4.2 Verify the lineage you care about
+### 5.2 Verify the lineage you care about
 
-| Question | Merkle answer |
+| Question | Merkle / Auditor answer (today vs target) |
 | --- | --- |
-| Was this the dataset we signed for? | Prove dataset leaf ∈ tree under root R |
-| Were DP / residency flags the ones in the contract? | Prove config leaf ∈ tree |
-| Did Open-GMASE ALLOW this predict? | Prove `GMASE_TOOL_DECISION` / audit leaf ∈ tree (or linked decision hash) |
-| Is the artifact we served the one we trained? | Prove model artifact leaf matches deployed bytes |
+| Is this contract’s trail intact under root R? | **Today:** Verify **contract** / **training_job** / **scitt_claim** / **ai_model** leaves |
+| Was this the dataset we signed for? | **Target:** dataset leaf ∈ tree; **today:** review `contractDatasets` on the contract leaf + catalog |
+| Were DP / residency flags the ones in the contract? | **Target:** config leaf; **today:** compare contract `trainingParams` / env specs + job metrics |
+| Did Open-GMASE ALLOW this predict? | Prefer AuditLogs / CompliancePulse decision id; fold into Merkle when that leaf type is published |
+| Is the artifact we served the one we trained? | Job **artifactHashes** / registered model leaf vs deployed bytes |
 
-If the inclusion proof fails, the trail was altered or you have the wrong root—**stop** and escalate integrity, not only model quality.
-
-### 4.3 Separate “bad model” from “bad process”
+### 5.3 Separate “bad model” from “bad process”
 
 | Finding | Interpretation |
 | --- | --- |
@@ -117,54 +161,55 @@ If the inclusion proof fails, the trail was altered or you have the wrong root�
 | Proofs fail or root ≠ receipt | Integrity / ops incident—do not treat UI history as truth |
 | ALLOW decision missing or DENY bypassed | Control-plane failure (gate, keys, or deployment) |
 
-Merkle trees do not make models ethical. They make **denial and rewriting of history expensive**.
-
 ---
 
-## 5. How this fits Open-GMASE and CompliancePulse
+## 6. How this fits Open-GMASE and CompliancePulse
 
 | Layer | Role when something goes wrong |
 | --- | --- |
 | **Open-GMASE OPA** | May have **denied** a bad side effect before it ran—or ALLOW’d it with a recorded reason |
 | **CAN AuditLogs** | `GMASE_TOOL_DECISION` and job events |
-| **Merkle provenance** | Binds those events (and artifacts) into a **root** with inclusion proofs |
+| **Merkle provenance** | Binds durable contract evidence into a **root** with inclusion proofs (Auditor UI) |
 | **CompliancePulse ingest** | External copy of governance decisions for control-plane review |
-| **SCITT** | Ledger receipt for the claim/root |
+| **SCITT** | Ledger receipt / claim markers for the contract trail |
 
 Together: **prevent** where possible (OPA), **record** always (audit), **prove** under challenge (Merkle + receipt).
 
 ---
 
-## 6. What auditors should ask for
+## 7. What auditors should ask for
 
 1. Algorithm (e.g. SHA-256) and leaf canonicalization rules (JSON field order, hashing of files).  
-2. Published **root** per training job / contract epoch.  
-3. **Inclusion proof** for the disputed leaf.  
+2. Published **root** for the contract (Auditor audit-tree view).  
+3. **Inclusion proof** for the disputed leaf (**Verify** in the UI, or API `POST /api/auditor/verify-proof`).  
 4. Optional **SCITT receipt** verifying the root/claim.  
-5. Mapping from leaf → human-readable event (dataset id, decision id).  
+5. Mapping from leaf → human-readable event (contract id, job id, claim id, model id).  
+6. The **Ricardian contract** record itself—terms the training was based on.
 
 If the vendor cannot produce (3) against (2), you have a narrative, not evidence.
 
 ---
 
-## 7. Honest limits
+## 8. Honest limits
 
 | Merkle / provenance helps | It does not replace |
 | --- | --- |
 | Detecting tampering of the recorded trail | Stopping a model from being wrong on valid data |
 | Efficient proofs for one event among thousands | Full replay of GPU nondeterminism without careful leaf design |
-| Binding artifacts to a contract job | DEK/MEK custody (see [KMS]({% post_url 2026-08-16-can-kms-dek-mek-escrow %})) or TEE isolation (see [TEE]({% post_url 2026-08-16-can-tee-attest-decrypt-train %})) |
+| Binding artifacts / jobs to a contract | DEK/MEK custody (see [KMS]({% post_url 2026-08-16-can-kms-dek-mek-escrow %})) or TEE isolation (see [TEE]({% post_url 2026-08-16-can-tee-attest-decrypt-train %})) |
 | Supporting NIST/CIS-style audit evidence | Certified compliance by itself |
+| Auditor **Verify** = inclusion under root | A judgment that the output was “correct” or “ethical” |
 
 Hashing **raw prompts that contain secrets** into leaves can create a new leakage path—hash digests or redacted envelopes, not plaintext PII, in the published tree.
 
 ---
 
-## 8. Takeaways
+## 9. Takeaways
 
-1. A **Merkle root** is a compact commitment to the whole provenance set for a job.  
-2. When a model misbehaves, **inclusion proofs** answer “was this dataset / config / decision / artifact in the committed history?”  
-3. CAN’s design pairs Merkle provenance with **SCITT receipts**, **AuditLogs**, and **Open-GMASE** decisions so incidents separate **integrity** from **model quality**.  
-4. Ask for proofs under challenge—not screenshots.
+1. A **Merkle root** is a compact commitment to the provenance set for a contract / job.  
+2. Auditor **Verify** answers: “Is this leaf in the committed history under root R?”—**integrity of lineage**, not model quality.  
+3. After proofs succeed, review the **governing Ricardian contract** to separate bad process from bad model.  
+4. CAN pairs Merkle with **SCITT**, **AuditLogs**, and **Open-GMASE** so incidents separate **integrity** from **model quality**.  
+5. Ask for proofs under challenge—not screenshots.
 
-**One sentence:** Merkle trees let CAN turn “trust our logs” into “verify this leaf against a published root”—the right tool when a model’s behavior is under dispute.
+**One sentence:** Merkle trees let CAN turn “trust our logs” into “verify this leaf against a published root”—and the Auditor role is where that check happens when a model’s behavior is under dispute.
