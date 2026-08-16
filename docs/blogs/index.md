@@ -149,6 +149,10 @@ permalink: /
     <p class="group-lede">Written for CISOs, risk leaders, and non-technical stakeholders. Six minutes; no prerequisite reading.</p>
     <ol class="post-list ordered">
       <li>
+        <a href="{% post_url 2026-08-16-azure-e2e-product-tour-deck %}">Azure GA product tour deck — Entra to governed prediction</a>
+        <p class="meta">August 16, 2026 · Interactive slides for Azure release demos</p>
+      </li>
+      <li>
         <a href="{% post_url 2026-08-14-can-contract-to-prediction %}">Confidential AI Network: from signed contract to governed prediction</a>
         <p class="meta">August 14, 2026 · Train → infer under Open-GMASE, with CompliancePulse ingest</p>
       </li>
@@ -267,6 +271,10 @@ permalink: /
     <h3>Cloud security architectures</h3>
     <p class="group-lede">Deployment-shaped notes for cloud identity and edge controls.</p>
     <ol class="post-list ordered">
+      <li>
+        <a href="{% post_url 2026-08-16-azure-e2e-product-tour-deck %}">Azure GA product tour deck — Entra to governed prediction</a>
+        <p class="meta">August 16, 2026 · Presentable E2E deck · <a href="{{ '/assets/decks/azure-e2e-product-tour.html' | relative_url }}">open slides</a></p>
+      </li>
       <li>
         <a href="{% post_url 2026-07-28-azure-entra-security-architecture %}">Azure security architecture — Entra-only identity on cloud</a>
         <p class="meta">July 28, 2026 · Azure / Entra</p>

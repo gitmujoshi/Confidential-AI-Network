@@ -16,6 +16,10 @@ permalink: /product-tour/
     Onboard parties, publish data, agree and sign a contract, train, inspect logs and provenance,
     then deploy and test the model.
   </p>
+  <p class="cta-row" style="margin-top:1.25rem">
+    <a class="cta" href="{{ '/assets/decks/azure-e2e-product-tour.html' | relative_url }}">Azure GA slide deck</a>
+    <a class="cta cta-secondary" href="{% post_url 2026-08-16-azure-e2e-product-tour-deck %}">Azure deck notes</a>
+  </p>
 </section>
 
 <section class="home-section">

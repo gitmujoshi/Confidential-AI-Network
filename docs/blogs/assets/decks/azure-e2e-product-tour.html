@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Azure GA — CAN E2E Product Tour Deck</title>
+  <style>
+    :root {
+      --bg: #0c1218;
+      --panel: #152030;
+      --ink: #eef3f8;
+      --muted: #8fa3b8;
+      --accent: #3b9eff;
+      --line: #243447;
+      --warn: #d4a574;
+    }
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0;
+      height: 100%;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+    }
+    .deck { height: 100%; position: relative; }
+    .slide {
+      display: none;
+      height: 100%;
+      padding: clamp(2rem, 5vw, 3.5rem);
+      padding-bottom: 4.5rem;
+      max-width: 1100px;
+      margin: 0 auto;
+      flex-direction: column;
+      justify-content: center;
+    }
+    .slide.active { display: flex; }
+    .eyebrow {
+      font-family: "Avenir Next", "Segoe UI", system-ui, sans-serif;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      font-size: 0.75rem;
+      color: var(--accent);
+      margin: 0 0 1rem;
+    }
+    h1, h2, h3 {
+      font-family: "Avenir Next", "Segoe UI", system-ui, sans-serif;
+      letter-spacing: -0.02em;
+      font-weight: 650;
+      margin: 0 0 1rem;
+      line-height: 1.15;
+    }
+    h1 { font-size: clamp(2rem, 5vw, 3rem); max-width: 20ch; }
+    h2 { font-size: clamp(1.45rem, 3.2vw, 2.1rem); }
+    p, li { font-size: clamp(1.02rem, 1.9vw, 1.2rem); line-height: 1.5; }
+    .lede { color: var(--muted); max-width: 42rem; }
+    ul { padding-left: 1.2rem; margin: 0.5rem 0; }
+    li { margin: 0.35rem 0; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-family: "Avenir Next", "Segoe UI", system-ui, sans-serif;
+      font-size: 0.92rem;
+    }
+    th, td {
+      border: 1px solid var(--line);
+      padding: 0.55rem 0.7rem;
+      text-align: left;
+      vertical-align: top;
+    }
+    th { background: var(--panel); color: var(--muted); font-weight: 600; }
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.85rem;
+      margin-top: 1.25rem;
+    }
+    @media (max-width: 800px) {
+      .cards { grid-template-columns: 1fr; }
+    }
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      padding: 1rem 1.1rem;
+      border-radius: 4px;
+    }
+    .card h3 { font-size: 1rem; color: var(--accent); margin-bottom: 0.35rem; }
+    .card p { font-size: 0.9rem; color: var(--muted); margin: 0; }
+    pre.arch {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      padding: 1rem 1.15rem;
+      overflow-x: auto;
+      font-family: ui-monospace, Menlo, Consolas, monospace;
+      font-size: 0.72rem;
+      line-height: 1.45;
+      color: var(--muted);
+      white-space: pre;
+    }
+    .quote {
+      font-size: 1.25rem;
+      border-left: 3px solid var(--accent);
+      padding-left: 1rem;
+      max-width: 38rem;
+    }
+    .note { color: var(--warn); font-size: 0.92rem; font-family: "Avenir Next", system-ui, sans-serif; }
+    .footer-bar {
+      position: fixed;
+      left: 0; right: 0; bottom: 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.7rem 1.25rem;
+      background: color-mix(in srgb, var(--bg) 88%, transparent);
+      border-top: 1px solid var(--line);
+      font-family: "Avenir Next", "Segoe UI", system-ui, sans-serif;
+      font-size: 0.8rem;
+      color: var(--muted);
+      z-index: 10;
+    }
+    .footer-bar button {
+      background: transparent;
+      border: 1px solid var(--line);
+      color: var(--ink);
+      padding: 0.35rem 0.75rem;
+      cursor: pointer;
+      font: inherit;
+    }
+    .footer-bar button:hover { border-color: var(--accent); color: var(--accent); }
+    .title-slide h1 { max-width: 22ch; }
+    a { color: var(--accent); }
+  </style>
+</head>
+<body>
+  <div class="deck" id="deck">
+
+    <section class="slide active title-slide">
+      <p class="eyebrow">Azure GA · Product tour</p>
+      <h1>Confidential AI Network on Microsoft Azure</h1>
+      <p class="lede">End-to-end: Entra sign-in → Ricardian contract → Key Vault &amp; confidential compute → governed prediction.</p>
+      <div class="cards">
+        <div class="card"><h3>CAN</h3><p>Multi-party training</p></div>
+        <div class="card"><h3>Azure</h3><p>Entra · AKS · Key Vault · Blob · TEE</p></div>
+        <div class="card"><h3>DEPA-inspired</h3><p>Use-bound sharing, not a data lake</p></div>
+      </div>
+    </section>
+
+    <section class="slide">
+      <p class="eyebrow">Agenda</p>
+      <h2>What we will walk</h2>
+      <ul>
+        <li>Why Azure + CAN · DEPA inspiration</li>
+        <li>GA control plane map</li>
+        <li>Live E2E tour — registration through prediction</li>
+        <li>DEK/MEK escrow · TEE attest-then-decrypt</li>
+        <li>Open-GMASE + CompliancePulse</li>
+        <li>Operator checklist · honest boundaries · CTA</li>
+      </ul>
+    </section>
+
+    <section class="slide">
+      <p class="eyebrow">Problem</p>
+      <h2>Exports and NDAs are not a control plane</h2>
+      <table>
+        <tr><th>Today</th><th>What breaks</th></tr>
+        <tr><td>Bulk export + NDA</td><td>Sovereignty, liability, audit failure</td></tr>
+        <tr><td>“Train in our VPC” handshake</td><td>No machine-enforceable terms</td></tr>
+        <tr><td>Shared data lake</td><td>Competitive &amp; regulatory non-starter</td></tr>
+      </table>
+    </section>
+
+    <section class="slide">
+      <p class="eyebrow">Inspiration</p>
+      <h2>iSPIRT DEPA → enterprise AI</h2>
+      <p class="quote">Consent-based, accountable sharing: use-bound access and evidence—not bulk dumps into a lake.</p>
+      <table style="margin-top:1.25rem">
+        <tr><th>DEPA idea</th><th>CAN on Azure</th></tr>
+        <tr><td>Principal keeps control</td><td>TDP owns DEK; ciphertext in Blob</td></tr>
+        <tr><td>Purpose limitation</td><td>Ricardian contract + Entra roles</td></tr>
+        <tr><td>Auditability</td><td>Provenance · AuditLogs · CompliancePulse</td></tr>
+      </table>
+      <p class="note" style="margin-top:1rem">depa.world</p>
+    </section>
+
+    <section class="slide">
+      <p class="eyebrow">Azure GA</p>
+      <h2>What this release tour covers</h2>
+      <table>
+        <tr><th>Capability</th><th>Narrative</th></tr>
+        <tr><td>Microsoft Entra ID</td><td>Sole app IdP · app roles TDC/TDP/CCRP/AppAdmin</td></tr>
+        <tr><td>Edge</td><td>Front Door / WAF → APIM → private AKS</td></tr>
+        <tr><td>Key Vault + Blob</td><td>Secrets, CMK, ciphertext datasets/models</td></tr>
+        <tr><td>Confidential compute</td><td>Attest → dual-key escrow → decrypt-in-memory → train</td></tr>
+        <tr><td>Governance</td><td>Open-GMASE OPA · CompliancePulse ingest</td></tr>
+      </table>
+      <p class="note" style="margin-top:1rem">Label Partial/Design items as “GA target” if not yet live in the tenancy.</p>
+    </section>
+
+    <section class="slide">
+      <p class="eyebrow">Architecture</p>
+      <h2>Azure control plane</h2>
+      <pre class="arch">Users (TDP / TDC / CCRP)
+         │  Entra ID (OIDC + app roles)
+         ▼
+Front Door / WAF  →  APIM  →  CAN on AKS
+                              │
+         ┌────────────────────┼────────────────────┐
+         ▼                    ▼                    ▼
+   Azure Key Vault      Blob (CMK)         Confidential compute
+   secrets · CMK        ciphertext         attest → decrypt → train
+         │                    │                    │
+         └────────────────────┴────────────────────┘
+                              ▼
+                   Provenance · SIEM · CompliancePulse</pre>
+    </section>
+
+    <section class="slide">
+      <p class="eyebrow">Roles</p>
+      <h2>Who does what on the tour</h2>
+      <table>
+        <tr><th>Role</th><th>Entra</th><th>In the demo</th></tr>
+        <tr><td>TDP</td><td>TDP</td><td>Publish ciphertext · sign · release DEK</td></tr>
+        <tr><td>TDC</td><td>TDC</td><td>Contract · MEK · train · deploy · predict</td></tr>
+        <tr><td>CCRP / TSP</td><td>CCRP</td><td>Azure confidential offering · attested session</td></tr>
+        <tr><td>AppAdmin</td><td>AppAdmin</td><td>Tenancy health (optional)</td></tr>
+      </table>
+    </section>
+
+    <section class="slide">
+      <p class="eyebrow">Tour map</p>
+      <h2>Nine beats to a governed prediction</h2>
+      <pre class="arch">1 Entra register → 2 Blob catalog → 3 Contract + Key Vault
+→ 4 Multi-party sign → 5 Attest + DEK/MEK escrow
+→ 6 Train in TEE → 7 Provenance → 8 Deploy + predict
+→ 9 Open-GMASE ALLOW (+ CompliancePulse)</pre>
+      <p class="lede" style="margin-top:1.25rem">Same product story as the public product tour—Azure services underneath.</p>
+    </section>
+
+    <section class="slide">
+      <p class="eyebrow">Steps 1–2</p>
+      <h2>Entra registration · Blob catalog</h2>
+      <ul>
+        <li><strong>Entra SSO</strong> — MFA / Conditional Access per customer policy. Keycloak is local-only.</li>
+        <li><strong>Catalog</strong> — TDP publishes dataset ciphertext to Blob (CMK); TDC selects model; plaintext stays out of the portal.</li>
+      </ul>
+      <p class="note">Screenshot: swap GA Azure captures into the speaker appendix list.</p>
+    </section>
+
+    <section class="slide">
+      <p class="eyebrow">Steps 3–4</p>
+      <h2>Ricardian contract · multi-party sign</h2>
+      <ul>
+        <li>Use, duration, region, confidential SKU, <strong>Key Vault kmsConfigs</strong></li>
+        <li>Notify TDP + CCRP; cryptographic sign (Key Vault–backed at GA)</li>
+        <li>No training until required signatures complete</li>
+      </ul>
+    </section>
+
+    <section class="slide">
+      <p class="eyebrow">Step 5 · KMS</p>
+      <h2>DEK + MEK dual-key escrow</h2>
+      <table>
+        <tr><th>Key</th><th>Owner</th><th>Protects</th></tr>
+        <tr><td>DEK</td><td>TDP</td><td>Dataset</td></tr>
+        <tr><td>MEK</td><td>TDC</td><td>Model IP</td></tr>
+      </table>
+      <p style="margin-top:1rem">Train starts only when <strong>both</strong> are released after policy OK. Platform must not hold principal key plaintext.</p>
+    </section>
+
+    <section class="slide">
+      <p class="eyebrow">Step 6 · TEE</p>
+      <h2>Attest → verify contract → decrypt</h2>
+      <pre class="arch">Provision confidential VM / enclave
+  → Attestation quote
+  → Principals verify quote ∧ contract
+  → DEK + MEK into TEE (attested channel)
+  → Decrypt in memory → train → re-encrypt
+  → Zeroize → destroy session</pre>
+      <p class="quote" style="margin-top:1.25rem">Decrypt is a privilege, not a default.</p>
+    </section>
+
+    <section class="slide">
+      <p class="eyebrow">Steps 7–8</p>
+      <h2>Train · provenance · deploy · predict</h2>
+      <ul>
+        <li>Job on AKS / confidential compute (label local-docker as non-TEE if used)</li>
+        <li>Open-GMASE gates <code>start_training</code> fail-closed</li>
+        <li>Provenance: attested · keys released · started · completed · destroyed</li>
+        <li>Register → Deploy for inference → prediction (tabular / text / vision samples)</li>
+      </ul>
+    </section>
+
+    <section class="slide">
+      <p class="eyebrow">Step 9 · Governance</p>
+      <h2>Open-GMASE + CompliancePulse</h2>
+      <pre class="arch">CAN side effect → Open-GMASE OPA → AuditLogs → CompliancePulse ingest</pre>
+      <ul>
+        <li>Inference UI shows ALLOW + audit id</li>
+        <li>Forwarded: decision metadata — not pixels, corpora, or weights</li>
+      </ul>
+    </section>
+
+    <section class="slide">
+      <p class="eyebrow">One sentence</p>
+      <h2>The Azure GA story</h2>
+      <p class="quote">CAN binds multi-party training in a Ricardian contract, unlocks DEK/MEK only after parties accept an attested confidential session, trains in the enclave, and serves a prediction under an Open-GMASE policy gate—with evidence for GRC.</p>
+    </section>
+
+    <section class="slide">
+      <p class="eyebrow">Ops</p>
+      <h2>Live demo checklist</h2>
+      <table>
+        <tr><th>#</th><th>Check</th></tr>
+        <tr><td>1</td><td>Entra users + roles</td></tr>
+        <tr><td>2</td><td>APIM / app healthy</td></tr>
+        <tr><td>3</td><td>Key Vault + Blob via workload identity</td></tr>
+        <tr><td>4</td><td>CCRP confidential offering published</td></tr>
+        <tr><td>5</td><td>Sample ciphertext in catalog</td></tr>
+        <tr><td>6</td><td>OPA up; gates on</td></tr>
+        <tr><td>7</td><td>CompliancePulse ingest set (or explicitly off)</td></tr>
+        <tr><td>8</td><td>Screenshot / recording backup</td></tr>
+      </table>
+    </section>
+
+    <section class="slide">
+      <p class="eyebrow">Trust</p>
+      <h2>Honest boundaries</h2>
+      <table>
+        <tr><th>Say this</th><th>Don’t imply</th></tr>
+        <tr><td>Entra is the Azure IdP</td><td>Keycloak runs in customer Azure</td></tr>
+        <tr><td>Local Docker proves UX</td><td>Local Docker is a hardware TEE</td></tr>
+        <tr><td>Dual-key escrow is the design</td><td>SaaS holds DEK/MEK plaintext</td></tr>
+        <tr><td>OPA gates side effects</td><td>Prompts are the control plane</td></tr>
+      </table>
+    </section>
+
+    <section class="slide">
+      <p class="eyebrow">Close</p>
+      <h2>Next steps</h2>
+      <ul>
+        <li>Product tour: <a href="https://gitmujoshi.github.io/Confidential-AI-Network/product-tour/">gitmujoshi.github.io/.../product-tour</a></li>
+        <li>Contract → prediction blog · KMS · TEE posts on the same site</li>
+        <li>Repo: <a href="https://github.com/gitmujoshi/Confidential-AI-Network">github.com/gitmujoshi/Confidential-AI-Network</a></li>
+      </ul>
+      <p class="lede" style="margin-top:1.25rem">Ask: pilot tenancy · Entra roles · CCRP confidential SKU · GRC evidence pack</p>
+    </section>
+
+  </div>
+
+  <div class="footer-bar">
+    <span id="counter">1 / 1</span>
+    <span>
+      <button type="button" id="prev" aria-label="Previous">←</button>
+      <button type="button" id="next" aria-label="Next">→</button>
+    </span>
+  </div>
+
+  <script>
+    (function () {
+      const slides = Array.from(document.querySelectorAll(".slide"));
+      let i = 0;
+      const counter = document.getElementById("counter");
+      function show(n) {
+        i = (n + slides.length) % slides.length;
+        slides.forEach((s, idx) => s.classList.toggle("active", idx === i));
+        counter.textContent = i + 1 + " / " + slides.length;
+      }
+      document.getElementById("prev").onclick = () => show(i - 1);
+      document.getElementById("next").onclick = () => show(i + 1);
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "ArrowRight" || e.key === " " || e.key === "PageDown") {
+          e.preventDefault();
+          show(i + 1);
+        } else if (e.key === "ArrowLeft" || e.key === "PageUp") {
+          e.preventDefault();
+          show(i - 1);
+        } else if (e.key === "Home") show(0);
+        else if (e.key === "End") show(slides.length - 1);
+      });
+      show(0);
+    })();
+  </script>
+</body>
+</html>
