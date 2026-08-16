@@ -169,6 +169,7 @@ permalink: /
 
   <nav class="notes-toc" aria-label="Deeper topic guides">
     <a href="#series-platform">Platform detail</a>
+    <a href="#series-crypto">KMS &amp; TEE</a>
     <a href="#series-agents">Agent governance</a>
     <a href="#series-identity">Identity</a>
     <a href="#series-cloud">Cloud security</a>
@@ -189,6 +190,21 @@ permalink: /
       <li>
         <a href="{% post_url 2026-07-29-building-confidential-ai-network %}">Building Confidential AI Network — governed multi-party training without a data lake</a>
         <p class="meta">July 29, 2026 · Technical product walkthrough</p>
+      </li>
+    </ol>
+  </div>
+
+  <div class="post-group" id="series-crypto">
+    <h3>KMS &amp; TEE — encrypt, attest, then decrypt</h3>
+    <p class="group-lede">How DEK/MEK escrow and clean-room attestation gate plaintext for training.</p>
+    <ol class="post-list ordered">
+      <li>
+        <a href="{% post_url 2026-08-16-can-kms-dek-mek-escrow %}">KMS for Confidential AI Network — DEK, MEK, and dual-key escrow</a>
+        <p class="meta">August 16, 2026 · Principal-owned keys · escrow · cloud KMS</p>
+      </li>
+      <li>
+        <a href="{% post_url 2026-08-16-can-tee-attest-decrypt-train %}">TEE training in CAN — attest, verify contract, then decrypt</a>
+        <p class="meta">August 16, 2026 · Hardware attestation · decrypt-in-memory · honest live vs target</p>
       </li>
     </ol>
   </div>

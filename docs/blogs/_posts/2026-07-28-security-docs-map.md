@@ -38,4 +38,9 @@ Start with shared patterns, then the cloud you are deploying:
 
 [PARTICIPANT_ONBOARDING_AND_E2E_LIFECYCLE.md](https://github.com/gitmujoshi/Confidential-AI-Network/blob/main/docs/guides/PARTICIPANT_ONBOARDING_AND_E2E_LIFECYCLE.md) ties contracts, DEK/MEK, signing, and CAN escrow together.
 
+Blog companions:
+
+- [KMS — DEK, MEK, dual-key escrow]({% post_url 2026-08-16-can-kms-dek-mek-escrow %})
+- [TEE — attest, verify contract, decrypt]({% post_url 2026-08-16-can-tee-attest-decrypt-train %})
+
 This blog is for **orientation**; the markdown files above remain the source of truth for implementation.
