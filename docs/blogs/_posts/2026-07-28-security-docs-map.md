@@ -40,6 +40,7 @@ Start with shared patterns, then the cloud you are deploying:
 
 Blog companions:
 
+- [Ricardian contracts in CAN]({% post_url 2026-08-16-ricardian-contracts-in-can %})
 - [KMS — DEK, MEK, dual-key escrow]({% post_url 2026-08-16-can-kms-dek-mek-escrow %})
 - [TEE — attest, verify contract, decrypt]({% post_url 2026-08-16-can-tee-attest-decrypt-train %})
 - [Merkle trees for model audit]({% post_url 2026-08-16-merkle-trees-model-audit %})

@@ -10,7 +10,7 @@ excerpt: "How CAN takes multi-party Ricardian contracts through local training, 
 
 Most shared-AI projects still start with a copy of the data and an NDA. **Confidential AI Network (CAN)** starts with a **written, machine-enforceable agreement**, trains only where that agreement allows, and—when the job finishes—lets you **register, deploy, and call the model** without dropping the control plane.
 
-Screenshots: [product tour]({{ '/product-tour/' | relative_url }}). Runnable governance seam: [CAN ↔ Open-GMASE ↔ CompliancePulse]({% post_url 2026-08-14-can-gmase-demo-slice %}). Source: [GitHub](https://github.com/gitmujoshi/Confidential-AI-Network).
+Screenshots: [product tour]({{ '/product-tour/' | relative_url }}). Deep dive on the agreement itself: [Ricardian contracts in CAN]({% post_url 2026-08-16-ricardian-contracts-in-can %}). Runnable governance seam: [CAN ↔ Open-GMASE ↔ CompliancePulse]({% post_url 2026-08-14-can-gmase-demo-slice %}). Source: [GitHub](https://github.com/gitmujoshi/Confidential-AI-Network).
 
 > **Status:** Active research and engineering. The paths marked **live** run on the local stack today. Hosted multi-tenant SaaS and turnkey cloud clean-room automation remain on the roadmap.
 

@@ -17,6 +17,7 @@ permalink: /
   </p>
   <p class="cta-row">
     <a class="cta" href="{% post_url 2026-08-14-governed-ai-enterprise-ciso-overview %}">Executive overview (CISO)</a>
+    <a class="cta cta-secondary" href="{% post_url 2026-08-16-ricardian-contracts-in-can %}">Ricardian contracts</a>
     <a class="cta cta-secondary" href="{% post_url 2026-08-14-can-contract-to-prediction %}">CAN: contract to prediction</a>
     <a class="cta cta-secondary" href="{{ '/product-tour/' | relative_url }}">Product tour</a>
   </p>
@@ -149,6 +150,10 @@ permalink: /
     <p class="group-lede">Written for CISOs, risk leaders, and non-technical stakeholders. Six minutes; no prerequisite reading.</p>
     <ol class="post-list ordered">
       <li>
+        <a href="{% post_url 2026-08-16-ricardian-contracts-in-can %}">Ricardian contracts in CAN — legal prose the runtime can enforce</a>
+        <p class="meta">August 16, 2026 · Dual-layer legal + machine binding · sign → SIGNED → train</p>
+      </li>
+      <li>
         <a href="{% post_url 2026-08-16-azure-e2e-product-tour-deck %}">Azure GA product tour deck — Entra to governed prediction</a>
         <p class="meta">August 16, 2026 · Interactive slides for Azure release demos</p>
       </li>
@@ -187,6 +192,10 @@ permalink: /
     <h3>Platform — Confidential AI Network</h3>
     <p class="group-lede">Product and architecture detail for CAN.</p>
     <ol class="post-list ordered">
+      <li>
+        <a href="{% post_url 2026-08-16-ricardian-contracts-in-can %}">Ricardian contracts in CAN — legal prose the runtime can enforce</a>
+        <p class="meta">August 16, 2026 · What the agreement is and how train/infer/audit hang off it</p>
+      </li>
       <li>
         <a href="{% post_url 2026-08-14-can-contract-to-prediction %}">Confidential AI Network: from signed contract to governed prediction</a>
         <p class="meta">August 14, 2026 · Current product surface — contract through governed inference</p>
