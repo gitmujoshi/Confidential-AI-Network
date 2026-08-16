@@ -42,5 +42,6 @@ Blog companions:
 
 - [KMS — DEK, MEK, dual-key escrow]({% post_url 2026-08-16-can-kms-dek-mek-escrow %})
 - [TEE — attest, verify contract, decrypt]({% post_url 2026-08-16-can-tee-attest-decrypt-train %})
+- [Merkle trees for model audit]({% post_url 2026-08-16-merkle-trees-model-audit %})
 
 This blog is for **orientation**; the markdown files above remain the source of truth for implementation.

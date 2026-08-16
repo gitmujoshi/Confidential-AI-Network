@@ -173,7 +173,7 @@ permalink: /
 
   <nav class="notes-toc" aria-label="Deeper topic guides">
     <a href="#series-platform">Platform detail</a>
-    <a href="#series-crypto">KMS &amp; TEE</a>
+    <a href="#series-crypto">KMS, TEE &amp; provenance</a>
     <a href="#series-agents">Agent governance</a>
     <a href="#series-identity">Identity</a>
     <a href="#series-cloud">Cloud security</a>
@@ -199,8 +199,8 @@ permalink: /
   </div>
 
   <div class="post-group" id="series-crypto">
-    <h3>KMS &amp; TEE — encrypt, attest, then decrypt</h3>
-    <p class="group-lede">How DEK/MEK escrow and clean-room attestation gate plaintext for training.</p>
+    <h3>KMS, TEE &amp; provenance</h3>
+    <p class="group-lede">Keys, clean-room decrypt gates, and tamper-evident audit when models misbehave.</p>
     <ol class="post-list ordered">
       <li>
         <a href="{% post_url 2026-08-16-can-kms-dek-mek-escrow %}">KMS for Confidential AI Network — DEK, MEK, and dual-key escrow</a>
@@ -209,6 +209,10 @@ permalink: /
       <li>
         <a href="{% post_url 2026-08-16-can-tee-attest-decrypt-train %}">TEE training in CAN — attest, verify contract, then decrypt</a>
         <p class="meta">August 16, 2026 · Hardware attestation · decrypt-in-memory · honest live vs target</p>
+      </li>
+      <li>
+        <a href="{% post_url 2026-08-16-merkle-trees-model-audit %}">Merkle trees for model audit — when the model misbehaves</a>
+        <p class="meta">August 16, 2026 · Tamper-evident provenance · inclusion proofs · incident playbook</p>
       </li>
     </ol>
   </div>
