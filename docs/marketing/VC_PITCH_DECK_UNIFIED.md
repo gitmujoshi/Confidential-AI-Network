@@ -3,7 +3,8 @@
 **Confidential AI Network · Open-GMASE · CompliancePulse AI**
 
 > Slide-ready narrative for investors. Companion HTML: [`vc-deck-unified.html`](./vc-deck-unified.html)  
-> Older CAN-only product pitch: [`PRODUCT_PITCH_DECK.md`](./PRODUCT_PITCH_DECK.md)
+> Older CAN-only product pitch: [`PRODUCT_PITCH_DECK.md`](./PRODUCT_PITCH_DECK.md)  
+> **Azure GA E2E product tour:** [`AZURE_E2E_PRODUCT_TOUR_DECK.md`](./AZURE_E2E_PRODUCT_TOUR_DECK.md) · [`azure-e2e-product-tour-deck.html`](./azure-e2e-product-tour-deck.html)
 
 ---
 
