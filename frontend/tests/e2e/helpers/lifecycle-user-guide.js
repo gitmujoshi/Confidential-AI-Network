@@ -190,9 +190,134 @@ async function seedSession(page, { email, password = PASSWORD }) {
   return { token, user };
 }
 
+async function ensureAuditorUser() {
+  const email = process.env.E2E_AUDITOR_EMAIL || 'auditor@example.com';
+  const passwords = [
+    process.env.E2E_AUDITOR_PASSWORD,
+    PASSWORD,
+    'password123',
+  ].filter(Boolean);
+
+  for (const password of passwords) {
+    try {
+      const session = await loginViaAPI({ email, password });
+      return { ...session, email, password };
+    } catch (_) {
+      /* try next */
+    }
+  }
+
+  // Register via API if missing (partyType Auditor is allowed; not in public UI dropdown).
+  try {
+    await axios.post(`${BACKEND_URL}/api/auth/register`, {
+      name: 'Compliance Auditor',
+      email,
+      password: PASSWORD,
+      partyType: 'Auditor',
+      organization: 'CAN Audit Office',
+      description: 'E2E auditor for Merkle audit tree product tour',
+    });
+  } catch (e) {
+    const status = e.response?.status;
+    if (status !== 409 && status !== 400) {
+      console.warn('Auditor register:', e.response?.data || e.message);
+    }
+  }
+
+  try {
+    await completeFirstLoginPasswordViaAPI({
+      email,
+      currentPassword: PASSWORD,
+      newPassword: PASSWORD,
+    });
+  } catch (_) {
+    /* already completed */
+  }
+
+  const session = await loginViaAPI({ email, password: PASSWORD });
+  return { ...session, email, password: PASSWORD };
+}
+
+async function captureAuditorTourSteps(page, { contractId, steps }) {
+  const { expect } = require('@playwright/test');
+  const session = await ensureAuditorUser();
+  await logoutViaUI(page).catch(() => {});
+  await page.context().clearCookies();
+  await page.goto('/login', { waitUntil: 'domcontentloaded', timeout: 60000 });
+  await page.evaluate(() => {
+    try {
+      localStorage.clear();
+      sessionStorage.clear();
+    } catch (_) {
+      /* ignore */
+    }
+  });
+  // Prefer full UI login so Keycloak session matches SPA (seed-only can leave a blank iframe).
+  try {
+    await loginViaUI(page, { email: session.email, password: session.password });
+  } catch (_) {
+    await seedSession(page, { email: session.email, password: session.password });
+  }
+  await expect(page.getByText(/Auditor workspace|Welcome|Dashboard|Contracts/i).first()).toBeVisible({
+    timeout: 60000,
+  });
+
+  await page.goto('/auditor/dashboard', { waitUntil: 'domcontentloaded', timeout: 60000 });
+  await expect(page.getByText(/Auditor workspace/i).first()).toBeVisible({ timeout: 60000 });
+  await expect(page.getByText(contractId, { exact: false }).first()).toBeVisible({ timeout: 90000 });
+  steps.push({
+    title: 'Auditor workspace — contracts under review',
+    body: [
+      'An **Auditor** opens `/auditor/dashboard` (read-only).',
+      'They see every contract and can open the **Merkle audit tree** or the **contract** the training was based on—without sign/train rights.',
+    ].join('\n'),
+    ...(await captureShot(page, '25-auditor-workspace.png')),
+  });
+
+  await page.goto(`/auditor/contracts/${encodeURIComponent(contractId)}/audit-tree`, {
+    waitUntil: 'domcontentloaded',
+    timeout: 60000,
+  });
+  await expect(page.getByText(/Merkle audit tree/i).first()).toBeVisible({ timeout: 60000 });
+  await expect(page.getByText(/Root hash/i).first()).toBeVisible({ timeout: 60000 });
+  await expect(page.getByText(/contract|training_job|scitt_claim/i).first()).toBeVisible({
+    timeout: 60000,
+  });
+  steps.push({
+    title: 'Auditor inspects Merkle audit tree',
+    body: [
+      'The audit tree shows a published **root hash** and leaves for the contract, training jobs, SCITT claims, and models.',
+      '**Verify** checks inclusion of a leaf against the root—evidence for “what happened when the model misbehaved.”',
+    ].join('\n'),
+    ...(await captureShot(page, '26-auditor-audit-tree.png')),
+  });
+
+  const verifyBtn = page.getByRole('button', { name: /^Verify$/i }).first();
+  if (await verifyBtn.isVisible().catch(() => false)) {
+    await verifyBtn.click();
+    await expect(page.getByText(/inclusion proof valid|Proof invalid|Leaf /i).first())
+      .toBeVisible({ timeout: 30000 })
+      .catch(() => {});
+  }
+
+  await page.goto(`/auditor/contracts/${encodeURIComponent(contractId)}`, {
+    waitUntil: 'domcontentloaded',
+    timeout: 60000,
+  });
+  await expect(page.getByText(contractId, { exact: false }).first()).toBeVisible({ timeout: 60000 });
+  steps.push({
+    title: 'Auditor reviews the governing contract',
+    body: [
+      'From the audit tree (or workspace), the Auditor opens the **Ricardian contract** the problem model’s training was based on.',
+      'They can also use **Merkle audit tree** / provenance actions on the contract detail page.',
+    ].join('\n'),
+    ...(await captureShot(page, '27-auditor-contract-review.png')),
+  });
+}
+
 function buildMarkdown({ steps, generatedAt }) {
   const lines = [
-    '# End-to-End Lifecycle Guide — Onboard → Sign → Train → Inference',
+    '# End-to-End Lifecycle Guide — Onboard → Sign → Train → Inference → Auditor',
     '',
     `> Auto-generated by Playwright (\`npm run test:e2e:lifecycle-guide\` in \`frontend/\`).`,
     `> Screenshots refreshed: **${generatedAt}**. Prefer regenerating over hand-editing images.`,
@@ -205,12 +330,14 @@ function buildMarkdown({ steps, generatedAt }) {
     '4. TDP and TSP are notified, review, and sign',
     '5. TDC views the **SIGNED** contract, runs local-docker training, and inspects **logs** + **provenance**',
     '6. TDC **registers** the trained model, **deploys** it for local inference, and runs a **prediction** in the Inference app',
+    '7. **Auditor** opens the workspace, inspects the **Merkle audit tree**, and reviews the **contract** the training was based on',
     '',
     '## Demo credentials',
     '',
     '| Role | Notes |',
     '|---|---|',
     '| TDC / TDP / TSP | Fresh **enterprise** users registered during the guide run (emails + orgs in screenshots) |',
+    '| Auditor | Seeded/synced user (`auditor@example.com`) — read-only contracts + Merkle audit trees |',
     '| Registration mode | **User Type = Enterprise** (organization field required in the UI tour) |',
     '| Password after first login | `TestNewPassword123!` |',
     '| Local compute | TSP is configured with **Local** cloud provider for `TRAINING_EXECUTION_MODE=local-docker` |',
@@ -228,6 +355,7 @@ function buildMarkdown({ steps, generatedAt }) {
     '| Hyperparameters | `maxEpochs=2`, `batchSize=16`, `learningRate=5e-5`, `fastDevRun=false`, `trainSubsetSize=2000` |',
     '| Dataset | Lifecycle TDP NLP catalog row with Hugging Face `ag_news` reference |',
     '| After train | Register → Deploy → Predict (local `infer.py` / Inference app) |',
+    '| After predict | Auditor → Merkle audit tree → contract review |',
     '| Expected demo prediction | Headline about Wall Street → **Business** |',
     '',
     '## Happy path',
@@ -244,6 +372,7 @@ function buildMarkdown({ steps, generatedAt }) {
     '## Related docs',
     '',
     '- [Participant onboarding & E2E lifecycle (canonical text)](../PARTICIPANT_ONBOARDING_AND_E2E_LIFECYCLE.md)',
+    '- [Auditor role — Merkle audit & contract review](../../features/AUDITOR_ROLE.md)',
     '- [Multi-model contracts guide](../multi-model-user-guide/MULTI_MODEL_USER_GUIDE.md)',
     '- [TDC training + inference runtime](../../training/TDC_TRAINING_RUNTIME.md)',
     '- [Per-role screenshot guides](../role-user-guides/README.md)',
@@ -259,6 +388,9 @@ function buildMarkdown({ steps, generatedAt }) {
     '',
     '# Fast path (tiny DistilBERT + fastDevRun) instead of quality demo:',
     '# LIFECYCLE_DEMO_QUALITY=false BACKEND_URL=http://127.0.0.1:5001 npm run test:e2e:lifecycle-guide',
+    '',
+    '# Auditor screenshots only (reuses an existing contract):',
+    '# BACKEND_URL=http://127.0.0.1:5001 npm run test:e2e:auditor-guide',
     '```',
     '',
     'Optional cleanup afterward (keeps seed users/catalog): `npm run cleanup:e2e-data` from repo root.',
@@ -290,5 +422,7 @@ module.exports = {
   logoutViaUI,
   completeFirstLoginPasswordViaAPI,
   ensureTspLocalProvider,
+  ensureAuditorUser,
+  captureAuditorTourSteps,
   writeGuide,
 };

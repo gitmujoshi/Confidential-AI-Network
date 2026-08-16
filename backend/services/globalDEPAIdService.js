@@ -190,7 +190,8 @@ class GlobalDEPAIdService extends DEPAIdService {
       'TDP': 'TDP',
       'TSP': 'TSP',
       'CCRP': 'TSP',
-      'AppAdmin': 'TDC'
+      'AppAdmin': 'TDC',
+      'Auditor': 'TDC'
     };
 
     const entityType = partyTypeMap[partyType];
@@ -311,6 +312,7 @@ class GlobalDEPAIdService extends DEPAIdService {
       TDP: 'TDP',
       TSP: 'TSP',
       AppAdmin: 'TDC',
+      Auditor: 'TDC',
     };
     const entityType = map[normalized];
     if (!entityType) {

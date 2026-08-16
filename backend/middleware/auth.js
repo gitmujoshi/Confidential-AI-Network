@@ -415,6 +415,16 @@ const requireAdmin = requireRole('ADMIN');
 const requireAppAdmin = requireRole('AppAdmin');
 
 /**
+ * Require Auditor role (read-only compliance)
+ */
+const requireAuditor = requireRole('Auditor');
+
+/**
+ * AppAdmin or Auditor — global read of contracts / provenance
+ */
+const requireContractReader = requireRole(['AppAdmin', 'Auditor']);
+
+/**
  * Require any admin role (ADMIN or AppAdmin)
  */
 const requireAnyAdmin = requireRole(['ADMIN', 'AppAdmin']);
@@ -696,6 +706,8 @@ module.exports = {
   requireTSP,
   requireAdmin,
   requireAppAdmin,
+  requireAuditor,
+  requireContractReader,
   requireAnyAdmin,
   optionalAuth,
   requireOnboardingComplete,

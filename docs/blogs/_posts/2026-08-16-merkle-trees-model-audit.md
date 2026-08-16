@@ -13,7 +13,7 @@ canonical: docs/security/MERKLE_TREE_PROVENANCE_IMPLEMENTATION.md
 
 **Related:** [Contract → governed prediction]({% post_url 2026-08-14-can-contract-to-prediction %}) · [Open-GMASE]({% post_url 2026-08-14-gmase-deep-dive %}) · [TEE attest → decrypt]({% post_url 2026-08-16-can-tee-attest-decrypt-train %}) · In-repo: [MERKLE_TREE_PROVENANCE_IMPLEMENTATION.md](https://github.com/gitmujoshi/Confidential-AI-Network/blob/main/docs/security/MERKLE_TREE_PROVENANCE_IMPLEMENTATION.md) · [Provenance integration](https://github.com/gitmujoshi/Confidential-AI-Network/blob/main/docs/features/provenance/PROVENANCE_INTEGRATION_GUIDE.md)
 
-> **Status:** Merkle / provenance services and tables exist in CAN (trees, nodes, proofs). Product demos often show the **provenance report UI** and **SCITT** path; treat full cross-cloud Merkle replication and every leaf type as **architecture + partial implementation**, not “every leaf is GA everywhere.”
+> **Status:** Merkle builders, proofs, and an **Auditor** role/UI exist (`/auditor/*`, `/api/auditor/*`). Product demos also show the **provenance report UI** and **SCITT** path. Treat cross-cloud Merkle replication and every historical leaf type as **architecture + partial coverage**, not “every leaf is GA everywhere.” See [AUDITOR_ROLE.md](https://github.com/gitmujoshi/Confidential-AI-Network/blob/main/docs/features/AUDITOR_ROLE.md).
 
 ---
 

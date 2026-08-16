@@ -206,12 +206,12 @@ router.post('/register', logAuthEvent('REGISTER'), async (req, res) => {
 
     // Validate party type (accept legacy CCRP alias)
     const normalizedPartyType = partyType === 'CCRP' ? 'TSP' : partyType;
-    if (!['TDP', 'TDC', 'TSP', 'AppAdmin'].includes(normalizedPartyType)) {
+    if (!['TDP', 'TDC', 'TSP', 'AppAdmin', 'Auditor'].includes(normalizedPartyType)) {
       return res.status(400).json({
         error: 'Invalid party type',
         code: 'INVALID_PARTY_TYPE',
         details: {
-          valid: ['TDP', 'TDC', 'TSP', 'AppAdmin'],
+          valid: ['TDP', 'TDC', 'TSP', 'AppAdmin', 'Auditor'],
           provided: partyType
         }
       });

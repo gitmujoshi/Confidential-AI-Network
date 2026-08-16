@@ -13,18 +13,38 @@
 ## 🎯 **Current Status**
 
 ### **✅ What's Complete**
+1. **Merkle builders & proof generators** — `MerkleTreeBuilder`, `ProofGenerator`, `HashCalculator`
+2. **Auditor role + UI** — read-only contract list, Merkle audit-tree inspector, proof verify (`/api/auditor/*`, `/auditor/*`)
+3. **Durable audit leaves** — tree derived from contract + training jobs + SCITT claims + models
+4. **Provenance report APIs** — contract / job JSON bundles used by TDC and Auditor
+5. **Database models** — `MerkleTree`, `ProvenanceNode` schema present
+
+### **🚧 Remaining / partial**
+1. Legacy in-memory `/api/provenance` session routes still disabled
+2. Cross-cloud Merkle replication / SCITT root anchoring not GA everywhere
+3. No dedicated Auditor self-registration in the public UI (seed + Keycloak sync)
+
+See also: [AUDITOR_ROLE.md](../features/AUDITOR_ROLE.md)
+
+---
+
+## 🎯 **Legacy status note (superseded)**
+
+The checklist below was written when design preceded code. Prefer the section above.
+
+### **✅ What's Complete (historical checklist)**
 1. **Comprehensive Design Documentation** - Full Merkle Tree Provenance architecture documented
 2. **UML 4+1 Architecture Integration** - Provenance integrated into system architecture
 3. **SCITT CCF Integration Plan** - Provenance services designed to work with SCITT CCF
 4. **Database Schema Design** - Provenance tables and relationships defined
 5. **Service Layer Architecture** - Provenance service interfaces designed
 
-### **🚧 What's Pending**
-1. **Actual Implementation** - No JavaScript/Node.js code implemented yet
-2. **Database Tables** - Provenance tables not created in database
-3. **API Endpoints** - Provenance API routes not implemented
-4. **Frontend Components** - Provenance visualization not built
-5. **Testing & Validation** - No testing of provenance functionality
+### **🚧 What's Pending (historical — partially done)**
+1. **Actual Implementation** - ~~No JavaScript/Node.js code~~ → builders + auditor APIs exist
+2. **Database Tables** - Provenance tables designed; Merkle models present
+3. **API Endpoints** - Auditor + provenance-report paths live
+4. **Frontend Components** - Auditor dashboard + audit-tree UI shipped
+5. **Testing & Validation** - Expand coverage for auditor verify path
 
 ---
 

@@ -144,7 +144,8 @@ class DEPAIdService {
       'TDC': 'TDC',
       'TDP': 'TDP',
       'TSP': 'TSP',
-      'AppAdmin': 'TDC' // AppAdmin gets TDC DEPA ID for consistency
+      'AppAdmin': 'TDC', // AppAdmin gets TDC DEPA ID for consistency
+      'Auditor': 'TDC'
     };
 
     const entityType = partyTypeMap[partyType];

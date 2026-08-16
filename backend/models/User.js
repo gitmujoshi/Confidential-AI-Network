@@ -51,9 +51,9 @@ module.exports = (sequelize, Sequelize) => {
       comment: 'Public key for cryptographic operations (hex format, optional for enterprise users)'
     },
     
-    // User role in the system (TDP, TDC, TSP, or AppAdmin)
+    // User role in the system (TDP, TDC, TSP, AppAdmin, or Auditor)
     partyType: {
-      type: Sequelize.DataTypes.ENUM('TDP', 'TDC', 'TSP', 'AppAdmin'),
+      type: Sequelize.DataTypes.ENUM('TDP', 'TDC', 'TSP', 'AppAdmin', 'Auditor'),
       allowNull: false
     },
     

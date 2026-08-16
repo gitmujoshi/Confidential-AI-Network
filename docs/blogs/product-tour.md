@@ -14,7 +14,8 @@ permalink: /product-tour/
     <code>tsp.oci.e2e@test.com</code> / SecureClean Rooms) and
     <strong>Local Docker</strong> (Playwright lifecycle guide against a live stack).
     Onboard parties, publish data, agree and sign a contract, train, inspect logs and provenance,
-    then deploy and test the model.
+    deploy and test the model, then let an <strong>Auditor</strong> verify the Merkle audit tree
+    and the governing contract.
   </p>
   <p class="cta-row" style="margin-top:1.25rem">
     <a class="cta" href="{{ '/assets/decks/azure-e2e-product-tour.html' | relative_url }}">Azure GA slide deck</a>
@@ -36,6 +37,7 @@ permalink: /product-tour/
     <li>Training — start job, completion, run logs</li>
     <li>Provenance — audit report</li>
     <li>Deploy &amp; test — register artifact, deploy, run a prediction</li>
+    <li>Auditor — Merkle audit tree + contract review</li>
   </ol>
   <p>
     Canonical long-form text:
@@ -274,8 +276,30 @@ permalink: /product-tour/
   </figure>
 </section>
 
+<section class="home-section tour-section" id="auditor">
+  <h2>6. Auditor — Merkle tree &amp; contract review (Local)</h2>
+  <p>
+    After training and inference, a read-only <strong>Auditor</strong> opens the workspace,
+    inspects the <strong>Merkle audit tree</strong> (root + leaf inclusion proofs) for the
+    contract that produced the model, and reviews the Ricardian contract terms the training
+    was based on. No sign / train / deploy rights.
+  </p>
+  <figure class="shot">
+    <img src="{{ '/assets/lifecycle/25-auditor-workspace.png' | relative_url }}" alt="Auditor workspace listing contracts" loading="lazy" />
+    <figcaption>Auditor workspace — pick a contract for audit tree or contract review</figcaption>
+  </figure>
+  <figure class="shot">
+    <img src="{{ '/assets/lifecycle/26-auditor-audit-tree.png' | relative_url }}" alt="Merkle audit tree with root hash and leaves" loading="lazy" />
+    <figcaption>Merkle audit tree — root hash, leaves (contract / jobs / SCITT / models), Verify</figcaption>
+  </figure>
+  <figure class="shot">
+    <img src="{{ '/assets/lifecycle/27-auditor-contract-review.png' | relative_url }}" alt="Auditor reviewing the Ricardian contract" loading="lazy" />
+    <figcaption>Contract review — the agreement the problem model’s training was based on</figcaption>
+  </figure>
+</section>
+
 <section class="home-section tour-section" id="gmase">
-  <h2>6. Open-GMASE gate + CompliancePulse ingest (research demo)</h2>
+  <h2>7. Open-GMASE gate + CompliancePulse ingest (research demo)</h2>
   <p>
     The gate screenshots below use a faster <strong>tabular logistic regression</strong>
     model (Iris-style features → label <strong>setosa</strong>) so the seam is easy to
@@ -306,6 +330,9 @@ npm run test:e2e:oci-demo</pre>
   <p>Local path (full stack — backend, frontend, Keycloak, trainer):</p>
   <pre class="arch-diagram" style="white-space: pre-wrap;">cd frontend
 BACKEND_URL=http://127.0.0.1:5001 npm run test:e2e:lifecycle-guide</pre>
+  <p>Auditor screenshots only (reuses an existing contract):</p>
+  <pre class="arch-diagram" style="white-space: pre-wrap;">cd frontend
+BACKEND_URL=http://127.0.0.1:5001 npm run test:e2e:auditor-guide</pre>
   <p>Open-GMASE gate screenshots:</p>
   <pre class="arch-diagram" style="white-space: pre-wrap;">cd frontend
 E2E_WAIT_FOR_LOCAL_TRAINING=true BACKEND_URL=http://127.0.0.1:5001 npm run test:e2e:inference</pre>

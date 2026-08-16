@@ -63,6 +63,7 @@ const { CANEscrowSweeper } = require('./services/canEscrowSweeper');
 
 // Import role-specific routes
 const adminRouter = require('./routes/admin');
+const auditorRouter = require('./routes/auditor');
 const tdpRouter = require('./routes/tdp');
 const tdcRouter = require('./routes/tdc');
 const tspRouter = require('./routes/tsp');
@@ -250,6 +251,7 @@ app.use('/api/enhanced-encryption', enhancedEncryptionRouter);
 
 // Role-specific routes
 app.use('/api/admin', adminRouter);
+app.use('/api/auditor', auditorRouter);
 app.use('/api/tdp', tdpRouter);
 app.use('/api/tdc', tdcRouter);
 app.use('/api/tsp', tspRouter);

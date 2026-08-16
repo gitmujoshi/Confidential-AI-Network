@@ -1,6 +1,7 @@
 /**
  * End-to-end lifecycle screenshot guide:
  * onboard (TDC/TDP/TSP) → dataset → create contract → notify/sign → train → provenance/logs
+ * → inference → auditor (Merkle tree + contract review)
  *
  * Run: npm run test:e2e:lifecycle-guide
  */
@@ -18,6 +19,7 @@ const {
   loginViaAPI,
   seedSession,
   writeGuide,
+  captureAuditorTourSteps,
 } = require('./helpers/lifecycle-user-guide');
 const {
   NLP_MODEL_ID,
@@ -35,7 +37,7 @@ test.describe('Lifecycle user guide (screenshot tour)', () => {
     await page.setViewportSize({ width: 1440, height: 900 });
   });
 
-  test('Onboard → create → sign → train → provenance → inference', async ({ page }) => {
+  test('Onboard → create → sign → train → provenance → inference → auditor', async ({ page }) => {
     const qualityDemo = useNlpQualityDemo();
     // Quality DistilBERT on CPU Docker can take 20–40+ minutes; plus onboard/sign/infer.
     test.setTimeout((qualityDemo ? 60 : 20) * 60 * 1000);
@@ -582,6 +584,9 @@ test.describe('Lifecycle user guide (screenshot tour)', () => {
       ].join('\n'),
       ...(await captureShot(page, '24-tdc-inference-predict.png')),
     });
+
+    // --- Auditor: Merkle tree + contract review ---
+    await captureAuditorTourSteps(page, { contractId, steps });
 
     const out = writeGuide(steps);
     console.log(`✅ Lifecycle guide written: ${out}`);

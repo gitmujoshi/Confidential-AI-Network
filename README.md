@@ -55,6 +55,7 @@ Platform and security teams need **defense in depth** (WAF, API gateway, private
 | **TDP** | Publish datasets, approve contracts, monitor usage | [User guide](docs/USER_GUIDE.md) |
 | **CCRP** | Host compliant environments, monitor jobs | [User guide](docs/USER_GUIDE.md) · [CCRP training](docs/training/README.md) |
 | **AppAdmin** | Users, health, audit | [Admin guide](docs/ADMIN_GUIDE.md) |
+| **Auditor** | Read-only contracts + Merkle audit trees | [Auditor role](docs/features/AUDITOR_ROLE.md) |
 | **Platform / SRE** | Deploy and operate in cloud | [Production docs](docs/production/README.md) |
 | **Security / GRC** | Controls and evidence | [Security](docs/production/README.md) · [SIEM](docs/production/SIEM_INTEGRATION_FRAMEWORK.md) · [G-MASE](https://gitmujoshi.github.io/Confidential-AI-Network/security/2026/08/14/gmase-deep-dive/) · [CompliancePulse](https://gitmujoshi.github.io/Confidential-AI-Network/security/2026/08/14/compliancepulse-ai-deep-dive/) |
 | **Developers** | Extend APIs and integrations | [Developer guide](docs/DEVELOPER_GUIDE.md) |

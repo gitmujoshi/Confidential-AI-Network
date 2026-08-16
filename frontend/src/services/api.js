@@ -250,8 +250,12 @@ const realApiService = {
 
   // Contracts
   getContracts: async (userId, userContext) => {
-    // Admin can see all contracts
-    if (userContext?.partyType === 'AppAdmin') {
+    // Admin / Auditor can see all contracts
+    if (userContext?.partyType === 'AppAdmin' || userContext?.partyType === 'Auditor') {
+      if (userContext?.partyType === 'Auditor') {
+        const response = await api.get('/api/auditor/contracts');
+        return { contracts: response.data.contracts || response.data };
+      }
       const response = await api.get('/api/contracts');
       return response.data;
     }
@@ -381,12 +385,32 @@ const realApiService = {
     );
     return typeof response.data === 'string' ? JSON.parse(response.data) : response.data;
   },
-  /** Contract-wide provenance / audit bundle (TDC, TSP, or AppAdmin on that contract). */
+  /** Contract-wide provenance / audit bundle (TDC, TSP, AppAdmin, or Auditor). */
   getScittProvenanceReport: async (contractId) => {
     const response = await api.get(
       `/api/scitt-ccf/provenance-report/${encodeURIComponent(contractId)}`
     );
     return response.data?.report ?? response.data;
+  },
+
+  /** Auditor: Merkle audit tree for a contract (leaves + proofs + root). */
+  getAuditorAuditTree: async (contractId) => {
+    const response = await api.get(
+      `/api/auditor/contracts/${encodeURIComponent(contractId)}/audit-tree`
+    );
+    return response.data?.auditTree ?? response.data;
+  },
+
+  /** Auditor: list contracts for review. */
+  getAuditorContracts: async (params = {}) => {
+    const response = await api.get('/api/auditor/contracts', { params });
+    return response.data;
+  },
+
+  /** Auditor: verify Merkle inclusion proof. */
+  verifyAuditorMerkleProof: async (proof, rootHash) => {
+    const response = await api.post('/api/auditor/verify-proof', { proof, rootHash });
+    return response.data;
   },
 
   // SCITT CCF API Methods

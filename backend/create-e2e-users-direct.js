@@ -26,6 +26,12 @@ const E2E_USERS = [
     email: 'appadmin-test@example.com',
     password: 'password123',
     partyType: 'AppAdmin'
+  },
+  {
+    name: 'Auditor Test User',
+    email: 'auditor-test@example.com',
+    password: 'password123',
+    partyType: 'Auditor'
   }
 ];
 

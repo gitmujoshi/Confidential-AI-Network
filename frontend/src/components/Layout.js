@@ -32,6 +32,7 @@ import {
   Business,
   Add,
   CloudQueue,
+  AccountTree,
 } from '@mui/icons-material';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useQuery } from 'react-query';
@@ -47,6 +48,7 @@ const roleChipSx = (role) => {
     TSP: { bg: 'rgba(51, 65, 85, 0.14)', color: '#334155' },
     CCRP: { bg: 'rgba(51, 65, 85, 0.14)', color: '#334155' },
     AppAdmin: { bg: 'rgba(185, 28, 28, 0.1)', color: '#991b1b' },
+    Auditor: { bg: 'rgba(67, 56, 202, 0.12)', color: '#3730a3' },
   };
   const c = map[role] || { bg: 'rgba(100, 116, 139, 0.12)', color: '#475569' };
   return {
@@ -112,6 +114,15 @@ const Layout = ({ children }) => {
         : []),
       ...(currentUser?.partyType === 'AppAdmin'
         ? [{ text: 'Users', icon: <People fontSize="small" />, path: '/admin/users' }]
+        : []),
+      ...(currentUser?.partyType === 'Auditor' || currentUser?.partyType === 'AppAdmin'
+        ? [
+            {
+              text: 'Auditor',
+              icon: <AccountTree fontSize="small" />,
+              path: '/auditor/dashboard',
+            },
+          ]
         : []),
       {
         text: 'Notifications',

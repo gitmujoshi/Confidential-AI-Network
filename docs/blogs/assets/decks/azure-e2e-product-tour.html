@@ -221,17 +221,19 @@ Front Door / WAF  →  APIM  →  CAN on AKS
         <tr><td>TDP</td><td>TDP</td><td>Publish ciphertext · sign · release DEK</td></tr>
         <tr><td>TDC</td><td>TDC</td><td>Contract · MEK · train · deploy · predict</td></tr>
         <tr><td>CCRP / TSP</td><td>CCRP</td><td>Azure confidential offering · attested session</td></tr>
+        <tr><td>Auditor</td><td>Auditor</td><td>Merkle audit tree · contract review (read-only)</td></tr>
         <tr><td>AppAdmin</td><td>AppAdmin</td><td>Tenancy health (optional)</td></tr>
       </table>
     </section>
 
     <section class="slide">
       <p class="eyebrow">Tour map</p>
-      <h2>Nine beats to a governed prediction</h2>
+      <h2>Ten beats to a governed prediction</h2>
       <pre class="arch">1 Entra register → 2 Blob catalog → 3 Contract + Key Vault
 → 4 Multi-party sign → 5 Attest + DEK/MEK escrow
 → 6 Train in TEE → 7 Provenance → 8 Deploy + predict
-→ 9 Open-GMASE ALLOW (+ CompliancePulse)</pre>
+→ 9 Open-GMASE ALLOW (+ CompliancePulse)
+→ 10 Auditor: Merkle tree + contract review</pre>
       <p class="lede" style="margin-top:1.25rem">Same product story as the public product tour—Azure services underneath.</p>
     </section>
 
@@ -287,6 +289,17 @@ Front Door / WAF  →  APIM  →  CAN on AKS
         <li>Provenance: attested · keys released · started · completed · destroyed</li>
         <li>Register → Deploy for inference → prediction (tabular / text / vision samples)</li>
       </ul>
+    </section>
+
+    <section class="slide">
+      <p class="eyebrow">Step 8b · Auditor</p>
+      <h2>Merkle audit tree + contract review</h2>
+      <ul>
+        <li><strong>Auditor</strong> role — global read, no sign/train</li>
+        <li>Inspect root hash + leaf inclusion proofs for the training contract</li>
+        <li>Open the Ricardian contract the model was trained under</li>
+      </ul>
+      <p class="note">Screens: 25-auditor-workspace · 26-auditor-audit-tree · 27-auditor-contract-review</p>
     </section>
 
     <section class="slide">

@@ -141,7 +141,8 @@ async function createRoles(token) {
       { name: 'TDP', description: 'Training Data Provider' },
       { name: 'TDC', description: 'Training Data Consumer' },
       { name: 'CCRP', description: 'Confidential Clean Room Provider' },
-      { name: 'AppAdmin', description: 'Application Administrator' }
+      { name: 'AppAdmin', description: 'Application Administrator' },
+      { name: 'Auditor', description: 'Read-only compliance auditor (contracts + Merkle provenance)' }
     ];
 
     for (const role of roles) {

@@ -166,8 +166,8 @@ router.get('/user/:userId', async (req, res) => {
     const numericUserId = parseInt(userId, 10);
     let whereClause = {};
 
-    if (user.partyType === 'AppAdmin') {
-      // AppAdmin can view all contracts
+    if (user.partyType === 'AppAdmin' || user.partyType === 'Auditor') {
+      // AppAdmin / Auditor can view all contracts (read-only for Auditor)
       if (status) {
         whereClause.status = status;
       }

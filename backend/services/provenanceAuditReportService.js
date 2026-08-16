@@ -80,13 +80,13 @@ async function buildJobTrainingProvenanceBundle(jobId) {
  * Authoritative detail lives on Contract, TrainingJob, AIModel; scitt_claims are event markers.
  */
 async function buildProvenanceAuditReport(contractId, userId, { partyType } = {}) {
-  const where =
-    partyType === 'AppAdmin'
-      ? { contractId: String(contractId) }
-      : {
-          contractId: String(contractId),
-          [Op.or]: [{ tdcId: userId }, { tspId: userId }],
-        };
+  const { hasGlobalContractRead } = require('../utils/partyTypes');
+  const where = hasGlobalContractRead(partyType)
+    ? { contractId: String(contractId) }
+    : {
+        contractId: String(contractId),
+        [Op.or]: [{ tdcId: userId }, { tspId: userId }],
+      };
 
   const contract = await db.Contract.findOne({
     where,

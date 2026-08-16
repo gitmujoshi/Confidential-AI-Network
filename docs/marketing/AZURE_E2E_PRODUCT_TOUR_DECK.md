@@ -111,6 +111,7 @@ Consent-based, accountable data sharing: use-bound access, evidence over screens
 | **TDP** | `TDP` | Publish encrypted dataset metadata; sign; release **DEK** when attested |
 | **TDC** | `TDC` | Create contract; select model; sign; release **MEK**; start train; deploy infer |
 | **CCRP / TSP** | `CCRP` | Offer Azure confidential capacity; host attested session |
+| **Auditor** | `Auditor` | Read-only: Merkle audit tree + contract review after train/predict |
 | **AppAdmin** | `AppAdmin` | Tenancy health, constraints (optional slide) |
 
 ---
@@ -122,6 +123,7 @@ Consent-based, accountable data sharing: use-bound access, evidence over screens
         → 4 Multi-party sign → 5 Attest + DEK/MEK escrow
         → 6 Train in TEE → 7 Provenance → 8 Deploy + predict
         → 9 Open-GMASE ALLOW (+ CompliancePulse)
+        → 10 Auditor: Merkle tree + contract review
 ```
 
 Same story as the [product tour](https://gitmujoshi.github.io/Confidential-AI-Network/product-tour/)—**Azure services underneath**.
@@ -221,6 +223,16 @@ Open-GMASE evaluates **`start_training`** fail-closed before the side effect.
 
 - SIEM export to customer Sentinel / Log Analytics as configured  
 - SCITT CCF claims where enabled  
+
+---
+
+## Slide 16b — Step 8b: Auditor workspace (Merkle + contract)
+
+**Show:** `/auditor/dashboard` → **Merkle audit tree** (root + leaf verify) → open governing **Ricardian contract**.
+
+- Role: **Auditor** (Entra app role) — global read, no sign/train  
+- Leaves commit to contract, training jobs, SCITT markers, registered models  
+- Product-tour screens: `25-auditor-workspace`, `26-auditor-audit-tree`, `27-auditor-contract-review`  
 
 ---
 

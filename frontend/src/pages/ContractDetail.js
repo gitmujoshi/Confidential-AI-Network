@@ -1529,6 +1529,16 @@ function ContractDetail() {
                 >
                   Download provenance
                 </Button>
+                {(currentUser?.partyType === 'Auditor' || currentUser?.partyType === 'AppAdmin') && (
+                  <Button
+                    variant="outlined"
+                    color="primary"
+                    onClick={() => navigate(`/auditor/contracts/${contractId}/audit-tree`)}
+                    startIcon={<Security />}
+                  >
+                    Merkle audit tree
+                  </Button>
+                )}
               </Box>
               
               {signError && (

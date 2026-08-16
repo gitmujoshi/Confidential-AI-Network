@@ -263,11 +263,19 @@ router.get(
       if (!userId) {
         return res.status(401).json({ success: false, error: 'Unauthorized' });
       }
-      if (req.user?.localUser?.partyType !== 'TDC') {
-        return res.status(403).json({ success: false, error: 'TDC role required' });
+      const partyType = req.user?.localUser?.partyType;
+      if (!['TDC', 'Auditor', 'AppAdmin'].includes(partyType)) {
+        return res.status(403).json({ success: false, error: 'TDC, Auditor, or AppAdmin role required' });
       }
 
-      await service.getJobForUser(jobId, userId);
+      if (partyType === 'TDC') {
+        await service.getJobForUser(jobId, userId);
+      } else {
+        const exists = await db.TrainingJob.findOne({ where: { jobId } });
+        if (!exists) {
+          return res.status(404).json({ success: false, error: 'Training job not found' });
+        }
+      }
 
       const row = await db.TrainingJob.findOne({ where: { jobId } });
       if (!row) {

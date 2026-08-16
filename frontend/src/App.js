@@ -45,6 +45,8 @@ import TDCInference from './pages/TDCInference';
 import EnvironmentMarketplace from './pages/EnvironmentMarketplace';
 import ScittCcfDashboard from './components/ScittCcfDashboard';
 import CANJobs from './pages/CANJobs';
+import AuditorAuditTree from './pages/AuditorAuditTree';
+import AuditorDashboard from './pages/dashboards/AuditorDashboard';
 
 // Protected Route Component
 const ProtectedRoute = ({ children }) => {
@@ -580,6 +582,21 @@ function AppRoutes() {
               <Route path="/resources" element={<div>TSP Resources</div>} />
               <Route path="/analytics" element={<div>TSP Analytics</div>} />
               <Route path="/security" element={<div>TSP Security</div>} />
+            </Routes>
+          </Layout>
+        </RoleProtectedRoute>
+      } />
+
+      {/* Auditor — read-only contracts + Merkle audit trees */}
+      <Route path="/auditor/*" element={
+        <RoleProtectedRoute allowedRoles={['Auditor', 'AppAdmin']}>
+          <Layout>
+            <Routes>
+              <Route path="/" element={<Navigate to="/auditor/dashboard" replace />} />
+              <Route path="/dashboard" element={<AuditorDashboard />} />
+              <Route path="/contracts" element={<Contracts />} />
+              <Route path="/contracts/:contractId" element={<ContractDetail />} />
+              <Route path="/contracts/:contractId/audit-tree" element={<AuditorAuditTree />} />
             </Routes>
           </Layout>
         </RoleProtectedRoute>
