@@ -136,6 +136,8 @@ Community packs: [`open-gmase-core/`](https://github.com/gitmujoshi/Confidential
 | Run OPA + CompliancePulse + CAN | [Demo slice]({% post_url 2026-08-14-can-gmase-demo-slice %}) |
 | Read the monorepo | [README](https://github.com/gitmujoshi/Confidential-AI-Network#readme) |
 | Executive overview | [CISO note]({% post_url 2026-08-14-governed-ai-enterprise-ciso-overview %}) |
+| KMS / DEK·MEK escrow | [KMS post]({% post_url 2026-08-16-can-kms-dek-mek-escrow %}) |
+| TEE attest → decrypt → train | [TEE post]({% post_url 2026-08-16-can-tee-attest-decrypt-train %}) |
 
 ```bash
 ./start-system.sh
