@@ -5,7 +5,7 @@
 > Slide-ready narrative for **customer / partner / executive demos** when the Azure deployment is released.  
 > **Live on the blog:** [deck notes](https://gitmujoshi.github.io/Confidential-AI-Network/product/2026/08/16/azure-e2e-product-tour-deck/) · [open slides](https://gitmujoshi.github.io/Confidential-AI-Network/assets/decks/azure-e2e-product-tour.html)  
 > Companion HTML in repo: [`azure-e2e-product-tour-deck.html`](./azure-e2e-product-tour-deck.html)  
-> Screenshot source (swap in Azure captures at GA): [Product tour](https://gitmujoshi.github.io/Confidential-AI-Network/product-tour/) · Azure architecture: [AZURE_SECURITY_ARCHITECTURE.md](../production/AZURE_SECURITY_ARCHITECTURE.md) · Features: [AZURE_FEATURES_AND_CONFIGURATION.md](../deployment/AZURE_FEATURES_AND_CONFIGURATION.md)
+> Screenshot source (swap in Azure captures at GA): [Product tour](https://gitmujoshi.github.io/Confidential-AI-Network/product-tour/) · Azure CC deep dive: [azure-confidential-computing-deep-dive](https://gitmujoshi.github.io/Confidential-AI-Network/security/2026/08/17/azure-confidential-computing-deep-dive/) · Azure architecture: [AZURE_SECURITY_ARCHITECTURE.md](../production/AZURE_SECURITY_ARCHITECTURE.md) · Features: [AZURE_FEATURES_AND_CONFIGURATION.md](../deployment/AZURE_FEATURES_AND_CONFIGURATION.md)
 
 **How to present:** ~25–35 minutes live tour + 10 minutes Q&A. Keep the **local Docker path** as a fallback if the Azure tenancy is down—but say clearly when you are on confidential compute vs host training.
 

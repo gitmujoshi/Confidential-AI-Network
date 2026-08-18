@@ -14,7 +14,7 @@ Most “shared AI” projects still start the same way: copy the dataset, sign a
 
 This post is a technical walkthrough of what CAN is, how the pieces fit, and what is intentionally design vs live today.
 
-Prefer screenshots? See the [product tour]({{ '/product-tour/' | relative_url }}) (Local + OCI paths). Prefer the repo? [Confidential-AI-Network on GitHub](https://github.com/gitmujoshi/Confidential-AI-Network).
+Prefer screenshots? See the [product tour]({{ '/product-tour/' | relative_url }}) (Local path). Prefer the repo? [Confidential-AI-Network on GitHub](https://github.com/gitmujoshi/Confidential-AI-Network).
 
 ---
 
@@ -136,7 +136,7 @@ We invested first in **Oracle Cloud** because clean-room + Vault + OKE + Identit
 - **OCI Database with PostgreSQL** for the app (Sequelize dialect)  
 - **OCIR** for backend/frontend images  
 - **Vault / Object Storage / SPIFFE / WIF / training Job** as opt-in modules (`enable_*`)  
-- Mock full tour at `/demo/oci-scaffolds` for GTM when a tenancy isn’t up yet  
+- Azure GA narrative: [product tour]({{ '/product-tour/' | relative_url }}) + [Azure confidential computing deep dive]({% post_url 2026-08-17-azure-confidential-computing-deep-dive %}) when a tenancy isn’t up yet  
 
 Honest maturity: **baseline apply path is in-repo**; live WAF/API Gateway, SCITT HA, and production Job submitters are still opt-in / operator follow-through. See [OCI design complete](https://github.com/gitmujoshi/Confidential-AI-Network/blob/main/docs/deployment/OCI_DESIGN_COMPLETE.md) and the [marketplace listing checklist](https://github.com/gitmujoshi/Confidential-AI-Network/blob/main/docs/deployment/OCI_MARKETPLACE_LISTING_CHECKLIST.md).
 
@@ -195,4 +195,4 @@ The product bet is simple: **contract first, compute second, proof always.**
 | SPIFFE + OCI WIF | [post]({% post_url 2026-07-28-spiffe-spire-oci-wif %}) · [design](https://github.com/gitmujoshi/Confidential-AI-Network/blob/main/docs/deployment/OCI_SPIFFE_SPIRE_WIF.md) |
 | Source | [github.com/gitmujoshi/Confidential-AI-Network](https://github.com/gitmujoshi/Confidential-AI-Network) |
 
-If you are evaluating CAN for a regulated collaboration, start with the product tour, then the multi-cloud security patterns doc, then an OCI or Azure staging compartment — not a slide deck alone.
+If you are evaluating CAN for a regulated collaboration, start with the product tour, then the multi-cloud security patterns doc, then an Azure staging subscription (or your preferred cloud) — not a slide deck alone.

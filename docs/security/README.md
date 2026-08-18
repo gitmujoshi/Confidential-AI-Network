@@ -15,7 +15,7 @@ Canonical security & identity docs. Prefer these over archive copies.
 | OCI security architecture | [../production/OCI_SECURITY_ARCHITECTURE.md](../production/OCI_SECURITY_ARCHITECTURE.md) |
 | Azure security architecture | [../production/AZURE_SECURITY_ARCHITECTURE.md](../production/AZURE_SECURITY_ARCHITECTURE.md) |
 | Multi-cloud security patterns | [../production/MULTI_CLOUD_SECURITY_ARCHITECTURE_PATTERNS.md](../production/MULTI_CLOUD_SECURITY_ARCHITECTURE_PATTERNS.md) |
-| **NIST CSF / 800-53 / CIS Controls mapping** | [../compliance/SECURITY_CONTROLS_NIST_CIS_MAPPING.md](../compliance/SECURITY_CONTROLS_NIST_CIS_MAPPING.md) |
+| **NIST / CIS / OWASP (incl. LLM) mapping** | [../compliance/SECURITY_CONTROLS_NIST_CIS_MAPPING.md](../compliance/SECURITY_CONTROLS_NIST_CIS_MAPPING.md) |
 | DPDP Act implementation | [../compliance/DPDP_COMPLIANCE_IMPLEMENTATION.md](../compliance/DPDP_COMPLIANCE_IMPLEMENTATION.md) |
 
 ## Specialized

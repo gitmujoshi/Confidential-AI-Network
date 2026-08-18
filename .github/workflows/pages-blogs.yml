@@ -6,7 +6,6 @@ on:
     paths:
       - "docs/blogs/**"
       - "docs/guides/lifecycle-user-guide/**"
-      - "docs/guides/oci-scaffold-demo/**"
       - "docs/guides/gmase-integration/**"
       - ".github/workflows/pages-blogs.yml"
   workflow_dispatch:
@@ -33,13 +32,6 @@ jobs:
           cp -f docs/guides/lifecycle-user-guide/screenshots/*.png \
             docs/blogs/assets/lifecycle/
           ls -la docs/blogs/assets/lifecycle | head -40
-
-      - name: Sync OCI mock screenshots into blog assets
-        run: |
-          mkdir -p docs/blogs/assets/oci
-          cp -f docs/guides/oci-scaffold-demo/screenshots/*.png \
-            docs/blogs/assets/oci/
-          ls -la docs/blogs/assets/oci
 
       - name: Sync Open-GMASE integration screenshots into blog assets
         run: |

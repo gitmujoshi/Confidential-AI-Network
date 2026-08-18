@@ -11,7 +11,7 @@ canonical: docs/architecture/KMS_TRAINING_ENVIRONMENT_ARCHITECTURE.md
 
 *Key management for multi-party training: ciphertext everywhere outside the clean room, dual-key escrow before train, cloud KMS as the outer key service—not a shared “god key” for the lake.*
 
-**Companion:** [TEE execution — attest, verify contract, then decrypt]({% post_url 2026-08-16-can-tee-attest-decrypt-train %}) · **Lifecycle source of truth:** [Participant onboarding & E2E](https://github.com/gitmujoshi/Confidential-AI-Network/blob/main/docs/guides/PARTICIPANT_ONBOARDING_AND_E2E_LIFECYCLE.md) · **Product loop:** [Contract to governed prediction]({% post_url 2026-08-14-can-contract-to-prediction %})
+**Companion:** [TEE execution — attest, verify contract, then decrypt]({% post_url 2026-08-16-can-tee-attest-decrypt-train %}) · [Azure confidential computing (SKR / Key Vault)]({% post_url 2026-08-17-azure-confidential-computing-deep-dive %}) · **Lifecycle source of truth:** [Participant onboarding & E2E](https://github.com/gitmujoshi/Confidential-AI-Network/blob/main/docs/guides/PARTICIPANT_ONBOARDING_AND_E2E_LIFECYCLE.md) · **Product loop:** [Contract to governed prediction]({% post_url 2026-08-14-can-contract-to-prediction %})
 
 > **Status:** Architecture and partial implementation. Local demos often train on staged artifacts without a hardware TEE. CAN/JCS Phase 1 uses **key-release signals** (no key bytes to the Node API). **Attested TLS delivery of DEK/MEK into the enclave** is the Phase 2 target.
 

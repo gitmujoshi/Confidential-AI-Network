@@ -11,9 +11,9 @@ canonical: docs/flows/TDP_ENCRYPTED_DATASET_TEE_FLOW.md
 
 *The clean-room rule: ciphertext may travel; plaintext and keys exist only inside an attested TEE for the training window—and only after the contract says that environment is allowed.*
 
-**Companion:** [KMS — DEK, MEK, and dual-key escrow]({% post_url 2026-08-16-can-kms-dek-mek-escrow %}) · **Flows:** [TDP encrypted dataset](https://github.com/gitmujoshi/Confidential-AI-Network/blob/main/docs/flows/TDP_ENCRYPTED_DATASET_TEE_FLOW.md) · [TDC encrypted model](https://github.com/gitmujoshi/Confidential-AI-Network/blob/main/docs/flows/TDC_ENCRYPTED_AI_MODEL_TEE_FLOW.md) · **iSPIRT DEPA:** [depa.world](https://depa.world)
+**Companion:** [KMS — DEK, MEK, and dual-key escrow]({% post_url 2026-08-16-can-kms-dek-mek-escrow %}) · [Azure confidential computing deep dive]({% post_url 2026-08-17-azure-confidential-computing-deep-dive %}) · **Flows:** [TDP encrypted dataset](https://github.com/gitmujoshi/Confidential-AI-Network/blob/main/docs/flows/TDP_ENCRYPTED_DATASET_TEE_FLOW.md) · [TDC encrypted model](https://github.com/gitmujoshi/Confidential-AI-Network/blob/main/docs/flows/TDC_ENCRYPTED_AI_MODEL_TEE_FLOW.md) · **iSPIRT DEPA:** [depa.world](https://depa.world)
 
-> **Status:** Target architecture for CCRP / confidential-compute paths (OCI confidential VMs, Azure confidential computing, etc.). **Local Docker / native training is not a hardware TEE**—it proves contracts and job UX. CAN/JCS today uses **simulated attestation bundles** and **key-release signals**; real attested TLS key delivery is Phase 2.
+> **Status:** Target architecture for CCRP / confidential-compute paths (Azure confidential computing, OCI confidential VMs, etc.). **Local Docker / native training is not a hardware TEE**—it proves contracts and job UX. CAN/JCS today uses **simulated attestation bundles** and **key-release signals**; real attested TLS / SKR key delivery is Phase 2+.
 
 ---
 
@@ -135,7 +135,7 @@ Symmetric stories; **both** keys required. Details: [TDP flow](https://github.co
 | **CAN/JCS MVP** | Job + **simulated** attestation + DEK/MEK **release signals** (no key bytes to API) | Coordination demo |
 | **Target CCR** | Real quote → attested TLS → DEK+MEK in enclave → decrypt → train → zeroize | **Yes** |
 
-OCI product-tour screenshots show Vault KMS + confidential compute as the **cloud narrative**; local screenshots show the **runnable** loop. Both are useful—don’t conflate them.
+Local product-tour screenshots show the **runnable** loop. Azure confidential VMs + Key Vault / SKR are the **cloud target**—see [Azure confidential computing deep dive]({% post_url 2026-08-17-azure-confidential-computing-deep-dive %}). Don’t conflate host training with TEE claims.
 
 ---
 

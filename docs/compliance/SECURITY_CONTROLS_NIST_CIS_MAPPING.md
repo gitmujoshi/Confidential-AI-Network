@@ -1,4 +1,4 @@
-# Security requirements met — NIST & CIS control mapping
+# Security requirements met — NIST, CIS & OWASP control mapping
 
 **Audience:** Security / GRC reviewers, auditors, CISOs, enterprise architects  
 **Scope:** Confidential AI Network (CAN) platform controls (application + multi-cloud deployment patterns)  
@@ -11,7 +11,7 @@
 | App IAM / keys | [../security/README.md](../security/README.md) |
 | Evidence / SIEM | [SIEM_INTEGRATION_FRAMEWORK.md](../production/SIEM_INTEGRATION_FRAMEWORK.md) |
 | India DPDP (Act-specific) | [DPDP_COMPLIANCE_IMPLEMENTATION.md](DPDP_COMPLIANCE_IMPLEMENTATION.md) |
-| Framework editions used here | [**NIST CSF 2.0**](https://csrc.nist.gov/pubs/cswp/29/the-nist-cybersecurity-framework-csf-20/final) · [**NIST SP 800-53 Rev. 5**](https://csrc.nist.gov/pubs/sp/800/53/r5/upd1/final) · [**CIS Controls v8**](https://www.cisecurity.org/controls/v8) |
+| Framework editions used here | [**NIST CSF 2.0**](https://csrc.nist.gov/pubs/cswp/29/the-nist-cybersecurity-framework-csf-20/final) · [**NIST SP 800-53 Rev. 5**](https://csrc.nist.gov/pubs/sp/800/53/r5/upd1/final) · [**CIS Controls v8**](https://www.cisecurity.org/controls/v8) · [**OWASP Top 10**](https://owasp.org/www-project-top-ten/) · [**OWASP LLM Top 10 (2025)**](https://genai.owasp.org/llm-top-10/) |
 
 ---
 
@@ -24,12 +24,15 @@ Use these when validating a mapping row. Inline IDs elsewhere in this file link 
 | **NIST CSF 2.0** | [CSWP 29 (final)](https://csrc.nist.gov/pubs/cswp/29/the-nist-cybersecurity-framework-csf-20/final) · [DOI PDF](https://doi.org/10.6028/NIST.CSWP.29) · [nist.gov/cyberframework](https://www.nist.gov/cyberframework) | [CPRT — CSF 2.0 catalog](https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/CSF_2_0_0/home) (search [`PR.AA`](https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/CSF_2_0_0/home?element=pr.aa), [`GV.RR`](https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/CSF_2_0_0/home?element=gv.rr), …) |
 | **NIST SP 800-53 Rev. 5** | [SP 800-53 Rev. 5 (upd1)](https://csrc.nist.gov/pubs/sp/800/53/r5/upd1/final) · [DOI PDF](https://doi.org/10.6028/NIST.SP.800-53r5) · [Control downloads](https://csrc.nist.gov/projects/risk-management/sp800-53-controls/downloads) | [CPRT — 800-53 Rev. 5.1 catalog](https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_1_1/home) (open control id, e.g. `ac-2`, `ia-2`) |
 | **CIS Controls v8** | [CIS Controls v8 overview](https://www.cisecurity.org/controls/v8) · [Controls list](https://www.cisecurity.org/controls/cis-controls-list) | Per-control pages: [3 Data Protection](https://www.cisecurity.org/controls/data-protection) · [4 Secure Configuration](https://www.cisecurity.org/controls/secure-configuration-of-enterprise-assets-and-software) · [5 Account Management](https://www.cisecurity.org/controls/account-management) · [6 Access Control](https://www.cisecurity.org/controls/access-control-management) · [8 Audit Log Management](https://www.cisecurity.org/controls/audit-log-management) · [11 Data Recovery](https://www.cisecurity.org/controls/data-recovery) · [12 Network Infrastructure](https://www.cisecurity.org/controls/network-infrastructure-management) · [13 Network Monitoring](https://www.cisecurity.org/controls/network-monitoring-and-defense) · [14 Security Awareness](https://www.cisecurity.org/controls/security-awareness-and-skills-training) · [15 Service Provider Management](https://www.cisecurity.org/controls/service-provider-management) · [16 Application Software Security](https://www.cisecurity.org/controls/application-software-security) · [17 Incident Response](https://www.cisecurity.org/controls/incident-response-management) · [18 Penetration Testing](https://www.cisecurity.org/controls/penetration-testing) |
+| **OWASP Top 10** (web / API apps) | [OWASP Top 10 project](https://owasp.org/www-project-top-ten/) · [Top 10:2021](https://owasp.org/Top10/2021/) | Entry pages under [owasp.org/Top10/2021/](https://owasp.org/Top10/2021/) (A01–A10) |
+| **OWASP Top 10 for LLM / GenAI** | [GenAI LLM Top 10 hub](https://genai.owasp.org/llm-top-10/) · [Project home](https://owasp.org/www-project-top-10-for-large-language-model-applications/) · [2025 PDF](https://owasp.org/www-project-top-10-for-large-language-model-applications/assets/PDF/OWASP-Top-10-for-LLMs-v2025.pdf) | LLM01–LLM10 (2025 edition) — see §7 |
 
 **How links are formed in this doc**
 
 - CSF category / outcome (e.g. `PR.AA`, `PR.AA-01`) → CPRT CSF 2.0 catalog with `?element=` (lowercase, e.g. `pr.aa`, `pr.aa-01`).  
 - 800-53 control (e.g. `AC-2`) → CPRT SP 800-53 catalog with `?element=` (lowercase hyphenated, e.g. `ac-2`).  
-- CIS Control *N* → the CIS Controls v8 page for that control family (safeguard-level IDs such as `6.5` open the parent control page).
+- CIS Control *N* → the CIS Controls v8 page for that control family (safeguard-level IDs such as `6.5` open the parent control page).  
+- OWASP web → [Top 10:2021](https://owasp.org/Top10/2021/) entry pages; OWASP LLM → [LLM Top 10 hub](https://genai.owasp.org/llm-top-10/) / [2025 PDF](https://owasp.org/www-project-top-10-for-large-language-model-applications/assets/PDF/OWASP-Top-10-for-LLMs-v2025.pdf).
 
 ---
 
@@ -41,7 +44,8 @@ Use these when validating a mapping row. Inline IDs elsewhere in this file link 
 | **Status** | `Met` = implemented in product or IaC scaffolds; `Partial` = design + partial code; `Design` = pattern complete, apply/opt-in remaining |
 | **NIST CSF 2.0** | Function / Category (e.g. [`PR.AA`](https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/CSF_2_0_0/home?element=pr.aa) = Protect → Identity Management, Authentication, Access Control). Publication: [CSWP 29](https://csrc.nist.gov/pubs/cswp/29/the-nist-cybersecurity-framework-csf-20/final). |
 | **NIST 800-53** | Representative controls (not exhaustive; use for crosswalk). Catalog: [SP 800-53 Rev. 5](https://csrc.nist.gov/pubs/sp/800/53/r5/upd1/final). |
-| **CIS Controls v8** | Safeguard families / IDs (e.g. [`[CIS 5](https://www.cisecurity.org/controls/account-management)`](https://www.cisecurity.org/controls/account-management), [`[CIS 6.5](https://www.cisecurity.org/controls/access-control-management)`](https://www.cisecurity.org/controls/access-control-management)). Overview: [CIS Controls v8](https://www.cisecurity.org/controls/v8). |
+| **CIS Controls v8** | Safeguard families / IDs (e.g. [`CIS 5`](https://www.cisecurity.org/controls/account-management), [`CIS 6`](https://www.cisecurity.org/controls/access-control-management)). Overview: [CIS Controls v8](https://www.cisecurity.org/controls/v8). |
+| **OWASP** | Web app risks ([Top 10:2021](https://owasp.org/Top10/2021/)) and LLM/GenAI risks ([LLM Top 10 2025](https://genai.owasp.org/llm-top-10/)) — see §7 |
 | **Evidence** | Where reviewers look (docs, code, exports) |
 
 **Abbreviations:** TDC / TDP / TSP = Training Data Consumer / Provider / Tech Service Provider; KMS = Key Management Service; WAF = Web Application Firewall; SIEM = Security Information and Event Management; TEE = Trusted Execution Environment; SCITT CCF = Supply Chain Integrity, Transparency and Trust — Confidential Consortium Framework.
@@ -68,6 +72,8 @@ Use these when validating a mapping row. Inline IDs elsewhere in this file link 
 | R14 | Disaster recovery & residency runbooks | Partial | [RC.RP](https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/CSF_2_0_0/home?element=rc.rp), [GV.OC](https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/CSF_2_0_0/home?element=gv.oc) | [CIS 11](https://www.cisecurity.org/controls/data-recovery) |
 | R15 | Privacy / regulated-data handling (DPDP hooks, consent, classification) | Partial | [GV.OC](https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/CSF_2_0_0/home?element=gv.oc), [PR.DS](https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/CSF_2_0_0/home?element=pr.ds) | [CIS 3](https://www.cisecurity.org/controls/data-protection), [CIS 14](https://www.cisecurity.org/controls/security-awareness-and-skills-training) |
 | R16 | Multi-party contract governance before training | Met | [GV.RR](https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/CSF_2_0_0/home?element=gv.rr), [PR.AA](https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/CSF_2_0_0/home?element=pr.aa) | [CIS 5](https://www.cisecurity.org/controls/account-management), [CIS 6](https://www.cisecurity.org/controls/access-control-management) |
+| R17 | OWASP Top 10 (web) addressed in app + edge patterns | Met / Partial | [PR.PS](https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/CSF_2_0_0/home?element=pr.ps), [PR.AA](https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/CSF_2_0_0/home?element=pr.aa) | [CIS 16](https://www.cisecurity.org/controls/application-software-security), [CIS 13](https://www.cisecurity.org/controls/network-monitoring-and-defense) |
+| R18 | OWASP LLM Top 10 (2025) addressed for train / infer / agent gates | Partial | [PR.AA](https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/CSF_2_0_0/home?element=pr.aa), [PR.DS](https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/CSF_2_0_0/home?element=pr.ds) | [CIS 3](https://www.cisecurity.org/controls/data-protection), [CIS 8](https://www.cisecurity.org/controls/audit-log-management) |
 
 ---
 
@@ -181,7 +187,7 @@ Use these when validating a mapping row. Inline IDs elsewhere in this file link 
 | **NIST CSF 2.0** | [`PR.DS-01`](https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/CSF_2_0_0/home?element=pr.ds-01), [`PR.AA-05`](https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/CSF_2_0_0/home?element=pr.aa-05), [`PR.PS-04`](https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/CSF_2_0_0/home?element=pr.ps-04) |
 | **NIST 800-53** | [`SC-12`](https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_1_1/home?element=sc-12), [`SC-13`](https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_1_1/home?element=sc-13), [`AU-2`](https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_1_1/home?element=au-2), [`AU-3`](https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_1_1/home?element=au-3) |
 | **CIS Controls v8** | [`[CIS 3](https://www.cisecurity.org/controls/data-protection)`](https://www.cisecurity.org/controls/data-protection), [`[CIS 5](https://www.cisecurity.org/controls/account-management)`](https://www.cisecurity.org/controls/account-management), [`[CIS 8](https://www.cisecurity.org/controls/audit-log-management)`](https://www.cisecurity.org/controls/audit-log-management) |
-| **Evidence** | [PARTICIPANT_ONBOARDING_AND_E2E_LIFECYCLE.md](../guides/PARTICIPANT_ONBOARDING_AND_E2E_LIFECYCLE.md) · contract `kmsConfigs` / `environmentSpecs` · OCI mock product tour |
+| **Evidence** | [PARTICIPANT_ONBOARDING_AND_E2E_LIFECYCLE.md](../guides/PARTICIPANT_ONBOARDING_AND_E2E_LIFECYCLE.md) · contract `kmsConfigs` / `environmentSpecs` · [Azure CC deep dive](https://gitmujoshi.github.io/Confidential-AI-Network/security/2026/08/17/azure-confidential-computing-deep-dive/) · product tour (Local) |
 
 ---
 
@@ -293,7 +299,7 @@ Use these when validating a mapping row. Inline IDs elsewhere in this file link 
 | **NIST CSF 2.0** | [`GV.RR-02`](https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/CSF_2_0_0/home?element=gv.rr-02), [`GV.PO-02`](https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/CSF_2_0_0/home?element=gv.po-02), [`PR.AA-05`](https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/CSF_2_0_0/home?element=pr.aa-05) |
 | **NIST 800-53** | [`AC-3`](https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_1_1/home?element=ac-3), [`AU-2`](https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_1_1/home?element=au-2), [`SA-9`](https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_1_1/home?element=sa-9) |
 | **CIS Controls v8** | [`[CIS 5](https://www.cisecurity.org/controls/account-management)`](https://www.cisecurity.org/controls/account-management), [`[CIS 6](https://www.cisecurity.org/controls/access-control-management)`](https://www.cisecurity.org/controls/access-control-management), [`[CIS 15](https://www.cisecurity.org/controls/service-provider-management)`](https://www.cisecurity.org/controls/service-provider-management) |
-| **Evidence** | Contract state machine · lifecycle user guide · OCI product tour contract step |
+| **Evidence** | Contract state machine · lifecycle user guide · product tour contract step |
 
 ---
 
@@ -350,18 +356,75 @@ Use these when validating a mapping row. Inline IDs elsewhere in this file link 
 
 ---
 
-## 7. What this document does *not* claim
+## 7. OWASP — web Top 10 and LLM Top 10 (how CAN addresses them)
 
-- Formal **SOC 2 Type II**, **ISO/IEC 27001**, **FedRAMP**, or **CIS Benchmark** certification of a named tenancy  
-- Completeness of every 800-53 control (representative crosswalk only)  
-- That Keycloak local demos equal production identity posture  
-- That confidential-compute attestation is live on every cloud without enabling TEE products and policy  
+CAN is primarily a **contract-governed multi-party training / inference platform**, not a chatbot SaaS. Reviewers still ask how [OWASP Top 10](https://owasp.org/www-project-top-ten/) (classic web/API) and [OWASP Top 10 for LLM Applications 2025](https://genai.owasp.org/llm-top-10/) apply—especially where NLP models, inference APIs, and **Open-GMASE** agent/tool gates appear.
 
-Customer GRC teams should import this matrix into their GRC tool and attach **environment-specific evidence** (Terraform plan applies, IdP MFA screenshots, SIEM sample events, SCITT receipts).
+**Status legend (same as §1):** `Met` / `Partial` / `Design` / `N/A (out of product scope)` with honesty notes.
+
+### 7.1 OWASP Top 10:2021 (web / API application)
+
+Official list: [OWASP Top 10:2021](https://owasp.org/Top10/2021/).
+
+| ID | Risk | CAN status | How addressed (evidence) |
+|----|------|------------|---------------------------|
+| [A01:2021](https://owasp.org/Top10/2021/A01_2021-Broken_Access_Control/) | Broken Access Control | **Met** | Party roles (TDC/TDP/TSP/AppAdmin/Auditor); API `requireRole` / contract party checks; train only if contract **SIGNED** · [IAM](../security/IAM_SPECIFICATIONS.md) · R2, R16 |
+| [A02:2021](https://owasp.org/Top10/2021/A02_2021-Cryptographic_Failures/) | Cryptographic Failures | **Met** | TLS at edge; CMK / Vault / KMS paths; DEK/MEK escrow design · R7, R8 · [KEY_MANAGEMENT_DESIGN](../security/KEY_MANAGEMENT_DESIGN.md) |
+| [A03:2021](https://owasp.org/Top10/2021/A03_2021-Injection/) | Injection | **Met (pattern) / Partial** | Parameterized APIs / ORM; edge **OWASP CRS** WAF (OCI/Azure/GCP edge docs) · R5 · [OCI IAM & edge](../deployment/OCI_IAM_AND_EDGE_CONFIG.md) |
+| [A04:2021](https://owasp.org/Top10/2021/A04_2021-Insecure_Design/) | Insecure Design | **Met / Partial** | Ricardian dual-layer + fail-closed Open-GMASE side-effect gates; clean-room / TEE target path · R9, R16 · [Ricardian blog](https://gitmujoshi.github.io/Confidential-AI-Network/product/2026/08/16/ricardian-contracts-in-can/) |
+| [A05:2021](https://owasp.org/Top10/2021/A05_2021-Security_Misconfiguration/) | Security Misconfiguration | **Met (pattern)** | Env isolation, hardened K8s patterns, no long-lived keys in pods · R3, R6 · P3/P6/P10 |
+| [A06:2021](https://owasp.org/Top10/2021/A06_2021-Vulnerable_and_Outdated_Components/) | Vulnerable Components | **Partial** | Container images / dependency updates are operator responsibility; IaC + image pinning patterns · R13 |
+| [A07:2021](https://owasp.org/Top10/2021/A07_2021-Identification_and_Authentication_Failures/) | Identification & Authentication Failures | **Met** | Cloud IdP / MFA-ready human identity; Keycloak local-only · R1 |
+| [A08:2021](https://owasp.org/Top10/2021/A08_2021-Software_and_Data_Integrity_Failures/) | Software & Data Integrity Failures | **Met / Partial** | Contract hash + signatures; SCITT claims; Merkle audit trees; provenance reports · R11 · [Merkle / Auditor](https://gitmujoshi.github.io/Confidential-AI-Network/security/2026/08/16/merkle-trees-model-audit/) |
+| [A09:2021](https://owasp.org/Top10/2021/A09_2021-Security_Logging_and_Monitoring_Failures/) | Security Logging & Monitoring Failures | **Met (framework)** | AuditLogs, SIEM export framework, GMASE decision ingest · R12 · [SIEM_INTEGRATION_FRAMEWORK](../production/SIEM_INTEGRATION_FRAMEWORK.md) |
+| [A10:2021](https://owasp.org/Top10/2021/A10_2021-Server-Side_Request_Forgery/) | SSRF | **Partial / Design** | Private data plane / no public DB; WAF; restrict egress in TSP environments (cloud pattern) · R4, R5 |
+
+### 7.2 OWASP Top 10 for LLM Applications 2025
+
+Official: [GenAI LLM Top 10](https://genai.owasp.org/llm-top-10/) · [2025 PDF](https://owasp.org/www-project-top-10-for-large-language-model-applications/assets/PDF/OWASP-Top-10-for-LLMs-v2025.pdf).
+
+CAN’s NLP path (e.g. DistilBERT / AG News) is **contract-bound train + local/API inference**, not an open-ended chat agent with tools. **Open-GMASE** and CompliancePulse cover **agentic** side effects when those stacks are used together.
+
+| ID | Risk | CAN status | How addressed |
+|----|------|------------|---------------|
+| **LLM01:2025** Prompt Injection | **Partial** | Inference accepts structured JSON (e.g. `{ "text": "…" }`), not a free-form privileged “system+tools” chat loop. Open-GMASE **does not** treat prompts as the auth boundary—side effects need OPA ALLOW ([demo slice](https://gitmujoshi.github.io/Confidential-AI-Network/guides/2026/08/14/can-gmase-demo-slice/)). Full prompt-firewall for agent swarms is Open-GMASE / customer LLM gateway scope. |
+| **LLM02:2025** Sensitive Information Disclosure | **Met / Partial** | No bulk plaintext lake; catalog + ciphertext; DEK/MEK escrow; contract privacy / DP options; provenance leaves avoid raw PII prompts · R7–R9, R15 · [KMS](https://gitmujoshi.github.io/Confidential-AI-Network/security/2026/08/16/can-kms-dek-mek-escrow/) |
+| **LLM03:2025** Supply Chain | **Partial** | Catalog models + pinned trainer images; contract binds `aiModelIds`; IaC for infra. Continuous SBOM/CVE gating is operator CI · R6, R13 |
+| **LLM04:2025** Data and Model Poisoning | **Met / Partial** | TDP-owned datasets, multi-party **SIGNED** before train, residency/classification hooks; Auditor Merkle trail for lineage. Does **not** replace statistical poisoning detection · R11, R16 |
+| **LLM05:2025** Improper Output Handling | **Partial** | Inference UI/API returns labels/scores as JSON; treat outputs as untrusted in downstream automation. XSS/HTML encoding is app hardening (ongoing). |
+| **LLM06:2025** Excessive Agency | **Met** (with Open-GMASE) | Train / deploy / predict are **fail-closed OPA gates** (`open_gmase/can_contracts`); agents must not get “role implies any tool” · R16 · [CAN ↔ G-MASE demo slice](https://gitmujoshi.github.io/Confidential-AI-Network/guides/2026/08/14/can-gmase-demo-slice/) |
+| **LLM07:2025** System Prompt Leakage | **N/A → Partial** | Classic local classifiers have no secret system prompt. Where LLM gateways are added, keep secrets in Vault/KMS—not in prompt text (design). |
+| **LLM08:2025** Vector and Embedding Weaknesses | **N/A / Design** | Current demo slice is not a multi-tenant RAG vector store. If RAG is added: isolate indexes per contract/tenant (design). |
+| **LLM09:2025** Misinformation | **Partial** | Governance + provenance prove **what was trained/served**, not that labels are “true.” Human/Auditor review + contract purpose limitation · [Merkle](https://gitmujoshi.github.io/Confidential-AI-Network/security/2026/08/16/merkle-trees-model-audit/) |
+| **LLM10:2025** Unbounded Consumption | **Partial** | Contract `trainingParams` (run limits); API rate limits at edge WAF/APIGW patterns; inference timeouts. Per-tenant LLM cost caps are operator/cloud concern. |
+
+### 7.3 Crosswalk — OWASP LLM ↔ CAN requirements
+
+| LLM risk | Closest CAN requirements | Closest NIST CSF (sample) |
+|----------|--------------------------|---------------------------|
+| LLM01, LLM06 | R16, Open-GMASE gates | PR.AA, GV.RR |
+| LLM02, LLM04 | R7, R8, R9, R15, R16 | PR.DS, PR.IR |
+| LLM03 | R6, R13 | PR.PS, ID.RA |
+| LLM05, LLM09 | R11, Auditor | ID.IM, RS.AN |
+| LLM07, LLM08 | Design / N/A today | PR.DS |
+| LLM10 | R5, R16 | PR.PS, DE.CM |
 
 ---
 
-## 8. Related compliance docs
+## 8. What this document does *not* claim
+
+- Formal **SOC 2 Type II**, **ISO/IEC 27001**, **FedRAMP**, **CIS Benchmark**, or **OWASP** certification of a named tenancy  
+- Completeness of every 800-53 control (representative crosswalk only)  
+- That Keycloak local demos equal production identity posture  
+- That confidential-compute attestation is live on every cloud without enabling TEE products and policy  
+- That DistilBERT / tabular demos equal a full multi-tenant LLM chatbot or RAG product  
+- That Open-GMASE gates alone stop every prompt-injection against a future tool-using agent without additional LLM gateway controls  
+
+Customer GRC teams should import this matrix into their GRC tool and attach **environment-specific evidence** (Terraform plan applies, IdP MFA screenshots, SIEM sample events, SCITT receipts, OPA decision logs).
+
+---
+
+## 9. Related compliance docs
 
 | Doc | Role |
 |-----|------|
@@ -369,13 +432,15 @@ Customer GRC teams should import this matrix into their GRC tool and attach **en
 | [DEPA_INTEGRATION_GUIDE.md](../guides/DEPA_INTEGRATION_GUIDE.md) | iSPIRT DEPA-aligned IDs (architecture — not DPDP) |
 | [SECURITY_GUIDE.md](../production/SECURITY_GUIDE.md) | App-layer security practices |
 | [MULTI_CLOUD_SECURITY_ARCHITECTURE_PATTERNS.md](../production/MULTI_CLOUD_SECURITY_ARCHITECTURE_PATTERNS.md) | Control objectives P1–P12 |
+| [AUDITOR_ROLE.md](../features/AUDITOR_ROLE.md) | Merkle audit / contract review (integrity evidence) |
 
 ---
 
-## 9. Document history
+## 10. Document history
 
 | Date | Change |
 |------|--------|
+| 2026-08-16 | Added OWASP Top 10:2021 and OWASP LLM Top 10 (2025) how-addressed matrices (R17–R18) |
 | 2026-08-16 | Added official NIST CSF / SP 800-53 / CIS Controls catalog links and clickable control IDs |
 | 2026-07-28 | Initial requirements-met matrix with NIST CSF 2.0, NIST SP 800-53 Rev. 5, and CIS Controls v8 mappings |
 

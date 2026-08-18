@@ -130,9 +130,10 @@ permalink: /
   <p>
     Prefer screenshots?
     <a href="{{ '/product-tour/' | relative_url }}">Walk the full UI path</a>
-    from party registration through training, provenance, and a live prediction —
-    on <a href="{{ '/product-tour/#local' | relative_url }}">Local</a> and
-    <a href="{{ '/product-tour/#oci' | relative_url }}">OCI</a>.
+    from party registration through training, provenance, and a live prediction
+    on the <a href="{{ '/product-tour/#local' | relative_url }}">Local path</a>.
+    For Azure confidential compute (threat model, Key Vault, Secure Key Release):
+    <a href="{% post_url 2026-08-17-azure-confidential-computing-deep-dive %}">Azure deep dive</a>.
   </p>
 </section>
 
@@ -212,6 +213,10 @@ permalink: /
     <p class="group-lede">Keys, clean-room decrypt gates, and tamper-evident audit when models misbehave.</p>
     <ol class="post-list ordered">
       <li>
+        <a href="{% post_url 2026-08-17-azure-confidential-computing-deep-dive %}">Azure confidential computing for CAN — threat model, Key Vault, SKR, e2e training</a>
+        <p class="meta">August 17, 2026 · Attestation · Secure Key Release · dual-key escrow on Azure</p>
+      </li>
+      <li>
         <a href="{% post_url 2026-08-16-can-kms-dek-mek-escrow %}">KMS for Confidential AI Network — DEK, MEK, and dual-key escrow</a>
         <p class="meta">August 16, 2026 · Principal-owned keys · escrow · cloud KMS</p>
       </li>
@@ -285,6 +290,10 @@ permalink: /
     <p class="group-lede">Deployment-shaped notes for cloud identity and edge controls.</p>
     <ol class="post-list ordered">
       <li>
+        <a href="{% post_url 2026-08-17-azure-confidential-computing-deep-dive %}">Azure confidential computing for CAN — threat model, Key Vault, SKR, e2e training</a>
+        <p class="meta">August 17, 2026 · Attestation · Secure Key Release · dual-key train path</p>
+      </li>
+      <li>
         <a href="{% post_url 2026-08-16-azure-e2e-product-tour-deck %}">Azure GA product tour deck — Entra to governed prediction</a>
         <p class="meta">August 16, 2026 · Presentable E2E deck · <a href="{{ '/assets/decks/azure-e2e-product-tour.html' | relative_url }}">open slides</a></p>
       </li>
@@ -297,14 +306,14 @@ permalink: /
 
   <div class="post-group" id="series-compliance">
     <h3>Compliance &amp; documentation map</h3>
-    <p class="group-lede">Where reviewers find controls evidence and how requirements map to NIST and CIS.</p>
+    <p class="group-lede">Where reviewers find controls evidence and how requirements map to NIST, CIS, and OWASP (incl. LLM).</p>
     <ol class="post-list ordered">
       <li>
         <a href="{% post_url 2026-07-28-security-docs-map %}">Where to find CAN security docs (map for reviewers)</a>
         <p class="meta">July 28, 2026 · Docs index</p>
       </li>
       <li>
-        <a href="{% post_url 2026-07-28-nist-cis-controls-mapping %}">Requirements met — NIST CSF, SP 800-53, and CIS Controls mapping</a>
+        <a href="{% post_url 2026-07-28-nist-cis-controls-mapping %}">Requirements met — NIST, CIS &amp; OWASP (incl. LLM) mapping</a>
         <p class="meta">July 28, 2026 · GRC mapping</p>
       </li>
     </ol>

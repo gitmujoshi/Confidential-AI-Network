@@ -14,9 +14,9 @@ Reviewers often ask “where is the security story?” Here is the map.
 
 Start at [docs/security/](https://github.com/gitmujoshi/Confidential-AI-Network/tree/main/docs/security): IAM design, key management, secrets, user auth architecture.
 
-## GRC — requirements met (NIST & CIS)
+## GRC — requirements met (NIST, CIS & OWASP)
 
-For auditors and GRC reviewers: [SECURITY_CONTROLS_NIST_CIS_MAPPING](https://github.com/gitmujoshi/Confidential-AI-Network/blob/main/docs/compliance/SECURITY_CONTROLS_NIST_CIS_MAPPING.md) maps CAN requirements to **NIST CSF 2.0**, **NIST SP 800-53 Rev. 5**, and **CIS Controls v8**, with evidence links.
+For auditors and GRC reviewers: [SECURITY_CONTROLS_NIST_CIS_MAPPING](https://github.com/gitmujoshi/Confidential-AI-Network/blob/main/docs/compliance/SECURITY_CONTROLS_NIST_CIS_MAPPING.md) maps CAN requirements to **NIST CSF 2.0**, **NIST SP 800-53 Rev. 5**, **CIS Controls v8**, **OWASP Top 10:2021**, and **OWASP LLM Top 10 (2025)**, with evidence links.
 
 ## Cloud deployment security
 
@@ -43,6 +43,7 @@ Blog companions:
 - [Ricardian contracts in CAN]({% post_url 2026-08-16-ricardian-contracts-in-can %})
 - [KMS — DEK, MEK, dual-key escrow]({% post_url 2026-08-16-can-kms-dek-mek-escrow %})
 - [TEE — attest, verify contract, decrypt]({% post_url 2026-08-16-can-tee-attest-decrypt-train %})
+- [Azure confidential computing — threat model, Key Vault, SKR]({% post_url 2026-08-17-azure-confidential-computing-deep-dive %})
 - [Merkle trees for model audit]({% post_url 2026-08-16-merkle-trees-model-audit %})
 
 This blog is for **orientation**; the markdown files above remain the source of truth for implementation.

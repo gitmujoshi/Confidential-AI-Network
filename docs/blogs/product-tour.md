@@ -1,7 +1,7 @@
 ---
 layout: default
 title: Product tour
-description: End-to-end UI tour — from registration to a live prediction on OCI (Vault KMS + confidential compute) and on Local Docker.
+description: End-to-end UI tour — from registration to a live prediction on Local Docker, with Azure as the GA cloud path (Entra, Key Vault, confidential compute).
 permalink: /product-tour/
 ---
 
@@ -9,16 +9,17 @@ permalink: /product-tour/
   <p class="eyebrow">Product tour · UI from end-to-end tests</p>
   <h1>From registration to a live prediction</h1>
   <p class="lede">
-    The same multi-party path on two execution environments:
-    <strong>OCI</strong> (Identity Domains, OCI Vault KMS, confidential compute on OKE — TSP
-    <code>tsp.oci.e2e@test.com</code> / SecureClean Rooms) and
-    <strong>Local Docker</strong> (Playwright lifecycle guide against a live stack).
-    Onboard parties, publish data, agree and sign a contract, train, inspect logs and provenance,
+    Walk the multi-party path on a live
+    <strong>Local Docker</strong> stack (Playwright lifecycle guide):
+    onboard parties, publish data, agree and sign a contract, train, inspect logs and provenance,
     deploy and test the model, then let an <strong>Auditor</strong> verify the Merkle audit tree
     and the governing contract.
+    For the <strong>Azure GA</strong> narrative (Entra, Key Vault, confidential compute), use the
+    slide deck and the Azure confidential-computing deep dive.
   </p>
   <p class="cta-row" style="margin-top:1.25rem">
     <a class="cta" href="{{ '/assets/decks/azure-e2e-product-tour.html' | relative_url }}">Azure GA slide deck</a>
+    <a class="cta cta-secondary" href="{% post_url 2026-08-17-azure-confidential-computing-deep-dive %}">Azure confidential computing</a>
     <a class="cta cta-secondary" href="{% post_url 2026-08-16-azure-e2e-product-tour-deck %}">Azure deck notes</a>
   </p>
 </section>
@@ -26,9 +27,11 @@ permalink: /product-tour/
 <section class="home-section">
   <h2>What you will see</h2>
   <p>
-    <a href="#oci"><strong>OCI path</strong></a>
+    <a href="#local"><strong>Local path</strong></a>
+    (runnable screenshots)
     ·
-    <a href="#local">Local path</a>
+    <a href="{% post_url 2026-08-17-azure-confidential-computing-deep-dive %}">Azure confidential computing</a>
+    (threat model · KMS · Secure Key Release · e2e train)
   </p>
   <ol class="tour-toc">
     <li>Party registration — Training Data Consumer, Training Data Provider, Tech Service Provider</li>
@@ -45,94 +48,19 @@ permalink: /product-tour/
     ·
     <a href="https://github.com/gitmujoshi/Confidential-AI-Network/blob/main/docs/guides/PARTICIPANT_ONBOARDING_AND_E2E_LIFECYCLE.md">Participant onboarding &amp; E2E lifecycle</a>
     ·
-    <a href="https://github.com/gitmujoshi/Confidential-AI-Network/blob/main/docs/deployment/OCI_DESIGN_COMPLETE.md">OCI design complete</a>.
+    <a href="https://github.com/gitmujoshi/Confidential-AI-Network/blob/main/docs/production/AZURE_SECURITY_ARCHITECTURE.md">Azure security architecture</a>.
   </p>
-</section>
-
-<section class="home-section" id="oci">
-  <h2>OCI path</h2>
-  <p>
-    Full multi-party tour with the <strong>OCI infrastructure TSP</strong>
-    (<strong>SecureClean Rooms LLC</strong> · <code>tsp.oci.e2e@test.com</code>):
-    confidential-vm on OKE, OCI Vault KMS, Identity Domains SSO, Object Storage ciphertext,
-    and SPIFFE-gated key release.
-    Live UI walkthrough: <code>/demo/oci-scaffolds</code>
-    (design complete — no live tenancy required for the demo screens).
-  </p>
-</section>
-
-<section class="home-section tour-section" id="oci-onboard">
-  <h2>1. Party registration (OCI)</h2>
-  <p>
-    TDC, TDP, and TSP register with OCI IAM Identity Domains. Signing keys and secrets use OCI Vault.
-    The TSP is <strong>SecureClean Rooms</strong> — an OCI infrastructure provider offering confidential compute on OKE.
-  </p>
-  <figure class="shot">
-    <img src="{{ '/assets/oci/01-registration.png' | relative_url }}" alt="OCI path — party registration; TSP is SecureClean Rooms on OCI" loading="lazy" />
-    <figcaption>Enterprise registration — TDC, TDP, and OCI TSP (SecureClean Rooms / tsp.oci.e2e@test.com)</figcaption>
-  </figure>
-</section>
-
-<section class="home-section tour-section" id="oci-catalog">
-  <h2>2. Dataset &amp; model catalog (OCI)</h2>
-  <p>TDP publishes a dataset to Object Storage; TDC selects dataset and catalog model for the contract.</p>
-  <figure class="shot">
-    <img src="{{ '/assets/oci/02-catalog.png' | relative_url }}" alt="OCI path — dataset and model catalog" loading="lazy" />
-    <figcaption>Catalog — Object Storage dataset + DistilBERT model selection</figcaption>
-  </figure>
-</section>
-
-<section class="home-section tour-section" id="oci-contract">
-  <h2>3. Contract creation &amp; signing (OCI)</h2>
-  <p>
-    Contract binds <code>tspCloudProvider=OCI</code>, TSP <strong>SecureClean Rooms</strong>, confidential-vm compute,
-    Object Storage buckets, and OCI Vault KMS. All parties sign before training.
-  </p>
-  <figure class="shot">
-    <img src="{{ '/assets/oci/03-contract.png' | relative_url }}" alt="OCI path — signed contract with SecureClean Rooms TSP and Vault KMS" loading="lazy" />
-    <figcaption>Signed contract — TSP SecureClean Rooms (OCI · OCI_VAULT), Vault OCID, SPIFFE</figcaption>
-  </figure>
-</section>
-
-<section class="home-section tour-section" id="oci-train">
-  <h2>4. Training &amp; run logs (OCI)</h2>
-  <p>
-    TDC starts an <code>oci-oke-job</code>. Runner logs echo the same Vault OCID, SPIFFE ID, and buckets
-    as the contract.
-  </p>
-  <figure class="shot">
-    <img src="{{ '/assets/oci/04-training.png' | relative_url }}" alt="OCI path — training job and runner logs" loading="lazy" />
-    <figcaption>Training completed — environment summary and OKE runner log</figcaption>
-  </figure>
-</section>
-
-<section class="home-section tour-section" id="oci-provenance">
-  <h2>5. Provenance (OCI)</h2>
-  <p>
-    Audit bundle includes <code>contract.environmentSpecs</code>, <code>kmsConfigs</code>, and
-    <code>trainingJobs.environmentSummary</code> with OCI Vault and confidential compute detail.
-  </p>
-  <figure class="shot">
-    <img src="{{ '/assets/oci/05-provenance.png' | relative_url }}" alt="OCI path — provenance audit report" loading="lazy" />
-    <figcaption>Provenance audit report</figcaption>
-  </figure>
-</section>
-
-<section class="home-section tour-section" id="oci-infer">
-  <h2>6. Deploy &amp; test the model (OCI)</h2>
-  <p>Register the artifact, deploy inference, and run a prediction — same end state as the Local path.</p>
-  <figure class="shot">
-    <img src="{{ '/assets/oci/06-deploy-predict.png' | relative_url }}" alt="OCI path — deployed model and prediction result" loading="lazy" />
-    <figcaption>Deployed inference — prediction result (Business / AG News demo)</figcaption>
-  </figure>
 </section>
 
 <section class="home-section" id="local">
   <h2>Local path</h2>
   <p>
-    Parallel tour captured from a real local run (<code>TRAINING_EXECUTION_MODE=local-docker</code>).
-    TSP here is the <strong>Local</strong> clean-room provider (not the OCI infrastructure TSP above).
+    Tour captured from a real local run (<code>TRAINING_EXECUTION_MODE=local-docker</code>).
+    TSP here is the <strong>Local</strong> clean-room provider.
     Screenshots from the Playwright lifecycle guide.
+    This path proves contracts, training UX, provenance, inference, and Auditor review —
+    it is <strong>not</strong> a hardware TEE. For Azure confidential VMs, Key Vault, and Secure Key Release,
+    see the <a href="{% post_url 2026-08-17-azure-confidential-computing-deep-dive %}">Azure deep dive</a>.
   </p>
 </section>
 
@@ -324,9 +252,6 @@ permalink: /product-tour/
 
 <section class="home-section">
   <h2>How these screenshots are produced</h2>
-  <p>OCI path (frontend demo at <code>/demo/oci-scaffolds</code>):</p>
-  <pre class="arch-diagram" style="white-space: pre-wrap;">cd frontend
-npm run test:e2e:oci-demo</pre>
   <p>Local path (full stack — backend, frontend, Keycloak, trainer):</p>
   <pre class="arch-diagram" style="white-space: pre-wrap;">cd frontend
 BACKEND_URL=http://127.0.0.1:5001 npm run test:e2e:lifecycle-guide</pre>
@@ -338,8 +263,7 @@ BACKEND_URL=http://127.0.0.1:5001 npm run test:e2e:auditor-guide</pre>
 E2E_WAIT_FOR_LOCAL_TRAINING=true BACKEND_URL=http://127.0.0.1:5001 npm run test:e2e:inference</pre>
   <p>
     Images live in
-    <code>docs/guides/oci-scaffold-demo/screenshots/</code>,
-    <code>docs/guides/lifecycle-user-guide/screenshots/</code>,
+    <code>docs/guides/lifecycle-user-guide/screenshots/</code>
     and
     <code>docs/guides/gmase-integration/screenshots/</code>,
     and are copied into this site at Pages build time.
