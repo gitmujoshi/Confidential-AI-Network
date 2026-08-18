@@ -26,9 +26,10 @@ Interactive users (Training Data Consumer, Training Data Provider, Tech Service 
 
 ## 2. Workloads calling cloud control planes
 
-Pods and jobs need Vault, Object Storage, and registries **without static API keys**.
-On Oracle Cloud that is **OKE Workload Identity** and/or **IAM Workload Identity Federation**
-(SPIRE issues a short-lived JWT identity document, exchanged for a short-lived OCI session token).
+Pods and jobs need Key Vault, Blob, and registries **without static API keys**.
+On Azure that is **AKS Workload Identity** and/or **Entra Workload Identity Federation**
+(SPIRE issues a short-lived JWT-SVID, exchanged for a short-lived Entra access token).
+On Oracle Cloud that is **OKE Workload Identity** and/or **IAM Workload Identity Federation**.
 
 ## 3. Workload-to-workload Zero Trust
 
@@ -38,6 +39,7 @@ SPIFFE does not replace Trusted Execution Environment attestation for data/model
 
 ## Read the design
 
-- [OCI SPIFFE/SPIRE + Workload Identity Federation](https://github.com/gitmujoshi/Confidential-AI-Network/blob/main/docs/deployment/OCI_SPIFFE_SPIRE_WIF.md)
+- [Azure SPIFFE/SPIRE + Entra Workload Identity Federation](https://github.com/gitmujoshi/Confidential-AI-Network/blob/main/docs/deployment/AZURE_SPIFFE_SPIRE_WIF.md) · [blog]({% post_url 2026-08-17-spiffe-spire-azure-wif %})
+- [OCI SPIFFE/SPIRE + Workload Identity Federation](https://github.com/gitmujoshi/Confidential-AI-Network/blob/main/docs/deployment/OCI_SPIFFE_SPIRE_WIF.md) · [blog]({% post_url 2026-07-28-spiffe-spire-oci-wif %})
 - [OCI Security Architecture](https://github.com/gitmujoshi/Confidential-AI-Network/blob/main/docs/production/OCI_SECURITY_ARCHITECTURE.md)
 - [Azure Security Architecture](https://github.com/gitmujoshi/Confidential-AI-Network/blob/main/docs/production/AZURE_SECURITY_ARCHITECTURE.md)

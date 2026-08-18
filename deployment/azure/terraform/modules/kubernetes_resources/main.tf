@@ -14,22 +14,28 @@ resource "kubernetes_config_map" "app_config" {
   }
 
   data = {
-    NODE_ENV            = var.environment
-    APP_DOMAIN          = var.app_domain
-    APP_VERSION         = var.release_version
-    IMAGE_TAG           = var.image_tag
-    AUTH_PROVIDER       = "entra"
-    KEYCLOAK_ENABLED    = "false"
-    ENTRA_TENANT_ID     = var.entra_tenant_id
-    ENTRA_CLIENT_ID     = var.entra_client_id
-    ENTRA_API_CLIENT_ID = var.entra_api_client_id
-    ENTRA_AUTHORITY     = var.entra_authority
-    ENTRA_ISSUER        = var.entra_issuer
-    ENTRA_API_AUDIENCE  = var.entra_api_audience
-    ENTRA_API_SCOPE     = var.entra_api_scope
-    ENTRA_JWKS_URL      = var.entra_jwks_url
-    ENTRA_ROLE_CLAIM    = var.entra_role_claim
-    ENTRA_REDIRECT_URI  = var.entra_redirect_uri != "" ? var.entra_redirect_uri : "https://${var.app_domain}/login"
+    NODE_ENV                          = var.environment
+    APP_DOMAIN                        = var.app_domain
+    APP_VERSION                       = var.release_version
+    IMAGE_TAG                         = var.image_tag
+    AUTH_PROVIDER                     = "entra"
+    KEYCLOAK_ENABLED                  = "false"
+    ENTRA_TENANT_ID                   = var.entra_tenant_id
+    ENTRA_CLIENT_ID                   = var.entra_client_id
+    ENTRA_API_CLIENT_ID               = var.entra_api_client_id
+    ENTRA_AUTHORITY                   = var.entra_authority
+    ENTRA_ISSUER                      = var.entra_issuer
+    ENTRA_API_AUDIENCE                = var.entra_api_audience
+    ENTRA_API_SCOPE                   = var.entra_api_scope
+    ENTRA_JWKS_URL                    = var.entra_jwks_url
+    ENTRA_ROLE_CLAIM                  = var.entra_role_claim
+    ENTRA_REDIRECT_URI                = var.entra_redirect_uri != "" ? var.entra_redirect_uri : "https://${var.app_domain}/login"
+    AZURE_KEY_VAULT_URI               = var.key_vault_uri
+    AZURE_STORAGE_ACCOUNT             = var.storage_account_name
+    AZURE_STORAGE_DATASETS_CONTAINER  = var.blob_datasets_container
+    AZURE_STORAGE_OUTPUTS_CONTAINER   = var.blob_outputs_container
+    AZURE_STORAGE_ARTIFACTS_CONTAINER = var.blob_artifacts_container
+    AZURE_USE_WORKLOAD_IDENTITY       = var.workload_identity_enabled ? "true" : "false"
   }
 }
 
@@ -63,6 +69,19 @@ resource "kubernetes_secret" "entra_identity_secret" {
   type = "Opaque"
 }
 
+resource "kubernetes_service_account" "backend" {
+  metadata {
+    name      = "backend"
+    namespace = kubernetes_namespace.app.metadata[0].name
+    annotations = var.workload_identity_enabled && var.backend_workload_client_id != "" ? {
+      "azure.workload.identity/client-id" = var.backend_workload_client_id
+    } : {}
+    labels = var.workload_identity_enabled ? {
+      "azure.workload.identity/use" = "true"
+    } : {}
+  }
+}
+
 resource "kubernetes_deployment" "backend" {
   metadata {
     name      = "backend"
@@ -79,10 +98,15 @@ resource "kubernetes_deployment" "backend" {
 
     template {
       metadata {
-        labels = { app = "backend" }
+        labels = merge(
+          { app = "backend" },
+          var.workload_identity_enabled ? { "azure.workload.identity/use" = "true" } : {}
+        )
       }
 
       spec {
+        service_account_name = kubernetes_service_account.backend.metadata[0].name
+
         container {
           name  = "backend"
           image = "${var.registry_url}/backend:${var.image_tag}"

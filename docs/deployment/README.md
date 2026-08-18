@@ -57,6 +57,7 @@ Need production? ──no──► getting-started/QUICK_START.md + ./start-syst
 | [../production/AZURE_SECURITY_ARCHITECTURE.md](../production/AZURE_SECURITY_ARCHITECTURE.md) | Security architecture + **step-by-step new Azure env setup** |
 | [AZURE_FEATURES_AND_CONFIGURATION.md](AZURE_FEATURES_AND_CONFIGURATION.md) | **Feature catalog + env/settings** (Entra, KV, DEK/MEK, train, Blob, SCITT) |
 | [AZURE_IAM_AND_EDGE_CONFIG.md](AZURE_IAM_AND_EDGE_CONFIG.md) | **Entra ID, RBAC, Front Door, APIM, WAF** (implementation reference) |
+| [AZURE_SPIFFE_SPIRE_WIF.md](AZURE_SPIFFE_SPIRE_WIF.md) | **SPIFFE/SPIRE + AKS WI / Entra federation** (workload identity design) |
 | [AZURE_READINESS.md](AZURE_READINESS.md) | Honest assessment: what is / isn't ready for Azure |
 | [../../config/examples/config.azure.env.example](../../config/examples/config.azure.env.example) | Azure env var template (target) |
 | [../../deployment/azure/terraform/README.md](../../deployment/azure/terraform/README.md) | Terraform modules (AKS, PostgreSQL, ACR) |

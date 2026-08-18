@@ -19,6 +19,8 @@ This is the stakeholder / customer narrative for **CAN on Azure** when the deplo
 | UI screenshot tour | [Product tour]({{ '/product-tour/' | relative_url }}) (Local path; Azure captures at GA) |
 | Azure Entra architecture | [Azure security architecture]({% post_url 2026-07-28-azure-entra-security-architecture %}) |
 | Azure confidential computing | [Threat model · Key Vault · SKR · e2e train]({% post_url 2026-08-17-azure-confidential-computing-deep-dive %}) |
+| SPIFFE / Workload Identity | [SPIFFE/SPIRE on Azure]({% post_url 2026-08-17-spiffe-spire-azure-wif %}) |
+| Azure Terraform (pilot) | [deployment/azure/terraform](https://github.com/gitmujoshi/Confidential-AI-Network/blob/main/deployment/azure/terraform/README.md) — KV, Blob, AKS WI |
 | KMS / TEE | [DEK·MEK escrow]({% post_url 2026-08-16-can-kms-dek-mek-escrow %}) · [TEE attest → decrypt]({% post_url 2026-08-16-can-tee-attest-decrypt-train %}) |
 
 **Inspired by iSPIRT [DEPA](https://depa.world)** — use-bound sharing with evidence, not a central data lake.

@@ -117,7 +117,7 @@ Deep dive: [multi-cloud security patterns](https://github.com/gitmujoshi/Confide
 | Local IdP | Keycloak (compose) |
 | Ledger | SCITT CCF (compose / opt-in cloud) |
 | OCI IaC | Terraform: VCN, OKE, PostgreSQL, OCIR, Identity Domains, K8s apps |
-| Azure IaC | Terraform scaffold (AKS, PostgreSQL, Entra path) |
+| Azure IaC | Terraform pilot: AKS (+ WI), PostgreSQL, Entra apps, Key Vault, Blob (`deployment/azure/terraform`) |
 | AWS / GCP | Security architecture docs; IaC still design-stage |
 
 Local path: `./start-system.sh` · [quick start](https://github.com/gitmujoshi/Confidential-AI-Network/blob/main/docs/getting-started/QUICK_START.md).

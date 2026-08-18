@@ -42,4 +42,15 @@ entra_grant_admin_consent      = true
 
 repository_name = "cancontractmgmt"
 
+# Platform data plane (defaults: on)
+enable_key_vault         = true
+enable_storage           = true
+enable_workload_identity = true
+enable_private_endpoints = false   # set true after private DNS zones are ready
+
+# Phase 2 optional
+enable_edge  = false
+enable_spire = false
+# spiffe_trust_domain = "can.dev.azure.example"
+
 project_tags = {}

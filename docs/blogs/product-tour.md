@@ -20,6 +20,7 @@ permalink: /product-tour/
   <p class="cta-row" style="margin-top:1.25rem">
     <a class="cta" href="{{ '/assets/decks/azure-e2e-product-tour.html' | relative_url }}">Azure GA slide deck</a>
     <a class="cta cta-secondary" href="{% post_url 2026-08-17-azure-confidential-computing-deep-dive %}">Azure confidential computing</a>
+    <a class="cta cta-secondary" href="{% post_url 2026-08-17-spiffe-spire-azure-wif %}">SPIFFE / Workload Identity</a>
     <a class="cta cta-secondary" href="{% post_url 2026-08-16-azure-e2e-product-tour-deck %}">Azure deck notes</a>
   </p>
 </section>

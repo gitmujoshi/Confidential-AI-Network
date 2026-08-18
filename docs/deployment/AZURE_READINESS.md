@@ -9,16 +9,19 @@ Assessment of whether the Confidential AI Network is ready to deploy to **Micros
 | Layer | Ready? | Notes |
 |-------|--------|--------|
 | **Architecture & security design** | Yes (doc) | [AZURE_SECURITY_ARCHITECTURE.md](../production/AZURE_SECURITY_ARCHITECTURE.md) |
-| **Terraform / AKS scaffold** | Partial | [deployment/azure/terraform/README.md](../../deployment/azure/terraform/README.md) |
-| **Core app on Azure (UI + API + Entra + DB)** | Partial | K8s manifests in Terraform module; **Entra** auth to replace Keycloak for Azure; needs validation & hardening |
-| **SCITT CCF on Azure** | No | Not in Azure Terraform; optional for local when `SCITT_CCF_ENABLED=true` |
-| **Physical training on Azure** | Partial | CCRP `azureProvider.js` + runtime Terraform in `terraformService.js`; not platform baseline |
-| **CAN / CCRP on Azure** | Partial | [azure_confidential_computing_integration.md](../contracts/azure_confidential_computing_integration.md) |
-| **One-click production** | No | Full edge stack (Front Door, APIM) is design-only in Terraform |
+| **Terraform / AKS scaffold** | **Yes (pilot)** | VNet, AKS (+ OIDC/WI), Postgres, ACR, LB, Entra apps, **Key Vault**, **Blob**, **Workload Identity** |
+| **Core app on Azure (UI + API + Entra + DB)** | Partial | K8s manifests + Entra ConfigMap; validate images, DNS, role mapping |
+| **Key Vault + Blob** | **Yes (IaC)** | `enable_key_vault` / `enable_storage` (default on) |
+| **SPIFFE/SPIRE + Entra WIF** | Design + scaffold | [AZURE_SPIFFE_SPIRE_WIF.md](AZURE_SPIFFE_SPIRE_WIF.md); TF `enable_spire` + Helm values; Path N WI in TF |
+| **SCITT CCF on Azure** | No | Not in Azure Terraform |
+| **Physical training on Azure** | Partial | CCRP `azureProvider.js`; WI for `training-job` ready |
+| **Edge (Front Door / APIM)** | Partial IaC | `enable_edge` Front Door+WAF; APIM still manual |
+| **Confidential compute pool** | No | Design only |
+| **One-click production** | No | DNS, PE DNS, APIM, confidential SKU still operator steps |
 
 **Identity:** Azure environments use **Microsoft Entra ID** only. **Keycloak** stays on local docker-compose for demos/E2E — not part of Azure deploy.
 
-**Verdict:** Ready for an **Azure infrastructure pilot** (VNet, AKS, PostgreSQL, App Gateway, ACR) with engineering effort to validate secrets, DNS, and **Entra ID** integration. **Not** ready for full production cutover with SCITT + training parity to local demo without additional work.
+**Verdict:** Ready for an **Azure platform pilot** (`terraform apply` → ACR images → Entra smoke). Key Vault, Blob, and AKS Workload Identity are now in Terraform. **Not** a full production cutover (APIM JWT, private DNS for PE, SPIRE Helm, confidential VMs, SCITT).
 
 ---
 
@@ -26,138 +29,74 @@ Assessment of whether the Confidential AI Network is ready to deploy to **Micros
 
 ### Documentation
 
-- [Azure Security Architecture](../production/AZURE_SECURITY_ARCHITECTURE.md) — step-by-step runbook + reference architecture
-- [Azure Features & Configuration](AZURE_FEATURES_AND_CONFIGURATION.md) — **feature catalog + env/settings** (Entra, KV, DEK/MEK, train, Blob, SCITT)
-- [Azure IAM & Edge Config](AZURE_IAM_AND_EDGE_CONFIG.md) — RBAC, Entra ID, Front Door, APIM, WAF
-- [config/examples/config.azure.env.example](../../config/examples/config.azure.env.example) — Azure env template (target)
-- [deployment/azure/terraform/README.md](../../deployment/azure/terraform/README.md) — module list and deploy flow
-- [backend/AZURE_INTEGRATION_GUIDE.md](../../backend/AZURE_INTEGRATION_GUIDE.md) — CCRP credential and training integration
+- [Azure Security Architecture](../production/AZURE_SECURITY_ARCHITECTURE.md)
+- [Azure Features & Configuration](AZURE_FEATURES_AND_CONFIGURATION.md)
+- [Azure IAM & Edge Config](AZURE_IAM_AND_EDGE_CONFIG.md)
+- [Azure SPIFFE/SPIRE + Entra WIF](AZURE_SPIFFE_SPIRE_WIF.md)
+- [config/examples/config.azure.env.example](../../config/examples/config.azure.env.example)
+- [deployment/azure/terraform/README.md](../../deployment/azure/terraform/README.md)
+- [backend/AZURE_INTEGRATION_GUIDE.md](../../backend/AZURE_INTEGRATION_GUIDE.md)
 
 ### Infrastructure code (`deployment/azure/terraform/`)
 
 | Module | Purpose |
 |--------|---------|
-| `networking` | VNet, subnets, NAT Gateway, NSGs |
-| `aks` | AKS cluster + node pool |
+| `networking` | VNet, subnets (incl. private endpoints), NAT, NSGs |
+| `aks` | AKS + OIDC issuer + Workload Identity |
 | `database` | PostgreSQL Flexible Server |
-| `load_balancer` | Public IP for ingress / App Gateway frontend |
+| `load_balancer` | Public IP for ingress |
 | `container_registry` | ACR |
-| `kubernetes_resources` | Namespace, ConfigMaps, Secrets, Deployments |
+| `identity` | Entra SPA + API app registrations |
+| `key_vault` | Platform Key Vault + seeded secrets |
+| `storage` | Blob account + datasets/outputs/artifacts |
+| `workload_identity` | UAMI + federated credentials + RBAC |
+| `kubernetes_resources` | App namespace, ConfigMaps, backend WI SA, Deployments |
+| `edge` | Optional Front Door + WAF |
+| `spire` | Optional SPIRE namespace + trust-domain ConfigMaps |
 
 ### Deployment scripts
 
 | Script | Purpose |
 |--------|---------|
 | [deployment/azure/terraform/deploy.sh](../../deployment/azure/terraform/deploy.sh) | Full Terraform apply wrapper |
-| [deployment/azure/terraform/destroy.sh](../../deployment/azure/terraform/destroy.sh) | Tear down infrastructure |
-| [deploy/azure/deploy-azure.sh](../../deploy/azure/deploy-azure.sh) | Single-VM docker-compose deploy via `az` CLI (simpler) |
-| [docs/contracts/azure-confidential-computing-setup.sh](../contracts/azure-confidential-computing-setup.sh) | DCsv3 confidential VM + Key Vault for CCRP |
-
-### Application code
-
-| Component | Path |
-|-----------|------|
-| Training provider | `backend/services/providers/azureProvider.js` |
-| CCRP credentials | `backend/services/ccrpAzureCredentialsService.js` |
-| Runtime Terraform (per-env) | `backend/services/terraformService.js` → `deployment/azure/terraform/environments/` |
-
-> **Note:** Runtime per-contract Terraform writes to `deployment/azure/terraform/environments/{id}/` and is separate from the platform baseline in `deployment/azure/terraform/modules/`.
+| [deployment/azure/terraform/destroy.sh](../../deployment/azure/terraform/destroy.sh) | Tear down |
+| [deploy/azure/deploy-azure.sh](../../deploy/azure/deploy-azure.sh) | Single-VM docker-compose path |
+| [docs/contracts/azure-confidential-computing-setup.sh](../contracts/azure-confidential-computing-setup.sh) | DCsv3 + Key Vault CCRP helper |
 
 ---
 
-## Gaps for Azure production
+## Gaps remaining for production
 
-### 1. Application stack
-
-- Terraform K8s resources need images built and pushed to **ACR**
-- **Entra ID** app registrations, MSAL SPA, backend JWT validation for Entra issuer
-- **PostgreSQL Flexible Server** vs Sequelize migrations — verify extensions and connection SSL
-- **Environment sync:** `config.env` / `secrets.env` → Key Vault + K8s Secrets mapping
-- **Do not** port Keycloak realm export to Azure — keep Keycloak for local docker only
-
-### 2. SCITT CCF
-
-- Local stack uses Docker Compose (`manage-scitt-ccf.sh`)
-- **No SCITT module** in Azure Terraform — disable SCITT or deploy separate AKS workload
-
-### 3. Training workloads
-
-| Local | Azure target |
-|-------|--------------|
-| Disk uploads | **Blob Storage** + SAS or API upload |
-| `docker run` on backend | **AKS Jobs** or confidential **DCsv3** VMs |
-| Local trainer image | Push to **ACR** |
-| CAN local CCRP | `azureProvider.js` + compartment-isolated compute |
-
-CCRP path is partially implemented; platform Terraform does not automate training jobs.
-
-### 4. Security architecture vs implementation
-
-Docs describe Front Door, APIM, Bastion, multi-RG layout — **most edge services are not codified** in Terraform yet (design-only).
-
-### 5. Testing & CI
-
-- No regular `terraform apply` against live subscription in CI
-- E2E tests target **localhost**, not Azure endpoints
+1. **APIM** JWT validation policies as code  
+2. **Private DNS** when `enable_private_endpoints=true`  
+3. **SPIRE Helm** install + Entra Path F federated credentials for SPIFFE subjects  
+4. **External Secrets Operator** Helm (WI principal exists)  
+5. **Confidential compute** node pool / DCsv3  
+6. **SCITT** on AKS  
+7. **CI** `terraform apply` against a live subscription  
 
 ---
 
-## Recommended Azure rollout phases
+## Recommended rollout
 
-### Phase 1 — Platform pilot (4–8 weeks)
+### Phase 1 — Platform pilot (now unblocked by IaC)
 
-- [ ] `terraform apply` in `can-dev-compute-rg`
-- [ ] Build/push backend + frontend images to ACR
-- [ ] Deploy AKS workloads; connect PostgreSQL; run migrations
-- [ ] **Entra ID** SPA + API app registrations; MSAL login; APIM Entra JWT
-- [ ] Map Entra app roles → party types in backend
-- [ ] Manual smoke test: Entra login, contract create, sign
+- [ ] `terraform apply` with defaults (KV + storage + WI on)  
+- [ ] Build/push images to ACR  
+- [ ] Entra app roles → party mapping smoke test  
+- [ ] Confirm backend SA has `azure.workload.identity/client-id`  
 
-### Phase 2 — Security hardening (2–4 weeks)
+### Phase 2 — Edge + SPIRE
 
-- [ ] Front Door + WAF in front of App Gateway
-- [ ] APIM with JWT validation
-- [ ] Private AKS cluster; Azure Bastion for admin
-- [ ] Key Vault + External Secrets Operator
-- [ ] Defender for Cloud alerts → on-call
+- [ ] `enable_edge=true`  
+- [ ] `enable_spire=true` + Helm install  
+- [ ] APIM JWT  
 
-### Phase 3 — Training & SCITT (TBD)
+### Phase 3 — CAN clean room
 
-- [ ] Blob upload path for datasets
-- [ ] AKS training jobs or DCsv3 integration
-- [ ] SCITT CCF on AKS evaluation
-- [ ] Staging environment mirrors prod
-
-### Phase 4 — Production cutover
-
-- [ ] Geo-redundant PostgreSQL + DR runbook
-- [ ] Prod deny assignments + Azure Policy enforce mode
-- [ ] Pen test sign-off
-- [ ] E2E against staging URLs in CI
+- [ ] Attestation + SKR  
+- [ ] Confidential SKU pool  
 
 ---
 
-## Quick start (pilot)
-
-```bash
-# Prerequisites
-az login
-az account set --subscription "<subscription-id>"
-
-# Platform Terraform
-cd deployment/azure/terraform
-cp terraform.tfvars.example terraform.tfvars
-# Edit subscription_id, location, db_password (no Keycloak on Azure — use Entra)
-./deploy.sh
-
-# Or simpler VM path
-./deploy/azure/deploy-azure.sh
-```
-
----
-
-## Related
-
-- [Azure Features & Configuration](AZURE_FEATURES_AND_CONFIGURATION.md) — detailed settings for each remaining feature
-- [OCI Readiness](OCI_READINESS.md) · [AWS Readiness](AWS_READINESS.md) · [GCP Readiness](GCP_READINESS.md)
-- [docs/deployment/README.md](README.md) — deployment decision tree
+← [Deployment](README.md) · [Azure Terraform README](../../deployment/azure/terraform/README.md)

@@ -9,3 +9,13 @@ variable "service_cidr" { type = string }
 variable "dns_service_ip" { type = string }
 variable "acr_id" { type = string }
 variable "project_tags" { type = map(string) }
+
+variable "oidc_issuer_enabled" {
+  type    = bool
+  default = true
+}
+
+variable "workload_identity_enabled" {
+  type    = bool
+  default = true
+}

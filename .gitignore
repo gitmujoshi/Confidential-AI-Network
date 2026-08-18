@@ -188,3 +188,6 @@ config-backups-*/
 # Runtime CCRP Terraform (generated per contract environment)
 deployment/azure/terraform/environments/*
 !deployment/azure/terraform/environments/README.md
+
+# Terraform provider plugins / local state dirs (keep *.lock.hcl)
+**/.terraform/

@@ -92,3 +92,38 @@ variable "entra_redirect_uri" {
   type    = string
   default = ""
 }
+
+variable "workload_identity_enabled" {
+  type    = bool
+  default = false
+}
+
+variable "backend_workload_client_id" {
+  type    = string
+  default = ""
+}
+
+variable "storage_account_name" {
+  type    = string
+  default = ""
+}
+
+variable "key_vault_uri" {
+  type    = string
+  default = ""
+}
+
+variable "blob_datasets_container" {
+  type    = string
+  default = ""
+}
+
+variable "blob_outputs_container" {
+  type    = string
+  default = ""
+}
+
+variable "blob_artifacts_container" {
+  type    = string
+  default = ""
+}

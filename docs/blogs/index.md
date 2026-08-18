@@ -275,6 +275,10 @@ permalink: /
         <p class="meta">July 28, 2026 · Conceptual model</p>
       </li>
       <li>
+        <a href="{% post_url 2026-08-17-spiffe-spire-azure-wif %}">SPIFFE/SPIRE with Azure — AKS Workload Identity and Entra federation</a>
+        <p class="meta">August 17, 2026 · Path N / Path F · exact SPIFFE subjects</p>
+      </li>
+      <li>
         <a href="{% post_url 2026-07-28-spiffe-spire-oci-wif %}">SPIFFE/SPIRE with OCI IAM workload identity</a>
         <p class="meta">July 28, 2026 · CAN scaffolding</p>
       </li>
@@ -297,6 +301,10 @@ permalink: /
     <h3>Cloud security architectures</h3>
     <p class="group-lede">Deployment-shaped notes for cloud identity and edge controls.</p>
     <ol class="post-list ordered">
+      <li>
+        <a href="{% post_url 2026-08-17-spiffe-spire-azure-wif %}">SPIFFE/SPIRE with Azure — AKS Workload Identity and Entra federation</a>
+        <p class="meta">August 17, 2026 · Design · <a href="https://github.com/gitmujoshi/Confidential-AI-Network/blob/main/docs/deployment/AZURE_SPIFFE_SPIRE_WIF.md">AZURE_SPIFFE_SPIRE_WIF.md</a></p>
+      </li>
       <li>
         <a href="{% post_url 2026-08-17-azure-confidential-computing-deep-dive %}">Azure confidential computing for CAN — threat model, Key Vault, SKR, e2e training</a>
         <p class="meta">August 17, 2026 · Attestation · Secure Key Release · dual-key train path</p>

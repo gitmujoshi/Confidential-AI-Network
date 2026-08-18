@@ -6,6 +6,7 @@ Canonical catalog of **Azure-oriented product features**, how they fit the E2E m
 |-----|------|
 | [AZURE_SECURITY_ARCHITECTURE.md](../production/AZURE_SECURITY_ARCHITECTURE.md) | Topology, runbook, §16 crypto flows |
 | [AZURE_IAM_AND_EDGE_CONFIG.md](AZURE_IAM_AND_EDGE_CONFIG.md) | Entra groups, RBAC, APIM, WAF |
+| [AZURE_SPIFFE_SPIRE_WIF.md](AZURE_SPIFFE_SPIRE_WIF.md) | SPIFFE/SPIRE + AKS WI / Entra WIF design |
 | [AZURE_READINESS.md](AZURE_READINESS.md) | Honest gap analysis |
 | [PARTICIPANT_ONBOARDING_AND_E2E_LIFECYCLE.md](../guides/PARTICIPANT_ONBOARDING_AND_E2E_LIFECYCLE.md) | DEK/MEK / signing / CAN model |
 | [backend/AZURE_INTEGRATION_GUIDE.md](../../backend/AZURE_INTEGRATION_GUIDE.md) | CCRP Azure SDK / credentials |
@@ -31,7 +32,8 @@ Canonical catalog of **Azure-oriented product features**, how they fit the E2E m
 | 8 | Blob datasets / artifacts | Design / Partial | `AZURE_STORAGE_*` |
 | 9 | SCITT CCF on Azure | Design | `SCITT_*` |
 | 10 | Azure-targeted E2E / CI | Design | staging URLs + Entra test users |
-| 11 | Local Keycloak demo path | Implemented | `KEYCLOAK_*`, `TRAINING_EXECUTION_MODE=local-docker` |
+| 11 | SPIFFE/SPIRE + AKS WI / Entra WIF | Partial (WI IaC; SPIRE scaffold) | `enable_workload_identity`, `enable_spire` |
+| 12 | Local Keycloak demo path | Implemented | `KEYCLOAK_*`, `TRAINING_EXECUTION_MODE=local-docker` |
 
 ---
 
@@ -93,11 +95,14 @@ Local today shortcuts: Keycloak login, disk/demo datasets, placeholder signature
 
 | Component | Maturity | Settings / notes |
 |-----------|----------|------------------|
-| VNet, AKS, PostgreSQL, ACR, App Gateway IP | Partial (exists) | `deployment/azure/terraform/` |
-| Front Door + WAF | Design | Hostname `app.`, `api.`; WAF Prevention in prod |
+| VNet, AKS, PostgreSQL, ACR, App Gateway IP | **Implemented** | `deployment/azure/terraform/` |
+| Key Vault + secret seed | **Implemented** | `enable_key_vault` (default on) |
+| Blob datasets / outputs / artifacts | **Implemented** | `enable_storage` (default on) |
+| AKS Workload Identity (Path N) | **Implemented** | `enable_workload_identity` (default on) |
+| Front Door + WAF | Partial IaC | `enable_edge` (default off) |
+| SPIRE scaffold | Partial IaC | `enable_spire` + `deployment/azure/helm/spire` |
 | APIM | Design | JWT Entra; rate limits; route table in IAM doc |
 | Private AKS API | Design (prod) | Bastion for admin kubectl |
-| Key Vault module | Design | Secrets + CMK + signing key policies |
 | Confidential compute pool | Design | DCsv3 / confidential containers for CCRP |
 
 **Terraform inputs (typical `terraform.tfvars`):**

@@ -32,5 +32,6 @@ Impersonation rules use **exact** SPIFFE IDs — never a wildcard subject in pro
 ## Links
 
 - Design: [OCI_SPIFFE_SPIRE_WIF.md](https://github.com/gitmujoshi/Confidential-AI-Network/blob/main/docs/deployment/OCI_SPIFFE_SPIRE_WIF.md)
+- Azure twin: [SPIFFE/SPIRE on Azure]({% post_url 2026-08-17-spiffe-spire-azure-wif %}) · [AZURE_SPIFFE_SPIRE_WIF.md](https://github.com/gitmujoshi/Confidential-AI-Network/blob/main/docs/deployment/AZURE_SPIFFE_SPIRE_WIF.md)
 - Terraform: `deployment/oci/terraform/modules/spire`, `modules/wif`
 - Helm: `deployment/oci/helm/spire`

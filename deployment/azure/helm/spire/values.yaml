@@ -1,0 +1,22 @@
+# CAN Azure SPIRE Helm values (install after terraform enable_spire=true)
+#
+# helm repo add spiffe https://spiffe.github.io/helm-charts-hardened/
+# helm upgrade --install spire spiffe/spire -n spire -f values.yaml
+#
+# Trust domain must match terraform var.spiffe_trust_domain / AZURE_SPIFFE_SPIRE_WIF.md
+
+global:
+  spire:
+    trustDomain: can.dev.azure.example
+
+spire-server:
+  enabled: true
+  caKeyType: rsa-2048
+
+spire-agent:
+  enabled: true
+
+spiffe-oidc-discovery-provider:
+  enabled: true
+  # Expose for Entra Path F federation (issuer URL)
+  # Configure ingress / internal LB per environment

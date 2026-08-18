@@ -79,6 +79,9 @@ module "aks" {
   dns_service_ip      = var.dns_service_ip
   acr_id              = module.container_registry.acr_id
   project_tags        = local.resource_tags
+
+  oidc_issuer_enabled       = var.enable_workload_identity
+  workload_identity_enabled = var.enable_workload_identity
 }
 
 module "database" {
@@ -94,6 +97,20 @@ module "database" {
   sku_name            = var.db_sku_name
   storage_mb          = var.db_storage_mb
   project_tags        = local.resource_tags
+}
+
+module "storage" {
+  source = "./modules/storage"
+
+  enabled                       = var.enable_storage
+  resource_group_name           = module.networking.resource_group_name
+  location                      = var.location
+  environment                   = var.environment
+  replication_type              = var.storage_replication_type
+  public_network_access_enabled = var.storage_public_network_access
+  enable_private_endpoint       = var.enable_private_endpoints
+  private_endpoints_subnet_id   = module.networking.private_endpoints_subnet_id
+  project_tags                  = local.resource_tags
 }
 
 module "load_balancer" {
@@ -129,13 +146,67 @@ module "identity" {
   existing_client_secret = var.entra_client_secret
 }
 
+module "key_vault" {
+  source = "./modules/key_vault"
+
+  enabled                       = var.enable_key_vault
+  resource_group_name           = module.networking.resource_group_name
+  location                      = var.location
+  tenant_id                     = var.tenant_id
+  environment                   = var.environment
+  purge_protection_enabled      = local.is_production
+  public_network_access_enabled = var.key_vault_public_network_access
+  enable_private_endpoint       = var.enable_private_endpoints
+  private_endpoints_subnet_id   = module.networking.private_endpoints_subnet_id
+
+  db_host             = module.database.db_host
+  db_port             = tostring(module.database.db_port)
+  db_name             = module.database.db_name
+  db_user             = module.database.db_user
+  db_password         = var.db_password
+  entra_client_secret = local.effective_entra_client_secret
+
+  project_tags = local.resource_tags
+
+  depends_on = [module.identity, module.database]
+}
+
+module "workload_identity" {
+  source = "./modules/workload_identity"
+
+  enabled              = var.enable_workload_identity
+  resource_group_name  = module.networking.resource_group_name
+  location             = var.location
+  environment          = var.environment
+  oidc_issuer_url      = coalesce(module.aks.oidc_issuer_url, "")
+  kubernetes_namespace = "contract-management"
+  key_vault_id         = coalesce(module.key_vault.key_vault_id, "")
+  storage_account_id   = coalesce(module.storage.storage_account_id, "")
+  project_tags         = local.resource_tags
+
+  depends_on = [module.aks, module.key_vault, module.storage]
+}
+
+module "edge" {
+  source = "./modules/edge"
+
+  enabled             = var.enable_edge
+  resource_group_name = module.networking.resource_group_name
+  environment         = var.environment
+  enable_waf          = var.enable_edge_waf
+  waf_mode            = var.edge_waf_mode
+  origin_host_name    = module.load_balancer.public_ip_address
+  origin_http_port    = 3000
+  project_tags        = local.resource_tags
+}
+
 module "kubernetes_resources" {
   source = "./modules/kubernetes_resources"
 
-  depends_on = [module.aks, module.identity]
+  depends_on = [module.aks, module.identity, module.workload_identity]
 
   db_host         = module.database.db_host
-  db_port         = module.database.db_port
+  db_port         = tostring(module.database.db_port)
   db_name         = module.database.db_name
   db_user         = module.database.db_user
   db_password     = var.db_password
@@ -157,4 +228,24 @@ module "kubernetes_resources" {
   entra_jwks_url      = var.entra_jwks_url
   entra_role_claim    = var.entra_role_claim
   entra_redirect_uri  = local.effective_entra_redirect_uri
+
+  workload_identity_enabled  = var.enable_workload_identity
+  backend_workload_client_id = coalesce(module.workload_identity.backend_client_id, "")
+  storage_account_name       = coalesce(module.storage.storage_account_name, "")
+  key_vault_uri              = coalesce(module.key_vault.key_vault_uri, "")
+  blob_datasets_container    = try(module.storage.container_names["datasets"], "")
+  blob_outputs_container     = try(module.storage.container_names["training_outputs"], "")
+  blob_artifacts_container   = try(module.storage.container_names["artifacts"], "")
+}
+
+module "spire" {
+  source = "./modules/spire"
+
+  enabled             = var.enable_spire
+  environment         = var.environment
+  trust_domain        = var.spiffe_trust_domain != "" ? var.spiffe_trust_domain : "can.${var.environment}.azure.example"
+  oidc_discovery_hint = var.spire_oidc_discovery_hint
+  app_namespace       = "contract-management"
+
+  depends_on = [module.aks, module.kubernetes_resources]
 }

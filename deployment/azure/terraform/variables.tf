@@ -236,3 +236,77 @@ variable "project_tags" {
   type        = map(string)
   default     = {}
 }
+
+# --- Platform data plane (Key Vault, Blob, Workload Identity) ---------------
+
+variable "enable_key_vault" {
+  description = "Provision Azure Key Vault and seed DB/Entra secrets"
+  type        = bool
+  default     = true
+}
+
+variable "key_vault_public_network_access" {
+  type    = bool
+  default = true
+}
+
+variable "enable_storage" {
+  description = "Provision Blob storage account + datasets/outputs/artifacts containers"
+  type        = bool
+  default     = true
+}
+
+variable "storage_replication_type" {
+  type    = string
+  default = "LRS"
+}
+
+variable "storage_public_network_access" {
+  type    = bool
+  default = true
+}
+
+variable "enable_private_endpoints" {
+  description = "Create private endpoints for Key Vault and Storage (needs DNS setup)"
+  type        = bool
+  default     = false
+}
+
+variable "enable_workload_identity" {
+  description = "Enable AKS OIDC + Workload Identity and create UAMIs for backend/trainer/ESO"
+  type        = bool
+  default     = true
+}
+
+variable "enable_edge" {
+  description = "Provision Azure Front Door + optional WAF (Phase 2)"
+  type        = bool
+  default     = false
+}
+
+variable "enable_edge_waf" {
+  type    = bool
+  default = true
+}
+
+variable "edge_waf_mode" {
+  type    = string
+  default = "Prevention"
+}
+
+variable "enable_spire" {
+  description = "Create SPIRE namespace + CAN trust-domain ConfigMaps (Helm install separate)"
+  type        = bool
+  default     = false
+}
+
+variable "spiffe_trust_domain" {
+  description = "SPIFFE trust domain (default can.{env}.azure.example)"
+  type        = string
+  default     = ""
+}
+
+variable "spire_oidc_discovery_hint" {
+  type    = string
+  default = ""
+}
