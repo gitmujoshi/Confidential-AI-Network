@@ -41,6 +41,7 @@ Start with shared patterns, then the cloud you are deploying:
 Blog companions:
 
 - [Ricardian contracts in CAN]({% post_url 2026-08-16-ricardian-contracts-in-can %})
+- [Contract management — signing keys & verification]({% post_url 2026-08-17-can-contract-management-signing %})
 - [KMS — DEK, MEK, dual-key escrow]({% post_url 2026-08-16-can-kms-dek-mek-escrow %})
 - [TEE — attest, verify contract, decrypt]({% post_url 2026-08-16-can-tee-attest-decrypt-train %})
 - [Azure confidential computing — threat model, Key Vault, SKR]({% post_url 2026-08-17-azure-confidential-computing-deep-dive %})

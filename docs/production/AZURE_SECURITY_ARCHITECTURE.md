@@ -16,7 +16,7 @@ This document defines the **recommended Microsoft Azure security architecture** 
 | **This doc** | **Step-by-step setup runbook**, architecture rationale, topology, environment profiles, governance, **E2E crypto & key flows on Azure** |
 | [Azure Features & Configuration](../deployment/AZURE_FEATURES_AND_CONFIGURATION.md) | **Feature catalog** — Entra, KV, signing, DEK/MEK, train, Blob, SCITT + **env vars / profiles** |
 | [Azure IAM & Edge Config](../deployment/AZURE_IAM_AND_EDGE_CONFIG.md) | **Implementation reference** — Entra ID groups, RBAC, Front Door, APIM, WAF, **key APIs & Key Vault key types** |
-| Blog: Azure confidential computing | [Threat model · Key Vault · SKR · e2e train](https://gitmujoshi.github.io/Confidential-AI-Network/security/2026/08/17/azure-confidential-computing-deep-dive/) |
+| Blog: Contract signing & keys | [Party keys · sign · verify](https://gitmujoshi.github.io/Confidential-AI-Network/product/2026/08/17/can-contract-management-signing/) |
 | [Azure Terraform](../../deployment/azure/terraform/README.md) | Baseline IaC (VNet, AKS, PostgreSQL, App Gateway, ACR, K8s manifests) |
 | [Azure Readiness](../deployment/AZURE_READINESS.md) | Gap analysis and rollout phases |
 | [config.azure.env.example](../../config/examples/config.azure.env.example) | Target Azure environment template |

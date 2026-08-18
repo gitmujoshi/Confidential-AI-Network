@@ -13,6 +13,7 @@ Slim documentation set (Google-style): one overview, one user guide, one technic
 
 ## Related
 
+- Blog deep dive: [Contract management — signing keys & verification](https://gitmujoshi.github.io/Confidential-AI-Network/product/2026/08/17/can-contract-management-signing/)
 - Full lifecycle: [../../guides/PARTICIPANT_ONBOARDING_AND_E2E_LIFECYCLE.md](../../guides/PARTICIPANT_ONBOARDING_AND_E2E_LIFECYCLE.md)
 - SCITT architecture: [../scitt/SCITT_CCF_ARCHITECTURE.md](../scitt/SCITT_CCF_ARCHITECTURE.md)
 - Local demo: [../../training/LOCAL_DEMO_RUNBOOK.md](../../training/LOCAL_DEMO_RUNBOOK.md)

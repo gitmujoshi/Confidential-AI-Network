@@ -13,7 +13,7 @@ Most “AI collaboration” deals are a PDF plus hope. When something goes wrong
 
 **Confidential AI Network (CAN)** uses a **Ricardian contract**: one agreement that is **readable by lawyers and humans**, and **binding for the platform**—datasets, training parameters, environment, keys, and signatures—so training and inference only proceed under that state.
 
-**Related:** [Contract → governed prediction]({% post_url 2026-08-14-can-contract-to-prediction %}) · [Product tour]({{ '/product-tour/' | relative_url }}) · [Merkle / Auditor]({% post_url 2026-08-16-merkle-trees-model-audit %}) · [KMS DEK/MEK]({% post_url 2026-08-16-can-kms-dek-mek-escrow %}) · [TEE attest → decrypt]({% post_url 2026-08-16-can-tee-attest-decrypt-train %}) · In-repo: [RICARDIAN_CONTRACT_GUIDE.md](https://github.com/gitmujoshi/Confidential-AI-Network/blob/main/docs/contracts/RICARDIAN_CONTRACT_GUIDE.md)
+**Related:** [Contract → governed prediction]({% post_url 2026-08-14-can-contract-to-prediction %}) · [Contract management — signing keys & verify]({% post_url 2026-08-17-can-contract-management-signing %}) · [Product tour]({{ '/product-tour/' | relative_url }}) · [Merkle / Auditor]({% post_url 2026-08-16-merkle-trees-model-audit %}) · [KMS DEK/MEK]({% post_url 2026-08-16-can-kms-dek-mek-escrow %}) · [TEE attest → decrypt]({% post_url 2026-08-16-can-tee-attest-decrypt-train %}) · In-repo: [RICARDIAN_CONTRACT_GUIDE.md](https://github.com/gitmujoshi/Confidential-AI-Network/blob/main/docs/contracts/RICARDIAN_CONTRACT_GUIDE.md)
 
 > **Status:** Creating, previewing, multi-party signing, and **SIGNED → train** gates are live on the local stack. Treat on-chain deploy and some signature crypto as **demo / Phase 1** (see §8). Cloud clean-room key release remains [Phase 2 in the TEE narrative]({% post_url 2026-08-16-can-tee-attest-decrypt-train %}).
 
@@ -169,7 +169,7 @@ That is the DEPA-shaped idea applied to AI training: **use is licensed by agreem
 
 | Topic | Reality today |
 | --- | --- |
-| **`ricardianSignature`** | Platform binding digest for demos—not full multi-party ECDSA / cloud KMS signing of the legal hash (target for GA IdP + KMS) |
+| **`ricardianSignature`** | Platform binding digest for demos—not full multi-party ECDSA / cloud KMS signing of the legal hash (target for GA IdP + KMS). Deep dive: [Contract management — signing & verify]({% post_url 2026-08-17-can-contract-management-signing %}) |
 | **On-chain deploy** | Real only if blockchain is enabled and available; otherwise **mock** network/address |
 | **TDC signature** | Model supports `tdcSigned`; **SIGNED** for training is driven by the **TSP** completing the current flow |
 | **Templates** | Built-in `AI_TRAINING` / `BASIC`; rich clause libraries / customer templates are not a finished product surface |

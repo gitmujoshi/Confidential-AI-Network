@@ -151,6 +151,10 @@ permalink: /
     <p class="group-lede">Written for CISOs, risk leaders, and non-technical stakeholders. Six minutes; no prerequisite reading.</p>
     <ol class="post-list ordered">
       <li>
+        <a href="{% post_url 2026-08-17-can-contract-management-signing %}">Contract management in CAN — party signing keys, sign gates, and verification</a>
+        <p class="meta">August 17, 2026 · UserKey · authz vs crypto verify · Key Vault target</p>
+      </li>
+      <li>
         <a href="{% post_url 2026-08-16-ricardian-contracts-in-can %}">Ricardian contracts in CAN — legal prose the runtime can enforce</a>
         <p class="meta">August 16, 2026 · Dual-layer legal + machine binding · sign → SIGNED → train</p>
       </li>
@@ -193,6 +197,10 @@ permalink: /
     <h3>Platform — Confidential AI Network</h3>
     <p class="group-lede">Product and architecture detail for CAN.</p>
     <ol class="post-list ordered">
+      <li>
+        <a href="{% post_url 2026-08-17-can-contract-management-signing %}">Contract management in CAN — party signing keys, sign gates, and verification</a>
+        <p class="meta">August 17, 2026 · What signs the agreement vs what unlocks DEK/MEK</p>
+      </li>
       <li>
         <a href="{% post_url 2026-08-16-ricardian-contracts-in-can %}">Ricardian contracts in CAN — legal prose the runtime can enforce</a>
         <p class="meta">August 16, 2026 · What the agreement is and how train/infer/audit hang off it</p>
