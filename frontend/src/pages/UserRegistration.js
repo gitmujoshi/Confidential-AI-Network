@@ -71,7 +71,8 @@ const UserRegistration = () => {
     name: '',
     email: '',
     partyType: '',
-    organization: ''
+    organization: '',
+    signingAlgorithm: 'ECDSA-P256',
   });
 
   // User type and DID options
@@ -436,6 +437,7 @@ const UserRegistration = () => {
       const registrationData = {
         ...formData,
         userType,
+        signingAlgorithm: formData.signingAlgorithm || 'ECDSA-P256',
         ...(userType === 'individual' && { walletAddress }),
         ...(publicKey && { publicKey }), // Include public key for all users if provided
         ...(useExistingDID && {
@@ -455,6 +457,9 @@ const UserRegistration = () => {
         if (response.data.user.depaId) {
           const depaIdInfo = response.data.user.depaId;
           setSuccess(prev => prev + `\n\n🆔 DEPA ID: ${depaIdInfo}`);
+        }
+        if (response.data.user.signingKeyCreated) {
+          setSuccess(prev => prev + `\n\n🔐 Party signing key (${formData.signingAlgorithm || 'ECDSA-P256'}) created for contract signing.`);
         }
       } else {
         setError('Registration failed: ' + response.data.error);
@@ -679,6 +684,39 @@ const UserRegistration = () => {
               />
             </Grid>
 
+            {/* Party signing key — created at registration for TDP/TDC/TSP */}
+            <Grid item xs={12}>
+              <Divider sx={{ my: 2 }}>
+                <Typography variant="h6">Party signing key</Typography>
+              </Divider>
+            </Grid>
+
+            <Grid item xs={12}>
+              <Alert severity="info" sx={{ mb: 2 }}>
+                <Typography variant="body2">
+                  A signing key is created for your role at registration. It is used to bind your party
+                  to Ricardian contracts (separate from dataset/model encryption keys).
+                </Typography>
+              </Alert>
+              <FormControl fullWidth>
+                <InputLabel id="signing-alg-label">Signing algorithm</InputLabel>
+                <Select
+                  labelId="signing-alg-label"
+                  label="Signing algorithm"
+                  name="signingAlgorithm"
+                  value={formData.signingAlgorithm || 'ECDSA-P256'}
+                  onChange={handleInputChange}
+                >
+                  <MenuItem value="ECDSA-P256">ECDSA-P256 (recommended)</MenuItem>
+                  <MenuItem value="RSA-2048">RSA-2048</MenuItem>
+                  <MenuItem value="RSA-4096">RSA-4096</MenuItem>
+                </Select>
+                <FormHelperText>
+                  Required for TDP, TDC, and TSP before creating or signing contracts.
+                </FormHelperText>
+              </FormControl>
+            </Grid>
+
             {/* System Information */}
             <Grid item xs={12}>
               <Divider sx={{ my: 2 }}>
@@ -692,25 +730,14 @@ const UserRegistration = () => {
                   <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
                     <SecurityIcon sx={{ mr: 1, color: 'primary.main' }} />
                     <Typography variant="h6">
-                      Secure Contract Management
+                      Contract management
                     </Typography>
                   </Box>
-                  
-                  <Alert severity="info" sx={{ mb: 2 }}>
-                    <Typography variant="body2">
-                      <strong>Your data is secure!</strong> This system uses SCITT CCF ledger technology for tamper-proof contract execution and enterprise-grade security. You can complete registration now and configure advanced signing options later.
-                    </Typography>
-                  </Alert>
 
                   <Typography variant="body2" color="text.secondary">
-                    The system provides enterprise-grade security with:
+                    Contracts and job outcomes can be recorded via SCITT CCF when the ledger is enabled.
+                    Provenance and Auditor review use the same contract lifecycle.
                   </Typography>
-                  <Box component="ul" sx={{ mt: 1, pl: 2 }}>
-                    <li><Typography variant="body2" color="text.secondary">Tamper-proof contract storage</Typography></li>
-                    <li><Typography variant="body2" color="text.secondary">Enterprise key management integration</Typography></li>
-                    <li><Typography variant="body2" color="text.secondary">Audit trail and provenance tracking</Typography></li>
-                    <li><Typography variant="body2" color="text.secondary">Regulatory compliance built-in</Typography></li>
-                  </Box>
                 </CardContent>
               </Card>
             </Grid>

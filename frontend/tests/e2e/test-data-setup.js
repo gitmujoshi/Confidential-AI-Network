@@ -1,10 +1,15 @@
 const axios = require('axios');
 const { getBackendURL } = require('../../load-config');
+const {
+  DEFAULT_SIGNING_ALGORITHM,
+  registrationSigningFields,
+  ensurePartySigningReady,
+} = require('./helpers/party-signing-e2e');
 
 async function ensureUser({ name, email, partyType, desiredPassword }) {
   const backendURL = getBackendURL();
 
-  // If user already exists with desired password, we're done.
+  // If user already exists with desired password, ensure signing key and return.
   try {
     const login = await axios.post(`${backendURL}/api/auth/login`, {
       email,
@@ -12,6 +17,13 @@ async function ensureUser({ name, email, partyType, desiredPassword }) {
     });
 
     if (login.status === 200 && login.data && login.data.accessToken) {
+      await ensurePartySigningReady({
+        accessToken: login.data.accessToken,
+        partyType: login.data.user?.partyType || partyType,
+        algorithm: DEFAULT_SIGNING_ALGORITHM,
+      }).catch((e) => {
+        console.warn(`⚠️ E2E: ensure signing key for ${email}:`, e.response?.data || e.message);
+      });
       return;
     }
 
@@ -30,6 +42,7 @@ async function ensureUser({ name, email, partyType, desiredPassword }) {
       name,
       email,
       partyType,
+      ...registrationSigningFields(DEFAULT_SIGNING_ALGORITHM),
     });
 
     temporaryPassword = reg.data?.loginCredentials?.password;
@@ -49,6 +62,22 @@ async function ensureUser({ name, email, partyType, desiredPassword }) {
       currentPassword: temporaryPassword,
       newPassword: desiredPassword,
     });
+  }
+
+  try {
+    const login = await axios.post(`${backendURL}/api/auth/login`, {
+      email,
+      password: desiredPassword,
+    });
+    if (login.data?.accessToken) {
+      await ensurePartySigningReady({
+        accessToken: login.data.accessToken,
+        partyType: login.data.user?.partyType || partyType,
+        algorithm: DEFAULT_SIGNING_ALGORITHM,
+      });
+    }
+  } catch (e) {
+    console.warn(`⚠️ E2E: post-register signing key for ${email}:`, e.response?.data || e.message);
   }
 }
 

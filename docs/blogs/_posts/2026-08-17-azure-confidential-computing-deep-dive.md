@@ -13,20 +13,18 @@ canonical: docs/production/AZURE_SECURITY_ARCHITECTURE.md
 
 **Related:** [Product tour]({{ '/product-tour/' | relative_url }}) · [Azure product tour deck]({% post_url 2026-08-16-azure-e2e-product-tour-deck %}) · [SPIFFE/SPIRE on Azure]({% post_url 2026-08-17-spiffe-spire-azure-wif %}) · [Contract signing & keys]({% post_url 2026-08-17-can-contract-management-signing %}) · [KMS DEK/MEK]({% post_url 2026-08-16-can-kms-dek-mek-escrow %}) · [TEE attest → decrypt]({% post_url 2026-08-16-can-tee-attest-decrypt-train %}) · [Entra architecture note]({% post_url 2026-07-28-azure-entra-security-architecture %}) · In-repo: [AZURE_SECURITY_ARCHITECTURE.md](https://github.com/gitmujoshi/Confidential-AI-Network/blob/main/docs/production/AZURE_SECURITY_ARCHITECTURE.md) · [AZURE_FEATURES_AND_CONFIGURATION.md](https://github.com/gitmujoshi/Confidential-AI-Network/blob/main/docs/deployment/AZURE_FEATURES_AND_CONFIGURATION.md) · [AZURE_SPIFFE_SPIRE_WIF.md](https://github.com/gitmujoshi/Confidential-AI-Network/blob/main/docs/deployment/AZURE_SPIFFE_SPIRE_WIF.md)
 
-> **Honesty first:** The [local Docker product tour]({{ '/product-tour/#local' | relative_url }}) proves contracts → train → infer → Auditor on a laptop. That path is **not** a hardware TEE. Azure **platform IaC** now includes Key Vault, Blob, and AKS Workload Identity ([Terraform README](https://github.com/gitmujoshi/Confidential-AI-Network/blob/main/deployment/azure/terraform/README.md)). Confidential compute + **Secure Key Release (SKR)** remain the **production target** for clean rooms: attestation is often **simulated** in JCS today; DCsv3 / confidential containers + real SKR are **Design / Phase 3**.
+> **Status:** [Local Docker product tour]({{ '/product-tour/#local' | relative_url }}) covers contracts → train → infer → Auditor (not a hardware TEE). Azure platform IaC includes Key Vault, Blob, and AKS Workload Identity ([Terraform README](https://github.com/gitmujoshi/Confidential-AI-Network/blob/main/deployment/azure/terraform/README.md)). Confidential compute + **Secure Key Release (SKR)** are the clean-room target: JCS attestation is often **simulated**; DCsv3 / confidential containers + real SKR are **Design / Phase 3**.
 
 ---
 
-## 1. What Azure must prove for CAN
+## 1. Control requirements on Azure
 
-Boards ask four questions on Azure:
-
-1. Can Microsoft operators, or our TSP/CCRP operators, read dataset or model plaintext?  
-2. Can the CAN control plane (Node API) ever hold DEK/MEK?  
+1. Can Microsoft operators, or TSP/CCRP operators, read dataset or model plaintext?  
+2. Can the CAN control plane (Node API) hold DEK/MEK?  
 3. What evidence shows *this* job ran in *this* attested environment under *this* contract?  
 4. What happens when escrow times out or attestation fails?
 
-CAN’s Azure answer is layered:
+Layered answer:
 
 | Layer | Azure building block | CAN rule |
 | --- | --- | --- |
@@ -119,7 +117,7 @@ Contract JSON `kmsConfigs` should bind the Azure path parties expect, for exampl
 | `keyId` / key name | env-scoped | Key reference principals agreed |
 | Region / residency | contract `environmentSpecs` | Binding for audit |
 
-**Maturity:** configs are persisted today; training does not yet fully enforce live Key Vault calls on every path. Treat live resolve-at-train as a go-live checklist item ([features catalog](https://github.com/gitmujoshi/Confidential-AI-Network/blob/main/docs/deployment/AZURE_FEATURES_AND_CONFIGURATION.md)).
+**Maturity:** configs are persisted today; training does not yet fully enforce live Key Vault calls on every path. Live resolve-at-train is a go-live checklist item ([features catalog](https://github.com/gitmujoshi/Confidential-AI-Network/blob/main/docs/deployment/AZURE_FEATURES_AND_CONFIGURATION.md)).
 
 ---
 
@@ -198,7 +196,7 @@ Entra SSO (MSAL) → Portal + APIM JWT
 | Train | ACI / AKS Job / later DCsv3 | Partial scaffolding |
 | Artifacts | Private Blob + CMK | Design |
 
-Use this when you need Azure tenancy smoke without claiming full TEE custody yet—and **say so**.
+Use this when you need Azure tenancy smoke without full TEE custody on every path.
 
 ### 5.2 Flow B — Dual-key escrow → confidential clean room (production target)
 
@@ -251,7 +249,7 @@ Timeout without both keys → **EXPIRED / DESTROYED**, not “retry forever with
 
 ---
 
-## 6. Maturity matrix (say this in demos)
+## 6. Maturity matrix
 
 | Capability | Local Docker tour | Azure Phase 1 | Azure CAN prod |
 | --- | --- | --- | --- |
@@ -287,6 +285,6 @@ Full architecture and RBAC tables: [AZURE_SECURITY_ARCHITECTURE.md §16](https:/
 2. **Key Vault is layered** — platform secrets, CMK, signing HSM, and principal DEK/MEK are different jobs.  
 3. **SKR is policy-as-key-custody** — release only to attested measurements the contract allows.  
 4. **E2E train on Azure** = Entra → SIGNED contract → attested environment → dual-key release → decrypt-in-memory → zeroize → provenance.  
-5. **Label demos correctly** — Local product tour = runnable UX; this post = Azure confidential target.
+5. Local product tour = runnable UX; this post = Azure confidential-compute target.
 
 **One sentence:** On Azure, CAN treats training as decrypt-in-enclave under Entra identity, Key Vault custody, and Secure Key Release / attestation policy—never as “trust the TSP’s disk.”

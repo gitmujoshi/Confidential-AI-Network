@@ -1,6 +1,10 @@
 const { test, expect } = require('@playwright/test');
 const axios = require('axios');
 const { getBackendURL } = require('../../load-config');
+const {
+  DEFAULT_SIGNING_ALGORITHM,
+  ensurePartySigningReady,
+} = require('./helpers/party-signing-e2e');
 
 test.describe('Contract signing → training (TDC/TDP/CCRP)', () => {
   test.describe.configure({ mode: 'serial' });
@@ -32,7 +36,15 @@ test.describe('Contract signing → training (TDC/TDP/CCRP)', () => {
     if (res.status !== 200 || !res.data?.accessToken || !res.data?.user) {
       throw new Error(`Login failed for ${email}`);
     }
-    return { token: res.data.accessToken, user: res.data.user };
+    const session = { token: res.data.accessToken, user: res.data.user };
+    await ensurePartySigningReady({
+      accessToken: session.token,
+      partyType: session.user.partyType,
+      algorithm: DEFAULT_SIGNING_ALGORITHM,
+    }).catch((e) => {
+      console.warn(`ensurePartySigningReady(${email}):`, e.response?.data || e.message);
+    });
+    return session;
   }
 
   async function ensureRegisteredUser({ name, email, partyType }, testInfo) {
@@ -49,12 +61,23 @@ test.describe('Contract signing → training (TDC/TDP/CCRP)', () => {
     // Attempt registration; if user exists, backend typically returns 400/409 which we treat as "already registered".
     let temporaryPassword;
     try {
-      const reg = await axios.post(`${BACKEND_URL}/api/auth/register`, { name, email, partyType });
+      const reg = await axios.post(`${BACKEND_URL}/api/auth/register`, {
+        name,
+        email,
+        partyType,
+        signingAlgorithm: 'ECDSA-P256',
+      });
       temporaryPassword = reg.data?.loginCredentials?.password;
       await testInfo.attach(`Registration — ${partyType}.json`, {
         contentType: 'application/json',
         body: JSON.stringify(reg.data ?? null, null, 2),
       });
+      if (reg.data?.user?.signingKeyCreated === false) {
+        await testInfo.attach(`Registration — ${partyType} missing signing key.txt`, {
+          contentType: 'text/plain',
+          body: 'Expected signingKeyCreated for TDP/TDC/TSP at registration',
+        });
+      }
     } catch (err) {
       const status = err.response?.status;
       if (status === 400 || status === 409) {

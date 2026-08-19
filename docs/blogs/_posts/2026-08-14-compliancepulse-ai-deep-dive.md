@@ -83,14 +83,14 @@ The **G-MASE agents** (orchestrator / triage / forensic / remediation) ship as t
 
 Under [`compliancepulse-ai/`](https://github.com/gitmujoshi/Confidential-AI-Network/tree/main/compliancepulse-ai):
 
-| Area | Status (honest) |
+| Area | Status |
 | --- | --- |
 | Express/TypeScript API (`:3001`) | Live research backend |
 | `POST /api/v1/audit/ingest` | Live — accepts CAN forwards (optional auth) |
 | `GET /api/v1/audit/trail` | Live — query `external_ingest` and other events |
 | OPA / SPIFFE / BAML service stubs | Scaffolded for local Compose |
 | Agent starters (orchestrator, triage, forensic, remediation) | Present under `agents/` |
-| Multi-tenant SaaS, RLS, CMEK, full SOC dashboard | **Roadmap** — not a finished hosted product yet |
+| Multi-tenant SaaS, RLS, CMEK, full SOC dashboard | **Roadmap** |
 | Certified compliance packs | **Roadmap** |
 
 ### 4.2 Target control-plane shape
@@ -113,7 +113,7 @@ Agents / CAN / MCP clients
   (SVID)     (decide)    (evidence)
 ```
 
-Intended production posture (from product docs): Node 20+, PostgreSQL with RLS, SPIFFE trust domain, OPA server, optional BigQuery/analytics, KMS/CMEK. Treat cloud diagrams as **target architecture** until multi-tenant SaaS is explicitly GA’d.
+Intended production posture (from product docs): Node 20+, PostgreSQL with RLS, SPIFFE trust domain, OPA server, optional BigQuery/analytics, KMS/CMEK. Cloud diagrams are **target architecture** until multi-tenant SaaS ships.
 
 ---
 
@@ -137,7 +137,7 @@ Full reference: [`compliancepulse-ai/docs/API.md`](https://github.com/gitmujoshi
 
 ## 6. The live CAN → CompliancePulse seam
 
-This is the part you can **demonstrate today** without claiming full SaaS maturity.
+This is the part you can **available today** on the research seam.
 
 When CAN authorizes a side effect through Open-GMASE (`start_training`, `deploy_inference`, `run_inference`):
 
@@ -161,7 +161,7 @@ Default target: `http://localhost:3001` (`COMPLIANCEPULSE_INGEST_URL`). If CP is
 
 So captions like “Deploy for inference — gated by OPA; forwarded to CompliancePulse” mean the **governance decision event**, not a copy of the artifact.
 
-Prove it:
+Verify:
 
 ```bash
 curl -s 'http://localhost:5001/api/debug/gmase-tool-decisions?limit=5'

@@ -27,6 +27,6 @@ The same split as OCI: **Keycloak is local-only**.
 | [AZURE_FEATURES_AND_CONFIGURATION.md](https://github.com/gitmujoshi/Confidential-AI-Network/blob/main/docs/deployment/AZURE_FEATURES_AND_CONFIGURATION.md) | Feature maturity + env vars |
 | [AZURE_SPIFFE_SPIRE_WIF.md](https://github.com/gitmujoshi/Confidential-AI-Network/blob/main/docs/deployment/AZURE_SPIFFE_SPIRE_WIF.md) · [blog]({% post_url 2026-08-17-spiffe-spire-azure-wif %}) | SPIFFE + AKS WI / Entra federation |
 | [Azure Terraform README](https://github.com/gitmujoshi/Confidential-AI-Network/blob/main/deployment/azure/terraform/README.md) | Pilot IaC: AKS, Entra apps, KV, Blob, WI |
-| [AZURE_READINESS.md](https://github.com/gitmujoshi/Confidential-AI-Network/blob/main/docs/deployment/AZURE_READINESS.md) | Honest gap analysis |
+| [AZURE_READINESS.md](https://github.com/gitmujoshi/Confidential-AI-Network/blob/main/docs/deployment/AZURE_READINESS.md) | Gap analysis |
 
 App roles on the API registration: `TDC`, `TDP`, `CCRP`, `AppAdmin` — mirrored in Identity Domain groups on OCI.

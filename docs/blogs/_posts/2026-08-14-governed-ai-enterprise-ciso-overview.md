@@ -13,7 +13,7 @@ Two questions that usually get separate vendor answers:
 1. *How do we improve models on partner data we do not own—without concentrating breach and audit risk?*  
 2. *How do we let AI agents act in the SOC—without unconstrained production privilege?*
 
-This note treats them as one problem: **policy text is not enforcement.** NDAs and system prompts are not control planes. The stack under discussion is **CAN** (multi-party training), **Open-GMASE** (open execution reference), and **CompliancePulse** (enterprise agent control plane). Research maturity; live vs design called out below and in linked posts.
+This note treats them as one problem: **policy text is not enforcement.** NDAs and system prompts are not control planes. Stack: **CAN** (multi-party training), **Open-GMASE** (open execution reference), **CompliancePulse** (enterprise agent control plane).
 
 ---
 

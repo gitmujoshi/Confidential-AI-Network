@@ -29,7 +29,7 @@
 | **This doc** | SPIFFE/SPIRE + Azure / Entra federation design |
 | [AZURE_SECURITY_ARCHITECTURE.md](../production/AZURE_SECURITY_ARCHITECTURE.md) | Azure topology + crypto §16 |
 | [AZURE_FEATURES_AND_CONFIGURATION.md](AZURE_FEATURES_AND_CONFIGURATION.md) | Feature catalog + env vars |
-| [AZURE_READINESS.md](AZURE_READINESS.md) | Honest gap analysis |
+| [AZURE_READINESS.md](AZURE_READINESS.md) | Gap analysis |
 | OCI twin | [OCI_SPIFFE_SPIRE_WIF.md](OCI_SPIFFE_SPIRE_WIF.md) |
 | Blog | [SPIFFE/SPIRE on Azure](https://gitmujoshi.github.io/Confidential-AI-Network/security/2026/08/17/spiffe-spire-azure-wif/) |
 

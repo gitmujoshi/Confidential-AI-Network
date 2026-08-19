@@ -182,7 +182,7 @@ test.describe('Role user guides (screenshot tours)', () => {
     steps.push({
       title: 'Signed contract (all participants)',
       body: [
-        'After **TDP** and **TSP** both sign, the contract reaches **SIGNED**.',
+        'After **TDP** and **TSP** both sign (each using their registration **party signing key**), the contract reaches **SIGNED**.',
         'Only signed contracts can start training.',
       ].join('\n'),
       ...(await captureShot(page, roleKey, '10-signed-contract.png')),
@@ -348,6 +348,7 @@ test.describe('Role user guides (screenshot tours)', () => {
         body: [
           'On **Contract Details**, review terms, datasets, and DEPA IDs.',
           'Use **Sign Contract as TDP** in the Actions panel (or **Sign** next to your dataset row).',
+          'Signing uses the **party signing key** created when you registered (algorithm on `/register`).',
           'After you sign, status moves to **PENDING_TSP_APPROVAL** for the clean-room provider.',
         ].join('\n'),
         ...(await captureShot(page, roleKey, '06-sign-contract.png')),
@@ -358,6 +359,7 @@ test.describe('Role user guides (screenshot tours)', () => {
         body: [
           'Open a contract in **PENDING_TDP_APPROVAL** to see **Sign Contract as TDP** in Actions,',
           'or **Sign** on your dataset row under Multi-TDP status.',
+          'Your signing key was created at **registration**; regenerate from Profile / signing APIs only if missing.',
           'If no pending contracts exist yet, ask a TDC to create one that references your dataset.',
         ].join('\n'),
         ...(await captureShot(page, roleKey, '06-sign-contract.png')),
@@ -401,7 +403,10 @@ test.describe('Role user guides (screenshot tours)', () => {
     });
     steps.push({
       title: 'Contracts',
-      body: 'Confirm clean-room requirements (TEE / residency / policies), then sign when you can host the job.',
+      body: [
+        'Confirm clean-room requirements (TEE / residency / policies), then **Sign** when you can host the job.',
+        'Signing uses the **party signing key** created at registration (same ECDSA-P256 / RSA choice as TDP/TDC).',
+      ].join('\n'),
       ...(await captureShot(page, roleKey, '03-contracts.png')),
     });
 

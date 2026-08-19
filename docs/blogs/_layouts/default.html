@@ -17,21 +17,69 @@
   <script>
     document.addEventListener("DOMContentLoaded", function () {
       var blocks = document.querySelectorAll("pre > code.language-mermaid");
-      if (!blocks.length || typeof mermaid === "undefined") return;
-      blocks.forEach(function (code) {
-        var div = document.createElement("div");
-        div.className = "mermaid";
-        div.textContent = code.textContent;
-        code.parentElement.replaceWith(div);
-      });
-      mermaid.initialize({
-        startOnLoad: false,
-        theme: "neutral",
-        securityLevel: "strict",
-        flowchart: { useMaxWidth: true, htmlLabels: false },
-        sequence: { useMaxWidth: true }
-      });
-      mermaid.run({ querySelector: ".mermaid" });
+      if (blocks.length && typeof mermaid !== "undefined") {
+        blocks.forEach(function (code) {
+          var div = document.createElement("div");
+          div.className = "mermaid";
+          div.textContent = code.textContent;
+          code.parentElement.replaceWith(div);
+        });
+        mermaid.initialize({
+          startOnLoad: false,
+          theme: "neutral",
+          securityLevel: "strict",
+          flowchart: { useMaxWidth: true, htmlLabels: false },
+          sequence: { useMaxWidth: true }
+        });
+        mermaid.run({ querySelector: ".mermaid" });
+      }
+
+      /* Product tour: highlight left-nav section in view */
+      var nav = document.querySelector(".tour-nav");
+      if (!nav) return;
+      var links = Array.prototype.slice.call(nav.querySelectorAll('.tour-nav-list a[href^="#"]'));
+      var sections = links
+        .map(function (a) {
+          var id = a.getAttribute("href").slice(1);
+          return document.getElementById(id);
+        })
+        .filter(Boolean);
+      if (!sections.length) return;
+
+      function setActive(id) {
+        links.forEach(function (a) {
+          a.classList.toggle("is-active", a.getAttribute("href") === "#" + id);
+        });
+      }
+
+      if ("IntersectionObserver" in window) {
+        var visible = new Map();
+        var observer = new IntersectionObserver(
+          function (entries) {
+            entries.forEach(function (entry) {
+              visible.set(entry.target.id, entry.isIntersecting && entry.intersectionRatio > 0);
+            });
+            var active = null;
+            for (var i = 0; i < sections.length; i++) {
+              if (visible.get(sections[i].id)) {
+                active = sections[i].id;
+                break;
+              }
+            }
+            if (active) setActive(active);
+          },
+          { rootMargin: "-20% 0px -65% 0px", threshold: [0, 0.25, 0.5, 1] }
+        );
+        sections.forEach(function (sec) {
+          observer.observe(sec);
+        });
+      }
+
+      if (location.hash) {
+        setActive(location.hash.slice(1));
+      } else if (sections[0]) {
+        setActive(sections[0].id);
+      }
     });
   </script>
 </body>

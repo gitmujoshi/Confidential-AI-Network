@@ -286,7 +286,7 @@ class ProvenanceService {
 
 ### **Technical Documentation**
 - [MERKLE_TREE_PROVENANCE_IMPLEMENTATION.md](./MERKLE_TREE_PROVENANCE_IMPLEMENTATION.md) - Original design document
-- [UML_4PLUS1_ARCHITECTURE.md](./UML_4PLUS1_ARCHITECTURE.md) - Updated architecture with provenance
+- [UML_4PLUS1_ARCHITECTURE.md](../architecture/UML_4PLUS1_ARCHITECTURE.md) — 4+1 views (includes Auditor Merkle path)
 - [SCITT_CCF_INTEGRATION_README.md](./SCITT_CCF_INTEGRATION_README.md) - SCITT CCF integration details
 
 ### **Implementation Resources**

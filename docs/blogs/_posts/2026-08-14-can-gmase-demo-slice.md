@@ -52,7 +52,7 @@ flowchart LR
 | **Open-GMASE** | Community OPA packs — the *inner gate* before the side effect |
 | **CompliancePulse** | Commercial-path ingest receiver — stores the same decision for control-plane / evidence conversations |
 
-Honest scope: CP ingest is a **research stub** (in-memory audit store), not a finished multi-tenant SaaS console.
+**Scope:** CP ingest is an in-memory audit store for the research seam (not multi-tenant SaaS).
 
 ## Model trained & inference (what the screenshots show)
 
@@ -135,7 +135,7 @@ cd compliancepulse-ai/backend && npm run dev
 # Disable: COMPLIANCEPULSE_INGEST_URL=false
 ```
 
-### Prove the forward after a gated action
+### Verify ingest after a gated action
 
 After a deploy/predict (or the smoke script below):
 
@@ -201,12 +201,12 @@ curl -s 'http://localhost:5001/api/debug/gmase-tool-decisions?limit=5'
 curl -s 'http://localhost:3001/api/v1/audit/trail?eventTypes=external_ingest&limit=5'
 ```
 
-## Stakeholder script (three minutes)
+## Demo path
 
-1. Show the CAN [product tour]({{ '/product-tour/' | relative_url }}) (contracts → training → inference).  
-2. On the Inference app, point at the **Open-GMASE policy gate** ALLOW panel.  
-3. Show the **same decision** in CAN AuditLogs *and* CompliancePulse `audit/trail` (`external_ingest`).  
-4. Say clearly: multi-tenant CP SaaS UI, swarm agents, and SPIRE attestation are still roadmap—this is the **inner gate** plus the **commercial-path ingest** seam.
+1. CAN [product tour]({{ '/product-tour/' | relative_url }}) (contracts → training → inference).  
+2. Inference app: **Open-GMASE policy gate** ALLOW panel.  
+3. Same decision in CAN AuditLogs and CompliancePulse `audit/trail` (`external_ingest`).  
+4. Roadmap beyond this seam: multi-tenant CP SaaS UI, swarm agents, SPIRE attestation.
 
 ## Code & full runbook
 

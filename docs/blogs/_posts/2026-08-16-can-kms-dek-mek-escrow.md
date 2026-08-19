@@ -86,7 +86,7 @@ Target sequence:
 5. When **both** signals (and, in Phase 2, key material into the TEE) are present → training may start.  
 6. Hard timeout → session **EXPIRED** / CCR **DESTROYED**; keys must be zeroized in a real enclave.
 
-**Phase 1 MVP (honest):** principals post `key-released` **signals** with `keyType: DEK|MEK`. The API **rejects raw key bytes** to the Node process. That proves coordination without turning the backend into a key escrow vault.
+**Phase 1 MVP:** principals post `key-released` **signals** with `keyType: DEK|MEK`. The API **rejects raw key bytes** to the Node process. Coordinates release without accepting key material into the Node API.
 
 ```bash
 # Illustrative — see CAN_QUICKSTART in the repo
@@ -103,7 +103,7 @@ POST /api/can/jcs/jobs/{id}/key-released  # keyType: MEK
 
 | Mode | Who encrypts | Who holds DEK/MEK | Decrypt where | Maturity |
 | --- | --- | --- | --- | --- |
-| Local demo / Docker train | Often staged plaintext or demo artifacts | N/A for host path | Host trainer | **Live demo** — not a TEE |
+| Local demo / Docker train | Often staged plaintext or demo artifacts | N/A for host path | Host trainer | **Live** (host path) |
 | Platform-assisted encrypt | Platform path | Risk: platform custody | Varies | Partial / legacy paths |
 | TDP/TDC local encrypt | Principal before upload | Principal only | TEE after attested release | **Design** ([TDP flow](https://github.com/gitmujoshi/Confidential-AI-Network/blob/main/docs/flows/TDP_ENCRYPTED_DATASET_TEE_FLOW.md) · [TDC flow](https://github.com/gitmujoshi/Confidential-AI-Network/blob/main/docs/flows/TDC_ENCRYPTED_AI_MODEL_TEE_FLOW.md)) |
 | CAN principal DEK/MEK + attested TLS | Principal | Principal | CCR via attested channel | **Target Phase 2** |
@@ -128,6 +128,6 @@ For stakeholder demos of *contracts → train → infer*, the [local Docker path
 1. **DEK ≠ MEK** — data principal and model owner keep separate custody.  
 2. **Dual-key escrow** is the economic and cryptographic AND-gate before train.  
 3. **Cloud KMS** wraps infrastructure and customer keys; **CAN/JCS** orchestrates release against the Ricardian contract.  
-4. Local demos prove product UX; **attested key delivery into TEE** is the clean-room endgame.
+4. Local demos cover product UX; **attested key delivery into TEE** is the clean-room target.
 
 Next: [TEE execution — attestation, contract check, decrypt-in-memory]({% post_url 2026-08-16-can-tee-attest-decrypt-train %}).

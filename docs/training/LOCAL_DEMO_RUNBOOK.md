@@ -2,7 +2,7 @@
 
 One-page guide for a **stakeholder demo** on a laptop or VM. Assumes macOS/Linux with Docker Desktop.
 
-**Honest scope:** This is **local Docker training**, not cloud TEE. Customer CSV/image data is used when uploaded; otherwise the trainer falls back to public demo sets (Iris, CIFAR-10, AG News).
+**Scope:** Local Docker training (not cloud TEE). Uploaded customer CSV/image data is used when present; otherwise the trainer uses public demo sets (Iris, CIFAR-10, AG News).
 
 ---
 

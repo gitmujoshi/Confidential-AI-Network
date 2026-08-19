@@ -13,21 +13,21 @@ const ROLE_META = {
     title: 'TDC User Guide — Training Data Consumer',
     shortName: 'TDC',
     summary:
-      'As a Training Data Consumer you browse datasets, create Ricardian contracts, wait for TDP+TSP signatures, run local-docker (or CAN) training, and review outputs.',
+      'As a Training Data Consumer you browse datasets, create Ricardian contracts, wait for TDP+TSP signatures, run local-docker (or CAN) training, and review outputs. Your **party signing key** is created at registration (algorithm choice on `/register`).',
   },
   TDP: {
     file: 'TDP_USER_GUIDE.md',
     title: 'TDP User Guide — Training Data Provider',
     shortName: 'TDP',
     summary:
-      'As a Training Data Provider you publish datasets, review incoming contracts, and monitor how your data is used under approved terms.',
+      'As a Training Data Provider you publish datasets, review incoming contracts, and **sign** with the party signing key created at registration.',
   },
   TSP: {
     file: 'TSP_USER_GUIDE.md',
     title: 'TSP / CCRP User Guide — Tech Service Provider',
     shortName: 'TSP',
     summary:
-      'As a Tech Service Provider (also called CCRP in older docs) you host confidential training environments, manage cloud credentials, and participate in contract signing.',
+      'As a Tech Service Provider (also called CCRP in older docs) you host confidential training environments, manage cloud credentials, and **co-sign** contracts with the party signing key from registration.',
   },
   AppAdmin: {
     file: 'APPADMIN_USER_GUIDE.md',
@@ -56,6 +56,7 @@ async function settle(page, ms = 400) {
 async function seedAuth(page, roleKey) {
   const axios = require('axios');
   const { getBackendURL } = require('../../../load-config');
+  const { ensurePartySigningReady, DEFAULT_SIGNING_ALGORITHM } = require('./party-signing-e2e');
   const { email } = E2E_ROLE_USERS[roleKey];
   const loginResponse = await axios.post(`${getBackendURL()}/api/auth/login`, {
     email,
@@ -65,6 +66,14 @@ async function seedAuth(page, roleKey) {
   if (!accessToken || !user) {
     throw new Error(`API login failed for ${roleKey} (${email})`);
   }
+
+  await ensurePartySigningReady({
+    accessToken,
+    partyType: user.partyType || roleKey,
+    algorithm: DEFAULT_SIGNING_ALGORITHM,
+  }).catch((e) => {
+    console.warn(`Role guide signing key (${roleKey}):`, e.response?.data || e.message);
+  });
 
   await page.addInitScript(
     ({ token, u }) => {
@@ -131,6 +140,7 @@ function buildMarkdown({ roleKey, meta, email, steps }) {
     `| Role | **${meta.shortName}** |`,
     `| Demo user | \`${email}\` |`,
     `| Password | \`TestNewPassword123!\` (local E2E seed only) |`,
+    `| Signing | Party signing key provisioned at **registration** (ECDSA-P256 default); used on contract **Sign** |`,
     '',
     '## Happy path',
     '',

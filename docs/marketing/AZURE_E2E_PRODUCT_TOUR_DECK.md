@@ -282,12 +282,12 @@ Demo: [CAN ↔ Open-GMASE ↔ CompliancePulse](https://gitmujoshi.github.io/Conf
 
 ---
 
-## Slide 21 — Honest boundaries (trust slide)
+## Slide 21 — Scope boundaries
 
-| Say this | Don’t imply |
+| In scope / live | Do not imply |
 | --- | --- |
 | Entra is the Azure IdP | Keycloak runs in customer Azure |
-| Local Docker proves UX | Local Docker is a hardware TEE |
+| Local Docker covers UX | Local Docker is a hardware TEE |
 | Dual-key escrow is the design | SaaS holds DEK/MEK plaintext |
 | Open-GMASE gates side effects | Prompts are the control plane |
 | CompliancePulse ingest is evidence path | Full multi-tenant SaaS is done if still roadmap |

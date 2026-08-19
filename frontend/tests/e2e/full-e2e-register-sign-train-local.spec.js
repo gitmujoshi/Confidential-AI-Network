@@ -1,7 +1,11 @@
-const { randomUUID } = require('crypto');
 const { test, expect } = require('@playwright/test');
 const axios = require('axios');
 const { getBackendURL } = require('../../load-config');
+const {
+  DEFAULT_SIGNING_ALGORITHM,
+  chooseSigningAlgorithm,
+  ensurePartySigningReady,
+} = require('./helpers/party-signing-e2e');
 
 test.describe('Full E2E (register → login → contract sign → local training)', () => {
   test.describe.configure({ mode: 'serial' });
@@ -27,12 +31,15 @@ test.describe('Full E2E (register → login → contract sign → local training
       await page.getByRole('combobox').nth(1).click();
       await page.getByRole('option', { name: new RegExp(`\\(${partyType}\\)`, 'i') }).click();
 
-      // Provide a deterministic public key for local testing.
+      // Optional legacy wallet field.
       await page.getByLabel('Public Key').fill('0x' + 'b'.repeat(64));
+
+      // Party signing key created at registration for TDP/TDC/TSP.
+      await chooseSigningAlgorithm(page, DEFAULT_SIGNING_ALGORITHM);
 
       await page.getByRole('button', { name: /^Register$/ }).click();
 
-      // Success alert contains the temporary credentials.
+      // Success alert contains the temporary credentials + signing key confirmation.
       const successAlert = page
         .getByRole('alert')
         .filter({ hasText: /Registration successful/i })
@@ -40,6 +47,7 @@ test.describe('Full E2E (register → login → contract sign → local training
       await expect(successAlert).toBeVisible({ timeout: 60_000 });
 
       const msg = (await successAlert.innerText()) || '';
+      expect(msg).toMatch(/Party signing key|signing key/i);
       const match = msg.match(/Password:\s*([^\s]+)/i);
       if (!match) {
         throw new Error(`Registration did not expose temporary password. Success text was:\n${msg}`);
@@ -584,6 +592,22 @@ test.describe('Full E2E (register → login → contract sign → local training
     await completeFirstLoginPasswordViaAPI({ email: tdcEmail, currentPassword: tdcTempPassword, newPassword: NEW_PASSWORD });
     await completeFirstLoginPasswordViaAPI({ email: tdpEmail, currentPassword: tdpTempPassword, newPassword: NEW_PASSWORD });
     // Seeded CCRP is already in the desired password state via global-setup.
+
+    await test.step('Verify party signing keys (registration + seeded TSP backfill)', async () => {
+      for (const { email, partyType } of [
+        { email: tdcEmail, partyType: 'TDC' },
+        { email: tdpEmail, partyType: 'TDP' },
+        { email: ccrpEmail, partyType: 'TSP' },
+      ]) {
+        const { token } = await loginViaAPI({ email, password: NEW_PASSWORD });
+        const ready = await ensurePartySigningReady({
+          accessToken: token,
+          partyType,
+          algorithm: DEFAULT_SIGNING_ALGORITHM,
+        });
+        expect(['exists', 'generated']).toContain(ready.status);
+      }
+    });
 
     await loginViaUI(page, { email: tdpEmail, password: NEW_PASSWORD });
     await expect(page).toHaveURL(/\/dashboard$/, { timeout: 90_000 });

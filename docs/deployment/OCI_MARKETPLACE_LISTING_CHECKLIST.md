@@ -179,7 +179,7 @@ OCI services to highlight in AE one-pager (already in CAN design):
 
 ---
 
-## 7. Honest gaps (do not overclaim on listing)
+## 7. Listing gaps
 
 From current readiness:
 

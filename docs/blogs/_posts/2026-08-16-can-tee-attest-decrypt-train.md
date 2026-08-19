@@ -13,15 +13,15 @@ canonical: docs/flows/TDP_ENCRYPTED_DATASET_TEE_FLOW.md
 
 **Companion:** [KMS — DEK, MEK, and dual-key escrow]({% post_url 2026-08-16-can-kms-dek-mek-escrow %}) · [Azure confidential computing deep dive]({% post_url 2026-08-17-azure-confidential-computing-deep-dive %}) · **Flows:** [TDP encrypted dataset](https://github.com/gitmujoshi/Confidential-AI-Network/blob/main/docs/flows/TDP_ENCRYPTED_DATASET_TEE_FLOW.md) · [TDC encrypted model](https://github.com/gitmujoshi/Confidential-AI-Network/blob/main/docs/flows/TDC_ENCRYPTED_AI_MODEL_TEE_FLOW.md) · **iSPIRT DEPA:** [depa.world](https://depa.world)
 
-> **Status:** Target architecture for CCRP / confidential-compute paths (Azure confidential computing, OCI confidential VMs, etc.). **Local Docker / native training is not a hardware TEE**—it proves contracts and job UX. CAN/JCS today uses **simulated attestation bundles** and **key-release signals**; real attested TLS / SKR key delivery is Phase 2+.
+> **Status:** Target for CCRP / confidential-compute paths (Azure confidential computing, OCI confidential VMs, etc.). Local Docker / native training is a host path. CAN/JCS uses **simulated attestation bundles** and **key-release signals**; attested TLS / SKR key delivery is Phase 2+.
 
 ---
 
-## 1. The control you actually want
+## 1. Decrypt gate
 
-Boards ask: *Can the clean-room operator, or the SaaS, read our data and model?*
+Requirement: *Can the clean-room operator, or the SaaS, read our data and model?*
 
-CAN’s answer is not “trust the NDA.” It is a **decrypt gate** with two locks:
+Control: a **decrypt gate** with two locks:
 
 1. **Hardware attestation** — the enclave proves its measurement / identity (CPU/firmware/image claims the cloud vendor supports).  
 2. **Contract verification** — the Ricardian agreement names allowed regions, TEE requirements, parties, and use; keys release only for **that** job/session.
@@ -127,7 +127,7 @@ Symmetric stories; **both** keys required. Details: [TDP flow](https://github.co
 
 ---
 
-## 6. Live today vs target (say this in demos)
+## 6. Live today vs target
 
 | Path | What happens | TEE? |
 | --- | --- | --- |
@@ -135,7 +135,7 @@ Symmetric stories; **both** keys required. Details: [TDP flow](https://github.co
 | **CAN/JCS MVP** | Job + **simulated** attestation + DEK/MEK **release signals** (no key bytes to API) | Coordination demo |
 | **Target CCR** | Real quote → attested TLS → DEK+MEK in enclave → decrypt → train → zeroize | **Yes** |
 
-Local product-tour screenshots show the **runnable** loop. Azure confidential VMs + Key Vault / SKR are the **cloud target**—see [Azure confidential computing deep dive]({% post_url 2026-08-17-azure-confidential-computing-deep-dive %}). Don’t conflate host training with TEE claims.
+Local product-tour screenshots show the **runnable** loop. Azure confidential VMs + Key Vault / SKR are the **cloud target**—see [Azure confidential computing deep dive]({% post_url 2026-08-17-azure-confidential-computing-deep-dive %}). Host training and TEE paths are distinct.
 
 ---
 

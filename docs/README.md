@@ -50,6 +50,7 @@
 | Topic | Doc |
 |-------|-----|
 | System architecture | [ARCHITECTURE.md](ARCHITECTURE.md) |
+| **UML 4+1 views** (logical / process / development / physical / scenarios) | [architecture/UML_4PLUS1_ARCHITECTURE.md](architecture/UML_4PLUS1_ARCHITECTURE.md) |
 | CAN gap / trust model | [features/can/CAN_GAP_DECISION_MEMO.md](features/can/CAN_GAP_DECISION_MEMO.md) |
 | SCITT CCF | [features/scitt/SCITT_CCF_ARCHITECTURE.md](features/scitt/SCITT_CCF_ARCHITECTURE.md) |
 | Encrypted dataset / model → TEE flows | [flows/](flows/) |

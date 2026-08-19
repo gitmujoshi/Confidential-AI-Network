@@ -28,6 +28,11 @@ const {
   buildNlpDpContractPayload,
   buildNlpQualityContractPayload,
 } = require('./helpers/nlp-dp-training');
+const {
+  DEFAULT_SIGNING_ALGORITHM,
+  chooseSigningAlgorithm,
+  selectMuiByLabel,
+} = require('./helpers/party-signing-e2e');
 
 test.describe('Lifecycle user guide (screenshot tour)', () => {
   test.describe.configure({ mode: 'serial', timeout: 60 * 60 * 1000 });
@@ -57,29 +62,27 @@ test.describe('Lifecycle user guide (screenshot tour)', () => {
       TSP: 'Lifecycle Clean Room Compute',
     };
 
-    async function selectMui(labelText, optionName) {
-      const control = page.locator('.MuiFormControl-root').filter({ hasText: labelText }).first();
-      await control.getByRole('combobox').click();
-      await page.getByRole('option', { name: optionName }).click();
-    }
-
     async function registerEnterpriseViaUI({ name, email, partyType, organization }) {
       await page.goto('/register');
       await expect(page.getByRole('heading', { name: 'User Registration', exact: true })).toBeVisible();
 
       // User Type → Enterprise (exposes Organization and enterprise DID path).
-      await selectMui('User Type', /^Enterprise$/i);
+      await selectMuiByLabel(page, 'User Type', /^Enterprise$/i);
 
       await page.getByLabel('Full Name').fill(name);
       await page.getByLabel('Email').fill(email);
 
-      await selectMui('Role', new RegExp(`\\(${partyType}\\)`, 'i'));
+      await selectMuiByLabel(page, 'Role', new RegExp(`\\(${partyType}\\)`, 'i'));
 
       const orgField = page.getByLabel('Organization');
       await expect(orgField).toBeVisible({ timeout: 10000 });
       await orgField.fill(organization);
 
+      // Optional legacy wallet field (still on the form).
       await page.getByLabel('Public Key').fill('0x' + 'b'.repeat(64));
+
+      // Party signing key — created at registration for TDP/TDC/TSP.
+      await chooseSigningAlgorithm(page, DEFAULT_SIGNING_ALGORITHM);
       await settle(page, 400);
       return page;
     }
@@ -92,6 +95,7 @@ test.describe('Lifecycle user guide (screenshot tour)', () => {
         .first();
       await expect(successAlert).toBeVisible({ timeout: 60_000 });
       const msg = (await successAlert.innerText()) || '';
+      expect(msg).toMatch(/Party signing key|signing key/i);
       const match = msg.match(/Password:\s*([^\s]+)/i);
       if (!match) throw new Error(`No temp password in registration alert:\n${msg}`);
       return match[1];
@@ -108,7 +112,8 @@ test.describe('Lifecycle user guide (screenshot tour)', () => {
       title: 'Enterprise onboard TDC',
       body: [
         'Open **User Registration** and set **User Type** to **Enterprise**.',
-        'Choose role **TDC (Training Data Consumer)**, enter the organization name, public key, and register.',
+        'Choose role **TDC (Training Data Consumer)**, enter the organization name, and select a **Party signing key** algorithm (**ECDSA-P256** recommended).',
+        'Register — the platform creates the signing key used later for Ricardian contract create/sign.',
       ].join('\n'),
       ...(await captureShot(page, '01-onboard-tdc-register.png')),
     });
@@ -134,8 +139,8 @@ test.describe('Lifecycle user guide (screenshot tour)', () => {
     steps.push({
       title: 'Enterprise onboard TDP',
       body: [
-        'Register an enterprise **TDP (Training Data Provider)** with organization details.',
-        'This party publishes datasets and signs contracts that use them.',
+        'Register an enterprise **TDP (Training Data Provider)** with organization details and a **Party signing key** (same algorithm step as TDC).',
+        'This party publishes datasets and uses that key to **sign** contracts that use them.',
       ].join('\n'),
       ...(await captureShot(page, '03-onboard-tdp-register.png')),
     });
@@ -218,8 +223,8 @@ test.describe('Lifecycle user guide (screenshot tour)', () => {
     steps.push({
       title: 'Enterprise onboard TSP / CCRP',
       body: [
-        'Register an enterprise **TSP** (Tech Service Provider; also called CCRP in older docs).',
-        'This party hosts the training environment and co-signs the contract.',
+        'Register an enterprise **TSP** (Tech Service Provider; also called CCRP in older docs) with a **Party signing key**.',
+        'This party hosts the training environment and co-signs the contract with that key.',
       ].join('\n'),
       ...(await captureShot(page, '06-onboard-tsp-register.png')),
     });
@@ -376,7 +381,10 @@ test.describe('Lifecycle user guide (screenshot tour)', () => {
     await expect(tdpSign).toBeVisible({ timeout: 90000 });
     steps.push({
       title: 'TDP reviews and signs',
-      body: 'On **Contract Details**, the TDP reviews terms and clicks **Sign Contract as TDP**. Status advances to **PENDING_TSP_APPROVAL**.',
+      body: [
+        'On **Contract Details**, the TDP reviews terms and clicks **Sign Contract as TDP**.',
+        'The signature uses the **party signing key** created at registration. Status advances to **PENDING_TSP_APPROVAL**.',
+      ].join('\n'),
       ...(await captureShot(page, '12-tdp-sign.png')),
     });
     await tdpSign.click();
@@ -403,7 +411,10 @@ test.describe('Lifecycle user guide (screenshot tour)', () => {
     await expect(tspBtn).toBeVisible({ timeout: 90000 });
     steps.push({
       title: 'TSP / CCRP reviews and signs',
-      body: 'The TSP reviews environment commitments and signs. When TDP and TSP have both signed, status becomes **SIGNED**.',
+      body: [
+        'The TSP reviews environment commitments and signs with the **party signing key** from registration.',
+        'When TDP and TSP have both signed, status becomes **SIGNED**.',
+      ].join('\n'),
       ...(await captureShot(page, '14-tsp-sign.png')),
     });
     await tspBtn.click();

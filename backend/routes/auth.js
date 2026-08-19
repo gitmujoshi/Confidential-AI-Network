@@ -190,6 +190,7 @@ router.post('/register', logAuthEvent('REGISTER'), async (req, res) => {
       deploymentPrefix,
       jurisdiction,
       cloudProviders,
+      signingAlgorithm,
     } = req.body;
 
     // Validate required fields
@@ -485,6 +486,45 @@ router.post('/register', logAuthEvent('REGISTER'), async (req, res) => {
         }, { transaction });
         dbSuccess = true;
         console.log('✅ Database user created successfully');
+
+        // Party signing key (TDP / TDC / TSP) — required before contract create/sign
+        const signingRoles = ['TDP', 'TDC', 'TSP'];
+        if (signingRoles.includes(normalizedPartyType)) {
+          const keyManagementService = require('../services/keyManagementService');
+          const allowed = (process.env.SIGNING_ALGORITHMS || 'ECDSA-P256,RSA-2048,RSA-4096')
+            .split(',')
+            .map((a) => a.trim())
+            .filter(Boolean);
+          const algo =
+            (signingAlgorithm && allowed.includes(signingAlgorithm) && signingAlgorithm) ||
+            process.env.DEFAULT_SIGNING_ALGORITHM ||
+            'ECDSA-P256';
+          const keyPair = await keyManagementService.generateKeyPair({
+            algorithm: algo,
+            userId: dbUser.id,
+          });
+          await db.UserKey.create(
+            {
+              userId: dbUser.id,
+              keyId: keyPair.keyId,
+              keyType: algo,
+              publicKey: keyPair.publicKey,
+              privateKey: keyPair.privateKey,
+              keyStatus: 'active',
+              metadata: {
+                generatedAt: new Date().toISOString(),
+                source: 'registration',
+                algorithm: algo,
+              },
+            },
+            { transaction }
+          );
+          // Keep User.publicKey aligned for profile display when not already supplied
+          if (!publicKey) {
+            await dbUser.update({ publicKey: keyPair.publicKey }, { transaction });
+          }
+          console.log(`✅ Signing key created for user ${dbUser.id}: ${keyPair.keyId}`);
+        }
       } catch (dbError) {
         console.error('❌ Database user creation failed:', dbError);
         dbSuccess = false;
@@ -582,7 +622,8 @@ router.post('/register', logAuthEvent('REGISTER'), async (req, res) => {
         emailVerified: dbUser.emailVerified,
         iamUserId: dbUser.iamUserId,
         iamUsername: dbUser.iamUsername,
-        firstLogin: dbUser.firstLogin
+        firstLogin: dbUser.firstLogin,
+        signingKeyCreated: ['TDP', 'TDC', 'TSP'].includes(dbUser.partyType),
       },
       loginCredentials: password ? {
         email: dbUser.email,

@@ -13,7 +13,7 @@ canonical: docs/features/contract-signing/CONTRACT_SIGNING_TECHNICAL_REFERENCE.m
 
 **Related:** [Ricardian contracts]({% post_url 2026-08-16-ricardian-contracts-in-can %}) · [Contract → prediction]({% post_url 2026-08-14-can-contract-to-prediction %}) · [KMS DEK/MEK]({% post_url 2026-08-16-can-kms-dek-mek-escrow %}) · [Azure CC / Key Vault]({% post_url 2026-08-17-azure-confidential-computing-deep-dive %}) · [Merkle / Auditor]({% post_url 2026-08-16-merkle-trees-model-audit %}) · [Product tour]({{ '/product-tour/' | relative_url }}) · In-repo: [CONTRACT_SIGNING_TECHNICAL_REFERENCE.md](https://github.com/gitmujoshi/Confidential-AI-Network/blob/main/docs/features/contract-signing/CONTRACT_SIGNING_TECHNICAL_REFERENCE.md) · [CONTRACT_SIGNING_USER_GUIDE.md](https://github.com/gitmujoshi/Confidential-AI-Network/blob/main/docs/features/contract-signing/CONTRACT_SIGNING_USER_GUIDE.md)
 
-> **Honesty first:** Multi-party **authorization** to sign (who may flip `tdpSigned` / `tspSigned` and reach `SIGNED`) is **live**. Full **cryptographic verification** of party signatures against HSM-backed keys is **target** (`SIGNING_REQUIRE_CRYPTO_VERIFY` / Key Vault). The main Contract Detail UI often submits a hash or placeholder as `signature`. Treat DEK/MEK (data/model encryption) as a **different** key class from **party signing keys**.
+> **Status:** Sign authorization (who may set `tdpSigned` / `tspSigned` and reach `SIGNED`) is **live**. Cryptographic verification against HSM-backed keys is **target** (`SIGNING_REQUIRE_CRYPTO_VERIFY` / Key Vault). Contract Detail often submits a hash or placeholder as `signature`. Party **signing keys** are distinct from DEK/MEK.
 
 ---
 
@@ -97,7 +97,7 @@ So today the gate that matters for training is: **authenticated party allowed to
 
 ### 3.3 Richer signing surfaces (partial)
 
-There are additional components (`ContractSigning`, DID modal, `es256sign.js` WebCrypto, `/api/signing/sign`) aimed at stronger crypto/DID flows. Treat them as **available scaffolding**, not as “every product-tour click is HSM-verified.”
+There are additional components (`ContractSigning`, DID modal, `es256sign.js` WebCrypto, `/api/signing/sign`) aimed at stronger crypto/DID flows. Additional scaffolding for stronger crypto/DID; product-tour clicks are not HSM-verified end-to-end.
 
 ---
 
@@ -171,7 +171,7 @@ sequenceDiagram
 | What exact legal bytes? | `legalDocumentHash` |
 | Who recorded approval? | `legalDocument.signatures[]` + SCITT `contract_approval` |
 | Is the hash in the audit tree? | Auditor **Verify** = Merkle **inclusion** under published root — not “model was ethical” ([Merkle post]({% post_url 2026-08-16-merkle-trees-model-audit %})) |
-| Was the ECDSA/DID signature valid? | **Target** crypto verify; do not overclaim Phase 1 UI |
+| Was the ECDSA/DID signature valid? | **Target** crypto verify; Phase 1 UI is authz-gated |
 
 ---
 

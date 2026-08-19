@@ -12,7 +12,7 @@ permalink: /product-tour/
     Multi-party path on a runnable <strong>Local Docker</strong> stack (Playwright lifecycle):
     onboard → catalog → contract → train → provenance → deploy/predict → Auditor (Merkle + contract).
     Azure narrative (Entra, Key Vault, confidential compute): slide deck and CC deep dive.
-    Local path proves UX and gates; it is not a hardware TEE.
+    Local path: host Docker training (`TRAINING_EXECUTION_MODE=local-docker`).
   </p>
   <p class="cta-row" style="margin-top:1.25rem">
     <a class="cta" href="{{ '/assets/decks/azure-e2e-product-tour.html' | relative_url }}">Azure product tour deck</a>
@@ -22,6 +22,28 @@ permalink: /product-tour/
   </p>
 </section>
 
+<div class="tour-layout">
+  <nav class="tour-nav" aria-label="Product tour sections">
+    <p class="tour-nav-title">On this page</p>
+    <ol class="tour-nav-list">
+      <li><a href="#local">Overview</a></li>
+      <li><a href="#onboard">1. Registration</a></li>
+      <li><a href="#catalog">2. Catalog</a></li>
+      <li><a href="#contract">3. Contract &amp; sign</a></li>
+      <li><a href="#train">4. Train &amp; provenance</a></li>
+      <li><a href="#infer">5. Deploy &amp; predict</a></li>
+      <li><a href="#auditor">6. Auditor</a></li>
+      <li><a href="#gmase">7. Open-GMASE gate</a></li>
+      <li><a href="#how-produced">How screenshots are made</a></li>
+    </ol>
+    <p class="tour-nav-aside">
+      <a href="{% post_url 2026-08-17-azure-confidential-computing-deep-dive %}">Azure CC deep dive</a>
+      ·
+      <a href="{{ '/assets/decks/azure-e2e-product-tour.html' | relative_url }}">Azure deck</a>
+    </p>
+  </nav>
+
+  <div class="tour-main">
 <section class="home-section">
   <h2>What you will see</h2>
   <p>
@@ -32,13 +54,13 @@ permalink: /product-tour/
     (threat model · KMS · Secure Key Release · e2e train)
   </p>
   <ol class="tour-toc">
-    <li>Party registration — Training Data Consumer, Training Data Provider, Tech Service Provider</li>
-    <li>Catalog — dataset publish and model selection for training</li>
-    <li>Contract — create, notify, and sign by all parties</li>
-    <li>Training — start job, completion, run logs</li>
-    <li>Provenance — audit report</li>
-    <li>Deploy &amp; test — register artifact, deploy, run a prediction</li>
-    <li>Auditor — Merkle audit tree + contract review</li>
+    <li><a href="#onboard">Party registration</a> — Training Data Consumer, Training Data Provider, Tech Service Provider (signing key at register)</li>
+    <li><a href="#catalog">Catalog</a> — dataset publish and model selection for training</li>
+    <li><a href="#contract">Contract</a> — create, notify, and sign by all parties</li>
+    <li><a href="#train">Training</a> — start job, completion, run logs &amp; provenance</li>
+    <li><a href="#infer">Deploy &amp; test</a> — register artifact, deploy, run a prediction</li>
+    <li><a href="#auditor">Auditor</a> — Merkle audit tree + contract review</li>
+    <li><a href="#gmase">Open-GMASE</a> — policy gate + CompliancePulse ingest</li>
   </ol>
   <p>
     Canonical long-form text:
@@ -56,15 +78,15 @@ permalink: /product-tour/
     Tour captured from a real local run (<code>TRAINING_EXECUTION_MODE=local-docker</code>).
     TSP here is the <strong>Local</strong> clean-room provider.
     Screenshots from the Playwright lifecycle guide.
-    This path proves contracts, training UX, provenance, inference, and Auditor review —
-    it is <strong>not</strong> a hardware TEE. For Azure confidential VMs, Key Vault, and Secure Key Release,
+    Covers contracts, training UX, provenance, inference, and Auditor review.
+    For Azure confidential VMs, Key Vault, and Secure Key Release,
     see the <a href="{% post_url 2026-08-17-azure-confidential-computing-deep-dive %}">Azure deep dive</a>.
   </p>
 </section>
 
 <section class="home-section tour-section" id="onboard">
   <h2>1. Party registration (Local)</h2>
-  <p>Each party registers as an enterprise organization, then lands on a role-specific dashboard.</p>
+  <p>Each party registers as an enterprise organization, chooses a <strong>party signing key</strong> algorithm, then lands on a role-specific dashboard.</p>
 
   <figure class="shot">
     <img src="{{ '/assets/lifecycle/01-onboard-tdc-register.png' | relative_url }}" alt="Enterprise registration for Training Data Consumer" loading="lazy" />
@@ -112,7 +134,8 @@ permalink: /product-tour/
   <h2>3. Contract creation &amp; signing by all parties (Local)</h2>
   <p>
     The Training Data Consumer proposes terms and chooses the Local Tech Service Provider.
-    The Training Data Provider and Tech Service Provider review notifications and sign.
+    The Training Data Provider and Tech Service Provider review notifications and sign
+    with the <strong>party signing keys</strong> created at registration.
     Training cannot start until the contract is fully signed.
   </p>
   <figure class="shot">
@@ -248,7 +271,7 @@ permalink: /product-tour/
   </figure>
 </section>
 
-<section class="home-section">
+<section class="home-section" id="how-produced">
   <h2>How these screenshots are produced</h2>
   <p>Local path (full stack — backend, frontend, Keycloak, trainer):</p>
   <pre class="arch-diagram" style="white-space: pre-wrap;">cd frontend
@@ -267,3 +290,5 @@ E2E_WAIT_FOR_LOCAL_TRAINING=true BACKEND_URL=http://127.0.0.1:5001 npm run test:
     and are copied into this site at Pages build time.
   </p>
 </section>
+  </div>
+</div>

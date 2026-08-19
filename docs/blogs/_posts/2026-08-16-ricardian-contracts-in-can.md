@@ -15,7 +15,7 @@ A PDF agreement does not stop a training job or bind runtime state to the exact 
 
 **Related:** [Contract → governed prediction]({% post_url 2026-08-14-can-contract-to-prediction %}) · [Contract management — signing keys & verify]({% post_url 2026-08-17-can-contract-management-signing %}) · [Product tour]({{ '/product-tour/' | relative_url }}) · [Merkle / Auditor]({% post_url 2026-08-16-merkle-trees-model-audit %}) · [KMS DEK/MEK]({% post_url 2026-08-16-can-kms-dek-mek-escrow %}) · [TEE attest → decrypt]({% post_url 2026-08-16-can-tee-attest-decrypt-train %}) · In-repo: [RICARDIAN_CONTRACT_GUIDE.md](https://github.com/gitmujoshi/Confidential-AI-Network/blob/main/docs/contracts/RICARDIAN_CONTRACT_GUIDE.md)
 
-> **Status:** Creating, previewing, multi-party signing, and **SIGNED → train** gates are live on the local stack. Treat on-chain deploy and some signature crypto as **demo / Phase 1** (see §8). Cloud clean-room key release remains [Phase 2 in the TEE narrative]({% post_url 2026-08-16-can-tee-attest-decrypt-train %}).
+> **Status:** Creating, previewing, multi-party signing, and **SIGNED → train** gates are live on the local stack. On-chain deploy and some signature crypto are **demo / Phase 1** (see §8). Cloud clean-room key release remains [Phase 2 in the TEE narrative]({% post_url 2026-08-16-can-tee-attest-decrypt-train %}).
 
 ---
 
@@ -49,7 +49,7 @@ Creation (simplified):
 1. TDC runs the wizard → `POST /api/contracts/ricardian`.  
 2. Service **generates** `legalDocument` from a template (`AI_TRAINING` or `BASIC`).  
 3. Canonical JSON → **SHA-256** → `legalDocumentHash` (`0x…`).  
-4. Platform records `ricardianSignature` over that hash (see honesty note in §8).  
+4. Platform records `ricardianSignature` over that hash (see §8).  
 5. Optional smart-contract address (real chain if configured; otherwise **mock**).  
 6. Persist `Contract` at **`PENDING_TDP_APPROVAL`** and notify linked TDPs.
 
@@ -161,18 +161,16 @@ That is the DEPA-shaped idea applied to AI training: **use is licensed by agreem
 
 ---
 
-## 8. Honest limits (Phase 1)
+## 8. Phase 1 limits
 
 | Topic | Reality today |
 | --- | --- |
 | **`ricardianSignature`** | Platform binding digest for demos—not full multi-party ECDSA / cloud KMS signing of the legal hash (production target: IdP + KMS). Deep dive: [Contract management — signing & verify]({% post_url 2026-08-17-can-contract-management-signing %}) |
 | **On-chain deploy** | Real only if blockchain is enabled and available; otherwise **mock** network/address |
 | **TDC signature** | Model supports `tdcSigned`; **SIGNED** for training is driven by the **TSP** completing the current flow |
-| **Templates** | Built-in `AI_TRAINING` / `BASIC`; rich clause libraries / customer templates are not a finished product surface |
+| **Templates** | Built-in `AI_TRAINING` / `BASIC`; rich clause libraries / customer templates: roadmap |
 | **TEE / key release** | Contract can *require* attestation; local Docker is not hardware TEE—see [TEE post]({% post_url 2026-08-16-can-tee-attest-decrypt-train %}) |
 | **Naming** | Runtime prefers **TSP**; older templates/DB columns may still say **CCRP** |
-
-Use the same honesty bar as the KMS/TEE/Merkle posts: ship the governance UX, say clearly what crypto and cloud isolation still mean “target.”
 
 ---
 

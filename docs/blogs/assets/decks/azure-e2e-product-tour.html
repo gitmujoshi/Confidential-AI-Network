@@ -153,7 +153,7 @@
         <li>E2E tour — registration through prediction</li>
         <li>DEK/MEK escrow · TEE attest-then-decrypt</li>
         <li>Open-GMASE + CompliancePulse</li>
-        <li>Operator checklist · honest boundaries · CTA</li>
+        <li>Operator checklist · scope boundaries · CTA</li>
       </ul>
     </section>
 
@@ -336,11 +336,11 @@ Front Door / WAF  →  APIM  →  CAN on AKS
 
     <section class="slide">
       <p class="eyebrow">Trust</p>
-      <h2>Honest boundaries</h2>
+      <h2>Scope boundaries</h2>
       <table>
-        <tr><th>Say this</th><th>Don’t imply</th></tr>
+        <tr><th>In scope / live</th><th>Do not imply</th></tr>
         <tr><td>Entra is the Azure IdP</td><td>Keycloak runs in customer Azure</td></tr>
-        <tr><td>Local Docker proves UX</td><td>Local Docker is a hardware TEE</td></tr>
+        <tr><td>Local Docker covers UX</td><td>Local Docker is a hardware TEE</td></tr>
         <tr><td>Dual-key escrow is the design</td><td>SaaS holds DEK/MEK plaintext</td></tr>
         <tr><td>OPA gates side effects</td><td>Prompts are the control plane</td></tr>
       </table>

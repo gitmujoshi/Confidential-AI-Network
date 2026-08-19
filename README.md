@@ -234,7 +234,7 @@ flowchart LR
 - **SCITT CCF ledger** — high-throughput, confidential-computing-friendly audit trail
 - **TDC training jobs** — contract-bound training; `local-docker`, `local-native` (Mac MPS), or `local-mlx`; optional model registration; NLP jobs can return **Opacus DP-SGD** `privacyMetrics` ([runtime doc](docs/training/TDC_TRAINING_RUNTIME.md) · [glossary](docs/GLOSSARY.md))
 - **Open-GMASE policy gates** — fail-closed OPA on train / deploy / predict; Inference UI shows ALLOW/DENY
-- **CompliancePulse ingest** — default forward of `GMASE_TOOL_DECISION` to CP audit trail (research stub; not full multi-tenant SaaS yet)
+- **CompliancePulse ingest** — default forward of `GMASE_TOOL_DECISION` to CP audit trail (research ingest path; multi-tenant SaaS separate)
 - **CCRP training console** — deploy and monitor jobs via API and `/ccrp/training-environment`
 - **Encryption** — LUKS for large files, TEE decryption paths, differential privacy support
 - **Multi-cloud** — AWS, Azure, GCP, OCI deployment paths

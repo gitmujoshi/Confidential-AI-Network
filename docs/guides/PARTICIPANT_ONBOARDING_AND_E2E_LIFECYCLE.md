@@ -7,7 +7,7 @@ This document **unifies** material previously spread across user guides, flow sp
 | Item | Value |
 |------|--------|
 | Audience | Operators, integrators, AppAdmins, demo facilitators |
-| Status | Living doc — reflects code + design as of 2026-07 |
+| Status | Reflects code + design as of 2026-07 |
 | Companion demo | [LOCAL_DEMO_RUNBOOK.md](../training/LOCAL_DEMO_RUNBOOK.md) |
 | Glossary | [GLOSSARY.md](../GLOSSARY.md) |
 | Azure features & settings | [AZURE_FEATURES_AND_CONFIGURATION.md](../deployment/AZURE_FEATURES_AND_CONFIGURATION.md) — Entra, KV, DEK/MEK, train, Blob, SCITT |
@@ -107,8 +107,8 @@ flowchart LR
 
 ### 3.2 Human registration (all roles)
 
-**UI:** `/register` — name, email, party type (**TDP / TDC / TSP** only), organization.  
-**API:** `POST /api/auth/register` — also accepts `AppAdmin`; accepts legacy `CCRP` and normalizes to `TSP`.
+**UI:** `/register` — name, email, party type (**TDP / TDC / TSP** only), organization, **Signing algorithm** (party signing key).  
+**API:** `POST /api/auth/register` — also accepts `AppAdmin`; accepts legacy `CCRP` and normalizes to `TSP`. Optional body `signingAlgorithm` (`ECDSA-P256` \| `RSA-2048` \| `RSA-4096`).
 
 | Attribute | Required | Notes |
 |-----------|----------|-------|
@@ -117,6 +117,7 @@ flowchart LR
 | `partyType` | **Yes** | Canonical: `TDP` \| `TDC` \| `TSP` \| `AppAdmin`. API alias: `CCRP` → `TSP` |
 | `password` | Optional at register | Temp password often issued; **first-login change** expected |
 | `organization` | Recommended | Enterprise context |
+| `signingAlgorithm` | Recommended for TDP/TDC/TSP | Defaults to `ECDSA-P256`; creates active `UserKey` in the same transaction |
 | `description`, `phoneNumber`, `website`, `location` | Optional | Profile |
 | `existingDID` + `didVerificationSignature` | Optional | Bring-your-own DID; else system generates |
 | `walletAddress`, `publicKey` | Optional | Legacy; not required for enterprise path |
@@ -129,6 +130,7 @@ flowchart LR
 | `iamUserId` / `iamUsername` | Keycloak linkage — registration fails if Keycloak is down |
 | `did`, `didSource`, `didVerified` | DID lifecycle |
 | `onboardingStatus`, `profileCompleted`, `firstLogin` | Onboarding state machine |
+| `signingKeyCreated` (response) | `true` when a party signing key was minted for TDP/TDC/TSP |
 
 ### 3.3 Post-registration checklist (per role)
 
@@ -136,7 +138,7 @@ flowchart LR
 |------|-----|-----|----------|----------|
 | First password change | ✓ | ✓ | ✓ | ✓ |
 | Complete profile / org | ✓ | ✓ | ✓ | ✓ |
-| Generate **signing key** | ✓ | ✓ | ✓ | Optional |
+| **Party signing key** (at register) | ✓ | ✓ | ✓ | Optional |
 | Configure cloud credentials | — | — | ✓ | — |
 | Publish dataset(s) | ✓ | — | — | — |
 | Publish / select base model(s) | — | ✓ | — | — |
@@ -144,13 +146,13 @@ flowchart LR
 
 ### 3.4 Contract signing keys (required for E2E signing)
 
-Without an active signing key, parties cannot complete cryptographic contract signatures.
+Without an active signing key, parties cannot create Ricardian contracts or complete cryptographic signatures (`SIGNING_KEY_REQUIRED`).
 
-1. Profile / **Key Management** → **Generate New Key**.
-2. Choose algorithm: **ECDSA-P256** (recommended), RSA-2048, or RSA-4096 (`KEY_ALGORITHMS` / UI).
-3. Generate and keep the key `active`.
+**Primary path (current):** choose **Signing algorithm** on `/register` (or pass `signingAlgorithm` on `POST /api/auth/register`). The backend creates an active `UserKey` for TDP / TDC / TSP before the user can create or sign contracts.
 
-**Current portal implementation:** keys are created via the Key Management UI/API with `keyType` (no unlock-password field in the current UI). `UserKey.privateKey` is stored on the user-keys row (intended to be encrypted at rest in production). Older signing guides that describe a per-key password + Vault unlock reflect **design / enterprise target**, not the current portal path.
+**Backfill / regenerate:** Profile / signing API → `POST /api/signing/keys/generate` with `algorithm` (`ECDSA-P256` recommended, RSA-2048, or RSA-4096). E2E helpers call this for seeded users that predate registration key minting.
+
+**Current portal implementation:** `UserKey.privateKey` is stored on the user-keys row (intended to be encrypted at rest in production). Older signing guides that describe a separate Key Management unlock-password + Vault custody reflect **design / enterprise target**, not the default registration path.
 
 | UserKey field | Required | Notes |
 |---------------|----------|-------|
@@ -319,7 +321,7 @@ Exact enum also includes `PENDING_TDC` and multi-TDP statuses — see `backend/m
 ### 8.2 Procedure (each party)
 
 1. Open contract → review terms, datasets, models, environment, privacy.
-2. **Sign Contract** → select signing key → submit signature.
+2. **Sign Contract** → uses the active registration **party signing key** → submit signature.
 3. Receipt stored in SCITT when enabled (best-effort / path-dependent — signing can succeed even if SCITT is down on some routes).
 4. Status advances when required parties have signed (typically **TDP(s)** then **TSP/CCRP**; training demos may not hard-gate on TDC signature).
 
@@ -344,7 +346,7 @@ Exact enum also includes `PENDING_TDC` and multi-TDP statuses — see `backend/m
 5. Optional Opacus DP-SGD when `differentialPrivacy.enabled`.
 6. Results → `TrainingJob` metadata / `metrics.json` under local runs.
 
-**Honest scope:** This is **host Docker / native training**, not a hardware TEE. See [LOCAL_DEMO_RUNBOOK.md](../training/LOCAL_DEMO_RUNBOOK.md).
+**Scope:** Host Docker / native training (not a hardware TEE). See [LOCAL_DEMO_RUNBOOK.md](../training/LOCAL_DEMO_RUNBOOK.md).
 
 ### 9.2 CAN / JCS path (MVP)
 
@@ -463,7 +465,7 @@ Use this as a single run sheet. Mark **Portal** vs **CAN** where noted.
 
 ### Phase 1 — Onboard
 
-- [ ] TDP, TDC, TSP registered (or seeded E2E users)
+- [ ] TDP, TDC, TSP registered (or seeded E2E users) with **party signing key** at register (or backfilled)
 - [ ] First-login passwords changed
 - [ ] Each signing party has **active signing key**
 - [ ] DEPA IDs present on profiles

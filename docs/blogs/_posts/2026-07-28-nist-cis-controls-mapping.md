@@ -10,17 +10,25 @@ canonical: docs/compliance/SECURITY_CONTROLS_NIST_CIS_MAPPING.md
 
 Security and GRC reviewers ask which **requirements** Confidential AI Network meets and how they line up with **NIST**, **CIS**, and **OWASP** (web and LLM).
 
+### Quick orientation
+
+| | |
+|--|--|
+| **[NIST](https://www.nist.gov/)** | U.S. standards body. **[CSF 2.0](https://www.nist.gov/cyberframework)** organizes outcomes (Govern → Recover); **[SP 800-53 Rev. 5](https://csrc.nist.gov/pubs/sp/800/53/r5/upd1/final)** lists detailed baseline controls for system security plans. |
+| **[CIS](https://www.cisecurity.org/)** | Prioritized **Critical Security Controls** (practical safeguards) plus hardening Benchmarks. Current download: **[Controls v8.1](https://www.cisecurity.org/controls/v8-1)**; browse the **[18 controls](https://www.cisecurity.org/controls/cis-controls-list)**. |
+| **[OWASP](https://owasp.org/)** | Application-security risk lists. **[Top 10:2021](https://owasp.org/Top10/2021/)** for web/API; **[LLM Top 10 (2025)](https://genai.owasp.org/llm-top-10/)** for GenAI apps. |
+
 The canonical matrix is:
 
 **[SECURITY_CONTROLS_NIST_CIS_MAPPING.md](https://github.com/gitmujoshi/Confidential-AI-Network/blob/main/docs/compliance/SECURITY_CONTROLS_NIST_CIS_MAPPING.md)**
 
 It covers eighteen requirements (identity, least privilege, network, encryption, confidential compute, provenance, SIEM, IaC, DR, privacy hooks, contract governance, OWASP web / LLM) with clickable links into:
 
-- [**NIST Cybersecurity Framework 2.0**](https://csrc.nist.gov/pubs/cswp/29/the-nist-cybersecurity-framework-csf-20/final) (CPRT category / outcome IDs)  
+- [**NIST Cybersecurity Framework 2.0**](https://csrc.nist.gov/pubs/cswp/29/the-nist-cybersecurity-framework-csf-20/final) ([CSF Reference Tool](https://csrc.nist.gov/Projects/cybersecurity-framework/Filters#/csf/filters) · CPRT category / outcome IDs)  
 - [**NIST SP 800-53 Rev. 5**](https://csrc.nist.gov/pubs/sp/800/53/r5/upd1/final) (CPRT control catalog)  
-- [**CIS Controls v8**](https://www.cisecurity.org/controls/v8) (per-control pages)  
+- [**CIS Controls v8.1**](https://www.cisecurity.org/controls/v8-1) ([18-control list](https://www.cisecurity.org/controls/cis-controls-list) · [v8 overview](https://www.cisecurity.org/controls/v8))  
 - [**OWASP Top 10:2021**](https://owasp.org/Top10/2021/) (A01–A10 — how addressed in app + edge)  
 - [**OWASP LLM Top 10 (2025)**](https://genai.owasp.org/llm-top-10/) (LLM01–LLM10 — train / infer / Open-GMASE gates)  
-- Evidence pointers into multi-cloud patterns, IAM, SIEM, and lifecycle docs  
+- Evidence pointers into multi-cloud patterns, IAM, SIEM, [product tour]({{ '/product-tour/' | relative_url }}), and lifecycle docs  
 
 This post is orientation only — the markdown file is the source of truth. It is a **control crosswalk**, not a claim of SOC 2 / ISO 27001 / FedRAMP / OWASP certification for a specific tenancy.

@@ -46,7 +46,8 @@ npm run test:e2e:headed
 
 ### 1. Authentication (`auth`)
 - **File**: `auth.spec.js`
-- **Description**: Login, logout, registration, forgot password, TDC dashboard smoke
+- **Description**: Login, logout, registration (incl. **Party signing key** / algorithm), forgot password, TDC dashboard smoke
+- **Helper**: `helpers/party-signing-e2e.js` — `chooseSigningAlgorithm`, `ensurePartySigningReady` (backfill for seeded users)
 
 ### 2. Core (`core`)
 - **Files**: `auth.spec.js`, `contracts.spec.js`, `dashboard.spec.js`, `tdc-training.spec.js`
@@ -56,7 +57,8 @@ npm run test:e2e:headed
 
 ### 4. Full E2E (`integration` / `all`)
 - **Path**: `tests/e2e/*.spec.js` (same as `npm run test:e2e`)
-
+- **Notable**: `full-e2e-register-sign-train-local.spec.js` registers via UI with signing algorithm, verifies keys, then TDP/TSP **contract sign** → local training
+- **Product tours**: `lifecycle-user-guide.spec.js` (onboard with signing options → sign → train) and `role-user-guides.spec.js` (contract signing steps)
 ### 5. Backend API smoke (`api`)
 - **Files**: `can-jcs-api.spec.js`, `huggingface-api.spec.js`, `nlp-dp-training-api.spec.js`, `inference-deploy-api.spec.js` (opt-in skip unless `E2E_WAIT_FOR_LOCAL_TRAINING=true`)
 - **Run**: `npm run test:e2e:api` (Chromium, serial — mostly backend-only; NLP DP + inference specs skip without local-docker env)

@@ -42,7 +42,7 @@ Need production? ──no──► getting-started/QUICK_START.md + ./start-syst
 | [OCI_IAM_AND_EDGE_CONFIG.md](OCI_IAM_AND_EDGE_CONFIG.md) | **IAM policies, Cloud Gate, API Gateway, WAF** (implementation reference) |
 | [OCI_SPIFFE_SPIRE_WIF.md](OCI_SPIFFE_SPIRE_WIF.md) | **SPIFFE/SPIRE + OCI WIF** design & implementation (workload identity) |
 | [OCI_DESIGN_COMPLETE.md](OCI_DESIGN_COMPLETE.md) | **Design/scaffold completeness** (code + docs; no live tenancy required) |
-| [OCI_READINESS.md](OCI_READINESS.md) | Honest assessment: design vs live apply |
+| [OCI_READINESS.md](OCI_READINESS.md) | Design vs live apply |
 | [OCI_MARKETPLACE_LISTING_CHECKLIST.md](OCI_MARKETPLACE_LISTING_CHECKLIST.md) | **Oracle Marketplace** listing path (BYOL → paid SaaS / stack) |
 | [OCI_TAGGING_AND_VERSIONING.md](OCI_TAGGING_AND_VERSIONING.md) | **cms-* tags, image tags, release versioning** |
 | [../../config/examples/config.oci.env.example](../../config/examples/config.oci.env.example) | OCI env var template (target) |
@@ -58,7 +58,7 @@ Need production? ──no──► getting-started/QUICK_START.md + ./start-syst
 | [AZURE_FEATURES_AND_CONFIGURATION.md](AZURE_FEATURES_AND_CONFIGURATION.md) | **Feature catalog + env/settings** (Entra, KV, DEK/MEK, train, Blob, SCITT) |
 | [AZURE_IAM_AND_EDGE_CONFIG.md](AZURE_IAM_AND_EDGE_CONFIG.md) | **Entra ID, RBAC, Front Door, APIM, WAF** (implementation reference) |
 | [AZURE_SPIFFE_SPIRE_WIF.md](AZURE_SPIFFE_SPIRE_WIF.md) | **SPIFFE/SPIRE + AKS WI / Entra federation** (workload identity design) |
-| [AZURE_READINESS.md](AZURE_READINESS.md) | Honest assessment: what is / isn't ready for Azure |
+| [AZURE_READINESS.md](AZURE_READINESS.md) | What is / is not ready for Azure |
 | [../../config/examples/config.azure.env.example](../../config/examples/config.azure.env.example) | Azure env var template (target) |
 | [../../deployment/azure/terraform/README.md](../../deployment/azure/terraform/README.md) | Terraform modules (AKS, PostgreSQL, ACR) |
 | [../../deployment/deploy-azure.sh](../../deployment/deploy-azure.sh) | **Entry point**: `terraform` (AKS) or `vm` (single VM) |
@@ -72,7 +72,7 @@ Need production? ──no──► getting-started/QUICK_START.md + ./start-syst
 | [../production/AWS_SECURITY_ARCHITECTURE.md](../production/AWS_SECURITY_ARCHITECTURE.md) | Security architecture + phased AWS env setup |
 | [AWS_FEATURES_AND_CONFIGURATION.md](AWS_FEATURES_AND_CONFIGURATION.md) | **Feature catalog + env/settings** (Cognito, KMS, DEK/MEK, train, S3, SCITT) |
 | [AWS_IAM_AND_EDGE_CONFIG.md](AWS_IAM_AND_EDGE_CONFIG.md) | **Cognito, IRSA, CloudFront, API Gateway, WAF** |
-| [AWS_READINESS.md](AWS_READINESS.md) | Honest assessment: what is / isn't ready for AWS |
+| [AWS_READINESS.md](AWS_READINESS.md) | What is / is not ready for AWS |
 | [../../config/examples/config.aws.env.example](../../config/examples/config.aws.env.example) | AWS env var template (target) |
 
 ## Google Cloud (GCP)
@@ -82,7 +82,7 @@ Need production? ──no──► getting-started/QUICK_START.md + ./start-syst
 | [../production/GCP_SECURITY_ARCHITECTURE.md](../production/GCP_SECURITY_ARCHITECTURE.md) | Security architecture + phased GCP env setup |
 | [GCP_FEATURES_AND_CONFIGURATION.md](GCP_FEATURES_AND_CONFIGURATION.md) | **Feature catalog + env/settings** (Identity Platform, KMS, DEK/MEK, train, GCS, SCITT) |
 | [GCP_IAM_AND_EDGE_CONFIG.md](GCP_IAM_AND_EDGE_CONFIG.md) | **IAM, Identity Platform, Cloud Armor, API Gateway, IAP** |
-| [GCP_READINESS.md](GCP_READINESS.md) | Honest assessment: what is / isn't ready for GCP |
+| [GCP_READINESS.md](GCP_READINESS.md) | What is / is not ready for GCP |
 | [../../config/examples/config.gcp.env.example](../../config/examples/config.gcp.env.example) | GCP env var template (target) |
 
 ## Kubernetes / production

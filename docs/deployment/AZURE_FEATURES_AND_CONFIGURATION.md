@@ -7,7 +7,7 @@ Canonical catalog of **Azure-oriented product features**, how they fit the E2E m
 | [AZURE_SECURITY_ARCHITECTURE.md](../production/AZURE_SECURITY_ARCHITECTURE.md) | Topology, runbook, §16 crypto flows |
 | [AZURE_IAM_AND_EDGE_CONFIG.md](AZURE_IAM_AND_EDGE_CONFIG.md) | Entra groups, RBAC, APIM, WAF |
 | [AZURE_SPIFFE_SPIRE_WIF.md](AZURE_SPIFFE_SPIRE_WIF.md) | SPIFFE/SPIRE + AKS WI / Entra WIF design |
-| [AZURE_READINESS.md](AZURE_READINESS.md) | Honest gap analysis |
+| [AZURE_READINESS.md](AZURE_READINESS.md) | Gap analysis |
 | [PARTICIPANT_ONBOARDING_AND_E2E_LIFECYCLE.md](../guides/PARTICIPANT_ONBOARDING_AND_E2E_LIFECYCLE.md) | DEK/MEK / signing / CAN model |
 | [backend/AZURE_INTEGRATION_GUIDE.md](../../backend/AZURE_INTEGRATION_GUIDE.md) | CCRP Azure SDK / credentials |
 | [config/examples/config.azure.env.example](../../config/examples/config.azure.env.example) | Env var template for Azure |

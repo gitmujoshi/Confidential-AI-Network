@@ -8,7 +8,7 @@ Canonical catalog of **OCI-oriented product features**, E2E fit, **maturity**, a
 | [OCI_IAM_AND_EDGE_CONFIG.md](OCI_IAM_AND_EDGE_CONFIG.md) | IAM policies, Cloud Gate, API GW, WAF |
 | [OCI_SPIFFE_SPIRE_WIF.md](OCI_SPIFFE_SPIRE_WIF.md) | SPIFFE/SPIRE + OCI WIF (workload identity design) |
 | [OCI_DESIGN_COMPLETE.md](OCI_DESIGN_COMPLETE.md) | Design/scaffold completeness map |
-| [OCI_READINESS.md](OCI_READINESS.md) | Honest gap analysis (design vs live apply) |
+| [OCI_READINESS.md](OCI_READINESS.md) | Gap analysis (design vs live apply) |
 | [OCI_TAGGING_AND_VERSIONING.md](OCI_TAGGING_AND_VERSIONING.md) | `cms-*` tags, image tags |
 | [PARTICIPANT_ONBOARDING_AND_E2E_LIFECYCLE.md](../guides/PARTICIPANT_ONBOARDING_AND_E2E_LIFECYCLE.md) | DEK/MEK / signing / CAN model |
 | [config/examples/config.oci.env.example](../../config/examples/config.oci.env.example) | Env var template for OCI |

@@ -6,7 +6,7 @@ Canonical catalog of **Google Cloud–oriented product features**, E2E fit, **ma
 |-----|------|
 | [GCP_SECURITY_ARCHITECTURE.md](../production/GCP_SECURITY_ARCHITECTURE.md) | Topology, runbook, crypto flows |
 | [GCP_IAM_AND_EDGE_CONFIG.md](GCP_IAM_AND_EDGE_CONFIG.md) | IAM, Identity Platform, API Gateway, Cloud Armor, Cloud CDN |
-| [GCP_READINESS.md](GCP_READINESS.md) | Honest gap analysis |
+| [GCP_READINESS.md](GCP_READINESS.md) | Gap analysis |
 | [PARTICIPANT_ONBOARDING_AND_E2E_LIFECYCLE.md](../guides/PARTICIPANT_ONBOARDING_AND_E2E_LIFECYCLE.md) | DEK/MEK / signing / CAN model |
 | [config/examples/config.gcp.env.example](../../config/examples/config.gcp.env.example) | Env var template for GCP |
 

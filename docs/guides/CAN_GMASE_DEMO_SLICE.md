@@ -93,7 +93,7 @@ Override package per debug request with `"policy_package": "open_gmase/can_contr
 2. Show a **denied** DROP TABLE / raw export via the debug endpoint (HTTP 403 + reason).  
 3. Show the same decision in `/api/debug/gmase-tool-decisions` (CAN audit trail).  
 4. Show Inference **Open-GMASE policy gate** ALLOW panel (and training-start toast).  
-5. Be explicit: swarm UI, SPIRE attestation, and multi-tenant SaaS are still research roadmap; this is the **inner gate** wiring (+ default ingest to localhost:3001).
+5. Swarm UI, SPIRE attestation, and multi-tenant SaaS are still research roadmap; this is the **inner gate** wiring (+ default ingest to localhost:3001).
 
 ## Next engineering steps
 

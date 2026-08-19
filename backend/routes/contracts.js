@@ -15,6 +15,7 @@ const {
   resolveSigningUser,
   resolveIsLinkedTdp,
 } = require('../services/contractSigningGate');
+const contractSigningService = require('../services/contractSigningService');
 
 /**
  * Enhanced DID signature verification using DID service
@@ -467,6 +468,16 @@ router.post('/:contractId/sign', authenticateToken, async (req, res) => {
       return res.status(403).json({ error: 'Role mismatch: not authorized to sign as this partyType' });
     }
 
+    const hasSigningKey = await contractSigningService.hasActiveSigningKey(currentUser.id);
+    if (!hasSigningKey) {
+      return res.status(400).json({
+        error: 'Signing key required',
+        code: 'SIGNING_KEY_REQUIRED',
+        message: 'Register a party signing key before signing contracts.',
+        setupPath: '/signing-setup'
+      });
+    }
+
     const claimedParty = normalizePartyType(partyType);
 
     const contract = await db.Contract.findOne({ where: { contractId } });
@@ -733,6 +744,16 @@ router.post('/ricardian', authenticateToken, async (req, res) => {
     const tdcUser = req.user?.localUser;
     if (!tdcUser || tdcUser.partyType !== 'TDC') {
       return res.status(403).json({ error: 'Only TDC users can create contracts' });
+    }
+
+    const hasSigningKey = await contractSigningService.hasActiveSigningKey(tdcUser.id);
+    if (!hasSigningKey) {
+      return res.status(400).json({
+        error: 'Signing key required',
+        code: 'SIGNING_KEY_REQUIRED',
+        message: 'Register a party signing key before creating a contract.',
+        setupPath: '/signing-setup'
+      });
     }
 
     // Validate and get datasets and their TDPs

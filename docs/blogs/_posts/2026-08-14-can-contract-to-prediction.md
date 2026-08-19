@@ -76,7 +76,7 @@ In practice:
 6. In the Inference app, run a sample input and read both the **label** and the **policy-gate** panel.  
 7. If CompliancePulse is running, the same decision appears on its audit trail as `external_ingest`.
 
-Walk it in UI: [product tour]({{ '/product-tour/' | relative_url }}). Prove the gate: [demo slice]({% post_url 2026-08-14-can-gmase-demo-slice %}).
+Walk it in UI: [product tour]({{ '/product-tour/' | relative_url }}). Gate demo: [demo slice]({% post_url 2026-08-14-can-gmase-demo-slice %}).
 
 ---
 
@@ -114,7 +114,7 @@ Community packs: [`open-gmase-core/`](https://github.com/gitmujoshi/Confidential
 
 ---
 
-## Honest boundaries
+## Live vs roadmap
 
 | You can show today | Still research / roadmap |
 | --- | --- |

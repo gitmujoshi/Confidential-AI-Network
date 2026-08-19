@@ -137,7 +137,7 @@ We invested first in **Oracle Cloud** because clean-room + Vault + OKE + Identit
 - **Vault / Object Storage / SPIFFE / WIF / training Job** as opt-in modules (`enable_*`)  
 - Azure deployment narrative: [product tour]({{ '/product-tour/' | relative_url }}) + [Azure confidential computing deep dive]({% post_url 2026-08-17-azure-confidential-computing-deep-dive %}) when a tenancy is not yet available  
 
-Honest maturity: **baseline apply path is in-repo**; live WAF/API Gateway, SCITT HA, and production Job submitters are still opt-in / operator follow-through. See [OCI design complete](https://github.com/gitmujoshi/Confidential-AI-Network/blob/main/docs/deployment/OCI_DESIGN_COMPLETE.md) and the [marketplace listing checklist](https://github.com/gitmujoshi/Confidential-AI-Network/blob/main/docs/deployment/OCI_MARKETPLACE_LISTING_CHECKLIST.md).
+Maturity: **baseline apply path is in-repo**; live WAF/API Gateway, SCITT HA, and production Job submitters are still opt-in / operator follow-through. See [OCI design complete](https://github.com/gitmujoshi/Confidential-AI-Network/blob/main/docs/deployment/OCI_DESIGN_COMPLETE.md) and the [marketplace listing checklist](https://github.com/gitmujoshi/Confidential-AI-Network/blob/main/docs/deployment/OCI_MARKETPLACE_LISTING_CHECKLIST.md).
 
 ---
 
@@ -156,7 +156,7 @@ That matrix is a **control map**, not a claim of SOC 2 / FedRAMP certification f
 
 ---
 
-## What we deliberately do *not* claim
+## Out of scope / non-claims
 
 | Claim | Reality |
 |-------|---------|
@@ -165,7 +165,7 @@ That matrix is a **control map**, not a claim of SOC 2 / FedRAMP certification f
 | “Keys never leave the enclave in every path” | Design + partial code; TEE attestation maturity varies by cloud |
 | “Keycloak in production on OCI” | **False** — Identity Domains only |
 
-Shipping an honest readiness doc is part of the product: [OCI_READINESS.md](https://github.com/gitmujoshi/Confidential-AI-Network/blob/main/docs/deployment/OCI_READINESS.md), [AZURE_READINESS.md](https://github.com/gitmujoshi/Confidential-AI-Network/blob/main/docs/deployment/AZURE_READINESS.md).
+Readiness docs: [OCI_READINESS.md](https://github.com/gitmujoshi/Confidential-AI-Network/blob/main/docs/deployment/OCI_READINESS.md), [AZURE_READINESS.md](https://github.com/gitmujoshi/Confidential-AI-Network/blob/main/docs/deployment/AZURE_READINESS.md).
 
 ---
 

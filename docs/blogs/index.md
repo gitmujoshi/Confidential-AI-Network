@@ -217,7 +217,7 @@ permalink: /
       </li>
       <li>
         <a href="{% post_url 2026-08-16-can-tee-attest-decrypt-train %}">TEE training in CAN — attest, verify contract, then decrypt</a>
-        <p class="meta">August 16, 2026 · Hardware attestation · decrypt-in-memory · honest live vs target</p>
+        <p class="meta">August 16, 2026 · Hardware attestation · decrypt-in-memory · live vs target</p>
       </li>
       <li>
         <a href="{% post_url 2026-08-16-merkle-trees-model-audit %}">Merkle trees for model audit — when the model misbehaves</a>

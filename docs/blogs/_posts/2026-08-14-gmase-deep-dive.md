@@ -144,7 +144,7 @@ cd open-gmase-core && docker compose up -d
 ./examples/policy-check.sh
 ```
 
-**Honest scope:** local/sandbox adoption and community Rego/agent contributions. Multi-tenant SaaS, certified compliance packs, and enterprise IdP glue are **out of scope** here—see [OPEN_CORE.md](https://github.com/gitmujoshi/Confidential-AI-Network/blob/main/open-gmase-core/OPEN_CORE.md) and the [CompliancePulse deep dive]({% post_url 2026-08-14-compliancepulse-ai-deep-dive %}).
+**Scope:** Local/sandbox adoption and community Rego/agent contributions. Multi-tenant SaaS, certified compliance packs, and enterprise IdP glue are covered in [OPEN_CORE.md](https://github.com/gitmujoshi/Confidential-AI-Network/blob/main/open-gmase-core/OPEN_CORE.md) and the [CompliancePulse deep dive]({% post_url 2026-08-14-compliancepulse-ai-deep-dive %}).
 
 ---
 

@@ -4,14 +4,23 @@
 **Scope:** Confidential AI Network (CAN) platform controls (application + multi-cloud deployment patterns)  
 **Status:** Control **objectives met by design and implementation in-repo**. Live tenancy posture depends on cloud apply (see readiness docs). This is a **mapping for assurance**, not a formal certification claim (SOC 2 / ISO 27001 / FedRAMP attestation must be customer-led).
 
+### What NIST, CIS, and OWASP are
+
+| Framework | Short description | Used in this doc |
+|-----------|-------------------|------------------|
+| **[NIST](https://www.nist.gov/)** (U.S. National Institute of Standards and Technology) | Publishes voluntary cybersecurity frameworks and detailed control catalogs used widely by governments and enterprises for risk management and authorization. | **[CSF 2.0](https://www.nist.gov/cyberframework)** — six Functions (Govern, Identify, Protect, Detect, Respond, Recover) and outcome categories (e.g. `PR.AA`). **[SP 800-53 Rev. 5](https://csrc.nist.gov/pubs/sp/800/53/r5/upd1/final)** — granular baseline controls (e.g. `AC-2`, `SC-7`) for system security plans. |
+| **[CIS](https://www.cisecurity.org/)** (Center for Internet Security) | Community-driven, prioritized set of **Critical Security Controls** (practical safeguards) plus hardening **Benchmarks** for OS, Kubernetes, and cloud foundations. | **[CIS Controls v8 / v8.1](https://www.cisecurity.org/controls/cis-controls-list)** — 18 control families (e.g. [Account Management](https://www.cisecurity.org/controls/account-management), [Data Protection](https://www.cisecurity.org/controls/data-protection)). v8.1 is the current download; family IDs **1–18** are the same as v8. |
+| **[OWASP](https://owasp.org/)** (Open Worldwide Application Security Project) | Non-profit that publishes widely cited application-security risk lists and guidance for builders and testers. | **[Top 10:2021](https://owasp.org/Top10/2021/)** — web/API risks (A01–A10). **[LLM Top 10 (2025)](https://genai.owasp.org/llm-top-10/)** — GenAI / LLM application risks (LLM01–LLM10). See §7. |
+
 | Item | Value |
 |------|--------|
 | Companion patterns | [MULTI_CLOUD_SECURITY_ARCHITECTURE_PATTERNS.md](../production/MULTI_CLOUD_SECURITY_ARCHITECTURE_PATTERNS.md) (P1–P12) |
 | Cloud detail | [OCI](../production/OCI_SECURITY_ARCHITECTURE.md) · [Azure](../production/AZURE_SECURITY_ARCHITECTURE.md) · [AWS](../production/AWS_SECURITY_ARCHITECTURE.md) · [GCP](../production/GCP_SECURITY_ARCHITECTURE.md) |
-| App IAM / keys | [../security/README.md](../security/README.md) |
+| App IAM / keys | [security/README.md](../security/README.md) |
 | Evidence / SIEM | [SIEM_INTEGRATION_FRAMEWORK.md](../production/SIEM_INTEGRATION_FRAMEWORK.md) |
+| Product tour (UI evidence) | [Product tour](https://gitmujoshi.github.io/Confidential-AI-Network/product-tour/) · [Lifecycle user guide](../guides/lifecycle-user-guide/LIFECYCLE_USER_GUIDE.md) |
 | India DPDP (Act-specific) | [DPDP_COMPLIANCE_IMPLEMENTATION.md](DPDP_COMPLIANCE_IMPLEMENTATION.md) |
-| Framework editions used here | [**NIST CSF 2.0**](https://csrc.nist.gov/pubs/cswp/29/the-nist-cybersecurity-framework-csf-20/final) · [**NIST SP 800-53 Rev. 5**](https://csrc.nist.gov/pubs/sp/800/53/r5/upd1/final) · [**CIS Controls v8**](https://www.cisecurity.org/controls/v8) · [**OWASP Top 10**](https://owasp.org/www-project-top-ten/) · [**OWASP LLM Top 10 (2025)**](https://genai.owasp.org/llm-top-10/) |
+| Framework editions used here | [**NIST CSF 2.0**](https://csrc.nist.gov/pubs/cswp/29/the-nist-cybersecurity-framework-csf-20/final) · [**NIST SP 800-53 Rev. 5**](https://csrc.nist.gov/pubs/sp/800/53/r5/upd1/final) · [**CIS Controls v8.1**](https://www.cisecurity.org/controls/v8-1) ([v8 overview](https://www.cisecurity.org/controls/v8) · [18-control list](https://www.cisecurity.org/controls/cis-controls-list)) · [**OWASP Top 10**](https://owasp.org/www-project-top-ten/) · [**OWASP LLM Top 10 (2025)**](https://genai.owasp.org/llm-top-10/) |
 
 ---
 
@@ -21,17 +30,17 @@ Use these when validating a mapping row. Inline IDs elsewhere in this file link 
 
 | Framework | Authoritative publication | Browse / look up individual controls |
 |-----------|---------------------------|--------------------------------------|
-| **NIST CSF 2.0** | [CSWP 29 (final)](https://csrc.nist.gov/pubs/cswp/29/the-nist-cybersecurity-framework-csf-20/final) · [DOI PDF](https://doi.org/10.6028/NIST.CSWP.29) · [nist.gov/cyberframework](https://www.nist.gov/cyberframework) | [CPRT — CSF 2.0 catalog](https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/CSF_2_0_0/home) (search [`PR.AA`](https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/CSF_2_0_0/home?element=pr.aa), [`GV.RR`](https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/CSF_2_0_0/home?element=gv.rr), …) |
+| **NIST CSF 2.0** | [CSWP 29 (final)](https://csrc.nist.gov/pubs/cswp/29/the-nist-cybersecurity-framework-csf-20/final) · [DOI PDF](https://doi.org/10.6028/NIST.CSWP.29) · [nist.gov/cyberframework](https://www.nist.gov/cyberframework) | [CSF 2.0 Reference Tool](https://csrc.nist.gov/Projects/cybersecurity-framework/Filters#/csf/filters) · [CPRT — CSF 2.0 catalog](https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/CSF_2_0_0/home) (e.g. [`PR.AA`](https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/CSF_2_0_0/home?element=pr.aa), [`GV.RR`](https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/CSF_2_0_0/home?element=gv.rr)) |
 | **NIST SP 800-53 Rev. 5** | [SP 800-53 Rev. 5 (upd1)](https://csrc.nist.gov/pubs/sp/800/53/r5/upd1/final) · [DOI PDF](https://doi.org/10.6028/NIST.SP.800-53r5) · [Control downloads](https://csrc.nist.gov/projects/risk-management/sp800-53-controls/downloads) | [CPRT — 800-53 Rev. 5.1 catalog](https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_1_1/home) (open control id, e.g. `ac-2`, `ia-2`) |
-| **CIS Controls v8** | [CIS Controls v8 overview](https://www.cisecurity.org/controls/v8) · [Controls list](https://www.cisecurity.org/controls/cis-controls-list) | Per-control pages: [3 Data Protection](https://www.cisecurity.org/controls/data-protection) · [4 Secure Configuration](https://www.cisecurity.org/controls/secure-configuration-of-enterprise-assets-and-software) · [5 Account Management](https://www.cisecurity.org/controls/account-management) · [6 Access Control](https://www.cisecurity.org/controls/access-control-management) · [8 Audit Log Management](https://www.cisecurity.org/controls/audit-log-management) · [11 Data Recovery](https://www.cisecurity.org/controls/data-recovery) · [12 Network Infrastructure](https://www.cisecurity.org/controls/network-infrastructure-management) · [13 Network Monitoring](https://www.cisecurity.org/controls/network-monitoring-and-defense) · [14 Security Awareness](https://www.cisecurity.org/controls/security-awareness-and-skills-training) · [15 Service Provider Management](https://www.cisecurity.org/controls/service-provider-management) · [16 Application Software Security](https://www.cisecurity.org/controls/application-software-security) · [17 Incident Response](https://www.cisecurity.org/controls/incident-response-management) · [18 Penetration Testing](https://www.cisecurity.org/controls/penetration-testing) |
+| **CIS Controls v8 / v8.1** | [CIS Controls v8.1](https://www.cisecurity.org/controls/v8-1) · [v8 overview](https://www.cisecurity.org/controls/v8) · [The 18 CIS Controls](https://www.cisecurity.org/controls/cis-controls-list) | Per-control pages: [3 Data Protection](https://www.cisecurity.org/controls/data-protection) · [4 Secure Configuration](https://www.cisecurity.org/controls/secure-configuration-of-enterprise-assets-and-software) · [5 Account Management](https://www.cisecurity.org/controls/account-management) · [6 Access Control](https://www.cisecurity.org/controls/access-control-management) · [8 Audit Log Management](https://www.cisecurity.org/controls/audit-log-management) · [9 Email/Web](https://www.cisecurity.org/controls/email-and-web-browser-protections) · [11 Data Recovery](https://www.cisecurity.org/controls/data-recovery) · [12 Network Infrastructure](https://www.cisecurity.org/controls/network-infrastructure-management) · [13 Network Monitoring](https://www.cisecurity.org/controls/network-monitoring-and-defense) · [14 Security Awareness](https://www.cisecurity.org/controls/security-awareness-and-skills-training) · [15 Service Provider Management](https://www.cisecurity.org/controls/service-provider-management) · [16 Application Software Security](https://www.cisecurity.org/controls/application-software-security) · [17 Incident Response](https://www.cisecurity.org/controls/incident-response-management) · [18 Penetration Testing](https://www.cisecurity.org/controls/penetration-testing) |
 | **OWASP Top 10** (web / API apps) | [OWASP Top 10 project](https://owasp.org/www-project-top-ten/) · [Top 10:2021](https://owasp.org/Top10/2021/) | Entry pages under [owasp.org/Top10/2021/](https://owasp.org/Top10/2021/) (A01–A10) |
 | **OWASP Top 10 for LLM / GenAI** | [GenAI LLM Top 10 hub](https://genai.owasp.org/llm-top-10/) · [Project home](https://owasp.org/www-project-top-10-for-large-language-model-applications/) · [2025 PDF](https://owasp.org/www-project-top-10-for-large-language-model-applications/assets/PDF/OWASP-Top-10-for-LLMs-v2025.pdf) | LLM01–LLM10 (2025 edition) — see §7 |
 
 **How links are formed in this doc**
 
-- CSF category / outcome (e.g. `PR.AA`, `PR.AA-01`) → CPRT CSF 2.0 catalog with `?element=` (lowercase, e.g. `pr.aa`, `pr.aa-01`).  
+- CSF category / outcome (e.g. `PR.AA`, `PR.AA-01`) → CPRT CSF 2.0 catalog with `?element=` (lowercase, e.g. `pr.aa`, `pr.aa-01`). Also browse via the [CSF 2.0 Reference Tool](https://csrc.nist.gov/Projects/cybersecurity-framework/Filters#/csf/filters).  
 - 800-53 control (e.g. `AC-2`) → CPRT SP 800-53 catalog with `?element=` (lowercase hyphenated, e.g. `ac-2`).  
-- CIS Control *N* → the CIS Controls v8 page for that control family (safeguard-level IDs such as `6.5` open the parent control page).  
+- CIS Control *N* → the CIS Controls family page for that control (safeguard-level IDs such as `6.5` open the parent control page). Current download: [v8.1](https://www.cisecurity.org/controls/v8-1).  
 - OWASP web → [Top 10:2021](https://owasp.org/Top10/2021/) entry pages; OWASP LLM → [LLM Top 10 hub](https://genai.owasp.org/llm-top-10/) / [2025 PDF](https://owasp.org/www-project-top-10-for-large-language-model-applications/assets/PDF/OWASP-Top-10-for-LLMs-v2025.pdf).
 
 ---
@@ -44,7 +53,7 @@ Use these when validating a mapping row. Inline IDs elsewhere in this file link 
 | **Status** | `Met` = implemented in product or IaC scaffolds; `Partial` = design + partial code; `Design` = pattern complete, apply/opt-in remaining |
 | **NIST CSF 2.0** | Function / Category (e.g. [`PR.AA`](https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/CSF_2_0_0/home?element=pr.aa) = Protect → Identity Management, Authentication, Access Control). Publication: [CSWP 29](https://csrc.nist.gov/pubs/cswp/29/the-nist-cybersecurity-framework-csf-20/final). |
 | **NIST 800-53** | Representative controls (not exhaustive; use for crosswalk). Catalog: [SP 800-53 Rev. 5](https://csrc.nist.gov/pubs/sp/800/53/r5/upd1/final). |
-| **CIS Controls v8** | Safeguard families / IDs (e.g. [`CIS 5`](https://www.cisecurity.org/controls/account-management), [`CIS 6`](https://www.cisecurity.org/controls/access-control-management)). Overview: [CIS Controls v8](https://www.cisecurity.org/controls/v8). |
+| **CIS Controls v8** | Safeguard families / IDs (e.g. [`CIS 5`](https://www.cisecurity.org/controls/account-management), [`CIS 6`](https://www.cisecurity.org/controls/access-control-management)). Current edition: [CIS Controls v8.1](https://www.cisecurity.org/controls/v8-1); list: [18 CIS Controls](https://www.cisecurity.org/controls/cis-controls-list). |
 | **OWASP** | Web app risks ([Top 10:2021](https://owasp.org/Top10/2021/)) and LLM/GenAI risks ([LLM Top 10 2025](https://genai.owasp.org/llm-top-10/)) — see §7 |
 | **Evidence** | Where reviewers look (docs, code, exports) |
 
@@ -116,7 +125,7 @@ Use these when validating a mapping row. Inline IDs elsewhere in this file link 
 | **CAN pattern** | P3, P10 |
 | **NIST CSF 2.0** | [`GV.OC-01`](https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/CSF_2_0_0/home?element=gv.oc-01), [`PR.IR-01`](https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/CSF_2_0_0/home?element=pr.ir-01), [`PR.PS-01`](https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/CSF_2_0_0/home?element=pr.ps-01) |
 | **NIST 800-53** | [`AC-4`](https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_1_1/home?element=ac-4), [`SC-7`](https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_1_1/home?element=sc-7), [`CM-2`](https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_1_1/home?element=cm-2), [`CM-3`](https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_1_1/home?element=cm-3) |
-| **CIS Controls v8** | [`[CIS 12](https://www.cisecurity.org/controls/network-infrastructure-management)`](https://www.cisecurity.org/controls/network-infrastructure-management) (Network Infrastructure), [`[CIS 16](https://www.cisecurity.org/controls/application-software-security)`](https://www.cisecurity.org/controls/application-software-security) (Application Software Security), [`[CIS 4](https://www.cisecurity.org/controls/secure-configuration-of-enterprise-assets-and-software)`](https://www.cisecurity.org/controls/secure-configuration-of-enterprise-assets-and-software) (Secure Configuration) |
+| **CIS Controls v8** | [CIS 12](https://www.cisecurity.org/controls/network-infrastructure-management) (Network Infrastructure), [CIS 16](https://www.cisecurity.org/controls/application-software-security) (Application Software Security), [CIS 4](https://www.cisecurity.org/controls/secure-configuration-of-enterprise-assets-and-software) (Secure Configuration) |
 | **Evidence** | [MULTI_CLOUD… P3 / P10](../production/MULTI_CLOUD_SECURITY_ARCHITECTURE_PATTERNS.md) · `deployment/*/terraform` |
 
 ---
@@ -130,7 +139,7 @@ Use these when validating a mapping row. Inline IDs elsewhere in this file link 
 | **CAN pattern** | P4 |
 | **NIST CSF 2.0** | [`PR.IR-01`](https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/CSF_2_0_0/home?element=pr.ir-01), [`PR.IR-03`](https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/CSF_2_0_0/home?element=pr.ir-03), [`PR.PS-02`](https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/CSF_2_0_0/home?element=pr.ps-02) |
 | **NIST 800-53** | [`SC-7`](https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_1_1/home?element=sc-7), [`AC-4`](https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_1_1/home?element=ac-4), [`SC-8`](https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_1_1/home?element=sc-8) |
-| **CIS Controls v8** | [`[CIS 12.1](https://www.cisecurity.org/controls/network-infrastructure-management)`](https://www.cisecurity.org/controls/network-infrastructure-management)–`12.8`, [`[CIS 13](https://www.cisecurity.org/controls/network-monitoring-and-defense)`](https://www.cisecurity.org/controls/network-monitoring-and-defense) (Network Monitoring) |
+| **CIS Controls v8** | [CIS 12.1](https://www.cisecurity.org/controls/network-infrastructure-management)–`12.8`, [CIS 13](https://www.cisecurity.org/controls/network-monitoring-and-defense) (Network Monitoring) |
 | **Evidence** | Per-cloud security architecture network sections · OCI VCN / Azure VNet modules |
 
 ---
@@ -144,7 +153,7 @@ Use these when validating a mapping row. Inline IDs elsewhere in this file link 
 | **CAN pattern** | P5 |
 | **NIST CSF 2.0** | [`PR.PS-01`](https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/CSF_2_0_0/home?element=pr.ps-01), [`PR.PS-02`](https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/CSF_2_0_0/home?element=pr.ps-02), [`DE.CM-01`](https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/CSF_2_0_0/home?element=de.cm-01), [`DE.CM-09`](https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/CSF_2_0_0/home?element=de.cm-09) |
 | **NIST 800-53** | [`SC-7`](https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_1_1/home?element=sc-7), [`SI-4`](https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_1_1/home?element=si-4), [`AC-17`](https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_1_1/home?element=ac-17), [`IA-2`](https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_1_1/home?element=ia-2) |
-| **CIS Controls v8** | [`[CIS 13](https://www.cisecurity.org/controls/network-monitoring-and-defense)`](https://www.cisecurity.org/controls/network-monitoring-and-defense), [`[CIS 18](https://www.cisecurity.org/controls/penetration-testing)`](https://www.cisecurity.org/controls/penetration-testing) (Penetration Testing — complementary), [`[CIS 9](https://www.cisecurity.org/controls/email-and-web-browser-protections)`](https://www.cisecurity.org/controls/email-and-web-browser-protections) (Email/Web — WAF aspect) |
+| **CIS Controls v8** | [CIS 13](https://www.cisecurity.org/controls/network-monitoring-and-defense), [CIS 18](https://www.cisecurity.org/controls/penetration-testing) (Penetration Testing — complementary), [CIS 9](https://www.cisecurity.org/controls/email-and-web-browser-protections) (Email/Web — WAF aspect) |
 | **Evidence** | Edge modules · [OCI_IAM_AND_EDGE_CONFIG.md](../deployment/OCI_IAM_AND_EDGE_CONFIG.md) · Azure/AWS/GCP siblings |
 
 ---
@@ -158,7 +167,7 @@ Use these when validating a mapping row. Inline IDs elsewhere in this file link 
 | **CAN pattern** | P6 |
 | **NIST CSF 2.0** | [`PR.PS-01`](https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/CSF_2_0_0/home?element=pr.ps-01), [`PR.PS-03`](https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/CSF_2_0_0/home?element=pr.ps-03), [`PR.AA-05`](https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/CSF_2_0_0/home?element=pr.aa-05) |
 | **NIST 800-53** | [`CM-2`](https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_1_1/home?element=cm-2), [`CM-6`](https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_1_1/home?element=cm-6), [`CM-7`](https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_1_1/home?element=cm-7), [`AC-6`](https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_1_1/home?element=ac-6), [`IA-5`](https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_1_1/home?element=ia-5) |
-| **CIS Controls v8** | [`[CIS 4](https://www.cisecurity.org/controls/secure-configuration-of-enterprise-assets-and-software)`](https://www.cisecurity.org/controls/secure-configuration-of-enterprise-assets-and-software), [`[CIS 16](https://www.cisecurity.org/controls/application-software-security)`](https://www.cisecurity.org/controls/application-software-security), [`[CIS 5](https://www.cisecurity.org/controls/account-management)`](https://www.cisecurity.org/controls/account-management) · align with **CIS Kubernetes Benchmark** when hardening nodes |
+| **CIS Controls v8** | [CIS 4](https://www.cisecurity.org/controls/secure-configuration-of-enterprise-assets-and-software), [CIS 16](https://www.cisecurity.org/controls/application-software-security), [CIS 5](https://www.cisecurity.org/controls/account-management) · align with **CIS Kubernetes Benchmark** when hardening nodes |
 | **Evidence** | OKE / AKS / EKS / GKE modules · Helm under `deployment/` |
 
 ---
@@ -172,7 +181,7 @@ Use these when validating a mapping row. Inline IDs elsewhere in this file link 
 | **CAN pattern** | P7 |
 | **NIST CSF 2.0** | [`PR.DS-01`](https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/CSF_2_0_0/home?element=pr.ds-01), [`PR.DS-02`](https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/CSF_2_0_0/home?element=pr.ds-02), [`PR.DS-10`](https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/CSF_2_0_0/home?element=pr.ds-10) |
 | **NIST 800-53** | [`SC-12`](https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_1_1/home?element=sc-12), [`SC-13`](https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_1_1/home?element=sc-13), [`SC-28`](https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_1_1/home?element=sc-28), [`MP-4`](https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_1_1/home?element=mp-4) |
-| **CIS Controls v8** | [`[CIS 3](https://www.cisecurity.org/controls/data-protection)`](https://www.cisecurity.org/controls/data-protection) (Data Protection), [`[CIS 3.3](https://www.cisecurity.org/controls/data-protection)`](https://www.cisecurity.org/controls/data-protection)–`3.12` |
+| **CIS Controls v8** | [CIS 3](https://www.cisecurity.org/controls/data-protection) (Data Protection), [CIS 3.3](https://www.cisecurity.org/controls/data-protection)–`3.12` |
 | **Evidence** | [KEY_MANAGEMENT_DESIGN.md](../security/KEY_MANAGEMENT_DESIGN.md) · Vault / KMS modules · Object Storage SSE-KMS |
 
 ---
@@ -186,8 +195,8 @@ Use these when validating a mapping row. Inline IDs elsewhere in this file link 
 | **CAN pattern** | P7, P8 |
 | **NIST CSF 2.0** | [`PR.DS-01`](https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/CSF_2_0_0/home?element=pr.ds-01), [`PR.AA-05`](https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/CSF_2_0_0/home?element=pr.aa-05), [`PR.PS-04`](https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/CSF_2_0_0/home?element=pr.ps-04) |
 | **NIST 800-53** | [`SC-12`](https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_1_1/home?element=sc-12), [`SC-13`](https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_1_1/home?element=sc-13), [`AU-2`](https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_1_1/home?element=au-2), [`AU-3`](https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_1_1/home?element=au-3) |
-| **CIS Controls v8** | [`[CIS 3](https://www.cisecurity.org/controls/data-protection)`](https://www.cisecurity.org/controls/data-protection), [`[CIS 5](https://www.cisecurity.org/controls/account-management)`](https://www.cisecurity.org/controls/account-management), [`[CIS 8](https://www.cisecurity.org/controls/audit-log-management)`](https://www.cisecurity.org/controls/audit-log-management) |
-| **Evidence** | [PARTICIPANT_ONBOARDING_AND_E2E_LIFECYCLE.md](../guides/PARTICIPANT_ONBOARDING_AND_E2E_LIFECYCLE.md) · contract `kmsConfigs` / `environmentSpecs` · [Azure CC deep dive](https://gitmujoshi.github.io/Confidential-AI-Network/security/2026/08/17/azure-confidential-computing-deep-dive/) · product tour (Local) |
+| **CIS Controls v8** | [CIS 3](https://www.cisecurity.org/controls/data-protection), [CIS 5](https://www.cisecurity.org/controls/account-management), [CIS 8](https://www.cisecurity.org/controls/audit-log-management) |
+| **Evidence** | [PARTICIPANT_ONBOARDING_AND_E2E_LIFECYCLE.md](../guides/PARTICIPANT_ONBOARDING_AND_E2E_LIFECYCLE.md) · contract `kmsConfigs` / `environmentSpecs` · [Azure CC deep dive](https://gitmujoshi.github.io/Confidential-AI-Network/security/2026/08/17/azure-confidential-computing-deep-dive/) · [Product tour (Local)](https://gitmujoshi.github.io/Confidential-AI-Network/product-tour/) |
 
 ---
 
@@ -200,7 +209,7 @@ Use these when validating a mapping row. Inline IDs elsewhere in this file link 
 | **CAN pattern** | P8 |
 | **NIST CSF 2.0** | [`PR.DS-01`](https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/CSF_2_0_0/home?element=pr.ds-01), [`PR.IR-01`](https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/CSF_2_0_0/home?element=pr.ir-01), [`PR.PS-01`](https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/CSF_2_0_0/home?element=pr.ps-01) |
 | **NIST 800-53** | [`SC-7`](https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_1_1/home?element=sc-7), [`SC-39`](https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_1_1/home?element=sc-39), [`SI-7`](https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_1_1/home?element=si-7), [`AC-4`](https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_1_1/home?element=ac-4) |
-| **CIS Controls v8** | [`[CIS 3](https://www.cisecurity.org/controls/data-protection)`](https://www.cisecurity.org/controls/data-protection), [`[CIS 16](https://www.cisecurity.org/controls/application-software-security)`](https://www.cisecurity.org/controls/application-software-security), [`[CIS 4](https://www.cisecurity.org/controls/secure-configuration-of-enterprise-assets-and-software)`](https://www.cisecurity.org/controls/secure-configuration-of-enterprise-assets-and-software) |
+| **CIS Controls v8** | [CIS 3](https://www.cisecurity.org/controls/data-protection), [CIS 16](https://www.cisecurity.org/controls/application-software-security), [CIS 4](https://www.cisecurity.org/controls/secure-configuration-of-enterprise-assets-and-software) |
 | **Evidence** | [OCI_DESIGN_COMPLETE.md](../deployment/OCI_DESIGN_COMPLETE.md) · TSP OCI offering (`tsp.oci.e2e@test.com`) · Azure/AWS/GCP confidential design notes |
 
 ---
@@ -228,8 +237,8 @@ Use these when validating a mapping row. Inline IDs elsewhere in this file link 
 | **CAN pattern** | P9 |
 | **NIST CSF 2.0** | [`ID.IM-01`](https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/CSF_2_0_0/home?element=id.im-01), [`ID.IM-02`](https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/CSF_2_0_0/home?element=id.im-02), [`RS.AN-03`](https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/CSF_2_0_0/home?element=rs.an-03), [`DE.AE-02`](https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/CSF_2_0_0/home?element=de.ae-02) |
 | **NIST 800-53** | [`AU-2`](https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_1_1/home?element=au-2), [`AU-3`](https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_1_1/home?element=au-3), [`AU-6`](https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_1_1/home?element=au-6), [`AU-10`](https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_1_1/home?element=au-10), [`SI-7`](https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_1_1/home?element=si-7) |
-| **CIS Controls v8** | [`[CIS 8](https://www.cisecurity.org/controls/audit-log-management)`](https://www.cisecurity.org/controls/audit-log-management) (Audit Log Management), [`[CIS 8.2](https://www.cisecurity.org/controls/audit-log-management)`](https://www.cisecurity.org/controls/audit-log-management)–`8.11` |
-| **Evidence** | [SCITT_CCF_ARCHITECTURE.md](../features/scitt/SCITT_CCF_ARCHITECTURE.md) · `buildProvenanceAuditReport` · product tour provenance screens |
+| **CIS Controls v8** | [CIS 8](https://www.cisecurity.org/controls/audit-log-management) (Audit Log Management), [CIS 8.2](https://www.cisecurity.org/controls/audit-log-management)–`8.11` |
+| **Evidence** | [SCITT_CCF_ARCHITECTURE.md](../features/scitt/SCITT_CCF_ARCHITECTURE.md) · `buildProvenanceAuditReport` · [Product tour — provenance](https://gitmujoshi.github.io/Confidential-AI-Network/product-tour/#train) |
 
 ---
 
@@ -242,7 +251,7 @@ Use these when validating a mapping row. Inline IDs elsewhere in this file link 
 | **CAN pattern** | P9 |
 | **NIST CSF 2.0** | [`DE.AE-02`](https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/CSF_2_0_0/home?element=de.ae-02), [`DE.AE-03`](https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/CSF_2_0_0/home?element=de.ae-03), [`DE.CM-01`](https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/CSF_2_0_0/home?element=de.cm-01), [`DE.CM-03`](https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/CSF_2_0_0/home?element=de.cm-03) |
 | **NIST 800-53** | [`AU-6`](https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_1_1/home?element=au-6), [`SI-4`](https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_1_1/home?element=si-4), [`IR-4`](https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_1_1/home?element=ir-4) |
-| **CIS Controls v8** | [`[CIS 8](https://www.cisecurity.org/controls/audit-log-management)`](https://www.cisecurity.org/controls/audit-log-management), [`[CIS 13](https://www.cisecurity.org/controls/network-monitoring-and-defense)`](https://www.cisecurity.org/controls/network-monitoring-and-defense) |
+| **CIS Controls v8** | [CIS 8](https://www.cisecurity.org/controls/audit-log-management), [CIS 13](https://www.cisecurity.org/controls/network-monitoring-and-defense) |
 | **Evidence** | [SIEM_INTEGRATION_FRAMEWORK.md](../production/SIEM_INTEGRATION_FRAMEWORK.md) · `docs/deployment/siem/` |
 
 ---
@@ -256,7 +265,7 @@ Use these when validating a mapping row. Inline IDs elsewhere in this file link 
 | **CAN pattern** | P12 |
 | **NIST CSF 2.0** | [`GV.PO-01`](https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/CSF_2_0_0/home?element=gv.po-01), [`ID.RA-01`](https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/CSF_2_0_0/home?element=id.ra-01), [`PR.PS-01`](https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/CSF_2_0_0/home?element=pr.ps-01) |
 | **NIST 800-53** | [`CM-2`](https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_1_1/home?element=cm-2), [`CM-3`](https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_1_1/home?element=cm-3), [`CM-4`](https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_1_1/home?element=cm-4), [`SA-10`](https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_1_1/home?element=sa-10) |
-| **CIS Controls v8** | [`[CIS 16](https://www.cisecurity.org/controls/application-software-security)`](https://www.cisecurity.org/controls/application-software-security), [`[CIS 4](https://www.cisecurity.org/controls/secure-configuration-of-enterprise-assets-and-software)`](https://www.cisecurity.org/controls/secure-configuration-of-enterprise-assets-and-software), [`[CIS 15](https://www.cisecurity.org/controls/service-provider-management)`](https://www.cisecurity.org/controls/service-provider-management) (Service Provider Management — for TSP cloud) |
+| **CIS Controls v8** | [CIS 16](https://www.cisecurity.org/controls/application-software-security), [CIS 4](https://www.cisecurity.org/controls/secure-configuration-of-enterprise-assets-and-software), [CIS 15](https://www.cisecurity.org/controls/service-provider-management) (Service Provider Management — for TSP cloud) |
 | **Evidence** | `deployment/oci/terraform`, `deployment/azure/terraform` |
 
 ---
@@ -270,7 +279,7 @@ Use these when validating a mapping row. Inline IDs elsewhere in this file link 
 | **CAN pattern** | P11 |
 | **NIST CSF 2.0** | [`RC.RP-01`](https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/CSF_2_0_0/home?element=rc.rp-01), [`RC.RP-02`](https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/CSF_2_0_0/home?element=rc.rp-02), [`GV.OC-02`](https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/CSF_2_0_0/home?element=gv.oc-02) |
 | **NIST 800-53** | [`CP-2`](https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_1_1/home?element=cp-2), [`CP-6`](https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_1_1/home?element=cp-6), [`CP-9`](https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_1_1/home?element=cp-9), [`CP-10`](https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_1_1/home?element=cp-10) |
-| **CIS Controls v8** | [`[CIS 11](https://www.cisecurity.org/controls/data-recovery)`](https://www.cisecurity.org/controls/data-recovery) (Data Recovery) |
+| **CIS Controls v8** | [CIS 11](https://www.cisecurity.org/controls/data-recovery) (Data Recovery) |
 | **Evidence** | Production runbooks · [MULTI_DEPLOYMENT_INTEGRATION_GUIDE.md](../guides/MULTI_DEPLOYMENT_INTEGRATION_GUIDE.md) |
 
 ---
@@ -284,7 +293,7 @@ Use these when validating a mapping row. Inline IDs elsewhere in this file link 
 | **CAN pattern** | Application + P7 |
 | **NIST CSF 2.0** | [`GV.OC-03`](https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/CSF_2_0_0/home?element=gv.oc-03), [`PR.DS-01`](https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/CSF_2_0_0/home?element=pr.ds-01), [`PR.DS-02`](https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/CSF_2_0_0/home?element=pr.ds-02) |
 | **NIST 800-53** | [`PT-2`](https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_1_1/home?element=pt-2), [`PT-3`](https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_1_1/home?element=pt-3), [`PT-5`](https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_1_1/home?element=pt-5), [`SI-12`](https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_1_1/home?element=si-12) (privacy overlay) · [`AC-3`](https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_1_1/home?element=ac-3) |
-| **CIS Controls v8** | [`[CIS 3](https://www.cisecurity.org/controls/data-protection)`](https://www.cisecurity.org/controls/data-protection), [`[CIS 14](https://www.cisecurity.org/controls/security-awareness-and-skills-training)`](https://www.cisecurity.org/controls/security-awareness-and-skills-training) (Security Awareness — complementary), [`[CIS 17](https://www.cisecurity.org/controls/incident-response-management)`](https://www.cisecurity.org/controls/incident-response-management) (Incident Response — breach notify) |
+| **CIS Controls v8** | [CIS 3](https://www.cisecurity.org/controls/data-protection), [CIS 14](https://www.cisecurity.org/controls/security-awareness-and-skills-training) (Security Awareness — complementary), [CIS 17](https://www.cisecurity.org/controls/incident-response-management) (Incident Response — breach notify) |
 | **Evidence** | [DPDP_COMPLIANCE_IMPLEMENTATION.md](DPDP_COMPLIANCE_IMPLEMENTATION.md) · [DEPA_INTEGRATION_GUIDE.md](../guides/DEPA_INTEGRATION_GUIDE.md) |
 
 ---
@@ -298,8 +307,8 @@ Use these when validating a mapping row. Inline IDs elsewhere in this file link 
 | **CAN pattern** | Application governance |
 | **NIST CSF 2.0** | [`GV.RR-02`](https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/CSF_2_0_0/home?element=gv.rr-02), [`GV.PO-02`](https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/CSF_2_0_0/home?element=gv.po-02), [`PR.AA-05`](https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/CSF_2_0_0/home?element=pr.aa-05) |
 | **NIST 800-53** | [`AC-3`](https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_1_1/home?element=ac-3), [`AU-2`](https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_1_1/home?element=au-2), [`SA-9`](https://csrc.nist.gov/projects/cprt/catalog#/cprt/framework/version/SP_800_53_5_1_1/home?element=sa-9) |
-| **CIS Controls v8** | [`[CIS 5](https://www.cisecurity.org/controls/account-management)`](https://www.cisecurity.org/controls/account-management), [`[CIS 6](https://www.cisecurity.org/controls/access-control-management)`](https://www.cisecurity.org/controls/access-control-management), [`[CIS 15](https://www.cisecurity.org/controls/service-provider-management)`](https://www.cisecurity.org/controls/service-provider-management) |
-| **Evidence** | Contract state machine · lifecycle user guide · product tour contract step |
+| **CIS Controls v8** | [CIS 5](https://www.cisecurity.org/controls/account-management), [CIS 6](https://www.cisecurity.org/controls/access-control-management), [CIS 15](https://www.cisecurity.org/controls/service-provider-management) |
+| **Evidence** | Contract state machine · [Lifecycle user guide](../guides/lifecycle-user-guide/LIFECYCLE_USER_GUIDE.md) · [Product tour — contract & sign](https://gitmujoshi.github.io/Confidential-AI-Network/product-tour/#contract) |
 
 ---
 
@@ -360,7 +369,7 @@ Use these when validating a mapping row. Inline IDs elsewhere in this file link 
 
 CAN is primarily a **contract-governed multi-party training / inference platform**, not a chatbot SaaS. Reviewers still ask how [OWASP Top 10](https://owasp.org/www-project-top-ten/) (classic web/API) and [OWASP Top 10 for LLM Applications 2025](https://genai.owasp.org/llm-top-10/) apply—especially where NLP models, inference APIs, and **Open-GMASE** agent/tool gates appear.
 
-**Status legend (same as §1):** `Met` / `Partial` / `Design` / `N/A (out of product scope)` with honesty notes.
+**Status legend (same as §1):** `Met` / `Partial` / `Design` / `N/A (out of product scope)` .
 
 ### 7.1 OWASP Top 10:2021 (web / API application)
 
@@ -440,6 +449,7 @@ Customer GRC teams should import this matrix into their GRC tool and attach **en
 
 | Date | Change |
 |------|--------|
+| 2026-08-19 | Fixed nested CIS markdown links; added NIST / CIS / OWASP short descriptions; pointed CIS to v8.1 + 18-control list; added CSF Reference Tool; linked product-tour / lifecycle evidence |
 | 2026-08-16 | Added OWASP Top 10:2021 and OWASP LLM Top 10 (2025) how-addressed matrices (R17–R18) |
 | 2026-08-16 | Added official NIST CSF / SP 800-53 / CIS Controls catalog links and clickable control IDs |
 | 2026-07-28 | Initial requirements-met matrix with NIST CSF 2.0, NIST SP 800-53 Rev. 5, and CIS Controls v8 mappings |

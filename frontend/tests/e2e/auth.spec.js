@@ -1,4 +1,8 @@
 const { test, expect } = require('@playwright/test');
+const {
+  DEFAULT_SIGNING_ALGORITHM,
+  chooseSigningAlgorithm,
+} = require('./helpers/party-signing-e2e');
 
 test.describe('Authentication E2E Tests', () => {
   test.describe.configure({ mode: 'serial' });
@@ -54,6 +58,8 @@ test.describe('Authentication E2E Tests', () => {
     await expect(page.getByLabel('Email')).toBeVisible();
     await expect(page.getByRole('combobox').nth(1)).toBeVisible();
     await expect(page.getByLabel('Public Key')).toBeVisible();
+    await expect(page.getByRole('heading', { name: /Party signing key/i })).toBeVisible();
+    await expect(page.getByLabel('Signing algorithm')).toBeVisible();
     await expect(page.getByRole('button', { name: /^Register$/ })).toBeVisible();
   });
 
@@ -66,10 +72,12 @@ test.describe('Authentication E2E Tests', () => {
     await page.getByRole('combobox').nth(1).click();
     await page.getByRole('option', { name: /Training Data Consumer \(TDC\)/i }).click();
     await page.getByLabel('Public Key').fill('0x' + 'a'.repeat(64));
+    await chooseSigningAlgorithm(page, DEFAULT_SIGNING_ALGORITHM);
 
     await page.getByRole('button', { name: /^Register$/ }).click();
 
     await expect(page.getByText(/registration successful/i)).toBeVisible();
+    await expect(page.getByText(/Party signing key \(ECDSA-P256\) created/i)).toBeVisible();
   });
 
   test('should logout successfully', async ({ page }) => {

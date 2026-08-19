@@ -13,7 +13,7 @@ canonical: docs/security/MERKLE_TREE_PROVENANCE_IMPLEMENTATION.md
 
 **Related:** [Contract → governed prediction]({% post_url 2026-08-14-can-contract-to-prediction %}) · [Ricardian contracts in CAN]({% post_url 2026-08-16-ricardian-contracts-in-can %}) · [Product tour — Auditor]({{ '/product-tour/#auditor' | relative_url }}) · [Open-GMASE]({% post_url 2026-08-14-gmase-deep-dive %}) · [TEE attest → decrypt]({% post_url 2026-08-16-can-tee-attest-decrypt-train %}) · In-repo: [AUDITOR_ROLE.md](https://github.com/gitmujoshi/Confidential-AI-Network/blob/main/docs/features/AUDITOR_ROLE.md) · [MERKLE_TREE_PROVENANCE_IMPLEMENTATION.md](https://github.com/gitmujoshi/Confidential-AI-Network/blob/main/docs/security/MERKLE_TREE_PROVENANCE_IMPLEMENTATION.md)
 
-> **Status:** Merkle builders, proofs, and an **Auditor** role/UI exist (`/auditor/*`, `/api/auditor/*`). The Auditor **Verify** action checks **leaf inclusion under a published root** for durable contract evidence—not model correctness. Product demos also show the **provenance report UI** and **SCITT** path. Treat cross-cloud Merkle replication and every aspirational leaf type as **architecture + partial coverage**. See [AUDITOR_ROLE.md](https://github.com/gitmujoshi/Confidential-AI-Network/blob/main/docs/features/AUDITOR_ROLE.md).
+> **Status:** Merkle builders, proofs, and Auditor UI (`/auditor/*`, `/api/auditor/*`). **Verify** checks leaf inclusion under a published root. Provenance report UI and SCITT path are available. Cross-cloud Merkle replication and extended leaf types: partial. See [AUDITOR_ROLE.md](https://github.com/gitmujoshi/Confidential-AI-Network/blob/main/docs/features/AUDITOR_ROLE.md).
 
 ---
 
@@ -117,7 +117,7 @@ In other words: *“This evidence record belongs to this committed provenance se
 | --- | --- |
 | Integrity of lineage for that leaf under root R | That the model’s prediction was correct |
 | Consistency of the audit trail for that contract | Ethics / fairness of the model |
-| Binding of listed contract / job / claim / model digests | That every aspirational leaf type is always present |
+| Binding of listed contract / job / claim / model digests | That every extended leaf type is always present |
 
 If the inclusion proof **fails**, treat it as an **integrity / ops** problem first—not only a model-quality problem.
 
@@ -190,7 +190,7 @@ If the vendor cannot produce (3) against (2), you have a narrative, not evidence
 
 ---
 
-## 8. Honest limits
+## 8. Limits
 
 | Merkle / provenance helps | It does not replace |
 | --- | --- |

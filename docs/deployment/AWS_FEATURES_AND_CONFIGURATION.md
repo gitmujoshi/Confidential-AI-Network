@@ -6,7 +6,7 @@ Canonical catalog of **AWS-oriented product features**, E2E fit, **maturity**, a
 |-----|------|
 | [AWS_SECURITY_ARCHITECTURE.md](../production/AWS_SECURITY_ARCHITECTURE.md) | Topology, runbook, crypto flows |
 | [AWS_IAM_AND_EDGE_CONFIG.md](AWS_IAM_AND_EDGE_CONFIG.md) | IAM, Cognito, API Gateway, WAF, CloudFront |
-| [AWS_READINESS.md](AWS_READINESS.md) | Honest gap analysis |
+| [AWS_READINESS.md](AWS_READINESS.md) | Gap analysis |
 | [PARTICIPANT_ONBOARDING_AND_E2E_LIFECYCLE.md](../guides/PARTICIPANT_ONBOARDING_AND_E2E_LIFECYCLE.md) | DEK/MEK / signing / CAN model |
 | [config/examples/config.aws.env.example](../../config/examples/config.aws.env.example) | Env var template for AWS |
 

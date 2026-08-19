@@ -46,16 +46,18 @@ class ContractSigningService {
         throw new Error(`Unsupported algorithm: ${selectedAlgorithm}`);
       }
 
-      const keyPair = await keyManagementService.generateKeyPair(selectedAlgorithm);
+      const keyPair = await keyManagementService.generateKeyPair({
+        algorithm: selectedAlgorithm,
+        userId
+      });
       
-      // Store the key in the database
-      const userKey = await UserKey.create({
+      await UserKey.create({
         userId,
         keyId: keyPair.keyId,
-        algorithm: selectedAlgorithm,
-        publicKey: JSON.stringify(keyPair.publicKey),
-        privateKey: JSON.stringify(keyPair.privateKey), // In production, this should be encrypted
-        status: 'ACTIVE',
+        keyType: selectedAlgorithm,
+        publicKey: keyPair.publicKey,
+        privateKey: keyPair.privateKey,
+        keyStatus: 'active',
         metadata: {
           generatedAt: new Date().toISOString(),
           algorithm: selectedAlgorithm
@@ -72,6 +74,7 @@ class ContractSigningService {
         success: true,
         keyId: keyPair.keyId,
         algorithm: selectedAlgorithm,
+        keyType: selectedAlgorithm,
         publicKey: keyPair.publicKey,
         message: 'Signing key generated successfully'
       };
@@ -82,13 +85,23 @@ class ContractSigningService {
   }
 
   /**
+   * True when the user has at least one active party signing key.
+   */
+  async hasActiveSigningKey(userId) {
+    const count = await UserKey.count({
+      where: { userId, keyStatus: 'active' }
+    });
+    return count > 0;
+  }
+
+  /**
    * Get all signing keys for a user
    */
   async getUserSigningKeys(userId) {
     try {
       const keys = await UserKey.findAll({
-        where: { userId, status: 'ACTIVE' },
-        attributes: ['keyId', 'algorithm', 'publicKey', 'status', 'metadata', 'createdAt'],
+        where: { userId, keyStatus: 'active' },
+        attributes: ['keyId', 'keyType', 'publicKey', 'keyStatus', 'metadata', 'createdAt', 'lastUsedAt'],
         order: [['createdAt', 'DESC']]
       });
 
@@ -96,11 +109,14 @@ class ContractSigningService {
         success: true,
         keys: keys.map(key => ({
           keyId: key.keyId,
-          algorithm: key.algorithm,
-          publicKey: JSON.parse(key.publicKey),
-          status: key.status,
+          algorithm: key.keyType,
+          keyType: key.keyType,
+          publicKey: key.publicKey,
+          status: key.keyStatus,
+          keyStatus: key.keyStatus,
           metadata: key.metadata,
-          createdAt: key.createdAt
+          createdAt: key.createdAt,
+          lastUsedAt: key.lastUsedAt
         }))
       };
     } catch (error) {
@@ -153,19 +169,20 @@ class ContractSigningService {
 
       // Get the user's signing key
       const userKey = await UserKey.findOne({
-        where: { userId, keyId, status: 'ACTIVE' }
+        where: { userId, keyId, keyStatus: 'active' }
       });
 
       if (!userKey) {
         throw new Error('Signing key not found or inactive');
       }
 
-      // Generate signature
-      const privateKey = JSON.parse(userKey.privateKey);
+      // Generate signature (privateKey stored as PEM)
+      const privateKey = userKey.privateKey;
+      const algorithm = userKey.keyType;
       const signature = await keyManagementService.generateSignature(
         contractHash,
         privateKey,
-        userKey.algorithm
+        algorithm
       );
 
       // Store signature in database
@@ -174,7 +191,7 @@ class ContractSigningService {
         userId,
         keyId,
         signature,
-        algorithm: userKey.algorithm,
+        algorithm,
         status: 'ACTIVE',
         metadata: {
           signedAt: new Date().toISOString(),
@@ -200,7 +217,7 @@ class ContractSigningService {
         await scittCcfService.storeSignature(contractId, signature, {
           userId,
           keyId,
-          algorithm: userKey.algorithm,
+          algorithm,
           contractHash
         });
       } catch (scittError) {
@@ -375,7 +392,7 @@ class ContractSigningService {
         throw new Error('Signing key not found');
       }
 
-      await userKey.update({ status: 'REVOKED' });
+      await userKey.update({ keyStatus: 'revoked' });
 
       await auditService.log('SIGNING_KEY_REVOKED', {
         userId,
@@ -402,7 +419,7 @@ class ContractSigningService {
       });
 
       const activeKeys = await UserKey.count({
-        where: { userId, status: 'ACTIVE' }
+        where: { userId, keyStatus: 'active' }
       });
 
       const totalSignatures = await Signature.count({
