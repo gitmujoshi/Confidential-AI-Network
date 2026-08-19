@@ -6,20 +6,11 @@ permalink: /about/
 
 # About Confidential AI Network
 
-**CAN** is infrastructure for multi-party AI training when data cannot simply be copied.
-Training Data Providers (TDPs), Training Data Consumers (TDCs), and Tech Service Providers / CCRPs
-negotiate **Ricardian contracts**, train in protected environments, and leave an **auditable trail**.
+**Confidential AI Network (CAN)** is infrastructure and documentation for multi-party AI training when data cannot move into a shared lake. TDPs, TDCs, and TSP / CCRPs negotiate **Ricardian contracts**, run jobs in policy-bound environments, and retain an **auditable trail**.
 
-The product vision is simple: **governed collaboration without a central data lake** —
-aligned with India’s iSPIRT [DEPA](https://depa.world) (Data Empowerment and Protection Architecture),
-and deployable on enterprise clouds with their native identity systems.
+Thesis: **governed collaboration without a central data lake**, informed by India’s iSPIRT [DEPA](https://depa.world), deployable on enterprise clouds with native IdPs.
 
-This site publishes **security and identity design notes** for operators and reviewers,
-plus a **[product tour]({{ '/product-tour/' | relative_url }})** of end-to-end UI screenshots
-(from registration through training, provenance, and inference — Local Docker path;
-Azure confidential computing covered in the [deep dive]({% post_url 2026-08-17-azure-confidential-computing-deep-dive %})).
-It is generated from [`docs/blogs/`](https://github.com/gitmujoshi/Confidential-AI-Network/tree/main/docs/blogs) via GitHub Pages.
-The homepage carries the architecture overview and the “why”; posts go deep on identity and Zero Trust.
+This site: architecture notes plus a **[product tour]({{ '/product-tour/' | relative_url }})** (Local Docker UI path; Azure CC in the [deep dive]({% post_url 2026-08-17-azure-confidential-computing-deep-dive %})). Source: [`docs/blogs/`](https://github.com/gitmujoshi/Confidential-AI-Network/tree/main/docs/blogs) → GitHub Pages. Live vs design maturity is called out per post where it matters.
 
 ## Canonical documentation
 
@@ -38,4 +29,4 @@ The homepage carries the architecture overview and the “why”; posts go deep 
 | OCI design complete | [OCI_DESIGN_COMPLETE.md](https://github.com/gitmujoshi/Confidential-AI-Network/blob/main/docs/deployment/OCI_DESIGN_COMPLETE.md) |
 | Product tour (UI screenshots) | [product-tour.md](https://github.com/gitmujoshi/Confidential-AI-Network/blob/main/docs/blogs/product-tour.md) · [Lifecycle guide](https://github.com/gitmujoshi/Confidential-AI-Network/blob/main/docs/guides/lifecycle-user-guide/LIFECYCLE_USER_GUIDE.md) |
 
-**Identity rule (cloud):** Azure → Microsoft Entra ID; OCI → OCI IAM Identity Domains; GCP → Identity Platform; AWS → Cognito. **Keycloak** is local docker-compose / Playwright only.
+**IdP map:** Azure → Entra; OCI → Identity Domains; GCP → Identity Platform; AWS → Cognito. **Keycloak** = local compose / Playwright only.

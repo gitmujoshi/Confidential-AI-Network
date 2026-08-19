@@ -1,19 +1,18 @@
 ---
 layout: default
 title: Home
-description: Confidential AI Network — contract-governed, confidential training so organizations can collaborate on AI without giving up data control.
+description: Confidential AI Network — research notes on contract-governed, confidential multi-party training without a central data lake.
 permalink: /
 ---
 
 <section class="hero hero-home">
   <p class="eyebrow">Confidential AI Network</p>
-  <h1>AI that trains on shared data without shared trust failures</h1>
+  <h1>Governed multi-party training without a central data lake</h1>
   <p class="lede">
-    The models that matter need data no single company owns.
-    Today that usually means exports, NDAs, and hope.
-    We build the rails where providers, consumers, and clean-room operators
-    agree in writing, train in isolation, and leave a trail regulators can verify.
-    This is an active research project; the platform and docs will keep evolving.
+    High-value models often need data that cannot be freely centralized.
+    <strong>Confidential AI Network (CAN)</strong> explores a control model where providers,
+    consumers, and clean-room operators negotiate a machine-enforceable contract,
+    train only in policy-bound environments, and retain provenance for verification.
   </p>
   <p class="cta-row">
     <a class="cta" href="{% post_url 2026-08-14-governed-ai-enterprise-ciso-overview %}">Executive overview (CISO)</a>
@@ -24,40 +23,38 @@ permalink: /
 </section>
 
 <section class="home-section">
-  <h2>Why this exists</h2>
+  <h2>Problem</h2>
   <p>
-    Healthcare, finance, public sector, and industrial firms sit on high-value data they cannot freely ship.
-    Model builders need that data to improve accuracy and fairness — but a central data lake collapses sovereignty,
-    liability, and competitive advantage. Handshake deals do not survive audits.
+    Healthcare, finance, public sector, and industrial organizations hold data that cannot be freely exported.
+    Model builders need that data, but a shared central lake concentrates sovereignty, liability, and competitive risk.
   </p>
   <p>
-    <strong>CAN</strong> treats collaboration as a protocol: discover metadata, negotiate a Ricardian contract,
-    sign, train only inside policy-bound environments, and record provenance on a confidential ledger.
-    Inspired by India’s iSPIRT <a href="https://depa.world">DEPA</a>
-    (Data Empowerment and Protection Architecture) — consent-based sharing for the AI era —
-    and built to run on the clouds enterprises already trust.
+    <strong>CAN</strong> treats collaboration as a protocol: catalog metadata → Ricardian contract →
+    signed, policy-bound training → provenance on a confidential ledger.
+    Informed by India’s iSPIRT <a href="https://depa.world">DEPA</a>
+    (Data Empowerment and Protection Architecture); intended to run on enterprise clouds with native IdPs.
   </p>
 </section>
 
 <section class="home-section">
-  <h2>What we are building toward</h2>
+  <h2>Design objectives</h2>
   <ul class="vision-list">
     <li>
-      <strong>Data stays with its owner.</strong>
-      TDPs publish catalogs and policies, not bulk dumps. Access is use-bound and time-bound.
+      <strong>Data remains with its owner.</strong>
+      TDPs publish catalogs and use policies; access is use-bound and time-bound.
     </li>
     <li>
-      <strong>Training happens where policy allows.</strong>
-      TSP / CCRP environments (TEE, private cloud, or attested Kubernetes) keep data and model IP isolated.
+      <strong>Training runs where policy allows.</strong>
+      TSP / CCRP environments (TEE, private cloud, or attested Kubernetes).
     </li>
     <li>
-      <strong>Every step is accountable.</strong>
-      Signatures, job outcomes, and claims land on SCITT CCF so GRC teams get evidence, not screenshots.
+      <strong>Steps are attributable.</strong>
+      Signatures, job outcomes, and claims toward SCITT CCF for GRC evidence.
     </li>
     <li>
-      <strong>Identity is multi-cloud and Zero Trust.</strong>
-      Humans use cloud identity providers (Entra, OCI IAM, Identity Platform, Cognito). Workloads use SPIFFE/SPIRE and
-      cloud workload identity — not long-lived keys.
+      <strong>Split identity planes.</strong>
+      Humans via cloud IdP (Entra, OCI IAM, Identity Platform, Cognito);
+      workloads via SPIFFE/SPIRE and cloud workload identity.
     </li>
   </ul>
 </section>
@@ -65,13 +62,12 @@ permalink: /
 <section class="home-section">
   <h2>Architecture at a glance</h2>
   <p>
-    One product surface, three trust planes: people, cloud APIs, and peer workloads.
-    Contracts bind the economic and legal agreement; confidential compute and cryptography enforce the technical one.
+    One control surface, three trust planes: people, cloud APIs, and peer workloads.
+    Contracts bind the commercial agreement; confidential compute and cryptography enforce the technical one.
   </p>
   <p>
-    Shared control objectives across Azure, Amazon Web Services, Google Cloud, and Oracle Cloud Infrastructure:
-    <a href="https://github.com/gitmujoshi/Confidential-AI-Network/blob/main/docs/production/MULTI_CLOUD_SECURITY_ARCHITECTURE_PATTERNS.md">Multi-cloud security architecture patterns</a>
-    (full write-up in the repository; this site stays short).
+    Shared control objectives across Azure, AWS, GCP, and OCI:
+    <a href="https://github.com/gitmujoshi/Confidential-AI-Network/blob/main/docs/production/MULTI_CLOUD_SECURITY_ARCHITECTURE_PATTERNS.md">Multi-cloud security architecture patterns</a>.
   </p>
 
   <figure class="arch-figure" aria-label="High-level Confidential AI Network architecture">
@@ -103,52 +99,43 @@ permalink: /
   <div class="arch-grid">
     <div>
       <h3>Control plane</h3>
-      <p>Portal, APIs, contract state machine, catalog, and AppAdmin ops. Humans authenticate via the deployment’s cloud identity provider.</p>
+      <p>Portal, APIs, contract state machine, catalog, AppAdmin; cloud IdP for humans.</p>
     </div>
     <div>
       <h3>Data &amp; crypto plane</h3>
-      <p>Dataset encryption, key escrow patterns, optional differential privacy, and DEPA-aligned entity IDs for parties and assets.</p>
+      <p>Dataset encryption, key escrow, optional DP, DEPA-aligned entity IDs.</p>
     </div>
     <div>
       <h3>Execution plane</h3>
-      <p>Policy-bound training jobs in confidential or segmented environments; SPIFFE/SPIRE for east-west trust where enabled.</p>
+      <p>Policy-bound training; SPIFFE/SPIRE for east-west where enabled.</p>
     </div>
     <div>
       <h3>Evidence plane</h3>
-      <p>SCITT CCF for tamper-evident claims; SIEM export for SOC workflows on Azure, OCI, and beyond.</p>
+      <p>SCITT CCF claims; SIEM export for SOC workflows.</p>
     </div>
   </div>
 </section>
 
 <section class="home-section">
-  <h2>Who it is for</h2>
+  <h2>Start here</h2>
   <p>
-    Organizations that must collaborate on AI under regulation — and the infrastructure partners who host
-    that collaboration. If your bottleneck is “we cannot move the data,” this stack is the alternative path:
-    contract first, compute second, proof always.
-  </p>
-  <p>
-    Prefer screenshots?
-    <a href="{{ '/product-tour/' | relative_url }}">Walk the full UI path</a>
-    from party registration through training, provenance, and a live prediction
-    on the <a href="{{ '/product-tour/#local' | relative_url }}">Local path</a>.
-    For Azure confidential compute (threat model, Key Vault, Secure Key Release):
-    <a href="{% post_url 2026-08-17-azure-confidential-computing-deep-dive %}">Azure deep dive</a>.
+    <a href="{{ '/product-tour/' | relative_url }}">Product tour</a>
+    (Local path) ·
+    <a href="{% post_url 2026-08-17-azure-confidential-computing-deep-dive %}">Azure confidential computing</a>
+    (threat model · Key Vault · SKR).
   </p>
 </section>
 
 <section class="home-section notes-section" id="notes">
   <h2>Notes &amp; whitepapers</h2>
   <p class="section-intro">
-    Start with the executive overview. Everything else is optional depth for architects and reviewers.
-    This site documents an <strong>active research project</strong>—designs and implementations will keep evolving.
-    Long-form specs remain in the repository <code>docs/</code> tree.
+    Long-form specs live in the repository <code>docs/</code> tree; this site is the short path.
   </p>
 
   <div class="post-group start-here" id="series-start">
     <p class="series-label">Start here</p>
     <h3>Executive overview</h3>
-    <p class="group-lede">Written for CISOs, risk leaders, and non-technical stakeholders. Six minutes; no prerequisite reading.</p>
+    <p class="group-lede">Executive path — start here before specialist notes.</p>
     <ol class="post-list ordered">
       <li>
         <a href="{% post_url 2026-08-17-can-contract-management-signing %}">Contract management in CAN — party signing keys, sign gates, and verification</a>
@@ -159,8 +146,8 @@ permalink: /
         <p class="meta">August 16, 2026 · Dual-layer legal + machine binding · sign → SIGNED → train</p>
       </li>
       <li>
-        <a href="{% post_url 2026-08-16-azure-e2e-product-tour-deck %}">Azure GA product tour deck — Entra to governed prediction</a>
-        <p class="meta">August 16, 2026 · Interactive slides for Azure release demos</p>
+        <a href="{% post_url 2026-08-16-azure-e2e-product-tour-deck %}">Azure product tour deck — Entra to governed prediction</a>
+        <p class="meta">August 16, 2026 · Stakeholder slide deck for the Azure deployment narrative</p>
       </li>
       <li>
         <a href="{% post_url 2026-08-14-can-contract-to-prediction %}">Confidential AI Network: from signed contract to governed prediction</a>
@@ -168,7 +155,7 @@ permalink: /
       </li>
       <li>
         <a href="{% post_url 2026-08-14-governed-ai-enterprise-ciso-overview %}">Governed AI for the enterprise — a CISO’s overview</a>
-        <p class="meta">August 14, 2026 · Combined CAN + Open-GMASE + CompliancePulse value story</p>
+        <p class="meta">August 14, 2026 · Executive brief on CAN, Open-GMASE, and CompliancePulse</p>
       </li>
       <li>
         <a href="{{ '/product-tour/' | relative_url }}">Product tour</a>
@@ -191,7 +178,7 @@ permalink: /
     <a href="#all-posts">All posts</a>
   </nav>
 
-  <p class="depth-intro">Deeper reading <span class="muted-inline">(skip unless you need the detail)</span></p>
+  <p class="depth-intro">Specialist notes</p>
 
   <div class="post-group" id="series-platform">
     <h3>Platform — Confidential AI Network</h3>
@@ -310,8 +297,8 @@ permalink: /
         <p class="meta">August 17, 2026 · Attestation · Secure Key Release · dual-key train path</p>
       </li>
       <li>
-        <a href="{% post_url 2026-08-16-azure-e2e-product-tour-deck %}">Azure GA product tour deck — Entra to governed prediction</a>
-        <p class="meta">August 16, 2026 · Presentable E2E deck · <a href="{{ '/assets/decks/azure-e2e-product-tour.html' | relative_url }}">open slides</a></p>
+        <a href="{% post_url 2026-08-16-azure-e2e-product-tour-deck %}">Azure product tour deck — Entra to governed prediction</a>
+        <p class="meta">August 16, 2026 · E2E stakeholder deck · <a href="{{ '/assets/decks/azure-e2e-product-tour.html' | relative_url }}">open slides</a></p>
       </li>
       <li>
         <a href="{% post_url 2026-07-28-azure-entra-security-architecture %}">Azure security architecture — Entra-only identity on cloud</a>
@@ -337,7 +324,7 @@ permalink: /
 
   <div class="post-group all-posts" id="all-posts">
     <h3>All posts by date</h3>
-    <p class="group-lede">Newest first. Prefer the executive overview unless you need a specialist topic.</p>
+    <p class="group-lede">Newest first.</p>
     <ul class="post-list">
       {% assign posts_by_date = site.posts | sort: 'date' | reverse %}
       {% for post in posts_by_date %}

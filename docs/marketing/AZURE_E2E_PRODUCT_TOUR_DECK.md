@@ -1,4 +1,4 @@
-# Azure GA — E2E Product Tour Deck
+# Azure — E2E Product Tour Deck
 
 **Confidential AI Network on Microsoft Azure**
 
@@ -32,7 +32,7 @@ multi-party contracts, Key Vault, confidential compute, and policy gates.
 ## Slide 2 — Agenda
 
 1. Why Azure + CAN  
-2. What GA includes (and what we still label as roadmap)  
+2. What this tour includes (and what we still label as roadmap)  
 3. Azure control plane at a glance  
 4. Live E2E tour (registration → prediction)  
 5. Keys & TEE (decrypt only after attest + contract)  
@@ -66,9 +66,9 @@ Consent-based, accountable data sharing: use-bound access, evidence over screens
 
 ---
 
-## Slide 5 — What “Azure GA” means in this deck
+## Slide 5 — What this Azure tour covers
 
-| Capability | GA narrative |
+| Capability | Narrative |
 | --- | --- |
 | **Microsoft Entra ID** | Sole app IdP (SSO, Conditional Access, app roles TDC/TDP/CCRP/AppAdmin) |
 | **Edge** | Front Door / WAF → APIM (JWT validation) → private AKS |
@@ -79,7 +79,7 @@ Consent-based, accountable data sharing: use-bound access, evidence over screens
 | **Inference** | Register → deploy → predict under Open-GMASE gate |
 | **Governance** | OPA fail-closed; decisions → AuditLogs → CompliancePulse ingest |
 
-*Speaker note:* If a bullet is still Partial/Design in [AZURE_FEATURES](../deployment/AZURE_FEATURES_AND_CONFIGURATION.md), mark it **“GA target”** on the slide rather than implying every line is already in production.
+*Speaker note:* If a bullet is still Partial/Design in [AZURE_FEATURES](../deployment/AZURE_FEATURES_AND_CONFIGURATION.md), mark it **“production target”** on the slide rather than implying every line is already in production.
 
 ---
 
@@ -135,9 +135,9 @@ Same story as the [product tour](https://gitmujoshi.github.io/Confidential-AI-Ne
 **Show:** Login via **Microsoft Entra ID**; Conditional Access / MFA as customer policy.
 
 - SPA + API app registrations; roles `TDC` / `TDP` / `CCRP` / `AppAdmin`  
-- **Keycloak is local-only**—not on Azure GA  
+- **Keycloak is local-only**—not on the Azure path  
 
-*Screenshot placeholder:* Azure registration / landing (replace with GA capture).
+*Screenshot placeholder:* Azure registration / landing (replace with live Azure capture).
 
 ---
 
@@ -209,7 +209,7 @@ Deep dive: [TEE blog](https://gitmujoshi.github.io/Confidential-AI-Network/secur
 
 **Show:** Job RUNNING → COMPLETED; logs; metrics (optional DP ε/δ on NLP).
 
-| GA path | Fallback demo |
+| Target Azure path | Fallback demo |
 | --- | --- |
 | AKS Job / confidential compute | `local-docker` (label as non-TEE) |
 
@@ -263,7 +263,7 @@ Demo: [CAN ↔ Open-GMASE ↔ CompliancePulse](https://gitmujoshi.github.io/Conf
 
 ## Slide 19 — Full story in one sentence
 
-**On Azure GA, CAN binds multi-party training in a Ricardian contract, unlocks DEK/MEK only after Entra-backed parties accept an attested confidential session, trains in the enclave, and serves a prediction under an Open-GMASE policy gate—with evidence for GRC.**
+**On Azure, CAN binds multi-party training in a Ricardian contract, unlocks DEK/MEK only after Entra-backed parties accept an attested confidential session, trains in the enclave, and serves a prediction under an Open-GMASE policy gate—with evidence for GRC.**
 
 ---
 

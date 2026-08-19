@@ -46,7 +46,7 @@ This isn't hypothetical anymore. OpenAI shipped Workload Identity Federation for
 
 Oracle's own setup docs for this flag the exact limitation that matters for agents: on OKE, the instance principal signer identifies the *worker node*, not the individual pod. So three different agent pods on the same node — each running a different task, for a different user, with different intended scope — present as the same identity to that federation flow. That's the multi-agent-per-node picture from the diagram below, and it's precisely the gap SPIFFE's per-workload attestation is built to close: distinct SVIDs per pod, derived from actual process/namespace attestation rather than node-level metadata, so "which agent did this" survives all the way through the token exchange instead of collapsing to "some agent on this node."
 
-Layer SPIFFE identity underneath these node-level federation flows — to OpenAI, to OCI IAM, to any OIDC-federated API — and you get agent-level rather than node-level attribution for free.
+Layer SPIFFE identity underneath these node-level federation flows — to OpenAI, to OCI IAM, to any OIDC-federated API — and attribution moves from node-level to agent-level without inventing a separate credential store.
 
 ## Closing the last mile: tool invocation
 

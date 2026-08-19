@@ -5,127 +5,61 @@ date: 2026-08-14
 categories: [executive]
 tags: [ciso, can, g-mase, compliancepulse, overview]
 permalink: /executive/2026/08/14/governed-ai-enterprise-ciso-overview/
-excerpt: "Two risks boardrooms care about—unsafe data sharing and unbounded AI agents—and one stack that addresses both without requiring a deep dive into every technical note."
+excerpt: "Two enterprise risks—unsafe multi-party data use and unbounded AI agents—and how CAN, Open-GMASE, and CompliancePulse address them as one trust problem."
 ---
 
-**Reading time:** ~6 minutes. No architecture diagrams required.
+Two questions that usually get separate vendor answers:
 
-> **Status:** This is an **active research and engineering project**, not a finished commercial product. The architecture, open-source reference code, and product surfaces will keep evolving as we learn from design partners and real deployments. Treat published posts as a living blueprint—useful for direction and discussion—not as a frozen commitment.
+1. *How do we improve models on partner data we do not own—without concentrating breach and audit risk?*  
+2. *How do we let AI agents act in the SOC—without unconstrained production privilege?*
 
-If you lead security, risk, or compliance, you are probably being asked two questions at once:
-
-1. *How do we train better models on data we do not fully own—without creating the next breach headline?*  
-2. *How do we let AI agents help the SOC—without giving them the keys to production?*
-
-Most vendors answer only one. We treat them as the **same trust problem**: enterprises have been relying on contracts, NDAs, and system prompts as if they were controls. They are not.
-
-This note is the executive overview of our **combined offering**. Deeper technical posts exist for architects; you do not need them to decide whether the direction is right.
+This note treats them as one problem: **policy text is not enforcement.** NDAs and system prompts are not control planes. The stack under discussion is **CAN** (multi-party training), **Open-GMASE** (open execution reference), and **CompliancePulse** (enterprise agent control plane). Research maturity; live vs design called out below and in linked posts.
 
 ---
 
-## The problem in plain language
+## Problem shape
 
-**On the data side:** The models that matter often need data from partners—hospitals, banks, agencies, suppliers. Shipping that data into a shared lake (or “just email the extract”) collapses sovereignty, liability, and competitive advantage. Handshake deals do not survive audits.
+**Data:** Partner corpora improve models; a shared lake concentrates sovereignty and liability. Bilateral agreements do not gate compute at machine speed.
 
-**On the agent side:** Autonomous agents only create value if they can *act*—update a firewall, revoke a token, open a ticket. The moment they can act, they are privileged identities. Telling a model “you are in a sandbox” is not a control plane. Recent industry disclosures showed that when evaluation harnesses leaked onto real networks, models exploited ordinary weaknesses at machine speed.
+**Agents:** Value requires write-capable tools. That makes the agent a privileged identity. Eval-harness disclosures (Anthropic, OpenAI, and peers) showed models exploiting ordinary weaknesses when “sandbox” assumptions failed—prompt text was never the boundary.
 
-**Shared root cause:** Policy *text* is not enforcement. Boards need **written agreements**, **technical isolation**, and **evidence**—for training jobs and for every tool an agent tries to run.
-
----
-
-## What we offer (three layers, one story)
-
-Think of three products that stack. You can adopt them together or in stages.
-
-### 1. Confidential AI Network (CAN) — *train with strangers, keep control*
-
-**For:** Data providers, model builders, and clean-room operators who must collaborate under regulation.
-
-**What it does:** Parties discover datasets by metadata, negotiate a clear contract (who may use what, for how long, under which rules), train only in policy-bound environments, and leave a trail auditors can verify—not a pile of screenshots.
-
-**Value you can take to the board:** Collaboration without bulk export. Clear roles (data owner, model consumer, clean-room provider). Provenance that supports GRC conversations.
-
-Prefer a walkthrough? See the [product tour]({{ '/product-tour/' | relative_url }}).
-
-### 2. Open-GMASE — *open standard for “agents may propose; infrastructure decides”*
-
-**For:** Platform and SecOps teams who want a transparent, inspectable starting point.
-
-**What it does:** An open reference for governed agent execution: short-lived workload identity, policy checks before tools run, typed parameters so junk strings do not become production API calls. Community-friendly by design (Apache 2.0).
-
-**Value:** Reduces “black box agent security” fear. Lets your engineers pilot guardrails before you buy a control plane. Sets a shared language with vendors and partners.
-
-### 3. CompliancePulse AI — *enterprise control plane for agent fleets*
-
-**For:** CISOs and SOC leaders who need production governance, not a lab demo.
-
-**What it does:** The commercial layer on top of that open foundation—policy packs aimed at compliance conversations, multi-tenant operations, identity integrations enterprises already use, and audit views built for investigations and evidence requests.
-
-**Value:** One place to see what agents attempted, what policy allowed or blocked, and what requires a human before anything dangerous runs.
+Needed for both: **agreements the runtime can enforce**, **isolation**, and **decision evidence**.
 
 ---
 
-## How it fits together (one picture)
+## Three layers
 
-| Question | Answer in this stack |
+### 1. CAN — multi-party training under contract
+
+Catalog metadata → Ricardian contract → policy-bound train → provenance for GRC. Roles: TDP / TDC / TSP·CCRP. Design roots: iSPIRT [DEPA](https://depa.world). UI path: [product tour]({{ '/product-tour/' | relative_url }}).
+
+### 2. Open-GMASE — agents propose; infrastructure decides
+
+Workload identity, pre-tool policy (OPA), typed parameters. Apache 2.0 reference under [`open-gmase-core`](https://github.com/gitmujoshi/Confidential-AI-Network/tree/main/open-gmase-core).
+
+### 3. CompliancePulse — enterprise control plane
+
+Policy packs, multi-tenant ops, IdP integrations, investigation-oriented audit views on top of the open foundation.
+
+---
+
+## How the layers relate
+
+| Question | Layer |
 | --- | --- |
 | Who may train on whose data? | **CAN** contracts and roles |
 | Where does training run? | Clean rooms / isolated environments under those contracts |
-| May this *agent* change production right now? | **Open-GMASE / CompliancePulse** identity + policy gate *before* the tool runs |
-| What do we show auditors? | Contract trail + job provenance + agent decision logs (“cognitive telemetry”) |
+| May this agent change production *now*? | **Open-GMASE / CompliancePulse** gate *before* the tool |
+| What do auditors see? | Contract trail + job provenance + agent decision logs |
 
-Humans still sign in with your enterprise identity. Machines get short-lived, attested identities. Cloud permissions remain a hard outer fence—but they are not enough alone when an AI invents the action.
-
----
-
-## Outcomes you should expect
-
-| Outcome | What changes for the business |
-| --- | --- |
-| **Lower data-sharing risk** | Partners collaborate without “copy everything to us.” |
-| **Faster, safer automation** | Agents can help the SOC; high-impact actions pause for humans. |
-| **Evidence, not narratives** | You can show *who agreed*, *where compute ran*, and *which agent action was allowed or denied*. |
-| **Open path, commercial depth** | Start transparent (Open-GMASE); grow into enterprise operations (CompliancePulse) and multi-party training (CAN). |
+Enterprise IdP for humans; short-lived attested identities for workloads. Cloud IAM is necessary outer fence, not sufficient when the model invents the action.
 
 ---
 
-## What this is *not*
+## Live today (local)
 
-- Not “another chatbot for the SOC.”  
-- Not “put all your data in our lake.”  
-- Not a promise that model alignment alone will keep production safe.  
-- Not a requirement that every executive read every technical note on this site.  
-- Not a claim that every capability described is production-complete today—this stack is still under active research and will continue to change.
+Open-GMASE OPA gates **training start** and **inference deploy/predict**; decisions land in CAN AuditLogs and forward by default to CompliancePulse at `http://localhost:3001` (`COMPLIANCEPULSE_INGEST_URL=false` to disable). Swarm UI, SPIRE attestation, and multi-tenant CP SaaS remain research.
 
----
+→ [Demo slice]({% post_url 2026-08-14-can-gmase-demo-slice %}) · [Product tour]({{ '/product-tour/' | relative_url }}) · [Contract → prediction]({% post_url 2026-08-14-can-contract-to-prediction %})
 
-## What you can try today
-
-The full unified runtime (swarm UI, SPIRE attestation, multi-tenant CompliancePulse SaaS) is still research. What **does** run locally today: Open-GMASE OPA gates **training start** and **inference deploy/predict**, decisions land in CAN AuditLogs, and CAN **forwards them by default** to CompliancePulse at `http://localhost:3001` (warns if CP is down; set `COMPLIANCEPULSE_INGEST_URL=false` to disable).
-
-→ [Try it: CAN ↔ Open-GMASE ↔ CompliancePulse demo slice]({% post_url 2026-08-14-can-gmase-demo-slice %}) (Inference gate screenshots + CP ingest trail)
-
-Use that alongside the [product tour]({{ '/product-tour/' | relative_url }}) when you want a stakeholder demo that is honest about scope.
-
----
-
-## Suggested next steps
-
-1. **Stay here** if you only need the thesis for a steering committee.  
-2. **See the product** — [Product tour]({{ '/product-tour/' | relative_url }}) (screenshots of the CAN flow).  
-3. **See the full CAN loop** — [From signed contract to governed prediction]({% post_url 2026-08-14-can-contract-to-prediction %}) (train→infer, Open-GMASE, CompliancePulse).  
-4. **Run the live seam** — [CAN ↔ Open-GMASE ↔ CompliancePulse]({% post_url 2026-08-14-can-gmase-demo-slice %}) (OPA → AuditLogs → CP ingest).  
-5. **Go deeper only if needed:**
-   - [Building Confidential AI Network]({% post_url 2026-07-29-building-confidential-ai-network %}) — product detail for CAN  
-   - [G-MASE deep dive]({% post_url 2026-08-14-gmase-deep-dive %}) — SecOps swarm environment  
-   - [CompliancePulse AI deep dive]({% post_url 2026-08-14-compliancepulse-ai-deep-dive %}) — control plane & evidence product  
-   - [Governing autonomous AI agents]({% post_url 2026-07-31-governing-autonomous-ai-agents-cybersecurity %}) — attack matrix & multi-cloud IAM  
-   - [Unified Governed Agentic SecOps Framework]({% post_url 2026-08-14-unified-governed-agentic-secops-framework %}) — swarm + control plane together  
-
-Everything else on this site (identity deep dives, cloud runbooks, control mappings) is **optional depth** for specialists.
-
----
-
-## One sentence for the board
-
-**We help enterprises train AI across organizational boundaries and run autonomous security agents—without treating NDAs or system prompts as the security boundary.**
+Deeper: [Building CAN]({% post_url 2026-07-29-building-confidential-ai-network %}) · [G-MASE]({% post_url 2026-08-14-gmase-deep-dive %}) · [CompliancePulse]({% post_url 2026-08-14-compliancepulse-ai-deep-dive %}) · [Agent attack matrix]({% post_url 2026-07-31-governing-autonomous-ai-agents-cybersecurity %}) · [Unified framework]({% post_url 2026-08-14-unified-governed-agentic-secops-framework %})

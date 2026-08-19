@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Azure GA — CAN E2E Product Tour Deck</title>
+  <title>Azure — CAN E2E Product Tour Deck</title>
   <style>
     :root {
       --bg: #0c1218;
@@ -134,9 +134,9 @@
   <div class="deck" id="deck">
 
     <section class="slide active title-slide">
-      <p class="eyebrow">Azure GA · Product tour</p>
+      <p class="eyebrow">Azure · Product tour</p>
       <h1>Confidential AI Network on Microsoft Azure</h1>
-      <p class="lede">End-to-end: Entra sign-in → Ricardian contract → Key Vault &amp; confidential compute → governed prediction.</p>
+      <p class="lede">End-to-end narrative: Entra sign-in → Ricardian contract → Key Vault &amp; confidential compute → governed prediction.</p>
       <div class="cards">
         <div class="card"><h3>CAN</h3><p>Multi-party training</p></div>
         <div class="card"><h3>Azure</h3><p>Entra · AKS · Key Vault · Blob · TEE</p></div>
@@ -149,8 +149,8 @@
       <h2>What we will walk</h2>
       <ul>
         <li>Why Azure + CAN · DEPA inspiration</li>
-        <li>GA control plane map</li>
-        <li>Live E2E tour — registration through prediction</li>
+        <li>Control plane map (research / pilot)</li>
+        <li>E2E tour — registration through prediction</li>
         <li>DEK/MEK escrow · TEE attest-then-decrypt</li>
         <li>Open-GMASE + CompliancePulse</li>
         <li>Operator checklist · honest boundaries · CTA</li>
@@ -182,8 +182,8 @@
     </section>
 
     <section class="slide">
-      <p class="eyebrow">Azure GA</p>
-      <h2>What this release tour covers</h2>
+      <p class="eyebrow">Azure</p>
+      <h2>What this tour covers</h2>
       <table>
         <tr><th>Capability</th><th>Narrative</th></tr>
         <tr><td>Microsoft Entra ID</td><td>Sole app IdP · app roles TDC/TDP/CCRP/AppAdmin</td></tr>
@@ -192,7 +192,7 @@
         <tr><td>Confidential compute</td><td>Attest → dual-key escrow → decrypt-in-memory → train</td></tr>
         <tr><td>Governance</td><td>Open-GMASE OPA · CompliancePulse ingest</td></tr>
       </table>
-      <p class="note" style="margin-top:1rem">Label Partial/Design items as “GA target” if not yet live in the tenancy.</p>
+      <p class="note" style="margin-top:1rem">Label Partial/Design items as “production target” if not yet live in the tenancy.</p>
     </section>
 
     <section class="slide">
@@ -244,7 +244,7 @@ Front Door / WAF  →  APIM  →  CAN on AKS
         <li><strong>Entra SSO</strong> — MFA / Conditional Access per customer policy. Keycloak is local-only.</li>
         <li><strong>Catalog</strong> — TDP publishes dataset ciphertext to Blob (CMK); TDC selects model; plaintext stays out of the portal.</li>
       </ul>
-      <p class="note">Screenshot: swap GA Azure captures into the speaker appendix list.</p>
+      <p class="note">Screenshot: swap live Azure captures into the speaker appendix list when a tenancy is available.</p>
     </section>
 
     <section class="slide">
@@ -252,7 +252,7 @@ Front Door / WAF  →  APIM  →  CAN on AKS
       <h2>Ricardian contract · multi-party sign</h2>
       <ul>
         <li>Use, duration, region, confidential SKU, <strong>Key Vault kmsConfigs</strong></li>
-        <li>Notify TDP + CCRP; cryptographic sign (Key Vault–backed at GA)</li>
+        <li>Notify TDP + CCRP; cryptographic sign (Key Vault–backed in the production target)</li>
         <li>No training until required signatures complete</li>
       </ul>
     </section>
@@ -314,8 +314,8 @@ Front Door / WAF  →  APIM  →  CAN on AKS
 
     <section class="slide">
       <p class="eyebrow">One sentence</p>
-      <h2>The Azure GA story</h2>
-      <p class="quote">CAN binds multi-party training in a Ricardian contract, unlocks DEK/MEK only after parties accept an attested confidential session, trains in the enclave, and serves a prediction under an Open-GMASE policy gate—with evidence for GRC.</p>
+      <h2>The Azure narrative in one sentence</h2>
+      <p class="quote">CAN binds multi-party training in a Ricardian contract, unlocks DEK/MEK only after parties accept an attested confidential session (target path), trains in the enclave, and serves a prediction under an Open-GMASE policy gate—with evidence for GRC.</p>
     </section>
 
     <section class="slide">

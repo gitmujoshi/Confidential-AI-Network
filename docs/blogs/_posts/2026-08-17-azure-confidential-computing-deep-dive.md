@@ -11,7 +11,7 @@ canonical: docs/production/AZURE_SECURITY_ARCHITECTURE.md
 
 *On Azure, “confidential training” is not a checkbox on a VM SKU. It is a threat model, a key custody story, an attestation policy, and a destroy path—bound to a signed Ricardian contract.*
 
-**Related:** [Product tour]({{ '/product-tour/' | relative_url }}) · [Azure GA deck]({% post_url 2026-08-16-azure-e2e-product-tour-deck %}) · [SPIFFE/SPIRE on Azure]({% post_url 2026-08-17-spiffe-spire-azure-wif %}) · [Contract signing & keys]({% post_url 2026-08-17-can-contract-management-signing %}) · [KMS DEK/MEK]({% post_url 2026-08-16-can-kms-dek-mek-escrow %}) · [TEE attest → decrypt]({% post_url 2026-08-16-can-tee-attest-decrypt-train %}) · [Entra architecture note]({% post_url 2026-07-28-azure-entra-security-architecture %}) · In-repo: [AZURE_SECURITY_ARCHITECTURE.md](https://github.com/gitmujoshi/Confidential-AI-Network/blob/main/docs/production/AZURE_SECURITY_ARCHITECTURE.md) · [AZURE_FEATURES_AND_CONFIGURATION.md](https://github.com/gitmujoshi/Confidential-AI-Network/blob/main/docs/deployment/AZURE_FEATURES_AND_CONFIGURATION.md) · [AZURE_SPIFFE_SPIRE_WIF.md](https://github.com/gitmujoshi/Confidential-AI-Network/blob/main/docs/deployment/AZURE_SPIFFE_SPIRE_WIF.md)
+**Related:** [Product tour]({{ '/product-tour/' | relative_url }}) · [Azure product tour deck]({% post_url 2026-08-16-azure-e2e-product-tour-deck %}) · [SPIFFE/SPIRE on Azure]({% post_url 2026-08-17-spiffe-spire-azure-wif %}) · [Contract signing & keys]({% post_url 2026-08-17-can-contract-management-signing %}) · [KMS DEK/MEK]({% post_url 2026-08-16-can-kms-dek-mek-escrow %}) · [TEE attest → decrypt]({% post_url 2026-08-16-can-tee-attest-decrypt-train %}) · [Entra architecture note]({% post_url 2026-07-28-azure-entra-security-architecture %}) · In-repo: [AZURE_SECURITY_ARCHITECTURE.md](https://github.com/gitmujoshi/Confidential-AI-Network/blob/main/docs/production/AZURE_SECURITY_ARCHITECTURE.md) · [AZURE_FEATURES_AND_CONFIGURATION.md](https://github.com/gitmujoshi/Confidential-AI-Network/blob/main/docs/deployment/AZURE_FEATURES_AND_CONFIGURATION.md) · [AZURE_SPIFFE_SPIRE_WIF.md](https://github.com/gitmujoshi/Confidential-AI-Network/blob/main/docs/deployment/AZURE_SPIFFE_SPIRE_WIF.md)
 
 > **Honesty first:** The [local Docker product tour]({{ '/product-tour/#local' | relative_url }}) proves contracts → train → infer → Auditor on a laptop. That path is **not** a hardware TEE. Azure **platform IaC** now includes Key Vault, Blob, and AKS Workload Identity ([Terraform README](https://github.com/gitmujoshi/Confidential-AI-Network/blob/main/deployment/azure/terraform/README.md)). Confidential compute + **Secure Key Release (SKR)** remain the **production target** for clean rooms: attestation is often **simulated** in JCS today; DCsv3 / confidential containers + real SKR are **Design / Phase 3**.
 
@@ -177,7 +177,7 @@ Two flows share the same product UX; only the **crypto boundary** differs.
 
 ### 5.1 Flow A — Portal train on Azure compute (Phase 1 pilot)
 
-Stakeholder path aligned with the [Azure GA deck]({% post_url 2026-08-16-azure-e2e-product-tour-deck %}):
+Stakeholder path aligned with the [Azure product tour deck]({% post_url 2026-08-16-azure-e2e-product-tour-deck %}):
 
 ```text
 Entra SSO (MSAL) → Portal + APIM JWT
@@ -192,7 +192,7 @@ Entra SSO (MSAL) → Portal + APIM JWT
 
 | Step | Azure control | Status |
 | --- | --- | --- |
-| Login | Entra + Conditional Access | Design → GA |
+| Login | Entra + Conditional Access | Design → production |
 | Roles | Entra app roles | Design |
 | Sign | Authz + Key Vault–backed keys (target) | Partial / Design |
 | Train | ACI / AKS Job / later DCsv3 | Partial scaffolding |

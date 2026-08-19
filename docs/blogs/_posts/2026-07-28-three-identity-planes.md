@@ -8,7 +8,7 @@ tags: [zero-trust, spiffe, entra, oci-iam]
 canonical: docs/deployment/OCI_SPIFFE_SPIRE_WIF.md
 ---
 
-Confidential AI systems fail open when “identity” means one login screen.
+Confidential AI systems fail open when “identity” means only an interactive login.
 In CAN we separate **three planes** so policies stay least-privilege and portable.
 
 ## 1. Humans and the portal

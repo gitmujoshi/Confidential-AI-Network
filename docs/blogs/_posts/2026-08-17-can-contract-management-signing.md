@@ -208,6 +208,6 @@ sequenceDiagram
 2. **Contract management** is a state machine: create → TDP → TSP → **SIGNED** → train/infer/audit.  
 3. **Today** the hard gate is **authenticated authorization + status**; stored “signatures” may be hashes/placeholders on the main UI path.  
 4. **Target** is HSM/Key Vault sign + verify-on-submit (and optional verify-on-train), with public keys / DIDs in the app.  
-5. Auditors verify **lineage under Merkle** and read the Ricardian; they do not get “crypto OK” for free until verify flags and Key Vault signing are on.
+5. Auditors verify **lineage under Merkle** and read the Ricardian; they do not get cryptographic signature verification until verify flags and Key Vault signing are enabled.
 
 **One sentence:** CAN manages contracts as enforceable lifecycle state; party signing keys should live in Key Vault/HSM and be verified on sign—while today’s demos correctly gate training on who is allowed to mark the contract **SIGNED**.

@@ -8,28 +8,25 @@ permalink: /product/2026/08/14/can-contract-to-prediction/
 excerpt: "How CAN takes multi-party Ricardian contracts through local training, model registration, and inference—under Open-GMASE policy gates with CompliancePulse decision ingest."
 ---
 
-Most shared-AI projects still start with a copy of the data and an NDA. **Confidential AI Network (CAN)** starts with a **written, machine-enforceable agreement**, trains only where that agreement allows, and—when the job finishes—lets you **register, deploy, and call the model** without dropping the control plane.
+**CAN** starts from a machine-enforceable Ricardian agreement, trains only where that agreement allows, then registers, deploys, and serves the model without dropping the control plane.
 
-Screenshots: [product tour]({{ '/product-tour/' | relative_url }}). Deep dive on the agreement itself: [Ricardian contracts in CAN]({% post_url 2026-08-16-ricardian-contracts-in-can %}). Runnable governance seam: [CAN ↔ Open-GMASE ↔ CompliancePulse]({% post_url 2026-08-14-can-gmase-demo-slice %}). Source: [GitHub](https://github.com/gitmujoshi/Confidential-AI-Network).
+[Product tour]({{ '/product-tour/' | relative_url }}) · [Ricardian contracts]({% post_url 2026-08-16-ricardian-contracts-in-can %}) · [Open-GMASE ↔ CompliancePulse seam]({% post_url 2026-08-14-can-gmase-demo-slice %}) · [GitHub](https://github.com/gitmujoshi/Confidential-AI-Network)
 
-> **Status:** Active research and engineering. The paths marked **live** run on the local stack today. Hosted multi-tenant SaaS and turnkey cloud clean-room automation remain on the roadmap.
+> **Status:** Paths marked **live** run on the local stack. Hosted multi-tenant SaaS and turnkey cloud clean-room automation remain roadmap.
 
 ---
 
-## The problem CAN solves
+## Control model
 
-**Training needs multi-party data. Regulation and competition forbid bulk export. Audits need proof, not screenshots.**
+1. Catalog **metadata and policy**, not the corpus  
+2. **Ricardian contract** (legal prose + enforceable state)  
+3. Train in a **policy-bound** environment (local trainer today; TSP / CCRP in the cloud design)  
+4. **Auditable trail** (job outcomes, signatures, SCITT CCF path)
 
-CAN treats collaboration as a protocol:
+Roles: **TDP** / **TDC** / **TSP·CCRP**. Dev IdP: Keycloak; cloud IdP in production. DEPA: [depa.world](https://depa.world). Architecture: [Building CAN]({% post_url 2026-07-29-building-confidential-ai-network %}).
 
-1. Publish **catalog metadata and policy**, not the corpus  
-2. Negotiate a **Ricardian contract** (human-readable terms + enforceable state)  
-3. Train only inside a **policy-bound** environment (local trainer today; TSP / CCRP clean rooms in the cloud design)  
-4. Leave an **auditable trail** (job outcomes, signatures, SCITT CCF path)
+Post-signature loop: train → inference app → call, with consequential side effects clearing an **Open-GMASE** gate.
 
-The parties are familiar: **TDP** (data), **TDC** (model), **TSP / CCRP** (isolated compute). Humans authenticate through Keycloak in development or the cloud IdP in production. Design roots sit with iSPIRT [DEPA](https://depa.world). Longer architecture narrative: [Building Confidential AI Network]({% post_url 2026-07-29-building-confidential-ai-network %}).
-
-What closes the loop for stakeholders is everything **after** the signatures: a model you can train, ship into an inference app, and call—while every consequential side effect still clears an **Open-GMASE** gate.
 
 ---
 

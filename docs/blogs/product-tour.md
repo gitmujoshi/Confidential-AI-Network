@@ -1,7 +1,7 @@
 ---
 layout: default
 title: Product tour
-description: End-to-end UI tour — from registration to a live prediction on Local Docker, with Azure as the GA cloud path (Entra, Key Vault, confidential compute).
+description: End-to-end UI tour — registration through prediction on Local Docker, plus Azure architecture references (Entra, Key Vault, confidential compute).
 permalink: /product-tour/
 ---
 
@@ -9,16 +9,13 @@ permalink: /product-tour/
   <p class="eyebrow">Product tour · UI from end-to-end tests</p>
   <h1>From registration to a live prediction</h1>
   <p class="lede">
-    Walk the multi-party path on a live
-    <strong>Local Docker</strong> stack (Playwright lifecycle guide):
-    onboard parties, publish data, agree and sign a contract, train, inspect logs and provenance,
-    deploy and test the model, then let an <strong>Auditor</strong> verify the Merkle audit tree
-    and the governing contract.
-    For the <strong>Azure GA</strong> narrative (Entra, Key Vault, confidential compute), use the
-    slide deck and the Azure confidential-computing deep dive.
+    Multi-party path on a runnable <strong>Local Docker</strong> stack (Playwright lifecycle):
+    onboard → catalog → contract → train → provenance → deploy/predict → Auditor (Merkle + contract).
+    Azure narrative (Entra, Key Vault, confidential compute): slide deck and CC deep dive.
+    Local path proves UX and gates; it is not a hardware TEE.
   </p>
   <p class="cta-row" style="margin-top:1.25rem">
-    <a class="cta" href="{{ '/assets/decks/azure-e2e-product-tour.html' | relative_url }}">Azure GA slide deck</a>
+    <a class="cta" href="{{ '/assets/decks/azure-e2e-product-tour.html' | relative_url }}">Azure product tour deck</a>
     <a class="cta cta-secondary" href="{% post_url 2026-08-17-azure-confidential-computing-deep-dive %}">Azure confidential computing</a>
     <a class="cta cta-secondary" href="{% post_url 2026-08-17-spiffe-spire-azure-wif %}">SPIFFE / Workload Identity</a>
     <a class="cta cta-secondary" href="{% post_url 2026-08-16-azure-e2e-product-tour-deck %}">Azure deck notes</a>

@@ -9,9 +9,9 @@ excerpt: "What a Ricardian contract is, how CAN binds human-readable terms to ma
 canonical: docs/contracts/RICARDIAN_CONTRACT_GUIDE.md
 ---
 
-Most “AI collaboration” deals are a PDF plus hope. When something goes wrong—wrong dataset, wrong region, a model used beyond its purpose—the PDF does not stop a training job or prove what parties actually agreed.
+A PDF agreement does not stop a training job or bind runtime state to the exact terms parties signed.
 
-**Confidential AI Network (CAN)** uses a **Ricardian contract**: one agreement that is **readable by lawyers and humans**, and **binding for the platform**—datasets, training parameters, environment, keys, and signatures—so training and inference only proceed under that state.
+**CAN** uses a **Ricardian contract**: legal prose plus machine-enforceable structure (datasets, params, environment, keys, signatures) so train/infer proceed only under that state.
 
 **Related:** [Contract → governed prediction]({% post_url 2026-08-14-can-contract-to-prediction %}) · [Contract management — signing keys & verify]({% post_url 2026-08-17-can-contract-management-signing %}) · [Product tour]({{ '/product-tour/' | relative_url }}) · [Merkle / Auditor]({% post_url 2026-08-16-merkle-trees-model-audit %}) · [KMS DEK/MEK]({% post_url 2026-08-16-can-kms-dek-mek-escrow %}) · [TEE attest → decrypt]({% post_url 2026-08-16-can-tee-attest-decrypt-train %}) · In-repo: [RICARDIAN_CONTRACT_GUIDE.md](https://github.com/gitmujoshi/Confidential-AI-Network/blob/main/docs/contracts/RICARDIAN_CONTRACT_GUIDE.md)
 
@@ -21,13 +21,9 @@ Most “AI collaboration” deals are a PDF plus hope. When something goes wrong
 
 ## 1. What “Ricardian” means here
 
-Ian Grigg’s Ricardian idea (simplified): a contract should be **one document** that:
+Ian Grigg’s Ricardian idea (simplified): one document that humans can read, machines can hash unambiguously, and signatures bind to **that** byte-exact artifact.
 
-1. Humans can read (legal prose, parties, obligations).  
-2. Machines can hash and reference without ambiguity.  
-3. Signatures bind parties to **that** exact document—not a vague “we agreed somehow.”
-
-In CAN’s glossary: *human-readable legal terms bound to a machine-enforceable structure* (datasets, training params, privacy, clean-room host).
+In CAN: legal prose bound to machine-enforceable structure (datasets, training params, privacy, clean-room host).
 
 ```text
 Legal prose  ──hash──►  legalDocumentHash  ──bound to──►  Contract row
@@ -36,7 +32,7 @@ Legal prose  ──hash──►  legalDocumentHash  ──bound to──►  Co
 Human review / signatures                         Runtime gates (train / infer)
 ```
 
-Without the machine side, you have an NDA. Without the legal side, you have opaque JSON. Ricardian is the bridge.
+Machine-only → opaque JSON. Legal-only → NDA. Ricardian is both.
 
 ---
 
@@ -169,7 +165,7 @@ That is the DEPA-shaped idea applied to AI training: **use is licensed by agreem
 
 | Topic | Reality today |
 | --- | --- |
-| **`ricardianSignature`** | Platform binding digest for demos—not full multi-party ECDSA / cloud KMS signing of the legal hash (target for GA IdP + KMS). Deep dive: [Contract management — signing & verify]({% post_url 2026-08-17-can-contract-management-signing %}) |
+| **`ricardianSignature`** | Platform binding digest for demos—not full multi-party ECDSA / cloud KMS signing of the legal hash (production target: IdP + KMS). Deep dive: [Contract management — signing & verify]({% post_url 2026-08-17-can-contract-management-signing %}) |
 | **On-chain deploy** | Real only if blockchain is enabled and available; otherwise **mock** network/address |
 | **TDC signature** | Model supports `tdcSigned`; **SIGNED** for training is driven by the **TSP** completing the current flow |
 | **Templates** | Built-in `AI_TRAINING` / `BASIC`; rich clause libraries / customer templates are not a finished product surface |

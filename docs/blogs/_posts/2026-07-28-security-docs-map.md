@@ -8,7 +8,7 @@ tags: [diataxis, review]
 canonical: docs/security/README.md
 ---
 
-Reviewers often ask “where is the security story?” Here is the map.
+Reviewers often ask where security architecture and evidence live. This note is the map.
 
 ## Product security (app layer)
 

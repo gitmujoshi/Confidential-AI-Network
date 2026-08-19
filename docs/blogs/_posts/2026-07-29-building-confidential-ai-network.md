@@ -8,28 +8,27 @@ permalink: /security/2026/07/29/building-confidential-ai-network/
 canonical: README.md
 ---
 
-Most “shared AI” projects still start the same way: copy the dataset, sign an NDA, train somewhere convenient, and hope the audit never asks hard questions.
+Multi-party AI still often starts with a corpus copy, an NDA, and operational trust about where training ran.
 
-**Confidential AI Network (CAN)** is built for the opposite case — when healthcare, finance, public sector, and industrial partners need models that improve on *each other’s* data, but **cannot** put that data in a shared lake or rely on handshake deals.
+**CAN** targets the case where partners need each other’s data but cannot centralize it or treat bilateral agreements as the sole control.
 
-This post is a technical walkthrough of what CAN is, how the pieces fit, and what is intentionally design vs live today.
-
-Prefer screenshots? See the [product tour]({{ '/product-tour/' | relative_url }}) (Local path). Prefer the repo? [Confidential-AI-Network on GitHub](https://github.com/gitmujoshi/Confidential-AI-Network).
+Technical walkthrough: components, fit, and design vs live. [Product tour]({{ '/product-tour/' | relative_url }}) · [GitHub](https://github.com/gitmujoshi/Confidential-AI-Network).
 
 ---
 
-## The problem in one sentence
+## Problem
 
-**Training needs multi-party data; regulation and competition forbid bulk export; audits need proof, not screenshots.**
+**Training needs multi-party data; regulation and competition forbid bulk export; audits need attributable evidence.**
 
-CAN’s answer is a protocol, not a warehouse:
+Protocol (not a warehouse):
 
 1. Publish **metadata and policy**, not the corpus  
-2. Negotiate a **Ricardian contract** (human-readable terms + machine-enforceable state)  
-3. Train only inside a **policy-bound environment** (TSP / CCRP clean room)  
+2. Negotiate a **Ricardian contract** (legal prose + machine-enforceable state)  
+3. Train only inside a **policy-bound environment** (TSP / CCRP)  
 4. Leave **tamper-evident provenance** (SCITT CCF + job audit bundles)
 
-The design is inspired by India’s iSPIRT [**DEPA**](https://depa.world) (Data Empowerment and Protection Architecture): consent-based, accountable sharing for the AI era.
+Informed by iSPIRT [**DEPA**](https://depa.world).
+
 
 ---
 
@@ -136,17 +135,16 @@ We invested first in **Oracle Cloud** because clean-room + Vault + OKE + Identit
 - **OCI Database with PostgreSQL** for the app (Sequelize dialect)  
 - **OCIR** for backend/frontend images  
 - **Vault / Object Storage / SPIFFE / WIF / training Job** as opt-in modules (`enable_*`)  
-- Azure GA narrative: [product tour]({{ '/product-tour/' | relative_url }}) + [Azure confidential computing deep dive]({% post_url 2026-08-17-azure-confidential-computing-deep-dive %}) when a tenancy isn’t up yet  
+- Azure deployment narrative: [product tour]({{ '/product-tour/' | relative_url }}) + [Azure confidential computing deep dive]({% post_url 2026-08-17-azure-confidential-computing-deep-dive %}) when a tenancy is not yet available  
 
 Honest maturity: **baseline apply path is in-repo**; live WAF/API Gateway, SCITT HA, and production Job submitters are still opt-in / operator follow-through. See [OCI design complete](https://github.com/gitmujoshi/Confidential-AI-Network/blob/main/docs/deployment/OCI_DESIGN_COMPLETE.md) and the [marketplace listing checklist](https://github.com/gitmujoshi/Confidential-AI-Network/blob/main/docs/deployment/OCI_MARKETPLACE_LISTING_CHECKLIST.md).
 
 ---
 
-## Compliance without theater
+## Compliance mapping
 
-GRC reviewers don’t want a slide that says “we’re secure.” They want **requirements ↔ controls ↔ evidence**.
+Crosswalk of met / partial requirements (not a tenancy certification claim):
 
-CAN maintains a crosswalk of met / partial requirements to:
 
 - NIST Cybersecurity Framework 2.0  
 - NIST SP 800-53 Rev. 5  

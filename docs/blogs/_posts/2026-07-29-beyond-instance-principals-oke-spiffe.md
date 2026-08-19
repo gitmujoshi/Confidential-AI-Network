@@ -49,7 +49,7 @@ Furthermore, while OKE clusters *do* support exposing an OIDC discovery endpoint
 
 That's the multi-agent-per-node picture, and it's precisely the gap SPIFFE's per-workload attestation is built to close: distinct SVIDs per pod, derived from actual process/namespace attestation rather than node-level metadata, so "which agent did this" survives all the way through the token exchange instead of collapsing to "some agent on this node."
 
-Layer SPIFFE identity underneath these node-level federation flows — to OpenAI, to OCI IAM, to any OIDC-federated API — and you get agent-level rather than node-level attribution for free.
+Layer SPIFFE identity underneath these node-level federation flows — to OpenAI, to OCI IAM, to any OIDC-federated API — and attribution moves from node-level to agent-level without inventing a separate credential store.
 
 ## Closing the last mile: tool invocation
 
