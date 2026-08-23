@@ -172,6 +172,7 @@ permalink: /
     <a href="#series-platform">Platform detail</a>
     <a href="#series-crypto">KMS, TEE &amp; provenance</a>
     <a href="#series-agents">Agent governance</a>
+    <a href="#series-essays">Architecture essays</a>
     <a href="#series-identity">Identity</a>
     <a href="#series-cloud">Cloud security</a>
     <a href="#series-compliance">Compliance</a>
@@ -249,6 +250,17 @@ permalink: /
       <li>
         <a href="{% post_url 2026-08-14-can-gmase-demo-slice %}">Try it: CAN ↔ Open-GMASE ↔ CompliancePulse (demo slice)</a>
         <p class="meta">August 14, 2026 · Runnable seam for stakeholders (incl. CP ingest)</p>
+      </li>
+    </ol>
+  </div>
+
+  <div class="post-group" id="series-essays">
+    <h3>Architecture essays</h3>
+    <p class="group-lede">Adjacent notes on protocols and agentic systems (not CAN product docs).</p>
+    <ol class="post-list ordered">
+      <li>
+        <a href="{% post_url 2026-08-23-ocen-protocol-agentic-ai-workflows %}">Is India’s OCEN protocol the missing blueprint for agentic AI workflows?</a>
+        <p class="meta">August 23, 2026 · Andrew Ng workflow redesign · OCEN / DPI as multi-party rails · <a href="https://github.com/gitmujoshi/Confidential-AI-Network/blob/main/docs/marketing/LINKEDIN_OCEN_AGENTIC_WORKFLOWS.md">LinkedIn</a></p>
       </li>
     </ol>
   </div>
