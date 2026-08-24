@@ -156,8 +156,6 @@ Is OCEN definitively the only way to build agentic financial systems? No. It is 
 
 **AI agents cannot execute end-to-end workflow redesigns in a vacuum.** Complex multi-party operations need intelligent reasoning at the edges **and** standardized, deterministic protocol graphs at the core.
 
-Related on this site: [G-MASE deep dive]({% post_url 2026-08-14-gmase-deep-dive %}) (governed agent execution) · [CAN CISO overview]({% post_url 2026-08-14-governed-ai-enterprise-ciso-overview %}) (contracts for multi-party AI) · LinkedIn companion: [`docs/marketing/LINKEDIN_OCEN_AGENTIC_WORKFLOWS.md`](https://github.com/gitmujoshi/Confidential-AI-Network/blob/main/docs/marketing/LINKEDIN_OCEN_AGENTIC_WORKFLOWS.md).
-
 ---
 
 ## Glossary
