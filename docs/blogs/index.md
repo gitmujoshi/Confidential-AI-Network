@@ -172,7 +172,6 @@ permalink: /
     <a href="#series-platform">Platform detail</a>
     <a href="#series-crypto">KMS, TEE &amp; provenance</a>
     <a href="#series-agents">Agent governance</a>
-    <a href="#series-essays">Architecture essays</a>
     <a href="#series-identity">Identity</a>
     <a href="#series-cloud">Cloud security</a>
     <a href="#series-compliance">Compliance</a>
