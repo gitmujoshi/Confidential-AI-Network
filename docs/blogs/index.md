@@ -259,8 +259,8 @@ permalink: /
     <p class="group-lede">Adjacent notes on protocols and agentic systems (not CAN product docs).</p>
     <ol class="post-list ordered">
       <li>
-        <a href="{% post_url 2026-08-23-ocen-protocol-agentic-ai-workflows %}">Is India’s OCEN protocol the missing blueprint for agentic AI workflows?</a>
-        <p class="meta">August 23, 2026 · Andrew Ng workflow redesign · OCEN / DPI as multi-party rails · <a href="https://github.com/gitmujoshi/Confidential-AI-Network/blob/main/docs/marketing/LINKEDIN_OCEN_AGENTIC_WORKFLOWS.md">LinkedIn</a></p>
+        <a href="{% post_url 2026-08-23-ocen-protocol-agentic-ai-workflows %}">When agentic workflows cross firms, what is the protocol layer?</a>
+        <p class="meta">August 23, 2026 · Protocol core for cross-firm agents · credit as walkthrough · <a href="https://github.com/gitmujoshi/Confidential-AI-Network/blob/main/docs/marketing/LINKEDIN_OCEN_AGENTIC_WORKFLOWS.md">LinkedIn</a></p>
       </li>
     </ol>
   </div>
