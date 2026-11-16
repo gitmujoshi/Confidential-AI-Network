@@ -71,6 +71,8 @@ permalink: /
   <p>
     <a href="{{ '/product-tour/#ccr' | relative_url }}">Clean-room screenshots</a>
     ·
+    <a href="{% post_url 2026-08-16-azure-e2e-product-tour-deck %}">Azure and GCP deck</a>
+    ·
     <a href="{% post_url 2026-08-17-azure-confidential-computing-deep-dive %}">Azure confidential computing</a>
   </p>
 </section>

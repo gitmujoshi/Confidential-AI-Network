@@ -146,8 +146,8 @@ permalink: /notes/
         <p class="meta">August 16, 2026 · Dual-layer legal + machine binding · sign → SIGNED → train</p>
       </li>
       <li>
-        <a href="{% post_url 2026-08-16-azure-e2e-product-tour-deck %}">Azure product tour deck — Entra to governed prediction</a>
-        <p class="meta">August 16, 2026 · Stakeholder slide deck for the Azure deployment narrative</p>
+        <a href="{% post_url 2026-08-16-azure-e2e-product-tour-deck %}">Product tour deck — Azure AKS and GCP GKE</a>
+        <p class="meta">August 16, 2026 · Stakeholder slides: existing AKS and existing GKE, plus the Azure confidential-compute target</p>
       </li>
       <li>
         <a href="{% post_url 2026-08-14-can-contract-to-prediction %}">Confidential AI Network: from signed contract to governed prediction</a>
@@ -297,8 +297,8 @@ permalink: /notes/
         <p class="meta">August 17, 2026 · Attestation · Secure Key Release · dual-key train path</p>
       </li>
       <li>
-        <a href="{% post_url 2026-08-16-azure-e2e-product-tour-deck %}">Azure product tour deck — Entra to governed prediction</a>
-        <p class="meta">August 16, 2026 · E2E stakeholder deck · <a href="{{ '/assets/decks/azure-e2e-product-tour.html' | relative_url }}">open slides</a></p>
+        <a href="{% post_url 2026-08-16-azure-e2e-product-tour-deck %}">Product tour deck — Azure AKS and GCP GKE</a>
+        <p class="meta">August 16, 2026 · Existing AKS and GKE · <a href="{{ '/assets/decks/azure-e2e-product-tour.html' | relative_url }}">open slides</a></p>
       </li>
       <li>
         <a href="{% post_url 2026-07-28-azure-entra-security-architecture %}">Azure security architecture — Entra-only identity on cloud</a>

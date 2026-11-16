@@ -13,7 +13,7 @@ permalink: /product-tour/
     onboard → catalog → contract → train → provenance → deploy/predict → Auditor (Merkle + contract).
     The Tech Service Provider on the contract chooses the clean room:
     Local runs on this machine; Azure and GCP submit to that provider’s existing cluster.
-    Azure narrative (Entra, Key Vault, confidential compute): slide deck and CC deep dive.
+    The slide deck puts GCP’s existing GKE cluster next to Azure’s existing AKS cluster. The Azure confidential-compute target stays in the CC deep dive.
   </p>
   <p class="cta-row" style="margin-top:1.25rem">
     <a class="cta" href="{{ '/assets/decks/azure-e2e-product-tour.html' | relative_url }}">Azure product tour deck</a>

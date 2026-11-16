@@ -31,10 +31,27 @@ Optional: point the portal at the gateway later with `REACT_APP_API_URL=http://l
 | `POST /v1/contracts/{id}/revoke` | `POST /api/contracts/{id}/revoke` (aborts jobs) |
 | `GET /v1/contracts/{id}/status` | `GET /api/contracts/{id}` (`SIGNED` → `active`) |
 | `POST /v1/ccr/provision` | `POST /api/tdc/training/contracts/{id}/start` |
-| `GET /v1/ccr/{id}/attestation` | `GET /api/tdc/training/jobs/{id}` (simulated quote) |
+| `POST /v1/providers` | Verifies an organization VC, then `POST /api/auth/register` |
+| `POST /v1/ccr/{id}/attestation` | `POST /api/tdc/training/jobs/{id}/sev-snp-quote` |
+| `GET /v1/ccr/{id}/attestation` | Stored quote when verified; otherwise simulated |
 | `POST /v1/ccr/{id}/teardown` | `POST /api/tdc/training/jobs/{id}/abort` |
+| `POST /v1/aichain/provenance/{id}/tombstone` | `POST /api/auditor/provenance/{id}/tombstone` |
 | `GET /v1/providers?type=InfrastructureProvider` | `GET /api/users/tsp` |
 
-Not implemented on this façade (orchestrator-only): VC org onboarding, hardware SEV-SNP quotes, SRO PII tombstone.
+## Trust configuration
+
+Set these on the API host (`:5001`). The gateway forwards the credential and the quote; CAN performs the checks.
+
+| Variable | Used by | Value |
+|----------|---------|-------|
+| `DEPA_VC_ISSUER_PEM` | `POST /v1/providers` | SPKI PEM of the issuer public key |
+| `DEPA_VC_TRUSTED_ISSUERS` | `POST /v1/providers` | Comma-separated `iss` values |
+| `SEV_SNP_ARK_PEM` | `POST /v1/ccr/{id}/attestation` | AMD ARK certificate PEM |
+
+Organization onboarding body: `{ "verifiableCredential": "<compact JWT>" }`. The credential subject needs `name`, `email`, and `partyType` (`DataProvider`, `DataConsumer`, or `InfrastructureProvider`). A valid credential registers the organization and returns `initialPassword` once.
+
+Quote body: `{ "report": "<base64>", "vcekPem": "<cert>", "askPem": "<cert>" }`. The report is 1184 bytes. It is stored as `sev-snp` only when the ECDSA-P384 signature matches the VCEK and the VCEK chains through the ASK to the pinned ARK. `GET /v1/ccr/{id}/attestation` stays `simulated` until that succeeds.
+
+Tombstone body: `{ "reason": "...", "redactedFields": ["field"] }`. The caller must be an Auditor or AppAdmin. The row is append-only. The provenance leaf stays. This is not a filing with an external SRO.
 
 Contract create from the user manual still needs **`datasetIds`** (CAN catalog slugs). Template `S3` sets local DP defaults on `trainingParams`.

@@ -13,6 +13,7 @@ const {
   buildContractAuditTree,
   verifyInclusionProof,
 } = require('../services/auditorAuditTreeService');
+const { recordProvenanceTombstone } = require('../services/provenanceTombstoneService');
 
 const requireAuditorOrAdmin = requireRole(['Auditor', 'AppAdmin']);
 
@@ -107,6 +108,28 @@ router.get(
     }
   }
 );
+
+/** Append a PII tombstone. The provenance leaf is kept. This is not an external SRO filing. */
+router.post('/provenance/:provenanceId/tombstone', authenticateToken, requireAuditorOrAdmin, async (req, res) => {
+  try {
+    const caller = resolveCaller(req);
+    const result = await recordProvenanceTombstone(db, {
+      provenanceId: req.params.provenanceId,
+      reason: req.body?.reason,
+      userId: Number.isInteger(caller.id) ? caller.id : null,
+      redactedFields: req.body?.redactedFields,
+    });
+    res.status(result.created ? 201 : 200).json({
+      success: true,
+      created: result.created,
+      externalSro: false,
+      tombstone: result.tombstone,
+    });
+  } catch (error) {
+    const status = error.statusCode || 500;
+    res.status(status).json({ success: false, error: error.message || 'Tombstone failed' });
+  }
+});
 
 /** Verify a Merkle inclusion proof (body: { proof, rootHash? }). */
 router.post('/verify-proof', authenticateToken, requireAuditorOrAdmin, async (req, res) => {

@@ -1,6 +1,6 @@
-# Azure — E2E Product Tour Deck
+# Azure and GCP — E2E Product Tour Deck
 
-**Confidential AI Network on Microsoft Azure**
+**Confidential AI Network on an existing AKS or GKE cluster**
 
 > Slide-ready narrative for **customer / partner / executive demos** when the Azure deployment is released.  
 > **Live on the blog:** [deck notes](https://gitmujoshi.github.io/Confidential-AI-Network/product/2026/08/16/azure-e2e-product-tour-deck/) · [open slides](https://gitmujoshi.github.io/Confidential-AI-Network/assets/decks/azure-e2e-product-tour.html)  
@@ -22,7 +22,7 @@ multi-party contracts, Key Vault, confidential compute, and policy gates.
 | | |
 |--|--|
 | Audience | Customers, partners, CISOs, cloud architects |
-| Cloud | Microsoft Azure (Entra · AKS · Key Vault · Blob · confidential VMs) |
+| Cloud | Microsoft Azure (Entra · existing AKS · Key Vault · Blob) and Google Cloud (Identity Platform · existing GKE · GCS) |
 | Inspiration | iSPIRT **DEPA** (Data Empowerment and Protection Architecture) |
 
 *Speaker note:* Open with “we don’t ask you to export the lake—we ask you to sign a contract and train where policy allows.”
@@ -154,12 +154,14 @@ Same story as the [product tour](https://gitmujoshi.github.io/Confidential-AI-Ne
 
 ## Slide 11 — Step 3: Ricardian contract + Key Vault
 
-**Show:** TDC creates contract—use, duration, region, **Azure Key Vault** `kmsConfigs`, CCRP offering.
+**Show:** TDC creates contract—use, duration, region, KMS, and the existing cluster.
 
-- Human-readable terms + machine-enforceable state  
-- Environment binding: Azure region, confidential SKU, residency  
+- Human-readable terms + machine-enforceable state
+- **Azure cluster:** subscription, resource group, AKS name, namespace, region, storage account, Key Vault URI
+- **GCP cluster:** project, location, GKE name, namespace, GCS bucket
+- The kubeconfig path stays on the TSP dashboard **Cloud Provider** card
 
-*Screenshot placeholder:* Contract wizard (TSP = Azure CCRP).
+*Screenshots:* [product tour #ccr](https://gitmujoshi.github.io/Confidential-AI-Network/product-tour/#ccr) — Azure contract, GCP contract, Azure TSP card, GCP TSP card.
 
 ---
 
@@ -205,13 +207,16 @@ Deep dive: [TEE blog](https://gitmujoshi.github.io/Confidential-AI-Network/secur
 
 ---
 
-## Slide 15 — Step 7: Training job on Azure
+## Slide 15 — Step 7: Training job on the existing cluster
 
 **Show:** Job RUNNING → COMPLETED; logs; metrics (optional DP ε/δ on NLP).
 
-| Target Azure path | Fallback demo |
-| --- | --- |
-| AKS Job / confidential compute | `local-docker` (label as non-TEE) |
+| Provider | Live submit | Fallback demo |
+| --- | --- | --- |
+| Azure | `azure-ccr` on the named AKS cluster | `local-docker` (label as non-TEE) |
+| GCP | `gcp-ccr` on the named GKE cluster | `local-docker` (label as non-TEE) |
+
+A missing kubeconfig path marks the job **FAILED**. Start does not create a subscription, project, or cluster. Attestation stays simulated until a verified SEV-SNP quote is stored. A Confidential Space quote is still design.
 
 Open-GMASE evaluates **`start_training`** fail-closed before the side effect.
 

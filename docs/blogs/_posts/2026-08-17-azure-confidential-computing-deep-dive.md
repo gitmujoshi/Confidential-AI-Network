@@ -192,9 +192,11 @@ Entra SSO (MSAL) → Portal + APIM JWT
   → Auditor: Merkle tree + contract review
 ```
 
-A missing kubeconfig path fails the job. The start does not create a subscription, resource group, or cluster. Attestation on this submit path is marked **simulated** until a hardware quote is attached.
+A missing kubeconfig path fails the job. The start does not create a subscription, resource group, or cluster. Attestation on this submit path is marked **simulated** until a verified SEV-SNP quote is stored.
 
-The contract wizard and TSP card are captured on the [product tour]({{ '/product-tour/#ccr' | relative_url }}).
+The same portal path exists for GCP. The TSP saves the existing GKE cluster on the Cloud Provider card (project, location, cluster name, namespace, GCS bucket, kubeconfig path). The contract’s **GCP cluster** fields carry the same identifiers and do not store the kubeconfig. Start submits `gcp-ccr`. A missing `GCP_CCR_KUBECONFIG` or `cloudAccount.GCP.kubeconfigPath` fails the job and does not create a project or a cluster. A Confidential Space quote is still design.
+
+The contract wizard and both TSP cards are captured on the [product tour]({{ '/product-tour/#ccr' | relative_url }}).
 
 | Step | Azure control | Status |
 | --- | --- | --- |

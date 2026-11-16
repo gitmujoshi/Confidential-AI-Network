@@ -4,6 +4,15 @@
 
 PRD-shaped routes live on the **gateway** (`http://localhost:8000/v1`) and translate to the CAN `/api` listed below. The portal does not call `/v1`. See [DEPA_V1_FACADE.md](./DEPA_V1_FACADE.md).
 
+| Method | Path | CAN |
+|--------|------|-----|
+| POST | `/v1/providers` | Verifies an organization VC, then `POST /api/auth/register` |
+| POST | `/v1/ccr/{id}/attestation` | `POST /api/tdc/training/jobs/{id}/sev-snp-quote` |
+| GET | `/v1/ccr/{id}/attestation` | Returns `sev-snp` only when that quote verified |
+| POST | `/v1/aichain/provenance/{id}/tombstone` | `POST /api/auditor/provenance/{id}/tombstone` |
+
+`DEPA_VC_ISSUER_PEM` and `DEPA_VC_TRUSTED_ISSUERS` must be set before a credential is accepted. `SEV_SNP_ARK_PEM` must be the AMD ARK certificate before a hardware quote is accepted. A tombstone requires an Auditor or AppAdmin token.
+
 ## 📋 Overview
 
 This document provides comprehensive API specifications for the ContractFlow Pro system, covering all endpoints, authentication mechanisms, request/response formats, and examples. The system implements a multi-tenant, multi-cloud contract management platform with Ricardian contracts and confidential computing capabilities.

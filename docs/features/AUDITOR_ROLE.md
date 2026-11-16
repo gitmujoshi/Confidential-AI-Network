@@ -35,6 +35,7 @@ If you need a known local password before sync, set it in Keycloak Admin or re-r
 | GET | `/api/auditor/contracts/:id/provenance-report` | Full provenance JSON |
 | GET | `/api/auditor/contracts/:id/audit-tree` | Merkle tree + leaf proofs |
 | POST | `/api/auditor/verify-proof` | Body: `{ proof, rootHash? }` |
+| POST | `/api/auditor/provenance/:id/tombstone` | Append-only PII tombstone. Body: `{ reason, redactedFields? }`. The Merkle leaf stays. The same id returns the first record. This is not an external SRO filing. The gateway path is `POST /v1/aichain/provenance/{id}/tombstone`. |
 
 Also: contract provenance report and job provenance allow `Auditor` (same as AppAdmin read paths).
 

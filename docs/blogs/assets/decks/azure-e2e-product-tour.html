@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Azure — CAN E2E Product Tour Deck</title>
+  <title>Azure and GCP — CAN E2E Product Tour Deck</title>
   <style>
     :root {
       --bg: #0c1218;
@@ -136,10 +136,11 @@
     <section class="slide active title-slide">
       <p class="eyebrow">Azure · Product tour</p>
       <h1>Confidential AI Network on Microsoft Azure</h1>
-      <p class="lede">End-to-end narrative: Entra sign-in → Ricardian contract → Key Vault &amp; confidential compute → governed prediction.</p>
+      <p class="lede">End-to-end narrative: Entra sign-in → Ricardian contract → existing AKS or GKE cluster → governed prediction.</p>
       <div class="cards">
         <div class="card"><h3>CAN</h3><p>Multi-party training</p></div>
-        <div class="card"><h3>Azure</h3><p>Entra · AKS · Key Vault · Blob · TEE</p></div>
+        <div class="card"><h3>Azure</h3><p>Entra · existing AKS · Key Vault · Blob</p></div>
+        <div class="card"><h3>GCP</h3><p>Identity Platform · existing GKE · GCS</p></div>
         <div class="card"><h3>DEPA-inspired</h3><p>Use-bound sharing, not a data lake</p></div>
       </div>
     </section>
@@ -148,7 +149,7 @@
       <p class="eyebrow">Agenda</p>
       <h2>What we will walk</h2>
       <ul>
-        <li>Why Azure + CAN · DEPA inspiration</li>
+        <li>Why Azure and GCP + CAN · DEPA inspiration</li>
         <li>Control plane map (research / pilot)</li>
         <li>E2E tour — registration through prediction</li>
         <li>DEK/MEK escrow · TEE attest-then-decrypt</li>
@@ -214,13 +215,27 @@ Front Door / WAF  →  APIM  →  CAN on AKS
     </section>
 
     <section class="slide">
+      <p class="eyebrow">Azure and GCP</p>
+      <h2>Name the cluster you already run</h2>
+      <table>
+        <tr><th></th><th>Azure</th><th>GCP</th></tr>
+        <tr><td>Job</td><td><code>azure-ccr</code> on existing AKS</td><td><code>gcp-ccr</code> on existing GKE</td></tr>
+        <tr><td>Contract</td><td>Subscription, resource group, AKS name, namespace, region, storage account, Key Vault URI</td><td>Project, location, GKE name, namespace, GCS bucket</td></tr>
+        <tr><td>Kubeconfig</td><td colspan="2">TSP dashboard Cloud Provider card, or <code>AZURE_CCR_KUBECONFIG</code> / <code>GCP_CCR_KUBECONFIG</code>. Not stored on the contract.</td></tr>
+        <tr><td>Missing path</td><td colspan="2">Job is FAILED. No subscription, project, or cluster is created.</td></tr>
+        <tr><td>Quote</td><td colspan="2">Simulated until a verified SEV-SNP report is stored. A Confidential Space quote is still design.</td></tr>
+      </table>
+      <p class="note">Product tour #ccr: 02 Azure contract, 03 GCP contract, 04 Azure TSP card, 05 GCP TSP card.</p>
+    </section>
+
+    <section class="slide">
       <p class="eyebrow">Roles</p>
       <h2>Who does what on the tour</h2>
       <table>
         <tr><th>Role</th><th>Entra</th><th>In the demo</th></tr>
         <tr><td>TDP</td><td>TDP</td><td>Publish ciphertext · sign · release DEK</td></tr>
         <tr><td>TDC</td><td>TDC</td><td>Contract · MEK · train · deploy · predict</td></tr>
-        <tr><td>CCRP / TSP</td><td>CCRP</td><td>Azure confidential offering · attested session</td></tr>
+        <tr><td>CCRP / TSP</td><td>CCRP</td><td>Names the existing AKS or GKE cluster and the kubeconfig path on this host</td></tr>
         <tr><td>Auditor</td><td>Auditor</td><td>Merkle audit tree · contract review (read-only)</td></tr>
         <tr><td>AppAdmin</td><td>AppAdmin</td><td>Tenancy health (optional)</td></tr>
       </table>
@@ -251,7 +266,7 @@ Front Door / WAF  →  APIM  →  CAN on AKS
       <p class="eyebrow">Steps 3–4</p>
       <h2>Ricardian contract · multi-party sign</h2>
       <ul>
-        <li>Use, duration, region, confidential SKU, <strong>Key Vault kmsConfigs</strong></li>
+        <li>Use, duration, region, KMS, and the existing cluster: <strong>Azure cluster</strong> or <strong>GCP cluster</strong></li>
         <li>Notify TDP + CCRP; cryptographic sign (Key Vault–backed in the production target)</li>
         <li>No training until required signatures complete</li>
       </ul>
@@ -284,7 +299,7 @@ Front Door / WAF  →  APIM  →  CAN on AKS
       <p class="eyebrow">Steps 7–8</p>
       <h2>Train · provenance · deploy · predict</h2>
       <ul>
-        <li>Job on AKS / confidential compute (label local-docker as non-TEE if used)</li>
+        <li>Azure submits <code>azure-ccr</code> to the named AKS cluster. GCP submits <code>gcp-ccr</code> to the named GKE cluster. Local Docker is a host path, not a TEE.</li>
         <li>Open-GMASE gates <code>start_training</code> fail-closed</li>
         <li>Provenance: attested · keys released · started · completed · destroyed</li>
         <li>Register → Deploy for inference → prediction (tabular / text / vision samples)</li>
@@ -326,7 +341,7 @@ Front Door / WAF  →  APIM  →  CAN on AKS
         <tr><td>1</td><td>Entra users + roles</td></tr>
         <tr><td>2</td><td>APIM / app healthy</td></tr>
         <tr><td>3</td><td>Key Vault + Blob via workload identity</td></tr>
-        <tr><td>4</td><td>CCRP confidential offering published</td></tr>
+        <tr><td>4</td><td>TSP card names the existing AKS or GKE cluster and a kubeconfig path</td></tr>
         <tr><td>5</td><td>Sample ciphertext in catalog</td></tr>
         <tr><td>6</td><td>OPA up; gates on</td></tr>
         <tr><td>7</td><td>CompliancePulse ingest set (or explicitly off)</td></tr>
@@ -339,7 +354,8 @@ Front Door / WAF  →  APIM  →  CAN on AKS
       <h2>Scope boundaries</h2>
       <table>
         <tr><th>In scope / live</th><th>Do not imply</th></tr>
-        <tr><td>Entra is the Azure IdP</td><td>Keycloak runs in customer Azure</td></tr>
+        <tr><td>Entra is the Azure IdP. Identity Platform is the GCP IdP.</td><td>Keycloak runs in the customer cloud</td></tr>
+        <tr><td>Existing AKS and GKE are named on the contract</td><td>Start creates a subscription, project, or cluster</td></tr>
         <tr><td>Local Docker covers UX</td><td>Local Docker is a hardware TEE</td></tr>
         <tr><td>Dual-key escrow is the design</td><td>SaaS holds DEK/MEK plaintext</td></tr>
         <tr><td>OPA gates side effects</td><td>Prompts are the control plane</td></tr>

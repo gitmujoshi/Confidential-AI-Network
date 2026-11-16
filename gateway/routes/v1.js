@@ -6,6 +6,7 @@
 const express = require('express');
 const router = express.Router();
 const { canRequest, forwardError, CAN_BASE } = require('../lib/canClient');
+const crypto = require('crypto');
 const {
   dcatToCanDataset,
   canDatasetToCatalog,
@@ -16,6 +17,7 @@ const {
   themeToCanQuery,
   PROVIDER_TYPE_TO_PARTY,
 } = require('../lib/depaMap');
+const { verifyOrganizationVc } = require('../../backend/services/organizationVc');
 
 function requireBearer(req, res, next) {
   if (!req.headers.authorization) {
@@ -53,6 +55,7 @@ router.get('/', (_req, res) => {
       '/v1/ccr/provision',
       '/v1/ccr/{id}',
       '/v1/ccr/{id}/attestation',
+      '/v1/aichain/provenance/{id}/tombstone',
       '/v1/ccr/{id}/teardown',
       '/v1/aichain/contracts/{id}',
     ],
@@ -106,12 +109,43 @@ router.get('/providers', requireBearer, async (req, res) => {
   }
 });
 
-router.post('/providers', requireBearer, (_req, res) => {
-  return res.status(501).json({
-    success: false,
-    error: 'Organization VC onboarding is orchestrator-scoped. CAN uses Keycloak /register.',
-    canPath: '/register',
-  });
+router.post('/providers', requireBearer, async (req, res) => {
+  try {
+    const token = req.body?.verifiableCredential || req.body?.vc;
+    const verified = verifyOrganizationVc(token);
+    if (!verified.ok) {
+      return res.status(400).json({ success: false, error: verified.error, code: verified.code });
+    }
+    const initialPassword = crypto.randomBytes(18).toString('base64url');
+    const canRes = await canRequest(req, {
+      method: 'POST',
+      path: '/api/auth/register',
+      data: {
+        name: verified.subject.name,
+        email: verified.subject.email,
+        password: initialPassword,
+        partyType: verified.subject.partyType,
+        organization: verified.subject.organization,
+        userType: 'Enterprise',
+      },
+    });
+    if (canRes.status >= 400) return forwardError(res, canRes);
+    return res.status(201).json({
+      success: true,
+      issuer: verified.issuer,
+      provider: {
+        providerType: req.body?.providerType || verified.subject.partyType,
+        name: verified.subject.name,
+        email: verified.subject.email,
+        organization: verified.subject.organization,
+        partyType: verified.subject.partyType,
+      },
+      initialPassword,
+      registration: canRes.data,
+    });
+  } catch (error) {
+    return res.status(error.statusCode || 500).json({ success: false, error: error.message });
+  }
 });
 
 router.post('/catalog/ingestion', requireBearer, async (req, res) => {
@@ -313,6 +347,16 @@ router.post('/ccr/provision', requireBearer, async (req, res) => {
   });
 });
 
+router.post('/ccr/:ccrInstanceId/attestation', requireBearer, async (req, res) => {
+  const canRes = await canRequest(req, {
+    method: 'POST',
+    path: `/api/tdc/training/jobs/${encodeURIComponent(req.params.ccrInstanceId)}/sev-snp-quote`,
+    data: req.body || {},
+  });
+  if (canRes.status >= 400) return forwardError(res, canRes);
+  return res.status(201).json(canRes.data);
+});
+
 router.get('/ccr/:ccrInstanceId/attestation', requireBearer, async (req, res) => {
   const canRes = await canRequest(req, {
     method: 'GET',
@@ -320,15 +364,32 @@ router.get('/ccr/:ccrInstanceId/attestation', requireBearer, async (req, res) =>
   });
   if (canRes.status >= 400) return forwardError(res, canRes);
   const job = canRes.data?.job || canRes.data;
+  const quote = job?.metadata?.sevSnp;
+  if (quote?.verified === true && quote?.mode === 'sev-snp') {
+    return res.json({
+      success: true,
+      ccrInstanceId: req.params.ccrInstanceId,
+      teePlatform: 'sev-snp',
+      attestation: {
+        mode: 'sev-snp',
+        verified: true,
+        measurement: quote.measurement,
+        reportData: quote.reportData,
+        verifiedAt: quote.verifiedAt,
+      },
+      job,
+    });
+  }
   return res.json({
     success: true,
     ccrInstanceId: req.params.ccrInstanceId,
     teePlatform: job?.metadata?.executionMode || 'local-simulated',
     attestation: {
       mode: 'simulated',
+      verified: false,
       jobStatus: job?.status,
       containerDigest: job?.metadata?.containerSpec?.image || null,
-      note: 'CAN local/sim CCR — not a hardware SEV-SNP quote',
+      note: 'No verified SEV-SNP quote is stored for this job. Submit the guest report with POST /v1/ccr/{id}/attestation.',
     },
     job,
   });
@@ -384,11 +445,17 @@ router.post('/aichain/merkle/publish', requireBearer, async (req, res) => {
   });
 });
 
-router.post('/aichain/provenance/:provenanceId/tombstone', requireBearer, (_req, res) => {
-  return res.status(501).json({
-    success: false,
-    error: 'PII tombstoning is orchestrator/SRO-scoped and not implemented on the CAN façade',
+router.post('/aichain/provenance/:provenanceId/tombstone', requireBearer, async (req, res) => {
+  const canRes = await canRequest(req, {
+    method: 'POST',
+    path: `/api/auditor/provenance/${encodeURIComponent(req.params.provenanceId)}/tombstone`,
+    data: {
+      reason: req.body?.reason,
+      redactedFields: req.body?.redactedFields,
+    },
   });
+  if (canRes.status >= 400) return forwardError(res, canRes);
+  return res.status(canRes.status).json(canRes.data);
 });
 
 module.exports = router;

@@ -9,6 +9,7 @@ const { authenticateToken } = require('../middleware/auth');
 const TdcTrainingExecutionService = require('../services/tdcTrainingExecutionService');
 const fs = require('fs');
 const db = require('../models');
+const { verifySevSnpQuote } = require('../services/sevSnpQuote');
 
 const service = new TdcTrainingExecutionService();
 
@@ -327,5 +328,31 @@ router.get(
     }
   }
 );
+
+router.post('/jobs/:jobId/sev-snp-quote', authenticateToken, async (req, res) => {
+  try {
+    const party = req.user?.localUser?.partyType;
+    if (!['TDC', 'TSP', 'AppAdmin'].includes(party)) {
+      return res.status(403).json({ success: false, error: 'TDC, TSP, or AppAdmin role required' });
+    }
+    const row = await db.TrainingJob.findOne({ where: { jobId: req.params.jobId } });
+    if (!row) {
+      return res.status(404).json({ success: false, error: 'Training job not found' });
+    }
+    const result = verifySevSnpQuote(req.body || {});
+    if (!result.ok) {
+      return res.status(400).json({ success: false, error: result.error, code: result.code });
+    }
+    const metadata = { ...(row.metadata || {}), sevSnp: result.quote };
+    await row.update({ metadata });
+    return res.json({
+      success: true,
+      ccrInstanceId: req.params.jobId,
+      attestation: { mode: 'sev-snp', verified: true, quote: result.quote },
+    });
+  } catch (err) {
+    return handleError(res, err);
+  }
+});
 
 module.exports = router;

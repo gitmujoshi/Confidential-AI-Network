@@ -47,6 +47,18 @@ Platform and security teams need **defense in depth** (WAF, API gateway, private
 
 **Outcome:** CAN fits existing SOC workflows — alerts, investigations, retention — not a siloed training tool.
 
+### DEPA `/v1` clients
+
+The portal keeps using CAN `/api` on port 5001. PRD clients use the gateway on port 8000. That gateway is a translation layer, not a separate orchestrator.
+
+Three checks sit on that surface:
+
+- **Organization onboarding** verifies a compact JWT credential against `DEPA_VC_ISSUER_PEM` and `DEPA_VC_TRUSTED_ISSUERS`, then registers the organization.
+- **SEV-SNP attestation** stores a quote only when the guest report matches the VCEK and that VCEK chains to `SEV_SNP_ARK_PEM`. Otherwise the job stays simulated.
+- **PII tombstone** appends an audit row for an Auditor or AppAdmin. The provenance leaf stays. This is not a filing with an external SRO.
+
+Details: [gateway/README.md](gateway/README.md).
+
 ### Who uses CAN
 
 | Role | What they do | Start here |
@@ -67,7 +79,7 @@ flowchart LR
   TDP["TDP publishes dataset"]
   TDC["TDC creates contract"]
   Sign["Parties sign"]
-  CCRP["CCRP provisions environment"]
+  CCRP["TSP names existing cluster"]
   Train["Training job runs"]
   Audit["Ledger + audit trail"]
 
@@ -126,6 +138,7 @@ Full index: **[docs/README.md](docs/README.md)**
 | SCITT CCF integration | [SCITT CCF README](docs/features/scitt/SCITT_CCF_INTEGRATION_README.md) |
 | Contract signing | [Contract signing index](docs/features/contract-signing/CONTRACT_SIGNING_INDEX.md) |
 | API reference | [API_REFERENCE.md](docs/api/API_REFERENCE.md) |
+| DEPA `/v1` façade | [gateway/README.md](gateway/README.md) · [DEPA_V1_FACADE.md](docs/api/DEPA_V1_FACADE.md) |
 | Developer workflow | [DEVELOPER_GUIDE.md](docs/DEVELOPER_GUIDE.md) |
 
 ### Training and integrations

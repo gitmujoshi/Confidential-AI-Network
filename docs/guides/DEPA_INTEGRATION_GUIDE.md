@@ -6,6 +6,16 @@
 
 Separately, India’s **Digital Personal Data Protection (DPDP) Act** and other regimes may require clear identification and auditability of parties and processing. The Contract Management System assigns **DEPA IDs** (DEPA-aligned entity identifiers) to users, datasets, contracts, and models so every use of data has a stable, auditable reference.
 
+## `/v1` façade
+
+PRD clients call the gateway at `http://localhost:8000/v1`. The portal stays on CAN `/api`. The route table is [gateway/README.md](../../gateway/README.md) and [DEPA_V1_FACADE.md](../api/DEPA_V1_FACADE.md).
+
+| Piece | What is checked |
+|-------|-----------------|
+| Organization credential | `POST /v1/providers` accepts a compact JWT. The signature must match `DEPA_VC_ISSUER_PEM`, and `iss` must be in `DEPA_VC_TRUSTED_ISSUERS`. The subject needs `name`, `email`, and `partyType` (`DataProvider`, `DataConsumer`, or `InfrastructureProvider`). A valid credential registers the organization and returns a one-time password. |
+| SEV-SNP quote | `POST /v1/ccr/{id}/attestation` sends `report` (base64, 1184 bytes), `vcekPem`, and `askPem`. The report is stored only when its signature matches the VCEK and the VCEK chains to `SEV_SNP_ARK_PEM`. `GET` returns `mode: sev-snp` for that job and `simulated` otherwise. |
+| PII tombstone | `POST /v1/aichain/provenance/{id}/tombstone` with `{ reason, redactedFields }` writes one audit row. An Auditor or AppAdmin calls it. The provenance leaf stays. A second call returns the first record. This is a local record, not a filing with an external SRO. |
+
 ---
 
 ## 🆔 **DEPA ID System**

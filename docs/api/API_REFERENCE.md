@@ -2,6 +2,8 @@
 
 Complete API documentation for the Contract Management System. This reference consolidates all API-related documentation.
 
+PRD clients use the gateway at `http://localhost:8000/v1`. That surface covers organization credentials, a verified SEV-SNP quote, and an append-only provenance tombstone. See [DEPA_V1_FACADE.md](DEPA_V1_FACADE.md). The portal uses the `/api` routes below.
+
 ## 📋 Table of Contents
 
 1. [Authentication](#authentication)

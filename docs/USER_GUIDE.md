@@ -133,7 +133,7 @@ The kubeconfig path is a file on the TSP host. The contract stores the cluster n
 2. Open **Training** and click **Start training** on that contract.
 3. A Local TSP runs here. Azure and GCP submit a job to the named cluster. The job detail shows `azure-ccr` or `gcp-ccr`.
 4. If the kubeconfig path is missing, the start fails and the job is **FAILED**. No cluster is created.
-5. Cloud job attestation is marked **simulated** until a hardware quote is attached.
+5. Cloud job attestation is marked **simulated** until a verified SEV-SNP quote is stored. A TDC, TSP, or AppAdmin submits the guest report, VCEK, and ASK to `POST /api/tdc/training/jobs/{jobId}/sev-snp-quote`. The API host must have `SEV_SNP_ARK_PEM` set. The gateway path is `POST /v1/ccr/{jobId}/attestation`.
 6. With the training policy gate enabled, the start is refused when the policy engine is unreachable. That refusal happens before any cluster submit.
 
 ### **Digital Signing**

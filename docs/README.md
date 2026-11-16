@@ -37,6 +37,7 @@
 |-------|-----|
 | Glossary | [GLOSSARY.md](GLOSSARY.md) |
 | APIs | [api/API_REFERENCE.md](api/API_REFERENCE.md) · [api/COMPLETE_API_SPECIFICATIONS.md](api/COMPLETE_API_SPECIFICATIONS.md) |
+| DEPA `/v1` façade | [api/DEPA_V1_FACADE.md](api/DEPA_V1_FACADE.md) · [gateway/README.md](../gateway/README.md) |
 | Contract signing (tech) | [features/contract-signing/CONTRACT_SIGNING_TECHNICAL_REFERENCE.md](features/contract-signing/CONTRACT_SIGNING_TECHNICAL_REFERENCE.md) |
 | Data model | [architecture/DATA_MODEL_REFERENCE.md](architecture/DATA_MODEL_REFERENCE.md) |
 | Scripts | [operational/QUICK_SCRIPT_REFERENCE.md](operational/QUICK_SCRIPT_REFERENCE.md) |

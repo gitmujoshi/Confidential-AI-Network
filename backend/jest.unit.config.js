@@ -13,6 +13,7 @@ module.exports = {
     '<rootDir>/tests/unit/contract-lifecycle.test.js',
     '<rootDir>/tests/unit/dataset-ingest-gate.test.js',
     '<rootDir>/tests/unit/training-execution-router.test.js',
+    '<rootDir>/tests/unit/depa-prd-pieces.test.js',
     '<rootDir>/tests/unit/siem-integration.test.js',
     '<rootDir>/tests/unit/huggingface-integration.test.js',
     '<rootDir>/tests/unit/huggingface-routes.test.js',
