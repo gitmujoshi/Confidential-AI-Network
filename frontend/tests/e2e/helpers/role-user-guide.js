@@ -13,7 +13,7 @@ const ROLE_META = {
     title: 'TDC User Guide — Training Data Consumer',
     shortName: 'TDC',
     summary:
-      'As a Training Data Consumer you browse datasets, create Ricardian contracts, wait for TDP+TSP signatures, run local-docker (or CAN) training, and review outputs. Your **party signing key** is created at registration (algorithm choice on `/register`).',
+      'As a Training Data Consumer you browse datasets, create Ricardian contracts, wait for TDP+TSP signatures, and start training. A Local TSP runs on this machine. An Azure or GCP TSP submits to that TSP’s existing cluster. Your **party signing key** is created at registration (algorithm choice on `/register`).',
   },
   TDP: {
     file: 'TDP_USER_GUIDE.md',
@@ -27,7 +27,7 @@ const ROLE_META = {
     title: 'TSP / CCRP User Guide — Tech Service Provider',
     shortName: 'TSP',
     summary:
-      'As a Tech Service Provider (also called CCRP in older docs) you host confidential training environments, manage cloud credentials, and **co-sign** contracts with the party signing key from registration.',
+      'As a Tech Service Provider (also called CCRP in older docs) you host confidential training on a Local machine or on your existing Azure or GCP cluster. Save the cluster and kubeconfig path on the dashboard **Cloud Provider** card, and **co-sign** contracts with the party signing key from registration.',
   },
   AppAdmin: {
     file: 'APPADMIN_USER_GUIDE.md',

@@ -23,7 +23,6 @@ test.describe('Multi-model user guide (screenshot tour)', () => {
 
   test.beforeEach(async ({ page }, testInfo) => {
     test.skip(testInfo.project.name !== 'chromium', 'Multi-model guide captured on Desktop Chromium only');
-    await page.setViewportSize({ width: 1440, height: 900 });
   });
 
   test('Contract + train each catalog model type', async ({ page }) => {

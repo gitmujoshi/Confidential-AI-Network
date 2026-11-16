@@ -60,6 +60,7 @@ Move from **catalog-only dataset rows** to **real files on disk** that the **loc
   or **two-step**: existing `POST /api/datasets` (JSON) then upload.
 
 - Validate size/type; persist files; update `Dataset` columns.
+- **Ingest gate:** reject pickle/joblib/`.pt`/`.pth` and pickle magic bytes (`backend/services/datasetIngestGate.js`). Allowed: csv, parquet, json/jsonl, images, npy/npz, zip.
 
 ### 4.3 Job staging (recommended)
 

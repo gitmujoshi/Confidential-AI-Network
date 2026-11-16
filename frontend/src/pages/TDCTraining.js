@@ -41,6 +41,7 @@ export default function TDCTraining() {
   const [contracts, setContracts] = useState([]);
   const [jobsByContract, setJobsByContract] = useState({});
   const [startingId, setStartingId] = useState(null);
+  const [abortingId, setAbortingId] = useState(null);
   const [pollJobId, setPollJobId] = useState(null);
   const [liveJob, setLiveJob] = useState(null);
   const [jobLogs, setJobLogs] = useState('');
@@ -313,6 +314,26 @@ export default function TDCTraining() {
     }
   };
 
+  const handleAbort = async (jobId, contractId) => {
+    if (!window.confirm('Abort this training job? The contract stays signed unless you revoke or terminate it.')) {
+      return;
+    }
+    setAbortingId(jobId);
+    try {
+      await apiService.abortTdcTrainingJob(jobId, { reason: 'Aborted from training portal' });
+      toast.success('Training job aborted');
+      if (contractId) await loadJobsForContract(contractId);
+      if (liveJob?.jobId === jobId) {
+        const data = await apiService.getTdcTrainingJob(jobId);
+        setLiveJob(data.job);
+      }
+    } catch (e) {
+      toast.error(e.response?.data?.error || e.message || 'Failed to abort job');
+    } finally {
+      setAbortingId(null);
+    }
+  };
+
   const handleStart = async (contractId) => {
     setStartingId(contractId);
     try {
@@ -450,6 +471,17 @@ export default function TDCTraining() {
                             <Button size="small" onClick={() => handleViewJob(j.jobId)}>
                               View details
                             </Button>
+                            {!TERMINAL.has(j.status) && (
+                              <Button
+                                size="small"
+                                color="error"
+                                variant="outlined"
+                                disabled={abortingId === j.jobId}
+                                onClick={() => handleAbort(j.jobId, cid)}
+                              >
+                                {abortingId === j.jobId ? 'Aborting…' : 'Abort'}
+                              </Button>
+                            )}
                             <Button
                               size="small"
                               variant="outlined"

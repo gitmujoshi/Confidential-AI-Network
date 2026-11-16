@@ -6,6 +6,11 @@ const db = require('../models');
 const { writeLocalScittClaim } = require('./provenanceClaimWriter');
 const { buildTrainingModelProvenance } = require('./tdcTrainingHelpers');
 const { buildJobTrainingProvenanceBundle } = require('./provenanceAuditReportService');
+const {
+  registerTrainingProcess,
+  unregisterTrainingProcess,
+} = require('./trainingProcessRegistry');
+const { isActiveTrainingStatus } = require('./trainingAbortService');
 
 function repoRoot() {
   return path.resolve(__dirname, '..', '..');
@@ -119,18 +124,37 @@ async function runLocalMlxTraining({ jobId, contractId, containerSpec, trainingP
     env,
     cwd: path.dirname(trainerScript),
   });
+  registerTrainingProcess(jobId, { kind: 'process', child });
 
   const logStream = fs.createWriteStream(logFile, { flags: 'a' });
   child.stdout.pipe(logStream);
   child.stderr.pipe(logStream);
 
   child.on('spawn', async () => {
+    const current = await db.TrainingJob.findOne({ where: { jobId } });
+    if (!current || !isActiveTrainingStatus(current.status)) {
+      try {
+        child.kill('SIGTERM');
+      } catch (_) {
+        // ignore
+      }
+      return;
+    }
     const metaPatch = {
       progress: 10,
       phases: [{ name: 'PROVISIONING', at: new Date().toISOString() }],
       executionMode,
       containerSpec,
-      local: { runDir, outDir, inputsDir, contractJsonPath, logFile, pythonBin, trainerScript },
+      local: {
+        runDir,
+        outDir,
+        inputsDir,
+        contractJsonPath,
+        logFile,
+        pythonBin,
+        trainerScript,
+        pid: child.pid || null,
+      },
     };
 
     await updateJob(jobId, { status: 'PROVISIONING', metadata: metaPatch });
@@ -149,7 +173,11 @@ async function runLocalMlxTraining({ jobId, contractId, containerSpec, trainingP
   });
 
   child.on('close', async (code) => {
+    unregisterTrainingProcess(jobId);
     try {
+      const current = await db.TrainingJob.findOne({ where: { jobId } });
+      if (!current || !isActiveTrainingStatus(current.status)) return;
+
       const metricsPath = path.join(outDir, 'metrics.json');
       const metrics = safeReadJson(metricsPath) || {};
 

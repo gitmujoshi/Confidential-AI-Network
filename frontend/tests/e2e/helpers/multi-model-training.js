@@ -267,13 +267,23 @@ async function assertLocalTrainingReady() {
       process.env.COMPLIANCEPULSE_INGEST_URL ||
       'http://localhost:3001'
     ).replace(/\/$/, '');
-    const cp = await axios.get(`${cpUrl}/health`, {
-      timeout: 5000,
-      validateStatus: () => true,
-    });
-    if (cp.status !== 200) {
+    let cp;
+    try {
+      cp = await axios.get(`${cpUrl}/health`, {
+        timeout: 5000,
+        validateStatus: () => true,
+      });
+    } catch (err) {
+      // CAN forwards ingest best-effort and warns when CP is down. The guide still trains.
+      console.warn(
+        `CompliancePulse not reachable at ${cpUrl} (${err.message}). ` +
+          'Training screenshots continue; ingest events are skipped until CP is up.'
+      );
+      cp = null;
+    }
+    if (cp && cp.status !== 200) {
       throw new Error(
-        `CompliancePulse ingest required by default (${cpUrl}). ` +
+        `CompliancePulse ingest is up but unhealthy (${cpUrl} status ${cp.status}). ` +
           'Start CP backend, or set COMPLIANCEPULSE_INGEST_URL=false on CAN to skip.'
       );
     }

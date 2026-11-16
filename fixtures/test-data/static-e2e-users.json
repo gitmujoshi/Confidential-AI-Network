@@ -32,6 +32,40 @@
       "description": "OCI infrastructure provider: confidential-vm on OKE, OCI Vault (OCI_VAULT) for KMS/secrets, Object Storage ciphertext, SPIFFE/WIF for training Jobs. Not Local Docker."
     },
     {
+      "name": "Azure CCR E2E",
+      "email": "tsp.azure.e2e@test.com",
+      "partyType": "TSP",
+      "role": "TSP",
+      "organization": "CAN Azure Clean Room",
+      "cloudProviders": ["Azure"],
+      "description": "Demo Azure TSP. Names an existing AKS cluster. Does not create a subscription, and has no kubeconfig, so a training start fails closed.",
+      "cloudAccount": {
+        "subscriptionId": "00000000-0000-4000-8000-0000000000a2",
+        "resourceGroup": "can-e2e-training",
+        "clusterName": "can-e2e-aks",
+        "namespace": "contract-management",
+        "location": "eastus",
+        "storageAccount": "cane2edatasets",
+        "keyVaultUri": "https://can-e2e-kv.vault.azure.net/"
+      }
+    },
+    {
+      "name": "GCP CCR E2E",
+      "email": "tsp.gcp.e2e@test.com",
+      "partyType": "TSP",
+      "role": "TSP",
+      "organization": "CAN GCP Clean Room",
+      "cloudProviders": ["GCP"],
+      "description": "Demo GCP TSP. Names an existing GKE cluster and bucket. Has no kubeconfig, so a training start fails closed.",
+      "cloudAccount": {
+        "projectId": "can-e2e-gcp",
+        "location": "us-central1",
+        "clusterName": "can-e2e-gke",
+        "namespace": "contract-management",
+        "bucket": "can-e2e-datasets"
+      }
+    },
+    {
       "name": "AppAdmin E2E User",
       "email": "appadmin.e2e@test.com",
       "partyType": "AppAdmin",

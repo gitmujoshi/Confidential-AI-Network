@@ -3,7 +3,8 @@ const jwt = require('jsonwebtoken');
 const { User, Contract, Signature, SigningEvent, UserKey, EnterpriseKey, SigningRequest } = require('../models');
 const keyManagementService = require('./keyManagementService');
 const scittCcfService = require('./scittCcfService');
-const auditService = require('./auditService');
+const AuditService = require('./auditService');
+const auditService = new AuditService();
 class ContractSigningService {
   constructor() {
     this.loadConfiguration();

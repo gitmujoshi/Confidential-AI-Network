@@ -267,9 +267,37 @@ variable "storage_public_network_access" {
 }
 
 variable "enable_private_endpoints" {
-  description = "Create private endpoints for Key Vault and Storage (needs DNS setup)"
+  description = "Private endpoints plus private DNS zones for Key Vault and Blob"
   type        = bool
   default     = false
+}
+
+variable "enable_confidential_compute" {
+  description = "Add an AMD SEV-SNP (DCasv5) user node pool for CCR jobs. Does not collect a hardware quote."
+  type        = bool
+  default     = false
+}
+
+variable "confidential_vm_size" {
+  description = "Confidential VM SKU. Confirm availability in the region (Standard_DC4as_v5 is SEV-SNP)."
+  type        = string
+  default     = "Standard_DC4as_v5"
+}
+
+variable "confidential_node_count" {
+  type    = number
+  default = 1
+}
+
+variable "confidential_node_pool_name" {
+  description = "AKS node pool name: 1-12 lowercase letters or numbers"
+  type        = string
+  default     = "ccnpool"
+
+  validation {
+    condition     = can(regex("^[a-z][a-z0-9]{0,11}$", var.confidential_node_pool_name))
+    error_message = "confidential_node_pool_name must be 1-12 characters, start with a letter, and use only lowercase letters and numbers."
+  }
 }
 
 variable "enable_workload_identity" {

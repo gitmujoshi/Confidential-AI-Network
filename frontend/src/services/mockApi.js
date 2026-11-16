@@ -461,6 +461,16 @@ export const mockApiService = {
     console.log('🔧 [Mock API] Cancel Contract:', contractId, data);
     return { data: { success: true } };
   },
+  revokeContract: async (contractId, data) => {
+    await delay();
+    console.log('🔧 [Mock API] Revoke Contract:', contractId, data);
+    return { data: { success: true, action: 'revoke', status: 'REVOKED' } };
+  },
+  terminateContract: async (contractId, data) => {
+    await delay();
+    console.log('🔧 [Mock API] Terminate Contract:', contractId, data);
+    return { data: { success: true, action: 'terminate', status: 'TERMINATED' } };
+  },
 
   // Users
   getUsers: async () => {

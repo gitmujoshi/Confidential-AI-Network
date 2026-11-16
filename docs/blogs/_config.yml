@@ -3,6 +3,8 @@
 
 title: Confidential AI Network
 description: Contract-governed, confidential AI training — vision, architecture, and security notes for multi-party collaboration without giving up data control.
+# Portal landing page (React app at /).
+app_url: "https://can.dpi-apps.space/"
 # CI overrides baseurl via `jekyll build --baseurl` (see pages-blogs.yml).
 # For local `jekyll serve` against a project Pages path, use:
 #   bundle exec jekyll serve --baseurl /Confidential-AI-Network

@@ -317,6 +317,14 @@ const realApiService = {
     const response = await api.post(`/api/contracts/${contractId}/cancel`, data);
     return response.data;
   },
+  revokeContract: async (contractId, data) => {
+    const response = await api.post(`/api/contracts/${contractId}/revoke`, data);
+    return response.data;
+  },
+  terminateContract: async (contractId, data) => {
+    const response = await api.post(`/api/contracts/${contractId}/terminate`, data);
+    return response.data;
+  },
 
   /** TDC: dataset artifact readiness for local-docker physical training */
   getTdcTrainingReadiness: async (contractId) => {
@@ -329,6 +337,13 @@ const realApiService = {
   startTdcTraining: async (contractId) => {
     const response = await api.post(
       `/api/tdc/training/contracts/${encodeURIComponent(contractId)}/start`
+    );
+    return response.data;
+  },
+  abortTdcTrainingJob: async (jobId, data = {}) => {
+    const response = await api.post(
+      `/api/tdc/training/jobs/${encodeURIComponent(jobId)}/abort`,
+      data
     );
     return response.data;
   },
@@ -822,6 +837,9 @@ const mockApiService = {
   selectTSP: () => { throw new Error('Mock API: selectTSP() not implemented for registration testing'); },
   completeContract: () => { throw new Error('Mock API: completeContract() not implemented for registration testing'); },
   cancelContract: () => { throw new Error('Mock API: cancelContract() not implemented for registration testing'); },
+  revokeContract: () => { throw new Error('Mock API: revokeContract() not implemented for registration testing'); },
+  terminateContract: () => { throw new Error('Mock API: terminateContract() not implemented for registration testing'); },
+  abortTdcTrainingJob: () => { throw new Error('Mock API: abortTdcTrainingJob() not implemented for registration testing'); },
   getTdcTrainingReadiness: () => {
     throw new Error('Mock API: getTdcTrainingReadiness() not implemented for registration testing');
   },

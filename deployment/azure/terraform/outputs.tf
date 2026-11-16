@@ -115,6 +115,14 @@ output "spiffe_trust_domain" {
   value = module.spire.trust_domain
 }
 
+output "confidential_node_pool" {
+  value = var.enable_confidential_compute ? module.confidential_compute.node_pool_name : ""
+}
+
+output "confidential_vm_size" {
+  value = var.enable_confidential_compute ? module.confidential_compute.vm_size : ""
+}
+
 output "next_steps" {
   value = [
     "1. az aks get-credentials --resource-group ${module.networking.resource_group_name} --name ${module.aks.cluster_name}",
@@ -126,8 +134,10 @@ output "next_steps" {
     "7. Sign in via Entra SSO (SPA client ${local.effective_entra_client_id})",
     "8. Key Vault: ${coalesce(module.key_vault.key_vault_uri, "(disabled)")}",
     "9. Blob account: ${coalesce(module.storage.storage_account_name, "(disabled)")}",
-    "10. Optional SPIRE: enable_spire=true then helm -f deployment/azure/helm/spire/values.yaml",
-    "11. Optional Front Door: enable_edge=true",
-    "12. See docs/production/AZURE_SECURITY_ARCHITECTURE.md and docs/deployment/AZURE_SPIFFE_SPIRE_WIF.md"
+    "10. Optional private endpoints: enable_private_endpoints=true (creates vault and blob private DNS)",
+    "11. Optional confidential pool: enable_confidential_compute=true (DCasv5 nodes; quote is not collected)",
+    "12. Optional SPIRE: enable_spire=true then helm -f deployment/azure/helm/spire/values.yaml",
+    "13. Optional Front Door: enable_edge=true",
+    "14. See docs/production/AZURE_SECURITY_ARCHITECTURE.md and docs/deployment/AZURE_SPIFFE_SPIRE_WIF.md"
   ]
 }

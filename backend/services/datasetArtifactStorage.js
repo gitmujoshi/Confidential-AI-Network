@@ -7,6 +7,7 @@ const path = require('path');
 const fs = require('fs').promises;
 const fsSync = require('fs');
 const { unlink } = require('fs').promises;
+const { assertAllowedIngestFiles } = require('./datasetIngestGate');
 
 const MAX_TOTAL_UPLOAD_BYTES = Number(process.env.DATASET_ARTIFACT_MAX_BYTES || 512 * 1024 * 1024);
 
@@ -43,6 +44,13 @@ async function persistUploadedFiles(datasetIdStr, multerFiles, options = {}) {
   if (totalIncoming > MAX_TOTAL_UPLOAD_BYTES) {
     await Promise.all(multerFiles.map((f) => unlink(f.path).catch(() => {})));
     throw new Error(`Total upload exceeds limit (${MAX_TOTAL_UPLOAD_BYTES} bytes)`);
+  }
+
+  try {
+    assertAllowedIngestFiles(multerFiles);
+  } catch (err) {
+    await Promise.all(multerFiles.map((f) => unlink(f.path).catch(() => {})));
+    throw err;
   }
 
   const dir = artifactDirForDatasetId(datasetIdStr);

@@ -1,6 +1,6 @@
 # Contract Management System — User Guide
 
-Last updated: 2026-04-30
+Last updated: 2026-11-15
 
 ## 🎯 Getting Started
 
@@ -61,9 +61,9 @@ This guide helps you use the Contract Management System effectively. The system 
 
 ### **TDC (Training Data Consumer)**
 - **Browse datasets**: Datasets → Catalog → filter/search → open dataset detail
-- **Create a contract**: Contracts → Create → choose template → pick datasets → select CCRP → submit
+- **Create a contract**: Contracts → Create → choose template → pick datasets → select the TSP → name the Azure or GCP cluster when that TSP is selected → submit
 - **Sign contract** (if required): Contracts → Pending Signatures → Sign
-- **Run training**: Training → New Job → choose contract + model + parameters → start → monitor progress
+- **Run training**: Training → **Start training** on a **SIGNED** contract. A Local TSP runs on this machine. An Azure or GCP TSP submits to that TSP’s existing cluster. See [Clean-room provider and training](#clean-room-provider-and-training).
 - **Review outputs**: Training → Job Detail → download artifacts + reports (and provenance where enabled)
 
 ### **TDP (Training Data Provider)**
@@ -73,9 +73,9 @@ This guide helps you use the Contract Management System effectively. The system 
 - **Monitor usage**: Analytics/Reports → dataset access + revenue + audit trail
 
 ### **CCRP (Confidential Clean Room Provider)**
+- **Name the cluster you already run**: Dashboard → **Cloud Provider** → edit → Local, Azure, or GCP. Azure and GCP include the cluster name and the kubeconfig path on this host.
 - **Review contracts for compliance**: Contracts → Review Queue → verify requirements (TEE, residency, policies)
-- **Provision environments**: CCRP/Infrastructure → Environments → provision + monitor
-- **Training ops**: Training/CCRP views → monitor running jobs, resource utilization, and compliance status
+- **Sign** when you can host the job. Training uses the cluster recorded on the contract and on your Cloud Provider card. It does not create a new subscription or project.
 
 ### **AppAdmin**
 - **Manage users/roles**: Admin → Users → create/update/disable → role assignment
@@ -91,6 +91,50 @@ This guide helps you use the Contract Management System effectively. The system 
 3. Add parties (TDC, TDP, CCRP)
 4. Define terms and conditions
 5. Submit for approval and signing
+
+The environment step records which TSP hosts the job. Cluster fields appear only for the provider that TSP offers. Details are in [Clean-room provider and training](#clean-room-provider-and-training).
+
+### **Clean-room provider and training**
+
+The TSP selected on the contract decides where training runs.
+
+| TSP provider | Where the job runs |
+|---|---|
+| Local | This machine. `TRAINING_EXECUTION_MODE` chooses `local-docker`, `local-native`, or `local-mlx`. |
+| Azure | That TSP’s existing AKS cluster |
+| GCP | That TSP’s existing GKE cluster |
+| OCI | That TSP’s existing OKE cluster |
+| AWS | Training is not started |
+
+#### TSP: save the cluster on your dashboard
+
+1. Sign in as the TSP and open the dashboard.
+2. On the **Cloud Provider** card, click edit and choose one provider.
+3. For **Azure**, enter Subscription ID, Resource group, AKS cluster name, Namespace, Region, Storage account, Key Vault URI, and Kubeconfig path.
+4. For **GCP**, enter Project ID, Location, GKE cluster name, Namespace, GCS bucket, and Kubeconfig path.
+5. Save. Local and OCI keep the provider selection. Those two do not ask for an AKS or GKE cluster on this card.
+
+The kubeconfig path is a file on the TSP host. The contract stores the cluster name and account identifiers. Azure needs a subscription, resource group, and AKS name. GCP needs a project, location, and GKE name. A blank contract field is filled from this saved account.
+
+#### TDC: what the contract asks for
+
+1. Choose a template, then set price, duration, terms, and privacy (epsilon, minimum accuracy, and technique when you use differential privacy or federated learning).
+2. Select **1–3 datasets**. An AI model is optional on the form. Starting training still requires a model on the contract.
+3. On **Configure Environment & TSP**, filter **Cloud Provider** and select the TSP. That choice sets the provider for the job.
+4. Enter environment size: Environment Type, Instance Type, CPU, Memory, Storage, GPU, and notes.
+5. Enter KMS: provider, key id, algorithm, and rotation. An OCI TSP also asks for the vault OCID and region.
+6. When the TSP is **Azure**, fill **Azure cluster**: Subscription ID, Resource group, AKS cluster name, Namespace, Region, Storage account, and Key Vault URI.
+7. When the TSP is **GCP**, fill **GCP cluster**: Project ID, Location, GKE cluster name, Namespace, and GCS bucket.
+8. A **Local** TSP hides both cluster sections.
+
+#### Start training
+
+1. The dataset owner (TDP) signs, then the TSP signs. The contract status becomes **SIGNED**.
+2. Open **Training** and click **Start training** on that contract.
+3. A Local TSP runs here. Azure and GCP submit a job to the named cluster. The job detail shows `azure-ccr` or `gcp-ccr`.
+4. If the kubeconfig path is missing, the start fails and the job is **FAILED**. No cluster is created.
+5. Cloud job attestation is marked **simulated** until a hardware quote is attached.
+6. With the training policy gate enabled, the start is refused when the policy engine is unreachable. That refusal happens before any cluster submit.
 
 ### **Digital Signing**
 1. Access contract to sign

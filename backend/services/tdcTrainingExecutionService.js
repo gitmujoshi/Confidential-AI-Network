@@ -28,18 +28,27 @@ const {
 } = require('./contractTrainingInputsService');
 const { stageDatasetsForLocalJob } = require('./datasetArtifactStaging');
 const { authorizeCanSideEffect, isTrainingGateEnabled } = require('./gmaseSideEffectGate');
+const { abortTrainingJob, isActiveTrainingStatus } = require('./trainingAbortService');
+const { resolveTrainingExecution } = require('./trainingExecutionRouter');
+const { resolveTspCloudAccount } = require('./tspCloudAccount');
+const { provisionAzureCcr } = require('./azureCcrRunner');
+const { provisionGcpCcr } = require('./gcpCcrRunner');
 
-function validateTdcCanTrain(contract, userId) {
+function assertTdcOwnsContract(contract, userId) {
   if (!contract) {
     const err = new Error('Contract not found');
     err.statusCode = 404;
     throw err;
   }
   if (contract.tdcId !== userId) {
-    const err = new Error('Only the TDC (contract owner) can start training for this contract');
+    const err = new Error('Only the TDC (contract owner) can access training for this contract');
     err.statusCode = 403;
     throw err;
   }
+}
+
+function validateTdcCanTrain(contract, userId) {
+  assertTdcOwnsContract(contract, userId);
   if (contract.status !== 'SIGNED') {
     const err = new Error(
       `Contract must be SIGNED before training (current: ${contract.status})`
@@ -128,7 +137,13 @@ function scheduleSimulation(jobId, contract) {
       meta.phases.push({ name, at: new Date().toISOString() });
     };
 
+    const stillActive = async () => {
+      const latest = await db.TrainingJob.findOne({ where: { jobId } });
+      return latest && isActiveTrainingStatus(latest.status);
+    };
+
     try {
+      if (!(await stillActive())) return;
       pushPhase('PROVISIONING');
       await job.update({
         status: 'PROVISIONING',
@@ -136,6 +151,7 @@ function scheduleSimulation(jobId, contract) {
       });
 
       await new Promise((r) => setTimeout(r, 1200));
+      if (!(await stillActive())) return;
 
       pushPhase('RUNNING');
       await job.update({
@@ -145,6 +161,7 @@ function scheduleSimulation(jobId, contract) {
       });
 
       await new Promise((r) => setTimeout(r, 1800));
+      if (!(await stillActive())) return;
 
       const epochs = contract.trainingParams?.maxEpochs || 10;
       const trainingResults = {
@@ -205,11 +222,129 @@ function scheduleSimulation(jobId, contract) {
 }
 
 class TdcTrainingExecutionService {
+  async startCloudTraining({ contract, userId, decision, governance, withGovernance }) {
+    const account = await resolveTspCloudAccount(db, contract, decision.provider);
+    if (!account) {
+      const err = new Error(
+        `${decision.provider} TSP has no cloud account. Set environmentSpecs.cloudAccounts.${decision.provider} or the TSP user's cloudAccount. Training was not started.`
+      );
+      err.statusCode = 400;
+      throw err;
+    }
+
+    const jobId = `job-${contract.contractId}-${Date.now()}`;
+    const containerSpec = buildContainerSpec(contract);
+    const inputs = shapeInputsForLocalTrainerContainer(await expandContractTrainingInputs(contract));
+    const jobDepaId = depaIdService.generateTrainingJobDEPAId();
+    await db.TrainingJob.create({
+      jobId,
+      contractId: contract.contractId,
+      status: 'PENDING',
+      trainingConfig: contract.trainingParams,
+      environmentConfig: {
+        environmentSpecs: contract.environmentSpecs,
+        kmsConfigs: contract.kmsConfigs,
+        cloudProvider: decision.provider,
+        containerSpec,
+      },
+      datasets: contract.contractDatasets,
+      aiModels: contract.aiModelIds,
+      metadata: {
+        depaId: jobDepaId,
+        simulation: false,
+        progress: 0,
+        containerSpec,
+        phases: [{ name: 'PENDING', at: new Date().toISOString() }],
+        executionMode: decision.executionMode,
+        inputs,
+        governance,
+      },
+      createdBy: userId,
+    });
+
+    if (decision.provider === 'Azure' || decision.provider === 'GCP') {
+      const result = decision.provider === 'Azure'
+        ? await provisionAzureCcr({ jobId, contract, account, containerSpec })
+        : await provisionGcpCcr({ jobId, contract, account, containerSpec });
+      const metaKey = decision.provider === 'Azure' ? 'azure' : 'gcp';
+      const job = await db.TrainingJob.findOne({ where: { jobId } });
+      await job.update({
+        status: result.submitted ? 'PROVISIONING' : 'FAILED',
+        failedAt: result.submitted ? null : new Date(),
+        errorMessage: result.error,
+        metadata: {
+          ...(job.metadata || {}),
+          executionMode: decision.executionMode,
+          [metaKey]: {
+            submitted: result.submitted,
+            spec: result.spec,
+            cluster: result.cluster,
+            attestation: result.attestation,
+            account: {
+              subscriptionId: account.subscriptionId || null,
+              resourceGroup: account.resourceGroup || null,
+              projectId: account.projectId || null,
+              location: account.location || null,
+              clusterName: account.clusterName || null,
+              namespace: account.namespace || null,
+              storageAccount: account.storageAccount || null,
+              keyVaultUri: account.keyVaultUri || null,
+              bucket: account.bucket || null,
+              kubeconfigPath: account.kubeconfigPath || null,
+            },
+          },
+          phases: [
+            ...((job.metadata && job.metadata.phases) || []),
+            {
+              name: result.submitted ? 'PROVISIONING' : 'FAILED',
+              at: new Date().toISOString(),
+              error: result.error,
+            },
+          ],
+        },
+      });
+      if (!result.submitted) {
+        const err = new Error(result.error);
+        err.statusCode = 502;
+        err.jobId = jobId;
+        throw err;
+      }
+      return withGovernance(jobId);
+    }
+
+    if (decision.provider === 'OCI') {
+      const { runOkeJobTraining } = require('./okeJobTrainingRunner');
+      setImmediate(() => {
+        runOkeJobTraining({
+          jobId,
+          contractId: contract.contractId,
+          containerSpec,
+          trainingParams: contract.trainingParams,
+          inputs,
+        }).catch((err) => {
+          console.error(`[oci-ccr] ${jobId}:`, err.message);
+        });
+      });
+      return withGovernance(jobId);
+    }
+
+    const err = new Error(`${decision.provider} CCR is not available. Training was not started.`);
+    err.statusCode = 501;
+    throw err;
+  }
+
   async startTrainingForContract(contractId, userId) {
     const contract = await loadContractForTraining(contractId);
     validateTdcCanTrain(contract, userId);
     await hydrateContractDatasetsForTraining(contract);
     await assertNoConcurrentJob(contractId);
+
+    const decision = resolveTrainingExecution(contract);
+    if (!decision.ok) {
+      const err = new Error(decision.error);
+      err.statusCode = decision.statusCode || 400;
+      throw err;
+    }
 
     const governance = await authorizeCanSideEffect({
       toolName: 'start_training',
@@ -219,9 +354,7 @@ class TdcTrainingExecutionService {
       slice: 'can-training-gate',
       parameters: {
         contract_id: contract.contractId,
-        execution_mode:
-          process.env.TRAINING_EXECUTION_MODE ||
-          (process.env.NODE_ENV && process.env.NODE_ENV !== 'production' ? 'local-docker' : ''),
+        execution_mode: decision.executionMode,
       },
       metadata: {
         contract_status: contract.status,
@@ -237,6 +370,10 @@ class TdcTrainingExecutionService {
       const job = await this.getJobPublic(jobId);
       return { ...job, governance };
     };
+
+    if (decision.provider !== 'Local') {
+      return this.startCloudTraining({ contract, userId, decision, governance, withGovernance });
+    }
 
     if (isSimulationMode()) {
       const jobId = `job-${contract.contractId}-${Date.now()}`;
@@ -272,10 +409,7 @@ class TdcTrainingExecutionService {
       return withGovernance(jobId);
     }
 
-    // Prefer local-docker for local development when no execution mode is configured.
-    const executionMode =
-      process.env.TRAINING_EXECUTION_MODE ||
-      (process.env.NODE_ENV && process.env.NODE_ENV !== 'production' ? 'local-docker' : '');
+    const executionMode = decision.executionMode;
 
     // Native PyTorch on Apple Silicon (host venv — same train.py as Docker, MPS + Opacus DP on CPU).
     if (executionMode === 'local-native') {
@@ -436,53 +570,6 @@ class TdcTrainingExecutionService {
       return withGovernance(jobId);
     }
 
-    // OCI OKE Job path (design scaffold — Object Storage + cms-training Job template).
-    if (executionMode === 'oci' || executionMode === 'oci-oke-job') {
-      const jobId = `job-${contract.contractId}-${Date.now()}`;
-      const containerSpec = buildContainerSpec(contract);
-      const inputs = shapeInputsForLocalTrainerContainer(await expandContractTrainingInputs(contract));
-      const jobDepaId = depaIdService.generateTrainingJobDEPAId();
-      await db.TrainingJob.create({
-        jobId,
-        contractId: contract.contractId,
-        status: 'PENDING',
-        trainingConfig: contract.trainingParams,
-        environmentConfig: {
-          environmentSpecs: contract.environmentSpecs,
-          kmsConfigs: contract.kmsConfigs,
-          cloudProvider: contract.tspCloudProvider || 'oci',
-          containerSpec,
-        },
-        datasets: contract.contractDatasets,
-        aiModels: contract.aiModelIds,
-        metadata: {
-          depaId: jobDepaId,
-          simulation: String(process.env.TRAINING_SIMULATION_MODE || '').toLowerCase() === 'true',
-          progress: 0,
-          containerSpec,
-          phases: [{ name: 'PENDING', at: new Date().toISOString() }],
-          executionMode: 'oci-oke-job',
-          inputs,
-        },
-        createdBy: userId,
-      });
-
-      const { runOkeJobTraining } = require('./okeJobTrainingRunner');
-      setImmediate(() => {
-        runOkeJobTraining({
-          jobId,
-          contractId: contract.contractId,
-          containerSpec,
-          trainingParams: contract.trainingParams,
-          inputs,
-        }).catch((err) => {
-          console.error(`[okeJobTrainingRunner] ${jobId}:`, err.message);
-        });
-      });
-
-      return withGovernance(jobId);
-    }
-
     const TrainingService = require('./trainingService');
     const trainingService = new TrainingService();
     const run = await trainingService.triggerTrainingRun(contractId);
@@ -491,7 +578,7 @@ class TdcTrainingExecutionService {
 
   async listJobsForContract(contractId, userId) {
     const contract = await loadContractForTraining(contractId);
-    validateTdcCanTrain(contract, userId);
+    assertTdcOwnsContract(contract, userId);
 
     const jobs = await db.TrainingJob.findAll({
       where: { contractId },
@@ -535,6 +622,24 @@ class TdcTrainingExecutionService {
       // best-effort
     }
     return await this.serializeJob(job);
+  }
+
+  async abortJobForUser(jobId, userId, reason = 'Aborted by TDC') {
+    const job = await db.TrainingJob.findOne({ where: { jobId } });
+    if (!job) {
+      const err = new Error('Training job not found');
+      err.statusCode = 404;
+      throw err;
+    }
+    const contract = await loadContractForTraining(job.contractId);
+    assertTdcOwnsContract(contract, userId);
+    if (!isActiveTrainingStatus(job.status)) {
+      const err = new Error(`Job is already ${job.status}`);
+      err.statusCode = 409;
+      throw err;
+    }
+    await abortTrainingJob(job, reason);
+    return this.getJobPublic(jobId);
   }
 
   async getJobPublic(jobId) {

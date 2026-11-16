@@ -1,5 +1,9 @@
 # ContractFlow Pro - Complete API Specifications
 
+## DEPA `/v1` façade
+
+PRD-shaped routes live on the **gateway** (`http://localhost:8000/v1`) and translate to the CAN `/api` listed below. The portal does not call `/v1`. See [DEPA_V1_FACADE.md](./DEPA_V1_FACADE.md).
+
 ## 📋 Overview
 
 This document provides comprehensive API specifications for the ContractFlow Pro system, covering all endpoints, authentication mechanisms, request/response formats, and examples. The system implements a multi-tenant, multi-cloud contract management platform with Ricardian contracts and confidential computing capabilities.
@@ -259,6 +263,21 @@ Authorization: Bearer <jwt_token>
   "tdpSignedAt": "2025-08-11T16:30:00.000Z"
 }
 ```
+
+#### POST `/api/contracts/:contractId/cancel`
+**Description**: Cancel an unsigned contract (DRAFT / PENDING_*). Signed contracts default to terminate (TDC/TSP) or revoke (TDP) and abort in-flight training jobs.
+
+#### POST `/api/contracts/:contractId/revoke`
+**Description**: Withdraw consent after signing. Sets status `REVOKED` and aborts active training jobs. TDC, linked TDP, or AppAdmin.
+
+#### POST `/api/contracts/:contractId/terminate`
+**Description**: End execution after signing. Sets status `TERMINATED` and aborts active training jobs. TDC, TSP, or AppAdmin.
+
+#### POST `/api/tdc/training/jobs/:jobId/abort`
+**Description**: TDC aborts one in-flight training job (`PENDING` / `PROVISIONING` / `RUNNING` / `STALLED`) without ending the contract.
+
+#### POST `/api/datasets/:datasetId/artifacts`
+**Description**: TDP (owner) or AppAdmin multipart upload (`files`). Rejects pickle/joblib and other non-allow-listed ingest formats with `400` / `INGEST_FORMAT_REJECTED`.
 
 ### 3. Contract Preview (No Authentication)
 

@@ -667,7 +667,19 @@ class TrainingOrchestrationService {
 
 ### **Overview**
 
-The system provides unified TEE (Trusted Execution Environment) provisioning across multiple cloud providers, ensuring secure AI model training with hardware-level protection across AWS, Azure, GCP, and Oracle Cloud Infrastructure.
+Portal training does not create a cloud account or a cluster for a job. `resolveTrainingExecution` routes a signed contract by the TSP’s provider:
+
+| TSP provider | What runs | Cluster identity |
+|--------------|-----------|------------------|
+| Local | `local-docker`, `local-native`, or `local-mlx`. `TRAINING_EXECUTION_MODE` applies only here. A non-local mode on a Local contract still runs `local-docker`. | This host |
+| Azure | `azure-ccr` submits a Kubernetes Job to the TSP’s existing AKS cluster | Contract `environmentSpecs.cloudAccounts.Azure`, filled from `users.cloud_account.Azure` when a field is blank. Required: subscription, resource group, AKS name |
+| GCP | `gcp-ccr` submits a Kubernetes Job to the TSP’s existing GKE cluster | Contract `environmentSpecs.cloudAccounts.GCP`, filled from `users.cloud_account.GCP`. Required: project, location, GKE name |
+| OCI | `oci-oke-job` on the TSP’s existing OKE cluster | Contract OCI cluster and namespace |
+| AWS | HTTP 501. No `TrainingJob` row is written | — |
+
+The TDC wizard collects the Azure or GCP cluster fields. The kubeconfig path is saved on the TSP dashboard **Cloud Provider** card (`cloudAccount.<Provider>.kubeconfigPath`) or set as `AZURE_CCR_KUBECONFIG` / `GCP_CCR_KUBECONFIG` on the API host. It is not stored on the contract. A missing path returns the Job as **FAILED** (HTTP 502) and does not call `kubectl`. Attestation on the Azure and GCP submit path is `simulated`. A hardware quote and key release are not collected. The confidential AKS pool in Terraform is opt-in and is not applied by training start.
+
+The diagram and provider samples below describe a target TEE-provisioning service. `/api/multi-cloud-tee` is not mounted. The live start path is `POST /api/tdc/training/contracts/:contractId/start`.
 
 ### **Multi-Cloud TEE Architecture**
 

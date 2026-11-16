@@ -1,4 +1,5 @@
 const { test, expect } = require('@playwright/test');
+const { randomUUID } = require('crypto');
 const axios = require('axios');
 const { getBackendURL } = require('../../load-config');
 const {
@@ -6,6 +7,7 @@ const {
   chooseSigningAlgorithm,
   ensurePartySigningReady,
 } = require('./helpers/party-signing-e2e');
+const { fillKmsFields } = require('./helpers/contract-wizard');
 
 test.describe('Full E2E (register → login → contract sign → local training)', () => {
   test.describe.configure({ mode: 'serial' });
@@ -320,16 +322,7 @@ test.describe('Full E2E (register → login → contract sign → local training
       await page.getByLabel('Memory Requirements').fill('4');
       await page.getByLabel('Storage Requirements').fill('10');
 
-      const kmsProvider = page.locator('text=KMS Provider').locator('xpath=following::div[@role="combobox"][1]');
-      await kmsProvider.click();
-      try {
-        await page.getByRole('option', { name: /HashiCorp Vault/i }).click({ timeout: 2000 });
-      } catch (_) {
-        await page.getByRole('menuitem', { name: /HashiCorp Vault/i }).click();
-      }
-      await page.getByLabel('Key ID/ARN').fill('e2e-local-key');
-      await page.getByLabel('Encryption Algorithm').fill('AES-256-GCM');
-      await page.getByLabel('Key Rotation Period (days)').fill('90');
+      await fillKmsFields(page);
       await page.keyboard.press('Escape').catch(() => {});
       await expect(page.locator('.MuiModal-root')).toHaveCount(0, { timeout: 5000 }).catch(() => {});
       await clickNext();

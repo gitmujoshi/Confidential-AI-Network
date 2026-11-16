@@ -26,7 +26,6 @@ test.describe('Role user guides (screenshot tours)', () => {
 
   test.beforeEach(async ({ page }, testInfo) => {
     test.skip(testInfo.project.name !== 'chromium', 'Guides are captured on Desktop Chromium only');
-    await page.setViewportSize({ width: 1440, height: 900 });
   });
 
   const generatedRoles = [];
@@ -140,8 +139,9 @@ test.describe('Role user guides (screenshot tours)', () => {
     steps.push({
       title: 'Create contract — Step 3: Environment & TSP',
       body: [
-        'Optionally filter and select a **TSP** (clean-room / compute provider).',
-        'Configure environment and KMS settings for the training session.',
+        'Filter **Cloud Provider** and select a **TSP**. That choice sets where training runs.',
+        'A **Local** TSP hides the cluster sections. An **Azure** TSP shows **Azure cluster** (Subscription ID, Resource group, AKS cluster name, Namespace, Region, Storage account, Key Vault URI). A **GCP** TSP shows **GCP cluster** (Project ID, Location, GKE cluster name, Namespace, GCS bucket).',
+        'Also set environment size and KMS. The kubeconfig path stays on the TSP dashboard **Cloud Provider** card.',
       ].join('\n'),
       ...(await captureShot(page, roleKey, '07-create-step-environment.png')),
     });
@@ -204,8 +204,8 @@ test.describe('Role user guides (screenshot tours)', () => {
     steps.push({
       title: 'Local training execution',
       body: [
-        'On **Training**, start a job for a signed contract. With `TRAINING_EXECUTION_MODE=local-docker`, the backend runs the trainer image on your machine (not simulated).',
-        'Completed jobs show progress, privacy metrics (when differential privacy is enabled), and artifact actions.',
+        'On **Training**, click **Start training** for a **SIGNED** contract. A Local TSP follows `TRAINING_EXECUTION_MODE` (`local-docker`, `local-native`, or `local-mlx`).',
+        'An Azure or GCP TSP submits to that TSP’s existing cluster (`azure-ccr` or `gcp-ccr`). Without a kubeconfig path the job is **FAILED** and no cluster is created. Completed local jobs show progress, privacy metrics when differential privacy is enabled, and artifact actions.',
       ].join('\n'),
       ...(await captureShot(page, roleKey, '11-training-completed.png')),
     });
@@ -394,7 +394,11 @@ test.describe('Role user guides (screenshot tours)', () => {
     await waitForHeading(page, /Welcome to Your (TSP|CCRP) Dashboard/i);
     steps.push({
       title: 'Dashboard',
-      body: 'The **TSP dashboard** (labeled CCRP in some older screens) shows environment health and contracts that need your signature or capacity.',
+      body: [
+        'The **TSP dashboard** shows environment health, contracts that need your signature, and the **Cloud Provider** card.',
+        'Edit that card to choose Local, Azure, or GCP. Azure asks for Subscription ID, Resource group, AKS cluster name, Namespace, Region, Storage account, Key Vault URI, and Kubeconfig path. GCP asks for Project ID, Location, GKE cluster name, Namespace, GCS bucket, and Kubeconfig path.',
+        'Training uses this existing cluster. The kubeconfig path is a file on this host.',
+      ].join('\n'),
       ...(await captureShot(page, roleKey, '02-dashboard.png')),
     });
 
@@ -415,7 +419,7 @@ test.describe('Role user guides (screenshot tours)', () => {
     });
     steps.push({
       title: 'Cloud credentials',
-      body: 'Register **cloud credentials** (or Local provider for demos) so contracts can target your offering.',
+      body: '**Cloud credentials** stores provider login material used when creating environments. The cluster name and kubeconfig path used by Azure and GCP training are saved on the dashboard **Cloud Provider** card.',
       ...(await captureShot(page, roleKey, '04-cloud-credentials.png')),
     });
 

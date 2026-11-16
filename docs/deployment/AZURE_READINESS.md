@@ -16,12 +16,12 @@ Assessment of whether the Confidential AI Network is ready to deploy to **Micros
 | **SCITT CCF on Azure** | No | Not in Azure Terraform |
 | **Physical training on Azure** | Partial | CCRP `azureProvider.js`; WI for `training-job` ready |
 | **Edge (Front Door / APIM)** | Partial IaC | `enable_edge` Front Door+WAF; APIM still manual |
-| **Confidential compute pool** | No | Design only |
-| **One-click production** | No | DNS, PE DNS, APIM, confidential SKU still operator steps |
+| **Confidential compute pool** | **Opt-in IaC** | `enable_confidential_compute` adds a DCasv5 user pool. No guest quote or key release yet |
+| **One-click production** | No | Public DNS, APIM, guest attestation, and a live subscription apply are still operator steps |
 
 **Identity:** Azure environments use **Microsoft Entra ID** only. **Keycloak** stays on local docker-compose for demos/E2E — not part of Azure deploy.
 
-**Verdict:** Ready for an **Azure platform pilot** (`terraform apply` → ACR images → Entra smoke). Key Vault, Blob, and AKS Workload Identity are now in Terraform. **Not** a full production cutover (APIM JWT, private DNS for PE, SPIRE Helm, confidential VMs, SCITT).
+**Verdict:** Ready for an **Azure platform pilot** (`terraform apply` → ACR images → Entra smoke). Key Vault, Blob, Workload Identity, private DNS for private endpoints, and an opt-in DCasv5 node pool are in Terraform. **Not** a full production cutover (APIM JWT, SPIRE Helm, guest attestation and key release, SCITT).
 
 ---
 
@@ -68,12 +68,11 @@ Assessment of whether the Confidential AI Network is ready to deploy to **Micros
 ## Gaps remaining for production
 
 1. **APIM** JWT validation policies as code  
-2. **Private DNS** when `enable_private_endpoints=true`  
-3. **SPIRE Helm** install + Entra Path F federated credentials for SPIFFE subjects  
-4. **External Secrets Operator** Helm (WI principal exists)  
-5. **Confidential compute** node pool / DCsv3  
-6. **SCITT** on AKS  
-7. **CI** `terraform apply` against a live subscription  
+2. **SPIRE Helm** install + Entra Path F federated credentials for SPIFFE subjects  
+3. **External Secrets Operator** Helm (WI principal exists)  
+4. **Guest attestation and Key Vault key release** on the confidential pool (the DCasv5 pool itself is opt-in Terraform)  
+5. **SCITT** on AKS  
+6. **CI** `terraform apply` against a live subscription  
 
 ---
 
@@ -94,8 +93,8 @@ Assessment of whether the Confidential AI Network is ready to deploy to **Micros
 
 ### Phase 3 — CAN clean room
 
-- [ ] Attestation + SKR  
-- [ ] Confidential SKU pool  
+- [x] Confidential SKU pool in Terraform (`enable_confidential_compute`, default off)
+- [ ] Guest attestation + Key Vault key release  
 
 ---
 

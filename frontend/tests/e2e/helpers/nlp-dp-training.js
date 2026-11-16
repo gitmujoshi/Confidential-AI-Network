@@ -1,5 +1,6 @@
 const axios = require('axios');
 const { getBackendURL } = require('../../../load-config');
+const { ensureActiveSigningKey } = require('./party-signing-e2e');
 
 const BACKEND_URL = getBackendURL();
 const PASSWORD = 'TestNewPassword123!';
@@ -237,6 +238,10 @@ function buildNlpQualityContractPayload({ aiModelIds, ccrpUserId }) {
 async function signContractAsParties({ contractId, tdpToken, ccrpToken, tdcToken }) {
   const signingDataUrl = `${BACKEND_URL}/api/contracts/${encodeURIComponent(contractId)}/signing-data`;
   const signUrl = `${BACKEND_URL}/api/contracts/${encodeURIComponent(contractId)}/sign`;
+
+  await ensureActiveSigningKey(tdpToken);
+  await ensureActiveSigningKey(ccrpToken);
+  if (tdcToken) await ensureActiveSigningKey(tdcToken);
 
   const { data: signingData } = await axios.get(signingDataUrl, {
     headers: { Authorization: `Bearer ${tdcToken}` },

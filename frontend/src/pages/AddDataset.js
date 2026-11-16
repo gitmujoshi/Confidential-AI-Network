@@ -49,6 +49,7 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { useUser } from '../contexts/UserContext';
 import { apiService } from '../services/api';
+import { DATASET_INGEST_ACCEPT, partitionIngestFiles } from '../utils/datasetIngest';
 import toast from 'react-hot-toast';
 import {
   DATA_CLASSIFICATIONS,
@@ -979,7 +980,8 @@ function AddDataset() {
                 <AlertTitle>Training files (recommended)</AlertTitle>
                 Upload real data files so local Docker training (<code>TRAINING_EXECUTION_MODE=local-docker</code>)
                 can train on your CSV instead of built-in demo datasets. Tabular datasets: numeric columns plus an
-                integer label in the <strong>last column</strong>.
+                integer label in the <strong>last column</strong>. Pickle, joblib, and PyTorch <code>.pt/.pth</code>{' '}
+                files are rejected.
               </Alert>
             </Grid>
             <Grid item xs={12} md={6}>
@@ -1004,9 +1006,16 @@ function AddDataset() {
                   type="file"
                   hidden
                   multiple
+                  accept={DATASET_INGEST_ACCEPT}
                   onChange={(e) => {
                     const list = e.target.files ? Array.from(e.target.files) : [];
-                    setArtifactFiles(list);
+                    const { allowed, blocked } = partitionIngestFiles(list);
+                    if (blocked.length) {
+                      toast.error(
+                        `Rejected: ${blocked.map((f) => f.name).join(', ')} (pickle/model binaries are not allowed as dataset ingest)`
+                      );
+                    }
+                    setArtifactFiles(allowed);
                   }}
                 />
               </Button>

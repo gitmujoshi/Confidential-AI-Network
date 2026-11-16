@@ -1,13 +1,13 @@
 # Participant Onboarding & End-to-End Lifecycle
 
-**Canonical guide** for how parties join the Confidential AI Network (CAN) / Contract Management System and run a complete cycle: onboard → publish datasets & base models → create & sign contracts → provision a clean room → encrypt/decrypt assets → train → export encrypted results → tear down.
+**Canonical guide** for how parties join the Confidential AI Network (CAN) / Contract Management System and run a complete cycle: onboard → publish datasets & base models → create & sign contracts → name the existing clean room → encrypt/decrypt assets → train → export encrypted results → tear down.
 
 This document **unifies** material previously spread across user guides, flow specs, CAN memos, signing docs, and training runbooks. Where portal (CMS) and CAN paths differ, both are called out explicitly.
 
 | Item | Value |
 |------|--------|
 | Audience | Operators, integrators, AppAdmins, demo facilitators |
-| Status | Reflects code + design as of 2026-07 |
+| Status | Reflects code + design as of 2026-11 |
 | Companion demo | [LOCAL_DEMO_RUNBOOK.md](../training/LOCAL_DEMO_RUNBOOK.md) |
 | Glossary | [GLOSSARY.md](../GLOSSARY.md) |
 | Azure features & settings | [AZURE_FEATURES_AND_CONFIGURATION.md](../deployment/AZURE_FEATURES_AND_CONFIGURATION.md) — Entra, KV, DEK/MEK, train, Blob, SCITT |
@@ -341,12 +341,14 @@ Exact enum also includes `PENDING_TDC` and multi-TDP statuses — see `backend/m
 
 1. Contract **SIGNED**.
 2. TDC starts training job from UI.
-3. Backend mode (`TRAINING_EXECUTION_MODE`): `local-docker` \| `local-native` \| `local-mlx` \| simulation.
-4. Trainer reads dataset artifacts (or demo fallback) + model config.
-5. Optional Opacus DP-SGD when `differentialPrivacy.enabled`.
-6. Results → `TrainingJob` metadata / `metrics.json` under local runs.
+3. The TSP provider chooses the runner. `TRAINING_EXECUTION_MODE` (`local-docker` \| `local-native` \| `local-mlx`) applies only when the provider is **Local**.
+4. **Azure** and **GCP** submit to the cluster named on the contract (`environmentSpecs.cloudAccounts`) or, when a field is blank, on `users.cloud_account`. The kubeconfig path is the TSP dashboard field or `AZURE_CCR_KUBECONFIG` / `GCP_CCR_KUBECONFIG`. A missing path marks the job **FAILED** and does not create a cluster. Attestation on that submit is `simulated`.
+5. **OCI** uses the existing OKE cluster. **AWS** returns 501 and does not write a job.
+6. Trainer reads dataset artifacts (or demo fallback) + model config on the Local path.
+7. Optional Opacus DP-SGD when `differentialPrivacy.enabled`.
+8. Results → `TrainingJob` metadata / `metrics.json` under local runs.
 
-**Scope:** Host Docker / native training (not a hardware TEE). See [LOCAL_DEMO_RUNBOOK.md](../training/LOCAL_DEMO_RUNBOOK.md).
+**Scope:** Host Docker / native training is not a hardware TEE. Azure and GCP submit a Job spec to an existing cluster. See [TDC_TRAINING_RUNTIME.md](../training/TDC_TRAINING_RUNTIME.md) and [LOCAL_DEMO_RUNBOOK.md](../training/LOCAL_DEMO_RUNBOOK.md).
 
 ### 9.2 CAN / JCS path (MVP)
 
@@ -432,11 +434,11 @@ Local demos often expose **metrics and artifacts on disk** without full MEK re-w
 
 ### 12.1 Setup (before or at job start)
 
-1. TSP credentials + offering selected on contract.
-2. Provision environment (local Docker namespace / cloud VM / AKS-OKE job).
+1. TSP selects Local, Azure, GCP, or OCI on the dashboard **Cloud Provider** card and, for Azure and GCP, saves the existing cluster plus the kubeconfig path on that host.
+2. The contract names that cluster. Local training uses this machine. Azure, GCP, and OCI submit to the named cluster. AWS does not start.
 3. Attach network isolation policy (target: no public egress).
 4. Register CCR session with JCS (CAN path).
-5. Publish attestation endpoint / bundle.
+5. Publish attestation endpoint / bundle. Azure and GCP portal submit still records attestation as `simulated`.
 
 ### 12.2 Cleanup (always)
 
@@ -529,7 +531,8 @@ Use this as a single run sheet. Mark **Portal** vs **CAN** where noted.
 | TDP local encrypt-before-upload UI | **Design / partial** |
 | Attested TLS DEK/MEK delivery into TEE | **Design (Phase 2)** |
 | Machine principal cert auth | **Stub (Phase 3)** |
-| Cloud TEE provision + train + destroy | **Partial / simulated** |
+| Existing-cluster Azure / GCP Job submit | **Shipped, fail-closed** (needs kubeconfig; attestation `simulated`; no new cluster) |
+| Cloud TEE provision + guest quote + destroy | **Design** |
 | Full encrypted trained-model wrap for TDC | **Partial** |
 
 ---

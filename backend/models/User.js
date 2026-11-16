@@ -240,6 +240,12 @@ module.exports = (sequelize, Sequelize) => {
       allowNull: true,
       comment: 'Array of cloud providers supported by TSP users (AWS, Azure, GCP, OCI)'
     },
+
+    cloudAccount: {
+      type: Sequelize.DataTypes.JSONB,
+      allowNull: true,
+      comment: 'TSP account for an existing cluster, keyed by Azure, GCP, or OCI. Does not create a project per job.'
+    },
     
     // DEPA ID — immutable DEPA-aligned entity ID (India's iSPIRT Data Empowerment and Protection Architecture)
     depaId: {

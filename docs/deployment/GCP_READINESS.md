@@ -46,7 +46,7 @@ Assessment of whether the Confidential AI Network is ready to deploy to **Google
 1. **No platform Terraform** — VPC, GKE, Cloud SQL, Artifact Registry, LB  
 2. **Auth** — Identity Platform SPA + backend JWT validation  
 3. **Storage** — GCS backend for datasets  
-4. **Training** — Replace stub provider with GKE Job / Batch / real GCP SDK  
+4. **Training** — `gcp-ccr` submits to the TSP’s existing GKE cluster when a kubeconfig path is set. Still open: Confidential Space quote, status watch, and GCS mount. `gcpProvider.js` is not this path  
 5. **Signing / KMS** — Keys in DB; no crypto verify on portal sign  
 6. **SCITT** — No GCP deployment model  
 7. **E2E** — Tests target localhost only  

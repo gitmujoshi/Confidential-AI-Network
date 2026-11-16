@@ -19,7 +19,6 @@ test.describe('Auditor product-tour screenshots', () => {
 
   test.beforeEach(async ({ page }, testInfo) => {
     test.skip(testInfo.project.name !== 'chromium', 'Auditor guide captured on Desktop Chromium only');
-    await page.setViewportSize({ width: 1440, height: 900 });
   });
 
   test('Auditor workspace → Merkle tree → contract review', async ({ page }) => {

@@ -1,8 +1,9 @@
 const { test, expect } = require('@playwright/test');
 const axios = require('axios');
 const { getBackendURL } = require('../../load-config');
+const { fillKmsFields } = require('./helpers/contract-wizard');
 
-test.describe('CAN local flow via UI (create contract → training)', () => {
+test.describe('Local TSP CCR via UI (create contract → training)', () => {
   test.describe.configure({ mode: 'serial' });
 
   const BACKEND_URL = getBackendURL();
@@ -109,19 +110,7 @@ test.describe('CAN local flow via UI (create contract → training)', () => {
       await page.getByLabel('Memory Requirements').fill('4');
       await page.getByLabel('Storage Requirements').fill('10');
 
-      // KMS section fields.
-      const kmsProvider = page
-        .locator('text=KMS Provider')
-        .locator('xpath=following::div[@role="combobox"][1]');
-      await kmsProvider.click();
-      try {
-        await page.getByRole('option', { name: /HashiCorp Vault/i }).click({ timeout: 2000 });
-      } catch (_) {
-        await page.getByRole('menuitem', { name: /HashiCorp Vault/i }).click();
-      }
-      await page.getByLabel('Key ID/ARN').fill('e2e-local-key');
-      await page.getByLabel('Encryption Algorithm').fill('AES-256-GCM');
-      await page.getByLabel('Key Rotation Period (days)').fill('90');
+      await fillKmsFields(page);
 
       await page.keyboard.press('Escape').catch(() => {});
       await expect(page.locator('.MuiModal-root')).toHaveCount(0, { timeout: 3000 }).catch(() => {});

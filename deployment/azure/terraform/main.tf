@@ -99,6 +99,15 @@ module "database" {
   project_tags        = local.resource_tags
 }
 
+module "private_dns" {
+  source = "./modules/private_dns"
+
+  enabled             = var.enable_private_endpoints
+  resource_group_name = module.networking.resource_group_name
+  vnet_id             = module.networking.vnet_id
+  project_tags        = local.resource_tags
+}
+
 module "storage" {
   source = "./modules/storage"
 
@@ -110,6 +119,7 @@ module "storage" {
   public_network_access_enabled = var.storage_public_network_access
   enable_private_endpoint       = var.enable_private_endpoints
   private_endpoints_subnet_id   = module.networking.private_endpoints_subnet_id
+  private_dns_zone_id           = module.private_dns.blob_zone_id
   project_tags                  = local.resource_tags
 }
 
@@ -158,6 +168,7 @@ module "key_vault" {
   public_network_access_enabled = var.key_vault_public_network_access
   enable_private_endpoint       = var.enable_private_endpoints
   private_endpoints_subnet_id   = module.networking.private_endpoints_subnet_id
+  private_dns_zone_id           = module.private_dns.key_vault_zone_id
 
   db_host             = module.database.db_host
   db_port             = tostring(module.database.db_port)
@@ -236,6 +247,24 @@ module "kubernetes_resources" {
   blob_datasets_container    = try(module.storage.container_names["datasets"], "")
   blob_outputs_container     = try(module.storage.container_names["training_outputs"], "")
   blob_artifacts_container   = try(module.storage.container_names["artifacts"], "")
+}
+
+module "confidential_compute" {
+  source = "./modules/confidential_compute"
+
+  enabled                     = var.enable_confidential_compute
+  resource_group_name         = module.networking.resource_group_name
+  location                    = var.location
+  kubernetes_cluster_id       = module.aks.cluster_id
+  subnet_id                   = module.networking.confidential_subnet_id
+  node_pool_name              = var.confidential_node_pool_name
+  vm_size                     = var.confidential_vm_size
+  node_count                  = var.confidential_node_count
+  kubernetes_namespace        = "contract-management"
+  training_workload_client_id = try(module.workload_identity.identity_client_ids["training-job"], "")
+  project_tags                = local.resource_tags
+
+  depends_on = [module.kubernetes_resources, module.workload_identity]
 }
 
 module "spire" {

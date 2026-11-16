@@ -340,6 +340,13 @@ async function initializeServices() {
       logger.warn(`⚠️ CAN schema bootstrap skipped: ${e.message}`);
     }
 
+    try {
+      const { ensureContractLifecycleEnums } = require('./services/ensureContractLifecycleEnums');
+      await ensureContractLifecycleEnums(db.sequelize);
+    } catch (e) {
+      logger.warn(`⚠️ Contract lifecycle enum bootstrap skipped: ${e.message}`);
+    }
+
     // Initialize blockchain service only if enabled
     if (process.env.BLOCKCHAIN_ENABLED !== 'false') {
       console.log('🔗 Initializing blockchain service...');

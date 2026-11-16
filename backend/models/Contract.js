@@ -81,7 +81,10 @@ module.exports = (sequelize, DataTypes) => {
         'EXECUTING',                // Contract being executed
         'COMPLETED',                // Contract fulfilled successfully
         'REJECTED',                 // Contract rejected by any party
-        'FAILED'                    // Execution failed
+        'FAILED',                   // Execution failed
+        'CANCELLED',                // Ended before signing
+        'REVOKED',                  // Consent/contract withdrawn after signing
+        'TERMINATED'                // Execution ended; in-flight jobs aborted
       ),
       defaultValue: 'DRAFT',
       comment: 'Contract status following UML state diagram workflow'
@@ -380,7 +383,10 @@ module.exports = (sequelize, DataTypes) => {
         'EXECUTING',                // Contract being executed
         'COMPLETED',                // Contract fulfilled successfully
         'REJECTED',                 // Contract rejected by any party
-        'FAILED'                    // Execution failed
+        'FAILED',                   // Execution failed
+        'CANCELLED',
+        'REVOKED',
+        'TERMINATED'
       ),
       defaultValue: 'DRAFT',
       comment: 'Multi-TDP status following UML state diagram workflow'

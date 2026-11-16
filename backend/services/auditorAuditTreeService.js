@@ -122,6 +122,7 @@ async function buildContractAuditTree(contractId, userId, { partyType } = {}) {
     .sort((a, b) => a.position - b.position)
     .map((node, index) => {
       const payload = leafPayloads[index];
+      if (!payload) return null;
       let proof = null;
       try {
         proof = proofGen.generateProof(tree, node.nodeId);
@@ -137,7 +138,8 @@ async function buildContractAuditTree(contractId, userId, { partyType } = {}) {
         summary: summarizeLeaf(payload),
         proof,
       };
-    });
+    })
+    .filter(Boolean);
 
   return {
     generatedAt: new Date().toISOString(),

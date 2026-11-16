@@ -18,6 +18,8 @@ Baseline + data-plane infrastructure for deploying the Confidential AI Network o
 | `storage` | Storage account + datasets/outputs/artifacts containers | **on** (`enable_storage`) |
 | `workload_identity` | UAMI + federated credentials + KV/Blob RBAC | **on** (`enable_workload_identity`) |
 | `kubernetes_resources` | Namespace, ConfigMap, secrets, backend SA (WI), deployments | on |
+| `private_dns` | `privatelink` zones for Key Vault and Blob | **with** `enable_private_endpoints` |
+| `confidential_compute` | DCasv5 user node pool, trainer SA, CCR ConfigMap | **off** (`enable_confidential_compute`) |
 | `edge` | Front Door + WAF | **off** (`enable_edge`) |
 | `spire` | SPIRE namespace + trust-domain ConfigMaps | **off** (`enable_spire`) |
 
@@ -56,7 +58,8 @@ From repository root:
 | `enable_key_vault` | `true` | Platform Key Vault + secret seed |
 | `enable_storage` | `true` | Blob containers for datasets / outputs / artifacts |
 | `enable_workload_identity` | `true` | AKS OIDC + UAMI for `backend`, `training-job`, `external-secrets` |
-| `enable_private_endpoints` | `false` | PE for KV + Storage (add private DNS first) |
+| `enable_private_endpoints` | `false` | PE for KV + Storage, plus private DNS zones linked to the VNet |
+| `enable_confidential_compute` | `false` | AMD SEV-SNP user node pool (`Standard_DC4as_v5`). Tainted so only CCR jobs schedule there. Does not collect a hardware quote |
 | `enable_edge` | `false` | Azure Front Door + WAF |
 | `enable_spire` | `false` | SPIRE namespace scaffold; then Helm install |
 
@@ -102,17 +105,28 @@ terraform/
 │   ├── storage/            # NEW
 │   ├── workload_identity/  # NEW
 │   ├── kubernetes_resources/
-│   ├── edge/               # NEW (optional)
-│   └── spire/              # NEW (optional)
+│   ├── private_dns/        # with enable_private_endpoints
+│   ├── confidential_compute/ # optional DCasv5 pool
+│   ├── edge/               # optional
+│   └── spire/              # optional
 └── ../helm/spire/values.yaml
 ```
+
+## Confidential pool
+
+```bash
+# terraform.tfvars — confirm Standard_DC4as_v5 (or another DCasv5 size) exists in the region
+enable_confidential_compute = true
+```
+
+The pool is tainted `can.azure/confidential=true:NoSchedule` and labeled `can.azure/pool=confidential`. A ConfigMap `azure-ccr-pool` in `contract-management` records the size and toleration. Landing a pod on these nodes is not a SEV-SNP quote and does not release Key Vault keys.
 
 ## Still out of scope / follow-ups
 
 - Full APIM JWT policy as code (see [AZURE_IAM_AND_EDGE_CONFIG.md](../../../docs/deployment/AZURE_IAM_AND_EDGE_CONFIG.md))
-- Confidential compute node pool / DCsv3 (`modules/confidential_compute` — design)
+- Guest attestation and Key Vault secure key release for the confidential pool
 - External Secrets Operator Helm release (WI principal is ready)
-- Private DNS zones for PE when `enable_private_endpoints=true`
+- SCITT on AKS
 
 ## Related docs
 

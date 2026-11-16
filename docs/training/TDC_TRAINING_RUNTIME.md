@@ -18,7 +18,7 @@ This document describes the **TDC (Training Data Consumer)** training flow imple
 | Variable | Purpose |
 |----------|---------|
 | `TRAINING_SIMULATION_MODE` | Default `false` (or unset): uses the **real execution path** (`TrainingService.triggerTrainingRun`) and therefore requires cloud/CCRP credentials and the DB shape expected by that path. Set to `true` to run a **simulated** training pipeline (no cloud provisioning). |
-| `TRAINING_EXECUTION_MODE` | Optional. `local-docker` — Docker container (cross-platform). **`local-native`** — Apple Silicon host, same `train.py`, PyTorch **MPS** + Opacus DP on CPU ([MLX_MAC_DEV.md](./MLX_MAC_DEV.md)). `local-mlx` — MLX-only experiments (no DP). |
+| `TRAINING_EXECUTION_MODE` | Used only when `tspCloudProvider` is **Local**: `local-docker`, `local-native`, or `local-mlx`. A non-local value on a Local TSP still runs `local-docker`. Azure, GCP, and OCI contracts ignore this variable. |
 | `LOCAL_TRAINING_IMAGE` | Optional. Docker image used for `TRAINING_EXECUTION_MODE=local-docker`. Defaults to `contractmanagement/local-trainer:latest`. |
 | `HF_TOKEN` / `HUGGINGFACE_API_TOKEN` | Optional. Passed into the local trainer container for **gated/private** Hugging Face Hub models/datasets. Store in `secrets.env`, not catalog metadata. |
 | `HUGGINGFACE_HUB_URL` | Optional. Custom Hub endpoint; forwarded to the trainer as `HF_ENDPOINT`. |
@@ -27,6 +27,8 @@ This document describes the **TDC (Training Data Consumer)** training flow imple
 
 | `INFERENCE_TIMEOUT_MS` | Optional. Docker/host infer timeout (default **600000** / 10 min — DistilBERT quality cold start + Hub download). |
 | `HF_HOME` / `HUGGINGFACE_HUB_CACHE` | Optional. Host cache mounted into trainer/infer containers so Hub models are not re-downloaded every run. |
+
+**TSP routing.** `Local` stays on the host runners above. `Azure`, `GCP`, and `OCI` use that TSP's existing cluster. The contract stores the cluster on `environmentSpecs.cloudAccounts.<Provider>`. The TSP dashboard stores the same fields on `users.cloud_account`, including the kubeconfig path, and that record fills any gap. Azure needs subscription, resource group, and AKS name, and can also store namespace, storage account, and Key Vault URI. An existing `tspAzureSubscriptionId` fills the subscription when the account omits it. GCP needs project, location, and GKE name, and can also store namespace and a GCS bucket. Submit runs only when `AZURE_CCR_KUBECONFIG` / `GCP_CCR_KUBECONFIG` or the account `kubeconfigPath` is set. Attestation stays `simulated`. `AWS` returns 501 and does not write a job.
 
 **Differential privacy (NLP):** when `contract.trainingParams.differentialPrivacy.enabled` is true and the job runs the **text** trainer (`ag_news` + DistilBERT demo), `train.py` applies **Opacus DP-SGD**. Docker: rebuild `contractmanagement/local-trainer:latest`. Native Mac: `scripts/setup-native-venv.sh`. Completed jobs surface `results.privacyMetrics` (ε, δ, mechanism) on `TrainingJob.metadata`.
 

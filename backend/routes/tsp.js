@@ -313,7 +313,7 @@ router.get('/cloud-providers/:userId', authenticateToken, async (req, res) => {
     }
 
     const user = await User.findByPk(userId, {
-      attributes: ['id', 'name', 'email', 'cloudProviders', 'description']
+      attributes: ['id', 'name', 'email', 'cloudProviders', 'cloudAccount', 'description']
     });
 
     if (!user) {
@@ -322,6 +322,7 @@ router.get('/cloud-providers/:userId', authenticateToken, async (req, res) => {
 
     res.json({ 
       cloudProviders: user.cloudProviders || [],
+      cloudAccount: user.cloudAccount || null,
       description: user.description 
     });
   } catch (error) {
@@ -334,7 +335,7 @@ router.get('/cloud-providers/:userId', authenticateToken, async (req, res) => {
 router.put('/cloud-providers/:userId', authenticateToken, async (req, res) => {
   try {
     const { userId } = req.params;
-    const { cloudProviders, description } = req.body;
+    const { cloudProviders, description, cloudAccount } = req.body;
     
     const currentUserId = req.user.localUser?.id;
     const userPartyType = req.user.localUser?.partyType;
@@ -359,11 +360,26 @@ router.put('/cloud-providers/:userId', authenticateToken, async (req, res) => {
       updatePayload.cloudProviders = normalized.value;
     }
 
+    if (cloudAccount !== undefined) {
+      const { sanitizeProviderAccount } = require('../services/tspCloudAccount');
+      const provider = (updatePayload.cloudProviders || user.cloudProviders || [])[0];
+      const incoming = cloudAccount && typeof cloudAccount === 'object' ? cloudAccount[provider] : null;
+      try {
+        const cleaned = sanitizeProviderAccount(provider, incoming);
+        if (cleaned) {
+          updatePayload.cloudAccount = { ...(user.cloudAccount || {}), [provider]: cleaned };
+        }
+      } catch (accountError) {
+        return res.status(accountError.statusCode || 400).json({ error: accountError.message });
+      }
+    }
+
     await user.update(updatePayload);
 
     res.json({ 
       message: 'Cloud providers updated successfully',
       cloudProviders: user.cloudProviders,
+      cloudAccount: user.cloudAccount || null,
       description: user.description
     });
   } catch (error) {

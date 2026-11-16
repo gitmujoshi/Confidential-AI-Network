@@ -2,7 +2,8 @@ const crypto = require('crypto');
 const { User, Contract, Signature, SigningEvent, EnterpriseKey, SigningRequest } = require('../models');
 const cloudKmsService = require('./cloudKmsService');
 const scittCcfService = require('./scittCcfService');
-const auditService = require('./auditService');
+const AuditService = require('./auditService');
+const auditService = new AuditService();
 class EnterpriseSigningService {
   constructor() {
     this.loadConfiguration();

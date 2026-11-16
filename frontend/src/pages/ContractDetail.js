@@ -79,6 +79,10 @@ const StatusChip = ({ status }) => {
       case 'COMPLETED':
         return 'info';
       case 'CANCELLED':
+      case 'REVOKED':
+      case 'TERMINATED':
+      case 'REJECTED':
+      case 'FAILED':
         return 'error';
       default:
         return 'default';
@@ -95,6 +99,10 @@ const StatusChip = ({ status }) => {
       case 'COMPLETED':
         return <CheckCircle fontSize="small" />;
       case 'CANCELLED':
+      case 'REVOKED':
+      case 'TERMINATED':
+      case 'REJECTED':
+      case 'FAILED':
         return <Error fontSize="small" />;
       default:
         return null;
@@ -549,19 +557,6 @@ function ContractDetail() {
     }
   );
 
-  const cancelContractMutation = useMutation(
-    (data) => apiService.cancelContract(contractId, data),
-    {
-      onSuccess: () => {
-        queryClient.invalidateQueries(['contract', contractId]);
-        toast.success('Contract cancelled successfully');
-      },
-      onError: () => {
-        toast.error('Failed to cancel contract');
-      },
-    }
-  );
-
   // Check if this is a multi-TDP contract (handle both old and new Ricardian format)
   const isMultiTDPContract = (displayDatasets && displayDatasets.length > 1);
 
@@ -653,14 +648,31 @@ function ContractDetail() {
     }
   };
 
-  const handleCancelContract = async () => {
+  const handleEndContract = async (action) => {
+    const labels = { cancel: 'Cancel', revoke: 'Revoke', terminate: 'Terminate' };
+    const extra =
+      action === 'cancel' ? '' : ' In-flight training jobs will be aborted.';
+    if (!window.confirm(`${labels[action] || action} this contract?${extra}`)) return;
     try {
-      await cancelContractMutation.mutateAsync({
-        cancelledAt: new Date().toISOString(),
-        cancellationReason: 'Contract cancelled by user'
+      const fn =
+        action === 'revoke'
+          ? apiService.revokeContract
+          : action === 'terminate'
+            ? apiService.terminateContract
+            : apiService.cancelContract;
+      const result = await fn(contractId, {
+        reason: `Contract ${action}d from portal`,
       });
+      const aborted = (result?.abortedJobs || []).filter((j) => j.aborted).length;
+      toast.success(
+        aborted
+          ? `Contract ${action}d. ${aborted} training job(s) aborted.`
+          : `Contract ${action}d.`
+      );
+      queryClient.invalidateQueries(['contract', contractId]);
     } catch (error) {
-      console.error('Cancel contract error:', error);
+      console.error('End contract error:', error);
+      toast.error(error.response?.data?.error || error.message || 'Failed to update contract');
     }
   };
 
@@ -1480,17 +1492,61 @@ function ContractDetail() {
                   </>
                 )}
                 
-                {/* Cancel Contract (any party can cancel if not completed) */}
-                {contract.status !== 'COMPLETED' && contract.status !== 'CANCELLED' && (
-                  <Button 
-                    variant="outlined" 
-                    color="error"
-                    onClick={() => handleCancelContract()}
-                    disabled={cancelContractMutation.isLoading}
-                  >
-                    {cancelContractMutation.isLoading ? 'Cancelling...' : 'Cancel Contract'}
-                  </Button>
-                )}
+                {(() => {
+                  const isAppAdmin = currentUser?.partyType === 'AppAdmin';
+                  const linkedTdc =
+                    currentUser?.id != null &&
+                    (Number(contract.tdcId) === Number(currentUser.id) ||
+                      Number(contract.tdc?.id) === Number(currentUser.id));
+                  const linkedTsp =
+                    currentUser?.id != null &&
+                    (Number(contract.tspId) === Number(currentUser.id) ||
+                      Number(contract.tsp?.id) === Number(currentUser.id));
+                  const terminal = [
+                    'COMPLETED',
+                    'FAILED',
+                    'REJECTED',
+                    'CANCELLED',
+                    'REVOKED',
+                    'TERMINATED',
+                  ].includes(contract.status);
+                  const live = ['SIGNED', 'EXECUTING'].includes(contract.status);
+                  if (terminal) return null;
+                  return (
+                    <>
+                      {!live && (linkedTdc || isCurrentUserLinkedTdp || linkedTsp || isAppAdmin) && (
+                        <Button
+                          variant="outlined"
+                          color="error"
+                          onClick={() => handleEndContract('cancel')}
+                          data-testid="cancel-contract"
+                        >
+                          Cancel Contract
+                        </Button>
+                      )}
+                      {live && (linkedTdc || isCurrentUserLinkedTdp || isAppAdmin) && (
+                        <Button
+                          variant="outlined"
+                          color="error"
+                          onClick={() => handleEndContract('revoke')}
+                          data-testid="revoke-contract"
+                        >
+                          Revoke Contract
+                        </Button>
+                      )}
+                      {live && (linkedTdc || linkedTsp || isAppAdmin) && (
+                        <Button
+                          variant="outlined"
+                          color="warning"
+                          onClick={() => handleEndContract('terminate')}
+                          data-testid="terminate-contract"
+                        >
+                          Terminate Contract
+                        </Button>
+                      )}
+                    </>
+                  );
+                })()}
 
                 {/* Download Contract Documents */}
                 <Button
@@ -2046,6 +2102,50 @@ function ContractDetail() {
                                           }}
                                           margin="normal"
                                         />
+                                      </Grid>
+                                    )}
+
+                                    {envSpecs.cloudAccounts && (envSpecs.cloudAccounts.Azure || envSpecs.cloudAccounts.GCP) && (
+                                      <Grid item xs={12}>
+                                        <Typography variant="h6" gutterBottom>
+                                          Cluster
+                                        </Typography>
+                                        {['Azure', 'GCP'].map((provider) => {
+                                          const account = envSpecs.cloudAccounts[provider];
+                                          if (!account) return null;
+                                          const fields = provider === 'Azure'
+                                            ? [
+                                                ['Subscription ID', account.subscriptionId],
+                                                ['Resource group', account.resourceGroup],
+                                                ['AKS cluster', account.clusterName],
+                                                ['Namespace', account.namespace],
+                                                ['Region', account.location],
+                                                ['Storage account', account.storageAccount],
+                                                ['Key Vault URI', account.keyVaultUri],
+                                              ]
+                                            : [
+                                                ['Project ID', account.projectId],
+                                                ['Location', account.location],
+                                                ['GKE cluster', account.clusterName],
+                                                ['Namespace', account.namespace],
+                                                ['GCS bucket', account.bucket],
+                                              ];
+                                          return (
+                                            <Box key={provider} sx={{ mb: 2 }}>
+                                              <Typography variant="subtitle2">{provider}</Typography>
+                                              {fields.map(([label, value]) => (
+                                                <TextField
+                                                  key={label}
+                                                  fullWidth
+                                                  label={label}
+                                                  value={value || ''}
+                                                  margin="normal"
+                                                  InputProps={{ readOnly: true }}
+                                                />
+                                              ))}
+                                            </Box>
+                                          );
+                                        })}
                                       </Grid>
                                     )}
 

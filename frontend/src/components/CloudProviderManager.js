@@ -17,7 +17,9 @@ import {
   Radio,
   Alert,
   IconButton,
-  Tooltip
+  Tooltip,
+  TextField,
+  Grid
 } from '@mui/material';
 import {
   Edit as EditIcon,
@@ -27,28 +29,67 @@ import { useMutation, useQueryClient } from 'react-query';
 import { apiService } from '../services/api';
 import toast from 'react-hot-toast';
 
-const CloudProviderManager = ({ userId, currentProviders = [], description = '' }) => {
+const AZURE_FIELDS = [
+  ['subscriptionId', 'Subscription ID'],
+  ['resourceGroup', 'Resource group'],
+  ['clusterName', 'AKS cluster name'],
+  ['namespace', 'Namespace'],
+  ['location', 'Region'],
+  ['storageAccount', 'Storage account'],
+  ['keyVaultUri', 'Key Vault URI'],
+  ['kubeconfigPath', 'Kubeconfig path'],
+];
+
+const GCP_FIELDS = [
+  ['projectId', 'Project ID'],
+  ['location', 'Location'],
+  ['clusterName', 'GKE cluster name'],
+  ['namespace', 'Namespace'],
+  ['bucket', 'GCS bucket'],
+  ['kubeconfigPath', 'Kubeconfig path'],
+];
+
+const emptyAccount = (provider) => {
+  const fields = provider === 'Azure' ? AZURE_FIELDS : provider === 'GCP' ? GCP_FIELDS : [];
+  return Object.fromEntries(fields.map(([key]) => [key, '']));
+};
+
+const CloudProviderManager = ({ userId, currentProviders = [], currentAccount = null, description = '' }) => {
   const [open, setOpen] = useState(false);
   const [selectedProvider, setSelectedProvider] = useState(currentProviders[0] || '');
   const [newDescription, setNewDescription] = useState(description);
+  const [account, setAccount] = useState(emptyAccount(currentProviders[0]));
+  const [saved, setSaved] = useState(null);
   const queryClient = useQueryClient();
+
+  const providers = saved?.cloudProviders || currentProviders;
+  const accountBag = saved?.cloudAccount || currentAccount || {};
+  const activeProvider = providers[0] || null;
+  const activeAccount = (activeProvider && accountBag[activeProvider]) || null;
 
   useEffect(() => {
     setSelectedProvider(currentProviders[0] || '');
+    setAccount(emptyAccount(currentProviders[0]));
   }, [currentProviders]);
 
   const availableProviders = [
     { value: 'Local', label: 'Local (Docker)', description: 'Local training execution (no cloud)' },
     { value: 'AWS', label: 'Amazon Web Services', description: 'Nitro Enclaves' },
-    { value: 'Azure', label: 'Microsoft Azure', description: 'SGX Enclaves' },
-    { value: 'GCP', label: 'Google Cloud Platform', description: 'Confidential VMs' },
+    { value: 'Azure', label: 'Microsoft Azure', description: 'Confidential AKS pool' },
+    { value: 'GCP', label: 'Google Cloud Platform', description: 'Confidential GKE pool' },
     { value: 'OCI', label: 'Oracle Cloud Infrastructure', description: 'Confidential Computing' }
   ];
 
   const updateProvidersMutation = useMutation(
     (data) => apiService.put(`/api/tsp/cloud-providers/${userId}`, data),
     {
-      onSuccess: () => {
+      onSuccess: (response) => {
+        const body = response.data || {};
+        setSaved({
+          cloudProviders: body.cloudProviders || [selectedProvider],
+          cloudAccount: body.cloudAccount || null,
+          description: body.description,
+        });
         queryClient.invalidateQueries('tspDashboard');
         toast.success('Cloud provider updated successfully!');
         setOpen(false);
@@ -60,16 +101,35 @@ const CloudProviderManager = ({ userId, currentProviders = [], description = '' 
     }
   );
 
+  const openEditor = () => {
+    const provider = activeProvider || '';
+    setSelectedProvider(provider);
+    setNewDescription(saved?.description ?? description);
+    setAccount({ ...emptyAccount(provider), ...(accountBag[provider] || {}) });
+    setOpen(true);
+  };
+
+  const handleProviderChange = (provider) => {
+    setSelectedProvider(provider);
+    setAccount({ ...emptyAccount(provider), ...(accountBag[provider] || {}) });
+  };
+
   const handleSave = () => {
     if (!selectedProvider) {
       toast.error('Select a cloud provider');
       return;
     }
-    updateProvidersMutation.mutate({
+    const payload = {
       cloudProviders: [selectedProvider],
-      description: newDescription
-    });
+      description: newDescription,
+    };
+    if (selectedProvider === 'Azure' || selectedProvider === 'GCP') {
+      payload.cloudAccount = { [selectedProvider]: account };
+    }
+    updateProvidersMutation.mutate(payload);
   };
+
+  const clusterFields = selectedProvider === 'Azure' ? AZURE_FIELDS : selectedProvider === 'GCP' ? GCP_FIELDS : [];
 
   const getProviderColor = (provider) => {
     switch (provider) {
@@ -82,8 +142,6 @@ const CloudProviderManager = ({ userId, currentProviders = [], description = '' 
     }
   };
 
-  const activeProvider = currentProviders[0] || null;
-
   return (
     <>
       <Card>
@@ -93,7 +151,7 @@ const CloudProviderManager = ({ userId, currentProviders = [], description = '' 
               Cloud Provider
             </Typography>
             <Tooltip title="Edit cloud provider">
-              <IconButton onClick={() => setOpen(true)} color="primary">
+              <IconButton onClick={openEditor} color="primary" data-testid="edit-cloud-provider">
                 <EditIcon />
               </IconButton>
             </Tooltip>
@@ -114,9 +172,17 @@ const CloudProviderManager = ({ userId, currentProviders = [], description = '' 
             </Alert>
           )}
 
-          {description && (
+          {activeAccount && (activeAccount.clusterName || activeAccount.projectId) && (
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }} data-testid="tsp-cluster-summary">
+              {[activeAccount.clusterName, activeAccount.resourceGroup, activeAccount.projectId, activeAccount.location]
+                .filter(Boolean)
+                .join(' · ')}
+            </Typography>
+          )}
+
+          {(saved?.description ?? description) && (
             <Typography variant="body2" color="text.secondary">
-              {description}
+              {saved?.description ?? description}
             </Typography>
           )}
         </CardContent>
@@ -131,14 +197,14 @@ const CloudProviderManager = ({ userId, currentProviders = [], description = '' 
         </DialogTitle>
         <DialogContent>
           <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-            Select the single cloud platform you operate for confidential computing (TSP/TSP).
+            Select the single cloud platform you operate. Azure and GCP also name the existing cluster this TSP trains on.
           </Typography>
 
           <FormControl component="fieldset" fullWidth>
             <FormLabel component="legend">Available Cloud Providers</FormLabel>
             <RadioGroup
               value={selectedProvider}
-              onChange={(e) => setSelectedProvider(e.target.value)}
+              onChange={(e) => handleProviderChange(e.target.value)}
             >
               {availableProviders.map((provider) => (
                 <FormControlLabel
@@ -160,6 +226,30 @@ const CloudProviderManager = ({ userId, currentProviders = [], description = '' 
               ))}
             </RadioGroup>
           </FormControl>
+
+          {clusterFields.length > 0 && (
+            <Box sx={{ mt: 2 }}>
+              <Typography variant="subtitle1" sx={{ mb: 1 }}>
+                {selectedProvider} cluster
+              </Typography>
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                The kubeconfig path is a file on this TSP host. It is not stored on the contract.
+              </Typography>
+              <Grid container spacing={2}>
+                {clusterFields.map(([key, label]) => (
+                  <Grid item xs={12} key={key}>
+                    <TextField
+                      fullWidth
+                      label={label}
+                      value={account[key] || ''}
+                      onChange={(e) => setAccount((prev) => ({ ...prev, [key]: e.target.value }))}
+                      inputProps={{ 'data-testid': `tsp-account-${key}` }}
+                    />
+                  </Grid>
+                ))}
+              </Grid>
+            </Box>
+          )}
 
           <Box sx={{ mt: 3 }}>
             <Typography variant="body2" color="text.secondary" gutterBottom>

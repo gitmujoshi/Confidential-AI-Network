@@ -55,6 +55,7 @@ import toast from 'react-hot-toast';
 import HuggingfaceCatalogPanel from '../components/HuggingfaceCatalogPanel';
 import HuggingfaceHubBadge from '../components/HuggingfaceHubBadge';
 import { extractHfFromDataset } from '../utils/huggingface';
+import { DATASET_INGEST_ACCEPT, partitionIngestFiles } from '../utils/datasetIngest';
 
 function DatasetDetail() {
   const { datasetId } = useParams();
@@ -249,6 +250,9 @@ function DatasetDetail() {
                   {(Number(dataset.artifactTotalBytes || 0) / (1024 * 1024)).toFixed(2)} MB
                   {dataset.artifactsUpdatedAt && (
                     <> · Updated {new Date(dataset.artifactsUpdatedAt).toLocaleString()}</>
+                  )}
+                  {dataset.ingestStatus && dataset.ingestStatus !== 'none' && (
+                    <> · Ingest {dataset.ingestStatus}</>
                   )}
                   {hfDatasetRef && (
                     <> · Hub dataset <strong>{hfDatasetRef.repoId}</strong> is also available if files are omitted.</>
@@ -463,7 +467,7 @@ function DatasetDetail() {
         <DialogContent>
           <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
             Replaces any previous files for this dataset. Use CSV for tabular (numeric features, integer label in the
-            last column).
+            last column). Pickle, joblib, and <code>.pt/.pth</code> files are rejected.
           </Typography>
           <Button variant="outlined" component="label" startIcon={<Upload />}>
             Choose files
@@ -471,7 +475,17 @@ function DatasetDetail() {
               type="file"
               hidden
               multiple
-              onChange={(e) => setUploadFiles(e.target.files ? Array.from(e.target.files) : [])}
+              accept={DATASET_INGEST_ACCEPT}
+              onChange={(e) => {
+                const list = e.target.files ? Array.from(e.target.files) : [];
+                const { allowed, blocked } = partitionIngestFiles(list);
+                if (blocked.length) {
+                  toast.error(
+                    `Rejected: ${blocked.map((f) => f.name).join(', ')} (pickle/model binaries are not allowed as dataset ingest)`
+                  );
+                }
+                setUploadFiles(allowed);
+              }}
             />
           </Button>
           <Typography variant="caption" display="block" sx={{ mt: 1 }}>

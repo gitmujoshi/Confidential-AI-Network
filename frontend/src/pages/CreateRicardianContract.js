@@ -221,6 +221,19 @@ function CreateRicardianContract() {
     }));
   };
 
+  const handleCloudAccountChange = (provider, field, value) => {
+    setEnvironmentSpecs((prev) => ({
+      ...prev,
+      cloudAccounts: {
+        ...(prev.cloudAccounts || {}),
+        [provider]: {
+          ...((prev.cloudAccounts && prev.cloudAccounts[provider]) || {}),
+          [field]: value,
+        },
+      },
+    }));
+  };
+
   // When TSP cloud provider is OCI, hydrate Vault KMS + confidential compute into environmentSpecs
   // so contract / training / provenance share the same refs as the OCI mock product flow.
   useEffect(() => {
@@ -1528,7 +1541,22 @@ function CreateRicardianContract() {
           </Box>
         );
 
-      case 2:
+      case 2: {
+        const selectedTspUser = availableTspUsers.find(
+          (u) =>
+            String(u.id) === String(selectedTsp) ||
+            (u.depaId != null && String(u.depaId) === String(selectedTsp))
+        );
+        const tspSelectionKey = selectedTspUser?.depaId || selectedTspUser?.id || selectedTsp;
+        const wizardProvider = String(
+          selectedTspCloudProviders[tspSelectionKey] ||
+            selectedTspCloudProviders[selectedTspUser?.id] ||
+            selectedTspUser?.cloudProviders?.[0] ||
+            selectedCloudProvider ||
+            ''
+        );
+        const cloudAccountProvider = wizardProvider === 'Azure' || wizardProvider === 'GCP' ? wizardProvider : '';
+        const cloudAccount = (environmentSpecs.cloudAccounts && environmentSpecs.cloudAccounts[cloudAccountProvider]) || {};
         return (
           <Box>
             <Typography 
@@ -1735,11 +1763,13 @@ function CreateRicardianContract() {
                     <Grid container spacing={3}>
                       <Grid item xs={12} md={6}>
                         <FormControl fullWidth>
-                          <InputLabel>KMS Provider</InputLabel>
+                          <InputLabel id="kms-provider-label">KMS Provider</InputLabel>
                           <Select
+                            labelId="kms-provider-label"
                             value={environmentSpecs.kms?.provider || ''}
                             onChange={(e) => handleKmsConfigChange('provider', e.target.value)}
                             label="KMS Provider"
+                            SelectDisplayProps={{ 'data-testid': 'kms-provider' }}
                           >
                             <MenuItem value="">None</MenuItem>
                             <MenuItem value="aws-kms">AWS KMS</MenuItem>
@@ -1756,6 +1786,7 @@ function CreateRicardianContract() {
                         <TextField
                           fullWidth
                           label="Key ID / OCID / ARN"
+                          inputProps={{ 'data-testid': 'kms-key-id' }}
                           value={environmentSpecs.kms?.keyId || ''}
                           onChange={(e) => handleKmsConfigChange('keyId', e.target.value)}
                           placeholder={
@@ -1810,12 +1841,75 @@ function CreateRicardianContract() {
                         />
                       </Grid>
                     </Grid>
+
+                    {cloudAccountProvider === 'Azure' && (
+                      <>
+                        <Typography variant="h5" gutterBottom sx={{ mt: 4, fontWeight: 600, color: 'text.primary', mb: 1 }}>
+                          Azure cluster
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                          Name the TSP AKS cluster this contract trains on. The kubeconfig stays on the TSP user.
+                        </Typography>
+                        <Grid container spacing={3}>
+                          <Grid item xs={12} md={6}>
+                            <TextField fullWidth label="Subscription ID" value={cloudAccount.subscriptionId || ''} onChange={(e) => handleCloudAccountChange('Azure', 'subscriptionId', e.target.value)} />
+                          </Grid>
+                          <Grid item xs={12} md={6}>
+                            <TextField fullWidth label="Resource group" value={cloudAccount.resourceGroup || ''} onChange={(e) => handleCloudAccountChange('Azure', 'resourceGroup', e.target.value)} />
+                          </Grid>
+                          <Grid item xs={12} md={6}>
+                            <TextField fullWidth label="AKS cluster name" value={cloudAccount.clusterName || ''} onChange={(e) => handleCloudAccountChange('Azure', 'clusterName', e.target.value)} />
+                          </Grid>
+                          <Grid item xs={12} md={6}>
+                            <TextField fullWidth label="Namespace" value={cloudAccount.namespace || ''} onChange={(e) => handleCloudAccountChange('Azure', 'namespace', e.target.value)} placeholder="contract-management" />
+                          </Grid>
+                          <Grid item xs={12} md={6}>
+                            <TextField fullWidth label="Region" value={cloudAccount.location || ''} onChange={(e) => handleCloudAccountChange('Azure', 'location', e.target.value)} placeholder="eastus" />
+                          </Grid>
+                          <Grid item xs={12} md={6}>
+                            <TextField fullWidth label="Storage account" value={cloudAccount.storageAccount || ''} onChange={(e) => handleCloudAccountChange('Azure', 'storageAccount', e.target.value)} />
+                          </Grid>
+                          <Grid item xs={12}>
+                            <TextField fullWidth label="Key Vault URI" value={cloudAccount.keyVaultUri || ''} onChange={(e) => handleCloudAccountChange('Azure', 'keyVaultUri', e.target.value)} placeholder="https://example.vault.azure.net/" />
+                          </Grid>
+                        </Grid>
+                      </>
+                    )}
+
+                    {cloudAccountProvider === 'GCP' && (
+                      <>
+                        <Typography variant="h5" gutterBottom sx={{ mt: 4, fontWeight: 600, color: 'text.primary', mb: 1 }}>
+                          GCP cluster
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                          Name the TSP GKE cluster this contract trains on. The kubeconfig stays on the TSP user.
+                        </Typography>
+                        <Grid container spacing={3}>
+                          <Grid item xs={12} md={6}>
+                            <TextField fullWidth label="Project ID" value={cloudAccount.projectId || ''} onChange={(e) => handleCloudAccountChange('GCP', 'projectId', e.target.value)} />
+                          </Grid>
+                          <Grid item xs={12} md={6}>
+                            <TextField fullWidth label="Location" value={cloudAccount.location || ''} onChange={(e) => handleCloudAccountChange('GCP', 'location', e.target.value)} placeholder="us-central1" />
+                          </Grid>
+                          <Grid item xs={12} md={6}>
+                            <TextField fullWidth label="GKE cluster name" value={cloudAccount.clusterName || ''} onChange={(e) => handleCloudAccountChange('GCP', 'clusterName', e.target.value)} />
+                          </Grid>
+                          <Grid item xs={12} md={6}>
+                            <TextField fullWidth label="Namespace" value={cloudAccount.namespace || ''} onChange={(e) => handleCloudAccountChange('GCP', 'namespace', e.target.value)} placeholder="contract-management" />
+                          </Grid>
+                          <Grid item xs={12}>
+                            <TextField fullWidth label="GCS bucket" value={cloudAccount.bucket || ''} onChange={(e) => handleCloudAccountChange('GCP', 'bucket', e.target.value)} />
+                          </Grid>
+                        </Grid>
+                      </>
+                    )}
                   </CardContent>
                 </Card>
               </Grid>
             </Grid>
           </Box>
         );
+      }
 
       case 3:
         return (

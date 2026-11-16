@@ -1,7 +1,7 @@
 ---
 layout: default
 title: Product tour
-description: End-to-end UI tour — registration through prediction on Local Docker, plus Azure architecture references (Entra, Key Vault, confidential compute).
+description: End-to-end UI tour — registration through prediction on Local Docker, plus Azure and GCP clean-room clusters and confidential-computing references.
 permalink: /product-tour/
 ---
 
@@ -11,8 +11,9 @@ permalink: /product-tour/
   <p class="lede">
     Multi-party path on a runnable <strong>Local Docker</strong> stack (Playwright lifecycle):
     onboard → catalog → contract → train → provenance → deploy/predict → Auditor (Merkle + contract).
+    The Tech Service Provider on the contract chooses the clean room:
+    Local runs on this machine; Azure and GCP submit to that provider’s existing cluster.
     Azure narrative (Entra, Key Vault, confidential compute): slide deck and CC deep dive.
-    Local path: host Docker training (`TRAINING_EXECUTION_MODE=local-docker`).
   </p>
   <p class="cta-row" style="margin-top:1.25rem">
     <a class="cta" href="{{ '/assets/decks/azure-e2e-product-tour.html' | relative_url }}">Azure product tour deck</a>
@@ -30,6 +31,7 @@ permalink: /product-tour/
       <li><a href="#onboard">1. Registration</a></li>
       <li><a href="#catalog">2. Catalog</a></li>
       <li><a href="#contract">3. Contract &amp; sign</a></li>
+      <li><a href="#ccr">Clean-room cluster</a></li>
       <li><a href="#train">4. Train &amp; provenance</a></li>
       <li><a href="#infer">5. Deploy &amp; predict</a></li>
       <li><a href="#auditor">6. Auditor</a></li>
@@ -57,6 +59,7 @@ permalink: /product-tour/
     <li><a href="#onboard">Party registration</a> — Training Data Consumer, Training Data Provider, Tech Service Provider (signing key at register)</li>
     <li><a href="#catalog">Catalog</a> — dataset publish and model selection for training</li>
     <li><a href="#contract">Contract</a> — create, notify, and sign by all parties</li>
+    <li><a href="#ccr">Clean-room cluster</a> — Local hides cluster fields; Azure and GCP name the existing cluster. The kubeconfig path stays on the TSP dashboard.</li>
     <li><a href="#train">Training</a> — start job, completion, run logs &amp; provenance</li>
     <li><a href="#infer">Deploy &amp; test</a> — register artifact, deploy, run a prediction</li>
     <li><a href="#auditor">Auditor</a> — Merkle audit tree + contract review</li>
@@ -165,6 +168,47 @@ permalink: /product-tour/
   <figure class="shot">
     <img src="{{ '/assets/lifecycle/15-tdc-signed-contract.png' | relative_url }}" alt="Signed contract view for Training Data Consumer" loading="lazy" />
     <figcaption>Training Data Consumer — signed contract</figcaption>
+  </figure>
+</section>
+
+<section class="home-section tour-section" id="ccr">
+  <h2>Clean-room cluster (Local, Azure, GCP)</h2>
+  <p>
+    The TSP selected on the contract decides where training runs.
+    A <strong>Local</strong> TSP trains on this host
+    (<code>local-docker</code>, <code>local-native</code>, or <code>local-mlx</code>).
+    An <strong>Azure</strong> TSP submits a job to that provider’s existing AKS cluster.
+    A <strong>GCP</strong> TSP submits to the existing GKE cluster.
+    The platform does not create a subscription or project for the job.
+    <strong>AWS</strong> does not start training.
+  </p>
+  <p>
+    The contract stores the cluster name and account identifiers.
+    The kubeconfig path is a file on the TSP host, saved from the dashboard
+    <strong>Cloud Provider</strong> card. A blank contract field is filled from that card.
+    If the kubeconfig path is missing, <strong>Start training</strong> fails and the job is
+    <strong>FAILED</strong> (<code>azure-ccr</code> or <code>gcp-ccr</code>).
+    Cloud attestation on this path is marked <strong>simulated</strong> until a hardware quote is attached.
+  </p>
+  <figure class="shot">
+    <img src="{{ '/assets/ccr/01-local-tsp-environment.png' | relative_url }}" alt="Local TSP contract form without a cloud cluster section" loading="lazy" />
+    <figcaption>Local TSP — environment and KMS only. Azure cluster and GCP cluster stay hidden.</figcaption>
+  </figure>
+  <figure class="shot">
+    <img src="{{ '/assets/ccr/02-azure-cluster-contract.png' | relative_url }}" alt="Azure cluster fields on the contract wizard" loading="lazy" />
+    <figcaption>Azure TSP — Subscription ID, resource group, AKS cluster name, namespace, region, storage account, Key Vault URI.</figcaption>
+  </figure>
+  <figure class="shot">
+    <img src="{{ '/assets/ccr/03-gcp-cluster-contract.png' | relative_url }}" alt="GCP cluster fields on the contract wizard" loading="lazy" />
+    <figcaption>GCP TSP — Project ID, location, GKE cluster name, namespace, GCS bucket.</figcaption>
+  </figure>
+  <figure class="shot">
+    <img src="{{ '/assets/ccr/04-azure-tsp-cluster.png' | relative_url }}" alt="Azure TSP dashboard cluster editor including kubeconfig path" loading="lazy" />
+    <figcaption>Azure TSP dashboard — existing AKS cluster plus the kubeconfig path on this host.</figcaption>
+  </figure>
+  <figure class="shot">
+    <img src="{{ '/assets/ccr/05-gcp-tsp-cluster.png' | relative_url }}" alt="GCP TSP dashboard cluster editor including kubeconfig path" loading="lazy" />
+    <figcaption>GCP TSP dashboard — existing GKE cluster plus the kubeconfig path on this host.</figcaption>
   </figure>
 </section>
 
@@ -279,15 +323,20 @@ BACKEND_URL=http://127.0.0.1:5001 npm run test:e2e:lifecycle-guide</pre>
   <p>Auditor screenshots only (reuses an existing contract):</p>
   <pre class="arch-diagram" style="white-space: pre-wrap;">cd frontend
 BACKEND_URL=http://127.0.0.1:5001 npm run test:e2e:auditor-guide</pre>
+  <p>Clean-room cluster screenshots (Local, Azure, GCP contract form and TSP dashboard):</p>
+  <pre class="arch-diagram" style="white-space: pre-wrap;">cd frontend
+npx playwright test tests/e2e/tsp-ccr-providers.spec.js --project=chromium</pre>
   <p>Open-GMASE gate screenshots:</p>
   <pre class="arch-diagram" style="white-space: pre-wrap;">cd frontend
 E2E_WAIT_FOR_LOCAL_TRAINING=true BACKEND_URL=http://127.0.0.1:5001 npm run test:e2e:inference</pre>
   <p>
-    Images live in
+    Lifecycle and Open-GMASE images live in
     <code>docs/guides/lifecycle-user-guide/screenshots/</code>
     and
     <code>docs/guides/gmase-integration/screenshots/</code>,
     and are copied into this site at Pages build time.
+    Clean-room cluster images are written to
+    <code>docs/blogs/assets/ccr/</code>.
   </p>
 </section>
   </div>

@@ -2,15 +2,15 @@
 
 ## 🏗️ **Complete Training Module for Confidential Clean Room Providers**
 
-This module provides detailed training for CCRP users on how to effectively provision and manage secure training environments in the AI model training environment.
+This module is for TSP / CCRP users who host training on a Local machine or on an Azure, GCP, or OCI cluster they already run. Training start does not create a subscription, project, or cluster.
 
 ## 📋 **Module Overview**
 
 ### **Learning Objectives**
 By the end of this module, you will be able to:
-- Navigate the CCRP dashboard and environment management interface
-- Provision and configure Trusted Execution Environments (TEEs)
-- Set up secure training environments across multiple cloud providers
+- Save the provider and the existing cluster on the TSP dashboard **Cloud Provider** card
+- Keep the kubeconfig path on that host, not on the contract
+- Tell a TDC which cluster fields the contract must name
 - Monitor training execution and ensure compliance
 - Generate attestation reports and compliance documentation
 - Manage infrastructure resources and scaling
@@ -68,51 +68,30 @@ By the end of this module, you will be able to:
    - **Secure Boot**: Verified boot process
    - **Remote Attestation**: Third-party verification of environment
 
-### **2.2 Environment Provisioning Process**
-1. **Provisioning Workflow**:
+### **2.2 Name the existing cluster**
+1. **Dashboard workflow**:
    ```
-   Step 1: Go to "Environment Management" → "Provision Environment"
-   Step 2: Select cloud provider:
-          - AWS (Nitro Enclaves)
-          - Azure (SGX)
-          - Google Cloud (Confidential VMs)
-          - OCI (Confidential Computing)
-   Step 3: Configure TEE settings:
-          - TEE type and version
-          - Security level
-          - Attestation requirements
-          - Encryption settings
-   Step 4: Set resource specifications:
-          - CPU cores and type
-          - Memory size
-          - Storage type and size
-          - Network configuration
-   Step 5: Configure security policies:
-          - Access controls
-          - Network policies
-          - Data encryption
-          - Audit logging
-   Step 6: Review and provision environment
+   Step 1: Open /tsp/dashboard
+   Step 2: On the Cloud Provider card, choose one provider
+   Step 3: Azure — Subscription ID, Resource group, AKS cluster name,
+            Namespace, Region, Storage account, Key Vault URI, Kubeconfig path
+   Step 4: GCP — Project ID, Location, GKE cluster name,
+            Namespace, GCS bucket, Kubeconfig path
+   Step 5: Save. The path is a file on this TSP host
    ```
+2. **What training uses**:
+   - **Local**: this machine (`local-docker`, `local-native`, or `local-mlx`)
+   - **Azure**: the named AKS cluster (`azure-ccr`)
+   - **GCP**: the named GKE cluster (`gcp-ccr`)
+   - **OCI**: the named OKE cluster
+   - **AWS**: training is not started
+3. A blank kubeconfig path fails the job. The start does not create a cluster. Attestation on the Azure and GCP submit path is marked simulated until a hardware quote is attached. The **Cloud credentials** page is a separate store. The CCR runner reads the dashboard card and `AZURE_CCR_KUBECONFIG` / `GCP_CCR_KUBECONFIG`.
 
-2. **Environment Configuration Options**:
-   - **Basic Configuration**: Standard training environment
-   - **High Security**: Enhanced security for sensitive data
-   - **High Performance**: Optimized for performance
-   - **Custom Configuration**: User-defined settings
+### **2.3 Contract fields the TDC fills**
+The wizard shows cluster fields only after an Azure or GCP TSP is selected. A blank contract field is filled from this saved account. The contract does not store the kubeconfig path.
 
-### **2.3 Multi-Cloud Environment Setup**
-1. **Cloud Provider Selection**:
-   - **AWS**: EKS with Nitro Enclaves
-   - **Azure**: AKS with SGX support
-   - **Google Cloud**: GKE with Confidential VMs
-   - **OCI**: OKE with Confidential Computing
-
-2. **Cross-Cloud Considerations**:
-   - **Network Connectivity**: Inter-cloud networking
-   - **Data Transfer**: Secure data movement
-   - **Compliance**: Cross-border compliance
-   - **Cost Optimization**: Multi-cloud cost management
+- **Azure cluster**: Subscription ID, Resource group, AKS cluster name, Namespace, Region, Storage account, Key Vault URI
+- **GCP cluster**: Project ID, Location, GKE cluster name, Namespace, GCS bucket
 
 ## 🔒 **Module 3: Security Configuration**
 

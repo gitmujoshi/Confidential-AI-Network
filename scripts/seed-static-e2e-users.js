@@ -174,6 +174,30 @@ async function ensureStaticTspLocal(adminToken) {
   console.log(`   ✓ Local cloud provider on ${tsp.email}`);
 }
 
+async function ensureCloudTspAccount(userDef) {
+  const provider = userDef.cloudProviders?.[0];
+  if (!userDef.cloudAccount || (provider !== 'Azure' && provider !== 'GCP')) return;
+  const login = await axios.post(`${BACKEND_URL}/api/auth/login`, {
+    email: userDef.email,
+    password: PASSWORD,
+  });
+  const token = login.data?.accessToken;
+  const userId = login.data?.user?.id;
+  if (!token || !userId) {
+    throw new Error(`Cannot apply ${provider} account without a login for ${userDef.email}`);
+  }
+  await axios.put(
+    `${BACKEND_URL}/api/tsp/cloud-providers/${userId}`,
+    {
+      cloudProviders: [provider],
+      description: userDef.description,
+      cloudAccount: { [provider]: userDef.cloudAccount },
+    },
+    { headers: { Authorization: `Bearer ${token}` } }
+  );
+  console.log(`   ✓ ${provider} cluster account on ${userDef.email}`);
+}
+
 async function ensureStaticTspOci(adminToken) {
   const tsp = USERS.find((u) => u.cloudProviders?.includes('OCI'));
   if (!tsp) return;
@@ -258,6 +282,9 @@ async function main() {
   });
   await ensureStaticTspLocal(adminLogin.data.accessToken);
   await ensureStaticTspOci(adminLogin.data.accessToken);
+  for (const u of USERS) {
+    if (u.cloudAccount) await ensureCloudTspAccount(u);
+  }
 
   const failures = await verifyAllLogins();
   if (failures.length) {

@@ -39,6 +39,9 @@
                     <li class="nav-item">
                         <a class="nav-link" href="about.html">About</a>
                     </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="https://gitmujoshi.github.io/Confidential-AI-Network/notes/">Notes</a>
+                    </li>
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
                             <i class="fas fa-tachometer-alt me-1"></i>Role-based Dashboards
@@ -103,7 +106,7 @@
                         </ul>
                     </li>
                     <li class="nav-item">
-                        <a class="btn btn-primary ms-2" href="#demo">Get Started</a>
+                        <a class="btn btn-primary ms-2" href="https://can.dpi-apps.space/">Open the app</a>
                     </li>
                 </ul>
             </div>
@@ -124,8 +127,12 @@
                             Through advanced cryptographic techniques, differential privacy, and confidential computing, we ensure that your data remains completely protected while enabling breakthrough AI innovations. Whether you're working with healthcare records, financial data, or proprietary business information, our platform maintains the highest standards of privacy and security.
                         </p>
                         <p class="hero-description">
-                            Our comprehensive compliance framework handles GDPR, HIPAA, DPDP 2023, and other regulatory requirements automatically, so you can focus on building better AI models while we handle the legal and compliance complexities.
+                            A Local clean room trains on this machine. An Azure or GCP clean room submits the job to the cluster that provider already runs. The contract names that cluster. The kubeconfig path stays on the provider’s dashboard.
                         </p>
+                        <div class="mt-4">
+                            <a href="https://can.dpi-apps.space/" class="btn btn-primary btn-lg me-2">Open the app</a>
+                            <a href="https://gitmujoshi.github.io/Confidential-AI-Network/product-tour/" class="btn btn-outline-primary btn-lg">Product tour</a>
+                        </div>
                     </div>
                 </div>
 
@@ -211,8 +218,8 @@
                         <div class="d-flex align-items-start mb-3">
                             <i class="fas fa-cloud fa-2x text-info me-3"></i>
                         <div>
-                                <h5 class="fw-bold">Multi-Cloud Infrastructure</h5>
-                                <p class="text-muted mb-0">Deploy across AWS, Azure, GCP, and OCI with centralized security and compliance management.</p>
+                                <h5 class="fw-bold">Existing clean-room clusters</h5>
+                                <p class="text-muted mb-0">Name the AKS or GKE cluster the provider already runs. The job is not used to create a subscription, project, or cluster.</p>
                             </div>
                         </div>
                     </div>
@@ -229,6 +236,45 @@
                     </div>
                 </div>
             </div>
+        </div>
+    </section>
+
+    <!-- Clean-room cluster -->
+    <section id="clusters" class="py-5 bg-white">
+        <div class="container">
+            <div class="row text-center mb-5">
+                <div class="col-lg-8 mx-auto">
+                    <h2 class="section-header">Use the cluster you already run</h2>
+                    <p class="section-subheader">The contract stores the cluster name and account identifiers. The kubeconfig path is a file on the TSP host, saved from the Cloud Provider card.</p>
+                </div>
+            </div>
+            <div class="row g-4">
+                <div class="col-lg-3 col-md-6">
+                    <div class="solution-card bg-light p-4 rounded-lg h-100">
+                        <h5 class="fw-bold">Local</h5>
+                        <p class="text-muted mb-0">Training stays on this machine. The contract wizard hides the cluster sections.</p>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-6">
+                    <div class="solution-card bg-light p-4 rounded-lg h-100">
+                        <h5 class="fw-bold">Azure</h5>
+                        <p class="text-muted mb-0">Existing AKS cluster: subscription, resource group, cluster name, namespace, region, storage account, and Key Vault URI.</p>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-6">
+                    <div class="solution-card bg-light p-4 rounded-lg h-100">
+                        <h5 class="fw-bold">Google Cloud</h5>
+                        <p class="text-muted mb-0">Existing GKE cluster: project, location, cluster name, namespace, and GCS bucket.</p>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-6">
+                    <div class="solution-card bg-light p-4 rounded-lg h-100">
+                        <h5 class="fw-bold">Oracle Cloud</h5>
+                        <p class="text-muted mb-0">Existing OKE cluster. AWS does not start a training job.</p>
+                    </div>
+                </div>
+            </div>
+            <p class="text-center text-muted mt-4 mb-0">A missing kubeconfig path marks the job failed. Azure and GCP attestation on this path is marked simulated until a hardware quote is attached.</p>
         </div>
     </section>
 
@@ -540,11 +586,11 @@
                                 <h2 class="section-header">Ready to Unlock Your Data?</h2>
                     <p class="section-subheader">Start training AI models on your confidential data while maintaining privacy and compliance.</p>
             <div class="cta-buttons">
-                <a href="#demo" class="btn btn-light btn-lg me-3">
-                    <i class="fas fa-play me-2"></i>Start Free Trial
+                <a href="https://can.dpi-apps.space/" class="btn btn-light btn-lg me-3">
+                    <i class="fas fa-arrow-right me-2"></i>Open the app
                 </a>
-                <a href="features.html" class="btn btn-outline-dark btn-lg">
-                    <i class="fas fa-info-circle me-2"></i>Explore Features
+                <a href="https://gitmujoshi.github.io/Confidential-AI-Network/notes/" class="btn btn-outline-light btn-lg">
+                    <i class="fas fa-book me-2"></i>Research notes
                 </a>
             </div>
         </div>
@@ -561,6 +607,7 @@
                 <div class="col-lg-2 mb-4">
                     <h6 class="fw-bold mb-3">Product</h6>
                     <ul class="list-unstyled">
+                        <li><a href="https://can.dpi-apps.space/" class="text-muted text-decoration-none">Open the app</a></li>
                         <li><a href="features.html" class="text-muted text-decoration-none">Features</a></li>
                         <li><a href="solutions.html" class="text-muted text-decoration-none">Solutions</a></li>
                         <li><a href="technology.html" class="text-muted text-decoration-none">Technology</a></li>

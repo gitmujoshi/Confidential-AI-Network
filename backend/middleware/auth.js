@@ -80,6 +80,8 @@ async function attachDbUserFromIdpClaims(req, next, res, token, userInfo, authTy
       profileCompleted: user.profileCompleted,
       emailVerified: user.emailVerified,
       depaId: user.depaId,
+      cloudProviders: user.cloudProviders || [],
+      cloudAccount: user.cloudAccount || null,
     },
     token,
     authType,
@@ -240,7 +242,9 @@ const authenticateToken = async (req, res, next) => {
               onboardingStatus: user.onboardingStatus,
               profileCompleted: user.profileCompleted,
               emailVerified: user.emailVerified,
-              depaId: user.depaId
+              depaId: user.depaId,
+              cloudProviders: user.cloudProviders || [],
+              cloudAccount: user.cloudAccount || null,
             },
             token: token,
             authType: 'keycloak'
@@ -328,6 +332,8 @@ const authenticateToken = async (req, res, next) => {
           profileCompleted: user.profileCompleted,
           emailVerified: user.emailVerified,
           depaId: user.depaId,
+          cloudProviders: user.cloudProviders || [],
+          cloudAccount: user.cloudAccount || null,
         },
       };
       

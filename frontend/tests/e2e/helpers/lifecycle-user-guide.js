@@ -40,7 +40,7 @@ async function loginViaAPI({ email, password = PASSWORD }) {
   const token = res.data?.accessToken;
   const user = res.data?.user;
   if (!token || !user) throw new Error(`API login failed for ${email}`);
-  return { token, user };
+  return { token, user, refreshToken: res.data?.refreshToken || null };
 }
 
 async function completeFirstLoginPasswordViaAPI({ email, currentPassword, newPassword = PASSWORD }) {
@@ -73,6 +73,10 @@ async function ensureTspLocalProvider(_email) {
   // OCI TSPs (tsp.oci.e2e@test.com, etc.) must stay on OCI — never force Local onto them.
   const KEEP_LOCAL = new Set(['ccrp.e2e@test.com', 'tsp.local@jurisdiction-test.com']);
   const KEEP_OCI = new Set(['tsp.oci.e2e@test.com', 'tsp.yotta@in-fintech-test.com']);
+  const KEEP_CLOUD = new Map([
+    ['tsp.azure.e2e@test.com', 'Azure'],
+    ['tsp.gcp.e2e@test.com', 'GCP'],
+  ]);
 
   for (const row of rows) {
     const rowEmail = String(row.email || '').toLowerCase();
@@ -80,6 +84,20 @@ async function ensureTspLocalProvider(_email) {
     const hasLocal = existing.map((p) => p.toLowerCase()).includes('local');
     const shouldKeepLocal = KEEP_LOCAL.has(rowEmail);
     const shouldKeepOci = KEEP_OCI.has(rowEmail);
+    const keepCloud = KEEP_CLOUD.get(rowEmail);
+
+    if (keepCloud) {
+      if (JSON.stringify(existing) === JSON.stringify([keepCloud])) continue;
+      await axios.put(
+        `${BACKEND_URL}/api/users/${row.id}`,
+        {
+          cloudProviders: [keepCloud],
+          description: row.description || `${keepCloud} CCR test TSP`,
+        },
+        { headers: { Authorization: `Bearer ${adminToken}` } }
+      );
+      continue;
+    }
 
     if (shouldKeepOci) {
       if (JSON.stringify(existing) === JSON.stringify(['OCI'])) continue;
@@ -165,6 +183,17 @@ async function loginViaUI(page, { email, password = PASSWORD }) {
   await page.getByRole('textbox', { name: 'Password', exact: true }).fill(password);
   await page.getByRole('button', { name: /sign in/i }).click();
   await expect(page).toHaveURL(/\/dashboard$/, { timeout: 90_000 });
+}
+
+/** Write an API session into the open page so a later navigation is not bounced to login. */
+async function applyBrowserSession(page, session) {
+  if (!session?.token || !session?.user) return;
+  await page.evaluate(({ t, u, r }) => {
+    localStorage.setItem('authToken', t);
+    localStorage.setItem('user', JSON.stringify(u));
+    localStorage.setItem('currentUser', JSON.stringify(u));
+    if (r) localStorage.setItem('refreshToken', r);
+  }, { t: session.token, u: session.user, r: session.refreshToken || '' });
 }
 
 /** Seed browser auth from API tokens (resilient after long waits / FE restarts). */
@@ -262,6 +291,7 @@ async function captureAuditorTourSteps(page, { contractId, steps }) {
     timeout: 60000,
   });
 
+  await applyBrowserSession(page, session);
   await page.goto('/auditor/dashboard', { waitUntil: 'domcontentloaded', timeout: 60000 });
   await expect(page.getByText(/Auditor workspace/i).first()).toBeVisible({ timeout: 60000 });
   // Prefer showing the run's contract; if the list is filtered/paginated, continue with direct URLs.
@@ -284,10 +314,19 @@ async function captureAuditorTourSteps(page, { contractId, steps }) {
     ...(await captureShot(page, '25-auditor-workspace.png')),
   });
 
+  await applyBrowserSession(page, session);
   await page.goto(`/auditor/contracts/${encodeURIComponent(contractId)}/audit-tree`, {
     waitUntil: 'domcontentloaded',
     timeout: 60000,
   });
+  if (/\/login/.test(page.url())) {
+    await seedSession(page, { email: session.email, password: session.password });
+    await applyBrowserSession(page, session);
+    await page.goto(`/auditor/contracts/${encodeURIComponent(contractId)}/audit-tree`, {
+      waitUntil: 'domcontentloaded',
+      timeout: 60000,
+    });
+  }
   await expect(page.getByText(/Merkle audit tree|Root hash|audit tree/i).first()).toBeVisible({
     timeout: 90000,
   });

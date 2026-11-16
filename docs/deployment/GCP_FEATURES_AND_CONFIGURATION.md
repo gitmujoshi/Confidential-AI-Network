@@ -14,7 +14,7 @@ Canonical catalog of **Google Cloud–oriented product features**, E2E fit, **ma
 
 **Identity rule:** GCP cloud = **Google Cloud Identity / Identity Platform** (OIDC JWT + custom claims or groups) for SSO. **Keycloak** = local docker-compose / Playwright only — do not run Keycloak as the production IdP on GCP (optional temporary broker only).
 
-**Provider code today:** `backend/services/providers/gcpProvider.js` is largely **simulated**. Secrets path `GCP_SECRETS` exists in `secretManager.js`. **No** platform Terraform under `deployment/gcp/` yet.
+**Provider code today:** portal training for a GCP TSP uses `gcpCcrRunner.js` against the GKE cluster named on the contract and the TSP user. `backend/services/providers/gcpProvider.js` is a separate simulated provider and is not that path. Secrets path `GCP_SECRETS` exists in `secretManager.js`. Platform GKE Terraform is not in this repo. Identity Platform Terraform is.
 
 ---
 
@@ -28,7 +28,7 @@ Canonical catalog of **Google Cloud–oriented product features**, E2E fit, **ma
 | 4 | Signing keys in Cloud KMS/HSM + verify | Design | `SIGNING_KEY_BACKEND` |
 | 5 | Principal DEK / MEK + attested release | Design (signals MVP) | `CAN_*`, Confidential Space |
 | 6 | Contract `kmsConfigs` → Cloud KMS | Partial (JSON only) | contract JSON + TSP creds |
-| 7 | GCP training (GKE Job / Batch / Confidential Space) | Design / stub provider | `TRAINING_EXECUTION_MODE` |
+| 7 | GCP training on an existing GKE cluster | Partial (`gcp-ccr` Job submit; Confidential Space quote is design) | Contract `cloudAccounts.GCP`, TSP `cloudAccount.GCP.kubeconfigPath`, `GCP_CCR_KUBECONFIG` |
 | 8 | GCS datasets / artifacts | Design | `GCP_GCS_*` |
 | 9 | SCITT CCF on GCP | Design | `SCITT_*` |
 | 10 | GCP-targeted E2E / CI | Design | staging URLs + IdP users |
@@ -46,8 +46,8 @@ Identity Platform / IAP-assisted SSO
   → Contract kmsConfigs → Cloud KMS key resource names
   → Parties sign with Cloud KMS–backed keys (crypto verify)
   → Optional SCITT receipt
-  → CAN escrow: Confidential Space attestation → DEK+MEK release
-     OR portal train: GKE Job / Batch with TSP GCP credentials
+  → CAN escrow: Confidential Space attestation → DEK+MEK release (design)
+     OR portal train: Job on the TSP’s existing GKE cluster (`gcp-ccr`)
   → Artifacts → GCS → register / infer
   → Destroy CCR; zeroize; provenance complete
 ```
@@ -169,21 +169,21 @@ Local shortcuts: Keycloak, disk datasets, placeholder signatures, `local-docker`
 
 ### 3.7 GCP training execution
 
+A signed contract whose TSP is **GCP** submits `gcp-ccr` to the GKE cluster that TSP already runs. Start does not create a project or a cluster. `TRAINING_EXECUTION_MODE` is ignored for this provider.
+
+| Source | What it supplies |
+|--------|------------------|
+| Contract `environmentSpecs.cloudAccounts.GCP` | Project ID, location, GKE name, and optional namespace and GCS bucket. A blank field is filled from the TSP user account |
+| TSP dashboard **Cloud Provider** card | Same identifiers plus `kubeconfigPath`, stored on `users.cloud_account.GCP` |
+| `GCP_CCR_KUBECONFIG` | Kubeconfig path on the API host when the dashboard field is empty |
+
+Required before submit: project, location, and GKE name, plus a kubeconfig path. A missing path marks the `TrainingJob` **FAILED** and returns HTTP 502. `kubectl apply` runs only when that path is set. Attestation on this path is `simulated`. No Confidential Space quote is collected. `gcpProvider.js` remains a simulated provider and is not this path.
+
 | Mode | Maturity |
 |------|----------|
-| `local-docker` | Implemented |
-| `gcp` / GKE Job / Batch | Design |
-| `gcpProvider.js` | Stub / simulated |
-
-| Variable | Example | Description |
-|----------|---------|-------------|
-| `TRAINING_EXECUTION_MODE` | `local-docker` \| `gcp` | |
-| `TRAINING_SIMULATION_MODE` | `false` | |
-| `GCP_TRAINING_COMPUTE` | `gke-job` \| `batch` \| `confidential-space` | |
-| `GCP_REGION` | `us-central1` | |
-| `LOCAL_TRAINING_IMAGE` | `{region}-docker.pkg.dev/{project}/can/local-trainer:tag` | Artifact Registry |
-
-**TSP credentials:** `projectId` + `serviceAccountKey` (JSON) today; target: impersonation / WIF without long-lived keys. Secret manager `GCP_SECRETS`.
+| `local-docker` | Implemented when the TSP provider is Local |
+| `gcp-ccr` | Job spec and submit to the named GKE cluster are live; guest quote is design |
+| Confidential Space | Design |
 
 ---
 
@@ -293,7 +293,7 @@ SCITT_DEPLOYMENT=gke
 3. GCS dataset backend + Workload Identity  
 4. Signing Cloud KMS + crypto verify  
 5. Contract KMS enforce → Cloud KMS  
-6. GKE/Batch training executor; replace stub `gcpProvider`  
+6. Confidential Space quote, status watch, and GCS mount. `gcp-ccr` already submits to the named GKE cluster. `gcpProvider.js` stays off this path  
 7. Confidential Space attestation for DEK/MEK  
 8. Cloud Armor + API Gateway / IAP  
 9. SCITT on GKE; E2E against staging  
@@ -306,7 +306,9 @@ SCITT_DEPLOYMENT=gke
 |------|------|
 | GCP IdP service | `backend/services/gcpIdentityService.js` |
 | Cloud IdP registry | `backend/services/cloudIdpRegistry.js` |
-| GCP provider | `backend/services/providers/gcpProvider.js` |
+| GCP CCR runner | `backend/services/gcpCcrRunner.js` |
+| TSP cloud account | `backend/services/tspCloudAccount.js`, `users.cloud_account` |
+| Training router | `backend/services/trainingExecutionRouter.js` |
 | Secrets | `backend/services/secretManager.js` (`GCP_SECRETS`) |
 | TEE hints | `backend/services/teeProvisioningService.js` (`GCP_PROJECT_ID`) |
 | Terraform identity | `deployment/gcp/terraform/modules/identity/` |
@@ -317,5 +319,6 @@ SCITT_DEPLOYMENT=gke
 
 | Date | Change |
 |------|--------|
+| 2026-11-16 | Portal GCP training submits `gcp-ccr` to the TSP’s existing GKE cluster. Kubeconfig stays on the TSP user. A missing path fails the job |
 | 2026-07-27 | Identity Platform auth implemented (OIDC + TF identity scaffold); Keycloak local-only |
 | 2026-07-26 | Initial GCP feature + configuration catalog |

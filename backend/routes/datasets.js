@@ -7,6 +7,7 @@ const db = require('../models');
 const { v4: uuidv4 } = require('uuid');
 const { authenticateToken } = require('../middleware/auth');
 const { persistUploadedFiles } = require('../services/datasetArtifactStorage');
+const { ACCEPT_ATTR } = require('../services/datasetIngestGate');
 const DEPAIdService = require('../services/depaIdService');
 
 const artifactUpload = multer({
@@ -42,10 +43,18 @@ function withModality(datasetRow) {
   const plain = datasetRow?.get ? datasetRow.get({ plain: true }) : datasetRow;
   const artifactCount = Number(plain.artifactFileCount ?? plain.artifact_file_count ?? 0);
   const storageBackend = plain.storageBackend ?? plain.storage_backend ?? 'none';
+  const ingest = plain.metadata?.ingest && typeof plain.metadata.ingest === 'object'
+    ? plain.metadata.ingest
+    : null;
+  const ingestStatus =
+    ingest?.status ||
+    (artifactCount > 0 && storageBackend === 'local' ? 'ready' : 'none');
   return {
     ...plain,
     modality: inferDatasetModality(plain),
-    physicalTrainingReady: artifactCount > 0 && storageBackend === 'local',
+    physicalTrainingReady: artifactCount > 0 && storageBackend === 'local' && ingestStatus !== 'rejected',
+    ingestStatus,
+    ingestAccept: ACCEPT_ATTR,
   };
 }
 
@@ -371,12 +380,22 @@ router.post(
         contentFormat: req.body?.contentFormat || req.body?.content_format || null,
       });
 
+      const prevMeta =
+        dataset.metadata && typeof dataset.metadata === 'object' ? { ...dataset.metadata } : {};
+      prevMeta.ingest = {
+        status: 'ready',
+        checkedAt: new Date().toISOString(),
+        contentFormat: meta.contentFormat || dataset.contentFormat || null,
+        fileCount: meta.artifactFileCount,
+      };
+
       await dataset.update({
         storageBackend: meta.storageBackend,
         artifactFileCount: meta.artifactFileCount,
         artifactTotalBytes: meta.artifactTotalBytes,
         contentFormat: meta.contentFormat || dataset.contentFormat,
         artifactsUpdatedAt: meta.artifactsUpdatedAt,
+        metadata: prevMeta,
       });
 
       const refreshed = await db.Dataset.findOne({
@@ -390,7 +409,11 @@ router.post(
       });
     } catch (error) {
       console.error('Artifact upload failed:', error);
-      return res.status(400).json({ error: error.message || 'Upload failed' });
+      return res.status(error.statusCode || 400).json({
+        error: error.message || 'Upload failed',
+        code: error.code || undefined,
+        rejected: error.rejected || undefined,
+      });
     }
   }
 );
@@ -426,12 +449,14 @@ router.post('/', async (req, res) => {
       name,
       description,
       category,
+      domain,
       size,
       recordCount,
       price,
       license,
       tags,
       metadata,
+      contentFormat,
       isPublic,
       confidentialComputingRequired,
       ownerId,
@@ -481,12 +506,14 @@ router.post('/', async (req, res) => {
       name,
       description,
       category,
+      domain: domain || null,
       size,
       recordCount,
       price,
       license,
       tags: tags || [],
       metadata: metadata || {},
+      contentFormat: contentFormat || null,
       isPublic: isPublic !== undefined ? isPublic : true,
       confidentialComputingRequired: confidentialComputingRequired !== undefined ? confidentialComputingRequired : false,
       ownerId,

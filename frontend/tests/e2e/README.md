@@ -59,6 +59,7 @@ npm run test:e2e:headed
 - **Path**: `tests/e2e/*.spec.js` (same as `npm run test:e2e`)
 - **Notable**: `full-e2e-register-sign-train-local.spec.js` registers via UI with signing algorithm, verifies keys, then TDP/TSP **contract sign** → local training
 - **Product tours**: `lifecycle-user-guide.spec.js` (onboard with signing options → sign → train) and `role-user-guides.spec.js` (contract signing steps)
+- **TSP CCR**: `can-contract-to-training-ui.spec.js` completes Local TSP training. `tsp-ccr-providers.spec.js` checks the Local, Azure, and GCP contract forms, then starts Azure and GCP training and expects HTTP 502 when no kubeconfig is set. Open-GMASE must be up (`cd open-gmase-core && docker compose up -d opa`) because the training gate runs before the cluster submit. Mobile projects ignore both specs.
 ### 5. Backend API smoke (`api`)
 - **Files**: `can-jcs-api.spec.js`, `huggingface-api.spec.js`, `nlp-dp-training-api.spec.js`, `inference-deploy-api.spec.js` (opt-in skip unless `E2E_WAIT_FOR_LOCAL_TRAINING=true`)
 - **Run**: `npm run test:e2e:api` (Chromium, serial — mostly backend-only; NLP DP + inference specs skip without local-docker env)

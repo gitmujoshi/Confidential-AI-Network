@@ -70,8 +70,7 @@ module.exports = (sequelize) => {
   }, {
     tableName: 'signing_events',
     timestamps: true,
-    createdAt: 'created_at',
-    updatedAt: 'updated_at',
+    underscored: true,
     indexes: [
       {
         fields: ['user_id']

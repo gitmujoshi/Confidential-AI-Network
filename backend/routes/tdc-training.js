@@ -113,6 +113,28 @@ router.post(
   }
 );
 
+router.post(
+  '/jobs/:jobId/abort',
+  authenticateToken,
+  async (req, res) => {
+    try {
+      const { jobId } = req.params;
+      const userId = req.user?.localUser?.id;
+      if (!userId) {
+        return res.status(401).json({ success: false, error: 'Unauthorized' });
+      }
+      if (req.user?.localUser?.partyType !== 'TDC') {
+        return res.status(403).json({ success: false, error: 'TDC role required' });
+      }
+      const reason = req.body?.reason || 'Aborted by TDC';
+      const job = await service.abortJobForUser(jobId, userId, reason);
+      return res.json({ success: true, job });
+    } catch (err) {
+      return handleError(res, err);
+    }
+  }
+);
+
 router.get(
   '/jobs/:jobId',
   authenticateToken,

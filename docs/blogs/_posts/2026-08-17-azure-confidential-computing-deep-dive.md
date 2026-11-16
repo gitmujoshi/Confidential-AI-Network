@@ -180,20 +180,29 @@ Stakeholder path aligned with the [Azure product tour deck]({% post_url 2026-08-
 ```text
 Entra SSO (MSAL) → Portal + APIM JWT
   → TDP publishes dataset (ciphertext preferred; demo clear only in non-prod)
-  → TDC creates Ricardian contract (Azure env + Key Vault kmsConfigs)
+  → TSP saves the existing AKS cluster on the dashboard Cloud Provider card
+     (subscription, resource group, cluster name, namespace, region,
+      storage account, Key Vault URI, kubeconfig path on the TSP host)
+  → TDC creates a Ricardian contract and fills Azure cluster
+     (same identifiers; kubeconfig is not copied onto the contract)
   → TDP then TSP/CCRP sign
   → Optional SCITT claim
-  → TDC starts training (ACI / AKS Job target)
+  → TDC starts training against that existing AKS cluster (azure-ccr)
   → Register artifact → deploy → predict (Open-GMASE gate when wired)
   → Auditor: Merkle tree + contract review
 ```
+
+A missing kubeconfig path fails the job. The start does not create a subscription, resource group, or cluster. Attestation on this submit path is marked **simulated** until a hardware quote is attached.
+
+The contract wizard and TSP card are captured on the [product tour]({{ '/product-tour/#ccr' | relative_url }}).
 
 | Step | Azure control | Status |
 | --- | --- | --- |
 | Login | Entra + Conditional Access | Design → production |
 | Roles | Entra app roles | Design |
 | Sign | Authz + Key Vault–backed keys (target) | Partial / Design |
-| Train | ACI / AKS Job / later DCsv3 | Partial scaffolding |
+| Cluster identity | Existing AKS named on the contract and the TSP card | Live in the portal; submit needs a kubeconfig |
+| Train | AKS Job on that cluster; later DCsv3 / SKR | Job spec live; guest quote is Design |
 | Artifacts | Private Blob + CMK | Design |
 
 Use this when you need Azure tenancy smoke without full TEE custody on every path.

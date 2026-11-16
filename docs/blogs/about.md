@@ -10,7 +10,7 @@ permalink: /about/
 
 Thesis: **governed collaboration without a central data lake**, informed by India’s iSPIRT [DEPA](https://depa.world), deployable on enterprise clouds with native IdPs.
 
-This site: architecture notes plus a **[product tour]({{ '/product-tour/' | relative_url }})** (Local Docker UI path; Azure CC in the [deep dive]({% post_url 2026-08-17-azure-confidential-computing-deep-dive %})). Source: [`docs/blogs/`](https://github.com/gitmujoshi/Confidential-AI-Network/tree/main/docs/blogs) → GitHub Pages.
+This site opens on the product landing. [Research notes]({{ '/notes/' | relative_url }}) and the **[product tour]({{ '/product-tour/' | relative_url }})** follow from there. The app landing page is [{{ site.app_url }}]({{ site.app_url }}). Source: [`docs/blogs/`](https://github.com/gitmujoshi/Confidential-AI-Network/tree/main/docs/blogs) → GitHub Pages.
 
 ## Canonical documentation
 

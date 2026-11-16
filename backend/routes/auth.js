@@ -745,7 +745,9 @@ router.post('/login', logAuthEvent('LOGIN'), async (req, res) => {
           email: email,
           name: user?.name || 'User',
           partyType: user?.partyType || 'User',
-          depaId: user?.depaId || null
+          depaId: user?.depaId || null,
+          cloudProviders: user.cloudProviders || [],
+          cloudAccount: user.cloudAccount || null
         }
       });
     }
@@ -800,7 +802,9 @@ router.post('/login', logAuthEvent('LOGIN'), async (req, res) => {
           name: user?.name || 'User',
           partyType: user?.partyType || 'User',
           depaId: user?.depaId || null,
-          firstLogin: user.firstLogin
+          firstLogin: user.firstLogin,
+          cloudProviders: user.cloudProviders || [],
+          cloudAccount: user.cloudAccount || null
         }
       });
       
@@ -830,7 +834,9 @@ router.post('/login', logAuthEvent('LOGIN'), async (req, res) => {
               name: user?.name || 'User',
               partyType: user?.partyType || 'User',
               depaId: user?.depaId || null,
-              firstLogin: user.firstLogin
+              firstLogin: user.firstLogin,
+              cloudProviders: user.cloudProviders || [],
+              cloudAccount: user.cloudAccount || null
             },
             note: 'Please complete the first-login setup to continue'
           });
@@ -1155,7 +1161,9 @@ router.get('/profile', authenticateToken, logAuthEvent('GET_PROFILE'), async (re
         onboardingStatus: localUser.onboardingStatus,
         profileCompleted: localUser.profileCompleted,
         emailVerified: localUser.emailVerified,
-        depaId: localUser.depaId
+        depaId: localUser.depaId,
+        cloudProviders: localUser.cloudProviders || [],
+        cloudAccount: localUser.cloudAccount || null
       }
     });
 

@@ -292,6 +292,7 @@ const TSPDashboard = () => {
           <CloudProviderManager 
             userId={user.id}
             currentProviders={tspUser.cloudProviders || []}
+            currentAccount={tspUser.cloudAccount || null}
             description={tspUser.description || ''}
           />
         </Grid>

@@ -39,7 +39,6 @@ test.describe('Lifecycle user guide (screenshot tour)', () => {
 
   test.beforeEach(async ({ page }, testInfo) => {
     test.skip(testInfo.project.name !== 'chromium', 'Lifecycle guide captured on Desktop Chromium only');
-    await page.setViewportSize({ width: 1440, height: 900 });
   });
 
   test('Onboard → create → sign → train → provenance → inference → auditor', async ({ page }) => {
@@ -238,7 +237,7 @@ test.describe('Lifecycle user guide (screenshot tour)', () => {
     await expect(page.getByRole('main')).toBeVisible({ timeout: 60000 });
     steps.push({
       title: 'TSP Local cloud readiness',
-      body: 'Configure a dedicated **Local** TSP (`ccrp.e2e@test.com`) so contracts can run with `TRAINING_EXECUTION_MODE=local-docker`. Other TSPs use cloud providers (OCI/Azure/AWS).',
+      body: 'Configure a dedicated **Local** TSP (`ccrp.e2e@test.com`) so this tour runs with `TRAINING_EXECUTION_MODE=local-docker`. An Azure or GCP TSP instead names an existing AKS or GKE cluster on the contract. The kubeconfig path stays on that TSP’s dashboard **Cloud Provider** card. OCI uses an existing OKE cluster. AWS does not start training.',
       ...(await captureShot(page, '07-onboard-tsp-local.png')),
     });
     await logoutViaUI(page);
@@ -317,20 +316,29 @@ test.describe('Lifecycle user guide (screenshot tour)', () => {
 
     const { token: tdcTokenCreate } = await loginViaAPI({ email: tdcEmail });
     const { user: tspUser } = await loginViaAPI({ email: tspEmail });
-    const models = await axios.get(`${BACKEND_URL}/api/ai-models`, {
-      headers: { Authorization: `Bearer ${tdcTokenCreate}` },
-    });
-    const list = models.data?.models || models.data?.data || models.data || [];
-    const model =
-      (Array.isArray(list) &&
-        list.find(
-          (m) =>
-            m.modelId === catalogModelId ||
-            (qualityDemo
-              ? /distilbert-quality|quality \(nlp dp\)/i.test(`${m.modelId || ''} ${m.name || ''}`)
-              : /tiny-distilbert|tiny distilbert/i.test(`${m.modelId || ''} ${m.name || ''}`))
-        )) ||
-      null;
+    // The list endpoint is paginated and recent trained artifacts crowd out catalog rows.
+    const direct = await axios.get(
+      `${BACKEND_URL}/api/ai-models/${encodeURIComponent(catalogModelId)}`,
+      { validateStatus: () => true }
+    );
+    let model = direct.status === 200 && direct.data?.id ? direct.data : null;
+    if (!model) {
+      const models = await axios.get(`${BACKEND_URL}/api/ai-models`, {
+        headers: { Authorization: `Bearer ${tdcTokenCreate}` },
+        params: { limit: 200 },
+      });
+      const list = models.data?.models || models.data?.data || models.data || [];
+      model =
+        (Array.isArray(list) &&
+          list.find(
+            (m) =>
+              m.modelId === catalogModelId ||
+              (qualityDemo
+                ? /distilbert-quality|quality \(nlp dp\)/i.test(`${m.modelId || ''} ${m.name || ''}`)
+                : /tiny-distilbert|tiny distilbert/i.test(`${m.modelId || ''} ${m.name || ''}`))
+          )) ||
+        null;
+    }
     if (!model?.id) {
       throw new Error(
         `NLP DistilBERT model ${catalogModelId} not found — run Playwright global-setup catalog seed`

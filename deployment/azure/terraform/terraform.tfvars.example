@@ -46,7 +46,12 @@ repository_name = "cancontractmgmt"
 enable_key_vault         = true
 enable_storage           = true
 enable_workload_identity = true
-enable_private_endpoints = false   # set true after private DNS zones are ready
+enable_private_endpoints = false   # true creates PE + private DNS for Key Vault and Blob
+
+# Confidential VM user pool for CCR jobs (AMD SEV-SNP). Off until the SKU is confirmed in-region.
+enable_confidential_compute = false
+# confidential_vm_size       = "Standard_DC4as_v5"
+# confidential_node_count    = 1
 
 # Phase 2 optional
 enable_edge  = false

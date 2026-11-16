@@ -7,6 +7,15 @@ const db = require('../models');
 const { writeLocalScittClaim } = require('./provenanceClaimWriter');
 const { buildTrainingModelProvenance } = require('./tdcTrainingHelpers');
 const { buildJobTrainingProvenanceBundle } = require('./provenanceAuditReportService');
+const {
+  registerTrainingProcess,
+  unregisterTrainingProcess,
+} = require('./trainingProcessRegistry');
+const { isActiveTrainingStatus } = require('./trainingAbortService');
+
+function dockerContainerNameForJob(jobId) {
+  return `cm-train-${String(jobId)}`.slice(0, 128);
+}
 
 function repoRoot() {
   return path.resolve(__dirname, '..', '..');
@@ -52,7 +61,7 @@ function buildDockerRunArgs({ jobId, contractId, maxEpochs, image, outDir, input
     'run',
     '--rm',
     '--name',
-    `cm-train-${jobId}`.slice(0, 128),
+    dockerContainerNameForJob(jobId),
     '-e',
     `TRAINING_JOB_ID=${jobId}`,
     '-e',
@@ -327,12 +336,23 @@ async function runLocalDockerTraining({ jobId, contractId, containerSpec, traini
   });
 
   const child = spawn('docker', args, { stdio: ['ignore', 'pipe', 'pipe'] });
+  registerTrainingProcess(jobId, { kind: 'docker', child, containerName: dockerContainerNameForJob(jobId) });
 
   const logStream = fs.createWriteStream(logFile, { flags: 'a' });
   child.stdout.pipe(logStream);
   child.stderr.pipe(logStream);
 
   child.on('spawn', async () => {
+    const current = await db.TrainingJob.findOne({ where: { jobId } });
+    if (!current || !isActiveTrainingStatus(current.status)) {
+      try {
+        child.kill('SIGTERM');
+      } catch (_) {
+        // ignore
+      }
+      spawn('docker', ['stop', '-t', '1', dockerContainerNameForJob(jobId)], { stdio: 'ignore' });
+      return;
+    }
     const metaPatch = {
       progress: 10,
       phases: [{ name: 'PROVISIONING', at: new Date().toISOString() }],
@@ -361,6 +381,7 @@ async function runLocalDockerTraining({ jobId, contractId, containerSpec, traini
   });
 
   child.on('close', async (code) => {
+    unregisterTrainingProcess(jobId);
     try {
       await finalizeLocalDockerJobFromDisk(jobId, { exitCode: code == null ? 1 : code });
     } catch (e) {
@@ -375,6 +396,7 @@ async function runLocalDockerTraining({ jobId, contractId, containerSpec, traini
   });
 
   child.on('error', async (err) => {
+    unregisterTrainingProcess(jobId);
     console.error(`❌ docker spawn failed for ${jobId}:`, err.message);
     try {
       await updateJob(jobId, {
@@ -398,6 +420,7 @@ async function runLocalDockerTraining({ jobId, contractId, containerSpec, traini
 module.exports = {
   runLocalDockerTraining,
   buildDockerRunArgs,
+  dockerContainerNameForJob,
   finalizeLocalDockerJobFromDisk,
   reconcileLocalDockerJobIfNeeded,
 };

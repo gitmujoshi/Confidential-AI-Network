@@ -16,6 +16,7 @@ const {
   resolveIsLinkedTdp,
 } = require('../services/contractSigningGate');
 const contractSigningService = require('../services/contractSigningService');
+const { endContract } = require('../services/contractLifecycleService');
 
 /**
  * Enhanced DID signature verification using DID service
@@ -1190,6 +1191,52 @@ router.get('/types/supported', async (req, res) => {
     res.status(500).json({ error: 'Internal server error' });
   }
 });
+
+function lifecycleActor(req) {
+  const user = resolveSigningUser(req);
+  if (!user) return null;
+  return {
+    ...user,
+    name: req.user?.localUser?.name || req.user?.name || user.email || 'user',
+  };
+}
+
+async function handleLifecycle(req, res, action) {
+  try {
+    const user = lifecycleActor(req);
+    if (!user) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+    const reason = req.body?.reason || req.body?.cancellationReason || null;
+    const result = await endContract({
+      contractId: req.params.contractId,
+      user,
+      action,
+      reason,
+    });
+    return res.json({
+      success: true,
+      action: result.action,
+      status: result.status,
+      abortedJobs: result.abortedJobs,
+      contract: result.contract,
+    });
+  } catch (error) {
+    const status = error.statusCode || 500;
+    if (status >= 500) console.error('Contract lifecycle error:', error);
+    return res.status(status).json({ error: error.message || 'Failed to update contract' });
+  }
+}
+
+router.post('/:contractId/cancel', authenticateToken, (req, res) =>
+  handleLifecycle(req, res, req.body?.action || null)
+);
+router.post('/:contractId/revoke', authenticateToken, (req, res) =>
+  handleLifecycle(req, res, 'revoke')
+);
+router.post('/:contractId/terminate', authenticateToken, (req, res) =>
+  handleLifecycle(req, res, 'terminate')
+);
 
 // Export the router
 module.exports = router; 

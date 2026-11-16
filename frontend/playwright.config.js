@@ -2,6 +2,9 @@
 const { defineConfig, devices } = require('@playwright/test');
 const { getFrontendURL } = require('./load-config');
 
+/** Desktop window at 100% zoom. 1280×720 crops the wizard; a 2× scale factor makes the report look zoomed in. */
+const desktopViewport = { width: 1920, height: 1080 };
+
 /**
  * @see https://playwright.dev/docs/test-configuration
  */
@@ -32,10 +35,11 @@ module.exports = defineConfig({
     /* Base URL to use in actions like `await page.goto('/')`. */
     baseURL: getFrontendURL(),
 
-    /* Always collect artifacts so HTML report always has attachments */
+    /* Always collect artifacts so HTML report always has attachments.
+       Full-page shots keep the whole layout; video size matches the viewport so it is not scaled into 800×800. */
     trace: 'on',
-    screenshot: 'on',
-    video: 'on',
+    screenshot: { mode: 'on', fullPage: true },
+    video: { mode: 'on', size: desktopViewport },
     
     /* Global timeout for each action */
     actionTimeout: 10000,
@@ -48,30 +52,48 @@ module.exports = defineConfig({
   projects: [
     {
       name: 'chromium',
-      use: { ...devices['Desktop Chrome'] },
+      use: {
+        ...devices['Desktop Chrome'],
+        viewport: desktopViewport,
+        deviceScaleFactor: 1,
+      },
       // Docs screenshot generators — run via dedicated npm scripts only
       testIgnore: ['**/oci-scaffold-demo.spec.js'],
     },
 
     {
       name: 'firefox',
-      use: { ...devices['Desktop Firefox'] },
+      use: {
+        ...devices['Desktop Firefox'],
+        viewport: desktopViewport,
+        deviceScaleFactor: 1,
+        video: { mode: 'on', size: desktopViewport },
+      },
       testIgnore: ['**/role-user-guides.spec.js', '**/oci-scaffold-demo.spec.js'],
     },
 
     {
       name: 'webkit',
-      use: { ...devices['Desktop Safari'] },
+      use: {
+        ...devices['Desktop Safari'],
+        viewport: desktopViewport,
+        deviceScaleFactor: 1,
+        video: { mode: 'on', size: desktopViewport },
+      },
       testIgnore: ['**/role-user-guides.spec.js', '**/oci-scaffold-demo.spec.js'],
     },
 
     /* Test against mobile viewports. */
     {
       name: 'Mobile Chrome',
-      use: { ...devices['Pixel 5'] },
+      use: {
+        ...devices['Pixel 5'],
+        video: { mode: 'on', size: devices['Pixel 5'].viewport },
+      },
       // Dense multi-step wizards are flaky on narrow viewports (MUI menu/backdrop intercepts).
       testIgnore: [
         '**/can-contract-to-training-ui.spec.js',
+        '**/tsp-ccr-providers.spec.js',
         '**/create-contract-ui-workflow.spec.js',
         '**/full-e2e-register-sign-train-local.spec.js',
         '**/role-user-guides.spec.js',
@@ -80,9 +102,13 @@ module.exports = defineConfig({
     },
     {
       name: 'Mobile Safari',
-      use: { ...devices['iPhone 12'] },
+      use: {
+        ...devices['iPhone 12'],
+        video: { mode: 'on', size: devices['iPhone 12'].viewport },
+      },
       testIgnore: [
         '**/can-contract-to-training-ui.spec.js',
+        '**/tsp-ccr-providers.spec.js',
         '**/create-contract-ui-workflow.spec.js',
         '**/full-e2e-register-sign-train-local.spec.js',
         '**/role-user-guides.spec.js',

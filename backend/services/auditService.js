@@ -18,6 +18,20 @@ class AuditService {
   }
 
   /**
+   * Record an audit event. userId may be passed explicitly or inside eventData.
+   * Failures are swallowed by logEvent so signing can still succeed.
+   */
+  async log(eventType, eventData = {}, userId = null, ipAddress = null, userAgent = null) {
+    return this.logEvent(
+      eventType,
+      eventData,
+      userId || eventData?.userId || null,
+      ipAddress,
+      userAgent
+    );
+  }
+
+  /**
    * Log audit events for compliance and security monitoring
    */
   async logEvent(eventType, eventData, userId = null, ipAddress = null, userAgent = null) {

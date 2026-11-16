@@ -28,7 +28,7 @@ Canonical catalog of **Azure-oriented product features**, how they fit the E2E m
 | 4 | Signing keys in Key Vault / HSM + verify on sign | Design | `SIGNING_KEY_BACKEND` |
 | 5 | Principal DEK / MEK + attested release | Design (signals MVP) | `CAN_*`, attestation |
 | 6 | Contract `kmsConfigs` → real Azure Key Vault | Partial (JSON only) | contract JSON + TSP creds |
-| 7 | Azure training (ACI / AKS Job / DCsv3) | Partial | `TRAINING_EXECUTION_MODE`, CCRP Azure |
+| 7 | Azure training on an existing AKS cluster | Partial (`azure-ccr` Job submit; quote and DCsv3 are design) | Contract `cloudAccounts.Azure`, TSP `cloudAccount.Azure.kubeconfigPath`, `AZURE_CCR_KUBECONFIG` |
 | 8 | Blob datasets / artifacts | Design / Partial | `AZURE_STORAGE_*` |
 | 9 | SCITT CCF on Azure | Design | `SCITT_*` |
 | 10 | Azure-targeted E2E / CI | Design | staging URLs + Entra test users |
@@ -47,8 +47,8 @@ Entra SSO (MSAL)
   → TDC creates Ricardian contract (kmsConfigs → Azure Key Vault refs)
   → Parties sign with Key Vault–backed signing keys (crypto verify)
   → Optional SCITT receipt on Azure
-  → CAN escrow: attestation → DEK+MEK release into confidential compute
-     OR portal train: AKS Job / ACI with TSP Azure credentials
+  → CAN escrow: attestation → DEK+MEK release into confidential compute (design)
+     OR portal train: Job on the TSP’s existing AKS cluster (`azure-ccr`)
   → Artifacts → Blob (CMK) → register / deploy / infer
   → Destroy CCR; zeroize; provenance complete
 ```
@@ -215,27 +215,23 @@ Stored on the contract as `kmsConfigs` / `environmentSpecs.kms` (provider + key 
 
 ### 3.7 Azure training execution (CCRP / TSP)
 
+A signed contract whose TSP is **Azure** submits `azure-ccr` to the AKS cluster that TSP already runs. Start does not create a subscription, resource group, or cluster. `TRAINING_EXECUTION_MODE` is ignored for this provider.
+
+| Source | What it supplies |
+|--------|------------------|
+| Contract `environmentSpecs.cloudAccounts.Azure` | Subscription ID, resource group, AKS name, and optional namespace, region, storage account, Key Vault URI. A blank field is filled from the TSP user account |
+| TSP dashboard **Cloud Provider** card | Same identifiers plus `kubeconfigPath`, stored on `users.cloud_account.Azure` |
+| `AZURE_CCR_KUBECONFIG` | Kubeconfig path on the API host when the dashboard field is empty |
+
+Required before submit: subscription, resource group, and AKS name, plus a kubeconfig path. A missing path marks the `TrainingJob` **FAILED** and returns HTTP 502. `kubectl apply` runs only when that path is set. Attestation on this path is `simulated`. No SEV-SNP quote is collected. The confidential node pool in `deployment/azure/terraform/` is opt-in and is not applied by training start. DCsv3 guest quotes and attested key release remain design.
+
+The **Cloud credentials** page is a separate store. `azure-ccr` does not read it.
+
 | Mode | When | Maturity |
 |------|------|----------|
-| `local-docker` | Laptop demos | Implemented |
-| `azure-aci` / Azure SDK path | Signed contract + TSP Azure creds | Partial (`azureProvider.js`, `trainingService.js`) |
-| AKS Job | Platform train on cluster | Design |
+| `local-docker` | TSP provider is Local | Implemented |
+| `azure-ccr` | TSP provider is Azure and the existing cluster is named | Job spec and submit are live; hardware quote is design |
 | DCsv3 confidential VM | CAN clean-room | Design |
-
-| Variable | Example | Description |
-|----------|---------|-------------|
-| `TRAINING_EXECUTION_MODE` | `local-docker` \| `azure` | Azure deploy: `azure` (target name) |
-| `TRAINING_SIMULATION_MODE` | `false` | Must be false for real runs |
-| `LOCAL_TRAINING_IMAGE` | `….azurecr.io/local-trainer:tag` | Push trainer to ACR for Azure |
-| `AZURE_SUBSCRIPTION_ID` | GUID | Platform or per-TSP |
-| `AZURE_TENANT_ID` | GUID | |
-| `AZURE_CLIENT_ID` / `AZURE_CLIENT_SECRET` | SP | Prefer MSI on AKS; TSP stores own SP encrypted |
-| `AZURE_DEFAULT_LOCATION` | `eastus` | Region for ACI/VM |
-| `AZURE_TRAINING_COMPUTE` | `aci` \| `aks-job` \| `dcsv3` | Target executor |
-| `AZURE_ACI_CPU` / `AZURE_ACI_MEMORY_GB` | `2` / `8` | ACI sizing |
-| `AZURE_CONFIDENTIAL_VM_SIZE` | `Standard_DC2s_v3` | Confidential SKU |
-
-**TSP UI:** Azure credentials page → encrypted at rest; used when `ccrpCloudProvider=Azure`.
 
 ---
 
@@ -352,7 +348,9 @@ ENTRA_API_AUDIENCE=api://can-dev-api
 AZURE_USE_MANAGED_IDENTITY=true
 AZURE_KEY_VAULT_URL=https://can-dev-kv.vault.azure.net/
 DATASET_STORAGE_BACKEND=azure-blob
-TRAINING_EXECUTION_MODE=azure   # or keep local-docker only for hybrid spike
+# Azure jobs ignore TRAINING_EXECUTION_MODE. Name the existing AKS cluster on the
+# TSP Cloud Provider card and set AZURE_CCR_KUBECONFIG or cloudAccount.Azure.kubeconfigPath.
+AZURE_CCR_KUBECONFIG=/var/secrets/aks.kubeconfig
 SIGNING_KEY_BACKEND=database    # migrate to azure-keyvault in Phase 2
 SIGNING_REQUIRE_CRYPTO_VERIFY=false  # enable after Key Vault signing
 CAN_ATTESTATION_PROVIDER=simulated
@@ -389,7 +387,7 @@ Order matches engineering priority:
 2. **Blob storage backend** — `DATASET_STORAGE_BACKEND=azure-blob`; containers + MSI.
 3. **Signing Key Vault + verify** — `SIGNING_KEY_BACKEND=azure-keyvault`; enforce crypto on sign.
 4. **Contract KMS enforce** — resolve `kmsConfigs` against Azure Key Vault at train start.
-5. **Azure training executor** — `TRAINING_EXECUTION_MODE=azure` + ACI/AKS Job; ACR trainer image.
+5. **Azure guest quote and artifact copy-back** — `azure-ccr` already submits to the named AKS cluster. Still open: status watch, Blob mount, SEV-SNP quote, and key release.
 6. **Attested DEK/MEK release** — Azure Attestation + SKR/attested TLS; keep Node signal-only.
 7. **SCITT on AKS** — enable receipts for Azure staging/prod.
 8. **Terraform modules** — Front Door, APIM, Key Vault, confidential pool.
@@ -408,9 +406,9 @@ Order matches engineering priority:
 | Signing service | `backend/services/contractSigningService.js` |
 | Platform encrypt (demo) | `backend/services/platformEncryptionService.js` |
 | CAN escrow | `backend/services/canJcsService.js`, `backend/routes/can-jcs.js` |
-| Azure provider | `backend/services/providers/azureProvider.js` |
-| TSP Azure creds | `backend/services/tspAzureCredentialsService.js` |
-| Training modes | `backend/services/tdcTrainingExecutionService.js` |
+| Azure CCR runner | `backend/services/azureCcrRunner.js` |
+| TSP cloud account | `backend/services/tspCloudAccount.js`, `users.cloud_account` |
+| Training router | `backend/services/trainingExecutionRouter.js`, `backend/services/tdcTrainingExecutionService.js` |
 | Secret backends | `backend/services/secretManager.js` |
 | Azure config example | `backend/config/azure-config.example.js` |
 
@@ -420,5 +418,6 @@ Order matches engineering priority:
 
 | Date | Change |
 |------|--------|
+| 2026-11-16 | Portal Azure training submits `azure-ccr` to the TSP’s existing AKS cluster. Kubeconfig stays on the TSP user. A missing path fails the job |
 | 2026-07-27 | Entra auth implemented (OIDC + Terraform identity); Keycloak removed from Azure TF |
 | 2026-07-26 | Initial feature + configuration catalog; Entra-only Azure; Keycloak local-only |

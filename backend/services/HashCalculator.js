@@ -39,22 +39,25 @@ class HashCalculator {
    * @returns {string} - Root hash
    */
   calculateRootHash(leaves) {
-    if (leaves.length === 0) {
+    if (!leaves || leaves.length === 0) {
       throw new Error('Cannot calculate root hash from empty leaves array');
     }
 
-    if (leaves.length === 1) {
-      return leaves[0];
+    // Copy so an odd leaf count can be padded without changing the caller's array.
+    // buildTree hashes this same array into LEAF nodes; mutating it added a phantom leaf.
+    const level = leaves.slice();
+
+    if (level.length === 1) {
+      return level[0];
     }
 
-    // Ensure even number of leaves by duplicating last leaf if necessary
-    if (leaves.length % 2 !== 0) {
-      leaves.push(leaves[leaves.length - 1]);
+    if (level.length % 2 !== 0) {
+      level.push(level[level.length - 1]);
     }
 
     const nextLevel = [];
-    for (let i = 0; i < leaves.length; i += 2) {
-      const nodeHash = this.calculateNodeHash(leaves[i], leaves[i + 1]);
+    for (let i = 0; i < level.length; i += 2) {
+      const nodeHash = this.calculateNodeHash(level[i], level[i + 1]);
       nextLevel.push(nodeHash);
     }
 

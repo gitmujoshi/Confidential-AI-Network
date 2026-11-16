@@ -129,10 +129,11 @@ The AI Model Training Environment is a secure, privacy-preserving platform that 
      - Differential privacy settings
      - Data anonymization level
      - Privacy budget allocation
-   - Configure training environment:
-     - TEE requirements
-     - Resource specifications
-     - Compliance settings
+   - Configure the training environment:
+     - Environment size (type, instance, CPU, memory, storage, GPU)
+     - KMS provider, key id, algorithm, and rotation
+     - The TSP that hosts the job. A Local TSP trains on this machine. An Azure TSP asks for the existing AKS cluster (subscription, resource group, cluster name, namespace, region, storage account, Key Vault URI). A GCP TSP asks for the existing GKE cluster (project, location, cluster name, namespace, GCS bucket).
+     - The kubeconfig path stays on the TSP dashboard **Cloud Provider** card.
 
 ### **Step 5: Monitor Training Progress**
 1. **Training Dashboard**:
@@ -237,18 +238,15 @@ The AI Model Training Environment is a secure, privacy-preserving platform that 
    - Compliance status
    - Infrastructure health
 
-### **Step 2: Provision Training Environment**
-1. **Environment Configuration**:
-   - Click "Provision New Environment"
-   - Select cloud provider
-   - Configure TEE settings:
-     - TEE type (SGX, Nitro, etc.)
-     - Security level
-     - Attestation requirements
-   - Set resource specifications:
-     - CPU and memory
-     - Storage requirements
-     - Network configuration
+### **Step 2: Name the existing cluster**
+1. **Cloud Provider card** on the TSP dashboard:
+   - Click edit and choose one provider: Local, Azure, or GCP
+   - Azure: Subscription ID, Resource group, AKS cluster name, Namespace, Region, Storage account, Key Vault URI, and Kubeconfig path
+   - GCP: Project ID, Location, GKE cluster name, Namespace, GCS bucket, and Kubeconfig path
+2. **What training uses**:
+   - The cluster you already run. A new subscription or project is not created for the job
+   - The contract’s cluster fields, filled from this card when the contract leaves them blank
+   - A missing kubeconfig path fails the job. Cloud attestation on this path is marked simulated
 
 ### **Step 3: Configure TEE (Trusted Execution Environment)**
 1. **TEE Setup**:
