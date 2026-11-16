@@ -72,8 +72,8 @@ In practice:
 2. Publish a dataset; create a contract with `taskType` set to tabular, text, or vision.  
 3. Collect the required **signatures**.  
 4. **Start training** — OPA evaluates `start_training` first.  
-5. When the job is **COMPLETED**, **register** the artifact and **Deploy for inference**.  
-6. In the Inference app, run a sample input and read both the **label** and the **policy-gate** panel.  
+5. When the job is **COMPLETED**, **register** the artifact and **Deploy for inference**. The deploy target defaults to **Local**. Azure, GCP, and AWS submit a Job to a cluster the TDC saved on the Inference page. That choice is separate from the contract TSP.  
+6. In the Inference app, a Local deployment runs a sample input. Read both the **label** and the **policy-gate** panel. A cloud deployment does not copy the score back.  
 7. If CompliancePulse is running, the same decision appears on its audit trail as `external_ingest`.
 
 Walk it in UI: [product tour]({{ '/product-tour/' | relative_url }}). Gate demo: [demo slice]({% post_url 2026-08-14-can-gmase-demo-slice %}).
@@ -88,7 +88,7 @@ Walk it in UI: [product tour]({{ '/product-tour/' | relative_url }}). Gate demo:
 | Lifecycle product tour | AG News text (DistilBERT) | Headline about markets / tech | **Business** |
 | Vision path | CIFAR-10-style image | `{ "imageBase64": "…" }` + preview in UI | Class name (e.g. **airplane**) |
 
-The local inferencer lives in `backend/local-training/infer.py`. Prediction is the side effect: Open-GMASE must **ALLOW** `run_inference` before the container runs.
+The local inferencer lives in `inference/backend/infer.py`. Prediction is the side effect: Open-GMASE must **ALLOW** `run_inference` before the container runs.
 
 ---
 

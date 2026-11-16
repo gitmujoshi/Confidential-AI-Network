@@ -22,7 +22,7 @@ const adminRouter = require('./routes/admin');
 const tdpRouter = require('./routes/tdp');
 const tdcRouter = require('./routes/tdc');
 const ccrpRouter = require('./routes/ccrp');
-const tdcTrainingRouter = require('./routes/tdc-training');
+const tdcTrainingRouter = require('../training/routes');
 
 const app = express();
 const PORT = process.env.PORT || 5001;

@@ -461,7 +461,7 @@ Use this as a single run sheet. Mark **Portal** vs **CAN** where noted.
 
 - [ ] Stack healthy (backend, frontend, Keycloak, DB, optional SCITT)
 - [ ] `./fix-auth.sh` (and Keycloak user sync) if auth is unhealthy
-- [ ] Trainer image built: `docker build -t contractmanagement/local-trainer:latest backend/local-training`
+- [ ] Trainer image built: `docker build -t contractmanagement/local-trainer:latest -f backend/local-training/Dockerfile --build-context inference=inference/backend backend/local-training`
 - [ ] `TRAINING_EXECUTION_MODE` / `CAN_LOCAL_TRAINING_MODE` / `LOCAL_TRAINING_IMAGE` set; **backend restarted**
 - [ ] For demo wizard CCRP path: seeded **`ccrp.e2e@test.com`** available
 

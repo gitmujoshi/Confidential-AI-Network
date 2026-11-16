@@ -22,16 +22,18 @@ import {
   TableHead,
   TableRow,
   Stack,
+  TextField,
+  MenuItem,
 } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import CloseIcon from '@mui/icons-material/Close';
-import { useUser } from '../contexts/UserContext';
-import apiService, { api } from '../services/api';
+import { useUser } from '../../frontend/src/contexts/UserContext';
+import apiService, { api } from '../../frontend/src/services/api';
 import toast from 'react-hot-toast';
-import PrivacyMetricsPanel from '../components/PrivacyMetricsPanel';
+import PrivacyMetricsPanel from '../../frontend/src/components/PrivacyMetricsPanel';
 
 const TERMINAL = new Set(['COMPLETED', 'FAILED', 'CANCELLED']);
 
@@ -48,6 +50,7 @@ export default function TDCTraining() {
   const [logsLoading, setLogsLoading] = useState(false);
   const [registering, setRegistering] = useState(false);
   const [deploying, setDeploying] = useState(false);
+  const [deployTarget, setDeployTarget] = useState('Local');
   const [jsonViewerOpen, setJsonViewerOpen] = useState(false);
   const [jsonViewerTitle, setJsonViewerTitle] = useState('');
   const [jsonViewerFilename, setJsonViewerFilename] = useState('');
@@ -298,7 +301,9 @@ export default function TDCTraining() {
     if (!liveJob?.registeredModelId) return;
     setDeploying(true);
     try {
-      const data = await apiService.deployTdcInferenceModel(liveJob.registeredModelId);
+      const data = await apiService.deployTdcInferenceModel(liveJob.registeredModelId, {
+        target: deployTarget,
+      });
       const gate = data.governance;
       toast.success(
         gate && !gate.skipped
@@ -685,20 +690,45 @@ export default function TDCTraining() {
                           </Alert>
                         )}
                         {liveJob.registeredModelId && liveJob.inferenceDeployment?.status !== 'DEPLOYED' && (
-                          <Button
-                            variant="contained"
-                            color="secondary"
-                            sx={{ mt: 2 }}
-                            disabled={deploying}
-                            onClick={handleDeployInference}
-                          >
-                            {deploying ? 'Deploying…' : 'Deploy for inference'}
-                          </Button>
+                          <Stack spacing={1} sx={{ mt: 2, maxWidth: 420 }}>
+                            <TextField
+                              select
+                              size="small"
+                              label="Deploy target"
+                              value={deployTarget}
+                              onChange={(e) => setDeployTarget(e.target.value)}
+                              inputProps={{ 'data-testid': 'inference-deploy-target' }}
+                            >
+                              <MenuItem value="Local">Local</MenuItem>
+                              <MenuItem value="Azure">Azure</MenuItem>
+                              <MenuItem value="GCP">GCP</MenuItem>
+                              <MenuItem value="AWS">AWS</MenuItem>
+                            </TextField>
+                            <Typography variant="caption" color="text.secondary">
+                              Local scores on this host. Azure, GCP, and AWS submit a Job to the cluster you saved on the Inference page. The contract TSP is the training target.
+                            </Typography>
+                            <Button
+                              variant="contained"
+                              color="secondary"
+                              disabled={deploying}
+                              onClick={handleDeployInference}
+                            >
+                              {deploying ? 'Deploying…' : 'Deploy for inference'}
+                            </Button>
+                          </Stack>
                         )}
                         {liveJob.inferenceDeployment?.status === 'DEPLOYED' && (
                           <Stack direction="row" spacing={1} sx={{ mt: 2 }} alignItems="center">
                             <Alert severity="info" sx={{ flex: 1 }}>
-                              Inference deployed ({liveJob.inferenceDeployment.taskType}). Open the app to try predictions.
+                              Inference deployed ({liveJob.inferenceDeployment.taskType}
+                              {liveJob.inferenceDeployment.provider
+                                ? `, ${liveJob.inferenceDeployment.provider}`
+                                : ''}
+                              ).{' '}
+                              {!liveJob.inferenceDeployment.provider ||
+                              liveJob.inferenceDeployment.provider === 'Local'
+                                ? 'Open the app to try predictions.'
+                                : 'The Job is on your cluster. This host scores a Local target.'}
                             </Alert>
                             <Button
                               component={Link}

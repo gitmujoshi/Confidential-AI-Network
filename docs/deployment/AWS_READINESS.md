@@ -12,7 +12,8 @@ Assessment of whether the Confidential AI Network is ready to deploy to **Amazon
 | **Terraform / EKS scaffold** | No | No `deployment/aws/terraform/` yet — design only |
 | **Core app on AWS (UI + API + Cognito + DB)** | No | App is Keycloak-centric; Cognito adapter not built |
 | **SCITT CCF on AWS** | No | Local compose only |
-| **Physical training on AWS** | Partial (stub) | `awsProvider.js` simulates environments; not real SDK provisioning |
+| **Physical training on AWS** | Partial (stub) | `awsProvider.js` simulates environments; not real SDK provisioning. Training start for an AWS TSP returns HTTP 501 |
+| **TDC inference deploy to existing EKS** | Partial | `aws-ccr` Job submit when the TDC saved region, cluster name, and kubeconfig (`AWS_CCR_KUBECONFIG`). No cluster is created. Score is not copied back |
 | **CAN / CCRP on AWS** | Design | Nitro / enclave path documented, not wired |
 | **One-click production** | No | Edge stack (CloudFront, API GW, WAF) design-only |
 
@@ -36,6 +37,7 @@ Assessment of whether the Confidential AI Network is ready to deploy to **Amazon
 | Component | Path | Maturity |
 |-----------|------|----------|
 | Training provider | `backend/services/providers/awsProvider.js` | Stub / simulated |
+| TDC inference deploy | `inference/backend/inferenceCcrRunner.js` | EKS Job submit, fail-closed without kubeconfig |
 | Secrets | `backend/services/secretManager.js` (`AWS_SECRETS`) | Hook present |
 | TEE / Nitro hints | `teeProvisioningService.js`, `teeAttestationService.js` | Partial enums |
 

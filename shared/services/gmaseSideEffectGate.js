@@ -5,7 +5,7 @@
  */
 const axios = require('axios');
 const { authorizeTool } = require('./gmaseOpaService');
-const AuditService = require('./auditService');
+const AuditService = require('../../backend/services/auditService');
 
 const auditService = new AuditService();
 const DEFAULT_COMPLIANCEPULSE_INGEST_URL = 'http://localhost:3001';

@@ -136,6 +136,16 @@ The kubeconfig path is a file on the TSP host. The contract stores the cluster n
 5. Cloud job attestation is marked **simulated** until a verified SEV-SNP quote is stored. A TDC, TSP, or AppAdmin submits the guest report, VCEK, and ASK to `POST /api/tdc/training/jobs/{jobId}/sev-snp-quote`. The API host must have `SEV_SNP_ARK_PEM` set. The gateway path is `POST /v1/ccr/{jobId}/attestation`.
 6. With the training policy gate enabled, the start is refused when the policy engine is unreachable. That refusal happens before any cluster submit.
 
+#### Deploy the trained model
+
+The TSP on the contract is where training ran. Deploy is a separate choice on the completed job.
+
+1. Register the model, then set **Deploy target** to **Local**, **Azure**, **GCP**, or **AWS**.
+2. **Local** scores on this host. Open the Inference app and run a prediction.
+3. For Azure, GCP, or AWS, open **Inference** first and save that cluster: name, the account identifiers above, namespace, and kubeconfig path. Save, then deploy.
+4. A missing kubeconfig leaves the model undeployed. No cluster is created. The score stays in the cluster and is not copied back to the Inference app.
+5. Cloud job attestation is marked **simulated**. The local `model.bin` is not mounted into the Job.
+
 ### **Digital Signing**
 1. Access contract to sign
 2. Review details and terms

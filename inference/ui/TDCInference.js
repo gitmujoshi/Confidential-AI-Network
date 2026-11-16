@@ -20,8 +20,9 @@ import RefreshIcon from '@mui/icons-material/Refresh';
 import StopIcon from '@mui/icons-material/Stop';
 import ImageIcon from '@mui/icons-material/Image';
 import toast from 'react-hot-toast';
-import apiService from '../services/api';
-import cifarDemoSample from '../data/cifarDemoSample';
+import apiService from '../../frontend/src/services/api';
+import cifarDemoSample from '../../frontend/src/data/cifarDemoSample';
+import InferenceDeployTargets from './InferenceDeployTargets';
 
 function pretty(obj) {
   try {
@@ -60,6 +61,7 @@ export default function TDCInference() {
     [deployments, selectedId]
   );
 
+  const cloudDeployment = Boolean(selected?.inference?.provider && selected.inference.provider !== 'Local');
   const imagePreview = useMemo(() => previewFromInputText(inputText), [inputText]);
   const isVision =
     (selected?.inference?.taskType || selected?.type) === 'vision' || selected?.type === 'cnn';
@@ -147,7 +149,7 @@ export default function TDCInference() {
             Inference app
           </Typography>
           <Typography variant="body2" color="text.secondary">
-            Run predictions against models you registered from completed training jobs and deployed for local inference.
+            Local deployments score on this host. Azure, GCP, and AWS deployments are Jobs on a cluster you saved below.
           </Typography>
         </Box>
         <Button startIcon={<RefreshIcon />} onClick={load} disabled={loading}>
@@ -156,9 +158,11 @@ export default function TDCInference() {
       </Stack>
 
       <Alert severity="info" sx={{ mb: 2 }}>
-        Flow: Training → <strong>Register trained model</strong> → <strong>Deploy for inference</strong> → try inputs here.
+        Flow: Training → <strong>Register trained model</strong> → choose a deploy target → <strong>Deploy for inference</strong>.
         See also <Link to="/tdc/training">Training</Link>.
       </Alert>
+
+      <InferenceDeployTargets />
 
       {loading ? (
         <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}>
@@ -171,7 +175,7 @@ export default function TDCInference() {
               No deployed models yet
             </Typography>
             <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-              Complete a local training job, register the model, then click <em>Deploy for inference</em> on the Training page.
+              Register a completed training job, then click <em>Deploy for inference</em> on the Training page. Local is the target that scores here.
             </Typography>
             <Button component={Link} to="/tdc/training" variant="contained">
               Go to Training
@@ -203,7 +207,22 @@ export default function TDCInference() {
                   <Chip label={`type: ${selected.type}`} size="small" variant="outlined" />
                   <Chip label={selected.architecture} size="small" variant="outlined" />
                   <Chip label={`mode: ${selected.inference?.mode || 'docker'}`} size="small" variant="outlined" />
+                  <Chip
+                    label={`target: ${selected.inference?.provider || 'Local'}`}
+                    size="small"
+                    variant="outlined"
+                  />
                 </Stack>
+              )}
+
+              {cloudDeployment && (
+                <Alert severity="info" sx={{ mb: 2 }} data-testid="inference-cloud-note">
+                  This model is deployed on your {selected.inference.provider} cluster
+                  {selected.inference.cluster?.clusterName
+                    ? ` (${selected.inference.cluster.clusterName})`
+                    : ''}
+                  . Run prediction stays on a Local deployment. The score is not copied back.
+                </Alert>
               )}
 
               <Typography variant="subtitle2" gutterBottom>
@@ -257,7 +276,7 @@ export default function TDCInference() {
                 <Button
                   variant="contained"
                   startIcon={predicting ? <CircularProgress size={16} color="inherit" /> : <PlayArrowIcon />}
-                  disabled={predicting || !selectedId}
+                  disabled={predicting || !selectedId || cloudDeployment}
                   onClick={handlePredict}
                 >
                   {predicting ? 'Running…' : 'Run prediction'}

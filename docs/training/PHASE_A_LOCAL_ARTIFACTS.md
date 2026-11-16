@@ -109,7 +109,7 @@ Move from **catalog-only dataset rows** to **real files on disk** that the **loc
 
 - Optional **chip**: e.g. “Files uploaded” vs “Metadata only”.
 
-### 5.5 TDC — Training (`frontend/src/pages/TDCTraining.js`)
+### 5.5 TDC — Training (`training/ui/TDCTraining.js`)
 
 - Prefer API field(s) for **readiness** (e.g. `datasetsReady`, per-dataset reasons).
 - **Disable** “Start training” with **Tooltip** when blocked (unsigned, missing artifacts, wrong role).
@@ -134,7 +134,7 @@ export LOCAL_TRAINING_IMAGE=contractmanagement/local-trainer:latest   # after do
 Build image:
 
 ```bash
-docker build -t contractmanagement/local-trainer:latest -f backend/local-training/Dockerfile backend/local-training
+docker build -t contractmanagement/local-trainer:latest -f backend/local-training/Dockerfile --build-context inference=inference/backend backend/local-training
 ```
 
 ---

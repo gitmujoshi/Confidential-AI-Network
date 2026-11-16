@@ -6,7 +6,7 @@ const {
   mapPrivacyTechnique,
   isSimulationMode,
   buildContainerSpec,
-} = require('../../services/tdcTrainingHelpers');
+} = require('../../../training/tdcTrainingHelpers');
 
 describe('tdcTrainingHelpers', () => {
   describe('slugModelId', () => {

@@ -549,7 +549,8 @@ test.describe('Lifecycle user guide (screenshot tour)', () => {
     steps.push({
       title: 'Deploy model for inference',
       body: [
-        'Click **Deploy for inference** to mark the registered model as **DEPLOYED** for local prediction.',
+        'The deploy target on this tour stays **Local**. Click **Deploy for inference** to mark the registered model as **DEPLOYED** and score it on this host.',
+        'Azure, GCP, and AWS are the other targets. Those submit a Job to the cluster saved on the Inference page. They do not use the contract TSP, and they do not copy the score back.',
         'The platform points at the job’s `model.bin` artifact and records task type (here: **text**).',
       ].join('\n'),
       ...(await captureShot(page, '21-tdc-deploy-inference.png')),

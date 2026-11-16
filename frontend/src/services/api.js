@@ -374,9 +374,18 @@ const realApiService = {
     const response = await api.get('/api/tdc/inference/deployments');
     return response.data;
   },
-  deployTdcInferenceModel: async (modelId) => {
+  getTdcInferenceAccounts: async () => {
+    const response = await api.get('/api/tdc/inference/accounts');
+    return response.data;
+  },
+  saveTdcInferenceAccount: async (provider, account) => {
+    const response = await api.put('/api/tdc/inference/accounts', { provider, account });
+    return response.data;
+  },
+  deployTdcInferenceModel: async (modelId, body = {}) => {
     const response = await api.post(
-      `/api/tdc/inference/models/${encodeURIComponent(modelId)}/deploy`
+      `/api/tdc/inference/models/${encodeURIComponent(modelId)}/deploy`,
+      body
     );
     return response.data;
   },

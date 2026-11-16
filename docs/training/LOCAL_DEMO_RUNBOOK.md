@@ -13,7 +13,10 @@ One-page guide for a **stakeholder demo** on a laptop or VM. Assumes macOS/Linux
 ./start-system.sh
 
 # 2. Build trainer image (after any train.py change)
-docker build -t contractmanagement/local-trainer:latest backend/local-training
+docker build -t contractmanagement/local-trainer:latest \
+  -f backend/local-training/Dockerfile \
+  --build-context inference=inference/backend \
+  backend/local-training
 
 # 3. Confirm config (repo root config.env)
 #    CAN_LOCAL_TRAINING_MODE=docker

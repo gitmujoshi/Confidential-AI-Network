@@ -1,5 +1,6 @@
 module.exports = {
   testEnvironment: 'node',
+  modulePaths: ['<rootDir>/node_modules'],
   setupFilesAfterEnv: ['<rootDir>/tests/unit/setup.js'],
   testMatch: [
     '<rootDir>/tests/unit/keyManagementService.test.js',
@@ -13,6 +14,8 @@ module.exports = {
     '<rootDir>/tests/unit/contract-lifecycle.test.js',
     '<rootDir>/tests/unit/dataset-ingest-gate.test.js',
     '<rootDir>/tests/unit/training-execution-router.test.js',
+    '<rootDir>/tests/unit/inference-ccr-runner.test.js',
+    '<rootDir>/tests/unit/inference-deploy-target.test.js',
     '<rootDir>/tests/unit/depa-prd-pieces.test.js',
     '<rootDir>/tests/unit/siem-integration.test.js',
     '<rootDir>/tests/unit/huggingface-integration.test.js',

@@ -2,15 +2,37 @@
  * Local inference deploy + predict for TDC-registered training artifacts.
  *
  * Deploy marks an AIModel as inference-ready and records the host artifact path.
- * Predict runs backend/local-training/infer.py via Docker (same image as training)
+ * Predict runs inference/backend/infer.py via Docker (same image as training)
  * or host Python when INFERENCE_EXECUTION_MODE=host.
  */
 const { spawn } = require('child_process');
 const fs = require('fs');
 const os = require('os');
 const path = require('path');
-const db = require('../models');
-const { authorizeCanSideEffect, isInferenceGateEnabled } = require('./gmaseSideEffectGate');
+const db = require('../../backend/models');
+const { authorizeCanSideEffect, isInferenceGateEnabled } = require('../../shared/services/gmaseSideEffectGate');
+const { isCompleteAccount, missingAccountFields } = require('../../shared/services/tspCloudAccount');
+const { provisionInferenceCcr, teardownInferenceCcr } = require('./inferenceCcrRunner');
+
+const DEPLOY_TARGETS = {
+  Local: 'local',
+  Azure: 'azure-ccr',
+  GCP: 'gcp-ccr',
+  AWS: 'aws-ccr',
+};
+
+function canonicalDeployTarget(value) {
+  const raw = String(value == null || value === '' ? 'Local' : value).trim().toLowerCase();
+  if (raw === 'local') return 'Local';
+  if (raw === 'azure') return 'Azure';
+  if (raw === 'gcp' || raw === 'google') return 'GCP';
+  if (raw === 'aws') return 'AWS';
+  return null;
+}
+
+function isLocalDeployment(inference) {
+  return !inference?.provider || inference.provider === 'Local';
+}
 
 /** Authorize inference side-effect via shared Open-GMASE gate. */
 async function authorizeInferenceTool({ toolName, userId, contract, model, inferenceMeta, parameters }) {
@@ -76,7 +98,7 @@ function resolveTaskType(model, jobMeta = {}) {
 function visionDemoSample() {
   try {
     // eslint-disable-next-line import/no-dynamic-require, global-require
-    return require('../local-training/samples/cifarDemoSample');
+    return require('../../backend/local-training/samples/cifarDemoSample');
   } catch (_) {
     return null;
   }
@@ -189,7 +211,7 @@ async function runInfer({ artifactPath, taskType, input }) {
   };
 
   if (mode === 'host') {
-    const inferPy = path.join(repoRoot(), 'backend', 'local-training', 'infer.py');
+    const inferPy = path.join(repoRoot(), 'inference', 'backend', 'infer.py');
     const python = process.env.LOCAL_INFERENCE_PYTHON || process.env.LOCAL_TRAINING_PYTHON || 'python3';
     const result = await runWithTimeout(() =>
       runCommand(python, [inferPy, '--artifact', artifactPath, '--task', taskType, '--input', inputJson])
@@ -199,7 +221,7 @@ async function runInfer({ artifactPath, taskType, input }) {
 
   // Docker: mount artifact directory read-only + host infer.py (so label maps ship without rebuild)
   const outDir = path.dirname(artifactPath);
-  const inferPy = path.join(repoRoot(), 'backend', 'local-training', 'infer.py');
+  const inferPy = path.join(repoRoot(), 'inference', 'backend', 'infer.py');
   const image = trainerImage();
   const dockerArgs = [
     'run',
@@ -253,7 +275,28 @@ function parseInferResult({ code, stdout, stderr }) {
   return parsed;
 }
 
-async function deployModel(modelId, userId) {
+async function loadTdcDeployAccount(userId, provider) {
+  const user = await db.User.findByPk(userId);
+  const account = user?.cloudAccount?.[provider] || null;
+  if (!isCompleteAccount(provider, account)) {
+    const missing = missingAccountFields(provider, account);
+    const err = new Error(
+      `Save the ${provider} cluster on the Inference page before deploying. Missing: ${missing.join(', ')}.`
+    );
+    err.statusCode = 400;
+    throw err;
+  }
+  return account;
+}
+
+async function deployModel(modelId, userId, options = {}) {
+  const target = canonicalDeployTarget(options.target);
+  if (!target) {
+    const err = new Error('Deploy target must be Local, Azure, GCP, or AWS.');
+    err.statusCode = 400;
+    throw err;
+  }
+
   const { model, contract, meta } = await assertTdcOwnsModel(modelId, userId);
   const { jobMeta, artifactPath, outDir } = await resolveArtifactPath(meta);
   const taskType = resolveTaskType(model, jobMeta);
@@ -264,12 +307,10 @@ async function deployModel(modelId, userId) {
     contract,
     model,
     inferenceMeta: { status: 'PENDING_DEPLOY', taskType },
-    parameters: { model_id: modelId, task_type: taskType },
+    parameters: { model_id: modelId, task_type: taskType, deploy_target: target },
   });
 
-  const inference = {
-    status: 'DEPLOYED',
-    mode: inferenceMode(),
+  const base = {
     taskType,
     artifactPath,
     artifactDir: outDir,
@@ -277,7 +318,47 @@ async function deployModel(modelId, userId) {
     appPath: `/tdc/inference?modelId=${encodeURIComponent(model.modelId)}`,
     deployedAt: new Date().toISOString(),
     deployedBy: userId,
+    contractProvider: contract.tspCloudProvider || null,
   };
+
+  let inference;
+  if (target === 'Local') {
+    const mode = inferenceMode();
+    inference = {
+      ...base,
+      status: 'DEPLOYED',
+      provider: 'Local',
+      executionMode: mode === 'host' ? 'local-host' : 'local-docker',
+      mode,
+      submitted: false,
+    };
+  } else {
+    const account = await loadTdcDeployAccount(userId, target);
+    const placed = await provisionInferenceCcr({
+      provider: target,
+      modelId: model.modelId,
+      contractId: contract.contractId,
+      taskType,
+      account,
+    });
+    if (!placed.submitted) {
+      const err = new Error(placed.error);
+      err.statusCode = 502;
+      throw err;
+    }
+    inference = {
+      ...base,
+      status: 'DEPLOYED',
+      provider: target,
+      executionMode: DEPLOY_TARGETS[target],
+      mode: DEPLOY_TARGETS[target],
+      submitted: true,
+      cluster: placed.cluster,
+      spec: placed.spec,
+      account,
+      attestation: placed.attestation,
+    };
+  }
 
   const nextMeta = { ...(model.metadata || {}), inference };
   await model.update({ metadata: nextMeta });
@@ -294,9 +375,13 @@ async function undeployModel(modelId, userId) {
   const { model } = await assertTdcOwnsModel(modelId, userId);
   const nextMeta = { ...(model.metadata || {}) };
   if (nextMeta.inference) {
+    if (!isLocalDeployment(nextMeta.inference)) {
+      await teardownInferenceCcr(nextMeta.inference);
+    }
     nextMeta.inference = {
       ...nextMeta.inference,
       status: 'UNDEPLOYED',
+      submitted: false,
       undeployedAt: new Date().toISOString(),
     };
   }
@@ -342,6 +427,13 @@ async function predict(modelId, userId, input) {
     err.statusCode = 400;
     throw err;
   }
+  if (!isLocalDeployment(inference)) {
+    const err = new Error(
+      `This model is deployed on the TDC ${inference.provider} cluster. Run prediction is available for a Local deployment. The score is not copied back from the cluster.`
+    );
+    err.statusCode = 409;
+    throw err;
+  }
 
   const governance = await authorizeInferenceTool({
     toolName: 'run_inference',
@@ -380,6 +472,9 @@ async function predict(modelId, userId, input) {
 }
 
 module.exports = {
+  DEPLOY_TARGETS,
+  canonicalDeployTarget,
+  isLocalDeployment,
   deployModel,
   undeployModel,
   listDeployments,

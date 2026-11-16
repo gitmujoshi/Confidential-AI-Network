@@ -1,7 +1,7 @@
 const express = require('express');
 const fs = require('fs');
 const path = require('path');
-const { authorizeTool, checkOpaHealth } = require('../services/gmaseOpaService');
+const { authorizeTool, checkOpaHealth } = require('../../shared/services/gmaseOpaService');
 const AuditService = require('../services/auditService');
 
 const router = express.Router();
@@ -62,7 +62,7 @@ router.get('/env', (req, res) => {
           const {
             getCompliancePulseIngestUrl,
             isCompliancePulseIngestEnabled,
-          } = require('../services/gmaseSideEffectGate');
+          } = require('../../shared/services/gmaseSideEffectGate');
           return {
             enabled: isCompliancePulseIngestEnabled(),
             url: getCompliancePulseIngestUrl() || null,

@@ -1,13 +1,13 @@
-const { resolveTrainingExecution } = require('../../services/trainingExecutionRouter');
+const { resolveTrainingExecution } = require('../../../training/trainingExecutionRouter');
 const {
   isCompleteAccount,
   missingAccountFields,
   resolveTspCloudAccount,
   sanitizeProviderAccount,
-} = require('../../services/tspCloudAccount');
-const { buildAzureCcrSpec, provisionAzureCcr } = require('../../services/azureCcrRunner');
-const { buildGcpCcrSpec, provisionGcpCcr } = require('../../services/gcpCcrRunner');
-const { abortTrainingJob } = require('../../services/trainingAbortService');
+} = require('../../../shared/services/tspCloudAccount');
+const { buildAzureCcrSpec, provisionAzureCcr } = require('../../../training/azureCcrRunner');
+const { buildGcpCcrSpec, provisionGcpCcr } = require('../../../training/gcpCcrRunner');
+const { abortTrainingJob } = require('../../../training/trainingAbortService');
 
 describe('training execution router', () => {
   it('keeps a Local TSP on local-docker when the host mode is oci', () => {

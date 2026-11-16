@@ -1,4 +1,4 @@
-const { buildDockerRunArgs } = require('../../services/localDockerTrainingRunner');
+const { buildDockerRunArgs } = require('../../../training/localDockerTrainingRunner');
 
 describe('localDockerTrainingRunner.buildDockerRunArgs', () => {
   const base = {

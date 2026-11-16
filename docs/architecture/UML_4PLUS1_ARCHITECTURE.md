@@ -189,7 +189,7 @@ flowchart TB
 | `/api/blockchain` | Legacy | Legacy (`BLOCKCHAIN_ENABLED=false`) |
 | `/api/training`, `/api/provenance`, `/api/tee`, `/api/multi-cloud-tee`, `/api/marketplace` | Older surfaces | **Disabled** in `server.js` |
 
-Primary modules: `backend/services/ricardianContractService.js`, `tdcTrainingExecutionService.js`, `gmaseOpaService.js`, `gmaseSideEffectGate.js`, `auditorAuditTreeService.js`, `scittCcfService.js`, `canJcsService.js`, `keycloakService.js`, `cloudIdpRegistry.js`.
+Primary modules: `backend/services/ricardianContractService.js`, `training/tdcTrainingExecutionService.js`, `shared/services/gmaseOpaService.js`, `shared/services/gmaseSideEffectGate.js`, `inference/backend/localInferenceService.js`, `auditorAuditTreeService.js`, `scittCcfService.js`, `canJcsService.js`, `keycloakService.js`, `cloudIdpRegistry.js`.
 
 ---
 
@@ -294,11 +294,16 @@ Module organization for implementers.
 Confidential-AI-Network/
 ├── frontend/                 # React 18 + MUI + CRA (:3000)
 ├── backend/                  # Express + Sequelize + pg (:5001)
-│   ├── routes/               # flat routers (mounted in server.js)
-│   ├── services/
+│   ├── routes/               # platform routers (mounted in server.js)
+│   ├── services/             # platform services
 │   ├── models/
 │   ├── middleware/
-│   └── local-training/       # trainer image / scripts
+│   └── local-training/       # trainer image and run outputs (train.py)
+├── training/                 # TDC training routes, runners, and Training page
+├── inference/                # TDC inference routes, infer.py, and Inference page
+├── shared/
+│   ├── services/             # cloud account + GMASE gate used by training and inference
+│   └── valueObjects/         # contract id, money, duration
 ├── open-gmase-core/          # OPA policies, SPIFFE scaffolds, Compose (OPA :8181)
 ├── compliancepulse-ai/       # control-plane (ingest :3001)
 ├── deployment/
@@ -311,7 +316,7 @@ Confidential-AI-Network/
 └── scripts/                  # start-system, auth fix, e2e helpers
 ```
 
-Backend layout is flat (`backend/routes|services|models`), not `backend/src/`.
+Platform code stays in `backend/` and `frontend/`. TDC training and inference sit beside them. `backend/server.js` mounts `training/routes.js` at `/api/tdc/training` and `inference/backend/routes.js` at `/api/tdc/inference`.
 
 ### 3.2 Frontend structure (roles)
 
@@ -330,7 +335,7 @@ Backend layout is flat (`backend/routes|services|models`), not `backend/src/`.
 
 | Concern | Location |
 |---------|----------|
-| OPA side-effect gate | `gmaseOpaService.js`, `gmaseSideEffectGate.js`, `open-gmase-core/.../can-contracts.rego` |
+| OPA side-effect gate | `shared/services/gmaseOpaService.js`, `shared/services/gmaseSideEffectGate.js`, `open-gmase-core/.../can-contracts.rego` |
 | Merkle / proofs | `MerkleTreeBuilder.js`, `ProofGenerator.js`, `auditorAuditTreeService.js` |
 | Cloud IdP | `cloudIdpRegistry.js`, `entraIdentityService.js`, `ociIdentityService.js` |
 | Providers | `services/providers/{aws,azure,gcp,oci}Provider.js` |

@@ -1,6 +1,6 @@
 const { Op } = require('sequelize');
 const db = require('../models');
-const TdcTrainingExecutionService = require('./tdcTrainingExecutionService');
+const TdcTrainingExecutionService = require('../../training/tdcTrainingExecutionService');
 
 function pickContractAuditFields(plainContract) {
   if (!plainContract) return null;

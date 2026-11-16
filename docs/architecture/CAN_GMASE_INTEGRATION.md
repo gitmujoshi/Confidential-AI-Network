@@ -17,10 +17,10 @@ Also: `POST /api/debug/gmase-tool-check` for ad-hoc tool proposals (`open_gmase.
 
 Code:
 
-- `backend/services/gmaseOpaService.js`
-- `backend/services/gmaseSideEffectGate.js`
-- `backend/services/tdcTrainingExecutionService.js` (training gate)
-- `backend/services/localInferenceService.js` (inference gate)
+- `shared/services/gmaseOpaService.js`
+- `shared/services/gmaseSideEffectGate.js`
+- `training/tdcTrainingExecutionService.js` (training gate)
+- `inference/backend/localInferenceService.js` (inference gate)
 - `compliancepulse-ai/backend/src/api/routes.ts` (`/audit/ingest`)
 
 ## Target integration (roadmap)

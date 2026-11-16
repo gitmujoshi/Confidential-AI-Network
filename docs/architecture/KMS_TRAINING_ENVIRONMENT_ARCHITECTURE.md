@@ -408,7 +408,7 @@ sequenceDiagram
 
 The conceptual flow above is implemented in a **role-scoped API** design:
 
-- **TDC (start training / view jobs / register model)**: `backend/routes/tdc-training.js` mounted at `/api/tdc/training/*`
+- **TDC (start training / view jobs / register model)**: `training/routes.js` mounted at `/api/tdc/training/*`
 - **CCRP (environment + job monitoring/actions)**: `/api/ccrp/training/*` APIs used by the CCRP UI
 
 For the up-to-date runtime/API surface, env vars (including simulation mode), and DB metadata script, see:

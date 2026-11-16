@@ -5,7 +5,7 @@
 
 const { spawn } = require('child_process');
 const { Op } = require('sequelize');
-const db = require('../models');
+const db = require('../backend/models');
 const { getTrainingProcess, unregisterTrainingProcess } = require('./trainingProcessRegistry');
 
 function dockerContainerNameForJob(jobId) {

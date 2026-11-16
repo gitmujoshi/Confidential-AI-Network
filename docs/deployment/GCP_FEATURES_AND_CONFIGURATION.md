@@ -179,6 +179,8 @@ A signed contract whose TSP is **GCP** submits `gcp-ccr` to the GKE cluster that
 
 Required before submit: project, location, and GKE name, plus a kubeconfig path. A missing path marks the `TrainingJob` **FAILED** and returns HTTP 502. `kubectl apply` runs only when that path is set. Attestation on this path is `simulated`. No Confidential Space quote is collected. `gcpProvider.js` remains a simulated provider and is not this path.
 
+TDC inference deploy is a separate step. The TDC can select **GCP** and submit an inference Job to a GKE cluster stored on that TDC’s `users.cloud_account.GCP`. The contract TSP is not that target. A missing `kubeconfigPath` or `GCP_CCR_KUBECONFIG` returns HTTP 502 and leaves the model undeployed. The score is not copied back.
+
 | Mode | Maturity |
 |------|----------|
 | `local-docker` | Implemented when the TSP provider is Local |
@@ -306,9 +308,9 @@ SCITT_DEPLOYMENT=gke
 |------|------|
 | GCP IdP service | `backend/services/gcpIdentityService.js` |
 | Cloud IdP registry | `backend/services/cloudIdpRegistry.js` |
-| GCP CCR runner | `backend/services/gcpCcrRunner.js` |
-| TSP cloud account | `backend/services/tspCloudAccount.js`, `users.cloud_account` |
-| Training router | `backend/services/trainingExecutionRouter.js` |
+| GCP CCR runner | `training/gcpCcrRunner.js` |
+| TSP cloud account | `shared/services/tspCloudAccount.js`, `users.cloud_account` |
+| Training router | `training/trainingExecutionRouter.js` |
 | Secrets | `backend/services/secretManager.js` (`GCP_SECRETS`) |
 | TEE hints | `backend/services/teeProvisioningService.js` (`GCP_PROJECT_ID`) |
 | Terraform identity | `deployment/gcp/terraform/modules/identity/` |

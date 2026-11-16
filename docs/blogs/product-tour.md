@@ -246,6 +246,10 @@ permalink: /product-tour/
     (<code>"Wall Street rallies…"</code>) predicts <strong>Business</strong>.
     Register → deploy → open the Inference app → run prediction against
     <code>infer.py</code> in the local trainer image.
+    This tour leaves the deploy target on <strong>Local</strong>.
+    The same control can submit the model to an <strong>Azure</strong>, <strong>GCP</strong>, or <strong>AWS</strong>
+    cluster the TDC has saved. That cluster is not the TSP named on the training contract.
+    A cloud deploy does not copy the score back to this page.
   </p>
   <figure class="shot">
     <img src="{{ '/assets/lifecycle/20-tdc-register-model.png' | relative_url }}" alt="Register trained model for inference" loading="lazy" />

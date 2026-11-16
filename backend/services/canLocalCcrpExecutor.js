@@ -1,6 +1,6 @@
 const db = require('../models');
-const { runLocalDockerTraining } = require('./localDockerTrainingRunner');
-const { buildCanTrainingJobInputs } = require('./contractTrainingInputsService');
+const { runLocalDockerTraining } = require('../../training/localDockerTrainingRunner');
+const { buildCanTrainingJobInputs } = require('../../training/contractTrainingInputsService');
 
 function sleep(ms) {
   return new Promise((r) => setTimeout(r, ms));

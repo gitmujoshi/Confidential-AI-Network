@@ -8,8 +8,8 @@
  */
 
 const { Op } = require('sequelize');
-const db = require('../models');
-const DEPAIdService = require('./depaIdService');
+const db = require('../backend/models');
+const DEPAIdService = require('../backend/services/depaIdService');
 const depaIdService = new DEPAIdService();
 const {
   slugModelId,
@@ -26,11 +26,11 @@ const {
   expandContractTrainingInputs,
   shapeInputsForLocalTrainerContainer,
 } = require('./contractTrainingInputsService');
-const { stageDatasetsForLocalJob } = require('./datasetArtifactStaging');
-const { authorizeCanSideEffect, isTrainingGateEnabled } = require('./gmaseSideEffectGate');
+const { stageDatasetsForLocalJob } = require('../backend/services/datasetArtifactStaging');
+const { authorizeCanSideEffect, isTrainingGateEnabled } = require('../shared/services/gmaseSideEffectGate');
 const { abortTrainingJob, isActiveTrainingStatus } = require('./trainingAbortService');
 const { resolveTrainingExecution } = require('./trainingExecutionRouter');
-const { resolveTspCloudAccount } = require('./tspCloudAccount');
+const { resolveTspCloudAccount } = require('../shared/services/tspCloudAccount');
 const { provisionAzureCcr } = require('./azureCcrRunner');
 const { provisionGcpCcr } = require('./gcpCcrRunner');
 
@@ -570,7 +570,7 @@ class TdcTrainingExecutionService {
       return withGovernance(jobId);
     }
 
-    const TrainingService = require('./trainingService');
+    const TrainingService = require('../backend/services/trainingService');
     const trainingService = new TrainingService();
     const run = await trainingService.triggerTrainingRun(contractId);
     return await this.serializeJob(run);
@@ -928,7 +928,7 @@ class TdcTrainingExecutionService {
 
     // Provenance claim (best-effort).
     try {
-      const { writeLocalScittClaim } = require('./provenanceClaimWriter');
+      const { writeLocalScittClaim } = require('../backend/services/provenanceClaimWriter');
       await writeLocalScittClaim({
         contractId: contract.contractId,
         claimType: 'model_registered',

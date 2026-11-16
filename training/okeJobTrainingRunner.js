@@ -14,10 +14,10 @@
 const path = require('path');
 const fs = require('fs');
 const os = require('os');
-const db = require('../models');
-const { writeLocalScittClaim } = require('./provenanceClaimWriter');
+const db = require('../backend/models');
+const { writeLocalScittClaim } = require('../backend/services/provenanceClaimWriter');
 const { buildTrainingModelProvenance } = require('./tdcTrainingHelpers');
-const { buildJobTrainingProvenanceBundle } = require('./provenanceAuditReportService');
+const { buildJobTrainingProvenanceBundle } = require('../backend/services/provenanceAuditReportService');
 
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));

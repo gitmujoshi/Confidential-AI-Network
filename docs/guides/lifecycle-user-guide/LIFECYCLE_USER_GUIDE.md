@@ -10,7 +10,7 @@ This guide walks through the full multi-party happy path in the local stack:
 3. TDC creates a Ricardian contract with **PyTorch** / **DistilBERT** (quality demo profile for meaningful AG News labels)
 4. TDP and TSP are notified, review, and **sign** (registration signing keys)
 5. TDC views the **SIGNED** contract, runs local-docker training, and inspects **logs** + **provenance**
-6. TDC **registers** the trained model, **deploys** it for local inference, and runs a **prediction** in the Inference app
+6. TDC **registers** the trained model and **deploys** it. This tour keeps the deploy target on **Local** and runs a **prediction**. Azure, GCP, and AWS submit a Job to a cluster the TDC saved, separate from the contract TSP
 7. **Auditor** opens the workspace, inspects the **Merkle audit tree**, and reviews the **contract** the training was based on
 
 ## Demo credentials
@@ -35,7 +35,7 @@ This guide walks through the full multi-party happy path in the local stack:
 | Privacy | Optional on quality path (DP-SGD remains on fast NLP E2E: tiny DistilBERT, `ε=0.5`) |
 | Hyperparameters | `maxEpochs=2`, `batchSize=16`, `learningRate=5e-5`, `fastDevRun=false`, `trainSubsetSize=2000` |
 | Dataset | Lifecycle TDP NLP catalog row with Hugging Face `ag_news` reference |
-| After train | Register → Deploy → Predict (local `infer.py` / Inference app) |
+| After train | Register → Deploy target **Local** → Predict (`infer.py`). Azure, GCP, and AWS are separate TDC cluster targets |
 | After predict | Auditor → Merkle audit tree → contract review |
 | Expected demo prediction | Headline about Wall Street → **Business** |
 
@@ -174,7 +174,8 @@ This creates an **AIModel** catalog row from the training artifact (usable in ne
 
 ### 21. Deploy model for inference
 
-Click **Deploy for inference** to mark the registered model as **DEPLOYED** for local prediction.
+The deploy target on this tour stays **Local**. Click **Deploy for inference** to mark the registered model as **DEPLOYED** and score it on this host.
+Azure, GCP, and AWS are the other targets. Those submit a Job to the cluster saved on the Inference page. They do not use the contract TSP, and they do not copy the score back.
 The platform points at the job’s `model.bin` artifact and records task type (here: **text**).
 
 ![Deploy model for inference](screenshots/21-tdc-deploy-inference.png)

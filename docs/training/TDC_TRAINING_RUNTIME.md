@@ -60,16 +60,20 @@ All routes require **Bearer** token and **TDC** role.
 
 ## Inference API (`/api/tdc/inference`)
 
-Local MVP: deploy a registered training artifact and run predictions via `infer.py` (same Docker image as training, or host Python when `INFERENCE_EXECUTION_MODE=host`).
+The contract TSP is the training target. The TDC chooses the deploy target on the registered model. **Local** scores on this host with `infer.py` (Docker, or host Python when `INFERENCE_EXECUTION_MODE=host`). **Azure**, **GCP**, and **AWS** submit a Job to a cluster saved on the TDC user. That record is `users.cloud_account.Azure|GCP|AWS`. It is not `contract.tspCloudProvider`.
 
 | Method | Path | Description |
 |--------|------|-------------|
+| `GET` | `/accounts` | Azure, GCP, and AWS clusters saved for this TDC. |
+| `PUT` | `/accounts` | Body `{ provider, account }`. Saves one of those clusters. |
 | `GET` | `/deployments` | List models the TDC has deployed for inference. |
-| `POST` | `/models/:modelId/deploy` | Mark registered model as **DEPLOYED** (requires local `model.bin` from the training run). |
-| `POST` | `/models/:modelId/undeploy` | Mark undeployed. |
-| `POST` | `/models/:modelId/predict` | Body `{ "input": { ... } }` — tabular `features`, text `text`, vision `{ "demo": true }` or `imageBase64`. |
+| `POST` | `/models/:modelId/deploy` | Body `{ target }` is `Local` (default), `Azure`, `GCP`, or `AWS`. Requires local `model.bin`. A cloud target needs a complete account. A missing kubeconfig returns **502** and leaves the model undeployed. |
+| `POST` | `/models/:modelId/undeploy` | Mark undeployed. A submitted cloud Job is deleted when the kubeconfig is still set. |
+| `POST` | `/models/:modelId/predict` | Local deployments only. Body `{ "input": { ... } }` — tabular `features`, text `text`, vision `{ "demo": true }` or `imageBase64`. A cloud deployment returns **409**. The score is not copied back. |
 
-**UI:** `/tdc/inference` (sidebar **Inference**). Training page shows **Deploy for inference** after register, then **Open inference app**.
+Azure needs subscription, resource group, and AKS name. GCP needs project, location, and GKE name. AWS needs region and EKS name. Each can also store namespace and `kubeconfigPath`. Env fallbacks are `AZURE_CCR_KUBECONFIG`, `GCP_CCR_KUBECONFIG`, and `AWS_CCR_KUBECONFIG`. The Job is labeled for that cloud’s confidential pool. Attestation stays `simulated`. `model.bin` is not mounted into the Job.
+
+**UI:** `/tdc/inference` (sidebar **Inference**) saves the three clusters. Training page **Deploy target** chooses Local, Azure, GCP, or AWS, then **Deploy for inference**. Try-it predictions stay on Local.
 
 ### E2E (opt-in)
 
@@ -86,7 +90,7 @@ Specs: `inference-deploy-api.spec.js`, `inference-deploy-ui.spec.js` (see `front
 - **Route:** `/tdc/training` (TDC sidebar: **Training**).
 - Shows signed contracts, **Start training**, job list, live job detail (container spec, training params, results).
 - **Register trained model for inference** appears when the job is **COMPLETED** and not yet registered.
-- **Deploy for inference** appears after registration; opens the **Inference app** (`/tdc/inference`) for try-it predictions.
+- **Deploy target** and **Deploy for inference** appear after registration. Local opens the **Inference app** (`/tdc/inference`) for try-it predictions. Azure, GCP, and AWS use the cluster saved on that page.
 
 ## CCRP training API (`/api/ccrp/training/...`)
 
@@ -99,7 +103,7 @@ Mounted under **`/api/ccrp`** with authentication. Used by **Training Environmen
 
 ## Implementation notes
 
-- **Container spec snapshot:** `backend/services/tdcTrainingHelpers.js` — `buildContainerSpec(contract)` merges `trainingParams`, `environmentSpecs.compute`, dataset/model refs.
+- **Container spec snapshot:** `training/tdcTrainingHelpers.js` — `buildContainerSpec(contract)` merges `trainingParams`, `environmentSpecs.compute`, dataset/model refs.
 - **Simulation:** phases and results stored on `TrainingJob.metadata` (requires `metadata` column on PostgreSQL).
 - **Local Docker execution:** set `TRAINING_EXECUTION_MODE=local-docker` to run a local Python trainer container. The placeholder trainer writes results to `backend/local-training/runs/<jobId>/outputs/metrics.json` on the backend host.
 - **Hugging Face catalog refs (dev):** `contractTrainingInputsService` attaches `huggingface` blocks to datasets/models in `metadata.inputs`; `train.py` loads Hub dataset/model IDs from `contract.json` (fallback: `ag_news` + tiny DistilBERT). See [LOCAL_DEMO_RUNBOOK.md](./LOCAL_DEMO_RUNBOOK.md) NLP track.
@@ -112,7 +116,10 @@ This repo includes a minimal placeholder trainer (`backend/local-training/train.
 ### Build the trainer image
 
 ```bash
-docker build -t contractmanagement/local-trainer:latest -f backend/local-training/Dockerfile backend/local-training
+docker build -t contractmanagement/local-trainer:latest \
+  -f backend/local-training/Dockerfile \
+  --build-context inference=inference/backend \
+  backend/local-training
 ```
 
 ### Run training through the app runtime
@@ -134,13 +141,19 @@ curl -X POST "http://localhost:5001/api/tdc/training/contracts/<contractId>/star
 
 ## Related code
 
-- `backend/services/tdcTrainingExecutionService.js`
-- `backend/services/contractTrainingInputsService.js` — shapes `contract.json` for local Docker (includes HF blocks)
-- `backend/services/localDockerTrainingRunner.js` — mounts inputs, passes `HF_TOKEN` to trainer
+- `training/tdcTrainingExecutionService.js`
+- `training/contractTrainingInputsService.js` — shapes `contract.json` for local Docker (includes HF blocks)
+- `training/localDockerTrainingRunner.js` — mounts inputs, passes `HF_TOKEN` to trainer
 - `backend/services/huggingfaceIntegrationService.js` — dev Hub adapter
-- `backend/routes/tdc-training.js`
+- `training/routes.js` — mounted at `/api/tdc/training`
+- `training/ui/TDCTraining.js`
+- `inference/backend/localInferenceService.js` — Local deploy runs `inference/backend/infer.py`
+- `inference/backend/inferenceCcrRunner.js` — Azure, GCP, and AWS Job submit
+- `inference/backend/routes.js` — mounted at `/api/tdc/inference`
+- `inference/ui/TDCInference.js`
+- `shared/services/tspCloudAccount.js` — TSP and TDC cluster records
+- `shared/services/gmaseSideEffectGate.js` — train, deploy, and predict gate
 - `backend/services/trainingService.js` — `getTrainingJobs`, `deployTrainingJob`, etc.
-- `frontend/src/pages/TDCTraining.js`
 - `frontend/src/pages/TrainingEnvironment.js` (uses `/api/ccrp/training/...`)
 
 ## Related CAN docs

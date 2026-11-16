@@ -1,3 +1,9 @@
+# syntax=docker/dockerfile:1
+# Build from the repo with the inference scorer as a named context:
+#   docker build -t contractmanagement/local-trainer:latest \
+#     -f backend/local-training/Dockerfile \
+#     --build-context inference=inference/backend \
+#     backend/local-training
 FROM python:3.11-slim
 
 WORKDIR /app
@@ -21,7 +27,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     EPOCH_SLEEP_SECONDS=0.6
 
 COPY train.py /app/train.py
-COPY infer.py /app/infer.py
+COPY --from=inference infer.py /app/infer.py
 
 VOLUME ["/outputs"]
 

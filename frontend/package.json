@@ -30,13 +30,14 @@
     "web-vitals": "^2.1.4"
   },
   "devDependencies": {
+    "@craco/craco": "^7.1.0",
     "@playwright/test": "^1.40.0",
     "playwright": "^1.40.0"
   },
   "scripts": {
-    "start": "NODE_OPTIONS='--max-old-space-size=2048' PORT=3000 react-scripts start",
-    "build": "NODE_OPTIONS='--max-old-space-size=4096' react-scripts build",
-    "test": "react-scripts test",
+    "start": "NODE_OPTIONS='--max-old-space-size=2048' PORT=3000 craco start",
+    "build": "NODE_OPTIONS='--max-old-space-size=4096' craco build",
+    "test": "craco test",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:headed": "playwright test --headed",

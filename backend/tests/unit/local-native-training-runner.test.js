@@ -1,4 +1,4 @@
-const { buildNativeTrainerEnv, nativePythonPath } = require('../../services/localNativeTrainingRunner');
+const { buildNativeTrainerEnv, nativePythonPath } = require('../../../training/localNativeTrainingRunner');
 
 describe('localNativeTrainingRunner', () => {
   test('buildNativeTrainerEnv passes contract paths and trainer device', () => {

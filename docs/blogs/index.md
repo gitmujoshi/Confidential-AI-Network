@@ -49,6 +49,19 @@ permalink: /
 </section>
 
 <section class="home-section">
+  <h2>Deploy the trained model where the consumer runs</h2>
+  <p>
+    Training follows the clean-room provider on the contract.
+    After the model is registered, the consumer picks a deploy target:
+    <strong>Local</strong>, <strong>Azure</strong>, <strong>GCP</strong>, or <strong>AWS</strong>.
+    Local scores on this host.
+    The three clouds submit a Job to a cluster the consumer already named, with a kubeconfig path on the API host.
+    A missing path leaves the model undeployed.
+    The score is not copied back from the cluster, and the run is marked simulated until a hardware quote is attached.
+  </p>
+</section>
+
+<section class="home-section">
   <h2>How a job starts</h2>
   <ul class="vision-list">
     <li>

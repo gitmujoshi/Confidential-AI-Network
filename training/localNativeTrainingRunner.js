@@ -2,10 +2,10 @@ const fs = require('fs');
 const path = require('path');
 const { spawn } = require('child_process');
 
-const db = require('../models');
-const { writeLocalScittClaim } = require('./provenanceClaimWriter');
+const db = require('../backend/models');
+const { writeLocalScittClaim } = require('../backend/services/provenanceClaimWriter');
 const { buildTrainingModelProvenance } = require('./tdcTrainingHelpers');
-const { buildJobTrainingProvenanceBundle } = require('./provenanceAuditReportService');
+const { buildJobTrainingProvenanceBundle } = require('../backend/services/provenanceAuditReportService');
 const {
   registerTrainingProcess,
   unregisterTrainingProcess,
@@ -13,7 +13,7 @@ const {
 const { isActiveTrainingStatus } = require('./trainingAbortService');
 
 function repoRoot() {
-  return path.resolve(__dirname, '..', '..');
+  return path.resolve(__dirname, '..');
 }
 
 function runsRoot() {
@@ -38,24 +38,24 @@ function isAppleSiliconMac() {
   return process.platform === 'darwin' && process.arch === 'arm64';
 }
 
-function mlxPythonPath() {
+function nativePythonPath() {
   return (
-    process.env.LOCAL_MLX_PYTHON ||
-    path.join(repoRoot(), 'backend', 'local-training', '.venv-mlx', 'bin', 'python')
+    process.env.LOCAL_NATIVE_PYTHON ||
+    path.join(repoRoot(), 'backend', 'local-training', '.venv-native', 'bin', 'python')
   );
 }
 
-function mlxTrainerScript() {
+function nativeTrainerScript() {
   return (
-    process.env.LOCAL_MLX_TRAINER_SCRIPT ||
-    path.join(repoRoot(), 'backend', 'local-training', 'train_mlx.py')
+    process.env.LOCAL_NATIVE_TRAINER_SCRIPT ||
+    path.join(repoRoot(), 'backend', 'local-training', 'train.py')
   );
 }
 
 /**
- * Env for host MLX trainer (exported for tests).
+ * Env for host-native train.py (exported for tests).
  */
-function buildMlxTrainerEnv({ jobId, contractId, maxEpochs, outDir, contractJsonPath }) {
+function buildNativeTrainerEnv({ jobId, contractId, maxEpochs, outDir, contractJsonPath }) {
   const env = {
     ...process.env,
     TRAINING_JOB_ID: jobId,
@@ -63,6 +63,7 @@ function buildMlxTrainerEnv({ jobId, contractId, maxEpochs, outDir, contractJson
     MAX_EPOCHS: String(maxEpochs),
     OUTPUT_DIR: outDir,
     CONTRACT_JSON_PATH: contractJsonPath,
+    TRAINER_DEVICE: process.env.LOCAL_NATIVE_TRAINER_DEVICE || process.env.TRAINER_DEVICE || 'auto',
   };
   const hfToken = process.env.HF_TOKEN || process.env.HUGGINGFACE_API_TOKEN;
   if (hfToken) env.HF_TOKEN = hfToken;
@@ -82,19 +83,18 @@ async function updateJob(jobId, patch) {
 }
 
 /**
- * Run training natively on Apple Silicon via MLX (host Python venv).
- * See backend/local-training/scripts/setup-mlx-venv.sh
+ * Run train.py on the host (PyTorch MPS + same HF/Opacus stack as local-docker).
  */
-async function runLocalMlxTraining({ jobId, contractId, containerSpec, trainingParams }) {
-  const executionMode = 'local-mlx';
+async function runLocalNativeTraining({ jobId, contractId, containerSpec, trainingParams }) {
+  const executionMode = 'local-native';
   const root = runsRoot();
   const runDir = path.join(root, jobId);
   const outDir = path.join(runDir, 'outputs');
   const inputsDir = path.join(runDir, 'inputs');
   const contractJsonPath = path.join(inputsDir, 'contract.json');
   const logFile = path.join(runDir, 'runner.log');
-  const pythonBin = mlxPythonPath();
-  const trainerScript = mlxTrainerScript();
+  const pythonBin = nativePythonPath();
+  const trainerScript = nativeTrainerScript();
 
   ensureDir(outDir);
   ensureDir(inputsDir);
@@ -111,7 +111,18 @@ async function runLocalMlxTraining({ jobId, contractId, containerSpec, trainingP
   }
 
   const maxEpochs = trainingParams?.maxEpochs ?? containerSpec?.maxEpochs ?? 5;
-  const env = buildMlxTrainerEnv({
+  const dpEnabled =
+    trainingParams?.differentialPrivacy?.enabled === true ||
+    String(trainingParams?.privacyTechnique || '').toLowerCase().includes('differential');
+  if (dpEnabled) {
+    console.log(
+      `🔐 Local-native NLP with DP-SGD (Opacus on CPU; non-DP steps use MPS when TRAINER_DEVICE=auto)`
+    );
+  } else {
+    console.log('🍎 Local-native training (PyTorch MPS when available)');
+  }
+
+  const env = buildNativeTrainerEnv({
     jobId,
     contractId,
     maxEpochs,
@@ -196,7 +207,7 @@ async function runLocalMlxTraining({ jobId, contractId, containerSpec, trainingP
         accuracy: metrics.accuracy,
         loss: metrics.loss,
         epochsCompleted: metrics.epochsCompleted,
-        artifactUri: metrics.artifactUri || `file://${path.join(outDir, 'model_mlx.safetensors')}`,
+        artifactUri: metrics.artifactUri || `file://${path.join(outDir, 'model.bin')}`,
       };
       const provBase = buildTrainingModelProvenance(inputs, coreMetrics);
       const modelProvenance =
@@ -206,6 +217,10 @@ async function runLocalMlxTraining({ jobId, contractId, containerSpec, trainingP
             ? { trainingJobDepaId }
             : null;
       const results = { ...coreMetrics, modelProvenance };
+      if (metrics.privacyMetrics && typeof metrics.privacyMetrics === 'object') {
+        results.privacyMetrics = metrics.privacyMetrics;
+        results.privacyEnhancedTraining = Boolean(metrics.privacyEnhancedTraining);
+      }
 
       if (code === 0) {
         await updateJob(jobId, {
@@ -248,10 +263,10 @@ async function runLocalMlxTraining({ jobId, contractId, containerSpec, trainingP
               trainingJobDepaId,
               executionMode,
               modelProvenance,
-              artifactPath: path.join(outDir, 'model_mlx.safetensors'),
+              artifactPath: path.join(outDir, 'model.bin'),
               metricsPath,
               timestamp: new Date().toISOString(),
-              source: 'localMlxTrainingRunner',
+              source: 'localNativeTrainingRunner',
             },
             status: 'SUBMITTED',
             stableDedupeKey: jobId,
@@ -263,7 +278,7 @@ async function runLocalMlxTraining({ jobId, contractId, containerSpec, trainingP
         await updateJob(jobId, {
           status: 'FAILED',
           failedAt: new Date(),
-          errorMessage: `Local MLX training exited with code ${code}`,
+          errorMessage: `Local native training exited with code ${code}`,
           metadata: {
             executionMode,
             progress: 0,
@@ -291,8 +306,8 @@ async function runLocalMlxTraining({ jobId, contractId, containerSpec, trainingP
 }
 
 module.exports = {
-  runLocalMlxTraining,
-  buildMlxTrainerEnv,
+  runLocalNativeTraining,
+  buildNativeTrainerEnv,
   isAppleSiliconMac,
-  mlxPythonPath,
+  nativePythonPath,
 };

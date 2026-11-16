@@ -1,6 +1,6 @@
 const {
   shapeInputsForLocalTrainerContainer,
-} = require('../../services/contractTrainingInputsService');
+} = require('../../../training/contractTrainingInputsService');
 
 describe('contractTrainingInputsService.shapeInputsForLocalTrainerContainer', () => {
   it('maps Tabular category to taskType and fills hyperparameters from first model', () => {

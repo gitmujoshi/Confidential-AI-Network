@@ -227,6 +227,8 @@ Required before submit: subscription, resource group, and AKS name, plus a kubec
 
 The **Cloud credentials** page is a separate store. `azure-ccr` does not read it.
 
+TDC inference deploy is a separate step. The TDC can select **Azure** on the training page and submit an inference Job to an AKS cluster stored on that TDC’s `users.cloud_account.Azure`. The contract TSP is not that target. A missing `kubeconfigPath` or `AZURE_CCR_KUBECONFIG` returns HTTP 502 and leaves the model undeployed. The score is not copied back.
+
 | Mode | When | Maturity |
 |------|------|----------|
 | `local-docker` | TSP provider is Local | Implemented |
@@ -406,9 +408,9 @@ Order matches engineering priority:
 | Signing service | `backend/services/contractSigningService.js` |
 | Platform encrypt (demo) | `backend/services/platformEncryptionService.js` |
 | CAN escrow | `backend/services/canJcsService.js`, `backend/routes/can-jcs.js` |
-| Azure CCR runner | `backend/services/azureCcrRunner.js` |
-| TSP cloud account | `backend/services/tspCloudAccount.js`, `users.cloud_account` |
-| Training router | `backend/services/trainingExecutionRouter.js`, `backend/services/tdcTrainingExecutionService.js` |
+| Azure CCR runner | `training/azureCcrRunner.js` |
+| TSP cloud account | `shared/services/tspCloudAccount.js`, `users.cloud_account` |
+| Training router | `training/trainingExecutionRouter.js`, `training/tdcTrainingExecutionService.js` |
 | Secret backends | `backend/services/secretManager.js` |
 | Azure config example | `backend/config/azure-config.example.js` |
 

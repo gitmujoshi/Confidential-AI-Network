@@ -7,6 +7,7 @@ const REQUIRED = {
   Azure: ['subscriptionId', 'resourceGroup', 'clusterName'],
   GCP: ['projectId', 'location', 'clusterName'],
   OCI: ['cluster', 'namespace'],
+  AWS: ['region', 'clusterName'],
 };
 
 const ACCOUNT_FIELDS = {
@@ -21,6 +22,7 @@ const ACCOUNT_FIELDS = {
     'kubeconfigPath',
   ],
   GCP: ['projectId', 'location', 'clusterName', 'namespace', 'bucket', 'kubeconfigPath'],
+  AWS: ['accountId', 'region', 'clusterName', 'namespace', 'kubeconfigPath'],
 };
 
 function asObject(value) {

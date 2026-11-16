@@ -361,7 +361,7 @@ router.put('/cloud-providers/:userId', authenticateToken, async (req, res) => {
     }
 
     if (cloudAccount !== undefined) {
-      const { sanitizeProviderAccount } = require('../services/tspCloudAccount');
+      const { sanitizeProviderAccount } = require('../../shared/services/tspCloudAccount');
       const provider = (updatePayload.cloudProviders || user.cloudProviders || [])[0];
       const incoming = cloudAccount && typeof cloudAccount === 'object' ? cloudAccount[provider] : null;
       try {

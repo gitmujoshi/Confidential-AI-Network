@@ -5,11 +5,11 @@
 const express = require('express');
 const path = require('path');
 const router = express.Router();
-const { authenticateToken } = require('../middleware/auth');
-const TdcTrainingExecutionService = require('../services/tdcTrainingExecutionService');
+const { authenticateToken } = require('../backend/middleware/auth');
+const TdcTrainingExecutionService = require('./tdcTrainingExecutionService');
 const fs = require('fs');
-const db = require('../models');
-const { verifySevSnpQuote } = require('../services/sevSnpQuote');
+const db = require('../backend/models');
+const { verifySevSnpQuote } = require('../backend/services/sevSnpQuote');
 
 const service = new TdcTrainingExecutionService();
 
@@ -313,7 +313,7 @@ router.get(
         return res.type('application/json').send(fs.readFileSync(filePath, 'utf8'));
       }
 
-      const { buildJobTrainingProvenanceBundle } = require('../services/provenanceAuditReportService');
+      const { buildJobTrainingProvenanceBundle } = require('../backend/services/provenanceAuditReportService');
       const bundle = await buildJobTrainingProvenanceBundle(jobId);
       if (filePath) {
         try {

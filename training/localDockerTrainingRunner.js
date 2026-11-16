@@ -3,10 +3,10 @@ const os = require('os');
 const path = require('path');
 const { spawn } = require('child_process');
 
-const db = require('../models');
-const { writeLocalScittClaim } = require('./provenanceClaimWriter');
+const db = require('../backend/models');
+const { writeLocalScittClaim } = require('../backend/services/provenanceClaimWriter');
 const { buildTrainingModelProvenance } = require('./tdcTrainingHelpers');
-const { buildJobTrainingProvenanceBundle } = require('./provenanceAuditReportService');
+const { buildJobTrainingProvenanceBundle } = require('../backend/services/provenanceAuditReportService');
 const {
   registerTrainingProcess,
   unregisterTrainingProcess,
@@ -18,7 +18,7 @@ function dockerContainerNameForJob(jobId) {
 }
 
 function repoRoot() {
-  return path.resolve(__dirname, '..', '..');
+  return path.resolve(__dirname, '..');
 }
 
 function runsRoot() {

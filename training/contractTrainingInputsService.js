@@ -4,9 +4,9 @@
  */
 
 const { Op } = require('sequelize');
-const db = require('../models');
+const db = require('../backend/models');
 
-const hfIntegration = require('./huggingfaceIntegrationService');
+const hfIntegration = require('../backend/services/huggingfaceIntegrationService');
 
 async function loadContractForTraining(contractId) {
   return db.Contract.findOne({

@@ -9,7 +9,7 @@ const {
   resolveSigningUser,
   resolveIsLinkedTdp,
 } = require('./contractSigningGate');
-const { abortActiveJobsForContract } = require('./trainingAbortService');
+const { abortActiveJobsForContract } = require('../../training/trainingAbortService');
 const {
   TERMINAL_STATUSES,
   ACTION_STATUS,
