@@ -1,6 +1,6 @@
 /**
- * Authentication Check for Confidential AI Network
- * Redirects unauthenticated users to login page
+ * Optional session hint for the public marketing site.
+ * Pages stay open for visitors who are not signed in.
  */
 
 class AuthCheck {
@@ -9,15 +9,9 @@ class AuthCheck {
     }
     
     checkAuth() {
-        // Check if user is authenticated
-        if (!this.isAuthenticated()) {
-            // Redirect to login page
-            this.redirectToLogin();
-            return;
+        if (this.isAuthenticated()) {
+            this.showLogoutButton();
         }
-        
-        // User is authenticated, show logout button
-        this.showLogoutButton();
     }
     
     isAuthenticated() {
