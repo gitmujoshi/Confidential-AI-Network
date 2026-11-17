@@ -421,6 +421,12 @@ function buildMarkdown({ steps, generatedAt }) {
   });
 
   lines.push(
+    '## What this tour does not configure',
+    '',
+    'This tour stays on a **Local** TSP and a **Local** inference deploy. Differential privacy is off on the quality DistilBERT profile so the topic labels stay meaningful.',
+    '',
+    'A new TSP or TDC who needs a confidential pool, Opacus DP-SGD, or an Azure, GCP, or AWS inference Job follows [Before a new TSP or TDC starts](../../USER_GUIDE.md#before-a-new-tsp-or-tdc-starts) and the [TDC](../role-user-guides/TDC_USER_GUIDE.md) and [TSP](../role-user-guides/TSP_USER_GUIDE.md) guides.',
+    '',
     '## Related docs',
     '',
     '- [Participant onboarding & E2E lifecycle (canonical text)](../PARTICIPANT_ONBOARDING_AND_E2E_LIFECYCLE.md)',

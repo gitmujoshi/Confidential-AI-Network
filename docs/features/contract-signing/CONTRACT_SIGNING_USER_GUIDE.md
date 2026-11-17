@@ -6,21 +6,23 @@ This guide will help you understand how to use the digital contract signing feat
 
 ## 🔑 Key Management
 
+The live path is registration. An unlock password and a downloaded private-key backup are not part of that path.
+
 ### **Creating Your First Signing Key**
 
-1. **Navigate to Key Management**
-   - Go to your user profile or settings
-   - Click on "Key Management" or "Signing Keys"
+1. **Register**
+   - Open `/register`, set **User Type** to **Enterprise**, and choose **Signing algorithm**
+   - `ECDSA-P256` is the default. `RSA-2048` and `RSA-4096` are the other allowed values
+   - TDP, TDC, and TSP receive an active `UserKey` in the same request. `signingKeyCreated` is `true` on success
 
-2. **Generate New Key**
-   - Click "Generate New Key"
-   - Select algorithm: ECDSA-P256 (recommended), RSA-2048, or RSA-4096
-   - Enter a secure password for key protection
-   - Click "Generate"
+2. **Replace or backfill a key**
+   - Profile → **Key Management** → **Generate**, or `POST /api/signing/keys/generate` with `{ "keyType": "ECDSA-P256" }`
+   - The private key is stored on the user-keys row and is not returned
+   - Import a PEM pair with `POST /api/signing/keys/import`
 
-3. **Save Your Key**
-   - Download and securely store your key backup
-   - Note: Keep your password safe - it cannot be recovered
+3. **Sign**
+   - Without an active key, contract create and sign return `SIGNING_KEY_REQUIRED`
+   - TDP signs first, then TSP, at `POST /api/contracts/{contractId}/sign`
 
 ### **Managing Your Keys**
 

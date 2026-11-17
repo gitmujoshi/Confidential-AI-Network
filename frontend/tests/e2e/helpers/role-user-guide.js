@@ -123,6 +123,70 @@ async function waitDashboard(page, partyLabel, welcome) {
   await waitForHeading(page, welcome);
 }
 
+const ROLE_SETUP = {
+  TDP: `## Signing and data keys
+
+Your party signing key is created at registration (**ECDSA-P256** unless you choose RSA). Sign the contract with that key. A dataset row can record AES-256-GCM and an optional \`encryption_key_id\`. Platform encryption holds that key on the platform. A principal-held data key is not uploaded here. CAN release of that key is a signal, documented in the [user guide](../../USER_GUIDE.md#key-release-policy).
+`,
+  TDC: `## Before you train or deploy
+
+The screenshots above are the local demo. A new TDC still sets privacy on the contract and, for a cloud score, a cluster you already run.
+
+### Privacy-preserving training
+
+On the contract details step, set the privacy technique to **Differential Privacy**. That turns on Opacus DP-SGD for a **text** job (AG News and DistilBERT). You can also send \`trainingParams.differentialPrivacy.enabled: true\` with:
+
+| Field | Meaning | If you leave it blank |
+|---|---|---|
+| \`epsilon\` | Privacy budget | \`1.0\` |
+| \`delta\` | Failure probability | \`1e-5\` |
+| \`maxGradNorm\` | Per-sample clip | \`1.0\` |
+
+A completed job shows \`results.privacyMetrics\` (ε, δ, mechanism). The lifecycle screenshot tour uses the quality DistilBERT profile with differential privacy **off** so the topic labels stay meaningful. The fast NLP path keeps DP on (\`ε=0.5\`).
+
+### Inference on a cluster you run
+
+Training still uses the TSP named on the contract. Deploy is your choice.
+
+1. Open **Inference** and save **Azure**, **GCP**, or **AWS**: cluster name, the account identifiers, namespace, and the kubeconfig path on this API host.
+2. Azure needs a subscription, resource group, and AKS name. GCP needs a project, location, and GKE name. AWS needs a region and EKS name.
+3. The pool label is \`can.azure/pool=confidential\`, \`can.gcp/pool=confidential\`, or \`can.aws/pool=confidential\`, with a matching toleration. The Job uses service account \`training-job\`. The image is \`INFERENCE_CCR_IMAGE\`, or the local trainer image when that is unset.
+4. Register the model on **Training**, choose that **Deploy target**, and deploy. A missing kubeconfig returns **502** and leaves the model undeployed. No cluster is created.
+5. **Local** is the only target that scores in the Inference app (\`infer.py\`). A cloud deployment does not mount \`model.bin\`, does not copy the score back, and records attestation as **simulated**. **Run prediction** on a cloud deployment returns **409**.
+
+Full operator variables are in [TDC training runtime](../../training/TDC_TRAINING_RUNTIME.md).
+
+Signing, dataset encryption, and CAN key release are in [Before a new TSP or TDC starts](../../USER_GUIDE.md#before-a-new-tsp-or-tdc-starts) and the signing and release sections that follow it.
+`,
+  TSP: `## Before you host a job
+
+The screenshots above show where to type the cluster. CAN does not create a subscription, project, or cluster. You point it at one you already run.
+
+### Local machine
+
+Set \`TRAINING_EXECUTION_MODE\` to \`local-docker\`, \`local-native\`, or \`local-mlx\`. \`TRAINING_SIMULATION_MODE\` stays \`false\` when you want a real run. Build the trainer image from the repo root:
+
+\`\`\`bash
+docker build -t contractmanagement/local-trainer:latest \\
+  -f backend/local-training/Dockerfile \\
+  --build-context inference=inference/backend \\
+  backend/local-training
+\`\`\`
+
+### Azure, GCP, or OCI
+
+1. Use an existing AKS, GKE, or OKE cluster. On the dashboard **Cloud Provider** card, save the cluster name and the kubeconfig path. That path is a file on the API host. \`AZURE_CCR_KUBECONFIG\` or \`GCP_CCR_KUBECONFIG\` fills the path when the card leaves it blank.
+2. Label the pool \`can.azure/pool=confidential\` or \`can.gcp/pool=confidential\`, and allow the toleration \`can.azure/confidential\` or \`can.gcp/confidential\`.
+3. Create service account \`training-job\` in the namespace you save (default \`contract-management\`). OCI uses \`training-job-sa\` when the contract does not name one.
+4. A missing kubeconfig fails the job. No cluster is created. Attestation stays **simulated** until a guest report is accepted. Store the AMD ARK at \`SEV_SNP_ARK_PEM\`, then a TDC, TSP, or AppAdmin posts the report, VCEK, and ASK to \`POST /api/tdc/training/jobs/{jobId}/sev-snp-quote\`.
+5. AWS training is not started. A TDC can still deploy inference to an existing EKS cluster from the Inference page.
+
+Full operator variables are in [TDC training runtime](../../training/TDC_TRAINING_RUNTIME.md).
+
+Your party signing key is created when you register. Contract KMS fields name a key. They do not release it. CAN key release is a DEK plus MEK signal with a 10-minute escrow, described in the [user guide](../../USER_GUIDE.md#key-release-policy).
+`,
+};
+
 function buildMarkdown({ roleKey, meta, email, steps }) {
   const generatedAt = new Date().toISOString().slice(0, 10);
   const lines = [
@@ -155,6 +219,10 @@ function buildMarkdown({ roleKey, meta, email, steps }) {
       lines.push(`![${step.title}](${step.relPath})`, '');
     }
   });
+
+  if (ROLE_SETUP[roleKey]) {
+    lines.push(ROLE_SETUP[roleKey].trimEnd(), '');
+  }
 
   lines.push(
     '## Related docs',

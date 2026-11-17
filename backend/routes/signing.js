@@ -75,8 +75,14 @@ router.post('/keys/generate', authenticateToken, async (req, res) => {
       keyId: keyData.keyId,
       keyType: keyData.keyType,
       publicKey: keyData.publicKey,
+      privateKey: keyData.privateKey,
       keyStatus: 'active',
-      createdAt: keyData.createdAt
+      createdAt: keyData.createdAt,
+      metadata: {
+        generatedAt: new Date().toISOString(),
+        source: 'signing-api',
+        algorithm: keyData.keyType,
+      },
     });
 
     // Log key generation event
@@ -140,10 +146,16 @@ router.post('/keys/import', authenticateToken, async (req, res) => {
     const userKey = await UserKey.create({
       userId,
       keyId: keyData.keyId,
-      keyType: keyData.keyType,
+      keyType: keyData.keyType || keyType,
       publicKey: keyData.publicKey,
+      privateKey: keyData.privateKey,
       keyStatus: 'active',
-      createdAt: new Date()
+      createdAt: new Date(),
+      metadata: {
+        generatedAt: new Date().toISOString(),
+        source: 'import',
+        algorithm: keyData.keyType || keyType,
+      },
     });
 
     // Log key import event

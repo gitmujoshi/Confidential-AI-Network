@@ -1,5 +1,7 @@
 module.exports = {
   testEnvironment: 'node',
+  // shared/services lives outside backend/ and still requires packages from backend/node_modules.
+  modulePaths: ['<rootDir>/node_modules'],
   setupFilesAfterEnv: ['<rootDir>/tests/integration/setup.js'],
   /** Default CI/local: CAN JCS path only (needs fewer tables). Run legacy suites via npm run test:integration:contracts */
   testMatch: [

@@ -443,26 +443,24 @@ test.describe('Contract signing → training (TDC/TDP/CCRP)', () => {
 
     const signUrl = `${BACKEND_URL}/api/contracts/${encodeURIComponent(contractId)}/sign`;
 
-    // Best-effort: sign as TDP (if supported).
-    await test.step('TDP approves contract (best-effort)', async () => {
-      try {
-        await axios.post(signUrl, { signature: 'e2e-placeholder', partyType: 'TDP', signingData }, {
-          headers: { Authorization: `Bearer ${tdpToken}` },
-        });
-      } catch (_) {
-        // Some deployments do not support TDP signature via this route.
-      }
+    // TDP first (PENDING_TDP_APPROVAL → PENDING_TSP_APPROVAL), then the assigned TSP.
+    // The seeded host user is partyType TSP; a CCRP label on the request does not record tspSigned.
+    await test.step('TDP approves contract', async () => {
+      const tdpSign = await axios.post(
+        signUrl,
+        { signature: 'e2e-placeholder', partyType: 'TDP', signingData },
+        { headers: { Authorization: `Bearer ${tdpToken}` } }
+      );
+      expect(tdpSign.data?.success, JSON.stringify(tdpSign.data)).toBe(true);
     });
 
-    // Best-effort: sign as CCRP (if supported).
-    await test.step('CCRP approves contract (best-effort)', async () => {
-      try {
-        await axios.post(signUrl, { signature: 'e2e-placeholder', partyType: 'CCRP', signingData }, {
-          headers: { Authorization: `Bearer ${ccrpToken}` },
-        });
-      } catch (_) {
-        // Continue and check whether the contract ended up signed.
-      }
+    await test.step('TSP approves contract', async () => {
+      const tspSign = await axios.post(
+        signUrl,
+        { signature: 'e2e-placeholder', partyType: 'TSP', signingData },
+        { headers: { Authorization: `Bearer ${ccrpToken}` } }
+      );
+      expect(tspSign.data?.success, JSON.stringify(tspSign.data)).toBe(true);
     });
 
     // Load contract detail page as TDC (UI assertion + ensures auth wiring is sane).

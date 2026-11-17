@@ -17,6 +17,7 @@ const {
   TDP,
   TDC,
   APP_ADMIN,
+  AUDITOR,
   ENTERPRISE_PARTY_TYPES,
   normalizePartyType,
   isTspPartyType,
@@ -75,7 +76,7 @@ describe('Role CRUD catalog (unit)', () => {
 
 describe('Party types (unit)', () => {
   it('exports canonical party type constants', () => {
-    expect(ENTERPRISE_PARTY_TYPES).toEqual([TDP, TDC, TSP, APP_ADMIN]);
+    expect(ENTERPRISE_PARTY_TYPES).toEqual([TDP, TDC, TSP, APP_ADMIN, AUDITOR]);
   });
 
   it('normalizes TSP alias', () => {

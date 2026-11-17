@@ -146,13 +146,83 @@ The TSP on the contract is where training ran. Deploy is a separate choice on th
 4. A missing kubeconfig leaves the model undeployed. No cluster is created. The score stays in the cluster and is not copied back to the Inference app.
 5. Cloud job attestation is marked **simulated**. The local `model.bin` is not mounted into the Job.
 
-### **Digital Signing**
-1. Access contract to sign
-2. Review details and terms
-3. Click "Sign Contract"
-4. Select signing key and enter password
-5. Generate and submit digital signature
-6. Receive confirmation
+### Before a new TSP or TDC starts
+
+The screenshot tours follow a **Local** demo. Confidential training and a privacy-preserving run need the cluster and the contract fields below. CAN does not create a cloud subscription, project, or cluster.
+
+#### Operator stack the app expects
+
+1. Keycloak, the API, and the console are up (`./start-system.sh`). Users sign in with the party signing key created at enterprise registration.
+2. For a real run, `TRAINING_SIMULATION_MODE` is `false`. A Local TSP also sets `TRAINING_EXECUTION_MODE` to `local-docker`, `local-native`, or `local-mlx`.
+3. Build the trainer image so local training and local scoring share it. The inference scorer is a named build context:
+
+```bash
+docker build -t contractmanagement/local-trainer:latest \
+  -f backend/local-training/Dockerfile \
+  --build-context inference=inference/backend \
+  backend/local-training
+```
+
+4. When the training or inference policy gate is on, Open-GMASE must answer before the job or prediction starts. A refused or unreachable gate stops the side effect.
+
+#### TSP: prepare the confidential pool
+
+1. On an existing AKS or GKE cluster, label the pool `can.azure/pool=confidential` or `can.gcp/pool=confidential`, and allow the toleration `can.azure/confidential` or `can.gcp/confidential`.
+2. Create service account `training-job` in the namespace you will save. The default namespace is `contract-management`. OCI uses `training-job-sa` when the contract does not name one.
+3. Put the kubeconfig file on the API host. Save that path on the dashboard **Cloud Provider** card. `AZURE_CCR_KUBECONFIG` or `GCP_CCR_KUBECONFIG` is the fallback when the card path is blank.
+4. A missing path fails the job. No cluster is created. Attestation stays **simulated** until a guest report is accepted. Set `SEV_SNP_ARK_PEM` on the API host, then post the report, VCEK, and ASK to `POST /api/tdc/training/jobs/{jobId}/sev-snp-quote`.
+5. AWS training is not started.
+
+#### TDC: turn on differential privacy
+
+On the contract, set the privacy technique to **Differential Privacy**, or set `trainingParams.differentialPrivacy.enabled` to true. The text trainer (AG News and DistilBERT) then runs Opacus DP-SGD.
+
+| Field | Meaning | If you leave it blank |
+|---|---|---|
+| `epsilon` | Privacy budget | `1.0` |
+| `delta` | Failure probability | `1e-5` |
+| `maxGradNorm` | Per-sample clip | `1.0` |
+
+A completed job shows `results.privacyMetrics`. The lifecycle screenshot tour leaves differential privacy off on the quality DistilBERT profile so the topic labels stay meaningful. The fast NLP path keeps it on (`ε=0.5`).
+
+#### TDC: deploy inference on your own cluster
+
+1. Open **Inference** and save Azure, GCP, or AWS: cluster name, account identifiers, namespace, and kubeconfig path. Azure needs a subscription, resource group, and AKS name. GCP needs a project, location, and GKE name. AWS needs a region and EKS name. Env fallbacks are `AZURE_CCR_KUBECONFIG`, `GCP_CCR_KUBECONFIG`, and `AWS_CCR_KUBECONFIG`.
+2. The pool label is `can.azure/pool=confidential`, `can.gcp/pool=confidential`, or `can.aws/pool=confidential`, with the matching toleration. The Job uses service account `training-job`. The image is `INFERENCE_CCR_IMAGE`, or the local trainer image when that is unset.
+3. **Local** scores in the Inference app. A cloud deploy does not mount `model.bin`, does not copy the score back, and records attestation as **simulated**. **Run prediction** on that deployment returns **409**.
+
+The variable list is in [TDC training runtime](training/TDC_TRAINING_RUNTIME.md).
+
+### **Digital signing**
+
+Registration creates the key. There is no separate unlock password.
+
+1. On `/register`, choose **User Type = Enterprise**, your role, and **Signing algorithm**: `ECDSA-P256` (default), `RSA-2048`, or `RSA-4096`.
+2. `POST /api/auth/register` stores an active `UserKey` for TDP, TDC, and TSP in the same transaction. The response field `signingKeyCreated` is `true`. The private key stays on that row and is not returned.
+3. Create or sign a contract only after that key exists. Otherwise the API returns `SIGNING_KEY_REQUIRED`.
+4. If the account was created before this step, sign in and call `POST /api/signing/keys/generate` with `{ "keyType": "ECDSA-P256" }`. The same call is what **Profile → Key Management → Generate** uses. Import uses `POST /api/signing/keys/import` with PEM `publicKey` and `privateKey`. Neither response includes the private key.
+5. On the contract, the TDP signs first, then the TSP. Each request is `POST /api/contracts/{contractId}/sign` with the party type. Status moves `PENDING_TDP_APPROVAL` → `PENDING_TSP_APPROVAL` → `SIGNED`.
+
+### **Dataset and model encryption**
+
+| What you do in the portal | What is stored | Who can decrypt |
+|---|---|---|
+| Publish a dataset with the default flags | `encryption_at_rest` and `encryption_in_transit` default on. Algorithm defaults to AES-256-GCM. `encryption_key_id` is optional. | Catalog only, until a key is attached |
+| Upload through platform encryption | The platform generates and holds the data key | The platform, for demo uploads. This is not a principal-held clean-room key |
+| Contract KMS fields | Provider, key id, algorithm, and rotation recorded on the contract | A reference. Filling the form does not release key material into the trainer |
+
+A TDP-held data key (DEK) and a TDC-held model key (MEK) that exist only inside an attested job are the clean-room target. The portal does not accept those key bytes. Local training reads the artifact on this host.
+
+### **Key release policy**
+
+Release is a signal on a CAN job, not a copy of the key.
+
+1. Create the job with `POST /api/can/jcs/jobs`. Escrow opens as `OPEN` and expires about **10 minutes** later.
+2. The dataset owner sends `{ "keyType": "DEK" }` and the model owner sends `{ "keyType": "MEK" }` to `POST /api/can/jcs/jobs/{jobId}/key-released`. The API stores the time and the principal id. It does not store key material.
+3. One signal moves the job to `DEK_RECEIVED` or `MEK_RECEIVED`. Both move it to `BOTH_READY`.
+4. `POST /api/can/jcs/jobs/{jobId}/release` is accepted only in `BOTH_READY`. The job becomes `RELEASED` and the clean-room session becomes `RUNNING`. Any other state is rejected.
+5. After the deadline the state is `EXPIRED` or `CANCELLED`. A later signal is refused.
+6. Portal **Start training** and **Deploy for inference** do not run this escrow. Cloud attestation on those paths stays **simulated** until a verified SEV-SNP quote is stored.
 
 ### **Contract Status**
 - **Draft**: Being prepared
@@ -191,10 +261,10 @@ The TSP on the contract is where training ran. Deploy is a separate choice on th
 - Manage security settings
 
 ### **Key Management (for Signing)**
-- Generate new signing keys
-- Import/export existing keys
-- Manage key passwords
-- Delete unused keys
+- The registration algorithm is the key you sign with
+- Generate a replacement with `POST /api/signing/keys/generate` or Profile → Key Management
+- Import a PEM key pair with `POST /api/signing/keys/import`
+- There is no unlock password and the private key is not returned by the API
 
 ## 🔒 Security Best Practices
 
@@ -205,10 +275,10 @@ The TSP on the contract is where training ran. Deploy is a separate choice on th
 - Always logout when finished
 
 ### **Data Security**
-- All data encrypted at rest and in transit
-- Role-based access controls
-- Complete audit logging
-- Regular security updates
+- Dataset rows default to encryption-at-rest and in-transit flags (AES-256-GCM)
+- Platform encryption on upload holds the key on the platform. A principal-held DEK or MEK is the CAN target and is not uploaded
+- Key release is the CAN escrow signal described above. It does not deliver key bytes
+- Role-based access controls and audit logging
 
 ## 🚨 Troubleshooting
 

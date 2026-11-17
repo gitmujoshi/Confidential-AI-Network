@@ -1,6 +1,7 @@
 module.exports = {
   // Test environment
   testEnvironment: 'node',
+  modulePaths: ['<rootDir>/node_modules'],
   
   // Test timeout
   testTimeout: 30000,

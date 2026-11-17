@@ -83,6 +83,7 @@ describe('Contract Signing Integration Tests', () => {
         expect(response.body.key.keyType).toBe('ECDSA-P256');
         expect(response.body.key.keyStatus).toBe('active');
         expect(response.body.key.keyId).toBeDefined();
+        expect(response.body.key.privateKey).toBeUndefined();
       });
 
       test('should generate RSA key', async () => {

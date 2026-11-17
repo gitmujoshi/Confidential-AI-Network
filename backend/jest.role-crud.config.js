@@ -1,5 +1,6 @@
 module.exports = {
   testEnvironment: 'node',
+  modulePaths: ['<rootDir>/node_modules'],
   setupFilesAfterEnv: [
     '<rootDir>/tests/integration/setup.js',
     '<rootDir>/tests/integration/role-crud.setup.js',
