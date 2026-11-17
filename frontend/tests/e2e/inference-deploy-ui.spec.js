@@ -11,6 +11,7 @@ const {
   listGmaseToolDecisions,
   fetchDebugEnv,
 } = require('./helpers/inference-e2e');
+const { prepareFullPageCapture } = require('./helpers/full-page-shot');
 
 const REPO_ROOT = path.resolve(__dirname, '../../..');
 const GMASE_SHOT_ROOT = path.join(REPO_ROOT, 'docs/guides/gmase-integration/screenshots');
@@ -23,6 +24,7 @@ async function captureGmaseShot(page, fileName) {
   ensureDir(GMASE_SHOT_ROOT);
   await page.waitForLoadState('networkidle').catch(() => {});
   await page.waitForTimeout(400);
+  await prepareFullPageCapture(page);
   const outPath = path.join(GMASE_SHOT_ROOT, fileName);
   await page.screenshot({ path: outPath, fullPage: true, animations: 'disabled' });
   return outPath;

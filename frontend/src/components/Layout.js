@@ -43,12 +43,12 @@ const drawerWidth = 268;
 
 const roleChipSx = (role) => {
   const map = {
-    TDP: { bg: 'rgba(11, 107, 203, 0.12)', color: '#08498a' },
-    TDC: { bg: 'rgba(15, 118, 110, 0.12)', color: '#0f766e' },
-    TSP: { bg: 'rgba(51, 65, 85, 0.14)', color: '#334155' },
-    CCRP: { bg: 'rgba(51, 65, 85, 0.14)', color: '#334155' },
-    AppAdmin: { bg: 'rgba(185, 28, 28, 0.1)', color: '#991b1b' },
-    Auditor: { bg: 'rgba(67, 56, 202, 0.12)', color: '#3730a3' },
+    TDP: { bg: 'rgba(22, 78, 130, 0.12)', color: '#0e2c4b' },
+    TDC: { bg: 'rgba(15, 110, 86, 0.12)', color: '#0f6e56' },
+    TSP: { bg: 'rgba(61, 74, 92, 0.14)', color: '#243042' },
+    CCRP: { bg: 'rgba(61, 74, 92, 0.14)', color: '#243042' },
+    AppAdmin: { bg: 'rgba(180, 35, 24, 0.1)', color: '#8f1d16' },
+    Auditor: { bg: 'rgba(22, 78, 130, 0.1)', color: '#164e82' },
   };
   const c = map[role] || { bg: 'rgba(100, 116, 139, 0.12)', color: '#475569' };
   return {
@@ -162,8 +162,8 @@ const Layout = ({ children }) => {
         height: '100%',
         display: 'flex',
         flexDirection: 'column',
-        bgcolor: '#0b1220',
-        color: '#e2e8f0',
+        bgcolor: '#101826',
+        color: '#e6ebf2',
         overflow: 'hidden',
       }}
     >
@@ -174,7 +174,7 @@ const Layout = ({ children }) => {
               width: 34,
               height: 34,
               borderRadius: '9px',
-              background: 'linear-gradient(145deg, #0b6bcb 0%, #08498a 100%)',
+              background: '#164e82',
               display: 'grid',
               placeItems: 'center',
               fontWeight: 800,
@@ -204,7 +204,7 @@ const Layout = ({ children }) => {
         </Stack>
       </Box>
 
-      <Box sx={{ px: 1.5, pb: 1, flex: 1, minHeight: 0, overflowY: 'auto' }}>
+      <Box className="can-scroll" sx={{ px: 1.5, pb: 1, flex: 1, minHeight: 0, overflowY: 'auto' }}>
         <Typography
           variant="overline"
           sx={{ px: 1.5, color: '#64748b', display: 'block', mb: 0.5 }}
@@ -229,16 +229,17 @@ const Layout = ({ children }) => {
                       color: '#f1f5f9',
                     },
                     '&.Mui-selected': {
-                      bgcolor: 'rgba(11, 107, 203, 0.22)',
+                      bgcolor: 'rgba(22, 78, 130, 0.45)',
                       color: '#f8fafc',
-                      '&:hover': { bgcolor: 'rgba(11, 107, 203, 0.28)' },
+                      boxShadow: 'inset 3px 0 0 #7eb0dc',
+                      '&:hover': { bgcolor: 'rgba(22, 78, 130, 0.55)' },
                     },
                   }}
                 >
                   <ListItemIcon
                     sx={{
                       minWidth: 36,
-                      color: isActive ? '#93c5fd' : 'inherit',
+                      color: isActive ? '#d6e6f5' : 'inherit',
                     }}
                   >
                     {item.icon}
@@ -260,7 +261,7 @@ const Layout = ({ children }) => {
         </List>
       </Box>
 
-      <Box sx={{ flexShrink: 0, position: 'relative', zIndex: 1, bgcolor: '#0b1220' }}>
+      <Box sx={{ flexShrink: 0, position: 'relative', zIndex: 1, bgcolor: '#101826' }}>
         <Box sx={{ px: 2, pt: 1 }}>
           <Typography variant="overline" sx={{ color: '#64748b', display: 'block', mb: 1 }}>
             Quick actions
@@ -275,8 +276,8 @@ const Layout = ({ children }) => {
                 onClick={() => go('/contracts/create')}
                 sx={{
                   justifyContent: 'flex-start',
-                  bgcolor: '#0b6bcb',
-                  '&:hover': { bgcolor: '#08498a' },
+                  bgcolor: '#164e82',
+                  '&:hover': { bgcolor: '#0e2c4b' },
                 }}
               >
                 Create contract
@@ -325,7 +326,7 @@ const Layout = ({ children }) => {
   );
 
   return (
-    <Box sx={{ display: 'flex', minHeight: '100%' }}>
+    <Box sx={{ display: 'flex', height: '100%', minHeight: 0, overflow: 'hidden', bgcolor: 'background.default' }}>
       <AppBar
         position="fixed"
         sx={{
@@ -460,17 +461,18 @@ const Layout = ({ children }) => {
 
       <Box
         component="main"
-        className="can-page-enter"
+        className="can-page-enter can-scroll"
         sx={{
           flexGrow: 1,
-          width: { sm: `calc(100% - ${drawerWidth}px)` },
-          pt: { xs: 10, sm: 9 },
+          minWidth: 0,
+          height: '100%',
+          overflow: 'auto',
+          pt: { xs: '76px', sm: '72px' },
           px: { xs: 2, sm: 3, md: 4 },
-          pb: 4,
-          minHeight: '100vh',
+          pb: 6,
         }}
       >
-        <Box sx={{ width: '100%', maxWidth: '100%' }}>{children}</Box>
+        <Box sx={{ width: '100%', maxWidth: 1440, mx: 'auto' }}>{children}</Box>
       </Box>
     </Box>
   );

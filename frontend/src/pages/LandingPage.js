@@ -111,7 +111,7 @@ const LandingPage = () => {
         minHeight: '100vh',
         bgcolor: 'background.default',
         backgroundImage:
-          'radial-gradient(1000px 480px at 80% -10%, rgba(11,107,203,0.08), transparent 50%)',
+          'linear-gradient(180deg, #f7f9fb 0%, #eef1f5 220px)',
       }}
     >
       {/* Header */}
@@ -123,7 +123,7 @@ const LandingPage = () => {
                 width: 32,
                 height: 32,
                 borderRadius: '8px',
-                background: 'linear-gradient(145deg, #0b6bcb, #08498a)',
+                background: '#164e82',
                 display: 'grid',
                 placeItems: 'center',
                 color: '#fff',

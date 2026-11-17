@@ -1,7 +1,7 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
-import { CssBaseline } from '@mui/material';
+import { Box, CssBaseline } from '@mui/material';
 import { QueryClient, QueryClientProvider } from 'react-query';
 import { Toaster } from 'react-hot-toast';
 
@@ -130,35 +130,35 @@ const PublicRoute = ({ children }) => {
 };
 
 // Create theme
-// Visual language: Stripe Dashboard + Linear — calm surfaces, sharp type, restrained chrome.
+// Visual language: institutional console — navy chrome, cool gray canvas, one accent.
 const theme = createTheme({
-  shape: { borderRadius: 10 },
+  shape: { borderRadius: 8 },
   palette: {
     mode: 'light',
     primary: {
-      main: '#0b6bcb',
-      dark: '#08498a',
-      light: '#3b8dd9',
+      main: '#164e82',
+      dark: '#0e2c4b',
+      light: '#3d6fa3',
       contrastText: '#ffffff',
     },
     secondary: {
-      main: '#334155',
-      dark: '#1e293b',
-      light: '#64748b',
+      main: '#3d4a5c',
+      dark: '#243042',
+      light: '#6b7789',
     },
-    success: { main: '#0f766e' },
-    warning: { main: '#b45309' },
-    error: { main: '#b91c1c' },
-    info: { main: '#0369a1' },
+    success: { main: '#0f6e56' },
+    warning: { main: '#9a6700' },
+    error: { main: '#b42318' },
+    info: { main: '#164e82' },
     background: {
-      default: '#f4f6f9',
+      default: '#eef1f5',
       paper: '#ffffff',
     },
     text: {
-      primary: '#0b1220',
-      secondary: '#64748b',
+      primary: '#122033',
+      secondary: '#5c6b7e',
     },
-    divider: 'rgba(15, 23, 42, 0.08)',
+    divider: '#e3e8ef',
   },
   typography: {
     // Base 16px (MUI default is 14) — scales rem-based type for easier reading.
@@ -188,20 +188,20 @@ const theme = createTheme({
     MuiCssBaseline: {
       styleOverrides: {
         body: {
-          backgroundColor: '#f4f6f9',
-          backgroundImage:
-            'radial-gradient(900px 420px at 0% -10%, rgba(11, 107, 203, 0.06), transparent 55%), linear-gradient(180deg, #f7f8fb 0%, #f4f6f9 40%)',
-          backgroundAttachment: 'fixed',
+          backgroundColor: '#eef1f5',
+          color: '#122033',
+        },
+        'html, body, #root': {
+          height: '100%',
         },
       },
     },
     MuiAppBar: {
       styleOverrides: {
         root: {
-          backgroundColor: 'rgba(255, 255, 255, 0.92)',
-          backdropFilter: 'saturate(180%) blur(12px)',
-          borderBottom: '1px solid rgba(15, 23, 42, 0.08)',
-          color: '#0b1220',
+          backgroundColor: '#ffffff',
+          borderBottom: '1px solid #e3e8ef',
+          color: '#122033',
           boxShadow: 'none',
         },
       },
@@ -219,9 +219,9 @@ const theme = createTheme({
       },
       styleOverrides: {
         root: {
-          boxShadow: 'none',
-          borderRadius: 12,
-          border: '1px solid rgba(15, 23, 42, 0.08)',
+          boxShadow: '0 1px 2px rgba(16, 24, 40, 0.04)',
+          borderRadius: 10,
+          border: '1px solid #e3e8ef',
           backgroundImage: 'none',
         },
       },
@@ -245,7 +245,11 @@ const theme = createTheme({
           },
         },
         outlined: {
-          borderColor: 'rgba(15, 23, 42, 0.12)',
+          borderColor: '#d5dde6',
+          '&:hover': {
+            borderColor: '#164e82',
+            backgroundColor: 'rgba(22, 78, 130, 0.04)',
+          },
         },
         sizeSmall: {
           borderRadius: 7,
@@ -267,16 +271,17 @@ const theme = createTheme({
           backgroundImage: 'none',
         },
         outlined: {
-          borderColor: 'rgba(15, 23, 42, 0.08)',
+          borderColor: '#e3e8ef',
         },
       },
     },
     MuiDrawer: {
       styleOverrides: {
         paper: {
-          borderRight: 'none',
-          backgroundColor: '#0b1220',
-          color: '#e2e8f0',
+          borderRight: '1px solid rgba(255, 255, 255, 0.06)',
+          backgroundColor: '#101826',
+          color: '#e6ebf2',
+          overflow: 'hidden',
         },
       },
     },
@@ -286,9 +291,9 @@ const theme = createTheme({
           borderRadius: 8,
           marginInline: 8,
           '&.Mui-selected': {
-            backgroundColor: 'rgba(11, 107, 203, 0.18)',
+            backgroundColor: 'rgba(22, 78, 130, 0.28)',
             '&:hover': {
-              backgroundColor: 'rgba(11, 107, 203, 0.24)',
+              backgroundColor: 'rgba(22, 78, 130, 0.36)',
             },
           },
         },
@@ -324,8 +329,10 @@ const theme = createTheme({
       styleOverrides: {
         head: {
           fontWeight: 700,
-          color: '#0b1220',
-          backgroundColor: '#f8fafc',
+          color: '#122033',
+          backgroundColor: '#f7f9fb',
+          borderBottom: '1px solid #e3e8ef',
+          whiteSpace: 'nowrap',
         },
       },
     },
@@ -362,10 +369,21 @@ const theme = createTheme({
       },
       styleOverrides: {
         paper: {
-          borderRadius: 14,
-          border: '1px solid rgba(15, 23, 42, 0.08)',
-          boxShadow: '0 24px 64px rgba(15, 23, 42, 0.14)',
+          borderRadius: 12,
+          border: '1px solid #e3e8ef',
+          boxShadow: '0 24px 48px rgba(16, 24, 40, 0.16)',
           backgroundImage: 'none',
+          maxHeight: 'min(880px, calc(100vh - 48px))',
+          display: 'flex',
+          flexDirection: 'column',
+        },
+      },
+    },
+    MuiTableContainer: {
+      styleOverrides: {
+        root: {
+          overflow: 'auto',
+          maxWidth: '100%',
         },
       },
     },
@@ -385,6 +403,7 @@ const theme = createTheme({
       styleOverrides: {
         root: {
           paddingTop: '20px !important',
+          overflowY: 'auto',
         },
       },
     },
@@ -715,9 +734,11 @@ function App() {
       <ThemeProvider theme={theme}>
         <CssBaseline />
         <UserProvider>
-          <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-            <AppRoutes />
-          </Router>
+          <Box className="can-app-frame can-scroll">
+            <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+              <AppRoutes />
+            </Router>
+          </Box>
           <Toaster position="top-right" />
         </UserProvider>
       </ThemeProvider>

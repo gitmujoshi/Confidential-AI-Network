@@ -136,7 +136,7 @@ const TDPDashboard = () => {
   return (
     <div className="space-y-6" style={{ paddingTop: '16px' }}>
       {/* Header */}
-      <div className="flex justify-between items-center">
+      <div className="can-page-header flex justify-between items-center">
         <div>
           <Typography variant="h4" className="font-bold text-gray-900 mb-2">
             Welcome to Your TDP Dashboard

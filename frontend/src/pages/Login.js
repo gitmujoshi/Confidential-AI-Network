@@ -205,7 +205,7 @@ const Login = () => {
           p: 6,
           color: '#e2e8f0',
           background:
-            'radial-gradient(900px 500px at 10% 0%, rgba(11,107,203,0.35), transparent 55%), linear-gradient(160deg, #0b1220 0%, #111827 55%, #0b1220 100%)',
+            'linear-gradient(165deg, #101826 0%, #16324f 48%, #101826 100%)',
         }}
       >
         <Stack direction="row" spacing={1.5} alignItems="center">
@@ -214,7 +214,7 @@ const Login = () => {
               width: 40,
               height: 40,
               borderRadius: '10px',
-              background: 'linear-gradient(145deg, #0b6bcb, #08498a)',
+              background: '#164e82',
               display: 'grid',
               placeItems: 'center',
               fontWeight: 800,

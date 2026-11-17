@@ -2,15 +2,16 @@
 
 :root {
   color-scheme: light;
-  --can-ink: #0b1220;
-  --can-muted: #64748b;
-  --can-surface: #f4f6f9;
-  --can-line: rgba(15, 23, 42, 0.08);
-  --can-accent: #0b6bcb;
-  --can-accent-soft: rgba(11, 107, 203, 0.1);
-  --can-success: #0f766e;
-  --can-warning: #b45309;
-  --can-danger: #b91c1c;
+  --can-ink: #122033;
+  --can-muted: #5c6b7e;
+  --can-surface: #eef1f5;
+  --can-line: #e3e8ef;
+  --can-accent: #164e82;
+  --can-accent-soft: rgba(22, 78, 130, 0.1);
+  --can-sidebar: #101826;
+  --can-success: #0f6e56;
+  --can-warning: #9a6700;
+  --can-danger: #b42318;
 }
 
 body {
@@ -38,6 +39,55 @@ html,
 body,
 #root {
   height: 100%;
+  overflow: hidden;
+}
+
+#root {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.can-app-frame {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+}
+
+.can-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: #b7c2ce transparent;
+}
+
+.can-scroll::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+.can-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.can-scroll::-webkit-scrollbar-thumb {
+  background: #c5ced8;
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+.can-scroll::-webkit-scrollbar-thumb:hover {
+  background: #8b9aab;
+  background-clip: padding-box;
+  border: 2px solid transparent;
+}
+
+pre,
+code {
+  max-width: 100%;
+}
+
+pre {
+  overflow: auto;
 }
 
 @keyframes can-fade-up {
@@ -63,6 +113,24 @@ body,
 .flex,
 .d-flex {
   display: flex;
+}
+.can-page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.can-page-header > div:first-child {
+  flex: 1 1 280px;
+  min-width: 0;
+}
+.can-page-header .space-x-3 {
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.can-page-header .space-x-3 > :not([hidden]) ~ :not([hidden]) {
+  margin-left: 0;
 }
 .flex-wrap {
   flex-wrap: wrap;
@@ -167,9 +235,13 @@ body,
 .text-center {
   text-align: center;
 }
-.text-3xl {
-  font-size: 1.875rem;
-  line-height: 1.2;
+svg.text-3xl {
+  width: 2.25rem;
+  height: 2.25rem;
+  padding: 0.5rem;
+  border-radius: 8px;
+  background: var(--can-accent-soft);
+  box-sizing: border-box;
 }
 .text-gray-900 {
   color: var(--can-ink);
@@ -224,6 +296,6 @@ body,
 }
 .alert-info {
   background: var(--can-accent-soft);
-  border-color: rgba(11, 107, 203, 0.2);
-  color: #08498a;
+  border-color: rgba(22, 78, 130, 0.2);
+  color: #0e2c4b;
 }

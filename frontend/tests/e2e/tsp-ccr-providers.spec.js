@@ -5,6 +5,7 @@ const axios = require('axios');
 const { getBackendURL } = require('../../load-config');
 const { fillKmsFields } = require('./helpers/contract-wizard');
 const { ensurePartySigningReady } = require('./helpers/party-signing-e2e');
+const { prepareFullPageCapture } = require('./helpers/full-page-shot');
 
 /**
  * Local TSP CCR completion stays in can-contract-to-training-ui.spec.js.
@@ -125,6 +126,7 @@ test.describe('TSP CCR providers', () => {
 
   async function saveTourShot(page, fileName) {
     fs.mkdirSync(TOUR_DIR, { recursive: true });
+    await prepareFullPageCapture(page);
     await page.screenshot({
       path: path.join(TOUR_DIR, fileName),
       fullPage: true,

@@ -3,6 +3,7 @@ const path = require('path');
 const { expect } = require('@playwright/test');
 const axios = require('axios');
 const { getBackendURL } = require('../../../load-config');
+const { prepareFullPageCapture } = require('./full-page-shot');
 
 const REPO_ROOT = path.resolve(__dirname, '../../../../');
 const GUIDE_ROOT = path.join(REPO_ROOT, 'docs/guides/lifecycle-user-guide');
@@ -24,6 +25,7 @@ async function captureShot(page, fileName, options = {}) {
   const fullPage = options.fullPage !== false;
   const outPath = path.join(SCREENSHOT_ROOT, fileName);
   await settle(page, options.settleMs ?? 500);
+  if (fullPage) await prepareFullPageCapture(page);
   await page.screenshot({
     path: outPath,
     fullPage,
