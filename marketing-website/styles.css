@@ -234,6 +234,19 @@ p, li, span, div {
     z-index: 2;
 }
 
+.hero-kicker {
+    font-size: 1rem;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    color: var(--gray-700, #3d4a5c);
+}
+
+.hero-kicker a {
+    color: inherit;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+}
+
 .hero-heading {
     font-size: 2.8rem !important;
     line-height: 1.2;
