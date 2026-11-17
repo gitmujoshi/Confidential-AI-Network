@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Admin Dashboard - ContractFlow Pro</title>
-    <meta name="description" content="Admin Dashboard for ContractFlow Pro - System administration, user management, and platform oversight">
+    <title>Admin Dashboard - Confidential AI Network</title>
+    <meta name="description" content="Admin Dashboard for Confidential AI Network - System administration, user management, and platform oversight">
     
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -133,15 +133,17 @@
             color: var(--success-color);
         }
     </style>
+    <link href="../site-nav.css" rel="stylesheet">
 </head>
 <body>
     <!-- Navigation -->
-    <nav class="navbar navbar-expand-lg navbar-light bg-white fixed-top">
+
+    <nav class="navbar navbar-expand-lg navbar-light bg-white fixed-top can-site-nav">
         <div class="container">
             <a class="navbar-brand fw-bold" href="../index.html">
-                <i class="fas fa-file-contract me-2"></i>ContractFlow Pro
+                <i class="fas fa-file-contract me-2"></i>Confidential AI Network
             </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
@@ -161,21 +163,27 @@
                     <li class="nav-item">
                         <a class="nav-link" href="../about.html">About</a>
                     </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="https://blog.dpi-apps.space/">Blogs</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="https://blog.dpi-apps.space/notes/">Notes</a>
+                    </li>
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle active" href="#" role="button" data-bs-toggle="dropdown">
-                            <i class="fas fa-tachometer-alt me-1"></i>Dashboards
+                            <i class="fas fa-tachometer-alt me-1"></i>Role-based Dashboards
                         </a>
                         <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" href="tdp-dashboard.html">
+                            <li><a class="dropdown-item" href="../dashboards/tdp-dashboard.html">
                                 <i class="fas fa-database me-2"></i>Training Data Provider
                             </a></li>
-                            <li><a class="dropdown-item" href="tdc-dashboard.html">
+                            <li><a class="dropdown-item" href="../dashboards/tdc-dashboard.html">
                                 <i class="fas fa-robot me-2"></i>Training Data Consumer
                             </a></li>
-                            <li><a class="dropdown-item" href="ccrp-dashboard.html">
+                            <li><a class="dropdown-item" href="../dashboards/ccrp-dashboard.html">
                                 <i class="fas fa-shield-alt me-2"></i>Confidential Clean Room Provider
                             </a></li>
-                            <li><a class="dropdown-item active" href="admin-dashboard.html">
+                            <li><a class="dropdown-item" href="../dashboards/admin-dashboard.html">
                                 <i class="fas fa-user-shield me-2"></i>System Administrator
                             </a></li>
                         </ul>
@@ -225,7 +233,7 @@
                         </ul>
                     </li>
                     <li class="nav-item">
-                        <a class="btn btn-outline-dark ms-2" href="../index.html#demo">Request Demo</a>
+                        <a class="btn btn-primary ms-2" href="mailto:hello@dpi-apps.space?subject=Interested%20in%20Confidential%20AI%20Network&amp;body=Please%20send%20me%20information%20about%20the%20app.%0A%0AName%3A%0AOrganization%3A%0A">Get info</a>
                     </li>
                 </ul>
             </div>
@@ -541,7 +549,7 @@
         <div class="container">
             <div class="row align-items-center">
                 <div class="col-md-6">
-                    <p class="mb-0 text-muted">&copy; 2025 ContractFlow Pro. All rights reserved.</p>
+                    <p class="mb-0 text-muted">&copy; 2025 Confidential AI Network. All rights reserved.</p>
                 </div>
                 <div class="col-md-6 text-md-end">
                     <a href="../about.html#contact-form" class="text-muted text-decoration-none me-3">Support</a>

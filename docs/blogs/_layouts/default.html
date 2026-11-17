@@ -10,15 +10,57 @@
   {% feed_meta %}
 </head>
 <body>
-  <header class="site-header">
-    <div class="wrap">
-      <a class="brand" href="{{ '/' | relative_url }}">Confidential AI Network</a>
-      <nav>
-        <a href="{{ '/' | relative_url }}">Home</a>
-        <a href="{{ '/product-tour/' | relative_url }}">Product tour</a>
-        <a href="{{ '/notes/' | relative_url }}">Notes</a>
-        <a class="nav-app" href="{{ site.app_url }}">Open the app</a>
-      </nav>
+  {% assign here = page.url | default: '/' %}
+  <header class="can-site-nav">
+    <div class="can-site-nav-inner">
+      <a class="can-brand" href="https://dpi-apps.space/">Confidential AI Network</a>
+      <input class="can-nav-toggle" type="checkbox" id="can-nav-toggle" />
+      <label class="can-nav-burger" for="can-nav-toggle" aria-label="Open menu"><span></span></label>
+      <ul class="can-nav-links">
+        <li><a href="https://dpi-apps.space/">Home</a></li>
+        <li><a href="https://dpi-apps.space/features.html">Features</a></li>
+        <li><a href="https://dpi-apps.space/solutions.html">Solutions</a></li>
+        <li><a href="https://dpi-apps.space/technology.html">Technology</a></li>
+        <li><a href="https://dpi-apps.space/about.html">About</a></li>
+        <li><a class="{% unless here contains '/notes' %}is-active{% endunless %}" href="{{ '/' | relative_url }}">Blogs</a></li>
+        <li><a class="{% if here contains '/notes' %}is-active{% endif %}" href="{{ '/notes/' | relative_url }}">Notes</a></li>
+        <li class="can-drop">
+          <details>
+            <summary>Role-based Dashboards</summary>
+            <div class="can-drop-menu">
+              <a href="https://dpi-apps.space/dashboards/tdp-dashboard.html">Training Data Provider</a>
+              <a href="https://dpi-apps.space/dashboards/tdc-dashboard.html">Training Data Consumer</a>
+              <a href="https://dpi-apps.space/dashboards/ccrp-dashboard.html">Confidential Clean Room Provider</a>
+              <a href="https://dpi-apps.space/dashboards/admin-dashboard.html">System Administrator</a>
+            </div>
+          </details>
+        </li>
+        <li class="can-drop">
+          <details>
+            <summary>Documentation</summary>
+            <div class="can-drop-menu">
+              <a href="https://dpi-apps.space/docs/api-reference.html">API Reference</a>
+              <a href="https://dpi-apps.space/docs/architecture-guide.html">Architecture Guide</a>
+              <a href="https://dpi-apps.space/docs/user-guide.html">User Guide</a>
+              <a href="https://dpi-apps.space/docs/security-guide.html">Security Guide</a>
+              <a href="https://dpi-apps.space/docs/compliance-guide.html">Compliance Guide</a>
+            </div>
+          </details>
+        </li>
+        <li class="can-drop">
+          <details>
+            <summary>Development</summary>
+            <div class="can-drop-menu">
+              <a href="https://dpi-apps.space/dev/getting-started.html">Getting Started</a>
+              <a href="https://dpi-apps.space/dev/sdk-documentation.html">SDK Documentation</a>
+              <a href="https://dpi-apps.space/dev/integration-guide.html">Integration Guide</a>
+              <a href="https://dpi-apps.space/dev/examples.html">Code Examples</a>
+              <a href="https://dpi-apps.space/dev/deployment-guide.html">Deployment Guide</a>
+            </div>
+          </details>
+        </li>
+        <li><a class="can-nav-cta" href="mailto:hello@dpi-apps.space?subject=Interested%20in%20Confidential%20AI%20Network&amp;body=Please%20send%20me%20information%20about%20the%20app.%0A%0AName%3A%0AOrganization%3A%0A">Get info</a></li>
+      </ul>
     </div>
   </header>
   <main class="wrap site-main">

@@ -1,0 +1,67 @@
+/* Shared homepage menu. Loaded last so older page styles cannot restyle it. */
+.can-site-nav {
+  background: #ffffff !important;
+  border-bottom: 1px solid #e3e8ef !important;
+  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.04) !important;
+  min-height: 70px;
+  height: auto !important;
+  position: fixed !important;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1030 !important;
+}
+
+.can-site-nav .navbar-brand,
+.can-site-nav .navbar-nav .nav-link,
+.can-site-nav .navbar-nav .nav-link:hover,
+.can-site-nav .navbar-nav .nav-link:focus,
+.can-site-nav .navbar-nav .nav-link.active {
+  color: #122033 !important;
+}
+
+.can-site-nav .navbar-nav .nav-link.active {
+  color: #164e82 !important;
+  font-weight: 650;
+}
+
+.can-site-nav .dropdown-menu {
+  border: 1px solid #e3e8ef;
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(16, 24, 40, 0.08);
+}
+
+.can-site-nav .dropdown-item,
+.can-site-nav .dropdown-item:hover,
+.can-site-nav .dropdown-item:focus {
+  color: #122033 !important;
+}
+
+.can-site-nav .dropdown-item:hover,
+.can-site-nav .dropdown-item:focus,
+.can-site-nav .dropdown-item.active {
+  background: #eef1f5;
+  color: #164e82 !important;
+}
+
+.can-site-nav > .container {
+  background: transparent !important;
+  box-shadow: none !important;
+  border-radius: 0 !important;
+  max-width: 1320px;
+}
+
+.can-site-nav .btn-primary {
+  background: #164e82 !important;
+  border-color: #164e82 !important;
+  color: #ffffff !important;
+}
+
+.can-site-nav .btn-primary:hover {
+  background: #0e2c4b !important;
+  border-color: #0e2c4b !important;
+}
+
+body:has(.can-site-nav) {
+  padding-top: 76px;
+}

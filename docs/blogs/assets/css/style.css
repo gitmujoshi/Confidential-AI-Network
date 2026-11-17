@@ -43,7 +43,7 @@ body:has(.tour-layout) .wrap {
 
 .tour-nav {
   position: sticky;
-  top: 1.25rem;
+  top: 5.75rem;
   max-height: calc(100vh - 2rem);
   overflow-y: auto;
   padding: 0.85rem 0.9rem 1rem;
@@ -174,51 +174,162 @@ body:has(.tour-layout) .wrap {
 }
 
 .site-main {
-  padding-top: 2rem;
+  padding-top: 5.5rem;
 }
 
-.site-header {
-  position: sticky;
+/* Same top menu as https://dpi-apps.space/ */
+.can-site-nav {
+  position: fixed;
   top: 0;
-  z-index: 20;
-  background: color-mix(in srgb, var(--bg) 92%, white);
-  border-bottom: 1px solid var(--line);
-  backdrop-filter: blur(8px);
-}
-
-.site-header .wrap {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 1rem;
-  flex-wrap: wrap;
-  padding-top: 0.75rem;
-  padding-bottom: 0.75rem;
-}
-
-.site-header nav a.nav-app {
-  color: var(--accent);
-  font-weight: 600;
-}
-
-.brand {
+  left: 0;
+  right: 0;
+  z-index: 40;
+  background: #fff;
+  border-bottom: 1px solid #e3e8ef;
+  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.04);
   font-family: "Avenir Next", "Segoe UI", system-ui, sans-serif;
+}
+.can-site-nav-inner {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem 1rem;
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 0.45rem 1.25rem;
+  min-height: 70px;
+}
+.can-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  color: #122033;
   font-weight: 700;
   font-size: 1.05rem;
-  color: var(--ink);
-  text-decoration: none;
   letter-spacing: -0.02em;
-}
-
-nav a {
-  color: var(--muted);
   text-decoration: none;
-  margin-left: 1rem;
-  font-size: 0.95rem;
-  font-family: "Avenir Next", "Segoe UI", system-ui, sans-serif;
+  white-space: nowrap;
 }
+.can-brand:hover { color: #122033; }
+.can-nav-toggle { display: none; }
+.can-nav-burger {
+  display: none;
+  margin-left: auto;
+  width: 42px;
+  height: 42px;
+  border: 1px solid #e3e8ef;
+  border-radius: 8px;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+.can-nav-burger span,
+.can-nav-burger span:before,
+.can-nav-burger span:after {
+  display: block;
+  width: 16px;
+  height: 2px;
+  background: #122033;
+  position: relative;
+  content: "";
+}
+.can-nav-burger span:before { position: absolute; top: -5px; }
+.can-nav-burger span:after { position: absolute; top: 5px; }
+.can-nav-links {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.1rem 0.15rem;
+  list-style: none;
+  margin: 0 0 0 auto;
+  padding: 0;
+}
+.can-nav-links > li > a,
+.can-drop summary {
+  display: inline-flex;
+  align-items: center;
+  color: #122033;
+  text-decoration: none;
+  font-size: 0.92rem;
+  font-weight: 500;
+  padding: 0.35rem 0.45rem;
+  border-radius: 6px;
+  cursor: pointer;
+  list-style: none;
+}
+.can-nav-links > li > a:hover,
+.can-drop summary:hover { color: #164e82; }
+.can-nav-links > li > a.is-active {
+  color: #164e82;
+  font-weight: 650;
+}
+.can-drop { position: relative; }
+.can-drop summary { white-space: nowrap; }
+.can-drop summary::-webkit-details-marker { display: none; }
+.can-drop summary:after {
+  content: "";
+  width: 0.35rem;
+  height: 0.35rem;
+  margin-left: 0.35rem;
+  border-right: 1.5px solid currentColor;
+  border-bottom: 1.5px solid currentColor;
+  transform: translateY(-2px) rotate(45deg);
+}
+.can-drop-menu {
+  display: none;
+  position: absolute;
+  top: calc(100% - 2px);
+  left: 0;
+  min-width: 16.5rem;
+  background: #fff;
+  border: 1px solid #e3e8ef;
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(16, 24, 40, 0.08);
+  padding: 0.35rem;
+  z-index: 50;
+}
+.can-drop[open] .can-drop-menu,
+.can-drop:hover .can-drop-menu { display: block; }
+.can-drop-menu a {
+  display: block;
+  padding: 0.45rem 0.6rem;
+  color: #122033;
+  text-decoration: none;
+  font-size: 0.9rem;
+  border-radius: 6px;
+}
+.can-drop-menu a:hover { background: #eef1f5; color: #164e82; }
+.can-nav-cta {
+  display: inline-flex;
+  align-items: center;
+  margin-left: 0.35rem;
+  background: #164e82;
+  color: #fff !important;
+  font-weight: 600 !important;
+  border-radius: 8px;
+  padding: 0.4rem 0.8rem !important;
+  text-decoration: none;
+}
+.can-nav-cta:hover { background: #0e2c4b; color: #fff !important; }
 
-nav a:hover { color: var(--accent); }
+@media (max-width: 1100px) {
+  .can-nav-burger { display: inline-flex; }
+  .can-nav-links {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    margin: 0;
+    padding: 0.5rem 1rem 1rem;
+    background: #fff;
+    border-bottom: 1px solid #e3e8ef;
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .can-nav-toggle:checked ~ .can-nav-links { display: flex; }
+  .can-drop-menu { position: static; box-shadow: none; border: none; padding-left: 0.5rem; }
+}
 
 h1, h2, h3 {
   font-family: "Avenir Next", "Segoe UI", system-ui, sans-serif;

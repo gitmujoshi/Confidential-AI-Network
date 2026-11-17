@@ -3,96 +3,114 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SDK Documentation - ContractFlow Pro</title>
+    <title>SDK Documentation - Confidential AI Network</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link href="../styles.css" rel="stylesheet">
+    <link href="../site-nav.css" rel="stylesheet">
 </head>
 <body>
     <!-- Navigation -->
-    <nav class="navbar navbar-expand-lg navbar-light bg-white fixed-top">
+
+    <nav class="navbar navbar-expand-lg navbar-light bg-white fixed-top can-site-nav">
         <div class="container">
             <a class="navbar-brand fw-bold" href="../index.html">
-                <i class="fas fa-file-contract me-2"></i>ContractFlow Pro
+                <i class="fas fa-file-contract me-2"></i>Confidential AI Network
             </a>
-            
-            <!-- Desktop Navigation -->
-            <div class="navbar-nav d-none d-lg-flex ms-auto">
-                <a class="nav-link" href="../index.html">Home</a>
-                <a class="nav-link" href="../features.html">Features</a>
-                <a class="nav-link" href="../solutions.html">Solutions</a>
-                <a class="nav-link" href="../technology.html">Technology</a>
-                <a class="nav-link" href="../about.html">About</a>
-                <div class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
-                        <i class="fas fa-tachometer-alt me-1"></i>Role-based Dashboards
-                    </a>
-                    <ul class="dropdown-menu">
-                        <li><a class="dropdown-item" href="../dashboards/tdp-dashboard.html">
-                            <i class="fas fa-database me-2"></i>Training Data Provider
-                        </a></li>
-                        <li><a class="dropdown-item" href="../dashboards/tdc-dashboard.html">
-                            <i class="fas fa-robot me-2"></i>Training Data Consumer
-                        </a></li>
-                        <li><a class="dropdown-item" href="../dashboards/ccrp-dashboard.html">
-                            <i class="fas fa-shield-alt me-2"></i>Confidential Clean Room Provider
-                        </a></li>
-                        <li><a class="dropdown-item" href="../dashboards/admin-dashboard.html">
-                            <i class="fas fa-user-shield me-2"></i>System Administrator
-                        </a></li>
-                    </ul>
-                </div>
-                <div class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
-                        <i class="fas fa-book me-1"></i>Documentation
-                    </a>
-                    <ul class="dropdown-menu">
-                        <li><a class="dropdown-item" href="../docs/api-reference.html">
-                            <i class="fas fa-code me-2"></i>API Reference
-                        </a></li>
-                        <li><a class="dropdown-item" href="../docs/architecture-guide.html">
-                            <i class="fas fa-sitemap me-2"></i>Architecture Guide
-                        </a></li>
-                        <li><a class="dropdown-item" href="../docs/user-guide.html">
-                            <i class="fas fa-user me-2"></i>User Guide
-                        </a></li>
-                        <li><a class="dropdown-item" href="../docs/security-guide.html">
-                            <i class="fas fa-shield-alt me-2"></i>Security Guide
-                        </a></li>
-                        <li><a class="dropdown-item" href="../docs/compliance-guide.html">
-                            <i class="fas fa-certificate me-2"></i>Compliance Guide
-                        </a></li>
-                    </ul>
-                </div>
-                <div class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle active" href="#" role="button" data-bs-toggle="dropdown">
-                        <i class="fas fa-code me-1"></i>Development
-                    </a>
-                    <ul class="dropdown-menu">
-                        <li><a class="dropdown-item" href="getting-started.html">
-                            <i class="fas fa-rocket me-2"></i>Getting Started
-                        </a></li>
-                        <li><a class="dropdown-item active" href="sdk-documentation.html">
-                            <i class="fas fa-tools me-2"></i>SDK Documentation
-                        </a></li>
-                        <li><a class="dropdown-item" href="integration-guide.html">
-                            <i class="fas fa-puzzle-piece me-2"></i>Integration Guide
-                        </a></li>
-                        <li><a class="dropdown-item" href="examples.html">
-                            <i class="fas fa-lightbulb me-2"></i>Code Examples
-                        </a></li>
-                        <li><a class="dropdown-item" href="deployment-guide.html">
-                            <i class="fas fa-server me-2"></i>Deployment Guide
-                        </a></li>
-                    </ul>
-                </div>
-                <a class="btn btn-primary ms-2" href="#demo">Get Started</a>
-            </div>
-            
-            <!-- Mobile Menu Toggle -->
-            <button class="mobile-menu-toggle d-lg-none">
-                <i class="fas fa-bars"></i>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
             </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="../index.html">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="../features.html">Features</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="../solutions.html">Solutions</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="../technology.html">Technology</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="../about.html">About</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="https://blog.dpi-apps.space/">Blogs</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="https://blog.dpi-apps.space/notes/">Notes</a>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-tachometer-alt me-1"></i>Role-based Dashboards
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="../dashboards/tdp-dashboard.html">
+                                <i class="fas fa-database me-2"></i>Training Data Provider
+                            </a></li>
+                            <li><a class="dropdown-item" href="../dashboards/tdc-dashboard.html">
+                                <i class="fas fa-robot me-2"></i>Training Data Consumer
+                            </a></li>
+                            <li><a class="dropdown-item" href="../dashboards/ccrp-dashboard.html">
+                                <i class="fas fa-shield-alt me-2"></i>Confidential Clean Room Provider
+                            </a></li>
+                            <li><a class="dropdown-item" href="../dashboards/admin-dashboard.html">
+                                <i class="fas fa-user-shield me-2"></i>System Administrator
+                            </a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-book me-1"></i>Documentation
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="../docs/api-reference.html">
+                                <i class="fas fa-code me-2"></i>API Reference
+                            </a></li>
+                            <li><a class="dropdown-item" href="../docs/architecture-guide.html">
+                                <i class="fas fa-sitemap me-2"></i>Architecture Guide
+                            </a></li>
+                            <li><a class="dropdown-item" href="../docs/user-guide.html">
+                                <i class="fas fa-user me-2"></i>User Guide
+                            </a></li>
+                            <li><a class="dropdown-item" href="../docs/security-guide.html">
+                                <i class="fas fa-shield-alt me-2"></i>Security Guide
+                            </a></li>
+                            <li><a class="dropdown-item" href="../docs/compliance-guide.html">
+                                <i class="fas fa-certificate me-2"></i>Compliance Guide
+                            </a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle active" href="#" role="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-code me-1"></i>Development
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="../dev/getting-started.html">
+                                <i class="fas fa-rocket me-2"></i>Getting Started
+                            </a></li>
+                            <li><a class="dropdown-item" href="../dev/sdk-documentation.html">
+                                <i class="fas fa-tools me-2"></i>SDK Documentation
+                            </a></li>
+                            <li><a class="dropdown-item" href="../dev/integration-guide.html">
+                                <i class="fas fa-puzzle-piece me-2"></i>Integration Guide
+                            </a></li>
+                            <li><a class="dropdown-item" href="../dev/examples.html">
+                                <i class="fas fa-lightbulb me-2"></i>Code Examples
+                            </a></li>
+                            <li><a class="dropdown-item" href="../dev/deployment-guide.html">
+                                <i class="fas fa-server me-2"></i>Deployment Guide
+                            </a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item">
+                        <a class="btn btn-primary ms-2" href="mailto:hello@dpi-apps.space?subject=Interested%20in%20Confidential%20AI%20Network&amp;body=Please%20send%20me%20information%20about%20the%20app.%0A%0AName%3A%0AOrganization%3A%0A">Get info</a>
+                    </li>
+                </ul>
+            </div>
         </div>
     </nav>
 
@@ -161,7 +179,7 @@
             <div class="row">
                 <div class="col-lg-8">
                     <h1 class="display-4 fw-bold">SDK Documentation</h1>
-                    <p class="lead">Comprehensive guide to integrating with ContractFlow Pro using our Software Development Kit</p>
+                    <p class="lead">Comprehensive guide to integrating with Confidential AI Network using our Software Development Kit</p>
                 </div>
             </div>
         </div>
@@ -198,7 +216,7 @@
                     <!-- SDK Overview -->
                     <div id="overview" class="mb-5">
                         <h2 class="section-header">SDK Overview</h2>
-                        <p class="section-subheader">The ContractFlow Pro SDK provides a comprehensive set of tools for integrating with our platform programmatically.</p>
+                        <p class="section-subheader">The Confidential AI Network SDK provides a comprehensive set of tools for integrating with our platform programmatically.</p>
                         
                         <div class="alert alert-info">
                             <h5><i class="fas fa-info-circle me-2"></i>SDK Features</h5>
@@ -243,7 +261,7 @@
                     <!-- Installation -->
                     <div id="installation" class="mb-5">
                         <h2 class="section-header">Installation</h2>
-                        <p class="section-subheader">Get started with the ContractFlow Pro SDK in your preferred programming language.</p>
+                        <p class="section-subheader">Get started with the Confidential AI Network SDK in your preferred programming language.</p>
                         
                         <div class="card border-0 shadow-sm">
                             <div class="card-header bg-light">
@@ -305,7 +323,7 @@ client = ContractFlowPro(
                     <!-- Authentication -->
                     <div id="authentication" class="mb-5">
                         <h2 class="section-header">Authentication</h2>
-                        <p class="section-subheader">Secure authentication methods for accessing ContractFlow Pro APIs.</p>
+                        <p class="section-subheader">Secure authentication methods for accessing Confidential AI Network APIs.</p>
                         
                         <div class="row g-4">
                             <div class="col-md-6">
@@ -411,7 +429,7 @@ except Exception as error:
                     <!-- Core Modules -->
                     <div id="core-modules" class="mb-5">
                         <h2 class="section-header">Core Modules</h2>
-                        <p class="section-subheader">Essential SDK modules for interacting with ContractFlow Pro platform features.</p>
+                        <p class="section-subheader">Essential SDK modules for interacting with Confidential AI Network platform features.</p>
                         
                         <div class="row g-4">
                             <div class="col-md-6">
@@ -693,7 +711,7 @@ print(f'Dataset uploaded: {dataset.id}')</code></pre>
                     <!-- Training Integration -->
                     <div id="training-integration" class="mb-5">
                         <h2 class="section-header">AI Training Integration</h2>
-                        <p class="section-subheader">Integrate AI model training workflows with the ContractFlow Pro platform.</p>
+                        <p class="section-subheader">Integrate AI model training workflows with the Confidential AI Network platform.</p>
                         
                         <div class="card border-0 shadow-sm">
                             <div class="card-body">
@@ -878,7 +896,7 @@ except Exception as error:
         <div class="container">
             <div class="row g-4">
                 <div class="col-lg-4">
-                    <h5 class="mb-3">ContractFlow Pro</h5>
+                    <h5 class="mb-3">Confidential AI Network</h5>
                     <p class="text-muted">Enabling secure, privacy-preserving AI model training through smart contracts and confidential computing.</p>
                 </div>
                 <div class="col-lg-2">
@@ -921,7 +939,7 @@ except Exception as error:
             <hr class="my-4">
             <div class="row align-items-center">
                 <div class="col-md-6">
-                    <p class="mb-0 text-muted">&copy; 2024 ContractFlow Pro. All rights reserved.</p>
+                    <p class="mb-0 text-muted">&copy; 2024 Confidential AI Network. All rights reserved.</p>
                 </div>
                 <div class="col-md-6 text-md-end">
                     <a href="#" class="text-muted text-decoration-none me-3">Privacy Policy</a>

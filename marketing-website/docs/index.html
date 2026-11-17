@@ -151,15 +151,17 @@
             margin-left: 10px;
         }
     </style>
+    <link href="../site-nav.css" rel="stylesheet">
 </head>
 <body>
     <!-- Navigation -->
-    <nav class="navbar navbar-expand-lg navbar-dark">
+
+    <nav class="navbar navbar-expand-lg navbar-light bg-white fixed-top can-site-nav">
         <div class="container">
-            <a class="navbar-brand" href="../index.html">
+            <a class="navbar-brand fw-bold" href="../index.html">
                 <i class="fas fa-file-contract me-2"></i>Confidential AI Network
             </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
@@ -168,22 +170,88 @@
                         <a class="nav-link" href="../index.html">Home</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="../index.html#features">Features</a>
+                        <a class="nav-link" href="../features.html">Features</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="../index.html#solutions">Solutions</a>
+                        <a class="nav-link" href="../solutions.html">Solutions</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="../index.html#dashboards">Dashboards</a>
+                        <a class="nav-link" href="../technology.html">Technology</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link active" href="index.html">Documents</a>
+                        <a class="nav-link" href="../about.html">About</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="../index.html#pricing">Pricing</a>
+                        <a class="nav-link" href="https://blog.dpi-apps.space/">Blogs</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="../index.html#contact">Contact</a>
+                        <a class="nav-link" href="https://blog.dpi-apps.space/notes/">Notes</a>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-tachometer-alt me-1"></i>Role-based Dashboards
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="../dashboards/tdp-dashboard.html">
+                                <i class="fas fa-database me-2"></i>Training Data Provider
+                            </a></li>
+                            <li><a class="dropdown-item" href="../dashboards/tdc-dashboard.html">
+                                <i class="fas fa-robot me-2"></i>Training Data Consumer
+                            </a></li>
+                            <li><a class="dropdown-item" href="../dashboards/ccrp-dashboard.html">
+                                <i class="fas fa-shield-alt me-2"></i>Confidential Clean Room Provider
+                            </a></li>
+                            <li><a class="dropdown-item" href="../dashboards/admin-dashboard.html">
+                                <i class="fas fa-user-shield me-2"></i>System Administrator
+                            </a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle active" href="#" role="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-book me-1"></i>Documentation
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="../docs/api-reference.html">
+                                <i class="fas fa-code me-2"></i>API Reference
+                            </a></li>
+                            <li><a class="dropdown-item" href="../docs/architecture-guide.html">
+                                <i class="fas fa-sitemap me-2"></i>Architecture Guide
+                            </a></li>
+                            <li><a class="dropdown-item" href="../docs/user-guide.html">
+                                <i class="fas fa-user me-2"></i>User Guide
+                            </a></li>
+                            <li><a class="dropdown-item" href="../docs/security-guide.html">
+                                <i class="fas fa-shield-alt me-2"></i>Security Guide
+                            </a></li>
+                            <li><a class="dropdown-item" href="../docs/compliance-guide.html">
+                                <i class="fas fa-certificate me-2"></i>Compliance Guide
+                            </a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            <i class="fas fa-code me-1"></i>Development
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="../dev/getting-started.html">
+                                <i class="fas fa-rocket me-2"></i>Getting Started
+                            </a></li>
+                            <li><a class="dropdown-item" href="../dev/sdk-documentation.html">
+                                <i class="fas fa-tools me-2"></i>SDK Documentation
+                            </a></li>
+                            <li><a class="dropdown-item" href="../dev/integration-guide.html">
+                                <i class="fas fa-puzzle-piece me-2"></i>Integration Guide
+                            </a></li>
+                            <li><a class="dropdown-item" href="../dev/examples.html">
+                                <i class="fas fa-lightbulb me-2"></i>Code Examples
+                            </a></li>
+                            <li><a class="dropdown-item" href="../dev/deployment-guide.html">
+                                <i class="fas fa-server me-2"></i>Deployment Guide
+                            </a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item">
+                        <a class="btn btn-primary ms-2" href="mailto:hello@dpi-apps.space?subject=Interested%20in%20Confidential%20AI%20Network&amp;body=Please%20send%20me%20information%20about%20the%20app.%0A%0AName%3A%0AOrganization%3A%0A">Get info</a>
                     </li>
                 </ul>
             </div>

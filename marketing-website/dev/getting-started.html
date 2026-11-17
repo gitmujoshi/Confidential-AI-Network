@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Getting Started - ContractFlow Pro</title>
-    <meta name="description" content="Get started with ContractFlow Pro development - Setup, configuration, and first steps">
+    <title>Getting Started - Confidential AI Network</title>
+    <meta name="description" content="Get started with Confidential AI Network development - Setup, configuration, and first steps">
     
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -96,15 +96,17 @@
             border-left: 4px solid var(--primary-color);
         }
     </style>
+    <link href="../site-nav.css" rel="stylesheet">
 </head>
 <body>
     <!-- Navigation -->
-    <nav class="navbar navbar-expand-lg fixed-top" style="background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px);">
+
+    <nav class="navbar navbar-expand-lg navbar-light bg-white fixed-top can-site-nav">
         <div class="container">
             <a class="navbar-brand fw-bold" href="../index.html">
-                <i class="fas fa-cube me-2"></i>ContractFlow Pro
+                <i class="fas fa-file-contract me-2"></i>Confidential AI Network
             </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
@@ -124,9 +126,15 @@
                     <li class="nav-item">
                         <a class="nav-link" href="../about.html">About</a>
                     </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="https://blog.dpi-apps.space/">Blogs</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="https://blog.dpi-apps.space/notes/">Notes</a>
+                    </li>
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
-                            <i class="fas fa-tachometer-alt me-1"></i>Dashboards
+                            <i class="fas fa-tachometer-alt me-1"></i>Role-based Dashboards
                         </a>
                         <ul class="dropdown-menu">
                             <li><a class="dropdown-item" href="../dashboards/tdp-dashboard.html">
@@ -170,22 +178,25 @@
                             <i class="fas fa-code me-1"></i>Development
                         </a>
                         <ul class="dropdown-menu">
-                            <li><a class="dropdown-item active" href="getting-started.html">
+                            <li><a class="dropdown-item" href="../dev/getting-started.html">
                                 <i class="fas fa-rocket me-2"></i>Getting Started
                             </a></li>
-                            <li><a class="dropdown-item" href="sdk-documentation.html">
+                            <li><a class="dropdown-item" href="../dev/sdk-documentation.html">
                                 <i class="fas fa-tools me-2"></i>SDK Documentation
                             </a></li>
-                            <li><a class="dropdown-item" href="integration-guide.html">
+                            <li><a class="dropdown-item" href="../dev/integration-guide.html">
                                 <i class="fas fa-puzzle-piece me-2"></i>Integration Guide
                             </a></li>
-                            <li><a class="dropdown-item" href="examples.html">
+                            <li><a class="dropdown-item" href="../dev/examples.html">
                                 <i class="fas fa-lightbulb me-2"></i>Code Examples
                             </a></li>
-                            <li><a class="dropdown-item" href="deployment-guide.html">
+                            <li><a class="dropdown-item" href="../dev/deployment-guide.html">
                                 <i class="fas fa-server me-2"></i>Deployment Guide
                             </a></li>
                         </ul>
+                    </li>
+                    <li class="nav-item">
+                        <a class="btn btn-primary ms-2" href="mailto:hello@dpi-apps.space?subject=Interested%20in%20Confidential%20AI%20Network&amp;body=Please%20send%20me%20information%20about%20the%20app.%0A%0AName%3A%0AOrganization%3A%0A">Get info</a>
                     </li>
                 </ul>
             </div>
@@ -198,7 +209,7 @@
             <div class="row">
                 <div class="col-lg-8">
                     <h1 class="display-4 fw-bold mb-3">Getting Started</h1>
-                    <p class="lead mb-0">Quick start guide for developers integrating with ContractFlow Pro</p>
+                    <p class="lead mb-0">Quick start guide for developers integrating with Confidential AI Network</p>
                 </div>
                 <div class="col-lg-4 text-lg-end">
                     <div class="d-flex align-items-center justify-content-lg-end">
@@ -240,7 +251,7 @@
                     
                     <div class="prereq-item">
                         <h6 class="fw-bold mb-2"><i class="fas fa-key me-2"></i>API Access</h6>
-                        <p class="mb-0">Valid ContractFlow Pro account with API access enabled</p>
+                        <p class="mb-0">Valid Confidential AI Network account with API access enabled</p>
                     </div>
                     
                     <div class="prereq-item">
@@ -320,7 +331,7 @@ npm install axios
                         <h5 class="fw-bold mb-3">Environment Variables</h5>
                         <p class="text-muted mb-3">Create a <code>.env</code> file in your project root:</p>
                         <div class="code-block">
-<pre># ContractFlow Pro Configuration
+<pre># Confidential AI Network Configuration
 CONTRACTFLOW_API_URL=https://api.contractflow-pro.com
 CONTRACTFLOW_CLIENT_ID=your_client_id_here
 CONTRACTFLOW_CLIENT_SECRET=your_client_secret_here
@@ -410,7 +421,7 @@ try {
                     
                     <div class="step-card">
                         <h5 class="fw-bold mb-3">OAuth 2.0 Flow</h5>
-                        <p class="text-muted mb-3">ContractFlow Pro uses OAuth 2.0 with JWT tokens:</p>
+                        <p class="text-muted mb-3">Confidential AI Network uses OAuth 2.0 with JWT tokens:</p>
                         
                         <h6 class="fw-bold mb-2">1. Get Access Token:</h6>
                         <div class="code-block">
@@ -504,7 +515,7 @@ const newToken = await client.auth.refreshToken(token.refreshToken);</pre>
         <div class="container">
             <div class="row align-items-center">
                 <div class="col-md-6">
-                    <p class="mb-0 text-muted">&copy; 2025 ContractFlow Pro. All rights reserved.</p>
+                    <p class="mb-0 text-muted">&copy; 2025 Confidential AI Network. All rights reserved.</p>
                 </div>
                 <div class="col-md-6 text-md-end">
                     <a href="../about.html#contact-form" class="text-muted text-decoration-none me-3">Support</a>
