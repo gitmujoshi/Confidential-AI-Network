@@ -16,7 +16,7 @@ test.describe('Authentication E2E Tests', () => {
       throw new Error(`TDC dashboard failed to load: ${await error.textContent()}`);
     }
 
-    await expect(page.getByRole('heading', { name: /Welcome to Your TDC Dashboard/i })).toBeVisible({ timeout: 120000 });
+    await expect(page.getByRole('heading', { name: /TDC Dashboard/i })).toBeVisible({ timeout: 120000 });
   }
 
   test.beforeEach(async ({ page }) => {
@@ -130,7 +130,7 @@ test.describe('Authentication E2E Tests', () => {
 
     // AppBar hides the display name below the `lg` breakpoint; identity still must be present in the DOM.
     await expect(page.locator('body')).toContainText(/TDC Healthcare E2E User/i);
-    await expect(page.getByRole('heading', { name: /Welcome to Your TDC Dashboard/i })).toBeVisible();
+    await expect(page.getByRole('heading', { name: /TDC Dashboard/i })).toBeVisible();
 
     await expect(page.locator('body')).not.toContainText('uitdc@example.com');
     await expect(page.locator('body')).not.toContainText('tdc1-416d70a2@example.com');

@@ -6,9 +6,11 @@
   --can-muted: #5c6b7e;
   --can-surface: #eef1f5;
   --can-line: #e3e8ef;
-  --can-accent: #164e82;
-  --can-accent-soft: rgba(22, 78, 130, 0.1);
-  --can-sidebar: #101826;
+  --can-accent: #0d6efd;
+  --can-accent-soft: rgba(13, 110, 253, 0.12);
+  --can-sidebar: #ffffff;
+  --can-hero-start: #0d6efd;
+  --can-hero-end: #6610f2;
   --can-success: #0f6e56;
   --can-warning: #9a6700;
   --can-danger: #b42318;
@@ -20,7 +22,7 @@ body {
     'Segoe UI', sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background: var(--can-surface);
+  background: #f8f9fa;
   color: var(--can-ink);
 }
 
@@ -29,6 +31,7 @@ code,
 .font-mono,
 .font-monospace {
   font-family: 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  overflow-wrap: anywhere;
 }
 
 * {
@@ -235,21 +238,207 @@ pre {
 .text-center {
   text-align: center;
 }
-/* Dashboard metric chips match the marketing role dashboards: dark circle, icon, then the figure. */
+/* Marketing role-dashboard cards: white surface, blue figure, uppercase label. */
+.MuiCard-root:has(svg.text-3xl) {
+  border-radius: 12px;
+  border: 1px solid #dee2e6;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.MuiCard-root:has(svg.text-3xl):hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07);
+}
 .MuiCardContent-root > .flex.items-center.justify-between:has(> svg.text-3xl) {
+  flex-direction: column;
+  align-items: center;
   justify-content: flex-start;
-  gap: 0.85rem;
+  text-align: center;
+  gap: 0.35rem;
+}
+.MuiCardContent-root > .flex.items-center.justify-between:has(> svg.text-3xl) > div {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.MuiCard-root:has(svg.text-3xl) .MuiTypography-h4 {
+  order: -1;
+  color: #0d6efd;
+  font-size: 2.5rem;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+.MuiCard-root:has(svg.text-3xl) .MuiTypography-body1,
+.MuiCard-root:has(svg.text-3xl) .MuiTypography-body2 {
+  color: #6c757d;
+  font-size: 0.875rem;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
 }
 svg.text-3xl {
   width: 3rem;
   height: 3rem;
-  padding: 0.72rem;
+  padding: 0.7rem;
   border-radius: 999px;
-  background: var(--can-sidebar);
+  background: #212529;
   color: #fff !important;
   box-sizing: border-box;
   flex-shrink: 0;
-  order: -1;
+  order: -2;
+}
+
+.can-dash-hero {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.25rem 2rem;
+  margin-bottom: 0.25rem;
+  padding: 1.75rem 1.75rem 1.5rem;
+  border-radius: 12px;
+  color: #fff;
+  background: linear-gradient(135deg, #0d6efd 0%, #6610f2 100%);
+}
+.can-dash-hero-copy {
+  flex: 1 1 280px;
+  min-width: 0;
+}
+.can-dash-hero h1 {
+  margin: 0 0 0.4rem;
+  color: #fff;
+  font-size: clamp(1.75rem, 2.4vw, 2.4rem);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1.15;
+}
+.can-dash-hero p {
+  margin: 0;
+  max-width: 42rem;
+  color: rgba(255, 255, 255, 0.88);
+  font-size: 1.05rem;
+  line-height: 1.5;
+}
+.can-dash-hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+.can-dash-hero .MuiButton-contained {
+  background: #fff;
+  color: #0d6efd;
+}
+.can-dash-hero .MuiButton-contained:hover {
+  background: #f8f9fa;
+}
+.can-dash-hero .MuiButton-outlined {
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.75);
+}
+.can-dash-hero .MuiButton-outlined:hover {
+  border-color: #fff;
+  background: rgba(255, 255, 255, 0.12);
+}
+.can-dash-hero-user {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+}
+.can-dash-hero-meta {
+  text-align: right;
+}
+.can-dash-role {
+  display: inline-block;
+  margin-bottom: 0.45rem;
+  padding: 0.35rem 0.75rem;
+  border-radius: 6px;
+  background: #fff;
+  color: #0d6efd;
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+.can-dash-welcome {
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 0.85rem;
+}
+.can-dash-name {
+  color: #fff;
+  font-weight: 700;
+}
+.can-dash-avatar {
+  width: 50px;
+  height: 50px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  background: rgba(255, 255, 255, 0.2);
+  color: #fff;
+  font-weight: 700;
+  font-size: 1.15rem;
+  flex-shrink: 0;
+}
+.can-dash-name {
+  overflow-wrap: anywhere;
+}
+
+img,
+video,
+canvas {
+  max-width: 100%;
+  height: auto;
+}
+
+.MuiStepper-root,
+.MuiTabs-root,
+.MuiTableContainer-root {
+  max-width: 100%;
+}
+
+.MuiStepper-horizontal {
+  overflow-x: auto;
+}
+
+@media (max-width: 899.95px) {
+  .can-dash-hero {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 1.25rem 1.1rem 1.15rem;
+    gap: 1rem;
+  }
+  .can-dash-hero-user {
+    justify-content: space-between;
+  }
+  .can-dash-hero-meta {
+    text-align: left;
+  }
+  .can-dash-hero h1 {
+    font-size: 1.65rem;
+  }
+  .can-dash-hero p {
+    font-size: 0.95rem;
+  }
+}
+
+@media (max-width: 599.95px) {
+  .can-dash-hero-actions .MuiButton-root {
+    flex: 1 1 100%;
+  }
+  .MuiCard-root:has(svg.text-3xl) .MuiTypography-h4 {
+    font-size: 2rem;
+  }
+  .MuiDialog-paper {
+    margin: 12px;
+    width: calc(100% - 24px);
+    max-width: calc(100% - 24px);
+  }
+  .MuiDialogActions-root {
+    flex-wrap: wrap;
+  }
+  .MuiDialogActions-root .MuiButton-root {
+    flex: 1 1 auto;
+  }
 }
 .text-gray-900 {
   color: var(--can-ink);

@@ -31,6 +31,7 @@ import {
   Verified,
   Storage,
 } from '@mui/icons-material';
+import DashboardHero from '../../components/DashboardHero';
 import { useUser } from '../../contexts/UserContext';
 import { apiService } from '../../services/api';
 import CloudProviderManager from '../../components/CloudProviderManager';
@@ -142,40 +143,34 @@ const TSPDashboard = () => {
   return (
     <div className="space-y-6" style={{ paddingTop: '16px' }}>
       {/* Header */}
-      <div className="can-page-header flex justify-between items-center">
-        <div>
-          <Typography variant="h4" className="font-bold text-gray-900 mb-2">
-            Welcome to Your TSP Dashboard
-          </Typography>
-          <Typography variant="body1" className="text-gray-600 mb-2">
-            Provide secure computing environments for AI training. Monitor secure data processing 
-            and ensure privacy and security compliance standards.
-          </Typography>
-        </div>
-        <div className="flex space-x-3">
-          <Button
-            variant="contained"
-            startIcon={<Settings />}
-            onClick={() => navigate('/tsp/infrastructure')}
-          >
-            Infrastructure
-          </Button>
-          <Button
-            variant="outlined"
-            startIcon={<Security />}
-                          onClick={() => navigate('/tsp/cloud-credentials')}
-          >
-            Azure Credentials
-          </Button>
-          <Button
-            variant="outlined"
-            startIcon={<PlayArrow />}
-            onClick={() => navigate('/tsp/training-environment')}
-          >
-            Training Environment
-          </Button>
-        </div>
-      </div>
+      <DashboardHero
+        title="Confidential Clean Room Provider Dashboard"
+        role="Confidential Clean Room Provider"
+        name={user?.name || user?.email}
+        subtitle="Provide secure computing environments for AI training and keep processing inside the contract."
+      >
+        <Button
+          variant="contained"
+          startIcon={<Settings />}
+          onClick={() => navigate('/tsp/infrastructure')}
+        >
+          Infrastructure
+        </Button>
+        <Button
+          variant="outlined"
+          startIcon={<Security />}
+          onClick={() => navigate('/tsp/cloud-credentials')}
+        >
+          Azure Credentials
+        </Button>
+        <Button
+          variant="outlined"
+          startIcon={<PlayArrow />}
+          onClick={() => navigate('/tsp/training-environment')}
+        >
+          Training Environment
+        </Button>
+      </DashboardHero>
 
       {/* System Health Alert */}
       {(cpuUtilization > 80 || memoryUtilization > 80) && (

@@ -116,14 +116,14 @@ const LandingPage = () => {
     >
       {/* Header */}
       <AppBar position="static" elevation={0} sx={{ bgcolor: 'rgba(255,255,255,0.92)', backdropFilter: 'blur(10px)', borderBottom: '1px solid', borderColor: 'divider' }}>
-        <Toolbar sx={{ gap: 2 }}>
-          <Stack direction="row" spacing={1.25} alignItems="center" sx={{ flexGrow: 1 }}>
+        <Toolbar sx={{ gap: { xs: 1, sm: 2 }, minHeight: { xs: 64, sm: 72 } }}>
+          <Stack direction="row" spacing={1.25} alignItems="center" sx={{ flexGrow: 1, minWidth: 0 }}>
             <Box
               sx={{
                 width: 32,
                 height: 32,
                 borderRadius: '8px',
-                background: '#164e82',
+                background: '#0d6efd',
                 display: 'grid',
                 placeItems: 'center',
                 color: '#fff',
@@ -133,7 +133,18 @@ const LandingPage = () => {
             >
               CA
             </Box>
-            <Typography variant="h6" sx={{ color: 'text.primary', fontWeight: 750, letterSpacing: '-0.02em' }}>
+            <Typography
+              variant="h6"
+              noWrap
+              sx={{
+                color: 'text.primary',
+                fontWeight: 750,
+                letterSpacing: '-0.02em',
+                fontSize: { xs: '0.95rem', sm: '1.25rem' },
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+              }}
+            >
               Confidential AI Network
             </Typography>
           </Stack>
@@ -157,7 +168,14 @@ const LandingPage = () => {
               variant="h2"
               component="h1"
               gutterBottom
-              sx={{ fontWeight: 800, letterSpacing: '-0.035em', mt: 1, maxWidth: 560 }}
+              sx={{
+                fontWeight: 800,
+                letterSpacing: '-0.035em',
+                mt: 1,
+                maxWidth: 560,
+                fontSize: { xs: '2.1rem', sm: '2.75rem', md: '3.25rem' },
+                lineHeight: 1.15,
+              }}
             >
               Confidential AI Network
             </Typography>
@@ -266,7 +284,7 @@ const LandingPage = () => {
       <Container maxWidth={false} sx={{ py: 8, px: { xs: 2, sm: 3, md: 4, lg: 6 } }}>
         <Grid container spacing={6} alignItems="center">
           <Grid item xs={12} md={6}>
-            <Typography variant="h3" component="h2" gutterBottom sx={{ fontWeight: 'bold' }}>
+            <Typography variant="h3" component="h2" gutterBottom sx={{ fontWeight: 'bold', fontSize: { xs: '1.75rem', md: '2.5rem' } }}>
               Why Choose Our Platform?
             </Typography>
             <Typography variant="body1" color="text.secondary" paragraph sx={{ mb: 4 }}>
@@ -335,7 +353,7 @@ const LandingPage = () => {
       {/* CTA Section */}
       <Box sx={{ bgcolor: 'primary.main', color: 'white', py: 8 }}>
         <Container maxWidth={false} sx={{ textAlign: 'center', px: { xs: 2, sm: 3, md: 4, lg: 6 } }}>
-          <Typography variant="h3" component="h2" gutterBottom sx={{ fontWeight: 'bold' }}>
+          <Typography variant="h3" component="h2" gutterBottom sx={{ fontWeight: 'bold', fontSize: { xs: '1.75rem', md: '2.5rem' } }}>
             Ready to Get Started?
           </Typography>
           <Typography variant="h6" paragraph sx={{ mb: 4, opacity: 0.9 }}>

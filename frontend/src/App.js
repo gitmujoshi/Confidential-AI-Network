@@ -130,15 +130,15 @@ const PublicRoute = ({ children }) => {
 };
 
 // Create theme
-// Visual language: institutional console — navy chrome, cool gray canvas, one accent.
+// Visual language matches the marketing role dashboards: blue-violet header, white cards.
 const theme = createTheme({
   shape: { borderRadius: 8 },
   palette: {
     mode: 'light',
     primary: {
-      main: '#164e82',
-      dark: '#0e2c4b',
-      light: '#3d6fa3',
+      main: '#0d6efd',
+      dark: '#0a58ca',
+      light: '#6ea8fe',
       contrastText: '#ffffff',
     },
     secondary: {
@@ -149,9 +149,9 @@ const theme = createTheme({
     success: { main: '#0f6e56' },
     warning: { main: '#9a6700' },
     error: { main: '#b42318' },
-    info: { main: '#164e82' },
+    info: { main: '#0d6efd' },
     background: {
-      default: '#eef1f5',
+      default: '#f8f9fa',
       paper: '#ffffff',
     },
     text: {
@@ -188,7 +188,7 @@ const theme = createTheme({
     MuiCssBaseline: {
       styleOverrides: {
         body: {
-          backgroundColor: '#eef1f5',
+          backgroundColor: '#f8f9fa',
           color: '#122033',
         },
         'html, body, #root': {
@@ -219,9 +219,9 @@ const theme = createTheme({
       },
       styleOverrides: {
         root: {
-          boxShadow: '0 1px 2px rgba(16, 24, 40, 0.04)',
-          borderRadius: 10,
-          border: '1px solid #e3e8ef',
+          borderRadius: 12,
+          border: '1px solid #dee2e6',
+          boxShadow: '0 2px 4px rgba(0, 0, 0, 0.05)',
           backgroundImage: 'none',
         },
       },
@@ -247,8 +247,8 @@ const theme = createTheme({
         outlined: {
           borderColor: '#d5dde6',
           '&:hover': {
-            borderColor: '#164e82',
-            backgroundColor: 'rgba(22, 78, 130, 0.04)',
+            borderColor: '#0d6efd',
+            backgroundColor: 'rgba(13, 110, 253, 0.06)',
           },
         },
         sizeSmall: {
@@ -278,9 +278,9 @@ const theme = createTheme({
     MuiDrawer: {
       styleOverrides: {
         paper: {
-          borderRight: '1px solid rgba(255, 255, 255, 0.06)',
-          backgroundColor: '#101826',
-          color: '#e6ebf2',
+          borderRight: '1px solid #dee2e6',
+          backgroundColor: '#ffffff',
+          color: '#212529',
           overflow: 'hidden',
         },
       },
@@ -291,9 +291,13 @@ const theme = createTheme({
           borderRadius: 8,
           marginInline: 8,
           '&.Mui-selected': {
-            backgroundColor: 'rgba(22, 78, 130, 0.28)',
+            backgroundColor: '#0d6efd',
+            color: '#ffffff',
             '&:hover': {
-              backgroundColor: 'rgba(22, 78, 130, 0.36)',
+              backgroundColor: '#0a58ca',
+            },
+            '& .MuiListItemIcon-root': {
+              color: '#ffffff',
             },
           },
         },

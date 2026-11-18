@@ -6,8 +6,8 @@
 
 - List all contracts
 - Open the Ricardian **contract** a training job was based on
-- Inspect a **Merkle audit tree** (root + leaf inclusion proofs) derived from durable provenance evidence
-- Verify inclusion proofs via API
+- Inspect a **Merkle audit tree** whose root is sealed when a model is registered (or on the first auditor review of a completed training job)
+- Verify a leaf against that saved root. The result shows the sealed leaf, the calculated root, the published root, and the check time
 
 Auditors **cannot** sign contracts, start training, deploy models, or manage users.
 
@@ -34,7 +34,7 @@ If you need a known local password before sync, set it in Keycloak Admin or re-r
 | GET | `/api/auditor/contracts` | List contracts |
 | GET | `/api/auditor/contracts/:id/provenance-report` | Full provenance JSON |
 | GET | `/api/auditor/contracts/:id/audit-tree` | Merkle tree + leaf proofs |
-| POST | `/api/auditor/verify-proof` | Body: `{ proof, rootHash? }` |
+| POST | `/api/auditor/verify-proof` | Body: `{ contractId, nodeId }`. Checks the sealed leaf against the saved root. |
 | POST | `/api/auditor/provenance/:id/tombstone` | Append-only PII tombstone. Body: `{ reason, redactedFields? }`. The Merkle leaf stays. The same id returns the first record. This is not an external SRO filing. The gateway path is `POST /v1/aichain/provenance/{id}/tombstone`. |
 
 Also: contract provenance report and job provenance allow `Auditor` (same as AppAdmin read paths).
@@ -60,5 +60,6 @@ Public product tour: [product-tour/#auditor](https://gitmujoshi.github.io/Confid
 ## Implementation notes
 
 - Leaves are built from contract fields, training jobs, SCITT claims, and registered models (`auditorAuditTreeService`).
-- Trees are computed on read from durable DB evidence (not the disabled in-memory `/api/provenance` session store).
+- The audit root is written once to `merkle_trees` (`tree_type = CONTRACT_AUDIT`) with leaf payloads and proofs in `provenance_nodes`. A later edit to the contract or job does not replace that root. Verify reports whether the current database row still matches the sealed leaf.
+- Trees are built from durable DB evidence (not the disabled in-memory `/api/provenance` session store).
 - Related: [MERKLE_TREE_PROVENANCE_IMPLEMENTATION.md](../security/MERKLE_TREE_PROVENANCE_IMPLEMENTATION.md)

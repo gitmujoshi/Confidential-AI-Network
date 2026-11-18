@@ -12,6 +12,7 @@ const { buildProvenanceAuditReport } = require('../services/provenanceAuditRepor
 const {
   buildContractAuditTree,
   verifyInclusionProof,
+  verifyPublishedLeaf,
 } = require('../services/auditorAuditTreeService');
 const { recordProvenanceTombstone } = require('../services/provenanceTombstoneService');
 
@@ -131,14 +132,18 @@ router.post('/provenance/:provenanceId/tombstone', authenticateToken, requireAud
   }
 });
 
-/** Verify a Merkle inclusion proof (body: { proof, rootHash? }). */
+/** Verify a sealed leaf against the published root. Body: { contractId, nodeId }. */
 router.post('/verify-proof', authenticateToken, requireAuditorOrAdmin, async (req, res) => {
   try {
-    const { proof, rootHash } = req.body || {};
-    if (!proof) {
-      return res.status(400).json({ error: 'Missing proof' });
+    const { contractId, nodeId, proof, rootHash } = req.body || {};
+    const result = contractId && nodeId
+      ? await verifyPublishedLeaf(contractId, nodeId)
+      : proof
+        ? verifyInclusionProof(proof, rootHash)
+        : null;
+    if (!result) {
+      return res.status(400).json({ error: 'Missing contractId and nodeId' });
     }
-    const result = verifyInclusionProof(proof, rootHash);
     res.json({ success: true, verification: result });
   } catch (error) {
     res.status(500).json({ error: error.message || 'Verification failed' });

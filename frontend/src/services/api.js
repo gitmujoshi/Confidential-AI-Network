@@ -431,9 +431,9 @@ const realApiService = {
     return response.data;
   },
 
-  /** Auditor: verify Merkle inclusion proof. */
-  verifyAuditorMerkleProof: async (proof, rootHash) => {
-    const response = await api.post('/api/auditor/verify-proof', { proof, rootHash });
+  /** Auditor: verify a sealed leaf against the published root. */
+  verifyAuditorMerkleProof: async ({ contractId, nodeId }) => {
+    const response = await api.post('/api/auditor/verify-proof', { contractId, nodeId });
     return response.data;
   },
 

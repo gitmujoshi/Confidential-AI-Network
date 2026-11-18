@@ -37,7 +37,7 @@ test.describe('Dashboard Tests', () => {
     await page.goto('/tdc/dashboard');
     await expect(page).not.toHaveURL(/.*\/login/);
 
-    await waitForDashboardReady(page, { partyType: 'TDC', welcomeHeading: /Welcome to Your TDC Dashboard/i });
+    await waitForDashboardReady(page, { partyType: 'TDC', welcomeHeading: /TDC Dashboard/i });
     const main = page.getByRole('main');
     await expect(main.getByText('Available Datasets', { exact: true }).first()).toBeVisible({ timeout: 120000 });
     await expect(main.getByText('My Contracts', { exact: true }).first()).toBeVisible({ timeout: 120000 });
@@ -48,7 +48,7 @@ test.describe('Dashboard Tests', () => {
     await page.goto('/tdp/dashboard');
     await expect(page).not.toHaveURL(/.*\/login/);
 
-    await waitForDashboardReady(page, { partyType: 'TDP', welcomeHeading: /Welcome to Your TDP Dashboard/i });
+    await waitForDashboardReady(page, { partyType: 'TDP', welcomeHeading: /Training Data Provider Dashboard/i });
     const main = page.getByRole('main');
     await expect(main.getByRole('heading', { name: 'My Datasets', exact: true })).toBeVisible({ timeout: 120000 });
     await expect(main.getByText('Total Contracts', { exact: true })).toBeVisible({ timeout: 120000 });
@@ -59,7 +59,7 @@ test.describe('Dashboard Tests', () => {
     await page.goto('/tsp/dashboard');
     await expect(page).not.toHaveURL(/.*\/login/);
 
-    await waitForDashboardReady(page, { partyType: 'TSP', welcomeHeading: /Welcome to Your (TSP|CCRP) Dashboard/i });
+    await waitForDashboardReady(page, { partyType: 'TSP', welcomeHeading: /Confidential Clean Room Provider Dashboard/i });
   });
 
   test('should display Admin dashboard correctly', async ({ page }) => {

@@ -48,7 +48,7 @@ test.describe('Role CRUD UI smoke', () => {
       page,
       /Loading TDP dashboard/i,
       /Error loading TDP dashboard/i,
-      /Welcome to Your TDP Dashboard/i
+      /Training Data Provider Dashboard/i
     );
 
     const main = page.getByRole('main');
@@ -66,7 +66,7 @@ test.describe('Role CRUD UI smoke', () => {
       page,
       /Loading TDC dashboard/i,
       /Error loading TDC dashboard/i,
-      /Welcome to Your TDC Dashboard/i
+      /TDC Dashboard/i
     );
 
     const main = page.getByRole('main');
@@ -83,7 +83,7 @@ test.describe('Role CRUD UI smoke', () => {
     await loading.waitFor({ state: 'hidden', timeout: 120000 }).catch(() => {});
 
     const heading = page.getByRole('heading', {
-      name: /Welcome to Your (TSP|CCRP) Dashboard/i,
+      name: /Confidential Clean Room Provider Dashboard/i,
     });
     await expect(heading).toBeVisible({ timeout: 120000 });
   });

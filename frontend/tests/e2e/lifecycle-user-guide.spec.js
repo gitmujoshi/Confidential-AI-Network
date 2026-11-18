@@ -119,7 +119,7 @@ test.describe('Lifecycle user guide (screenshot tour)', () => {
     const tdcTemp = await submitRegistration();
     await completeFirstLoginPasswordViaAPI({ email: tdcEmail, currentPassword: tdcTemp });
     await loginViaUI(page, { email: tdcEmail });
-    await expect(page.getByRole('heading', { name: /Welcome to Your TDC Dashboard/i })).toBeVisible({
+    await expect(page.getByRole('heading', { name: /TDC Dashboard/i })).toBeVisible({
       timeout: 120000,
     });
     steps.push({
@@ -146,7 +146,7 @@ test.describe('Lifecycle user guide (screenshot tour)', () => {
     const tdpTemp = await submitRegistration();
     await completeFirstLoginPasswordViaAPI({ email: tdpEmail, currentPassword: tdpTemp });
     await loginViaUI(page, { email: tdpEmail });
-    await expect(page.getByRole('heading', { name: /Welcome to Your TDP Dashboard/i })).toBeVisible({
+    await expect(page.getByRole('heading', { name: /Training Data Provider Dashboard/i })).toBeVisible({
       timeout: 120000,
     });
     steps.push({

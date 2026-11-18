@@ -31,6 +31,7 @@ import {
   Assessment,
   Security,
 } from '@mui/icons-material';
+import DashboardHero from '../../components/DashboardHero';
 import { useUser } from '../../contexts/UserContext';
 import { apiService } from '../../services/api';
 import { formatDeploymentCurrency } from '../../utils/deploymentCurrency';
@@ -152,33 +153,27 @@ const TDCDashboard = () => {
   return (
     <div className="space-y-6" style={{ paddingTop: '16px' }}>
       {/* Header */}
-      <div className="can-page-header flex justify-between items-center">
-        <div>
-          <Typography variant="h4" className="font-bold text-gray-900 mb-2">
-            Welcome to Your TDC Dashboard
-          </Typography>
-          <Typography variant="body1" className="text-gray-600 mb-2">
-            Browse available datasets, create training contracts, and monitor your AI training progress. 
-            All contracts ensure DPDP compliance with privacy-preserving techniques.
-          </Typography>
-        </div>
-        <div className="flex space-x-3">
-          <Button
-            variant="contained"
-            startIcon={<Add />}
-            onClick={() => navigate('/tdc/contracts/create')}
-          >
-            Create Contract
-          </Button>
-          <Button
-            variant="outlined"
-            startIcon={<Search />}
-            onClick={() => navigate('/tdc/datasets')}
-          >
-            Browse Datasets
-          </Button>
-        </div>
-      </div>
+      <DashboardHero
+        title="TDC Dashboard"
+        role="Training Data Consumer"
+        name={user?.name || user?.email}
+        subtitle="Browse available datasets, create training contracts, and monitor your AI training progress."
+      >
+        <Button
+          variant="contained"
+          startIcon={<Add />}
+          onClick={() => navigate('/tdc/contracts/create')}
+        >
+          Create Contract
+        </Button>
+        <Button
+          variant="outlined"
+          startIcon={<Search />}
+          onClick={() => navigate('/tdc/datasets')}
+        >
+          Browse Datasets
+        </Button>
+      </DashboardHero>
 
       {/* Metrics Cards */}
       <Grid container spacing={3}>

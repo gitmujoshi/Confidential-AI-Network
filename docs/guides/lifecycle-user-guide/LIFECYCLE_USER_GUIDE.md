@@ -210,8 +210,8 @@ They see every contract and can open the **Merkle audit tree** or the **contract
 
 ### 26. Auditor inspects Merkle audit tree
 
-The audit tree shows a published **root hash** and leaves for the contract, training jobs, SCITT claims, and models.
-**Verify** checks inclusion of a leaf against the root—evidence for “what happened when the model misbehaved.”
+The audit tree shows the **published root**, sealed when the training evidence was recorded, and leaves for the contract, training jobs, SCITT claims, and models.
+**Verify** checks that leaf against the saved root and shows the leaf contents, both hashes, and the time of the check.
 
 ![Auditor inspects Merkle audit tree](screenshots/26-auditor-audit-tree.png)
 

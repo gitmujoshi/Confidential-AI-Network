@@ -55,14 +55,21 @@ const AuditorAuditTree = () => {
   };
 
   const verifyLeaf = async (leaf) => {
+    if (!merkle?.published) {
+      toast.error('This audit root is not sealed yet');
+      return;
+    }
     if (!leaf?.proof || leaf.proof.error) {
       toast.error('No proof available for this leaf');
       return;
     }
     setVerifyingId(leaf.nodeId);
     try {
-      const res = await apiService.verifyAuditorMerkleProof(leaf.proof, merkle.rootHash);
-      setVerifyResult({ nodeId: leaf.nodeId, ...res.verification });
+      const res = await apiService.verifyAuditorMerkleProof({
+        contractId,
+        nodeId: leaf.nodeId,
+      });
+      setVerifyResult(res.verification);
       if (res.verification?.isValid) {
         toast.success('Inclusion proof valid');
       } else {
@@ -114,7 +121,7 @@ const AuditorAuditTree = () => {
       <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} sx={{ mb: 3 }}>
         <Paper variant="outlined" sx={{ p: 2, flex: 1 }}>
           <Typography variant="caption" color="text.secondary">
-            Root hash
+            {merkle?.published ? 'Published root' : 'Unsealed root'}
           </Typography>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
             <Typography
@@ -130,7 +137,9 @@ const AuditorAuditTree = () => {
             )}
           </Box>
           <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
-            {merkle?.hashAlgorithm} · {merkle?.nodeCount} leaves · {merkle?.levels} levels ·{' '}
+            {merkle?.hashAlgorithm} · {merkle?.nodeCount} leaves
+            {merkle?.publishedAt ? ` · sealed ${new Date(merkle.publishedAt).toLocaleString()}` : ' · not sealed'}
+            {' · '}
             {merkle?.treeId}
           </Typography>
         </Paper>
@@ -159,19 +168,61 @@ const AuditorAuditTree = () => {
       </Stack>
 
       <Alert severity="info" sx={{ mb: 2 }}>
-        Each leaf commits to durable evidence (contract terms, training jobs, SCITT markers,
-        models). Verify inclusion against the published root when investigating misbehavior.
+        {merkle?.published
+          ? 'Verify checks this leaf against the root sealed when training evidence was recorded. A later edit to the database record is reported separately from the proof result.'
+          : 'This tree is computed from the current records. The root is sealed once a completed training job is available.'}
       </Alert>
 
       {verifyResult && (
-        <Alert
-          severity={verifyResult.isValid ? 'success' : 'error'}
-          sx={{ mb: 2 }}
-          onClose={() => setVerifyResult(null)}
-        >
-          Leaf {verifyResult.nodeId}:{' '}
-          {verifyResult.isValid ? 'inclusion proof valid' : verifyResult.error || 'invalid'}
-        </Alert>
+        <Paper variant="outlined" sx={{ p: 2, mb: 2 }} data-testid="audit-verify-result">
+          <Alert
+            severity={verifyResult.isValid ? 'success' : 'error'}
+            sx={{ mb: 2 }}
+            onClose={() => setVerifyResult(null)}
+          >
+            {verifyResult.isValid ? 'Inclusion proof valid' : verifyResult.error || 'Proof invalid'}
+          </Alert>
+          <Typography variant="subtitle2" sx={{ mb: 1 }}>
+            {verifyResult.leaf?.kind || 'leaf'} · {verifyResult.leaf?.summary || verifyResult.nodeId}
+          </Typography>
+          <Stack spacing={0.5} sx={{ mb: 1.5 }}>
+            <Typography variant="body2" sx={{ fontFamily: 'monospace', wordBreak: 'break-all' }}>
+              Leaf hash: {verifyResult.leaf?.dataHash || verifyResult.targetHash || '—'}
+            </Typography>
+            <Typography variant="body2" sx={{ fontFamily: 'monospace', wordBreak: 'break-all' }}>
+              Calculated root: {verifyResult.calculatedRoot || '—'}
+            </Typography>
+            <Typography variant="body2" sx={{ fontFamily: 'monospace', wordBreak: 'break-all' }}>
+              Published root: {verifyResult.publishedRoot || verifyResult.expectedRoot || '—'}
+            </Typography>
+            <Typography variant="body2">
+              Checked: {verifyResult.verifiedAt ? new Date(verifyResult.verifiedAt).toLocaleString() : '—'}
+            </Typography>
+            <Typography variant="body2">
+              Current database record:{' '}
+              {verifyResult.currentRecordMatches
+                ? 'matches the sealed leaf'
+                : 'differs from the sealed leaf'}
+            </Typography>
+          </Stack>
+          {verifyResult.leaf?.payload && (
+            <Box>
+              <Typography variant="caption" color="text.secondary">
+                Sealed leaf contents
+              </Typography>
+              <pre
+                style={{
+                  margin: '8px 0 0',
+                  fontSize: 11,
+                  overflow: 'auto',
+                  maxHeight: 240,
+                }}
+              >
+                {JSON.stringify(verifyResult.leaf.payload, null, 2)}
+              </pre>
+            </Box>
+          )}
+        </Paper>
       )}
 
       <TableContainer component={Paper} variant="outlined">
@@ -206,7 +257,12 @@ const AuditorAuditTree = () => {
                     <TableCell>
                       <Chip size="small" label={leaf.kind} />
                     </TableCell>
-                    <TableCell>{leaf.summary}</TableCell>
+                    <TableCell>
+                      {leaf.summary}
+                      {leaf.currentRecordMatches === false && (
+                        <Chip size="small" color="warning" label="record changed" sx={{ ml: 1 }} />
+                      )}
+                    </TableCell>
                     <TableCell>
                       <Typography
                         variant="caption"

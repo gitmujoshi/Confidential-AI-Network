@@ -31,6 +31,7 @@ import {
   Assessment,
   Security,
 } from '@mui/icons-material';
+import DashboardHero from '../../components/DashboardHero';
 import { useUser } from '../../contexts/UserContext';
 import { apiService } from '../../services/api';
 import { formatDeploymentCurrency } from '../../utils/deploymentCurrency';
@@ -136,33 +137,27 @@ const TDPDashboard = () => {
   return (
     <div className="space-y-6" style={{ paddingTop: '16px' }}>
       {/* Header */}
-      <div className="can-page-header flex justify-between items-center">
-        <div>
-          <Typography variant="h4" className="font-bold text-gray-900 mb-2">
-            Welcome to Your TDP Dashboard
-          </Typography>
-          <Typography variant="body1" className="text-gray-600 mb-2">
-            Manage your datasets, respond to contract requests, and track your revenue. 
-            All your datasets have unique DEPA IDs for compliance tracking.
-          </Typography>
-        </div>
-        <div className="flex space-x-3">
-          <Button
-            variant="contained"
-            startIcon={<Add />}
-            onClick={() => navigate('/datasets/add')}
-          >
-            Create Dataset
-          </Button>
-          <Button
-            variant="outlined"
-            startIcon={<Assessment />}
-            onClick={() => navigate('/tdp/analytics')}
-          >
-            View Analytics
-          </Button>
-        </div>
-      </div>
+      <DashboardHero
+        title="Training Data Provider Dashboard"
+        role="Training Data Provider"
+        name={user?.name || user?.email}
+        subtitle="Manage your datasets, respond to contract requests, and track your revenue."
+      >
+        <Button
+          variant="contained"
+          startIcon={<Add />}
+          onClick={() => navigate('/datasets/add')}
+        >
+          Create Dataset
+        </Button>
+        <Button
+          variant="outlined"
+          startIcon={<Assessment />}
+          onClick={() => navigate('/tdp/analytics')}
+        >
+          View Analytics
+        </Button>
+      </DashboardHero>
 
       {/* Metrics Cards */}
       <Grid container spacing={3}>

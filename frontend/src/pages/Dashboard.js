@@ -24,6 +24,7 @@ import {
   TrendingUp,
   Add,
 } from '@mui/icons-material';
+import DashboardHero from '../components/DashboardHero';
 import { useUser } from '../contexts/UserContext';
 import { apiService } from '../services/api';
 import DIDInfoCard from '../components/DIDInfoCard';
@@ -83,35 +84,29 @@ const Dashboard = () => {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="can-page-header flex justify-between items-center">
-        <div>
-          <Typography variant="h4" className="font-bold text-gray-900 mb-2">
-            Dashboard
-          </Typography>
-          <Typography variant="body1" className="text-gray-600">
-            Welcome back, {user?.name || 'User'}! Here's an overview of your contract management system.
-          </Typography>
-        </div>
-        <div className="flex space-x-3">
-          {/* Only TDC users can create contracts */}
-          {user?.partyType === 'TDC' && (
-            <Button
-              variant="contained"
-              startIcon={<Add />}
-              onClick={() => navigate('/contracts/create')}
-            >
-              Create Contract
-            </Button>
-          )}
+      <DashboardHero
+        title="Dashboard"
+        role={user?.partyType || 'User'}
+        name={user?.name || user?.email}
+        subtitle="An overview of datasets, contracts, and the people on this workspace."
+      >
+        {user?.partyType === 'TDC' && (
           <Button
-            variant="outlined"
-            startIcon={<Storage />}
-            onClick={() => navigate('/datasets')}
+            variant="contained"
+            startIcon={<Add />}
+            onClick={() => navigate('/contracts/create')}
           >
-            {user?.partyType === 'TDP' ? 'My Datasets' : 'Browse Datasets'}
+            Create Contract
           </Button>
-        </div>
-      </div>
+        )}
+        <Button
+          variant="outlined"
+          startIcon={<Storage />}
+          onClick={() => navigate('/datasets')}
+        >
+          {user?.partyType === 'TDP' ? 'My Datasets' : 'Browse Datasets'}
+        </Button>
+      </DashboardHero>
 
       {/* Metrics Cards */}
       <Grid container spacing={3}>

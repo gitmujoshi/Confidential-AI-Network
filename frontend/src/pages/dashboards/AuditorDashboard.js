@@ -23,8 +23,8 @@ import {
   Visibility,
   Description,
   Search,
-  FactCheck,
 } from '@mui/icons-material';
+import DashboardHero from '../../components/DashboardHero';
 import { useUser } from '../../contexts/UserContext';
 import { apiService } from '../../services/api';
 
@@ -76,18 +76,12 @@ const AuditorDashboard = () => {
 
   return (
     <Box sx={{ pt: 2 }}>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 3 }}>
-        <Box>
-          <Typography variant="h4" sx={{ fontWeight: 700, mb: 1 }}>
-            Auditor workspace
-          </Typography>
-          <Typography variant="body1" color="text.secondary" sx={{ maxWidth: 640 }}>
-            Review Ricardian contracts and inspect Merkle audit trees when a model misbehaves.
-            Read-only — you cannot sign, train, or change party assignments.
-          </Typography>
-        </Box>
-        <Chip icon={<FactCheck />} label="Auditor" color="primary" variant="outlined" />
-      </Box>
+      <DashboardHero
+        title="Auditor workspace"
+        role="Auditor"
+        name={user?.name || user?.email}
+        subtitle="Review Ricardian contracts and inspect Merkle audit trees. Read-only."
+      />
 
       <Alert severity="info" sx={{ mb: 3 }}>
         Pick a contract → open the <strong>audit tree</strong> (root + leaf inclusion proofs) or the

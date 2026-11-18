@@ -277,9 +277,10 @@ permalink: /product-tour/
   <h2>6. Auditor — Merkle tree &amp; contract review (Local)</h2>
   <p>
     After training and inference, a read-only <strong>Auditor</strong> opens the workspace,
-    inspects the <strong>Merkle audit tree</strong> (root + leaf inclusion proofs) for the
-    contract that produced the model, and reviews the Ricardian contract terms the training
-    was based on. No sign / train / deploy rights.
+    inspects the <strong>Merkle audit tree</strong> sealed when the training evidence was recorded.
+    <strong>Verify</strong> checks one leaf against that saved root and shows the leaf contents,
+    both hashes, and the time of the check. The auditor then reviews the Ricardian contract
+    terms the training was based on. No sign / train / deploy rights.
   </p>
   <figure class="shot">
     <img src="{{ '/assets/lifecycle/25-auditor-workspace.png' | relative_url }}" alt="Auditor workspace listing contracts" loading="lazy" />
@@ -287,7 +288,7 @@ permalink: /product-tour/
   </figure>
   <figure class="shot">
     <img src="{{ '/assets/lifecycle/26-auditor-audit-tree.png' | relative_url }}" alt="Merkle audit tree with root hash and leaves" loading="lazy" />
-    <figcaption>Merkle audit tree — root hash, leaves (contract / jobs / SCITT / models), Verify</figcaption>
+    <figcaption>Merkle audit tree — published root, Verify result (leaf, both hashes, check time)</figcaption>
   </figure>
   <figure class="shot">
     <img src="{{ '/assets/lifecycle/27-auditor-contract-review.png' | relative_url }}" alt="Auditor reviewing the Ricardian contract" loading="lazy" />

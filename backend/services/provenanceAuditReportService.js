@@ -79,9 +79,9 @@ async function buildJobTrainingProvenanceBundle(jobId) {
  * Build a contract-scoped audit bundle for compliance / incident review.
  * Authoritative detail lives on Contract, TrainingJob, AIModel; scitt_claims are event markers.
  */
-async function buildProvenanceAuditReport(contractId, userId, { partyType } = {}) {
+async function buildProvenanceAuditReport(contractId, userId, { partyType, internal } = {}) {
   const { hasGlobalContractRead } = require('../utils/partyTypes');
-  const where = hasGlobalContractRead(partyType)
+  const where = internal || hasGlobalContractRead(partyType)
     ? { contractId: String(contractId) }
     : {
         contractId: String(contractId),
@@ -108,7 +108,7 @@ async function buildProvenanceAuditReport(contractId, userId, { partyType } = {}
     order: [['createdAt', 'ASC']],
   });
   const trainingSvc = new TdcTrainingExecutionService();
-  const trainingJobs = jobs.map((j) => trainingSvc.serializeJob(j));
+  const trainingJobs = await Promise.all(jobs.map((j) => trainingSvc.serializeJob(j)));
 
   const claims = await db.ScittClaim.findAll({
     where: { contractId: String(contractId) },

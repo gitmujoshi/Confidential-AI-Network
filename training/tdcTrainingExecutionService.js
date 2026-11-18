@@ -950,6 +950,13 @@ class TdcTrainingExecutionService {
       console.warn('⚠️ Failed to write model_registered SCITT claim:', e.message);
     }
 
+    try {
+      const { publishContractAuditRoot } = require('../backend/services/auditorAuditTreeService');
+      await publishContractAuditRoot(contract.contractId, { internal: true });
+    } catch (e) {
+      console.warn('⚠️ Failed to publish contract audit root:', e.message);
+    }
+
     return {
       modelId: model.modelId,
       depaId: modelDepaId,

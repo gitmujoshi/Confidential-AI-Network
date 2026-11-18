@@ -48,7 +48,7 @@ const roleChipSx = (role) => {
     TSP: { bg: 'rgba(61, 74, 92, 0.14)', color: '#243042' },
     CCRP: { bg: 'rgba(61, 74, 92, 0.14)', color: '#243042' },
     AppAdmin: { bg: 'rgba(180, 35, 24, 0.1)', color: '#8f1d16' },
-    Auditor: { bg: 'rgba(22, 78, 130, 0.1)', color: '#164e82' },
+    Auditor: { bg: 'rgba(13, 110, 253, 0.1)', color: '#0d6efd' },
   };
   const c = map[role] || { bg: 'rgba(100, 116, 139, 0.12)', color: '#475569' };
   return {
@@ -162,8 +162,8 @@ const Layout = ({ children }) => {
         height: '100%',
         display: 'flex',
         flexDirection: 'column',
-        bgcolor: '#101826',
-        color: '#e6ebf2',
+        bgcolor: '#ffffff',
+        color: '#212529',
         overflow: 'hidden',
       }}
     >
@@ -174,7 +174,7 @@ const Layout = ({ children }) => {
               width: 34,
               height: 34,
               borderRadius: '9px',
-              background: '#164e82',
+              background: '#0d6efd',
               display: 'grid',
               placeItems: 'center',
               fontWeight: 800,
@@ -191,13 +191,13 @@ const Layout = ({ children }) => {
                 fontWeight: 750,
                 fontSize: '0.95rem',
                 letterSpacing: '-0.02em',
-                color: '#f8fafc',
+                color: '#212529',
                 lineHeight: 1.2,
               }}
             >
               Confidential AI
             </Typography>
-            <Typography sx={{ fontSize: '0.7rem', color: '#94a3b8', mt: 0.25 }}>
+            <Typography sx={{ fontSize: '0.7rem', color: '#6c757d', mt: 0.25 }}>
               Network Console
             </Typography>
           </Box>
@@ -207,7 +207,7 @@ const Layout = ({ children }) => {
       <Box className="can-scroll" sx={{ px: 1.5, pb: 1, flex: 1, minHeight: 0, overflowY: 'auto' }}>
         <Typography
           variant="overline"
-          sx={{ px: 1.5, color: '#64748b', display: 'block', mb: 0.5 }}
+          sx={{ px: 1.5, color: '#6c757d', display: 'block', mb: 0.5 }}
         >
           Navigate
         </Typography>
@@ -223,23 +223,23 @@ const Layout = ({ children }) => {
                   sx={{
                     py: 1,
                     px: 1.25,
-                    color: isActive ? '#f8fafc' : '#94a3b8',
+                    color: isActive ? '#ffffff' : '#495057',
                     '&:hover': {
-                      bgcolor: 'rgba(148, 163, 184, 0.08)',
-                      color: '#f1f5f9',
+                      bgcolor: 'rgba(13, 110, 253, 0.08)',
+                      color: '#0d6efd',
                     },
                     '&.Mui-selected': {
-                      bgcolor: 'rgba(22, 78, 130, 0.45)',
-                      color: '#f8fafc',
-                      boxShadow: 'inset 3px 0 0 #7eb0dc',
-                      '&:hover': { bgcolor: 'rgba(22, 78, 130, 0.55)' },
+                      bgcolor: '#0d6efd',
+                      color: '#ffffff',
+                      boxShadow: 'none',
+                      '&:hover': { bgcolor: '#0a58ca', color: '#ffffff' },
                     },
                   }}
                 >
                   <ListItemIcon
                     sx={{
                       minWidth: 36,
-                      color: isActive ? '#d6e6f5' : 'inherit',
+                      color: isActive ? '#ffffff' : 'inherit',
                     }}
                   >
                     {item.icon}
@@ -261,9 +261,9 @@ const Layout = ({ children }) => {
         </List>
       </Box>
 
-      <Box sx={{ flexShrink: 0, position: 'relative', zIndex: 1, bgcolor: '#101826' }}>
-        <Box sx={{ px: 2, pt: 1 }}>
-          <Typography variant="overline" sx={{ color: '#64748b', display: 'block', mb: 1 }}>
+      <Box sx={{ flexShrink: 0, position: 'relative', zIndex: 1, bgcolor: '#ffffff', borderTop: '1px solid #dee2e6' }}>
+        <Box sx={{ px: 2, pt: 1.5 }}>
+          <Typography variant="overline" sx={{ color: '#6c757d', display: 'block', mb: 1 }}>
             Quick actions
           </Typography>
           <Stack spacing={1}>
@@ -276,8 +276,8 @@ const Layout = ({ children }) => {
                 onClick={() => go('/contracts/create')}
                 sx={{
                   justifyContent: 'flex-start',
-                  bgcolor: '#164e82',
-                  '&:hover': { bgcolor: '#0e2c4b' },
+                  bgcolor: '#0d6efd',
+                  '&:hover': { bgcolor: '#0a58ca' },
                 }}
               >
                 Create contract
@@ -291,11 +291,11 @@ const Layout = ({ children }) => {
               onClick={() => go('/datasets')}
               sx={{
                 justifyContent: 'flex-start',
-                color: '#cbd5e1',
-                borderColor: 'rgba(148, 163, 184, 0.28)',
+                color: '#212529',
+                borderColor: '#dee2e6',
                 '&:hover': {
-                  borderColor: 'rgba(148, 163, 184, 0.5)',
-                  bgcolor: 'rgba(148, 163, 184, 0.06)',
+                  borderColor: '#0d6efd',
+                  bgcolor: 'rgba(13, 110, 253, 0.06)',
                 },
               }}
             >
@@ -304,7 +304,7 @@ const Layout = ({ children }) => {
           </Stack>
         </Box>
 
-        <Box sx={{ p: 2, mt: 1, borderTop: '1px solid rgba(148, 163, 184, 0.12)' }}>
+        <Box sx={{ p: 2, mt: 1 }}>
           <Button
             fullWidth
             size="small"
@@ -314,8 +314,8 @@ const Layout = ({ children }) => {
             data-testid="logout-button"
             sx={{
               justifyContent: 'flex-start',
-              color: '#94a3b8',
-              '&:hover': { color: '#fecaca', bgcolor: 'rgba(185, 28, 28, 0.12)' },
+              color: '#495057',
+              '&:hover': { color: '#b42318', bgcolor: 'rgba(180, 35, 24, 0.06)' },
             }}
           >
             Sign out
@@ -330,17 +330,17 @@ const Layout = ({ children }) => {
       <AppBar
         position="fixed"
         sx={{
-          width: { sm: `calc(100% - ${drawerWidth}px)` },
-          ml: { sm: `${drawerWidth}px` },
+          width: { md: `calc(100% - ${drawerWidth}px)` },
+          ml: { md: `${drawerWidth}px` },
         }}
       >
-        <Toolbar sx={{ gap: 1.5, px: { xs: 2, sm: 3 } }}>
+        <Toolbar sx={{ gap: { xs: 0.75, sm: 1.5 }, px: { xs: 1.5, sm: 3 }, minHeight: { xs: 64, sm: 72 } }}>
           <IconButton
             color="inherit"
             aria-label="open drawer"
             edge="start"
             onClick={() => setMobileOpen((v) => !v)}
-            sx={{ display: { sm: 'none' } }}
+            sx={{ display: { md: 'none' }, mr: 0.5 }}
           >
             <MenuIcon />
           </IconButton>
@@ -379,7 +379,7 @@ const Layout = ({ children }) => {
               <Chip
                 label={currentUser.partyType || 'User'}
                 size="small"
-                sx={roleChipSx(currentUser.partyType)}
+                sx={{ ...roleChipSx(currentUser.partyType), display: { xs: 'none', sm: 'inline-flex' } }}
               />
 
               {depaShort && (
@@ -434,15 +434,15 @@ const Layout = ({ children }) => {
         </Toolbar>
       </AppBar>
 
-      <Box component="nav" sx={{ width: { sm: drawerWidth }, flexShrink: { sm: 0 } }}>
+      <Box component="nav" sx={{ width: { md: drawerWidth }, flexShrink: { md: 0 } }}>
         <Drawer
           variant="temporary"
           open={mobileOpen}
           onClose={() => setMobileOpen(false)}
           ModalProps={{ keepMounted: true }}
           sx={{
-            display: { xs: 'block', sm: 'none' },
-            '& .MuiDrawer-paper': { boxSizing: 'border-box', width: drawerWidth },
+            display: { xs: 'block', md: 'none' },
+            '& .MuiDrawer-paper': { boxSizing: 'border-box', width: drawerWidth, maxWidth: '86vw' },
           }}
         >
           {drawer}
@@ -451,7 +451,7 @@ const Layout = ({ children }) => {
           variant="permanent"
           open
           sx={{
-            display: { xs: 'none', sm: 'block' },
+            display: { xs: 'none', md: 'block' },
             '& .MuiDrawer-paper': { boxSizing: 'border-box', width: drawerWidth },
           }}
         >
@@ -467,8 +467,8 @@ const Layout = ({ children }) => {
           minWidth: 0,
           height: '100%',
           overflow: 'auto',
-          pt: { xs: '76px', sm: '72px' },
-          px: { xs: 2, sm: 3, md: 4 },
+          pt: { xs: '80px', md: '88px' },
+          px: { xs: 1.5, sm: 2.5, md: 4 },
           pb: 6,
         }}
       >

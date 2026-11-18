@@ -62,7 +62,7 @@ test.describe('Role user guides (screenshot tours)', () => {
     steps.push(await captureLogin(page, roleKey));
     await uiLogin(page, email);
 
-    await waitDashboard(page, 'TDC', /Welcome to Your TDC Dashboard/i);
+    await waitDashboard(page, 'TDC', /TDC Dashboard/i);
     steps.push({
       title: 'Dashboard',
       body: 'After login you land on the **TDC dashboard**: available datasets, your contracts, and quick status.',
@@ -273,7 +273,7 @@ test.describe('Role user guides (screenshot tours)', () => {
     steps.push(await captureLogin(page, roleKey));
     await uiLogin(page, email);
 
-    await waitDashboard(page, 'TDP', /Welcome to Your TDP Dashboard/i);
+    await waitDashboard(page, 'TDP', /Training Data Provider Dashboard/i);
     steps.push({
       title: 'Dashboard',
       body: 'The **TDP dashboard** summarizes your datasets, contract activity, and outstanding actions.',
@@ -391,7 +391,7 @@ test.describe('Role user guides (screenshot tours)', () => {
       .getByText(/Loading (TSP|CCRP) dashboard/i)
       .waitFor({ state: 'hidden', timeout: 120000 })
       .catch(() => {});
-    await waitForHeading(page, /Welcome to Your (TSP|CCRP) Dashboard/i);
+    await waitForHeading(page, /Confidential Clean Room Provider Dashboard/i);
     steps.push({
       title: 'Dashboard',
       body: [

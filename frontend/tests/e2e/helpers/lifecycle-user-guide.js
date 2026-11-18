@@ -25,6 +25,9 @@ async function captureShot(page, fileName, options = {}) {
   const fullPage = options.fullPage !== false;
   const outPath = path.join(SCREENSHOT_ROOT, fileName);
   await settle(page, options.settleMs ?? 500);
+  if (/\/login/.test(page.url())) {
+    throw new Error(`Refusing to save ${fileName}: browser is on the login page`);
+  }
   if (fullPage) await prepareFullPageCapture(page);
   await page.screenshot({
     path: outPath,
@@ -283,20 +286,27 @@ async function captureAuditorTourSteps(page, { contractId, steps }) {
       /* ignore */
     }
   });
-  // Prefer full UI login so Keycloak session matches SPA (seed-only can leave a blank iframe).
-  try {
-    await loginViaUI(page, { email: session.email, password: session.password });
-  } catch (_) {
-    await seedSession(page, { email: session.email, password: session.password });
-  }
-  await expect(page.getByText(/Auditor workspace|Welcome|Dashboard|Contracts/i).first()).toBeVisible({
-    timeout: 60000,
-  });
+  // Stay on the UI session. Overwriting localStorage with a second API token
+  // makes the next auditor request 401 and the screenshot lands on login.
+  await loginViaUI(page, { email: session.email, password: session.password });
 
-  await applyBrowserSession(page, session);
-  await page.goto('/auditor/dashboard', { waitUntil: 'domcontentloaded', timeout: 60000 });
-  await expect(page.getByText(/Auditor workspace/i).first()).toBeVisible({ timeout: 60000 });
-  // Prefer showing the run's contract; if the list is filtered/paginated, continue with direct URLs.
+  const openAuditor = async (path, ready) => {
+    await page.goto(path, { waitUntil: 'domcontentloaded', timeout: 60000 });
+    if (/\/login/.test(page.url())) {
+      await loginViaUI(page, { email: session.email, password: session.password });
+      await page.goto(path, { waitUntil: 'domcontentloaded', timeout: 60000 });
+    }
+    await ready();
+    if (/\/login/.test(page.url())) {
+      throw new Error(`Auditor session dropped on ${path}`);
+    }
+  };
+
+  await openAuditor('/auditor/dashboard', async () => {
+    await expect(page.getByRole('heading', { name: 'Auditor workspace' })).toBeVisible({
+      timeout: 60000,
+    });
+  });
   const contractVisible = await page
     .getByText(contractId, { exact: false })
     .first()
@@ -316,49 +326,38 @@ async function captureAuditorTourSteps(page, { contractId, steps }) {
     ...(await captureShot(page, '25-auditor-workspace.png')),
   });
 
-  await applyBrowserSession(page, session);
-  await page.goto(`/auditor/contracts/${encodeURIComponent(contractId)}/audit-tree`, {
-    waitUntil: 'domcontentloaded',
-    timeout: 60000,
-  });
-  if (/\/login/.test(page.url())) {
-    await seedSession(page, { email: session.email, password: session.password });
-    await applyBrowserSession(page, session);
-    await page.goto(`/auditor/contracts/${encodeURIComponent(contractId)}/audit-tree`, {
-      waitUntil: 'domcontentloaded',
-      timeout: 60000,
+  const auditTreePath = `/auditor/contracts/${encodeURIComponent(contractId)}/audit-tree`;
+  await openAuditor(auditTreePath, async () => {
+    await expect(page.getByRole('heading', { name: 'Merkle audit tree' })).toBeVisible({
+      timeout: 90000,
     });
-  }
-  await expect(page.getByText(/Merkle audit tree|Root hash|audit tree/i).first()).toBeVisible({
-    timeout: 90000,
   });
-  await expect(page.getByText(/Root hash|contract|training_job|scitt_claim|leaf/i).first()).toBeVisible({
-    timeout: 60000,
-  });
+  await expect(page.getByText(/Published root/i).first()).toBeVisible({ timeout: 60000 });
+  const verifyBtn = page.getByRole('button', { name: /^Verify$/i }).first();
+  await expect(verifyBtn).toBeVisible({ timeout: 30000 });
+  await verifyBtn.click();
+  const verifyResult = page.getByTestId('audit-verify-result');
+  await expect(verifyResult).toBeVisible({ timeout: 30000 });
+  await expect(verifyResult.getByText(/Inclusion proof valid/i)).toBeVisible({ timeout: 30000 });
+  await expect(verifyResult.getByText(/Published root:/i)).toBeVisible({ timeout: 30000 });
+  await expect(verifyResult.getByText(/Sealed leaf contents/i)).toBeVisible({ timeout: 30000 });
   steps.push({
     title: 'Auditor inspects Merkle audit tree',
     body: [
-      'The audit tree shows a published **root hash** and leaves for the contract, training jobs, SCITT claims, and models.',
-      '**Verify** checks inclusion of a leaf against the root—evidence for “what happened when the model misbehaved.”',
+      'The audit tree shows the **published root**, sealed when the training evidence was recorded, and leaves for the contract, training jobs, SCITT claims, and models.',
+      '**Verify** checks that leaf against the saved root and shows the leaf contents, both hashes, and the time of the check.',
     ].join('\n'),
     ...(await captureShot(page, '26-auditor-audit-tree.png')),
   });
 
-  const verifyBtn = page.getByRole('button', { name: /^Verify$/i }).first();
-  if (await verifyBtn.isVisible().catch(() => false)) {
-    await verifyBtn.click();
-    await expect(page.getByText(/inclusion proof valid|Proof invalid|Leaf /i).first())
-      .toBeVisible({ timeout: 30000 })
-      .catch(() => {});
-  }
-
-  await page.goto(`/auditor/contracts/${encodeURIComponent(contractId)}`, {
-    waitUntil: 'domcontentloaded',
-    timeout: 60000,
+  await openAuditor(`/auditor/contracts/${encodeURIComponent(contractId)}`, async () => {
+    await expect(page.getByRole('heading', { name: /Contract Details/i }).first()).toBeVisible({
+      timeout: 90000,
+    });
+    await expect(page.getByText(contractId, { exact: false }).first()).toBeVisible({
+      timeout: 30000,
+    });
   });
-  await expect(
-    page.getByText(contractId, { exact: false }).or(page.getByText(/Contract|Ricardian|SIGNED/i)).first()
-  ).toBeVisible({ timeout: 90000 });
   steps.push({
     title: 'Auditor reviews the governing contract',
     body: [

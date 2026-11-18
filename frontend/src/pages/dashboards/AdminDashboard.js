@@ -33,6 +33,7 @@ import {
   Assessment,
   Storage as StorageIcon,
 } from '@mui/icons-material';
+import DashboardHero from '../../components/DashboardHero';
 import { useUser } from '../../contexts/UserContext';
 import { apiService } from '../../services/api';
 
@@ -141,33 +142,27 @@ const AdminDashboard = () => {
   return (
     <div className="space-y-6" style={{ paddingTop: '16px' }}>
       {/* Header */}
-      <div className="can-page-header flex justify-between items-center">
-        <div>
-          <Typography variant="h4" className="font-bold text-gray-900 mb-2">
-            System Administration Dashboard
-          </Typography>
-          <Typography variant="body1" className="text-gray-600 mb-2">
-            Monitor system health, manage users, and ensure overall system security and compliance. 
-            Complete audit trails and system analytics available.
-          </Typography>
-        </div>
-        <div className="flex space-x-3">
-          <Button
-            variant="contained"
-            startIcon={<People />}
-            onClick={() => navigate('/admin/users')}
-          >
-            Manage Users
-          </Button>
-          <Button
-            variant="outlined"
-            startIcon={<Assessment />}
-            onClick={() => navigate('/admin/analytics')}
-          >
-            System Analytics
-          </Button>
-        </div>
-      </div>
+      <DashboardHero
+        title="System Administration Dashboard"
+        role="System Administrator"
+        name={user?.name || user?.email}
+        subtitle="Monitor system health, manage users, and oversee security and compliance."
+      >
+        <Button
+          variant="contained"
+          startIcon={<People />}
+          onClick={() => navigate('/admin/users')}
+        >
+          Manage Users
+        </Button>
+        <Button
+          variant="outlined"
+          startIcon={<Assessment />}
+          onClick={() => navigate('/admin/analytics')}
+        >
+          System Analytics
+        </Button>
+      </DashboardHero>
 
       {/* System Health Alert */}
       {activeBreaches > 0 && (
