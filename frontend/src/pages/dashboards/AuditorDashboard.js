@@ -57,23 +57,6 @@ const AuditorDashboard = () => {
     );
   });
 
-  if (isInitializing || isLoading) {
-    return (
-      <Box sx={{ width: '100%' }}>
-        <LinearProgress />
-        <Typography sx={{ mt: 2 }}>Loading auditor workspace…</Typography>
-      </Box>
-    );
-  }
-
-  if (error) {
-    return (
-      <Alert severity="error">
-        Failed to load contracts: {error.message || String(error)}
-      </Alert>
-    );
-  }
-
   return (
     <Box sx={{ pt: 2 }}>
       <DashboardHero
@@ -83,6 +66,21 @@ const AuditorDashboard = () => {
         subtitle="Review Ricardian contracts and inspect Merkle audit trees. Read-only."
       />
 
+      {isInitializing || isLoading ? (
+        <Box sx={{ width: '100%', mb: 2 }}>
+          <LinearProgress />
+          <Typography sx={{ mt: 2 }}>Loading auditor workspace…</Typography>
+        </Box>
+      ) : null}
+
+      {error ? (
+        <Alert severity="error" sx={{ mb: 2 }}>
+          Failed to load contracts: {error.message || String(error)}
+        </Alert>
+      ) : null}
+
+      {!isInitializing && !isLoading && !error ? (
+      <>
       <Alert severity="info" sx={{ mb: 3 }}>
         Pick a contract → open the <strong>audit tree</strong> (root + leaf inclusion proofs) or the
         full <strong>contract</strong> record the training was based on.
@@ -172,6 +170,8 @@ const AuditorDashboard = () => {
           Browse all contracts
         </Button>
       </Box>
+      </>
+      ) : null}
     </Box>
   );
 };

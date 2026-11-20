@@ -201,17 +201,42 @@ function signPartyType(profile) {
   return party;
 }
 
-function ricardianFromDepa(body, profile) {
-  const datasetSelections = Array.isArray(body.datasetSelections)
+function catalogTemplateHint(row) {
+  const plain = row?.dataset || row || {};
+  const meta = plain.metadata && typeof plain.metadata === 'object' ? plain.metadata : {};
+  return meta.depa?.templateHint || meta['depa:template'] || null;
+}
+
+function datasetsForTemplate(templateId, catalogDatasets) {
+  const want = String(templateId || '').trim().toUpperCase();
+  if (!want) return [];
+  return (catalogDatasets || []).filter((row) => {
+    const hint = catalogTemplateHint(row);
+    return hint && String(hint).trim().toUpperCase() === want;
+  });
+}
+
+function ricardianFromDepa(body, profile, catalogDatasets = []) {
+  let datasetSelections = Array.isArray(body.datasetSelections)
     ? body.datasetSelections
     : (body.datasetIds || []).map((datasetId) => ({
         datasetId,
         individualPrice: Number(body.price || body.cost || 1),
       }));
 
+  if (!datasetSelections.length && body.templateId) {
+    datasetSelections = datasetsForTemplate(body.templateId, catalogDatasets).map((row) => {
+      const plain = row.dataset || row;
+      return {
+        datasetId: plain.datasetId,
+        individualPrice: Number(plain.price || body.price || body.cost || 1),
+      };
+    });
+  }
+
   if (!datasetSelections.length) {
     const err = new Error(
-      'CAN façade requires datasetIds or datasetSelections in addition to PRD templateId'
+      'CAN façade requires datasetIds or datasetSelections, or a templateId that matches an ingested catalog dataset (metadata.depa.templateHint)'
     );
     err.statusCode = 400;
     err.code = 'DATASET_REQUIRED';
@@ -249,11 +274,11 @@ function ricardianFromDepa(body, profile) {
   };
 }
 
-function canUserToProvider(user) {
+function canUserToProvider(user, providerType) {
   const party = user.partyType;
   return {
     providerId: user.depaId || String(user.id),
-    providerType: PARTY_TO_PROVIDER_TYPE[party] || party,
+    providerType: providerType || PARTY_TO_PROVIDER_TYPE[party] || party,
     organizationName: user.organization || user.name,
     status: user.isActive === false ? 'inactive' : 'active',
     did: user.did || null,
@@ -285,6 +310,8 @@ module.exports = {
   depaContractStatus,
   partyTypeFromProfile,
   signPartyType,
+  catalogTemplateHint,
+  datasetsForTemplate,
   ricardianFromDepa,
   canUserToProvider,
   themeToCanQuery,

@@ -1,5 +1,6 @@
 const { test, expect } = require('@playwright/test');
 const { getBackendURL } = require('../../load-config');
+const { releaseWrappedKey } = require('./helpers/can-key-release');
 
 test.describe('CAN JCS API (MVP)', () => {
   test('create job -> attestation -> key release -> release -> provenance', async ({ request }) => {
@@ -36,19 +37,15 @@ test.describe('CAN JCS API (MVP)', () => {
       expect(att.data.platformSignature).toBeTruthy();
     });
 
-    await test.step('Signal DEK released (Data Provider)', async () => {
-      const dekRes = await request.post(`${backendURL}/api/can/jcs/jobs/${jobId}/key-released`, {
-        headers: { ...principalHeader, 'Content-Type': 'application/json' },
-        data: { keyType: 'DEK' }
-      });
+    await test.step('Release DEK wrapped to the attested public key', async () => {
+      const dekRes = await releaseWrappedKey(request, backendURL, jobId, 'DEK', 'did:can:dp:e2e');
       await assertOk(dekRes, 'release DEK');
+      const body = await dekRes.json();
+      expect(body.keyStored).toBe(false);
     });
 
-    await test.step('Signal MEK released (Model Owner)', async () => {
-      const mekRes = await request.post(`${backendURL}/api/can/jcs/jobs/${jobId}/key-released`, {
-        headers: { 'X-CAN-Principal-Id': 'did:can:mo:e2e', 'Content-Type': 'application/json' },
-        data: { keyType: 'MEK' }
-      });
+    await test.step('Release MEK wrapped to the attested public key', async () => {
+      const mekRes = await releaseWrappedKey(request, backendURL, jobId, 'MEK', 'did:can:mo:e2e');
       await assertOk(mekRes, 'release MEK');
     });
 

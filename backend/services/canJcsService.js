@@ -4,6 +4,13 @@ const db = require('../models');
 const { CANProvenanceService } = require('./canProvenanceService');
 const { CANWebhookDispatcher } = require('./canWebhookDispatcher');
 const { CANLocalCcrpExecutor } = require('./canLocalCcrpExecutor');
+const {
+  generateEphemeralRsaKeyPair,
+  normalizePem,
+  openWrappedKey,
+} = require('./canKeyDelivery');
+
+const ephemeralPrivateKeys = new Map();
 
 const ESCROW_STATES = {
   OPEN: 'OPEN',
@@ -103,9 +110,11 @@ class CANJcsService {
     return events;
   }
 
-  async markKeyReleased(jobId, { keyType, principalId }) {
+  async markKeyReleased(jobId, { keyType, principalId, attestedPublicKey, wrappedKey }) {
     const job = await db.CANJcsJob.findByPk(jobId);
     if (!job) throw new Error('Job not found');
+
+    await this._acceptWrappedKey(job, { attestedPublicKey, wrappedKey });
 
     await this._expireIfNeeded(job);
     const freshJob = await db.CANJcsJob.findByPk(jobId);
@@ -150,8 +159,13 @@ class CANJcsService {
     await this._appendEvent(jobId, 'KEY_RELEASED', {
       keyType,
       principalId,
-      escrowState: nextState
+      escrowState: nextState,
+      keyStored: false,
     });
+
+    if (nextState === ESCROW_STATES.BOTH_READY && freshJob.ccrSessionId) {
+      ephemeralPrivateKeys.delete(freshJob.ccrSessionId);
+    }
 
     if (nextState === ESCROW_STATES.BOTH_READY) {
       await this._appendEvent(jobId, 'ESCROW_BOTH_READY', {
@@ -240,12 +254,14 @@ class CANJcsService {
     if (!job) throw new Error('Job not found');
     if (!job.ccrSessionId) throw new Error('Job missing ccrSessionId');
 
-    // Simulated attestation: produce a deterministic-ish blob, plus a public key placeholder.
-    // Later phases replace this with real attestation + ephemeral TLS key generated in TEE.
+    // Simulated report bound to a real ephemeral RSA public key.
+    // The private key stays in this process and is dropped after both keys are accepted.
+    // reportFormat stays SIMULATED until a verified SEV-SNP guest report is stored.
     const generatedAt = now();
     const expiresAt = new Date(generatedAt.getTime() + 90 * 24 * 60 * 60 * 1000);
-
-    const tlsPublicKeyPem = `-----BEGIN PUBLIC KEY-----\n${crypto.randomBytes(48).toString('base64')}\n-----END PUBLIC KEY-----`;
+    const { publicKeyPem, privateKeyPem } = generateEphemeralRsaKeyPair();
+    ephemeralPrivateKeys.set(job.ccrSessionId, privateKeyPem);
+    const tlsPublicKeyPem = publicKeyPem;
     const report = Buffer.from(JSON.stringify({
       format: 'SIMULATED',
       ccrSessionId: job.ccrSessionId,
@@ -356,9 +372,61 @@ class CANJcsService {
       );
     }
 
+    if (jobInstance.ccrSessionId) ephemeralPrivateKeys.delete(jobInstance.ccrSessionId);
+
     await this._appendEvent(jobInstance.jobId, 'ESCROW_EXPIRED', {
       escrowDeadline: jobInstance.escrowDeadline.toISOString()
     });
+  }
+
+  async _acceptWrappedKey(job, { attestedPublicKey, wrappedKey }) {
+    if (!wrappedKey) {
+      const err = new Error('wrappedKey is required. Encrypt the key to the attested public key.');
+      err.statusCode = 400;
+      err.code = 'WRAP_REQUIRED';
+      throw err;
+    }
+    const attestation = await db.CANJcsAttestation.findOne({ where: { jobId: job.jobId } });
+    if (!attestation || !attestation.tlsPublicKey) {
+      const err = new Error('Clean-room attestation is not available. Key release was refused.');
+      err.statusCode = 409;
+      err.code = 'ATTESTATION_REQUIRED';
+      throw err;
+    }
+    const expectedSig = this._signBundle(this._attestationSignPayload(attestation));
+    if (expectedSig !== attestation.platformSignature) {
+      const err = new Error('Attestation signature does not match the clean-room public key.');
+      err.statusCode = 400;
+      err.code = 'ATTESTATION_SIGNATURE';
+      throw err;
+    }
+    if (normalizePem(attestedPublicKey) !== normalizePem(attestation.tlsPublicKey)) {
+      const err = new Error('attestedPublicKey does not match the clean-room attestation.');
+      err.statusCode = 400;
+      err.code = 'ATTESTATION_MISMATCH';
+      throw err;
+    }
+    const privateKeyPem = ephemeralPrivateKeys.get(job.ccrSessionId);
+    if (!privateKeyPem) {
+      const err = new Error('Clean-room ephemeral key is not available. Release was refused.');
+      err.statusCode = 409;
+      err.code = 'CCR_KEY_UNAVAILABLE';
+      throw err;
+    }
+    const plaintext = openWrappedKey(privateKeyPem, wrappedKey);
+    plaintext.fill(0);
+  }
+
+  _attestationSignPayload(attestation) {
+    const report = Buffer.isBuffer(attestation.attestationReport)
+      ? attestation.attestationReport
+      : Buffer.from(attestation.attestationReport);
+    return {
+      jobId: attestation.jobId,
+      ccrSessionId: attestation.ccrSessionId,
+      tlsPublicKey: attestation.tlsPublicKey,
+      reportHash: crypto.createHash('sha256').update(report).digest('hex'),
+    };
   }
 }
 

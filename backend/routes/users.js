@@ -82,6 +82,36 @@ async function listActiveTspUsers(_req, res) {
 router.get('/tsp', authenticateToken, logAuthEvent('GET_TSP_USERS'), listActiveTspUsers);
 router.get('/ccrp', authenticateToken, logAuthEvent('GET_TSP_USERS_LEGACY'), listActiveTspUsers);
 
+const LISTABLE_PARTY_TYPES = new Set(['TDP', 'TDC', 'TSP', 'CCRP', 'AppAdmin', 'Auditor']);
+
+router.get('/party/:partyType', authenticateToken, async (req, res) => {
+  try {
+    const partyType = req.params.partyType;
+    if (!LISTABLE_PARTY_TYPES.has(partyType)) {
+      return res.status(400).json({
+        error: 'Unsupported party type',
+        code: 'PARTY_TYPE_UNSUPPORTED',
+      });
+    }
+    const partyTypes = partyType === 'TSP' || partyType === 'CCRP' ? ['TSP', 'CCRP'] : [partyType];
+    const users = await db.User.findAll({
+      where: {
+        partyType: { [Op.in]: partyTypes },
+        isActive: true,
+      },
+      attributes: [
+        'id', 'name', 'email', 'partyType', 'organization', 'description',
+        'did', 'depaId', 'isActive',
+      ],
+      order: [['name', 'ASC']],
+    });
+    return res.json(users);
+  } catch (error) {
+    console.error('Get users by party error:', error);
+    return res.status(500).json({ error: 'Internal server error', code: 'INTERNAL_ERROR' });
+  }
+});
+
 /**
  * GET /api/users/wallet/:walletAddress
  * Get user by wallet address

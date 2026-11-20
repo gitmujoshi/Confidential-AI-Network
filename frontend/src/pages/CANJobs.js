@@ -76,13 +76,44 @@ export default function CANJobs() {
     }
   }
 
+  async function wrapForAttestedKey(publicKeyPem) {
+    const body = publicKeyPem
+      .replace(/-----BEGIN PUBLIC KEY-----/, '')
+      .replace(/-----END PUBLIC KEY-----/, '')
+      .replace(/\s/g, '');
+    const der = Uint8Array.from(atob(body), (c) => c.charCodeAt(0));
+    const key = await crypto.subtle.importKey(
+      'spki',
+      der,
+      { name: 'RSA-OAEP', hash: 'SHA-256' },
+      false,
+      ['encrypt']
+    );
+    const secret = crypto.getRandomValues(new Uint8Array(32));
+    const wrapped = new Uint8Array(await crypto.subtle.encrypt({ name: 'RSA-OAEP' }, key, secret));
+    secret.fill(0);
+    let binary = '';
+    wrapped.forEach((b) => {
+      binary += String.fromCharCode(b);
+    });
+    return btoa(binary);
+  }
+
   async function handleKeyRelease(keyType) {
     if (!jobId) return toast.error('Create a job first');
     setBusy(true);
     setLastError('');
     try {
       const principal = keyType === 'DEK' ? principalIds.dp : principalIds.mo;
-      await canPost(`/api/can/jcs/jobs/${jobId}/key-released`, { keyType }, principal);
+      const att = await canGet(`/api/can/jcs/jobs/${jobId}/attestation`, principal);
+      const attestedPublicKey = att.data?.data?.tlsPublicKey;
+      if (!attestedPublicKey) throw new Error('Clean-room attestation has no public key');
+      const wrappedKey = await wrapForAttestedKey(attestedPublicKey);
+      await canPost(
+        `/api/can/jcs/jobs/${jobId}/key-released`,
+        { keyType, attestedPublicKey, wrappedKey },
+        principal
+      );
       toast.success(`${keyType} released`);
     } catch (e) {
       const msg = e?.response?.data?.error || e.message;
@@ -149,7 +180,7 @@ export default function CANJobs() {
         CAN Jobs (Local TSP)
       </Typography>
       <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-        UI helper for local end-to-end testing of CAN: create job → release keys → run local training → verify status.
+        Create a job, wrap each key to the clean-room attestation, then run local training. The API stores the release time and discards the key bytes.
       </Typography>
 
       <Card>

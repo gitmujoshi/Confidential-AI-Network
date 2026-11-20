@@ -55,6 +55,12 @@ api.interceptors.response.use(
     });
     
     if (error.response?.status === 401) {
+      const sentAuth = error.config?.headers?.Authorization || error.config?.headers?.authorization || '';
+      const sentToken = String(sentAuth).replace(/^Bearer\s+/i, '');
+      const currentToken = typeof window !== 'undefined' ? localStorage.getItem('authToken') : '';
+      if (currentToken && sentToken !== currentToken) {
+        return Promise.reject(error);
+      }
       const path =
         typeof window !== 'undefined' ? window.location.pathname : '';
       const isPublicPath =

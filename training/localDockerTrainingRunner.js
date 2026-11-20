@@ -94,6 +94,9 @@ function buildDockerRunArgs({ jobId, contractId, maxEpochs, image, outDir, input
     args.push('-e', 'DP_ENABLED=1');
     if (dpEpsilon !== undefined && dpEpsilon !== null) args.push('-e', `DP_EPSILON=${String(dpEpsilon)}`);
     if (dpDelta !== undefined && dpDelta !== null) args.push('-e', `DP_DELTA=${String(dpDelta)}`);
+    if (dp && typeof dp === 'object' && dp.budgetCap != null) {
+      args.push('-e', `DP_BUDGET_CAP=${String(dp.budgetCap)}`);
+    }
     if (dpMechanism) args.push('-e', `DP_MECHANISM=${String(dpMechanism)}`);
     if (dpClipNorm !== undefined && dpClipNorm !== null) args.push('-e', `DP_CLIP_NORM=${String(dpClipNorm)}`);
   } else {

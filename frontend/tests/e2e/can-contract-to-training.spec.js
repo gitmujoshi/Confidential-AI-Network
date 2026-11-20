@@ -1,6 +1,7 @@
 const { test, expect } = require('@playwright/test');
 const axios = require('axios');
 const { getBackendURL } = require('../../load-config');
+const { releaseWrappedKey } = require('./helpers/can-key-release');
 
 test.describe('CAN E2E: create contract → CAN job → local training', () => {
   test.describe.configure({ mode: 'serial' });
@@ -108,16 +109,10 @@ test.describe('CAN E2E: create contract → CAN job → local training', () => {
     });
 
     await test.step('Release DEK + MEK and start local training', async () => {
-      const dekRes = await request.post(`${BACKEND_URL}/api/can/jcs/jobs/${jobId}/key-released`, {
-        headers: { ...principalHeader, 'Content-Type': 'application/json' },
-        data: { keyType: 'DEK' },
-      });
+      const dekRes = await releaseWrappedKey(request, BACKEND_URL, jobId, 'DEK', 'did:can:dp:e2e');
       await assertOk(dekRes, 'release DEK');
 
-      const mekRes = await request.post(`${BACKEND_URL}/api/can/jcs/jobs/${jobId}/key-released`, {
-        headers: { 'X-CAN-Principal-Id': 'did:can:mo:e2e', 'Content-Type': 'application/json' },
-        data: { keyType: 'MEK' },
-      });
+      const mekRes = await releaseWrappedKey(request, BACKEND_URL, jobId, 'MEK', 'did:can:mo:e2e');
       await assertOk(mekRes, 'release MEK');
 
       const releaseRes = await request.post(`${BACKEND_URL}/api/can/jcs/jobs/${jobId}/release`, {

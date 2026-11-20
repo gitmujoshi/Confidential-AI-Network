@@ -141,4 +141,6 @@ router.get('/user-info', authenticateToken, (req, res) => {
   }
 });
 
+router.use(require('./depa-consent'));
+
 module.exports = router;

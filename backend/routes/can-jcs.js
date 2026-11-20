@@ -4,6 +4,7 @@ const { body, param, validationResult } = require('express-validator');
 
 const { requireCanPrincipal } = require('../middleware/canPrincipalAuth');
 const { CANJcsService } = require('../services/canJcsService');
+const { assertNoRawKeyFields } = require('../services/canKeyDelivery');
 
 const jcs = new CANJcsService();
 
@@ -117,20 +118,29 @@ router.post(
   requireCanPrincipal,
   [
     param('jobId').isUUID().withMessage('jobId must be a UUID'),
-    body('keyType').isIn(['DEK', 'MEK']).withMessage('keyType must be DEK or MEK')
+    body('keyType').isIn(['DEK', 'MEK']).withMessage('keyType must be DEK or MEK'),
+    body('attestedPublicKey').isString().notEmpty().withMessage('attestedPublicKey is required'),
+    body('wrappedKey').isString().notEmpty().withMessage('wrappedKey is required')
   ],
   async (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) return sendValidationError(res, errors);
 
     try {
+      assertNoRawKeyFields(req.body);
       const result = await jcs.markKeyReleased(req.params.jobId, {
         keyType: req.body.keyType,
-        principalId: req.can.principalId
+        principalId: req.can.principalId,
+        attestedPublicKey: req.body.attestedPublicKey,
+        wrappedKey: req.body.wrappedKey
       });
-      return res.json({ success: true, data: result });
+      return res.json({ success: true, keyStored: false, data: result });
     } catch (err) {
-      return res.status(400).json({ success: false, error: err.message });
+      return res.status(err.statusCode || 400).json({
+        success: false,
+        error: err.message,
+        code: err.code
+      });
     }
   }
 );

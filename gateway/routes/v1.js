@@ -52,6 +52,10 @@ router.get('/', (_req, res) => {
       '/v1/contracts/{id}/sign',
       '/v1/contracts/{id}/revoke',
       '/v1/scenarios/{id}/dp-config',
+      '/v1/offers',
+      '/v1/offers/{id}/consent',
+      '/v1/offers/{id}/release',
+      '/v1/offers/{id}/withdraw',
       '/v1/ccr/provision',
       '/v1/ccr/{id}',
       '/v1/ccr/{id}/attestation',
@@ -67,17 +71,7 @@ router.get('/providers', requireBearer, async (req, res) => {
     const type = req.query.type;
     const party = PROVIDER_TYPE_TO_PARTY[type];
 
-    if (party === 'TSP' || type === 'InfrastructureProvider') {
-      const canRes = await canRequest(req, { method: 'GET', path: '/api/users/tsp' });
-      if (canRes.status >= 400) return forwardError(res, canRes);
-      const rows = Array.isArray(canRes.data) ? canRes.data : canRes.data?.users || [];
-      return res.json({
-        success: true,
-        providers: rows.map(canUserToProvider),
-      });
-    }
-
-    if (party === 'TDP' || type === 'DataProvider' || !type) {
+    if (!type || type === 'DataProvider') {
       const canRes = await canRequest(req, {
         method: 'GET',
         path: '/api/datasets/public',
@@ -90,19 +84,28 @@ router.get('/providers', requireBearer, async (req, res) => {
         const owner = ds.owner;
         if (!owner?.id) continue;
         if (!byId.has(owner.id)) {
-          byId.set(owner.id, canUserToProvider({ ...owner, partyType: 'TDP', isActive: true }));
+          byId.set(owner.id, canUserToProvider({ ...owner, partyType: 'TDP', isActive: true }, type || undefined));
         }
       }
-      let providers = [...byId.values()];
-      if (type && party && party !== 'TDP') {
-        providers = providers.filter((p) => p.providerType === type);
-      }
-      return res.json({ success: true, providers });
+      return res.json({ success: true, providers: [...byId.values()] });
     }
 
-    return res.status(501).json({
-      success: false,
-      error: `Provider type ${type} is not listed on the CAN façade (Keycloak users; use /register)`,
+    if (!party) {
+      return res.status(501).json({
+        success: false,
+        error: `Provider type ${type} is not listed on the CAN façade`,
+      });
+    }
+
+    const canRes = await canRequest(req, {
+      method: 'GET',
+      path: `/api/users/party/${encodeURIComponent(party)}`,
+    });
+    if (canRes.status >= 400) return forwardError(res, canRes);
+    const rows = Array.isArray(canRes.data) ? canRes.data : canRes.data?.users || [];
+    return res.json({
+      success: true,
+      providers: rows.map((user) => canUserToProvider(user, type)),
     });
   } catch (error) {
     return res.status(error.statusCode || 500).json({ success: false, error: error.message });
@@ -202,7 +205,20 @@ router.get('/catalog/search', requireBearer, async (req, res) => {
 router.post('/contracts', requireBearer, async (req, res) => {
   try {
     const profile = await loadProfile(req);
-    const payload = ricardianFromDepa(req.body || {}, profile);
+    const body = req.body || {};
+    const hasDatasets = (Array.isArray(body.datasetIds) && body.datasetIds.length > 0)
+      || (Array.isArray(body.datasetSelections) && body.datasetSelections.length > 0);
+    let catalog = [];
+    if (!hasDatasets && body.templateId) {
+      const listed = await canRequest(req, {
+        method: 'GET',
+        path: '/api/datasets/public',
+        params: { limit: 100 },
+      });
+      if (listed.status >= 400) return forwardError(res, listed);
+      catalog = listed.data?.datasets || [];
+    }
+    const payload = ricardianFromDepa(body, profile, catalog);
     const canRes = await canRequest(req, {
       method: 'POST',
       path: '/api/contracts/ricardian',
@@ -306,21 +322,62 @@ router.post('/contracts/:contractId/revoke', requireBearer, async (req, res) => 
 
 router.post('/scenarios/:scenarioId/dp-config', requireBearer, async (req, res) => {
   const scenarioId = req.params.scenarioId;
-  const epsilon = Number(req.body?.epsilon);
-  const delta = Number(req.body?.delta);
-  const budgetCap = Number(req.body?.budgetCap);
+  const canRes = await canRequest(req, {
+    method: 'POST',
+    path: `/api/contracts/${encodeURIComponent(scenarioId)}/differential-privacy`,
+    data: {
+      epsilon: req.body?.epsilon,
+      delta: req.body?.delta,
+      budgetCap: req.body?.budgetCap,
+    },
+  });
+  if (canRes.status >= 400) return forwardError(res, canRes);
   return res.json({
     success: true,
     scenarioId,
-    note:
-      'DP config is stored on the CAN contract at create time (trainingParams.differentialPrivacy). This façade acknowledges the PRD call; pass differentialPrivacy on POST /v1/contracts to persist.',
-    dp: {
-      epsilon: Number.isFinite(epsilon) ? epsilon : null,
-      delta: Number.isFinite(delta) ? delta : null,
-      budgetCap: Number.isFinite(budgetCap) ? budgetCap : null,
-    },
-    persistedOnContract: false,
+    persistedOnContract: true,
+    dp: canRes.data?.differentialPrivacy || null,
   });
+});
+
+router.post('/offers', requireBearer, async (req, res) => {
+  const canRes = await canRequest(req, {
+    method: 'POST',
+    path: '/api/depa/offers',
+    data: req.body,
+  });
+  if (canRes.status >= 400) return forwardError(res, canRes);
+  return res.status(201).json(canRes.data);
+});
+
+router.post('/offers/:offerId/consent', requireBearer, async (req, res) => {
+  const canRes = await canRequest(req, {
+    method: 'POST',
+    path: `/api/depa/offers/${encodeURIComponent(req.params.offerId)}/consent`,
+    data: req.body,
+  });
+  if (canRes.status >= 400) return forwardError(res, canRes);
+  return res.status(canRes.status).json(canRes.data);
+});
+
+router.post('/offers/:offerId/release', requireBearer, async (req, res) => {
+  const canRes = await canRequest(req, {
+    method: 'POST',
+    path: `/api/depa/offers/${encodeURIComponent(req.params.offerId)}/release`,
+    data: req.body || {},
+  });
+  if (canRes.status >= 400) return forwardError(res, canRes);
+  return res.status(canRes.status).json(canRes.data);
+});
+
+router.post('/offers/:offerId/withdraw', requireBearer, async (req, res) => {
+  const canRes = await canRequest(req, {
+    method: 'POST',
+    path: `/api/depa/offers/${encodeURIComponent(req.params.offerId)}/withdraw`,
+    data: req.body || {},
+  });
+  if (canRes.status >= 400) return forwardError(res, canRes);
+  return res.status(canRes.status).json(canRes.data);
 });
 
 router.post('/ccr/provision', requireBearer, async (req, res) => {

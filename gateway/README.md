@@ -32,6 +32,7 @@ Optional: point the portal at the gateway later with `REACT_APP_API_URL=http://l
 | `GET /v1/contracts/{id}/status` | `GET /api/contracts/{id}` (`SIGNED` → `active`) |
 | `POST /v1/ccr/provision` | `POST /api/tdc/training/contracts/{id}/start` |
 | `POST /v1/providers` | Verifies an organization VC, then `POST /api/auth/register` |
+| `GET /v1/providers?type=` | Lists that party. Key Management → TSP, Contract Management → AppAdmin, Identity Management → Auditor, Data Consumer → TDC |
 | `POST /v1/ccr/{id}/attestation` | `POST /api/tdc/training/jobs/{id}/sev-snp-quote` |
 | `GET /v1/ccr/{id}/attestation` | Stored quote when verified; otherwise simulated |
 | `POST /v1/ccr/{id}/teardown` | `POST /api/tdc/training/jobs/{id}/abort` |
@@ -54,4 +55,8 @@ Quote body: `{ "report": "<base64>", "vcekPem": "<cert>", "askPem": "<cert>" }`.
 
 Tombstone body: `{ "reason": "...", "redactedFields": ["field"] }`. The caller must be an Auditor or AppAdmin. The row is append-only. The provenance leaf stays. This is not a filing with an external SRO.
 
-Contract create from the user manual still needs **`datasetIds`** (CAN catalog slugs). Template `S3` sets local DP defaults on `trainingParams`.
+`POST /v1/scenarios/{contractId}/dp-config` writes `trainingParams.differentialPrivacy` on that contract, including `budgetCap`. Training reads that budget and rejects an epsilon above the cap.
+
+`POST /v1/offers` opens a personal-data offer. `POST /v1/offers/{id}/consent` stores a signature over the offer id, purpose, fields, principal, and expiry. `POST /v1/offers/{id}/release` returns `personalData` only after that signature verifies. Withdraw or expiry keeps the data closed.
+
+Contract create accepts `datasetIds`. If those are omitted, a `templateId` selects public datasets ingested with `metadata.depa.templateHint` set to that template. Template `S3` sets local DP defaults on `trainingParams`.

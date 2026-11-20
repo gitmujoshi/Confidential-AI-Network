@@ -71,23 +71,8 @@ function validateTdcCanTrain(contract, userId) {
   // If DP is enabled in trainingParams, require epsilon/delta so the runtime can enforce it.
   // (The training container consumes these values via env vars, even if it is a placeholder trainer.)
   const dp = contract.trainingParams?.differentialPrivacy;
-  const dpEnabled =
-    dp === true ||
-    (dp && typeof dp === 'object' && (dp.enabled === true || dp.enabled === 'true' || dp.enabled === 1 || dp.enabled === '1'));
-  if (dpEnabled) {
-    const epsilon = dp && typeof dp === 'object' ? Number(dp.epsilon) : NaN;
-    const delta = dp && typeof dp === 'object' ? Number(dp.delta) : NaN;
-    if (!Number.isFinite(epsilon) || epsilon <= 0) {
-      const err = new Error('Differential privacy is enabled but epsilon is missing/invalid (trainingParams.differentialPrivacy.epsilon)');
-      err.statusCode = 400;
-      throw err;
-    }
-    if (!Number.isFinite(delta) || delta <= 0 || delta >= 1) {
-      const err = new Error('Differential privacy is enabled but delta is missing/invalid (trainingParams.differentialPrivacy.delta)');
-      err.statusCode = 400;
-      throw err;
-    }
-  }
+  const { normalizeDifferentialPrivacy } = require('../backend/services/differentialPrivacyConfig');
+  normalizeDifferentialPrivacy(dp);
   if (!contract.tspCloudProvider) {
     const err = new Error('Contract is missing cloud provider (tspCloudProvider)');
     err.statusCode = 400;
@@ -168,9 +153,21 @@ function scheduleSimulation(jobId, contract) {
         accuracy: 0.92 + Math.random() * 0.06,
         loss: 0.02 + Math.random() * 0.05,
         epochsCompleted: epochs,
-        privacyMetrics: {
-          epsilon: contract.trainingParams?.differentialPrivacy ? 1.2 + Math.random() * 0.3 : null,
-        },
+        privacyMetrics: (() => {
+          const saved = contract.trainingParams?.differentialPrivacy;
+          const savedEpsilon = saved && typeof saved === 'object' ? Number(saved.epsilon) : NaN;
+          return {
+            epsilon: Number.isFinite(savedEpsilon)
+              ? savedEpsilon
+              : saved
+                ? 1.2 + Math.random() * 0.3
+                : null,
+            delta: saved && typeof saved === 'object' ? Number(saved.delta) : null,
+            budgetCap: saved && typeof saved === 'object' && saved.budgetCap != null
+              ? Number(saved.budgetCap)
+              : null,
+          };
+        })(),
         artifactUri: `simulated://training-artifacts/${jobId}/model.bin`,
         hyperparameters: {
           maxEpochs: contract.trainingParams?.maxEpochs,

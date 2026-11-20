@@ -94,17 +94,21 @@ GET /can/jcs/jobs/:jobId
 GET /can/jcs/jobs/:jobId/attestation
 ```
 
-#### Signal key release (no key material)
+#### Release a key wrapped to the clean-room attestation
 ```http
 POST /can/jcs/jobs/:jobId/key-released
 ```
 
 **Body:**
 ```json
-{ "keyType": "DEK" }
+{
+  "keyType": "DEK",
+  "attestedPublicKey": "<PEM from GET .../attestation tlsPublicKey>",
+  "wrappedKey": "<base64 RSA-OAEP-SHA256 ciphertext>"
+}
 ```
 
-Valid `keyType`: `DEK` or `MEK`.
+Valid `keyType`: `DEK` or `MEK`. The ciphertext must be encrypted to `tlsPublicKey` on the job attestation. The API decrypts it only to check that binding, zeroes the bytes, and stores the release time. `keyStored` in the response is `false`. Raw key fields are rejected. The attestation `reportFormat` stays `SIMULATED` until a verified SEV-SNP quote is stored. The same body is accepted at `POST /can/ccr/:ccrSessionId/keys`.
 
 #### Release job to CCRP scheduler
 ```http

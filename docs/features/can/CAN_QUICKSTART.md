@@ -53,19 +53,7 @@ curl -s "http://localhost:5001/api/can/jcs/jobs/<jobId>/attestation" \
   -H "X-CAN-Principal-Id: did:can:dp:demo" | jq
 ```
 
-4) Signal DEK + MEK released (no key material sent):
-
-```bash
-curl -s -X POST "http://localhost:5001/api/can/jcs/jobs/<jobId>/key-released" \
-  -H "Content-Type: application/json" \
-  -H "X-CAN-Principal-Id: did:can:dp:demo" \
-  -d '{"keyType":"DEK"}' | jq
-
-curl -s -X POST "http://localhost:5001/api/can/jcs/jobs/<jobId>/key-released" \
-  -H "Content-Type: application/json" \
-  -H "X-CAN-Principal-Id: did:can:mo:demo" \
-  -d '{"keyType":"MEK"}' | jq
-```
+4) Wrap DEK and MEK to the attestation `tlsPublicKey` (RSA-OAEP SHA-256) and release them. The API stores the time and discards the key bytes. `backend/services/canKeyDelivery.js` exports `wrapKeyToPublicPem(publicKeyPem, plaintext)`. Send `{ "keyType": "DEK"|"MEK", "attestedPublicKey", "wrappedKey" }`.
 
 5) Release to scheduler (MVP flips job to RELEASED and CCR to RUNNING):
 

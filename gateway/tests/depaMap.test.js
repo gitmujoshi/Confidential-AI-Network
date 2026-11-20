@@ -64,6 +64,20 @@ describe('depaMap', () => {
     expect(payload.trainingParams.differentialPrivacy.enabled).toBe(true);
   });
 
+  test('resolves dataset ids from a catalog template hint', () => {
+    const payload = ricardianFromDepa(
+      { templateId: 'S3', permittedPurpose: 'cohort training' },
+      { id: 3 },
+      [{
+        datasetId: 'ds-from-template',
+        price: 12,
+        metadata: { depa: { templateHint: 'S3' } },
+      }]
+    );
+    expect(payload.datasetSelections[0].datasetId).toBe('ds-from-template');
+    expect(payload.datasetSelections[0].individualPrice).toBe(12);
+  });
+
   test('maps TSP users to InfrastructureProvider', () => {
     const p = canUserToProvider({
       id: 4,

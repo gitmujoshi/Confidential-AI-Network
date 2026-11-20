@@ -69,6 +69,7 @@ db.EnvironmentCost = require('./EnvironmentCost')(sequelize, Sequelize);
 
 // Import DPDP-related models
 db.Consent = require('./Consent')(sequelize, Sequelize);
+db.DepaPersonalOffer = require('./DepaPersonalOffer')(sequelize, Sequelize);
 db.DataProcessingRecord = require('./DataProcessingRecord')(sequelize, Sequelize);
 db.Grievance = require('./Grievance')(sequelize, Sequelize);
 db.DataBreach = require('./DataBreach')(sequelize, Sequelize);

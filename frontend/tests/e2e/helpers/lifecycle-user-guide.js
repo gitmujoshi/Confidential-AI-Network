@@ -291,21 +291,35 @@ async function captureAuditorTourSteps(page, { contractId, steps }) {
   await loginViaUI(page, { email: session.email, password: session.password });
 
   const openAuditor = async (path, ready) => {
-    await page.goto(path, { waitUntil: 'domcontentloaded', timeout: 60000 });
-    if (/\/login/.test(page.url())) {
-      await loginViaUI(page, { email: session.email, password: session.password });
+    let lastError;
+    for (let attempt = 0; attempt < 3; attempt += 1) {
       await page.goto(path, { waitUntil: 'domcontentloaded', timeout: 60000 });
+      if (/\/login/.test(page.url())) {
+        await loginViaUI(page, { email: session.email, password: session.password });
+        await page.goto(path, { waitUntil: 'domcontentloaded', timeout: 60000 });
+      }
+      try {
+        await ready();
+      } catch (err) {
+        lastError = err;
+        if (/\/login/.test(page.url()) && attempt < 2) {
+          await loginViaUI(page, { email: session.email, password: session.password });
+          continue;
+        }
+        throw err;
+      }
+      if (!/\/login/.test(page.url())) return;
+      lastError = new Error(`Auditor session dropped on ${path}`);
+      await loginViaUI(page, { email: session.email, password: session.password });
     }
-    await ready();
-    if (/\/login/.test(page.url())) {
-      throw new Error(`Auditor session dropped on ${path}`);
-    }
+    throw lastError || new Error(`Auditor session dropped on ${path}`);
   };
 
   await openAuditor('/auditor/dashboard', async () => {
     await expect(page.getByRole('heading', { name: 'Auditor workspace' })).toBeVisible({
       timeout: 60000,
     });
+    await expect(page.getByText('Loading auditor workspace…')).toBeHidden({ timeout: 90000 });
   });
   const contractVisible = await page
     .getByText(contractId, { exact: false })

@@ -167,7 +167,21 @@ describe('CANJcsService', () => {
   });
 
   const { CANJcsService } = require('../../services/canJcsService');
+  const { wrapKeyToPublicPem } = require('../../services/canKeyDelivery');
+  const crypto = require('crypto');
   const db = require('../../models');
+
+  function wrappedRelease(attestation, keyType, principalId) {
+    const secret = crypto.randomBytes(32);
+    const wrappedKey = wrapKeyToPublicPem(attestation.tlsPublicKey, secret);
+    secret.fill(0);
+    return {
+      keyType,
+      principalId,
+      attestedPublicKey: attestation.tlsPublicKey,
+      wrappedKey,
+    };
+  }
 
   test('creates job, emits events, writes provenance hash chain', async () => {
     const svc = new CANJcsService({ escrowTimeoutMs: 10_000 });
@@ -177,12 +191,25 @@ describe('CANJcsService', () => {
     expect(result.ccrSession).toBeTruthy();
     expect(result.attestation).toBeTruthy();
 
-    // Release keys and start
     const jobId = result.job.jobId;
-    const afterDek = await svc.markKeyReleased(jobId, { keyType: 'DEK', principalId: 'did:can:dp:test' });
-    expect(afterDek.job.escrowState).toBe('DEK_RECEIVED');
+    expect(result.attestation.reportFormat).toBe('SIMULATED');
+    expect(result.attestation.tlsPublicKey).toContain('BEGIN PUBLIC KEY');
 
-    const afterMek = await svc.markKeyReleased(jobId, { keyType: 'MEK', principalId: 'did:can:mo:test' });
+    await expect(
+      svc.markKeyReleased(jobId, { keyType: 'DEK', principalId: 'did:can:dp:test' })
+    ).rejects.toThrow(/wrappedKey/);
+
+    const afterDek = await svc.markKeyReleased(
+      jobId,
+      wrappedRelease(result.attestation, 'DEK', 'did:can:dp:test')
+    );
+    expect(afterDek.job.escrowState).toBe('DEK_RECEIVED');
+    expect(afterDek.job.dekReceivedAt).toBeTruthy();
+
+    const afterMek = await svc.markKeyReleased(
+      jobId,
+      wrappedRelease(result.attestation, 'MEK', 'did:can:mo:test')
+    );
     expect(afterMek.job.escrowState).toBe('BOTH_READY');
 
     const released = await svc.releaseToScheduler(jobId);

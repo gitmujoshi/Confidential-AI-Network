@@ -1,5 +1,6 @@
 const { test, expect } = require('@playwright/test');
 const { getBackendURL } = require('../../load-config');
+const { releaseWrappedKey } = require('./helpers/can-key-release');
 
 const physicalEnabled = process.env.E2E_PHYSICAL_TRAINING === 'true';
 
@@ -51,16 +52,10 @@ test.describe('CAN JCS — physical Docker training (opt-in)', () => {
       return { jobId: createdJobId };
     });
 
-    await test.step('Signal DEK + MEK released', async () => {
-      const dekRes = await request.post(`${backendURL}/api/can/jcs/jobs/${jobId}/key-released`, {
-        headers: { ...principalHeader, 'Content-Type': 'application/json' },
-        data: { keyType: 'DEK' }
-      });
+    await test.step('Release DEK + MEK wrapped to the attested public key', async () => {
+      const dekRes = await releaseWrappedKey(request, backendURL, jobId, 'DEK', 'did:can:dp:e2e');
       await assertOk(dekRes, 'release DEK');
-      const mekRes = await request.post(`${backendURL}/api/can/jcs/jobs/${jobId}/key-released`, {
-        headers: { 'X-CAN-Principal-Id': 'did:can:mo:e2e', 'Content-Type': 'application/json' },
-        data: { keyType: 'MEK' }
-      });
+      const mekRes = await releaseWrappedKey(request, backendURL, jobId, 'MEK', 'did:can:mo:e2e');
       await assertOk(mekRes, 'release MEK');
     });
 

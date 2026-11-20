@@ -14,5 +14,10 @@ The route table and request bodies are in [gateway/README.md](../../gateway/READ
 | `POST /v1/ccr/{id}/attestation` | Verifies a SEV-SNP guest report (`report`, `vcekPem`, `askPem`) and stores it on the training job. Requires `SEV_SNP_ARK_PEM`. |
 | `GET /v1/ccr/{id}/attestation` | `mode: sev-snp` only when that stored quote verified. Otherwise `simulated`. |
 | `POST /v1/aichain/provenance/{id}/tombstone` | Append-only audit row for an Auditor or AppAdmin. The provenance leaf stays. Not an external SRO filing. |
+| `POST /v1/scenarios/{contractId}/dp-config` | Saves epsilon, delta, and budgetCap on that contract. Training refuses an epsilon above the cap. |
+| `POST /v1/offers` | A data provider opens an offer. The response omits personal data. |
+| `POST /v1/offers/{id}/consent` | Records a signed consent artefact for that offer. |
+| `POST /v1/offers/{id}/release` | Returns personal data only when the artefact still verifies and has not expired or been withdrawn. |
+| `GET /v1/providers?type=` | `DataConsumer`, `KeyManagement`, `ContractManagement`, and `IdentityManagement` list the matching CAN parties. |
 
-`POST /v1/contracts` still requires CAN `datasetIds`.
+`POST /v1/contracts` uses `datasetIds` when they are sent. With only a `templateId`, it selects public datasets whose ingest metadata `depa.templateHint` matches that template.

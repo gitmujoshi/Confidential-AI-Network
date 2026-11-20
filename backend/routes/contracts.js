@@ -17,6 +17,7 @@ const {
 } = require('../services/contractSigningGate');
 const contractSigningService = require('../services/contractSigningService');
 const { endContract } = require('../services/contractLifecycleService');
+const { mergeDifferentialPrivacy } = require('../services/differentialPrivacyConfig');
 
 /**
  * Enhanced DID signature verification using DID service
@@ -1237,6 +1238,37 @@ router.post('/:contractId/revoke', authenticateToken, (req, res) =>
 router.post('/:contractId/terminate', authenticateToken, (req, res) =>
   handleLifecycle(req, res, 'terminate')
 );
+
+router.post('/:contractId/differential-privacy', authenticateToken, async (req, res) => {
+  try {
+    const contract = await db.Contract.findOne({ where: { contractId: req.params.contractId } });
+    if (!contract) {
+      return res.status(404).json({ success: false, error: 'Contract not found' });
+    }
+    const differentialPrivacy = mergeDifferentialPrivacy(contract.trainingParams?.differentialPrivacy, {
+      epsilon: req.body?.epsilon,
+      delta: req.body?.delta,
+      budgetCap: req.body?.budgetCap,
+    });
+    const trainingParams = {
+      ...(contract.trainingParams || {}),
+      differentialPrivacy,
+    };
+    contract.changed('trainingParams', true);
+    await contract.update({ trainingParams });
+    return res.json({
+      success: true,
+      contractId: contract.contractId,
+      differentialPrivacy,
+    });
+  } catch (error) {
+    return res.status(error.statusCode || 500).json({
+      success: false,
+      error: error.message || 'Failed to save differential privacy',
+      code: error.code,
+    });
+  }
+});
 
 // Export the router
 module.exports = router; 

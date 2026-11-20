@@ -4,6 +4,8 @@
 
 const app = require('../test-server');
 const db = require('../../models');
+const crypto = require('crypto');
+const { wrapKeyToPublicPem } = require('../../services/canKeyDelivery');
 
 describe('CAN JCS (integration)', () => {
   let skip = false;
@@ -56,18 +58,27 @@ describe('CAN JCS (integration)', () => {
     expect(att.status).toBe(200);
     expect(att.body.data.platformSignature).toBeTruthy();
 
+    const attestedPublicKey = att.body.data.tlsPublicKey;
+    const wrap = () => {
+      const secret = crypto.randomBytes(32);
+      const wrappedKey = wrapKeyToPublicPem(attestedPublicKey, secret);
+      secret.fill(0);
+      return wrappedKey;
+    };
+
     const dek = await request(app)
       .post(`/api/can/jcs/jobs/${jobId}/key-released`)
       .set('X-CAN-Principal-Id', principal)
       .set('Content-Type', 'application/json')
-      .send({ keyType: 'DEK' });
+      .send({ keyType: 'DEK', attestedPublicKey, wrappedKey: wrap() });
     expect(dek.status).toBe(200);
+    expect(dek.body.keyStored).toBe(false);
 
     const mek = await request(app)
       .post(`/api/can/jcs/jobs/${jobId}/key-released`)
       .set('X-CAN-Principal-Id', 'did:can:mo:integration')
       .set('Content-Type', 'application/json')
-      .send({ keyType: 'MEK' });
+      .send({ keyType: 'MEK', attestedPublicKey, wrappedKey: wrap() });
     expect(mek.status).toBe(200);
 
     const rel = await request(app)

@@ -218,7 +218,7 @@ A TDP-held data key (DEK) and a TDC-held model key (MEK) that exist only inside 
 Release is a signal on a CAN job, not a copy of the key.
 
 1. Create the job with `POST /api/can/jcs/jobs`. Escrow opens as `OPEN` and expires about **10 minutes** later.
-2. The dataset owner sends `{ "keyType": "DEK" }` and the model owner sends `{ "keyType": "MEK" }` to `POST /api/can/jcs/jobs/{jobId}/key-released`. The API stores the time and the principal id. It does not store key material.
+2. Read `GET /api/can/jcs/jobs/{jobId}/attestation` and encrypt the DEK or MEK to `tlsPublicKey` with RSA-OAEP SHA-256. The dataset owner and the model owner each POST `{ "keyType", "attestedPublicKey", "wrappedKey" }` to `POST /api/can/jcs/jobs/{jobId}/key-released`. The API checks the wrap, zeroes the key bytes, and stores the time and the principal id.
 3. One signal moves the job to `DEK_RECEIVED` or `MEK_RECEIVED`. Both move it to `BOTH_READY`.
 4. `POST /api/can/jcs/jobs/{jobId}/release` is accepted only in `BOTH_READY`. The job becomes `RELEASED` and the clean-room session becomes `RUNNING`. Any other state is rejected.
 5. After the deadline the state is `EXPIRED` or `CANCELLED`. A later signal is refused.

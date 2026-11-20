@@ -17,6 +17,8 @@ module.exports = {
     '<rootDir>/tests/unit/inference-ccr-runner.test.js',
     '<rootDir>/tests/unit/inference-deploy-target.test.js',
     '<rootDir>/tests/unit/depa-prd-pieces.test.js',
+    '<rootDir>/tests/unit/depa-consent.test.js',
+    '<rootDir>/tests/unit/differential-privacy-config.test.js',
     '<rootDir>/tests/unit/siem-integration.test.js',
     '<rootDir>/tests/unit/huggingface-integration.test.js',
     '<rootDir>/tests/unit/huggingface-routes.test.js',

@@ -126,7 +126,7 @@ async function waitDashboard(page, partyLabel, welcome) {
 const ROLE_SETUP = {
   TDP: `## Signing and data keys
 
-Your party signing key is created at registration (**ECDSA-P256** unless you choose RSA). Sign the contract with that key. A dataset row can record AES-256-GCM and an optional \`encryption_key_id\`. Platform encryption holds that key on the platform. A principal-held data key is not uploaded here. CAN release of that key is a signal, documented in the [user guide](../../USER_GUIDE.md#key-release-policy).
+Your party signing key is created at registration (**ECDSA-P256** unless you choose RSA). Sign the contract with that key. A dataset row can record AES-256-GCM and an optional \`encryption_key_id\`. Platform encryption holds that key on the platform. A principal-held data key is not uploaded here. CAN release wraps that key to the clean-room attestation and stores only the release time, documented in the [user guide](../../USER_GUIDE.md#key-release-policy).
 `,
   TDC: `## Before you train or deploy
 
@@ -183,7 +183,7 @@ docker build -t contractmanagement/local-trainer:latest \\
 
 Full operator variables are in [TDC training runtime](../../training/TDC_TRAINING_RUNTIME.md).
 
-Your party signing key is created when you register. Contract KMS fields name a key. They do not release it. CAN key release is a DEK plus MEK signal with a 10-minute escrow, described in the [user guide](../../USER_GUIDE.md#key-release-policy).
+Your party signing key is created when you register. Contract KMS fields name a key. They do not release it. CAN key release wraps the DEK and MEK to the clean-room attestation, with a 10-minute escrow, described in the [user guide](../../USER_GUIDE.md#key-release-policy).
 `,
 };
 
