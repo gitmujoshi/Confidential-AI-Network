@@ -22,8 +22,7 @@
         <li><a href="https://dpi-apps.space/solutions.html">Solutions</a></li>
         <li><a href="https://dpi-apps.space/technology.html">Technology</a></li>
         <li><a href="https://dpi-apps.space/about.html">About</a></li>
-        <li><a class="{% unless here contains '/notes' %}is-active{% endunless %}" href="{{ '/' | relative_url }}">Blogs</a></li>
-        <li><a class="{% if here contains '/notes' %}is-active{% endif %}" href="{{ '/notes/' | relative_url }}">Notes</a></li>
+        <li><a class="is-active" href="{{ '/' | relative_url }}">Blogs</a></li>
         <li class="can-drop">
           <details>
             <summary>Role-based Dashboards</summary>
