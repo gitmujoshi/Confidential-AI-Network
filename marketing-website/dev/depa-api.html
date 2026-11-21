@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DEPA /v1 API - Confidential AI Network</title>
+    <meta name="description" content="The gateway translates /v1 onto the CAN API.">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="../styles.css" rel="stylesheet">
+    <link href="../site-nav.css" rel="stylesheet">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light bg-white fixed-top can-site-nav">
+        <div class="container">
+            <a class="navbar-brand fw-bold" href="../index.html"><i class="fas fa-file-contract me-2"></i>Confidential AI Network</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-label="Toggle navigation"><span class="navbar-toggler-icon"></span></button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item"><a class="nav-link" href="../index.html">Home</a></li>
+                    <li class="nav-item"><a class="nav-link" href="../features.html">Features</a></li>
+                    <li class="nav-item"><a class="nav-link" href="../solutions.html">Solutions</a></li>
+                    <li class="nav-item"><a class="nav-link" href="../technology.html">Technology</a></li>
+                    <li class="nav-item"><a class="nav-link" href="../about.html">About</a></li>
+                    <li class="nav-item"><a class="nav-link" href="https://blog.dpi-apps.space/">Blogs</a></li>
+                    <li class="nav-item"><a class="nav-link" href="https://blog.dpi-apps.space/notes/">Notes</a></li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"><i class="fas fa-book me-1"></i>Documentation</a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="https://blog.dpi-apps.space/product-tour/">
+                                <i class="fas fa-images me-2"></i>Product tour
+                            </a></li>
+                            <li><a class="dropdown-item" href="../docs/api-reference.html">
+                                <i class="fas fa-code me-2"></i>API Reference
+                            </a></li>
+                            <li><a class="dropdown-item" href="../docs/architecture-guide.html">
+                                <i class="fas fa-sitemap me-2"></i>Architecture Guide
+                            </a></li>
+                            <li><a class="dropdown-item" href="../docs/user-guide.html">
+                                <i class="fas fa-user me-2"></i>User Guide
+                            </a></li>
+                            <li><a class="dropdown-item" href="../docs/security-guide.html">
+                                <i class="fas fa-shield-alt me-2"></i>Security Guide
+                            </a></li>
+                            <li><a class="dropdown-item" href="../docs/compliance-guide.html">
+                                <i class="fas fa-certificate me-2"></i>Compliance Guide
+                            </a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle active" href="#" role="button" data-bs-toggle="dropdown"><i class="fas fa-code me-1"></i>Development</a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="../dev/getting-started.html">
+                                <i class="fas fa-rocket me-2"></i>Quick start
+                            </a></li>
+                            <li><a class="dropdown-item" href="../dev/depa-api.html">
+                                <i class="fas fa-code me-2"></i>DEPA /v1 API
+                            </a></li>
+                            <li><a class="dropdown-item" href="../dev/training-runtime.html">
+                                <i class="fas fa-cogs me-2"></i>Training runtime
+                            </a></li>
+                            <li><a class="dropdown-item" href="../dev/deployment-guide.html">
+                                <i class="fas fa-server me-2"></i>Deployment
+                            </a></li>
+                            <li><a class="dropdown-item" href="../dev/testing.html">
+                                <i class="fas fa-vial me-2"></i>Testing
+                            </a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item"><a class="btn btn-primary ms-2" href="mailto:hello@dpi-apps.space?subject=Interested%20in%20Confidential%20AI%20Network">Get info</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+<main class="container py-5" style="max-width: 860px;">
+<h1 class="display-5 fw-bold">DEPA /v1 API</h1>
+<p>Send Keycloak bearer tokens to <code>http://localhost:8000/v1</code>. The gateway forwards them to the API on port 5001.</p>
+<p>Contract creation accepts dataset ids. With only a template id, it selects public datasets whose ingest metadata names that template.</p>
+<p>Scenario DP config is saved on the contract. Offers, consent, release, and withdraw are the personal-data path. Provider listing accepts Data Consumer, Key Management, Contract Management, and Identity Management.</p>
+<p>See the <a href="../docs/api-reference.html">API reference</a> for the call list.</p>
+<p class="mt-4 mb-0"><a href="https://github.com/gitmujoshi/Confidential-AI-Network">Source and the full guides</a> are in the repository.</p>
+</main>
+<footer class="py-4">
+    <div class="container"><p class="mb-0">&copy; 2026 Confidential AI Network</p></div>
+</footer>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

@@ -65,3 +65,27 @@
 body:has(.can-site-nav) {
   padding-top: 76px;
 }
+
+@media (max-width: 991.98px) {
+  .can-site-nav .navbar-collapse {
+    background: #ffffff !important;
+    border: 1px solid #e3e8ef !important;
+    border-radius: 12px;
+    margin-top: 0.5rem;
+    padding: 0.5rem 0.35rem 0.75rem;
+    box-shadow: 0 8px 24px rgba(16, 24, 40, 0.08) !important;
+  }
+
+  .can-site-nav .navbar-nav .nav-link,
+  .can-site-nav .dropdown-item,
+  .can-site-nav .dropdown-item:hover,
+  .can-site-nav .dropdown-item:focus {
+    color: #122033 !important;
+  }
+
+  .can-site-nav .dropdown-menu {
+    background: #f7f9fc !important;
+    border: none;
+    box-shadow: none;
+  }
+}

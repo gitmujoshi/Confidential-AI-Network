@@ -305,6 +305,9 @@
                             <i class="fas fa-book me-1"></i>Documentation
                         </a>
                         <ul class="dropdown-menu">
+                                                        <li><a class="dropdown-item" href="https://blog.dpi-apps.space/product-tour/">
+                                <i class="fas fa-images me-2"></i>Product tour
+                            </a></li>
                             <li><a class="dropdown-item" href="../docs/api-reference.html">
                                 <i class="fas fa-code me-2"></i>API Reference
                             </a></li>
@@ -327,20 +330,20 @@
                             <i class="fas fa-code me-1"></i>Development
                         </a>
                         <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" href="../dev/getting-started.html">
-                                <i class="fas fa-rocket me-2"></i>Getting Started
+                                                        <li><a class="dropdown-item" href="../dev/getting-started.html">
+                                <i class="fas fa-rocket me-2"></i>Quick start
                             </a></li>
-                            <li><a class="dropdown-item" href="../dev/sdk-documentation.html">
-                                <i class="fas fa-tools me-2"></i>SDK Documentation
+                            <li><a class="dropdown-item" href="../dev/depa-api.html">
+                                <i class="fas fa-code me-2"></i>DEPA /v1 API
                             </a></li>
-                            <li><a class="dropdown-item" href="../dev/integration-guide.html">
-                                <i class="fas fa-puzzle-piece me-2"></i>Integration Guide
-                            </a></li>
-                            <li><a class="dropdown-item" href="../dev/examples.html">
-                                <i class="fas fa-lightbulb me-2"></i>Code Examples
+                            <li><a class="dropdown-item" href="../dev/training-runtime.html">
+                                <i class="fas fa-cogs me-2"></i>Training runtime
                             </a></li>
                             <li><a class="dropdown-item" href="../dev/deployment-guide.html">
-                                <i class="fas fa-server me-2"></i>Deployment Guide
+                                <i class="fas fa-server me-2"></i>Deployment
+                            </a></li>
+                            <li><a class="dropdown-item" href="../dev/testing.html">
+                                <i class="fas fa-vial me-2"></i>Testing
                             </a></li>
                         </ul>
                     </li>
@@ -1312,7 +1315,7 @@ const validateCrossDeploymentReference = (reference) => {
 <li>✅ <strong>GlobalDEPAIdService</strong>: Multi-deployment DEPA ID generation and validation</li></p><p><li>✅ <strong>Auth Routes</strong>: Registration with global DEPA ID support</li></p><p><li>✅ <strong>Contract Routes</strong>: Contract creation with global DEPA ID support</li></p><p><li>✅ <strong>RicardianContractService</strong>: Global DEPA ID generation for contracts</li></p><p><strong>API Endpoints:</strong>
 <li>✅ <strong><code>/api/global-deployment/status</code></strong>: Get deployment status</li></p><p><li>✅ <strong><code>/api/global-deployment/register</code></strong>: Register new deployment</li></p><p><li>✅ <strong><code>/api/global-deployment/generate</code></strong>: Generate global DEPA ID</li></p><p><li>✅ <strong><code>/api/global-deployment/verify</code></strong>: Verify global uniqueness</li></p><p><li>✅ <strong><code>/api/global-deployment/jurisdictions</code></strong>: Get available jurisdictions</li></p><p><strong>Safety Features:</strong>
 <li>✅ <strong>Backward Compatibility</strong>: All existing DEPA IDs continue to work</li></p><p><li>✅ <strong>Optional Usage</strong>: Global features are opt-in</li></p><p><li>✅ <strong>Graceful Degradation</strong>: Falls back to standard DEPA IDs if global service fails</li></p><p><li>✅ <strong>Zero Regression</strong>: All existing functionality preserved</li></p><p>This comprehensive integration ensures that the Contract Management System can be deployed across multiple countries and jurisdictions while maintaining global uniqueness and regulatory compliance.</p><p>---</p><p>## Authentication Methods</p>The authentication methods section covers the various ways users can authenticate with the system, including JWT tokens, Keycloak integration, and DID-based authentication. Each method provides different levels of security and integration capabilities.</p><p>### 1. JWT Token Authentication</p>JWT (JSON Web Token) authentication provides a stateless method for user authentication that is widely supported and secure. The system uses JWT tokens for API access and session management, with integration to Keycloak for enhanced security and enterprise features.</p><p>JWT authentication provides:
-<li><strong>Stateless Authentication</strong>: No server-side session storage required</li></p><p><li><strong>Security</strong>: Cryptographically signed tokens prevent tampering</li></p><p><li><strong>Scalability</strong>: Tokens can be validated without database lookups</li></p><p><li><strong>Integration</strong>: Works seamlessly with Keycloak and other identity providers</li></p><p><li><strong>Flexibility</strong>: Supports multiple token types and validation methods</li></p><p>#### 1.1 Token Structure</p><p>The JWT token structure includes essential user information and metadata that enables secure authentication and authorization decisions. The token payload contains user identity, role information, and security metadata.</p><p>The token structure provides:
+<li><strong>Stateless Authentication</strong>: No server-side session storage required</li></p><p><li><strong>Security</strong>: Cryptographically signed tokens prevent tampering</li></p><p><li><strong>Scalability</strong>: Tokens can be validated without database lookups</li></p><p><li><strong>Training runtime</strong>: Works seamlessly with Keycloak and other identity providers</li></p><p><li><strong>Flexibility</strong>: Supports multiple token types and validation methods</li></p><p>#### 1.1 Token Structure</p><p>The JWT token structure includes essential user information and metadata that enables secure authentication and authorization decisions. The token payload contains user identity, role information, and security metadata.</p><p>The token structure provides:
 <li><strong>User Identification</strong>: Unique user ID and email for identification</li></p><p><li><strong>Role Information</strong>: Party type and permissions for authorization</li></p><p><li><strong>Security Metadata</strong>: Issuance and expiration timestamps</li></p><p><li><strong>Audit Support</strong>: Token ID for tracking and revocation</li></p><p><li><strong>Compliance</strong>: Structured data for regulatory requirements</li></p><p><pre><code class="language-json">{
   "id": "user_id",
   "name": "User Name",

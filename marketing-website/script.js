@@ -183,38 +183,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    // Typing animation for hero title
-    function typeWriter(element, text, speed = 100) {
-        let i = 0;
-        element.innerHTML = '';
-        
-        function type() {
-            if (i < text.length) {
-                element.innerHTML += text.charAt(i);
-                i++;
-                setTimeout(type, speed);
-            }
-        }
-        
-        type();
-    }
-
-    // Initialize typing animation when hero section is visible
-    const heroTitle = document.querySelector('.hero-section h1');
-    if (heroTitle) {
-        const heroObserver = new IntersectionObserver(function(entries) {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    const originalText = heroTitle.textContent;
-                    typeWriter(heroTitle, originalText, 50);
-                    heroObserver.unobserve(entry.target);
-                }
-            });
-        });
-        
-        heroObserver.observe(heroTitle);
-    }
-
     // Pricing toggle (if needed)
     const pricingToggle = document.querySelector('.pricing-toggle');
     if (pricingToggle) {

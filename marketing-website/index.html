@@ -68,6 +68,9 @@
                             <i class="fas fa-book me-1"></i>Documentation
                         </a>
                         <ul class="dropdown-menu">
+                                                        <li><a class="dropdown-item" href="https://blog.dpi-apps.space/product-tour/">
+                                <i class="fas fa-images me-2"></i>Product tour
+                            </a></li>
                             <li><a class="dropdown-item" href="docs/api-reference.html">
                                 <i class="fas fa-code me-2"></i>API Reference
                             </a></li>
@@ -90,20 +93,20 @@
                             <i class="fas fa-code me-1"></i>Development
                         </a>
                         <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" href="dev/getting-started.html">
-                                <i class="fas fa-rocket me-2"></i>Getting Started
+                                                        <li><a class="dropdown-item" href="dev/getting-started.html">
+                                <i class="fas fa-rocket me-2"></i>Quick start
                             </a></li>
-                            <li><a class="dropdown-item" href="dev/sdk-documentation.html">
-                                <i class="fas fa-tools me-2"></i>SDK Documentation
+                            <li><a class="dropdown-item" href="dev/depa-api.html">
+                                <i class="fas fa-code me-2"></i>DEPA /v1 API
                             </a></li>
-                            <li><a class="dropdown-item" href="dev/integration-guide.html">
-                                <i class="fas fa-puzzle-piece me-2"></i>Integration Guide
-                            </a></li>
-                            <li><a class="dropdown-item" href="dev/examples.html">
-                                <i class="fas fa-lightbulb me-2"></i>Code Examples
+                            <li><a class="dropdown-item" href="dev/training-runtime.html">
+                                <i class="fas fa-cogs me-2"></i>Training runtime
                             </a></li>
                             <li><a class="dropdown-item" href="dev/deployment-guide.html">
-                                <i class="fas fa-server me-2"></i>Deployment Guide
+                                <i class="fas fa-server me-2"></i>Deployment
+                            </a></li>
+                            <li><a class="dropdown-item" href="dev/testing.html">
+                                <i class="fas fa-vial me-2"></i>Testing
                             </a></li>
                         </ul>
                     </li>
@@ -124,25 +127,15 @@
                         <p class="hero-kicker mb-3">
                             Inspired by iSPIRT’s <a href="https://depa.world" rel="noopener">DEPA</a> — the Data Empowerment and Protection Architecture.
                         </p>
-                        <h1 class="hero-heading">Train AI Models on Confidential Data<br>Without Compromising Privacy</h1>
+                        <h1 class="hero-heading">Train AI Models on Confidential Data <span class="d-block">Without Compromising Privacy</span></h1>
                         <p class="hero-description">
-                            Enable your organization to leverage sensitive data for AI training while maintaining mathematical privacy guarantees and regulatory compliance. Our platform provides a secure, auditable environment where data providers can share their valuable datasets and AI researchers can train models without ever seeing the raw data.
-                        </p>
-                        <p class="hero-description">
-                            Through advanced cryptographic techniques, differential privacy, and confidential computing, we ensure that your data remains completely protected while enabling breakthrough AI innovations. Whether you're working with healthcare records, financial data, or proprietary business information, our platform maintains the highest standards of privacy and security.
-                        </p>
-                        <p class="hero-description">
-                            A Local clean room trains on this machine. An Azure or GCP clean room submits the job to the cluster that provider already runs. The contract names that cluster. The kubeconfig path stays on the provider’s dashboard.
+                            A data provider, a model owner, and a clean-room provider sign one contract. Training then runs on the cluster that provider already operates. The raw dataset stays with the provider.
                         </p>
                         <div class="mt-4 d-flex flex-wrap justify-content-center gap-2">
                             <a class="btn btn-primary btn-lg" href="mailto:hello@dpi-apps.space?subject=Interested%20in%20Confidential%20AI%20Network&amp;body=Please%20send%20me%20information%20about%20the%20app.%0A%0AName%3A%0AOrganization%3A%0A">Get info</a>
                             <a class="btn btn-outline-primary btn-lg" href="mailto:hello@dpi-apps.space?subject=I%20want%20to%20contribute%20to%20Confidential%20AI%20Network&amp;body=I%20would%20like%20to%20help%20build%20Confidential%20AI%20Network.%0A%0AName%3A%0AHow%20I%20can%20help%3A%0A">Contribute</a>
                             <a href="https://blog.dpi-apps.space/product-tour/" class="btn btn-outline-primary btn-lg">Product tour</a>
                         </div>
-                        <p class="hero-description mt-3 mb-0">
-                            Email <a href="mailto:hello@dpi-apps.space">hello@dpi-apps.space</a> if you want information about the app.
-                            Contributors are welcome — write to us, or start from the <a href="https://github.com/gitmujoshi/Confidential-AI-Network">source repository</a>.
-                        </p>
                     </div>
                 </div>
 
@@ -150,441 +143,95 @@
         </div>
     </section>
 
-    <!-- Business Problem Section -->
-    <section id="problem" class="py-5 bg-white">
+    <section id="how" class="py-5 bg-white">
         <div class="container">
             <div class="row text-center mb-5">
                 <div class="col-lg-8 mx-auto">
-                    <h2 class="section-header">The Data Privacy Challenge</h2>
-                    <p class="section-subheader">Organizations are sitting on valuable data but can't use it for AI training due to privacy concerns and regulatory requirements.</p>
+                    <h2 class="section-header">How a job runs</h2>
+                    <p class="section-subheader">One contract, then one training run on a clean room the provider already operates.</p>
                 </div>
             </div>
             <div class="row g-4">
                 <div class="col-lg-4">
-                    <div class="problem-card text-center p-4 h-100">
-                        <div class="problem-icon mb-3">
-                            <i class="fas fa-lock fa-3x text-danger"></i>
-                        </div>
-                        <h5 class="fw-bold">Data Locked Away</h5>
-                        <p class="text-muted">Sensitive data remains unused due to privacy concerns, preventing AI innovation and business growth.</p>
+                    <div class="solution-card bg-light p-4 rounded-lg h-100">
+                        <h5 class="fw-bold">1. Agree</h5>
+                        <p class="text-muted mb-0">The data provider publishes a dataset. The model owner writes a Ricardian contract that names the dataset, the use, and the clean-room provider.</p>
                     </div>
                 </div>
                 <div class="col-lg-4">
-                    <div class="problem-card text-center p-4 h-100">
-                        <div class="problem-icon mb-3">
-                            <i class="fas fa-exclamation-triangle fa-3x text-warning"></i>
-                        </div>
-                        <h5 class="fw-bold">Compliance Risk</h5>
-                        <p class="text-muted">Regulatory requirements like GDPR, HIPAA, and DPDP 2023 make data sharing complex and risky.</p>
+                    <div class="solution-card bg-light p-4 rounded-lg h-100">
+                        <h5 class="fw-bold">2. Sign</h5>
+                        <p class="text-muted mb-0">Each party signs. Training does not start until the contract is signed.</p>
                     </div>
                 </div>
                 <div class="col-lg-4">
-                    <div class="problem-card text-center p-4 h-100">
-                        <div class="problem-icon mb-3">
-                            <i class="fas fa-chart-line-down fa-3x text-info"></i>
-                        </div>
-                        <h5 class="fw-bold">Missed Opportunities</h5>
-                        <p class="text-muted">Without AI training on confidential data, organizations miss competitive advantages and innovation opportunities.</p>
+                    <div class="solution-card bg-light p-4 rounded-lg h-100">
+                        <h5 class="fw-bold">3. Train</h5>
+                        <p class="text-muted mb-0">The job runs on that provider’s cluster. The result, the logs, and the provenance stay with the contract.</p>
                     </div>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- Solution Section -->
-    <section id="solution" class="py-5 bg-light">
-        <div class="container">
-            <div class="row text-center mb-5">
-                <div class="col-lg-8 mx-auto">
-                    <h2 class="section-header">Our Solution</h2>
-                    <p class="section-subheader">Confidential AI Network enables AI model training on confidential data while maintaining mathematical privacy guarantees.</p>
-                </div>
-            </div>
-            <div class="row g-4">
-                <div class="col-lg-6">
-                    <div class="solution-card bg-white p-4 rounded-lg shadow-sm h-100">
-                        <div class="d-flex align-items-start mb-3">
-                            <i class="fas fa-shield-alt fa-2x text-primary me-3"></i>
-                            <div>
-                                <h5 class="fw-bold">Privacy-Preserving Training</h5>
-                                <p class="text-muted mb-0">Use differential privacy and confidential computing to train AI models without exposing raw data.</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-lg-6">
-                    <div class="solution-card bg-white p-4 rounded-lg shadow-sm h-100">
-                        <div class="d-flex align-items-start mb-3">
-                            <i class="fas fa-file-contract fa-2x text-success me-3"></i>
-                            <div>
-                                <h5 class="fw-bold">Smart Contract Management</h5>
-                                <p class="text-muted mb-0">Automated contract execution with Ricardian contracts that are both legally enforceable and machine-executable.</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-lg-6">
-                    <div class="solution-card bg-white p-4 rounded-lg shadow-sm h-100">
-                        <div class="d-flex align-items-start mb-3">
-                            <i class="fas fa-cloud fa-2x text-info me-3"></i>
-                        <div>
-                                <h5 class="fw-bold">Existing clean-room clusters</h5>
-                                <p class="text-muted mb-0">Name the AKS or GKE cluster the provider already runs. The job is not used to create a subscription, project, or cluster.</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-lg-6">
-                    <div class="solution-card bg-white p-4 rounded-lg shadow-sm h-100">
-                        <div class="d-flex align-items-start mb-3">
-                            <i class="fas fa-users fa-2x text-warning me-3"></i>
-                            <div>
-                                <h5 class="fw-bold">Multi-Party Collaboration</h5>
-                                <p class="text-muted mb-0">Connect data providers, AI researchers, and computing environments in a secure, auditable way.</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Clean-room cluster -->
-    <section id="clusters" class="py-5 bg-white">
+    <section id="clusters" class="py-5 bg-light">
         <div class="container">
             <div class="row text-center mb-5">
                 <div class="col-lg-8 mx-auto">
                     <h2 class="section-header">Use the cluster you already run</h2>
-                    <p class="section-subheader">The contract stores the cluster name and account identifiers. The kubeconfig path is a file on the TSP host, saved from the Cloud Provider card.</p>
+                    <p class="section-subheader">The contract names the cluster. The kubeconfig path stays on the provider’s Cloud Provider card.</p>
                 </div>
             </div>
             <div class="row g-4">
                 <div class="col-lg-3 col-md-6">
-                    <div class="solution-card bg-light p-4 rounded-lg h-100">
+                    <div class="solution-card bg-white p-4 rounded-lg h-100">
                         <h5 class="fw-bold">Local</h5>
-                        <p class="text-muted mb-0">Training stays on this machine. The contract wizard hides the cluster sections.</p>
+                        <p class="text-muted mb-0">Training stays on this machine.</p>
                     </div>
                 </div>
                 <div class="col-lg-3 col-md-6">
-                    <div class="solution-card bg-light p-4 rounded-lg h-100">
+                    <div class="solution-card bg-white p-4 rounded-lg h-100">
                         <h5 class="fw-bold">Azure</h5>
-                        <p class="text-muted mb-0">Existing AKS cluster: subscription, resource group, cluster name, namespace, region, storage account, and Key Vault URI.</p>
+                        <p class="text-muted mb-0">An existing AKS cluster. The job does not create a subscription.</p>
                     </div>
                 </div>
                 <div class="col-lg-3 col-md-6">
-                    <div class="solution-card bg-light p-4 rounded-lg h-100">
+                    <div class="solution-card bg-white p-4 rounded-lg h-100">
                         <h5 class="fw-bold">Google Cloud</h5>
-                        <p class="text-muted mb-0">Existing GKE cluster: project, location, cluster name, namespace, and GCS bucket.</p>
+                        <p class="text-muted mb-0">An existing GKE cluster. The job does not create a project.</p>
                     </div>
                 </div>
                 <div class="col-lg-3 col-md-6">
-                    <div class="solution-card bg-light p-4 rounded-lg h-100">
+                    <div class="solution-card bg-white p-4 rounded-lg h-100">
                         <h5 class="fw-bold">Oracle Cloud</h5>
-                        <p class="text-muted mb-0">Existing OKE cluster. AWS does not start a training job.</p>
+                        <p class="text-muted mb-0">An existing OKE cluster. AWS does not start a training job.</p>
                     </div>
                 </div>
             </div>
-            <p class="text-center text-muted mt-4 mb-0">A missing kubeconfig path marks the job failed. Azure and GCP attestation on this path is marked simulated until a hardware quote is attached.</p>
+            <p class="text-center text-muted mt-4 mb-0">A missing kubeconfig path fails the job. Attestation stays simulated until a SEV-SNP guest report verifies.</p>
         </div>
     </section>
 
-    <!-- Key Benefits Section -->
-    <section id="benefits" class="py-5 bg-white">
+    <section id="record" class="py-5 bg-white">
         <div class="container">
             <div class="row text-center mb-5">
                 <div class="col-lg-8 mx-auto">
-                    <h2 class="section-header">Why Choose Confidential AI Network?</h2>
-                    <p class="section-subheader">Built for modern enterprises that need to balance innovation with security and compliance.</p>
+                    <h2 class="section-header">What the record shows</h2>
+                    <p class="section-subheader">The same contract is the place to check signatures, training, and audit.</p>
                 </div>
             </div>
             <div class="row g-4">
-                <div class="col-lg-4">
-                    <div class="benefit-card text-center p-4 h-100">
-                        <div class="benefit-icon mb-3">
-                            <i class="fas fa-rocket fa-3x text-primary"></i>
-                        </div>
-                        <h5 class="fw-bold">Accelerate AI Innovation</h5>
-                        <p class="text-muted">Unlock your confidential data for AI training and gain competitive advantages through machine learning.</p>
-                    </div>
+                <div class="col-md-4">
+                    <h5 class="fw-bold">Signatures</h5>
+                    <p class="text-muted">Each party’s signature is stored on the contract before training starts.</p>
                 </div>
-                <div class="col-lg-4">
-                    <div class="benefit-card text-center p-4 h-100">
-                        <div class="benefit-icon mb-3">
-                            <i class="fas fa-shield-alt fa-3x text-success"></i>
-                        </div>
-                        <h5 class="fw-bold">Maintain Data Security</h5>
-                        <p class="text-muted">Keep your sensitive data secure while enabling AI training through privacy-preserving techniques.</p>
-                    </div>
+                <div class="col-md-4">
+                    <h5 class="fw-bold">Keys</h5>
+                    <p class="text-muted">A key release stores the time of release. The key bytes are not kept.</p>
                 </div>
-                <div class="col-lg-4">
-                    <div class="benefit-card text-center p-4 h-100">
-                        <div class="benefit-icon mb-3">
-                            <i class="fas fa-certificate fa-3x text-info"></i>
-                        </div>
-                        <h5 class="fw-bold">Ensure Compliance</h5>
-                        <p class="text-muted">Meet regulatory requirements with built-in compliance features and audit trails for all data operations.</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Use Cases Section -->
-    <section id="use-cases" class="py-5 bg-light">
-        <div class="container">
-            <div class="row text-center mb-5">
-                <div class="col-lg-8 mx-auto">
-                    <h2 class="section-header">Perfect For</h2>
-                    <p class="section-subheader">Organizations that need to train AI models on sensitive data while maintaining privacy and compliance.</p>
-                </div>
-            </div>
-            <div class="row g-4">
-                <div class="col-lg-6">
-                    <div class="use-case-card bg-white p-4 rounded-lg shadow-sm h-100">
-                        <div class="d-flex align-items-start mb-3">
-                            <i class="fas fa-hospital fa-2x text-primary me-3"></i>
-                            <div>
-                                <h5 class="fw-bold">Healthcare & Life Sciences</h5>
-                                <p class="text-muted mb-0">Train AI models on medical data while maintaining HIPAA compliance and patient privacy.</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-lg-6">
-                    <div class="use-case-card bg-white p-4 rounded-lg shadow-sm h-100">
-                        <div class="d-flex align-items-start mb-3">
-                            <i class="fas fa-university fa-2x text-success me-3"></i>
-                            <div>
-                                <h5 class="fw-bold">Financial Services</h5>
-                                <p class="text-muted mb-0">Develop AI models for fraud detection and risk assessment using sensitive financial data.</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-lg-6">
-                    <div class="use-case-card bg-white p-4 rounded-lg shadow-sm h-100">
-                        <div class="d-flex align-items-start mb-3">
-                            <i class="fas fa-industry fa-2x text-info me-3"></i>
-                            <div>
-                                <h5 class="fw-bold">Manufacturing & Supply Chain</h5>
-                                <p class="text-muted mb-0">Optimize operations using AI trained on proprietary manufacturing and supply chain data.</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-lg-6">
-                    <div class="use-case-card bg-white p-4 rounded-lg shadow-sm h-100">
-                        <div class="d-flex align-items-start mb-3">
-                            <i class="fas fa-graduation-cap fa-2x text-warning me-3"></i>
-                            <div>
-                                <h5 class="fw-bold">Research & Academia</h5>
-                                <p class="text-muted mb-0">Collaborate on AI research projects while protecting sensitive research data and intellectual property.</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Confidential Computing Section -->
-    <section id="confidential-computing" class="py-5 bg-white">
-        <div class="container">
-            <div class="row text-center mb-5">
-                <div class="col-lg-8 mx-auto">
-                    <h2 class="section-header">Confidential Computing: The Future of Secure AI Training</h2>
-                    <p class="section-subheader">Hardware-enforced data protection with advanced attestation and secure key release mechanisms.</p>
-                </div>
-            </div>
-            
-            <div class="row g-4">
-                <div class="col-lg-4">
-                    <div class="confidential-card bg-light p-4 rounded-lg shadow-sm h-100 text-center">
-                        <i class="fas fa-microchip fa-3x text-primary mb-3"></i>
-                        <h5 class="fw-bold text-primary">Hardware Attestation</h5>
-                        <p class="text-muted">Cryptographic verification of hardware integrity using Intel SGX, AMD SEV, and ARM TrustZone technologies.</p>
-                        <ul class="list-unstyled text-start">
-                            <li><i class="fas fa-check text-success me-2"></i>CPU identity verification</li>
-                            <li><i class="fas fa-check text-success me-2"></i>Security feature validation</li>
-                            <li><i class="fas fa-check text-success me-2"></i>Firmware integrity checks</li>
-                        </ul>
-                    </div>
-                </div>
-                
-                <div class="col-lg-4">
-                    <div class="confidential-card bg-light p-4 rounded-lg shadow-sm h-100 text-center">
-                        <i class="fas fa-code fa-3x text-success mb-3"></i>
-                        <h5 class="fw-bold text-success">Software Attestation</h5>
-                        <p class="text-muted">Comprehensive verification of software integrity and runtime environment security.</p>
-                        <ul class="list-unstyled text-start">
-                            <li><i class="fas fa-check text-success me-2"></i>Code measurement & hashing</li>
-                            <li><i class="fas fa-check text-success me-2"></i>Dependency verification</li>
-                            <li><i class="fas fa-check text-success me-2"></i>Runtime integrity monitoring</li>
-                        </ul>
-                    </div>
-                </div>
-                
-                <div class="col-lg-4">
-                    <div class="confidential-card bg-light p-4 rounded-lg shadow-sm h-100 text-center">
-                        <i class="fas fa-key fa-3x text-warning mb-3"></i>
-                        <h5 class="fw-bold text-warning">Secure Key Release</h5>
-                        <p class="text-muted">Policy-based key management with conditional release based on attestation results.</p>
-                        <ul class="list-unstyled text-start">
-                            <li><i class="fas fa-check text-success me-2"></i>Policy-based key release</li>
-                            <li><i class="fas fa-check text-success me-2"></i>Attestation verification</li>
-                            <li><i class="fas fa-check text-success me-2"></i>Time-bound access control</li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="row mt-4">
-                <div class="col-lg-8 mx-auto">
-                    <div class="info-highlight bg-primary bg-opacity-10 p-4 rounded border border-primary">
-                        <h5 class="text-primary mb-3"><i class="fas fa-info-circle me-2"></i>Why Confidential Computing Matters</h5>
-                        <p class="text-dark">Traditional cloud computing exposes sensitive training data to potential breaches. Our confidential computing approach ensures data remains encrypted even during processing, providing the technical foundation for compliance with GDPR, HIPAA, and emerging AI regulations.</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Startup TDC Section -->
-    <section id="startup-tdc" class="py-5 bg-light">
-        <div class="container">
-            <div class="row text-center mb-5">
-                <div class="col-lg-8 mx-auto">
-                    <h2 class="section-header">Platform-Managed Compliance for All Parties</h2>
-                    <p class="section-subheader">Confidential AI Network handles all legal agreements, compliance requirements, and regulatory frameworks between TDPs, TDCs, and CCRPs</p>
-                </div>
-            </div>
-            
-            <!-- Platform Benefits Overview -->
-            <div class="row text-center mb-5">
-                <div class="col-12">
-                    <div class="platform-benefits-highlight bg-white rounded-lg shadow-sm p-4 border">
-                        <div class="row g-4">
-                            <div class="col-md-4">
-                                <div class="text-center">
-                                    <i class="fas fa-database fa-3x text-primary mb-3"></i>
-                                    <h5 class="fw-bold">Training Data Providers</h5>
-                                    <p class="text-muted small">Monetize your data safely with automated compliance and licensing management</p>
-                                </div>
-                            </div>
-                            <div class="col-md-4">
-                                <div class="text-center">
-                                    <i class="fas fa-robot fa-3x text-success mb-3"></i>
-                                    <h5 class="fw-bold">Training Data Consumers</h5>
-                                    <p class="text-muted small">Access sensitive data without legal worries - we handle all agreements</p>
-                                </div>
-                            </div>
-                            <div class="col-md-4">
-                                <div class="text-center">
-                                    <i class="fas fa-shield-alt fa-3x text-info mb-3"></i>
-                                    <h5 class="fw-bold">Confidential Clean Room Providers</h5>
-                                    <p class="text-muted small">Provide secure environments with built-in compliance and audit trails</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="row g-4">
-                <div class="col-lg-6">
-                    <div class="startup-card bg-light p-4 rounded-lg shadow-sm h-100">
-                        <div class="d-flex align-items-start mb-3">
-                            <i class="fas fa-rocket fa-2x text-primary me-3"></i>
-                            <div>
-                                <h5 class="fw-bold">Level the Playing Field</h5>
-                                <p class="text-muted mb-0">Startup TDCs can now access the same high-quality data that large corporations use, enabling them to compete effectively in AI innovation.</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-lg-6">
-                    <div class="startup-card bg-light p-4 rounded-lg shadow-sm h-100">
-                        <div class="d-flex align-items-start mb-3">
-                            <i class="fas fa-shield-alt fa-2x text-success me-3"></i>
-                            <div>
-                                <h5 class="fw-bold">Legal & Compliance Handled</h5>
-                                <p class="text-muted mb-0">We handle all legal agreements, compliance requirements, and regulatory frameworks so you can focus on building your AI models.</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-lg-6">
-                    <div class="startup-card bg-light p-4 rounded-lg shadow-sm h-100">
-                        <div class="d-flex align-items-start mb-3">
-                            <i class="fas fa-lock fa-2x text-info me-3"></i>
-                            <div>
-                                <h5 class="fw-bold">IP Protection Guaranteed</h5>
-                                <p class="text-muted mb-0">Your intellectual property is fully protected. We ensure your models, algorithms, and innovations remain secure and confidential.</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-lg-6">
-                    <div class="startup-card bg-light p-4 rounded-lg shadow-sm h-100">
-                        <div class="d-flex align-items-start mb-3">
-                            <i class="fas fa-industry fa-2x text-warning me-3"></i>
-                            <div>
-                                <h5 class="fw-bold">Industry-Specific Data Access</h5>
-                                <p class="text-muted mb-0">Access specialized datasets in finance, healthcare, insurance, education, and pharma to develop domain-specific AI solutions.</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Industry Data Access -->
-            <div class="row mt-5">
-                <div class="col-12">
-                    <h3 class="text-center mb-4">Available Industry Data</h3>
-                    <div class="row g-3">
-                        <div class="col-md-4 col-6">
-                            <div class="industry-data-card text-center p-3 bg-white border rounded">
-                                <i class="fas fa-university fa-2x text-primary mb-2"></i>
-                                <h6 class="fw-bold">Finance</h6>
-                                <small class="text-muted">Market data, risk models, fraud patterns</small>
-                            </div>
-                        </div>
-                        <div class="col-md-4 col-6">
-                            <div class="industry-data-card text-center p-3 bg-white border rounded">
-                                <i class="fas fa-heartbeat fa-2x text-success mb-2"></i>
-                                <h6 class="fw-bold">Healthcare</h6>
-                                <small class="text-muted">Medical imaging, patient records, clinical trials</small>
-                            </div>
-                        </div>
-                        <div class="col-md-4 col-6">
-                            <div class="industry-data-card text-center p-3 bg-white border rounded">
-                                <i class="fas fa-shield-alt fa-2x text-info mb-2"></i>
-                                <h6 class="fw-bold">Insurance</h6>
-                                <small class="text-muted">Claims data, risk assessment, fraud detection</small>
-                            </div>
-                        </div>
-                        <div class="col-md-4 col-6">
-                            <div class="industry-data-card text-center p-3 bg-white border rounded">
-                                <i class="fas fa-graduation-cap fa-2x text-warning mb-2"></i>
-                                <h6 class="fw-bold">Education</h6>
-                                <small class="text-muted">Student performance, learning analytics, curriculum data</small>
-                            </div>
-                        </div>
-                        <div class="col-md-4 col-6">
-                            <div class="industry-data-card text-center p-3 bg-white border rounded">
-                                <i class="fas fa-pills fa-2x text-danger mb-2"></i>
-                                <h6 class="fw-bold">Pharma</h6>
-                                <small class="text-muted">Drug discovery, clinical research, safety data</small>
-                            </div>
-                        </div>
-                        <div class="col-md-4 col-6">
-                            <div class="industry-data-card text-center p-3 bg-white border rounded">
-                                <i class="fas fa-cogs fa-2x text-secondary mb-2"></i>
-                                <h6 class="fw-bold">Manufacturing</h6>
-                                <small class="text-muted">Quality control, predictive maintenance, supply chain</small>
-                            </div>
-                        </div>
-                    </div>
+                <div class="col-md-4">
+                    <h5 class="fw-bold">Audit</h5>
+                    <p class="text-muted">An auditor checks a sealed Merkle root in this system. That check is not a filing with an external records office.</p>
                 </div>
             </div>
         </div>
@@ -593,8 +240,8 @@
     <!-- CTA Section -->
     <section id="cta" class="py-5 bg-primary text-white">
         <div class="container text-center">
-                                <h2 class="section-header">Interested, or ready to help?</h2>
-                    <p class="section-subheader">Ask for information about the app, or tell us how you would like to contribute.</p>
+                                <h2 class="section-header">Ask a question, or help build it</h2>
+                    <p class="section-subheader">Write to hello@dpi-apps.space.</p>
             <div class="cta-buttons">
                 <a class="btn btn-light btn-lg me-3" href="mailto:hello@dpi-apps.space?subject=Interested%20in%20Confidential%20AI%20Network&amp;body=Please%20send%20me%20information%20about%20the%20app.%0A%0AName%3A%0AOrganization%3A%0A">
                     <i class="fas fa-envelope me-2"></i>Get info
@@ -612,7 +259,7 @@
             <div class="row">
                 <div class="col-lg-4 mb-4">
                     <h5 class="fw-bold mb-3">Confidential AI Network</h5>
-                    <p class="text-muted">Enable AI model training on confidential data while maintaining mathematical privacy guarantees and regulatory compliance.</p>
+                    <p class="text-muted">Governed training on someone else’s data, on a clean room the provider already runs.</p>
                 </div>
                 <div class="col-lg-2 mb-4">
                     <h6 class="fw-bold mb-3">Product</h6>
@@ -630,7 +277,7 @@
                     <h6 class="fw-bold mb-3">Company</h6>
                     <ul class="list-unstyled">
                         <li><a href="about.html" class="text-muted text-decoration-none">About</a></li>
-                        <li><a href="#contact" class="text-muted text-decoration-none">Contact</a></li>
+                        <li><a href="mailto:hello@dpi-apps.space" class="text-muted text-decoration-none">Contact</a></li>
                         <li><a href="docs/security-guide.html" class="text-muted text-decoration-none">Security</a></li>
                         <li><a href="docs/compliance-guide.html" class="text-muted text-decoration-none">Compliance</a></li>
                     </ul>
@@ -638,9 +285,9 @@
                 <div class="col-lg-2 mb-4">
                     <h6 class="fw-bold mb-3">Developers</h6>
                     <ul class="list-unstyled">
-                        <li><a href="dev/getting-started.html" class="text-muted text-decoration-none">Getting Started</a></li>
-                        <li><a href="dev/sdk-documentation.html" class="text-muted text-decoration-none">SDK</a></li>
-                        <li><a href="dev/integration-guide.html" class="text-muted text-decoration-none">Integration</a></li>
+                        <li><a href="dev/getting-started.html" class="text-muted text-decoration-none">Quick start</a></li>
+                        <li><a href="dev/depa-api.html" class="text-muted text-decoration-none">DEPA /v1 API</a></li>
+                        <li><a href="dev/training-runtime.html" class="text-muted text-decoration-none">Training runtime</a></li>
                         <li><a href="docs/api-reference.html" class="text-muted text-decoration-none">API Reference</a></li>
                     </ul>
                 </div>
