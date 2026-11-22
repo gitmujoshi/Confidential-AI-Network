@@ -41,7 +41,7 @@ az account set --subscription "<subscription-id>"
 
 cd deployment/azure/terraform
 cp terraform.tfvars.example terraform.tfvars
-# Edit subscription_id, tenant_id, db_password
+# Edit subscription_id, tenant_id, db_password. Do not commit terraform.tfvars.
 
 chmod +x deploy.sh destroy.sh
 ./deploy.sh -y --images

@@ -1,15 +1,15 @@
 # Secrets Management Guide
 
-This document explains how secrets and sensitive configuration are managed in the Contract Management System, following Docker Compose best practices.
+`secrets.env` is the secret file for a laptop or a single local VM. A cluster reads the cloud secret store. `config.env` is committed, so secret values stay out of it.
 
 ## Overview
 
-We use a **separation of concerns** approach where:
-- **Public configuration** goes in `config.env`
-- **Sensitive data** goes in `secrets.env` (do not commit it)
-- **`./start-system.sh` and the API** read both files from the repository root
+- **Public configuration** goes in `config.env` at the repository root. This file is tracked.
+- **Local secrets** go in `secrets.env`. It is gitignored. Set its mode to `600`.
+- **`./start-system.sh` and the API** read both files on a local machine.
+- **A cluster** receives database and identity secrets from the cloud store through External Secrets. The pod still sees them as environment variables. The source is the store, not a copied `secrets.env`.
 
-The full parameter list is [the deployment hub](../deployment/README.md).
+The parameter list is [the deployment hub](../deployment/README.md). The cluster rule is [multi-cloud pattern P6](../production/MULTI_CLOUD_SECURITY_ARCHITECTURE_PATTERNS.md).
 
 ## Database Architecture
 
@@ -203,40 +203,19 @@ services:
       JWT_SECRET: ${JWT_SECRET}
 ```
 
-## Production Deployment
+## Cluster secrets
 
-For production, use proper secrets management:
+Keep `JWT_SECRET`, `DATA_ENCRYPTION_KEY`, database passwords, and identity client secrets in the cloud store once more than one machine runs the API. A copy of `DATA_ENCRYPTION_KEY` next to a database backup decrypts the data that key protects.
 
-### Option 1: Environment Variables
-```bash
-export DB_PASSWORD="production-password"
-export JWT_SECRET="production-jwt-secret"
-docker-compose -f docker-compose.prod.yml up -d
-```
+| Target | Store | How the API receives it |
+|--------|--------|-------------------------|
+| Local | `secrets.env` | `./start-system.sh` loads the file |
+| Azure | Key Vault | `deployment/azure/scripts/install-external-secrets.sh` syncs `can-{env}-db-connection` and `can-{env}-entra-api-client-secret`. The script exits when the vault or the cluster is missing. Workload identity is the vault login. |
+| Google Cloud | Secret Manager | External Secrets, as in the [GCP security architecture](../production/GCP_SECURITY_ARCHITECTURE.md) |
+| AWS | Secrets Manager | External Secrets, as in the [AWS security architecture](../production/AWS_SECURITY_ARCHITECTURE.md) |
+| OCI | OCI Vault | External Secrets, as in the [OCI security architecture](../production/OCI_SECURITY_ARCHITECTURE.md) |
 
-### Option 2: Docker Secrets
-```yaml
-services:
-  backend:
-    secrets:
-      - db_password
-      - jwt_secret
-    environment:
-      DB_PASSWORD_FILE: /run/secrets/db_password
-      JWT_SECRET_FILE: /run/secrets/jwt_secret
-
-secrets:
-  db_password:
-    external: true
-  jwt_secret:
-    external: true
-```
-
-### Option 3: External Secrets Manager
-- HashiCorp Vault
-- AWS Secrets Manager
-- Azure Key Vault
-- Kubernetes Secrets
+Signing follows the same switch. The default `SIGNING_KEY_BACKEND` is `database`. `azure-keyvault` or `azure-mhsm` keeps the private key in Key Vault. `terraform.tfvars` holds `db_password` for the operator machine and stays uncommitted.
 
 ## Troubleshooting
 
@@ -325,10 +304,9 @@ The following files are in `.gitignore`:
 - `*.secrets` - Any secrets files
 
 The following files are tracked in git:
-- `config.env` - Public configuration
-- `config.env.example` - Configuration template
-- `secrets.env.example` - Secrets template
-- `setup-environment.sh` - Setup script
+- `config.env` - Public configuration. Secret values do not belong here.
+- `config/examples/config.env.example` - Configuration template
+- `secrets.env.example` - Secrets template, with empty values
 
 This ensures that:
 - ✅ Configuration templates are shared

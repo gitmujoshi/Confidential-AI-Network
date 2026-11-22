@@ -75,7 +75,7 @@
 <main class="container py-5" style="max-width: 860px;">
 <h1 class="display-5 fw-bold">Deployment</h1>
 <p>Start with the <a href="https://github.com/gitmujoshi/Confidential-AI-Network/blob/main/docs/deployment/README.md">deployment hub</a>. It lists every common setting, which file it belongs in, and the extra inputs for local, Azure, Google Cloud, AWS, and OCI.</p>
-<p>Local development is <code>./start-system.sh</code>. Cloud jobs use a cluster the provider already runs. The kubeconfig path is stored on the provider card. A missing path fails the job.</p>
+<p>Local development is <code>./start-system.sh</code> with <code>secrets.env</code> on that machine. A cluster reads its secret store through External Secrets. Cloud jobs use a cluster the provider already runs. The kubeconfig path is stored on the provider card. A missing path fails the job.</p>
 <h2 class="h4 mt-4">Where a job runs</h2>
 <ul>
 <li>Azure submits to the existing AKS cluster named on the contract and the provider card.</li>
@@ -98,7 +98,7 @@
 <li>Install SPIRE with Helm after its namespace scaffold.</li>
 <li>Run the training job on a confidential node when a real SEV-SNP report is required.</li>
 </ul>
-<p class="mt-4 mb-0">The module list, flags, and install scripts are in <code>deployment/azure/terraform/README.md</code>. Readiness and the setting catalog are in <code>docs/deployment</code>.</p>
+<p class="mt-4 mb-0">Module list and flags: <a href="https://github.com/gitmujoshi/Confidential-AI-Network/blob/main/deployment/azure/terraform/README.md">Azure Terraform</a>. Readiness and the setting catalog: <a href="https://github.com/gitmujoshi/Confidential-AI-Network/blob/main/docs/deployment/AZURE_FEATURES_AND_CONFIGURATION.md">Azure features</a>.</p>
 </main>
 <footer class="py-4">
     <div class="container"><p class="mb-0">&copy; 2026 Confidential AI Network</p></div>

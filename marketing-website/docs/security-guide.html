@@ -77,7 +77,7 @@
 <p>People sign in through Keycloak. API calls carry that bearer token. Roles limit who can publish, train, release a key, or audit.</p>
 <p>Key release asks for an RSA-OAEP wrap of the key to the attestation public key. The API checks the wrap, discards the key bytes, and stores the time. The attestation report format stays simulated when the key was generated in the API process.</p>
 <p>A SEV-SNP guest report is stored only when it verifies against the pinned ARK. Until then the job’s attestation mode is simulated. A missing kubeconfig path fails a cloud job. It does not fall back to a fake success.</p>
-<p class="mt-4 mb-0"><a href="https://github.com/gitmujoshi/Confidential-AI-Network">Source and the full guides</a> are in the repository.</p>
+<p class="mt-4 mb-0">Full write-up: <a href="https://github.com/gitmujoshi/Confidential-AI-Network/blob/main/docs/security/README.md">security documentation</a>.</p>
 </main>
 <footer class="py-4">
     <div class="container"><p class="mb-0">&copy; 2026 Confidential AI Network</p></div>

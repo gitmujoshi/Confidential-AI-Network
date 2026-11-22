@@ -77,7 +77,7 @@
 <p>Three processes serve one database. React on port 3000, Express on port 5001, and the DEPA gateway on port 8000. Keycloak on <code>https://localhost:8443</code> signs people in. PostgreSQL stores contracts, jobs, and the audit tree.</p>
 <p>A Local contract trains on this machine. Azure and Google Cloud submit to the cluster named on the contract and on the provider’s Cloud Provider card. Oracle uses the existing OKE runner. AWS training returns 501 and does not create a job.</p>
 <p>The gateway is a translation layer for <code>/v1</code>. Organization onboarding checks a compact credential. A tombstone appends an audit row for an auditor or administrator. It is not a filing with an external records office.</p>
-<p class="mt-4 mb-0"><a href="https://github.com/gitmujoshi/Confidential-AI-Network">Source and the full guides</a> are in the repository.</p>
+<p class="mt-4 mb-0">Full write-up: <a href="https://github.com/gitmujoshi/Confidential-AI-Network/blob/main/docs/ARCHITECTURE.md">system architecture</a>.</p>
 </main>
 <footer class="py-4">
     <div class="container"><p class="mb-0">&copy; 2026 Confidential AI Network</p></div>

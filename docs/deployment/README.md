@@ -1,6 +1,6 @@
 # Deploy Confidential AI Network
 
-Start here for every environment. Copy two files, fill the required values below, then follow the block for the target. Security, IAM, and SPIRE documents are references at the bottom.
+Start here for every environment. Copy two files for a local run, fill the required values below, then follow the block for the target. On a cluster, secrets come from the cloud store. Security, IAM, and SPIRE documents are references at the bottom.
 
 ## 1. Create the two env files
 
@@ -11,7 +11,7 @@ cp config/examples/config.env.example config.env
 cp secrets.env.example secrets.env
 ```
 
-The process reads `config.env` and `secrets.env` in the repository root. `./start-system.sh` stops when `config.env` is missing. Do not commit `secrets.env`.
+`./start-system.sh` reads `config.env` and `secrets.env` in the repository root and stops when `config.env` is missing. `config.env` is tracked, so secret values stay in `secrets.env`. That file is for a laptop or a single local VM. A cluster reads Key Vault, Secret Manager, Secrets Manager, or OCI Vault through External Secrets. Details are in [the secrets guide](../security/SECRETS_MANAGEMENT.md).
 
 Cloud overlays are merged into the same `config.env`. They do not replace it.
 
@@ -122,7 +122,9 @@ A training job uses the AKS cluster already named on the contract and on the TSP
 
 Signing stays in the database until `SIGNING_KEY_BACKEND=azure-keyvault`. Key release stays on recorded times until `CAN_PRINCIPAL_KEY_MODE=azure-skr`. A guest report is read from the confidential node. The job stays simulated until that report verifies. Set `SEV_SNP_ARK_PEM` on the API host before a hardware quote can be accepted.
 
-Still operator work: public DNS, a SPIRE Helm install after `enable_spire=true`, and a live apply onto a confidential pool when a real SEV-SNP report is required. External Secrets and the SCITT ledger are `deployment/azure/scripts/install-external-secrets.sh` and `install-scitt.sh`. Both exit when their settings or the cluster are missing.
+The API on AKS takes the database connection and the Entra client secret from Key Vault. Run `deployment/azure/scripts/install-external-secrets.sh` after the cluster is up. It exits when the vault or the cluster is missing. Leave `secrets.env` on the laptop.
+
+Still operator work: public DNS, a SPIRE Helm install after `enable_spire=true`, and a live apply onto a confidential pool when a real SEV-SNP report is required. The SCITT ledger install is `deployment/azure/scripts/install-scitt.sh`. It exits when the image or database URL is missing.
 
 Confirm the API health URL for the host you published.
 
@@ -130,13 +132,13 @@ Confirm the API health URL for the host you published.
 
 Merge `config/examples/config.gcp.env.example` into `config.env`. Set `AUTH_PROVIDER=gcp-identity` and `KEYCLOAK_ENABLED=false`. Fill `GCP_PROJECT_ID` and the OIDC client settings in that file.
 
-A training job uses the GKE cluster already named on the contract and on the TSP Cloud Provider card. The kubeconfig path is on that card, or `GCP_CCR_KUBECONFIG` on the API host. A missing path fails the job. There is no GCP Terraform apply script in this repository.
+A training job uses the GKE cluster already named on the contract and on the TSP Cloud Provider card. The kubeconfig path is on that card, or `GCP_CCR_KUBECONFIG` on the API host. A missing path fails the job. There is no GCP Terraform apply script in this repository. Cluster secrets come from Secret Manager.
 
 ## 6. AWS
 
 Merge `config/examples/config.aws.env.example` into `config.env` when Cognito is the IdP. Set `AUTH_PROVIDER=cognito` and `KEYCLOAK_ENABLED=false`.
 
-AWS training is not implemented. The API returns 501 and does not create a training job.
+AWS training is not implemented. The API returns 501 and does not create a training job. Cluster secrets come from Secrets Manager.
 
 ## 7. OCI
 
@@ -146,7 +148,7 @@ Merge `config/examples/config.oci.env.example` into `config.env`. Set `AUTH_PROV
 ./deployment/deploy-oci.sh terraform
 ```
 
-Training uses the existing OKE runner. A missing kubeconfig fails the job.
+Training uses the existing OKE runner. A missing kubeconfig fails the job. Cluster secrets come from OCI Vault.
 
 ## 8. After deploy
 
