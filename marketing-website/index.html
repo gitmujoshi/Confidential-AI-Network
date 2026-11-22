@@ -140,6 +140,65 @@
         </div>
     </section>
 
+    <section id="platform" class="py-5 bg-light">
+        <div class="container">
+            <div class="row text-center mb-5">
+                <div class="col-lg-8 mx-auto">
+                    <h2 class="section-header">Built for regulated collaboration</h2>
+                    <p class="section-subheader">Who you are, the contract you sign, and the deployment you are standing in.</p>
+                </div>
+            </div>
+            <div class="row g-4">
+                <div class="col-lg-3 col-md-6">
+                    <div class="solution-card bg-white p-4 rounded-lg h-100">
+                        <h5 class="fw-bold">DEPA identity</h5>
+                        <p class="text-muted mb-0">Each party, contract, and dataset gets an id shaped like <code>PREFIX-TDP-uuid</code>. The prefix is the deployment. That id is how the API tells a data provider, a model owner, and a clean-room provider apart.</p>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-6">
+                    <div class="solution-card bg-white p-4 rounded-lg h-100">
+                        <h5 class="fw-bold">Contracts and a ledger</h5>
+                        <p class="text-muted mb-0">A Ricardian contract is the legal text and the machine record. When the SCITT ledger is enabled, the approval is written there so a later check sees the same event.</p>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-6">
+                    <div class="solution-card bg-white p-4 rounded-lg h-100">
+                        <h5 class="fw-bold">Three parties, one contract</h5>
+                        <p class="text-muted mb-0">The data provider publishes the dataset. The model owner trains. The clean-room provider runs the job. Role checks decide who may sign, start training, or audit.</p>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-6">
+                    <div class="solution-card bg-white p-4 rounded-lg h-100">
+                        <h5 class="fw-bold">A named deployment</h5>
+                        <p class="text-muted mb-0">Each install sets its region, country, jurisdiction, and the frameworks it is configured for. The app shows that card on the homepage. The list is configuration, not a certification.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="row g-4 mt-2">
+                <div class="col-lg-6">
+                    <h3 class="h5 fw-bold">What you get from one signed contract</h3>
+                    <ul class="list-unstyled text-muted mb-0">
+                        <li class="mb-2"><i class="fas fa-check text-success me-2"></i>A party id that stays with the person across contracts</li>
+                        <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Price, purpose, duration, and a privacy budget on the same record</li>
+                        <li class="mb-2"><i class="fas fa-check text-success me-2"></i>Training that waits until the data provider and the clean room have signed</li>
+                        <li class="mb-2"><i class="fas fa-check text-success me-2"></i>A model key the API does not store as raw bytes</li>
+                        <li class="mb-2"><i class="fas fa-check text-success me-2"></i>A provenance leaf an auditor can check against the sealed root</li>
+                        <li class="mb-0"><i class="fas fa-check text-success me-2"></i>A ledger entry for the approval when SCITT is turned on</li>
+                    </ul>
+                </div>
+                <div class="col-lg-6">
+                    <div class="solution-card bg-white p-4 rounded-lg h-100">
+                        <h3 class="h5 fw-bold">How an id is formed</h3>
+                        <p class="text-muted">The running app reads this from its own configuration and shows it on the homepage.</p>
+                        <p class="mb-2"><code>PREFIX-ENTITY-UUID</code></p>
+                        <p class="text-muted mb-2">Entity is <code>TDC</code>, <code>TDP</code>, <code>TSP</code>, <code>CONTRACT</code>, or <code>DATASET</code>. A default install uses the prefix <code>US-EAST</code>, so a data provider looks like <code>US-EAST-TDP-…</code>.</p>
+                        <p class="text-muted mb-0">That same card lists region, country, jurisdiction, and frameworks such as SOX, FedRAMP, and CCPA. Change the deployment settings and the card changes with them.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
     <section id="what" class="py-5 bg-white">
         <div class="container">
             <div class="row text-center mb-5">
