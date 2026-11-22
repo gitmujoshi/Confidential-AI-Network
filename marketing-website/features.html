@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Features - Confidential AI Network | Secure Contracting for Confidential AI</title>
-    <meta name="description" content="Explore Confidential AI Network features: multi-party contracts, SCITT CCF integration, confidential computing, differential privacy, and enterprise-grade compliance.">
+    <meta name="description" content="Contracts, clean-room training, a DEPA API, differential-privacy budgets, key release, and an auditor Merkle check. Run Confidential AI Network locally and contribute on GitHub.">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link href="styles.css" rel="stylesheet">
@@ -118,20 +118,42 @@
     <section class="page-header bg-white">
         <div class="container">
             <div class="col-lg-8 mx-auto">
-                <h1 class="display-5 fw-bold mb-3">What the product does</h1>
-                <p class="lead">These are the workflows in the app today. The <a href="https://blog.dpi-apps.space/product-tour/">product tour</a> shows each screen.</p>
+                <h1 class="display-5 fw-bold mb-3">What you can run today</h1>
+                <p class="lead">Confidential AI Network is a contract-gated path from a published dataset to a training job and an audit record. The <a href="https://blog.dpi-apps.space/product-tour/">product tour</a> walks the screens. The sections below are the pieces a developer can open in the repo.</p>
             </div>
         </div>
     </section>
     <section class="py-5 bg-light">
         <div class="container">
             <div class="row g-4">
-                <div class="col-md-6"><div class="bg-white p-4 rounded h-100"><h2 class="h5 fw-bold">Catalog and contracts</h2><p class="text-muted mb-0">A provider publishes dataset metadata. A consumer creates a Ricardian contract against that dataset and a clean-room provider. Training waits until the contract is signed.</p></div></div>
-                <div class="col-md-6"><div class="bg-white p-4 rounded h-100"><h2 class="h5 fw-bold">Clean-room training</h2><p class="text-muted mb-0">Local training runs on this machine. Azure, Google Cloud, and Oracle jobs go to the cluster that provider already named. AWS does not start a training job.</p></div></div>
-                <div class="col-md-6"><div class="bg-white p-4 rounded h-100"><h2 class="h5 fw-bold">Differential privacy</h2><p class="text-muted mb-0">A contract can store an epsilon, a delta, and a budget cap. Training refuses an epsilon above that cap.</p></div></div>
-                <div class="col-md-6"><div class="bg-white p-4 rounded h-100"><h2 class="h5 fw-bold">Consent for personal data</h2><p class="text-muted mb-0">A provider can open an offer. Personal data is returned only after a signed consent artefact still verifies and has not expired or been withdrawn.</p></div></div>
-                <div class="col-md-6"><div class="bg-white p-4 rounded h-100"><h2 class="h5 fw-bold">Key release</h2><p class="text-muted mb-0">The API accepts a wrapped key and records the release time. It does not store the key bytes. The report stays simulated until a SEV-SNP quote verifies.</p></div></div>
-                <div class="col-md-6"><div class="bg-white p-4 rounded h-100"><h2 class="h5 fw-bold">Auditor</h2><p class="text-muted mb-0">An auditor opens a sealed Merkle tree for a contract and checks a leaf against that root. The seal is in this database.</p></div></div>
+                <div class="col-md-6"><div class="bg-white p-4 rounded h-100"><h2 class="h5 fw-bold">Ricardian contracts</h2><p class="text-muted">A contract binds legal text to the dataset, the model, the purpose, and the clean room. Training starts when the status is SIGNED. Templates live in the repo so a new contract type is a JSON change plus the UI that collects it.</p><a href="docs/user-guide.html">User guide</a></div></div>
+                <div class="col-md-6"><div class="bg-white p-4 rounded h-100"><h2 class="h5 fw-bold">Clean-room training</h2><p class="text-muted">Local mode is Docker, native PyTorch, or MLX. Azure, Google Cloud, and Oracle submit to the cluster already named on the contract and the provider card. AWS returns 501 and does not write a job. The runner code is under <code>training/</code>.</p><a href="dev/training-runtime.html">Training runtime</a></div></div>
+                <div class="col-md-6"><div class="bg-white p-4 rounded h-100"><h2 class="h5 fw-bold">DEPA /v1 gateway</h2><p class="text-muted">Port 8000 accepts the DEPA-shaped calls and forwards them to the CAN API. Contract creation, a differential-privacy budget, offers, consent, release, and provider listing are on that surface. The gateway is a façade, so a new DEPA route is a translation, not a second database.</p><a href="dev/depa-api.html">DEPA /v1 API</a></div></div>
+                <div class="col-md-6"><div class="bg-white p-4 rounded h-100"><h2 class="h5 fw-bold">Differential privacy budget</h2><p class="text-muted">A contract can store epsilon, delta, and a budget cap. The trainer rejects an epsilon above that cap. The Docker runner receives the cap. This is a control on the job, not a claim that every model on the platform is differentially private.</p><a href="docs/api-reference.html">API reference</a></div></div>
+                <div class="col-md-6"><div class="bg-white p-4 rounded h-100"><h2 class="h5 fw-bold">Consent for personal data</h2><p class="text-muted">A provider opens an offer. Personal data is returned only while the signed consent artefact still verifies and has not expired or been withdrawn. Ordinary responses omit that payload.</p><a href="docs/compliance-guide.html">Compliance</a></div></div>
+                <div class="col-md-6"><div class="bg-white p-4 rounded h-100"><h2 class="h5 fw-bold">Keys and signing</h2><p class="text-muted">Key release records the time and rejects raw key bytes. Signing keys stay in the database until <code>SIGNING_KEY_BACKEND</code> is <code>azure-keyvault</code> or <code>azure-mhsm</code>. That path creates the key in Key Vault and verifies before it accepts the signature.</p><a href="docs/security-guide.html">Security</a></div></div>
+                <div class="col-md-6"><div class="bg-white p-4 rounded h-100"><h2 class="h5 fw-bold">Auditor Merkle tree</h2><p class="text-muted">An auditor opens the sealed tree for a contract and checks a leaf against the published root. The proof is for lineage of that contract, the job, and the recorded evidence. It is not a statement that the model was fair or accurate.</p><a href="https://blog.dpi-apps.space/product-tour/">Product tour</a></div></div>
+                <div class="col-md-6"><div class="bg-white p-4 rounded h-100"><h2 class="h5 fw-bold">Deploy where you already have a cluster</h2><p class="text-muted">Local secrets stay in <code>secrets.env</code>. A cluster reads Key Vault, Secret Manager, Secrets Manager, or OCI Vault. The deployment hub lists every common setting and the extra inputs for each cloud. A missing kubeconfig fails the job.</p><a href="dev/deployment-guide.html">Deployment</a></div></div>
+            </div>
+        </div>
+    </section>
+
+    <section class="py-5 bg-white">
+        <div class="container">
+            <div class="row text-center mb-4">
+                <div class="col-lg-8 mx-auto">
+                    <h2 class="section-header">Where to contribute</h2>
+                    <p class="section-subheader">Pick a surface, run it, and send a change. Write to hello@dpi-apps.space if you want a place to start.</p>
+                </div>
+            </div>
+            <div class="row g-4">
+                <div class="col-md-4"><div class="bg-light p-4 rounded h-100"><h3 class="h5 fw-bold">Portal and API</h3><p class="text-muted mb-0">React on port 3000 and Express on port 5001. Role dashboards, contract signing, and the auditor view are the UI. Jest covers the API.</p></div></div>
+                <div class="col-md-4"><div class="bg-light p-4 rounded h-100"><h3 class="h5 fw-bold">Training and attestation</h3><p class="text-muted mb-0">Runners for local Docker, native, MLX, AKS, GKE, and OKE. The Azure guest-report collector fails when the node has no SEV-SNP interface. The job stays simulated until that report verifies.</p></div></div>
+                <div class="col-md-4"><div class="bg-light p-4 rounded h-100"><h3 class="h5 fw-bold">Identity and secrets</h3><p class="text-muted mb-0">Keycloak locally, Entra on Azure. External Secrets syncs Key Vault into the cluster and stays off until you install it. The secrets guide says which file is local and which store is for a cluster.</p></div></div>
+            </div>
+            <div class="text-center mt-4">
+                <a class="btn btn-primary btn-lg me-2" href="dev/getting-started.html">Quick start</a>
+                <a class="btn btn-outline-primary btn-lg" href="https://github.com/gitmujoshi/Confidential-AI-Network">GitHub</a>
             </div>
         </div>
     </section>
