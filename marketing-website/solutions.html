@@ -119,17 +119,17 @@
         <div class="container">
             <div class="col-lg-8 mx-auto">
                 <h1 class="display-5 fw-bold mb-3">Who does what</h1>
-                <p class="lead">Four parties share one contract. Healthcare, finance, and research teams use the same path. The app does not ship a dataset for those industries.</p>
+                <p class="lead">Four parties share one contract. A data provider is paid for the use they approve. A clean-room provider agrees that price when they sign, and runs the job on capacity they keep. A model owner keeps the model and a provenance record of how it was trained. Healthcare, finance, and research teams use the same path. The app does not ship a dataset for those industries.</p>
             </div>
         </div>
     </section>
     <section class="py-5 bg-light">
         <div class="container">
             <div class="row g-4">
-                <div class="col-md-6"><div class="bg-white p-4 rounded h-100"><h2 class="h5 fw-bold">Training Data Provider</h2><p class="text-muted mb-0">Publishes dataset metadata, reviews the contract, and signs before any training use.</p></div></div>
-                <div class="col-md-6"><div class="bg-white p-4 rounded h-100"><h2 class="h5 fw-bold">Training Data Consumer</h2><p class="text-muted mb-0">Selects a dataset and a provider, signs, and starts training on the signed contract.</p></div></div>
-                <div class="col-md-6"><div class="bg-white p-4 rounded h-100"><h2 class="h5 fw-bold">Clean-room provider</h2><p class="text-muted mb-0">Names the Local machine or the AKS, GKE, or OKE cluster they already run, including the kubeconfig path on their host.</p></div></div>
-                <div class="col-md-6"><div class="bg-white p-4 rounded h-100"><h2 class="h5 fw-bold">Auditor and administrator</h2><p class="text-muted mb-0">An auditor reviews the sealed record. An administrator manages users and system health.</p></div></div>
+                <div class="col-md-6"><div class="bg-white p-4 rounded h-100"><h2 class="h5 fw-bold">Training Data Provider</h2><p class="text-muted mb-0">Publishes a dataset with a price, reviews the contract, and signs before any training use. Their dashboard sums signed-contract value as revenue. The dataset stays with them. Consent and the privacy budget are the compliance record for that use.</p></div></div>
+                <div class="col-md-6"><div class="bg-white p-4 rounded h-100"><h2 class="h5 fw-bold">Training Data Consumer</h2><p class="text-muted mb-0">Selects a dataset and a clean room, sets the price and the terms, and starts training only after the contract is signed. The model key is not stored as raw bytes. The job leaves metrics, the artifact, and a provenance leaf the auditor can check.</p></div></div>
+                <div class="col-md-6"><div class="bg-white p-4 rounded h-100"><h2 class="h5 fw-bold">Clean-room provider</h2><p class="text-muted mb-0">A TSP or CCRP signs the price and runs the job on the Local machine or the AKS, GKE, or OKE cluster they already operate. The kubeconfig path stays on their host. They monetize that capacity without taking the dataset or the model key.</p></div></div>
+                <div class="col-md-6"><div class="bg-white p-4 rounded h-100"><h2 class="h5 fw-bold">Auditor and administrator</h2><p class="text-muted mb-0">An auditor reviews the sealed Merkle record, including the provenance leaf for the model. An administrator manages users and system health. That check is in this system.</p></div></div>
             </div>
             <p class="mt-4 mb-0"><a href="https://blog.dpi-apps.space/product-tour/">Open the product tour</a> to see the screens in order.</p>
         </div>

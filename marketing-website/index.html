@@ -126,7 +126,7 @@
                         </p>
                         <h1 class="hero-heading">Train AI Models on Confidential Data <span class="d-block">Without Compromising Privacy</span></h1>
                         <p class="hero-description">
-                            Confidential AI Network is the control plane for that job. A data provider publishes a dataset. A model owner writes a Ricardian contract that names the dataset, the purpose, and the clean-room provider. Training starts only after that contract is signed, on a cluster the provider already runs.
+                            Confidential AI Network is the control plane for that job. A data provider publishes a dataset. A model owner writes a Ricardian contract that names the dataset, the purpose, the price, and the clean-room provider. Training starts only after that contract is signed, on a cluster the provider already runs. The signed price is how the data provider is paid for a use they approve, and how the clean-room provider agrees to run that job. The dataset and the model stay with their owners.
                         </p>
                         <div class="mt-4 d-flex flex-wrap justify-content-center gap-2">
                             <a class="btn btn-primary btn-lg" href="dev/getting-started.html">Run it locally</a>
@@ -152,19 +152,19 @@
                 <div class="col-lg-3 col-md-6">
                     <div class="solution-card bg-light p-4 rounded-lg h-100">
                         <h5 class="fw-bold">Data provider</h5>
-                        <p class="text-muted mb-0">Publishes dataset metadata and files, then signs the contract that names that dataset. The catalog can stay metadata-only. Training then uses the built-in demo sets.</p>
+                        <p class="text-muted mb-0">Publishes a dataset with a price and signs only the uses they accept. Their dashboard sums that contract value as revenue. The dataset stays with them. Consent and the privacy budget are the compliance record for that use.</p>
                     </div>
                 </div>
                 <div class="col-lg-3 col-md-6">
                     <div class="solution-card bg-light p-4 rounded-lg h-100">
                         <h5 class="fw-bold">Model owner</h5>
-                        <p class="text-muted mb-0">Creates the contract from a template, picks the dataset and the model, signs, and starts the job. A finished job can be registered for inference.</p>
+                        <p class="text-muted mb-0">Pays the contract price to train on data they do not receive. Their model key is not stored as raw bytes. The finished job keeps metrics, the artifact, and a provenance leaf on that contract, so they can show which dataset and clean room produced the model.</p>
                     </div>
                 </div>
                 <div class="col-lg-3 col-md-6">
                     <div class="solution-card bg-light p-4 rounded-lg h-100">
                         <h5 class="fw-bold">Clean-room provider</h5>
-                        <p class="text-muted mb-0">Names the cluster they already operate and stores the kubeconfig path on their Cloud Provider card. The contract stores the cluster name. It does not store the kubeconfig.</p>
+                        <p class="text-muted mb-0">Signs the contract that names their cluster and the price, and runs the job on capacity they already operate. The kubeconfig stays on their Cloud Provider card. The dataset and the model key are not written onto the contract.</p>
                     </div>
                 </div>
                 <div class="col-lg-3 col-md-6">
@@ -189,7 +189,7 @@
                 <div class="col-lg-4">
                     <div class="solution-card bg-white p-4 rounded-lg h-100">
                         <h5 class="fw-bold">1. Agree</h5>
-                        <p class="text-muted mb-0">The contract is both the legal text and the machine record: dataset, model, purpose, differential-privacy budget when one is set, and the clean room that will run the job.</p>
+                        <p class="text-muted mb-0">The contract is the legal text, the price, and the machine record: dataset, model, purpose, duration, differential-privacy budget when one is set, and the clean room that will run the job.</p>
                     </div>
                 </div>
                 <div class="col-lg-4">
@@ -264,8 +264,8 @@
                     <p class="text-muted">Dataset and model key release records the time. The API rejects raw key bytes. Azure attested release returns an encrypted blob and does not decrypt it in the API process.</p>
                 </div>
                 <div class="col-md-4">
-                    <h5 class="fw-bold">Audit</h5>
-                    <p class="text-muted">An auditor checks a sealed Merkle root in this system. That check is not a filing with an external records office.</p>
+                    <h5 class="fw-bold">Provenance</h5>
+                    <p class="text-muted">The model owner can point at this contract for the job, the artifact, and a Merkle leaf. An auditor checks that leaf against the sealed root. The check lives in this system.</p>
                 </div>
             </div>
         </div>
