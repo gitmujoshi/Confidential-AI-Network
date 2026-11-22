@@ -1,5 +1,8 @@
 # Test Suite Update Summary
 
+**Archived test-suite note. Current testing docs are [the testing guide](../../development/TESTING_GUIDE.md).**
+
+
 ## 📋 **Current Status**
 
 **✅ Test Suite Updated for Multi-TDP Functionality**

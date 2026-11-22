@@ -1,5 +1,8 @@
 # Role-Based Dashboard Implementation Summary
 
+**Archived. Role guides are [the role user guides](../../guides/role-user-guides/README.md).**
+
+
 ## Overview
 Successfully implemented a comprehensive role-based dashboard system that provides tailored interfaces for each user type in the Contract Management System.
 

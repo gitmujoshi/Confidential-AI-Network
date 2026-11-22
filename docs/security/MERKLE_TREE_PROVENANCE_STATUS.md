@@ -296,21 +296,8 @@ class ProvenanceService {
 
 ---
 
-## 🎯 **Summary**
+## Summary
 
-**Merkle Tree Provenance is fully designed and architecturally integrated but not yet implemented.** The system is ready for implementation with:
+Auditor Merkle verification is implemented. The auditor can open a contract audit tree and verify a proof. Legacy in-memory provenance routes stay disabled. Cross-cloud replication of the Merkle root is not generally available.
 
-- ✅ **Complete Architecture Design** - Provenance integrated with SCITT CCF
-- ✅ **Database Schema** - All tables and relationships defined
-- ✅ **Service Layer Design** - Provenance services architected
-- ✅ **Integration Plan** - Clear roadmap for implementation
-- 🚧 **Implementation Pending** - No actual code written yet
-
-The integration will provide **comprehensive provenance tracking** with **cryptographic verification** and **immutable storage** through SCITT CCF, creating a **world-class audit trail** for regulatory compliance and model governance.
-
----
-
-**Last Updated**: 2025-01-08  
-**Version**: 2.0.0 - Design Complete  
-**Status**: 🚧 Implementation Pending  
-**Next Milestone**: Database Schema Creation
+**Last updated**: 2026-11-22

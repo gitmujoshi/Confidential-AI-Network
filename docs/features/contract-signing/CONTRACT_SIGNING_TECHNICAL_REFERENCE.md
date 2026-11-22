@@ -580,9 +580,8 @@ grep ERROR logs/application.log
 ## 📚 Additional Resources
 
 ### **Detailed Documentation**
-- **Implementation Plan**: `CONTRACT_SIGNING_IMPLEMENTATION_PLAN.md`
-- **Strategy Document**: `CONTRACT_SIGNING_STRATEGY.md`
-- **Architecture Guide**: `contract-signing-architecture.md`
+- **Overview**: [CONTRACT_SIGNING_OVERVIEW.md](CONTRACT_SIGNING_OVERVIEW.md)
+- **User guide**: [CONTRACT_SIGNING_USER_GUIDE.md](CONTRACT_SIGNING_USER_GUIDE.md)
 - **SCITT CCF Integration**: `CONTRACT_SIGNING_SCITT_INTEGRATION.md`
 
 ### **API Documentation**

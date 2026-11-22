@@ -1,5 +1,5 @@
 # Moved
 
-This document moved to **[docs/operational/SCRIPT_CONSOLIDATION_SUMMARY.md](docs/operational/SCRIPT_CONSOLIDATION_SUMMARY.md)** (historical changelog).
+This document is archived at **[../operational-analysis/SCRIPT_CONSOLIDATION_SUMMARY.md](../operational-analysis/SCRIPT_CONSOLIDATION_SUMMARY.md)**. The current script list is [operational/QUICK_SCRIPT_REFERENCE.md](../../operational/QUICK_SCRIPT_REFERENCE.md).
 
 See [docs/README.md](docs/README.md) for the full documentation index.

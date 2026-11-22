@@ -1,5 +1,8 @@
 # 📋 Current vs Outdated Scripts Analysis
 
+**Archived script census. The current list is [the script reference](../../operational/QUICK_SCRIPT_REFERENCE.md).**
+
+
 ## 🎯 Overview
 
 This document identifies which setup/deployment scripts are **current and recommended** vs **outdated and should be ignored** in the Contract Management System.

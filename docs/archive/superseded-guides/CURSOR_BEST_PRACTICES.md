@@ -1,5 +1,8 @@
 # 🚀 Cursor Best Practices for Iterative Development
 
+**Archived editor notes. Product setup is [the deployment hub](../../deployment/README.md).**
+
+
 ## 🎯 **Overview**
 
 This document outlines best practices for using Cursor to build complex projects (like the Contract Management System) in an iterative manner without regressions. These practices help prevent the recurring authentication issues and other common problems.

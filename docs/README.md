@@ -9,6 +9,7 @@
 | Goal | Doc |
 |------|-----|
 | Run the stack locally | [getting-started/QUICK_START.md](getting-started/QUICK_START.md) |
+| Deploy to any environment | [deployment/README.md](deployment/README.md) |
 | Full local setup | [getting-started/SETUP.md](getting-started/SETUP.md) |
 | Stakeholder demo (contract → train) | [training/LOCAL_DEMO_RUNBOOK.md](training/LOCAL_DEMO_RUNBOOK.md) |
 | CAN JCS MVP (API) | [features/can/CAN_QUICKSTART.md](features/can/CAN_QUICKSTART.md) |
@@ -104,7 +105,7 @@ docs/
 ├── security/          IAM, keys, provenance crypto
 ├── compliance/        NIST/CIS/OWASP mapping, DPDP Act implementation
 ├── blogs/             GitHub Pages site (vision, product tour, security notes)
-├── deployment/        OCI/Azure readiness + IAM edge
+├── deployment/        deploy hub, then per-cloud readiness and IAM
 ├── production/        runbooks, SIEM, security architectures
 ├── development/       local env, testing
 ├── testing/           QA plans
@@ -123,4 +124,4 @@ Superseded indexes, root stubs, conversion exports, and old implementation summa
 
 When updating docs: edit the canonical file, link from this home page, follow [DOC_STYLE.md](DOC_STYLE.md).
 
-**Last updated:** 2026-07-28
+**Last updated:** 2026-11-22

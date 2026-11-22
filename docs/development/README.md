@@ -16,8 +16,8 @@ This directory contains comprehensive documentation for developers who need to e
 ### **Quick Start for Developers**
 ```bash
 # Clone and setup
-git clone https://github.com/gitmujoshi/ContractManagement.git
-cd ContractManagement
+git clone https://github.com/gitmujoshi/Confidential-AI-Network.git
+cd Confidential-AI-Network
 
 # Start development environment
 ./scripts/dev-start.sh
@@ -42,7 +42,7 @@ npm test
 
 ### **Project Structure**
 ```
-ContractManagement/
+Confidential-AI-Network/
 ├── backend/                    # Backend API services
 │   ├── controllers/           # API controllers
 │   ├── models/               # Database models

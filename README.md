@@ -68,7 +68,7 @@ Details: [gateway/README.md](gateway/README.md).
 | **CCRP** | Host compliant environments, monitor jobs | [User guide](docs/USER_GUIDE.md) · [CCRP training](docs/training/README.md) |
 | **AppAdmin** | Users, health, audit | [Admin guide](docs/ADMIN_GUIDE.md) |
 | **Auditor** | Read-only contracts + Merkle audit trees | [Auditor role](docs/features/AUDITOR_ROLE.md) |
-| **Platform / SRE** | Deploy and operate in cloud | [Production docs](docs/production/README.md) |
+| **Platform / SRE** | Deploy and operate in cloud | [Deployment hub](docs/deployment/README.md) · [Production docs](docs/production/README.md) |
 | **Security / GRC** | Controls and evidence | [Security](docs/production/README.md) · [SIEM](docs/production/SIEM_INTEGRATION_FRAMEWORK.md) · [G-MASE](https://gitmujoshi.github.io/Confidential-AI-Network/security/2026/08/14/gmase-deep-dive/) · [CompliancePulse](https://gitmujoshi.github.io/Confidential-AI-Network/security/2026/08/14/compliancepulse-ai-deep-dive/) |
 | **Developers** | Extend APIs and integrations | [Developer guide](docs/DEVELOPER_GUIDE.md) |
 
@@ -121,6 +121,7 @@ Full index: **[docs/README.md](docs/README.md)**
 
 | I want to… | Document |
 |------------|----------|
+| Deploy to local, Azure, GCP, AWS, or OCI | [Deployment hub](docs/deployment/README.md) |
 | Run locally | [Quick start](docs/getting-started/QUICK_START.md) |
 | Fix setup / auth | [Troubleshooting](docs/getting-started/TROUBLESHOOTING.md) · `./fix-auth.sh` |
 | Demo to stakeholders | [Local demo runbook](docs/training/LOCAL_DEMO_RUNBOOK.md) |
@@ -162,7 +163,7 @@ Full index: **[docs/README.md](docs/README.md)**
 | OCI IAM, WAF, API Gateway | [OCI_IAM_AND_EDGE_CONFIG.md](docs/deployment/OCI_IAM_AND_EDGE_CONFIG.md) |
 | Azure IAM, Front Door, APIM | [AZURE_IAM_AND_EDGE_CONFIG.md](docs/deployment/AZURE_IAM_AND_EDGE_CONFIG.md) |
 | OCI / Azure readiness | [OCI_READINESS.md](docs/deployment/OCI_READINESS.md) · [AZURE_READINESS.md](docs/deployment/AZURE_READINESS.md) |
-| Deployment scripts & Terraform | [deployment/README.md](docs/deployment/README.md) |
+| Deployment hub (env files, each target) | [deployment/README.md](docs/deployment/README.md) |
 | SIEM integration | [SIEM_INTEGRATION_FRAMEWORK.md](docs/production/SIEM_INTEGRATION_FRAMEWORK.md) |
 
 ### Testing
@@ -192,7 +193,7 @@ npm run test:login
 ./fix-auth.sh
 ```
 
-**Configuration:** copy `config/examples/` env files to repo root (`config.env`, `.env`, `secrets.env`) — see [Developer guide](docs/DEVELOPER_GUIDE.md).
+**Configuration:** copy `config/examples/config.env.example` to `config.env` and `secrets.env.example` to `secrets.env`. Every parameter and each environment’s extra inputs are in the [deployment hub](docs/deployment/README.md).
 
 **Repository layout**
 

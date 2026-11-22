@@ -139,7 +139,7 @@ permalink: /notes/
     <ol class="post-list ordered">
       <li>
         <a href="{% post_url 2026-08-17-can-contract-management-signing %}">Contract management in CAN — party signing keys, sign gates, and verification</a>
-        <p class="meta">August 17, 2026 · UserKey · authz vs crypto verify · Key Vault target</p>
+        <p class="meta">August 17, 2026 · UserKey · database signing by default · Key Vault when enabled</p>
       </li>
       <li>
         <a href="{% post_url 2026-08-16-ricardian-contracts-in-can %}">Ricardian contracts in CAN — legal prose the runtime can enforce</a>

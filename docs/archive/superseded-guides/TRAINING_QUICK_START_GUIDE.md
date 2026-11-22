@@ -1,4 +1,8 @@
-# 🚀 Training Environment Quick Start Guide
+# Training Environment Quick Start Guide
+
+**Archived.** This sketch pastes stub services and a second router onto the server. Use [the local demo runbook](../../training/LOCAL_DEMO_RUNBOOK.md) to run a training demo and [the TDC training runtime](../../training/TDC_TRAINING_RUNTIME.md) for the API. Start the stack with `./start-system.sh`.
+
+
 
 ## 📋 Overview
 
@@ -23,7 +27,8 @@ cd ContractManagement
 npm install
 
 # Setup environment variables
-cp config.env.example config.env
+cp config/examples/config.env.example config.env
+cp secrets.env.example secrets.env
 # Edit config.env with your cloud provider credentials
 ```
 
@@ -723,7 +728,7 @@ tail -f logs/database.log
 
 ## 📚 Additional Resources
 
-- **Full Implementation Plan**: `docs/implementation/MODEL_TRAINING_IMPLEMENTATION_PLAN.md`
+- **Full Implementation Plan**: [MODEL_TRAINING_IMPLEMENTATION_PLAN.md](MODEL_TRAINING_IMPLEMENTATION_PLAN.md)
 - **TEE Integration Guide**: `docs/architecture/KMS_TRAINING_ENVIRONMENT_ARCHITECTURE.md`
 - **API Reference**: `docs/API_REFERENCE.md`
 - **Security Guide**: `docs/SECURITY_GUIDE.md`

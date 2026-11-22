@@ -525,9 +525,9 @@ CCRP provisions TEE (Azure confidential VM / confidential container)
 
 | Concern | Portal today | Azure production target |
 |---------|--------------|-------------------------|
-| Generate | `/api/signing/keys/generate` (ECDSA-P256 / RSA) | Generate in **Key Vault** (or MHSM); store only key id + public material in app DB |
-| Custody | `UserKey.privateKey` on DB row | Private key **never** leaves HSM; sign via Key Vault crypto ops or confidential sidecar |
-| Use at sign | UI sends hash/placeholder; backend records signature + optional `did` | Client or backend calls Key Vault **sign**; verify with public key / DID document |
+| Generate | `/api/signing/keys/generate` stores an ECDSA-P256 or RSA key in the database. `SIGNING_KEY_BACKEND=azure-keyvault` or `azure-mhsm` creates an EC P-256 key in Key Vault and stores the public key and key id | Same Key Vault path, turned on for the environment |
+| Custody | The database holds the private key unless the signing backend is Azure Key Vault. The vault path stores no private key | Private key stays in Key Vault |
+| Use at sign | The database path records the signature. The vault path signs in Key Vault and verifies before the signature is accepted | Require vault signing in production by setting `SIGNING_KEY_BACKEND` |
 | DID verify | `verifyDIDSignature` helper exists; **not wired** into sign route | Enforce verify when `did` present; fail closed in prod |
 | Audit | SCITT claim best-effort | Required SCITT receipt + Sentinel alert on verify failure |
 

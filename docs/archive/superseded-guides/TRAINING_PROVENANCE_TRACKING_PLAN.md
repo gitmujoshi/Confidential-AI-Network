@@ -1,5 +1,8 @@
 # 🔍 Training Provenance Tracking Implementation Plan
 
+**Archived. Current status is [Merkle provenance](../../security/MERKLE_TREE_PROVENANCE_STATUS.md).**
+
+
 ## 📋 Executive Summary
 
 This document extends the Model Training Implementation Plan with comprehensive provenance tracking using Merkle trees and verification mechanisms. Provenance tracking ensures complete auditability of AI model training processes, data lineage, and code execution in regulated environments.

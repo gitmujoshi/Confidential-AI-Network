@@ -1,5 +1,8 @@
 # Environment Variable Validation Report
 
+**Archived change log. Current parameters are [the deployment hub](../../deployment/README.md).**
+
+
 ## 🎯 Overview
 
 This document summarizes the comprehensive validation and fixes applied to ensure all services use only environment variables from `config.env` and `secrets.env` without hardcoded defaults.

@@ -25,11 +25,12 @@ This guide provides step-by-step instructions for setting up a complete local de
 ### **Option 1: Docker Compose (Recommended)**
 ```bash
 # Clone repository
-git clone https://github.com/gitmujoshi/ContractManagement.git
-cd ContractManagement
+git clone https://github.com/gitmujoshi/Confidential-AI-Network.git
+cd Confidential-AI-Network
 
 # Copy environment file
-cp config.env.example config.local.env
+cp config/examples/config.env.example config.env
+cp secrets.env.example secrets.env
 
 # Start all services
 docker-compose -f docker-compose.dev.yml up -d
@@ -46,15 +47,16 @@ docker-compose logs -f
 ### **Option 2: Manual Setup**
 ```bash
 # Clone repository
-git clone https://github.com/gitmujoshi/ContractManagement.git
-cd ContractManagement
+git clone https://github.com/gitmujoshi/Confidential-AI-Network.git
+cd Confidential-AI-Network
 
 # Install dependencies
 npm install
 
 # Setup environment
-cp config.env.example config.local.env
-# Edit config.local.env with your settings
+cp config/examples/config.env.example config.env
+cp secrets.env.example secrets.env
+# Edit config.env with your settings
 
 # Start services
 ./scripts/dev-start.sh
@@ -67,15 +69,16 @@ cp config.env.example config.local.env
 #### **1.1 Create Local Environment File**
 ```bash
 # Copy example environment file
-cp config.env.example config.local.env
+cp config/examples/config.env.example config.env
+cp secrets.env.example secrets.env
 
 # Edit with your local settings
-nano config.local.env
+nano config.env
 ```
 
 #### **1.2 Environment Variables**
 ```bash
-# config.local.env
+# config.env
 NODE_ENV=development
 TEE_MODE=local
 

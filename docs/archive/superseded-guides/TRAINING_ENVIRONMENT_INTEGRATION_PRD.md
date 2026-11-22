@@ -1,5 +1,8 @@
 # 📋 **Product Requirements Document (PRD): Training Environment Integration**
 
+**Archived. The running surface is [the TDC training runtime](../../training/TDC_TRAINING_RUNTIME.md).**
+
+
 ## 🎯 **Executive Summary**
 
 This PRD outlines the integration of automated training environment provisioning and execution within the existing Contract Management System. The solution leverages Terraform for infrastructure as code, enabling secure, reproducible training environments across multiple cloud providers.

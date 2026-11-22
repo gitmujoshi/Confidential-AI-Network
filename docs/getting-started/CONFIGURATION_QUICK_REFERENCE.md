@@ -1,4 +1,8 @@
-# Configuration Management - Quick Reference
+# Configuration quick reference
+
+The parameter list, required values, and per-environment steps are in [the deployment hub](../deployment/README.md).
+
+Edit `config.env` and `secrets.env` at the repository root. Copy them from `config/examples/config.env.example` and `secrets.env.example`.
 
 ## 🎯 **Single Source of Truth**
 

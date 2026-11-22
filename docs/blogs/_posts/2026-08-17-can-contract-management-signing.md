@@ -5,7 +5,7 @@ date: 2026-08-17
 categories: [product, security]
 tags: [can, contracts, signing, keys, ricardian, verification, key-vault, depa]
 permalink: /product/2026/08/17/can-contract-management-signing/
-excerpt: "How Confidential AI Network manages Ricardian contracts end to end: party signing keys, multi-party sign gates, what is cryptographically verified today versus the Key Vault / DID target, and how that differs from DEK/MEK."
+excerpt: "How Confidential AI Network manages Ricardian contracts end to end: party signing keys, multi-party sign gates, database signing by default, and Key Vault signing when that backend is turned on."
 canonical: docs/features/contract-signing/CONTRACT_SIGNING_TECHNICAL_REFERENCE.md
 ---
 
@@ -13,7 +13,7 @@ canonical: docs/features/contract-signing/CONTRACT_SIGNING_TECHNICAL_REFERENCE.m
 
 **Related:** [Ricardian contracts]({% post_url 2026-08-16-ricardian-contracts-in-can %}) · [Contract → prediction]({% post_url 2026-08-14-can-contract-to-prediction %}) · [KMS DEK/MEK]({% post_url 2026-08-16-can-kms-dek-mek-escrow %}) · [Azure CC / Key Vault]({% post_url 2026-08-17-azure-confidential-computing-deep-dive %}) · [Merkle / Auditor]({% post_url 2026-08-16-merkle-trees-model-audit %}) · [Product tour]({{ '/product-tour/' | relative_url }}) · In-repo: [CONTRACT_SIGNING_TECHNICAL_REFERENCE.md](https://github.com/gitmujoshi/Confidential-AI-Network/blob/main/docs/features/contract-signing/CONTRACT_SIGNING_TECHNICAL_REFERENCE.md) · [CONTRACT_SIGNING_USER_GUIDE.md](https://github.com/gitmujoshi/Confidential-AI-Network/blob/main/docs/features/contract-signing/CONTRACT_SIGNING_USER_GUIDE.md)
 
-> **Status:** Sign authorization (who may set `tdpSigned` / `tspSigned` and reach `SIGNED`) is **live**. Cryptographic verification against HSM-backed keys is **target** (`SIGNING_REQUIRE_CRYPTO_VERIFY` / Key Vault). Contract Detail often submits a hash or placeholder as `signature`. Party **signing keys** are distinct from DEK/MEK.
+> **Status:** Sign authorization (who may set `tdpSigned` / `tspSigned` and reach `SIGNED`) is **live**. The default signing backend is the database. `SIGNING_KEY_BACKEND=azure-keyvault` or `azure-mhsm` creates an EC P-256 key in Key Vault, stores the public key and key id only, and verifies the signature before it is accepted. Party **signing keys** are distinct from DEK/MEK.
 
 ---
 
@@ -21,7 +21,7 @@ canonical: docs/features/contract-signing/CONTRACT_SIGNING_TECHNICAL_REFERENCE.m
 
 | Key class | Purpose | Owner | Lives where (target) |
 | --- | --- | --- | --- |
-| **Party signing key** | Bind a human/org to the Ricardian agreement | Each party (TDC / TDP / TSP) | Key Vault / MHSM (or client wallet); public material in app |
+| **Party signing key** | Bind a human/org to the Ricardian agreement | Each party (TDC / TDP / TSP) | Database by default. Key Vault or Managed HSM when `SIGNING_KEY_BACKEND` is set; the app then stores the public key and key id |
 | **DEK** | Encrypt dataset ciphertext | **TDP** | Customer vault / HSM → TEE only after attestation |
 | **MEK** | Encrypt base model ciphertext | **TDC** | Same pattern |
 
@@ -93,7 +93,7 @@ On the primary UI path (`ContractDetail`):
 5. Appends entry to `legalDocument.signatures[]`, sets `tdpSigned` / `tspSigned`, advances status.  
 6. Best-effort SCITT `contract_approval` claim.
 
-So today the gate that matters for training is: **authenticated party allowed to sign + status machine**. It is **not** yet “ECDSA verify over `legalDocumentHash` with Key Vault key, fail closed.”
+The gate that starts training is still **an authenticated party allowed to sign, and status `SIGNED`**. With the Azure signing backend, the API also verifies the Key Vault signature before it accepts the signature.
 
 ### 3.3 Richer signing surfaces (partial)
 
@@ -128,16 +128,18 @@ Authenticated user
 | Role / linkage authz on `POST …/sign` | **Met** |
 | Persist signature blob + metadata | **Met** (in `legalDocument.signatures`) |
 | `verifyDIDSignature` helper (`didService.verifySignature`) | **Exists** — **not wired** into the main sign route |
-| `SIGNING_REQUIRE_CRYPTO_VERIFY` / `SIGNING_REQUIRE_DID_VERIFY` | Documented for prod; examples often `false` until Key Vault signing ships |
+| `SIGNING_KEY_BACKEND` | `database` by default. `azure-keyvault` or `azure-mhsm` signs in Key Vault and verifies before accept |
 | Independent re-verify of all signatures before train | **Not** the hard gate today — **status** is |
 
-### 5.2 Target (Azure / enterprise)
+### 5.2 Azure signing backend
+
+This path is implemented and stays off until `SIGNING_KEY_BACKEND` is `azure-keyvault` or `azure-mhsm`.
 
 | Step | Behavior |
 | --- | --- |
-| Generate | Create ECDSA/RSA key in **Key Vault / Managed HSM**; app DB stores **key id + public only** |
-| Sign | Client or backend calls Key Vault **sign** over a stable message (ideally digest of `legalDocumentHash` + party + nonce) |
-| Verify | On `POST …/sign` (and optionally at train start): verify signature with public key / DID document; fail closed if flags on |
+| Generate | Create an EC P-256 key in **Key Vault / Managed HSM**; the app stores the **key id and public key** |
+| Sign | The API calls Key Vault **sign** and verifies the signature before it is stored |
+| Verify | A failed verification is rejected |
 | Audit | SCITT claim + Merkle contract leaf include hash + signature metadata |
 
 Naming pattern (Azure): `can-{env}-user-sign-{depaId}` — see [Azure security architecture §16.4](https://github.com/gitmujoshi/Confidential-AI-Network/blob/main/docs/production/AZURE_SECURITY_ARCHITECTURE.md).
@@ -152,11 +154,10 @@ sequenceDiagram
 
   Party->>UI: Approve terms
   UI->>CAN: GET signing-data (message / hash)
-  UI->>KV: Sign digest (target)
-  KV-->>UI: Signature
   UI->>CAN: POST sign (signature, partyType, keyId/did)
+  CAN->>KV: Sign and verify when the Azure backend is on
+  KV-->>CAN: Signature
   CAN->>CAN: Authz gate
-  CAN->>CAN: Crypto verify (target / flag)
   CAN->>DB: signatures[] + status
   CAN-->>UI: SIGNED or next pending
 ```
@@ -171,7 +172,7 @@ sequenceDiagram
 | What exact legal bytes? | `legalDocumentHash` |
 | Who recorded approval? | `legalDocument.signatures[]` + SCITT `contract_approval` |
 | Is the hash in the audit tree? | Auditor **Verify** = Merkle **inclusion** under published root — not “model was ethical” ([Merkle post]({% post_url 2026-08-16-merkle-trees-model-audit %})) |
-| Was the ECDSA/DID signature valid? | **Target** crypto verify; Phase 1 UI is authz-gated |
+| Was the ECDSA signature valid? | Verified when the Azure signing backend is on. The default database path records the signature after the authorization check |
 
 ---
 
@@ -184,7 +185,7 @@ sequenceDiagram
 | Party keys in `UserKey` | Live (public / partial private) | Key id + public only |
 | Private key in Postgres | Gap / demo risk | **Forbidden** — HSM only |
 | WebCrypto / DID verify on sign | Partial / not main UI | Required when claimed |
-| Key Vault sign ops | Design | Required |
+| Key Vault sign ops | Off unless `SIGNING_KEY_BACKEND` is set | On for production |
 | Train gated on SIGNED | Live | Live |
 | DEK/MEK escrow | Separate path | Separate path + SKR |
 
@@ -206,8 +207,8 @@ sequenceDiagram
 
 1. **Party signing keys** prove agreement; **DEK/MEK** unlock clean-room plaintext — different custody.  
 2. **Contract management** is a state machine: create → TDP → TSP → **SIGNED** → train/infer/audit.  
-3. **Today** the hard gate is **authenticated authorization + status**; stored “signatures” may be hashes/placeholders on the main UI path.  
-4. **Target** is HSM/Key Vault sign + verify-on-submit (and optional verify-on-train), with public keys / DIDs in the app.  
-5. Auditors verify **lineage under Merkle** and read the Ricardian; they do not get cryptographic signature verification until verify flags and Key Vault signing are enabled.
+3. **The hard gate for training** is **authenticated authorization and status `SIGNED`**.  
+4. **Key Vault signing** is implemented. It stays off until `SIGNING_KEY_BACKEND` is `azure-keyvault` or `azure-mhsm`, and then the private key is not stored in the database.  
+5. Auditors verify **lineage under Merkle** and read the Ricardian. That check is separate from the signing backend.
 
-**One sentence:** CAN manages contracts as enforceable lifecycle state; party signing keys should live in Key Vault/HSM and be verified on sign—while today’s demos correctly gate training on who is allowed to mark the contract **SIGNED**.
+**One sentence:** CAN manages contracts as lifecycle state, gates training on who may mark a contract **SIGNED**, and can sign that approval in Key Vault when the Azure signing backend is turned on.

@@ -9,16 +9,16 @@ Active design / engineering notes. Prefer product hubs under `features/` and `gu
 | [BACKEND_SERVICES_DOCUMENTATION.md](BACKEND_SERVICES_DOCUMENTATION.md) | Backend service map |
 | [FRONTEND_COMPONENTS_DOCUMENTATION.md](FRONTEND_COMPONENTS_DOCUMENTATION.md) | Frontend component map |
 | [CLOUD_PROVIDER_IMPLEMENTATION.md](CLOUD_PROVIDER_IMPLEMENTATION.md) | CCRP cloud provider fields |
-| [SCITT_CCF_INTEGRATION_STATUS.md](SCITT_CCF_INTEGRATION_STATUS.md) | SCITT status snapshot |
 | [CONTRACT_MANAGEMENT_SYSTEM_PRD.md](CONTRACT_MANAGEMENT_SYSTEM_PRD.md) | Product requirements |
-| [TRAINING_ENVIRONMENT_INTEGRATION_PRD.md](TRAINING_ENVIRONMENT_INTEGRATION_PRD.md) | Training env PRD |
-| [MODEL_TRAINING_IMPLEMENTATION_PLAN.md](MODEL_TRAINING_IMPLEMENTATION_PLAN.md) | Training plan |
-| [TRAINING_PROVENANCE_TRACKING_PLAN.md](TRAINING_PROVENANCE_TRACKING_PLAN.md) | Provenance plan |
-| [SCITT_CCF_MIGRATION_DESIGN.md](SCITT_CCF_MIGRATION_DESIGN.md) | SCITT migration design |
-| [TRAINING_QUICK_START_GUIDE.md](TRAINING_QUICK_START_GUIDE.md) | Eng training quick start (also see [../training/LOCAL_DEMO_RUNBOOK.md](../training/LOCAL_DEMO_RUNBOOK.md)) |
+
+Run a training demo from [../training/LOCAL_DEMO_RUNBOOK.md](../training/LOCAL_DEMO_RUNBOOK.md). The API is [../training/TDC_TRAINING_RUNTIME.md](../training/TDC_TRAINING_RUNTIME.md). SCITT docs are [../features/scitt/SCITT_CCF_ARCHITECTURE.md](../features/scitt/SCITT_CCF_ARCHITECTURE.md).
 
 ## Archived from this folder
 
 Dated status dumps and duplicate signing write-ups: [../archive/implementation-status/](../archive/implementation-status/).
+
+Training plans, the training-environment PRD, and the SCITT migration design: [../archive/superseded-guides/](../archive/superseded-guides/).
+
+The early training quick-start sketch is [../archive/superseded-guides/TRAINING_QUICK_START_GUIDE.md](../archive/superseded-guides/TRAINING_QUICK_START_GUIDE.md).
 
 ← [Documentation home](../README.md)

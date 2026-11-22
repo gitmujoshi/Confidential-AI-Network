@@ -1,5 +1,5 @@
 # Moved
 
-Contract signing architecture moved to **[features/contract-signing/contract-signing-architecture.md](features/contract-signing/contract-signing-architecture.md)**.
+Contract signing architecture is archived at **[../contract-signing/contract-signing-architecture.md](../contract-signing/contract-signing-architecture.md)**. Current signing docs are [features/contract-signing/CONTRACT_SIGNING_INDEX.md](../../features/contract-signing/CONTRACT_SIGNING_INDEX.md).
 
 See the [documentation index](README.md) for the full map.

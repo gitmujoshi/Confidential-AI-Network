@@ -15,6 +15,7 @@ module.exports = {
     '<rootDir>/tests/unit/dataset-ingest-gate.test.js',
     '<rootDir>/tests/unit/training-execution-router.test.js',
     '<rootDir>/tests/unit/azure-kms.test.js',
+    '<rootDir>/tests/unit/deployment-env-catalog.test.js',
     '<rootDir>/tests/unit/inference-ccr-runner.test.js',
     '<rootDir>/tests/unit/inference-deploy-target.test.js',
     '<rootDir>/tests/unit/depa-prd-pieces.test.js',

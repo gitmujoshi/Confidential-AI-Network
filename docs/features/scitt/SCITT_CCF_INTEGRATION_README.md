@@ -247,9 +247,8 @@ CREATE TABLE IF NOT EXISTS scitt_claims (
 
 1. **Clone the repository**
    ```bash
-   git clone <repository-url>
-   cd ContractManagement
-   git checkout feature/scitt-ccf-migration
+   git clone https://github.com/gitmujoshi/Confidential-AI-Network.git
+   cd Confidential-AI-Network
    ```
 
 2. **Install dependencies**
@@ -259,7 +258,8 @@ CREATE TABLE IF NOT EXISTS scitt_claims (
 
 3. **Set up environment**
    ```bash
-   cp config.env.example config.env
+   cp config/examples/config.env.example config.env
+   cp secrets.env.example secrets.env
    # Edit config.env with your configuration
    ```
 
@@ -306,7 +306,8 @@ export PLATFORM=virtual  # For development
 
 ```bash
 # Copy environment configuration
-cp config.env.example config.env
+cp config/examples/config.env.example config.env
+cp secrets.env.example secrets.env
 
 # Edit configuration
 nano config.env

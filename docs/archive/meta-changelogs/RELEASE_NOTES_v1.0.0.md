@@ -1,5 +1,8 @@
 # 🚀 Baseline Release v1.0.0
 
+**Archived release note. Current docs start at [the documentation home](../../README.md).**
+
+
 This release marks the **first stable, production-ready baseline** for the Contract Management System. It includes all core features, infrastructure, and documentation required to set up, run, and extend the platform.
 
 ---

@@ -77,7 +77,10 @@
 <p>There is no separate SDK. Clone the repository and start the stack.</p>
 <pre class="bg-light p-3 rounded"><code>git clone https://github.com/gitmujoshi/Confidential-AI-Network.git
 cd Confidential-AI-Network
+cp config/examples/config.env.example config.env
+cp secrets.env.example secrets.env
 ./start-system.sh</code></pre>
+<p>Every setting, and the extra inputs for Azure, Google Cloud, AWS, and OCI, are on the <a href="deployment-guide.html">deployment page</a>. Confirm <code>http://localhost:5001/health</code>.</p>
 <ul>
 <li>Portal: <code>http://localhost:3000</code></li>
 <li>API: <code>http://localhost:5001</code></li>

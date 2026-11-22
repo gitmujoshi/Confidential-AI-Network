@@ -40,7 +40,7 @@ Use the **current, recommended scripts** instead of outdated ones:
 ./scripts/fix-ssl-inconsistencies.sh # Fix SSL configuration issues
 
 # ✅ CURRENT - Centralized configuration (NEW)
-./scripts/config-loader.js           # Load from config/system.env
+./scripts/config-loader.js           # Load from config.env
 ```
 
 ### **❌ OUTDATED Scripts (Don't Use These)**
@@ -60,7 +60,7 @@ Use the **current, recommended scripts** instead of outdated ones:
 ### **🔧 Configuration Management**
 ```bash
 # ✅ CURRENT - Use centralized configuration
-./scripts/config-loader.js           # Load from config/system.env
+./scripts/config-loader.js           # Load from config.env
 
 # ✅ CURRENT - Clean up outdated scripts
 ./scripts/cleanup-outdated-scripts.sh # Remove outdated files
@@ -105,7 +105,7 @@ curl -X POST http://localhost:5001/api/auth/login \
 
 ### Backend Configuration
 - **URL**: http://localhost:5001
-- **Environment File**: `config/system.env` (NEW centralized config)
+- **Environment File**: `config.env` (NEW centralized config)
 - **Keycloak Client ID**: `contract-management-frontend`
 - **Keycloak Client Secret**: (empty - public client)
 
@@ -182,7 +182,7 @@ When login fails, check these in order:
 6. **Are environment variables loaded?**
    ```bash
    # Check if backend is using correct client ID
-   grep KEYCLOAK_CLIENT_ID config/system.env
+   grep KEYCLOAK_CLIENT_ID config.env
    ```
 
 ## 🎯 **Prevention Strategy**
@@ -193,7 +193,7 @@ When login fails, check these in order:
 - Use `./scripts/config-loader.js` for configuration management
 
 ### 2. **Document Configuration Changes**
-- When changing Keycloak configuration, update `config/system.env`
+- When changing Keycloak configuration, update `config.env`
 - When changing environment variables, update the centralized config
 - Document any manual changes
 
@@ -240,7 +240,7 @@ If the current recommended scripts don't work:
 
 3. **Manual Verification**:
    - Test each component individually
-   - Verify environment variables are loaded from `config/system.env`
+   - Verify environment variables are loaded from `config.env`
    - Check network connectivity between services
 
 ---

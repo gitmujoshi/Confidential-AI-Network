@@ -8,12 +8,16 @@ Get the Contract Management System up and running in 5 minutes.
 - **Node.js** (v16+) and **npm** installed
 - **Git** for cloning the repository
 
+## Configuration
+
+Copy `config/examples/config.env.example` to `config.env` and `secrets.env.example` to `secrets.env`. Fill the required values in [the deployment hub](../deployment/README.md), then start the stack. Confirm `http://localhost:5001/health`.
+
 ## ⚡ One-Command Setup
 
 ```bash
 # Clone the repository (if not already done)
-git clone <repository-url>
-cd ContractManagement
+git clone https://github.com/gitmujoshi/Confidential-AI-Network.git
+cd Confidential-AI-Network
 
 # Start everything with one command
 ./start-system.sh
@@ -232,23 +236,23 @@ docker-compose -f docker-compose.keycloak-persistent.yml up -d
 
 ### **For Users**
 1. **Explore the Frontend**: http://localhost:3000
-2. **Read the User Guide**: [docs/USER_GUIDE.md](USER_GUIDE.md)
-3. **Learn about SCITT CCF**: [SCITT_CCF_INTEGRATION_README.md](../SCITT_CCF_INTEGRATION_README.md)
+2. **Read the User Guide**: [docs/USER_GUIDE.md](../USER_GUIDE.md)
+3. **Learn about SCITT CCF**: [SCITT_CCF_INTEGRATION_README.md](../features/scitt/SCITT_CCF_INTEGRATION_README.md)
 
 ### **For Developers**
-1. **Read the Developer Guide**: [docs/DEVELOPER_GUIDE.md](DEVELOPER_GUIDE.md)
-2. **Check the API Reference**: [docs/API_REFERENCE.md](API_REFERENCE.md)
-3. **Review the Architecture**: [docs/ARCHITECTURE.md](ARCHITECTURE.md)
-4. **Study SCITT CCF Design**: [SCITT_CCF_MIGRATION_DESIGN.md](../SCITT_CCF_MIGRATION_DESIGN.md)
+1. **Read the Developer Guide**: [docs/DEVELOPER_GUIDE.md](../DEVELOPER_GUIDE.md)
+2. **Check the API Reference**: [docs/API_REFERENCE.md](../api/API_REFERENCE.md)
+3. **Review the Architecture**: [docs/ARCHITECTURE.md](../ARCHITECTURE.md)
+4. **Study SCITT CCF**: [SCITT_CCF_ARCHITECTURE.md](../features/scitt/SCITT_CCF_ARCHITECTURE.md)
 
 ### **For System Administrators**
-1. **Read the Setup Guide**: [docs/SETUP.md](SETUP.md)
-2. **Check Troubleshooting**: [docs/TROUBLESHOOTING.md](TROUBLESHOOTING.md)
+1. **Read the Setup Guide**: [SETUP.md](SETUP.md)
+2. **Check Troubleshooting**: [TROUBLESHOOTING.md](TROUBLESHOOTING.md)
 3. **Monitor SCITT CCF**: `./manage-scitt-ccf.sh status`
 
 ## 📚 Additional Resources
 
-- **[SCITT CCF Integration Guide](../SCITT_CCF_INTEGRATION_README.md)** - Complete SCITT CCF setup and usage
-- **[SCITT CCF Migration Design](../SCITT_CCF_MIGRATION_DESIGN.md)** - Technical architecture and design
+- **[SCITT CCF Integration Guide](../features/scitt/SCITT_CCF_INTEGRATION_README.md)** - Complete SCITT CCF setup and usage
+- **[SCITT CCF Architecture](../features/scitt/SCITT_CCF_ARCHITECTURE.md)** - Technical architecture
 - **[SCITT CCF Management Script](../manage-scitt-ccf.sh)** - Service management commands
 - **[Environment Configuration](../env.scitt-ccf.example)** - SCITT CCF configuration template 

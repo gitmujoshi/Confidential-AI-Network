@@ -28,11 +28,8 @@ Complete guide for developers working on the Contract Management System. This gu
 ### **Initial Setup**
 ```bash
 # Clone repository
-git clone <repository-url>
-cd ContractManagement
-
-# Checkout SCITT CCF integration branch
-git checkout feature/scitt-ccf-migration
+git clone https://github.com/gitmujoshi/Confidential-AI-Network.git
+cd Confidential-AI-Network
 
 # Install dependencies
 npm install
@@ -46,15 +43,9 @@ cd ..
 
 ### **Environment Configuration**
 ```bash
-# Copy environment files
-cp env.example .env
-cp backend/config.env.example backend/config.env
-
-# Copy SCITT CCF configuration (optional)
-cp env.scitt-ccf.example .env.scitt-ccf
-
-# Update configuration
-# See SETUP.md for detailed configuration
+# Copy the two files the process reads. The parameter list is docs/deployment/README.md.
+cp config/examples/config.env.example config.env
+cp secrets.env.example secrets.env
 ```
 
 ### **SCITT CCF Development Setup**
@@ -73,7 +64,7 @@ cp env.scitt-ccf.example .env.scitt-ccf
 
 ### **Root Directory**
 ```
-ContractManagement/
+Confidential-AI-Network/
 ├── docs/                    # Consolidated documentation
 ├── backend/                 # Backend server (Node.js/Express)
 ├── frontend/                # Frontend (React)

@@ -1,5 +1,8 @@
 # The Credential Every AI Agent Fleet on an OKE Node Ends Up Sharing (And Shouldn't)
 
+**Archived short post. The essay is [the OKE identity gap](../../architecture/oci-spiffe-identity-gap.md).**
+
+
 > **Blog short take:** [per-node credentials break multi-agent fleets on OKE](https://gitmujoshi.github.io/Confidential-AI-Network/security/identity/oci/2026/07/29/oke-agent-spiffe-short-take/)  
 > **Full technical writeup:** [long post](https://gitmujoshi.github.io/Confidential-AI-Network/security/identity/oci/2026/07/29/oke-agent-spiffe-identity-gap/)
 

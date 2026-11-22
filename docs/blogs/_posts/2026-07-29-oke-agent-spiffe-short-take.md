@@ -5,7 +5,7 @@ date: 2026-07-29
 categories: [security, identity, oci]
 permalink: /security/2026/07/29/oke-agent-spiffe-short-take/
 tags: [spiffe, oke, linkedin]
-canonical: docs/architecture/oci-spiffe-linkedin-post.md
+canonical: docs/architecture/oci-spiffe-identity-gap.md
 ---
 
 **The problem:** AI agents on OKE each need scoped access to OCI (and external APIs) — without one shared credential for the whole fleet. On AWS/GCP that path is named and documented. On OCI you wire SPIFFE through generic Workload Identity Federation yourself.

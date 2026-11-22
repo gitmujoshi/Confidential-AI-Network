@@ -1,5 +1,8 @@
 # Role-Based Dashboard Analysis & Implementation Plan
 
+**Archived. Role guides are [the role user guides](../../guides/role-user-guides/README.md).**
+
+
 ## Current System Analysis
 
 ### User Types & Permissions

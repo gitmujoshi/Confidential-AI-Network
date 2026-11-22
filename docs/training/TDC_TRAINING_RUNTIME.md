@@ -105,13 +105,13 @@ Mounted under **`/api/ccrp`** with authentication. Used by **Training Environmen
 
 - **Container spec snapshot:** `training/tdcTrainingHelpers.js` — `buildContainerSpec(contract)` merges `trainingParams`, `environmentSpecs.compute`, dataset/model refs.
 - **Simulation:** phases and results stored on `TrainingJob.metadata` (requires `metadata` column on PostgreSQL).
-- **Local Docker execution:** set `TRAINING_EXECUTION_MODE=local-docker` to run a local Python trainer container. The placeholder trainer writes results to `backend/local-training/runs/<jobId>/outputs/metrics.json` on the backend host.
+- **Local Docker execution:** set `TRAINING_EXECUTION_MODE=local-docker` to run the local Python trainer container. It writes results to `backend/local-training/runs/<jobId>/outputs/metrics.json` on the backend host.
 - **Hugging Face catalog refs (dev):** `contractTrainingInputsService` attaches `huggingface` blocks to datasets/models in `metadata.inputs`; `train.py` loads Hub dataset/model IDs from `contract.json` (fallback: `ag_news` + tiny DistilBERT). See [LOCAL_DEMO_RUNBOOK.md](./LOCAL_DEMO_RUNBOOK.md) NLP track.
 - **Register model:** `POST .../register-model` writes **`AIModel`** with `metadata.source = 'tdc_training_job'` and links `job.metadata.registeredModelId`.
 
 ## Local training runner (Docker)
 
-This repo includes a minimal placeholder trainer (`backend/local-training/train.py`) so you can exercise the end-to-end flow **without** Azure/Terraform.
+The local trainer is `backend/local-training/train.py`. It runs the contract-to-training flow on the machine that hosts the API.
 
 ### Build the trainer image
 

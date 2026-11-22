@@ -1,4 +1,7 @@
 # SCITT CCF Integration Status Report
+
+**Archived August 2025 snapshot. Current SCITT docs are [the architecture](../../features/scitt/SCITT_CCF_ARCHITECTURE.md).**
+
 **Date:** August 30, 2025  
 **Status:** 95% Complete - Fully Functional for Development & Testing  
 **Last Updated:** Current Session  

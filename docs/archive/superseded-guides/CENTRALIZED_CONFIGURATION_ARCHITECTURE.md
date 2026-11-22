@@ -1,5 +1,8 @@
 # 🏗️ Centralized Configuration Architecture
 
+**Archived. The process reads `config.env` and `secrets.env`. The parameter list is [the deployment hub](../../deployment/README.md).**
+
+
 ## 📋 Overview
 
 This document describes the centralized configuration architecture that solves the configuration chaos problem in the Contract Management System.

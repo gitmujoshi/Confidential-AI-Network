@@ -341,7 +341,7 @@ curl http://localhost:8080/health
 
 ## 📚 **Documentation Files**
 
-- **`COMPREHENSIVE_FEATURES_DOCUMENTATION.md`** - Complete feature overview
+- **[User guide](../USER_GUIDE.md)** - Current product workflows
 - **`TEST_DATA_FOR_TESTERS.md`** - Testing guide and test data
 - **`backend/tests/README.md`** - Test suite documentation
 - **`CONTRACT_MANAGEMENT_SYSTEM_PRD.md`** - Product requirements

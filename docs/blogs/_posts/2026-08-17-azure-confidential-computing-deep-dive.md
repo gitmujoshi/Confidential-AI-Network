@@ -13,7 +13,7 @@ canonical: docs/production/AZURE_SECURITY_ARCHITECTURE.md
 
 **Related:** [Product tour]({{ '/product-tour/' | relative_url }}) · [Azure product tour deck]({% post_url 2026-08-16-azure-e2e-product-tour-deck %}) · [SPIFFE/SPIRE on Azure]({% post_url 2026-08-17-spiffe-spire-azure-wif %}) · [Contract signing & keys]({% post_url 2026-08-17-can-contract-management-signing %}) · [KMS DEK/MEK]({% post_url 2026-08-16-can-kms-dek-mek-escrow %}) · [TEE attest → decrypt]({% post_url 2026-08-16-can-tee-attest-decrypt-train %}) · [Entra architecture note]({% post_url 2026-07-28-azure-entra-security-architecture %}) · In-repo: [AZURE_SECURITY_ARCHITECTURE.md](https://github.com/gitmujoshi/Confidential-AI-Network/blob/main/docs/production/AZURE_SECURITY_ARCHITECTURE.md) · [AZURE_FEATURES_AND_CONFIGURATION.md](https://github.com/gitmujoshi/Confidential-AI-Network/blob/main/docs/deployment/AZURE_FEATURES_AND_CONFIGURATION.md) · [AZURE_SPIFFE_SPIRE_WIF.md](https://github.com/gitmujoshi/Confidential-AI-Network/blob/main/docs/deployment/AZURE_SPIFFE_SPIRE_WIF.md)
 
-> **Status:** [Local Docker product tour]({{ '/product-tour/#local' | relative_url }}) covers contracts → train → infer → Auditor (not a hardware TEE). Azure platform IaC includes Key Vault, Blob, and AKS Workload Identity ([Terraform README](https://github.com/gitmujoshi/Confidential-AI-Network/blob/main/deployment/azure/terraform/README.md)). Confidential compute + **Secure Key Release (SKR)** are the clean-room target: JCS attestation is often **simulated**; DCsv3 / confidential containers + real SKR are **Design / Phase 3**.
+> **Status:** [Local Docker product tour]({{ '/product-tour/#local' | relative_url }}) covers contracts → train → infer → Auditor (not a hardware TEE). Azure platform IaC includes Key Vault, Blob, and AKS Workload Identity ([Terraform README](https://github.com/gitmujoshi/Confidential-AI-Network/blob/main/deployment/azure/terraform/README.md)). An Azure job looks up the contract key before submit and fails closed when that lookup fails. Signing stays in the database until `SIGNING_KEY_BACKEND` is `azure-keyvault` or `azure-mhsm`. Key release stays on recorded times until `CAN_PRINCIPAL_KEY_MODE` is `azure-skr`. A guest report is read from the confidential node and the job stays simulated until that report verifies. Settings and the copy commands are in the [deployment hub](https://github.com/gitmujoshi/Confidential-AI-Network/blob/main/docs/deployment/README.md).
 
 ---
 
@@ -117,7 +117,7 @@ Contract JSON `kmsConfigs` should bind the Azure path parties expect, for exampl
 | `keyId` / key name | env-scoped | Key reference principals agreed |
 | Region / residency | contract `environmentSpecs` | Binding for audit |
 
-**Maturity:** configs are persisted today; training does not yet fully enforce live Key Vault calls on every path. Live resolve-at-train is a go-live checklist item ([features catalog](https://github.com/gitmujoshi/Confidential-AI-Network/blob/main/docs/deployment/AZURE_FEATURES_AND_CONFIGURATION.md)).
+**Maturity:** an Azure training job looks up the contract Key Vault key before it submits work. A failed lookup does not submit the job. Signing stays in the database until `SIGNING_KEY_BACKEND` is `azure-keyvault` or `azure-mhsm`. See the [features catalog](https://github.com/gitmujoshi/Confidential-AI-Network/blob/main/docs/deployment/AZURE_FEATURES_AND_CONFIGURATION.md).
 
 ---
 
@@ -202,9 +202,9 @@ The contract wizard and both TSP cards are captured on the [product tour]({{ '/p
 | --- | --- | --- |
 | Login | Entra + Conditional Access | Design → production |
 | Roles | Entra app roles | Design |
-| Sign | Authz + Key Vault–backed keys (target) | Partial / Design |
+| Sign | Database by default. Key Vault signing verifies before accept when `SIGNING_KEY_BACKEND` is set | Implemented, off by default |
 | Cluster identity | Existing AKS named on the contract and the TSP card | Live in the portal; submit needs a kubeconfig |
-| Train | AKS Job on that cluster; later DCsv3 / SKR | Job spec live; guest quote is Design |
+| Train | AKS Job on that cluster. The container reads a SEV-SNP report from the node | Job spec live; status stays simulated until the report verifies |
 | Artifacts | Private Blob + CMK | Design |
 
 Use this when you need Azure tenancy smoke without full TEE custody on every path.
@@ -267,10 +267,10 @@ Timeout without both keys → **EXPIRED / DESTROYED**, not “retry forever with
 | Entra SSO | Keycloak | Required | Required |
 | Contract → SIGNED → train UX | **Live** | Live / pilot | Live |
 | Key Vault for infra secrets | N/A / local | Partial | Required |
-| Signing keys in HSM | No | Design | Required |
-| DEK/MEK principal custody | Partial | Design | Required |
-| Dual-key escrow signals | MVP | Wire to Azure CCR | Required |
-| Azure Attestation + SKR | No | Design | Required |
+| Signing keys in HSM | Database default | Implemented when `SIGNING_KEY_BACKEND` is `azure-keyvault` or `azure-mhsm` | Required for production |
+| DEK/MEK principal custody | Recorded release times | `azure-skr` returns the encrypted release blob after an Azure Attestation token verifies | Required |
+| Dual-key escrow signals | MVP | Default path | Required |
+| Azure Attestation + SKR | No | `azure-skr` is implemented and off by default | Required for a hardware release |
 | Confidential VM / container train | **No** | Spike | Required for CAN claims |
 | Auditor Merkle review | **Live** | Live | Live |
 
@@ -278,7 +278,7 @@ Timeout without both keys → **EXPIRED / DESTROYED**, not “retry forever with
 
 ## 7. Operator checklist (crypto go-live)
 
-- [ ] Signing keys off DB plaintext → Key Vault / MHSM; verify on sign  
+- [ ] Set `SIGNING_KEY_BACKEND=azure-keyvault` or `azure-mhsm` so production signing does not keep the private key in the database  
 - [ ] Blob containers **ciphertext only**; CMK on  
 - [ ] DEK/MEK never logged; Node rejects raw key material  
 - [ ] Confidential SKU + attestation policy + SKR (or attested TLS) for CCR path  

@@ -79,23 +79,15 @@ This guide consolidates all setup and configuration information for the Contract
 
 ### **Step 1: Clone Repository**
 ```bash
-git clone <repository-url>
-cd ContractManagement
-
-# Checkout SCITT CCF integration branch (if not on main)
-git checkout feature/scitt-ccf-migration
+git clone https://github.com/gitmujoshi/Confidential-AI-Network.git
+cd Confidential-AI-Network
 ```
 
 ### **Step 2: Environment Setup**
 ```bash
-# Copy environment files
-cp env.example .env
-cp backend/config.env.example backend/config.env
-
-# Copy SCITT CCF configuration (optional)
-cp env.scitt-ccf.example .env.scitt-ccf
-
-# Update configuration (see Configuration section)
+# Copy the two files the process reads. See docs/deployment/README.md.
+cp config/examples/config.env.example config.env
+cp secrets.env.example secrets.env
 ```
 
 ### **Step 3: Start System**

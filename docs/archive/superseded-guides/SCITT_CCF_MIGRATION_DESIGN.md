@@ -1,5 +1,8 @@
 # 🚀 SCITT CCF Ledger Migration Design Document
 
+**Archived. Current SCITT docs are [the architecture](../../features/scitt/SCITT_CCF_ARCHITECTURE.md) and [the integration guide](../../features/scitt/SCITT_CCF_INTEGRATION_README.md).**
+
+
 ## 📋 Document Information
 - **Version**: 1.0.0
 - **Status**: Design Phase

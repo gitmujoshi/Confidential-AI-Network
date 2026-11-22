@@ -41,7 +41,7 @@
    - Cross-cloud verification system
    - Regulatory compliance and audit requirements
 
-3. **`TRAINING_QUICK_START_GUIDE.md`**
+3. **`TRAINING_QUICK_START_GUIDE.md`** (now [../superseded-guides/TRAINING_QUICK_START_GUIDE.md](../superseded-guides/TRAINING_QUICK_START_GUIDE.md))
    - Step-by-step development setup
    - Docker container templates
    - API endpoint implementation

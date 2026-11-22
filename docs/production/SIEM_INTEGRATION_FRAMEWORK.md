@@ -82,7 +82,7 @@ flowchart TB
 ### Enable SIEM export
 
 ```bash
-# config.env or config/system.env
+# config.env
 SIEM_ENABLED=true
 SIEM_PROVIDERS=sentinel,splunk
 SIEM_ENVIRONMENT=prod

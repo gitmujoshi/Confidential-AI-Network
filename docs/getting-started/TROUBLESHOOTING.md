@@ -630,22 +630,13 @@ Environment variables missing
 
 **Check environment files:**
 ```bash
-# Compare .env and config.env
-diff backend/.env backend/config.env
+# The process reads these two files at the repository root.
+# The parameter list is docs/deployment/README.md.
+cp config/examples/config.env.example config.env
+cp secrets.env.example secrets.env
 
-# Sync environment files
-cd backend && node auto-fix-keycloak.js
-```
-
-**Update environment:**
-```bash
-# Copy example files
-cp env.example .env
-cp backend/config.env.example backend/config.env
-
-# Update with correct values
-sed -i '' "s/KEYCLOAK_CLIENT_ID=.*/KEYCLOAK_CLIENT_ID=contract-management-frontend/" backend/.env
-sed -i '' "s/KEYCLOAK_CLIENT_ID=.*/KEYCLOAK_CLIENT_ID=contract-management-frontend/" backend/config.env
+# Auth repair after a config change
+./fix-auth.sh
 ```
 
 ## 🎨 Frontend Issues

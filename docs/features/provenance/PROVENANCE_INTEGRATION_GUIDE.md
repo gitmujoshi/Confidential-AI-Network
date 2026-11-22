@@ -577,5 +577,5 @@ const debugVerification = async (nodeId) => {
 
 - [Provenance API Documentation](../../api/API_PROVENANCE_ENDPOINTS.md)
 - [Merkle Tree Implementation Guide](../../security/MERKLE_TREE_PROVENANCE_IMPLEMENTATION.md)
-- [Training Provenance Plan](../../implementation/TRAINING_PROVENANCE_TRACKING_PLAN.md)
+- [Merkle provenance status](../../security/MERKLE_TREE_PROVENANCE_STATUS.md)
 - [SCITT CCF Integration](../scitt/SCITT_CCF_ARCHITECTURE.md)

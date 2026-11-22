@@ -241,5 +241,4 @@ A digital signature is a cryptographic method that:
 
 **Document Version**: 1.0  
 **Last Updated**: 2024-01-XX  
-**For Technical Details**: See CONTRACT_SIGNING_IMPLEMENTATION_SUMMARY.md  
-**For Architecture**: See contract-signing-architecture.md
+**For Technical Details**: See [CONTRACT_SIGNING_TECHNICAL_REFERENCE.md](CONTRACT_SIGNING_TECHNICAL_REFERENCE.md)

@@ -79,7 +79,7 @@ docker exec postgres-cms pg_dump -U keycloak contract_management > backup_$(date
 
 ### **Step 2: Update Configuration**
 ```bash
-# Update config/system.env with new settings
+# Update config.env and secrets.env with the new settings. See docs/deployment/README.md.
 # Update docker-compose files
 # Update all scripts that reference the database
 ```

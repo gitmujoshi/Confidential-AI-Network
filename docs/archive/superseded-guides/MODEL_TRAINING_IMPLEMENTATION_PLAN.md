@@ -1,5 +1,8 @@
 # 🤖 Model Training Environment Implementation Plan
 
+**Archived. Run a demo from [the local demo runbook](../../training/LOCAL_DEMO_RUNBOOK.md). The API is [the TDC training runtime](../../training/TDC_TRAINING_RUNTIME.md).**
+
+
 ## 📋 Executive Summary
 
 This document outlines a comprehensive implementation plan for setting up and running AI model training based on signed contracts in the CAN platform, which aligns with India’s **iSPIRT** **DEPA** (**Data Empowerment and Protection Architecture**). The plan covers the complete workflow from contract execution to model deployment, ensuring security, privacy, and compliance throughout the process.

@@ -14,7 +14,5 @@
 | [FEATURES_QUICK_REFERENCE.md](FEATURES_QUICK_REFERENCE.md) | Feature cheat sheet |
 | [ENTERPRISE_REGISTRATION_STRATEGY.md](ENTERPRISE_REGISTRATION_STRATEGY.md) | Enterprise registration design |
 | [MULTI_DEPLOYMENT_INTEGRATION_GUIDE.md](MULTI_DEPLOYMENT_INTEGRATION_GUIDE.md) | Multi-deployment patterns |
-| [CURSOR_BEST_PRACTICES.md](CURSOR_BEST_PRACTICES.md) | Cursor/agent workflow for this repo |
-| [RELEASE_NOTES_v1.0.0.md](RELEASE_NOTES_v1.0.0.md) | Release notes |
 
 ← [Documentation home](../README.md)
