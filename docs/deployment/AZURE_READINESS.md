@@ -13,15 +13,16 @@ Assessment of whether the Confidential AI Network is ready to deploy to **Micros
 | **Core app on Azure (UI + API + Entra + DB)** | Partial | K8s manifests + Entra ConfigMap; validate images, DNS, role mapping |
 | **Key Vault + Blob** | **Yes (IaC)** | `enable_key_vault` / `enable_storage` (default on) |
 | **SPIFFE/SPIRE + Entra WIF** | Design + scaffold | [AZURE_SPIFFE_SPIRE_WIF.md](AZURE_SPIFFE_SPIRE_WIF.md); TF `enable_spire` + Helm values; Path N WI in TF |
-| **SCITT CCF on Azure** | No | Not in Azure Terraform |
-| **Physical training on Azure** | Partial | CCRP `azureProvider.js`; WI for `training-job` ready |
-| **Edge (Front Door / APIM)** | Partial IaC | `enable_edge` Front Door+WAF; APIM still manual |
-| **Confidential compute pool** | **Opt-in IaC** | `enable_confidential_compute` adds a DCasv5 user pool. No guest quote or key release yet |
-| **One-click production** | No | Public DNS, APIM, guest attestation, and a live subscription apply are still operator steps |
+| **SCITT ledger on AKS** | Partial | `deployment/azure/scripts/install-scitt.sh`. This repo's service, not a Microsoft CCF network |
+| **Physical training on Azure** | Partial | Job submit plus a guest-report collector. A missing TSM interface fails the Job |
+| **Edge (Front Door / APIM)** | Partial IaC | `enable_edge` Front Door+WAF. `enable_apim` creates Consumption APIM and the Entra JWT policy when the publisher email and backend URL are set |
+| **Confidential compute pool** | **Opt-in IaC** | `enable_confidential_compute` adds a DCasv5 user pool. The Job reads the guest report from that node |
+| **External Secrets** | Partial | Workload identity, service account, Helm values, and SecretStore manifest. The install script does not run during terraform apply |
+| **One-click production** | No | Public DNS and a live subscription apply are still operator steps |
 
 **Identity:** Azure environments use **Microsoft Entra ID** only. **Keycloak** stays on local docker-compose for demos/E2E — not part of Azure deploy.
 
-**Verdict:** Ready for an **Azure platform pilot** (`terraform apply` → ACR images → Entra smoke). Key Vault, Blob, Workload Identity, private DNS for private endpoints, and an opt-in DCasv5 node pool are in Terraform. **Not** a full production cutover (APIM JWT, SPIRE Helm, guest attestation and key release, SCITT).
+**Verdict:** Ready for an **Azure platform pilot** (`terraform apply` → ACR images → Entra smoke). Key Vault sign, key lookup, and secure key release are in the API and fail closed. APIM, External Secrets, the guest-report collector, and the SCITT ledger manifest are in the repo and stay off until their settings and a cluster are present. Blob, Workload Identity, private DNS, and an opt-in DCasv5 node pool are in Terraform. A live subscription apply, SPIRE Helm, and public DNS remain operator steps.
 
 ---
 
@@ -67,12 +68,9 @@ Assessment of whether the Confidential AI Network is ready to deploy to **Micros
 
 ## Gaps remaining for production
 
-1. **APIM** JWT validation policies as code  
-2. **SPIRE Helm** install + Entra Path F federated credentials for SPIFFE subjects  
-3. **External Secrets Operator** Helm (WI principal exists)  
-4. **Guest attestation and Key Vault key release** on the confidential pool (the DCasv5 pool itself is opt-in Terraform)  
-5. **SCITT** on AKS  
-6. **CI** `terraform apply` against a live subscription  
+1. **SPIRE Helm** install + Entra Path F federated credentials for SPIFFE subjects  
+2. **CI** `terraform apply` against a live subscription  
+3. **Public DNS** and a running confidential pool so the guest-report collector can read a real SEV-SNP report
 
 ---
 
@@ -89,12 +87,13 @@ Assessment of whether the Confidential AI Network is ready to deploy to **Micros
 
 - [ ] `enable_edge=true`  
 - [ ] `enable_spire=true` + Helm install  
-- [ ] APIM JWT  
+- [x] APIM JWT policy in Terraform (`enable_apim`, default off until email and backend URL are set)
 
 ### Phase 3 — CAN clean room
 
 - [x] Confidential SKU pool in Terraform (`enable_confidential_compute`, default off)
-- [ ] Guest attestation + Key Vault key release  
+- [x] Guest report collector in the training Job. It fails when the node has no SEV-SNP interface
+- [x] Key Vault key release after a verified Azure Attestation JWT (`CAN_PRINCIPAL_KEY_MODE=azure-skr`)
 
 ---
 

@@ -10,6 +10,7 @@ const TdcTrainingExecutionService = require('./tdcTrainingExecutionService');
 const fs = require('fs');
 const db = require('../backend/models');
 const { verifySevSnpQuote } = require('../backend/services/sevSnpQuote');
+const { verifyGuestQuoteToken } = require('./guestQuoteToken');
 
 const service = new TdcTrainingExecutionService();
 
@@ -329,7 +330,18 @@ router.get(
   }
 );
 
-router.post('/jobs/:jobId/sev-snp-quote', authenticateToken, async (req, res) => {
+function authorizeQuote(req, res, next) {
+  const header = String(req.headers.authorization || '');
+  const token = header.startsWith('Bearer ') ? header.slice(7).trim() : '';
+  const claims = verifyGuestQuoteToken(token);
+  if (claims && claims.jobId === req.params.jobId) {
+    req.user = { localUser: { partyType: 'TSP', id: null } };
+    return next();
+  }
+  return authenticateToken(req, res, next);
+}
+
+router.post('/jobs/:jobId/sev-snp-quote', authorizeQuote, async (req, res) => {
   try {
     const party = req.user?.localUser?.partyType;
     if (!['TDC', 'TSP', 'AppAdmin'].includes(party)) {

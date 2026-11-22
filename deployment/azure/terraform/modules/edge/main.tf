@@ -2,7 +2,7 @@
 #
 # Default disabled. When enabled, creates a Front Door Standard profile with
 # a public endpoint and origin group pointing at the platform public IP.
-# APIM JWT policies remain manual / follow AZURE_IAM_AND_EDGE_CONFIG.md.
+# APIM is modules/apim. It stays off until enable_apim, the publisher email, and the backend URL are set.
 #
 # Design: docs/production/AZURE_SECURITY_ARCHITECTURE.md § Phase 7
 

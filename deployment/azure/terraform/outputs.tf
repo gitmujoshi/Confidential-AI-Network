@@ -135,9 +135,12 @@ output "next_steps" {
     "8. Key Vault: ${coalesce(module.key_vault.key_vault_uri, "(disabled)")}",
     "9. Blob account: ${coalesce(module.storage.storage_account_name, "(disabled)")}",
     "10. Optional private endpoints: enable_private_endpoints=true (creates vault and blob private DNS)",
-    "11. Optional confidential pool: enable_confidential_compute=true (DCasv5 nodes; quote is not collected)",
+    "11. Optional confidential pool: enable_confidential_compute=true (DCasv5 nodes; the Job reads the guest report)",
     "12. Optional SPIRE: enable_spire=true then helm -f deployment/azure/helm/spire/values.yaml",
     "13. Optional Front Door: enable_edge=true",
-    "14. See docs/production/AZURE_SECURITY_ARCHITECTURE.md and docs/deployment/AZURE_SPIFFE_SPIRE_WIF.md"
+    "14. Optional External Secrets: enable_external_secrets=true then deployment/azure/scripts/install-external-secrets.sh",
+    "15. Optional APIM: enable_apim=true with apim_publisher_email and apim_backend_url",
+    "16. Optional SCITT ledger: deployment/azure/scripts/install-scitt.sh",
+    "17. See docs/production/AZURE_SECURITY_ARCHITECTURE.md and docs/deployment/AZURE_SPIFFE_SPIRE_WIF.md"
   ]
 }

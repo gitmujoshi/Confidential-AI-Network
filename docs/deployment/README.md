@@ -60,7 +60,9 @@ Need production? ──no──► getting-started/QUICK_START.md + ./start-syst
 | [AZURE_SPIFFE_SPIRE_WIF.md](AZURE_SPIFFE_SPIRE_WIF.md) | **SPIFFE/SPIRE + AKS WI / Entra federation** (workload identity design) |
 | [AZURE_READINESS.md](AZURE_READINESS.md) | What is / is not ready for Azure |
 | [../../config/examples/config.azure.env.example](../../config/examples/config.azure.env.example) | Azure env var template (target) |
-| [../../deployment/azure/terraform/README.md](../../deployment/azure/terraform/README.md) | Terraform modules (AKS, PostgreSQL, ACR) |
+| [../../deployment/azure/terraform/README.md](../../deployment/azure/terraform/README.md) | Terraform modules (AKS, PostgreSQL, ACR, Key Vault, APIM, External Secrets account) |
+| [../../deployment/azure/scripts/install-external-secrets.sh](../../deployment/azure/scripts/install-external-secrets.sh) | External Secrets Operator after apply. Refuses to run without vault settings |
+| [../../deployment/azure/scripts/install-scitt.sh](../../deployment/azure/scripts/install-scitt.sh) | This repo's SCITT ledger on AKS. Refuses to run without an image and database URL |
 | [../../deployment/deploy-azure.sh](../../deployment/deploy-azure.sh) | **Entry point**: `terraform` (AKS) or `vm` (single VM) |
 | [../../deploy/azure/deploy-azure.sh](../../deploy/azure/deploy-azure.sh) | Azure CLI VM deploy (simpler path) |
 | [../../backend/AZURE_INTEGRATION_GUIDE.md](../../backend/AZURE_INTEGRATION_GUIDE.md) | CCRP training / confidential computing integration |

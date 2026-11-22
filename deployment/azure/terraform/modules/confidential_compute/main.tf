@@ -1,6 +1,6 @@
 # Confidential VM node pool for CCR training.
-# Scheduling onto this pool is not a hardware attestation. The guest quote
-# and Key Vault key release are still application work.
+# Scheduling onto this pool is not a hardware attestation. The training Job
+# reads /sys/kernel/config/tsm from the node and submits that report.
 
 resource "azurerm_kubernetes_cluster_node_pool" "confidential" {
   count = var.enabled ? 1 : 0
@@ -57,6 +57,6 @@ resource "kubernetes_config_map" "ccr_pool" {
     AZURE_CCR_NODE_LABEL  = "can.azure/pool=confidential"
     AZURE_CCR_TOLERATION  = "can.azure/confidential=true:NoSchedule"
     AZURE_CCR_ATTESTATION = "confidential-vm-pool"
-    note                  = "Nodes are confidential VMs. This module does not collect a SEV-SNP quote or release Key Vault keys."
+    note                  = "Nodes are confidential VMs. The training Job reads the SEV-SNP report from the node. A missing report interface fails the Job."
   }
 }

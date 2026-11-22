@@ -108,7 +108,14 @@ POST /can/jcs/jobs/:jobId/key-released
 }
 ```
 
-Valid `keyType`: `DEK` or `MEK`. The ciphertext must be encrypted to `tlsPublicKey` on the job attestation. The API decrypts it only to check that binding, zeroes the bytes, and stores the release time. `keyStored` in the response is `false`. Raw key fields are rejected. The attestation `reportFormat` stays `SIMULATED` until a verified SEV-SNP quote is stored. The same body is accepted at `POST /can/ccr/:ccrSessionId/keys`.
+Valid `keyType`: `DEK` or `MEK`. The ciphertext must be encrypted to `tlsPublicKey` on the job attestation. The API decrypts it only to check that binding, zeroes the bytes, and stores the release time. `keyStored` in the response is `false`. Raw key fields are rejected. The attestation `reportFormat` on this path stays `SIMULATED`. The same body is accepted at `POST /can/ccr/:ccrSessionId/keys`.
+
+#### Release a DEK or MEK from Azure Key Vault
+```http
+POST /can/jcs/jobs/:jobId/azure-key-release
+```
+
+Requires `CAN_PRINCIPAL_KEY_MODE=azure-skr`. Body: `keyType`, `vaultUrl`, `keyId`, and `attestationToken` (an Azure Attestation JWT). The API verifies the token against `AZURE_ATTESTATION_URL`, calls Key Vault secure key release, stores the release time and the blob hash, and returns `encryptedRelease`. It does not decrypt the blob. `reportFormat` is `AZURE_ATTESTATION`. A simulated report is rejected. `keyStored` is `false`.
 
 #### Release job to CCRP scheduler
 ```http

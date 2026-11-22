@@ -115,8 +115,33 @@ class CANJcsService {
     if (!job) throw new Error('Job not found');
 
     await this._acceptWrappedKey(job, { attestedPublicKey, wrappedKey });
+    return this._recordKeySignal(jobId, { keyType, principalId, release: { keyStored: false } });
+  }
 
-    await this._expireIfNeeded(job);
+  async recordAzureKeyRelease(jobId, { keyType, principalId, release }) {
+    const mode = String(process.env.CAN_PRINCIPAL_KEY_MODE || 'signals').toLowerCase();
+    if (mode !== 'azure-skr') {
+      const err = new Error('CAN_PRINCIPAL_KEY_MODE is not azure-skr. Key Vault release was not recorded.');
+      err.statusCode = 409;
+      err.code = 'AZURE_SKR_DISABLED';
+      throw err;
+    }
+    const job = await db.CANJcsJob.findByPk(jobId);
+    if (!job) throw new Error('Job not found');
+    return this._recordKeySignal(jobId, {
+      keyType,
+      principalId,
+      release: {
+        keyStored: false,
+        reportFormat: release && release.reportFormat,
+        attestationType: release && release.attestationType,
+        releaseBlobSha256: release && release.releaseBlobSha256,
+      },
+    });
+  }
+
+  async _recordKeySignal(jobId, { keyType, principalId, release }) {
+    await this._expireIfNeeded(await db.CANJcsJob.findByPk(jobId));
     const freshJob = await db.CANJcsJob.findByPk(jobId);
 
     if ([ESCROW_STATES.EXPIRED, ESCROW_STATES.CANCELLED].includes(freshJob.escrowState)) {
@@ -156,12 +181,16 @@ class CANJcsService {
       }
     }
 
-    await this._appendEvent(jobId, 'KEY_RELEASED', {
+    const releasePayload = {
       keyType,
       principalId,
       escrowState: nextState,
       keyStored: false,
-    });
+    };
+    if (release && release.reportFormat) releasePayload.reportFormat = release.reportFormat;
+    if (release && release.attestationType) releasePayload.attestationType = release.attestationType;
+    if (release && release.releaseBlobSha256) releasePayload.releaseBlobSha256 = release.releaseBlobSha256;
+    await this._appendEvent(jobId, 'KEY_RELEASED', releasePayload);
 
     if (nextState === ESCROW_STATES.BOTH_READY && freshJob.ccrSessionId) {
       ephemeralPrivateKeys.delete(freshJob.ccrSessionId);

@@ -21,6 +21,8 @@ Baseline + data-plane infrastructure for deploying the Confidential AI Network o
 | `private_dns` | `privatelink` zones for Key Vault and Blob | **with** `enable_private_endpoints` |
 | `confidential_compute` | DCasv5 user node pool, trainer SA, CCR ConfigMap | **off** (`enable_confidential_compute`) |
 | `edge` | Front Door + WAF | **off** (`enable_edge`) |
+| `apim` | Consumption API Management and the Entra JWT policy | **off** (`enable_apim`, and only when email and backend URL are set) |
+| `external_secrets` | `external-secrets` namespace and Workload Identity service account | **off** (`enable_external_secrets`) |
 | `spire` | SPIRE namespace + trust-domain ConfigMaps | **off** (`enable_spire`) |
 
 ## Prerequisites
@@ -59,9 +61,11 @@ From repository root:
 | `enable_storage` | `true` | Blob containers for datasets / outputs / artifacts |
 | `enable_workload_identity` | `true` | AKS OIDC + UAMI for `backend`, `training-job`, `external-secrets` |
 | `enable_private_endpoints` | `false` | PE for KV + Storage, plus private DNS zones linked to the VNet |
-| `enable_confidential_compute` | `false` | AMD SEV-SNP user node pool (`Standard_DC4as_v5`). Tainted so only CCR jobs schedule there. Does not collect a hardware quote |
+| `enable_confidential_compute` | `false` | AMD SEV-SNP user node pool (`Standard_DC4as_v5`). Tainted so only CCR jobs schedule there. The training Job reads the guest report from the node |
 | `enable_edge` | `false` | Azure Front Door + WAF |
-| `enable_spire` | `false` | SPIRE namespace scaffold; then Helm install |
+| `enable_apim` | `false` | Consumption APIM and the Entra JWT policy. Also set `apim_publisher_email` and `apim_backend_url` |
+| `enable_external_secrets` | `false` | Service account only. Install the operator with `deployment/azure/scripts/install-external-secrets.sh` |
+| `enable_spire` | `false` | SPIRE namespace scaffold. Helm install is still a separate step |
 
 ## SPIRE (optional)
 
@@ -108,8 +112,16 @@ terraform/
 │   ├── private_dns/        # with enable_private_endpoints
 │   ├── confidential_compute/ # optional DCasv5 pool
 │   ├── edge/               # optional
+│   ├── apim/               # optional
+│   ├── external_secrets/   # optional service account
 │   └── spire/              # optional
-└── ../helm/spire/values.yaml
+├── ../apim/can-api-policy.xml.tpl
+├── ../helm/external-secrets/values.yaml
+├── ../helm/spire/values.yaml
+├── ../manifests/external-secrets/
+├── ../manifests/scitt/
+├── ../scripts/install-external-secrets.sh
+└── ../scripts/install-scitt.sh
 ```
 
 ## Confidential pool
@@ -119,14 +131,26 @@ terraform/
 enable_confidential_compute = true
 ```
 
-The pool is tainted `can.azure/confidential=true:NoSchedule` and labeled `can.azure/pool=confidential`. A ConfigMap `azure-ccr-pool` in `contract-management` records the size and toleration. Landing a pod on these nodes is not a SEV-SNP quote and does not release Key Vault keys.
+The pool is tainted `can.azure/confidential=true:NoSchedule` and labeled `can.azure/pool=confidential`. A ConfigMap `azure-ccr-pool` in `contract-management` records the size and toleration. The training Job mounts `/sys/kernel/config/tsm` and runs `training/azure_guest_quote.py` before training. The job stays simulated until that report verifies. A node without the guest interface fails the container. Key release into the clean room is `CAN_PRINCIPAL_KEY_MODE=azure-skr` and requires a verified Azure Attestation JWT.
 
-## Still out of scope / follow-ups
+## Optional installs after apply
 
-- Full APIM JWT policy as code (see [AZURE_IAM_AND_EDGE_CONFIG.md](../../../docs/deployment/AZURE_IAM_AND_EDGE_CONFIG.md))
-- Guest attestation and Key Vault secure key release for the confidential pool
-- External Secrets Operator Helm release (WI principal is ready)
-- SCITT on AKS
+```bash
+# External Secrets. Exits before Helm when the vault settings or cluster are missing.
+export AZURE_KEY_VAULT_NAME=can-dev-kv AZURE_TENANT_ID=... AZURE_CLIENT_ID=... AZURE_ENVIRONMENT=dev
+../../scripts/install-external-secrets.sh
+
+# SCITT ledger from this repo. Exits before apply when the image, database URL, or cluster is missing.
+export SCITT_IMAGE=... DATABASE_URL=...
+../../scripts/install-scitt.sh
+```
+
+## Still operator work
+
+- SPIRE Helm install after `enable_spire=true` (the namespace scaffold does not install the chart)
+- Public DNS for the load balancer
+- A live `terraform apply` against a subscription, including a confidential pool when a real SEV-SNP report is required
+- Training status watch and copying artifacts back from Blob
 
 ## Related docs
 

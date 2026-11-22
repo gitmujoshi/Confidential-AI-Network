@@ -1,0 +1,17 @@
+# External Secrets Operator on AKS Workload Identity.
+# Install with deployment/azure/scripts/install-external-secrets.sh.
+# The script exits before helm runs when the cluster or the Key Vault settings are missing.
+
+installCRDs: true
+
+serviceAccount:
+  create: false
+  name: external-secrets
+
+podLabels:
+  azure.workload.identity/use: "true"
+
+resources:
+  requests:
+    cpu: 50m
+    memory: 64Mi

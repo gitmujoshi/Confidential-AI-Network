@@ -179,6 +179,9 @@ describe('Azure CCR runner', () => {
     });
     expect(spec.spec.template.spec.nodeSelector['can.azure/pool']).toBe('confidential');
     expect(spec.spec.template.spec.tolerations[0].key).toBe('can.azure/confidential');
+    expect(spec.spec.template.spec.volumes.find((item) => item.name === 'tsm').hostPath.path).toBe('/sys/kernel/config/tsm');
+    expect(spec.spec.template.spec.containers[0].command.join(' ')).toMatch(/azure_guest_quote.py/);
+    expect(JSON.stringify(spec)).not.toMatch(/CAN_GUEST_QUOTE_TOKEN/);
   });
 });
 

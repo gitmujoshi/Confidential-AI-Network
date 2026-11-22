@@ -363,12 +363,14 @@ class EnterpriseSigningService {
       }
 
       // Verify signature using the stored public key
-      const publicKey = JSON.parse(enterpriseKey.publicKey);
-      const isValid = await cloudKmsService.verifySignature(
-        contractHash,
+      const storedKey = typeof enterpriseKey.publicKey === 'string' && enterpriseKey.publicKey.trim().startsWith('{')
+        ? JSON.parse(enterpriseKey.publicKey)
+        : enterpriseKey.publicKey;
+      const publicKey = storedKey && storedKey.pem ? storedKey.pem : storedKey;
+      const isValid = cloudKmsService.verifySignature(
         signature,
-        publicKey,
-        enterpriseKey.algorithm
+        contractHash,
+        publicKey
       );
 
       if (!isValid) {

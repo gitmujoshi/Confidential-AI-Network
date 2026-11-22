@@ -2,6 +2,7 @@ const crypto = require('crypto');
 const jwt = require('jsonwebtoken');
 const { User, Contract, Signature, SigningEvent, UserKey, EnterpriseKey, SigningRequest } = require('../models');
 const keyManagementService = require('./keyManagementService');
+const azureSigningKeys = require('./azureSigningKeys');
 const scittCcfService = require('./scittCcfService');
 const AuditService = require('./auditService');
 const auditService = new AuditService();
@@ -47,11 +48,13 @@ class ContractSigningService {
         throw new Error(`Unsupported algorithm: ${selectedAlgorithm}`);
       }
 
-      const keyPair = await keyManagementService.generateKeyPair({
-        algorithm: selectedAlgorithm,
-        userId
-      });
-      
+      const keyPair = azureSigningKeys.usesAzureSigningBackend()
+        ? await azureSigningKeys.createAzureSigningKey({ userId, algorithm: selectedAlgorithm })
+        : await keyManagementService.generateKeyPair({
+            algorithm: selectedAlgorithm,
+            userId
+          });
+
       await UserKey.create({
         userId,
         keyId: keyPair.keyId,
@@ -59,7 +62,7 @@ class ContractSigningService {
         publicKey: keyPair.publicKey,
         privateKey: keyPair.privateKey,
         keyStatus: 'active',
-        metadata: {
+        metadata: keyPair.metadata || {
           generatedAt: new Date().toISOString(),
           algorithm: selectedAlgorithm
         }
@@ -177,14 +180,25 @@ class ContractSigningService {
         throw new Error('Signing key not found or inactive');
       }
 
-      // Generate signature (privateKey stored as PEM)
-      const privateKey = userKey.privateKey;
       const algorithm = userKey.keyType;
-      const signature = await keyManagementService.generateSignature(
-        contractHash,
-        privateKey,
-        algorithm
-      );
+      let signature;
+      let signingMetadata = { signedAt: new Date().toISOString(), contractHash };
+      if (azureSigningKeys.keyUsesAzure(userKey)) {
+        const signed = await azureSigningKeys.signWithAzureKey({ userKey, contractHash });
+        signature = signed.signature;
+        signingMetadata = {
+          ...signingMetadata,
+          provider: userKey.metadata && userKey.metadata.backend,
+          vaultUrl: signed.vaultUrl,
+          verified: true,
+        };
+      } else {
+        signature = await keyManagementService.generateSignature(
+          contractHash,
+          userKey.privateKey,
+          algorithm
+        );
+      }
 
       // Store signature in database
       const signatureRecord = await Signature.create({
@@ -194,10 +208,7 @@ class ContractSigningService {
         signature,
         algorithm,
         status: 'ACTIVE',
-        metadata: {
-          signedAt: new Date().toISOString(),
-          contractHash
-        }
+        metadata: signingMetadata
       });
 
       // Log signing event
@@ -276,14 +287,18 @@ class ContractSigningService {
         throw new Error('Signing key not found or inactive');
       }
 
-      // Verify signature
-      const publicKey = JSON.parse(userKey.publicKey);
-      const isValid = await keyManagementService.verifySignature(
-        contractHash,
-        signature,
-        publicKey,
-        userKey.algorithm
-      );
+      let isValid;
+      if (azureSigningKeys.keyUsesAzure(userKey)) {
+        isValid = azureSigningKeys.verifyStoredSignature(userKey.publicKey, contractHash, signature);
+      } else {
+        const publicKey = JSON.parse(userKey.publicKey);
+        isValid = await keyManagementService.verifySignature(
+          contractHash,
+          signature,
+          publicKey,
+          userKey.algorithm
+        );
+      }
 
       if (!isValid) {
         throw new Error('Invalid signature');

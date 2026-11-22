@@ -5,6 +5,7 @@
 
 const crypto = require('crypto');
 const axios = require('axios');
+const azureKeyVault = require('./azureKeyVaultClient');
 
 class CloudKMSService {
   constructor() {
@@ -22,6 +23,24 @@ class CloudKMSService {
    * @param {Object} enterpriseConfig - Enterprise KMS configuration
    * @returns {Promise<Object>} - Signature result
    */
+  /**
+   * Sign with the provider named by the enterprise key.
+   * Azure uses Key Vault and verifies the signature before it is returned.
+   */
+  async sign(provider, keyId, contractHash, credentials = {}) {
+    const normalized = String(provider || '').toLowerCase();
+    if (normalized === 'azure' || normalized === 'azure-key-vault' || normalized === 'azure-keyvault' || normalized === 'azure-mhsm') {
+      const signed = await azureKeyVault.signContractHash({
+        vaultUrl: credentials.vaultUrl,
+        keyId,
+        digestHex: contractHash,
+        credentials,
+      });
+      return signed.signature;
+    }
+    return this.signContract(contractHash, { provider: normalized, keyId, credentials });
+  }
+
   async signContract(contractHash, enterpriseConfig) {
     const { provider, keyId, credentials } = enterpriseConfig;
     
@@ -55,6 +74,7 @@ class CloudKMSService {
    */
   verifySignature(signature, contractHash, publicKey) {
     try {
+      if (azureKeyVault.verifyEs256(publicKey, contractHash, signature)) return true;
       const key = crypto.createPublicKey({
         key: publicKey,
         format: 'pem'
@@ -62,7 +82,7 @@ class CloudKMSService {
 
       const verifier = crypto.createVerify('sha256');
       verifier.update(contractHash, 'hex');
-      
+
       return verifier.verify(key, signature, 'base64');
     } catch (error) {
       console.error('Error verifying signature:', error);
@@ -100,24 +120,18 @@ class CloudKMSService {
    * Test Azure Key Vault connection
    */
   async testAzureConnection(config) {
-    const { credentials, keyId, vaultUrl } = config;
-    
-    if (!credentials.clientId || !credentials.clientSecret || !credentials.tenantId) {
+    const { credentials = {}, keyId, vaultUrl } = config;
+    const managed = String(credentials.useManagedIdentity || process.env.AZURE_USE_MANAGED_IDENTITY) === 'true';
+
+    if (!managed && (!credentials.clientId || !credentials.clientSecret || !credentials.tenantId)) {
       throw new Error('Missing Azure credentials');
     }
 
-    if (!vaultUrl) {
+    if (!vaultUrl && !(credentials && credentials.vaultUrl)) {
       throw new Error('Vault URL is required for Azure');
     }
 
-    // Mock test - in production, this would make an actual API call
-    return {
-      provider: 'azure',
-      vaultUrl,
-      keyId,
-      status: 'connected',
-      message: 'Azure Key Vault connection successful'
-    };
+    return azureKeyVault.testConnection({ credentials, keyId, vaultUrl });
   }
 
   /**
@@ -199,46 +213,13 @@ class CloudKMSService {
  */
 class AzureKeyVaultClient {
   async sign(contractHash, keyId, credentials) {
-    const { vaultUrl, clientId, clientSecret, tenantId } = credentials;
-    
-    // Get access token
-    const accessToken = await this.getAccessToken(tenantId, clientId, clientSecret);
-    
-    // Sign the contract hash
-    const response = await axios.post(
-      `${vaultUrl}/keys/${keyId}/sign?api-version=7.4`,
-      {
-        alg: 'ES256',
-        value: Buffer.from(contractHash, 'hex').toString('base64')
-      },
-      {
-        headers: {
-          'Authorization': `Bearer ${accessToken}`,
-          'Content-Type': 'application/json'
-        }
-      }
-    );
-
-    return response.data.value;
-  }
-
-  async getAccessToken(tenantId, clientId, clientSecret) {
-    const response = await axios.post(
-      `https://login.microsoftonline.com/${tenantId}/oauth2/v2.0/token`,
-      new URLSearchParams({
-        client_id: clientId,
-        client_secret: clientSecret,
-        scope: 'https://vault.azure.net/.default',
-        grant_type: 'client_credentials'
-      }),
-      {
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded'
-        }
-      }
-    );
-
-    return response.data.access_token;
+    const signed = await azureKeyVault.signContractHash({
+      vaultUrl: credentials && credentials.vaultUrl,
+      keyId,
+      digestHex: contractHash,
+      credentials,
+    });
+    return signed.signature;
   }
 }
 
@@ -343,4 +324,6 @@ class OCIVaultClient {
   }
 }
 
-module.exports = CloudKMSService;
+const cloudKmsService = new CloudKMSService();
+cloudKmsService.CloudKMSService = CloudKMSService;
+module.exports = cloudKmsService;

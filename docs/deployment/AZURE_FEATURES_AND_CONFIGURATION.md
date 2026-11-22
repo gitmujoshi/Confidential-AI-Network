@@ -23,14 +23,14 @@ Canonical catalog of **Azure-oriented product features**, how they fit the E2E m
 | # | Feature | Maturity | Primary config |
 |---|---------|----------|----------------|
 | 1 | Entra ID auth (OIDC JWT + redirect) | Implemented | `AUTH_PROVIDER=entra`, `ENTRA_*` |
-| 2 | Edge: Front Door, APIM, App Gateway, private AKS | Design / Partial IaC | Terraform + DNS |
-| 3 | Platform Key Vault (secrets, CMK) | Partial | `AZURE_KEY_VAULT_*` |
-| 4 | Signing keys in Key Vault / HSM + verify on sign | Design | `SIGNING_KEY_BACKEND` |
-| 5 | Principal DEK / MEK + attested release | Design (signals MVP) | `CAN_*`, attestation |
-| 6 | Contract `kmsConfigs` → real Azure Key Vault | Partial (JSON only) | contract JSON + TSP creds |
-| 7 | Azure training on an existing AKS cluster | Partial (`azure-ccr` Job submit; quote and DCsv3 are design) | Contract `cloudAccounts.Azure`, TSP `cloudAccount.Azure.kubeconfigPath`, `AZURE_CCR_KUBECONFIG` |
+| 2 | Edge: Front Door, APIM, App Gateway, private AKS | Partial IaC (Front Door and APIM modules, both default off) | Terraform + DNS |
+| 3 | Platform Key Vault (secrets, CMK) | Partial (REST client; External Secrets install is a separate script) | `AZURE_KEY_VAULT_*` |
+| 4 | Signing keys in Key Vault / HSM + verify on sign | Partial (on when `SIGNING_KEY_BACKEND=azure-keyvault` or `azure-mhsm`) | `SIGNING_KEY_BACKEND` |
+| 5 | Principal DEK / MEK + attested release | Partial (`azure-skr` verifies an Azure Attestation JWT, then releases an encrypted blob) | `CAN_*`, attestation |
+| 6 | Contract `kmsConfigs` → real Azure Key Vault | Partial (Azure provider is looked up before submit; other providers stay JSON) | contract JSON + TSP creds |
+| 7 | Azure training on an existing AKS cluster | Partial (Job reads the node SEV-SNP report and submits it; status stays simulated until the report verifies) | Contract `cloudAccounts.Azure`, TSP `cloudAccount.Azure.kubeconfigPath`, `AZURE_CCR_KUBECONFIG` |
 | 8 | Blob datasets / artifacts | Design / Partial | `AZURE_STORAGE_*` |
-| 9 | SCITT CCF on Azure | Design | `SCITT_*` |
+| 9 | SCITT ledger on AKS | Partial (manifest and install script; this repo's service, not a Microsoft CCF network) | `SCITT_*`, `install-scitt.sh` |
 | 10 | Azure-targeted E2E / CI | Design | staging URLs + Entra test users |
 | 11 | SPIFFE/SPIRE + AKS WI / Entra WIF | Partial (WI IaC; SPIRE scaffold) | `enable_workload_identity`, `enable_spire` |
 | 12 | Local Keycloak demo path | Implemented | `KEYCLOAK_*`, `TRAINING_EXECUTION_MODE=local-docker` |
@@ -101,9 +101,9 @@ Local today shortcuts: Keycloak login, disk/demo datasets, placeholder signature
 | AKS Workload Identity (Path N) | **Implemented** | `enable_workload_identity` (default on) |
 | Front Door + WAF | Partial IaC | `enable_edge` (default off) |
 | SPIRE scaffold | Partial IaC | `enable_spire` + `deployment/azure/helm/spire` |
-| APIM | Design | JWT Entra; rate limits; route table in IAM doc |
+| APIM | Partial IaC | `enable_apim` creates Consumption APIM and the Entra JWT policy when `apim_publisher_email` and `apim_backend_url` are set |
 | Private AKS API | Design (prod) | Bastion for admin kubectl |
-| Confidential compute pool | Design | DCsv3 / confidential containers for CCRP |
+| Confidential compute pool | Opt-in IaC | `enable_confidential_compute`. The Job reads the guest report; a missing interface fails the Job |
 
 **Terraform inputs (typical `terraform.tfvars`):**
 
@@ -115,8 +115,8 @@ Local today shortcuts: Keycloak login, disk/demo datasets, placeholder signature
 | `db_password` | secret | PostgreSQL admin (prefer Key Vault) |
 | `aks_node_count` | `3` | Node pool size |
 | `aks_private_cluster` | `true` (prod) | Private API server |
-| `enable_front_door` | `true` | When module lands |
-| `enable_apim` | `true` | When module lands |
+| `enable_edge` | `true` | Front Door + WAF. Default off |
+| `enable_apim` | `true` | Also set `apim_publisher_email` and `apim_backend_url`. Default off |
 | `key_vault_sku` | `standard` \| `premium` | Premium for HSM-backed keys |
 
 ---
@@ -126,7 +126,7 @@ Local today shortcuts: Keycloak login, disk/demo datasets, placeholder signature
 | | |
 |--|--|
 | **Purpose** | DB strings, Entra client secrets, TLS, Blob/PG customer-managed keys — **not** principal DEK/MEK plaintext |
-| **Maturity** | Partial (SDK/secretManager scaffolding; not full External Secrets) |
+| **Maturity** | Partial. Sign, get, create, and secure key release call the Key Vault REST API and fail closed. External Secrets has a Helm values file and `install-external-secrets.sh`. Terraform apply does not run that script. |
 
 | Variable | Example | Description |
 |----------|---------|-------------|
@@ -153,8 +153,8 @@ Local today shortcuts: Keycloak login, disk/demo datasets, placeholder signature
 | | |
 |--|--|
 | **Purpose** | ECDSA-P256 / RSA keys for Ricardian signatures + SCITT linkage |
-| **Maturity** | Partial API (DB `UserKey`); Design for Key Vault/HSM + verify-on-sign |
-| **Today** | Private key in `user_keys`; portal sign often sends hash/placeholder; DID verify not enforced |
+| **Maturity** | Partial. `SIGNING_KEY_BACKEND=database` (default) keeps the private key in `user_keys`. `azure-keyvault` and `azure-mhsm` create an EC P-256 key in Key Vault, store the public key and key id only, sign in the vault, and reject the signature when local ES256 verification fails. |
+| **Today** | Database backend remains the local and demo path. DID verify is still not enforced. |
 
 | Variable | Example | Description |
 |----------|---------|-------------|
@@ -176,7 +176,7 @@ Local today shortcuts: Keycloak login, disk/demo datasets, placeholder signature
 |--|--|
 | **DEK** | Dataset encryption key — **TDP / data principal** owned (target) |
 | **MEK** | Model encryption key — **TDC / model owner** owned (target) |
-| **Maturity** | Design for principal custody; CAN MVP = **release signals only** (no key bytes on Node); platform encrypt = demo only |
+| **Maturity** | Partial. Default `CAN_PRINCIPAL_KEY_MODE=signals` still stores the release time and discards wrapped key bytes. `azure-skr` accepts a key only after Azure Attestation verifies the JWT, calls Key Vault secure key release, and returns the encrypted blob. The API does not decrypt it. `reportFormat` on that path is `AZURE_ATTESTATION`. A simulated report is not accepted as a guest quote. |
 
 | Variable | Example | Description |
 |----------|---------|-------------|
@@ -209,7 +209,7 @@ Stored on the contract as `kmsConfigs` / `environmentSpecs.kms` (provider + key 
 | `CONTRACT_KMS_ENFORCE` | `true` (prod) | Fail train if provider unreachable |
 | `CONTRACT_KMS_ALLOWED_PROVIDERS` | `azure-key-vault` | Restrict on Azure |
 
-**Maturity:** JSON persisted; training does **not** yet call the provider. TSP Azure credentials (separate) use secret encryption paths — see CCRP guide.
+**Maturity:** JSON is still stored for every provider. When the provider is `azure-key-vault`, `azure-keyvault`, `azure`, or `azure-mhsm`, training calls Key Vault and gets the key before `kubectl apply`. A missing vault URL, key id, or a failed lookup marks the job failed and does not submit it. `CONTRACT_KMS_ENFORCE=true` requires that Azure provider even when the contract names another KMS. The job environment receives the vault URI and key id. Credentials are not copied into the Job. TSP Azure credentials remain a separate store.
 
 ---
 
@@ -223,7 +223,7 @@ A signed contract whose TSP is **Azure** submits `azure-ccr` to the AKS cluster 
 | TSP dashboard **Cloud Provider** card | Same identifiers plus `kubeconfigPath`, stored on `users.cloud_account.Azure` |
 | `AZURE_CCR_KUBECONFIG` | Kubeconfig path on the API host when the dashboard field is empty |
 
-Required before submit: subscription, resource group, and AKS name, plus a kubeconfig path. A missing path marks the `TrainingJob` **FAILED** and returns HTTP 502. `kubectl apply` runs only when that path is set. Attestation on this path is `simulated`. No SEV-SNP quote is collected. The confidential node pool in `deployment/azure/terraform/` is opt-in and is not applied by training start. DCsv3 guest quotes and attested key release remain design.
+Required before submit: subscription, resource group, and AKS name, plus a kubeconfig path. A missing path marks the `TrainingJob` **FAILED** and returns HTTP 502. `kubectl apply` runs only when that path is set and, when Azure KMS is configured, only after Key Vault returns the contract key. The Job mounts `/sys/kernel/config/tsm` from the node and runs `training/azure_guest_quote.py` before training. That script submits the report to `POST /api/tdc/training/jobs/:jobId/sev-snp-quote`. The job status stays `simulated` until the report signature matches the VCEK and the VCEK chains to `SEV_SNP_ARK_PEM`. A missing guest interface fails the container and does not create a report. The confidential node pool in `deployment/azure/terraform/` is opt-in and is not applied by training start.
 
 The **Cloud credentials** page is a separate store. `azure-ccr` does not read it.
 
@@ -262,7 +262,7 @@ TDC inference deploy is a separate step. The TDC can select **Azure** on the tra
 | | |
 |--|--|
 | **Purpose** | Tamper-evident receipts for signatures / provenance |
-| **Maturity** | Local docker-compose Implemented; Azure Design |
+| **Maturity** | Local docker-compose is implemented. AKS deployment is `deployment/azure/manifests/scitt/scitt.yaml`, applied by `deployment/azure/scripts/install-scitt.sh`. The script refuses to apply without `SCITT_IMAGE`, `DATABASE_URL`, and a reachable cluster. This is the repo's ledger service, not a Microsoft CCF network. |
 
 | Variable | Example | Description |
 |----------|---------|-------------|
@@ -353,9 +353,11 @@ DATASET_STORAGE_BACKEND=azure-blob
 # Azure jobs ignore TRAINING_EXECUTION_MODE. Name the existing AKS cluster on the
 # TSP Cloud Provider card and set AZURE_CCR_KUBECONFIG or cloudAccount.Azure.kubeconfigPath.
 AZURE_CCR_KUBECONFIG=/var/secrets/aks.kubeconfig
-SIGNING_KEY_BACKEND=database    # migrate to azure-keyvault in Phase 2
-SIGNING_REQUIRE_CRYPTO_VERIFY=false  # enable after Key Vault signing
+SIGNING_KEY_BACKEND=database    # set azure-keyvault to sign in Key Vault
+SIGNING_REQUIRE_CRYPTO_VERIFY=false  # Azure Key Vault signing always verifies ES256
 CAN_ATTESTATION_PROVIDER=simulated
+# CAN_PRINCIPAL_KEY_MODE=azure-skr
+# AZURE_ATTESTATION_URL=https://sharedeus2.eus2.attest.azure.net
 SCITT_CCF_ENABLED=false
 ```
 
@@ -386,14 +388,15 @@ SCITT_DEPLOYMENT=aks
 Order matches engineering priority:
 
 1. ~~**Entra auth adapter**~~ — done (`AUTH_PROVIDER=entra`; OIDC SPA redirect; JWKS; Terraform identity module; Keycloak local-only).
-2. **Blob storage backend** — `DATASET_STORAGE_BACKEND=azure-blob`; containers + MSI.
-3. **Signing Key Vault + verify** — `SIGNING_KEY_BACKEND=azure-keyvault`; enforce crypto on sign.
-4. **Contract KMS enforce** — resolve `kmsConfigs` against Azure Key Vault at train start.
-5. **Azure guest quote and artifact copy-back** — `azure-ccr` already submits to the named AKS cluster. Still open: status watch, Blob mount, SEV-SNP quote, and key release.
-6. **Attested DEK/MEK release** — Azure Attestation + SKR/attested TLS; keep Node signal-only.
-7. **SCITT on AKS** — enable receipts for Azure staging/prod.
-8. **Terraform modules** — Front Door, APIM, Key Vault, confidential pool.
+2. **Blob storage backend** — containers exist in Terraform. The app path `DATASET_STORAGE_BACKEND=azure-blob` is still open.
+3. ~~**Signing Key Vault + verify**~~ — coded. Off unless `SIGNING_KEY_BACKEND=azure-keyvault` or `azure-mhsm`.
+4. ~~**Contract KMS enforce**~~ — an Azure Key Vault `kmsConfigs` provider is read before the Job is submitted.
+5. **Azure training follow-through** — the Job submits and reads a SEV-SNP report from the node. Still open: status watch and copying artifacts back from Blob.
+6. ~~**Attested DEK/MEK release**~~ — `CAN_PRINCIPAL_KEY_MODE=azure-skr` verifies an Azure Attestation JWT and returns the encrypted Key Vault blob. Default remains `signals`.
+7. ~~**SCITT ledger manifest**~~ — `install-scitt.sh`. This repo's service. A live apply still needs an image and `DATABASE_URL`.
+8. ~~**Terraform modules**~~ — Key Vault, Front Door, APIM, confidential pool, and the External Secrets service account are in the stack. APIM, the pool, and External Secrets default off. SPIRE Helm is still installed by hand.
 9. **E2E against staging** — Entra users; `PLAYWRIGHT_BASE_URL` / API HTTPS.
+10. **Operator apply** — public DNS, SPIRE Helm, and a live `terraform apply` on a subscription.
 
 ---
 

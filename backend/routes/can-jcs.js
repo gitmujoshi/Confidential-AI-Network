@@ -5,6 +5,7 @@ const { body, param, validationResult } = require('express-validator');
 const { requireCanPrincipal } = require('../middleware/canPrincipalAuth');
 const { CANJcsService } = require('../services/canJcsService');
 const { assertNoRawKeyFields } = require('../services/canKeyDelivery');
+const { releasePrincipalKey } = require('../services/azureKeyRelease');
 
 const jcs = new CANJcsService();
 
@@ -135,6 +136,60 @@ router.post(
         wrappedKey: req.body.wrappedKey
       });
       return res.json({ success: true, keyStored: false, data: result });
+    } catch (err) {
+      return res.status(err.statusCode || 400).json({
+        success: false,
+        error: err.message,
+        code: err.code
+      });
+    }
+  }
+);
+
+// Azure Key Vault secure key release. The blob stays encrypted to the attested runtime.
+router.post(
+  '/jobs/:jobId/azure-key-release',
+  requireCanPrincipal,
+  [
+    param('jobId').isUUID().withMessage('jobId must be a UUID'),
+    body('keyType').isIn(['DEK', 'MEK']).withMessage('keyType must be DEK or MEK'),
+    body('vaultUrl').isString().notEmpty().withMessage('vaultUrl is required'),
+    body('keyId').isString().notEmpty().withMessage('keyId is required'),
+    body('attestationToken').isString().notEmpty().withMessage('attestationToken is required')
+  ],
+  async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) return sendValidationError(res, errors);
+    if (String(process.env.CAN_PRINCIPAL_KEY_MODE || 'signals').toLowerCase() !== 'azure-skr') {
+      return res.status(409).json({
+        success: false,
+        code: 'AZURE_SKR_DISABLED',
+        error: 'CAN_PRINCIPAL_KEY_MODE is not azure-skr. Key Vault release was not called.'
+      });
+    }
+
+    try {
+      assertNoRawKeyFields(req.body);
+      const released = await releasePrincipalKey({
+        keyType: req.body.keyType,
+        vaultUrl: req.body.vaultUrl,
+        keyId: req.body.keyId,
+        attestationToken: req.body.attestationToken
+      });
+      const result = await jcs.recordAzureKeyRelease(req.params.jobId, {
+        keyType: req.body.keyType,
+        principalId: req.can.principalId,
+        release: released
+      });
+      return res.json({
+        success: true,
+        keyStored: false,
+        reportFormat: released.reportFormat,
+        attestationType: released.attestationType,
+        releaseBlobSha256: released.releaseBlobSha256,
+        encryptedRelease: released.encryptedRelease,
+        data: result
+      });
     } catch (err) {
       return res.status(err.statusCode || 400).json({
         success: false,

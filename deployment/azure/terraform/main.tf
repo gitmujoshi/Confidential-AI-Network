@@ -193,7 +193,10 @@ module "workload_identity" {
   kubernetes_namespace = "contract-management"
   key_vault_id         = coalesce(module.key_vault.key_vault_id, "")
   storage_account_id   = coalesce(module.storage.storage_account_id, "")
-  project_tags         = local.resource_tags
+  service_account_namespaces = {
+    external-secrets = "external-secrets"
+  }
+  project_tags = local.resource_tags
 
   depends_on = [module.aks, module.key_vault, module.storage]
 }
@@ -265,6 +268,31 @@ module "confidential_compute" {
   project_tags                = local.resource_tags
 
   depends_on = [module.kubernetes_resources, module.workload_identity]
+}
+
+module "external_secrets" {
+  source = "./modules/external_secrets"
+
+  enabled   = var.enable_external_secrets
+  client_id = try(module.workload_identity.identity_client_ids["external-secrets"], "")
+
+  depends_on = [module.aks, module.workload_identity]
+}
+
+module "apim" {
+  source = "./modules/apim"
+
+  enabled             = var.enable_apim
+  resource_group_name = module.networking.resource_group_name
+  location            = var.location
+  environment         = var.environment
+  tenant_id           = var.tenant_id
+  audience            = var.apim_audience != "" ? var.apim_audience : local.effective_entra_api_audience
+  publisher_email     = var.apim_publisher_email
+  publisher_name      = var.apim_publisher_name
+  backend_url         = var.apim_backend_url
+  policy_template     = "${path.module}/../apim/can-api-policy.xml.tpl"
+  project_tags        = local.resource_tags
 }
 
 module "spire" {

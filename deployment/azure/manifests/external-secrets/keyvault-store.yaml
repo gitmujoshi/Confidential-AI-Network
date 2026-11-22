@@ -1,0 +1,33 @@
+apiVersion: external-secrets.io/v1
+kind: ClusterSecretStore
+metadata:
+  name: azure-key-vault
+spec:
+  provider:
+    azurekv:
+      authType: WorkloadIdentity
+      vaultUrl: "https://__VAULT_NAME__.vault.azure.net"
+      serviceAccountRef:
+        name: external-secrets
+        namespace: external-secrets
+---
+apiVersion: external-secrets.io/v1
+kind: ExternalSecret
+metadata:
+  name: can-platform
+  namespace: contract-management
+spec:
+  refreshInterval: 1h
+  secretStoreRef:
+    name: azure-key-vault
+    kind: ClusterSecretStore
+  target:
+    name: can-platform-secrets
+    creationPolicy: Owner
+  data:
+    - secretKey: DATABASE_URL
+      remoteRef:
+        key: can-__ENVIRONMENT__-db-connection
+    - secretKey: ENTRA_CLIENT_SECRET
+      remoteRef:
+        key: can-__ENVIRONMENT__-entra-api-client-secret

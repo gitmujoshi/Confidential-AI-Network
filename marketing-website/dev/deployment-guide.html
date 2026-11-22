@@ -74,15 +74,30 @@
 
 <main class="container py-5" style="max-width: 860px;">
 <h1 class="display-5 fw-bold">Deployment</h1>
-<p>Local development is <code>./start-system.sh</code>. A production layout is documented per cloud in the repository under <code>docs/deployment</code> and <code>docs/production</code>.</p>
+<p>Local development is <code>./start-system.sh</code>. Cloud jobs use a cluster the provider already runs. The kubeconfig path is stored on the provider card. A missing path fails the job.</p>
+<h2 class="h4 mt-4">Where a job runs</h2>
 <ul>
-<li>Azure uses an existing AKS cluster, resource group, and subscription.</li>
-<li>Google Cloud uses an existing GKE cluster and project.</li>
+<li>Azure submits to the existing AKS cluster named on the contract and the provider card.</li>
+<li>Google Cloud uses the existing GKE cluster and project.</li>
 <li>Oracle uses the existing OKE runner.</li>
 <li>AWS training is not implemented. The API returns 501.</li>
 </ul>
-<p>Do not point a job at a cluster unless the kubeconfig path on the provider card can open it. A missing path fails the job.</p>
-<p class="mt-4 mb-0"><a href="https://github.com/gitmujoshi/Confidential-AI-Network">Source and the full guides</a> are in the repository.</p>
+<h2 class="h4 mt-4">Azure platform</h2>
+<p>Terraform can create the AKS cluster, PostgreSQL, the container registry, a platform Key Vault, and Blob storage. These stay off until the matching setting is turned on:</p>
+<ul>
+<li>Confidential node pool. The training job reads a SEV-SNP report from the node. The job stays simulated until that report verifies. A node without the guest interface fails the job.</li>
+<li>API Management and its Entra token check. It is created only when the publisher email and the API address are set.</li>
+<li>External Secrets. Terraform creates the identity. The operator install is a separate script and stops when the vault or the cluster is missing.</li>
+<li>SCITT on AKS. The install script deploys this product's ledger. It stops when the image or database URL is missing.</li>
+</ul>
+<p>Signing stays in the database until <code>SIGNING_KEY_BACKEND</code> is <code>azure-keyvault</code>. Dataset and model key release stays on recorded release times until <code>CAN_PRINCIPAL_KEY_MODE</code> is <code>azure-skr</code>.</p>
+<h2 class="h4 mt-4">Still an operator step</h2>
+<ul>
+<li>Apply Terraform to a subscription, then point DNS at the load balancer.</li>
+<li>Install SPIRE with Helm after its namespace scaffold.</li>
+<li>Run the training job on a confidential node when a real SEV-SNP report is required.</li>
+</ul>
+<p class="mt-4 mb-0">The module list, flags, and install scripts are in <code>deployment/azure/terraform/README.md</code>. Readiness and the setting catalog are in <code>docs/deployment</code>.</p>
 </main>
 <footer class="py-4">
     <div class="container"><p class="mb-0">&copy; 2026 Confidential AI Network</p></div>

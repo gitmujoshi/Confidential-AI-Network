@@ -18,6 +18,12 @@ variable "kubernetes_namespace" {
   default = "contract-management"
 }
 
+variable "service_account_namespaces" {
+  description = "Override the namespace of a workload service account. external-secrets lives in its own namespace."
+  type        = map(string)
+  default     = {}
+}
+
 variable "workload_names" {
   description = "Service account names (also used as WI name suffix)"
   type        = list(string)

@@ -34,7 +34,7 @@ resource "azurerm_federated_identity_credential" "workloads" {
   parent_id           = azurerm_user_assigned_identity.workloads[each.key].id
   audience            = ["api://AzureADTokenExchange"]
   issuer              = var.oidc_issuer_url
-  subject             = "system:serviceaccount:${var.kubernetes_namespace}:${each.key}"
+  subject             = "system:serviceaccount:${lookup(var.service_account_namespaces, each.key, var.kubernetes_namespace)}:${each.key}"
 }
 
 # Key Vault Secrets User for identities that need secrets

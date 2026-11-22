@@ -322,6 +322,40 @@ variable "edge_waf_mode" {
   default = "Prevention"
 }
 
+variable "enable_external_secrets" {
+  description = "Create the external-secrets namespace and Workload Identity service account. Install the operator with deployment/azure/scripts/install-external-secrets.sh."
+  type        = bool
+  default     = false
+}
+
+variable "enable_apim" {
+  description = "Create API Management when apim_publisher_email and apim_backend_url are set. The JWT policy trusts Entra only."
+  type        = bool
+  default     = false
+}
+
+variable "apim_publisher_email" {
+  type    = string
+  default = ""
+}
+
+variable "apim_publisher_name" {
+  type    = string
+  default = "Confidential AI Network"
+}
+
+variable "apim_backend_url" {
+  description = "API origin APIM forwards to, for example http://10.0.0.4:5001"
+  type        = string
+  default     = ""
+}
+
+variable "apim_audience" {
+  description = "Entra audience required by the APIM JWT policy. Defaults to the API app audience."
+  type        = string
+  default     = ""
+}
+
 variable "enable_spire" {
   description = "Create SPIRE namespace + CAN trust-domain ConfigMaps (Helm install separate)"
   type        = bool
