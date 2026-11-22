@@ -143,6 +143,9 @@ export const UserProvider = ({ children }) => {
         console.log('🔍 [UserContext] Checking token authentication...');
         // Add cache-busting parameter to ensure fresh data
         const response = await apiService.get('/api/auth/profile?_t=' + Date.now());
+        if (localStorage.getItem('authToken') !== token) {
+          return;
+        }
         if (response.data.user) {
           console.log('✅ [UserContext] Token authentication successful:', response.data.user);
           setCurrentUser(response.data.user);
@@ -151,6 +154,10 @@ export const UserProvider = ({ children }) => {
         }
       } catch (error) {
         console.log('❌ [UserContext] Token authentication failed:', error.response?.status, error.message);
+        // A newer login may have replaced this token while the profile call was in flight.
+        if (localStorage.getItem('authToken') !== token) {
+          return;
+        }
         // If token is invalid (401, 403, or 404), clear it
         if (error.response?.status === 401 || error.response?.status === 403 || error.response?.status === 404) {
           console.log('🧹 [UserContext] Clearing invalid token and user data');

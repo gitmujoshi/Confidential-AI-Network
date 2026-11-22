@@ -23,11 +23,18 @@ api.interceptors.request.use(
       fullURL: `${config.baseURL}${config.url}`
     });
     
-    // Add auth token if available
-    const token = localStorage.getItem('authToken');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
+    // Keep an Authorization header the caller already set. Logout captures the
+    // token it intends to revoke; replacing it with a newer login blacklists
+    // the session that just replaced it.
+    const headers = config.headers || {};
+    const preset = headers.Authorization || headers.authorization;
+    if (!preset) {
+      const token = localStorage.getItem('authToken');
+      if (token) {
+        headers.Authorization = `Bearer ${token}`;
+      }
     }
+    config.headers = headers;
     return config;
   },
   (error) => {
@@ -35,6 +42,28 @@ api.interceptors.request.use(
     return Promise.reject(error);
   }
 );
+
+function refreshTokenFromConfig(config) {
+  const data = config?.data;
+  if (!data) return '';
+  if (typeof data === 'string') {
+    try {
+      return JSON.parse(data).refreshToken || '';
+    } catch (_) {
+      return '';
+    }
+  }
+  return data.refreshToken || '';
+}
+
+function sessionReplacedSince(accessToken, refreshToken) {
+  if (typeof window === 'undefined') return false;
+  const currentAccess = localStorage.getItem('authToken') || '';
+  const currentRefresh = localStorage.getItem('refreshToken') || '';
+  if (accessToken && currentAccess && currentAccess !== accessToken) return true;
+  if (refreshToken && currentRefresh && currentRefresh !== refreshToken) return true;
+  return false;
+}
 
 // Response interceptor
 api.interceptors.response.use(
@@ -58,7 +87,11 @@ api.interceptors.response.use(
       const sentAuth = error.config?.headers?.Authorization || error.config?.headers?.authorization || '';
       const sentToken = String(sentAuth).replace(/^Bearer\s+/i, '');
       const currentToken = typeof window !== 'undefined' ? localStorage.getItem('authToken') : '';
-      if (currentToken && sentToken !== currentToken) {
+      const failedRefreshToken = refreshTokenFromConfig(error.config);
+      if (currentToken && sentToken && sentToken !== currentToken) {
+        return Promise.reject(error);
+      }
+      if (sessionReplacedSince(sentToken, failedRefreshToken)) {
         return Promise.reject(error);
       }
       const path =
@@ -71,8 +104,12 @@ api.interceptors.response.use(
         path.startsWith('/reset-password') ||
         path.startsWith('/first-login');
 
-      // Check if this is a refresh request to avoid infinite loops
+      // Check if this is a refresh request to avoid infinite loops.
+      // A refresh started for the previous user must not clear the session that replaced it.
       if (error.config?.url?.includes('/auth/refresh')) {
+        if (sessionReplacedSince(sentToken, failedRefreshToken)) {
+          return Promise.reject(error);
+        }
         console.log('🔐 [API] Refresh token failed, clearing auth tokens');
         localStorage.removeItem('authToken');
         localStorage.removeItem('refreshToken');
@@ -94,10 +131,14 @@ api.interceptors.response.use(
 
       // Try to refresh the token
       const refreshToken = localStorage.getItem('refreshToken');
+      const accessTokenAtRefresh = localStorage.getItem('authToken');
       if (refreshToken) {
         console.log('🔄 [API] Attempting to refresh token...');
         try {
           const refreshResponse = await api.post('/api/auth/refresh', { refreshToken });
+          if (sessionReplacedSince(accessTokenAtRefresh, refreshToken)) {
+            return Promise.reject(error);
+          }
           
           // Update tokens in localStorage
           localStorage.setItem('authToken', refreshResponse.data.accessToken);
@@ -109,6 +150,9 @@ api.interceptors.response.use(
           console.log('✅ [API] Token refreshed, retrying original request');
           return api(error.config);
         } catch (refreshError) {
+          if (sessionReplacedSince(accessTokenAtRefresh, refreshToken)) {
+            return Promise.reject(refreshError);
+          }
           console.log('❌ [API] Token refresh failed, clearing auth tokens');
           localStorage.removeItem('authToken');
           localStorage.removeItem('refreshToken');

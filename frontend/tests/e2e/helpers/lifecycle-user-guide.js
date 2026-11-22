@@ -286,9 +286,16 @@ async function captureAuditorTourSteps(page, { contractId, steps }) {
       /* ignore */
     }
   });
-  // Stay on the UI session. Overwriting localStorage with a second API token
-  // makes the next auditor request 401 and the screenshot lands on login.
   await loginViaUI(page, { email: session.email, password: session.password });
+  // seedSession registers an init script that puts the previous user back into
+  // localStorage on every full page load. That blacklisted token 401s, the
+  // refresh fails, and the app returns to login. A later init script wins.
+  await page.addInitScript(({ t, u, r }) => {
+    localStorage.setItem('authToken', t);
+    localStorage.setItem('user', JSON.stringify(u));
+    localStorage.setItem('currentUser', JSON.stringify(u));
+    if (r) localStorage.setItem('refreshToken', r);
+  }, { t: session.token, u: session.user, r: session.refreshToken || '' });
 
   const openAuditor = async (path, ready) => {
     let lastError;

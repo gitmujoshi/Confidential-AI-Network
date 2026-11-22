@@ -39,12 +39,15 @@ const Login = () => {
       if (token) {
         try {
           const response = await apiService.get('/api/auth/profile');
+          if (localStorage.getItem('authToken') !== token) return;
           if (response.data.user) {
             navigate('/dashboard');
             return;
           }
         } catch (_) {
-          // stale token
+          // The profile call failed for this token. A newer login may already
+          // have replaced it while the request was in flight.
+          if (localStorage.getItem('authToken') !== token) return;
         }
         localStorage.removeItem('authToken');
         localStorage.removeItem('refreshToken');

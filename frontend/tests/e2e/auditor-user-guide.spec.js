@@ -30,16 +30,16 @@ test.describe('Auditor product-tour screenshots', () => {
     const contracts = list.data?.contracts || [];
     expect(contracts.length).toBeGreaterThan(0);
 
-    // Prefer a contract that has training evidence when available.
-    let contractId = contracts[0].contractId;
-    for (const c of contracts.slice(0, 10)) {
+    // The tour asserts the sealed caption. A training leaf can exist before the job
+    // is COMPLETED, and that tree still shows "Unsealed root".
+    let contractId = null;
+    for (const c of contracts.slice(0, 20)) {
       try {
         const tree = await axios.get(
           `${BACKEND_URL}/api/auditor/contracts/${encodeURIComponent(c.contractId)}/audit-tree`,
           { headers: { Authorization: `Bearer ${session.token}` } }
         );
-        const kinds = (tree.data?.auditTree?.merkle?.leaves || []).map((l) => l.kind);
-        if (kinds.includes('training_job') || kinds.includes('scitt_claim')) {
+        if (tree.data?.auditTree?.merkle?.published) {
           contractId = c.contractId;
           break;
         }
@@ -47,6 +47,7 @@ test.describe('Auditor product-tour screenshots', () => {
         /* try next */
       }
     }
+    expect(contractId, 'need a contract whose audit root is already sealed').toBeTruthy();
 
     const steps = [];
     await captureAuditorTourSteps(page, { contractId, steps });
