@@ -277,6 +277,29 @@ For each owner `i`, in parallel, the CCR:
 
 The CCR calls one owner SDK per owner. The module is `backend/sdk/owner-kbs.js`. `MockOwnerKbs` is the local broker. `HttpOwnerKbsClient` posts `POST {endpoint}/nonce` and `POST {endpoint}/release` to an owner's process. `orchestrateRelease` runs those calls in parallel. If one owner refuses or does not answer, every wrapped key from that round is dropped and the job stays unreleased. `POST /api/can/jcs/jobs/{jobId}/orchestrate` uses the job's clean-room public key and does not return key bytes.
 
+#### Datasets, models, and the clean room
+
+A signed contract is the list the clean room works from. The training data consumer selects one to three datasets and a base model, and names the tech service provider who hosts the room. The orchestrator then asks the owner of each of those assets for a key. The provider hosts the room. The provider does not hold the data key or the model key.
+
+| Asset | Who owns it | Key the broker releases | Who the clean room asks |
+|---|---|---|---|
+| Dataset | The training data provider on the dataset's `ownerId` | DEK, the data encryption key for that dataset | That provider's Key Broker |
+| Base model | The training data consumer who published the model | MEK, the model encryption key | That consumer's Key Broker |
+| Clean-room session | Created for this job. The tech service provider hosts it | One-run `sk_ccr` / `pk_ccr` | No broker. This is the room the brokers attest |
+
+`POST /api/can/jcs/jobs` with `contractId` and `ccrProvider` opens the job and a clean-room session in `REQUESTED`. Escrow starts `OPEN` and expires about 10 minutes later. The session id is stored on the job. The attestation bundle and the one-run public key belong to that session. Locally the report stays simulated, and the HPKE private key stays in the API process under that session id.
+
+The catalog and the contract name the assets. They do not name a broker. `encryption_key_id` and `attestation_policy` on a dataset, and `kmsConfigs` on the contract, are references stored with the row. `POST /api/can/jcs/jobs/{jobId}/orchestrate` does not read `datasetSelections`, `aiModelIds`, or those fields. The caller supplies `owners`:
+
+* One `{ ownerId, keyType: "DEK", endpoint }` for each dataset owner.
+* One `{ ownerId, keyType: "MEK", endpoint }` for the model owner.
+
+`endpoint` is `mock` for the local broker, or the base URL of that owner's process (`POST /nonce`, `POST /release`, `POST /lease`). Two datasets from one provider are one data-key owner. Two datasets from two providers are two data-key owners, and each broker is called on its own. The model owner is a separate call.
+
+The job records one data-key time and one model-key time. The orchestrator records those signals only after every owner in the request has returned a key wrapped to `pk_ccr`. One refusal drops the wrapped keys from that round and leaves escrow unchanged. The first accepted data-key signal and the first accepted model-key signal move the job to `BOTH_READY` and the session to `READY`. `POST /api/can/jcs/jobs/{jobId}/release` then moves the job to `RELEASED` and the session to `RUNNING`.
+
+An owner who keeps the key in Azure Key Vault has that owner's broker present the room's Azure Attestation token. Key Vault returns an encrypted blob. `POST /api/can/jcs/jobs/{jobId}/azure-key-release` records that release when `CAN_PRINCIPAL_KEY_MODE=azure-skr`. The blob is not decrypted and is not wrapped again. Portal **Start training** does not create this job and does not call the brokers. It reads the artifacts on the host.
+
 ### **Contract Status**
 - **Draft**: Being prepared
 - **Pending Signatures**: Waiting for signatures

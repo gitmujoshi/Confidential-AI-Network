@@ -106,7 +106,7 @@ Watch for signature requests and dataset access events here.
 
 ## Signing and data keys
 
-Your party signing key is created at registration (**ECDSA-P256** unless you choose RSA). Sign the contract with that key. A dataset row can record AES-256-GCM and an optional `encryption_key_id`. Platform encryption holds that key on the platform. A principal-held data key is not uploaded here. CAN release wraps that key to the clean-room attestation and stores only the release time, documented in the [user guide](../../USER_GUIDE.md#key-release-policy).
+Your party signing key is created at registration (**ECDSA-P256** unless you choose RSA). Sign the contract with that key. A dataset row can record AES-256-GCM and an optional `encryption_key_id`. Platform encryption holds that key on the platform. A principal-held data key is not uploaded here. When a contract uses this dataset, the clean room asks your Key Broker for the data key. The catalog key id is not that broker. The model publisher is a separate call, and the tech service provider hosts the room. The join is [Datasets, models, and the clean room](../../USER_GUIDE.md#datasets-models-and-the-clean-room).
 
 ## Related docs
 

@@ -209,6 +209,8 @@ See [PHASE_A_LOCAL_ARTIFACTS.md](../training/PHASE_A_LOCAL_ARTIFACTS.md).
 
 **Clean-room rule (target):** ciphertext may be staged in object storage or pulled into CCR; **plaintext and DEK exist only inside the attested TEE** for the job window.
 
+The dataset's `ownerId` is the data-key owner the clean room asks. `encryption_key_id` and `attestation_policy` are stored on the row. They are not a Key Broker address. When a contract selects this dataset, the caller of `POST /api/can/jcs/jobs/{jobId}/orchestrate` passes that owner as `{ ownerId, keyType: "DEK", endpoint }`. Two datasets from the same provider are one DEK owner. Two providers are two DEK owners, each with their own broker. The join with the model and the clean-room session is in [§9.4](#94-key-orchestrator).
+
 ---
 
 ## 5. TDC — base models
@@ -232,7 +234,7 @@ See [PHASE_A_LOCAL_ARTIFACTS.md](../training/PHASE_A_LOCAL_ARTIFACTS.md).
 Optional path (`ai-models-upload`): upload weights + metadata; may use platform encryption.  
 **CAN target:** TDC encrypts with **MEK** locally; only ciphertext enters the platform/CCR; MEK released to attested CCR after escrow.
 
-Details: [TDC_ENCRYPTED_AI_MODEL_TEE_FLOW.md](../flows/TDC_ENCRYPTED_AI_MODEL_TEE_FLOW.md).
+The publisher of the model is the model-key owner. The orchestrator asks that owner's Key Broker with `{ ownerId, keyType: "MEK", endpoint }`. The model row does not store the broker URL. Portal **Start training** reads the artifact on this host and does not make that call. Details of the target upload flow: [TDC_ENCRYPTED_AI_MODEL_TEE_FLOW.md](../flows/TDC_ENCRYPTED_AI_MODEL_TEE_FLOW.md). The running handshake is [§9.4](#94-key-orchestrator).
 
 ---
 
@@ -274,6 +276,8 @@ Flow detail: [CCRP_ENVIRONMENT_OFFERINGS_CONFIGURATION_FLOW.md](../flows/CCRP_EN
 | Credentials + secret refs | Optional for local | Required |
 | Trainer image built | `local-trainer` | Push to ACR/OCIR |
 | Monitoring / budget limits | Optional | Recommended |
+
+The TSP hosts the clean-room session. The TSP does not hold the dataset DEK or the model MEK. Creating a CAN job opens that session in `REQUESTED` and stores its id on the job. Brokers attest that session. They do not release a key to the TSP.
 
 ---
 
@@ -380,7 +384,21 @@ Each owner keeps an **Owner Key Domain**: their KMS or HSM, KBS, verifier, refer
 
 A data owner is not on the model-key path, and the model owner is not on a data-key path. If a KBS is down, a policy fails, or the contract is revoked, nothing is released and output stays blocked. Keys live in TEE memory for the run and are wiped at teardown.
 
-The same explanation is in the [user guide](../USER_GUIDE.md#key-orchestrator).
+#### Assets the orchestrator asks for
+
+| Asset on the contract | Owner | `owners[]` entry | What the job stores |
+|---|---|---|---|
+| Each selected dataset (`datasetSelections`, owner from the dataset `ownerId`) | TDP | `{ ownerId, keyType: "DEK", endpoint }` | One `dekReceivedAt`. The first accepted DEK signal counts |
+| The base model (`aiModelIds`, publisher of that model) | TDC | `{ ownerId, keyType: "MEK", endpoint }` | One `mekReceivedAt` |
+| The clean-room session created with the job | TSP hosts it | None. `pk_ccr` is the key brokers wrap to | `ccrSessionId`. Session moves `REQUESTED` → `READY` at `BOTH_READY` → `RUNNING` at release |
+
+`POST /api/can/jcs/jobs` with `contractId` and `ccrProvider` creates the job and the session. Escrow opens as `OPEN` for about 10 minutes. The attestation bundle is stored on the job. Locally that report is simulated, and the HPKE private key for the session stays in the API process.
+
+`POST .../orchestrate` does not look up brokers from `datasetSelections`, `aiModelIds`, `encryption_key_id`, `attestation_policy`, or `kmsConfigs`. The caller passes `owners`. `endpoint` is `mock` locally, or the owner's `/nonce`, `/release`, and `/lease` base URL. Every owner in that request must return a key wrapped to `pk_ccr` before the job records the DEK and MEK signals. One refusal drops the wrapped keys and leaves escrow where it was. `POST .../release` is accepted only in `BOTH_READY`.
+
+An Azure owner presents an Azure Attestation token from that owner's broker. `POST .../azure-key-release` records the encrypted Key Vault blob when `CAN_PRINCIPAL_KEY_MODE=azure-skr`. The API does not decrypt it. Portal **Start training** does not open this job.
+
+The same explanation is in the [user guide](../USER_GUIDE.md#datasets-models-and-the-clean-room).
 
 ### 9.3 Target clean-room decrypt-and-train sequence
 
@@ -411,9 +429,11 @@ CCRP provisions TEE
 | Decrypt | CCR | In TEE memory for training window |
 | Destroy | CCR / sweeper | Zeroize DEK; tear down session |
 
+The running call is the dataset owner's Key Broker, passed as a DEK owner on `POST .../orchestrate`. See [§9.4](#94-key-orchestrator).
+
 ### 10.2 Base model (MEK)
 
-Same pattern as DEK, owned by TDC / model owner.
+Same pattern as DEK, owned by TDC / model owner. The orchestrator passes that publisher as the MEK owner. The TSP who hosts the room is not that owner.
 
 ### 10.3 Dual-key escrow
 
@@ -551,7 +571,7 @@ Use this as a single run sheet. Mark **Portal** vs **CAN** where noted.
 | Mock KMS (`signals` / `mock`) and release policy | **Shipped** for local and dev. Production profile refuses the mock |
 | Both-owner barrier and sealed-output record | **Shipped**. The escrow deadline and an expired owner lease both block output |
 | Azure Key Vault release (`azure-skr`) | **Shipped, off by default**. Returns an encrypted blob |
-| Key Orchestrator, owner KBS SDK, HPKE seal, signed receipt, renewable lease | **Shipped** for local mock and the owner SDK. The HPKE private key is in the API process. See [user guide](../USER_GUIDE.md#key-orchestrator) |
+| Key Orchestrator, owner KBS SDK, HPKE seal, signed receipt, renewable lease | **Shipped** for local mock and the owner SDK. The caller passes each dataset owner as a DEK and the model publisher as the MEK. The API does not read those owners from the catalog. The HPKE private key is in the API process. See [user guide](../USER_GUIDE.md#datasets-models-and-the-clean-room) |
 | Trustee, GCP Confidential Space, AWS Nitro key release | **Shipped, fail closed.** Each mode calls its endpoint after the quote check. Missing configuration or a rejected quote returns no key. |
 | Simulated attestation / key-release signals | **MVP** |
 | TDP local encrypt-before-upload UI | **Design / partial** |

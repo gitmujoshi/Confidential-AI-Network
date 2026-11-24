@@ -237,6 +237,7 @@ A new TSP or TDC who needs a confidential pool, Opacus DP-SGD, or an Azure, GCP,
 - [Per-role screenshot guides](../role-user-guides/README.md)
 - [Contract signing user guide](../../features/contract-signing/CONTRACT_SIGNING_USER_GUIDE.md)
 - [Top-level user guide](../../USER_GUIDE.md)
+- [Datasets, models, and the clean room](../../USER_GUIDE.md#datasets-models-and-the-clean-room)
 
 ## Regenerate
 

@@ -3,7 +3,7 @@
 | Guide | Purpose |
 |-------|---------|
 | [../USER_GUIDE.md](../USER_GUIDE.md) | App workflows, including confidential cluster, differential privacy, and inference setup for a new TSP or TDC |
-| [../USER_GUIDE.md#key-orchestrator](../USER_GUIDE.md#key-orchestrator) | Key Orchestrator: how the clean room asks each owner for a key, and what local mock release does today |
+| [../USER_GUIDE.md#datasets-models-and-the-clean-room](../USER_GUIDE.md#datasets-models-and-the-clean-room) | How a dataset owner, the model publisher, and the clean-room session meet the Key Orchestrator and each owner's Key Broker |
 | [PARTICIPANT_ONBOARDING_AND_E2E_LIFECYCLE.md](PARTICIPANT_ONBOARDING_AND_E2E_LIFECYCLE.md) | **Canonical** full party lifecycle (text) |
 | [lifecycle-user-guide/LIFECYCLE_USER_GUIDE.md](lifecycle-user-guide/LIFECYCLE_USER_GUIDE.md) | **Screenshot E2E lifecycle** (onboard → sign → train → provenance → register/deploy/predict) |
 | [multi-model-user-guide/MULTI_MODEL_USER_GUIDE.md](multi-model-user-guide/MULTI_MODEL_USER_GUIDE.md) | **Screenshot multi-model contracts** (tabular / NLP+DP / vision + catalog RNN/GAN) |

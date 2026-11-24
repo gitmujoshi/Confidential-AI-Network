@@ -1,5 +1,7 @@
 # 🏗️ CCRP Environment Offerings & Configuration Flow
 
+> The running handshake is [Datasets, models, and the clean room](../USER_GUIDE.md#datasets-models-and-the-clean-room). This note is how a provider offers a room. The provider hosts the clean-room session. Dataset owners and the model publisher release keys through their own brokers. The provider does not hold those keys.
+
 ## 📋 Overview
 
 This document outlines the complete flow for how Confidential Clean Room Providers (CCRPs) configure and offer their training environments for AI/ML model training. CCRPs provide the secure infrastructure where encrypted datasets and AI models are decrypted and trained within Trusted Execution Environments (TEEs).

@@ -53,7 +53,7 @@ curl -s "http://localhost:5001/api/can/jcs/jobs/<jobId>/attestation" \
   -H "X-CAN-Principal-Id: did:can:dp:demo" | jq
 ```
 
-4) Wrap DEK and MEK to the attestation `tlsPublicKey` (RSA-OAEP SHA-256) and release them. The API stores the time and discards the key bytes. `backend/services/canKeyDelivery.js` exports `wrapKeyToPublicPem(publicKeyPem, plaintext)`. Send `{ "keyType": "DEK"|"MEK", "attestedPublicKey", "wrappedKey" }`. Training stays blocked until both the data owner and the model owner have released. Local mode is the mock KMS. The orchestrator design, and what is still a design, is in the [user guide](../../USER_GUIDE.md#key-orchestrator).
+4) Wrap DEK and MEK to the attestation `tlsPublicKey` (RSA-OAEP SHA-256) and release them. The API stores the time and discards the key bytes. `backend/services/canKeyDelivery.js` exports `wrapKeyToPublicPem(publicKeyPem, plaintext)`. Send `{ "keyType": "DEK"|"MEK", "attestedPublicKey", "wrappedKey" }`. Training stays blocked until both the data owner and the model owner have released. Local mode is the mock KMS. The DEK entry is the dataset owner, the MEK entry is the model publisher, and the job's clean-room session is what those brokers attest. `POST .../orchestrate` takes that owner list from the caller. The catalog key id is not a broker URL. The walk is in the [user guide](../../USER_GUIDE.md#datasets-models-and-the-clean-room).
 
 5) Release to scheduler (MVP flips job to RELEASED and CCR to RUNNING):
 

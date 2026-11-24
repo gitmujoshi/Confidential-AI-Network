@@ -37,7 +37,7 @@ Start with shared patterns, then the cloud you are deploying:
 
 ## Lifecycle & crypto narrative
 
-[PARTICIPANT_ONBOARDING_AND_E2E_LIFECYCLE.md](https://github.com/gitmujoshi/Confidential-AI-Network/blob/main/docs/guides/PARTICIPANT_ONBOARDING_AND_E2E_LIFECYCLE.md) ties contracts, DEK/MEK, signing, and CAN escrow together. The [Key Orchestrator](https://github.com/gitmujoshi/Confidential-AI-Network/blob/main/docs/USER_GUIDE.md#key-orchestrator) is the clean-room handshake: it coordinates releases and does not decide trust.
+[PARTICIPANT_ONBOARDING_AND_E2E_LIFECYCLE.md](https://github.com/gitmujoshi/Confidential-AI-Network/blob/main/docs/guides/PARTICIPANT_ONBOARDING_AND_E2E_LIFECYCLE.md) ties contracts, DEK/MEK, signing, and CAN escrow together. The [Key Orchestrator](https://github.com/gitmujoshi/Confidential-AI-Network/blob/main/docs/USER_GUIDE.md#datasets-models-and-the-clean-room) is the clean-room handshake: it asks each dataset owner's broker and the model owner's broker, and it does not decide trust. The clean-room session is the room they attest.
 
 Blog companions:
 

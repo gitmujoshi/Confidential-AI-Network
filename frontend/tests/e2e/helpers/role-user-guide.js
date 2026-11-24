@@ -174,7 +174,7 @@ The public form at \`/register\` lists **TDP**, **TDC**, and **TSP** only. An op
 const ROLE_SETUP = {
   TDP: `## Signing and data keys
 
-Your party signing key is created at registration (**ECDSA-P256** unless you choose RSA). Sign the contract with that key. A dataset row can record AES-256-GCM and an optional \`encryption_key_id\`. Platform encryption holds that key on the platform. A principal-held data key is not uploaded here. CAN release wraps that key to the clean-room attestation and stores only the release time, documented in the [user guide](../../USER_GUIDE.md#key-release-policy).
+Your party signing key is created at registration (**ECDSA-P256** unless you choose RSA). Sign the contract with that key. A dataset row can record AES-256-GCM and an optional \`encryption_key_id\`. Platform encryption holds that key on the platform. A principal-held data key is not uploaded here. When a contract uses this dataset, the clean room asks your Key Broker for the data key. The catalog key id is not that broker. The model publisher is a separate call, and the tech service provider hosts the room. The join is [Datasets, models, and the clean room](../../USER_GUIDE.md#datasets-models-and-the-clean-room).
 `,
   TDC: `## Before you train or deploy
 
@@ -204,7 +204,7 @@ Training still uses the TSP named on the contract. Deploy is your choice.
 
 Full operator variables are in [TDC training runtime](../../training/TDC_TRAINING_RUNTIME.md).
 
-Signing, dataset encryption, and CAN key release are in [Before a new TSP or TDC starts](../../USER_GUIDE.md#before-a-new-tsp-or-tdc-starts) and the signing and release sections that follow it.
+Signing, dataset encryption, and CAN key release are in [Before a new TSP or TDC starts](../../USER_GUIDE.md#before-a-new-tsp-or-tdc-starts) and the signing and release sections that follow it. The model you publish is the model-key owner the clean room asks. Each dataset owner is a separate data-key broker. The tech service provider hosts the room and does not hold either key. See [Datasets, models, and the clean room](../../USER_GUIDE.md#datasets-models-and-the-clean-room).
 `,
   TSP: `## Before you host a job
 
@@ -231,7 +231,7 @@ docker build -t contractmanagement/local-trainer:latest \\
 
 Full operator variables are in [TDC training runtime](../../training/TDC_TRAINING_RUNTIME.md).
 
-Your party signing key is created when you register. Contract KMS fields name a key. They do not release it. CAN key release wraps the DEK and MEK to the clean-room attestation, with a 10-minute escrow, described in the [user guide](../../USER_GUIDE.md#key-release-policy).
+Your party signing key is created when you register. Contract KMS fields name a key. They do not release it. You host the clean-room session. Dataset owners and the model publisher release the data key and the model key through their own brokers. You do not hold those keys. The join is [Datasets, models, and the clean room](../../USER_GUIDE.md#datasets-models-and-the-clean-room).
 `,
 };
 

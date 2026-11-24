@@ -129,7 +129,7 @@ Body: `sealedOutput` (ciphertext) and `outputSha256` (64 hex characters). The jo
 POST /can/jcs/jobs/:jobId/orchestrate
 ```
 
-Body: `owners` (at least one of `{ ownerId, keyType, endpoint }`), plus optional `contract`, `evidence`, and `budget`. `endpoint` is `mock` for the local broker, or the base URL of an owner process that serves `POST /nonce`, `POST /release`, and `POST /lease`. The SDK is `backend/sdk/owner-kbs.js`. The API seals to the job's HPKE public key when that key is present. One refusal returns 409 `RELEASE_BARRIER` and does not keep a wrapped key. The response lists signed receipts and sets `keyStored` to `false`.
+Body: `owners` (at least one of `{ ownerId, keyType, endpoint }`), plus optional `contract`, `evidence`, and `budget`. Pass one `keyType: DEK` entry for each dataset owner and one `keyType: MEK` entry for the model publisher. `endpoint` is `mock` for the local broker, or the base URL of an owner process that serves `POST /nonce`, `POST /release`, and `POST /lease`. The route does not read `datasetSelections`, `aiModelIds`, `encryption_key_id`, or `kmsConfigs`. The SDK is `backend/sdk/owner-kbs.js`. The API seals to the job's HPKE public key when that key is present. Every owner must return a wrapped key before the job records `dekReceivedAt` and `mekReceivedAt`. One refusal returns 409 `RELEASE_BARRIER` and does not keep a wrapped key. The response lists signed receipts and sets `keyStored` to `false`. The clean-room session on the job is the room those brokers attest.
 
 #### Renew owner key leases
 ```http

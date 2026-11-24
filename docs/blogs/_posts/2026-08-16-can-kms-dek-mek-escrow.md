@@ -21,6 +21,8 @@ The Key Orchestrator sits inside the clean room. It validates every contract, ge
 
 It does not decide whether a key may be released. That decision stays with the owner's KBS: hardware and TCB checks, a fresh nonce bound to the clean-room public key and the contract, the owner's policy, and a privacy-budget reservation in the same transaction as the release. A pass wraps the keys to `pk_ccr` and records a receipt. A data owner is never on the model-key path, and the model owner is never on a data-key path.
 
+The contract names the assets. Each dataset's owner is a data-key broker. The model publisher is the model-key broker. The clean-room session created with the job is the room those brokers attest. The caller passes that owner list. A catalog key id is not a broker address. The job records one data-key time and one model-key time, and only after every owner in the request has released. The walk is [Datasets, models, and the clean room](https://github.com/gitmujoshi/Confidential-AI-Network/blob/main/docs/USER_GUIDE.md#datasets-models-and-the-clean-room).
+
 ---
 
 ## 1. Why KMS matters in CAN

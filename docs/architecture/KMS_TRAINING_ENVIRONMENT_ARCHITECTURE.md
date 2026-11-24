@@ -5,7 +5,7 @@
 **Date:** December 2024  
 **Author:** Contract Management System Team
 
-> Current key release is the [Key Orchestrator](../USER_GUIDE.md#key-orchestrator) section of the user guide and [PARTICIPANT_ONBOARDING_AND_E2E_LIFECYCLE.md](../guides/PARTICIPANT_ONBOARDING_AND_E2E_LIFECYCLE.md). Local and dev use the mock KMS. This December 2024 note describes an earlier centralized KMS design.
+> Current key release is the [Key Orchestrator](../USER_GUIDE.md#datasets-models-and-the-clean-room) section of the user guide and [PARTICIPANT_ONBOARDING_AND_E2E_LIFECYCLE.md](../guides/PARTICIPANT_ONBOARDING_AND_E2E_LIFECYCLE.md). A dataset owner, the model publisher, and the clean-room session are the three parties in that handshake. Local and dev use the mock KMS. This December 2024 note describes an earlier centralized KMS design.
 
 ---
 

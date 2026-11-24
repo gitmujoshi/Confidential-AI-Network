@@ -158,7 +158,7 @@ Training still uses the TSP named on the contract. Deploy is your choice.
 
 Full operator variables are in [TDC training runtime](../../training/TDC_TRAINING_RUNTIME.md).
 
-Signing, dataset encryption, and CAN key release are in [Before a new TSP or TDC starts](../../USER_GUIDE.md#before-a-new-tsp-or-tdc-starts) and the signing and release sections that follow it.
+Signing, dataset encryption, and CAN key release are in [Before a new TSP or TDC starts](../../USER_GUIDE.md#before-a-new-tsp-or-tdc-starts) and the signing and release sections that follow it. The model you publish is the model-key owner the clean room asks. Each dataset owner is a separate data-key broker. The tech service provider hosts the room and does not hold either key. See [Datasets, models, and the clean room](../../USER_GUIDE.md#datasets-models-and-the-clean-room).
 
 ## Related docs
 

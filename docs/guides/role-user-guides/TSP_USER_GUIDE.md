@@ -102,7 +102,7 @@ docker build -t contractmanagement/local-trainer:latest \
 
 Full operator variables are in [TDC training runtime](../../training/TDC_TRAINING_RUNTIME.md).
 
-Your party signing key is created when you register. Contract KMS fields name a key. They do not release it. CAN key release wraps the DEK and MEK to the clean-room attestation, with a 10-minute escrow, described in the [user guide](../../USER_GUIDE.md#key-release-policy).
+Your party signing key is created when you register. Contract KMS fields name a key. They do not release it. You host the clean-room session. Dataset owners and the model publisher release the data key and the model key through their own brokers. You do not hold those keys. The join is [Datasets, models, and the clean room](../../USER_GUIDE.md#datasets-models-and-the-clean-room).
 
 ## Related docs
 

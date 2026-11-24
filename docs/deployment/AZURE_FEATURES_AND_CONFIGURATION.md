@@ -53,7 +53,7 @@ Entra SSO (MSAL)
   → Destroy CCR; zeroize; provenance complete
 ```
 
-Local today shortcuts: Keycloak login, disk/demo datasets, placeholder signatures, `local-docker` train, CAN key-release **signals only**.
+Local today shortcuts: Keycloak login, disk/demo datasets, placeholder signatures, `local-docker` train, CAN key-release **signals only**. The dataset owner, the model publisher, and the clean-room session join the Key Orchestrator as described in [Datasets, models, and the clean room](../USER_GUIDE.md#datasets-models-and-the-clean-room). `kmsConfigs` on the contract names a vault. It does not select the owner's Key Broker.
 
 ---
 

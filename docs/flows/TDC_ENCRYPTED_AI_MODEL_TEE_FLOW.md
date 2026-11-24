@@ -1,5 +1,7 @@
 # 🤖 TDC Encrypted AI Model Upload & TEE-Based Decryption Flow
 
+> The running handshake is [Datasets, models, and the clean room](../USER_GUIDE.md#datasets-models-and-the-clean-room). This note is the target model-upload flow. The model publisher is the model-key owner. The clean room asks that owner's broker. The tech service provider hosts the room and does not hold the model key.
+
 ## 📋 Overview
 
 This document outlines the complete flow for how Training Data Consumers (TDCs) upload and configure encrypted AI models that are only decrypted within Trusted Execution Environments (TEEs) as specified in contracts. This ensures maximum model privacy and intellectual property protection throughout the training process.

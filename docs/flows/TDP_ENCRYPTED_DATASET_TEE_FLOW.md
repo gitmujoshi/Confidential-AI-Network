@@ -1,5 +1,7 @@
 # 🔐 TDP Encrypted Dataset Upload & TEE-Based Decryption Flow
 
+> The running handshake is [Datasets, models, and the clean room](../USER_GUIDE.md#datasets-models-and-the-clean-room). This note is the target upload flow. The dataset's `ownerId` is the data-key owner. `encryption_key_id` is not the Key Broker address. The clean room asks that owner's broker. The tech service provider hosts the room and does not hold the data key.
+
 ## 📋 Overview
 
 This document outlines the complete flow for how Training Data Providers (TDPs) upload and configure encrypted datasets that are only decrypted within Trusted Execution Environments (TEEs) as specified in contracts. This ensures maximum data privacy and security throughout the training process.

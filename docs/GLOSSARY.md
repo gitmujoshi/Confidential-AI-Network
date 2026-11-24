@@ -103,10 +103,10 @@ Canonical definitions for terms used across CAN documentation, code, and UI. For
 | Term | Meaning |
 |------|---------|
 | **CAN JCS** | **Job Coordination Service** — API for confidential training job lifecycle (keys released, scheduler, physical Docker runner in opt-in tests). |
-| **CCR** | **Confidential Clean Room** — isolated training environment (often TEE-backed); operators may be called CCRP / TSP. |
-| **DEK / MEK** | **Data / Model Encryption Keys**. The data owner holds the DEK. The model owner holds the MEK. |
-| **Key Orchestrator** | Coordination inside the clean room. It validates contracts, creates a one-run keypair, and asks each owner's Key Broker Service for a release. It does not decide trust. See the [user guide](USER_GUIDE.md#key-orchestrator). |
-| **KBS** | **Key Broker Service**. An owner's service that checks attestation and policy, then wraps that owner's keys to the clean-room public key. |
+| **CCR** | **Confidential Clean Room** — the session created with a CAN job. The TSP hosts it. Dataset and model brokers attest this session. They do not release a key to the TSP. |
+| **DEK / MEK** | **Data / Model Encryption Keys**. The dataset's `ownerId` holds the DEK. The model publisher holds the MEK. The job stores one release time for each. |
+| **Key Orchestrator** | Coordination inside the clean room. It validates contracts, creates a one-run keypair, and asks each dataset owner's broker and the model owner's broker for a release. It does not decide trust. See [Datasets, models, and the clean room](USER_GUIDE.md#datasets-models-and-the-clean-room). |
+| **KBS** | **Key Broker Service**. An owner's service that checks attestation and policy, then wraps that owner's DEK or MEK to the clean-room public key. The caller passes the broker URL. A catalog key id is not that URL. |
 
 ---
 
@@ -120,4 +120,4 @@ Extended infra vocabulary (AKS, WAF, compartments, etc.) lives in:
 
 ---
 
-*Last updated: 2026-07-28*
+*Last updated: 2026-11-24*

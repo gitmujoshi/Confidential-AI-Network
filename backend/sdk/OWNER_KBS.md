@@ -36,3 +36,13 @@ An owner can replace `MockOwnerKbs` with their own object that implements `issue
 `orchestrateRelease({ owners, pkCcr, contract })` calls every owner in parallel. `owners[]` entries are `{ ownerId, keyType, endpoint }` or `{ ownerId, keyType, client }`. One refusal drops the wrapped keys from that round.
 
 `POST /api/can/jcs/jobs/{jobId}/orchestrate` runs that against the job's clean-room public key. The response does not include key bytes.
+
+## Datasets, models, and the clean room
+
+The caller builds `owners` from the contract. The SDK does not read the dataset or model rows.
+
+* Each dataset owner is `{ ownerId, keyType: "DEK", endpoint }`. `ownerId` is the dataset's `ownerId`. Two datasets from one provider are one entry. Two providers are two entries.
+* The model publisher is `{ ownerId, keyType: "MEK", endpoint }`.
+* The clean-room session is not an owner. `pkCcr` is that session's public key, the key each broker wraps to.
+
+`encryption_key_id`, `attestation_policy`, and contract `kmsConfigs` are stored references. They are not `endpoint`. `endpoint` is `mock` for this local broker, or the owner process that serves `/nonce`, `/release`, and `/lease`. The job records one DEK time and one MEK time, and only after every owner in the request has returned a wrapped key.

@@ -24,7 +24,7 @@
 | **Screenshot E2E lifecycle** (onboard → sign → train → provenance → inference) | [guides/lifecycle-user-guide/LIFECYCLE_USER_GUIDE.md](guides/lifecycle-user-guide/LIFECYCLE_USER_GUIDE.md) |
 | **Screenshot multi-model training** (one contract per model type) | [guides/multi-model-user-guide/MULTI_MODEL_USER_GUIDE.md](guides/multi-model-user-guide/MULTI_MODEL_USER_GUIDE.md) |
 | Use the product UI (TDP / TDC / TSP) | [USER_GUIDE.md](USER_GUIDE.md) |
-| Key Orchestrator and key release | [USER_GUIDE.md](USER_GUIDE.md#key-orchestrator) · [lifecycle](guides/PARTICIPANT_ONBOARDING_AND_E2E_LIFECYCLE.md) |
+| Key Orchestrator, datasets, models, and the clean room | [USER_GUIDE.md](USER_GUIDE.md#datasets-models-and-the-clean-room) · [lifecycle §9.4](guides/PARTICIPANT_ONBOARDING_AND_E2E_LIFECYCLE.md) |
 | Sign contracts | [features/contract-signing/CONTRACT_SIGNING_USER_GUIDE.md](features/contract-signing/CONTRACT_SIGNING_USER_GUIDE.md) |
 | Fix auth / Keycloak | [getting-started/TROUBLESHOOTING.md](getting-started/TROUBLESHOOTING.md) · `./fix-auth.sh` |
 | AppAdmin operations | [ADMIN_GUIDE.md](ADMIN_GUIDE.md) |

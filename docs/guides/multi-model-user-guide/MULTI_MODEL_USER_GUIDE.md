@@ -121,6 +121,7 @@ Use **View logs** / **View job provenance** on any completed card for run detail
 - [Lifecycle screenshot guide](../lifecycle-user-guide/LIFECYCLE_USER_GUIDE.md) (enterprise onboard → one NLP DP train)
 - [Participant onboarding & E2E lifecycle](../PARTICIPANT_ONBOARDING_AND_E2E_LIFECYCLE.md)
 - [Local training runtime](../../training/TDC_TRAINING_RUNTIME.md)
+- [Datasets, models, and the clean room](../../USER_GUIDE.md#datasets-models-and-the-clean-room)
 
 ## Regenerate
 
