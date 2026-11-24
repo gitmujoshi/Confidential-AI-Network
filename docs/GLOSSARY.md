@@ -104,7 +104,9 @@ Canonical definitions for terms used across CAN documentation, code, and UI. For
 |------|---------|
 | **CAN JCS** | **Job Coordination Service** — API for confidential training job lifecycle (keys released, scheduler, physical Docker runner in opt-in tests). |
 | **CCR** | **Confidential Clean Room** — isolated training environment (often TEE-backed); operators may be called CCRP / TSP. |
-| **DEK / MEK** | **Data / Model Encryption Keys** released to authorized principals during CAN JCS flows. |
+| **DEK / MEK** | **Data / Model Encryption Keys**. The data owner holds the DEK. The model owner holds the MEK. |
+| **Key Orchestrator** | Coordination inside the clean room. It validates contracts, creates a one-run keypair, and asks each owner's Key Broker Service for a release. It does not decide trust. See the [user guide](USER_GUIDE.md#key-orchestrator). |
+| **KBS** | **Key Broker Service**. An owner's service that checks attestation and policy, then wraps that owner's keys to the clean-room public key. |
 
 ---
 

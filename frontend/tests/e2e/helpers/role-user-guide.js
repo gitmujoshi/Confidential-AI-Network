@@ -123,6 +123,54 @@ async function waitDashboard(page, partyLabel, welcome) {
   await waitForHeading(page, welcome);
 }
 
+const ROLE_REGISTRATION = {
+  TDP: `## Register
+
+1. Open **Register** (\`/register\`) from the login page.
+2. Choose **Individual** or **Enterprise**. Enterprise adds **Organization**.
+3. Enter **Full Name** and **Email**. The email becomes the Keycloak username.
+4. Set **Role** to **Training Data Provider (TDP)**.
+5. Leave **Use Existing DID** off unless you already have a \`did:web\` or \`did:ethr\`. The system assigns a DID and a DEPA ID (\`TDP-…\`).
+6. **Public Key** and wallet connection are optional. They are not the party signing key.
+7. Under **Party signing key**, keep **ECDSA-P256** unless you need RSA-2048 or RSA-4096. Registration creates that key. You use it later to sign a contract.
+8. Click **Register**. Keycloak must be up. On success, choose **Go to Login Page**. The first login can ask you to set a password.
+9. After login, publish a dataset. That is the next section.
+`,
+  TDC: `## Register
+
+1. Open **Register** (\`/register\`) from the login page.
+2. Choose **Individual** or **Enterprise**. Enterprise adds **Organization**.
+3. Enter **Full Name** and **Email**. The email becomes the Keycloak username.
+4. Set **Role** to **Training Data Consumer (TDC)**.
+5. Leave **Use Existing DID** off unless you already have a \`did:web\` or \`did:ethr\`. The system assigns a DID and a DEPA ID (\`TDC-…\`).
+6. **Public Key** and wallet connection are optional. They are not the party signing key.
+7. Under **Party signing key**, keep **ECDSA-P256** unless you need RSA-2048 or RSA-4096. Registration creates that key. You need it before you create or sign a contract.
+8. Click **Register**. Keycloak must be up. On success, choose **Go to Login Page**. The first login can ask you to set a password.
+9. After login, browse datasets and create a contract. That is the next section.
+`,
+  TSP: `## Register
+
+1. Open **Register** (\`/register\`) from the login page.
+2. Choose **Individual** or **Enterprise**. Enterprise adds **Organization**.
+3. Enter **Full Name** and **Email**. The email becomes the Keycloak username.
+4. Set **Role** to **Tech Service Provider (TSP)**.
+5. Leave **Use Existing DID** off unless you already have a \`did:web\` or \`did:ethr\`. The system assigns a DID and a DEPA ID (\`TSP-…\`).
+6. **Public Key** and wallet connection are optional. They are not the party signing key.
+7. Under **Party signing key**, keep **ECDSA-P256** unless you need RSA-2048 or RSA-4096. Registration creates that key. You use it to co-sign a contract.
+8. Click **Register**. Keycloak must be up. On success, choose **Go to Login Page**. The first login can ask you to set a password.
+9. After login, open the dashboard **Cloud Provider** card and save Local, Azure, or GCP before you host a job. That is the next section.
+`,
+  AppAdmin: `## Register
+
+The public form at \`/register\` lists **TDP**, **TDC**, and **TSP** only. An operator creates an AppAdmin with \`POST /api/auth/register\` and \`partyType\` \`AppAdmin\`, then the user signs in through Keycloak.
+
+1. The operator sends name, email, and \`partyType: AppAdmin\`. A party signing key is optional for this role.
+2. Keycloak must be up. The email becomes the username.
+3. Open **Login**, sign in, and set a password if this is the first login.
+4. The admin dashboard, users, and contracts are the next section.
+`,
+};
+
 const ROLE_SETUP = {
   TDP: `## Signing and data keys
 
@@ -206,9 +254,17 @@ function buildMarkdown({ roleKey, meta, email, steps }) {
     `| Password | \`TestNewPassword123!\` (local E2E seed only) |`,
     `| Signing | Party signing key provisioned at **registration** (ECDSA-P256 default); used on contract **Sign** |`,
     '',
-    '## Happy path',
+    ROLE_REGISTRATION[roleKey].trimEnd(),
     '',
   ];
+  const registerShot = path.join(SCREENSHOT_ROOT, roleKey.toLowerCase(), '00-register.png');
+  if (fs.existsSync(registerShot)) {
+    lines.push(`![Register as ${meta.shortName}](screenshots/${roleKey.toLowerCase()}/00-register.png)`, '');
+  }
+  lines.push(
+    '## Happy path',
+    '',
+  );
 
   steps.forEach((step, index) => {
     lines.push(`### ${index + 1}. ${step.title}`, '');
@@ -253,7 +309,7 @@ function writeIndex(generatedRoles) {
     '',
     `Auto-generated on **${generatedAt}** by \`npm run test:e2e:user-guides\`.`,
     '',
-    'Each guide walks through the primary screens for one party type, with screenshots captured from a live local stack (Chromium desktop).',
+    'Each guide starts with that role\'s registration, then walks the primary screens. Screenshots are captured from a live local stack (Chromium desktop).',
     '',
     '| Role | Guide |',
     '|------|-------|',

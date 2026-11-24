@@ -115,7 +115,28 @@ Valid `keyType`: `DEK` or `MEK`. The ciphertext must be encrypted to `tlsPublicK
 POST /can/jcs/jobs/:jobId/azure-key-release
 ```
 
-Requires `CAN_PRINCIPAL_KEY_MODE=azure-skr`. Body: `keyType`, `vaultUrl`, `keyId`, and `attestationToken` (an Azure Attestation JWT). The API verifies the token against `AZURE_ATTESTATION_URL`, calls Key Vault secure key release, stores the release time and the blob hash, and returns `encryptedRelease`. It does not decrypt the blob. `reportFormat` is `AZURE_ATTESTATION`. A simulated report is rejected. `keyStored` is `false`.
+Requires `CAN_PRINCIPAL_KEY_MODE=azure-skr`. Body: `keyType`, `vaultUrl`, `keyId`, and `attestationToken` (an Azure Attestation JWT). The API verifies the token against `AZURE_ATTESTATION_URL`, calls Key Vault secure key release, stores the release time and the blob hash, and returns `encryptedRelease`. It does not decrypt the blob. `reportFormat` is `AZURE_ATTESTATION`. A simulated report is rejected. `keyStored` is `false`. `trustee` calls `{TRUSTEE_KBS_URL}/kbs/v0/auth` and then the resource path. `confidential-space` verifies a Confidential Space JWT and posts to `GCP_KEY_RELEASE_URL`. `nitro-enclave` verifies the attestation against `AWS_NITRO_ROOT_PEM` and posts to `AWS_NITRO_KMS_URL`. `attested-tls` accepts an `hpke1.` wrapped key only after `verifySevSnpQuote` succeeds. A missing endpoint or a rejected quote returns no key. A revoked or expired contract, a replayed nonce, or an exhausted `budget` (`cap`, `consumed`, `cost`) returns 409 and does not release the key.
+
+#### Record sealed output
+```http
+POST /can/jcs/jobs/:jobId/seal-output
+```
+
+Body: `sealedOutput` (ciphertext) and `outputSha256` (64 hex characters). The job must already have both owner releases, and the escrow deadline must still be in the future. The API stores the hash and the ciphertext length. It does not store the artifact. `keyStored` is `false`.
+
+#### Ask each owner's Key Broker Service
+```http
+POST /can/jcs/jobs/:jobId/orchestrate
+```
+
+Body: `owners` (at least one of `{ ownerId, keyType, endpoint }`), plus optional `contract`, `evidence`, and `budget`. `endpoint` is `mock` for the local broker, or the base URL of an owner process that serves `POST /nonce`, `POST /release`, and `POST /lease`. The SDK is `backend/sdk/owner-kbs.js`. The API seals to the job's HPKE public key when that key is present. One refusal returns 409 `RELEASE_BARRIER` and does not keep a wrapped key. The response lists signed receipts and sets `keyStored` to `false`.
+
+#### Renew owner key leases
+```http
+POST /can/jcs/jobs/:jobId/renew-leases
+```
+
+Body: `owners` with the same broker client or endpoint and the `leaseId` from the release. A lease renews only while it is still valid. One refusal returns 409 `LEASE_EXPIRED` and sealed output stays blocked.
 
 #### Release job to CCRP scheduler
 ```http

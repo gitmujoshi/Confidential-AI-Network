@@ -9,6 +9,7 @@ Complete guide for developers working on the Contract Management System. This gu
 3. [Development Workflow](#development-workflow)
 4. [SCITT CCF Development](#scitt-ccf-development)
 5. [Differential Privacy Development](#differential-privacy-development)
+5a. [Key release](#key-release)
 6. [Testing](#testing)
 7. [Debugging](#debugging)
 8. [Deployment](#deployment)
@@ -509,6 +510,12 @@ const results = await Promise.allSettled(
   contracts.map(contract => router.migrateContract(contract.id))
 );
 ```
+
+## Key release
+
+Local and dev use the mock KMS in `backend/services/keyReleaseClient.js`. `CAN_PRINCIPAL_KEY_MODE=signals` or `mock` records the release time and stores no key bytes. `CAN_KEY_RELEASE_PROFILE=production` refuses that mock. Policy checks live in `backend/services/keyReleasePolicy.js`. The both-owner barrier and the output lease live in `backend/services/outputReleaseGate.js`.
+
+The clean room coordinates the handshake and does not decide trust. Each owner’s broker does. The guide is [Key Orchestrator](USER_GUIDE.md#key-orchestrator). The broker the orchestrator calls is `backend/sdk/owner-kbs.js`: `MockOwnerKbs` for local, `ProductionOwnerKbs` for an owner process, `HttpOwnerKbsClient` for an owner endpoint, and `ownerKbsHandlers` for `/nonce`, `/release`, and `/lease`. HPKE is `backend/services/hpke.js`. Cloud release is `backend/services/cloudKeyRelease.js`. `azure-skr`, `trustee`, `confidential-space`, and `nitro-enclave` return ciphertext only after their attestation check. `attested-tls` requires a verified SEV-SNP quote and an HPKE-wrapped key. A missing endpoint or quote fails closed.
 
 ## 🔐 Differential Privacy Development
 

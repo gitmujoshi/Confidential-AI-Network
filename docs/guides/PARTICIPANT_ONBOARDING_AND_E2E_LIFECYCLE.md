@@ -353,13 +353,34 @@ Exact enum also includes `PENDING_TDC` and multi-TDP statuses — see `backend/m
 ### 9.2 CAN / JCS path (MVP)
 
 1. Create job: `POST /api/can/jcs/jobs` with `contractId`, `ccrProvider` (e.g. `local`). Header: `X-CAN-Principal-Id`.
-2. Fetch **attestation bundle** (simulated HMAC-signed today).
-3. Data principal: `POST .../key-released` with `keyType: DEK`.
-4. Model owner: same with `keyType: MEK`.
-5. When both ready → **release** → local CCRP executor may start training.
-6. Escrow deadline missed → **EXPIRED** / CCR **DESTROYED**.
+2. Fetch the **attestation bundle**. On this path `reportFormat` is `SIMULATED` until a verified guest report is stored.
+3. Data owner: wrap the DEK to `tlsPublicKey` (RSA-OAEP SHA-256) and `POST .../key-released` with `keyType: DEK`, `attestedPublicKey`, and `wrappedKey`.
+4. Model owner: the same call with `keyType: MEK`.
+5. Both releases move the job to `BOTH_READY`. `POST .../release` starts the local executor. One missing owner is `RELEASE_BARRIER`.
+6. `POST .../seal-output` records sealed ciphertext and `outputSha256` while the escrow deadline is still open.
+7. Escrow deadline missed → **EXPIRED** / CCR **DESTROYED**. A later release or seal is refused.
 
-CCR key-delivery endpoint currently accepts **signals only** (rejects raw key material) — see [CAN_QUICKSTART.md](../features/can/CAN_QUICKSTART.md).
+The API rejects raw key bytes. Local mode is the mock KMS (`CAN_PRINCIPAL_KEY_MODE=signals` or `mock`). See [CAN_QUICKSTART.md](../features/can/CAN_QUICKSTART.md) and the [Key Orchestrator](../USER_GUIDE.md#key-orchestrator) in the user guide.
+
+### 9.4 Key Orchestrator
+
+The **Key Orchestrator** runs inside the CCR TEE. It validates contracts, generates a one-run keypair in protected memory, talks to each owner's Key Broker Service independently, and starts training only after every required owner has released a key. It does not decide trust. Each data owner and the model owner judge the CCR with their own KBS and verifier.
+
+**What runs today.** The mock broker seals with HPKE to an X25519 key that lives in the API process. That key is not a hardware TEE key, and the attestation bundle stays simulated until a verified SEV-SNP report is stored. The broker signs the receipt and issues a renewable lease. SCITT records the receipt only when the ledger is enabled. `azure-skr`, Trustee, Confidential Space, and Nitro call their configured endpoints after the quote check and return ciphertext. They do not decrypt it. A missing endpoint or quote fails closed.
+
+The orchestrator:
+
+* Checks signatures, validity windows, and revocation, and stops on the first failure.
+* Generates `sk_ccr` and `pk_ccr` for that run. Each KBS wraps its DEKs to `pk_ccr`.
+* Contacts each owner's KBS in parallel. One owner's keys do not pass through another owner's service.
+* Starts training only when every required data owner and the model owner have released. One refusal or timeout tears the CCR down and zeroizes memory.
+* Renews short leases with each KBS so a mid-run revocation can still block output.
+
+Each owner keeps an **Owner Key Domain**: their KMS or HSM, KBS, verifier, reference values, and release policy. For owner `i` the CCR asks `KBS_i` for a single-use nonce `n_i`, builds evidence that binds `n_i`, `pk_ccr`, the contract hash, and `owner_id_i`, and sends that evidence with the contract bundle. `KBS_i` checks the hardware chain, TCB, debug-off, image measurements, nonce freshness, the owner's policy, and, when a privacy budget applies, reserves that budget in the same decision as the release. A pass returns HPKE-wrapped DEKs, a signed receipt, and a transparency-log entry. Owners may use different backends in one run. The CCR still uses one release client.
+
+A data owner is not on the model-key path, and the model owner is not on a data-key path. If a KBS is down, a policy fails, or the contract is revoked, nothing is released and output stays blocked. Keys live in TEE memory for the run and are wiped at teardown.
+
+The same explanation is in the [user guide](../USER_GUIDE.md#key-orchestrator).
 
 ### 9.3 Target clean-room decrypt-and-train sequence
 
@@ -527,9 +548,14 @@ Use this as a single run sheet. Mark **Portal** vs **CAN** where noted.
 | Local Docker / native / MLX training | **Shipped** |
 | Platform encryption service | **Shipped** (legacy trust model) |
 | CAN JCS escrow + SSE + sweeper | **MVP** |
+| Mock KMS (`signals` / `mock`) and release policy | **Shipped** for local and dev. Production profile refuses the mock |
+| Both-owner barrier and sealed-output record | **Shipped**. The escrow deadline and an expired owner lease both block output |
+| Azure Key Vault release (`azure-skr`) | **Shipped, off by default**. Returns an encrypted blob |
+| Key Orchestrator, owner KBS SDK, HPKE seal, signed receipt, renewable lease | **Shipped** for local mock and the owner SDK. The HPKE private key is in the API process. See [user guide](../USER_GUIDE.md#key-orchestrator) |
+| Trustee, GCP Confidential Space, AWS Nitro key release | **Shipped, fail closed.** Each mode calls its endpoint after the quote check. Missing configuration or a rejected quote returns no key. |
 | Simulated attestation / key-release signals | **MVP** |
 | TDP local encrypt-before-upload UI | **Design / partial** |
-| Attested TLS DEK/MEK delivery into TEE | **Design (Phase 2)** |
+| Attested TLS wrap | **Shipped as a gate.** An `hpke1.` key is accepted only after `verifySevSnpQuote`. The private key is not inside a hardware TEE |
 | Machine principal cert auth | **Stub (Phase 3)** |
 | Existing-cluster Azure / GCP Job submit | **Shipped, fail-closed** (needs kubeconfig; attestation `simulated`; no new cluster) |
 | Cloud TEE provision + guest quote + destroy | **Design** |

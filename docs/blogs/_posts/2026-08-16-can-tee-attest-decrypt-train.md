@@ -13,7 +13,7 @@ canonical: docs/flows/TDP_ENCRYPTED_DATASET_TEE_FLOW.md
 
 **Companion:** [KMS — DEK, MEK, and dual-key escrow]({% post_url 2026-08-16-can-kms-dek-mek-escrow %}) · [Azure confidential computing deep dive]({% post_url 2026-08-17-azure-confidential-computing-deep-dive %}) · **Flows:** [TDP encrypted dataset](https://github.com/gitmujoshi/Confidential-AI-Network/blob/main/docs/flows/TDP_ENCRYPTED_DATASET_TEE_FLOW.md) · [TDC encrypted model](https://github.com/gitmujoshi/Confidential-AI-Network/blob/main/docs/flows/TDC_ENCRYPTED_AI_MODEL_TEE_FLOW.md) · **iSPIRT DEPA:** [depa.world](https://depa.world)
 
-> **Status:** Target for CCRP / confidential-compute paths (Azure confidential computing, OCI confidential VMs, etc.). Local Docker / native training is a host path. CAN/JCS uses **simulated attestation bundles** and **key-release signals**; attested TLS / SKR key delivery is Phase 2+.
+> **Status:** Local Docker and native training are a host path. CAN/JCS uses a **simulated** attestation bundle and the mock KMS unless `CAN_PRINCIPAL_KEY_MODE=azure-skr`. That Azure path returns an encrypted Key Vault blob and does not decrypt it. The Key Orchestrator design — per-owner brokers, HPKE, and leases — is in the [user guide](https://github.com/gitmujoshi/Confidential-AI-Network/blob/main/docs/USER_GUIDE.md#key-orchestrator). Attested delivery into a hardware TEE is still the target.
 
 ---
 

@@ -176,11 +176,12 @@ Local today shortcuts: Keycloak login, disk/demo datasets, placeholder signature
 |--|--|
 | **DEK** | Dataset encryption key — **TDP / data principal** owned (target) |
 | **MEK** | Model encryption key — **TDC / model owner** owned (target) |
-| **Maturity** | Partial. Default `CAN_PRINCIPAL_KEY_MODE=signals` still stores the release time and discards wrapped key bytes. `azure-skr` accepts a key only after Azure Attestation verifies the JWT, calls Key Vault secure key release, and returns the encrypted blob. The API does not decrypt it. `reportFormat` on that path is `AZURE_ATTESTATION`. A simulated report is not accepted as a guest quote. |
+| **Maturity** | Partial. Default `CAN_PRINCIPAL_KEY_MODE=signals` (alias `mock`) is the local KMS. It stores the release time and discards key bytes. `CAN_KEY_RELEASE_PROFILE=production` refuses that mock at startup. `azure-skr` accepts a key only after Azure Attestation verifies the JWT, calls Key Vault secure key release, and returns the encrypted blob. The API does not decrypt it. Mock keys stay in `can-mock`. Azure keys stay in `can-azure`. Trustee, Confidential Space, and Nitro call their endpoints after the quote check. A missing endpoint or quote returns no key. A revoked contract, a replayed nonce, or an exhausted release budget blocks the release. Both owner keys are required before training. `reportFormat` on the Azure path is `AZURE_ATTESTATION`. A simulated report is not accepted as a guest quote. |
 
 | Variable | Example | Description |
 |----------|---------|-------------|
-| `CAN_PRINCIPAL_KEY_MODE` | `signals` \| `attested-tls` \| `azure-skr` | Prod target: `attested-tls` or `azure-skr` |
+| `CAN_PRINCIPAL_KEY_MODE` | `signals` \| `mock` \| `azure-skr` | Local default: `signals`. Production target: `azure-skr` |
+| `CAN_KEY_RELEASE_PROFILE` | `local` \| `production` | `production` refuses `signals` and `mock` at startup |
 | `CAN_ESCROW_TIMEOUT_MS` | `600000` | Dual-key escrow window (~10m) |
 | `CAN_PLATFORM_SIGNING_SECRET` | secret | Today: HMAC for **simulated** attestation |
 | `CAN_ATTESTATION_PROVIDER` | `simulated` \| `azure-attestation` | Prod: Azure Attestation |

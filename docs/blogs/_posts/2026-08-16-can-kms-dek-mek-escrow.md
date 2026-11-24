@@ -13,7 +13,13 @@ canonical: docs/architecture/KMS_TRAINING_ENVIRONMENT_ARCHITECTURE.md
 
 **Companion:** [TEE execution — attest, verify contract, then decrypt]({% post_url 2026-08-16-can-tee-attest-decrypt-train %}) · [Azure confidential computing (SKR / Key Vault)]({% post_url 2026-08-17-azure-confidential-computing-deep-dive %}) · **Lifecycle source of truth:** [Participant onboarding & E2E](https://github.com/gitmujoshi/Confidential-AI-Network/blob/main/docs/guides/PARTICIPANT_ONBOARDING_AND_E2E_LIFECYCLE.md) · **Product loop:** [Contract to governed prediction]({% post_url 2026-08-14-can-contract-to-prediction %})
 
-> **Status:** Architecture and partial implementation. Local demos often train on staged artifacts without a hardware TEE. CAN/JCS Phase 1 uses **key-release signals** (no key bytes to the Node API). **Attested TLS delivery of DEK/MEK into the enclave** is the Phase 2 target.
+> **Status:** Local and dev use the mock release (`CAN_PRINCIPAL_KEY_MODE=signals` or `mock`). The API records the release time and does not store key bytes. `CAN_KEY_RELEASE_PROFILE=production` refuses that mock, a mock TEE claim, and a debug-enabled TEE. A revoked or expired contract, a replayed nonce, or an exhausted release budget blocks the release. Both owner keys are required before training. Sealed output is recorded as ciphertext plus a sha256, and the escrow deadline is the output lease. `azure-skr` verifies an Azure Attestation JWT and returns the encrypted Key Vault blob. The API does not decrypt it. Trustee, Confidential Space, and Nitro call their endpoints after the quote check and fail closed when that endpoint or quote is missing. The owner broker SDK seals with HPKE, signs the receipt, and renews a short lease. SCITT stores the receipt only when the ledger is enabled. The guide is [Key Orchestrator](https://github.com/gitmujoshi/Confidential-AI-Network/blob/main/docs/USER_GUIDE.md#key-orchestrator).
+
+## Key Orchestrator
+
+The Key Orchestrator sits inside the clean room. It validates every contract, generates a one-run keypair in protected memory, and asks each owner's Key Broker Service for a release in parallel. Training starts only after every required data owner and the model owner have released. One refusal or timeout tears the room down and wipes memory.
+
+It does not decide whether a key may be released. That decision stays with the owner's KBS: hardware and TCB checks, a fresh nonce bound to the clean-room public key and the contract, the owner's policy, and a privacy-budget reservation in the same transaction as the release. A pass wraps the keys to `pk_ccr` and records a receipt. A data owner is never on the model-key path, and the model owner is never on a data-key path.
 
 ---
 

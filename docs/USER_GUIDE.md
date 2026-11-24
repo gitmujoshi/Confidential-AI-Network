@@ -223,6 +223,59 @@ Release is a signal on a CAN job, not a copy of the key.
 4. `POST /api/can/jcs/jobs/{jobId}/release` is accepted only in `BOTH_READY`. The job becomes `RELEASED` and the clean-room session becomes `RUNNING`. Any other state is rejected.
 5. After the deadline the state is `EXPIRED` or `CANCELLED`. A later signal is refused.
 6. Portal **Start training** and **Deploy for inference** do not run this escrow. Cloud attestation on those paths stays **simulated** until a verified SEV-SNP quote is stored.
+7. A revoked or expired contract, a replayed nonce, an unbound attestation, or an exhausted release budget (`cap`, `consumed`, `cost`) returns 409 and does not release the key.
+8. `POST /api/can/jcs/jobs/{jobId}/seal-output` records sealed ciphertext and a sha256 after both keys are in and the escrow deadline is still open. The API stores the hash and the ciphertext length, not the artifact.
+9. Local and dev use `CAN_PRINCIPAL_KEY_MODE=signals` or `mock`. `CAN_KEY_RELEASE_PROFILE=production` refuses that mock at startup. `azure-skr`, `trustee`, `confidential-space`, `nitro-enclave`, and `attested-tls` stay off unless selected. Each one returns a key only after its attestation check. A missing endpoint or quote fails closed.
+
+### Key Orchestrator
+
+The **Key Orchestrator** is the coordination engine running **inside** the Confidential Clean Room (CCR) Trusted Execution Environment (TEE). It is the conductor of a multi-party handshake: it validates contracts, generates a temporary one-run encryption keypair inside protected memory, talks to **each owner's Key Broker Service (KBS)** independently in parallel, enforces an **all-or-nothing barrier** before training starts, and keeps key leases alive while the job runs.
+
+The **Key Orchestrator does not make trust or release decisions on its own**. Each data owner and model owner runs or configures their own KBS and verifier, and that service decides whether this CCR is trustworthy for their data or model.
+
+**What runs today.** Local and dev stay on the mock KMS (`signals` or `mock`). The API records the release time and stores no key bytes. The clean-room HPKE key is an X25519 key in the API process. The attestation bundle stays **simulated** until a verified SEV-SNP guest report is stored. `MockOwnerKbs` seals to `pk_ccr` with HPKE (RFC 9180, X25519, HKDF-SHA256, AES-128-GCM) when the key is `hpke1.`, and still accepts the older RSA-OAEP wrap. It signs a release receipt, issues a one-minute lease, and renews that lease only while it is still valid. An expired lease blocks sealed output. The receipt is appended to SCITT only when `SCITT_CCF_ENABLED=true` and the ledger returns a claim id. Otherwise the signature stays on the job event and no claim id is invented. `ProductionOwnerKbs` is the owner process. It refuses a mock quote, checks the owner verifier, then seals. `azure-skr`, `trustee`, `confidential-space`, and `nitro-enclave` call their endpoints only after the attestation check and return an encrypted blob. They do not decrypt it. A missing endpoint, root certificate, or quote fails closed. `attested-tls` accepts an HPKE-wrapped key only after `verifySevSnpQuote` succeeds. A GPU measurement string is not a quote. A signed GPU token is verified against the owner's reference.
+
+#### What the Key Orchestrator does
+
+* **Validates contracts up front.** It checks signatures, validity windows, and revocation status for every contract in the run. If anything fails, it halts.
+* **Generates an ephemeral keypair (`sk_ccr`, `pk_ccr`).** One keypair for the run, inside TEE memory. Each owner's KBS wraps its data encryption keys to `pk_ccr`, so only that CCR instance can unwrap them with `sk_ccr`.
+* **Drives parallel per-owner requests.** It contacts each owner's KBS on its own. It does not route one owner's keys through another owner's infrastructure.
+* **Enforces the all-required barrier.** Training starts only after every required data owner and the model owner have released their keys. If one refuses or times out, the CCR tears down and zeroizes memory.
+* **Manages short-lived leases.** It renews key leases with each KBS during the job so a revocation can still block output.
+
+#### How it talks to each owner's KBS
+
+Each owner — data owner A, data owner B, and the model owner as a first-class owner — operates an **Owner Key Domain**: their own KMS or HSM, KBS, verifier, reference values, and release policy.
+
+**1. Challenge and bound attestation**
+
+For each owner `i`, in parallel, the CCR:
+
+1. Requests a fresh single-use nonce `n_i` from `KBS_i`.
+2. Generates hardware evidence whose report data binds `n_i`, `pk_ccr`, the `contract_hash`, and `owner_id_i`.
+3. Sends the evidence, `pk_ccr`, and the contract bundle to `KBS_i`.
+
+**2. Verification, policy, and budget on the KBS**
+
+`KBS_i`, with its verifier and the contract service, checks:
+
+* **Hardware and TCB.** The hardware signature chain is valid, the TCB version is acceptable, debug mode is off, and the CCR image and init-data measurements match the owner's reference values. GPU runs include composite CPU and GPU evidence.
+* **Binding and freshness.** The report data matches the expected binding, and the nonce has not been used.
+* **Policy and contract.** The owner's release policy holds: approved contract hash, active contract, unexpired terms, and, for the model owner, the approved pipeline and output types.
+* **Privacy budget.** When a budget applies, `KBS_i` reserves it in the same transaction as the release.
+
+**3. Wrapped key, receipt, and log**
+
+* When the checks pass, `KBS_i` wraps the DEKs to `pk_ccr` with HPKE, returns the wrapped keys and a signed release receipt, and appends the receipt to the transparency log.
+* Owners can use different backends in one run, for example Trustee for one owner and Azure or GCP for another. The CCR uses one key-release client. Each owner still applies their own policy to the verified claims.
+
+#### Why this shape
+
+* **No cross-owner trust.** A data owner is not on the model-key path. The model owner is not on a data-key path.
+* **Fail closed.** If a KBS is down, a policy fails, or a contract is revoked during the run, keys are not released and leases are not renewed, so output stays blocked.
+* **Zeroized on exit.** Keys stay in TEE memory for the run and are wiped at teardown.
+
+The CCR calls one owner SDK per owner. The module is `backend/sdk/owner-kbs.js`. `MockOwnerKbs` is the local broker. `HttpOwnerKbsClient` posts `POST {endpoint}/nonce` and `POST {endpoint}/release` to an owner's process. `orchestrateRelease` runs those calls in parallel. If one owner refuses or does not answer, every wrapped key from that round is dropped and the job stays unreleased. `POST /api/can/jcs/jobs/{jobId}/orchestrate` uses the job's clean-room public key and does not return key bytes.
 
 ### **Contract Status**
 - **Draft**: Being prepared

@@ -1,8 +1,8 @@
 # Role user guides (screenshot tours)
 
-Auto-generated on **2026-11-22** by `npm run test:e2e:user-guides`.
+Auto-generated on **2026-11-24** by `npm run test:e2e:user-guides`.
 
-Each guide walks through the primary screens for one party type, with screenshots captured from a live local stack (Chromium desktop).
+Each guide starts with that role's registration, then walks the primary screens. Screenshots are captured from a live local stack (Chromium desktop).
 
 | Role | Guide |
 |------|-------|

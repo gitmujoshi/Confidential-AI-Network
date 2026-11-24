@@ -71,6 +71,18 @@ function openWrappedKey(privateKeyPem, wrappedKey) {
   }
 }
 
+function sealOutput(publicKeyPem, artifact) {
+  const body = Buffer.isBuffer(artifact) ? Buffer.from(artifact) : Buffer.from(String(artifact));
+  const outputSha256 = crypto.createHash('sha256').update(body).digest('hex');
+  const sealedOutput = wrapKeyToPublicPem(publicKeyPem, body);
+  body.fill(0);
+  return {
+    sealedOutput,
+    outputSha256,
+    keyStored: false,
+  };
+}
+
 function assertNoRawKeyFields(body) {
   const source = body && typeof body === 'object' ? body : {};
   for (const field of RAW_KEY_FIELDS) {
@@ -91,5 +103,6 @@ module.exports = {
   generateEphemeralRsaKeyPair,
   wrapKeyToPublicPem,
   openWrappedKey,
+  sealOutput,
   assertNoRawKeyFields,
 };

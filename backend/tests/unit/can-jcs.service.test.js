@@ -38,7 +38,7 @@ jest.mock('../../models', () => {
   return {
     CANCcrSession: {
       async create(data) {
-        const id = data.id || '00000000-0000-0000-0000-000000000001';
+        const id = data.id || `ccr-${ccrSessions.size + 1}`;
         const rec = mkInstance({
           id,
           contractId: data.contractId,
@@ -63,7 +63,7 @@ jest.mock('../../models', () => {
     },
     CANJcsJob: {
       async create(data) {
-        const jobId = data.jobId || '00000000-0000-0000-0000-000000000010';
+        const jobId = data.jobId || `job-${jobs.size + 1}`;
         const rec = mkInstance({
           jobId,
           contractId: data.contractId,
@@ -168,6 +168,7 @@ describe('CANJcsService', () => {
 
   const { CANJcsService } = require('../../services/canJcsService');
   const { wrapKeyToPublicPem } = require('../../services/canKeyDelivery');
+  const { MockOwnerKbs } = require('../../sdk/owner-kbs');
   const crypto = require('crypto');
   const db = require('../../models');
 
@@ -212,16 +213,52 @@ describe('CANJcsService', () => {
     );
     expect(afterMek.job.escrowState).toBe('BOTH_READY');
 
+    await expect(svc.recordSealedOutput(jobId, {
+      sealedOutput: '',
+      outputSha256: 'a'.repeat(64),
+    })).rejects.toThrow(/sha256|Sealed output/);
+    const sealed = await svc.recordSealedOutput(jobId, {
+      sealedOutput: 'Y2lwaGVydGV4dA==',
+      outputSha256: 'ab'.repeat(32),
+    });
+    expect(sealed.keyStored).toBe(false);
+    expect(sealed.outputSha256).toHaveLength(64);
+
     const released = await svc.releaseToScheduler(jobId);
     expect(released.job.escrowState).toBe('RELEASED');
     expect(released.ccrSession.state).toBe('RUNNING');
 
-    // Provenance chain exists and links
     const prov = db.CANProvenanceEvent.__getAll().filter(e => e.jobId === jobId);
     expect(prov.length).toBeGreaterThanOrEqual(4);
     for (let i = 1; i < prov.length; i += 1) {
       expect(prov[i].prevHash).toBe(prov[i - 1].hash);
     }
+  });
+
+  test('the orchestrator asks both owner brokers and reaches BOTH_READY', async () => {
+    const svc = new CANJcsService({ escrowTimeoutMs: 10_000 });
+    const created = await svc.createJob({ contractId: '00000000-0000-0000-0000-000000000010' });
+    const data = new MockOwnerKbs({ ownerId: 'did:can:tdp', keyType: 'DEK' });
+    const model = new MockOwnerKbs({ ownerId: 'did:can:tdc', keyType: 'MEK' });
+    data.holdKey(crypto.randomBytes(32));
+    model.holdKey(crypto.randomBytes(32));
+    const outcome = await svc.orchestrateOwners(created.job.jobId, {
+      contract: { status: 'SIGNED', hash: 'c-live' },
+      owners: [
+        { ownerId: 'did:can:tdp', keyType: 'DEK', client: data },
+        { ownerId: 'did:can:tdc', keyType: 'MEK', client: model },
+      ],
+    });
+    expect(outcome.keyStored).toBe(false);
+    expect(outcome.releases.every((item) => item.wrappedKey == null)).toBe(true);
+    const job = await svc.getJob(created.job.jobId);
+    expect(job.job.escrowState).toBe('BOTH_READY');
+    expect(outcome.releases.every((item) => item.receipt && item.receipt.signature)).toBe(true);
+    svc.ownerLeaseUntil.set(created.job.jobId, Date.now() - 1000);
+    await expect(svc.recordSealedOutput(created.job.jobId, {
+      sealedOutput: 'Y2lwaGVydGV4dA==',
+      outputSha256: 'ab'.repeat(32),
+    })).rejects.toMatchObject({ code: 'LEASE_EXPIRED' });
   });
 });
 

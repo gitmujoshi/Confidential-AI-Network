@@ -291,6 +291,10 @@ app.use('*', (req, res) => {
 // Initialize services and start server
 async function initializeServices() {
   try {
+    const { assertKeyReleaseProfile } = require('./services/keyReleaseClient');
+    const keyRelease = assertKeyReleaseProfile();
+    console.log(`🔑 Key release: ${keyRelease.backend} (${keyRelease.namespace}), profile ${keyRelease.profile}`);
+
     // Initialize email service
     const emailService = require('./services/emailService');
     // Email service is auto-initialized in constructor

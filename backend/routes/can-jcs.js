@@ -5,7 +5,7 @@ const { body, param, validationResult } = require('express-validator');
 const { requireCanPrincipal } = require('../middleware/canPrincipalAuth');
 const { CANJcsService } = require('../services/canJcsService');
 const { assertNoRawKeyFields } = require('../services/canKeyDelivery');
-const { releasePrincipalKey } = require('../services/azureKeyRelease');
+const { requestKeyRelease, assertKeyReleaseProfile } = require('../services/keyReleaseClient');
 
 const jcs = new CANJcsService();
 
@@ -129,6 +129,7 @@ router.post(
 
     try {
       assertNoRawKeyFields(req.body);
+      assertKeyReleaseProfile();
       const result = await jcs.markKeyReleased(req.params.jobId, {
         keyType: req.body.keyType,
         principalId: req.can.principalId,
@@ -160,17 +161,10 @@ router.post(
   async (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) return sendValidationError(res, errors);
-    if (String(process.env.CAN_PRINCIPAL_KEY_MODE || 'signals').toLowerCase() !== 'azure-skr') {
-      return res.status(409).json({
-        success: false,
-        code: 'AZURE_SKR_DISABLED',
-        error: 'CAN_PRINCIPAL_KEY_MODE is not azure-skr. Key Vault release was not called.'
-      });
-    }
-
     try {
       assertNoRawKeyFields(req.body);
-      const released = await releasePrincipalKey({
+      const released = await requestKeyRelease({
+        backend: 'azure-skr',
         keyType: req.body.keyType,
         vaultUrl: req.body.vaultUrl,
         keyId: req.body.keyId,
@@ -192,6 +186,102 @@ router.post(
       });
     } catch (err) {
       return res.status(err.statusCode || 400).json({
+        success: false,
+        error: err.message,
+        code: err.code
+      });
+    }
+  }
+);
+
+// Record a sealed output. The body is ciphertext plus the plaintext hash. The API does not accept the artifact.
+router.post(
+  '/jobs/:jobId/seal-output',
+  requireCanPrincipal,
+  [
+    param('jobId').isUUID().withMessage('jobId must be a UUID'),
+    body('sealedOutput').isString().notEmpty().withMessage('sealedOutput is required'),
+    body('outputSha256').isString().notEmpty().withMessage('outputSha256 is required')
+  ],
+  async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) return sendValidationError(res, errors);
+    try {
+      assertNoRawKeyFields(req.body);
+      const result = await jcs.recordSealedOutput(req.params.jobId, {
+        sealedOutput: req.body.sealedOutput,
+        outputSha256: req.body.outputSha256
+      });
+      return res.json({ success: true, keyStored: false, data: result });
+    } catch (err) {
+      return res.status(err.statusCode || 400).json({
+        success: false,
+        error: err.message,
+        code: err.code
+      });
+    }
+  }
+);
+
+// Ask each owner's Key Broker Service. One refusal leaves the job unreleased.
+router.post(
+  '/jobs/:jobId/orchestrate',
+  requireCanPrincipal,
+  [
+    param('jobId').isUUID().withMessage('jobId must be a UUID'),
+    body('owners').isArray({ min: 1 }).withMessage('owners must list at least one KBS')
+  ],
+  async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) return sendValidationError(res, errors);
+    try {
+      assertNoRawKeyFields(req.body);
+      const result = await jcs.orchestrateOwners(req.params.jobId, {
+        owners: req.body.owners,
+        contract: req.body.contract,
+        evidence: req.body.evidence,
+        budget: req.body.budget
+      });
+      return res.json({
+        success: true,
+        keyStored: false,
+        data: {
+          ok: result.ok,
+          releases: result.releases.map((item) => ({
+            ownerId: item.ownerId,
+            keyType: item.keyType,
+            namespace: item.namespace,
+            keyStored: false,
+            receipt: item.receipt
+          }))
+        }
+      });
+    } catch (err) {
+      return res.status(err.statusCode || 409).json({
+        success: false,
+        error: err.message,
+        code: err.code,
+        owners: err.owners
+      });
+    }
+  }
+);
+
+router.post(
+  '/jobs/:jobId/renew-leases',
+  requireCanPrincipal,
+  [
+    param('jobId').isUUID().withMessage('jobId must be a UUID'),
+    body('owners').isArray({ min: 1 }).withMessage('owners must list at least one lease')
+  ],
+  async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) return sendValidationError(res, errors);
+    try {
+      const result = await jcs.renewOwnerLeases(req.params.jobId, { owners: req.body.owners });
+      return res.json({ success: true, keyStored: false, data: result });
+    } catch (err) {
+      return res.status(err.statusCode || 409).json({
         success: false,
         error: err.message,
         code: err.code

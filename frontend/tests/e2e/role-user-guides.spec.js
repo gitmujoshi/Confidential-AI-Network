@@ -22,13 +22,35 @@ const {
 } = require('./helpers/role-user-guide');
 
 test.describe('Role user guides (screenshot tours)', () => {
-  test.describe.configure({ mode: 'serial' });
-
   test.beforeEach(async ({ page }, testInfo) => {
     test.skip(testInfo.project.name !== 'chromium', 'Guides are captured on Desktop Chromium only');
   });
 
   const generatedRoles = [];
+
+  const REGISTER_ROLE = {
+    TDC: 'Training Data Consumer (TDC)',
+    TDP: 'Training Data Provider (TDP)',
+    TSP: 'Tech Service Provider (TSP)',
+  };
+
+  async function openSelect(page, label) {
+    const field = page.locator('.MuiFormControl-root').filter({ hasText: new RegExp(`^${label}`) }).getByRole('combobox').first();
+    await field.click();
+  }
+
+  async function captureRegister(page, roleKey) {
+    await page.goto('/register');
+    await expect(page.getByRole('heading', { name: 'User Registration' })).toBeVisible({ timeout: 60000 });
+    const roleName = REGISTER_ROLE[roleKey];
+    if (roleName) {
+      const roleField = page.locator('.MuiFormControl-root').filter({ hasText: /^Role/ }).getByRole('combobox');
+      await roleField.click();
+      await page.getByRole('option', { name: roleName }).click();
+    }
+    await settle(page, 400);
+    await captureShot(page, roleKey, '00-register.png', { fullPage: true });
+  }
 
   async function captureLogin(page, roleKey) {
     await page.goto('/login');
@@ -59,6 +81,7 @@ test.describe('Role user guides (screenshot tours)', () => {
     const email = E2E_ROLE_USERS.TDC.email;
     const steps = [];
 
+    await captureRegister(page, roleKey);
     steps.push(await captureLogin(page, roleKey));
     await uiLogin(page, email);
 
@@ -270,6 +293,7 @@ test.describe('Role user guides (screenshot tours)', () => {
     const email = E2E_ROLE_USERS.TDP.email;
     const steps = [];
 
+    await captureRegister(page, roleKey);
     steps.push(await captureLogin(page, roleKey));
     await uiLogin(page, email);
 
@@ -290,16 +314,80 @@ test.describe('Role user guides (screenshot tours)', () => {
     });
 
     await page.goto('/datasets/add');
-    await settle(page, 800);
+    await expect(page.getByRole('heading', { name: 'Add New Dataset' })).toBeVisible({ timeout: 60000 });
+    const publishShots = [];
+    const shootPublish = async (fileName, caption) => {
+      const shot = await captureShot(page, roleKey, fileName, { fullPage: true });
+      publishShots.push(`![${caption}](${shot.relPath})`);
+    };
+    await page.getByLabel('Dataset Name').fill('Guide sample dataset');
+    await page.getByLabel('Description').fill('Sample dataset for the TDP guide.');
+    await openSelect(page, 'Category');
+    await page.getByRole('option').first().click();
+    await page.getByLabel('License').fill('Apache 2.0');
+    await shootPublish('04-add-basic.png', 'Basic Information');
+    await page.getByRole('button', { name: /^Next$/ }).click();
+    await expect(page.getByLabel('Dataset Size')).toBeVisible({ timeout: 15000 });
+    await page.getByLabel('Dataset Size').fill('10MB');
+    await page.getByLabel('Record Count').fill('1000');
+    await page.getByLabel('Data Format').fill('CSV');
+    await shootPublish('04-add-details.png', 'Data Details');
+    await page.getByRole('button', { name: /^Next$/ }).click();
+    await expect(page.getByText('Privacy Techniques', { exact: false }).first()).toBeVisible({ timeout: 15000 });
+    await openSelect(page, 'Privacy Techniques');
+    await page.getByRole('option').first().click();
+    await page.keyboard.press('Escape');
+    await page.getByLabel('Access Restrictions').fill('Role-based');
+    await shootPublish('04-add-privacy.png', 'Privacy and access');
+    await page.getByRole('button', { name: /^Next$/ }).click();
+    await expect(page.getByText('Security & Compliance Configuration')).toBeVisible({ timeout: 15000 });
+    await openSelect(page, 'Data Residency Region');
+    await page.getByRole('option', { name: /US East/i }).click();
+    await openSelect(page, 'Processing Location');
+    await page.getByRole('option').first().click();
+    await shootPublish('04-add-security.png', 'Security and compliance');
+    await page.getByRole('button', { name: /^Next$/ }).click();
+    await expect(page.getByText('Quality Metrics', { exact: false }).first()).toBeVisible({ timeout: 15000 });
+    await shootPublish('04-add-quality.png', 'Quality and compliance');
+    await page.getByRole('button', { name: /^Next$/ }).click();
+    await expect(page.getByText(/Training files/i).first()).toBeVisible({ timeout: 15000 });
+    await shootPublish('04-add-files.png', 'Training files');
+    await page.getByRole('button', { name: /^Next$/ }).click();
+    await expect(page.getByText('Dataset Summary')).toBeVisible({ timeout: 15000 });
+    await shootPublish('04-add-review.png', 'Review and submit');
     steps.push({
       title: 'Publish a dataset',
       body: [
-        'Use **Add dataset** / upload to publish:',
-        '1. Provide name, modality, and description.',
-        '2. Attach files or catalog references.',
-        '3. Set access / licensing and publish.',
+        'Open **Datasets** and choose **Add dataset** (`/datasets/add`). The page is **Add New Dataset**. Move with **Next**. **Back** returns to the previous step. **Cancel** leaves without saving. The last step publishes the catalog entry.',
+        '',
+        '1. **Basic Information.** Enter **Dataset Name**, **Description**, and **Category**. These three are required. Set **License** here (for example MIT, Apache 2.0, or Commercial). Add tags if you want them.',
+        '',
+        publishShots[0],
+        '',
+        '2. **Data Details.** Enter **Dataset Size**, **Record Count**, and **Data Format**. These three are required. **Data Source**, **Collection Method**, **Update Frequency**, and **Retention Period** are optional. Turn on **Link to Hugging Face Hub dataset** only when you want a catalog pointer for local Docker training. That switch does not upload the data.',
+        '',
+        publishShots[1],
+        '',
+        '3. **Privacy & Security.** Choose at least one **Privacy Technique**. That choice is required. Set **Access Restrictions** here (for example role-based or time-based). **Confidential Computing Required**, **Data Anonymization Level**, and **Encryption Required** are on this step.',
+        '',
+        publishShots[2],
+        '',
+        '4. **Security & Compliance.** Choose **Data Classification** (Public, Internal, Confidential, Restricted, or Top Secret). Classification sets the recommended access controls. Then set **Encryption Algorithm** (AES-256-GCM is the default), **Data Residency Region**, and **Processing Location**. The processing location must be allowed for the residency region. Switches on this step: **Secure Enclave Required**, **Attestation Required**, **Encryption at Rest**, **Encryption in Transit**, and **Cross-Border Transfer Allowed**. Secure enclave and attestation stay off for Public and Internal.',
+        '',
+        publishShots[3],
+        '',
+        '5. **Quality & Compliance.** Select **Quality Metrics** and **Compliance Requirements**. **Data Governance** and **Audit Trail Required** are optional.',
+        '',
+        publishShots[4],
+        '',
+        '6. **Training files.** Optional. Choose **Artifact format hint** (CSV for tabular) and **Choose files**. Tabular files use numeric columns and an integer label in the last column. Pickle, joblib, and `.pt` / `.pth` files are rejected. You can upload later from the dataset page.',
+        '',
+        publishShots[5],
+        '',
+        '7. **Review & Submit.** Check the summary, including license, access, classification, and queued files. **Pricing** and **Contact Information** are optional. Click **Create Dataset**. The catalog row is created, any queued files upload, and you return to **Datasets**. The screenshot stops before that button so the guide does not publish a sample row.',
+        '',
+        publishShots[6],
       ].join('\n'),
-      ...(await captureShot(page, roleKey, '04-add-dataset.png')),
     });
 
     await gotoAndWait(page, '/contracts', async (p) => {
@@ -384,6 +472,7 @@ test.describe('Role user guides (screenshot tours)', () => {
     const email = E2E_ROLE_USERS.TSP.email;
     const steps = [];
 
+    await captureRegister(page, roleKey);
     steps.push(await captureLogin(page, roleKey));
     await uiLogin(page, email);
 
@@ -459,6 +548,7 @@ test.describe('Role user guides (screenshot tours)', () => {
     const email = E2E_ROLE_USERS.AppAdmin.email;
     const steps = [];
 
+    await captureRegister(page, roleKey);
     steps.push(await captureLogin(page, roleKey));
     await uiLogin(page, email);
 
