@@ -75,7 +75,7 @@
 <main class="container py-5" style="max-width: 860px;">
 <h1 class="display-5 fw-bold">Deployment</h1>
 <p>Start with the <a href="https://github.com/gitmujoshi/Confidential-AI-Network/blob/main/docs/deployment/README.md">deployment hub</a>. It lists every common setting, which file it belongs in, and the extra inputs for local, Azure, Google Cloud, AWS, and OCI.</p>
-<p>Local development is <code>./start-system.sh</code> with <code>secrets.env</code> on that machine. A cluster reads its secret store through External Secrets. Cloud jobs use a cluster the provider already runs. The kubeconfig path is stored on the provider card. A missing path fails the job.</p>
+<p>Local development is <code>./start-system.sh</code> with <code>secrets.env</code> on that machine. The same command runs on one Azure VM: <code>./deployment/deploy-azure.sh vm -y</code> copies this checkout there and starts Keycloak, both Postgres databases, the API, and the portal in Docker and Node. A cluster reads its secret store through External Secrets. Cloud jobs use a cluster the provider already runs. The kubeconfig path is stored on the provider card. A missing path fails the job.</p>
 <h2 class="h4 mt-4">Where a job runs</h2>
 <ul>
 <li>Azure submits to the existing AKS cluster named on the contract and the provider card.</li>
@@ -83,8 +83,10 @@
 <li>Oracle uses the existing OKE runner.</li>
 <li>AWS training is not implemented. The API returns 501.</li>
 </ul>
+<h2 class="h4 mt-4">Azure, same layout as a laptop</h2>
+<p><code>./deployment/deploy-azure.sh vm -y</code> needs <code>config.env</code> and <code>secrets.env</code> in the repo root. It creates one Ubuntu VM and does not create AKS or Azure Database for PostgreSQL. SSH, the portal, the API, and Keycloak are open only to the operator’s address.</p>
 <h2 class="h4 mt-4">Azure platform</h2>
-<p>Terraform can create the AKS cluster, PostgreSQL, the container registry, a platform Key Vault, and Blob storage. These stay off until the matching setting is turned on:</p>
+<p>Terraform can create the AKS cluster, PostgreSQL, the container registry, a platform Key Vault, and Blob storage. The default identity is Entra. Set <code>identity_mode = "keycloak"</code> to run Keycloak on the cluster and store its database on that Postgres server. These stay off until the matching setting is turned on:</p>
 <ul>
 <li>Confidential node pool. The training job reads a SEV-SNP report from the node. The job stays simulated until that report verifies. A node without the guest interface fails the job.</li>
 <li>API Management and its Entra token check. It is created only when the publisher email and the API address are set.</li>

@@ -93,12 +93,14 @@ The **Confidential AI Network (CAN)** is a **parallel “CAN path”** implement
 ### CAN components (current implementation)
 
 **Backend routes**
-- `backend/routes/can-jcs.js` — JCS endpoints (create job, status, attestation, key release *signals*, release to CCRP, SSE events, training status link)
-- `backend/routes/can-ccr.js` — CCR session key delivery endpoint (MVP rejects key material; only accepts “key released” signals)
+- `backend/routes/can-jcs.js` — create job, attestation, `orchestrate`, `renew-leases`, `key-released`, `azure-key-release`, `seal-output`, release to the scheduler, SSE events, training status
+- `backend/routes/can-ccr.js` — CCR session key delivery. Raw key bytes are rejected. A wrapped key is checked and then discarded
 - `backend/routes/can-provenance.js` — provenance event query
 
 **Backend services**
-- `backend/services/canJcsService.js` — escrow state machine + job lifecycle
+- `backend/services/canJcsService.js` — escrow state machine, clean-room session, and the Key Orchestrator
+- `backend/sdk/owner-kbs.js` — owner Key Broker the orchestrator calls (`MockOwnerKbs`, `ProductionOwnerKbs`, `HttpOwnerKbsClient`)
+- `backend/services/keyReleaseClient.js`, `keyReleasePolicy.js`, `hpke.js`, `azureKeyRelease.js`, `cloudKeyRelease.js` — mock release, policy, HPKE, and cloud brokers that fail closed
 - `backend/services/canEscrowSweeper.js` — background sweeper for overdue jobs
 - `backend/services/canProvenanceService.js` — append-only hash-chain events
 - `backend/services/canWebhookDispatcher.js` — best-effort event webhooks (HMAC signed)
@@ -111,27 +113,17 @@ The **Confidential AI Network (CAN)** is a **parallel “CAN path”** implement
 - `can_jcs_attestations` — stored attestation bundles
 - `can_provenance_events` — tamper-evident CAN provenance (hash chained)
 
-### CAN job flow (MVP)
+### CAN job flow
 
-```mermaid
-sequenceDiagram
-    participant TDC as TDC Portal/UI
-    participant JCS as CAN JCS (/api/can/jcs)
-    participant Prov as CAN Provenance
-    participant CCRP as Local CCRP Executor
+The sequence, including a refused broker and Azure Secure Key Release, is in [UML 4+1 §2.3–2.6](architecture/UML_4PLUS1_ARCHITECTURE.md). In short:
 
-    TDC->>JCS: POST /jobs { contractId, ccrProvider: local }
-    JCS->>Prov: Append event JOB_CREATED
-    TDC->>JCS: POST /jobs/:jobId/key-released { keyType: DEK } (DP principal)
-    JCS->>Prov: Append event DEK_RELEASED
-    TDC->>JCS: POST /jobs/:jobId/key-released { keyType: MEK } (MO principal)
-    JCS->>Prov: Append event MEK_RELEASED
-    TDC->>JCS: POST /jobs/:jobId/release
-    JCS->>Prov: Append event RELEASED
-    JCS->>CCRP: trigger local training (simulate/docker)
-    CCRP-->>JCS: trainingJobId linked on can_jcs_jobs
-    TDC->>JCS: GET /jobs/:jobId/training (poll)
-```
+1. `POST /api/can/jcs/jobs` opens the job and a clean-room session in `REQUESTED`. The attestation bundle is simulated unless a verified guest report is stored.
+2. `POST .../orchestrate` asks each dataset owner's Key Broker for the DEK and the model publisher's broker for the MEK. The caller passes those owners. One refusal drops the round.
+3. When every owner returns a key wrapped to `pk_ccr`, the job records `dekReceivedAt` and `mekReceivedAt` and the session becomes `READY`.
+4. `POST .../release` moves the job to `RELEASED` and the session to `RUNNING`. A local provider may then link a training job.
+5. `POST .../key-released` remains the direct signal for one owner who wraps a key to `tlsPublicKey`. The API checks the wrap, zeroes the bytes, and stores the time.
+
+Portal **Start training** does not run this sequence.
 
 ### Identity/Auth notes (MVP vs target)
 

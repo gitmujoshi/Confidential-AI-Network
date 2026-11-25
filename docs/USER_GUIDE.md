@@ -19,6 +19,7 @@ This guide helps you use the Contract Management System effectively. The system 
 - **TDP**: Provide and manage training datasets
 - **CCRP**: Provide computing environments
 - **AppAdmin**: System administration and management
+- **Auditor**: Read-only review of contracts and the sealed Merkle audit tree. The public registration form does not list this role. An operator creates it with `partyType` `Auditor`. The screen walk is the [Auditor user guide](guides/role-user-guides/AUDITOR_USER_GUIDE.md).
 
 ### **Where to go next**
 - **Documentation home**: [README.md](README.md)
@@ -57,6 +58,11 @@ This guide helps you use the Contract Management System effectively. The system 
 - Contract Overview
 - Audit Logs
 
+### **Auditor workspace**
+- Every contract, with search by contract id, status, TDC, or DEPA ID
+- **Audit tree** for the sealed Merkle root and its leaves
+- **Contract** for the Ricardian record, without sign or train controls
+
 ## ✅ Role-based “happy path” workflows
 
 ### **TDC (Training Data Consumer)**
@@ -82,6 +88,15 @@ This guide helps you use the Contract Management System effectively. The system 
 - **Monitor health**: Admin → System Health → investigate alerts/logs
 - **Audit & compliance**: Admin → Audit Logs → export/retain evidence
 - **Operational scripts**: see `docs/ADMIN_GUIDE.md` (includes DEPA tooling and CAN operations)
+
+### **Auditor**
+- **Open the workspace**: `/auditor/dashboard`. The list is every contract.
+- **Inspect the sealed tree**: **Audit tree**. A **Published root** was written once, when a model was registered or when a completed training job was first reviewed. Leaves are the contract, each training job, each SCITT claim, and each registered model.
+- **Verify a leaf**: **Verify** checks that leaf under the saved root and reports the leaf hash, both roots, the check time, and whether the current database row still matches the sealed leaf.
+- **Read the contract**: **Contract** opens the Ricardian record. This role does not sign, train, or deploy.
+- **Tombstone**: `POST /api/auditor/provenance/{id}/tombstone` keeps the Merkle leaf and records the reason in this database. The same id returns the first record. The workspace has no button for this call.
+
+The screenshot walk and the leaf contents are in the [Auditor user guide](guides/role-user-guides/AUDITOR_USER_GUIDE.md). The API table is [Auditor role](features/AUDITOR_ROLE.md).
 
 ## 📝 Contract Management
 
@@ -287,7 +302,7 @@ A signed contract is the list the clean room works from. The training data consu
 | Base model | The training data consumer who published the model | MEK, the model encryption key | That consumer's Key Broker |
 | Clean-room session | Created for this job. The tech service provider hosts it | One-run `sk_ccr` / `pk_ccr` | No broker. This is the room the brokers attest |
 
-`POST /api/can/jcs/jobs` with `contractId` and `ccrProvider` opens the job and a clean-room session in `REQUESTED`. Escrow starts `OPEN` and expires about 10 minutes later. The session id is stored on the job. The attestation bundle and the one-run public key belong to that session. Locally the report stays simulated, and the HPKE private key stays in the API process under that session id.
+`POST /api/can/jcs/jobs` with `contractId` and `ccrProvider` opens the job and a clean-room session in `REQUESTED`. Escrow starts `OPEN` and expires about 10 minutes later. The session id is stored on the job. The attestation bundle and the one-run public key belong to that session. Locally the report stays simulated. On the default path the HPKE private key stays in the API process under that session id. The API opens a wrapped key only to check the binding, then zeroes those bytes.
 
 The catalog and the contract name the assets. They do not name a broker. `encryption_key_id` and `attestation_policy` on a dataset, and `kmsConfigs` on the contract, are references stored with the row. `POST /api/can/jcs/jobs/{jobId}/orchestrate` does not read `datasetSelections`, `aiModelIds`, or those fields. The caller supplies `owners`:
 
@@ -299,6 +314,17 @@ The catalog and the contract name the assets. They do not name a broker. `encryp
 The job records one data-key time and one model-key time. The orchestrator records those signals only after every owner in the request has returned a key wrapped to `pk_ccr`. One refusal drops the wrapped keys from that round and leaves escrow unchanged. The first accepted data-key signal and the first accepted model-key signal move the job to `BOTH_READY` and the session to `READY`. `POST /api/can/jcs/jobs/{jobId}/release` then moves the job to `RELEASED` and the session to `RUNNING`.
 
 An owner who keeps the key in Azure Key Vault has that owner's broker present the room's Azure Attestation token. Key Vault returns an encrypted blob. `POST /api/can/jcs/jobs/{jobId}/azure-key-release` records that release when `CAN_PRINCIPAL_KEY_MODE=azure-skr`. The blob is not decrypted and is not wrapped again. Portal **Start training** does not create this job and does not call the brokers. It reads the artifacts on the host.
+
+#### Local guest in the training container
+
+`CAN_GUEST_DECRYPT=true` together with `CAN_LOCAL_TRAINING_MODE=docker` is the path that decrypts inside the training container. The container is the guest. It is not a hardware TEE, and `reportFormat` stays `SIMULATED`.
+
+1. The image entry is `guest_entry.py`. Rebuild `contractmanagement/local-trainer:latest` after this change. Without `GUEST_DECRYPT=1` that entry starts `train.py`, so portal **Start training** is unchanged.
+2. With the flag, the container generates `sk_ccr` in its own memory and writes only `pk_ccr` to `/outputs/guest-public.json`.
+3. The API drops its copy of the private key, then asks each owner broker to seal to that guest public key. It does not open the wrap. The HTTP orchestrate route still returns no key bytes. The docker executor writes the sealed keys to `/inputs/guest/sealed-release.json` for this container only.
+4. The guest opens the seals, decrypts `CANSEAL1` files into `/tmp/guest-plain` (not the host mount), zeroes the keys, and starts `train.py` on those files.
+
+A dataset or model file must be a `CANSEAL1` envelope: the line `CANSEAL1`, one JSON line (`alg` `AES-256-GCM`, `nonce`, `keyType`, `ownerId`), then the AES-256-GCM ciphertext. A directory with no envelope stops the job with `GUEST_CIPHERTEXT_REQUIRED`. A mock broker with no key file stops the job with `GUEST_KEY_MISSING` and the container is stopped. Put the raw 32-byte owner key in `CAN_GUEST_KEY_DIR` as `encodeURIComponent(ownerId)__DEK` or `__MEK`. A remote broker uses `CAN_DATASET_KBS_URL` or `CAN_MODEL_KBS_URL`, or `kbsEndpoint` on the row. `CAN_KEY_RELEASE_PROFILE=production` still refuses the mock broker.
 
 ### **Contract Status**
 - **Draft**: Being prepared

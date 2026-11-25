@@ -1,5 +1,7 @@
 # Auditor role — Merkle audit & contract review
 
+The screen walk is the [Auditor user guide](../guides/role-user-guides/AUDITOR_USER_GUIDE.md). This page is the API and the seal rule.
+
 ## Purpose
 
 **Auditor** is a read-only role for compliance / incident reviewers. Auditors can:
@@ -38,6 +40,19 @@ If you need a known local password before sync, set it in Keycloak Admin or re-r
 | POST | `/api/auditor/provenance/:id/tombstone` | Append-only PII tombstone. Body: `{ reason, redactedFields? }`. The Merkle leaf stays. The same id returns the first record. This is not an external SRO filing. The gateway path is `POST /v1/aichain/provenance/{id}/tombstone`. |
 
 Also: contract provenance report and job provenance allow `Auditor` (same as AppAdmin read paths).
+
+## Review flow
+
+1. The operator registers `partyType: Auditor`. The public form lists TDP, TDC, and TSP only.
+2. The auditor signs in and opens `/auditor/dashboard`.
+3. `GET /api/auditor/contracts` returns every contract. Search is by contract id, status, TDC name, or DEPA ID.
+4. `GET /api/auditor/contracts/:id/audit-tree` builds the leaves from the provenance report: one `contract` leaf, one `training_job` leaf per job, one `scitt_claim` leaf per claim, and one `ai_model` leaf per registered model.
+5. If a training job on that contract is `COMPLETED` and no `CONTRACT_AUDIT` root exists, this read seals the root. Registering a model seals it the same way. The root is written once to `merkle_trees`. Later edits do not replace it.
+6. `POST /api/auditor/verify-proof` with `{ contractId, nodeId }` checks the stored inclusion proof against that saved root. The response includes the sealed payload, the leaf hash, the calculated root, the published root, `verifiedAt`, and `currentRecordMatches`.
+7. `/auditor/contracts/:id` is the Ricardian contract. The auditor does not sign it and does not start training.
+8. `POST /api/auditor/provenance/:id/tombstone` appends a PII tombstone in this database. The leaf stays. Repeating the id returns the first record.
+
+An unsealed tree is the current rows only. **Verify** is available after the root is published. **Rebuild tree** reloads the sealed root.
 
 ## UI
 

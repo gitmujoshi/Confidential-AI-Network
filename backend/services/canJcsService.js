@@ -49,7 +49,7 @@ class CANJcsService {
     this.ownerLeaseUntil = new Map();
     this.provenance = new CANProvenanceService();
     this.webhooks = new CANWebhookDispatcher();
-    this.localExecutor = new CANLocalCcrpExecutor();
+    this.localExecutor = new CANLocalCcrpExecutor({ jcs: this });
   }
 
   async createJob({ contractId, ccrProvider = 'local' }) {
@@ -286,6 +286,93 @@ class CANJcsService {
       })),
     });
     return { ok: true, keyStored: false, releases: outcome.releases };
+  }
+
+  /**
+   * Seal owner keys to a public key generated inside the training guest.
+   * The API drops its copy of sk_ccr and does not open the wrapped keys.
+   * reportFormat stays SIMULATED. This guest is the local container, not a hardware TEE.
+   */
+  async releaseToGuest(jobId, { guestPublicKey, owners, contract, evidence, budget } = {}) {
+    const { orchestrateRelease } = require('../sdk/owner-kbs');
+    if (!String(guestPublicKey || '').startsWith('hpke1.')) {
+      const err = new Error('The guest public key must be an hpke1 X25519 key.');
+      err.statusCode = 400;
+      err.code = 'GUEST_PUBLIC_KEY';
+      throw err;
+    }
+    const job = await db.CANJcsJob.findByPk(jobId);
+    if (!job) throw new Error('Job not found');
+    const material = ephemeralPrivateKeys.get(job.ccrSessionId);
+    if (material && material.hpkePrivate) {
+      material.hpkePrivate.fill(0);
+    }
+    ephemeralPrivateKeys.set(job.ccrSessionId, {
+      rsa: material && material.rsa,
+      hpkePrivate: null,
+      hpkePublic: guestPublicKey,
+    });
+    const attestation = await db.CANJcsAttestation.findOne({ where: { jobId } });
+    if (attestation && attestation.attestationReport) {
+      let report = {};
+      try {
+        const raw = Buffer.isBuffer(attestation.attestationReport)
+          ? attestation.attestationReport
+          : Buffer.from(attestation.attestationReport);
+        report = JSON.parse(raw.toString('utf8'));
+      } catch (error) {
+        report = {};
+      }
+      report.hpkePublicKey = guestPublicKey;
+      report.guestHeld = true;
+      report.format = 'SIMULATED';
+      await attestation.update({
+        attestationReport: Buffer.from(JSON.stringify(report)),
+        reportFormat: 'SIMULATED',
+      });
+    }
+    const outcome = await orchestrateRelease({
+      owners,
+      pkCcr: guestPublicKey,
+      contract,
+      evidence,
+      budget,
+    });
+    if (outcome.releases.some((item) => !item.wrappedKey)) {
+      outcome.releases.forEach((item) => {
+        item.wrappedKey = null;
+      });
+      const err = new Error('An owner broker did not seal a key to the guest. Training was not started.');
+      err.statusCode = 409;
+      err.code = 'GUEST_KEY_MISSING';
+      throw err;
+    }
+    const delivered = [];
+    for (const release of outcome.releases) {
+      delivered.push({
+        ownerId: release.ownerId,
+        keyType: release.keyType,
+        wrappedKey: release.wrappedKey,
+      });
+      await this._recordKeySignal(jobId, {
+        keyType: release.keyType,
+        principalId: release.ownerId,
+        release: {
+          keyStored: false,
+          namespace: release.namespace,
+          teeType: 'guest-local',
+          reportFormat: 'SIMULATED',
+        },
+      });
+      release.wrappedKey = null;
+    }
+    return {
+      ok: true,
+      keyStored: false,
+      guestHeld: true,
+      reportFormat: 'SIMULATED',
+      releases: delivered,
+    };
   }
 
   async renewOwnerLeases(jobId, { owners } = {}) {

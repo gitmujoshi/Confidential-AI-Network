@@ -13,7 +13,7 @@ This document defines the **recommended Microsoft Azure security architecture** 
 
 | Document | Role |
 |----------|------|
-| **This doc** | **Step-by-step setup runbook**, architecture rationale, topology, environment profiles, governance, **E2E crypto & key flows on Azure** |
+| **This doc** | Security architecture, topology, and the target environment. The executable steps, including every manual step, are [Azure Terraform](../../deployment/azure/terraform/README.md#deploy-steps) |
 | [Azure Features & Configuration](../deployment/AZURE_FEATURES_AND_CONFIGURATION.md) | **Feature catalog** — Entra, KV, signing, DEK/MEK, train, Blob, SCITT + **env vars / profiles** |
 | [Azure IAM & Edge Config](../deployment/AZURE_IAM_AND_EDGE_CONFIG.md) | **Implementation reference** — Entra ID groups, RBAC, Front Door, APIM, WAF, **key APIs & Key Vault key types** |
 | [Azure SPIFFE/SPIRE + Entra WIF](../deployment/AZURE_SPIFFE_SPIRE_WIF.md) | **Workload identity** — Path N (AKS WI) + Path F (SPIFFE→Entra) · [blog](https://gitmujoshi.github.io/Confidential-AI-Network/security/2026/08/17/spiffe-spire-azure-wif/) |
@@ -36,7 +36,9 @@ This document defines the **recommended Microsoft Azure security architecture** 
 
 ## Step-by-step: Azure infrastructure setup (new environment)
 
-Use this runbook when onboarding a **new Azure subscription** or standing up a **new environment** (`dev` first, then test → staging → prod).
+The commands an operator runs, and the manual steps after the apply, are [Deploy steps](../../deployment/azure/terraform/README.md#deploy-steps). The phases below are the target layout. Terraform creates the network, AKS, Postgres, registry, Key Vault, Blob, Entra apps, and the API and UI. Management groups, Bastion, Application Gateway, Defender, and public DNS are not part of that apply. Front Door, API Management, SPIRE, External Secrets, and the confidential pool stay off until their flags are set.
+
+Use the phases when onboarding a **new Azure subscription** or standing up a **new environment** (`dev` first, then test → staging → prod).
 
 **Estimated effort:** dev pilot ~1–2 weeks; full four-env stack with edge hardening ~4–8 weeks.
 
@@ -173,9 +175,9 @@ docker push cancontractmgmt.azurecr.io/frontend:latest
 ```
 
 3. **Deploy K8s manifests** — Terraform `kubernetes_resources` module or `kubectl apply`.
-4. **Health checks** — `GET /api/health` on backend; frontend `/`.
+4. **Health checks** — `GET /health` on the API port `5001`; frontend `/`.
 
-**Exit criteria:** `curl -k https://<appgw-fqdn>/api/health` returns 200 from VPN or Bastion port-forward.
+**Exit criteria:** `curl -sS http://<load_balancer_ip>:5001/health` returns `"status":"healthy"`. After public DNS and TLS exist, use the hostname from `app_domain`.
 
 ---
 
@@ -322,7 +324,7 @@ Tenant Root Group
 
 ---
 
-## 4. Identity (Microsoft Entra ID on Azure; Keycloak local-only)
+## 4. Identity (Microsoft Entra ID by default)
 
 | Environment | Entra app / group prefix | Purpose |
 |-------------|--------------------------|---------|
@@ -331,9 +333,9 @@ Tenant Root Group
 | staging | `can-staging-*` | Pre-prod UAT, partner demos |
 | prod | `can-prod-*` | Production TDC / TDP / CCRP / AppAdmin |
 
-**Azure rule:** **Microsoft Entra ID is the sole identity provider** for browser and API auth. App roles / security groups carry party type (`TDC`, `TDP`, `CCRP`/`TSP`, `AppAdmin`). Backend and APIM validate **Entra** JWTs.
+**Azure default:** **Microsoft Entra ID** is the identity provider for the AKS path. App roles / security groups carry party type (`TDC`, `TDP`, `CCRP`/`TSP`, `AppAdmin`). Backend and APIM validate **Entra** JWTs. Set `identity_mode = "keycloak"` when Keycloak should run in the cluster and use a database on the Azure Postgres server. `./deployment/deploy-azure.sh vm -y` runs the local Keycloak containers on one VM.
 
-**Local rule:** **Keycloak** (`contract-management` realm) remains the IdP for docker-compose / laptop demos and Playwright. Do **not** run Keycloak in Azure resource groups.
+**Local rule:** **Keycloak** (`contract-management` realm) is the IdP for docker-compose, laptop demos, Playwright, and the single-VM Azure option.
 
 | Layer | Component | Responsibility |
 |-------|-----------|----------------|
@@ -341,7 +343,7 @@ Tenant Root Group
 | Entra ID | Groups + app roles + Conditional Access | Party-type authorization claims |
 | App Gateway / Front Door | TLS + routing | Public ingress to AKS |
 | Backend API | JWT validation (Entra issuer) | `authenticateToken` adapted for Entra |
-| Local only | Keycloak | Docker Compose E2E — never Azure |
+| Local and the single VM | Keycloak | Docker Compose on a laptop, Playwright, and `./deployment/deploy-azure.sh vm -y` |
 
 ---
 
@@ -519,7 +521,7 @@ CCRP provisions TEE (Azure confidential VM / confidential container)
 | Dual-key gate | Both DEK and MEK released before start; sweeper → EXPIRED/DESTROYED |
 | CCRP credentials | Per-TSP Azure SP in Key Vault; workload identity for provisioner |
 
-**Maturity today:** JCS MVP accepts **key-release signals** (rejects raw key bytes to Node). Attestation is **simulated**. Local Docker training is **not** a hardware TEE. Treat clean-room decrypt-and-train as **target** until attestation + attested TLS delivery ship.
+**Maturity today:** The Key Orchestrator asks each dataset owner's broker and the model publisher's broker. Local and dev use the mock broker. The API stores the release time and does not keep key bytes. Attestation on that path stays **simulated** until a verified SEV-SNP guest report is stored. `CAN_PRINCIPAL_KEY_MODE=azure-skr` verifies an Azure Attestation JWT and returns an encrypted Key Vault blob. It does not decrypt the blob. Local Docker training is **not** a hardware TEE. Decrypt-and-train inside a confidential VM remains the target.
 
 ### 16.4 Signing key management (contract signatures)
 

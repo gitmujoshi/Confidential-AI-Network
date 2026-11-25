@@ -40,7 +40,13 @@ output "backend_url" {
 }
 
 output "auth_provider" {
-  value = "entra"
+  value = var.identity_mode == "keycloak" ? "keycloak" : "entra"
+}
+
+output "keycloak_client_secret" {
+  description = "API client secret when identity_mode=keycloak. Empty when identity_mode=entra."
+  value       = var.identity_mode == "keycloak" ? random_password.keycloak_client_secret[0].result : ""
+  sensitive   = true
 }
 
 output "entra_tenant_id" {
@@ -128,9 +134,10 @@ output "next_steps" {
     "1. az aks get-credentials --resource-group ${module.networking.resource_group_name} --name ${module.aks.cluster_name}",
     "2. Build and push images: IMAGE_TAG=${local.effective_image_tag} ./deploy.sh --images",
     "3. Configure DNS for ${var.app_domain} → ${module.load_balancer.public_ip_address}",
-    "4. Confirm AUTH_PROVIDER=entra and KEYCLOAK_ENABLED=false on backend pods",
-    "5. Assign users to API app roles (TDC/TDP/CCRP/AppAdmin) in Entra",
-    "6. Provision matching users in the app DB (email / iamUserId)",
+    "4. Confirm AUTH_PROVIDER matches identity_mode on backend pods",
+    "5. Assign users to API app roles (TDC/TDP/CCRP/AppAdmin) in Entra. Auditor is a database partyType, not an app role",
+    "6. Insert matching rows in users (name, email, partyType). Login returns 404 USER_NOT_FOUND until the email exists",
+    "6b. Mount a kubeconfig and set AZURE_CCR_KUBECONFIG. An empty path fails training with HTTP 502",
     "7. Sign in via Entra SSO (SPA client ${local.effective_entra_client_id})",
     "8. Key Vault: ${coalesce(module.key_vault.key_vault_uri, "(disabled)")}",
     "9. Blob account: ${coalesce(module.storage.storage_account_name, "(disabled)")}",

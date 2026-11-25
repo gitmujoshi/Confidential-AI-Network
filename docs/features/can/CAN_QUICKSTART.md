@@ -3,8 +3,8 @@
 This repo now includes a **parallel** Confidential AI Network (CAN) MVP path under `/api/can/*`.
 
 ## What this is (and isn’t)
-- **Is**: a minimal Job Coordination Service (JCS) + CCR session records + simulated attestation bundle + escrow state machine + SSE events.
-- **Is not**: real TEE attestation, attested TLS, or principal certificate auth yet. Those are Phase 2–3 in `docs/CAN_GAP_DECISION_MEMO.md`.
+- **Is**: a Job Coordination Service, a clean-room session, a simulated attestation bundle, escrow, and the Key Orchestrator. The caller passes each dataset owner as a DEK broker and the model publisher as the MEK broker. Local mode uses `MockOwnerKbs`, HPKE, a signed receipt, and a short lease. The HPKE private key stays in the API process.
+- **Is not**: a hardware TEE, a guest quote on the default path, or principal certificate auth. `azure-skr` and the other cloud brokers stay off unless selected and fail closed without a quote. See [CAN_GAP_DECISION_MEMO.md](CAN_GAP_DECISION_MEMO.md) and [Datasets, models, and the clean room](../../USER_GUIDE.md#datasets-models-and-the-clean-room).
 
 ## API namespaces
 - Portal/legacy: `/api/*` (Keycloak + existing workflows)
@@ -53,7 +53,7 @@ curl -s "http://localhost:5001/api/can/jcs/jobs/<jobId>/attestation" \
   -H "X-CAN-Principal-Id: did:can:dp:demo" | jq
 ```
 
-4) Wrap DEK and MEK to the attestation `tlsPublicKey` (RSA-OAEP SHA-256) and release them. The API stores the time and discards the key bytes. `backend/services/canKeyDelivery.js` exports `wrapKeyToPublicPem(publicKeyPem, plaintext)`. Send `{ "keyType": "DEK"|"MEK", "attestedPublicKey", "wrappedKey" }`. Training stays blocked until both the data owner and the model owner have released. Local mode is the mock KMS. The DEK entry is the dataset owner, the MEK entry is the model publisher, and the job's clean-room session is what those brokers attest. `POST .../orchestrate` takes that owner list from the caller. The catalog key id is not a broker URL. The walk is in the [user guide](../../USER_GUIDE.md#datasets-models-and-the-clean-room).
+4) Wrap DEK and MEK to the attestation `tlsPublicKey` (RSA-OAEP SHA-256) and release them. The API stores the time and discards the key bytes. `backend/services/canKeyDelivery.js` exports `wrapKeyToPublicPem(publicKeyPem, plaintext)`. Send `{ "keyType": "DEK"|"MEK", "attestedPublicKey", "wrappedKey" }`. Training stays blocked until both the data owner and the model owner have released. Local mode is the mock KMS. The DEK entry is the dataset owner, the MEK entry is the model publisher, and the job's clean-room session is what those brokers attest. `POST .../orchestrate` takes that owner list from the caller. The catalog key id is not a broker URL. `CAN_GUEST_DECRYPT=true` with `CAN_LOCAL_TRAINING_MODE=docker` generates `pk_ccr` inside the training container. The API seals owner keys to that key and does not open them. The guest decrypts `CANSEAL1` files and then trains. The report stays simulated. Rebuild `contractmanagement/local-trainer:latest` first. The walk is in the [user guide](../../USER_GUIDE.md#datasets-models-and-the-clean-room).
 
 5) Release to scheduler (MVP flips job to RELEASED and CCR to RUNNING):
 

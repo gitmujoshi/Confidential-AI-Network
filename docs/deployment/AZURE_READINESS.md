@@ -68,8 +68,10 @@ Assessment of whether the Confidential AI Network is ready to deploy to **Micros
 
 ## Gaps remaining for production
 
-1. **SPIRE Helm** install + Entra Path F federated credentials for SPIFFE subjects  
-2. **CI** `terraform apply` against a live subscription  
+The operator checklist is [Deploy steps](../../deployment/azure/terraform/README.md#deploy-steps). What that checklist cannot finish from this repo:
+
+1. **SPIRE Helm** install + Entra Path F federated credentials for SPIFFE subjects
+2. **CI** `terraform apply` against a live subscription
 3. **Public DNS** and a running confidential pool so the guest-report collector can read a real SEV-SNP report
 
 ---

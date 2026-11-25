@@ -66,8 +66,8 @@ cd deployment/azure/terraform
 cp terraform.tfvars.example terraform.tfvars
 ./deploy.sh -y --images
 
-# Single VM (Azure CLI)
-./deployment/deploy-azure.sh vm
+# Local stack on one VM (Keycloak and Postgres in Docker). Prints the plan until -y.
+./deployment/deploy-azure.sh vm -y
 
 # Destroy
 ./deployment/deploy-azure.sh destroy -y

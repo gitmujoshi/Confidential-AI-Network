@@ -55,7 +55,7 @@ OCI IAM Identity Domain SSO (OIDC) [+ optional Cloud Gate for browser]
   → Destroy CCR; zeroize; provenance complete
 ```
 
-Local shortcuts: Keycloak docker, disk datasets, placeholder signatures, `local-docker` train, CAN **signals only**.
+Local shortcuts: Keycloak docker, disk datasets, placeholder signatures, `local-docker` train, and the mock Key Broker. The clean-room session is hosted by the tech service provider. Dataset and model keys stay with their owners' brokers. The join is [Datasets, models, and the clean room](../USER_GUIDE.md#datasets-models-and-the-clean-room).
 
 ---
 

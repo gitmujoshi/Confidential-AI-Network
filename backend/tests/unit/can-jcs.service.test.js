@@ -25,7 +25,7 @@ jest.mock('../../models', () => {
       async update(patch) {
         Object.assign(this, patch);
         // persist into store where applicable
-        if (this.jobId && jobs.has(this.jobId)) jobs.set(this.jobId, clonePlain(this));
+        if (this.jobId && this.escrowState && jobs.has(this.jobId)) jobs.set(this.jobId, clonePlain(this));
         if (this.id && ccrSessions.has(this.id)) ccrSessions.set(this.id, clonePlain(this));
         return this;
       },
@@ -259,6 +259,44 @@ describe('CANJcsService', () => {
       sealedOutput: 'Y2lwaGVydGV4dA==',
       outputSha256: 'ab'.repeat(32),
     })).rejects.toMatchObject({ code: 'LEASE_EXPIRED' });
+  });
+
+  test('seals owner keys to the guest public key and does not open them', async () => {
+    const { generateHpkeKeyPair, open } = require('../../services/hpke');
+    const svc = new CANJcsService({ escrowTimeoutMs: 10_000 });
+    const created = await svc.createJob({ contractId: '00000000-0000-0000-0000-000000000011' });
+    const guest = generateHpkeKeyPair();
+    const dek = crypto.randomBytes(32);
+    const mek = crypto.randomBytes(32);
+    const data = new MockOwnerKbs({ ownerId: 'did:can:tdp', keyType: 'DEK' });
+    const model = new MockOwnerKbs({ ownerId: 'did:can:tdc', keyType: 'MEK' });
+    data.holdKey(dek);
+    model.holdKey(mek);
+    const outcome = await svc.releaseToGuest(created.job.jobId, {
+      guestPublicKey: guest.publicKey,
+      contract: { status: 'SIGNED', hash: 'c-guest' },
+      owners: [
+        { ownerId: 'did:can:tdp', keyType: 'DEK', client: data },
+        { ownerId: 'did:can:tdc', keyType: 'MEK', client: model },
+      ],
+    });
+    expect(outcome.keyStored).toBe(false);
+    expect(outcome.guestHeld).toBe(true);
+    expect(outcome.reportFormat).toBe('SIMULATED');
+    const openedDek = open({
+      recipientPrivateKey: guest.privateKey,
+      encapsulated: outcome.releases.find((item) => item.keyType === 'DEK').wrappedKey,
+    });
+    const openedMek = open({
+      recipientPrivateKey: guest.privateKey,
+      encapsulated: outcome.releases.find((item) => item.keyType === 'MEK').wrappedKey,
+    });
+    expect(openedDek.equals(dek)).toBe(true);
+    expect(openedMek.equals(mek)).toBe(true);
+    const job = await svc.getJob(created.job.jobId);
+    expect(job.job.escrowState).toBe('BOTH_READY');
+    openedDek.fill(0);
+    openedMek.fill(0);
   });
 });
 

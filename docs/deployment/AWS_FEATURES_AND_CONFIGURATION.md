@@ -52,7 +52,7 @@ Cognito Hosted UI / IdP federation (MSAL-equivalent)
   → Destroy CCR; zeroize; provenance complete
 ```
 
-Local shortcuts: Keycloak, disk datasets, placeholder signatures, `local-docker`, CAN **signals only**.
+Local shortcuts: Keycloak, disk datasets, placeholder signatures, `local-docker`, and the mock Key Broker. Nitro key release stays off unless selected and fails closed without a pinned root and a quote. AWS training returns 501. The join is [Datasets, models, and the clean room](../USER_GUIDE.md#datasets-models-and-the-clean-room).
 
 ---
 

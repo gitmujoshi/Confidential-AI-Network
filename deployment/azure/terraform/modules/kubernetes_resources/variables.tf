@@ -93,6 +93,38 @@ variable "entra_redirect_uri" {
   default = ""
 }
 
+variable "identity_mode" {
+  type    = string
+  default = "entra"
+}
+
+variable "keycloak_admin_username" {
+  type    = string
+  default = "admin"
+}
+
+variable "keycloak_admin_password" {
+  type      = string
+  sensitive = true
+  default   = ""
+}
+
+variable "keycloak_realm" {
+  type    = string
+  default = "contract-management"
+}
+
+variable "keycloak_client_id" {
+  type    = string
+  default = "contract-management-client"
+}
+
+variable "keycloak_client_secret" {
+  type      = string
+  sensitive = true
+  default   = ""
+}
+
 variable "workload_identity_enabled" {
   type    = bool
   default = false

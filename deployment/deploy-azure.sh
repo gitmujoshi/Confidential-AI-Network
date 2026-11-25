@@ -22,13 +22,13 @@ Usage:
 Modes:
   terraform   Deploy AKS infrastructure (default)
               Options: -y --images --plan-only --skip-kubectl
-  vm          Single-VM quick start (Azure CLI + docker-compose)
+  vm          Local stack on one VM (Keycloak and Postgres in Docker). Pass -y to create it.
   destroy     Tear down Terraform stack (-y for auto-approve)
   help        Show this message
 
 Examples:
   ./deployment/deploy-azure.sh terraform -y --images
-  ./deployment/deploy-azure.sh vm
+  ./deployment/deploy-azure.sh vm -y
   ./deployment/deploy-azure.sh destroy -y
 
 Docs:

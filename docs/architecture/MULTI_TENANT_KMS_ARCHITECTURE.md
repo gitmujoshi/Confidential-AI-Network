@@ -5,6 +5,8 @@
 **Date:** December 2024  
 **Author:** Contract Management System Team
 
+> This December 2024 note is an earlier multi-tenant design. It is not the key-release path that runs. Current release is the [Key Orchestrator](../USER_GUIDE.md#datasets-models-and-the-clean-room). Each dataset owner and the model publisher run their own Key Broker. The clean-room session is the room those brokers attest. Local and dev use the mock broker. `azure-skr`, Trustee, Confidential Space, and Nitro stay off unless selected and fail closed without a quote or an endpoint. Contract `kmsConfigs` names a vault. It does not select a broker.
+
 ---
 
 ## Table of Contents

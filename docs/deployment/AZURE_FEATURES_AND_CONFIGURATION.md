@@ -53,7 +53,7 @@ Entra SSO (MSAL)
   → Destroy CCR; zeroize; provenance complete
 ```
 
-Local today shortcuts: Keycloak login, disk/demo datasets, placeholder signatures, `local-docker` train, CAN key-release **signals only**. The dataset owner, the model publisher, and the clean-room session join the Key Orchestrator as described in [Datasets, models, and the clean room](../USER_GUIDE.md#datasets-models-and-the-clean-room). `kmsConfigs` on the contract names a vault. It does not select the owner's Key Broker.
+Local today shortcuts: Keycloak login, disk/demo datasets, placeholder signatures, `local-docker` train, and the mock Key Broker. The dataset owner, the model publisher, and the clean-room session join the Key Orchestrator as described in [Datasets, models, and the clean room](../USER_GUIDE.md#datasets-models-and-the-clean-room). `kmsConfigs` on the contract names a vault. It does not select the owner's Key Broker. `azure-skr` stays off unless selected.
 
 ---
 
@@ -388,7 +388,7 @@ SCITT_DEPLOYMENT=aks
 
 Order matches engineering priority:
 
-1. ~~**Entra auth adapter**~~ — done (`AUTH_PROVIDER=entra`; OIDC SPA redirect; JWKS; Terraform identity module; Keycloak local-only).
+1. ~~**Entra auth adapter**~~ — done (`AUTH_PROVIDER=entra`; OIDC SPA redirect; JWKS; Terraform identity module). `identity_mode=keycloak` is the AKS alternative. `./deployment/deploy-azure.sh vm -y` runs the local Keycloak stack on one VM.
 2. **Blob storage backend** — containers exist in Terraform. The app path `DATASET_STORAGE_BACKEND=azure-blob` is still open.
 3. ~~**Signing Key Vault + verify**~~ — coded. Off unless `SIGNING_KEY_BACKEND=azure-keyvault` or `azure-mhsm`.
 4. ~~**Contract KMS enforce**~~ — an Azure Key Vault `kmsConfigs` provider is read before the Job is submitted.

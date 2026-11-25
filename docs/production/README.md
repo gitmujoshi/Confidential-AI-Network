@@ -18,15 +18,15 @@ A **TDC** (hospital network, bank, retailer, telco) wants to train a model on a 
 
 ### Confidential clean room execution
 
-A **CCRP** (cloud provider, specialist TEE operator, internal platform team) offers **isolated compute** — confidential VMs, enclaves, or segmented Kubernetes — where data and models are decrypted only inside an attested environment.
+A **TSP** (also called CCRP in the UI) hosts the job on a Local machine or on an AKS, GKE, or OKE cluster that provider already runs. Dataset owners and the model publisher release keys through the Key Orchestrator. The API records the release time and does not store key bytes.
 
-**Outcome:** TDP data and TDC model IP stay protected in transit and at rest; execution happens where policy allows.
+**Outcome today:** The attestation report stays simulated until a verified SEV-SNP quote is accepted. `CAN_KEY_RELEASE_PROFILE=production` refuses the mock broker. Azure Key Vault release, Trustee, Confidential Space, and Nitro stay off until selected and fail closed without an endpoint and a quote. The operator steps are in [PRODUCTION_DEPLOYMENT_GUIDE.md](PRODUCTION_DEPLOYMENT_GUIDE.md).
 
 ### Regulated and cross-border data collaboration
 
-Enterprises in **healthcare, finance, and public sector** must prove **who accessed what, when, and under which policy**. CAN combines role-based access (Keycloak), dataset classification, residency controls, and ledger-backed provenance.
+Enterprises in **healthcare, finance, and public sector** need a record of who signed the contract, which job ran, and which leaf was checked.
 
-**Outcome:** Evidence for GDPR, HIPAA, SOX, and emerging AI governance (e.g. EU AI Act) without ad-hoc spreadsheets and email approvals.
+**Outcome today:** The Auditor workspace reviews the Ricardian contract and the Merkle root stored in this database. A SCITT receipt is written only when the ledger is enabled. SOX, FedRAMP, and CCPA labels on a deployment card are configuration, not a certification. The screen walk is the [Auditor user guide](../guides/role-user-guides/AUDITOR_USER_GUIDE.md).
 
 ### Federated catalog without central data lake
 
@@ -46,7 +46,8 @@ Security and platform teams need **defense in depth** (WAF, API gateway, private
 |------|----------------|----------------------------------|
 | **TDC** | Train on external data under contract | Training runtime, CCRP selection, provenance |
 | **TDP** | Monetize data safely | Classification, access policy, audit |
-| **CCRP** | Host compliant workloads | Environment isolation, monitoring |
+| **TSP** | Host the job on an existing cluster | [PRODUCTION_DEPLOYMENT_GUIDE.md](PRODUCTION_DEPLOYMENT_GUIDE.md), kubeconfig on the Cloud Provider card |
+| **Auditor** | Review the sealed Merkle tree | [Auditor user guide](../guides/role-user-guides/AUDITOR_USER_GUIDE.md) |
 | **Platform / SRE** | Deploy and run reliably | Architecture, deployment, scaling, DR |
 | **Security / GRC** | Control and evidence | Security architecture, SIEM, [NIST/CIS mapping](../compliance/SECURITY_CONTROLS_NIST_CIS_MAPPING.md) |
 | **AppAdmin** | Operate users and health | [ADMIN_GUIDE.md](../ADMIN_GUIDE.md), troubleshooting |
@@ -114,19 +115,11 @@ Follow the links below by topic. OCI and Azure each have a **step-by-step new-en
 
 ## Quick deployment commands
 
-For a **smoke test** or lab environment:
+Follow [PRODUCTION_DEPLOYMENT_GUIDE.md](PRODUCTION_DEPLOYMENT_GUIDE.md). The env files and the Azure and OCI commands are in [../deployment/README.md](../deployment/README.md).
 
-```bash
-./deploy-production.sh production aws us-east-1
-```
+The laptop layout on Azure is one VM: `./deployment/deploy-azure.sh vm -y`. Keycloak and both Postgres databases run in Docker on that machine. The AKS path stays Entra unless `identity_mode` is `keycloak`, which stores the Keycloak database on Azure Database for PostgreSQL.
 
-For a **full production-style** rollout (Kubernetes, monitoring, security hooks):
-
-```bash
-./deploy/production/deploy-training-environment.sh production us-east-1 aws
-```
-
-Cloud-specific Terraform and scripts live under [../deployment/](../deployment/) (OCI and Azure modules included). Replace region and provider as appropriate.
+`scripts/deploy/deploy-production.sh` and `deploy/production/deploy-training-environment.sh` exit immediately. They are the older sketch and do not deploy this system.
 
 ---
 
@@ -134,12 +127,12 @@ Cloud-specific Terraform and scripts live under [../deployment/](../deployment/)
 
 **Before go-live**
 
-- [ ] Target cloud account, compartments/resource groups, and networking defined
-- [ ] Kubernetes cluster, container registry, and secrets (Vault / Key Vault / OCI Vault) ready
-- [ ] Keycloak / Entra integration and role mapping verified for TDC, TDP, CCRP, AppAdmin
-- [ ] Edge stack configured (WAF, API gateway, TLS certificates)
-- [ ] Monitoring and SIEM export tested with a sample audit event
-- [ ] Backup and restore drill completed for database and cluster state
+- [ ] Existing AKS, GKE, or OKE cluster named on the tech service provider card, with a kubeconfig path. An empty path must fail the job
+- [ ] Cloud identity on for the cluster path (Entra, Cloud Identity, Cognito, or OCI IAM). On Azure, `identity_mode=keycloak` is the Keycloak alternative, and `./deployment/deploy-azure.sh vm -y` runs the local stack on one VM
+- [ ] `CAN_KEY_RELEASE_PROFILE=production` refuses the mock broker. The selected release mode has its endpoint and quote, or it fails closed
+- [ ] Auditor user created with `partyType` `Auditor`. Merkle verify works on a completed job
+- [ ] `SEV_SNP_ARK_PEM` is set before any hardware quote is accepted. Until a quote verifies, the job stays simulated
+- [ ] Public DNS, SPIRE Helm, and a confidential-pool apply are done only when that environment requires them
 
 **After go-live**
 
@@ -161,4 +154,4 @@ Full procedures and component detail are in the linked guides above.
 
 ---
 
-*Last updated: 2026-06-18*
+*Last updated: 2026-11-24*

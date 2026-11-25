@@ -205,6 +205,7 @@ When `GMASE_INFERENCE_GATE` is on, the **Open-GMASE policy gate** panel shows AL
 
 An **Auditor** opens `/auditor/dashboard` (read-only).
 They see every contract and can open the **Merkle audit tree** or the **contract** the training was based on—without sign/train rights.
+The leaf kinds, the seal rule, and **Verify** are in the [Auditor user guide](../role-user-guides/AUDITOR_USER_GUIDE.md).
 
 ![Auditor workspace — contracts under review](screenshots/25-auditor-workspace.png)
 
@@ -231,6 +232,7 @@ A new TSP or TDC who needs a confidential pool, Opacus DP-SGD, or an Azure, GCP,
 ## Related docs
 
 - [Participant onboarding & E2E lifecycle (canonical text)](../PARTICIPANT_ONBOARDING_AND_E2E_LIFECYCLE.md)
+- [Auditor user guide](../role-user-guides/AUDITOR_USER_GUIDE.md)
 - [Auditor role — Merkle audit & contract review](../../features/AUDITOR_ROLE.md)
 - [Multi-model contracts guide](../multi-model-user-guide/MULTI_MODEL_USER_GUIDE.md)
 - [TDC training + inference runtime](../../training/TDC_TRAINING_RUNTIME.md)

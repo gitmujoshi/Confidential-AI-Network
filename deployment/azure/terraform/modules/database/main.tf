@@ -35,3 +35,11 @@ resource "azurerm_postgresql_flexible_server_database" "app" {
   charset   = "UTF8"
   collation = "en_US.utf8"
 }
+
+resource "azurerm_postgresql_flexible_server_database" "keycloak" {
+  count     = var.create_keycloak_database ? 1 : 0
+  name      = "keycloak"
+  server_id = azurerm_postgresql_flexible_server.db.id
+  charset   = "UTF8"
+  collation = "en_US.utf8"
+}

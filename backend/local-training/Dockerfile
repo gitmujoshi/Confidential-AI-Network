@@ -18,7 +18,8 @@ RUN python -m pip install --no-cache-dir --upgrade pip \
     transformers==4.46.3 \
     datasets==3.1.0 \
     accelerate==1.0.1 \
-    opacus==1.5.2
+    opacus==1.5.2 \
+    cryptography==43.0.3
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
@@ -27,9 +28,11 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     EPOCH_SLEEP_SECONDS=0.6
 
 COPY train.py /app/train.py
+COPY guest_key.py /app/guest_key.py
+COPY guest_entry.py /app/guest_entry.py
 COPY --from=inference infer.py /app/infer.py
 
 VOLUME ["/outputs"]
 
-CMD ["python", "/app/train.py"]
+CMD ["python", "/app/guest_entry.py"]
 

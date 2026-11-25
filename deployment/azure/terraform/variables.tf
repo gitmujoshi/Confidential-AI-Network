@@ -156,7 +156,45 @@ variable "cost_center" {
   default     = "TBD"
 }
 
-# --- Microsoft Entra ID (AUTH_PROVIDER=entra; Keycloak is local-only) --------
+# --- Identity: Entra (default) or Keycloak on this cluster -------------------
+
+variable "identity_mode" {
+  description = "entra uses Microsoft Entra ID. keycloak runs Keycloak on AKS and stores its database on the Azure Postgres server."
+  type        = string
+  default     = "entra"
+
+  validation {
+    condition     = contains(["entra", "keycloak"], var.identity_mode)
+    error_message = "identity_mode must be entra or keycloak."
+  }
+}
+
+variable "keycloak_admin_username" {
+  description = "Keycloak bootstrap admin. Used only when identity_mode=keycloak."
+  type        = string
+  default     = "admin"
+}
+
+variable "keycloak_admin_password" {
+  description = "Keycloak bootstrap admin password. Required when identity_mode=keycloak."
+  type        = string
+  sensitive   = true
+  default     = ""
+}
+
+variable "keycloak_realm" {
+  description = "Realm the API expects. The realm import script creates this name."
+  type        = string
+  default     = "contract-management"
+}
+
+variable "keycloak_client_id" {
+  description = "OIDC client the API uses. The realm import script creates this client."
+  type        = string
+  default     = "contract-management-client"
+}
+
+# --- Microsoft Entra ID (AUTH_PROVIDER=entra) --------------------------------
 
 variable "create_entra_apps" {
   description = "Create SPA + API Entra app registrations via Terraform"

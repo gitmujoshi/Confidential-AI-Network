@@ -87,16 +87,23 @@ module "aks" {
 module "database" {
   source = "./modules/database"
 
-  resource_group_name = module.networking.resource_group_name
-  location            = var.location
-  db_name             = var.db_name
-  db_user             = var.db_user
-  db_password         = var.db_password
-  subnet_id           = module.networking.data_subnet_id
-  vnet_id             = module.networking.vnet_id
-  sku_name            = var.db_sku_name
-  storage_mb          = var.db_storage_mb
-  project_tags        = local.resource_tags
+  resource_group_name      = module.networking.resource_group_name
+  location                 = var.location
+  db_name                  = var.db_name
+  db_user                  = var.db_user
+  db_password              = var.db_password
+  subnet_id                = module.networking.data_subnet_id
+  vnet_id                  = module.networking.vnet_id
+  sku_name                 = var.db_sku_name
+  storage_mb               = var.db_storage_mb
+  project_tags             = local.resource_tags
+  create_keycloak_database = var.identity_mode == "keycloak"
+}
+
+resource "random_password" "keycloak_client_secret" {
+  count   = var.identity_mode == "keycloak" ? 1 : 0
+  length  = 32
+  special = false
 }
 
 module "private_dns" {
@@ -133,7 +140,7 @@ module "load_balancer" {
   project_tags        = local.resource_tags
 }
 
-# Microsoft Entra ID (sole IdP on Azure — no Keycloak)
+# Entra apps are created only when identity_mode is entra.
 module "identity" {
   source = "./modules/identity"
 
@@ -141,7 +148,7 @@ module "identity" {
   environment = var.environment
   app_domain  = var.app_domain
 
-  create_apps              = var.create_entra_apps
+  create_apps              = var.identity_mode == "entra" && var.create_entra_apps
   create_api_client_secret = var.create_entra_api_client_secret
   grant_admin_consent      = var.entra_grant_admin_consent
 
@@ -242,6 +249,13 @@ module "kubernetes_resources" {
   entra_jwks_url      = var.entra_jwks_url
   entra_role_claim    = var.entra_role_claim
   entra_redirect_uri  = local.effective_entra_redirect_uri
+
+  identity_mode           = var.identity_mode
+  keycloak_admin_username = var.keycloak_admin_username
+  keycloak_admin_password = var.keycloak_admin_password
+  keycloak_realm          = var.keycloak_realm
+  keycloak_client_id      = var.keycloak_client_id
+  keycloak_client_secret  = var.identity_mode == "keycloak" ? random_password.keycloak_client_secret[0].result : ""
 
   workload_identity_enabled  = var.enable_workload_identity
   backend_workload_client_id = coalesce(module.workload_identity.backend_client_id, "")

@@ -11,6 +11,10 @@
 
 set -e
 
+echo "This script is the older training-environment sketch. It does not deploy Confidential AI Network."
+echo "Follow docs/production/PRODUCTION_DEPLOYMENT_GUIDE.md and docs/deployment/README.md."
+exit 1
+
 echo "🚀 Starting production deployment of AI Model Training Environment..."
 echo "📋 Deployment Configuration:"
 echo "   Environment: ${1:-production}"

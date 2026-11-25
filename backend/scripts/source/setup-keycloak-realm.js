@@ -11,10 +11,12 @@
 const axios = require('axios');
 
 // Keycloak configuration
-const KEYCLOAK_BASE_URL = 'http://localhost:8080';
-const KEYCLOAK_REALM = 'contract-management';
-const KEYCLOAK_ADMIN_USERNAME = 'admin';
-const KEYCLOAK_ADMIN_PASSWORD = 'admin123';
+const KEYCLOAK_BASE_URL = process.env.KEYCLOAK_URL || 'http://localhost:8080';
+const KEYCLOAK_REALM = process.env.KEYCLOAK_REALM || 'contract-management';
+const KEYCLOAK_ADMIN_USERNAME = process.env.KEYCLOAK_ADMIN_USERNAME || 'admin';
+const KEYCLOAK_ADMIN_PASSWORD = process.env.KEYCLOAK_ADMIN_PASSWORD || 'admin123';
+const KEYCLOAK_CLIENT_ID = process.env.KEYCLOAK_CLIENT_ID || 'contract-management-client';
+const KEYCLOAK_CLIENT_SECRET = process.env.KEYCLOAK_CLIENT_SECRET || '';
 
 // Function to get Keycloak admin token
 async function getKeycloakToken() {
@@ -77,11 +79,12 @@ async function createRealm(token) {
 async function createClient(token) {
   try {
     const clientConfig = {
-      clientId: 'contract-management-client',
+      clientId: KEYCLOAK_CLIENT_ID,
       name: 'Contract Management Client',
       description: 'Client for Contract Management System',
       enabled: true,
-      publicClient: true,
+      publicClient: !KEYCLOAK_CLIENT_SECRET,
+      secret: KEYCLOAK_CLIENT_SECRET || undefined,
       standardFlowEnabled: true,
       implicitFlowEnabled: false,
       directAccessGrantsEnabled: true,

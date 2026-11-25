@@ -1,5 +1,7 @@
 # Azure Confidential Computing Integration with Third-Party KMS
 
+> This note is a target integration sketch. The running path is the [Key Orchestrator](../USER_GUIDE.md#datasets-models-and-the-clean-room). An Azure owner uses `POST /api/can/jcs/jobs/{jobId}/azure-key-release` only when `CAN_PRINCIPAL_KEY_MODE=azure-skr`. The API verifies an Azure Attestation JWT and returns the encrypted Key Vault blob. It does not decrypt the blob. A simulated report is refused. The Python KMS factory under `docs/contracts/kms_providers/` is not the API the orchestrator calls.
+
 ## Overview
 
 This guide demonstrates how to integrate **Azure Confidential Computing** with **third-party Key Management Systems (KMS)** for CCRP environment provisioning in AI model training workflows. This approach provides hardware-level security isolation while maintaining flexibility with different data providers' encryption preferences.

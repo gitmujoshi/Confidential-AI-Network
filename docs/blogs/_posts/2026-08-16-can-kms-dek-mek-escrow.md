@@ -91,10 +91,10 @@ Target sequence:
 2. CCRP provisions a clean-room session (TEE / confidential VM / attested K8s job).  
 3. Job enters escrow: waiting for **DEK released** and **MEK released**.  
 4. Each principal releases **only after** verifying attestation + contract binding (see [TEE post]({% post_url 2026-08-16-can-tee-attest-decrypt-train %})).  
-5. When **both** signals (and, in Phase 2, key material into the TEE) are present → training may start.  
-6. Hard timeout → session **EXPIRED** / CCR **DESTROYED**; keys must be zeroized in a real enclave.
+5. When every required owner has released, training may start.  
+6. Hard timeout → session **EXPIRED** / CCR **DESTROYED**. A later key is refused.
 
-**Phase 1 MVP:** principals post `key-released` **signals** with `keyType: DEK|MEK`. The API **rejects raw key bytes** to the Node process. Coordinates release without accepting key material into the Node API.
+**What runs:** the orchestrator asks each dataset owner's broker and the model publisher's broker. The local broker seals to `pk_ccr` with HPKE. The API stores the release time and does not keep key bytes. `POST .../key-released` is still the direct signal for one owner. A hardware guest that decrypts inside the TEE is still the target.
 
 ```bash
 # Illustrative — see CAN_QUICKSTART in the repo
@@ -114,7 +114,7 @@ POST /api/can/jcs/jobs/{id}/key-released  # keyType: MEK
 | Local demo / Docker train | Often staged plaintext or demo artifacts | N/A for host path | Host trainer | **Live** (host path) |
 | Platform-assisted encrypt | Platform path | Risk: platform custody | Varies | Partial / legacy paths |
 | TDP/TDC local encrypt | Principal before upload | Principal only | TEE after attested release | **Design** ([TDP flow](https://github.com/gitmujoshi/Confidential-AI-Network/blob/main/docs/flows/TDP_ENCRYPTED_DATASET_TEE_FLOW.md) · [TDC flow](https://github.com/gitmujoshi/Confidential-AI-Network/blob/main/docs/flows/TDC_ENCRYPTED_AI_MODEL_TEE_FLOW.md)) |
-| CAN principal DEK/MEK + attested TLS | Principal | Principal | CCR via attested channel | **Target Phase 2** |
+| CAN principal DEK/MEK | Dataset owner and model publisher | Each owner's broker | Clean-room session. Locally the HPKE key is in the API process | **Shipped for the mock broker.** Hardware TEE delivery is still the target |
 
 For stakeholder demos of *contracts → train → infer*, the [local Docker path]({% post_url 2026-08-14-can-contract-to-prediction %}) is the right story. For *keys and clean rooms*, see [KMS / DEK·MEK]({% post_url 2026-08-16-can-kms-dek-mek-escrow %}) and [TEE attest → decrypt]({% post_url 2026-08-16-can-tee-attest-decrypt-train %}).
 

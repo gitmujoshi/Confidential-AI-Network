@@ -110,7 +110,7 @@ Confirm `http://localhost:5001/health` returns success and open `http://localhos
 
 ## 4. Azure
 
-Merge `config/examples/config.azure.env.example` into `config.env`. Set `AUTH_PROVIDER=entra` and `KEYCLOAK_ENABLED=false`. Fill `ENTRA_TENANT_ID`, `ENTRA_CLIENT_ID`, `ENTRA_API_CLIENT_ID`, `AZURE_SUBSCRIPTION_ID`, and `AZURE_TENANT_ID`.
+Merge `config/examples/config.azure.env.example` into `config.env`. The default apply sets `AUTH_PROVIDER=entra` and `KEYCLOAK_ENABLED=false`. Fill `ENTRA_TENANT_ID`, `ENTRA_CLIENT_ID`, `ENTRA_API_CLIENT_ID`, `AZURE_SUBSCRIPTION_ID`, and `AZURE_TENANT_ID`. Set `identity_mode = "keycloak"` in the Azure Terraform variables when Keycloak and its database should run on Azure Postgres.
 
 Terraform inputs are a second file, not env vars. Copy `deployment/azure/terraform/terraform.tfvars.example` to `terraform.tfvars` and set `subscription_id`, `tenant_id`, and `db_password`.
 
@@ -118,13 +118,19 @@ Terraform inputs are a second file, not env vars. Copy `deployment/azure/terrafo
 ./deployment/deploy-azure.sh terraform -y --images
 ```
 
+One VM runs the local stack instead of this cluster. Keycloak and both Postgres databases stay in Docker on that machine. The command copies this checkout and requires `config.env` and `secrets.env` in the repo root. It does not create AKS or Azure Database for PostgreSQL.
+
+```bash
+./deployment/deploy-azure.sh vm -y
+```
+
 A training job uses the AKS cluster already named on the contract and on the TSP Cloud Provider card. The kubeconfig path is on that card, or `AZURE_CCR_KUBECONFIG` on the API host. A missing path fails the job.
 
-Signing stays in the database until `SIGNING_KEY_BACKEND=azure-keyvault`. The clean-room handshake is the [Key Orchestrator](../USER_GUIDE.md#key-orchestrator). A dataset owner is the data-key broker, the model publisher is the model-key broker, and the clean-room session is the room they attest. The caller passes those owners. A catalog key id does not select a broker. Local and dev key release uses the mock (`CAN_PRINCIPAL_KEY_MODE=signals` or `mock`): the API records the time and stores no key bytes. `CAN_KEY_RELEASE_PROFILE=production` refuses that mock at startup. A revoked or expired contract, a replayed nonce, or an exhausted release budget blocks the release. Training stays blocked until both the data-owner key and the model-owner key are released. The output record accepts sealed ciphertext and a sha256, and an expired escrow lease blocks it. `CAN_PRINCIPAL_KEY_MODE=azure-skr` calls Key Vault and returns the encrypted blob. `trustee`, `confidential-space`, and `nitro-enclave` call their endpoints after the quote check and return ciphertext. A missing endpoint, root certificate, or quote fails closed and returns no key. `attested-tls` requires a verified SEV-SNP quote and an HPKE-wrapped key. A guest report is read from the confidential node. The job stays simulated until that report verifies. Set `SEV_SNP_ARK_PEM` on the API host before a hardware quote can be accepted.
+Signing stays in the database until `SIGNING_KEY_BACKEND=azure-keyvault`. The clean-room handshake is the [Key Orchestrator](../USER_GUIDE.md#key-orchestrator). A dataset owner is the data-key broker, the model publisher is the model-key broker, and the clean-room session is the room they attest. The caller passes those owners. A catalog key id does not select a broker. Local and dev key release uses the mock (`CAN_PRINCIPAL_KEY_MODE=signals` or `mock`): the API records the time and stores no key bytes. `CAN_KEY_RELEASE_PROFILE=production` refuses that mock at startup. A revoked or expired contract, a replayed nonce, or an exhausted release budget blocks the release. Training stays blocked until both the data-owner key and the model-owner key are released. The output record accepts sealed ciphertext and a sha256, and an expired escrow lease blocks it. `CAN_GUEST_DECRYPT=true` with `CAN_LOCAL_TRAINING_MODE=docker` generates the clean-room key inside the training container and decrypts `CANSEAL1` files there. The report stays simulated. Rebuild `contractmanagement/local-trainer:latest` first. Local mock keys are raw 32-byte files in `CAN_GUEST_KEY_DIR`. `CAN_PRINCIPAL_KEY_MODE=azure-skr` calls Key Vault and returns the encrypted blob. `trustee`, `confidential-space`, and `nitro-enclave` call their endpoints after the quote check and return ciphertext. A missing endpoint, root certificate, or quote fails closed and returns no key. `attested-tls` requires a verified SEV-SNP quote and an HPKE-wrapped key. A guest report is read from the confidential node. The job stays simulated until that report verifies. Set `SEV_SNP_ARK_PEM` on the API host before a hardware quote can be accepted.
 
 The API on AKS takes the database connection and the Entra client secret from Key Vault. Run `deployment/azure/scripts/install-external-secrets.sh` after the cluster is up. It exits when the vault or the cluster is missing. Leave `secrets.env` on the laptop.
 
-Still operator work: public DNS, a SPIRE Helm install after `enable_spire=true`, and a live apply onto a confidential pool when a real SEV-SNP report is required. The SCITT ledger install is `deployment/azure/scripts/install-scitt.sh`. It exits when the image or database URL is missing.
+The ordered manual steps are [Deploy steps](../../deployment/azure/terraform/README.md#deploy-steps): DNS, Entra role assignment, database user rows, the kubeconfig path, key-release settings, and the optional SPIRE, External Secrets, confidential pool, and SCITT installs.
 
 Confirm the API health URL for the host you published.
 
@@ -167,4 +173,4 @@ These are references. They are not required to start a deploy.
 | Azure security architecture | [../production/AZURE_SECURITY_ARCHITECTURE.md](../production/AZURE_SECURITY_ARCHITECTURE.md) |
 | GCP, AWS, and OCI feature catalogs | [GCP_FEATURES_AND_CONFIGURATION.md](GCP_FEATURES_AND_CONFIGURATION.md), [AWS_FEATURES_AND_CONFIGURATION.md](AWS_FEATURES_AND_CONFIGURATION.md), [OCI_FEATURES_AND_CONFIGURATION.md](OCI_FEATURES_AND_CONFIGURATION.md) |
 | Local VM scripts | [../../deployment/README.md](../../deployment/README.md) |
-| Production Kubernetes | [../production/PRODUCTION_DEPLOYMENT_GUIDE.md](../production/PRODUCTION_DEPLOYMENT_GUIDE.md) |
+| Production deploy (what to turn on) | [../production/PRODUCTION_DEPLOYMENT_GUIDE.md](../production/PRODUCTION_DEPLOYMENT_GUIDE.md) |

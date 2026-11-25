@@ -1,771 +1,95 @@
-# Production Deployment Guide
+# Production deployment
 
-## 🚀 **Complete Production Deployment Guide for AI Model Training Environment**
+Last updated: 2026-11-24
 
-This guide provides step-by-step instructions for deploying the complete AI model training environment to production.
+This is the operator guide for a real environment. The commands and the env files are in [deployment/README.md](../deployment/README.md). Cloud variable lists stay in the feature catalogs linked below. This page says what to turn on, what fails closed, and what is still operator work.
 
-## 📋 **Prerequisites**
+Do not run `scripts/deploy/deploy-production.sh` or `deploy/production/deploy-training-environment.sh`. Those scripts belong to an older sketch. They exit before they apply anything.
 
-### **Required Tools**
-- **Kubernetes**: v1.24+ with cluster admin access
-- **Helm**: v3.8+ for package management
-- **Docker**: v20.10+ for container builds
-- **Terraform**: v1.3+ for infrastructure
-- **kubectl**: v1.24+ for cluster management
-- **Cloud CLI**: AWS/Azure/GCP/OCI CLI configured
+## What a production deploy is
 
-### **Cloud Provider Requirements**
-- **Kubernetes Cluster**: EKS, AKS, GKE, or OKE
-- **Container Registry**: ECR, ACR, GCR, or OCI Registry
-- **Storage**: S3, Blob Storage, Cloud Storage, or Object Storage
-- **Key Management**: KMS, Key Vault, or Vault
-- **Monitoring**: CloudWatch, Monitor, or Cloud Monitoring
+| Piece | What runs |
+|-------|-----------|
+| API and UI | The Express API and the React app. Azure can place them on the AKS cluster from `deployment/azure/terraform/` |
+| Identity | Microsoft Entra ID on the Azure cluster, unless `identity_mode=keycloak`. Google Cloud Identity on GCP, Amazon Cognito on AWS, OCI IAM on OCI. Keycloak is the local stack, including `./deployment/deploy-azure.sh vm -y` |
+| Training | The cluster already named on the contract and on the tech service provider Cloud Provider card. A missing kubeconfig fails the job. No subscription, project, or cluster is created for a job |
+| Keys | [Key Orchestrator](../USER_GUIDE.md#key-orchestrator). `CAN_KEY_RELEASE_PROFILE=production` refuses the mock broker at startup |
+| Evidence | Auditor Merkle tree in this database. A SCITT receipt is written only when `SCITT_CCF_ENABLED=true` |
 
-## 🏗️ **Deployment Architecture**
+The local guest (`CAN_GUEST_DECRYPT=true`) decrypts inside the training container on this machine. That container is not a hardware guest. The attestation report stays simulated until a verified SEV-SNP quote is accepted. Set `SEV_SNP_ARK_PEM` on the API host before that quote can succeed. The screen walk for reviewers is the [Auditor user guide](../guides/role-user-guides/AUDITOR_USER_GUIDE.md).
 
-### **Production Architecture**
-```
-Internet
-    ↓
-Load Balancer (ALB/NLB/GLB)
-    ↓
-Ingress Controller (NGINX/Traefik)
-    ↓
-Kubernetes Cluster
-├── AI Training API (3 replicas)
-├── Training Orchestrator (2 replicas)
-├── Training Monitor (2 replicas)
-├── Provenance Tracker (2 replicas)
-├── Training Containers (1 replica)
-└── Supporting Services
-    ├── PostgreSQL (Primary + Replica)
-    ├── Redis (Cluster)
-    ├── Prometheus (Monitoring)
-    ├── Grafana (Dashboards)
-    ├── ELK Stack (Logging)
-    └── Vault (Secrets)
-```
+Labels such as SOX, FedRAMP, and CCPA on a deployment card are configuration. They are not a certification. The auditor check does not file evidence outside this database.
 
-## 🔧 **Step-by-Step Deployment**
+## Before you apply
 
-### **Step 1: Infrastructure Setup**
+1. Copy `config/examples/config.env.example` to `config.env` and `secrets.env.example` to `secrets.env`, then merge the cloud overlay named in [deployment/README.md](../deployment/README.md).
+2. Leave secrets in the cloud store on a cluster. `secrets.env` stays on the laptop. External Secrets on Azure is `deployment/azure/scripts/install-external-secrets.sh`, and that script exits when the vault or the cluster is missing.
+3. Use an AKS, GKE, or OKE cluster you already run. Save the cluster name and the kubeconfig path on the tech service provider Cloud Provider card.
+4. Set `CAN_KEY_RELEASE_PROFILE=production` when this environment must refuse the mock broker. Pick one release mode and configure its endpoint. A missing endpoint or quote returns no key.
+5. Create Auditor users with `POST /api/auth/register` and `partyType` `Auditor`. The public form lists TDP, TDC, and TSP only.
 
-#### **1.1 Create Kubernetes Cluster**
+## Azure
+
+Merge `config/examples/config.azure.env.example`. The default apply sets `AUTH_PROVIDER=entra` and `KEYCLOAK_ENABLED=false`. Set `identity_mode = "keycloak"` in `terraform.tfvars` when Keycloak and its database should run on this Azure subscription.
+
 ```bash
-# AWS EKS
-eksctl create cluster \
-  --name ai-training-cluster \
-  --region us-east-1 \
-  --nodegroup-name workers \
-  --node-type m5.large \
-  --nodes 3 \
-  --nodes-min 1 \
-  --nodes-max 10 \
-  --managed
-
-# Azure AKS
-az aks create \
-  --resource-group ai-training-rg \
-  --name ai-training-cluster \
-  --node-count 3 \
-  --node-vm-size Standard_D2s_v3 \
-  --enable-addons monitoring
-
-# Google GKE
-gcloud container clusters create ai-training-cluster \
-  --zone us-central1-a \
-  --num-nodes 3 \
-  --machine-type e2-standard-2 \
-  --enable-autoscaling \
-  --min-nodes 1 \
-  --max-nodes 10
+./deployment/deploy-azure.sh terraform -y --images
 ```
 
-#### **1.2 Setup Container Registry**
+A single VM is a separate option. `./deployment/deploy-azure.sh vm -y` copies this checkout onto one Ubuntu machine and runs the local stack there: Keycloak and both Postgres databases in Docker, then the API and the UI. It does not create the AKS cluster or Azure Database for PostgreSQL.
+
+Terraform inputs are `deployment/azure/terraform/terraform.tfvars`, not env vars. Copy `terraform.tfvars.example` and set `subscription_id`, `tenant_id`, and `db_password`.
+
+A training job uses the AKS cluster named on the contract and on the Cloud Provider card, or `AZURE_CCR_KUBECONFIG` on the API host. A missing path marks the job failed and returns HTTP 502.
+
+`CAN_PRINCIPAL_KEY_MODE=azure-skr` verifies an Azure Attestation token and returns an encrypted Key Vault blob. The API does not decrypt that blob. The default mode is `signals`, and production profile refuses it. Signing stays in the database until `SIGNING_KEY_BACKEND=azure-keyvault` or `azure-mhsm`.
+
+Every manual step after the apply is [Deploy steps](../deployment/azure/terraform/README.md#deploy-steps): DNS, Entra role assignment, database user rows, the kubeconfig path, key-release settings, and the optional SPIRE, External Secrets, confidential pool, and SCITT installs.
+
+Feature list: [AZURE_FEATURES_AND_CONFIGURATION.md](../deployment/AZURE_FEATURES_AND_CONFIGURATION.md). Topology: [AZURE_SECURITY_ARCHITECTURE.md](AZURE_SECURITY_ARCHITECTURE.md).
+
+## Google Cloud
+
+Merge `config/examples/config.gcp.env.example`. Set `AUTH_PROVIDER=gcp-identity` and `KEYCLOAK_ENABLED=false`.
+
+There is no GCP Terraform apply script in this repository. Name the existing GKE cluster and the kubeconfig path (`GCP_CCR_KUBECONFIG` or the Cloud Provider card). A missing path fails the job. Attestation on this path stays simulated. Confidential Space release stays off until `CAN_PRINCIPAL_KEY_MODE=confidential-space` and the quote check succeeds.
+
+Feature list: [GCP_FEATURES_AND_CONFIGURATION.md](../deployment/GCP_FEATURES_AND_CONFIGURATION.md).
+
+## AWS
+
+Merge `config/examples/config.aws.env.example` when Cognito is the identity provider. Set `AUTH_PROVIDER=cognito` and `KEYCLOAK_ENABLED=false`.
+
+AWS training returns HTTP 501 and does not create a training job. There is no platform Terraform under `deployment/aws/`. Nitro key release stays off until selected, and a missing root certificate or quote returns no key. A TDC can still deploy inference to an existing EKS cluster from the Inference page.
+
+Feature list: [AWS_FEATURES_AND_CONFIGURATION.md](../deployment/AWS_FEATURES_AND_CONFIGURATION.md).
+
+## OCI
+
+Merge `config/examples/config.oci.env.example`. Set `AUTH_PROVIDER=oci-iam` and `KEYCLOAK_ENABLED=false`.
+
 ```bash
-# AWS ECR
-aws ecr create-repository --repository-name ai-training
-aws ecr create-repository --repository-name training-orchestrator
-aws ecr create-repository --repository-name training-monitor
-aws ecr create-repository --repository-name provenance-tracker
-
-# Azure ACR
-az acr create --resource-group ai-training-rg --name aitrainingregistry --sku Basic
-
-# Google GCR
-gcloud artifacts repositories create ai-training \
-  --repository-format=docker \
-  --location=us-central1
+./deployment/deploy-oci.sh terraform
 ```
 
-### **Step 2: Build and Push Images**
+Training uses the existing OKE runner. A missing kubeconfig fails the job. The local mock broker is the key path until a production release mode is selected.
 
-#### **2.1 Build Docker Images**
-```bash
-# Build main training image
-docker build -t ai-training:latest -f Dockerfile.training .
+Feature list: [OCI_FEATURES_AND_CONFIGURATION.md](../deployment/OCI_FEATURES_AND_CONFIGURATION.md). Readiness: [OCI_READINESS.md](../deployment/OCI_READINESS.md).
 
-# Build orchestrator image
-docker build -t training-orchestrator:latest -f Dockerfile.orchestrator .
+## After the API is up
 
-# Build monitor image
-docker build -t training-monitor:latest -f Dockerfile.monitor .
+1. Open the API `/health` route on the host you published.
+2. Sign in as TDC, TDP, TSP, AppAdmin, and Auditor.
+3. Confirm a training job against the existing cluster fails closed when the kubeconfig path is empty.
+4. With `CAN_KEY_RELEASE_PROFILE=production`, confirm the API refuses to start on `CAN_PRINCIPAL_KEY_MODE=signals` or `mock`.
+5. Open `/auditor/dashboard`, then **Audit tree** and **Verify** on a contract whose training job is completed. The root is sealed once. The check stays in this database.
+6. Turn on `SCITT_CCF_ENABLED` only after `install-scitt.sh` has a ledger image and a database URL.
 
-# Build provenance tracker image
-docker build -t provenance-tracker:latest -f Dockerfile.provenance .
-```
+## Still open for a hardware clean room
 
-#### **2.2 Tag and Push Images**
-```bash
-# AWS ECR
-aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 123456789012.dkr.ecr.us-east-1.amazonaws.com
+- A verified SEV-SNP report, with `SEV_SNP_ARK_PEM` on the API host. Until that report verifies, the job stays simulated.
+- The clean-room private key inside a hardware guest. The local training container is a separate path and stays simulated.
+- Public DNS, SPIRE, and a live confidential-pool apply.
+- An end-to-end run on the staging URL with Entra users.
 
-docker tag ai-training:latest 123456789012.dkr.ecr.us-east-1.amazonaws.com/ai-training:latest
-docker push 123456789012.dkr.ecr.us-east-1.amazonaws.com/ai-training:latest
-
-# Azure ACR
-az acr login --name aitrainingregistry
-docker tag ai-training:latest aitrainingregistry.azurecr.io/ai-training:latest
-docker push aitrainingregistry.azurecr.io/ai-training:latest
-
-# Google GCR
-gcloud auth configure-docker
-docker tag ai-training:latest gcr.io/your-project/ai-training:latest
-docker push gcr.io/your-project/ai-training:latest
-```
-
-### **Step 3: Deploy to Kubernetes**
-
-#### **3.1 Create Namespace and Secrets**
-```bash
-# Create namespace
-kubectl create namespace training-environment
-
-# Create secrets
-kubectl create secret generic database-secret \
-  --from-literal=host=postgresql.production.svc.cluster.local \
-  --from-literal=password=your-db-password \
-  --namespace=training-environment
-
-kubectl create secret generic redis-secret \
-  --from-literal=password=your-redis-password \
-  --namespace=training-environment
-
-kubectl create secret generic auth-secret \
-  --from-literal=jwt-secret=your-jwt-secret \
-  --namespace=training-environment
-
-kubectl create secret generic encryption-secret \
-  --from-literal=encryption-key=your-encryption-key \
-  --namespace=training-environment
-
-kubectl create secret generic aws-secret \
-  --from-literal=access-key-id=your-access-key \
-  --from-literal=secret-access-key=your-secret-key \
-  --namespace=training-environment
-```
-
-#### **3.2 Deploy Applications**
-```bash
-# Deploy AI Training API
-kubectl apply -f - <<EOF
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: ai-training-api
-  namespace: training-environment
-spec:
-  replicas: 3
-  selector:
-    matchLabels:
-      app: ai-training-api
-  template:
-    metadata:
-      labels:
-        app: ai-training-api
-    spec:
-      containers:
-      - name: ai-training-api
-        image: 123456789012.dkr.ecr.us-east-1.amazonaws.com/ai-training:latest
-        ports:
-        - containerPort: 3001
-        env:
-        - name: NODE_ENV
-          value: "production"
-        - name: DB_HOST
-          valueFrom:
-            secretKeyRef:
-              name: database-secret
-              key: host
-        - name: DB_PASSWORD
-          valueFrom:
-            secretKeyRef:
-              name: database-secret
-              key: password
-        resources:
-          requests:
-            memory: "512Mi"
-            cpu: "250m"
-          limits:
-            memory: "1Gi"
-            cpu: "500m"
-        livenessProbe:
-          httpGet:
-            path: /health
-            port: 3001
-          initialDelaySeconds: 30
-          periodSeconds: 10
-        readinessProbe:
-          httpGet:
-            path: /ready
-            port: 3001
-          initialDelaySeconds: 5
-          periodSeconds: 5
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: ai-training-service
-  namespace: training-environment
-spec:
-  selector:
-    app: ai-training-api
-  ports:
-  - port: 80
-    targetPort: 3001
-  type: ClusterIP
-EOF
-```
-
-#### **3.3 Deploy Supporting Services**
-```bash
-# Deploy PostgreSQL
-helm repo add bitnami https://charts.bitnami.com/bitnami
-helm install postgresql bitnami/postgresql \
-  --namespace training-environment \
-  --set auth.postgresPassword=your-db-password \
-  --set auth.database=contract_management_production \
-  --set primary.persistence.size=100Gi
-
-# Deploy Redis
-helm install redis bitnami/redis \
-  --namespace training-environment \
-  --set auth.password=your-redis-password \
-  --set master.persistence.size=50Gi
-
-# Deploy Prometheus
-helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
-helm install prometheus prometheus-community/kube-prometheus-stack \
-  --namespace monitoring \
-  --create-namespace \
-  --set grafana.adminPassword=admin123
-
-# Deploy ELK Stack
-helm repo add elastic https://helm.elastic.co
-helm install elasticsearch elastic/elasticsearch \
-  --namespace logging \
-  --create-namespace \
-  --set replicas=3 \
-  --set volumeClaimTemplate.resources.requests.storage=100Gi
-
-helm install kibana elastic/kibana \
-  --namespace logging \
-  --set replicas=1
-
-# Deploy Vault
-helm repo add hashicorp https://helm.releases.hashicorp.com
-helm install vault hashicorp/vault \
-  --namespace vault \
-  --create-namespace \
-  --set server.dev.enabled=true
-```
-
-### **Step 4: Configure Ingress and Load Balancer**
-
-#### **4.1 Deploy NGINX Ingress Controller**
-```bash
-# AWS EKS
-helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
-helm install ingress-nginx ingress-nginx/ingress-nginx \
-  --namespace ingress-nginx \
-  --create-namespace \
-  --set controller.service.type=LoadBalancer \
-  --set controller.service.annotations."service\.beta\.kubernetes\.io/aws-load-balancer-type"=nlb
-
-# Azure AKS
-helm install ingress-nginx ingress-nginx/ingress-nginx \
-  --namespace ingress-nginx \
-  --create-namespace \
-  --set controller.service.type=LoadBalancer
-
-# Google GKE
-helm install ingress-nginx ingress-nginx/ingress-nginx \
-  --namespace ingress-nginx \
-  --create-namespace \
-  --set controller.service.type=LoadBalancer
-```
-
-#### **4.2 Create Ingress Resource**
-```bash
-kubectl apply -f - <<EOF
-apiVersion: networking.k8s.io/v1
-kind: Ingress
-metadata:
-  name: ai-training-ingress
-  namespace: training-environment
-  annotations:
-    kubernetes.io/ingress.class: nginx
-    cert-manager.io/cluster-issuer: letsencrypt-prod
-    nginx.ingress.kubernetes.io/ssl-redirect: "true"
-    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
-spec:
-  tls:
-  - hosts:
-    - training.example.com
-    secretName: training-tls
-  rules:
-  - host: training.example.com
-    http:
-      paths:
-      - path: /
-        pathType: Prefix
-        backend:
-          service:
-            name: ai-training-service
-            port:
-              number: 80
-EOF
-```
-
-### **Step 5: Configure Monitoring and Logging**
-
-#### **5.1 Setup Prometheus Monitoring**
-```bash
-# Create monitoring configuration
-kubectl apply -f - <<EOF
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: prometheus-config
-  namespace: monitoring
-data:
-  prometheus.yml: |
-    global:
-      scrape_interval: 15s
-    scrape_configs:
-    - job_name: 'ai-training-api'
-      static_configs:
-      - targets: ['ai-training-service.training-environment.svc.cluster.local:80']
-    - job_name: 'kubernetes-pods'
-      kubernetes_sd_configs:
-      - role: pod
-      relabel_configs:
-      - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_scrape]
-        action: keep
-        regex: true
-EOF
-```
-
-#### **5.2 Setup Grafana Dashboards**
-```bash
-# Create Grafana dashboard
-kubectl apply -f - <<EOF
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: grafana-dashboard
-  namespace: monitoring
-data:
-  dashboard.json: |
-    {
-      "dashboard": {
-        "title": "AI Training Environment",
-        "panels": [
-          {
-            "title": "API Requests",
-            "type": "graph",
-            "targets": [
-              {
-                "expr": "rate(http_requests_total[5m])",
-                "legendFormat": "{{method}} {{endpoint}}"
-              }
-            ]
-          }
-        ]
-      }
-    }
-EOF
-```
-
-### **Step 6: Configure Security**
-
-#### **6.1 Setup Network Policies**
-```bash
-kubectl apply -f - <<EOF
-apiVersion: networking.k8s.io/v1
-kind: NetworkPolicy
-metadata:
-  name: ai-training-network-policy
-  namespace: training-environment
-spec:
-  podSelector:
-    matchLabels:
-      app: ai-training-api
-  policyTypes:
-  - Ingress
-  - Egress
-  ingress:
-  - from:
-    - namespaceSelector:
-        matchLabels:
-          name: ingress-nginx
-    ports:
-    - protocol: TCP
-      port: 3001
-  egress:
-  - to:
-    - namespaceSelector:
-        matchLabels:
-          name: training-environment
-    ports:
-    - protocol: TCP
-      port: 5432
-    - protocol: TCP
-      port: 6379
-EOF
-```
-
-#### **6.2 Setup Pod Security Policies**
-```bash
-kubectl apply -f - <<EOF
-apiVersion: policy/v1beta1
-kind: PodSecurityPolicy
-metadata:
-  name: ai-training-psp
-spec:
-  privileged: false
-  allowPrivilegeEscalation: false
-  requiredDropCapabilities:
-    - ALL
-  volumes:
-    - 'configMap'
-    - 'emptyDir'
-    - 'projected'
-    - 'secret'
-    - 'downwardAPI'
-    - 'persistentVolumeClaim'
-  runAsUser:
-    rule: 'MustRunAsNonRoot'
-  seLinux:
-    rule: 'RunAsAny'
-  fsGroup:
-    rule: 'RunAsAny'
-EOF
-```
-
-### **Step 7: Configure Backup and Recovery**
-
-#### **7.1 Setup Velero for Backup**
-```bash
-# Install Velero
-helm repo add vmware-tanzu https://vmware-tanzu.github.io/helm-charts
-helm install velero vmware-tanzu/velero \
-  --namespace velero \
-  --create-namespace \
-  --set configuration.provider=aws \
-  --set configuration.backupStorageLocation.bucket=ai-training-backups \
-  --set configuration.backupStorageLocation.config.region=us-east-1 \
-  --set configuration.volumeSnapshotLocation.config.region=us-east-1
-
-# Create backup schedule
-velero schedule create daily-backup \
-  --schedule="0 2 * * *" \
-  --include-namespaces training-environment \
-  --ttl 30d
-```
-
-#### **7.2 Setup Database Backup**
-```bash
-# Create database backup job
-kubectl apply -f - <<EOF
-apiVersion: batch/v1
-kind: CronJob
-metadata:
-  name: postgres-backup
-  namespace: training-environment
-spec:
-  schedule: "0 2 * * *"
-  jobTemplate:
-    spec:
-      template:
-        spec:
-          containers:
-          - name: postgres-backup
-            image: postgres:13
-            command:
-            - /bin/bash
-            - -c
-            - |
-              pg_dump -h postgresql.training-environment.svc.cluster.local -U postgres contract_management_production > /backup/backup-$(date +%Y%m%d).sql
-              aws s3 cp /backup/backup-$(date +%Y%m%d).sql s3://ai-training-backups/database/
-            env:
-            - name: PGPASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: database-secret
-                  key: password
-            volumeMounts:
-            - name: backup-storage
-              mountPath: /backup
-          volumes:
-          - name: backup-storage
-            emptyDir: {}
-          restartPolicy: OnFailure
-EOF
-```
-
-### **Step 8: Verify Deployment**
-
-#### **8.1 Check Pod Status**
-```bash
-kubectl get pods -n training-environment
-kubectl get services -n training-environment
-kubectl get ingress -n training-environment
-```
-
-#### **8.2 Run Health Checks**
-```bash
-# Get load balancer URL
-kubectl get ingress ai-training-ingress -n training-environment
-
-# Test API endpoints
-curl https://training.example.com/health
-curl https://training.example.com/api/training/jobs
-```
-
-#### **8.3 Check Monitoring**
-```bash
-# Access Grafana
-kubectl port-forward svc/prometheus-grafana 3000:80 -n monitoring
-
-# Access Kibana
-kubectl port-forward svc/kibana-kb 5601:5601 -n logging
-```
-
-## 🔧 **Configuration Management**
-
-### **Environment Variables**
-```bash
-# Production configuration
-export NODE_ENV=production
-export TEE_MODE=cloud
-export CLOUD_PROVIDER=aws
-export AWS_REGION=us-east-1
-export DB_HOST=postgresql.training-environment.svc.cluster.local
-export REDIS_HOST=redis.training-environment.svc.cluster.local
-export MONITORING_ENABLED=true
-export PRIVACY_ENABLED=true
-export PROVENANCE_ENABLED=true
-```
-
-### **Secrets Management**
-```bash
-# Store secrets in Vault
-vault kv put secret/ai-training/database \
-  host=postgresql.training-environment.svc.cluster.local \
-  password=your-db-password
-
-vault kv put secret/ai-training/redis \
-  password=your-redis-password
-
-vault kv put secret/ai-training/encryption \
-  encryption-key=your-encryption-key
-```
-
-## 📊 **Monitoring and Alerting**
-
-### **Key Metrics to Monitor**
-- **API Performance**: Response time, throughput, error rate
-- **Resource Usage**: CPU, memory, disk, network
-- **Training Jobs**: Success rate, duration, resource consumption
-- **Security**: Authentication failures, unauthorized access
-- **Compliance**: Privacy budget usage, audit log completeness
-
-### **Alert Rules**
-```yaml
-# Prometheus alert rules
-groups:
-- name: ai-training-alerts
-  rules:
-  - alert: HighErrorRate
-    expr: rate(http_requests_total{status=~"5.."}[5m]) > 0.1
-    for: 5m
-    labels:
-      severity: critical
-    annotations:
-      summary: "High error rate detected"
-  
-  - alert: HighCPUUsage
-    expr: cpu_usage_percent > 80
-    for: 5m
-    labels:
-      severity: warning
-    annotations:
-      summary: "High CPU usage detected"
-```
-
-## 🔒 **Security Best Practices**
-
-### **Network Security**
-- Use network policies to restrict traffic
-- Enable TLS for all communications
-- Use service mesh for advanced traffic management
-- Implement rate limiting and DDoS protection
-
-### **Data Security**
-- Encrypt data at rest and in transit
-- Use proper key management
-- Implement data anonymization
-- Regular security audits
-
-### **Access Control**
-- Use RBAC for Kubernetes resources
-- Implement least privilege access
-- Regular access reviews
-- Multi-factor authentication
-
-## 🚀 **Scaling and Performance**
-
-### **Horizontal Pod Autoscaling**
-```yaml
-apiVersion: autoscaling/v2
-kind: HorizontalPodAutoscaler
-metadata:
-  name: ai-training-api-hpa
-  namespace: training-environment
-spec:
-  scaleTargetRef:
-    apiVersion: apps/v1
-    kind: Deployment
-    name: ai-training-api
-  minReplicas: 3
-  maxReplicas: 10
-  metrics:
-  - type: Resource
-    resource:
-      name: cpu
-      target:
-        type: Utilization
-        averageUtilization: 70
-  - type: Resource
-    resource:
-      name: memory
-      target:
-        type: Utilization
-        averageUtilization: 80
-```
-
-### **Vertical Pod Autoscaling**
-```yaml
-apiVersion: autoscaling.k8s.io/v1
-kind: VerticalPodAutoscaler
-metadata:
-  name: ai-training-api-vpa
-  namespace: training-environment
-spec:
-  targetRef:
-    apiVersion: apps/v1
-    kind: Deployment
-    name: ai-training-api
-  updatePolicy:
-    updateMode: "Auto"
-```
-
-## 📋 **Maintenance and Updates**
-
-### **Rolling Updates**
-```bash
-# Update deployment
-kubectl set image deployment/ai-training-api \
-  ai-training-api=123456789012.dkr.ecr.us-east-1.amazonaws.com/ai-training:v2.0.0 \
-  -n training-environment
-
-# Check rollout status
-kubectl rollout status deployment/ai-training-api -n training-environment
-
-# Rollback if needed
-kubectl rollout undo deployment/ai-training-api -n training-environment
-```
-
-### **Database Migrations**
-```bash
-# Run database migrations
-kubectl run migration-job \
-  --image=123456789012.dkr.ecr.us-east-1.amazonaws.com/ai-training:latest \
-  --env="NODE_ENV=production" \
-  --command -- npm run migrate:up \
-  -n training-environment
-```
-
-## 🎯 **Production Checklist**
-
-### **Pre-Deployment**
-- [ ] Kubernetes cluster configured
-- [ ] Container registry setup
-- [ ] Secrets and configuration ready
-- [ ] Monitoring and logging configured
-- [ ] Backup strategy implemented
-- [ ] Security policies applied
-- [ ] Load balancer configured
-- [ ] SSL certificates installed
-
-### **Post-Deployment**
-- [ ] All pods running
-- [ ] Services accessible
-- [ ] Health checks passing
-- [ ] Monitoring working
-- [ ] Logs flowing
-- [ ] Alerts configured
-- [ ] Backup tested
-- [ ] Performance validated
-
-## 🆘 **Troubleshooting**
-
-### **Common Issues**
-1. **Pods not starting**: Check resource limits and secrets
-2. **Services not accessible**: Verify ingress and network policies
-3. **Database connection issues**: Check secrets and network connectivity
-4. **High resource usage**: Review resource limits and scaling policies
-5. **Security issues**: Verify RBAC and network policies
-
-### **Debug Commands**
-```bash
-# Check pod logs
-kubectl logs -f deployment/ai-training-api -n training-environment
-
-# Check pod status
-kubectl describe pod <pod-name> -n training-environment
-
-# Check service endpoints
-kubectl get endpoints -n training-environment
-
-# Check ingress status
-kubectl describe ingress ai-training-ingress -n training-environment
-```
-
-## 📚 **Additional Resources**
-
-- **Kubernetes Documentation**: https://kubernetes.io/docs/
-- **Helm Charts**: https://helm.sh/docs/
-- **Prometheus Monitoring**: https://prometheus.io/docs/
-- **Grafana Dashboards**: https://grafana.com/docs/
-- **ELK Stack**: https://www.elastic.co/guide/
-- **Vault Documentation**: https://www.vaultproject.io/docs/
-
----
-
-**Production Deployment Status**: ✅ **READY**  
-**Security Level**: ✅ **ENTERPRISE-GRADE**  
-**Scalability**: ✅ **AUTO-SCALING**  
-**Monitoring**: ✅ **COMPREHENSIVE**  
-**Backup**: ✅ **AUTOMATED**
+Product behavior for datasets, models, and the clean room is [Datasets, models, and the clean room](../USER_GUIDE.md#datasets-models-and-the-clean-room).

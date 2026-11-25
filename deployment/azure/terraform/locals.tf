@@ -59,6 +59,15 @@ locals {
   )
 }
 
+resource "terraform_data" "keycloak_admin_password_guard" {
+  lifecycle {
+    precondition {
+      condition     = var.identity_mode != "keycloak" || length(var.keycloak_admin_password) > 0
+      error_message = "identity_mode=keycloak requires keycloak_admin_password."
+    }
+  }
+}
+
 resource "terraform_data" "production_image_tag_guard" {
   lifecycle {
     precondition {

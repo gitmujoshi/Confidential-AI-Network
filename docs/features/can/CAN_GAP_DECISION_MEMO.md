@@ -7,13 +7,26 @@ Scope: Align this codebase with the “Confidential AI Network — Detailed Desi
 This memo locks the **non‑negotiable requirements** from the CAN design doc and defines a **phased implementation plan** that coexists with the current Contract Management System (Keycloak + portal workflows + platform encryption) to minimize risk.
 
 ## Current State (Summary)
-This repo currently provides:
-- Keycloak-based authentication for human users (TDP/TDC/CCRP/AppAdmin) and portal workflows.
-- Platform-managed encryption and JWT-based access tokens (`backend/services/platformEncryptionService.js`, `backend/services/enhancedJWTService.js`).
-- TEE provisioning/attestation concepts implemented as application services and local/docker simulation (`backend/services/teeAttestationService.js`, `backend/services/localTEEProvider.js`, `backend/routes/multi-cloud-tee.js`).
-- Provenance/ledger integrations (SCITT CCF / Merkle provenance) as part of contract/training features.
 
-The CAN design doc requires a different trust model in key areas (principal-owned keys, attested key delivery, escrow gating, etc.). Therefore we will implement a **parallel CAN path** rather than retrofit the current platform encryption workflow.
+Updated 2026-11-24. The parallel CAN path is in the repo. Portal encryption is still a separate path.
+
+Shipped on the CAN path:
+
+- Job, clean-room session, escrow deadline, and the both-owner barrier. One data-key time and one model-key time. Training stays blocked until both are recorded.
+- The Key Orchestrator calls each dataset owner's broker and the model publisher's broker. The caller passes `owners`. The catalog key id and contract `kmsConfigs` do not select a broker. The tech service provider hosts the session and does not hold either key.
+- Local broker `MockOwnerKbs` seals to `pk_ccr` with HPKE, signs a receipt, and issues a one-minute lease. The HPKE private key stays in the API process. The attestation bundle stays simulated until a verified SEV-SNP guest report is stored. `CAN_KEY_RELEASE_PROFILE=production` refuses the mock.
+- `azure-skr`, Trustee, Confidential Space, and Nitro call their endpoints after the quote check and return ciphertext. They fail closed when the endpoint or quote is missing. `azure-skr` is off unless `CAN_PRINCIPAL_KEY_MODE=azure-skr`.
+- `attested-tls` accepts an HPKE-wrapped key only after `verifySevSnpQuote` succeeds. That private key is not inside a hardware TEE.
+- Release policy refuses a revoked or expired contract, a replayed nonce, an unbound report, and an exhausted budget.
+- SCITT stores the release receipt only when the ledger is enabled.
+
+Still the target, not the local default:
+
+- A hardware TEE that holds `sk_ccr` and decrypts the dataset and the model only inside that guest.
+- Machine principals that authenticate without Keycloak. CAN calls still use `X-CAN-Principal-Id`.
+- No-egress network enforcement for the clean room.
+
+The portal still has Keycloak, platform-managed encryption, and local Docker training. Those paths do not call the orchestrator. The operator guide is [Datasets, models, and the clean room](../../USER_GUIDE.md#datasets-models-and-the-clean-room).
 
 ## Non‑Negotiables (v1)
 These MUST be true for CAN jobs in production.
@@ -57,7 +70,9 @@ Deliverables:
 Exit criteria:
 - A CAN job can be created and transitions through escrow states in a deterministic way (even with simulated attestation + simulated CCR).
 
-### Phase 1 — CAN MVP vertical slice (local/simulated)
+### Phase 1 — CAN MVP vertical slice (local/simulated) — shipped
+
+The job, the session, the simulated attestation, the DEK and MEK signals, release, expiry, and provenance events are in the API. The orchestrator, the owner-broker SDK, HPKE, leases, and signed receipts are also in this phase's local path. A hardware guest quote is not.
 Deliverables:
 - JCS endpoints:
   - Create job (escrow OPEN, deadline set)
@@ -73,7 +88,9 @@ Exit criteria:
 - End-to-end demo: create job → attestation ready → DEK/MEK released → job runs → completes → destroyed.
 - Expiry demo: create job → no key release → EXPIRED → CCR destroyed.
 
-### Phase 2 — Replace key custody for CAN jobs (real)
+### Phase 2 — Replace key custody for CAN jobs (real) — partial
+
+`azure-skr` returns an encrypted Key Vault blob after an Azure Attestation JWT verifies. Trustee, Confidential Space, and Nitro fail closed without their endpoint or quote. `attested-tls` requires a verified SEV-SNP quote and an `hpke1.` wrapped key. The clean-room private key is still in the API process, and the default attestation bundle is still simulated. Delivery into a hardware TEE remains the exit criterion below.
 Deliverables:
 - Remove any platform-generated DEK/MEK behavior from the CAN path.
 - Implement principal-facing key delivery endpoint in CCR and validation logic for attested TLS binding.

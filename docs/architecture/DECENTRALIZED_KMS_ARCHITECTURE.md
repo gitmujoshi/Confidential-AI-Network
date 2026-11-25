@@ -2,7 +2,9 @@
 
 **Version:** 1.0.0  
 **Last Updated:** December 2024  
-**Status:** Production Ready
+**Status:** Earlier design. Not the running key-release path.
+
+> Current release is the [Key Orchestrator](../USER_GUIDE.md#datasets-models-and-the-clean-room). A dataset owner holds the data key and a model publisher holds the model key. Each calls their own Key Broker. The tech service provider hosts the clean-room session and does not hold those keys. Local and dev use `MockOwnerKbs`. A production profile refuses that mock. Azure Secure Key Release returns an encrypted blob only when `CAN_PRINCIPAL_KEY_MODE=azure-skr` and an Azure Attestation token verifies. The sample tenant vault URLs below are illustrations from this 2024 note. They are not configured brokers.
 
 ## 🎯 Overview
 

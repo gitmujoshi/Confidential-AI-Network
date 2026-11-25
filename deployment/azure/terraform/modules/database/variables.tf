@@ -38,3 +38,9 @@ variable "storage_mb" {
 variable "project_tags" {
   type = map(string)
 }
+
+variable "create_keycloak_database" {
+  description = "Create a second database named keycloak on this server."
+  type        = bool
+  default     = false
+}

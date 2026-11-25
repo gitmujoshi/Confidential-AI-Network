@@ -104,7 +104,12 @@ function buildDockerRunArgs({ jobId, contractId, maxEpochs, image, outDir, input
   }
 
   appendHfCacheDockerArgs(args);
-  args.push('-v', `${outDir}:/outputs`, '-v', `${inputsDir}:/inputs:ro`, image);
+  args.push('-v', `${outDir}:/outputs`, '-v', `${inputsDir}:/inputs:ro`);
+  if (trainingParams && trainingParams.guestDecrypt) {
+    args.push('-e', 'GUEST_DECRYPT=1', image, 'python', '/app/guest_entry.py');
+  } else {
+    args.push(image);
+  }
   return args;
 }
 

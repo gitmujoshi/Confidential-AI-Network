@@ -1,6 +1,10 @@
 #!/bin/bash
 
 
+echo "This script is the older training-environment sketch. It does not deploy Confidential AI Network."
+echo "Follow docs/production/PRODUCTION_DEPLOYMENT_GUIDE.md and docs/deployment/README.md."
+exit 1
+
 source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/../lib/common.sh"
 resolve_repo_root
 # Quick Production Deployment Script

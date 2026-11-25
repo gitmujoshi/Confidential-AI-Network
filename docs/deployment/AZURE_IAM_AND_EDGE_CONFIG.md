@@ -2,7 +2,7 @@
 
 **Implementation reference** for Entra ID groups, RBAC assignments, Front Door, API Management, Application Gateway, WAF rules, and **application crypto API surfaces** (signing keys, DEK/MEK escrow, CCRP). Use alongside [Azure Security Architecture](../production/AZURE_SECURITY_ARCHITECTURE.md) (§16 E2E crypto flows) for design context, and [Azure Features & Configuration](AZURE_FEATURES_AND_CONFIGURATION.md) for the full env-var / settings catalog.
 
-**Identity:** On Azure, **Microsoft Entra ID** is the only IdP (SSO + JWT + app roles). **Keycloak is local docker-compose / Playwright only** — do not provision Keycloak app registrations, namespaces, or hostnames in Azure.
+**Identity:** The AKS default is **Microsoft Entra ID** (SSO + JWT + app roles). Set `identity_mode = "keycloak"` to run Keycloak in the cluster namespace with its database on Azure Database for PostgreSQL. `./deployment/deploy-azure.sh vm -y` runs the local Keycloak and Postgres containers on one VM. This page describes the Entra groups, edge, and app registrations for the default path.
 
 ---
 

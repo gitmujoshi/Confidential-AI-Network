@@ -1,3 +1,4 @@
+const path = require('path');
 const db = require('../models');
 const { runLocalDockerTraining } = require('../../training/localDockerTrainingRunner');
 const { buildCanTrainingJobInputs } = require('../../training/contractTrainingInputsService');
@@ -76,6 +77,45 @@ async function simulateTraining({ trainingJobId, contractId }) {
 }
 
 class CANLocalCcrpExecutor {
+  constructor({ jcs } = {}) {
+    this.jcs = jcs;
+  }
+
+  async _deliverGuestKeys({ canJobId, trainingJobId, outDir, inputsDir, inputs }) {
+    const { spawn } = require('child_process');
+    const { buildGuestOwners, waitForGuestPublicKey, writeSealedRelease } = require('./guestRelease');
+    const { dockerContainerNameForJob } = require('../../training/localDockerTrainingRunner');
+    const stop = () => {
+      spawn('docker', ['stop', '-t', '1', dockerContainerNameForJob(trainingJobId)], { stdio: 'ignore' });
+    };
+    try {
+      const owners = buildGuestOwners(inputs, {
+        keyDir: process.env.CAN_GUEST_KEY_DIR,
+        datasetEndpoint: process.env.CAN_DATASET_KBS_URL,
+        modelEndpoint: process.env.CAN_MODEL_KBS_URL,
+      });
+      if (!this.jcs || owners.length === 0) {
+        const err = new Error('No owner broker has a key for this guest. Training was not started.');
+        err.code = 'GUEST_KEY_MISSING';
+        err.statusCode = 409;
+        throw err;
+      }
+      const guestPublicKey = await waitForGuestPublicKey(outDir);
+      const delivered = await this.jcs.releaseToGuest(canJobId, {
+        guestPublicKey,
+        owners,
+        contract: inputs && inputs.contract,
+      });
+      writeSealedRelease(inputsDir, delivered.releases);
+      delivered.releases.forEach((item) => {
+        item.wrappedKey = null;
+      });
+    } catch (error) {
+      stop();
+      throw error;
+    }
+  }
+
   async run({ canJobId, contractId, trainingJobId }) {
     const mode = (process.env.CAN_LOCAL_TRAINING_MODE || 'simulate').toLowerCase();
     const inputs = await buildCanTrainingJobInputs(String(contractId));
@@ -115,12 +155,27 @@ class CANLocalCcrpExecutor {
         inputs: stagedInputs,
       });
 
-      return runLocalDockerTraining({
+      const guestDecrypt = String(process.env.CAN_GUEST_DECRYPT || '').toLowerCase() === 'true';
+      const trainingParams = {
+        ...(stagedInputs?.contract?.trainingParams || { maxEpochs }),
+        guestDecrypt,
+      };
+      const started = await runLocalDockerTraining({
         jobId: trainingJobId,
         contractId: String(contractId),
         containerSpec: { image: process.env.LOCAL_TRAINING_IMAGE || undefined },
-        trainingParams: stagedInputs?.contract?.trainingParams || { maxEpochs },
+        trainingParams,
       });
+      if (guestDecrypt) {
+        await this._deliverGuestKeys({
+          canJobId,
+          trainingJobId,
+          outDir: started.outDir,
+          inputsDir: path.join(started.runDir, 'inputs'),
+          inputs: stagedInputs,
+        });
+      }
+      return started;
     }
 
     return simulateTraining({ trainingJobId, contractId });

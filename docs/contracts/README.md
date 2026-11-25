@@ -16,7 +16,7 @@ This folder contains all contract-related documentation, examples, and implement
 - **`AITrainingRicardianContract.sol`** - Solidity smart contract for AI training with Ricardian pattern
 
 ### Azure Confidential Computing Integration
-- **`azure_confidential_computing_integration.md`** - Complete guide for integrating Azure Confidential Computing with third-party KMS
+- **`azure_confidential_computing_integration.md`** - Earlier sketch for Azure confidential computing and third-party KMS. The running release path is the [Key Orchestrator](../USER_GUIDE.md#datasets-models-and-the-clean-room).
 - **`azure-confidential-computing-setup.sh`** - Deployment script for Azure Confidential Computing environment
 
 ### KMS Provider Implementation

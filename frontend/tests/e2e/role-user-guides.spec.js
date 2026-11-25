@@ -605,8 +605,8 @@ test.describe('Role user guides (screenshot tours)', () => {
 
   test('Write role guides index', async () => {
     // Ensure index lists all roles even if a prior file run partially completed.
-    const roles = ['TDC', 'TDP', 'TSP', 'AppAdmin'];
+    const roles = ['TDC', 'TDP', 'TSP', 'AppAdmin', 'Auditor'];
     writeIndex(roles);
-    expect(roles.length).toBe(4);
+    expect(roles.length).toBe(5);
   });
 });

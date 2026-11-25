@@ -46,3 +46,5 @@ The caller builds `owners` from the contract. The SDK does not read the dataset 
 * The clean-room session is not an owner. `pkCcr` is that session's public key, the key each broker wraps to.
 
 `encryption_key_id`, `attestation_policy`, and contract `kmsConfigs` are stored references. They are not `endpoint`. `endpoint` is `mock` for this local broker, or the owner process that serves `/nonce`, `/release`, and `/lease`. The job records one DEK time and one MEK time, and only after every owner in the request has returned a wrapped key.
+
+`CANJcsService.releaseToGuest` passes the public key generated inside the training container as `pkCcr`. The API does not open that wrap. `MockOwnerKbs.holdKey` is how a local file becomes the sealed key. With no held key, `wrappedKey` is null and the guest job fails closed. The container that opens the seal is documented in the [user guide](../../docs/USER_GUIDE.md#local-guest-in-the-training-container). It is not a hardware TEE.

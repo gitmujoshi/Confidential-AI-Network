@@ -28,6 +28,7 @@ This document **unifies** material previously spread across user guides, flow sp
 | **TDC** | Training Data Consumer — creates contracts; supplies base models; receives trained outputs |
 | **TSP / CCRP** | Tech Service Provider / Confidential Clean Room Provider — hosts isolated training (TEE, private cloud, or local Docker). UI/docs often say **CCRP**; DB/`partyType` use **TSP** (`ccrp_*` columns map to `tsp*`) |
 | **AppAdmin** | Platform administrator — users, health, configuration |
+| **Auditor** | Read-only reviewer — every contract, the sealed Merkle audit tree, and a provenance tombstone kept in this database |
 
 ### 1.2 Two execution paths (do not mix casually)
 
@@ -36,7 +37,7 @@ This document **unifies** material previously spread across user guides, flow sp
 | **Portal / CMS** | `/api/*` + Keycloak UI | Human SSO; optional **platform-managed** encryption; local Docker training | Stakeholder demos, day-to-day portal |
 | **CAN / JCS** | `/api/can/jcs/*`, `/api/can/ccr/*` | **Principal-owned** DEK/MEK; escrow gating; attested key delivery (**target**) | Confidential clean-room job coordination |
 
-CAN Phase 1 MVP uses **key-release signals** and **simulated attestation**. Real attested TLS key delivery is Phase 2 ([CAN_GAP_DECISION_MEMO.md](../features/can/CAN_GAP_DECISION_MEMO.md)).
+The CAN path records one data-key time and one model-key time. The Key Orchestrator asks each dataset owner's broker and the model publisher's broker. Locally that broker is the mock, the attestation bundle is simulated, and the HPKE private key stays in the API process. Azure Secure Key Release and attested TLS into a hardware TEE stay off unless selected ([CAN_GAP_DECISION_MEMO.md](../features/can/CAN_GAP_DECISION_MEMO.md)).
 
 ### 1.3 End-to-end at a glance
 
@@ -79,8 +80,8 @@ flowchart LR
 | Contract signing | ECDSA-P256 / RSA UserKey; private key on UserKey row (Vault custody = target) | Party | Implemented (portal path) | Same for legal signatures |
 | Dataset encryption | **DEK** (AES-256-GCM) | TDP / data principal | Platform encryption **or** design: TDP-local | Principal-owned only |
 | Model encryption | **MEK** | TDC / model owner | Partial / platform path | Principal-owned only |
-| Clean-room session | Ephemeral TLS keypair in TEE | CCR only | N/A (local Docker) | Phase 2 |
-| Job escrow | DEK/MEK release **signals** | JCS records events | N/A | MVP signals; no key bytes to Node |
+| Clean-room session | One-run `sk_ccr` / `pk_ccr` | The session. The TSP hosts it | HPKE key in the API process. Report stays simulated | Hardware TEE holds `sk_ccr` |
+| Job escrow | DEK from each dataset owner, MEK from the model publisher | Owner brokers. The job stores the release time | Orchestrator and mock broker shipped. Caller passes `owners` | Same barrier. Quote verified before release |
 | Ledger | Signature + SCITT claim/receipt | Parties + SCITT CCF | Implemented when SCITT enabled | Provenance events on job lifecycle |
 | Cleanup | Session destroy + key zeroize | TSP / sweeper | Env status DESTROYED | Escrow expiry → DESTROYED |
 
@@ -108,13 +109,13 @@ flowchart LR
 ### 3.2 Human registration (all roles)
 
 **UI:** `/register` — name, email, party type (**TDP / TDC / TSP** only), organization, **Signing algorithm** (party signing key).  
-**API:** `POST /api/auth/register` — also accepts `AppAdmin`; accepts legacy `CCRP` and normalizes to `TSP`. Optional body `signingAlgorithm` (`ECDSA-P256` \| `RSA-2048` \| `RSA-4096`).
+**API:** `POST /api/auth/register` — also accepts `AppAdmin` and `Auditor`; accepts legacy `CCRP` and normalizes to `TSP`. Optional body `signingAlgorithm` (`ECDSA-P256` \| `RSA-2048` \| `RSA-4096`).
 
 | Attribute | Required | Notes |
 |-----------|----------|-------|
 | `name` | **Yes** | Display name |
 | `email` | **Yes** | Unique; becomes Keycloak username |
-| `partyType` | **Yes** | Canonical: `TDP` \| `TDC` \| `TSP` \| `AppAdmin`. API alias: `CCRP` → `TSP` |
+| `partyType` | **Yes** | Canonical: `TDP` \| `TDC` \| `TSP` \| `AppAdmin` \| `Auditor`. API alias: `CCRP` → `TSP`. `Auditor` is not on the public form |
 | `password` | Optional at register | Temp password often issued; **first-login change** expected |
 | `organization` | Recommended | Enterprise context |
 | `signingAlgorithm` | Recommended for TDP/TDC/TSP | Defaults to `ECDSA-P256`; creates active `UserKey` in the same transaction |
@@ -398,6 +399,8 @@ A data owner is not on the model-key path, and the model owner is not on a data-
 
 An Azure owner presents an Azure Attestation token from that owner's broker. `POST .../azure-key-release` records the encrypted Key Vault blob when `CAN_PRINCIPAL_KEY_MODE=azure-skr`. The API does not decrypt it. Portal **Start training** does not open this job.
 
+`CAN_GUEST_DECRYPT=true` with `CAN_LOCAL_TRAINING_MODE=docker` moves `sk_ccr` into the training container. The container publishes `pk_ccr`, the API drops its private key, and the brokers seal to the guest. The guest decrypts `CANSEAL1` files in container memory and then runs `train.py`. The report stays simulated. This container is not a hardware TEE. Plaintext inputs and a mock broker with no key file fail the job. Rebuild `contractmanagement/local-trainer:latest` so the image contains `guest_entry.py`. The walk is in the [user guide](../USER_GUIDE.md#local-guest-in-the-training-container).
+
 The same explanation is in the [user guide](../USER_GUIDE.md#datasets-models-and-the-clean-room).
 
 ### 9.3 Target clean-room decrypt-and-train sequence
@@ -551,6 +554,16 @@ Use this as a single run sheet. Mark **Portal** vs **CAN** where noted.
 - [ ] CCR / local env destroyed
 - [ ] Audit / provenance queryable by contract or job ID
 
+### Phase 7 — Auditor
+
+- [ ] Auditor signs in at `/auditor/dashboard`
+- [ ] Open **Audit tree** for the contract. A completed training job seals the root on this read when no root exists yet
+- [ ] **Verify** one leaf. The calculated root matches the published root
+- [ ] Open the Ricardian contract from the tree
+- [ ] A database edit after the seal still leaves the published root in place. The verify result says whether the current row matches the sealed leaf
+
+The screen walk is the [Auditor user guide](role-user-guides/AUDITOR_USER_GUIDE.md).
+
 ---
 
 ## 14. Implementation maturity matrix
@@ -558,6 +571,7 @@ Use this as a single run sheet. Mark **Portal** vs **CAN** where noted.
 | Capability | Maturity |
 |------------|----------|
 | Keycloak registration + roles | **Shipped** |
+| Auditor Merkle review | **Shipped**. Read-only workspace, sealed `CONTRACT_AUDIT` root, leaf verify, in-database tombstone. See the [Auditor user guide](role-user-guides/AUDITOR_USER_GUIDE.md) |
 | DEPA IDs on parties/entities | **Shipped** |
 | Optional DID on user | **Shipped** |
 | Signing keys + Ricardian multi-party sign | **Shipped** |
@@ -597,6 +611,7 @@ Use this as a single run sheet. Mark **Portal** vs **CAN** where noted.
 | Key management design | [security/KEY_MANAGEMENT_DESIGN.md](../security/KEY_MANAGEMENT_DESIGN.md) |
 | Multi-tenant KMS | [architecture/MULTI_TENANT_KMS_ARCHITECTURE.md](../architecture/MULTI_TENANT_KMS_ARCHITECTURE.md) |
 | User guide | [USER_GUIDE.md](../USER_GUIDE.md) |
+| Auditor review | [guides/role-user-guides/AUDITOR_USER_GUIDE.md](role-user-guides/AUDITOR_USER_GUIDE.md) |
 | Architecture hub | [ARCHITECTURE.md](../ARCHITECTURE.md) |
 | Glossary | [GLOSSARY.md](../GLOSSARY.md) |
 

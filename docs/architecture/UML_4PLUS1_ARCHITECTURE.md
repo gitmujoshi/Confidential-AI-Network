@@ -22,7 +22,7 @@ Kruchten [4+1](https://en.wikipedia.org/wiki/4%2B1_architectural_view_model) for
 | **Design** | Specified target; not yet mounted or not yet deployed |
 | **Legacy** | Retained for compatibility |
 
-**Identity:** Local = Keycloak (`AUTH_PROVIDER=keycloak`, HTTPS `:8443`). Azure = Microsoft Entra. OCI = IAM Identity Domains. Keycloak is local-only.
+**Identity:** Local = Keycloak (`AUTH_PROVIDER=keycloak`, HTTPS `:8443`), including one Azure VM that runs `./start-system.sh`. Azure AKS defaults to Microsoft Entra and can select Keycloak with `identity_mode=keycloak`. OCI = IAM Identity Domains.
 
 **Roles:** `TDP` | `TDC` | `TSP` | `AppAdmin` | `Auditor`. `CCRP` aliases `TSP` (`/api/ccrp` → TSP router; `/ccrp/*` → `/tsp/*`).
 
@@ -279,14 +279,32 @@ sequenceDiagram
     participant API
     participant Tree as auditorAuditTreeService
 
+    Aud->>API: GET /api/auditor/contracts
+    API-->>Aud: every contract
     Aud->>API: GET /api/auditor/contracts/:id/audit-tree
-    API->>Tree: build leaves from contract / jobs / claims / models
-    Tree-->>Aud: root + leaves
+    API->>Tree: leaves from contract, jobs, SCITT claims, models
+    alt completed job and no CONTRACT_AUDIT root
+        Tree->>Tree: seal root once in merkle_trees
+    end
+    Tree-->>Aud: published root, proofs, currentRecordMatches
     Aud->>API: POST /api/auditor/verify-proof
-    Note over API: leaf inclusion under published root
+    Note over API: stored proof against the saved root
+    API-->>Aud: leaf, both roots, verifiedAt, currentRecordMatches
+    Aud->>API: GET /api/auditor/contracts/:id
+    API-->>Aud: Ricardian contract, read-only
 ```
 
-Auditor APIs: `/api/auditor/*`. Legacy `/api/provenance` is unmounted.
+Order of work:
+
+1. An operator registers `partyType` `Auditor`. The public form does not list that role.
+2. `/auditor/dashboard` lists every contract.
+3. The audit-tree read builds four kinds of leaf: `contract`, `training_job`, `scitt_claim`, `ai_model`.
+4. The first review after a job is `COMPLETED`, or a model registration, writes one `CONTRACT_AUDIT` root. A later edit does not replace it.
+5. **Verify** checks one stored inclusion proof against that root and reports whether the live row still matches the sealed leaf.
+6. The contract page is the Ricardian record. This role does not sign or start training.
+7. `POST /api/auditor/provenance/:id/tombstone` keeps the leaf and stores the reason in this database.
+
+Auditor APIs: `/api/auditor/*`. Legacy `/api/provenance` is unmounted. The screen walk is the [Auditor user guide](../guides/role-user-guides/AUDITOR_USER_GUIDE.md).
 
 ### 2.3 Clean room: dataset owners, model owner, session, brokers
 
@@ -340,6 +358,8 @@ Order of work:
 6. After the deadline the job is `EXPIRED` or `CANCELLED` and the session is destroyed. A later release is refused.
 
 `POST .../key-released` is the older direct signal. The dataset owner and the model owner each wrap a key to `tlsPublicKey`. The same two timestamps move the job. Portal **Start training** does not use either call.
+
+When `CAN_GUEST_DECRYPT=true` and the CAN executor is in docker mode, the training container generates `sk_ccr` and publishes `pk_ccr`. `releaseToGuest` drops the API private key, asks the same brokers to seal to that guest public key, and writes the sealed keys onto the container input mount. The guest opens them, decrypts `CANSEAL1` files in container memory, and then runs `train.py`. `reportFormat` stays `SIMULATED`. The container is not a hardware TEE.
 
 ### 2.4 Escrow and session states
 
@@ -562,9 +582,11 @@ SPIFFE/SPIRE covers workload identity. The Key Orchestrator asks dataset brokers
 
 ### S4 — Auditor inclusion proof
 
-1. Open `/auditor/contracts/:id/audit-tree`.
-2. `POST /api/auditor/verify-proof` against the published root.
-3. Confirms leaf inclusion (lineage), not semantic model evaluation.
+1. Sign in as Auditor and open `/auditor/dashboard`.
+2. Open `/auditor/contracts/:id/audit-tree`. A completed training job seals one `CONTRACT_AUDIT` root when none exists.
+3. `POST /api/auditor/verify-proof` checks one leaf under that saved root and reports `currentRecordMatches`.
+4. Open the Ricardian contract from the tree. The auditor does not sign or start training.
+5. The proof confirms the sealed leaf is under the published root. It does not score the model.
 
 ### S5 — Dataset, model, and clean-room key release
 
